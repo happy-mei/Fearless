@@ -1,4 +1,5 @@
 interface FearlessBool {
+  // in reality, optimise this whole class away
   interface Bool {
   Bool and(Bool b);
   Bool or(Bool b);
