@@ -1,0 +1,39 @@
+//the type mut UBox[read E] not well formed, it is thus demoted to read UBox[read E]
+//calling a method on a mdf Store[E] that returns a mut::E
+//returns a E!mdf::E, for mdf=mut E!mut::E == mut::E
+
+UBox[E]:Convertible,Stores[E]{
+  read * : this::E, //Ref[mut::E]*() : this::E ==E!mut::E == mut::E
+  mut .swap(e: E): E
+}
+ 
+UBox:{
+  #[E](e:E): mut UBox[E] ->Let#{
+    .var  -> Ref#(e),
+    .in(r)-> {//mut UBox[E]
+      *->r*,
+      .swap(e)->r.swap(e) 
+      }
+    }
+  }
+-----------------
+//CRUCIAL TS consideration
+//.swap: it is a mut method, so if it is ever executable on a E!mut object type,
+//then E was not read, so we can capture it as if E was not allowed to be Read
+//It can be imm or mut
+
+1 imm imm      UBox#(5) : mut UBox[imm Num] -promote-> imm UBox[imm Num]
+2 read imm     UBox#(5) : read UBox[imm Num]
+3 mut imm      UBox#(5) : mut UBox[imm Num]
+
+//NO imm read == imm imm c1 
+//  UBox#[read UBox[imm Num]](UBox#(5)) : imm UBox[read UBox[imm Num]]
+4 read read    UBox#(myReadUBox) : read UBox[read UBox[imm Num]]
+//NO mut read
+//  UBox#[read UBox[imm Num]](UBox#(5)) : mut UBox[read UBox[imm Num]] //ill typed
+
+//NO imm mut ==imm imm c2
+//  UBox#[mut UBox[imm Num]](UBox#(5)) : imm UBox[mut UBox[imm Num]]
+//NO read mut == read read c3
+//  UBox#[mut UBox[imm Num]](UBox#(5)) : read UBox[mut UBox[imm Num]]
+5 mut mut    UBox#(UBox#(5)) : mut UBox[mut UBox[imm Num]]

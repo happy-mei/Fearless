@@ -1,0 +1,13 @@
+Info:Sealed{ .info:Str, .map:Map[String,Info], .list:List[Info] }
+
+Try:{   #[R](tc:TryCatch[R]):R  }
+
+TryCatch[R]:{
+  .try:R,
+  .catch(i:Info):R
+  }
+  
+Error:{
+  #[R](i:Info):R->/*native*/ 
+  .str[R](s:Str):R->this#{.info->s,.map->Map.of(), .list->List.of() }
+  }

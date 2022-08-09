@@ -1,0 +1,44 @@
+Opt:{ //.of / some / none
+  #[T](x:T):mut Opt[T] -> {
+    .map(fn) -> this#( fn#(x) ),
+    .flatMap(fn) -> fn#(x),
+    .match(m) -> m.some(x)
+  },
+  ![T]: mut Opt[T] -> { //Opt!
+    .map(_) -> self,
+    .flatMap(_) -> self,
+    .match(m) -> m.none
+  }
+}
+Opt[T]:Stores[T],Convertible{
+  read .map[R](f: F[this::T,R]): Opt[R],
+  read .flatMap[R](f: F[this::T, Opt[R]]): Opt[R],
+  read .match[R](m: mut OptMatch[this::T, R]): R
+}
+OptMatch[T,R]{ read .some(x:T): R, read .none: R }
+
+-----------------------------------
+
+Opt[mut Person] omp = Let#{
+  .var->Opt![mut Person] //mut Option[mut Person] 
+  .in oBob->oBob
+  }
+Opt[Person] iomp = omp//Ok because convertible
+mut Person bob = omp.match{
+  .some(bob) -> bob //type error imm!=mut
+  .none -> Error.str("AAAH")
+  }
+//fully inferred below
+mut Person bob = omp.[mut Person]match(mut OptMatch[imm Person,mut Person]{
+  .some(bob:imm Person) -> bob//type error imm!=mut
+  .none -> _
+  })
+
+
+--------------------------
+Alternative that is not that good
+Null[T]:Opt[T]{//note, this is hiding the 'mut Option[..]' of above
+  .map(_) -> this,
+  .flatMap(_) -> this,
+  .match(m) -> m.none
+  }

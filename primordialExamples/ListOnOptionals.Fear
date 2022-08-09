@@ -1,0 +1,15 @@
+// List implemented with options (don’t actually do this, more matching than needed.
+// We can make list similar to optional with a Cons/Nil case for a better UX)
+
+List[E]:Stores[E]{
+  read .get: mut Opt[this::E] -> Opt!
+  read .cons: mut Opt[mut List[this::E]] -> Opt!   //tail
+}
+
+User:{
+  .emptyList: List[Num] -> {} // is default impl empty a nice pattern?
+  .singleList: List[Num] -> { .get: Opt#100 },
+  .twoItems: List[Num] -> { .get: Opt#100, cons: Opt#{ .get: Opt#50 } }
+  // potential sugar: this.singleList:{ cons: Option#{ get: Option#50 } }
+  // expands to make a new class which extends this.singleList?
+}

@@ -1,1 +1,121 @@
-Here we are
+//Either
+//LList (shallow imm)
+//List as a headed LList
+//Stream as wrapper over List
+//Stream.map/filter as all terminal operations
+All of those need to work with mut/imm and read.
+Collections stuff need to work with
+1 imm imm
+2 read imm
+3 mut imm
+
+//NO imm read == imm imm c1
+4 read read
+//NO mut read
+
+//NO imm mut ==imm imm c2
+//NO read mut == read read c3
+5 mut mut
+
+?????
+List[mut Person]:imm List[imm Person], read List[read Person]{
+  
+  }
+
+Node[S]:Store[S]{
+  read next: S
+}
+ReadNode:Node[read ReadNode]:{}
+ImmNode:Node[imm ImmNode],ReadNode{}
+MutNode:Node[mut MutNode],ReadNode{}
+
+User:{
+  mainI: imm ImmNode -> imm ImmNode {
+    next: imm ImmNode -> self
+  }
+  main: imm Node -> imm Node {
+    next: Node -> self
+  }
+}
+
+
+HasEq[T]:{read ==(other:T):Bool}
+HasHash:{read hash:Int}
+EqH[T]:{
+  imm eq2(a:X,b:T):Bool
+  imm hash(a:X):Int
+  }
+DoStuff[X]:{
+  imm eq2(a:X,b:T):Bool
+  imm hash(a:X):Int
+  m(e:X)->..
+  }
+DoStuff[Foo]{eq2(a,b)->a==b; hash(a)->a.hash}.m()
+DoStuff:{
+  imm eq2(a:X,b:X):Bool
+  imm hash(a:X):Int
+  m[X](e:X,eq:F[X,X,Bool],h:F[X,Int])->..
+  }
+DoStuff[Foo]{eq2(a,b)->a==b; hash(a)->a.hash}.m()
+
+
+list.get(3).consume
+Iso[mut Foo]
+F[A,B]
+
+Iso[T]{
+  capsule::T consume -> this.consume
+  }
+Ref[T]{
+  T get-> this.get
+  Void 
+  }
+
+// Some Java conversions
+Bool:Sealed:{
+  and(b: Bool): Bool,
+  or(b: Bool): Bool,
+  not(b: Bool): Bool,
+  if[R](op: ThenElse[R]): R,
+  }
+->
+interface Bool {
+  Bool and(Bool b);
+  Bool or(Bool b);
+  Bool not(Bool b);
+  <R> R $if(ThenElse<R> op);
+  }
+
+True:Bool:{ and(b) -> b, or(b) -> this, not(b) -> False{},}
+->
+interface True extends Bool {
+  default Bool and(Bool b) { return b; }
+  default Bool or(Bool b) { return this; }
+  default Bool not(Bool b) { return new False(){}; }
+  default <R> R $if(ThenElse<R> op) { return op.then(); }
+}
+
+False:Bool:{ and(b) -> this, or(b) -> b, not(b) -> True{}, }
+->
+interface False extends Bool {
+  default Bool and(Bool b) { return b; }
+  default Bool or(Bool b) { return this; }
+  default Bool not(Bool b) { return new True(){}; }
+  default <R> R $if(ThenElse<R> op) { return op.$else(); }
+}
+
+ThenElse[R]:{ then: R, else: R, }
+->
+interface ThenElse<R> { R then(); R $else(); }
+
+
+Debug#True{} .or False{} .if { then 5, else 10 },
+desugared: Debug.#(True{}.or(False{}).if[Int]({
+  imm then(): Int -> 5
+  imm else(): Int -> 10
+  }))
+->
+new Debug(){}.of(new False(){}.or(new True(){}).$if(new ThenElse<Integer>(){
+  public Integer then() { return 5; }
+  public Integer $else() { return 10; }
+}));
