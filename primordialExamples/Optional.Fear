@@ -1,7 +1,7 @@
 Opt:{ //.of / some / none
-  #[T](x:T):mut Opt[T] -> {
-    .map(fn) -> this#( fn#(x) ),
-    .flatMap(fn) -> fn#(x),
+  #[T](x: T): mut Opt[T] -> {
+    .map(f) -> this#( f#(x) ),
+    .flatMap(f) -> f#(x),
     .match(m) -> m.some(x)
   },
   ![T]: mut Opt[T] -> { //Opt!

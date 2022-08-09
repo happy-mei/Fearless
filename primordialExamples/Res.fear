@@ -1,0 +1,27 @@
+// Ignore this, I plan on changing the mapErr or flatMapErr to some ||
+// style of syntax so the flow can be "on success map to x or map to y"
+
+Res:{ //.of / some / none
+  .ok[T,E](x: T): mut Res[T, E] -> {
+    .map(f) -> this.ok(f#x),
+    .flatMap(f) -> f#x,
+    .match(m) -> m.ok(x)
+  },
+  .err[T,E](err: E): mut Res[T, E] -> {
+    .map(_) -> self,
+    .flatMap(_) -> self,
+    .mapErr(f) -> this.err(f#x),
+    .flatMapErr(f) -> f#x,
+    .match(m) -> m.err(x)
+  }
+}
+Res[T,E]:Stores[T],Stores[E],Convertible{
+  read .map[R](f: F[this::T, R]): Res[R,E],
+  read .flatMap[R,RE](f: F[this::T, Res[R, RE]]): Res[R, RE],
+  read .mapErr[R](f: F[this::E, R]): Res[T, R],
+  read .flatMapErr[R](f: F[this::E, Res[R, E]]): Res[R, E],
+  read .match[R](m: mut ResMatch[this::T, this::E, R]): R
+}
+ResMatch[T,R]{ mut .some(x:T): R, mut .none: R }
+
+-----------------------------------
