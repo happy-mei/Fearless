@@ -10,6 +10,8 @@ Loop:{!:Void->this!}
 
 HasIdentity:{ mut identityEq(other : read HasIdentity):Bool }//magic
 
+Debug:Sealed{ #[T](x:T): T } // magic
+
 F[R]:{ #:R }
 F[A,R]:{ #(a:A):R }
 F[A,B,R]:{ #(a:A,b:B):R }

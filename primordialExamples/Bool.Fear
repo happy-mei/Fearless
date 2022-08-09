@@ -31,3 +31,6 @@ False:Bool:{
   ?(f)->f.else()
   }
 ThenElse[R]:{ mut .then: mut::R, mut .else: mut::R, }
+
+// Usage
+Debug#((True{} || False{}) ? { .then 5, .else 10 })
