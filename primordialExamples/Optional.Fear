@@ -15,7 +15,7 @@ Opt[T]:Stores[T],Convertible{
   read .flatMap[R](f: F[this::T, Opt[R]]): Opt[R],
   read .match[R](m: mut OptMatch[this::T, R]): R
 }
-OptMatch[T,R]{ read .some(x:T): R, read .none: R }
+OptMatch[T,R]{ mut .some(x:T): R, mut .none: R }
 
 -----------------------------------
 
