@@ -1,0 +1,33 @@
+Bool:Sealed:{
+  &&(b: Bool): Bool,
+  ||(b: Bool): Bool,
+  !(b: Bool): Bool,
+  ?[R](f: mut ThenElse[R]): R, // ?  because `bool ? { .then, .else }` is kinda like a ternary
+  }
+
+True:Bool:{ &&(b) -> b, ||(b) -> this, !(b) -> False, ?(f)->f.then() }
+False:Bool:{ and(b) -> this, or(b) -> b, not(b) -> True, ?(f)->f.else() }
+ThenElse[R]:{ mut .then: R, mut .else: R, }
+
+--------------------------desugared-----------------------
+(still some type inferrence on overloading)
+Bool:Sealed:{
+  &&(b: imm Bool): imm Bool,
+  ||(b: imm Bool): imm Bool,
+  !(b: imm Bool): imm Bool,
+  ?[R](f: mut ThenElse[mut::R]): mut::R,
+  }
+
+True:Bool:{
+  &&(b) -> b,
+  ||(b) -> this,
+  !(b) -> imm False{},
+  ?(f)->f.then()
+  }
+False:Bool:{
+  &&(b) -> this,
+  ||(b) -> b,
+  !(b) -> imm True{},
+  ?(f)->f.else()
+  }
+ThenElse[R]:{ mut .then: mut::R, mut .else: mut::R, }
