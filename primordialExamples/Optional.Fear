@@ -1,29 +1,26 @@
-Opt:{ //.of / some / none
-  #[T](x: T): mut Opt[T] -> {
-    .map(f) -> this#( f#(x) ),
-    .flatMap(f) -> f#(x),
-    .match(m) -> m.some(x)
-  },
-  ![T]: mut Opt[T] -> { //Opt!
-    .map(_) -> self,
-    .flatMap(_) -> self,
-    .match(m) -> m.none
-  }
-}
 Opt[T]:Stores[T],Convertible{
-  read .map[R](f: F[this::T,R]): Opt[R],
-  read .flatMap[R](f: F[this::T, Opt[R]]): Opt[R],
-  read .match[R](m: mut OptMatch[this::T, R]): R
-}
-OptMatch[T,R]{ mut .some(x:T): R, mut .none: R }
+  read .match[R](m: mut OptMatch[!!T, !R]): !R ->m.none
+  read .map[R](f: mut OptMap[!!T,!R]): !!Opt[!R]->this.match(f)
+  read .rMap[R](f: mut OptMap[read T,!R]): !!Opt[!R]->this.match(f),
+  read .flatMap[R](f: mut OptFlatMap[!!T, !!Opt[!R]]): !!Opt[!R]->this.match(f),
+  .iMap[R](f: F[T,R]): Opt[R]->Cast(this).as[Opt[T]]({x->x}).match{
+    .some(x)->f#x,
+    .none->{}
+    },
+  
+  }
+OptMatch[T,R]:{ mut .some(x:T): R, mut .none: R }
+OptFlatMap[T,R]:OptMatch[!T,!!Opt[!R]]{ .none->{} }
+OptMap[T,R]:OptMatch[!T,!!Opt[!R]]{
+  mut #(t:!T):!R,
+  .some(x) -> Opt#(this#x), 
+  .none->{}
+  }
 
+Opt:{ #[T](x: T): mut Opt[T] -> {m->m.some(x)} }
 -----------------------------------
 
-Opt[mut Person] omp = Let#{
-  .var->Opt![mut Person] //mut Option[mut Person] 
-  .in oBob->oBob
-  }
-Opt[Person] iomp = omp//Ok because convertible
+Opt[mut Person] omp = Opt![mut Person] //mut Option[mut Person] 
 mut Person bob = omp.match{
   .some(bob) -> bob //type error imm!=mut
   .none -> Error.str("AAAH")
@@ -33,12 +30,51 @@ mut Person bob = omp.[mut Person]match(mut OptMatch[imm Person,mut Person]{
   .some(bob:imm Person) -> bob//type error imm!=mut
   .none -> _
   })
+----------
+//test all 3 Convertible conversions
+//imm mut and imm read -> imm imm
+//read mut -> read read 
+Opt[Person] iomp = omp//Ok because convertible
+
+Opt[read Person] romp =Opt![read Person] //mut Option[read Person] 
+Opt[Person] iomp =romp //Ok
+
+read Opt[mut Person] momp =Opt![mut Person] //mut Option[read Person] 
+read Opt[read Person] rromp =momp //Ok
+
+mut Opt[mut Person] moBob->
+  mutBob=Persons#("Bob")
+  mut Opt[mut Person] moBob=Opt[mut Person]{
+    .map(_) -> this,
+    .flatMap(_) -> this,
+    .match(m) -> m.some(mutBob)
+    }
+  moBob
+imoBob=Code.moBob
+imBob.match{
+   .some(mutBob)->mutBob.name("Robert")
+   .none->Void
+   }
 
 
---------------------------
+
+-------------------------
 Alternative that is not that good
 Null[T]:Opt[T]{//note, this is hiding the 'mut Option[..]' of above
   .map(_) -> this,
   .flatMap(_) -> this,
   .match(m) -> m.none
   }
+
+---
+
+mut Acc acc = Accs#(0)
+imm Opt[imm Num] opN=Opt#(5)
+opN2=opN.map{n->n*2}
+opN2=opN.map{n->acc++}
+
+
+mut Opt[mut Acc] opA=Opt#(Accs#(0))
+
+AsRead#(opA).map{a->a} :read Option[mut Acc]
+opA.rMap{a->a} :mut Option[mut Acc]

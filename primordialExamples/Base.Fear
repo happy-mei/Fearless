@@ -17,6 +17,8 @@ F[A,R]:{ #(a:A):R }
 F[A,B,R]:{ #(a:A,b:B):R }
 F[A,B,C,R]:{ #(a:A,b:B,c:C):R }
 
+s.map{}.filter{}.to List
+
 Let:{
   #[V,R](l:Let[V,R]):R -> l.in(l.var)
   }
@@ -24,4 +26,21 @@ Let[V,R]:{
   .var:V,
   .in(v:V):R
   }
-// Let#{.var->5, .in(x)->x+1}//six
+Cast:Sealed{ #[A](a:!A):mut Cast[!A]->{a} }
+Cast[A]:Stores[A],Sealed{
+  read .self:!!A
+  read .as[R](c:CastId[!!A,!R]):!R->c.id(this.self)
+  }
+CastId[A,R]{ .id(a:!A):!R }
+
+//Cast#(this).as[mut Bla]{x->x} //sugar ""this as[mut Bla]""
+---------------
+
+//usage of Let
+Let#{.var->5, .in(x)->x+1}//six
+
+//The example showing that we need convertible limitations
+A[B]:{ f(b:B):Void }
+imm A[Person] c = A[mut Person]:{ f(bob)->bob.name("Alice") }
+c.f(immBob)
+
