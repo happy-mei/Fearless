@@ -1,0 +1,49 @@
+//shallow imm linked lists
+//map handles elements in order
+//match starts from the end and reaches the top
+
+LList[E]:Store[E],Convertible,Sealed{
+  read .match[R](m:mut LListMatch[!!E,!R,!!LList[!!E]]):!R->m.empty
+  read +(e:!E):!!LList[!E] -> {m->m.elem(this,e)}
+  read size:Num->this.match{
+    .elem(l,_)->l.size+1,
+    .empty->0,
+    },
+  read ++(l0:!!LList[!E]):!!List[!E]->l0.concatAfter(this)
+  read concatAfter(l0:!!LList[!E]):!!List[!E]->this.match{
+    .elem(l,e)->l.concatAfter(l0)+e, //l0++this == l0++(l+e) == (l0++l)+e ==l.concatAfter(l0)+e
+    .empty->l0,    
+    }
+  read getLast(iLast:Num):!!Opt[!!E]->(iLast>=0)?{
+    .then->this.getLastPos(iLast)
+    .else->Error.str("AAAH")
+    }
+  read getLastPos(iLast:Num):!!Opt[!!E]->this.match{
+    .empty->{},
+    .elem(l,e)->(iLast==0)?{
+      .then->Opt#(e),
+      .else->l.getLastPos(iLast-1)
+      }
+    }
+  }
+  read get(i:Num,size:Num):!!Opt[!!E]->getLast((size-1)-i)
+  }
+LListMatch[E,L,R]:{
+  mut .elem(start:!L,e:!E):!R
+  mut .empty:!R
+  }
+  
+List[E]:Store[!E],Convertible,Sealed{
+  read .size:Num
+  }
+List:{
+  #[E]:mut List[!E]->Let#{
+    .var->Ref#{}//mut Ref[mut LList[!E]] //bangs?
+    .in(inner)->Let#{
+      .var->Ref#0
+      .in(size)
+      }
+    }
+  }
+------------------
+LList[Num]+1

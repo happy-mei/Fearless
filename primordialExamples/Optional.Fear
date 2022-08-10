@@ -6,8 +6,7 @@ Opt[T]:Stores[T],Convertible{
   .iMap[R](f: F[T,R]): Opt[R]->Cast(this).as[Opt[T]]({x->x}).match{
     .some(x)->f#x,
     .none->{}
-    },
-  
+    }  
   }
 OptMatch[T,R]:{ mut .some(x:T): R, mut .none: R }
 OptFlatMap[T,R]:OptMatch[!T,!!Opt[!R]]{ .none->{} }
