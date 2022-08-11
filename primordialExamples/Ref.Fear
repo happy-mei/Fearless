@@ -1,16 +1,18 @@
-Ref:{  #[X](x:X): mut Ref[X] -> this#(x) }
+Ref:{ #[X](x: !X): mut Ref[!X] -> this#(x) }
 Ref[X]:Stored[X],Convertible,Sealed{
-  read * : this::X,
-  mut .swap(x: X): X,
-  mut :=(x:X): Void ->Let#{.var->this.swap(x),.in(_)->Void}
+  read * : !!X,
+  mut .swap(x: !X): !X,
+  mut :=(x: !X): Void -> Let#{ .var->this.swap(x), .in(_)->Void }
+  mut <-(f: UpdateRef[!X]): Void -> this := f#(this*)
 }
+UpdateRef[X]:{ mut #(x: !X): !X }
 
 --------------------------------
 Ref:{//fully inferred below
-  imm #[X](x:mut::X): mut Ref[mut::X] -> this#(x) //magic
+  imm #[X](x:!X): mut Ref[!X] -> this#(x) //magic
   }
 Ref[X]:Stored[X],Convertible,Sealed{
-  read * : this::X,  // get (magic)
-  mut .swap(x: mut::X): mut::X, // swap (magic)
-  mut :=(x:mut::X): imm Void ->Let#{.var->this.swap(x),.in(_)->Void}
+  read * : !!X,  // get (magic)
+  mut .swap(x: !X): !X, // swap (magic)
+  mut :=(x: !X): imm Void ->Let#{ .var->this.swap(x), .in(_)->Void }
 }

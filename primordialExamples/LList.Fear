@@ -2,48 +2,66 @@
 //map handles elements in order
 //match starts from the end and reaches the top
 
-LList[E]:Store[E],Convertible,Sealed{
-  read .match[R](m:mut LListMatch[!!E,!R,!!LList[!!E]]):!R->m.empty
-  read +(e:!E):!!LList[!E] -> {m->m.elem(this,e)}
-  read size:Num->this.match{
-    .elem(l,_)->l.size+1,
-    .empty->0,
+// Cons#(1, Cons#(2, Cons#(4, {})))
+Cons:{
+  #[E](h: E, t: LList[E]): mut LList[!E] -> { .match(m) -> m.elem(this,e) }
+  }
+LList[E]:Stores[E],Convertible,Sealed{
+  read .match[R](m: mut LListMatch[!!E,!R,!!LList[!!E]]): !R -> m.empty,
+  read .isEmpty: Bool -> this.match({ .empty -> True, .elem(_,_) -> False }),
+  read .size: Num -> this.match{
+    .elem(_,t) -> t.size+1,
+    .empty -> 0,
     },
-  read ++(l0:!!LList[!E]):!!List[!E]->l0.concatAfter(this)
-  read concatAfter(l0:!!LList[!E]):!!List[!E]->this.match{
-    .elem(l,e)->l.concatAfter(l0)+e, //l0++this == l0++(l+e) == (l0++l)+e ==l.concatAfter(l0)+e
-    .empty->l0,    
-    }
-  read getLast(iLast:Num):!!Opt[!!E]->(iLast>=0)?{
-    .then->this.getLastPos(iLast)
-    .else->Error.str("AAAH")
-    }
-  read getLastPos(iLast:Num):!!Opt[!!E]->this.match{
-    .empty->{},
-    .elem(l,e)->(iLast==0)?{
-      .then->Opt#(e),
-      .else->l.getLastPos(iLast-1)
-      }
-    }
+  read ++(l1: !!List[!E]): !!LList[!E] -> this.match{
+    .empty -> l1,
+    .elem(h, t) -> Cons#(h, t ++ l1)
+    },
+  read +(e: !E): !!LList[!E] -> this ++ Cons#(e, {}),
+  read .get(i: UNum) -> !!Opt[!!E] -> this.match{
+    .empty -> {},
+    .elem(h, t) -> (i == 0) ? { .then -> h, .else -> t.get(i - 1) }
+    },
   }
-  read get(i:Num,size:Num):!!Opt[!!E]->getLast((size-1)-i)
+LListMatch[E,L,R]:{ mut .elem(head: !E, tail: !L): !R, mut .empty: !R }
+
+ListState[E]:Stores[!E],Convertible,Sealed{
+  read .size: Num -> 0,
+  // TODO: Can I get away with !!E instead of !E here?
+  read .inner: LList[!!E] -> {},
   }
-LListMatch[E,L,R]:{
-  mut .elem(start:!L,e:!E):!R
-  mut .empty:!R
-  }
-  
-List[E]:Store[!E],Convertible,Sealed{
-  read .size:Num
+List[E]:Stores[!E],Convertible,Sealed{
+  read .size: Num,
+  read .isEmpty: Bool,
+  read .get(i: UNum) -> !!Opt[!!E],
+  mut +(e: !E),
   }
 List:{
-  #[E]:mut List[!E]->Let#{
-    .var->Ref#{}//mut Ref[mut LList[!E]] //bangs?
-    .in(inner)->Let#{
-      .var->Ref#0
-      .in(size)
+  #[E]: mut List[!E] -> Let#[mut Ref[ListState[!E]]]{
+    .var -> Ref#{},
+    .in(s) -> { // capturing `mut Ref[imm ListState[!E]]`
+      .size -> (s*).size,
+      .isEmpty -> (s*).inner.isEmpty,
+      .get(i) -> (s*).inner.get(i),
+      +(e) -> s := {
+        .size -> s <- { old -> old + 1 },
+        .inner -> s <- { old -> old + e },
+        }
       }
     }
   }
 ------------------
 LList[Num]+1
+
+Person:{ .name: mut Ref[Str], .age: mut Ref[UNum] }
+Course:{
+  .students: mut List[mut Person] -> List#,
+  mut addStudent(s: mut Person) -> this.students + s,
+  read classSize() -> this.students.size
+}
+// imagine some block syntax to do these statements
+course.addStudent({ .name -> Ref#"Nick", .age -> Ref#22 })
+course.students.get(0).match{
+  .none -> Void,
+  .some(s) -> s.age <- { old -> old + 1 }
+  }

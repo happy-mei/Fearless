@@ -1,17 +1,32 @@
-Num:Sealed,Stringable{
-  +(n: Num): Num,
-  -(n: Num): Num,
-  *(n: Num): Num,
-  /(n: Num): Num,
-  %(n: Num): Num
-  **(n: Num): Num, // pow
-
-  // bitwise
-  >>(n: Num): Num,
-  <<(n: Num): Num,
-  ^(n: Num): Num,
-  &(n: Num): Num,
-  |(n: Num): Num
-
+Num:Sealed,MathOpts[Num],Stringable{
   str: Str
+  unum: UNum
+}
+
+UNum:MathOps[UNum],Sealed,Stringable{
+  str: Str
+  num: Num
+}
+
+MathOps[T]:{
+  +(n: !T): !T,
+  -(n: !T): !T,
+  *(n: !T): !T,
+  /(n: !T): !T,
+  %(n: !T): !T
+  **(n: !T): !T, // pow
+
+  // bitwise 
+  >>(n: !T): !T,
+  <<(n: !T): !T,
+  ^(n: !T): !T,
+  &(n: !T): !T,
+  |(n: !T): !T,
+
+  // Comparisons
+  >(n: !T): Bool,
+  <(n: !T): Bool,
+  >=(n: !T): Bool,
+  <=(n: !T): Bool,
+  ==(n: !T): Bool,
 }
