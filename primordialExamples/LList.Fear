@@ -9,7 +9,7 @@ Cons:{
 LList[E]:Stores[E],Convertible,Sealed{
   read .match[R](m: mut LListMatch[!!E,!R,!!LList[!!E]]): !R -> m.empty,
   read .isEmpty: Bool -> this.match({ .empty -> True, .elem(_,_) -> False }),
-  read .size: Num -> this.match{
+  read .size: UNum -> this.match{
     .elem(_,t) -> t.size+1,
     .empty -> 0,
     },
@@ -27,8 +27,7 @@ LListMatch[E,L,R]:{ mut .elem(head: !E, tail: !L): !R, mut .empty: !R }
 
 ListState[E]:Stores[!E],Convertible,Sealed{
   read .size: Num -> 0,
-  // TODO: Can I get away with !!E instead of !E here?
-  read .inner: LList[!!E] -> {},
+  read .inner: !!LList[!E] -> {},
   }
 List[E]:Stores[!E],Convertible,Sealed{
   read .size: Num,
@@ -37,7 +36,7 @@ List[E]:Stores[!E],Convertible,Sealed{
   mut +(e: !E),
   }
 List:{
-  #[E]: mut List[!E] -> Let#[mut Ref[ListState[!E]]]{
+  #[E]: mut List[!E] -> Let#[mut Ref[mut ListState[!E]]]{
     .var -> Ref#{},
     .in(s) -> { // capturing `mut Ref[imm ListState[!E]]`
       .size -> (s*).size,
