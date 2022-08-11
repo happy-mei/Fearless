@@ -38,7 +38,7 @@ List[E]:Stores[!E],Convertible,Sealed{
 List:{
   #[E]: mut List[!E] -> Let#[mut Ref[mut ListState[!E]]]{
     .var -> Ref#{},
-    .in(s) -> { // capturing `mut Ref[imm ListState[!E]]`
+    .in(s) -> { // capturing `mut Ref[mut ListState[!E]]`
       .size -> (s*).size,
       .isEmpty -> (s*).inner.isEmpty,
       .get(i) -> (s*).inner.get(i),
