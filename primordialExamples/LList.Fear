@@ -60,7 +60,4 @@ Course:{
 }
 // imagine some block syntax to do these statements
 course.addStudent({ .name -> Ref#"Nick", .age -> Ref#22 })
-course.students.get(0).match{
-  .none -> Void,
-  .some(s) -> s.age <- { old -> old + 1 }
-  }
+course.students.get(0).do{ s -> s.age <- { age -> age + 1 } }

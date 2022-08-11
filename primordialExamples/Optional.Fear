@@ -1,17 +1,23 @@
 Opt[T]:Stores[T],Convertible{
-  read .match[R](m: mut OptMatch[!!T, !R]): !R ->m.none
-  read .map[R](f: mut OptMap[!!T,!R]): !!Opt[!R]->this.match(f)
+  read .match[R](m: mut OptMatch[!!T, !R]): !R ->m.none,
+  read .map[R](f: mut OptMap[!!T,!R]): !!Opt[!R]->this.match(f),
+  read .do(f: mut OptDo[!!T])->this.match(f),
   read .rMap[R](f: mut OptMap[read T,!R]): !!Opt[!R]->this.match(f),
   read .flatMap[R](f: mut OptFlatMap[!!T, !!Opt[!R]]): !!Opt[!R]->this.match(f),
   .iMap[R](f: F[T,R]): Opt[R]->Cast(this).as[Opt[T]]({x->x}).match{
     .some(x)->f#x,
     .none->{}
-    }  
+    },
   }
 OptMatch[T,R]:{ mut .some(x:T): R, mut .none: R }
 OptFlatMap[T,R]:OptMatch[!T,!!Opt[!R]]{ .none->{} }
 OptMap[T,R]:OptMatch[!T,!!Opt[!R]]{
   mut #(t:!T):!R,
+  .some(x) -> Opt#(this#x), 
+  .none->{}
+  }
+OptDo[T]:OptMatch[!T,Void]{
+  mut #(t:!T):Void,
   .some(x) -> Opt#(this#x), 
   .none->{}
   }
