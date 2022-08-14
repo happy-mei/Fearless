@@ -1,0 +1,8 @@
+Block:{
+  #[R](f: BlockF0[!R]): Block[!R] -> Let#{ .var -> f#, .in(_) -> {} },
+  ;[R](b: Block[R]): Block[!R] -> Block#(b#)
+  }
+BlockF0:{ mut #[R]: R }
+
+----------
+Block#doFoo; Block#doBar

@@ -10,8 +10,8 @@ LList[E]:Stores[E],Convertible,Sealed{
   read .match[R](m: mut LListMatch[!!E,!R,!!LList[!!E]]): !R -> m.empty,
   read .isEmpty: Bool -> this.match({ .empty -> True, .elem(_,_) -> False }),
   read .size: UNum -> this.match{
-    .elem(_,t) -> t.size+1,
-    .empty -> 0,
+    .elem(_,t) -> t.size+1u,
+    .empty -> 0u,
     },
   read ++(l1: !!List[!E]): !!LList[!E] -> this.match{
     .empty -> l1,
@@ -20,20 +20,21 @@ LList[E]:Stores[E],Convertible,Sealed{
   read +(e: !E): !!LList[!E] -> this ++ Cons#(e, {}),
   read .get(i: UNum) -> !!Opt[!!E] -> this.match{
     .empty -> {},
-    .elem(h, t) -> (i == 0) ? { .then -> h, .else -> t.get(i - 1) }
+    .elem(h, t) -> (i == 0) ? { .then -> h, .else -> t.get(i - 1u) }
     },
   }
 LListMatch[E,L,R]:{ mut .elem(head: !E, tail: !L): !R, mut .empty: !R }
 
 ListState[E]:Stores[!E],Convertible,Sealed{
-  read .size: Num -> 0,
+  read .size: Num -> 0u,
   read .inner: !!LList[!E] -> {},
   }
 List[E]:Stores[!E],Convertible,Sealed{
   read .size: Num,
   read .isEmpty: Bool,
-  read .get(i: UNum) -> !!Opt[!!E],
-  mut +(e: !E),
+  read .get(i: UNum): !!Opt[!!E],
+  mut +(e: !E): Void,
+  mut ++(l1: !!List[!!E]): Void,
   }
 List:{
   #[E]: mut List[!E] -> Let#[mut Ref[mut ListState[!E]]]{
@@ -42,21 +43,21 @@ List:{
       .size -> (s*).size,
       .isEmpty -> (s*).inner.isEmpty,
       .get(i) -> (s*).inner.get(i),
-      +(e) -> s := {
-        .size -> s <- { old -> old + 1 },
-        .inner -> s <- { old -> old + e },
-        }
+      +(e) -> s <- { old -> {
+        .size -> old.size + 1u,
+        .inner -> old.inner + e,
+        }}
       }
     }
   }
 ------------------
 LList[Num]+1
 
-Person:{ .name: mut Ref[Str], .age: mut Ref[UNum] }
+Person:{ .name: mut Ref[Str], .age: mut Ref[Num] }
 Course:{
   .students: mut List[mut Person] -> List#,
-  mut addStudent(s: mut Person) -> this.students + s,
-  read classSize() -> this.students.size
+  mut addStudent(s: mut Person): Void -> this.students + s,
+  read classSize(): UNum -> this.students.size
 }
 // imagine some block syntax to do these statements
 course.addStudent({ .name -> Ref#"Nick", .age -> Ref#22 })
