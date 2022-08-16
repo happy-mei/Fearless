@@ -1,0 +1,54 @@
+Stream.of(myList) used to implement myList.stream()
+
+Stream:{ .of[E](l:List[E]):StreamNoOp[E]->{.toList->l} }  //create non empty stream
+Stream[A]:Sealed{
+  |>[B] (op:OpOnStream[A,B]):Stream[B]->StreamOp[A,B]{
+    op->op,
+    former->this
+    }
+  .toList:List[A]
+  }
+StreamNoOp[E]:NoMutRead[E],Stream[E]{
+  .toList:List[E]->{}
+  }
+StreamOp[A,B]:Stream[B]{
+  op:OpOnStream[A,B],
+  former:Stream[A]
+  .toList->op.handle(this.former).toList
+  }
+
+OpOnStream[A,B]:{.handle(s:Stream[A]):Stream[B] }
+Map[A,B]:OpOnStream[A,B]{
+  .map(a:A):B,
+  .handle(s)-> Stream.of(Let#{
+    .var -> List[A]#,
+    .in(res) -> Let#{
+      .var -> this.handle'(s.toList, res, 0u),
+      .in(_) -> res
+      }
+    }),
+  .handle'(l: List[A], res: mut List[A], i: UNum): Void -> l.get(i)
+    .map{ e -> this.map(e) }
+    .match{
+      .none -> Void,
+      .some(r) -> Let#{
+        .var -> res.add(r),
+        .in(_) -> this.handle'(l, res, i + 1u),
+        },
+      }
+  }
+
+StreamOp[A,B]:Stream[B](op=Map[A,B],former:Stream[A]=(StreamNoOp))
+
+myStream .map{..} .to List
+
+myStream |> Map#{..} |> Filter#{..} .to List
+
+// Stream of LLists
+Stream[E]:{
+  map
+  }
+
+map filter forEach fold
+
+List:FromStremmable[List]{}

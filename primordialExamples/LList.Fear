@@ -1,55 +1,67 @@
 //shallow imm linked lists
 //map handles elements in order
-//match starts from the end and reaches the top
 
 // Cons#(1, Cons#(2, Cons#(4, {})))
 Cons:{
-  #[E](h: E, t: LList[E]): mut LList[!E] -> { .match(m) -> m.elem(this,e) }
+  #[E](h: E, t: LList[mdf E]): mut LList[mdf E]-> {
+    .match(m) -> m.elem(this,e)
+    }
   }
-LList[E]:Stores[E],Convertible,Sealed{
-  read .match[R](m: mut LListMatch[!!E,!R,!!LList[!!E]]): !R -> m.empty,
-  read .isEmpty: Bool -> this.match({ .empty -> True, .elem(_,_) -> False }),
+//alias mut LListMatch[recMdf E,mdf R,recMdf LList[recMdf E]] as _LListMatch
+LList[E]:NoMutRead[E],Sealed{
+  read .match[R](
+    m: mut LListMatch[ recMdf E, mdf R, recMdf LList[recMdf E] ]
+    ): mdf R -> m.empty,
+  read .isEmpty: Bool -> this.match {
+    .empty -> True,
+    .elem(_,_) -> False
+    },
   read .size: UNum -> this.match{
     .elem(_,t) -> t.size+1u,
     .empty -> 0u,
     },
-  read ++(l1: !!List[!E]): !!LList[!E] -> this.match{
+  read ++(l1: recMdf LList[mdf E]): recMdf LList[mdf E] -> this.match{
     .empty -> l1,
     .elem(h, t) -> Cons#(h, t ++ l1)
     },
-  read +(e: !E): !!LList[!E] -> this ++ Cons#(e, {}),
-  read .get(i: UNum) -> !!Opt[!!E] -> this.match{
+  read +(e: mdf E): recMdf LList[mdf E] -> this ++ Cons#(e, {}),
+  read .get(i: UNum) : recMdf Opt[recMdf E] -> this.match{// or recMdf Opt[mdf E] depending on inference 
     .empty -> {},
     .elem(h, t) -> (i == 0) ? { .then -> h, .else -> t.get(i - 1u) }
     },
   }
-LListMatch[E,L,R]:{ mut .elem(head: !E, tail: !L): !R, mut .empty: !R }
+LListMatch[E,L,R]:{ mut .elem(head: mdf E, tail: mdf L): mdf R, mut .empty: mdf R }
 
-ListState[E]:Stores[!E],Convertible,Sealed{
-  read .size: Num -> 0u,
-  read .inner: !!LList[!E] -> {},
+ListState[E]:NoMutRead[E],Sealed{
+  read .size: UNum -> 0u,
+  read .inner: recMdf LList[mdf E] -> {}
   }
-List[E]:Stores[!E],Convertible,Sealed{
-  read .size: Num,
+ListState:{
+  #[E](size: UNum, inner: mut LList[mdf E]): mut ListState[mdf E] -> {
+    .size -> size,
+    .inner -> inner
+    }
+  }
+List[E]:NoMutRead[mdf E],Sealed{
+  read .size: UNum,
   read .isEmpty: Bool,
-  read .get(i: UNum): !!Opt[!!E],
-  mut +(e: !E): Void,
-  mut ++(l1: !!List[!!E]): Void,
+  read .get(i: UNum): recMdf Opt[recMdf E],
+  mut .add(e: mdf E): Void,
+  mut .addAll(l1: recMdf List[mdf E]): Void,
   }
 List:{
-  #[E]: mut List[!E] -> Let#[mut Ref[mut ListState[!E]]]{
+  #[E]: mut List[mdf E] -> Let#[mut Ref[mut ListState[mdf E]]]{
     .var -> Ref#{},
-    .in(s) -> { // capturing `mut Ref[mut ListState[!E]]`
-      .size -> (s*).size,
-      .isEmpty -> (s*).inner.isEmpty,
-      .get(i) -> (s*).inner.get(i),
-      +(e) -> s <- { old -> {
-        .size -> old.size + 1u,
-        .inner -> old.inner + e,
-        }}
+    .in(s) -> { // capturing `mut Ref[mut ListState[mdf E]]`
+      .size -> s*.size,
+      .isEmpty -> s*.inner.isEmpty,
+      .get(i) -> s*.inner.get(i),
+      .add(e) -> s := ListState#(s*.size + 1u, s*.inner + e),
+      .addAll(l1) -> ?
       }
     }
   }
+
 ------------------
 LList[Num]+1
 

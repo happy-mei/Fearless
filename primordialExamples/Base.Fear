@@ -44,3 +44,23 @@ A[B]:{ f(b:B):Void }
 imm A[Person] c = A[mut Person]:{ f(bob)->bob.name("Alice") }
 c.f(immBob)
 
+
+NEW IDEA FOR Convertible:
+there is no explicit Convertible interface, the subtyping rules do soemething like below to check for
+extra subtypes
+//Convertible test:
+A[mut X] is convertible to A[imm X] iff
+  it would typecheck to use the adapter pattern to make
+  MyA[X]:A[X]{
+    inner:A[mut X]
+    get(n)->this.inner.get(n)
+    ...
+    }
+    
+New Options for !! !
+    recMdf mdf
+    !!     !
+    rec!   !
+
+New name for Stores
+NoMutRead[X]
