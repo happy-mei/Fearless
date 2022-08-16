@@ -5,7 +5,7 @@
 Cons:{
   #[E](h: E, t: LList[mdf E]): mut LList[mdf E]-> {
     .match(m) -> m.elem(this,e)
-    }
+    },
   }
 //alias mut LListMatch[recMdf E,mdf R,recMdf LList[recMdf E]] as _LListMatch
 LList[E]:NoMutRead[E],Sealed,Iterable[recMdf E]{
@@ -61,7 +61,7 @@ List[E]:NoMutRead[mdf E],Sealed,Iterable[recMdf E]{
   mut .add(e: mdf E): Void,
   mut .addAll(l1: recMdf List[mdf E]): Void,
   }
-List:{
+List{
   #[E]: mut List[mdf E] -> Let#[mut Ref[mut ListState[mdf E]]]{
     .var -> Ref#{},
     .in(s) -> { // capturing `mut Ref[mut ListState[mdf E]]`
@@ -76,29 +76,10 @@ List:{
         mut .cur: mut Ref[UNum] -> Ref#0u,
       },
       .add(e) -> s := ListState#(s*.size + 1u, s*.inner + e),
-      .addAll(l1) -> ?
+      .addAll(l1) -> l1.iter().forEach({ e -> self1.add(e) })
       }
-    }
+    },
   }
-
-Iterable[E]:{ read iter: mut Iter[mdf E] }
-
-Iter[E]:{
-  mut .next: mut Opt[mdf E],
-  mut .fold[B](initial: mdf B, f: mut Folder[mdf E, mdf B]): mdf B -> this.next.match{
-    .none -> initial,
-    .some(e) -> this.fold(f#(initial, e), f),
-    },
-  mut .forEach(f: mut ForEacher[mdf E]): Void ->
-    this.fold(Void, { (_, e) -> f#e }),
-  // TODO: this can be more generic
-  mut .toList: mut List[mdf E] -> Let#{
-    .var -> List#,
-    .in(res) -> this.forEach({ e -> res.add(e) })
-    },
-}
-ForEacher[A]:{ mut #(e: mdf A): Void }
-Folder[A,B]:{ mut #(acc: mdf B, e: mdf A): mdf B }
 
 ------------------
 LList[Num]+1
