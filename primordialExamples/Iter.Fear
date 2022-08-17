@@ -1,34 +1,40 @@
 Iterable[E]:{ read .iter: lent Iter[mdf E] }
 
 // The key here is all terminal operators go via fold.
-// Everything is lazy until the fold happens.
 Iter[E]:{
   mut .next: mut Opt[mdf E],
-  mut .find(p: Predicate[mdf E]): mut Opt[mdf E] ->
+  mut .find(p: mut Predicate[mdf E]): mut Opt[mdf E] ->
     this.next.match{
       .none -> {},
       .some(e) -> p#e ? { .then -> Opt#e, .else -> this.find(p) },
       },
 
-  mut .map[B](f: Mapper[mdf E, mdf B]): Iter[B] -> {
-    .next -> this.next.map(f),
-    .fold(initial, g) -> this.fold(initial, { (acc, e) -> g#(acc, f#e) })
+  mut .map[R](f: mut Mapper[mdf E, mdf R]): mut Iter[mdf R] -> {
+    .next -> this.next.map{ a -> f#a },
     },
-  mut .filter(p: Predicate[mdf E]): Iter[E] -> {
+  mut .flatMap[R](f: mut Mapper[mdf E, mut Iter[mdf R]]): mut Iter[mdf R] -> fm={
+    .next -> fm._next(this.map(f), {}),
+    ._next(mapIter: mut Iter[mut Iter[mdf E]],
+           curIter: Opt[mut Iter[mdf E]]): mut Opt[mdf E] ->
+      curIter.match{
+        .empty -> mapIter.next.match{
+          .empty -> {},
+          .some(nextIter) -> fm._next(mapIter, Opt#nextIter),
+          },
+        .some(curIter) -> curIter.next 
+        }
+    },
+  mut .filter(p: mut Predicate[mdf E]): mut Iter[E] -> {
     .next -> this.next.find(p),
-    .fold(initial, f) -> this.fold(
-      initial,
-      { (acc, e) -> p#e ? { .then -> f#(acc, e), .else -> acc } })
     },
-  mut .scan[S,B](initial: mdf S, f: Scanner[mdf E, mdf B, mdf S]): Iter[B] -> Let#{
+  mut .scan[S,R](initial: mdf S, f: mut Scanner[mdf E, mdf R, mdf S]): mut Iter[mdf R] -> Let#{
     .var -> Ref#initial,
     .in(s) -> {
       .next -> this.next.match{ .none -> {}, .some(e) -> f#(s, e) },
-      .fold(initial2, g) -> this.fold(initial2, { (acc, e) -> g#(acc, f#(s, e)) })
       }
     },
 
-  mut .fold[B](initial: mdf B, f: mut Folder[mdf E, mdf B]): mdf B ->
+  mut .fold[R](initial: mdf R, f: mut Folder[mdf E, mdf R]): mdf R ->
     this.next.match{
       .none -> initial,
       .some(e) -> this.fold(f#(initial, e), f),
@@ -49,8 +55,8 @@ Iter[UNum]:{
   mut .sum: UNum -> this.fold(0u, { (acc, e) -> acc + e }),
   }
 
-ForEacher[A]:{ mut #(e: mdf A): Void }
-Folder[A,B]:{ mut #(acc: mdf B, e: mdf A): mdf B }
-Scanner[A,B,S]:{ mut #(state: mut Ref[mdf S], e: mdf A) }
-Mapper[A,B]:{ mut #(e: mdf A): mdf B }
-Predicate[A]:{ mut #(e: mdf A): Bool }
+ForEacher[E]:{ mut #(e: mdf E): Void }
+Folder[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
+Scanner[E,R,S]:{ mut #(state: mut Ref[mdf S], e: mdf E) }
+Mapper[E,R]:{ mut #(e: mdf E): mdf R }
+Predicate[E]:{ mut #(e: mdf E): Bool }

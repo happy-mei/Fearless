@@ -37,9 +37,9 @@ LList[E]:NoMutRead[E],Sealed,Iterable[recMdf E]{
     .empty -> {},
     .elem(_,t) -> t,
     },
-  .iter -> {
-    .next -> self.cur.swap(self.cur* .tail).head,
-    mut .cur: mut Ref[recMdf LList[recMdf E]] -> Ref#this
+  .iter -> iter={
+    .next -> iter.cur.swap(iter.cur*.tail).head,
+    mut .cur: mut Ref[recMdf LList[recMdf E]] -> Ref#this // can this conversion work?
     }
   }
 LListMatch[E,L,R]:{ mut .elem(head: mdf E, tail: mdf L): mdf R, mut .empty: mdf R }
@@ -64,19 +64,19 @@ List[E]:NoMutRead[mdf E],Sealed,Iterable[recMdf E]{
 List{
   #[E]: mut List[mdf E] -> Let#[mut Ref[mut ListState[mdf E]]]{
     .var -> Ref#{},
-    .in(s) -> { // capturing `mut Ref[mut ListState[mdf E]]`
+    .in(s) -> list={ // capturing `mut Ref[mut ListState[mdf E]]`
       .size -> s*.size,
       .isEmpty -> s*.inner.isEmpty,
       .get(i) -> s*.inner.get(i),
-      .iter -> { // read .iter: mut Iter[mdf E]
+      .iter -> iter={ // read .iter: mut Iter[mdf E]
         .next: Let#{
-          .var -> self1.cur.swap(self1.cur* + 1u),
-          .in(i) -> self2.get(i)
+          .var -> iter.cur.swap(iter.cur* + 1u),
+          .in(i) -> list.get(i)
           },
         mut .cur: mut Ref[UNum] -> Ref#0u,
       },
       .add(e) -> s := ListState#(s*.size + 1u, s*.inner + e),
-      .addAll(l1) -> l1.iter().forEach({ e -> self1.add(e) })
+      .addAll(l1) -> l1.iter.forEach{ e -> list.add(e) }
       }
     },
   }
