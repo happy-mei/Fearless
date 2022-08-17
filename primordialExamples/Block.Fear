@@ -5,4 +5,64 @@ Block:{
 BlockF0:{ mut #[R]: R }
 
 ----------
+
+Block
+  .if {} .return {}
+  .var {x=e} //sugar for .var(LX,Cont) Cont: Self,X->Block
+  .if {} .do {}
+  .if {} .error {} //unchecked exception
+  .do {}
+  .return {}
+
+Block
+  .if {} .return {}
+  .var({e},{(x,_self)->_self
+    .if {} .do {}
+    .if {} .error {} //unchecked exception
+    .do {}
+    .return {}
+    }
+
 Block#doFoo; Block#doBar
+Do:{ mut#:Void }
+
+Result[R]{ mut # : mdf R }
+Condition{ mut # : Bool }
+Continuation[X,R]:{mut #(x:mdf X,_self:mut Block[mdf R])}
+Block[R]:{
+  mut .return(a:mut Result[mdf R]):mdf R->a#
+  mut .if(a:mut Condition):mut BlockIf[mdf R]->a#?{
+    .then->BlockIfTrue[mdf R]{this},
+    .else->BlockIfFalse[mdf R]{this},
+    }
+  mut .var[X]( x: mut Result[mdf X],
+            cont: mut Continuation[mdf X,mdf R]): mdf R->
+    cont#(x#,this)
+  
+  mut .do(a:mut Do):mut Block[mdf R]->this._do(a#)
+  mut ._do(a:Void):mut Block[mdf R]->this
+  }
+BlockIf[R]:{
+  mdf .outer:mut Block[R]
+  mut .return(a:mut Result[mdf R]):mut Block[mdf R]
+  mut .error(a:mut Result[Info]):mut Block[mdf R]
+  mut .do(a:mut Do):mut Block[mdf R]
+  }
+BlockIfTrue[R]:BlockIf[mdf R]{
+  .return(a)->this._return(a#)
+  mut ._return(x:mdf X)->DecidedBlock[mdf R]{.res->x}
+  .error(a)->Error#(a#)
+  .do(a)->this._do(a#)
+  mut ._do(v:Void):mut Block[mdf R]->this.outer
+  }
+BlockIfFalse[R]:BlockIf[mdf R]{
+  .return(a)->this.outer
+  .error(a)->this.outer
+  .do(a)->this.outer
+  }
+DecidedBlock[R]:Block[mdf R]{
+  mut .res:mdf R
+  .return(a)->this.res
+  .if(a)->BlockIfFalse[R]{this}
+  .do(a)->this
+  }
