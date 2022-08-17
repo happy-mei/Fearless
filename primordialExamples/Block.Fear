@@ -29,13 +29,43 @@ User:{
   sugar: Num -> Block
     .var{ ten = 10 }
     .if { 6 < ten } .do { Debug#"Hello" }
-    .return ten
+    .return ten,
+  loopTen: ? -> Block
+    .var{ acc = Ref#0 }
+    .loop{ Block
+      .if { acc* == 10 } .return { ControlFlow.break }
+      .do { acc := acc* + 1 }
+      .return { {} } // continue
+      }
+    .return { acc* },
+  loopTen2: ? -> Block
+    .var{ acc = Ref#0 }
+    .loop{ Block
+      .if { acc* == 10 } .return { ControlFlow.return { acc* } }
+      .do { acc := acc* + 1 }
+      .return { {} } // continue
+      }
   }
 
 Do:{ mut #: Void }
 ReturnStmt[R]{ mut #: mdf R }
 Condition{ mut #: Bool }
 Continuation[X,R]:{ mut #(x: mdf X, _self: mut Block[mdf R]): mdf R }
+LoopBody[T]{ mut #: ControlFlow[mdf T] }
+ControlFlow:{
+  read .continue: mut ControlFlow[Void] -> {},
+  read .break: mut ControlFlow[Void] -> { m -> m.break },
+  read .return[T](rv: mdf T): mut ControlFlow[mdf T] -> { m -> m.return(rv) }
+  }
+ControlFlow[T]:Sealed{
+  read .match[R](m: mut ControlFlowMatch[mdf R]): mdf R -> m.continue,
+  }
+ControlFlowMatch[T,R]:{
+  mut .continue: R,
+  mut .break: R,
+  mut .return(rv: mdf T): R,
+  }
+
 Block[R]:{
   mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#
   mut .if(a: mut Condition): mut BlockIf[mdf R] -> a# ? {
@@ -48,6 +78,12 @@ Block[R]:{
   
   mut .do(a: mut Do): mut Block[mdf R] -> this._do(a#)
   mut ._do(a: Void): mut Block[mdf R] -> this
+
+  mut .loop(a: mut LoopBody[mdf R]): mut Block[mdf R] -> a.match{
+    .continue -> this.loop(a),
+    .break -> this,
+    .return(rv) -> Block .return{ rv },
+    }
   }
 BlockIf[R]:{
   mdf .outer: mut Block[mdf R]
