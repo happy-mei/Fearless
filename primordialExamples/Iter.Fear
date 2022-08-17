@@ -66,6 +66,10 @@ Iter[E]:{
 
 Iter[UNum]:{
   mut .sum: UNum -> this.fold(0u, { (acc, e) -> acc + e }),
+  mut .impSum: UNum -> Block
+    .var{ total = Ref#0u }
+    .do { this.forEach{ e -> total := total* + e } }
+    .return { total* },
   }
 
 ForEacher[E]:{ mut #(e: mdf E): Void }
