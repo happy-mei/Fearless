@@ -15,9 +15,6 @@ Block
     .return {}
     }
 
-Block
-  .return 5
-
 User:{
   num: Num -> Block
     .var({ 10 }, {(ten,b) -> b
@@ -73,7 +70,7 @@ BlockIfFalse[R]:BlockIf[mdf R]{
 DecidedBlock[R]:Block[mdf R]{
   mut .res: mdf R,
   .return(a) -> this.res,
+  .var(_,_) -> this.res,
   .if(a) -> BlockIfFalse[R]{this},
   .do(a) -> this,
-  .var(_,_) -> this.res
   }

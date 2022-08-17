@@ -12,18 +12,19 @@ Iter[E]:{
   mut .map[R](f: mut Mapper[mdf E, mdf R]): mut Iter[mdf R] -> {
     .next -> this.next.map{ a -> f#a },
     },
-  mut .flatMap[R](f: mut Mapper[mdf E, mut Iter[mdf R]]): mut Iter[mdf R] -> fm={
-    .next -> fm._next(this.map(f), {}),
-    ._next(mapIter: mut Iter[mut Iter[mdf E]],
-           curIter: Opt[mut Iter[mdf E]]): mut Opt[mdf E] ->
-      curIter.match{
-        .empty -> mapIter.next.match{
-          .empty -> {},
-          .some(nextIter) -> fm._next(mapIter, Opt#nextIter),
-          },
-        .some(curIter) -> curIter.next 
-        }
-    },
+  mut .flatMap[R](f: mut Mapper[mdf E, mut Iter[mdf R]]): mut Iter[mdf R] -> Block
+    .var{ mapIter = this.map(f) }
+    .var{ optCurIter = Ref#mapIter.next }
+    .return self={
+      .next -> optCurIter*.match{
+        .none -> self.unwrapNext,
+        .some(curIter) -> curIter.next
+        },
+        mut .unwrapNext: mut Opt[mdf R] -> Block
+          .do{ optCurIter := mapIter.next }
+          .if { optCurIter*.isNone } .return { {} }
+          .return self.next
+      },
   mut .filter(p: mut Predicate[mdf E]): mut Iter[E] -> {
     .next -> this.next.find(p),
     },
@@ -50,6 +51,18 @@ Iter[E]:{
       }
     }
 }
+
+// _FlatMapIter:NoMutRead[E]{
+//   #[E](mapIter: mut Iter[mut Iter[mdf E]],
+//        optCurIter: mut Ref[Opt[mut Iter[mdf E]]]): mut _FlatMapIter[mdf E] -> {
+//     .next -> this.optCurIter*.match{
+//       .none -> Block
+//         .do{ this.optCurIter := this.mapIter.next }
+//         .if { this.optCurIter*.isNone } .return { {} }
+//         .return this.next,
+//       .some(curIter) -> curIter.next
+//       }
+//     }
 
 Iter[UNum]:{
   mut .sum: UNum -> this.fold(0u, { (acc, e) -> acc + e }),

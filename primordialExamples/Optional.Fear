@@ -8,6 +8,8 @@ Opt[T]:Stores[T],Convertible{
     .some(x)->f#x,
     .none->{}
     },
+  read isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
+  read isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
   }
 OptMatch[T,R]:{ mut .some(x:T): R, mut .none: R }
 OptFlatMap[T,R]:OptMatch[!T,!!Opt[!R]]{ .none->{} }
