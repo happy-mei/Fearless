@@ -19,16 +19,20 @@ Block
   .return 5
 
 User:{
-  six: Num -> Block
+  num: Num -> Block
     .var({ 10 }, {(ten,b) -> b
       .if { 6 < ten } .do { Debug#"Hello" }
-      .return 6
+      .return ten
     }),
   hmm: Num -> Block
     .var({ 10 }, {(ten,b) -> Block // intentionally not using self to be evil
       .if { 6 < ten } .do { Debug#"Hello" }
-      .return 6
+      .return ten
     }),
+  sugar: Num -> Block
+    .var{ ten = 10 }
+    .if { 6 < ten } .do { Debug#"Hello" }
+    .return ten
   }
 
 Do:{ mut #: Void }
