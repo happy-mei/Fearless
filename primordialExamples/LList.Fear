@@ -68,9 +68,9 @@ List{
       .size -> s*.size,
       .isEmpty -> s*.inner.isEmpty,
       .get(i) -> s*.inner.get(i),
-      .iter -> {
+      .iter -> { // read .iter: mut Iter[mdf E]
         .next: Let#{
-          .var -> self.cur.swap(self1.cur* + 1u),
+          .var -> self1.cur.swap(self1.cur* + 1u),
           .in(i) -> self2.get(i)
           },
         mut .cur: mut Ref[UNum] -> Ref#0u,
