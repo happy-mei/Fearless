@@ -306,3 +306,4 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/eclipse,sublimetext,linux,macos,windows,intellij+all,java,rust
 /.project
+/fearless.iml

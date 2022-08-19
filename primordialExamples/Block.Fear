@@ -8,7 +8,7 @@ Block
 
 Block
   .if {} .return {}
-  .var({e},{(x,_self)->_self
+  .var({e},{(x,self)->self
     .if {} .do {}
     .if {} .error {} //unchecked exception
     .do {}
@@ -19,18 +19,18 @@ User:{
   num: Num -> Block
     .var({ 10 }, {(ten,b) -> b
       .if { 6 < ten } .do { Debug#"Hello" }
-      .return ten
+      .return { ten }
     }),
   hmm: Num -> Block
     .var({ 10 }, {(ten,b) -> Block // intentionally not using self to be evil
       .if { 6 < ten } .do { Debug#"Hello" }
-      .return ten
+      .return { ten }
     }),
   sugar: Num -> Block
     .var{ ten = 10 }
     .if { 6 < ten } .do { Debug#"Hello" }
     .return ten,
-  loopTen: ? -> Block
+  loopTen: Num -> Block
     .var{ acc = Ref#0 }
     .loop{ Block
       .if { acc* == 10 } .return { ControlFlow.break }
@@ -50,7 +50,7 @@ User:{
 Do:{ mut #: Void }
 ReturnStmt[R]{ mut #: mdf R }
 Condition{ mut #: Bool }
-Continuation[X,R]:{ mut #(x: mdf X, _self: mut Block[mdf R]): mdf R }
+Continuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
 LoopBody[T]{ mut #: ControlFlow[mdf T] }
 ControlFlow:{
   read .continue: mut ControlFlow[Void] -> {},
@@ -58,12 +58,12 @@ ControlFlow:{
   read .return[T](rv: mdf T): mut ControlFlow[mdf T] -> { m -> m.return(rv) }
   }
 ControlFlow[T]:Sealed{
-  read .match[R](m: mut ControlFlowMatch[mdf R]): mdf R -> m.continue,
+  read .match[R](m: mut ControlFlowMatch[mdf T, mdf R]): mdf R -> m.continue,
   }
 ControlFlowMatch[T,R]:{
-  mut .continue: R,
-  mut .break: R,
-  mut .return(rv: mdf T): R,
+  mut .continue: mdf R,
+  mut .break: mdf R,
+  mut .return(rv: mdf T): mdf R,
   }
 
 Block[R]:{
@@ -79,10 +79,10 @@ Block[R]:{
   mut .do(a: mut Do): mut Block[mdf R] -> this._do(a#)
   mut ._do(a: Void): mut Block[mdf R] -> this
 
-  mut .loop(a: mut LoopBody[mdf R]): mut Block[mdf R] -> a.match{
+  mut .loop(a: mut LoopBody[mdf R]): mut Block[mdf R] -> a#.match{
     .continue -> this.loop(a),
     .break -> this,
-    .return(rv) -> Block .return{ rv },
+    .return(rv) -> DecidedBlock[mdf R]{ rv },
     }
   }
 BlockIf[R]:{
@@ -93,7 +93,7 @@ BlockIf[R]:{
   }
 BlockIfTrue[R]:BlockIf[mdf R]{
   .return(a) -> this._return(a#)
-  mut ._return(x:mdf X) -> DecidedBlock[mdf R]{ x }
+  mut ._return(x:mdf R) -> DecidedBlock[mdf R]{ x }
   .error(a) -> Error#(a#)
   .do(a) -> this._do(a#)
   mut ._do(v: Void): mut Block[mdf R] -> this.outer
@@ -109,4 +109,5 @@ DecidedBlock[R]:Block[mdf R]{
   .var(_,_) -> this.res,
   .if(a) -> BlockIfFalse[R]{this},
   .do(a) -> this,
+  .loop(a) -> this,
   }
