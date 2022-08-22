@@ -6,6 +6,7 @@ interface FearlessBlock {
 	interface LoopBody<R> { ControlFlow<R> of(); }
 	interface Info {/*..*/}
 	interface Error {
+		Error base = new Error(){};
 		default <R> R of(Info a) {
 			throw new java.lang.Error(new Throwable(){
 				final Info info = a;
@@ -13,7 +14,8 @@ interface FearlessBlock {
 		}
 	}
 	interface ControlFlow<R> {
-		default <R> ControlFlow<R> $continue() { return new ControlFlow<>(){}; }
+		ControlFlow<Void> base = new ControlFlow<>(){};
+		default <R> ControlFlow<R> $continue() { return (ControlFlow<R>) base; } // Intentionally use a bad type here
 		default <R> ControlFlow<R> $break() {
 			return new ControlFlow<>(){
 				public Block<R> match(ControlFlowMatch<R> m) { return m.$break(); }
@@ -35,6 +37,7 @@ interface FearlessBlock {
 	}
 
 	interface Block<R> {
+		Block<Void> base = new Block<>(){};
 		default R $return(ReturnStmt<R> a) { return a.of(); }
 		default BlockIf<R> $if(Condition a) {
 			return a.of() ? (BlockIfTrue<R>)() -> this : (BlockIfFalse<R>)() -> this;
@@ -77,7 +80,7 @@ interface FearlessBlock {
 	interface BlockIfTrue<R> extends BlockIf<R> {
 		default Block<R> $return(ReturnStmt<R> a) { return this._return(a.of()); }
 		default DecidedBlock<R> _return(R x) { return () -> x; }
-		default Block<R> error(ReturnStmt<Info> a) { return new Error(){}.of(a.of()); }
+		default Block<R> error(ReturnStmt<Info> a) { return Error.base.of(a.of()); }
 		default Block<R> $do(Do a) { a.of(); return this._do(); }
 		default Block<R> _do() { return this.outer(); }
 	}
@@ -88,6 +91,7 @@ interface FearlessBlock {
 	}
 
 	interface User {
+		User base = new User(){};
 		default Integer num() {
 			return new Block<Integer>(){}.var(() -> 10, (ten, b) -> b
 					.$if(() -> 6 < ten)    .$do(() -> System.out.println("Hello"))
@@ -104,9 +108,9 @@ interface FearlessBlock {
 			return new Block<Integer>(){}
 					.var(() -> new Integer[]{0}, (acc, self) -> self
 							.loop(() -> new Block<ControlFlow<Integer>>(){}
-									.$if(() -> acc[0] == 10)  .$return(() -> new ControlFlow<>(){}.$break())
+									.$if(() -> acc[0] == 10)  .$return(ControlFlow.base::$break)
 									.$do(() -> acc[0] = acc[0] + 1)
-									.$return(() -> new ControlFlow<>(){}.$continue())
+									.$return(ControlFlow.base::$continue)
 							)
 							.$return(() -> acc[0])
 					);
@@ -114,8 +118,8 @@ interface FearlessBlock {
 	}
 
 	static void main(String[] args) {
-		System.out.println(new User(){}.num());
-		System.out.println(new User(){}.earlyReturn());
-		System.out.println(new User(){}.loopTen());
+		System.out.println(User.base.num());
+		System.out.println(User.base.earlyReturn());
+		System.out.println(User.base.loopTen());
 	}
 }

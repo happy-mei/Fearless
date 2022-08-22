@@ -1,0 +1,41 @@
+// A fairly direct adaptation of ReactiveX in Fearless.
+// Keeping things imm here to start off with. In the future it
+// would be reasonable to want support for mut values, etc. in observables
+// if we aren't parallelising (and support for capsule mutation would be ideal too)
+
+Observable[T,E]:{
+  .subscribe(sub: Observer[T, E]): mut Subscription,
+  }
+Observable:{
+  #[T,E](impl: ObservableImpl[T, E]): mut Observable[T, E] -> {
+    .subscribe(sub) -> impl(sub)
+    }
+
+Observer:{
+  #[T,E]: capsule Observer[mdf T, mdf E] -> 
+  }
+Observer[T,E]:{
+  ? .next(x: mdf T): Void,
+  ? .error(err: mdf E): Void -> this.complete, // terminate by default
+  ? .complete: Void -> this._isDone
+  }
+ObservableImpl[T,E]:{ #(sub: Observer[mdf T, mdf E]): Subscription }
+Subscription:{ mut .unsubscribe: Void -> Void }
+
+----------------------------
+User:{
+  myObs: Observable[Num, Void] -> ? Observable#{sub -> Block
+      .do { sub.next(1) }
+      .do { sub.next(2) }
+      .do { sub.next(3) }
+      .do { sub.complete }
+      .return {{}}
+    }
+  addOne(source: Observable[Num, Void]): Observable[Num, Void] -> Observable#{sub ->
+    source.subscribe{
+      .next
+      }
+    },
+  run: Void -> Block
+    .return { Void }
+}

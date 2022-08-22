@@ -15,7 +15,7 @@ OptMatch[T,R]:{ mut .some(x:mdf T): mdf R, mut .none: mdf R }
 OptFlatMap[T,R]:OptMatch[mdf T,recMdf Opt[mdf R]]{ .none->{} }
 OptMap[T,R]:OptMatch[mdf T,recMdf Opt[mdf R]]{
   mut #(t:mdf T):mdf R,
-  .some(x) -> Opt#(this#x), 
+  .some(x) -> Opt#(this#x),
   .none->{}
   }
 OptDo[T]:OptMatch[mdf T,Void]{
