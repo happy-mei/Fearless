@@ -1,3 +1,99 @@
+Complexity
+          |   mdf                                | generics       | circularity       | metaprogramming    |
+42        |caps read mut lent imm class fwd fwd% |  NOPE          |fwd and semantic   | tons - slows       |
+Fearless  |caps read mut lent imm mdf recMdf     | simple but mdf |only self name     | maybe macroish top |
+
+
+
+
+Problem:
+.var x={e} now executes e all the time
+Block can not avoid it....
+
+Var[E]:{
+  init:E
+  
+  }
+  
+Counter_:{
+  #:Counter->Let#{
+    .var->Ref#0
+    .in(curr)->{curr<-{x->x+1}+1}
+    }    
+  }
+Counter:{ mut next:Num }
+
+Var#(x={})
+
+Counter:{
+  mut _curr:Ref#0 //mutable-updatable default initialized state
+  mut next:Num
+  }  
+
+Counter:{
+  mut _curr:mut Ref[Num]
+  mut next:Num->{this._curr<-{x->x+1}+1}
+  }
+Let#{
+  .var->Ref#0
+  .in(r)->x=Counter{r}
+  }
+x=Counter{y=Ref[Num]{0}}
+.var(x!Var[E]{Ref[Opt[E]]{{}}},{e})
+.var(x={{{}}},{e})
+.var(x!,{e})
+.var(x={e})
+
+Concluding: even the most limited form of Data (must be initialized with x/lambda)
+allows for named stuff to have default initialized fields (if Ref is Data)
+
+flexible scope for lambda names only makes sense if arbitrary objects can be created with named lambdas, but 
+we like that only objects without default state can be created with named lambdas
+
+limited x= and old sugar
+{x,  }
+
+
+
+Foo   {}  x! //we want to AT LEAST WRITE SOMETHING
+
+Var[E]:Data{
+  mut r:mut Ref[mut Opt[mdf E]]
+  mut*:mdf E->this.r*.get{Error.str"Nope"}
+  mut:=(e:mdf E):Void->this.r:=Opt#e
+  }
+
+
+.var(r,s)->r:=Opt#(s#)
+circularity:
+without names at all
+
+B has syntactic repr
+
+x={.. y={  x y}}  //limited
+
+x={.y. y={  x y}} //open
+
+
+Person$#(Car$#(..)) //imm born objects are acyclic -- even if they store originally mut cyclic objects
+
+x=imm Person{ car->Car$#x}
+
+Person:{
+  car:Car->Car$#this
+  }
+
+Var:[E]{
+  mut ref:mut Ref[mdf E]
+  mut *:mdf E-> 
+  }
+x=Var{Ref#{}}
+
+T#(a,b,c)
+Person{.name->"bob",.age->32}
+Person#("bob",32)
+
+
 
 What if the names of the lambdas are visible in the whole expression
 
