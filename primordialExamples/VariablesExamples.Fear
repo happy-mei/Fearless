@@ -1,0 +1,308 @@
+Complexity
+          |   mdf                                | generics       | circularity       | metaprogramming    |
+42        |caps read mut lent imm class fwd fwd% |  NOPE          |fwd and semantic   | tons - slows       |
+Fearless  |caps read mut lent imm mdf recMdf     | simple but mdf |only self name     | maybe macroish top |
+
+
+
+
+Problem:
+.var x={e} now executes e all the time
+Block can not avoid it....
+
+Var[E]:{
+  init:E
+  
+  }
+  
+Counter_:{
+  #:Counter->Let#{
+    .var->Ref#0
+    .in(curr)->{curr<-{x->x+1}+1}
+    }    
+  }
+Counter:{ mut next:Num }
+
+Var#(x={})
+
+Counter:{
+  mut _curr:Ref#0 //mutable-updatable default initialized state
+  mut next:Num
+  }  
+
+Counter:{
+  mut _curr:mut Ref[Num]
+  mut next:Num->{this._curr<-{x->x+1}+1}
+  }
+Let#{
+  .var->Ref#0
+  .in(r)->x=Counter{r}
+  }
+x=Counter{y=Ref[Num]{0}}
+.var(x!Var[E]{Ref[Opt[E]]{{}}},{e})
+.var(x={{{}}},{e})
+.var(x!,{e})
+.var(x={e})
+
+Concluding: even the most limited form of Data (must be initialized with x/lambda)
+allows for named stuff to have default initialized fields (if Ref is Data)
+
+flexible scope for lambda names only makes sense if arbitrary objects can be created with named lambdas, but 
+we like that only objects without default state can be created with named lambdas
+
+limited x= and old sugar
+{x,  }
+
+
+
+Foo   {}  x! //we want to AT LEAST WRITE SOMETHING
+
+Var[E]:Data{
+  mut r:mut Ref[mut Opt[mdf E]]
+  mut*:mdf E->this.r*.get{Error.str"Nope"}
+  mut:=(e:mdf E):Void->this.r:=Opt#e
+  }
+
+
+.var(r,s)->r:=Opt#(s#)
+circularity:
+without names at all
+
+B has syntactic repr
+
+x={.. y={  x y}}  //limited
+
+x={.y. y={  x y}} //open
+
+
+Person$#(Car$#(..)) //imm born objects are acyclic -- even if they store originally mut cyclic objects
+
+x=imm Person{ car->Car$#x}
+
+Person:{
+  car:Car->Car$#this
+  }
+
+Var:[E]{
+  mut ref:mut Ref[mdf E]
+  mut *:mdf E-> 
+  }
+x=Var{Ref#{}}
+
+T#(a,b,c)
+Person{.name->"bob",.age->32}
+Person#("bob",32)
+
+
+
+What if the names of the lambdas are visible in the whole expression
+
+we add a reduction rule that says that
+x=mdf ITs{sigVs, sigs} ->
+v::= x=mdf ITs{sigs}
+Person:Data{
+  name:Str,age:Num
+  greet(other:Str):Str->"Hi "+other+" my name is"+this.name
+  }
+Person{name->"Bob",age->34+2}
+-->Person{name->"Bob",age->36}
+
+Block
+  .var x={e} //Let#{ .var->e .in(xx)->x={xx} } 
+  .var y={e} //can see x,y?
+  .do({..can see x,y..}//can do x* and x:=
+
+.var[E](v:CachedVarF[E])->v.init
+
+CachedVar:{
+  #(init: F[E])[E] -> Let#{
+  	.var -> Ref#(f#),
+  	.e
+  	},
+  }
+
+Tuply can only be instantiated (outside of the package?) with name->v or name->x
+and only for the abstract methods of the Tuply type
+x=Ref#(v)
+
+Ref[E]:Tuply{
+  init:E
+  *
+  }
+
+
+
+CachedVar[E]:{
+  init:E->init a ref?
+  s: Ref[Opt[E]]
+  * -> this.s.match{
+  	.
+  	}
+  := update ref?
+  }
+
+  conceptually lambdas would be 'generated/allocated' before anything in the expression is run
+  so that they can be captured by any other lambda
+  
+  easy to go in loop
+  
+  Block //either fails or works but y.init is called twice
+  .var x={
+    init->x.pr1*//no y
+    pr1->Box[T]{y*}
+    }
+  .var y={10}
+  .do {x*+y*}
+
+  Block //loops while executing the first .var
+  .var x={y*} //type error:Ref is Data and thus can not see later defined y
+  .var y={x*}
+  .do {x*+y*}
+
+
+implementation
+  method foo()->e
+    where x1=T1 L1 .. xn=Tn Ln in e
+
+  method foo(){
+    class Locals{T1 x1=[L1] .. Tn xn=[Ln]}
+    Locals locals=new Locals();
+    return [[e]];
+    }
+    
+    
+Block.var {x=e}
+.do {.. see x...}
+
+myStream.map{x->x*2}.var{e->y=e}.map{z->z+y}.filter{HALF}.map{..}toList
+myStream.map{x->x*2}.var y={e}.map{z->z}.toList
+
+
+//bad in current fear
+Foo:{
+  bar:Bar->{a->this.baz()}
+  baz:Baz->{b->this.bar()}
+  }
+//better
+Block
+  .var x={Bar{a->y*.baz()}}
+  .var y={Baz{b->x*.bar()}}
+  .return {x*}
+
+Block
+  .do_ x=Bar{a->y.baz()}
+  .do_ y=Baz{b->x.bar()}
+  .return x
+x=Bar{a->y=Baz{b->x.bar()}.baz()}
+
+Baz{b->Bar{a->y.baz()}.bar()}
+
+y=Foo{ bar->5, foo->y.bar }
+
+method call:
+Foo sugar for mdf Foo{}
+method call
+  y=Foo{ bar->5, foo->y.bar }.foo --> y.bar[y=Foo{ bar->5, foo->y.bar }]
+  with .foo in dom B
+  y=Foo{ bar->5, foo->y.bar }.f --> y.f[this=Foo{ bar->5, foo->y.bar }]
+  with .f notin dom B
+  
+
+Block
+  .do_ x=NumVar{4+5}
+  .do_ y=Baz{b->x.bar()}
+  .return x
+
+
+Block
+  .var {x=ORef[Bar] }
+  .var {y=ORef[Baz] }
+  .var {rx=Bar{a->y*.baz()} }
+  .var {ry=Baz{b->x*.bar()} }
+  .do { x:= rx }
+  .do { y:= ry }
+  .return {rx}
+  
+foo.bar(x={a->a}, y={b->x#b})
+foo.bar(y={b->x#(b)},x={a->y#a})
+
+
+typestate protocol
+
+File
+first open
+then read
+then close
+
+ORef
+init
+get
+
+
+
+Block
+  .let(x={e})//Get[T]:{*->T}
+  .var(y={e})//can see x,y?
+  .do({..can see x,y..}//can do x* and x:=
+  
+
+actions$.pipe(
+	ofType(actions.search),
+	map(action => action.payload),
+	map(q=>{Notepad(),q})
+	map(({ notepad, query }) => /* now I have both */)
+);
+
+myStream.map{v1->v1.foo()}.var {v2->v3=map.get(v2)}.map {v4->v4+v3 } .more
+
+myStream.map{v1->v1.foo()}.var (
+  {v2->map.get(v2)}
+  (v3,self)->self.map { } .more
+  )
+Stream[T]:{
+  .var[V,R](f:F[T,V],c:VarAcc[V,T,R])->c#(f,this)
+  }
+  
+VarAcc[V,T,R]:{ //variable V, Stream[T], becomes an R
+  .user(v:V,noidea:Mah[T,R]):R
+  .easy(f:F[T,V],s:Stream[T])->this.user(something1(f,s),something2(f,s))
+  }
+StreamPair.map(a->e(s))-> map((a,s)->((e(s),s))
+
+
+
+ Block.var {x=e}.bla(x,{x})
+
+ myIter.var {v->x=e}.map(foo(x)).to List
+ myStream.var {v->x=e}.map(foo(x)).to List
+ 
+ myStream.var {x=e}.map(foo(x)).to List
+ 
+ Block
+   .var{x=e}
+   .return {myStream.map(foo(x)).to List }
+
+myStream
+  .map {..}
+  .filter {..}
+  .var {x=e} //not computed on empty stream
+  .map {..}
+  .to List
+
+
+ 
+ myIter.
+ 
+
+AB:{a:A.b:B}
+AB#
+
+T[A,B,C]
+
+myStream.map {a-> <|a:A,a:A|> }
+myStream.map {a-> T[A,A]{_1->a,_2->a} }
+myStream.map {a-> T#[A,A](a,a) }
+myStream.map {a-> T#(a,a) }
+
+
+myStream.map(a->AB#(a,4))
