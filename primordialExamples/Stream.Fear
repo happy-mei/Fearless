@@ -8,7 +8,7 @@ Stream[A]:Sealed{
     }
   .toList:List[A]
   }
-StreamNoOp[E]:NoMutRead[E],Stream[E]{
+StreamNoOp[E]:NoMutHyg[E],Stream[E]{
   .toList:List[E]->{}
   }
 StreamOp[A,B]:Stream[B]{

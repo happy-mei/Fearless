@@ -22,7 +22,7 @@ List[mut Person]:imm List[imm Person], read List[read Person]{
   
   }
 
-Node[S]:NoMutRead[S]{
+Node[S]:NoMutHyg[S]{
   read next: S
 }
 ReadNode:Node[read ReadNode]:{}

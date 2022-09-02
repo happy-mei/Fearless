@@ -1,7 +1,7 @@
 // List implemented with options (don’t actually do this, more matching than needed.
 // We can make list similar to optional with a Cons/Nil case for a better UX)
 
-List[E]:NoMutRead[E]{
+List[E]:NoMutHyg[E]{
   read .get: mut Opt[recMdf E] -> {},
   read .cons: mut Opt[mut List[redMdf E]] -> {},   //tail
   }

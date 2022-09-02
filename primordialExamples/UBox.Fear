@@ -2,7 +2,7 @@
 //calling a method on a mdf Store[E] that returns a mut::E
 //returns a E!mdf::E, for mdf=mut E!mut::E == mut::E
 
-UBox[E]:NoMutRead[E]{
+UBox[E]:NoMutHyg[E]{
   read * : recMdf E, //Ref[mut::E]*() : recMdf E ==E!mut::E == mut::E
   mut .swap(e: E): E
 }

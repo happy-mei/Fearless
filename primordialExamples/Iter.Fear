@@ -52,7 +52,7 @@ Iter[E]:{
     }
 }
 
-// _FlatMapIter:NoMutRead[E]{
+// _FlatMapIter:NoMutHyg[E]{
 //   #[E](mapIter: mut Iter[mut Iter[mdf E]],
 //        optCurIter: mut Ref[Opt[mut Iter[mdf E]]]): mut _FlatMapIter[mdf E] -> {
 //     .next -> this.optCurIter*.match{

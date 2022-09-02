@@ -1,6 +1,6 @@
 Sealed:{}
 
-NoMutRead[X]:{}
+NoMutHyg[X]:{}
 
 Void:Sealed{}
 
@@ -25,7 +25,7 @@ Let[V,R]:{
   .in(v:V):R
   }
 Cast:Sealed{ #[A](a:mdf A):mut Cast[mdf A]->{a} }
-Cast[A]:NoMutRead[A],Sealed{
+Cast[A]:NoMutHyg[A],Sealed{
   read .self: recMdf A
   read .as[R](c:CastId[recMdf A,mdf R]):mdf R->c.id(this.self)
   }
