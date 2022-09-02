@@ -1,0 +1,54 @@
+{s->
+Block
+.var fs = {s
+  .use s’=FsPlese
+//  .return {s’.write(“foo”, “bar”)
+  .return{s’}
+  }
+.do {fs.write(“foo”, “bar”)}
+}
+System:{
+  .use(e: , cont: ): 
+  }
+
+fs:lent FS
+
+(fs.open(log="FileName.txt")
+.do(log.write("Nope"))
+
+Main:{ #(s:lent System):Void }
+Compile:{ #(s:lent Compiler):Void }
+FsPlease:{makeCap(s:lent System):lent FsCap}
+CompileMyProject:Compile{
+  c->c
+    .addModule(“Foo.Fear”)
+    .addAlias("...")
+    //.run("MyMain")
+    .compile("MyMain","OutputName")
+}
+
+RunMyTests:Compile{
+  c->c
+    .addModule(“Foo.Fear”)
+    .addAlias("...")
+    .setUpFS{fse->Block
+      .do {fse.allow("Foo.bar")}
+      .do {fse.inMemory("Foo2.bar")}
+      .do {fse.allowShared("Stuff/*")}
+      .return {Void}
+      }
+    .setUpContainer( "...", FromDockerFile#"...")
+    .runTests(“MyTestMain”)
+    //.compile("MyApplicationMain")
+    .deploy(token,"amazon/.../...")
+}
+
+System
+  FS // write to /proc/mem 
+  DB
+  WEB/NETWorking api
+  LoadDynLib? like (FFI open) // dlopen(dll/dynlib/so)
+
+.var(g:Get,cont:Cont)->
+  andClean(cont#(this,g.makeCap(self.system)),g.clean)
+
