@@ -1,0 +1,14 @@
+//Example showing that not even a capsule method of a capsule lambda can capture a capsule local var; not even if that local var is only used one time
+capsule foo(acc:mut Acc) : capsule Self -> {
+  acc.save(bar:capsule Bar)//one time save as imm, another save as mut
+  this
+  }
+Self.foo(acc1).foo(acc2)
+
+
+// Example showing that an imm method of a mut object 
+// can not capture a read (as imm or otherwise)
+OhNo{
+  break(read MutSomewhere m)-> mut Box[MutSomewhere]{imm get->m}
+  }
+imm MutSomewhere nope=OhNo{}.break(myMut).get
