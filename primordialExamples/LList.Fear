@@ -82,14 +82,26 @@ List{
   }
 
 ------------------
-LList[Num]+1
-
-Person:{ .name: mut Ref[Str], .age: mut Ref[Num] }
+Person:{ .name: mut Ref[Str], .age: mut Count[UNum] }
+PersonK:{
+  #(name: Ref[Str], age: Count[UNum]): mut Person -> {
+    .name -> name,
+    .age -> age,
+    }
+  }
 Course:{
-  .students: mut List[mut Person] -> List#,
+  .students: mut List[mut Person],
   mut addStudent(s: mut Person): Void -> this.students + s,
   read classSize(): UNum -> this.students.size
-}
-// imagine some block syntax to do these statements
-course.addStudent({ .name -> Ref#"Nick", .age -> Ref#22 })
-course.students.get(0).do{ s -> s.age <- { age -> age + 1 } }
+  }
+CourseK:{
+  #: Course -> Let#{
+    .var -> Ref[mut List[mut Person]]#List#,
+    .in(students) -> { students }
+    }
+  }
+Main { Block
+  .var{course = CourseK#}
+  .do{ course.addStudent(Ref#"Nick", Count#u(22u)) }
+  .do{ course.students.get(0).do{ s -> s.age++ } }
+  }

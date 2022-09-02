@@ -1,32 +1,32 @@
 Num:Sealed,MathOpts[Num],Stringable{
   str: Str
   unum: UNum
-}
+  }
 
 UNum:MathOps[UNum],Sealed,Stringable{
   str: Str
   num: Num
-}
+  }
 
 MathOps[T]:{
-  +(n: !T): !T,
-  -(n: !T): !T,
-  *(n: !T): !T,
-  /(n: !T): !T,
-  %(n: !T): !T
-  **(n: !T): !T, // pow
+  +(n: mdf T): mdf T,
+  -(n: mdf T): mdf T,
+  *(n: mdf T): mdf T,
+  /(n: mdf T): mdf T,
+  %(n: mdf T): mdf T
+  **(n: mdf T): mdf T, // pow
 
   // bitwise 
-  >>(n: !T): !T,
-  <<(n: !T): !T,
-  ^(n: !T): !T,
-  &(n: !T): !T,
-  |(n: !T): !T,
+  >>(n: mdf T): mdf T,
+  <<(n: mdf T): mdf T,
+  ^(n: mdf T): mdf T,
+  &(n: mdf T): mdf T,
+  |(n: mdf T): mdf T,
 
   // Comparisons
-  >(n: !T): Bool,
-  <(n: !T): Bool,
-  >=(n: !T): Bool,
-  <=(n: !T): Bool,
-  ==(n: !T): Bool,
-}
+  >(n: mdf T): Bool,
+  <(n: mdf T): Bool,
+  >=(n: mdf T): Bool,
+  <=(n: mdf T): Bool,
+  ==(n: mdf T): Bool,
+  }

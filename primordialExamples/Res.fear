@@ -15,7 +15,7 @@ Res:{ //.of / some / none
     .match(m) -> m.err(x)
   }
 }
-Res[T,E]:Stores[T],Stores[E],Convertible{
+Res[T,E]:NoMutRead[T],NoMutRead[E]{
   read .map[R](f: F[this::T, R]): Res[R,E],
   read .flatMap[R,RE](f: F[this::T, Res[R, RE]]): Res[R, RE],
   read .mapErr[R](f: F[this::E, R]): Res[T, R],

@@ -22,7 +22,7 @@ List[mut Person]:imm List[imm Person], read List[read Person]{
   
   }
 
-Node[S]:Store[S]{
+Node[S]:NoMutRead[S]{
   read next: S
 }
 ReadNode:Node[read ReadNode]:{}
@@ -38,35 +38,10 @@ User:{
   }
 }
 
-
-HasEq[T]:{read ==(other:T):Bool}
-HasHash:{read hash:Int}
-EqH[T]:{
-  imm eq2(a:X,b:T):Bool
-  imm hash(a:X):Int
-  }
-DoStuff[X]:{
-  imm eq2(a:X,b:T):Bool
-  imm hash(a:X):Int
-  m(e:X)->..
-  }
-DoStuff[Foo]{eq2(a,b)->a==b; hash(a)->a.hash}.m()
-DoStuff:{
-  imm eq2(a:X,b:X):Bool
-  imm hash(a:X):Int
-  m[X](e:X,eq:F[X,X,Bool],h:F[X,Int])->..
-  }
-DoStuff[Foo]{eq2(a,b)->a==b; hash(a)->a.hash}.m()
-
-
 list.get(3).consume
 Iso[mut Foo]
 F[A,B]
 
 Iso[T]{
-  capsule::T consume -> this.consume
-  }
-Ref[T]{
-  T get-> this.get
-  Void 
+  consume: capsule T -> this.consume
   }

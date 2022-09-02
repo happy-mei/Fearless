@@ -1,13 +1,17 @@
-Info:Sealed{ .info:Str, .map:Map[String,Info], .list:List[Info] }
+Info:Sealed{
+  .info: Str,
+  .map: read Map[Str, read Info],
+  .list: read List[read Info],
+  }
 
-Try:{   #[R](tc:TryCatch[R]):R  }
+Try:{ #[mdf R](tc: mut TryCatch[R]): R }
 
-TryCatch[R]:{
-  .try:R,
-  .catch(i:Info):R
+TryCatch[mdf R]:{
+  mut .try: mdf R,
+  .catch(i: Info): mdf R
   }
   
 Error:{
-  #[R](i:Info):R->/*native*/ 
-  .str[R](s:Str):R->this#{.info->s,.map->Map.of(), .list->List.of() }
+  #[R](i: Info): mdf R->/*native*/ 
+  .str[R](s: Str): R -> this#{.info->s, .map->Map#, .list->List# }
   }

@@ -1,12 +1,10 @@
 Sealed:{}
 
-Stores[X]:{}
-
-Convertible:{}
+NoMutRead[X]:{}
 
 Void:Sealed{}
 
-Loop:{!:Void->this!}
+Loop:{!: Void->this! }
 
 HasIdentity:{ mut identityEq(other : read HasIdentity):Bool }//magic
 
@@ -26,12 +24,12 @@ Let[V,R]:{
   .var:V,
   .in(v:V):R
   }
-Cast:Sealed{ #[A](a:!A):mut Cast[!A]->{a} }
-Cast[A]:Stores[A],Sealed{
-  read .self:!!A
-  read .as[R](c:CastId[!!A,!R]):!R->c.id(this.self)
+Cast:Sealed{ #[A](a:mdf A):mut Cast[mdf A]->{a} }
+Cast[A]:NoMutRead[A],Sealed{
+  read .self: recMdf A
+  read .as[R](c:CastId[recMdf A,mdf R]):mdf R->c.id(this.self)
   }
-CastId[A,R]{ .id(a:!A):!R }
+CastId[A,R]{ .id(a:mdf A):mdf R }
 
 //Cast#(this).as[mut Bla]{x->x} //sugar ""this as[mut Bla]""
 ---------------
@@ -57,10 +55,3 @@ A[mut X] is convertible to A[imm X] iff
     ...
     }
     
-New Options for !! !
-    recMdf mdf
-    !!     !
-    rec!   !
-
-New name for Stores
-NoMutRead[X]

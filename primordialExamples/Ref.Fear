@@ -3,9 +3,43 @@ Ref[X]:NoMutRead[X],Sealed{
   read * : recMdf X,
   mut .swap(x: mdf X): mdf X,
   mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void }
-  mut <-(f: UpdateRef[mdf X]): Void -> this := f#(this*)
+  mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*))
 }
 UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+
+Count[N]:Ref[N]{
+  mut ++: N,
+  mut --: N,
+  mut +=(n: N): N,
+  mut -=(n: N): N,
+  mut *=(n: N): N,
+  }
+Count:{
+  #(c: Num): Count[Num] -> Let{
+    .var -> Ref#c,
+    .in(c) -> {
+      * -> c*,
+      .swap(x) -> c.swap(x),
+      ++ -> c <- { c' -> c' + 1 },
+      -- -> c <- { c' -> c' - 1 },
+      +=(n: Num) -> c <- { c' -> c' + n },
+      -=(n: Num) -> c <- { c' -> c' - n },
+      *=(n: Num) -> c <- { c' -> c' * n },
+      }
+    }
+  #u(c: UNum): Count[UNum] -> Let{ // ambiguous parsing here?
+    .var -> Ref#c,
+    .in(c) -> {
+      * -> c*,
+      .swap(x) -> c.swap(x),
+      ++ -> c <- { c' -> c' + 1u },
+      -- -> c <- { c' -> c' - 1u },
+      +=(n: UNum) -> c <- { c' -> c' + n },
+      -=(n: UNum) -> c <- { c' -> c' - n },
+      *=(n: UNum) -> c <- { c' -> c' * n },
+      }
+    }
+  }
 
 --------------------------------
 Ref:{//fully inferred below
