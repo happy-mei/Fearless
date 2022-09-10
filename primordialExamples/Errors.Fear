@@ -4,7 +4,7 @@ Info:Sealed{
   .list: read List[read Info],
   }
 
-Try:{ #[mdf R](tc: mut TryCatch[R]): R }
+Try:{ #[R](tc: mut TryCatch[mdf R]): mdf R }
 
 TryCatch[mdf R]:{
   mut .try: mdf R,
