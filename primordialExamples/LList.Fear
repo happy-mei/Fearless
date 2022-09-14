@@ -8,7 +8,7 @@ Cons:{
     },
   }
 //alias mut LListMatch[recMdf E,mdf R,recMdf LList[recMdf E]] as _LListMatch
-LList[E]:NoMutRead[E],Sealed,Iterable[recMdf E]{
+LList[E]:NoMutHyg[E],Sealed,Iterable[recMdf E]{
   read .match[R](
     m: mut LListMatch[ recMdf E, mdf R, recMdf LList[recMdf E] ]
     ): mdf R -> m.empty,
@@ -44,7 +44,7 @@ LList[E]:NoMutRead[E],Sealed,Iterable[recMdf E]{
   }
 LListMatch[E,L,R]:{ mut .elem(head: mdf E, tail: mdf L): mdf R, mut .empty: mdf R }
 
-ListState[E]:NoMutRead[E],Sealed{
+ListState[E]:NoMutHyg[E],Sealed{
   read .size: UNum -> 0u,
   read .inner: recMdf LList[mdf E] -> {}
   }
@@ -54,7 +54,7 @@ ListState:{
     .inner -> inner
     }
   }
-List[E]:NoMutRead[mdf E],Sealed,Iterable[recMdf E]{
+List[E]:NoMutHyg[mdf E],Sealed,Iterable[recMdf E]{
   read .size: UNum,
   read .isEmpty: Bool,
   read .get(i: UNum): recMdf Opt[recMdf E],
