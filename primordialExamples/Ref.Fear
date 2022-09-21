@@ -15,7 +15,7 @@ Count[N]:Ref[N]{
   mut *=(n: N): N,
   }
 Count:{
-  #(c: Num): Count[Num] -> Let{
+  #(c: Num): mut Count[Num] -> Let{
     .var -> Ref#c,
     .in(c) -> {
       * -> c*,
@@ -27,7 +27,7 @@ Count:{
       *=(n: Num) -> c <- { c' -> c' * n },
       }
     }
-  #u(c: UNum): Count[UNum] -> Let{ // ambiguous parsing here?
+  !(c: UNum): mut Count[UNum] -> Let{
     .var -> Ref#c,
     .in(c) -> {
       * -> c*,
