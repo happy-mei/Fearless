@@ -1,0 +1,50 @@
+Eq[T]:{
+  read ==(other: read T): Bool,
+  read !=(other: read T): Bool -> (this == other)!,
+  }
+
+Foo:Eq[Foo]{
+  .i: Num,
+  ==(other) -> this.i == other.i,
+  }
+
+// OK
+Bar1:Eq[Bar]{
+  .i: Num,
+  .u: UNum,
+  ==(other) -> (this.i == other.i) && (this.u == other.u)
+  }
+
+// Eq exists from Foo, will only look at the result of .i()
+Bar2:Foo{
+  .i: Num,
+  .u: UNum,
+  }
+
+// two candidates for the == method:
+// 1. Foo { read ==(other: Foo): Bool -> e1 }
+// 2. Bar3 { read ==(other: Bar): Bool -> e2 }
+// Ds |- Foo[]<=Bar[] and Ds |- Bool<=Bool :.
+// Foo { read ==(other: Foo): Bool -> e1 }
+Bar3:Foo,Eq[Bar]{
+  .i: Num,
+  .u: UNum,
+  // This method is uncallable because Foo's version is more specific
+  // This might fail to pass type checking because Eq[Bar] is unsatisfied?
+  ==(other) -> (this.i == other.i) && (this.u == other.u)
+  }
+
+Assert:{
+  #(p: Bool): Void -> p ? {
+    .then -> {},
+    .else -> Error.str("Assertion failed")
+    }
+  }
+User:{ #(): Void -> Block
+  .var[Foo] fBar={ Bar3{ .i -> 5, .u -> 6u } }
+  .var[Foo] foo={ Foo{ .i -> 5 } }
+  // Reflexivity breaks with Bar3 and polymorphism
+  .do{ Assert#(foo == fBar) } // ok so far
+  .do{ Assert#(fBar == foo) } // still ok
+  .return{{}}
+  }

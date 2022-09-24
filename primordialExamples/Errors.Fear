@@ -12,6 +12,6 @@ TryCatch[mdf R]:{
   }
   
 Error:{
-  #[R](i: Info): mdf R->/*native*/ 
-  .str[R](s: Str): R -> this#{.info->s, .map->Map#, .list->List# }
+  #[R](i: Info): mdf R ->/*native*/ 
+  .str[R](s: Str): mdf R -> this#{.info->s, .map->Map#, .list->List# }
   }
