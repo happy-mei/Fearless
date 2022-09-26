@@ -3,7 +3,7 @@
 
 // Cons#(1, Cons#(2, Cons#(4, {})))
 Cons:{
-  #[E](h: E, t: LList[mdf E]): mut LList[mdf E]-> {
+  #[E](h: E, t: LList[mdf E]): mut LList[mdf E] -> {
     .match(m) -> m.elem(this,e)
     },
   }
@@ -37,10 +37,9 @@ LList[E]:NoMutHyg[E],Sealed,Iterable[recMdf E]{
     .empty -> {},
     .elem(_,t) -> t,
     },
-  .iter -> iter={
-    .next -> iter.cur.swap(iter.cur*.tail).head,
-    mut .cur: mut Ref[recMdf LList[recMdf E]] -> Ref#this // can this conversion work?
-    }
+  lent .iter -> Block
+    .var[mut Ref[recMdf LList[recMdf E]]] cur={ Ref#this }
+    .return{{ .next -> cur.swap(cur*.tail).head }},
   }
 LListMatch[E,L,R]:{ mut .elem(head: mdf E, tail: mdf L): mdf R, mut .empty: mdf R }
 
@@ -62,23 +61,25 @@ List[E]:NoMutHyg[mdf E],Sealed,Iterable[recMdf E]{
   mut .addAll(l1: recMdf List[mdf E]): Void,
   }
 List{
-  #[E]: mut List[mdf E] -> Let#[mut Ref[mut ListState[mdf E]]]{
-    .var -> Ref#{},
-    .in(s) -> list={ // capturing `mut Ref[mut ListState[mdf E]]`
-      .size -> s*.size,
-      .isEmpty -> s*.inner.isEmpty,
-      .get(i) -> s*.inner.get(i),
-      .iter -> iter={ // read .iter: mut Iter[mdf E]
-        .next: Let#{
-          .var -> iter.cur.swap(iter.cur* + 1u),
-          .in(i) -> list.get(i)
-          },
-        mut .cur: mut Ref[UNum] -> Ref#0u,
+  #[E]: mut List[mdf E] -> this._genList[mdf E](Ref#{}),
+  #[E](e: mdf E) -> this.fromLList(Cons#(e, {})),
+  #[E](e1: mdf E, e2: mdf E) -> this.fromLList(Cons#(e1, Cons#(e2, {}))),
+  #[E](e1: mdf E, e2: mdf E, e3: mdf E) -> this.fromLList(Cons#(e1, Cons#(e2, Cons#(e3, {})))),
+  // and so on up to 10 or so (or magic it to create what's used like numbers)
+  .fromLList[E](lList: mut LList[mdf E]): mut List[mdf E] -> this._genList[mdf E](Block
+    .var size={ lList.size }
+    .return{{ .size -> size, .inner -> inner }}
+    ),
+  ._genList[E](s: mut Ref[mut ListState[mdf E]]): mut List[mdf E] -> list={
+    .size -> s*.size,
+    .isEmpty -> s*.inner.isEmpty,
+    .get(i) -> s*.inner.get(i),
+    .iter -> iter={ // read .iter: lent Iter[mdf E]
+      .next: list.get(iter.cur.swap(iter.cur* + 1u)),
       },
-      .add(e) -> s := ListState#(s*.size + 1u, s*.inner + e),
-      .addAll(l1) -> l1.iter.forEach{ e -> list.add(e) }
-      }
-    },
+    .add(e) -> s := ListState#(s*.size + 1u, s*.inner + e),
+    .addAll(l1) -> l1.iter.forEach{ e -> list.add(e) }
+    }
   }
 
 ------------------
