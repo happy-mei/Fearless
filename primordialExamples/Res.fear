@@ -1,12 +1,21 @@
 // Ignore this, I plan on changing the mapErr or flatMapErr to some ||
 // style of syntax so the flow can be "on success map to x or map to y"
 
-Res:{ //.of / some / none
-  .ok[T,E](x: T): mut Res[T, E] -> {
-    .map(f) -> this.ok(f#x),
-    .flatMap(f) -> f#x,
-    .match(m) -> m.ok(x)
-  },
+// Res.err("boo").map({n -> n + 1}) || 
+
+Block
+  .var[Res[Num, Str]] r={ Res.err("boo") }
+  .return{
+    r.map{n -> n + 1} || {_ -> 0}
+    }
+
+Res[T, E]:NoMutHyg[T],NoMutHyg[E]{
+  read .match[R](m: mut ResMatch[recMdf T, recMdf E]),
+  }
+ResMatch[T, E, R]{ mut .ok(x: mdf T): mdf R, mut .err(x: mdf E): mdf R }
+
+Res:{
+  .ok[T,E](x: mdf T): mut Res[T, E] -> { .match(m) -> m.ok(x) },
   .err[T,E](err: E): mut Res[T, E] -> {
     .map(_) -> self,
     .flatMap(_) -> self,
