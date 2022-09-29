@@ -1,0 +1,54 @@
+ --------------------
+5b Inference in expressions (Nick is trying things)
+--------------------
+We should number infers to link the same infers together
+
+  Block:  .if .var .do
+//Java can not do this, can it do the block
+//List<Bar> b=List.of().stream().map(a->a.foo()).toList()
+Foo foo=Block.<?>of().return(()->new Foo())
+
+Id{.id[X](X):X}
+Id.id(A).foo() : Foo
+{}:Id.id({}:A):infer.foo() : Foo
+{}:Id.id[infer]({}:A):infer.foo() : Foo
+{}:Id.id[A]({}:A):A.foo() : Foo
+
+{}:T.map({L1}:infer):infer .m2({L2}:infer):T0
+{}:T.map[infer]({L1}:infer):infer .m2({L2}:infer):T0
+{}:T.map[infer]({L1}:Function[T,infer]):infer .m2({L2}:infer):T0
+{}:T.map[infer]({L1(res T1)}:Function[T,T1]):infer .m2({L2}:infer):T0
+{}:T.map[infer]({L1(res T1)}:Function[T,T1]):T1 .m2({L2}:infer):T0
+{}:T.map[T1]({L1(res T1)}:Function[T,T1]):T1 .m2({L2}:infer):T0
+{}:T.map[T1]({L1(res T1)}:Function[T,T1]):T1 .m2[infer,infer]({L2}:infer):T0
+
+A:{
+  imm #[](): imm B ->
+    Block[mdf INFER1]{}:Block[R:mdf INFER1] //{}:Block[R:mdf infer1]
+    .return[]({ B{}:B }:ReturnStmt[R:mdf INFER1]), : mdf infer2
+  }
+B:{}
+1. To infer infer1, we need the M:
+meths(Block[mdf INFER1]) = Ms // make a generic for infer1 for compat
+Ms(.return/1) = M
+// M = mut .return(a: mut ReturnStmt[mdf INFER1]): mdf INFER1 -> a#,
+// convert back to our infer type
+// M = mut .return(a: mut ReturnStmt[mdf infer1]): mdf infer1 -> a#,
+We know that M.T is infer2, so globally _ infer2 = mdf infer1
+2. We can put together this type:
+ReturnStmt[INFER1]{
+  mut #: mdf INFER1 -> B{}:mut B
+  }
+3. Replace mdf INFER1 with the type on the expression
+ReturnStmt[mut B]{
+  mut #: mut B -> B{}:mut B
+  }
+4. Replace everywhere
+A:{
+  imm #[](): imm B ->
+    Block[mut B]{}:Block[R:mut B]
+    .return({ B{}:B }:ReturnStmt[R:mut B]), : mut B
+  }
+B:{}
+
+All types inferred, the expression returns a mut B. Hopefully multiMeths lets this promote and we have inferred code that passes the type checker.
