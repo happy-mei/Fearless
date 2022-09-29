@@ -1,0 +1,139 @@
+A:{
+  #: Num ->
+    List#(List#(1,2),List#(3)).iter
+      .flatMap{l -> l.iter}
+      .map{n -> n * 10}
+      .filter{n -> n > 10}
+      .toList
+      .get(0).match{ .some(n) -> n, .none -> Error.str(“oh noes”) },
+  }
+//0
+{}:List #({}:List #({}:1,{}:2):infer,{}:List#({}:3):infer):infer.iter:infer
+      .flatMap({(l:infer) -> l:infer.iter:infer}:infer):infer
+      .map({(n:infer) -> n:infer *({}:10):infer}:infer):infer
+      .filter{(n:infer) -> n:infer >({}:10):infer}:infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str({}:”oh noes”): infer }:Num,
+//1
+{}:List #({}:List #[Num]({}:1,{}:2):List[Num],{}:List#[Num]({}:3):List[Num]):infer.iter:infer
+      .flatMap({(l:infer) -> l:infer.iter:infer}:infer):infer
+      .map({(n:infer) -> n:infer *({}:10):infer}:infer):infer
+      .filter{(n:infer) -> n:infer >({}:10):infer}:infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//2
+{}:List #[List[Num]](XX:List[Num],XX:List[Num]):List[List[Num]].iter:infer
+      .flatMap({(l:infer) -> l:infer.iter:infer}:infer):infer
+      .map({(n:infer) -> n:infer *({}:10):infer}:infer):infer
+      .filter{(n:infer) -> n:infer >({}:10):infer}:infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//3
+XX:List[List[Num]].iter:lent Iter[List[Num]]
+      .flatMap({(l:infer) -> l:infer.iter:infer}:infer):infer
+      .map({(n:infer) -> n:infer *({}:10):infer}:infer):infer
+      .filter{(n:infer) -> n:infer >({}:10):infer}:infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//4
+XX:lent Iter[List[Num]]
+      .flatMap[infer]({(l:infer) -> l:infer.iter:infer}:lent Mapper[List[Num],lent Iter[infer]]):lent Iter[infer]
+      .map({(n:infer) -> n:infer *({}:10):infer}:infer):infer
+      .filter{(n:infer) -> n:infer >({}:10):infer}:infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//5
+Mapper[E,R]:{ mut #(e: mdf E): mdf R }
+XX:lent Iter[List[Num]]
+      .flatMap[infer]({mut #(l:List[Num]) -> l:infer.iter:infer}:lent Mapper[List[Num],lent Iter[infer]]):lent Iter[infer]
+      .map({(n:infer) -> n:infer *({}:10):infer}:infer):infer
+      .filter{(n:infer) -> n:infer >({}:10):infer}:infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//6 -7-8
+Mapper[E,R]:{ mut #(e: mdf E): mdf R }
+XX:lent Iter[List[Num]]
+      .flatMap[infer]({mut #(l:List[Num]) -> l:List[Num].iter:lent Iter[Num]}:lent Mapper[List[Num],lent Iter[Num]]):lent Iter[infer]
+      .map({(n:infer) -> n:infer *({}:10):infer}:infer):infer
+      .filter{(n:infer) -> n:infer >({}:10):infer}:infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//9
+XX:lent Iter[List[Num]]
+      .flatMap[Num]({mut #(l:List[Num]) -> l:List[Num].iter:lent Iter[Num]}:mut Mapper[List[Num],lent Iter[Num]]):lent Iter[Num]
+      .map({(n:infer) -> n:infer *({}:10):infer}:infer):infer
+      .filter{(n:infer) -> n:infer >({}:10):infer}:infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//10
+XX:lent Iter[Num]
+      .map[infer]({#(n:Num) -> n:infer *({}:10):infer}:mut Mapper[Num,infer]):infer
+      .filter{(n:infer) -> n:infer >({}:10):infer}:infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//11-12
+XX:lent Iter[Num]
+      .map[infer]({#(n:Num) -> n:Num *({}:10):Num}:mut Mapper[Num,infer]):infer
+      .filter{(n:infer) -> n:infer >({}:10):infer}:infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//13
+XX:lent Iter[Num]
+      .map[Num]({#(n:Num) -> n:Num *({}:10):Num}:mut Mapper[Num,Num]):lent Iter[Num]
+      .filter({(n:infer) -> n:infer >({}:10):infer}:infer):infer
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//14
+XX:lent Iter[Num]
+      .filter[]({(n:infer) -> n:infer >({}:10):infer}:infer):lent Iter[Num]
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//15
+Predicate[E]:{ mut #(e: mdf E): Bool }
+XX:lent Iter[Num]
+      .filter{#[Num](n:Num) -> n:Num >({}:10):Bool}:mut Predicate[Num]):lent Iter[Num]
+      .toList:infer
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+
+//16
+XX:lent Iter[Num]
+      .toList: mut List[Num]
+      .get({}:0):infer .match{ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:Num,
+
+//17
+XX:mut List[Num]
+  .get({}:0): Opt[Num] // recMdf Opt[recMdf E]
+  .match({ .some(n:infer) -> n:infer, .none() -> {}:Error .str[infer]({}:”oh noes”): infer }:infer):Num,
+
+//18
+XX:Opt[Num]
+  .match[infer]({
+     .some(n:infer) -> n:infer,
+     .none() -> {}:Error .str[infer]({}:”oh noes”): infer
+     }: OptMatch[Num, infer]):Num,
+
+//19
+XX:Opt[Num]
+  .match[Num]({
+     .some(n:infer) -> n:infer,
+     .none() -> {}:Error .str[infer]({}:”oh noes”): infer
+     }: OptMatch[Num, Num]):Num,
+
+//20
+XX:Opt[Num]
+  .match[Num]({
+     .some(n:Num) -> n:Num,
+     .none() -> {}:Error .str[Num]({}:”oh noes”): Num
+     }: OptMatch[Num, Num]):Num,

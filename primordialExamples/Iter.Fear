@@ -12,7 +12,7 @@ Iter[E]:{
   mut .map[R](f: mut Mapper[mdf E, mdf R]): mut Iter[mdf R] -> {
     .next -> this.next.map{ a -> f#a },
     },
-  mut .flatMap[R](f: mut Mapper[mdf E, mut Iter[mdf R]]): mut Iter[mdf R] -> Block
+  mut .flatMap[R](f: mut Mapper[mdf E, lent Iter[mdf R]]): lent Iter[mdf R] -> Block
     .var{ mapIter = this.map(f) }
     .var{ optCurIter = Ref#mapIter.next }
     .return self={
