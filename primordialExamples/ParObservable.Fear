@@ -4,10 +4,10 @@
 // if we aren't parallelising (and support for capsule mutation would be ideal too)
 
 Observable[T,E]:{
-  .subscribe(sub: Observer[T, E]): mut Subscription,
+  .subscribe(sub: mut Observer[T, E]): mut Subscription,
   }
 Observable:{
-  #[T,E](impl: ObservableImpl[T, E]): mut Observable[T, E] -> {
+  #[T,E](impl: mut ObservableImpl[T, E]): mut Observable[T, E] -> {
     .subscribe(sub) -> impl(sub)
     }
 
@@ -39,3 +39,54 @@ User:{
   run: Void -> Block
     .return { Void }
 }
+
+// observable/sharedobservable
+// capsule implementations?
+// how to capture object caps... maybe a non-parallelisable constructor
+// that takes a mut implementation?
+
+/*
+import './style.css';
+
+import { of, map, Observable } from 'rxjs';
+
+let finiteObs: Observable<number> = new Observable((sub) => {
+  sub.next(1);
+  sub.next(2);
+  sub.next(3);
+  sub.complete();
+  sub.next(10);
+  return () => {
+    console.log('finite', 'tear down');
+  };
+});
+
+let infiniteObs: Observable<number> = new Observable((sub) => {
+  sub.next(1);
+  sub.next(2);
+  sub.next(3);
+  sub.next(10);
+  return () => {
+    console.log('infinite', 'tear down');
+  };
+});
+
+let subFinite = finiteObs.subscribe({
+  next: (x) => console.log('finite', x),
+  complete: () => console.log('finite', 'complete'),
+});
+
+let subInfinite = infiniteObs.subscribe({
+  next: (x) => console.log('infinite', x),
+  complete: () => console.log('infinite', 'complete'),
+});
+// sub.add();
+subInfinite.unsubscribe();
+
+let subLeak = infiniteObs.subscribe({
+  next: (x) => console.log('leak', x),
+  complete: () => console.log('leak', 'complete'),
+});
+
+// Open the console in the bottom right to see results.
+*/
