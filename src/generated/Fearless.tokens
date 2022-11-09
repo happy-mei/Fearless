@@ -25,6 +25,7 @@ LineComment=24
 SysInM=25
 FullCN=26
 Whitespace=27
+Pack=28
 'mut'=1
 'lent'=2
 'read'=3

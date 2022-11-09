@@ -1,0 +1,17 @@
+project
+  files (may be in folders)
+
+topParser
+  packName
+  aliasings
+  Map<name,String> topDecls
+
+Phase 1: run the topParser for all the files
+there is a special file without package (may be with special name) that has global aliases
+Phase 2: merge all the packages maps with the same name
+  in this phase we merge all the aliases in the same pachages and the global aliases
+  in this phase we add implicit aliases for all the classes defined in that package
+  
+Then we parse each topDec independently,
+with its own alias map that is used during parser
+

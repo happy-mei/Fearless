@@ -29,6 +29,7 @@ import generated.FearlessParser.MGenContext;
 import generated.FearlessParser.MdfContext;
 import generated.FearlessParser.MethContext;
 import generated.FearlessParser.NudeEContext;
+import generated.FearlessParser.NudeProgramContext;
 import generated.FearlessParser.POpContext;
 import generated.FearlessParser.PostEContext;
 import generated.FearlessParser.RoundEContext;
@@ -40,14 +41,20 @@ import generated.FearlessParser.XContext;
 import utils.Bug;
 import utils.OneOr;
 import utils.Pop;
+import utils.Push;
+import astFull.Package;
 
 @SuppressWarnings("serial")
 class ParserFailed extends RuntimeException{}
 
 public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
-  public Path fileName;
+  public final Path fileName;
+  public final Function<String,Optional<T.IT>> resolve;
   public StringBuilder errors = new StringBuilder();
-  public FullEAntlrVisitor(Path fileName){ this.fileName=fileName; }
+  public FullEAntlrVisitor(Path fileName,Function<String,Optional<T.IT>> resolve){ 
+    this.fileName=fileName; 
+    this.resolve=resolve;
+  }
   Pos pos(ParserRuleContext prc){
     return Pos.of(fileName.toUri(),prc.getStart().getLine(),prc.getStart().getCharPositionInLine()); 
     }
@@ -101,7 +108,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     return desugar(res,pop);
   }
   @Override public Optional<List<T>> visitMGen(MGenContext ctx){
-    check(ctx);
+    if(ctx.children==null){ return Optional.empty(); }//subsumes check(ctx);
     var noTs = ctx.t()==null || ctx.t().isEmpty();
     if(ctx.OS() == null){ return Optional.empty(); }
     if(noTs){ return Optional.of(List.of()); }
@@ -129,21 +136,49 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     return new E.Lambda(mdf,res.its(), res.selfName(), res.meths(), T.infer);
     }
   @Override public E.Lambda visitBlock(BlockContext ctx){
+    check(ctx);
+    if(ctx.bblock()==null){
+      var it=visitIT(ctx.t());
+      return new E.Lambda(Mdf.mdf,List.of(it),null,List.of(),T.infer); 
+      }
     throw Bug.todo();
     }
   @Override
-  public Object visitFullCN(FullCNContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+  public String visitFullCN(FullCNContext ctx) {
+    return ctx.getText();
   }
   @Override
   public Mdf visitMdf(MdfContext ctx) {
+    if(ctx.getText().isEmpty()){ return Mdf.imm; }
     return Mdf.valueOf(ctx.getText());
   }
+  public T.IT visitIT(TContext ctx) {
+    T t=visitT(ctx,false);
+    return t.match(
+      gx->{throw Bug.todo();},
+      it->it);
+  }
   @Override
-  public Object visitT(TContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+  public T visitT(TContext ctx) {
+    return visitT(ctx,true);
+  }
+  public T visitT(TContext ctx,boolean canMdf) {
+    if(!canMdf && !ctx.mdf().getText().isEmpty()){
+      throw Bug.todo();
+    }
+    Mdf mdf = visitMdf(ctx.mdf());
+    String name = visitFullCN(ctx.fullCN());
+    var mGen=visitMGen(ctx.mGen());
+    var resolved=resolve.apply(name);
+    var isIT = name.contains(".")
+      || mGen.isPresent()
+      || resolved.isPresent();
+    if(!isIT){ return new T(mdf,new T.GX(name)); }
+    var ts = mGen.orElse(List.of());
+    if(resolved.isEmpty()){return new T(mdf,new T.IT(name,ts));}
+    var res = resolved.get();
+    ts = Push.of(res.ts(),ts);
+    return new T(mdf,res.withTs(ts));
   }
   @Override
   public Object visitSingleM(SingleMContext ctx) {
@@ -166,9 +201,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     return null;
   }
   @Override
-  public Object visitTopDec(TopDecContext ctx) {
+  public T.Dec visitTopDec(TopDecContext ctx) {
     check(ctx);
-    String cName = ctx.fullCN().getText();
+    String cName = visitFullCN(ctx.fullCN());
     var mGen = opt(ctx.mGen(),this::visitMGen);
     var body=visitBlock(ctx.block());
     return new T.Dec(cName, genDec(mGen), body);
@@ -180,13 +215,23 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override
   public T.Alias visitAlias(AliasContext ctx) {
     check(ctx);
-    var in = ctx.fullCN(0);
+    var in = visitFullCN(ctx.fullCN(0));
     var _inG = opt(ctx.mGen(0),this::visitMGen);
     var inG = Optional.ofNullable(_inG).flatMap(e->e).orElse(List.of());
-    var inT=new T.GIT(in.getText(),inG);
-    var out = ctx.fullCN(1);
+    var inT=new T.IT(in,inG);
+    var out = visitFullCN(ctx.fullCN(1));
     var outG = ctx.mGen(1);
     if(outG!=null){ throw Bug.of("No gen on out Alias"); }    
-    return new T.Alias(inT, out.getText());
+    return new T.Alias(inT, out);
+  }
+  @Override
+  public Package visitNudeProgram(NudeProgramContext ctx) {
+    String name = ctx.Pack().toString();
+    assert name.startsWith("package ");
+    assert name.endsWith("\n");
+    name=name.substring("package ".length(),name.length()-1);
+    var as=ctx.alias().stream().map(this::visitAlias).toList();
+    var decs=List.copyOf(ctx.topDec());
+    return new Package(name,as,decs,decs.stream().map(e->fileName).toList());
   } 
 }

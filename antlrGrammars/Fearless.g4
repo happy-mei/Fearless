@@ -78,7 +78,7 @@ meth   : sig | sig Arrow e | m OR (x (Comma x)+)? CR Arrow e;
 sig    : mdf m mGen OR gamma CR Colon t;
 gamma  : (x Colon t (Comma x Colon t)+)?;
 topDec : fullCN mGen Colon block;
-alias  : Alias fullCN mGen As fullCN mGen;
+alias  : Alias fullCN mGen As fullCN mGen Comma;
 
 atomE : x | roundE | lambda;
 postE : atomE pOp*;
@@ -86,3 +86,6 @@ pOp : m mGen | m mGen OR (e (Comma e)+)? CR | m mGen OR x Eq e CR;
 e: postE (m mGen (x Eq)? postE)*;
 
 nudeE : e EOF;
+
+Pack: 'package ' (PX '.')* PX '\n';
+nudeProgram: Pack alias* topDec* EOF;

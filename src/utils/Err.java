@@ -11,6 +11,11 @@ import org.opentest4j.AssertionFailedError;
 
 public class Err {
   public static String hole="[###]";//not contains \.[]{}()<>*+-=!?^$|
+  public static boolean strCmpFormat(String expected,String actual){
+    expected=expected.replace("\n","").replace(" ","");
+    actual=actual.replace("\n","").replace(" ","");
+    return strCmp(expected,actual);
+  }
   public static boolean strCmp(String expected,String actual){
     actual = actual.trim();
     expected = expected.trim();
