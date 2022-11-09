@@ -159,4 +159,11 @@ public class FearlessBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitNudeE(FearlessParser.NudeEContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitNudeProgram(FearlessParser.NudeProgramContext ctx) { return visitChildren(ctx); }
 }

@@ -5,7 +5,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -19,8 +25,13 @@ import files.Pos;
 import generated.FearlessLexer;
 import generated.FearlessParser;
 import generated.FearlessParser.NudeEContext;
+import generated.FearlessParser.NudeProgramContext;
 import utils.Bug;
 import visitors.FullEAntlrVisitor;
+
+import astFull.Package;
+import astFull.T;
+import astFull.T.Alias;
 
 public record Parser(Path fileName,String content){
   public Parser of(String fileName){
@@ -44,7 +55,7 @@ public record Parser(Path fileName,String content){
     //No strange characters
     //balanced parenthesis with decent error
   }
-  public E parseFullE(Function<String,E> orElse){
+  public E parseFullE(Function<String,E> orElse,Function<String,Optional<T.IT>> resolve){
       var l = new FearlessLexer(CharStreams.fromString(content));
       var p = new FearlessParser(new CommonTokenStream(l));
       var errorst = new StringBuilder();
@@ -52,10 +63,42 @@ public record Parser(Path fileName,String content){
       FailConsole.setFail(fileName, l, p, errorst, errorsp);
       NudeEContext res = p.nudeE();
       var ok = errorst.isEmpty() && errorsp.isEmpty();
-      if(ok){ return new FullEAntlrVisitor(fileName).visitNudeE(res); }
+      if(ok){ return new FullEAntlrVisitor(fileName,resolve).visitNudeE(res); }
       //TODO: better errors below
       if(!errorst.isEmpty()){ return orElse.apply(errorst.toString()); }
       return orElse.apply(errorsp.toString());
+  }
+  public Package parseFile(Function<String,Package> orElse){
+    var l = new FearlessLexer(CharStreams.fromString(content));
+    var p = new FearlessParser(new CommonTokenStream(l));
+    var errorst = new StringBuilder();
+    var errorsp = new StringBuilder();
+    FailConsole.setFail(fileName, l, p, errorst, errorsp);
+    NudeProgramContext res = p.nudeProgram();
+    var ok = errorst.isEmpty() && errorsp.isEmpty();
+    if(ok){ parseNudeProgram(res); }
+    //TODO: better errors below
+    if(!errorst.isEmpty()){ return orElse.apply(errorst.toString()); }
+    return orElse.apply(errorsp.toString());
+  }
+  Package parseNudeProgram(NudeProgramContext res){
+    return new FullEAntlrVisitor(fileName,
+      s->{throw Bug.unreachable();})
+      .visitNudeProgram(res); 
+  }
+  Map<T.DecId,T.Dec> parseAll(List<Parser>ps) {
+    List<Alias> globals=List.of();//TODO: global aliases
+    var all=ps.stream()
+        .map(p->p.parseFile(Bug::err))
+        .collect(Collectors.groupingBy(p->p.name()));
+    var allPs=all.values().stream()
+      .map(allPi->Package.merge(globals,allPi))
+      .toList();
+    assert allPs.stream().map(p->p.name()).distinct().count()==allPs.size();//redundant?
+    return Collections.unmodifiableMap(allPs.stream().map(Package::parse).reduce(new HashMap<>(),
+      (acc, val) -> { acc.putAll(val); return acc; },
+      (m1, m2) -> { assert m1==m2; return m1;}
+      ));
   }
 }
 class FailConsole extends ConsoleErrorListener{
