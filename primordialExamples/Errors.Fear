@@ -15,3 +15,9 @@ Error:{
   #[R](i: Info): mdf R ->/*native*/ 
   .str[R](s: Str): mdf R -> this#{.info->s, .map->Map#, .list->List# }
   }
+
+//Example
+Try#{
+  .try->Error.str("ohNo")
+  .catch(i)->Debug#(i.info) 
+  }

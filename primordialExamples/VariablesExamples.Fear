@@ -101,10 +101,10 @@ we add a reduction rule that says that
 x=mdf ITs{sigVs, sigs} ->
 v::= x=mdf ITs{sigs}
 Person:Data{
-  name:Str,age:Num
+  name:Str,age:Num,
   greet(other:Str):Str->"Hi "+other+" my name is"+this.name
   }
-Person{name->"Bob",age->34+2}
+Person{.name->"Bob", .age->34+2}
 -->Person{name->"Bob",age->36}
 
 Block
@@ -306,3 +306,87 @@ myStream.map {a-> T#(a,a) }
 
 
 myStream.map(a->AB#(a,4))
+
+
+
+
+-------------------
+Fearless
+
+C:SuperT1,SuperT2{ .name(x:T):R->body }
+
+e::= x | e m[] (es) | L
+L::= T?{ m1(x)->e1  m2->e2} 
+
+e .m e
+(e.foo(b)) + (e.bar(z).foo)
+
+1+2*3
+
+myList
+  .map {e->e+2}
+  .filter {e->e>3}
+  .to List
+  
+Person:Sealed{ .age:Var[Num], .name:Str .older:this.age:=this.age!+1}
+APeson:{#(age:Num,name:Str):Person->Block //OK
+  .if {age<18} .error{..}
+  .if {age>50} .return{..}
+  .var x= {Var#(age)}
+  .return {.age->x,.name->name} 
+  }
+APeson:{#(age:Num,name:Str):Person->{.age->Var#(age),.name->name} } //BROKEN
+
+Var[T]:{ !:T,  :=(t:T):Void }
+
+read .getDog: recMdf Dog ->..
+
+mbob:mut Person = APerson#(ADog("fido"))
+ibob:imm Person = APerson#(ADog("fido"))
+rbob:read Person = mbob //ibob
+mdog=mbob.getDog
+idog=ibob.getDog
+rdog=rbob.getDog 
+
+
+primitive Point(int[] x,int y){}
+
+
+
+
+res=list.match{
+  .onEmpty->..
+  .onElem(e,t)->..
+  }
+func myFunc(myList List<int>) bool {
+  result =
+    foreach x in myList {
+      if x == 4 {
+        return true;
+      }
+      x * 2
+    };
+  print(result);  
+  return false;
+}
+func myFunc(myList List<int>) bool {
+  result = new AList()
+  for x in myList {
+      if x == 4 {  return true; }
+    result.add(x * 2)
+    }
+  print(result);
+  return false;
+}
+foo(list:List[Num]):Bool->Block
+   .do {print(list
+     .ifAny{x->x==4}.return {True}
+     .map{x->x*2}
+     .to List)
+   }
+   .return False
+    List.of(3,4,5).map{i->i*2}.to List
+    
+Bike:{frontWeel:IsoBox[Weel] }    
+
+  
