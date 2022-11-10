@@ -389,4 +389,26 @@ foo(list:List[Num]):Bool->Block
     
 Bike:{frontWeel:IsoBox[Weel] }    
 
+list
+  .map{}
+  .ifAny{p} .return{ }
+  .ifSome{p} .return{ }
+  .ifNone{p} .return{ }
+  .ifEmpty
+  .ifDistinct{}
+  .ifNotDistinct{}
+
+Bock[R]
+
+Block#(ls)
+  .ifAny
+student //Stream<Student,List<Int>>
+  .ifEmpty.return{List.of(5)}
+  .map{s->s.age}
+  .filter{a->a>4}
+  .ifEmpty.error{b}
+  .to List
+
+
+
   

@@ -57,8 +57,12 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     this.resolve=resolve;
   }
   Pos pos(ParserRuleContext prc){
+    return pos(fileName,prc); 
+    }
+  public static Pos pos(Path fileName,ParserRuleContext prc){
     return Pos.of(fileName.toUri(),prc.getStart().getLine(),prc.getStart().getCharPositionInLine()); 
     }
+
   void check(ParserRuleContext ctx){  
     if(ctx.children==null){ throw new ParserFailed(); }
     }
@@ -230,8 +234,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(!outG.t().isEmpty()){ throw Bug.of("No gen on out Alias"); }
 
     var alias = new T.Alias(inT, out);
-    var start = ctx.getStart();
-    PosMap.add(alias, Pos.of(fileName.toUri(), start.getLine(), start.getCharPositionInLine()));
+    PosMap.add(alias, pos(ctx));
     return alias;
   }
   @Override

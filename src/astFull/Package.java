@@ -10,6 +10,8 @@ import files.Pos;
 import generated.FearlessParser.TopDecContext;
 import main.Fail;
 import utils.Bug;
+import utils.Range;
+import utils.Streams;
 import visitors.FullEAntlrVisitor;
 
 public record Package(
@@ -43,51 +45,81 @@ public record Package(
   public static Package merge(List<T.Alias>global,List<Package>ps){
     assert checks(global,ps);
     // TODO: This gives a nicer error but is actually redundant because all top decls are aliases too!
-//    topDecDisj(ps);
+    topDecDisj(ps);
     var allAliases=mergeAlias(global,ps);
     aliasDisj(allAliases);
     var decls=ps.stream().flatMap(p->p.ds().stream()).toList();
     var paths=ps.stream().flatMap(p->p.ps().stream()).toList();
     return new Package(ps.get(0).name(),allAliases,decls,paths);
   }
+  //TODO:
+  //PosMap.add(alias, PosMap.get(d).orElseThrow(Bug::unreachable));
   static List<T.Alias> mergeAlias(List<T.Alias>global, List<Package>ps){
-    return Stream.concat(
-        Stream.concat(
-            global.stream(),
-            ps.stream().flatMap(p->p.as().stream())
-        ),
-        ps.stream().flatMap(p->p.parse()
-            .values()
-            .stream()
-            .map(d->{
-              assert d.name().startsWith(p.name());
-              var shortName = d.name().substring(p.name().length()+1);
-              var alias = new T.Alias(new T.IT(d.name(), d.xs()), shortName);
-              PosMap.add(alias, PosMap.get(d).orElseThrow(Bug::unreachable));
-              return alias;
-            })
-        )
+    return Streams.of(
+      global.stream(),
+      ps.stream().flatMap(p->p.as().stream()),
+      ps.stream().flatMap(p->p.parse().values().stream()
+        .map(d->d.name())
+        .map(n->{
+          assert n.startsWith(p.name());
+          var shortName = n.substring(p.name().length()+1);
+          assert !shortName.contains(".");
+          return new T.Alias(new T.IT(n,List.of()), shortName);
+        })
+        .distinct()
+      )
     ).toList();
   }
   static void aliasDisj(List<T.Alias> all){
     var seen = new HashSet<String>(all.size());
-    for (var a : all) {
+    for(var a : all){
       var aliased = a.to();
-      if (seen.add(aliased)) {continue;}
+      if(seen.add(aliased)){ continue; }
       var conflicts = all.stream()
-          .filter(al->al.to().equals(aliased))
-          .map(al->Fail.conflict(PosMap.getOrUnknown(al), a.toString()))
-          .toList();
+        .filter(al->al.to().equals(aliased))
+        .map(al->Fail.conflict(PosMap.getOrUnknown(al), a.toString()))
+        .toList();
       throw Fail.conflictingAlias(aliased, conflicts);
     }
   }
   static void topDecDisj(List<Package>ps){
-//    var decls = new HashMap<String, Set<T.DecId>>();
-//    ps.forEach(p -> {
-//      var pkgDecls = p.parse();
-//      var ds = decls.getOrDefault(p.name(), new HashSet<>());
-//      decls.put(p.name(), ds);
-//    });
+    var ds=ps.stream()
+        .flatMap(p->p.ds().stream())
+        .map(d->{
+          int size=0;
+          if(d.mGen()!=null && d.mGen().t()!=null){ size=d.mGen().t().size(); }
+          return new T.DecId(d.fullCN().getText(),size);
+          })
+        .toList();
+    var fns=ps.stream()
+      .flatMap(p->Streams
+        .zip(p.ds(),p.ps(),(di,pi)->FullEAntlrVisitor.pos(pi, di))
+         )
+      .toList();
+    assert ds.size()==fns.size();
+    var uds=ds.stream().distinct().toList();
+    if(uds.size()==ds.size()){ return; }
+    var seen = new HashSet<T.DecId>(ds.size());
+    for(var i:Range.of(ds)){
+      T.DecId di=ds.get(i);
+      if(seen.add(di)){ continue; }
+      List<Fail.Conflict> conflicts = Streams.<T.DecId,Pos,Optional<Fail.Conflict>>zip(ds,fns,(dj,fj)->{
+        if(!dj.equals(di)){ return Optional.empty(); }
+        return Optional.of(Fail.conflict(fj, di.toString()));
+        })
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .toList();
+      throw Fail.conflictingDecls(di, conflicts);
+    }
+    
+    /*for(var i:Range.of(ds)){
+      var di=ds.get(i);
+      var udi=uds.get(i);
+      if(di==udi){ continue; }
+      var fn=fns.get(i-1);
+      throw Fail.conflictingAlias(aliased, conflicts);
+    }*/
   }
 
   static boolean checks(List<T.Alias>global,List<Package>ps){
