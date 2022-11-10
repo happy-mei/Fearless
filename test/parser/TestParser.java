@@ -49,10 +49,7 @@ class TestParser {
         t=infer]
       """, "mut animals.Cat"); }
   @Test void testFail1(){ fail(
-    "file:[###]Dummy:1(col=0)token recognition error at: 'N'"
-   +"file:[###]Dummy:1(col=1)token recognition error at: 'O'"
-   +"file:[###]Dummy:1(col=2)token recognition error at: 'P'"
-   +"file:[###]Dummy:1(col=3)token recognition error at: 'E'"
-    ,"NOPE"); }
+    "file:///home/nick/Programming/uni/fearless/Dummy.fear:1(col=3)mismatched input 'parse' expecting {'mut', 'lent', 'read', 'iso', 'recMdf', 'mdf', 'imm', FullCN}"
+    ,"We parse a surprising amount of stuff"); }
 
 }

@@ -290,55 +290,55 @@ public class FearlessParser extends Parser {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
+				setState(50);
+				match(Mut);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(51);
-				match(Mut);
+				match(Lent);
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(52);
-				match(Lent);
+				match(Read);
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(53);
-				match(Read);
+				match(Iso);
 				}
 				break;
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
 				setState(54);
-				match(Iso);
+				match(RecMdf);
 				}
 				break;
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
 				setState(55);
-				match(RecMdf);
+				match(Mdf);
 				}
 				break;
 			case 7:
 				enterOuterAlt(_localctx, 7);
 				{
 				setState(56);
-				match(Mdf);
+				match(Imm);
 				}
 				break;
 			case 8:
 				enterOuterAlt(_localctx, 8);
 				{
-				setState(57);
-				match(Imm);
 				}
 				break;
 			}
@@ -1921,10 +1921,10 @@ public class FearlessParser extends Parser {
 		"\u0000\u0000(\u00f5\u0001\u0000\u0000\u0000*\u00f8\u0001\u0000\u0000\u0000"+
 		",-\u0005\u001a\u0000\u0000-\u0001\u0001\u0000\u0000\u0000./\u0007\u0000"+
 		"\u0000\u0000/\u0003\u0001\u0000\u0000\u000001\u0007\u0001\u0000\u0000"+
-		"1\u0005\u0001\u0000\u0000\u00002;\u0001\u0000\u0000\u00003;\u0005\u0001"+
-		"\u0000\u00004;\u0005\u0002\u0000\u00005;\u0005\u0003\u0000\u00006;\u0005"+
-		"\u0004\u0000\u00007;\u0005\u0005\u0000\u00008;\u0005\u0006\u0000\u0000"+
-		"9;\u0005\u0007\u0000\u0000:2\u0001\u0000\u0000\u0000:3\u0001\u0000\u0000"+
+		"1\u0005\u0001\u0000\u0000\u00002;\u0005\u0001\u0000\u00003;\u0005\u0002"+
+		"\u0000\u00004;\u0005\u0003\u0000\u00005;\u0005\u0004\u0000\u00006;\u0005"+
+		"\u0005\u0000\u00007;\u0005\u0006\u0000\u00008;\u0005\u0007\u0000\u0000"+
+		"9;\u0001\u0000\u0000\u0000:2\u0001\u0000\u0000\u0000:3\u0001\u0000\u0000"+
 		"\u0000:4\u0001\u0000\u0000\u0000:5\u0001\u0000\u0000\u0000:6\u0001\u0000"+
 		"\u0000\u0000:7\u0001\u0000\u0000\u0000:8\u0001\u0000\u0000\u0000:9\u0001"+
 		"\u0000\u0000\u0000;\u0007\u0001\u0000\u0000\u0000<=\u0005\u000f\u0000"+

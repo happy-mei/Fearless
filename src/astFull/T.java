@@ -19,9 +19,19 @@ public record T(Mdf mdf, RT rt){
     public IT withTs(List<T>ts){ return new IT(name,ts); }
     @Override public String toString(){ return name+ts; }
   }
-  public record DecId(String name,int gen){}
-  public record Alias(T.IT from, String to){}
-  public record Dec(String name, List<T.GX>xs,E.Lambda lambda){}
+  public record DecId(String name,int gen){
+    @Override public String toString() {
+      return String.format("%s/%d", name, gen);
+    }
+  }
+  public record Alias(T.IT from, String to){
+    @Override public String toString() {
+      return String.format("alias %s as %s", from, to);
+    }
+  }
+  public record Dec(String name, List<T> xs, E.Lambda lambda){
+    public Dec{ assert xs.isEmpty() || xs.get(0).rt() instanceof GX; }
+  }
   @Override public String toString(){
     if(isInfer()){ return "infer"; }
     return ""+mdf+" "+rt;

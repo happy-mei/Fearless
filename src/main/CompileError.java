@@ -13,7 +13,8 @@ public class CompileError extends RuntimeException{
   public static CompileError of(){ return new CompileError(); }
   public static CompileError of(Throwable cause){ return new CompileError(cause); }
   public static CompileError of(String msg){ return new CompileError(msg); }
+
   @Override public String toString(){
-    return "in position "+pos+"\n"+this.getMessage();
+    return "In position "+pos+"\n"+this.getMessage();
   }
 }
