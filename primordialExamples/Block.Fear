@@ -1,8 +1,8 @@
 Block
-  .if {} .return {}
-  .var {x=e} //sugar for .var(LX,Cont) Cont: Self,X->Block
+  .if {3>4} .return {5}
+  .var x={54+1} //sugar for .var(LX,Cont) Cont: Self,X->Block
   .if {} .do {}
-  .if {} .error {} //unchecked exception
+  .if {} .error {myInfo} //unchecked exception
   .do {}
   .return {}
 
@@ -13,7 +13,7 @@ Block
     .if {} .error {} //unchecked exception
     .do {}
     .return {}
-    }
+    })
 
 User:{
   num: Num -> Block

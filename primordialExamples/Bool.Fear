@@ -1,12 +1,12 @@
-Bool:Sealed:{
+Bool:Sealed{
   &&(b: Bool): Bool,
   ||(b: Bool): Bool,
-  !(b: Bool): Bool,
-  ?[R](f: mut ThenElse[R]): R, // ?  because `bool ? { .then, .else }` is kinda like a ternary
+  !: Bool,
+  ?[R](f: mut ThenElse[R]): R, // ?  because `bool ? { .then->aa, .else->bb }` is kinda like a ternary
   }
 
-True:Bool:{ &&(b) -> b, ||(b) -> this, !(b) -> False, ?(f) -> f.then() }
-False:Bool:{ and(b) -> this, or(b) -> b, not(b) -> True, ?(f) -> f.else() }
+True:Bool{ &&(b) -> b, ||(b) -> this, !(b) -> False, ?(f) -> f.then() }
+False:Bool{ and(b) -> this, or(b) -> b, not(b) -> True, ?(f) -> f.else() }
 ThenElse[R]:{ mut .then: R, mut .else: R, }
 // We may want to have a factory for ThenElse and seal it so it can be optimised
 // into an if statement or something like that?
