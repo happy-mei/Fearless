@@ -73,7 +73,7 @@ class TestParser {
         t=infer]
       """, "mut base.Either[imm pkg1.Person, mut pkg1.Blah]"); }
   @Test void testFail1(){ fail(
-    "file:///home/nick/Programming/uni/fearless/Dummy.fear:1:3 mismatched input 'parse' expecting {'mut', 'lent', 'read', 'iso', 'recMdf', 'mdf', 'imm', FullCN}"
+    "[###]Dummy.fear:1:3 mismatched input 'parse' expecting {'mut', 'lent', 'read', 'iso', 'recMdf', 'mdf', 'imm', FullCN}"
     ,"We parse a surprising amount of stuff"); }
 
 }
