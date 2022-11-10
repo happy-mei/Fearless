@@ -40,7 +40,7 @@ class TestParser {
       meths=[],
       t=infer]
     """, "base.True"); }
-  @Test void testCat(){ ok(
+  @Test void testLamNoGens(){ ok(
       """
       Lambda[mdf=mut,
         its=[animals.Cat[]],
@@ -48,8 +48,32 @@ class TestParser {
         meths=[],
         t=infer]
       """, "mut animals.Cat"); }
+  @Test void testLamEmptyGens(){ ok(
+      """
+      Lambda[mdf=mut,
+        its=[animals.Cat[]],
+        selfName=null,
+        meths=[],
+        t=infer]
+      """, "mut animals.Cat[]"); }
+  @Test void testLamOneGens(){ ok(
+      """
+      Lambda[mdf=mut,
+        its=[base.List[imm pkg1.Person]],
+        selfName=null,
+        meths=[],
+        t=infer]
+      """, "mut base.List[imm pkg1.Person]"); }
+  @Test void testLamManyGens(){ ok(
+      """
+      Lambda[mdf=mut,
+        its=[base.List[imm pkg1.Person]],
+        selfName=null,
+        meths=[],
+        t=infer]
+      """, "mut base.Either[imm pkg1.Person, mut pkg1.Blah]"); }
   @Test void testFail1(){ fail(
-    "file:///home/nick/Programming/uni/fearless/Dummy.fear:1(col=3)mismatched input 'parse' expecting {'mut', 'lent', 'read', 'iso', 'recMdf', 'mdf', 'imm', FullCN}"
+    "file:///home/nick/Programming/uni/fearless/Dummy.fear:1:3 mismatched input 'parse' expecting {'mut', 'lent', 'read', 'iso', 'recMdf', 'mdf', 'imm', FullCN}"
     ,"We parse a surprising amount of stuff"); }
 
 }
