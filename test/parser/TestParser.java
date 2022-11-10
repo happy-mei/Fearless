@@ -38,10 +38,16 @@ class TestParser {
       its=[base.True[]],
       selfName=null,
       meths=[],
-      t=infer]                       
-    """,
-    "base.True"); }
-  @Test void testLambda(){ ok("Lambda[]","Lambda"); }
+      t=infer]
+    """, "base.True"); }
+  @Test void testCat(){ ok(
+      """
+      Lambda[mdf=mut,
+        its=[animals.Cat[]],
+        selfName=null,
+        meths=[],
+        t=infer]
+      """, "mut animals.Cat"); }
   @Test void testFail1(){ fail(
     "file:[###]Dummy:1(col=0)token recognition error at: 'N'"
    +"file:[###]Dummy:1(col=1)token recognition error at: 'O'"
