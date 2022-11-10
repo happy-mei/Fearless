@@ -7,7 +7,7 @@ public record Pos(URI fileName, int line, int column) implements java.io.Seriali
   }
   @Override
   public String toString() {
-    return fileName +":" + line() + "(col=" + column() + ")";
+    return fileName + ":" + line() + ":" + column();
   }
   public Pos withFileName(URI fileName) {
     return this.fileName == fileName ? this : new Pos(fileName, this.line, this.column);

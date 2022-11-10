@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import astFull.PosMap;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -68,6 +69,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Object visitRoundE(RoundEContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitBblock(BblockContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitPOp(POpContext ctx){ throw Bug.unreachable(); }
+  @Override public T.Dec visitTopDec(TopDecContext ctx) { throw Bug.unreachable(); }
   @Override public E visitNudeE(NudeEContext ctx){
     check(ctx);    
     return visitE(ctx.e());
@@ -200,15 +202,19 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     // TODO Auto-generated method stub
     return null;
   }
-  @Override
-  public T.Dec visitTopDec(TopDecContext ctx) {
+  public T.Dec visitTopDec(TopDecContext ctx, String pkg) {
     check(ctx);
     String cName = visitFullCN(ctx.fullCN());
+    if (cName.contains(".")) {
+      throw Bug.of("You may not declare a trait in a different package than the package the declaration is in.");
+    }
+    cName = pkg + "." + cName;
+
     var mGen = opt(ctx.mGen(),this::visitMGen);
-    var body=visitBlock(ctx.block());
+    var body = visitBlock(ctx.block());
     return new T.Dec(cName, genDec(mGen), body);
   }
-  public List<T.GX> genDec(Optional<List<T>>ts){
+  public List<T> genDec(Optional<List<T>> ts){
     if(ts.isEmpty() || ts.get().isEmpty()){ return List.of(); }
     throw Bug.todo();
     }
@@ -221,8 +227,12 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var inT=new T.IT(in,inG);
     var out = visitFullCN(ctx.fullCN(1));
     var outG = ctx.mGen(1);
-    if(outG!=null){ throw Bug.of("No gen on out Alias"); }    
-    return new T.Alias(inT, out);
+    if(!outG.t().isEmpty()){ throw Bug.of("No gen on out Alias"); }
+
+    var alias = new T.Alias(inT, out);
+    var start = ctx.getStart();
+    PosMap.add(alias, Pos.of(fileName.toUri(), start.getLine(), start.getCharPositionInLine()));
+    return alias;
   }
   @Override
   public Package visitNudeProgram(NudeProgramContext ctx) {
