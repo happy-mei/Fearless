@@ -60,9 +60,9 @@ public record Parser(Path fileName,String content){
     List<Alias> globals=List.of();//TODO: global aliases
     var all=ps.stream()
         .map(p->p.parseFile(Bug::err))
-        .collect(Collectors.groupingBy(p->p.name()));
+        .collect(Collectors.groupingBy(Package::name));
     var allPs=all.values().stream()
-        .map(allPi->Package.merge(globals,allPi))
+        .map(allPi->Package.merge(globals, allPi))
         .toList();
     assert allPs.stream().map(Package::name).distinct().count()==allPs.size();//redundant?
     return Collections.unmodifiableMap(allPs.stream().map(Package::parse).reduce(new HashMap<>(),
