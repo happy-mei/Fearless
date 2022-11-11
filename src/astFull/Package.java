@@ -30,10 +30,6 @@ public record Package(
     TopDecContext di=this.ds().get(i);
     T.Dec dec=new FullEAntlrVisitor(pi,this::resolve).visitTopDec(di, this.name());
     T.DecId id=new T.DecId(dec.name(),dec.xs().size());
-
-    var declPos = di.getStart();
-    PosMap.add(dec, Pos.of(pi.toUri(), declPos.getLine(), declPos.getCharPositionInLine()));
-
     acc.put(id, dec);
   }
   Optional<T.IT> resolve(String base){
@@ -42,18 +38,16 @@ public record Package(
       .findAny()
       .map(a -> a.from());
   }
-  public static Package merge(List<T.Alias>global,List<Package>ps){
-    assert checks(global,ps);
+  public static Package merge(List<T.Alias>global,List<Package>ps) {
+    assert checks(global, ps);
     // TODO: This gives a nicer error but is actually redundant because all top decls are aliases too!
     topDecDisj(ps);
-    var allAliases=mergeAlias(global,ps);
+    var allAliases = mergeAlias(global, ps);
     aliasDisj(allAliases);
-    var decls=ps.stream().flatMap(p->p.ds().stream()).toList();
-    var paths=ps.stream().flatMap(p->p.ps().stream()).toList();
-    return new Package(ps.get(0).name(),allAliases,decls,paths);
+    var decls = ps.stream().flatMap(p -> p.ds().stream()).toList();
+    var paths = ps.stream().flatMap(p -> p.ps().stream()).toList();
+    return new Package(ps.get(0).name(), allAliases, decls, paths);
   }
-  //TODO:
-  //PosMap.add(alias, PosMap.get(d).orElseThrow(Bug::unreachable));
   static List<T.Alias> mergeAlias(List<T.Alias>global, List<Package>ps){
     return Streams.of(
       global.stream(),
@@ -93,7 +87,7 @@ public record Package(
         .toList();
     var fns=ps.stream()
       .flatMap(p->Streams
-        .zip(p.ds(),p.ps(),(di,pi)->FullEAntlrVisitor.pos(pi, di))
+        .zip(p.ds(),p.ps()).map((di,pi)->FullEAntlrVisitor.pos(pi, di))
          )
       .toList();
     assert ds.size()==fns.size();
@@ -103,23 +97,12 @@ public record Package(
     for(var i:Range.of(ds)){
       T.DecId di=ds.get(i);
       if(seen.add(di)){ continue; }
-      List<Fail.Conflict> conflicts = Streams.<T.DecId,Pos,Optional<Fail.Conflict>>zip(ds,fns,(dj,fj)->{
+      List<Fail.Conflict> conflicts = Streams.zip(ds,fns).filterMap((dj,fj)->{
         if(!dj.equals(di)){ return Optional.empty(); }
         return Optional.of(Fail.conflict(fj, di.toString()));
-        })
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .toList();
-      throw Fail.conflictingDecls(di, conflicts);
+        }).toList();
+      throw Fail.conflictingDecl(di, conflicts);
     }
-    
-    /*for(var i:Range.of(ds)){
-      var di=ds.get(i);
-      var udi=uds.get(i);
-      if(di==udi){ continue; }
-      var fn=fns.get(i-1);
-      throw Fail.conflictingAlias(aliased, conflicts);
-    }*/
   }
 
   static boolean checks(List<T.Alias>global,List<Package>ps){

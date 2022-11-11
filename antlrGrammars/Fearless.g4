@@ -69,7 +69,7 @@ mdf: Mut | Lent | Read | Iso | RecMdf | Mdf | Imm | ;
 roundE : OR e CR;
 mGen   : | OS (t (Comma t)*)? CS;
 lambda : mdf block;
-block  : t? OC bblock CC | t;
+block  : (t (Comma t)*)? OC bblock CC | t;
 bblock : | x Comma singleM | singleM | x Comma (meth Comma)+ | (meth Comma)+;
 
 t      : mdf fullCN mGen; //we recognize if fullCN is an X after parsing
