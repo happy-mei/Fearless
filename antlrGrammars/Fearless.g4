@@ -70,13 +70,13 @@ roundE : OR e CR;
 mGen   : | OS (t (Comma t)*)? CS;
 lambda : mdf block;
 block  : (t (Comma t)*)? OC bblock CC | t;
-bblock : | x Comma singleM | singleM | x Comma (meth Comma)+ | (meth Comma)+;
+bblock : | x Comma singleM | singleM | x Comma (Comma meth)* Comma? | meth (Comma meth)* Comma?;
 
 t      : mdf fullCN mGen; //we recognize if fullCN is an X after parsing
-singleM: (x (Comma x)+)? Arrow e | e;
-meth   : sig | sig Arrow e | m OR (x (Comma x)+)? CR Arrow e;
-sig    : mdf m mGen OR gamma CR Colon t;
-gamma  : (x Colon t (Comma x Colon t)+)?;
+singleM: (x (Comma x)*)? Arrow e | e;
+meth   : sig | sig Arrow e | m OR (x (Comma x)*)? CR Arrow e | m (x (Comma x)*)? Arrow e;
+sig    : mdf m mGen (OR gamma CR)? Colon t | mdf m mGen gamma Colon t;
+gamma  : (x Colon t (Comma x Colon t)*)?;
 topDec : fullCN mGen Colon block;
 alias  : Alias fullCN mGen As fullCN mGen Comma;
 

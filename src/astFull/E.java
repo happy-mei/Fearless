@@ -15,7 +15,11 @@ public interface E {
   record MethName(String name){
     @Override public String toString(){ return name; }
   }
-  record Meth(Optional<Sig> sig,Optional<MethName> name, List<E.X>xs,Optional<E> body){}
+  record Meth(Optional<Sig> sig,Optional<MethName> name, List<E.X>xs,Optional<E> body){
+    @Override public String toString() {
+      return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));
+    }
+  }
   record Sig(Mdf mdf, List<T.GX> gens, List<T> ts, T ret){};
 }
 
