@@ -183,7 +183,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var mGen=visitMGen(ctx.mGen());
     var resolved=resolve.apply(name);
     var isIT = name.contains(".")
-      || mGen.isPresent()
+//      || mGen.isPresent() TODO: I think this one breaks things
       || resolved.isPresent();
     if(!isIT){ return new T(mdf,new T.GX(name)); }
     var ts = mGen.orElse(List.of());
