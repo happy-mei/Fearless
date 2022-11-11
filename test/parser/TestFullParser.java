@@ -171,8 +171,8 @@ class TestFullParser {
       t=infer]]}
     """, """
     package pkg1
-    alias base.AbstractLoop as ALoop,
-    Loop:ALoop{this!}
+    alias base.AbstractLoop as AbsLoop,
+    Loop:AbsLoop{this!}
     """
   );}
   @Test void baseLoop(){ ok("""
@@ -184,14 +184,73 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          !([]):Sig[mdf=imm,name=!,gens=null,xs=[],ret=immGX[name=Void]]->
+          !([]):Sig[mdf=imm,name=!,gens=null,xs=[],ret=imm base.Void[]]->
             MCall[receiver=this:infer,name=!,ts=Optional.empty,es=[],t=infer]
         ],
         t=infer
       ]]}
     """, """
     package base
+    alias base.Void as Void,
     Loop:{!:Void->this!}
+    """
+  );}
+  @Test void baseLoopExplicit(){ ok("""
+    {base.Loop/0=Dec[
+      name=base.Loop,
+      xs=[],
+      lambda=Lambda[
+        mdf=mdf,
+        its=[],
+        selfName=null,
+        meths=[
+          !([]):Sig[mdf=imm,name=!,gens=null,xs=[],ret=imm base.Void[]]->
+            MCall[receiver=this:infer,name=!,ts=Optional.empty,es=[],t=infer]
+        ],
+        t=infer
+      ]]}
+    """, """
+    package base
+    alias base.Void as Void,
+    Loop:{imm !():imm Void->this!}
+    """
+  );}
+  @Test void baseLoopMoreExplicit(){ ok("""
+    {base.Loop/0=Dec[
+      name=base.Loop,
+      xs=[],
+      lambda=Lambda[
+        mdf=mdf,
+        its=[],
+        selfName=null,
+        meths=[
+          !([]):Sig[mdf=imm,name=!,gens=null,xs=[],ret=imm base.Void[]]->
+            MCall[receiver=this:infer,name=!,ts=Optional.empty,es=[],t=infer]
+        ],
+        t=infer
+      ]]}
+    """, """
+    package base
+    alias base.Void as Void,
+    Loop[]:{imm ![]():imm Void[]->this!}
+    """
+  );}
+  @Test void baseLoopAbs(){ ok("""
+    {base.AbsLoop/0=Dec[
+      name=base.AbsLoop,
+      xs=[],
+      lambda=Lambda[
+        mdf=mdf,
+        its=[],
+        selfName=null,
+        meths=[
+          !([]):Sig[mdf=imm,name=!,gens=null,xs=[],ret=immGX[name=Void]]->[-]
+        ],
+        t=infer
+      ]]}
+    """, """
+    package base
+    AbsLoop:{!:Void}
     """
   );}
 }
