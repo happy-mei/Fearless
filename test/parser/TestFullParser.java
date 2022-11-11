@@ -176,12 +176,19 @@ class TestFullParser {
     """
   );}
   @Test void baseLoop(){ ok("""
-    {base.Loop/0=
-      Dec[name=base.Loop,
+    {base.Loop/0=Dec[
+      name=base.Loop,
       xs=[],
-      lambda=Lambda[mdf=mdf,its=[],selfName=null,meths=[null],t=infer]
-      ]
-      }
+      lambda=Lambda[
+        mdf=mdf,
+        its=[],
+        selfName=null,
+        meths=[
+          !([]):Sig[mdf=imm,name=!,gens=null,xs=[],ret=immGX[name=Void]]->
+            MCall[receiver=this:infer,name=!,ts=Optional.empty,es=[],t=infer]
+        ],
+        t=infer
+      ]]}
     """, """
     package base
     Loop:{!:Void->this!}
