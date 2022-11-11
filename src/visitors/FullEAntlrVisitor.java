@@ -39,10 +39,7 @@ import generated.FearlessParser.SingleMContext;
 import generated.FearlessParser.TContext;
 import generated.FearlessParser.TopDecContext;
 import generated.FearlessParser.XContext;
-import utils.Bug;
-import utils.OneOr;
-import utils.Pop;
-import utils.Push;
+import utils.*;
 import astFull.Package;
 
 @SuppressWarnings("serial")
@@ -201,19 +198,37 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var _xs = opt(ctx.x(), xs->xs.stream().map(this::visitX).toList());
     _xs = _xs==null?List.of():_xs;
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
-    return new E.Meth(Optional.empty(), Optional.empty(), _xs, body);
+    return PosMap.add(new E.Meth(Optional.empty(), Optional.empty(), _xs, body), pos(ctx));
   }
   @Override
   public E.Meth visitMeth(MethContext ctx) {
-    throw Bug.todo();
+    check(ctx);
+    var sig = Optional.ofNullable(ctx.sig()).map(this::visitSig);
+    sig.ifPresent(s->PosMap.add(s, pos(ctx.sig())));
+    var name = sig.map(E.Sig::name).orElseGet(()->this.visitM(ctx.m()));
+    var xs = sig.map(E.Sig::xs).orElseGet(()->{
+      var _xs = opt(ctx.x(), xs1->xs1.stream().map(this::visitX).toList());
+      return _xs==null?List.of():_xs;
+    });
+    var body = Optional.ofNullable(ctx.e()).map(this::visitE);
+    return PosMap.add(new E.Meth(sig, Optional.of(name), xs, body), pos(ctx));
   }
   @Override
   public E.Sig visitSig(SigContext ctx) {
-    throw Bug.todo();
+    check(ctx);
+    var mdf = this.visitMdf(ctx.mdf());
+    var name = this.visitM(ctx.m());
+    // TODO: mgens, might need two functions (one for Ts and one for Xs)
+    var gens = this.visitMGen(ctx.mGen()).orElse(List.of());
+    var xs = Optional.ofNullable(ctx.gamma()).map(this::visitGamma).orElse(List.of());
+    var ret = this.visitT(ctx.t());
+    return new E.Sig(mdf, name, null, xs, ret);
   }
   @Override
-  public Object visitGamma(GammaContext ctx) {
-    throw Bug.todo();
+  public List<E.X> visitGamma(GammaContext ctx) {
+    return Streams.zip(ctx.x(), ctx.t())
+      .map((xCtx, tCtx)->new E.X(xCtx.getText(), this.visitT(tCtx)))
+      .toList();
   }
   public T.Dec visitTopDec(TopDecContext ctx, String pkg) {
     check(ctx);
