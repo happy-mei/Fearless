@@ -253,4 +253,22 @@ class TestFullParser {
     AbsLoop:{!:Void}
     """
   );}
+  @Test void methWithArgs(){ ok("""
+    """, """
+    package base
+    A:{.foo(a: A),}
+    """
+  );}
+  @Test void methWith2Args(){ ok("""
+    """, """
+    package base
+    A:{.foo(a: A, b: A),}
+    """
+  );}
+  @Test void methWith2ArgsAndMdf(){ ok("""
+    """, """
+    package base
+    A:{.foo(a: A, b: read A),}
+    """
+  );}
 }
