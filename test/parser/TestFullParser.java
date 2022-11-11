@@ -1,6 +1,7 @@
 package parser;
 
 import main.CompileError;
+import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import utils.Bug;
@@ -14,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class TestFullParser {
   void ok(String expected, String... content){
+    Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
     var ps = Arrays.stream(content)
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
@@ -22,6 +24,7 @@ class TestFullParser {
     Err.strCmpFormat(expected,res);
   }
   void fail(String expectedErr, String... content){
+    Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
     var ps = Arrays.stream(content)
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
@@ -130,13 +133,13 @@ class TestFullParser {
       MyTrue:base.True
       """); }
   @Test void failConflictingDecls1(){ fail("""
-    In position null
-    conflictingAlias:0
-    This alias is in conflict with other aliases in the same package: MyTrue
-    conflicts:
-    ([###]Dummy0.fear:2:0) alias pkg1.MyTrue[] as MyTrue
-    ([###]Dummy1.fear:3:0) alias pkg1.MyTrue[] as MyTrue
-    """,
+      In position null
+      conflictingDecl:1
+      This trait declaration is in conflict with other trait declarations in the same package: MyTrue/0
+      conflicts:
+      ([###]/Dummy0.fear:2:0) MyTrue/0
+      ([###]/Dummy1.fear:3:0) MyTrue/0
+          """,
     """
     package pkg1
     MyTrue:base.True
@@ -146,4 +149,27 @@ class TestFullParser {
     MyFalse:base.False
     MyTrue:base.True
     """); }
+
+  @Test void baseVoid(){ ok("""
+    {base.Void/0=Dec[
+      name=base.Void,
+      xs=[],
+      lambda=Lambda[mdf=mdf,its=[],selfName=null,meths=[],t=infer]
+      ]}
+    """, """
+    package base
+    Void:{}
+    """
+    );}
+  @Test void baseLoop(){ ok("""
+    {base.Void/0=Dec[
+      name=base.Void,
+      xs=[],
+      lambda=Lambda[mdf=mdf,its=[],selfName=null,meths=[],t=infer]
+      ]}
+    """, """
+    package base
+    Loop:{!:Void->this!}
+    """
+  );}
 }

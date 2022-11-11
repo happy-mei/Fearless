@@ -3,6 +3,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
 
+import main.Main;
 import org.junit.jupiter.api.Test;
 
 import utils.Bug;
@@ -10,12 +11,14 @@ import utils.Err;
 
 class TestParser {
   void ok(String expected, String content){
+    Main.resetAll();
     String res = new Parser(Parser.dummy,content)
       .parseFullE(Bug::err,s->Optional.empty())
       .toString();
     Err.strCmpFormat(expected,res);
   }
   void fail(String expectedErr,String content){
+    Main.resetAll();
     var b=new StringBuffer();
     var res=new Parser(Parser.dummy,content)
       .parseFullE(s->{b.append(s);return null;},s->Optional.empty());

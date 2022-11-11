@@ -124,9 +124,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     check(ctx);
     return new E.MethName(ctx.getText());
   }
-  @Override public E visitX(XContext ctx){
+  @Override public E.X visitX(XContext ctx){
     check(ctx);
-    return new E.X(ctx.getText(),T.infer); 
+    return PosMap.add(new E.X(ctx.getText(),T.infer),pos(ctx));
     }
   @Override public E visitAtomE(AtomEContext ctx){
     check(ctx);
@@ -139,15 +139,24 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public E.Lambda visitLambda(LambdaContext ctx){
     Mdf mdf=visitMdf(ctx.mdf());
     var res=visitBlock(ctx.block());
-    return new E.Lambda(mdf,res.its(), res.selfName(), res.meths(), T.infer);
+    return PosMap.add(new E.Lambda(mdf,res.its(), res.selfName(), res.meths(), T.infer),pos(ctx));
     }
   @Override public E.Lambda visitBlock(BlockContext ctx){
     check(ctx);
+    var _ts=opt(ctx.t(),ts->ts.stream().map(this::visitIT).toList());
+    _ts=_ts==null?List.of():_ts;
     if(ctx.bblock()==null){
-      var it=visitIT(ctx.t());
-      return new E.Lambda(Mdf.mdf,List.of(it),null,List.of(),T.infer); 
+      return new E.Lambda(Mdf.mdf,_ts,null,List.of(),T.infer);
       }
-    throw Bug.todo();
+    var bb = ctx.bblock();
+    if(bb.children==null){ return new E.Lambda(Mdf.mdf,List.of(),null,List.of(),T.infer); }
+    var _x=opt(bb.x(),this::visitX);
+    var _n=_x==null?null:_x.name();
+    var _ms=opt(bb.meth(),ms->ms.stream().map(this::visitMeth).toList());
+    var _singleM=opt(bb.singleM(),this::visitSingleM);
+    List<E.Meth> mms=_ms==null?List.of():_ms;
+    if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
+    return new E.Lambda(Mdf.mdf,_ts,_n,mms,T.infer);
     }
   @Override
   public String visitFullCN(FullCNContext ctx) {
@@ -187,12 +196,15 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     return new T(mdf,res.withTs(ts));
   }
   @Override
-  public Object visitSingleM(SingleMContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+  public E.Meth visitSingleM(SingleMContext ctx) {
+    check(ctx);
+    var _xs = opt(ctx.x(), xs->xs.stream().map(this::visitX).toList());
+    _xs = _xs==null?List.of():_xs;
+    var body = Optional.ofNullable(ctx.e()).map(this::visitE);
+    return new E.Meth(Optional.empty(), Optional.empty(), _xs, body);
   }
   @Override
-  public Object visitMeth(MethContext ctx) {
+  public E.Meth visitMeth(MethContext ctx) {
     // TODO Auto-generated method stub
     return null;
   }
@@ -216,7 +228,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
 
     var mGen = opt(ctx.mGen(),this::visitMGen);
     var body = visitBlock(ctx.block());
-    return new T.Dec(cName, genDec(mGen), body);
+    return PosMap.add(new T.Dec(cName, genDec(mGen), body),pos(ctx));
   }
   public List<T> genDec(Optional<List<T>> ts){
     if(ts.isEmpty() || ts.get().isEmpty()){ return List.of(); }
@@ -232,10 +244,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var out = visitFullCN(ctx.fullCN(1));
     var outG = ctx.mGen(1);
     if(!outG.t().isEmpty()){ throw Bug.of("No gen on out Alias"); }
-
-    var alias = new T.Alias(inT, out);
-    PosMap.add(alias, pos(ctx));
-    return alias;
+    return PosMap.add(new T.Alias(inT, out), pos(ctx));
   }
   @Override
   public Package visitNudeProgram(NudeProgramContext ctx) {
