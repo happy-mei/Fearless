@@ -205,18 +205,15 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   @Override
   public E.Meth visitMeth(MethContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    throw Bug.todo();
   }
   @Override
-  public Object visitSig(SigContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+  public E.Sig visitSig(SigContext ctx) {
+    throw Bug.todo();
   }
   @Override
   public Object visitGamma(GammaContext ctx) {
-    // TODO Auto-generated method stub
-    return null;
+    throw Bug.todo();
   }
   public T.Dec visitTopDec(TopDecContext ctx, String pkg) {
     check(ctx);

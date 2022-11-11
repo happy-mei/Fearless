@@ -161,12 +161,27 @@ class TestFullParser {
     Void:{}
     """
     );}
-  @Test void baseLoop(){ ok("""
-    {base.Void/0=Dec[
-      name=base.Void,
+  @Test void baseLoopSingleMeth(){ ok("""
+    {pkg1.Loop/0=Dec[
+      name=pkg1.Loop,
       xs=[],
-      lambda=Lambda[mdf=mdf,its=[],selfName=null,meths=[],t=infer]
-      ]}
+      lambda=Lambda[mdf=mdf,its=[base.AbstractLoop[]],
+      selfName=null,
+      meths=[[-]([]):[-]->MCall[receiver=this:infer,name=!,ts=Optional.empty,es=[],t=infer]],
+      t=infer]]}
+    """, """
+    package pkg1
+    alias base.AbstractLoop as ALoop,
+    Loop:ALoop{this!}
+    """
+  );}
+  @Test void baseLoop(){ ok("""
+    {base.Loop/0=
+      Dec[name=base.Loop,
+      xs=[],
+      lambda=Lambda[mdf=mdf,its=[],selfName=null,meths=[null],t=infer]
+      ]
+      }
     """, """
     package base
     Loop:{!:Void->this!}

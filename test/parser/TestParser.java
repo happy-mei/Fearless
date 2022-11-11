@@ -75,6 +75,9 @@ class TestParser {
         meths=[],
         t=infer]
       """, "mut base.Either[imm pkg1.Person, mut pkg1.Blah]"); }
+  @Test void surprisingNumberOfExprs(){ ok(
+    "[###]Dummy.fear:1:3 mismatched input 'parse' expecting {'mut', 'lent', 'read', 'iso', 'recMdf', 'mdf', 'imm', FullCN}"
+    ,"We .parse .a .surprising .amount .of .stuff"); }
   @Test void testFail1(){ fail(
     "[###]Dummy.fear:1:3 mismatched input 'parse' expecting {'mut', 'lent', 'read', 'iso', 'recMdf', 'mdf', 'imm', FullCN}"
     ,"We parse a surprising amount of stuff"); }
