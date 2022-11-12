@@ -64,7 +64,7 @@ class TestFullParser {
       """); }
   @Test void failConflictingAliases1(){ fail("""
     In position null
-    conflictingAlias:0
+    conflictingAlias:1
     This alias is in conflict with other aliases in the same package: True
     conflicts:
     ([###]Dummy0.fear:2:0) alias base.True[] as True
