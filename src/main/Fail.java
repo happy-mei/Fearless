@@ -1,6 +1,8 @@
 package main;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -21,12 +23,14 @@ public class Fail{
   private static CompileError of(String msg){
     var arr=Thread.currentThread().getStackTrace();
     var kind=arr[2].getMethodName();
-    var ms=Stream.of(Fail.class.getDeclaredMethods()).filter(m->
-      Modifier.isStatic(m.getModifiers())
-      && Modifier.isPublic(m.getModifiers()))
+    var ms=Stream.of(Fail.class.getDeclaredMethods())
+      .sorted(Comparator.comparing(Method::getName))
+      .filter(m->Modifier.isStatic(m.getModifiers()) && Modifier.isPublic(m.getModifiers()))
       .toList();
     int code=IntStream.range(0, ms.size())
-      .filter(i->ms.get(i).getName().equals(kind)).findFirst().getAsInt();
+      .filter(i->ms.get(i).getName().equals(kind))
+      .findFirst()
+      .getAsInt();
     return new CompileError(kind+":"+code+"\n"+msg);
   }
   
