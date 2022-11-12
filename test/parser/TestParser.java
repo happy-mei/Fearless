@@ -62,7 +62,7 @@ class TestParser {
   @Test void testLamOneGens(){ ok(
       """
       Lambda[mdf=mut,
-        its=[base.List[imm pkg1.Person]],
+        its=[base.List[imm pkg1.Person[]]],
         selfName=null,
         meths=[],
         t=infer]
@@ -70,7 +70,7 @@ class TestParser {
   @Test void testLamManyGens(){ ok(
       """
       Lambda[mdf=mut,
-        its=[base.List[imm pkg1.Person]],
+        its=[base.Either[imm pkg1.Person[], mut pkg1.Blah[]]],
         selfName=null,
         meths=[],
         t=infer]

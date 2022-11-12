@@ -29,9 +29,7 @@ public record T(Mdf mdf, RT rt){
       return String.format("alias %s as %s", from, to);
     }
   }
-  public record Dec(String name, List<T> xs, E.Lambda lambda){
-    public Dec{ assert xs.isEmpty() || xs.get(0).rt() instanceof GX; }
-  }
+  public record Dec(String name, List<T.GX> xs, E.Lambda lambda){ }
   @Override public String toString(){
     if(isInfer()){ return "infer"; }
     return ""+mdf+" "+rt;

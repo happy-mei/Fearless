@@ -7,6 +7,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import astFull.PosMap;
+import main.CompileError;
+import main.Fail;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -115,7 +117,18 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var noTs = ctx.t()==null || ctx.t().isEmpty();
     if(ctx.OS() == null){ return Optional.empty(); }
     if(noTs){ return Optional.of(List.of()); }
-    throw Bug.of();
+
+    return Optional.of(ctx.t().stream().map(this::visitT).toList());
+  }
+  public Optional<List<T.GX>> visitMGenParams(MGenContext ctx){
+    var mGens = this.visitMGen(ctx);
+    return mGens.map(ts->ts.stream()
+      .map(t->t.match(
+        gx->gx,
+        it->{throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx));}
+      ))
+      .toList()
+    );
   }
   @Override public E.MethName visitM(MContext ctx){
     check(ctx);
@@ -166,15 +179,13 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   public T.IT visitIT(TContext ctx) {
     T t=visitT(ctx,false);
-    return t.match(
-      gx->{throw Bug.todo();},
-      it->it);
+    return t.match(gx->{throw Bug.todo();}, it->it);
   }
   @Override
   public T visitT(TContext ctx) {
     return visitT(ctx,true);
   }
-  public T visitT(TContext ctx,boolean canMdf) {
+  public T visitT(TContext ctx, boolean canMdf) {
     if(!canMdf && !ctx.mdf().getText().isEmpty()){
       throw Bug.todo();
     }
@@ -218,11 +229,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     check(ctx);
     var mdf = this.visitMdf(ctx.mdf());
     var name = this.visitM(ctx.m());
-    // TODO: mgens, might need two functions (one for Ts and one for Xs)
-    var gens = this.visitMGen(ctx.mGen()).orElse(List.of());
+    var gens = this.visitMGenParams(ctx.mGen()).orElse(List.of());
     var xs = Optional.ofNullable(ctx.gamma()).map(this::visitGamma).orElse(List.of());
     var ret = this.visitT(ctx.t());
-    return new E.Sig(mdf, name, null, xs, ret);
+    return new E.Sig(mdf, name, gens, xs, ret);
   }
   @Override
   public List<E.X> visitGamma(GammaContext ctx) {
@@ -238,14 +248,12 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     }
     cName = pkg + "." + cName;
 
-    var mGen = opt(ctx.mGen(),this::visitMGen);
+    var mGen = Optional.ofNullable(ctx.mGen())
+      .flatMap(this::visitMGenParams)
+      .orElse(List.of());
     var body = visitBlock(ctx.block());
-    return PosMap.add(new T.Dec(cName, genDec(mGen), body),pos(ctx));
+    return PosMap.add(new T.Dec(cName, mGen, body),pos(ctx));
   }
-  public List<T> genDec(Optional<List<T>> ts){
-    if(ts.isEmpty() || ts.get().isEmpty()){ return List.of(); }
-    throw Bug.todo();
-    }
   @Override
   public T.Alias visitAlias(AliasContext ctx) {
     check(ctx);
