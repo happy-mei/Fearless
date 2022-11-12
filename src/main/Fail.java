@@ -4,7 +4,6 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import astFull.T;
 import files.Pos;
@@ -18,7 +17,6 @@ public class Fail{
       .filter(m->!m.getName().equals("conflict"))
       .forEach(m->{
         try {
-          System.out.println(m.getName());
           ErrorCode.valueOf(m.getName());
         } catch (IllegalArgumentException e) {
           throw Bug.of("ICE: ErrorCode enum is not complete.");

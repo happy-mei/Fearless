@@ -332,4 +332,14 @@ class TestFullParser {
     A:{.foo[B](a: A, b: read B): read B,}
     """
   );}
+  @Test void failConcreteInGens(){ fail("""
+    In position [###]/Dummy0.fear:2:7
+    concreteTypeInFormalParams:3
+    Trait and method declarations may only have type parameters. This concrete type was provided instead:
+    imm base.A[]
+    """, """
+    package base
+    A:{.foo[A](a: A, b: A): A}
+    """
+  );}
 }
