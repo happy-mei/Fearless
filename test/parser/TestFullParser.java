@@ -134,7 +134,7 @@ class TestFullParser {
       """); }
   @Test void failConflictingDecls1(){ fail("""
       In position null
-      conflictingDecl:1
+      conflictingDecl:2
       This trait declaration is in conflict with other trait declarations in the same package: MyTrue/0
       conflicts:
       ([###]/Dummy0.fear:2:0) MyTrue/0
