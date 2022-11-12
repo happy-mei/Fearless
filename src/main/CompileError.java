@@ -5,7 +5,7 @@ import files.Pos;
 public class CompileError extends RuntimeException{
   private static final long serialVersionUID = 1L;
   Pos pos;
-  CompileError pos(Pos pos){ this.pos=pos; return this; }
+  public CompileError pos(Pos pos){ this.pos=pos; return this; }
   public CompileError() {super();}
   public CompileError(Throwable cause) {super(cause);}
   public CompileError(String msg) {super(msg);}

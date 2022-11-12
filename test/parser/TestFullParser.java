@@ -184,7 +184,7 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          !([]):Sig[mdf=imm,name=!,gens=null,xs=[],ret=imm base.Void[]]->
+          !([]):Sig[mdf=imm,name=!,gens=[],xs=[],ret=imm base.Void[]]->
             MCall[receiver=this:infer,name=!,ts=Optional.empty,es=[],t=infer]
         ],
         t=infer
@@ -204,7 +204,7 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          !([]):Sig[mdf=imm,name=!,gens=null,xs=[],ret=imm base.Void[]]->
+          !([]):Sig[mdf=imm,name=!,gens=[],xs=[],ret=imm base.Void[]]->
             MCall[receiver=this:infer,name=!,ts=Optional.empty,es=[],t=infer]
         ],
         t=infer
@@ -224,7 +224,7 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          !([]):Sig[mdf=imm,name=!,gens=null,xs=[],ret=imm base.Void[]]->
+          !([]):Sig[mdf=imm,name=!,gens=[],xs=[],ret=imm base.Void[]]->
             MCall[receiver=this:infer,name=!,ts=Optional.empty,es=[],t=infer]
         ],
         t=infer
@@ -244,7 +244,7 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          !([]):Sig[mdf=imm,name=!,gens=null,xs=[],ret=imm base.Void[]]->[-]
+          !([]):Sig[mdf=imm,name=!,gens=[],xs=[],ret=imm base.Void[]]->[-]
         ],
         t=infer
       ]]}
@@ -262,7 +262,7 @@ class TestFullParser {
       its=[],
       selfName=null,
       meths=[
-        .foo([a:immbase.A[]]):Sig[mdf=imm,name=.foo,gens=null,xs=[a:immbase.A[]],ret=immbase.A[]]->[-]],t=infer]]}
+        .foo([a:immbase.A[]]):Sig[mdf=imm,name=.foo,gens=[],xs=[a:immbase.A[]],ret=immbase.A[]]->[-]],t=infer]]}
     """, """
     package base
     A:{.foo(a: A): A,}
@@ -277,7 +277,7 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          .foo([a:imm base.A[],b:imm base.A[]]):Sig[mdf=imm,name=.foo,gens=null,xs=[a:imm base.A[],b:imm base.A[]],ret=imm base.A[]]->[-]],t=infer]
+          .foo([a:imm base.A[],b:imm base.A[]]):Sig[mdf=imm,name=.foo,gens=[],xs=[a:imm base.A[],b:imm base.A[]],ret=imm base.A[]]->[-]],t=infer]
         ]}
     """, """
     package base
@@ -293,11 +293,43 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          .foo([a:imm base.A[],b:read base.A[]]):Sig[mdf=imm,name=.foo,gens=null,xs=[a:imm base.A[],b:read base.A[]],ret=imm base.A[]]->[-]],t=infer]
+          .foo([a:imm base.A[],b:read base.A[]]):Sig[mdf=imm,name=.foo,gens=[],xs=[a:imm base.A[],b:read base.A[]],ret=imm base.A[]]->[-]],t=infer]
         ]}
     """, """
     package base
     A:{.foo(a: A, b: read A): A,}
+    """
+    );}
+    @Test void methWithGens1(){ ok("""
+    {base.A/0=Dec[
+      name=base.A,
+      xs=[],
+      lambda=Lambda[
+        mdf=mdf,
+        its=[],
+        selfName=null,
+        meths=[
+          .foo([a:imm base.A[],b:read GX[name=B]]):Sig[mdf=imm,name=.foo,gens=[GX[name=B]],xs=[a:imm base.A[],b:read GX[name=B]],ret=imm base.A[]]->[-]],t=infer]
+        ]}
+    """, """
+    package base
+    A:{.foo[B](a: A, b: read B): A,}
+    """
+    );}
+  @Test void methWithGens2(){ ok("""
+    {base.A/0=Dec[
+      name=base.A,
+      xs=[],
+      lambda=Lambda[
+        mdf=mdf,
+        its=[],
+        selfName=null,
+        meths=[
+          .foo([a:imm base.A[],b:read GX[name=B]]):Sig[mdf=imm,name=.foo,gens=[GX[name=B]],xs=[a:imm base.A[],b:read GX[name=B]],ret=read GX[name=B]]->[-]],t=infer]
+        ]}
+    """, """
+    package base
+    A:{.foo[B](a: A, b: read B): read B,}
     """
   );}
 }
