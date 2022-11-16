@@ -20,6 +20,6 @@ public interface E {
       return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, MethName name, List<T.GX> gens, List<E.X> xs, T ret){}
+  record Sig(Mdf mdf, List<T.GX> gens, T ret){}
 }
 

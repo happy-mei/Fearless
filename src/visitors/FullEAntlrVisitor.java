@@ -193,9 +193,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     String name = visitFullCN(ctx.fullCN());
     var mGen=visitMGen(ctx.mGen());
     var resolved=resolve.apply(name);
-    var isIT = name.contains(".")
-//      || mGen.isPresent() TODO: I think this one breaks things
-      || resolved.isPresent();
+    var isIT = name.contains(".") || resolved.isPresent();
     if(!isIT){ return new T(mdf,new T.GX(name)); }
     var ts = mGen.orElse(List.of());
     if(resolved.isEmpty()){return new T(mdf,new T.IT(name,ts));}
@@ -214,25 +212,26 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override
   public E.Meth visitMeth(MethContext ctx) {
     check(ctx);
-    var sig = Optional.ofNullable(ctx.sig()).map(this::visitSig);
-    sig.ifPresent(s->PosMap.add(s, pos(ctx.sig())));
-    var name = sig.map(E.Sig::name).orElseGet(()->this.visitM(ctx.m()));
-    var xs = sig.map(E.Sig::xs).orElseGet(()->{
+    var mh = Optional.ofNullable(ctx.sig()).map(this::visitSig);
+    var name = mh.map(MethHeader::name).orElseGet(()->this.visitM(ctx.m()));
+    var xs = mh.map(MethHeader::xs).orElseGet(()->{
       var _xs = opt(ctx.x(), xs1->xs1.stream().map(this::visitX).toList());
       return _xs==null?List.of():_xs;
     });
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
+    var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), h.ret()));
     return PosMap.add(new E.Meth(sig, Optional.of(name), xs, body), pos(ctx));
   }
+  private record MethHeader(Mdf mdf, E.MethName name, List<T.GX> gens, List<E.X> xs, T ret){}
   @Override
-  public E.Sig visitSig(SigContext ctx) {
+  public MethHeader visitSig(SigContext ctx) {
     check(ctx);
     var mdf = this.visitMdf(ctx.mdf());
     var name = this.visitM(ctx.m());
     var gens = this.visitMGenParams(ctx.mGen()).orElse(List.of());
     var xs = Optional.ofNullable(ctx.gamma()).map(this::visitGamma).orElse(List.of());
     var ret = this.visitT(ctx.t());
-    return new E.Sig(mdf, name, gens, xs, ret);
+    return new MethHeader(mdf, name, gens, xs, ret);
   }
   @Override
   public List<E.X> visitGamma(GammaContext ctx) {
