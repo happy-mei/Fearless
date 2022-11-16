@@ -43,12 +43,13 @@ public class Fail{
   //ALL OUR ERRORS -- only add to the bottom
   public static CompileError conflictingAlias(String aliased, List<Conflict> conflicts){return of(
       "This alias is in conflict with other aliases in the same package: "+conflictingMsg(aliased, conflicts));}
-
   public static CompileError conflictingDecl(T.DecId decl, List<Conflict> conflicts){return of(
       "This trait declaration is in conflict with other trait declarations in the same package: "+conflictingMsg(decl.toString(), conflicts));}
-
   public static CompileError concreteTypeInFormalParams(T badType){return of(
     "Trait and method declarations may only have type parameters. This concrete type was provided instead:\n"+badType
+  );}
+  public static CompileError reservedIdentifierUsed(String badIdent){return of(
+    "This identifier contains reserved text which is reserved for internal compiler usage:\n"+badIdent
   );}
 }
 
@@ -56,6 +57,7 @@ public class Fail{
 enum ErrorCode {
   conflictingAlias,
   conflictingDecl,
-  concreteTypeInFormalParams;
+  concreteTypeInFormalParams,
+  reservedIdentifierUsed;
   int code() {return this.ordinal() + 1;}
 }

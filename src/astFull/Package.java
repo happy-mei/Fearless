@@ -1,18 +1,14 @@
 package astFull;
 
-import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import files.Pos;
 import generated.FearlessParser.TopDecContext;
 import main.Fail;
-import utils.Bug;
 import utils.Range;
 import utils.Streams;
 import visitors.FullEAntlrVisitor;
+
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.IntStream;
 
 public record Package(
     String name,
@@ -22,17 +18,23 @@ public record Package(
     ){
   public Map<T.DecId,T.Dec> parse(){
     var res = new HashMap<T.DecId,T.Dec>();
-    IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, i));
+    IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, i, false));
     return Collections.unmodifiableMap(res);
   }
-  private void acc(Map<T.DecId,T.Dec> acc,int i){
+  private Collection<T.Dec> shallowParse(){
+    var res = new HashMap<T.DecId,T.Dec>();
+    IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, i, true));
+    return res.values();
+  }
+  private void acc(Map<T.DecId,T.Dec> acc, int i, boolean shallow){
     Path pi = this.ps().get(i);
     TopDecContext di=this.ds().get(i);
-    T.Dec dec=new FullEAntlrVisitor(pi,this::resolve).visitTopDec(di, this.name());
+    T.Dec dec=new FullEAntlrVisitor(pi,this::resolve).visitTopDec(di, this.name(), shallow);
     T.DecId id=new T.DecId(dec.name(),dec.xs().size());
     acc.put(id, dec);
   }
   Optional<T.IT> resolve(String base){
+    if (!base.isEmpty() && Character.isDigit(base.charAt(0))) { return Optional.of(new T.IT(base, List.of())); }
     return this.as.stream()
       .filter(a -> base.equals(a.to()))
       .findAny()
@@ -52,7 +54,7 @@ public record Package(
     return Streams.of(
       global.stream(),
       ps.stream().flatMap(p->p.as().stream()),
-      ps.stream().flatMap(p->p.parse().values().stream()
+      ps.stream().flatMap(p->p.shallowParse().stream()
         .map(d->d.name())
         .map(n->{
           assert n.startsWith(p.name());

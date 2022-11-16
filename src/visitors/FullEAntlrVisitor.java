@@ -1,6 +1,7 @@
 package visitors;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -83,6 +84,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var es = ctx.postE();
     E root = visitPostE(es.get(0));
     if(es.size()==1){ return root; }
+    if (ctx.x() != null && !ctx.x().isEmpty()) {
+      throw Bug.todo(); // TODO: = sugar without brackets
+    }
     throw Bug.of();
     /*
     E e=visitE(ctx.e());
@@ -105,9 +109,19 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(tail.isEmpty()){ return root; }
     var top = tail.get(0);
     var pop = Pop.left(tail);
-    if(top.x()!=null){ throw Bug.of();}
-    E.MethName m=visitM(top.m());
+    var m = visitM(top.m());
     var ts=visitMGen(top.mGen());
+    if(top.x()!=null){
+      var x = this.visitX(top.x());
+      assert top.e().size() == 1;
+      var e = this.visitE(top.e().get(0));
+      var freshRoot = new E.X(T.infer);
+      var rest = desugar(freshRoot, pop);
+      var cont = new E.Lambda(Mdf.mdf, List.of(), null, List.of(
+        new E.Meth(Optional.empty(), Optional.empty(), List.of(x, freshRoot), Optional.of(rest))
+      ), T.infer);
+      return new E.MCall(root, m, ts, List.of(e, cont), T.infer);
+    }
     var es=top.e().stream().map(this::visitE).toList();
     E res=new E.MCall(root,m, ts, es,T.infer);
     return desugar(res,pop);
@@ -136,8 +150,12 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   @Override public E.X visitX(XContext ctx){
     check(ctx);
-    return PosMap.add(new E.X(ctx.getText(),T.infer),pos(ctx));
+    var name = ctx.getText();
+    if (name.startsWith(E.X.RESERVED)) {
+      throw Fail.reservedIdentifierUsed(name).pos(pos(ctx));
     }
+    return PosMap.add(new E.X(name,T.infer),pos(ctx));
+  }
   @Override public E visitAtomE(AtomEContext ctx){
     check(ctx);
     return OneOr.of("",Stream.of(
@@ -159,7 +177,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       return new E.Lambda(Mdf.mdf,_ts,null,List.of(),T.infer);
       }
     var bb = ctx.bblock();
-    if(bb.children==null){ return new E.Lambda(Mdf.mdf,List.of(),null,List.of(),T.infer); }
+    if(bb.children==null){ return new E.Lambda(Mdf.mdf, _ts, null, List.of(), T.infer); }
     var _x=opt(bb.x(),this::visitX);
     var _n=_x==null?null:_x.name();
     var _ms=opt(bb.meth(),ms->ms.stream().map(this::visitMeth).toList());
@@ -239,7 +257,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .map((xCtx, tCtx)->new E.X(xCtx.getText(), this.visitT(tCtx)))
       .toList();
   }
-  public T.Dec visitTopDec(TopDecContext ctx, String pkg) {
+  public T.Dec visitTopDec(TopDecContext ctx, String pkg, boolean shallow) {
     check(ctx);
     String cName = visitFullCN(ctx.fullCN());
     if (cName.contains(".")) {
@@ -250,7 +268,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var mGen = Optional.ofNullable(ctx.mGen())
       .flatMap(this::visitMGenParams)
       .orElse(List.of());
-    var body = visitBlock(ctx.block());
+    var body = shallow ? null : visitBlock(ctx.block());
     return PosMap.add(new T.Dec(cName, mGen, body),pos(ctx));
   }
   @Override
