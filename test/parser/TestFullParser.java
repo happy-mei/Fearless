@@ -342,4 +342,96 @@ class TestFullParser {
     A:{.foo[A](a: A, b: A): A}
     """
   );}
+  @Test void extendsNewDec(){ ok("""
+    {base.HasName/0=Dec[
+      name=base.HasName,
+      xs=[],
+      lambda=Lambda[mdf=mdf,its=[],selfName=null,meths=[.name([]):Sig[mdf=imm,gens=[],ret=imm base.String[]]->[-]],t=infer]],
+    base.Dog/0=Dec[
+      name=base.Dog,
+      xs=[],
+      lambda=Lambda[mdf=mdf,its=[base.HasName[]],selfName=null,meths=[],t=infer]]}
+    """, """
+    package base
+    alias base.String as String,
+    HasName:{ .name: String, }
+    Dog:HasName
+    """
+  );}
+  @Test void multipleExtends(){ ok("""
+    {base.HasHunger/0=Dec[
+      name=base.HasHunger,
+      xs=[],
+      lambda=Lambda[mdf=mdf,its=[],selfName=null,meths=[.hunger([]):Sig[mdf=imm,gens=[],ret=immbase.UNum[]]->[-]],t=infer]],
+    base.HasName/0=Dec[
+      name=base.HasName,
+      xs=[],
+      lambda=Lambda[mdf=mdf,its=[],selfName=null,meths=[.name([]):Sig[mdf=imm,gens=[],ret=immbase.String[]]->[-]],t=infer]],
+    base.Dog/0=Dec[
+      name=base.Dog,
+      xs=[],
+      lambda=Lambda[mdf=mdf,its=[base.HasHunger[],base.HasName[]],selfName=null,meths=[],t=infer]]}
+    """, """
+    package base
+    alias base.UNum as UNum, alias base.String as String,
+    HasHunger:{ .hunger: UNum, }
+    HasName:{ .name: String, }
+    Dog:HasHunger,HasName{}
+    """
+  );}
+  @Test void equalsSugar1(){ ok("""
+    {base.B/0=Dec[
+      name=base.B,
+      xs=[],
+      lambda=Lambda[
+        mdf=mdf,
+        its=[],
+        selfName=null,
+        meths=[#([]):Sig[mdf=imm,gens=[],ret=imm 5[]]->MCall[
+          receiver=Lambda[
+            mdf=imm,
+            its=[base.A[]],
+            selfName=null,
+            meths=[],
+            t=infer],
+          name=.foo,
+          ts=Optional.empty,
+          es=[
+            Lambda[mdf=imm,its=[5[]],selfName=null,meths=[],t=infer],
+            Lambda[mdf=mdf,its=[],selfName=null,meths=[[-]([lol:infer,fearIntrinsic0:infer]):[-]->fearIntrinsic0:infer],t=infer]
+          ],
+          t=infer
+        ]],
+      t=infer]],
+    base.Cont/2=Dec[
+      name=base.Cont,
+      xs=[GX[name=X],GX[name=R]],
+      lambda=Lambda[
+        mdf=mdf,
+        its=[],
+        selfName=null,
+        meths=[#([x:mdfGX[name=X],self:immbase.A[]]):Sig[mdf=mut,gens=[],ret=mdfGX[name=R]]->[-]],
+        t=infer
+      ]],
+    base.A/0=Dec[
+      name=base.A,
+      xs=[],
+      lambda=Lambda[
+        mdf=mdf,
+        its=[],
+        selfName=null,
+        meths=[
+          .foo([x:mdf GX[name=T],cont:mut base.Cont[mdf GX[name=T],mdf GX[name=T]]]):Sig[mdf=imm,gens=[GX[name=T]],ret=mdf GX[name=T]]->
+            MCall[receiver=cont:infer,name=#,ts=Optional.empty,es=[x:infer,cont:infer],t=infer]
+        ],
+      t=infer]]}
+    """, """
+    package base
+    Cont[X,R]:{ mut #(x: mdf X, self: A): mdf R }
+    A:{ .foo[T](x: mdf T, cont: mut Cont[mdf T, mdf T]): mdf T -> cont#(x, cont) }
+    B:{ #: 5 -> A
+      .foo (lol=5)
+      }
+    """
+  );}
 }

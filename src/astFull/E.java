@@ -4,12 +4,19 @@ import java.util.List;
 import java.util.Optional;
 
 import ast.Mdf;
+import main.Fail;
 
 public interface E {
   T t();
   record Lambda(Mdf mdf, List<T.IT>its, String selfName, List<Meth>meths, T t) implements E{}
   record MCall(E receiver,MethName name,Optional<List<T>>ts,List<E>es, T t)implements E{}
   record X(String name, T t) implements E{
+    public static final String RESERVED = "fearIntrinsic";
+    private static int FRESH_N = 0;
+    public static void reset() { FRESH_N = 0; }
+    public X(T t){
+      this(RESERVED + FRESH_N++, t);
+    }
     @Override public String toString(){ return name+":"+t; }
   }
   record MethName(String name){

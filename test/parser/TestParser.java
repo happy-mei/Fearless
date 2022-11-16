@@ -109,5 +109,78 @@ class TestParser {
   @Test void testFail1(){ fail(
     "[###]Dummy.fear:1:3 mismatched input 'parse' expecting {'mut', 'lent', 'read', 'iso', 'recMdf', 'mdf', 'imm', FullCN}"
     ,"We parse a surprising amount of stuff"); }
-
+  @Test void singleEqSugar1(){ ok(
+    """
+    
+    """, "recv .m1 v = val"); }
+  @Test void singleEqSugarPOp1(){ ok(
+    """
+    MCall[
+      receiver=recv:infer,
+      name=.m1,
+      ts=Optional.empty,
+      es=[
+        val:infer,
+        Lambda[
+          mdf=mdf,
+          its=[],
+          selfName=null,
+          meths=[
+            [-]([v:infer,fearIntrinsic0:infer]):[-]->fearIntrinsic0:infer],
+            t=infer
+      ]],t=infer]
+    """, "recv .m1 (v = val)"); }
+  @Test void singleEqSugarPOp2(){ ok(
+    """
+    MCall[
+      receiver=recv:infer,
+      name=.m1,
+      ts=Optional.empty,
+      es=[
+        val:infer,
+        Lambda[
+          mdf=mdf,
+          its=[],
+          selfName=null,
+          meths=[
+            [-]([v:infer,fearIntrinsic0:infer]):[-]->
+              MCall[
+                receiver=fearIntrinsic0:infer,
+                name=.m2,
+                ts=Optional.empty,
+                es=[],
+                t=infer]],
+            t=infer
+      ]],t=infer]
+    """, "recv .m1 (v = val) .m2"); }
+  @Test void singleEqSugarPOp3(){ ok(
+    """
+    MCall[
+      receiver=recv:infer,
+      name=.m1,
+      ts=Optional.empty,
+      es=[MCall[
+        receiver=val:infer,
+        name=.m2,
+        ts=Optional.empty,
+        es=[],
+        t=infer],
+        Lambda[
+          mdf=mdf,
+          its=[],
+          selfName=null,
+          meths=[
+            [-]([v:infer,fearIntrinsic0:infer]):[-]->MCall[
+              receiver=fearIntrinsic0:infer,
+              name=.m3,
+              ts=Optional.empty,
+              es=[],
+              t=infer]],
+          t=infer]],
+      t=infer]
+    """, "recv .m1 (v = val .m2) .m3"); }
+  @Test void singleEqSugar2(){ ok(
+    """
+    
+    """, "recv .m1 v = val .m2"); }
 }
