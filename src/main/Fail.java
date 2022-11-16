@@ -1,13 +1,13 @@
 package main;
 
+import astFull.T;
+import files.Pos;
+import utils.Bug;
+
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import astFull.T;
-import files.Pos;
-import utils.Bug;
 
 public class Fail{
   static {

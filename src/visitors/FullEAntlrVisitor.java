@@ -1,49 +1,25 @@
 package visitors;
 
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
+import ast.Mdf;
+import astFull.E;
+import astFull.Package;
 import astFull.PosMap;
-import main.CompileError;
+import astFull.T;
+import files.Pos;
+import generated.FearlessParser.*;
 import main.Fail;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-
-import ast.Mdf;
-import astFull.E;
-import astFull.T;
-import files.Pos;
-import generated.FearlessParser.AliasContext;
-import generated.FearlessParser.AtomEContext;
-import generated.FearlessParser.BblockContext;
-import generated.FearlessParser.BlockContext;
-import generated.FearlessParser.EContext;
-import generated.FearlessParser.FullCNContext;
-import generated.FearlessParser.GammaContext;
-import generated.FearlessParser.LambdaContext;
-import generated.FearlessParser.MContext;
-import generated.FearlessParser.MGenContext;
-import generated.FearlessParser.MdfContext;
-import generated.FearlessParser.MethContext;
-import generated.FearlessParser.NudeEContext;
-import generated.FearlessParser.NudeProgramContext;
-import generated.FearlessParser.POpContext;
-import generated.FearlessParser.PostEContext;
-import generated.FearlessParser.RoundEContext;
-import generated.FearlessParser.SigContext;
-import generated.FearlessParser.SingleMContext;
-import generated.FearlessParser.TContext;
-import generated.FearlessParser.TopDecContext;
-import generated.FearlessParser.XContext;
 import utils.*;
-import astFull.Package;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 @SuppressWarnings("serial")
 class ParserFailed extends RuntimeException{}

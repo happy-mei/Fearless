@@ -1,13 +1,13 @@
 package utils;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.opentest4j.AssertionFailedError;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.ArrayList;
 
-import org.opentest4j.AssertionFailedError;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Err {
   public static String hole="[###]";//not contains \.[]{}()<>*+-=!?^$|
