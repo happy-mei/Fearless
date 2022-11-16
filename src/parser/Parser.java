@@ -1,37 +1,26 @@
 package parser;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ConsoleErrorListener;
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-
 import astFull.E;
+import astFull.Package;
+import astFull.T;
+import astFull.T.Alias;
 import files.Pos;
 import generated.FearlessLexer;
 import generated.FearlessParser;
 import generated.FearlessParser.NudeEContext;
 import generated.FearlessParser.NudeProgramContext;
+import org.antlr.v4.runtime.*;
 import utils.Bug;
 import visitors.FullEAntlrVisitor;
 
-import astFull.Package;
-import astFull.T;
-import astFull.T.Alias;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public record Parser(Path fileName,String content){
   public Parser of(String fileName){

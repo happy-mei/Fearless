@@ -1,10 +1,9 @@
 package astFull;
 
+import ast.Mdf;
+
 import java.util.List;
 import java.util.Optional;
-
-import ast.Mdf;
-import main.Fail;
 
 public interface E {
   T t();

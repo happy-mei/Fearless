@@ -1,9 +1,9 @@
 package astFull;
 
+import ast.Mdf;
+
 import java.util.List;
 import java.util.function.Function;
-
-import ast.Mdf;
 
 public record T(Mdf mdf, RT rt){
   public static final T infer = new T(null,null);
