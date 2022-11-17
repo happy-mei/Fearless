@@ -9,7 +9,7 @@ public record T(Mdf mdf, RT rt){
   public static final T infer = new T(null,null);
   public boolean isInfer(){ return this==infer; }
   public <R> R match(Function<GX,R>gx,Function<IT,R>it){ return rt.match(gx, it); }
-  interface RT{ <R> R match(Function<GX,R>gx,Function<IT,R>it); }
+  public interface RT{ <R> R match(Function<GX,R>gx,Function<IT,R>it); }
 
   public record GX(String name)implements RT{
     public <R> R match(Function<GX,R>gx,Function<IT,R>it){ return gx.apply(this); }

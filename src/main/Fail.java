@@ -48,8 +48,8 @@ public class Fail{
   public static CompileError concreteTypeInFormalParams(T badType){return of(
     "Trait and method declarations may only have type parameters. This concrete type was provided instead:\n"+badType
   );}
-  public static CompileError reservedIdentifierUsed(String badIdent){return of(
-    "This identifier contains reserved text which is reserved for internal compiler usage:\n"+badIdent
+  public static CompileError modifierOnInferredLambda(){return of(
+    "Modifiers cannot be specified on lambdas without an explicit type."
   );}
 }
 
@@ -58,6 +58,6 @@ enum ErrorCode {
   conflictingAlias,
   conflictingDecl,
   concreteTypeInFormalParams,
-  reservedIdentifierUsed;
+  modifierOnInferredLambda;
   int code() {return this.ordinal() + 1;}
 }

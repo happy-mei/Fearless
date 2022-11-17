@@ -257,6 +257,18 @@ public class FearlessBaseListener implements FearlessListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCallOp(FearlessParser.CallOpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCallOp(FearlessParser.CallOpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterNudeE(FearlessParser.NudeEContext ctx) { }
 	/**
 	 * {@inheritDoc}

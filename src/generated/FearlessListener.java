@@ -208,6 +208,16 @@ public interface FearlessListener extends ParseTreeListener {
 	 */
 	void exitE(FearlessParser.EContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link FearlessParser#callOp}.
+	 * @param ctx the parse tree
+	 */
+	void enterCallOp(FearlessParser.CallOpContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FearlessParser#callOp}.
+	 * @param ctx the parse tree
+	 */
+	void exitCallOp(FearlessParser.CallOpContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link FearlessParser#nudeE}.
 	 * @param ctx the parse tree
 	 */

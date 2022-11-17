@@ -131,6 +131,12 @@ public interface FearlessVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitE(FearlessParser.EContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link FearlessParser#callOp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCallOp(FearlessParser.CallOpContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link FearlessParser#nudeE}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

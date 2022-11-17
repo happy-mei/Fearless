@@ -17,6 +17,13 @@ class TestParser {
       .toString();
     Err.strCmpFormat(expected,res);
   }
+  void same(String content1, String content2){
+    Main.resetAll();
+    String res1 = new Parser(Parser.dummy,content1).parseFullE(Bug::err,s->Optional.empty()).toString();
+    Main.resetAll();
+    String res2 = new Parser(Parser.dummy,content2).parseFullE(Bug::err,s->Optional.empty()).toString();
+    Err.strCmpFormat(res1,res2);
+  }
   void fail(String expectedErr,String content){
     Main.resetAll();
     var b=new StringBuffer();
@@ -26,13 +33,7 @@ class TestParser {
     Err.strCmp(expectedErr,b.toString());    
   }
   @Test void testMCall(){ ok("""
-    MCall[
-      receiver=x:infer,
-      name=.m,
-      ts=Optional.empty,
-      es=[],
-      t=infer
-      ]
+    x:infer.m[-]([]):infer
     """,
     "x.m"); }
   @Test void testTrue(){ ok(
@@ -41,7 +42,7 @@ class TestParser {
       its=[base.True[]],
       selfName=null,
       meths=[],
-      t=infer]
+      t=imm base.True[]]
     """, "base.True"); }
   @Test void testLamNoGens(){ ok(
       """
@@ -49,7 +50,7 @@ class TestParser {
         its=[animals.Cat[]],
         selfName=null,
         meths=[],
-        t=infer]
+        t=mut animals.Cat[]]
       """, "mut animals.Cat"); }
   @Test void testLamEmptyGens(){ ok(
       """
@@ -57,7 +58,7 @@ class TestParser {
         its=[animals.Cat[]],
         selfName=null,
         meths=[],
-        t=infer]
+        t=mut animals.Cat[]]
       """, "mut animals.Cat[]"); }
   @Test void testLamOneGens(){ ok(
       """
@@ -65,7 +66,7 @@ class TestParser {
         its=[base.List[imm pkg1.Person[]]],
         selfName=null,
         meths=[],
-        t=infer]
+        t=mut base.List[imm pkg1.Person[]]]
       """, "mut base.List[imm pkg1.Person]"); }
   @Test void testLamManyGens(){ ok(
       """
@@ -73,37 +74,11 @@ class TestParser {
         its=[base.Either[imm pkg1.Person[], mut pkg1.Blah[]]],
         selfName=null,
         meths=[],
-        t=infer]
+        t=mut base.Either[imm pkg1.Person[], mut pkg1.Blah[]]]
       """, "mut base.Either[imm pkg1.Person, mut pkg1.Blah]"); }
   @Test void surprisingNumberOfExprs(){ ok(
     """
-      MCall[receiver=
-        MCall[receiver=MCall[receiver=MCall[receiver=MCall[receiver=MCall[
-          receiver=we:infer,
-          name=.parse,
-          ts=Optional.empty,
-          es=[],
-          t=infer],
-          name=.a,
-          ts=Optional.empty,
-          es=[],
-          t=infer],
-          name=.surprising,
-          ts=Optional.empty,
-          es=[],
-          t=infer],
-          name=.amount,
-          ts=Optional.empty,
-          es=[],
-          t=infer],
-          name=.of,
-          ts=Optional.empty,
-          es=[],
-          t=infer],
-          name=.stuff,
-          ts=Optional.empty,
-          es=[],
-          t=infer]
+      we:infer.parse[-]([]):infer.a[-]([]):infer.surprising[-]([]):infer.amount[-]([]):infer.of[-]([]):infer.stuff[-]([]):infer
       """
     ,"we .parse .a .surprising .amount .of .stuff"); }
   @Test void testFail1(){ fail(
@@ -111,76 +86,41 @@ class TestParser {
     ,"We parse a surprising amount of stuff"); }
   @Test void singleEqSugar1(){ ok(
     """
-    
+    recv:infer.m1[-]([val:infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]]):infer
     """, "recv .m1 v = val"); }
   @Test void singleEqSugarPOp1(){ ok(
     """
-    MCall[
-      receiver=recv:infer,
-      name=.m1,
-      ts=Optional.empty,
-      es=[
-        val:infer,
-        Lambda[
-          mdf=mdf,
-          its=[],
-          selfName=null,
-          meths=[
-            [-]([v:infer,fearIntrinsic0:infer]):[-]->fearIntrinsic0:infer],
-            t=infer
-      ]],t=infer]
+    recv:infer.m1[-]([
+      val:infer,
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]
+    ]):infer
     """, "recv .m1 (v = val)"); }
   @Test void singleEqSugarPOp2(){ ok(
     """
-    MCall[
-      receiver=recv:infer,
-      name=.m1,
-      ts=Optional.empty,
-      es=[
-        val:infer,
-        Lambda[
-          mdf=mdf,
-          its=[],
-          selfName=null,
-          meths=[
-            [-]([v:infer,fearIntrinsic0:infer]):[-]->
-              MCall[
-                receiver=fearIntrinsic0:infer,
-                name=.m2,
-                ts=Optional.empty,
-                es=[],
-                t=infer]],
-            t=infer
-      ]],t=infer]
+    recv:infer.m1[-]([val:infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer.m2[-]([]):infer],t=infer]]):infer
     """, "recv .m1 (v = val) .m2"); }
   @Test void singleEqSugarPOp3(){ ok(
     """
-    MCall[
-      receiver=recv:infer,
-      name=.m1,
-      ts=Optional.empty,
-      es=[MCall[
-        receiver=val:infer,
-        name=.m2,
-        ts=Optional.empty,
-        es=[],
-        t=infer],
-        Lambda[
-          mdf=mdf,
-          its=[],
-          selfName=null,
-          meths=[
-            [-]([v:infer,fearIntrinsic0:infer]):[-]->MCall[
-              receiver=fearIntrinsic0:infer,
-              name=.m3,
-              ts=Optional.empty,
-              es=[],
-              t=infer]],
-          t=infer]],
-      t=infer]
+    recv:infer .m1[-]([
+      val:infer.m2[-]([]):infer,
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer.m3[-]([]):infer],t=infer]
+    ]):infer
     """, "recv .m1 (v = val .m2) .m3"); }
+  @Test void eqSugarSame1() { same("recv .m1 v = val", "recv .m1 (v = val)"); }
+  @Test void eqSugarSame2() { same("recv .m1 v = val .m2", "recv .m1 (v = val) .m2"); }
+  @Test void chainedMethCall() { ok("""
+    recv:infer.m1[-]([a:infer]):infer .m2[-]([b:infer]):infer
+    """, "(recv .m1 a) .m2 b"); }
   @Test void singleEqSugar2(){ ok(
     """
-    
+    recv:infer.m1[-]([val:infer.m2[-]([]):infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]]):infer
     """, "recv .m1 v = val .m2"); }
+  @Test void sameTest1(){ same("m.a", "m.a"); }
+  @Test void sameTest2(){ same("recv .m1 a .m2 b .m3 c", "((recv .m1 a) .m2 b) .m3 c"); }
+  @Test void sameTest3(){ same("recv .m1 a .m2 b", "(recv .m1 a) .m2 b"); }
+  @Test void sameTest4(){ same("recv .m1 a .m2", "recv .m1 (a .m2)"); }
+  @Test void sameTest5(){ same("recv .m1 x=v .m2", "recv .m1 x=(v .m2)"); }
+  @Test void sameTest6(){ same("recv .m1 x=v.m2 a", "(recv .m1 x=v) .m2 a"); }
+  @Test void sameTest7(){ same("recv .m1[A] x=v .m2[B,C[D]]", "recv .m1[A] x=(v .m2[B,C[D]])"); }
+  @Test void sameTest8(){ same("recv .m1[A] x=v.m2[B,C[D]] a", "(recv .m1[A] x=v) .m2[B,C[D]] a"); }
 }
