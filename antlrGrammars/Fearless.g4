@@ -51,7 +51,7 @@ MName: '.' FIdLow;
 
 BlockComment: '/*' (BlockComment|.)*? '*/'	-> channel(HIDDEN) ; // nesting comments allowed
 LineComment: '//' .*? ('\n'|EOF)				-> channel(HIDDEN) ;
-fragment SyInM: '+' | '-' | '*' | '/' | '\\' | '|' | '!' | '@' | '#' | '$' | '%' | '^' | '&' | '?' | '~' | '<' | '>' | '=';
+fragment SyInM: '+' | '-' | '*' | '/' | '\\' | '|' | '!' | '@' | '#' | '$' | '%' | '^' | '&' | '?' | '~' | '<' | '>' | '=' | ':';
 //  excluding = alone and excluding containing //, because they are defined first
 SysInM:SyInM+;
 fragment PX: IdLow IdChar*;
@@ -70,7 +70,7 @@ roundE : OR e CR;
 mGen   : | OS (t (Comma t)*)? CS;
 lambda : mdf block;
 block  : (t (Comma t)*)? OC bblock CC | t;
-bblock : | x Comma singleM | singleM | x Comma (Comma meth)* Comma? | meth (Comma meth)* Comma?;
+bblock : | OS x CS singleM | singleM | OS x CS (Comma meth)* Comma? | meth (Comma meth)* Comma?;
 
 t      : mdf fullCN mGen; //we recognize if fullCN is an X after parsing
 singleM: (x (Comma x)*)? Arrow e | e;
