@@ -3,7 +3,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
 
+import main.CompileError;
 import main.Main;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import utils.Bug;
@@ -27,10 +29,15 @@ class TestParser {
   void fail(String expectedErr,String content){
     Main.resetAll();
     var b=new StringBuffer();
-    var res=new Parser(Parser.dummy,content)
-      .parseFullE(s->{b.append(s);return null;},s->Optional.empty());
-    assertNull(res);
-    Err.strCmp(expectedErr,b.toString());    
+    try {
+      var res=new Parser(Parser.dummy,content)
+        .parseFullE(s->{b.append(s);return null;},s->Optional.empty());
+      if (res == null) { return; }
+      Assertions.fail("Parsing did not fail. Got: "+res);
+    }
+    catch (CompileError e) {
+      Err.strCmp(expectedErr, e.toString());
+    }
   }
   @Test void testMCall(){ ok("""
     x:infer.m[-]([]):infer
@@ -106,8 +113,15 @@ class TestParser {
       Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer.m3[-]([]):infer],t=infer]
     ]):infer
     """, "recv .m1 (v = val .m2) .m3"); }
+  @Test void testVarLast(){ ok("""
+    recv:infer.m1[-]([
+      v:infer,
+      Lambda[mdf=null,its=[],selfName=null,
+        meths=[[-]([x:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]
+      ]):infer
+    ""","recv .m1 x=v"); }
   @Test void eqSugarSame1() { same("recv .m1 v = val", "recv .m1 (v = val)"); }
-  @Test void eqSugarSame2() { same("recv .m1 v = val .m2", "recv .m1 (v = val) .m2"); }
+  @Test void eqSugarSame2() { same("recv .m1 v = val .m2", "recv .m1 v = (val .m2)"); }
   @Test void chainedMethCall() { ok("""
     recv:infer.m1[-]([a:infer]):infer .m2[-]([b:infer]):infer
     """, "(recv .m1 a) .m2 b"); }
@@ -115,12 +129,51 @@ class TestParser {
     """
     recv:infer.m1[-]([val:infer.m2[-]([]):infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]]):infer
     """, "recv .m1 v = val .m2"); }
+  @Test void nestedCalls1(){ ok("""
+    recv:infer.m1[-]([
+      v:infer,
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x:infer,fear0$:infer]):[-]->fear0$:infer.m2[-]([a:infer]):infer],t=infer]
+    ]):infer
+    """, "recv .m1 x=v.m2 a"); }
+  @Test void nestedCalls2(){ ok("""
+    recv:infer.m1[-]([
+      v:infer,
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]
+    ]):infer.m2[-]([a:infer]):infer
+    """, "(recv .m1 x=v) .m2 a"); }
+  @Test void eqExpasnionNoPar() { ok("""
+    recv:infer.m1[-]([
+      v:infer,
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x:infer,fear0$:infer]):[-]->
+        fear0$:infer .m2[-]([a:infer]):infer],t=infer]
+    ]):infer
+    """, "recv .m1 x=v.m2 a"); }
+  @Test void eqExpasnionPar() { ok("""
+    recv:infer.m1[-]([
+      v:infer .m2[-]([a:infer]):infer,
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]
+    ]):infer
+    """, "recv .m1 x=(v.m2 a)"); }
+  @Test void eqExpansionGensNoPar() { ok("""
+    recv:infer .m1[immGX[name=A]]([
+      v:infer,
+      Lambda[mdf=null,its=[],selfName=null,meths=[
+        [-]([x:infer,fear0$:infer]):[-]->fear0$:infer .m2[imm GX[name=B],imm base.C[imm GX[name=D]]]([a:infer]):infer],
+      t=infer]
+    ]):infer
+    """, "recv .m1[A] x=v.m2[B,base.C[D]] a"); }
+  @Test void failNestedGenerics() { fail("""
+    In position [###]/Dummy.fear:1:9
+    concreteTypeInFormalParams:3
+    Trait and method declarations may only have type parameters. This concrete type was provided instead:
+    imm GX[name=A]
+    """, "recv .m1[A[B]]"); }
   @Test void sameTest1(){ same("m.a", "m.a"); }
   @Test void sameTest2(){ same("recv .m1 a .m2 b .m3 c", "((recv .m1 a) .m2 b) .m3 c"); }
   @Test void sameTest3(){ same("recv .m1 a .m2 b", "(recv .m1 a) .m2 b"); }
   @Test void sameTest4(){ same("recv .m1 a .m2", "recv .m1 (a .m2)"); }
   @Test void sameTest5(){ same("recv .m1 x=v .m2", "recv .m1 x=(v .m2)"); }
-  @Test void sameTest6(){ same("recv .m1 x=v.m2 a", "(recv .m1 x=v) .m2 a"); }
-  @Test void sameTest7(){ same("recv .m1[A] x=v .m2[B,C[D]]", "recv .m1[A] x=(v .m2[B,C[D]])"); }
-  @Test void sameTest8(){ same("recv .m1[A] x=v.m2[B,C[D]] a", "(recv .m1[A] x=v) .m2[B,C[D]] a"); }
+  // TODO: (recv .m1 x=v) .m2 a is weird because the = method has executed first, so x is out of scope
+  @Test void sameTest6(){ same("recv .m1[A] x=v .m2[B,base.C[D]]", "recv .m1[A] x=(v .m2[B,base.C[D]])"); }
+  @Test void sameTestVarLast(){ same("recv.m1(x=v)", "recv .m1 x=v"); }
 }

@@ -32,7 +32,8 @@ class TestFullParser {
     try {
       var res = Parser.parseAll(ps);
       Assertions.fail("Parsing did not fail. Got: "+res);
-    } catch (Bug | CompileError e) {
+    }
+    catch (Bug | CompileError e) {
       Err.strCmp(expectedErr, e.toString());
     }
   }

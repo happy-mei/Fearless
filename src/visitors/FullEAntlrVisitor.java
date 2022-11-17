@@ -61,9 +61,6 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     E root = visitPostE(ctx.postE());
     var calls = ctx.callOp();
     if(calls.isEmpty()){ return root; }
-//    if (ctx.x() != null && !ctx.x().isEmpty()) {
-//      throw Bug.todo(); // TODO: = sugar without brackets
-//    }
     var res = calls.stream()
       .map(c-> new Call(
         visitM(c.m()),
@@ -202,7 +199,11 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var mGen=visitMGen(ctx.mGen());
     var resolved=resolve.apply(name);
     var isIT = name.contains(".") || resolved.isPresent();
-    if(!isIT){ return new T(mdf,new T.GX(name)); }
+    if(!isIT){
+      var t = new T(mdf, new T.GX(name));
+      if(mGen.isPresent()){ throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx)); }
+      return t;
+    }
     var ts = mGen.orElse(List.of());
     if(resolved.isEmpty()){return new T(mdf,new T.IT(name,ts));}
     var res = resolved.get();
