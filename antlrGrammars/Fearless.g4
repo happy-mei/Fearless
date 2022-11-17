@@ -83,7 +83,8 @@ alias  : Alias fullCN mGen As fullCN mGen Comma;
 atomE : x | roundE | lambda;
 postE : atomE pOp*;
 pOp : m mGen | m mGen OR (e (Comma e)+)? CR | m mGen OR x Eq e CR; 
-e: postE (m mGen (x Eq)? postE)*;
+e: postE callOp*;
+callOp: m mGen (x Eq)? postE;
 
 nudeE : e EOF;
 

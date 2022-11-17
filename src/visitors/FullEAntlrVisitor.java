@@ -50,6 +50,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Object visitBblock(BblockContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitPOp(POpContext ctx){ throw Bug.unreachable(); }
   @Override public T.Dec visitTopDec(TopDecContext ctx) { throw Bug.unreachable(); }
+  @Override public Object visitCallOp(CallOpContext ctx) { throw Bug.unreachable(); }
   @Override public E visitNudeE(NudeEContext ctx){
     check(ctx);    
     return visitE(ctx.e());
@@ -57,21 +58,24 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   
   @Override public E visitE(EContext ctx){
     check(ctx);
-    var es = ctx.postE();
-    E root = visitPostE(es.get(0));
-    if(es.size()==1){ return root; }
-    if (ctx.x() != null && !ctx.x().isEmpty()) {
-      throw Bug.todo(); // TODO: = sugar without brackets
+    E root = visitPostE(ctx.postE());
+    var calls = ctx.callOp();
+    if(calls.isEmpty()){ return root; }
+//    if (ctx.x() != null && !ctx.x().isEmpty()) {
+//      throw Bug.todo(); // TODO: = sugar without brackets
+//    }
+    var res = calls.stream()
+      .map(c-> new Call(
+        visitM(c.m()),
+        visitMGen(c.mGen()),
+        Optional.ofNullable(c.x()).map(this::visitX),
+        List.of(visitPostE(c.postE()))
+      ))
+      .toList();
+
+    return desugar(root, res);
     }
-    throw Bug.of();
-    /*
-    E e=visitE(ctx.e());
-    var m=visitM(ctx.m());
-    var mGen=visitMGen(ctx.mGen());
-    if(ctx.x()!=null) { throw Bug.of(); }
-    return new E.MCall(root,m,mGen,List.of(e),T.infer);
-    */
-    }
+
   static <A,B> B opt(A a,Function<A,B> f){
     if(a==null){return null;}
     return f.apply(a);
@@ -79,28 +83,37 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public E visitPostE(PostEContext ctx){
     check(ctx);
     E root = visitAtomE(ctx.atomE());
-    return desugar(root,ctx.pOp());
+    return desugar(root,ctx.pOp().stream().map(this::fromPOp).toList());
   }
-  E desugar(E root,List<POpContext> tail){
+  record Call(E.MethName m, Optional<List<T>> mGen, Optional<E.X> x, List<E> es){}
+  Call fromPOp(POpContext ctx) {
+    return new Call(
+      visitM(ctx.m()),
+      visitMGen(ctx.mGen()),
+      Optional.ofNullable(ctx.x()).map(this::visitX),
+      ctx.e().stream().map(this::visitE).toList()
+      );
+  }
+  E desugar(E root,List<Call> tail){
     if(tail.isEmpty()){ return root; }
-    var top = tail.get(0);
-    var pop = Pop.left(tail);
-    var m = visitM(top.m());
-    var ts=visitMGen(top.mGen());
-    if(top.x()!=null){
-      var x = this.visitX(top.x());
-      assert top.e().size() == 1;
-      var e = this.visitE(top.e().get(0));
+    var head = tail.get(0);
+    var newTail = Pop.left(tail);
+    var m = head.m();
+    var ts=head.mGen();
+    if(head.x().isPresent()){
+      var x = head.x().get();
+      assert head.es().size() == 1;
+      var e = head.es().get(0);
       var freshRoot = new E.X(T.infer);
-      var rest = desugar(freshRoot, pop);
-      var cont = new E.Lambda(Mdf.mdf, List.of(), null, List.of(
+      var rest = desugar(freshRoot, newTail);
+      var cont = new E.Lambda(null, List.of(), null, List.of(
         new E.Meth(Optional.empty(), Optional.empty(), List.of(x, freshRoot), Optional.of(rest))
       ), T.infer);
       return new E.MCall(root, m, ts, List.of(e, cont), T.infer);
     }
-    var es=top.e().stream().map(this::visitE).toList();
+    var es=head.es();
     E res=new E.MCall(root,m, ts, es,T.infer);
-    return desugar(res,pop);
+    return desugar(res,newTail);
   }
   @Override public Optional<List<T>> visitMGen(MGenContext ctx){
     if(ctx.children==null){ return Optional.empty(); }//subsumes check(ctx);
@@ -126,11 +139,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   @Override public E.X visitX(XContext ctx){
     check(ctx);
-    var name = ctx.getText();
-    if (name.startsWith(E.X.RESERVED)) {
-      throw Fail.reservedIdentifierUsed(name).pos(pos(ctx));
-    }
-    return PosMap.add(new E.X(name,T.infer),pos(ctx));
+    return PosMap.add(new E.X(ctx.getText(),T.infer),pos(ctx));
   }
   @Override public E visitAtomE(AtomEContext ctx){
     check(ctx);
@@ -143,24 +152,29 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public E.Lambda visitLambda(LambdaContext ctx){
     Mdf mdf=visitMdf(ctx.mdf());
     var res=visitBlock(ctx.block());
-    return PosMap.add(new E.Lambda(mdf,res.its(), res.selfName(), res.meths(), T.infer),pos(ctx));
+    if (res.its().isEmpty() && !ctx.mdf().getText().isEmpty()) { throw Fail.modifierOnInferredLambda().pos(pos(ctx)); }
+    T type = res.its().isEmpty() ? T.infer : new T(mdf, res.its().get(0));
+    if (type.isInfer()) { mdf = null; }
+    return PosMap.add(new E.Lambda(mdf, res.its(), res.selfName(), res.meths(), type),pos(ctx));
     }
   @Override public E.Lambda visitBlock(BlockContext ctx){
     check(ctx);
     var _ts=opt(ctx.t(),ts->ts.stream().map(this::visitIT).toList());
     _ts=_ts==null?List.of():_ts;
+    var t = _ts.isEmpty() ? T.infer : new T(Mdf.mdf, _ts.get(0));
+    var mdf = t.isInfer() ? null : Mdf.mdf;
     if(ctx.bblock()==null){
-      return new E.Lambda(Mdf.mdf,_ts,null,List.of(),T.infer);
+      return new E.Lambda(mdf,_ts,null,List.of(),t);
       }
     var bb = ctx.bblock();
-    if(bb.children==null){ return new E.Lambda(Mdf.mdf, _ts, null, List.of(), T.infer); }
+    if(bb.children==null){ return new E.Lambda(mdf, _ts, null, List.of(), t); }
     var _x=opt(bb.x(),this::visitX);
     var _n=_x==null?null:_x.name();
     var _ms=opt(bb.meth(),ms->ms.stream().map(this::visitMeth).toList());
     var _singleM=opt(bb.singleM(),this::visitSingleM);
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
-    return new E.Lambda(Mdf.mdf,_ts,_n,mms,T.infer);
+    return new E.Lambda(mdf,_ts,_n,mms,t);
     }
   @Override
   public String visitFullCN(FullCNContext ctx) {
