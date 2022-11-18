@@ -10,6 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Err {
+  public static <T> boolean ifMut(List<T> t){
+    try{ t.add(null); }
+    catch(UnsupportedOperationException uoe){ return true; }
+    return false;
+  }
   public static String hole="[###]";//not contains \.[]{}()<>*+-=!?^$|
   public static boolean strCmpFormat(String expected,String actual){
     expected=expected.replace("\n","").replace(" ","");

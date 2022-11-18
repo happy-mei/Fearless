@@ -29,7 +29,7 @@ public record T(Mdf mdf, RT rt){
       return String.format("alias %s as %s", from, to);
     }
   }
-  public record Dec(String name, List<T.GX> xs, E.Lambda lambda){ }
+  public record Dec(String name, List<T.GX> gxs, E.Lambda lambda){ }
   @Override public String toString(){
     if(isInfer()){ return "infer"; }
     return ""+mdf+" "+rt;

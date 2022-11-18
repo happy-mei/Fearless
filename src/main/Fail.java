@@ -40,17 +40,24 @@ public class Fail{
     return new CompileError(kind+":"+code+"\n"+msg);
   }
 
-  //ALL OUR ERRORS -- only add to the bottom
+  //ALL OUR ERRORS
   public static CompileError conflictingAlias(String aliased, List<Conflict> conflicts){return of(
       "This alias is in conflict with other aliases in the same package: "+conflictingMsg(aliased, conflicts));}
   public static CompileError conflictingDecl(T.DecId decl, List<Conflict> conflicts){return of(
       "This trait declaration is in conflict with other trait declarations in the same package: "+conflictingMsg(decl.toString(), conflicts));}
+  public static CompileError conflictingXs(String mName, List<Conflict> conflicts){return of(
+    "This method declaration mutiple declarions for some paramers: "+conflictingMsg(mName, conflicts));}
+
   public static CompileError concreteTypeInFormalParams(T badType){return of(
     "Trait and method declarations may only have type parameters. This concrete type was provided instead:\n"+badType
   );}
   public static CompileError modifierOnInferredLambda(){return of(
     "Modifiers cannot be specified on lambdas without an explicit type."
   );}
+  public static CompileError isoInTypeArgs(T badType){return of(
+    "The iso reference capability may not be used in type modifiers:\n"+badType
+  );}
+  public static CompileError explicitThis(){return of("Local variables may not be named 'this'.");}
 }
 
 //only add to the bottom
@@ -58,6 +65,9 @@ enum ErrorCode {
   conflictingAlias,
   conflictingDecl,
   concreteTypeInFormalParams,
-  modifierOnInferredLambda;
+  modifierOnInferredLambda,
+  isoInTypeArgs,
+  explicitThis,
+  conflictingXs;
   int code() {return this.ordinal() + 1;}
 }
