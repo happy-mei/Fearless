@@ -30,7 +30,7 @@ public record Package(
     Path pi = this.ps().get(i);
     TopDecContext di=this.ds().get(i);
     T.Dec dec=new FullEAntlrVisitor(pi,this::resolve).visitTopDec(di, this.name(), shallow);
-    T.DecId id=new T.DecId(dec.name(),dec.xs().size());
+    T.DecId id=new T.DecId(dec.name(),dec.gxs().size());
     acc.put(id, dec);
   }
   Optional<T.IT> resolve(String base){

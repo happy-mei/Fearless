@@ -104,7 +104,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       var freshRoot = new E.X(T.infer);
       var rest = desugar(freshRoot, newTail);
       var cont = new E.Lambda(null, List.of(), null, List.of(
-        new E.Meth(Optional.empty(), Optional.empty(), List.of(x, freshRoot), Optional.of(rest))
+        new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest))
       ), T.infer);
       return new E.MCall(root, m, ts, List.of(e, cont), T.infer);
     }
@@ -213,7 +213,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override
   public E.Meth visitSingleM(SingleMContext ctx) {
     check(ctx);
-    var _xs = opt(ctx.x(), xs->xs.stream().map(this::visitX).toList());
+    var _xs = opt(ctx.x(), xs->xs.stream().map(this::visitX).map(E.X::name).toList());
     _xs = _xs==null?List.of():_xs;
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
     return PosMap.add(new E.Meth(Optional.empty(), Optional.empty(), _xs, body), pos(ctx));
@@ -228,8 +228,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       return _xs==null?List.of():_xs;
     });
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
-    var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), h.ret()));
-    return PosMap.add(new E.Meth(sig, Optional.of(name), xs, body), pos(ctx));
+    var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), xs.stream().map(E.X::t).toList(), h.ret()));
+    return PosMap.add(new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body), pos(ctx));
   }
   private record MethHeader(Mdf mdf, E.MethName name, List<T.GX> gens, List<E.X> xs, T ret){}
   @Override

@@ -51,9 +51,10 @@ MName: '.' FIdLow;
 
 BlockComment: '/*' (BlockComment|.)*? '*/'	-> channel(HIDDEN) ; // nesting comments allowed
 LineComment: '//' .*? ('\n'|EOF)				-> channel(HIDDEN) ;
-fragment SyInM: '+' | '-' | '*' | '/' | '\\' | '|' | '!' | '@' | '#' | '$' | '%' | '^' | '&' | '?' | '~' | '<' | '>' | '=' | ':';
+fragment SyInM: '+' | '-' | '*' | '/' | '\\' | '|' | '!' | '@' | '#' | '$' | '%' | '^' | '&' | '?' | '~' | '<' | '>' | '=';
+fragment SyInMExtra: '+' | '-' | '*' | '/' | '\\' | '|' | '!' | '@' | '#' | '$' | '%' | '^' | '&' | '?' | '~' | '<' | '>' | '=' | ':';
 //  excluding = alone and excluding containing //, because they are defined first
-SysInM:SyInM+;
+SysInM: SyInMExtra* SyInM;
 fragment PX: IdLow IdChar*;
 FullCN: (PX '.')* FIdUp | FStringMulti | FStringSingle | FNumber;
 

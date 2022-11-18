@@ -8,7 +8,7 @@ public interface FullCloneVisitor {
   default E.Meth visitMeth(E.Meth e){ return new E.Meth(
     e.sig().map(this::visitSig),
     e.name().map(this::visitMethName),
-    e.xs().stream().map(this::visitXX).toList(),
+    e.xs(),
     e.body().map(b->b.accept(this))
   );}
   default E visitMCall(E.MCall e){ return new E.MCall(
@@ -33,6 +33,7 @@ public interface FullCloneVisitor {
   default E.Sig visitSig(E.Sig e){return new E.Sig(
     visitMdf(e.mdf()),
     e.gens().stream().map(this::visitGX).toList(),
+    e.ts().stream().map(this::visitT).toList(),
     visitT(e.ret())
   );}
   default T visitT(T t){ return new T(
@@ -46,7 +47,7 @@ public interface FullCloneVisitor {
   default T.GX visitGX(T.GX t){ return t; }
   default T.Dec visitDec(T.Dec d) { return new T.Dec(
     d.name(),
-    d.xs().stream().map(this::visitGX).toList(),
+    d.gxs().stream().map(this::visitGX).toList(),
     visitLLambda(d.lambda())
   );}
   default T.DecId visitDecId(T.DecId di){ return di; }
