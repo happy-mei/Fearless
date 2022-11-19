@@ -281,6 +281,18 @@ public class FearlessBaseListener implements FearlessListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterNudeX(FearlessParser.NudeXContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitNudeX(FearlessParser.NudeXContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterNudeProgram(FearlessParser.NudeProgramContext ctx) { }
 	/**
 	 * {@inheritDoc}

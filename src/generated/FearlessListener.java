@@ -228,6 +228,16 @@ public interface FearlessListener extends ParseTreeListener {
 	 */
 	void exitNudeE(FearlessParser.NudeEContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link FearlessParser#nudeX}.
+	 * @param ctx the parse tree
+	 */
+	void enterNudeX(FearlessParser.NudeXContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FearlessParser#nudeX}.
+	 * @param ctx the parse tree
+	 */
+	void exitNudeX(FearlessParser.NudeXContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link FearlessParser#nudeProgram}.
 	 * @param ctx the parse tree
 	 */

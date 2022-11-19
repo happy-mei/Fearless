@@ -9,6 +9,8 @@ import generated.FearlessLexer;
 import generated.FearlessParser;
 import generated.FearlessParser.NudeEContext;
 import generated.FearlessParser.NudeProgramContext;
+import generated.FearlessParser.NudeXContext;
+
 import org.antlr.v4.runtime.*;
 import utils.Bug;
 import visitors.FullEAntlrVisitor;
@@ -72,6 +74,18 @@ public record Parser(Path fileName,String content){
       //TODO: better errors below
       if(!errorst.isEmpty()){ return orElse.apply(errorst.toString()); }
       return orElse.apply(errorsp.toString());
+  }
+  
+  public boolean parseX(){
+    var l = new FearlessLexer(CharStreams.fromString(content));
+    var p = new FearlessParser(new CommonTokenStream(l));
+    var errorst = new StringBuilder();
+    var errorsp = new StringBuilder();
+    FailConsole.setFail(fileName, l, p, errorst, errorsp);
+    @SuppressWarnings("unused")
+    NudeXContext unused = p.nudeX();
+    var ok = errorst.isEmpty() && errorsp.isEmpty();
+    return ok;
   }
   public Package parseFile(Function<String,Package> orElse){
     var l = new FearlessLexer(CharStreams.fromString(content));
