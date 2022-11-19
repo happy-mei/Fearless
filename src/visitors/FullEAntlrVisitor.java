@@ -51,10 +51,12 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Object visitPOp(POpContext ctx){ throw Bug.unreachable(); }
   @Override public T.Dec visitTopDec(TopDecContext ctx) { throw Bug.unreachable(); }
   @Override public Object visitCallOp(CallOpContext ctx) { throw Bug.unreachable(); }
+  @Override public Object visitNudeX(NudeXContext ctx){ throw Bug.unreachable(); }
+
   @Override public E visitNudeE(NudeEContext ctx){
     check(ctx);    
     return visitE(ctx.e());
-  } 
+  }
   
   @Override public E visitE(EContext ctx){
     check(ctx);
