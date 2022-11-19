@@ -1,0 +1,203 @@
+Valhalla 2027
+primitive record Point(int x,int y){}
+value record Point(int x,int y){}
+
+primitive, value, record, class, interface, enum,
+annotation, abstract(class),array
+
+Point p=new Point(10,20);
+p==p
+Foo<T>
+Foo<Point>
+
+J   Fearless
+e ::= x | e m[Ts](es) | L
+L ::= T{Ms}
+D ::= C[Xs]:Ts{Ms}
+M ::= m[Xs](x1:T1..xn:Tn):T->e
+m ::= .low | symbols
+T ::= Mdf C[Ts] | Mdf X
+Mdf::= mut | lent | read | iso | imm | recMdf | mdf
+
+Sealed
+Var[T]:{get set}
+
+res=list.stream
+  .map{}
+  .filter{}
+  .to List
+
+Person: { .age:Num, .name:Str 
+  .greet:Str->
+    "Hi, i'm "+this.name+"nice to meet you",
+  }
+APerson:{
+  #(age:Num,name:Str):Person->
+    {.age->age,.name->name}
+  }
+APerson[]{}#(23[]{},"Bob").greet
+23:Num{..}
+"Bob":Str{..}
+F[R]:{#:R}
+F[A,R]:{#(a:A):R}
+F[A,B,R]:{#(a:A,b:B):R}
+ThenElse[R]:{
+  .then:R
+  .else:R
+  }
+Bool:Sealed{
+  .not:Bool
+  .and(b:Bool):Bool
+  .if[R] b:ThenElse[R]:R
+  }
+True:Bool{
+  .not->False
+  .and b->b
+  .if b->b.then#
+  }
+False:Bool{
+  .not->True
+  .and b->this
+  .if b->b.else#
+  }
+
+True.and(False).if {
+  .then->e,
+  .else->e
+  }
+list.match{
+  .onEmpty->e
+  .onElem(top,tail)->e
+  }
+
+myHtmlNode.match{
+  .onP p->..
+  .onDiv div->..
+  }
+
+
+
+
+
+
+
+
+
+dup x={es->..}
+if{cond}.return/.error
+
+foo
+  .var x=e
+  .bar 5
+  .beer 6
+==
+foo
+  .var(e,{x,self->self
+    .bar 5
+    .beer 6})
+==
+
+
+aux:Stream[Num]=myList.map{e->e*2}
+res1:List[Num]=aux.map{e->e*3}.to List
+res2:List[Num]=aux.map{e->e*5}.to List
+
+res:int=myList //1,2,3,4,5
+  .map{e->e*2}//2,4,6,8,10
+  .branch{s1 -> s1
+    .map{e->e*3} // 6 12 18 24 30
+    .filter{e-> e>5}
+    .ifEmpty {->.unbranch()}
+    .returnFirst{e->List.of(e)}
+    }
+   //2,4,6,8,10
+  .var x={e}
+  //.dup x={s1->s1.anyMatch{e->e>5}}
+  .dup x={s1->s1.filter{e->e>5}}
+  .pass{x.map{e -> return List.of(e)}}
+
+  .if{x}.return{..}
+  .ifAny{e->e>5}.return{e->List.of(e)}
+  .branch{
+    .cond es->es.anyMatch{e->e>5}
+    .then es->List.of(?e?)
+    .else{}
+    }
+  .map{e->e*2}
+  .ifAll{e->e>5}.return{List.of(5,4)}
+  .ifNone{e->e>5}.error{..}
+  .ifSome{e->e>5}.return{..} //same as ifAny?
+  .ifEmpty .return {..}
+  .ifDisjoint{e1,e2->e1.f==e2.f} .return {..}
+  .map{}
+  .to List
+
+longMeth(){
+
+  if(stuff){bull1 if(cond) return a}
+  
+  else if(stuff){bull2 if(cond) return b}
+}
+LongCompObj:{
+  age:Var[Str],
+  mut of:T->
+    this.doBull1() //Opt[T]
+    .orElse{this.doBull2}
+    .orElse{this.doBull3}
+    .getOrElse{this.finalBull}
+  }
+class LongCompObj{
+  String age;
+  String name;
+  Optional<T> doBull1(){}
+  T doFinalBull(){}
+  T of(){return Optional.empty()
+      .orElse(this::doBull1)
+      .orElse(this::doBull2)
+      .orElse(this::doBull3)
+      .getOrElse(this::finalBull);
+    }
+  }
+
+
+
+----
+access files
+
+highly APId general IO access
+
+query(supporty,string)->universalDataInput->MyDataType
+  sql, sqlquery
+  iql, iqlquery
+  xml, xmlquery
+  json, jsonpath/jquery
+  csv, range
+  webapi,post
+  uri,root
+somehow this whole thing is a 'parser' where the input does not need
+to be a string
+The query is sort of the grammar
+
+MyData:{
+  .tempFile:File["Foo%Bar.txt",Txt], //random access file or not
+  .logFiles:List[File[Txt]],
+  .customers:Map[Str,File[Txt]],
+  .config:Config,
+  //.stuff:MyData,
+  }
+Config:{
+  .config:File[XML],
+  .author:File[Txt],
+  .userFile(Path p):File[Txt] //?
+  .sqlQuert(Querty q)
+  }
+ReadMyData:ReadOnly[MyData]
+MyMain:Main{s->s
+  .use x=/*MyData*/{ReadMyData#(s.currentFolder)}
+  .return {MyMain.doStuff(x)}
+  }
+MyMain:Main{s->s
+  .use({ReadMyData},{x,self->self
+  .return {MyMain.doStuff(x)}
+  })
+  }

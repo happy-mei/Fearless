@@ -14,7 +14,7 @@ public interface FullCollectorVisitor<R> {
       .or(()->e.name().flatMap(this::visitMethName))
       .or(()->e.body().flatMap(b->b.accept(this)));
   }
-  static <R,T> Optional<R> visitAll(List<T> ts, Function<T,Optional<R>> f){
+  static <R,ET> Optional<R> visitAll(List<ET> ts, Function<ET,Optional<R>> f){
     for(var e:ts){
       var r=f.apply(e);
       if(r.isPresent()){ return r; }
