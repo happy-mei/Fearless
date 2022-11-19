@@ -11,8 +11,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 class TestFullParser {
   void ok(String expected, String... content){
     Main.resetAll();

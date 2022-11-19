@@ -10,7 +10,7 @@ import java.util.Optional;
 public class PosMap {
   public static void reset(){ map.clear(); }
   private static final IdentityHashMap<Object, Pos> map = new IdentityHashMap<>();
-  public static <T> T add(T node, Pos pos) {
+  public static <N> N add(N node, Pos pos) {
     var res = map.put(node, pos);
     if (res != null && res != pos) {Bug.err("A Pos for "+node+" already exists.");}
     return node;
