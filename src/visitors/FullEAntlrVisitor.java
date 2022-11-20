@@ -72,7 +72,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         new MethName(c.m().getText(),1),
         visitMGen(c.mGen()),
         Optional.ofNullable(c.x()).map(this::visitX),
-        List.of(visitPostE(c.postE()))
+        List.of(visitPostE(c.postE())),
+        pos(c)
       ))
       .toList();
 
@@ -88,13 +89,14 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     E root = visitAtomE(ctx.atomE());
     return desugar(root,ctx.pOp().stream().map(this::fromPOp).toList());
   }
-  record Call(MethName m, Optional<List<T>> mGen, Optional<E.X> x, List<E> es){}
+  record Call(MethName m, Optional<List<T>> mGen, Optional<E.X> x, List<E> es, Pos pos){}
   Call fromPOp(POpContext ctx) {
     return new Call(
       new MethName(ctx.m().getText(),ctx.e().size()),
       visitMGen(ctx.mGen()),
       Optional.ofNullable(ctx.x()).map(this::visitX),
-      ctx.e().stream().map(this::visitE).toList()
+      ctx.e().stream().map(this::visitE).toList(),
+      pos(ctx)
       );
   }
   E desugar(E root,List<Call> tail){
@@ -109,13 +111,16 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       var e = head.es().get(0);
       var freshRoot = new E.X(T.infer);
       var rest = desugar(freshRoot, newTail);
-      var cont = new E.Lambda(null, List.of(), null, List.of(
-        new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest))
-      ), T.infer);
-      return new E.MCall(root, m, ts, List.of(e, cont), T.infer);
+      var cont = PosMap.add(
+        new E.Lambda(null, List.of(), null, List.of(
+          PosMap.add(new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest)), head.pos())
+        ), T.infer),
+        head.pos()
+      );
+      return PosMap.add(new E.MCall(root, m, ts, List.of(e, cont), T.infer), head.pos());
     }
     var es=head.es();
-    E res=new E.MCall(root,m, ts, es,T.infer);
+    E res=PosMap.add(new E.MCall(root,m, ts, es,T.infer), head.pos());
     return desugar(res,newTail);
   }
   @Override public Optional<List<T>> visitMGen(MGenContext ctx){
@@ -163,17 +168,17 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var t = _ts.isEmpty() ? T.infer : new T(Mdf.mdf, _ts.get(0));
     var mdf = t.isInfer() ? null : Mdf.mdf;
     if(ctx.bblock()==null){
-      return new E.Lambda(mdf,_ts,null,List.of(),t);
+      return PosMap.add(new E.Lambda(mdf,_ts,null,List.of(),t), pos(ctx));
       }
     var bb = ctx.bblock();
-    if(bb.children==null){ return new E.Lambda(mdf, _ts, null, List.of(), t); }
+    if(bb.children==null){ return PosMap.add(new E.Lambda(mdf, _ts, null, List.of(), t), pos(ctx)); }
     var _x=opt(bb.x(),this::visitX);
     var _n=_x==null?null:_x.name();
     var _ms=opt(bb.meth(),ms->ms.stream().map(this::visitMeth).toList());
     var _singleM=opt(bb.singleM(),this::visitSingleM);
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
-    return new E.Lambda(mdf,_ts,_n,mms,t);
+    return PosMap.add(new E.Lambda(mdf,_ts,_n,mms,t), pos(ctx));
     }
   @Override
   public String visitFullCN(FullCNContext ctx) {

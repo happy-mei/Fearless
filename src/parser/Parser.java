@@ -46,7 +46,7 @@ public record Parser(Path fileName,String content){
     //balanced parenthesis with decent error
   }
 
-  static Map<T.DecId,T.Dec> parseAll(List<Parser>ps) {
+  public static Map<T.DecId,T.Dec> parseAll(List<Parser>ps) {
     List<Alias> globals=List.of();//TODO: global aliases
     var all=ps.stream()
         .map(p->p.parseFile(Bug::err))
