@@ -21,10 +21,11 @@ public class TestIntegrationWellFormedness {
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
     var decTable = Parser.parseAll(ps);
-    var isWellFormed = decTable.values().stream()
+    var res = decTable.values().stream()
       .map(d->d.accept(new WellFormednessVisitor()))
-      .allMatch(Optional::isEmpty);
-    assertTrue(isWellFormed);
+      .toList();
+    var isWellFormed = res.stream().allMatch(Optional::isEmpty);
+    assertTrue(isWellFormed, res.stream().filter(Optional::isPresent).map(Optional::get).toList().toString());
   }
   void fail(String expectedErr, String... content){
     Main.resetAll();
@@ -58,6 +59,24 @@ public class TestIntegrationWellFormedness {
     package pkg1
     A:base.Opt[iso A]
     """); }
+  @Test void noIsoParamsLambda2() { fail("""
+    [In position [###]/Dummy0.fear:2:2
+    isoInTypeArgs:5
+    The iso reference capability may not be used in type modifiers:
+    iso pkg1.A[]]
+    """, """
+    package pkg1
+    A:{ #: base.Opt[iso A] -> base.Opt[iso A] }
+    """); }
+  @Test void noIsoParamsLambda3() { fail("""
+    [In position [###]/Dummy0.fear:2:2
+    isoInTypeArgs:5
+    The iso reference capability may not be used in type modifiers:
+    iso pkg1.A[]]
+    """, """
+    package pkg1
+    A:{ #: base.Opt[iso A] -> {} }
+    """); }
   @Test void noIsoParamsLambdaNested1() { fail("""
     [In position [###]/Dummy0.fear:2:2
     isoInTypeArgs:5
@@ -76,6 +95,7 @@ public class TestIntegrationWellFormedness {
     package pkg1
     A:base.Opt[base.Opt[A], base.Opt[base.Opt[iso A]]]
     """); }
+
   // TODO: Alias generic params cannot use other aliases right now (i.e. pkg1.A vs A)
   @Test void noIsoParamsAliasOk() { ok("""
     package pkg1
