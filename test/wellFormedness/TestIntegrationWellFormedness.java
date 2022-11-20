@@ -49,7 +49,7 @@ public class TestIntegrationWellFormedness {
     package pkg1
     A:base.Opt[iso A]
     """); }
-  @Test void noIsoParamsLambdaNested() { fail("""
+  @Test void noIsoParamsLambdaNested1() { fail("""
     [In position [###]/Dummy0.fear:2:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
@@ -57,5 +57,14 @@ public class TestIntegrationWellFormedness {
     """, """
     package pkg1
     A:base.Opt[mut base.Opt[iso A]]
+    """); }
+  @Test void noIsoParamsLambdaNested2() { fail("""
+    [In position [###]/Dummy0.fear:2:2
+    isoInTypeArgs:5
+    The iso reference capability may not be used in type modifiers:
+    iso pkg1.A[]]
+    """, """
+    package pkg1
+    A:base.Opt[base.Opt[A], base.Opt[base.Opt[iso A]]]
     """); }
 }
