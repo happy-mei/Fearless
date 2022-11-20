@@ -7,11 +7,17 @@ import visitors.FullCollectorVisitor;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public record T(Mdf mdf, RT rt){
   public static final T infer = new T(null,null);
   public boolean isInfer(){ return this==infer; }
   public <R> R match(Function<GX,R>gx,Function<IT,R>it){ return rt.match(gx, it); }
+  public Stream<T> flatten() {
+    return this.match(gx->Stream.empty(), it->
+      Stream.concat(Stream.of(this), it.ts().stream().flatMap(T::flatten))
+    );
+  }
   public interface RT{ <R> R match(Function<GX,R>gx,Function<IT,R>it); }
 
   public record GX(String name)implements RT{
