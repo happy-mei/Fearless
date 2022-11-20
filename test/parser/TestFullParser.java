@@ -201,7 +201,7 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          !([]):Sig[mdf=imm,gens=[],ret=imm base.Void[]]->this:infer![-]([]):infer
+          !([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.Void[]]->this:infer![-]([]):infer
         ],
         t=infer
       ]]}
@@ -272,7 +272,7 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          .foo([a:imm base.A[],b:imm base.A[]]):Sig[mdf=imm,gens=[],ret=imm base.A[]]->[-]],t=infer]
+          .foo([a,b]):Sig[mdf=imm,gens=[],ts=[imm base.A[],imm base.A[]],ret=imm base.A[]]->[-]],t=infer]
         ]}
     """, """
     package base
@@ -288,7 +288,7 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          .foo([a:imm base.A[], b:read base.A[]]):Sig[mdf=imm,gens=[],ret=imm base.A[]]->[-]],t=infer]
+          .foo([a,b]):Sig[mdf=imm,gens=[],ts=[imm base.A[],read base.A[]],ret=imm base.A[]]->[-]],t=infer]
         ]}
     """, """
     package base
@@ -304,7 +304,7 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          .foo([a:imm base.A[],b:read GX[name=B]]):Sig[mdf=imm,gens=[GX[name=B]],ret=imm base.A[]]->[-]],t=infer]
+          .foo([a,b]):Sig[mdf=imm,gens=[GX[name=B]],ts=[imm base.A[],read GX[name=B]],ret=imm base.A[]]->[-]],t=infer]
         ]}
     """, """
     package base
@@ -320,7 +320,7 @@ class TestFullParser {
         its=[],
         selfName=null,
         meths=[
-          .foo([a:imm base.A[],b:read GX[name=B]]):Sig[mdf=imm,gens=[GX[name=B]],ret=read GX[name=B]]->[-]],t=infer]
+          .foo([a,b]):Sig[mdf=imm,gens=[GX[name=B]],ts=[imm base.A[],read GX[name=B]],ret=read GX[name=B]]->[-]],t=infer]
         ]}
     """, """
     package base
@@ -341,7 +341,7 @@ class TestFullParser {
     {base.HasName/0=Dec[
       name=base.HasName,
       gxs=[],
-      lambda=Lambda[mdf=null,its=[],selfName=null,meths=[.name([]):Sig[mdf=imm,gens=[],ret=imm base.String[]]->[-]],t=infer]],
+      lambda=Lambda[mdf=null,its=[],selfName=null,meths=[.name([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.String[]]->[-]],t=infer]],
     base.Dog/0=Dec[
       name=base.Dog,
       gxs=[],
@@ -357,11 +357,11 @@ class TestFullParser {
     {base.HasHunger/0=Dec[
       name=base.HasHunger,
       gxs=[],
-      lambda=Lambda[mdf=null,its=[],selfName=null,meths=[.hunger([]):Sig[mdf=imm,gens=[],ret=imm base.UNum[]]->[-]],t=infer]],
+      lambda=Lambda[mdf=null,its=[],selfName=null,meths=[.hunger([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.UNum[]]->[-]],t=infer]],
     base.HasName/0=Dec[
       name=base.HasName,
       gxs=[],
-      lambda=Lambda[mdf=null,its=[],selfName=null,meths=[.name([]):Sig[mdf=imm,gens=[],ret=imm base.String[]]->[-]],t=infer]],
+      lambda=Lambda[mdf=null,its=[],selfName=null,meths=[.name([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.String[]]->[-]],t=infer]],
     base.Dog/0=Dec[
       name=base.Dog,
       gxs=[],

@@ -3,6 +3,8 @@ package visitors;
 import ast.E;
 import ast.Mdf;
 import ast.T;
+import id.Id.DecId;
+import id.Id.MethName;
 
 public interface CloneVisitor{
   default E.Meth visitMeth(E.Meth e){ return new E.Meth(
@@ -27,7 +29,7 @@ public interface CloneVisitor{
     e.meths().stream().map(this::visitMeth).toList()
   ); }
   default Mdf visitMdf(Mdf mdf){return mdf;}
-  default E.MethName visitMethName(E.MethName e){ return e; }
+  default MethName visitMethName(MethName e){ return e; }
   default E.Sig visitSig(E.Sig e){return new E.Sig(
     visitMdf(e.mdf()),
     e.gens().stream().map(this::visitGX).toList(),
@@ -48,5 +50,5 @@ public interface CloneVisitor{
     d.gxs().stream().map(this::visitGX).toList(),
     visitLLambda(d.lambda())
   );}
-  default T.DecId visitDecId(T.DecId di){ return di; }
+  default DecId visitDecId(DecId di){ return di; }
 }

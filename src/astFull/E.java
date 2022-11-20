@@ -1,6 +1,7 @@
 package astFull;
 
 import ast.Mdf;
+import id.Id.MethName;
 import visitors.FullCloneVisitor;
 import visitors.FullCollectorVisitor;
 
@@ -31,9 +32,6 @@ public interface E {
     @Override public E accept(FullCloneVisitor v){return v.visitX(this);}
     @Override public <R>Optional<R> accept(FullCollectorVisitor<R> v){return v.visitX(this);}
     @Override public String toString(){ return name+":"+t; }
-  }
-  record MethName(String name){
-    @Override public String toString(){ return name; }
   }
   record Meth(Optional<Sig> sig,Optional<MethName> name, List<String>xs,Optional<E> body){
     @Override public String toString() {

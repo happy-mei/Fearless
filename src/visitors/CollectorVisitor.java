@@ -7,6 +7,8 @@ import java.util.function.Function;
 import ast.E;
 import ast.Mdf;
 import ast.T;
+import id.Id.MethName;
+import id.Id.DecId;
 
 public interface CollectorVisitor<R>{
   default Optional<R> visitMeth(E.Meth e){
@@ -34,7 +36,7 @@ public interface CollectorVisitor<R>{
       .or(()->visitAll(e.meths(),this::visitMeth));
   }
   default Optional<R> visitMdf(Mdf mdf){return Optional.empty();}
-  default Optional<R> visitMethName(E.MethName e){ return Optional.empty(); }
+  default Optional<R> visitMethName(MethName e){ return Optional.empty(); }
   default Optional<R> visitSig(E.Sig e){
     return visitMdf(e.mdf())
       .or(()->visitAll(e.gens(),this::visitGX))
@@ -49,5 +51,5 @@ public interface CollectorVisitor<R>{
   default Optional<R> visitDec(T.Dec d){
     return visitAll(d.gxs(),this::visitGX).or(()->visitLambda(d.lambda()));
   }
-  default Optional<R> visitDecId(T.DecId di){ return Optional.empty(); }
+  default Optional<R> visitDecId(DecId di){ return Optional.empty(); }
 }

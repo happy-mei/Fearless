@@ -93,7 +93,7 @@ public record Parser(Path fileName,String content){
     var errorsp = new StringBuilder();
     FailConsole.setFail(fileName, l, p, errorst, errorsp);
     var res=checker.apply(p);
-    var ok = errorst.isEmpty() && errorsp.isEmpty() && res.equals(content);
+    var ok = errorst.isEmpty() && errorsp.isEmpty() && res.equals(content+"<EOF>");
     //need check res==content otherwise there may be spaces/comments too 
     return ok ;
   }

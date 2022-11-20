@@ -3,6 +3,7 @@ package visitors;
 import ast.Mdf;
 import astFull.E;
 import astFull.T;
+import id.Id.MethName;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +37,7 @@ public interface FullCollectorVisitor<R> {
       .or(()->visitT(e.t()));
   }
   default Optional<R> visitMdf(Mdf mdf){return Optional.empty();}
-  default Optional<R> visitMethName(E.MethName e){ return Optional.empty(); }
+  default Optional<R> visitMethName(MethName e){ return Optional.empty(); }
   default Optional<R> visitSig(E.Sig e){
     return visitMdf(e.mdf())
       .or(()->visitAll(e.gens(),this::visitGX))
