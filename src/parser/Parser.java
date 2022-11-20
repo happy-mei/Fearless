@@ -9,7 +9,6 @@ import generated.FearlessLexer;
 import generated.FearlessParser;
 import generated.FearlessParser.NudeEContext;
 import generated.FearlessParser.NudeProgramContext;
-import generated.FearlessParser.NudeXContext;
 
 import org.antlr.v4.runtime.*;
 import utils.Bug;
@@ -76,16 +75,27 @@ public record Parser(Path fileName,String content){
       return orElse.apply(errorsp.toString());
   }
   
-  public boolean parseX(){
+  public boolean parseX(){ return parseId(p->p.nudeX().getText());}
+  public boolean parseM(){ return parseId(p->p.nudeM().getText());}
+  public boolean parseFullCN(){ return parseId(p->p.nudeFullCN().getText());}
+  public boolean parseGX(){
+    if(!parseFullCN()){ return false; }
+    //can not use AntlrApi since FullCN uses fragments for subcases
+    String noStart="0123456789\"";
+    var ok=!content.contains(".") && !noStart.contains(content.substring(0,1));
+    return ok;
+  }
+  
+  private boolean parseId(Function<FearlessParser,String> checker){
     var l = new FearlessLexer(CharStreams.fromString(content));
     var p = new FearlessParser(new CommonTokenStream(l));
     var errorst = new StringBuilder();
     var errorsp = new StringBuilder();
     FailConsole.setFail(fileName, l, p, errorst, errorsp);
-    @SuppressWarnings("unused")
-    NudeXContext unused = p.nudeX();
-    var ok = errorst.isEmpty() && errorsp.isEmpty();
-    return ok;
+    var res=checker.apply(p);
+    var ok = errorst.isEmpty() && errorsp.isEmpty() && res.equals(content);
+    //need check res==content otherwise there may be spaces/comments too 
+    return ok ;
   }
   public Package parseFile(Function<String,Package> orElse){
     var l = new FearlessLexer(CharStreams.fromString(content));

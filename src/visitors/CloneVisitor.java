@@ -1,22 +1,21 @@
 package visitors;
 
+import ast.E;
 import ast.Mdf;
-import astFull.E;
-import astFull.T;
+import ast.T;
 
-public interface FullCloneVisitor {
+public interface CloneVisitor{
   default E.Meth visitMeth(E.Meth e){ return new E.Meth(
-    e.sig().map(this::visitSig),
-    e.name().map(this::visitMethName),
+    visitSig(e.sig()),
+    visitMethName(e.name()),
     e.xs(),
     e.body().map(b->b.accept(this))
   );}
   default E visitMCall(E.MCall e){ return new E.MCall(
     e.receiver().accept(this),
     visitMethName(e.name()),
-    e.ts().map(tts->tts.stream().map(this::visitT).toList()),
-    e.es().stream().map(ei->ei.accept(this)).toList(),
-    visitT(e.t())
+    e.ts().stream().map(this::visitT).toList(),
+    e.es().stream().map(ei->ei.accept(this)).toList()
   );}
   default E visitX(E.X e){return visitXX(e);}
   default E.X visitXX(E.X e){return e;}
@@ -24,9 +23,8 @@ public interface FullCloneVisitor {
   default E.Lambda visitLLambda(E.Lambda e){ return new E.Lambda(
     visitMdf(e.mdf()),
     e.its().stream().map(this::visitIT).toList(),
-    e.selfName(),//visitXX is not ok since this is just a String
-    e.meths().stream().map(this::visitMeth).toList(),
-    visitT(e.t())
+    e.selfName(),
+    e.meths().stream().map(this::visitMeth).toList()
   ); }
   default Mdf visitMdf(Mdf mdf){return mdf;}
   default E.MethName visitMethName(E.MethName e){ return e; }
@@ -46,12 +44,9 @@ public interface FullCloneVisitor {
   );}
   default T.GX visitGX(T.GX t){ return t; }
   default T.Dec visitDec(T.Dec d) { return new T.Dec(
-    d.name(),
+    visitDecId(d.name()),
     d.gxs().stream().map(this::visitGX).toList(),
     visitLLambda(d.lambda())
   );}
-  default T.Alias visitAlias(T.Alias a){ return new T.Alias(
-    visitIT(a.from()),
-    a.to()
-  ); }
+  default T.DecId visitDecId(T.DecId di){ return di; }
 }
