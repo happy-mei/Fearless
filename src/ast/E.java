@@ -2,13 +2,10 @@ package ast;
 
 import java.util.List;
 import java.util.Optional;
-
+import id.Id.MethName;
 import parser.Parser;
 import visitors.CloneVisitor;
 import visitors.CollectorVisitor;
-
-
-//TODO: discuss: may be MethName and DecId does not need duplication
 
 public interface E {
   E accept(CloneVisitor v);
@@ -41,14 +38,6 @@ public interface E {
     }
     @Override public E accept(CloneVisitor v){ return v.visitX(this); }
     @Override public <R>Optional<R> accept(CollectorVisitor<R> v){ return v.visitX(this); }
-    @Override public String toString(){ return name; }
-  }
-  record MethName(String name, int num){
-    public MethName{ assert validM(name) && num>=0; }
-    public static boolean validM(String m){
-      assert m!=null && !m.isEmpty();
-      return new parser.Parser(Parser.dummy,m).parseM();      
-    }
     @Override public String toString(){ return name; }
   }
   record Meth(Sig sig, MethName name, List<String> xs, Optional<E> body){

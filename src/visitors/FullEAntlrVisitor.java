@@ -5,6 +5,7 @@ import astFull.E;
 import astFull.Package;
 import astFull.PosMap;
 import astFull.T;
+import id.Id.MethName;
 import files.Pos;
 import generated.FearlessParser.*;
 import main.Fail;
@@ -54,6 +55,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Object visitNudeX(NudeXContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeM(NudeMContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeFullCN(NudeFullCNContext ctx){ throw Bug.unreachable(); }
+  @Override public MethName visitM(MContext ctx){ throw Bug.unreachable(); }
 
   @Override public E visitNudeE(NudeEContext ctx){
     check(ctx);    
@@ -67,7 +69,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(calls.isEmpty()){ return root; }
     var res = calls.stream()
       .map(c-> new Call(
-        visitM(c.m()),
+        new MethName(c.m().getText(),1),
         visitMGen(c.mGen()),
         Optional.ofNullable(c.x()).map(this::visitX),
         List.of(visitPostE(c.postE()))
@@ -86,10 +88,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     E root = visitAtomE(ctx.atomE());
     return desugar(root,ctx.pOp().stream().map(this::fromPOp).toList());
   }
-  record Call(E.MethName m, Optional<List<T>> mGen, Optional<E.X> x, List<E> es){}
+  record Call(MethName m, Optional<List<T>> mGen, Optional<E.X> x, List<E> es){}
   Call fromPOp(POpContext ctx) {
     return new Call(
-      visitM(ctx.m()),
+      new MethName(ctx.m().getText(),ctx.e().size()),
       visitMGen(ctx.mGen()),
       Optional.ofNullable(ctx.x()).map(this::visitX),
       ctx.e().stream().map(this::visitE).toList()
@@ -133,10 +135,6 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       ))
       .toList()
     );
-  }
-  @Override public E.MethName visitM(MContext ctx){
-    check(ctx);
-    return new E.MethName(ctx.getText());
   }
   @Override public E.X visitX(XContext ctx){
     check(ctx);
@@ -226,23 +224,24 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public E.Meth visitMeth(MethContext ctx) {
     check(ctx);
     var mh = Optional.ofNullable(ctx.sig()).map(this::visitSig);
-    var name = mh.map(MethHeader::name).orElseGet(()->this.visitM(ctx.m()));
     var xs = mh.map(MethHeader::xs).orElseGet(()->{
       var _xs = opt(ctx.x(), xs1->xs1.stream().map(this::visitX).toList());
       return _xs==null?List.of():_xs;
     });
+    var name = mh.map(MethHeader::name)
+        .orElseGet(()->new MethName(ctx.m().getText(),xs.size()));
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
     var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), xs.stream().map(E.X::t).toList(), h.ret()));
     return PosMap.add(new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body), pos(ctx));
   }
-  private record MethHeader(Mdf mdf, E.MethName name, List<T.GX> gens, List<E.X> xs, T ret){}
+  private record MethHeader(Mdf mdf, MethName name, List<T.GX> gens, List<E.X> xs, T ret){}
   @Override
   public MethHeader visitSig(SigContext ctx) {
     check(ctx);
     var mdf = this.visitMdf(ctx.mdf());
-    var name = this.visitM(ctx.m());
     var gens = this.visitMGenParams(ctx.mGen()).orElse(List.of());
     var xs = Optional.ofNullable(ctx.gamma()).map(this::visitGamma).orElse(List.of());
+    var name = new MethName(ctx.m().getText(),xs.size());
     var ret = this.visitT(ctx.t());
     return new MethHeader(mdf, name, gens, xs, ret);
   }

@@ -3,6 +3,7 @@ package visitors;
 import ast.Mdf;
 import astFull.E;
 import astFull.T;
+import id.Id.MethName;
 
 public interface FullCloneVisitor {
   default E.Meth visitMeth(E.Meth e){ return new E.Meth(
@@ -29,7 +30,7 @@ public interface FullCloneVisitor {
     visitT(e.t())
   ); }
   default Mdf visitMdf(Mdf mdf){return mdf;}
-  default E.MethName visitMethName(E.MethName e){ return e; }
+  default MethName visitMethName(MethName e){ return e; }
   default E.Sig visitSig(E.Sig e){return new E.Sig(
     visitMdf(e.mdf()),
     e.gens().stream().map(this::visitGX).toList(),

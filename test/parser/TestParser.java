@@ -92,31 +92,31 @@ class TestParser {
     ,"We parse a surprising amount of stuff"); }
   @Test void singleEqSugar1(){ ok(
     """
-    recv:infer.m1[-]([val:infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]]):infer
+    recv:infer.m1[-]([val:infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v,fear0$]):[-]->fear0$:infer],t=infer]]):infer
     """, "recv .m1 v = val"); }
   @Test void singleEqSugarPOp1(){ ok(
     """
     recv:infer.m1[-]([
       val:infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v,fear0$]):[-]->fear0$:infer],t=infer]
     ]):infer
     """, "recv .m1 (v = val)"); }
   @Test void singleEqSugarPOp2(){ ok(
     """
-    recv:infer.m1[-]([val:infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer.m2[-]([]):infer],t=infer]]):infer
+    recv:infer.m1[-]([val:infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v,fear0$]):[-]->fear0$:infer.m2[-]([]):infer],t=infer]]):infer
     """, "recv .m1 (v = val) .m2"); }
   @Test void singleEqSugarPOp3(){ ok(
     """
     recv:infer .m1[-]([
       val:infer.m2[-]([]):infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer.m3[-]([]):infer],t=infer]
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v,fear0$]):[-]->fear0$:infer.m3[-]([]):infer],t=infer]
     ]):infer
     """, "recv .m1 (v = val .m2) .m3"); }
   @Test void testVarLast(){ ok("""
     recv:infer.m1[-]([
       v:infer,
       Lambda[mdf=null,its=[],selfName=null,
-        meths=[[-]([x:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]
+        meths=[[-]([x,fear0$]):[-]->fear0$:infer],t=infer]
       ]):infer
     ""","recv .m1 x=v"); }
   @Test void eqSugarSame1() { same("recv .m1 v = val", "recv .m1 (v = val)"); }
@@ -126,38 +126,38 @@ class TestParser {
     """, "(recv .m1 a) .m2 b"); }
   @Test void singleEqSugar2(){ ok(
     """
-    recv:infer.m1[-]([val:infer.m2[-]([]):infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]]):infer
+    recv:infer.m1[-]([val:infer.m2[-]([]):infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v,fear0$]):[-]->fear0$:infer],t=infer]]):infer
     """, "recv .m1 v = val .m2"); }
   @Test void nestedCalls1(){ ok("""
     recv:infer.m1[-]([
       v:infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x:infer,fear0$:infer]):[-]->fear0$:infer.m2[-]([a:infer]):infer],t=infer]
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x,fear0$]):[-]->fear0$:infer.m2[-]([a:infer]):infer],t=infer]
     ]):infer
     """, "recv .m1 x=v.m2 a"); }
   @Test void nestedCalls2(){ ok("""
     recv:infer.m1[-]([
       v:infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x,fear0$]):[-]->fear0$:infer],t=infer]
     ]):infer.m2[-]([a:infer]):infer
     """, "(recv .m1 x=v) .m2 a"); }
   @Test void eqExpasnionNoPar() { ok("""
     recv:infer.m1[-]([
       v:infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x:infer,fear0$:infer]):[-]->
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x,fear0$]):[-]->
         fear0$:infer .m2[-]([a:infer]):infer],t=infer]
     ]):infer
     """, "recv .m1 x=v.m2 a"); }
   @Test void eqExpasnionPar() { ok("""
     recv:infer.m1[-]([
       v:infer .m2[-]([a:infer]):infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x:infer,fear0$:infer]):[-]->fear0$:infer],t=infer]
+      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x,fear0$]):[-]->fear0$:infer],t=infer]
     ]):infer
     """, "recv .m1 x=(v.m2 a)"); }
   @Test void eqExpansionGensNoPar() { ok("""
     recv:infer .m1[immGX[name=A]]([
       v:infer,
       Lambda[mdf=null,its=[],selfName=null,meths=[
-        [-]([x:infer,fear0$:infer]):[-]->fear0$:infer .m2[imm GX[name=B],imm base.C[imm GX[name=D]]]([a:infer]):infer],
+        [-]([x,fear0$]):[-]->fear0$:infer .m2[imm GX[name=B],imm base.C[imm GX[name=D]]]([a:infer]):infer],
       t=infer]
     ]):infer
     """, "recv .m1[A] x=v.m2[B,base.C[D]] a"); }
