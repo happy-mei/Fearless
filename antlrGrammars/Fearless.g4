@@ -89,6 +89,8 @@ callOp: m mGen (x Eq)? postE;
 
 nudeE : e EOF;
 nudeX : x EOF;
+nudeM : m EOF;
+nudeFullCN : fullCN EOF;
 
 Pack: 'package ' (PX '.')* PX '\n';
 nudeProgram: Pack alias* topDec* EOF;
