@@ -34,6 +34,8 @@ public record T(Mdf mdf, RT rt){
     }
   }
   public record Alias(T.IT from, String to){
+    public Alias accept(FullCloneVisitor v) { return v.visitAlias(this); }
+    public <R> Optional<R> accept(FullCollectorVisitor<R> v) { return v.visitAlias(this); }
     @Override public String toString() {
       return String.format("alias %s as %s", from, to);
     }

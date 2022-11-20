@@ -44,6 +44,7 @@ public interface FullCollectorVisitor<R> {
       .or(()->visitT(e.ret()));
   }
   default Optional<R> visitT(T t){
+    if (t.isInfer()) { return Optional.empty(); }
     return visitMdf(t.mdf())
       .or(()->t.rt().match(this::visitGX,this::visitIT));
   }

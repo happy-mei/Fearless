@@ -5,6 +5,7 @@ import main.Fail;
 import utils.Range;
 import utils.Streams;
 import visitors.FullEAntlrVisitor;
+import wellFormedness.WellFormednessVisitor;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -42,10 +43,17 @@ public record Package(
   }
   public static Package merge(List<T.Alias>global,List<Package>ps) {
     assert checks(global, ps);
-    // TODO: This gives a nicer error but is actually redundant because all top decls are aliases too!
+    var wellFormednessVisitor = new WellFormednessVisitor();
     topDecDisj(ps);
     var allAliases = mergeAlias(global, ps);
     aliasDisj(allAliases);
+    allAliases.stream()
+      .map(a->a.accept(wellFormednessVisitor))
+      .dropWhile(Optional::isEmpty)
+      .findFirst()
+      .flatMap(o->o)
+      .ifPresent(err->{ throw err; });
+
     var decls = ps.stream().flatMap(p -> p.ds().stream()).toList();
     var paths = ps.stream().flatMap(p -> p.ps().stream()).toList();
     return new Package(ps.get(0).name(), allAliases, decls, paths);
