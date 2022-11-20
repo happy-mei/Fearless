@@ -1,8 +1,11 @@
 package astFull;
 
 import ast.Mdf;
+import visitors.FullCloneVisitor;
+import visitors.FullCollectorVisitor;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 public record T(Mdf mdf, RT rt){
@@ -29,7 +32,10 @@ public record T(Mdf mdf, RT rt){
       return String.format("alias %s as %s", from, to);
     }
   }
-  public record Dec(String name, List<T.GX> gxs, E.Lambda lambda){ }
+  public record Dec(String name, List<T.GX> gxs, E.Lambda lambda){
+    public Dec accept(FullCloneVisitor v) { return v.visitDec(this); }
+    public <R> Optional<R> accept(FullCollectorVisitor<R> v) { return v.visitDec(this); }
+  }
   @Override public String toString(){
     if(isInfer()){ return "infer"; }
     return ""+mdf+" "+rt;

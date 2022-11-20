@@ -62,7 +62,6 @@ class TestFullParser {
       alias base.True as True,
       """); }
   @Test void failConflictingAliases1(){ fail("""
-    In position null
     conflictingAlias:1
     This alias is in conflict with other aliases in the same package: True
     conflicts:
@@ -132,7 +131,6 @@ class TestFullParser {
       MyTrue:base.True
       """); }
   @Test void failConflictingDecls1(){ fail("""
-      In position null
       conflictingDecl:2
       This trait declaration is in conflict with other trait declarations in the same package: MyTrue/0
       conflicts:

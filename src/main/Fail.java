@@ -45,8 +45,9 @@ public class Fail{
       "This alias is in conflict with other aliases in the same package: "+conflictingMsg(aliased, conflicts));}
   public static CompileError conflictingDecl(T.DecId decl, List<Conflict> conflicts){return of(
       "This trait declaration is in conflict with other trait declarations in the same package: "+conflictingMsg(decl.toString(), conflicts));}
-  public static CompileError conflictingXs(String mName, List<Conflict> conflicts){return of(
-    "This method declaration mutiple declarions for some paramers: "+conflictingMsg(mName, conflicts));}
+
+  public static CompileError conflictingMethArgs(List<String> conflicts){return of(
+    "Parameters in methods must have different names. The following parameters were conflicting: " + String.join(", ", conflicts));}
 
   public static CompileError concreteTypeInFormalParams(T badType){return of(
     "Trait and method declarations may only have type parameters. This concrete type was provided instead:\n"+badType
@@ -68,6 +69,6 @@ enum ErrorCode {
   modifierOnInferredLambda,
   isoInTypeArgs,
   explicitThis,
-  conflictingXs;
+  conflictingMethArgs;
   int code() {return this.ordinal() + 1;}
 }

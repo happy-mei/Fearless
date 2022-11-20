@@ -2,8 +2,10 @@ package main;
 
 import files.Pos;
 
+import java.io.Serial;
+
 public class CompileError extends RuntimeException{
-  private static final long serialVersionUID = 1L;
+  @Serial private static final long serialVersionUID = 1L;
   Pos pos;
   public CompileError pos(Pos pos){ this.pos=pos; return this; }
   public CompileError() {super();}
@@ -15,6 +17,7 @@ public class CompileError extends RuntimeException{
   public static CompileError of(String msg){ return new CompileError(msg); }
 
   @Override public String toString(){
+    if (this.pos == null) { return this.getMessage(); }
     return "In position "+pos+"\n"+this.getMessage();
   }
 }

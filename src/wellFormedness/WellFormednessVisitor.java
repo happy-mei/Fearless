@@ -2,15 +2,16 @@ package wellFormedness;
 
 import ast.Mdf;
 import astFull.E;
+import astFull.PosMap;
 import astFull.T;
 import main.CompileError;
 import main.Fail;
-import utils.Bug;
 import visitors.FullCollectorVisitorWithEnv;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /*
   ✅Actual generic parameters can not be iso //checked in Alias, Lambda and mCall
@@ -30,13 +31,15 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
   @Override
   public Optional<CompileError> visitMCall(E.MCall e) {
     return e.ts().flatMap(this::hasIsoParams)
-      .or(()->super.visitMCall(e));
+      .or(()->super.visitMCall(e))
+      .map(err->err.pos(PosMap.getOrUnknown(e)));
   }
 
   @Override
   public Optional<CompileError> visitAlias(T.Alias a) {
     return hasIsoParams(a.from().ts())
-      .or(()->super.visitAlias(a));
+      .or(()->super.visitAlias(a))
+      .map(err->err.pos(PosMap.getOrUnknown(a)));
   }
 
   @Override
@@ -47,14 +50,16 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
       .toList();
 
     return hasIsoParams(genArgs)
-      .or(()->noExplicitThis(List.of(e.selfName())))
-      .or(()->super.visitLambda(e));
+      .or(()->Optional.ofNullable(e.selfName()).flatMap(x->noExplicitThis(List.of(x))))
+      .or(()->super.visitLambda(e))
+      .map(err->err.pos(PosMap.getOrUnknown(e)));
   }
 
   @Override public Optional<CompileError> visitMeth(E.Meth e){
-    return hasDisjXs(e.xs(),e)
+    return hasNonDisjointXs(e.xs(),e)
       .or(()->noExplicitThis(e.xs()))
-      .or(()->super.visitMeth(e));
+      .or(()->super.visitMeth(e))
+      .map(err->err.pos(PosMap.getOrUnknown(e)));
   }
 
   private Optional<CompileError> hasIsoParams(List<T> genArgs) {
@@ -68,11 +73,15 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
     return xs.stream().anyMatch(x->x.equals("this")) ? Optional.of(Fail.explicitThis()) : Optional.empty();
   }
 
-  private Optional<CompileError> hasDisjXs(List<String> xs, E.Meth e){
+  private Optional<CompileError> hasNonDisjointXs(List<String> xs, E.Meth e){
     var all=new ArrayList<>(xs);
-    xs.stream().distinct().forEach(ei->all.remove(ei));
+    xs.stream().distinct().forEach(all::remove);
     if(all.isEmpty()){ return Optional.empty(); }
-    throw Bug.todo();
+    var conflicts = all.stream()
+      .collect(Collectors.groupingBy(x->x))
+      .keySet().stream()
+      .toList();
+    return Optional.of(Fail.conflictingMethArgs(conflicts).pos(PosMap.getOrUnknown(e)));
       //Optional.of(Fail.conflictingXs(e.name().))
       //TODO: what if the name is not there? what is a good error
   }
