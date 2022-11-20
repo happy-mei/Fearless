@@ -4,7 +4,6 @@ import main.CompileError;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import utils.Bug;
 import utils.Err;
 
 import java.nio.file.Path;
@@ -31,7 +30,7 @@ class TestFullParser {
       var res = Parser.parseAll(ps);
       Assertions.fail("Parsing did not fail. Got: "+res);
     }
-    catch (Bug | CompileError e) {
+    catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
     }
   }

@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-@SuppressWarnings("serial")
 class ParserFailed extends RuntimeException{}
 
 public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
@@ -203,9 +202,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     }
     Mdf mdf = visitMdf(ctx.mdf());
     String name = visitFullCN(ctx.fullCN());
+    var isFullName = name.contains(".");
     var mGen=visitMGen(ctx.mGen());
-    var resolved=resolve.apply(name);
-    var isIT = name.contains(".") || resolved.isPresent();
+    Optional<T.IT> resolved = isFullName ? Optional.empty() : resolve.apply(name);
+    var isIT = isFullName || resolved.isPresent();
     if(!isIT){
       var t = new T(mdf, new T.GX(name));
       if(mGen.isPresent()){ throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx)); }

@@ -1,5 +1,6 @@
 package wellFormedness;
 
+import main.CompileError;
 import main.Main;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
@@ -13,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestIntegrationWellFormedness {
-  void ok(String expected, String... content){
+  void ok(String... content){
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
     var ps = Arrays.stream(content)
@@ -32,14 +33,22 @@ public class TestIntegrationWellFormedness {
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
 
-    var decTable = Parser.parseAll(ps);
-    var errors = decTable.values().stream()
-      .map(d->d.accept(new WellFormednessVisitor()))
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .toList();
-    Err.strCmp(expectedErr, errors.toString());
+    try {
+      var decTable = Parser.parseAll(ps);
+      var errors = decTable.values().stream()
+        .map(d->d.accept(new WellFormednessVisitor()))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .toList();
+      Err.strCmp(expectedErr, errors.toString());
+    } catch (CompileError e) {
+      Err.strCmp(expectedErr, e.toString());
+    }
   }
+  @Test void noIsoParamsLambdaOk() { ok("""
+    package pkg1
+    A:base.Opt[A]
+    """); }
   @Test void noIsoParamsLambda1() { fail("""
     [In position [###]/Dummy0.fear:2:2
     isoInTypeArgs:5
@@ -66,5 +75,34 @@ public class TestIntegrationWellFormedness {
     """, """
     package pkg1
     A:base.Opt[base.Opt[A], base.Opt[base.Opt[iso A]]]
+    """); }
+  // TODO: Alias generic params cannot use other aliases right now (i.e. pkg1.A vs A)
+  @Test void noIsoParamsAliasOk() { ok("""
+    package pkg1
+    alias base.Opt as Opt,
+    alias base.Opt[pkg1.A] as OptA,
+    A:{}
+    """); }
+  @Test void noIsoParamsAlias1() { fail("""
+    In position [###]/Dummy0.fear:3:0
+    isoInTypeArgs:5
+    The iso reference capability may not be used in type modifiers:
+    iso pkg1.A[]
+    """, """
+    package pkg1
+    alias base.Opt as Opt,
+    alias base.Opt[iso pkg1.A] as OptA,
+    A:{}
+    """); }
+  @Test void noIsoParamsAliasNested1() { fail("""
+    In position [###]/Dummy0.fear:3:0
+    isoInTypeArgs:5
+    The iso reference capability may not be used in type modifiers:
+    iso pkg1.A[]
+    """, """
+    package pkg1
+    alias base.Opt as Opt,
+    alias base.Opt[base.Opt[iso pkg1.A]] as OptA,
+    A:{}
     """); }
 }
