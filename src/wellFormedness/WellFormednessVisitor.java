@@ -64,6 +64,7 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
 
   private Optional<CompileError> hasIsoParams(List<T> genArgs) {
     return genArgs.stream()
+      .flatMap(T::flatten)
       .dropWhile(t->t.mdf()!=Mdf.iso)
       .map(Fail::isoInTypeArgs)
       .findFirst();
