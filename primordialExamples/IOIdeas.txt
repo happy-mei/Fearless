@@ -188,8 +188,8 @@ MyData:{
 Config:{
   .config:File[XML],
   .author:File[Txt],
-  .userFile(Path p):File[Txt] //?
-  .sqlQuert(Querty q)
+//  .userFile(Path p):File[Txt] //?
+//  .sqlQuery(Querty q)
   }
 ReadMyData:ReadOnly[MyData]
 MyMain:Main{s->s
@@ -201,3 +201,16 @@ MyMain:Main{s->s
   .return {MyMain.doStuff(x)}
   })
   }
+
+
+
+s->
+.echo {"Hello"}
+| Foo:{
+|   .foo:File[Code]
+| }
+| .use x={Read[Foo]}
+| .use code= {x.compile[Bar]}
+| .var res={code.bar}
+.echo {res}
+...
