@@ -30,27 +30,19 @@ import java.util.stream.Collectors;
 public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileError> {
   @Override
   public Optional<CompileError> visitMCall(E.MCall e) {
-    return e.ts().flatMap(this::noIsoParams)
-      .or(()->super.visitMCall(e))
+    return super.visitMCall(e)
       .map(err->err.pos(PosMap.getOrUnknown(e)));
   }
 
   @Override
   public Optional<CompileError> visitAlias(T.Alias a) {
-    return noIsoParams(a.from().ts())
-      .or(()->super.visitAlias(a))
+    return super.visitAlias(a)
       .map(err->err.pos(PosMap.getOrUnknown(a)));
   }
 
   @Override
   public Optional<CompileError> visitLambda(E.Lambda e) {
-    var genArgs = e.its().stream()
-      .flatMap(it ->it.ts().stream())
-      .map(t->new T(t.mdf(), t.rt()))
-      .toList();
-
-    return noIsoParams(genArgs)
-      .or(()->Optional.ofNullable(e.selfName()).flatMap(x->noExplicitThis(List.of(x))))
+    return Optional.ofNullable(e.selfName()).flatMap(x->noExplicitThis(List.of(x)))
       .or(()->super.visitLambda(e))
       .map(err->err.pos(PosMap.getOrUnknown(e)));
   }
@@ -58,10 +50,12 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
   @Override public Optional<CompileError> visitMeth(E.Meth e){
     return hasNonDisjointXs(e.xs(),e)
       .or(()->noExplicitThis(e.xs()))
-      .or(()->e.sig().flatMap(s->noIsoParams(s.ts())))
-      .or(()->e.sig().flatMap(s->noIsoParams(List.of(s.ret()))))
       .or(()->super.visitMeth(e))
       .map(err->err.pos(PosMap.getOrUnknown(e)));
+  }
+
+  @Override public Optional<CompileError> visitIT(T.IT t) {
+    return noIsoParams(t.ts()).or(()->super.visitIT(t));
   }
 
   private Optional<CompileError> noIsoParams(List<T> genArgs) {

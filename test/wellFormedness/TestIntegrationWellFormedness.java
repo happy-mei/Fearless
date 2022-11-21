@@ -126,13 +126,17 @@ public class TestIntegrationWellFormedness {
     package pkg1
     A:{ #: base.Opt[iso A] -> {} }
     """); }
-  @Test void noIsoParamsMethParams() { fail("""
+  @Test void isoParamsMethParamsOk() { ok("""
+    package pkg1
+    A:{ #(x: iso A): A -> {} }
+    """); }
+  @Test void isoParamsMethParams() { fail("""
     [In position [###]/Dummy0.fear:2:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]]
     """, """
     package pkg1
-    A:{ #(x: iso A): A -> {} }
+    A:{ #(x: A[iso A]): A -> {} }
     """); }
 }
