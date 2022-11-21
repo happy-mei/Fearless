@@ -14,7 +14,7 @@ public record T(Mdf mdf, RT rt){
   public boolean isInfer(){ return this==infer; }
   public <R> R match(Function<GX,R>gx,Function<IT,R>it){ return rt.match(gx, it); }
   public Stream<T> flatten() {
-    return this.match(gx->Stream.empty(), it->
+    return this.match(gx->Stream.of(this), it->
       Stream.concat(Stream.of(this), it.ts().stream().flatMap(T::flatten))
     );
   }

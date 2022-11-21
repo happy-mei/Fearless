@@ -139,4 +139,32 @@ public class TestIntegrationWellFormedness {
     package pkg1
     A:{ #(x: A[iso A]): A -> {} }
     """); }
+  @Test void isoParamsMethParamsGens() { fail("""
+    [In position [###]/Dummy0.fear:2:2
+    isoInTypeArgs:5
+    The iso reference capability may not be used in type modifiers:
+    iso GX[name=T]]
+    """, """
+    package pkg1
+    A:{ #[T](x: A[iso T]): A -> {} }
+    """); }
+  @Test void isoParamsMethCall() { fail("""
+    [In position [###]/Dummy0.fear:2:2
+    isoInTypeArgs:5
+    The iso reference capability may not be used in type modifiers:
+    iso pkg1.A[]]
+    """, """
+    package pkg1
+    A:{
+      #[T](x: A[mdf T]): A -> {},
+      .foo(): A -> this#[iso A]A
+      }
+    """); }
+  @Test void paramsMethCallOk() { ok("""
+    package pkg1
+    A:{
+      #[T](x: A[mdf T]): A -> {},
+      .foo(): A -> this#[read A]A
+      }
+    """); }
 }

@@ -30,7 +30,8 @@ import java.util.stream.Collectors;
 public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileError> {
   @Override
   public Optional<CompileError> visitMCall(E.MCall e) {
-    return super.visitMCall(e)
+    return e.ts().flatMap(this::noIsoParams)
+      .or(()->super.visitMCall(e))
       .map(err->err.pos(PosMap.getOrUnknown(e)));
   }
 
