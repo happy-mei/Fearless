@@ -23,7 +23,7 @@ public class FullCollectorVisitorWithEnv<R> implements FullCollectorVisitor<R> {
   }
   public Optional<R> visitLambda(E.Lambda e){
     var oldEnv = env;
-    this.env = env.add(e.selfName(), e.t());
+    this.env = Optional.ofNullable(e.selfName()).map(n->env.add(n, e.t())).orElse(env);
     try { return FullCollectorVisitor.super.visitLambda(e); }
     finally { this.env = oldEnv; }
   }
