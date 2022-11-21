@@ -41,6 +41,7 @@ public interface FullCollectorVisitor<R> {
   default Optional<R> visitSig(E.Sig e){
     return visitMdf(e.mdf())
       .or(()->visitAll(e.gens(),this::visitGX))
+      .or(()->visitAll(e.ts(),this::visitT))
       .or(()->visitT(e.ret()));
   }
   default Optional<R> visitT(T t){
