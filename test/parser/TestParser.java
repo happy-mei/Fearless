@@ -1,14 +1,13 @@
 package parser;
 
-import java.util.Optional;
-
 import main.CompileError;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import utils.Bug;
 import utils.Err;
+
+import java.util.Optional;
 
 class TestParser {
   void ok(String expected, String content){

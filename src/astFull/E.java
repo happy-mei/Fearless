@@ -1,7 +1,8 @@
 package astFull;
 
-import ast.Mdf;
+import id.Id;
 import id.Id.MethName;
+import id.Mdf;
 import visitors.FullCloneVisitor;
 import visitors.FullCollectorVisitor;
 
@@ -12,7 +13,7 @@ public interface E {
   E accept(FullCloneVisitor v);
   <R> Optional<R> accept(FullCollectorVisitor<R> v);
   T t();
-  record Lambda(Mdf mdf, List<T.IT>its, String selfName, List<Meth>meths, T t) implements E{
+  record Lambda(Mdf mdf, List<Id.IT<T>>its, String selfName, List<Meth>meths, T t) implements E{
     @Override public E accept(FullCloneVisitor v){return v.visitLambda(this);}
     @Override public <R>Optional<R> accept(FullCollectorVisitor<R> v){return v.visitLambda(this);}
   }
@@ -38,6 +39,6 @@ public interface E {
       return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<T.GX> gens, List<T> ts, T ret){}
+  record Sig(Mdf mdf, List<Id.GX<T>> gens, List<T> ts, T ret){}
 }
 

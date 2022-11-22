@@ -1,13 +1,14 @@
 package visitors;
 
-import ast.Mdf;
 import astFull.E;
 import astFull.Package;
 import astFull.PosMap;
 import astFull.T;
-import id.Id.MethName;
 import files.Pos;
 import generated.FearlessParser.*;
+import id.Id;
+import id.Id.MethName;
+import id.Mdf;
 import main.Fail;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -26,9 +27,9 @@ class ParserFailed extends RuntimeException{}
 
 public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public final Path fileName;
-  public final Function<String,Optional<T.IT>> resolve;
+  public final Function<String,Optional<Id.IT<T>>> resolve;
   public StringBuilder errors = new StringBuilder();
-  public FullEAntlrVisitor(Path fileName,Function<String,Optional<T.IT>> resolve){ 
+  public FullEAntlrVisitor(Path fileName,Function<String,Optional<Id.IT<T>>> resolve){
     this.fileName=fileName; 
     this.resolve=resolve;
   }
@@ -127,10 +128,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var noTs = ctx.t()==null || ctx.t().isEmpty();
     if(ctx.OS() == null){ return Optional.empty(); }
     if(noTs){ return Optional.of(List.of()); }
-
     return Optional.of(ctx.t().stream().map(this::visitT).toList());
   }
-  public Optional<List<T.GX>> visitMGenParams(MGenContext ctx){
+  public Optional<List<Id.GX<T>>> visitMGenParams(MGenContext ctx){
     var mGens = this.visitMGen(ctx);
     return mGens.map(ts->ts.stream()
       .map(t->t.match(
@@ -164,6 +164,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     check(ctx);
     var _ts=opt(ctx.t(),ts->ts.stream().map(this::visitIT).toList());
     _ts=_ts==null?List.of():_ts;
+    // Foo:imm mut Bar[]{}
     var t = _ts.isEmpty() ? T.infer : new T(Mdf.mdf, _ts.get(0));
     var mdf = t.isInfer() ? null : Mdf.mdf;
     if(ctx.bblock()==null){
@@ -188,7 +189,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(ctx.getText().isEmpty()){ return Mdf.imm; }
     return Mdf.valueOf(ctx.getText());
   }
-  public T.IT visitIT(TContext ctx) {
+  public Id.IT<T> visitIT(TContext ctx) {
     T t=visitT(ctx,false);
     return t.match(gx->{throw Bug.todo();}, it->it);
   }
@@ -204,15 +205,16 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     String name = visitFullCN(ctx.fullCN());
     var isFullName = name.contains(".");
     var mGen=visitMGen(ctx.mGen());
-    Optional<T.IT> resolved = isFullName ? Optional.empty() : resolve.apply(name);
+    Optional<Id.IT<T>> resolved = isFullName ? Optional.empty() : resolve.apply(name);
     var isIT = isFullName || resolved.isPresent();
     if(!isIT){
-      var t = new T(mdf, new T.GX(name));
+      var t = new T(mdf, new Id.GX<>(name));
       if(mGen.isPresent()){ throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx)); }
       return t;
     }
+    // TODO: TEST alias generic merging
     var ts = mGen.orElse(List.of());
-    if(resolved.isEmpty()){return new T(mdf,new T.IT(name,ts));}
+    if(resolved.isEmpty()){return new T(mdf,new Id.IT<>(name,ts));}
     var res = resolved.get();
     ts = Push.of(res.ts(),ts);
     return new T(mdf,res.withTs(ts));
@@ -239,7 +241,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), xs.stream().map(E.X::t).toList(), h.ret()));
     return PosMap.add(new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body), pos(ctx));
   }
-  private record MethHeader(Mdf mdf, MethName name, List<T.GX> gens, List<E.X> xs, T ret){}
+  private record MethHeader(Mdf mdf, MethName name, List<Id.GX<T>> gens, List<E.X> xs, T ret){}
   @Override
   public MethHeader visitSig(SigContext ctx) {
     check(ctx);
@@ -268,7 +270,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .flatMap(this::visitMGenParams)
       .orElse(List.of());
     var body = shallow ? null : visitBlock(ctx.block());
-    return PosMap.add(new T.Dec(cName, mGen, body),pos(ctx));
+    return PosMap.add(new T.Dec(new Id.DecId(cName,mGen.size()), mGen, body),pos(ctx));
   }
   @Override
   public T.Alias visitAlias(AliasContext ctx) {
@@ -276,7 +278,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var in = visitFullCN(ctx.fullCN(0));
     var _inG = opt(ctx.mGen(0),this::visitMGen);
     var inG = Optional.ofNullable(_inG).flatMap(e->e).orElse(List.of());
-    var inT=new T.IT(in,inG);
+    var inT=new Id.IT<T>(in,inG);
     var out = visitFullCN(ctx.fullCN(1));
     var outG = ctx.mGen(1);
     if(!outG.t().isEmpty()){ throw Bug.of("No gen on out Alias"); }

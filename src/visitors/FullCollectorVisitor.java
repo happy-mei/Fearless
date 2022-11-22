@@ -1,9 +1,11 @@
 package visitors;
 
-import ast.Mdf;
 import astFull.E;
 import astFull.T;
+import id.Id;
 import id.Id.MethName;
+import id.Mdf;
+import program.Program;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,11 +51,18 @@ public interface FullCollectorVisitor<R> {
     return visitMdf(t.mdf())
       .or(()->t.rt().match(this::visitGX,this::visitIT));
   }
-  default Optional<R> visitIT(T.IT t){ return visitAll(t.ts(),this::visitT); }
-  default Optional<R> visitGX(T.GX t){ return Optional.empty(); }
+  default Optional<R> visitIT(Id.IT<T> t){ return visitAll(t.ts(),this::visitT); }
+  default Optional<R> visitGX(Id.GX<T> t){ return Optional.empty(); }
   default Optional<R> visitDec(T.Dec d){
     return visitAll(d.gxs(),this::visitGX).or(()->visitLambda(d.lambda()));
   }
-  default Optional<R> visitDecId(T.DecId di){ return Optional.empty(); }
+  default Optional<R> visitDecId(Id.DecId di){ return Optional.empty(); }
   default Optional<R> visitAlias(T.Alias a){ return visitIT(a.from()); }
+  default Optional<R> visitProgram(Program p){
+    for (var d : p.ds().values()) {
+      var r = visitDec(d);
+      if (r.isPresent()) { return r; }
+    }
+    return Optional.empty();
+  }
 }

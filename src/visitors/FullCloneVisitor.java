@@ -1,9 +1,10 @@
 package visitors;
 
-import ast.Mdf;
 import astFull.E;
 import astFull.T;
+import id.Id;
 import id.Id.MethName;
+import id.Mdf;
 
 public interface FullCloneVisitor {
   default E.Meth visitMeth(E.Meth e){ return new E.Meth(
@@ -41,11 +42,11 @@ public interface FullCloneVisitor {
     visitMdf(t.mdf()),
     t.rt().match(this::visitGX,this::visitIT)
   );}
-  default T.IT visitIT(T.IT t){ return new T.IT(
+  default Id.IT<T> visitIT(Id.IT<T> t){ return new Id.IT<>(
     t.name(),
     t.ts().stream().map(this::visitT).toList()
   );}
-  default T.GX visitGX(T.GX t){ return t; }
+  default Id.GX<T> visitGX(Id.GX<T> t){ return t; }
   default T.Dec visitDec(T.Dec d) { return new T.Dec(
     d.name(),
     d.gxs().stream().map(this::visitGX).toList(),
