@@ -1,17 +1,20 @@
 package ast;
 
-import java.util.List;
-import java.util.Optional;
+import id.Id;
 import id.Id.MethName;
+import id.Mdf;
 import parser.Parser;
 import visitors.CloneVisitor;
 import visitors.CollectorVisitor;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface E {
   E accept(CloneVisitor v);
   <R> Optional<R> accept(CollectorVisitor<R> v);
 
-  record Lambda(Mdf mdf, List<T.IT> its, String selfName, List<Meth> meths) implements E{
+  record Lambda(Mdf mdf, List<Id.IT<T>> its, String selfName, List<Meth> meths) implements E{
     public Lambda{
       assert mdf!=null;
       assert !its.isEmpty();
@@ -41,12 +44,13 @@ public interface E {
     @Override public String toString(){ return name; }
   }
   record Meth(Sig sig, MethName name, List<String> xs, Optional<E> body){
-    public Meth{ assert sig!= null && name.num()==xs.size() && body!=null; }
+    public Meth{ //noinspection OptionalAssignedToNull
+      assert sig!= null && name.num()==xs.size() && body!=null; }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name, xs, sig, body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<T.GX> gens, List<T> ts, T ret){
+  record Sig(Mdf mdf, List<Id.GX<T>> gens, List<T> ts, T ret){
     public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
   }
 }

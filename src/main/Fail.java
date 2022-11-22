@@ -2,6 +2,7 @@ package main;
 
 import astFull.T;
 import files.Pos;
+import id.Id;
 import utils.Bug;
 
 import java.lang.reflect.Modifier;
@@ -43,14 +44,15 @@ public class Fail{
   //ALL OUR ERRORS
   public static CompileError conflictingAlias(String aliased, List<Conflict> conflicts){return of(
       "This alias is in conflict with other aliases in the same package: "+conflictingMsg(aliased, conflicts));}
-  public static CompileError conflictingDecl(T.DecId decl, List<Conflict> conflicts){return of(
+  public static CompileError conflictingDecl(Id.DecId decl, List<Conflict> conflicts){return of(
       "This trait declaration is in conflict with other trait declarations in the same package: "+conflictingMsg(decl.toString(), conflicts));}
 
   public static CompileError conflictingMethArgs(List<String> conflicts){return of(
     "Parameters in methods must have different names. The following parameters were conflicting: " + String.join(", ", conflicts));}
 
   public static CompileError concreteTypeInFormalParams(T badType){return of(
-    "Trait and method declarations may only have type parameters. This concrete type was provided instead:\n"+badType
+    "Trait and method declarations may only have generic type parameters. This concrete type was provided instead:\n"+badType
+      +"\nAlternatively, are you attempting to shadow an existing class name?"
   );}
   public static CompileError modifierOnInferredLambda(){return of(
     "Modifiers cannot be specified on lambdas without an explicit type."
@@ -58,7 +60,16 @@ public class Fail{
   public static CompileError isoInTypeArgs(T badType){return of(
     "The iso reference capability may not be used in type modifiers:\n"+badType
   );}
-  public static CompileError explicitThis(){return of("Local variables may not be named 'this'.");}
+  public static CompileError shadowingX(String x){return of("Local variable "+x+" is shadowing another variable in scope.");}
+
+  public static CompileError shadowingGX(String x){return of("Type variable "+x+" is shadowing another type variable in scope.");}
+
+  public static CompileError explicitThis(){ return of("Local variables may not be named 'this'."); }
+
+  public static CompileError cyclicImplRelation(Id.DecId baseClass){
+    return of(String.format("Implements relations must be acyclic. There is a cycle on the class %s.", baseClass));
+  }
+  public static CompileError invalidMdf(T t){return of("The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type "+t);}
 }
 
 //only add to the bottom
@@ -69,6 +80,10 @@ enum ErrorCode {
   modifierOnInferredLambda,
   isoInTypeArgs,
   explicitThis,
-  conflictingMethArgs;
+  conflictingMethArgs,
+  cyclicImplRelation,
+  shadowingX,
+  shadowingGX,
+  invalidMdf;
   int code() {return this.ordinal() + 1;}
 }

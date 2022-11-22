@@ -1,14 +1,15 @@
 package visitors;
 
+import ast.E;
+import ast.T;
+import id.Id;
+import id.Id.DecId;
+import id.Id.MethName;
+import id.Mdf;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-
-import ast.E;
-import ast.Mdf;
-import ast.T;
-import id.Id.MethName;
-import id.Id.DecId;
 
 public interface CollectorVisitor<R>{
   default Optional<R> visitMeth(E.Meth e){
@@ -46,8 +47,8 @@ public interface CollectorVisitor<R>{
     return visitMdf(t.mdf())
       .or(()->t.rt().match(this::visitGX,this::visitIT));
   }
-  default Optional<R> visitIT(T.IT t){ return visitAll(t.ts(),this::visitT); }
-  default Optional<R> visitGX(T.GX t){ return Optional.empty(); }
+  default Optional<R> visitIT(Id.IT<T> t){ return visitAll(t.ts(),this::visitT); }
+  default Optional<R> visitGX(Id.GX<T> t){ return Optional.empty(); }
   default Optional<R> visitDec(T.Dec d){
     return visitAll(d.gxs(),this::visitGX).or(()->visitLambda(d.lambda()));
   }

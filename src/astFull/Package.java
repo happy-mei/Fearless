@@ -1,6 +1,7 @@
 package astFull;
 
 import generated.FearlessParser.TopDecContext;
+import id.Id;
 import main.Fail;
 import utils.Range;
 import utils.Streams;
@@ -17,25 +18,24 @@ public record Package(
     List<TopDecContext> ds,
     List<Path> ps
     ){
-  public Map<T.DecId,T.Dec> parse(){
-    var res = new HashMap<T.DecId,T.Dec>();
+  public Map<Id.DecId,T.Dec> parse(){
+    var res = new HashMap<Id.DecId,T.Dec>();
     IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, i, false));
     return Collections.unmodifiableMap(res);
   }
   private Collection<T.Dec> shallowParse(){
-    var res = new HashMap<T.DecId,T.Dec>();
+    var res = new HashMap<Id.DecId,T.Dec>();
     IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, i, true));
     return res.values();
   }
-  private void acc(Map<T.DecId,T.Dec> acc, int i, boolean shallow){
+  private void acc(Map<Id.DecId,T.Dec> acc, int i, boolean shallow){
     Path pi = this.ps().get(i);
     TopDecContext di=this.ds().get(i);
     T.Dec dec=new FullEAntlrVisitor(pi,this::resolve).visitTopDec(di, this.name(), shallow);
-    T.DecId id=new T.DecId(dec.name(),dec.gxs().size());
-    acc.put(id, dec);
+    acc.put(dec.name(), dec);
   }
-  Optional<T.IT> resolve(String base){
-    if (!base.isEmpty() && Character.isDigit(base.charAt(0))) { return Optional.of(new T.IT(base, List.of())); }
+  Optional<Id.IT<T>> resolve(String base){
+    if (!base.isEmpty() && Character.isDigit(base.charAt(0))) { return Optional.of(new Id.IT<>(base, List.of())); }
     return this.as.stream()
       .filter(a -> base.equals(a.to()))
       .findAny()
@@ -65,10 +65,10 @@ public record Package(
       ps.stream().flatMap(p->p.shallowParse().stream()
         .map(d->d.name())
         .map(n->{
-          assert n.startsWith(p.name());
-          var shortName = n.substring(p.name().length()+1);
+          assert n.name().startsWith(p.name());
+          var shortName = n.name().substring(p.name().length()+1);
           assert !shortName.contains(".");
-          return new T.Alias(new T.IT(n,List.of()), shortName);
+          return new T.Alias(new Id.IT<>(new Id.DecId(n.name(), 0), List.of()), shortName);
         })
         .distinct()
       )
@@ -92,7 +92,7 @@ public record Package(
         .map(d->{
           int size=0;
           if(d.mGen()!=null && d.mGen().t()!=null){ size=d.mGen().t().size(); }
-          return new T.DecId(d.fullCN().getText(),size);
+          return new Id.DecId(d.fullCN().getText(),size);
           })
         .toList();
     var fns=ps.stream()
@@ -103,9 +103,9 @@ public record Package(
     assert ds.size()==fns.size();
     var uds=ds.stream().distinct().toList();
     if(uds.size()==ds.size()){ return; }
-    var seen = new HashSet<T.DecId>(ds.size());
+    var seen = new HashSet<Id.DecId>(ds.size());
     for(var i:Range.of(ds)){
-      T.DecId di=ds.get(i);
+      Id.DecId di=ds.get(i);
       if(seen.add(di)){ continue; }
       List<Fail.Conflict> conflicts = Streams.zip(ds,fns).filterMap((dj,fj)->{
         if(!dj.equals(di)){ return Optional.empty(); }

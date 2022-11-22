@@ -9,8 +9,9 @@ import generated.FearlessLexer;
 import generated.FearlessParser;
 import generated.FearlessParser.NudeEContext;
 import generated.FearlessParser.NudeProgramContext;
-
+import id.Id;
 import org.antlr.v4.runtime.*;
+import program.Program;
 import utils.Bug;
 import visitors.FullEAntlrVisitor;
 
@@ -46,7 +47,7 @@ public record Parser(Path fileName,String content){
     //balanced parenthesis with decent error
   }
 
-  public static Map<T.DecId,T.Dec> parseAll(List<Parser>ps) {
+  public static Program parseAll(List<Parser>ps) {
     List<Alias> globals=List.of();//TODO: global aliases
     var all=ps.stream()
         .map(p->p.parseFile(Bug::err))
@@ -55,13 +56,13 @@ public record Parser(Path fileName,String content){
         .map(allPi->Package.merge(globals, allPi))
         .toList();
     assert allPs.stream().map(Package::name).distinct().count()==allPs.size();//redundant?
-    return Collections.unmodifiableMap(allPs.stream().map(Package::parse).reduce(new HashMap<>(),
+    return new Program(Collections.unmodifiableMap(allPs.stream().map(Package::parse).reduce(new HashMap<>(),
         (acc, val) -> { acc.putAll(val); return acc; },
         (m1, m2) -> { assert m1==m2; return m1;}
-    ));
+    )));
   }
 
-  public E parseFullE(Function<String,E> orElse,Function<String,Optional<T.IT>> resolve){
+  public E parseFullE(Function<String,E> orElse,Function<String,Optional<Id.IT<T>>> resolve){
       var l = new FearlessLexer(CharStreams.fromString(content));
       var p = new FearlessParser(new CommonTokenStream(l));
       var errorst = new StringBuilder();

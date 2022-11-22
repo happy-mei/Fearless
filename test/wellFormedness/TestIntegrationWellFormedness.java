@@ -20,12 +20,10 @@ public class TestIntegrationWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var decTable = Parser.parseAll(ps);
-    var res = decTable.values().stream()
-      .map(d->d.accept(new WellFormednessVisitor()))
-      .toList();
-    var isWellFormed = res.stream().allMatch(Optional::isEmpty);
-    assertTrue(isWellFormed, res.stream().filter(Optional::isPresent).map(Optional::get).toList().toString());
+    var p = Parser.parseAll(ps);
+    var res = new WellFormednessVisitor().visitProgram(p);
+    var isWellFormed = res.isEmpty();
+    assertTrue(isWellFormed, res.map(Object::toString).orElse(""));
   }
   void fail(String expectedErr, String... content){
     Main.resetAll();
@@ -35,63 +33,65 @@ public class TestIntegrationWellFormedness {
       .toList();
 
     try {
-      var decTable = Parser.parseAll(ps);
-      var errors = decTable.values().stream()
-        .map(d->d.accept(new WellFormednessVisitor()))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .toList();
-      Err.strCmp(expectedErr, errors.toString());
+      var p = Parser.parseAll(ps);
+      var error = new WellFormednessVisitor().visitProgram(p);
+      Err.strCmp(expectedErr, error.map(Object::toString).orElse(""));
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
     }
   }
   @Test void noIsoParamsLambdaOk() { ok("""
     package pkg1
-    A:base.Opt[A]
+    Opt[T]:{}
+    A:Opt[A]
     """); }
   @Test void noIsoParamsLambda1() { fail("""
-    [In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:3:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
-    iso pkg1.A[]]
+    iso pkg1.A[]
     """, """
     package pkg1
-    A:base.Opt[iso A]
+    Opt[T]:{}
+    A:Opt[iso A]
     """); }
   @Test void noIsoParamsLambda2() { fail("""
-    [In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:3:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
-    iso pkg1.A[]]
+    iso pkg1.A[]
     """, """
     package pkg1
-    A:{ #: base.Opt[iso A] -> base.Opt[iso A] }
+    Opt[T]:{}
+    A:{ #: Opt[iso A] -> Opt[iso A] }
     """); }
   @Test void noIsoParamsLambdaNested1() { fail("""
-    [In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:3:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
-    iso pkg1.A[]]
+    iso pkg1.A[]
     """, """
     package pkg1
-    A:base.Opt[mut base.Opt[iso A]]
+    Opt[T]:{}
+    A:Opt[mut Opt[iso A]]
     """); }
   @Test void noIsoParamsLambdaNested2() { fail("""
-    [In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:4:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
-    iso pkg1.A[]]
+    iso pkg1.A[]
     """, """
     package pkg1
-    A:base.Opt[base.Opt[A], base.Opt[base.Opt[iso A]]]
+    Opt[T]:{}
+    B[C,D]:{}
+    A:B[Opt[A], Opt[Opt[iso A]]]
     """); }
 
-  // TODO: Alias generic params cannot use other aliases right now (i.e. pkg1.A vs A)
   @Test void noIsoParamsAliasOk() { ok("""
     package pkg1
-    alias base.Opt as Opt,
-    alias base.Opt[pkg1.A] as OptA,
+    Opt[T]:{}
+    Opt[T]:{}
+    alias Opt[pkg1.A] as OptA,
     A:{}
     """); }
   @Test void noIsoParamsAlias1() { fail("""
@@ -101,8 +101,9 @@ public class TestIntegrationWellFormedness {
     iso pkg1.A[]
     """, """
     package pkg1
-    alias base.Opt as Opt,
-    alias base.Opt[iso pkg1.A] as OptA,
+    Opt[T]:{}
+    Opt[T]:{}
+    alias Opt[iso pkg1.A] as OptA,
     A:{}
     """); }
   @Test void noIsoParamsAliasNested1() { fail("""
@@ -112,49 +113,55 @@ public class TestIntegrationWellFormedness {
     iso pkg1.A[]
     """, """
     package pkg1
-    alias base.Opt as Opt,
-    alias base.Opt[base.Opt[iso pkg1.A]] as OptA,
+    Opt[T]:{}
+    Opt[T]:{}
+    alias Opt[Opt[iso pkg1.A]] as OptA,
     A:{}
     """); }
 
   @Test void noIsoParamsMethRet() { fail("""
-    [In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:3:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
-    iso pkg1.A[]]
+    iso pkg1.A[]
     """, """
     package pkg1
-    A:{ #: base.Opt[iso A] -> {} }
+    Opt[T]:{}
+    A:{ #: Opt[iso A] -> {} }
     """); }
   @Test void isoParamsMethParamsOk() { ok("""
     package pkg1
+    Opt[T]:{}
     A:{ #(x: iso A): A -> {} }
     """); }
   @Test void isoParamsMethParams() { fail("""
-    [In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:3:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
-    iso pkg1.A[]]
+    iso pkg1.A[]
     """, """
     package pkg1
+    Opt[T]:{}
     A:{ #(x: A[iso A]): A -> {} }
     """); }
   @Test void isoParamsMethParamsGens() { fail("""
-    [In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:3:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
-    iso GX[name=T]]
+    iso GX[name=T]
     """, """
     package pkg1
+    Opt[T]:{}
     A:{ #[T](x: A[iso T]): A -> {} }
     """); }
   @Test void isoParamsMethCall() { fail("""
-    [In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:3:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
-    iso pkg1.A[]]
+    iso pkg1.A[]
     """, """
     package pkg1
+    Opt[T]:{}
     A:{
       #[T](x: A[mdf T]): A -> {},
       .foo(): A -> this#[iso A]A
@@ -162,6 +169,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void paramsMethCallOk() { ok("""
     package pkg1
+    Opt[T]:{}
     A:{
       #[T](x: A[mdf T]): A -> {},
       .foo(): A -> this#[read A]A
