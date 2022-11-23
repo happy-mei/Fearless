@@ -2,6 +2,7 @@ package astFull;
 
 import generated.FearlessParser.TopDecContext;
 import id.Id;
+import magic.Magic;
 import main.Fail;
 import utils.Range;
 import utils.Streams;
@@ -35,11 +36,11 @@ public record Package(
     acc.put(dec.name(), dec);
   }
   Optional<Id.IT<T>> resolve(String base){
-    if (!base.isEmpty() && Character.isDigit(base.charAt(0))) { return Optional.of(new Id.IT<>(base, List.of())); }
-    return this.as.stream()
-      .filter(a -> base.equals(a.to()))
-      .findAny()
-      .map(a -> a.from());
+    return Magic.resolve(base)
+      .or(()->this.as.stream()
+        .filter(a -> base.equals(a.to()))
+        .findAny()
+        .map(T.Alias::from));
   }
   public static Package merge(List<T.Alias>global,List<Package>ps) {
     assert checks(global, ps);
@@ -48,7 +49,7 @@ public record Package(
     var allAliases = mergeAlias(global, ps);
     aliasDisj(allAliases);
     allAliases.stream()
-      .map(a->a.accept(wellFormednessVisitor))
+      .map(wellFormednessVisitor::visitAlias)
       .dropWhile(Optional::isEmpty)
       .findFirst()
       .flatMap(o->o)

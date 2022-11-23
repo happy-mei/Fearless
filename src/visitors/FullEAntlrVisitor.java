@@ -56,6 +56,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Object visitNudeM(NudeMContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeFullCN(NudeFullCNContext ctx){ throw Bug.unreachable(); }
   @Override public MethName visitM(MContext ctx){ throw Bug.unreachable(); }
+  @Override public MethName visitBlock(BlockContext ctx){ throw Bug.unreachable(); }
 
   @Override public E visitNudeE(NudeEContext ctx){
     check(ctx);    
@@ -112,15 +113,15 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       var freshRoot = new E.X(T.infer);
       var rest = desugar(freshRoot, newTail);
       var cont = PosMap.add(
-        new E.Lambda(null, List.of(), null, List.of(
+        new E.Lambda(Optional.empty(), List.of(), null, List.of(
           PosMap.add(new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest)), head.pos())
-        ), T.infer),
+        ), Optional.empty()),
         head.pos()
       );
-      return PosMap.add(new E.MCall(root, m, ts, List.of(e, cont), T.infer), head.pos());
+      return PosMap.add(new E.MCall(root, new MethName(m.name(), 2), ts, List.of(e, cont), T.infer), head.pos());
     }
     var es=head.es();
-    E res=PosMap.add(new E.MCall(root,m, ts, es,T.infer), head.pos());
+    E res=PosMap.add(new E.MCall(root, new MethName(m.name(), es.size()), ts, es,T.infer), head.pos());
     return desugar(res,newTail);
   }
   @Override public Optional<List<T>> visitMGen(MGenContext ctx){
@@ -153,32 +154,29 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         .filter(a->a!=null));
   }
   @Override public E.Lambda visitLambda(LambdaContext ctx){
-    Mdf mdf=visitMdf(ctx.mdf());
-    var res=visitBlock(ctx.block());
+    var res=visitBlock(ctx.block(), Optional.of(visitMdf(ctx.mdf())));
     if (res.its().isEmpty() && !ctx.mdf().getText().isEmpty()) { throw Fail.modifierOnInferredLambda().pos(pos(ctx)); }
-    T type = res.its().isEmpty() ? T.infer : new T(mdf, res.its().get(0));
-    if (type.isInfer()) { mdf = null; }
-    return PosMap.add(new E.Lambda(mdf, res.its(), res.selfName(), res.meths(), type),pos(ctx));
+    return res;
     }
-  @Override public E.Lambda visitBlock(BlockContext ctx){
+  public E.Lambda visitBlock(BlockContext ctx, Optional<Mdf> mdf){
     check(ctx);
-    var _ts=opt(ctx.t(),ts->ts.stream().map(this::visitIT).toList());
-    _ts=_ts==null?List.of():_ts;
-    // Foo:imm mut Bar[]{}
-    var t = _ts.isEmpty() ? T.infer : new T(Mdf.mdf, _ts.get(0));
-    var mdf = t.isInfer() ? null : Mdf.mdf;
+    var _its = Optional.ofNullable(ctx.t())
+      .map(its->its.stream().map(this::visitIT).toList());
+    var rt = _its.flatMap(its->GetO.of(its,0));
+    var its = _its.orElse(List.of());
+    if (rt.isEmpty()) { mdf = Optional.empty(); }
     if(ctx.bblock()==null){
-      return PosMap.add(new E.Lambda(mdf,_ts,null,List.of(),t), pos(ctx));
-      }
+      return PosMap.add(new E.Lambda(mdf,its,null,List.of(),rt), pos(ctx));
+    }
     var bb = ctx.bblock();
-    if(bb.children==null){ return PosMap.add(new E.Lambda(mdf, _ts, null, List.of(), t), pos(ctx)); }
+    if(bb.children==null){ return PosMap.add(new E.Lambda(mdf, its, null, List.of(), rt), pos(ctx)); }
     var _x=opt(bb.x(),this::visitX);
     var _n=_x==null?null:_x.name();
     var _ms=opt(bb.meth(),ms->ms.stream().map(this::visitMeth).toList());
     var _singleM=opt(bb.singleM(),this::visitSingleM);
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
-    return PosMap.add(new E.Lambda(mdf,_ts,_n,mms,t), pos(ctx));
+    return PosMap.add(new E.Lambda(Optional.empty(),its,_n,mms,rt), pos(ctx));
     }
   @Override
   public String visitFullCN(FullCNContext ctx) {
@@ -191,7 +189,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   public Id.IT<T> visitIT(TContext ctx) {
     T t=visitT(ctx,false);
-    return t.match(gx->{throw Bug.todo();}, it->it);
+    return t.match(gx->{throw Fail.expectedConcreteType(t);}, it->it);
   }
   @Override
   public T visitT(TContext ctx) {
@@ -269,7 +267,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var mGen = Optional.ofNullable(ctx.mGen())
       .flatMap(this::visitMGenParams)
       .orElse(List.of());
-    var body = shallow ? null : visitBlock(ctx.block());
+    var id = new Id.DecId(cName,mGen.size());
+    var body = shallow ? null : visitBlock(ctx.block(), Optional.empty());
     return PosMap.add(new T.Dec(new Id.DecId(cName,mGen.size()), mGen, body),pos(ctx));
   }
   @Override

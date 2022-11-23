@@ -2,6 +2,7 @@ package program;
 
 import astFull.T;
 import id.Id;
+import magic.Magic;
 import utils.Bug;
 import visitors.FullCloneVisitor;
 import visitors.FullCollectorVisitor;
@@ -11,6 +12,7 @@ import java.util.*;
 public record Program(Map<Id.DecId, T.Dec> ds) {
   T.Dec of(Id.DecId d) {
     var res = ds.get(d);
+    if (res == null) { res = Magic.getDec(d); }
     assert res != null;
     return res;
   }

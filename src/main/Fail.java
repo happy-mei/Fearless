@@ -20,7 +20,7 @@ public class Fail{
         try {
           ErrorCode.valueOf(m.getName());
         } catch (IllegalArgumentException e) {
-          throw Bug.of("ICE: ErrorCode enum is not complete.");
+          throw Bug.of("ICE: ErrorCode enum is not complete. Missing: " + m.getName());
         }
       });
   }
@@ -70,6 +70,12 @@ public class Fail{
     return of(String.format("Implements relations must be acyclic. There is a cycle on the class %s.", baseClass));
   }
   public static CompileError invalidMdf(T t){return of("The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type "+t);}
+
+  public static CompileError concreteInNoMutHyg(T t){return of("The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:\n" + t);}
+  public static CompileError invalidNoMutHyg(T t){return of("The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. This generic type is not a type parameter of the trait:\n" + t);}
+  public static CompileError expectedConcreteType(T t){ return of("A concrete type was expected but the following generic type was given:\n" + t); }
+
+  public static CompileError missingDecl(Id.DecId d){ return of("The following trait cannot be aliased because it does not exist:\n"+d); }
 }
 
 //only add to the bottom
@@ -84,6 +90,10 @@ enum ErrorCode {
   cyclicImplRelation,
   shadowingX,
   shadowingGX,
-  invalidMdf;
+  invalidMdf,
+  concreteInNoMutHyg,
+  invalidNoMutHyg,
+  expectedConcreteType,
+  missingDecl;
   int code() {return this.ordinal() + 1;}
 }

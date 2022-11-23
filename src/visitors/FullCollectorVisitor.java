@@ -33,10 +33,10 @@ public interface FullCollectorVisitor<R> {
   }
   default Optional<R> visitX(E.X e){ return visitT(e.t()); }
   default Optional<R> visitLambda(E.Lambda e){
-    return visitMdf(e.mdf())
+    return e.mdf().flatMap(this::visitMdf)
       .or(()->visitAll(e.its(),this::visitIT))
       .or(()->visitAll(e.meths(),this::visitMeth))
-      .or(()->visitT(e.t()));
+      .or(()->e.it().flatMap(this::visitIT));
   }
   default Optional<R> visitMdf(Mdf mdf){return Optional.empty();}
   default Optional<R> visitMethName(MethName e){ return Optional.empty(); }
