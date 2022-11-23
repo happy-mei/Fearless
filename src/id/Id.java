@@ -1,5 +1,6 @@
 package id;
 
+import astFull.T;
 import parser.Parser;
 
 import java.util.List;
@@ -16,6 +17,8 @@ public class Id {
   }
   public static boolean validGX(String name){ 
     assert name!=null && !name.isEmpty();
+    // Compiler-inserted names are valid
+    if (name.endsWith("$")) { return true; }
     return new parser.Parser(Parser.dummy,name).parseGX();      
   }
   public record DecId(String name,int gen){
@@ -32,8 +35,14 @@ public class Id {
   public interface RT<TT>{ <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it); }
 
   public record GX<TT>(String name)implements RT<TT>{
+    private static int FRESH_N = 0;
+    public static void reset() { FRESH_N = 0; }
     public GX{assert Id.validGX(name);}
+    public GX(){
+      this("Fear" + FRESH_N++ + "$");
+    }
     public <R> R match(Function<GX<TT>,R>gx, Function<IT<TT>,R>it){ return gx.apply(this); }
+    @Override public String toString(){ return name(); }
   }
   public record IT<TT>(Id.DecId name, List<TT> ts)implements RT<TT>{
     public IT{ assert ts.size()==name.gen(); }

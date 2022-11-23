@@ -89,33 +89,30 @@ public class TestIntegrationWellFormedness {
 
   @Test void noIsoParamsAliasOk() { ok("""
     package pkg1
-    Opt[T]:{}
-    Opt[T]:{}
     alias Opt[pkg1.A] as OptA,
+    Opt[T]:{}
     A:{}
     """); }
   @Test void noIsoParamsAlias1() { fail("""
-    In position [###]/Dummy0.fear:3:0
+    In position [###]/Dummy0.fear:2:0
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
     package pkg1
+    alias pkg1.Opt[iso pkg1.A] as OptA,
     Opt[T]:{}
-    Opt[T]:{}
-    alias Opt[iso pkg1.A] as OptA,
     A:{}
     """); }
   @Test void noIsoParamsAliasNested1() { fail("""
-    In position [###]/Dummy0.fear:3:0
+    In position [###]/Dummy0.fear:2:0
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
     package pkg1
+    alias pkg1.Opt[pkg1.Opt[iso pkg1.A]] as OptA,
     Opt[T]:{}
-    Opt[T]:{}
-    alias Opt[Opt[iso pkg1.A]] as OptA,
     A:{}
     """); }
 
@@ -148,7 +145,7 @@ public class TestIntegrationWellFormedness {
     In position [###]/Dummy0.fear:3:2
     isoInTypeArgs:5
     The iso reference capability may not be used in type modifiers:
-    iso GX[name=T]
+    iso T
     """, """
     package pkg1
     Opt[T]:{}
@@ -174,5 +171,131 @@ public class TestIntegrationWellFormedness {
       #[T](x: A[mdf T]): A -> {},
       .foo(): A -> this#[read A]A
       }
+    """); }
+
+  @Test void noMutHygOk() { ok("""
+    package base
+    alias base.NoMutHyg as NoMutHyg,
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+    Let[V,R]:{ .var:V, .in(v:V):R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X]:NoMutHyg[X],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """); }
+  @Test void noMutHygOkSplit() { ok("""
+    package base
+    alias base.NoMutHyg as NoMutHyg,
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+    Let[V,R]:{ .var:V, .in(v:V):R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X,Y]:NoMutHyg[X],NoMutHyg[Y],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """); }
+  @Test void noMutHygOkMulti() { ok("""
+    package base
+    alias base.NoMutHyg as NoMutHyg,
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+    Let[V,R]:{ .var:V, .in(v:V):R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X,Y]:NoMutHyg[X,Y],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """); }
+  @Test void noMutHygConcrete() { fail("""
+    In position [###]/Dummy0.fear:7:0
+    concreteInNoMutHyg:12
+    The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:
+    imm base.Ref[]
+    """, """
+    package base
+    alias base.NoMutHyg as NoMutHyg,
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+    Let[V,R]:{ .var:V, .in(v:V):R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X]:NoMutHyg[Ref],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """); }
+  @Test void noMutHygConcreteSplit() { fail("""
+    In position [###]/Dummy0.fear:7:0
+    concreteInNoMutHyg:12
+    The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:
+    imm base.Ref[]
+    """, """
+    package base
+    alias base.NoMutHyg as NoMutHyg,
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+    Let[V,R]:{ .var:V, .in(v:V):R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X]:NoMutHyg[X],NoMutHyg[Ref],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """); }
+  @Test void noMutHygConcreteMulti() { fail("""
+    In position [###]/Dummy0.fear:7:0
+    concreteInNoMutHyg:12
+    The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:
+    imm base.Ref[]
+    """, """
+    package base
+    alias base.NoMutHyg as NoMutHyg,
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+    Let[V,R]:{ .var:V, .in(v:V):R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X]:NoMutHyg[X, Ref],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """); }
+  @Test void noMutHygNotUsed() { fail("""
+    In position [###]/Dummy0.fear:7:0
+    invalidNoMutHyg:13
+    The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. This generic type is not a type parameter of the trait:
+    imm A
+    """, """
+    package base
+    alias base.NoMutHyg as NoMutHyg,
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+    Let[V,R]:{ .var:V, .in(v:V):R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X]:NoMutHyg[A],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
 }

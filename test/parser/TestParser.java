@@ -38,52 +38,32 @@ class TestParser {
     }
   }
   @Test void testMCall(){ ok("""
-    x:infer.m[-]([]):infer
+    x:infer.m/0[-]([]):infer
     """,
     "x.m"); }
   @Test void testTrue(){ ok(
     """
-    Lambda[mdf=imm,
-      its=[base.True[]],
-      selfName=null,
-      meths=[],
-      t=imm base.True[]]
+    [-imm base.True[]-][base.True[]]{[null]}
     """, "base.True"); }
   @Test void testLamNoGens(){ ok(
       """
-      Lambda[mdf=mut,
-        its=[animals.Cat[]],
-        selfName=null,
-        meths=[],
-        t=mut animals.Cat[]]
+      [-mut animals.Cat[]-][animals.Cat[]]{[null]}
       """, "mut animals.Cat"); }
   @Test void testLamEmptyGens(){ ok(
       """
-      Lambda[mdf=mut,
-        its=[animals.Cat[]],
-        selfName=null,
-        meths=[],
-        t=mut animals.Cat[]]
+      [-mut animals.Cat[]-][animals.Cat[]]{[null]}
       """, "mut animals.Cat[]"); }
   @Test void testLamOneGens(){ ok(
       """
-      Lambda[mdf=mut,
-        its=[base.List[imm pkg1.Person[]]],
-        selfName=null,
-        meths=[],
-        t=mut base.List[imm pkg1.Person[]]]
+      [-mut base.List[imm pkg1.Person[]]-][base.List[imm pkg1.Person[]]]{[null]}
       """, "mut base.List[imm pkg1.Person]"); }
   @Test void testLamManyGens(){ ok(
       """
-      Lambda[mdf=mut,
-        its=[base.Either[imm pkg1.Person[], mut pkg1.Blah[]]],
-        selfName=null,
-        meths=[],
-        t=mut base.Either[imm pkg1.Person[], mut pkg1.Blah[]]]
+      [-mut base.Either[imm pkg1.Person[],mut pkg1.Blah[]]-][base.Either[imm pkg1.Person[],mut pkg1.Blah[]]]{[null]}
       """, "mut base.Either[imm pkg1.Person, mut pkg1.Blah]"); }
   @Test void surprisingNumberOfExprs(){ ok(
     """
-      we:infer.parse[-]([]):infer.a[-]([]):infer.surprising[-]([]):infer.amount[-]([]):infer.of[-]([]):infer.stuff[-]([]):infer
+      we:infer.parse/0[-]([]):infer.a/0[-]([]):infer.surprising/0[-]([]):infer.amount/0[-]([]):infer.of/0[-]([]):infer.stuff/0[-]([]):infer
       """
     ,"we .parse .a .surprising .amount .of .stuff"); }
   @Test void testFail1(){ fail(
@@ -91,81 +71,62 @@ class TestParser {
     ,"We parse a surprising amount of stuff"); }
   @Test void singleEqSugar1(){ ok(
     """
-    recv:infer.m1[-]([val:infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v,fear0$]):[-]->fear0$:infer],t=infer]]):infer
+    recv:infer.m1/2[-]([val:infer,[-infer-][]{[null][-]([v,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 v = val"); }
   @Test void singleEqSugarPOp1(){ ok(
     """
-    recv:infer.m1[-]([
-      val:infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v,fear0$]):[-]->fear0$:infer],t=infer]
-    ]):infer
+    recv:infer.m1/2[-]([val:infer,[-infer-][]{[null][-]([v,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 (v = val)"); }
   @Test void singleEqSugarPOp2(){ ok(
     """
-    recv:infer.m1[-]([val:infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v,fear0$]):[-]->fear0$:infer.m2[-]([]):infer],t=infer]]):infer
+    recv:infer.m1/2[-]([val:infer,[-infer-][]{[null][-]([v,fear0$]):[-]->fear0$:infer.m2/0[-]([]):infer}]):infer
     """, "recv .m1 (v = val) .m2"); }
   @Test void singleEqSugarPOp3(){ ok(
     """
-    recv:infer .m1[-]([
-      val:infer.m2[-]([]):infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v,fear0$]):[-]->fear0$:infer.m3[-]([]):infer],t=infer]
-    ]):infer
+    recv:infer.m1/2[-]([val:infer.m2/0[-]([]):infer,[-infer-][]{[null][-]([v,fear0$]):[-]->fear0$:infer.m3/0[-]([]):infer}]):infer
     """, "recv .m1 (v = val .m2) .m3"); }
   @Test void testVarLast(){ ok("""
-    recv:infer.m1[-]([
-      v:infer,
-      Lambda[mdf=null,its=[],selfName=null,
-        meths=[[-]([x,fear0$]):[-]->fear0$:infer],t=infer]
-      ]):infer
+    recv:infer.m1/2[-]([v:infer,[-infer-][]{[null][-]([x,fear0$]):[-]->fear0$:infer}]):infer
     ""","recv .m1 x=v"); }
   @Test void eqSugarSame1() { same("recv .m1 v = val", "recv .m1 (v = val)"); }
   @Test void eqSugarSame2() { same("recv .m1 v = val .m2", "recv .m1 v = (val .m2)"); }
   @Test void chainedMethCall() { ok("""
-    recv:infer.m1[-]([a:infer]):infer .m2[-]([b:infer]):infer
+    recv:infer.m1/1[-]([a:infer]):infer .m2/1[-]([b:infer]):infer
     """, "(recv .m1 a) .m2 b"); }
   @Test void singleEqSugar2(){ ok(
     """
-    recv:infer.m1[-]([val:infer.m2[-]([]):infer,Lambda[mdf=null,its=[],selfName=null,meths=[[-]([v,fear0$]):[-]->fear0$:infer],t=infer]]):infer
+    recv:infer.m1/2[-]([val:infer.m2/0[-]([]):infer,[-infer-][]{[null][-]([v,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 v = val .m2"); }
   @Test void nestedCalls1(){ ok("""
-    recv:infer.m1[-]([
-      v:infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x,fear0$]):[-]->fear0$:infer.m2[-]([a:infer]):infer],t=infer]
-    ]):infer
+    recv:infer.m1/2[-]([v:infer,[-infer-][]{[null] [-]([x,fear0$]):[-]->fear0$:infer.m2/1[-]([a:infer]):infer}]):infer
     """, "recv .m1 x=v.m2 a"); }
   @Test void nestedCalls2(){ ok("""
-    recv:infer.m1[-]([
-      v:infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x,fear0$]):[-]->fear0$:infer],t=infer]
-    ]):infer.m2[-]([a:infer]):infer
+    recv:infer.m1/2[-]([v:infer,[-infer-][]{[null] [-]([x,fear0$]):[-]->fear0$:infer}]):infer.m2/1[-]([a:infer]):infer
     """, "(recv .m1 x=v) .m2 a"); }
   @Test void eqExpasnionNoPar() { ok("""
-    recv:infer.m1[-]([
+    recv:infer.m1/2[-]([
       v:infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x,fear0$]):[-]->
-        fear0$:infer .m2[-]([a:infer]):infer],t=infer]
+      [-infer-][]{[null][-]([x,fear0$]):[-]->fear0$:infer.m2/1[-]([a:infer]):infer}
     ]):infer
     """, "recv .m1 x=v.m2 a"); }
   @Test void eqExpasnionPar() { ok("""
-    recv:infer.m1[-]([
-      v:infer .m2[-]([a:infer]):infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[[-]([x,fear0$]):[-]->fear0$:infer],t=infer]
-    ]):infer
+    recv:infer.m1/2[-]([v:infer.m2/1[-]([a:infer]):infer,[-infer-][]{[null][-]([x,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 x=(v.m2 a)"); }
   @Test void eqExpansionGensNoPar() { ok("""
-    recv:infer .m1[immGX[name=A]]([
-      v:infer,
-      Lambda[mdf=null,its=[],selfName=null,meths=[
-        [-]([x,fear0$]):[-]->fear0$:infer .m2[imm GX[name=B],imm base.C[imm GX[name=D]]]([a:infer]):infer],
-      t=infer]
-    ]):infer
+    recv:infer.m1/2[immA]([v:infer,[-infer-][]{[null]
+      [-]([x,fear0$]):[-]->fear0$:infer.m2/1[immB,immbase.C[immD]]([a:infer]):infer
+    }]):infer
     """, "recv .m1[A] x=v.m2[B,base.C[D]] a"); }
+  @Test void nestedGenerics() { ok("""
+    recv:infer .m1/0[imm pkg1.A[imm B]]([]):infer
+    """, "recv .m1[pkg1.A[B]]"); }
   @Test void failNestedGenerics() { fail("""
-    In position [###]/Dummy.fear:1:9
+    In position [###]/Dummy.fear:1:5
     concreteTypeInFormalParams:3
-    Trait and method declarations may only have type parameters. This concrete type was provided instead:
-    imm GX[name=A]
-    """, "recv .m1[A[B]]"); }
+    Trait and method declarations may only have generic type parameters. This concrete type was provided instead:
+    imm pkg1.A[imm B]
+    Alternatively, are you attempting to shadow an existing class name?
+    """, "{ .m1[pkg1.A[B]]: base.Void }"); }
   @Test void sameTest1(){ same("m.a", "m.a"); }
   @Test void sameTest2(){ same("recv .m1 a .m2 b .m3 c", "((recv .m1 a) .m2 b) .m3 c"); }
   @Test void sameTest3(){ same("recv .m1 a .m2 b", "(recv .m1 a) .m2 b"); }

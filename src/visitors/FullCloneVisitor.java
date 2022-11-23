@@ -6,6 +6,8 @@ import id.Id;
 import id.Id.MethName;
 import id.Mdf;
 
+import java.util.Optional;
+
 public interface FullCloneVisitor {
   default E.Meth visitMeth(E.Meth e){ return new E.Meth(
     e.sig().map(this::visitSig),
@@ -24,11 +26,11 @@ public interface FullCloneVisitor {
   default E.X visitXX(E.X e){return e;}
   default E visitLambda(E.Lambda e){ return visitLLambda(e); }
   default E.Lambda visitLLambda(E.Lambda e){ return new E.Lambda(
-    visitMdf(e.mdf()),
+    e.mdf().map(this::visitMdf),
     e.its().stream().map(this::visitIT).toList(),
     e.selfName(),//visitXX is not ok since this is just a String
     e.meths().stream().map(this::visitMeth).toList(),
-    visitT(e.t())
+    e.it().map(this::visitIT)
   ); }
   default Mdf visitMdf(Mdf mdf){return mdf;}
   default MethName visitMethName(MethName e){ return e; }

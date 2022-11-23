@@ -5,6 +5,7 @@ import astFull.PosMap;
 import astFull.T;
 import id.Id;
 import id.Mdf;
+import magic.Magic;
 import main.CompileError;
 import main.Fail;
 import program.Program;
@@ -25,14 +26,28 @@ import java.util.stream.Collectors;
   recMdf only for read/lent methods
     TODO: we should reundestand why. For example if I have a mut method returning recMdf Foo
     TODO: would this return a capsule Foo when called on a capsule receiver?
-  X in base.NoMutHyg[X] is a generic parameter on the interface implementing it
+  ✅X in base.NoMutHyg[X] is a generic parameter on the interface implementing it
   ✅(done in parser) If the lambda type is inferred then at least "{}" must be present
   ✅(done in parser) In a B a SM of form ()->e is ill formed (but ok as an SM)
   Implements relation is acyclic //ok to implement same trait with different generics
     that is, forall n,C C[mdf X1..mdf Xn] notin supertypes(Ds, C[mdf X1..mdf Xn]) where X1..Xn are fresh.
  */
-public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileError> {
 
+/*
+recMdf on mut methods:
+A:{
+  mut .multiGet(hmm: recMdf Person, anotherRef: mut Ref[recMdf Person]): recMdf Person -> Block
+    .do{ anotherRef := hmm }
+    .return{ hmm }
+}
+Evil:Main{
+  #(s) -> Block
+    .var[iso Person](p = Person'#23) // nvm this is an error because we cannot have iso generics. This implies no iso local vars
+    .var[mut Ref[mut Person]](r = Ref#Person'#0)
+    .var[iso A](a = {})
+    .var[imm Person]{ a.multiGet(p, r) } // I now have an imm and mut refs to the same person
+ */
+public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileError> {
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
     return e.ts().flatMap(this::noIsoParams)
       .or(()->super.visitMCall(e))
@@ -60,8 +75,8 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
       .or(()->noExplicitThis(e.xs()))
       .or(()->noShadowingVar(e.xs()))
       .or(()->noShadowingGX(e.sig().map(E.Sig::gens).orElse(List.of())))
-      .or(()->super.visitMeth(e))
-      .map(err->err.pos(PosMap.getOrUnknown(e)));
+      .map(err->err.pos(PosMap.getOrUnknown(e)))
+      .or(()->super.visitMeth(e));
   }
   @Override public Optional<CompileError> visitT(T t){
     return mdfOnlyOnGX(t)
@@ -72,6 +87,12 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
     return noIsoParams(t.ts())
       .or(()->super.visitIT(t))
       .map(err->err.pos(PosMap.getOrUnknown(t)));
+  }
+
+  @Override
+  public Optional<CompileError> visitDec(T.Dec d) {
+    return noMutHygValid(d).map(err->err.pos(PosMap.getOrUnknown(d)))
+      .or(()->super.visitDec(d));
   }
 
   @Override public Optional<CompileError> visitProgram(Program p){
@@ -114,7 +135,7 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
       return Optional.empty();
     }
     var conflicts = all.stream()
-      .collect(Collectors.groupingBy(x->toS.apply(x)))
+      .collect(Collectors.groupingBy(toS))
       .keySet().stream()
       .toList();
     return Optional.of(Fail.conflictingMethArgs(conflicts).pos(PosMap.getOrUnknown(e)));
@@ -125,6 +146,23 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
       if(ks.contains(key)){ return Optional.of(Fail.cyclicImplRelation(key)); }
     }
     return Optional.empty();
+  }
+
+  private Optional<CompileError> noMutHygValid(T.Dec dec) {
+    var noMutHygs = dec.lambda().its().stream().filter(it->it.name().name().equals(Magic.NoMutHyg)).toList();
+    if (noMutHygs.isEmpty()) { return Optional.empty(); }
+    return noMutHygs.stream()
+      .flatMap(it->it.ts().stream())
+      .<Optional<CompileError>>map(t->{
+        assert !t.isInfer();
+        return t.match(
+          gx->dec.gxs().contains(gx) ? Optional.empty() : Optional.of(Fail.invalidNoMutHyg(t)),
+          it->Optional.of(Fail.concreteInNoMutHyg(t))
+        );
+      })
+      .dropWhile(Optional::isEmpty)
+      .findFirst()
+      .flatMap(o->o);
   }
 }
 

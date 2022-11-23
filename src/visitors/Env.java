@@ -23,7 +23,7 @@ public record Env(List<String> xs,List<T> ts, List<Id.GX<T>> gxs) {
     return new Env(
       Push.of(xs,m.xs()),
       Push.of(ts,m.sig().map(E.Sig::ts)
-        .orElseGet(()->Collections.nCopies(xs.size(), T.infer))),
+        .orElseGet(()->Collections.nCopies(m.xs().size(), T.infer))),
       m.sig().map(gx->Push.of(gxs,gx.gens())).orElse(List.of())
     );
   }
