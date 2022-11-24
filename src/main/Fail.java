@@ -1,5 +1,6 @@
 package main;
 
+import astFull.E;
 import astFull.T;
 import files.Pos;
 import id.Id;
@@ -47,8 +48,8 @@ public class Fail{
   public static CompileError conflictingDecl(Id.DecId decl, List<Conflict> conflicts){return of(
       "This trait declaration is in conflict with other trait declarations in the same package: "+conflictingMsg(decl.toString(), conflicts));}
 
-  public static CompileError conflictingMethArgs(List<String> conflicts){return of(
-    "Parameters in methods must have different names. The following parameters were conflicting: " + String.join(", ", conflicts));}
+  public static CompileError conflictingMethParams(List<String> conflicts){return of(
+    "Parameters on methods must have different names. The following parameters were conflicting: " + String.join(", ", conflicts));}
 
   public static CompileError concreteTypeInFormalParams(T badType){return of(
     "Trait and method declarations may only have generic type parameters. This concrete type was provided instead:\n"+badType
@@ -76,6 +77,8 @@ public class Fail{
   public static CompileError expectedConcreteType(T t){ return of("A concrete type was expected but the following generic type was given:\n" + t); }
 
   public static CompileError missingDecl(Id.DecId d){ return of("The following trait cannot be aliased because it does not exist:\n"+d); }
+
+  public static CompileError invalidMethMdf(E.Sig s, Id.MethName n){ return of(String.format("%s is not a valid modifier for a method (on the method %s).", s.mdf(), n)); }
 }
 
 //only add to the bottom
@@ -86,7 +89,7 @@ enum ErrorCode {
   modifierOnInferredLambda,
   isoInTypeArgs,
   explicitThis,
-  conflictingMethArgs,
+  conflictingMethParams,
   cyclicImplRelation,
   shadowingX,
   shadowingGX,
@@ -94,6 +97,7 @@ enum ErrorCode {
   concreteInNoMutHyg,
   invalidNoMutHyg,
   expectedConcreteType,
-  missingDecl;
+  missingDecl,
+  invalidMethMdf;
   int code() {return this.ordinal() + 1;}
 }

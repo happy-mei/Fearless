@@ -173,6 +173,51 @@ public class TestIntegrationWellFormedness {
       }
     """); }
 
+  @Test void noExplicitThisBlockId() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    explicitThis:6
+    Local variables may not be named 'this'.
+    """, """
+    package base
+    A:{[this]}
+    """); }
+
+  @Test void noExplicitThisMethArg() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    explicitThis:6
+    Local variables may not be named 'this'.
+    """, """
+    package base
+    A:{ .foo(this: A): A }
+    """); }
+
+  @Test void disjointArgList() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    conflictingMethParams:7
+    Parameters on methods must have different names. The following parameters were conflicting: a
+    """, """
+    package base
+    A:{ .foo(a: A, a: A): A }
+    """); }
+
+  @Test void disjointMethGens() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    conflictingMethParams:7
+    Parameters on methods must have different names. The following parameters were conflicting: T
+    """, """
+    package base
+    A:{ .foo[T,T](a: T, b: T): A }
+    """); }
+
+  @Test void disjointDecGens() { fail("""
+    In position [###]/Dummy0.fear:2:0
+    conflictingMethParams:7
+    Parameters on methods must have different names. The following parameters were conflicting: T
+    """, """
+    package base
+    A[T,T]:{ .foo(a: T, b: T): A }
+    """); }
+
   @Test void noMutHygOk() { ok("""
     package base
     alias base.NoMutHyg as NoMutHyg,
@@ -297,5 +342,22 @@ public class TestIntegrationWellFormedness {
       mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """); }
+
+  @Test void mdfAsMethMdf() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    invalidMethMdf:16
+    mdf is not a valid modifier for a method (on the method .foo/0).
+    """, """
+    package base
+    A:{ mdf .foo: A }
+    """); }
+  @Test void recMdfAsMethMdf() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    invalidMethMdf:16
+    recMdf is not a valid modifier for a method (on the method .foo/0).
+    """, """
+    package base
+    A:{ recMdf .foo: A }
     """); }
 }

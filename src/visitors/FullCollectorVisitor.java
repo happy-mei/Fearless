@@ -18,12 +18,14 @@ public interface FullCollectorVisitor<R> {
       .or(()->e.body().flatMap(b->b.accept(this)));
   }
   static <R,ET> Optional<R> visitAll(List<ET> ts, Function<ET,Optional<R>> f){
-    return ts.stream().map(f).findFirst().flatMap(a->a);
-    /*for(var e:ts){
+    //return ts.stream().map(f).dropWhile(Optional::isEmpty).findFirst().flatMap(a->a);
+    // ts.map(f).find(o=>o.isPresent()).flatMap(o=>o)
+    //ts.filterMap(f).take(1)
+    for(var e:ts){
       var r=f.apply(e);
       if(r.isPresent()){ return r; }
     }
-    return Optional.empty();*/
+    return Optional.empty();
   }
   default Optional<R> visitMCall(E.MCall e){
     return e.receiver().accept(this)

@@ -13,7 +13,10 @@ import java.util.stream.Stream;
 public record T(Mdf mdf, Id.RT<T> rt){
   public static final T infer = new T(null,null);
   public boolean isInfer(){ return this==infer; }
-  public <R> R match(Function<Id.GX<T>,R>gx,Function<Id.IT<T>,R>it){ return rt.match(gx, it); }
+  public <R> R match(Function<Id.GX<T>,R>gx,Function<Id.IT<T>,R>it){
+    assert !this.isInfer():"Can not match on infer";
+    return rt.match(gx, it);
+  }
   public Stream<T> flatten() {
     if (this.isInfer()) { return Stream.of(this); }
     return this.match(gx->Stream.of(this), it->
@@ -31,6 +34,7 @@ public record T(Mdf mdf, Id.RT<T> rt){
     public Dec{ assert name.gen()==gxs.size(); }
     public Dec accept(FullCloneVisitor v) { return v.visitDec(this); }
     public <R> Optional<R> accept(FullCollectorVisitor<R> v) { return v.visitDec(this); }
+    public Dec withLambda(E.Lambda lambda) { return new Dec(name,gxs,lambda); }
   }
   @Override public String toString(){
     if(isInfer()){ return "infer"; }

@@ -35,6 +35,14 @@ public interface E {
 
       return String.format("[-%s %s-]%s{[%s] %s}", mdf, type, its(), selfName(), meths);
     }
+
+    public Lambda withSelfName(String selfName) {
+      return new Lambda(mdf(), its(), selfName, meths(), it());
+    }
+
+    public Lambda withMeths(List<Meth> ms) {
+      return new Lambda(mdf(), its(), selfName(), ms, it());
+    }
   }
   record MCall(E receiver,MethName name,Optional<List<T>>ts,List<E>es, T t)implements E{
     public MCall { assert name.num() == es.size(); }
@@ -57,6 +65,9 @@ public interface E {
   record Meth(Optional<Sig> sig,Optional<MethName> name, List<String>xs,Optional<E> body){
     public Meth {
       name.ifPresent(n->{ assert n.num() == xs.size(); });
+    }
+    public Meth withSig(Sig s) {
+      return new Meth(Optional.of(s), name(), xs(), body());
     }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));
