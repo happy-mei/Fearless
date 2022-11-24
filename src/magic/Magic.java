@@ -6,7 +6,6 @@ import id.Id;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 public class Magic {
   // NoMutHyg is a string because it exists with 1...∞ generics
@@ -22,8 +21,8 @@ public class Magic {
   }
   public static T.Dec getDec(Id.DecId id) {
     if(id.name().equals(noMutHyg)){
-      if(id.gen() == 0){ return null; } // TODO: make only 1 instead of >1
-      var gens = IntStream.range(0, id.gen()).mapToObj(i->new Id.GX<T>()).toList();
+      if(id.gen() != 1){ return null; }
+      var gens = List.of(new Id.GX<T>());
       return new T.Dec(new Id.DecId(noMutHyg, gens.size()), gens, new E.Lambda(
         Optional.empty(),
         List.of(),

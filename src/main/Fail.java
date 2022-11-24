@@ -51,6 +51,9 @@ public class Fail{
   public static CompileError conflictingMethParams(List<String> conflicts){return of(
     "Parameters on methods must have different names. The following parameters were conflicting: " + String.join(", ", conflicts));}
 
+  public static CompileError conflictingMethNames(List<String> conflicts){return of(
+    "Methods may not have the same name and number of parameters. The following methods were conflicting: " + String.join(", ", conflicts));}
+
   public static CompileError concreteTypeInFormalParams(T badType){return of(
     "Trait and method declarations may only have generic type parameters. This concrete type was provided instead:\n"+badType
       +"\nAlternatively, are you attempting to shadow an existing class name?"
@@ -98,6 +101,7 @@ enum ErrorCode {
   invalidNoMutHyg,
   expectedConcreteType,
   missingDecl,
-  invalidMethMdf;
+  invalidMethMdf,
+  conflictingMethNames;
   int code() {return this.ordinal() + 1;}
 }
