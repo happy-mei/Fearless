@@ -71,7 +71,7 @@ public class Program {
     Program p;
     InferSignatures(Program p){ this.p=p; this.decs = orderDecs(p.ds().values()); }
     private List<T.Dec> orderDecs(Collection<T.Dec>ds){
-      return ds.stream().sorted().collect(Collectors.toList());
+      return ds.stream().sorted(this::sortDec).collect(Collectors.toList());
     }
     private int sortDec(T.Dec d1,T.Dec d2){
       if(p.superDecIds(d1.name()).contains(d2.name())) { return -1; }
@@ -94,6 +94,7 @@ public class Program {
       return l.withMeths(ms);
     }
     Id.MethName onlyAbs(T.Dec dec){
+      // TODO: this probably needs to use meths and consider parent ITs too
       var absMeths = dec.lambda().meths().stream().filter(m->m.body().isEmpty()).toList();
       assert absMeths.size() == 1;
       return absMeths.get(0).name().orElseThrow();
