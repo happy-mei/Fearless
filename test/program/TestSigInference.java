@@ -41,13 +41,22 @@ public class TestSigInference {
     }
   }
 
-  @Test
-  void noInference() { ok("""
+  @Test void noInference() { ok("""
     {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{[fear0$]
       .fullType/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.A[]]->[-imm base.A[]-][base.A[]]{[null]}
     }]}
     """, """
     package base
     A:{ .fullType: A -> A }
+    """);}
+
+  @Test void oneParentImplTopDec() { ok("""
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{[fear0$]
+      .fullType/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.A[]]->[-imm base.A[]-][base.A[]]{[null]}
+    }]}
+    """, """
+    package base
+    A:{ .fullType: A }
+    B:A{ B }
     """);}
 }
