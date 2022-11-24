@@ -181,7 +181,7 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
 
   private Optional<CompileError> noMutHygValid(T.Dec dec) {
     return dec.lambda().its().stream()
-      .filter(it->it.name().name().equals(Magic.noMutHyg))
+      .filter(it->it.name().equals(Magic.noMutHyg))
       .flatMap(it->it.ts().stream())
       .<Optional<CompileError>>map(t->t.match(
           gx->dec.gxs().contains(gx) ? Optional.empty() : Optional.of(Fail.invalidNoMutHyg(t)),
