@@ -2,6 +2,7 @@ package wellFormedness;
 
 import main.CompileError;
 import main.Main;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import utils.Err;
@@ -35,7 +36,8 @@ public class TestIntegrationWellFormedness {
     try {
       var p = Parser.parseAll(ps);
       var error = new WellFormednessVisitor().visitProgram(p);
-      Err.strCmp(expectedErr, error.map(Object::toString).orElse(""));
+      if (error.isEmpty()) { Assertions.fail("Did not fail"); }
+      Err.strCmp(expectedErr, error.map(Object::toString).get());
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
     }
@@ -216,6 +218,24 @@ public class TestIntegrationWellFormedness {
     """, """
     package base
     A[T,T]:{ .foo(a: T, b: T): A }
+    """); }
+
+  @Test void noShadowingMeths() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    conflictingMethParams:7
+    Parameters on methods must have different names. The following parameters were conflicting: .a/0
+    """, """
+    package base
+    A:{ .a: A, .a: A }
+    """); }
+
+  @Test void noShadowingLambda() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    shadowingX:9
+    'hi' is shadowing another variable in scope.
+    """, """
+    package base
+    A:{[hi] .a: A -> A{[hi] .a() -> {} } }
     """); }
 
   @Test void noMutHygOk() { ok("""

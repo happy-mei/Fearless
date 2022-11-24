@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
     recMdf on mut //no because pointless
     recMdf on imm //no because pointless/broken
     recMdf on iso //no because pointless
-    recMdf on mdf or recMdf//no because not well formed alreadty
+    recMdf on mdf or recMdf//no because not well formed already
     imm break(obj:recMdf X,a:imm A):Void->a.foo(obj)
     TODO: we should reundestand why. For example if I have a mut method returning recMdf Foo
     TODO: would this return a capsule Foo when called on a capsule receiver?
@@ -145,7 +145,8 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
     return xs.stream().filter(x->this.env.has(x)).findFirst().map(x->Fail.shadowingGX(x.name()));
   }
   private Optional<CompileError> hasNonDisjointMs(E.Lambda e) {
-    return hasNonDisjointAux(e.meths(),e,
+    // TODO: this produces an incorrect error message about shadowing on method params
+    return hasNonDisjointAux(e.meths(), e,
       m->m.name().map(Object::toString).orElse("<unnamed>/"+m.xs().size()));
   }
   private Optional<CompileError> hasNonDisjointXs(List<String> xs, E.Meth e) {

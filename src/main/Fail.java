@@ -61,7 +61,7 @@ public class Fail{
   public static CompileError isoInTypeArgs(T badType){return of(
     "The iso reference capability may not be used in type modifiers:\n"+badType
   );}
-  public static CompileError shadowingX(String x){return of("Local variable "+x+" is shadowing another variable in scope.");}
+  public static CompileError shadowingX(String x){return of(String.format("'%s' is shadowing another variable in scope.", x));}
 
   public static CompileError shadowingGX(String x){return of("Type variable "+x+" is shadowing another type variable in scope.");}
 
