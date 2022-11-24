@@ -145,18 +145,21 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
     return xs.stream().filter(x->this.env.has(x)).findFirst().map(x->Fail.shadowingGX(x.name()));
   }
   private Optional<CompileError> hasNonDisjointMs(E.Lambda e) {
-    // TODO: this produces an incorrect error message about shadowing on method params
-    return hasNonDisjointAux(e.meths(), e,
-      m->m.name().map(Object::toString).orElse("<unnamed>/"+m.xs().size()));
+    return hasNonDisjointAux(
+      e.meths(),
+      e,
+      m->m.name().map(Object::toString).orElse("<unnamed>/"+m.xs().size()),
+      Fail::conflictingMethNames
+    );
   }
   private Optional<CompileError> hasNonDisjointXs(List<String> xs, E.Meth e) {
-    return hasNonDisjointAux(xs,e,x->x);
+    return hasNonDisjointAux(xs,e,x->x,Fail::conflictingMethParams);
   }
   private Optional<CompileError> hasNonDisjointXs(List<String> xs, T.Dec d) {
-    return hasNonDisjointAux(xs,d,x->x);
+    return hasNonDisjointAux(xs,d,x->x,Fail::conflictingMethParams);
   }
 
-  private <TT> Optional<CompileError> hasNonDisjointAux(List<TT> xs, Object e, Function<TT,String> toS) {
+  private <TT> Optional<CompileError> hasNonDisjointAux(List<TT> xs, Object e, Function<TT,String> toS, Function<List<String>, CompileError> errF) {
     var all = new ArrayList<>(xs);
     xs.stream().distinct().forEach(all::remove);
     if (all.isEmpty()) {
@@ -166,7 +169,7 @@ public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileEr
       .collect(Collectors.groupingBy(toS))
       .keySet().stream()
       .toList();
-    return Optional.of(Fail.conflictingMethParams(conflicts).pos(PosMap.getOrUnknown(e)));
+    return Optional.of(errF.apply(conflicts).pos(PosMap.getOrUnknown(e)));
   }
   private Optional<CompileError> noCyclicImplRelations(Program p) {
     for(var key:p.ds().keySet()){

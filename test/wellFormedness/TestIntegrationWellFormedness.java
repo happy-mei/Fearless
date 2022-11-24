@@ -222,8 +222,8 @@ public class TestIntegrationWellFormedness {
 
   @Test void noShadowingMeths() { fail("""
     In position [###]/Dummy0.fear:2:2
-    conflictingMethParams:7
-    Parameters on methods must have different names. The following parameters were conflicting: .a/0
+    conflictingMethNames:17
+    Methods may not have the same name and number of parameters. The following methods were conflicting: .a/0
     """, """
     package base
     A:{ .a: A, .a: A }
@@ -268,21 +268,6 @@ public class TestIntegrationWellFormedness {
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
-  @Test void noMutHygOkMulti() { ok("""
-    package base
-    alias base.NoMutHyg as NoMutHyg,
-    Sealed:{} Void:{}
-    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-    Let[V,R]:{ .var:V, .in(v:V):R }
-    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-    Ref[X,Y]:NoMutHyg[X,Y],Sealed{
-      read * : recMdf X,
-      mut .swap(x: mdf X): mdf X,
-      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
-    }
-    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
-    """); }
   @Test void noMutHygConcrete() { fail("""
     In position [###]/Dummy0.fear:7:0
     concreteInNoMutHyg:12
@@ -316,26 +301,6 @@ public class TestIntegrationWellFormedness {
     Let[V,R]:{ .var:V, .in(v:V):R }
     Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
     Ref[X]:NoMutHyg[X],NoMutHyg[Ref],Sealed{
-      read * : recMdf X,
-      mut .swap(x: mdf X): mdf X,
-      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
-    }
-    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
-    """); }
-  @Test void noMutHygConcreteMulti() { fail("""
-    In position [###]/Dummy0.fear:7:0
-    concreteInNoMutHyg:12
-    The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:
-    imm base.Ref[]
-    """, """
-    package base
-    alias base.NoMutHyg as NoMutHyg,
-    Sealed:{} Void:{}
-    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-    Let[V,R]:{ .var:V, .in(v:V):R }
-    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-    Ref[X]:NoMutHyg[X, Ref],Sealed{
       read * : recMdf X,
       mut .swap(x: mdf X): mdf X,
       mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
