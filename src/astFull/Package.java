@@ -7,7 +7,7 @@ import main.Fail;
 import utils.Range;
 import utils.Streams;
 import visitors.FullEAntlrVisitor;
-import wellFormedness.WellFormednessVisitor;
+import wellFormedness.WellFormednessFullShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -44,7 +44,7 @@ public record Package(
   }
   public static Package merge(List<T.Alias>global,List<Package>ps) {
     assert checks(global, ps);
-    var wellFormednessVisitor = new WellFormednessVisitor();
+    var wellFormednessVisitor = new WellFormednessFullShortCircuitVisitor();
     topDecDisj(ps);
     var allAliases = mergeAlias(global, ps);
     aliasDisj(allAliases);

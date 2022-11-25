@@ -1,7 +1,7 @@
 package id;
 
-import astFull.T;
 import parser.Parser;
+import utils.Bug;
 
 import java.util.List;
 import java.util.function.Function;
@@ -36,10 +36,14 @@ public class Id {
 
   public record GX<TT>(String name)implements RT<TT>{
     private static int FRESH_N = 0;
-    public static void reset() { FRESH_N = 0; }
+    public static void reset() {
+      if (FRESH_N > 100) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
+      FRESH_N = 0;
+    }
     public GX{assert Id.validGX(name);}
     public GX(){
       this("Fear" + FRESH_N++ + "$");
+      if (FRESH_N == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
     }
     public <R> R match(Function<GX<TT>,R>gx, Function<IT<TT>,R>it){ return gx.apply(this); }
     @Override public String toString(){ return name(); }

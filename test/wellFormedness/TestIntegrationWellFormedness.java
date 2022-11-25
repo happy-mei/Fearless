@@ -9,7 +9,6 @@ import utils.Err;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,7 +21,7 @@ public class TestIntegrationWellFormedness {
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
     var p = Parser.parseAll(ps);
-    var res = new WellFormednessVisitor().visitProgram(p);
+    var res = new WellFormednessFullShortCircuitVisitor().visitProgram(p);
     var isWellFormed = res.isEmpty();
     assertTrue(isWellFormed, res.map(Object::toString).orElse(""));
   }
@@ -35,7 +34,7 @@ public class TestIntegrationWellFormedness {
 
     try {
       var p = Parser.parseAll(ps);
-      var error = new WellFormednessVisitor().visitProgram(p);
+      var error = new WellFormednessFullShortCircuitVisitor().visitProgram(p);
       if (error.isEmpty()) { Assertions.fail("Did not fail"); }
       Err.strCmp(expectedErr, error.map(Object::toString).get());
     } catch (CompileError e) {

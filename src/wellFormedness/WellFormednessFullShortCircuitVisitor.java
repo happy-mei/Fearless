@@ -8,8 +8,8 @@ import id.Mdf;
 import magic.Magic;
 import main.CompileError;
 import main.Fail;
-import program.Program;
-import visitors.FullCollectorVisitorWithEnv;
+import astFull.Program;
+import visitors.FullShortCircuitVisitorWithEnv;
 
 import java.util.*;
 import java.util.function.Function;
@@ -63,7 +63,7 @@ Evil:Main{
     .var[imm Person]{ a.multiGet(p, r) } // I now have an imm and mut refs to the same person
     ...
  */
-public class WellFormednessVisitor extends FullCollectorVisitorWithEnv<CompileError> {
+public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisitorWithEnv<CompileError> {
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
     return e.ts().flatMap(this::noIsoParams)
       .or(()->super.visitMCall(e))

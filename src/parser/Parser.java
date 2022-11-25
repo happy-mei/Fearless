@@ -11,7 +11,7 @@ import generated.FearlessParser.NudeEContext;
 import generated.FearlessParser.NudeProgramContext;
 import id.Id;
 import org.antlr.v4.runtime.*;
-import program.Program;
+import astFull.Program;
 import utils.Bug;
 import visitors.FullEAntlrVisitor;
 
@@ -74,6 +74,17 @@ public record Parser(Path fileName,String content){
       //TODO: better errors below
       if(!errorst.isEmpty()){ return orElse.apply(errorst.toString()); }
       return orElse.apply(errorsp.toString());
+  }
+  public astFull.T parseFullT(Function<String,Optional<Id.IT<T>>> resolve){
+    var l = new FearlessLexer(CharStreams.fromString(content));
+    var p = new FearlessParser(new CommonTokenStream(l));
+    var errorst = new StringBuilder();
+    var errorsp = new StringBuilder();
+    FailConsole.setFail(fileName, l, p, errorst, errorsp);
+    FearlessParser.NudeTContext res = p.nudeT();
+    var ok = errorst.isEmpty() && errorsp.isEmpty();
+    if(ok){ return new FullEAntlrVisitor(fileName,resolve).visitNudeT(res); }
+    throw Bug.unreachable();
   }
   
   public boolean parseX(){ return parseId(p->p.nudeX().getText());}

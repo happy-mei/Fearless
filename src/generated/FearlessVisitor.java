@@ -161,6 +161,12 @@ public interface FearlessVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitNudeFullCN(FearlessParser.NudeFullCNContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link FearlessParser#nudeT}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNudeT(FearlessParser.NudeTContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link FearlessParser#nudeProgram}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
