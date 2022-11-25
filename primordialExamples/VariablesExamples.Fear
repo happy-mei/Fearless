@@ -411,4 +411,22 @@ student //Stream<Student,List<Int>>
 
 
 
-  
+  Foo:{.m[X](x:X):List[X]}
+
+
+  ... Foo{
+    x-> Set[X]#.add(x)
+    .m[T](x:T):List[T]-> Set[X]#.add(x)
+
+all inferred X are fresh
+
+
+
+A0:{ Point m }
+A1:{ CPoint m }
+A:A0,A1{} //CPpoint m
+B:A{ k=m  mi->e}
+B1:A0,A1{ k=m  mi->e}
+
+
+    }

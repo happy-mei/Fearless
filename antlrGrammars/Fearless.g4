@@ -91,6 +91,7 @@ nudeE : e EOF;
 nudeX : x EOF;
 nudeM : m EOF;
 nudeFullCN : fullCN EOF;
+nudeT : t EOF;
 
 Pack: 'package ' (PX '.')* PX '\n';
 nudeProgram: Pack alias* topDec* EOF;

@@ -5,13 +5,13 @@ import astFull.T;
 import id.Id;
 import id.Id.MethName;
 import id.Mdf;
-import program.Program;
+import astFull.Program;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public interface FullCollectorVisitor<R> {
+public interface FullShortCircuitVisitor<R> extends FullVisitor<Optional<R>> {
   default Optional<R> visitMeth(E.Meth e){
     return e.sig().flatMap(this::visitSig)
       .or(()->e.name().flatMap(this::visitMethName))

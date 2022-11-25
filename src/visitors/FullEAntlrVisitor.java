@@ -192,9 +192,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     return t.match(gx->{throw Fail.expectedConcreteType(t);}, it->it);
   }
   @Override
-  public T visitT(TContext ctx) {
-    return visitT(ctx,true);
-  }
+  public T visitNudeT(NudeTContext ctx) { return visitT(ctx.t()); }
+  @Override
+  public T visitT(TContext ctx) { return visitT(ctx,true); }
   public T visitT(TContext ctx, boolean canMdf) {
     if(!canMdf && !ctx.mdf().getText().isEmpty()){
       throw Bug.todo();

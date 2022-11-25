@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public interface CollectorVisitor<R>{
+public interface ShortCircuitVisitor<R> extends Visitor<Optional<R>> {
   default Optional<R> visitMeth(E.Meth e){
     return visitSig(e.sig())
       .or(()->visitMethName(e.name()))
