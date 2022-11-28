@@ -28,17 +28,10 @@ public class TestSubTyping {
   }
   void ok(String expected, String... content){
     var p=fromContent(content);
-
     Err.strCmpFormat(expected, "TODO");
   }
   void fail(String expectedErr, String... content){
-    Main.resetAll();
-    AtomicInteger pi = new AtomicInteger();
-    var ps = Arrays.stream(content)
-      .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
-      .toList();
-    var p = Parser.parseAll(ps);
-    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
+    var p=fromContent(content);
 
     try {
       // TODO: do subtyping
