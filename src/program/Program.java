@@ -27,13 +27,13 @@ public interface Program {
       case recMdf, mdf -> throw Bug.unreachable();
     };
   }
-  default boolean isSubTypeTransitive(T t1, T t2) { throw Bug.todo(); }
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }
   default boolean isSubType(T t1, T t2) {
+    if (!t1.isIt() || !t2.isIt()) { return false; }
     var isMdfOk = isSubType(t1.mdf(), t2.mdf());
     var isITOk = isDirectSubType(t1, t2) || isAdaptSubType(t1, t2);
     // TODO: more, transitive, etc.
-    return isMdfOk && isITOk;
+    return (isMdfOk && isITOk) || isTransitiveSubType(t1.itOrThrow(), t2.itOrThrow());
   }
   default boolean isDirectSubType(T t1, T t2) {
     /*
@@ -231,14 +231,18 @@ public interface Program {
     return Optional.empty();
   }
 
-  default boolean isTransitiveSubType(T t1, T t2) {
+  default boolean isTransitiveSubType(Id.IT<T> t1, Id.IT<T> t3) {
   /*
   MDF IT1 < MDF IT3
   where
     MDF IT1 < MDF IT2
     MDF IT2 < MDF IT3
   */
-    throw Bug.todo();
+    return itsOf(t1).stream()
+      .anyMatch(t2->
+        isSubType(new T(Mdf.mdf, t1), new T(Mdf.mdf, t2))
+        && isSubType(new T(Mdf.mdf, t2), new T(Mdf.mdf, t3))
+      );
   }
 
   default Id.IT<ast.T> liftIT(Id.IT<astFull.T>it){
