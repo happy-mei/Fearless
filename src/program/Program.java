@@ -2,8 +2,10 @@ package program;
 
 import ast.T;
 import astFull.E;
+import astFull.PosMap;
 import id.Id;
 import id.Mdf;
+import main.Fail;
 import utils.Bug;
 import utils.Pop;
 import utils.Push;
@@ -13,9 +15,11 @@ import visitors.InjectionVisitor;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface Program {
   List<Id.IT<T>> itsOf(Id.IT<T> t);
+  List<CM> cMsOf(Id.IT<T> t);
 
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1==m2){ return true; }
@@ -29,23 +33,21 @@ public interface Program {
   }
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }
   default boolean isSubType(T t1, T t2) {
-    if (!t1.isIt() || !t2.isIt()) { return false; }
-    var isMdfOk = isSubType(t1.mdf(), t2.mdf());
-    var isITOk = isDirectSubType(t1, t2) || isAdaptSubType(t1, t2);
+    if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
+    if(t1.rt().equals(t2.rt())){ return true; }
+    if(!t1.isIt() || !t2.isIt()){ return false; }
+
+    var isITOk = isTransitiveSubType(t1, t2);//isMdfOk && (isDirectSubType(t1, t2) || isAdaptSubType(t1, t2));
     // TODO: more, transitive, etc.
-    return (isMdfOk && isITOk) || isTransitiveSubType(t1.itOrThrow(), t2.itOrThrow());
+    return isITOk;
   }
-  default boolean isDirectSubType(T t1, T t2) {
-    /*
-    MDF C[T1..Tn]<MDF C'[Ts]
-    where
-      C[X1..Xn]:ITs {_}
-      C'[Ts] in ITs[X1..Xn=T1..Tn]
-     */
-    // can simplify to a DecId comparison because name and gen count is what matters here
-    return itsOf(t2.itOrThrow()).stream()
-      .anyMatch(it->it.name().equals(t1.itOrThrow().name()));
-  }
+  /*default boolean isDirectSubType(T t1, T t2) {
+    //MDF C[T1..Tn]<MDF C'[Ts]
+    //where
+    //  C[X1..Xn]:ITs {_}
+    //  C'[Ts] in ITs[X1..Xn=T1..Tn]
+    return itsOf(t1.itOrThrow()).stream().anyMatch(it->it.equals(t2.itOrThrow()));
+  }*/
 
   default boolean isAdaptSubType(T t1, T t2) {
   /*MDF C[T1..Tn]< MDF C[T1'..Tn']
@@ -110,8 +112,21 @@ public interface Program {
     public Mdf mdf() { return sig().mdf(); }
     public T ret() { return sig().ret(); }
     public boolean isAbs(){ return m.isAbs(); }
+
+    @Override public String toString() {
+      return c+","+mdf()+" "+name()+"("+String.join(",", m.xs())+")"
+        +sig.gens()+sig.ts()+":"+ret()
+        +(isAbs()?"abs":"impl");
+    }
   }
   default List<CM> meths(Id.IT<T> it) {
+    List<CM> cms = Stream.concat(
+      cMsOf(it).stream(),
+      itsOf(it).stream().flatMap(iti->meths(iti).stream())
+    ).toList();
+    return prune(cms);
+  }
+  default List<CM> meths(astFull.T.Dec dec) {
     /*
     #Define meths(C[Ts])=CMs   meths(C[Xs]:MDF B)=CMs            IT<<Ms
       meths(C[Ts]) = prune(C[Ts]<<Ms[Xs=Ts], meths(IT1[Xs=Ts]),..,meths(ITn[Xs=Ts]))
@@ -125,6 +140,7 @@ public interface Program {
       IT<< sig, Ms = norm(IT.sig), IT<<Ms
      */
     // uh oh...
+
     throw Bug.todo();
   }
 
@@ -159,11 +175,17 @@ public interface Program {
     var cmsMap = cms.stream()
       .collect(Collectors.groupingBy(CM::name));
     return cmsMap.values().stream()
-      .map(this::pruneAux)
+      .map(cmsi->pruneAux(cmsi,cmsi.size()+1))
       .toList();
   }
 
-  default CM pruneAux(List<CM> cms) {
+  default CM pruneAux(List<CM> cms,int limit) {
+    if(limit==0){
+      throw Fail.uncomposableMethods(cms.stream()
+        .map(cm->Fail.conflict(PosMap.getOrUnknown(cm.sig()), cm.toString()))
+        .toList()
+      );
+    }
     /*
     pruneAux(CM) = CM
     pruneAux(CM0..CMn)= pruneAux(CMs) where
@@ -171,78 +193,83 @@ public interface Program {
       n > 0
       CMs.size < n //else error
      */
-    if (cms.size() == 1) { return cms.get(0); }
-    var nextCms = allCases(cms);
-    assert cms.size() > 1;
-    assert nextCms.size() < cms.size();
-    return pruneAux(nextCms);
+    assert cms.size() >= 1;
+    var first=cms.get(0);
+    if (cms.size() == 1) { return first; }
+    var nextCms=cms.stream().skip(1)
+      .filter(cmi->!firstIsMoreSpecific(first, cmi))
+      .toList();
+    return pruneAux(Push.of(nextCms,first),limit-1);
   }
 
-  default List<CM> allCases(List<CM> cms) {
-    /*
+  /*default List<CM> allCases(List<CM> cms) {
+
     allCases(CMs) = CMs.enumerate().permutations(2)
       .filter(<<i,m1>,<j,m2>> -> i < j)
       .map(<<i,m1>,<j,m2>>->selectMoreSpecific(m1,m2)).toList()
-     */
+
     var res = new LinkedHashSet<CM>();
     for (int i : Range.of(cms)) {
       for (int j : Range.of(cms)) {
-        if (i < j) { continue; }
+        if (i <= j) { continue; }
         res.add(selectMoreSpecific(cms.get(i), cms.get(j)));
       }
     }
     return res.stream().toList();
-  }
+  }*/
 
-  default CM selectMoreSpecific(CM a, CM b) {
+  // TODO: Write some tests to check that this is transitive
+  /*default CM selectMoreSpecific(CM a, CM b) {
     return selectMoreSpecificAux(a,b)
       .or(()->selectMoreSpecificAux(b,a))
-      .orElseThrow(()->Bug.todo("better error"));
-  }
-  default Optional<CM> selectMoreSpecificAux(CM a, CM b) {
+      .orElseThrow(()->Fail.uncomposableMethods(a.c(), b.c()));
+  }*/
+  default boolean firstIsMoreSpecific(CM a, CM b) {
       /*
       selectMoreSpecific(CM1,CM2) = CMi
         where
           CMi = Ci[Tsi] . MDF m[Xs](G):Ti e?i //Xs (not Xsi) requires the same (normed) Xs
           {j} = {1,2}\i
+          not Ds|- Cj[Tsj]<=Ci[Tsi]
           either
            - Ds|- Ci[Tsi]<=Cj[Tsj] and Ds|- Ti<=Tj
            - e?j is empty and Ti = Tj//only not derm on syntactically eq
            - e?j is empty, Ds|- Ti<=Tj and not Ds|- Tj<=Ti
        */
     assert a.name().equals(b.name());
+    var ta = new T(Mdf.mdf, a.c());
+    var tb = new T(Mdf.mdf, b.c());
+    if(isSubType(tb, ta)){ return false; }
     var ok=a.sig().gens().equals(b.sig().gens())
-      && b.sig().ts().equals(b.sig().ts())
+      && a.sig().ts().equals(b.sig().ts())
       && a.mdf()==b.mdf();
-    if(!ok){ return Optional.empty(); }
+    if(!ok){ return false; }
 
-    var isSubType = isSubType(new T(Mdf.mdf, a.c()), new T(Mdf.mdf, b.c()))
-      && isSubType(a.ret(), b.ret());
-    if(isSubType){ return Optional.of(a); }
+    var isSubType = isSubType(ta, tb) && isSubType(a.ret(), b.ret());
+    if(isSubType){ return true; }
 
     var is1AbsAndRetEq = b.isAbs() && a.ret().equals(b.ret());
-    if(is1AbsAndRetEq){ return Optional.of(a); }
+    if(is1AbsAndRetEq){ return true; }
 
     var is1AbsAndRetSubtype = b.isAbs()
       && isSubType(a.ret(), b.ret())
       && !isSubType(b.ret(), a.ret());
-    if(is1AbsAndRetSubtype){ return Optional.of(a); }
+    if(is1AbsAndRetSubtype){ return true; }
 
-    return Optional.empty();
+    return false;
   }
 
-  default boolean isTransitiveSubType(Id.IT<T> t1, Id.IT<T> t3) {
+  default boolean isTransitiveSubType(T t1, T t3) {
   /*
   MDF IT1 < MDF IT3
   where
     MDF IT1 < MDF IT2
     MDF IT2 < MDF IT3
   */
-    return itsOf(t1).stream()
-      .anyMatch(t2->
-        isSubType(new T(Mdf.mdf, t1), new T(Mdf.mdf, t2))
-        && isSubType(new T(Mdf.mdf, t2), new T(Mdf.mdf, t3))
-      );
+    var mdf = t1.mdf();
+    if (mdf != t3.mdf()) { return false; }
+    return itsOf(t1.itOrThrow()).stream()
+      .anyMatch(t2->isSubType(new T(mdf, t2), t3));
   }
 
   default Id.IT<ast.T> liftIT(Id.IT<astFull.T>it){

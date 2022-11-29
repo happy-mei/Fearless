@@ -25,9 +25,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public record Parser(Path fileName,String content){
-  public Parser of(String fileName){
-    return of(Paths.get(fileName));
-  }
+  public Parser of(String fileName){ return of(Paths.get(fileName)); }
   public static final Path dummy = Path.of("Dummy.fear");
   public Parser of(Path path){
     assert Files.exists(path);
@@ -75,7 +73,7 @@ public record Parser(Path fileName,String content){
       if(!errorst.isEmpty()){ return orElse.apply(errorst.toString()); }
       return orElse.apply(errorsp.toString());
   }
-  public astFull.T parseFullT(Function<String,Optional<Id.IT<T>>> resolve){
+  public astFull.T parseFullT(){
     var l = new FearlessLexer(CharStreams.fromString(content));
     var p = new FearlessParser(new CommonTokenStream(l));
     var errorst = new StringBuilder();
@@ -83,7 +81,7 @@ public record Parser(Path fileName,String content){
     FailConsole.setFail(fileName, l, p, errorst, errorsp);
     FearlessParser.NudeTContext res = p.nudeT();
     var ok = errorst.isEmpty() && errorsp.isEmpty();
-    if(ok){ return new FullEAntlrVisitor(fileName,resolve).visitNudeT(res); }
+    if(ok){ return new FullEAntlrVisitor(fileName,s->Optional.empty()).visitNudeT(res); }
     throw Bug.unreachable();
   }
   
