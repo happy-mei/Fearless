@@ -240,7 +240,7 @@ public class TestMeths {
     B:{ .m: Num }
     """); }
   @Test void t4a() { ok("""
-    
+    [a.A[],imm.m/0()[][]:imma.A[]abs]
     """, "a.A", """
     package a
     A:B,C { .m: A }
