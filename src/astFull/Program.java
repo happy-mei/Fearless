@@ -4,6 +4,7 @@ import id.Id;
 import magic.Magic;
 import utils.Bug;
 import utils.Range;
+import visitors.InjectionVisitor;
 
 import java.util.*;
 import java.util.function.Function;
@@ -31,7 +32,17 @@ public class Program implements program.Program{
     Function<Id.GX<ast.T>, ast.T> f = renameFun(t.ts(), gxs);
     return d.lambda().its().stream().map(ti->rename(liftIT(ti),f)).toList();
   }
-
+  @Override public List<CM> cMsOf(Id.IT<ast.T> t){
+    var d=of(t.name());
+    assert t.ts().size()==d.gxs().size();
+    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
+    Function<Id.GX<ast.T>, ast.T> f = renameFun(t.ts(), gxs);
+    return d.lambda().meths().stream().map(mi->cm(t,mi,f)).toList();
+  }
+  private CM cm(Id.IT<ast.T> t,astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
+    var sig=mi.sig().orElseThrow();
+    return new CM(t,mi,rename(new InjectionVisitor().visitSig(sig),f));
+  }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
 
   private final HashMap<Id.DecId, Set<Id.DecId>> superDecIdsCache = new HashMap<>();
