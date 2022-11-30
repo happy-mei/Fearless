@@ -113,6 +113,9 @@ public interface Program {
     public T ret() { return sig().ret(); }
     public boolean isAbs(){ return m.isAbs(); }
 
+    public String toStringSimplified() {
+      return c+", "+name();
+    }
     @Override public String toString() {
       return c+","+mdf()+" "+name()+"("+String.join(",", m.xs())+")"
         +sig.gens()+sig.ts()+":"+ret()
@@ -144,26 +147,7 @@ public interface Program {
     throw Bug.todo();
   }
 
-  default List<CM> toCM(Id.IT<ast.T> it,List<E.Meth>ms,List<Id.GX<ast.T>>gxs){
-    return ms.stream()
-      .filter(m->m.sig().isPresent())
-      .map(m->new CM(
-        it,
-        m,
-        norm(rename(
-          m.sig().orElseThrow().accept(new InjectionVisitor()),
-          renameFun(it.ts(), gxs)
-        ))
-      ))
-      .toList();
-    }
-
   default ast.E.Sig norm(ast.E.Sig s) {
-    throw Bug.todo();
-  }
-
-  default ast.E.Sig updateGxs(E.Meth m, List<Id.GX<ast.T>> gxs, List<ast.T> ts){
-    var sig=m.sig().orElseThrow();
     throw Bug.todo();
   }
 
@@ -182,10 +166,11 @@ public interface Program {
   default CM pruneAux(List<CM> cms,int limit) {
     if(limit==0){
       throw Fail.uncomposableMethods(cms.stream()
-        .map(cm->Fail.conflict(PosMap.getOrUnknown(cm.sig()), cm.toString()))
+        .map(cm->Fail.conflict(PosMap.getOrUnknown(cm.m()), cm.toStringSimplified()))
         .toList()
       );
     }
+    // TODO: I think CMs should be dedup'd see TestMeths.t15. We lost that when we left allCases
     /*
     pruneAux(CM) = CM
     pruneAux(CM0..CMn)= pruneAux(CMs) where
@@ -198,7 +183,10 @@ public interface Program {
     if (cms.size() == 1) { return first; }
     var nextCms=cms.stream().skip(1)
       .filter(cmi->!firstIsMoreSpecific(first, cmi))
+      .distinct()
       .toList();
+
+    if (nextCms.size() == 1 && nextCms.get(0).equals(first)) { return pruneAux(List.of(first),limit-1); }
     return pruneAux(Push.of(nextCms,first),limit-1);
   }
 
