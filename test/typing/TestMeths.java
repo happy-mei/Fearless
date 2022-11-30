@@ -197,7 +197,10 @@ public class TestMeths {
     """); }
   @Test void clashRt() { fail("""
     uncomposableMethods:18
-    Could not compose the methods in the traits a.A[] and a.B[].
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:4) a.A[], .foo/1
+    ([###]/Dummy0.fear:4:5) a.B[], .foo/1
     """, "a.B", """
     package a
     Str:{} Num:{}
@@ -256,7 +259,10 @@ public class TestMeths {
     """); }
   @Test void t4b() { fail("""
     uncomposableMethods:18
-    Could not compose the methods in the traits a.C[] and a.B[].
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:4:4) a.C[], .m/0
+    ([###]/Dummy0.fear:3:4) a.B[], .m/0
     """, "a.A", """
     package a
     A:B,C { }
@@ -265,7 +271,10 @@ public class TestMeths {
     """); }
   @Test void t4c() { fail("""
     uncomposableMethods:18
-    Could not compose the methods in the traits a.C[] and a.B[].
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:6:4) a.C[], .m/0
+    ([###]/Dummy0.fear:5:4) a.B[], .m/0
     """, "a.A", """
     package a
     A:AA { .m: Num}
@@ -343,8 +352,8 @@ public class TestMeths {
     uncomposableMethods:18
     These methods could not be composed.
     conflicts:
-    (file:///home/nick/Programming/uni/fearless/Dummy0.fear:4:4) a.C[], .m/1
-    (file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:4) a.B[], .m/1
+    ([###]/Dummy0.fear:4:4) a.C[], .m/1
+    ([###]/Dummy0.fear:3:4) a.B[], .m/1
     """, "a.A", """
     package a
     A:B,C{}
@@ -384,8 +393,8 @@ public class TestMeths {
     uncomposableMethods:18
     These methods could not be composed.
     conflicts:
-    (file:///home/nick/Programming/uni/fearless/Dummy0.fear:5:6) a.K[imm a.List[imm a.A[]]], .kk/0
-    (file:///home/nick/Programming/uni/fearless/Dummy0.fear:5:6) a.K[imm a.A[]], .kk/0
+    ([###]/Dummy0.fear:5:6) a.K[imm a.List[imm a.A[]]], .kk/0
+    ([###]/Dummy0.fear:5:6) a.K[imm a.A[]], .kk/0
     """, "a.A", """
     package a
     A:B[A],C[List[A]]{}
@@ -409,8 +418,8 @@ public class TestMeths {
     uncomposableMethods:18
     These methods could not be composed.
     conflicts:
-    (file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:3) a.B[], .m/0
-    (file:///home/nick/Programming/uni/fearless/Dummy0.fear:2:4) a.A[], .m/0
+    ([###]/Dummy0.fear:3:3) a.B[], .m/0
+    ([###]/Dummy0.fear:2:4) a.A[], .m/0
     """, "a.A", """
     package a
     A:B{.m:A}
@@ -422,15 +431,32 @@ public class TestMeths {
     package a
     A:B{ .m[X]:A }
     B:{ .m[X]:A->this}
-    """); } // TODO: Check this with the formalism
-  @Test void t20() { ok("""
-    """, "a.A", """
+    """); }
+  @Test void t20a() { ok("""
+    [a.A[immX],imm.foo/0()[][]:immXabs,a.B[],imm.m/0()[X][]:imma.A[imma.B[]]impl]
+    """, "a.A[X]", """
     package a
     A[X]:B{ .foo:X }
-    B:{.m[X]:A->this}
-    """); } // TODO: This is not valid-- A/0 does nto exist
+    B:{.m[X]:A[B]->this}
+    """); }
+  @Test void t20b() { ok("""
+    [a.A[imma.A[]],imm.foo/0()[][]:imma.A[]abs,a.B[],imm.m/0()[X][]:imma.A[imma.B[]]impl]
+    """, "a.A[a.A]", """
+    package a
+    A[X]:B{ .foo:X }
+    B:{.m[X]:A[B]->this}
+    """); }
+  @Test void t20c() { ok("""
+    [a.A[imma.B[]],imm.foo/0()[][]:imma.B[]abs,a.B[],imm.m/0()[X][]:imma.A[imma.B[]]impl]
+    """, "a.A[a.B]", """
+    package a
+    A[X]:B{ .foo:X }
+    B:{.m[X]:A[B]->this}
+    """); }
   @Test void t21() { ok("""
-    """, "a.A", """
+    [a.A[immPanic],imm.foo/0()[][]:imm Panic abs,
+    a.B[immPanic],imm.m/0()[X][]:imma.Bi[immX,immPanic]impl]
+    """, "a.A[Panic]", """
     package a
     A[X]:B[X]{ .foo:X }
     B[Y]:{.m[X]:Bi[X,Y]->this}

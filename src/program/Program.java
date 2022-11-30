@@ -63,12 +63,32 @@ public interface Program {
       filterByMdf(MDF0, meths(C[Ts1]) = Ms1
       filterByMdf(MDF0, meths(C[Ts2]) = Ms2
       forall MDF m[Xs](G1):T1 _,MDF m[Xs](G2):T2 _ in mWisePairs(Ms1,Ms2)
-      G2,inner:MDF0 C[Ts1] |- inner.m[Xs](G2.xs) : T2
+        G2, this:MDF0 C[Ts1] |- this.m[Xs](G2.xs) : T2
      */
     var it1 = t1.itOrThrow();
     var it2 = t2.itOrThrow();
     var ms1 = filterByMdf(mdf, meths(it1).stream().map(cn->cn.m).toList());
     var ms2 = filterByMdf(mdf, meths(it2).stream().map(cn->cn.m).toList());
+    var mWisePairs = Stream.concat(ms1.stream(), ms2.stream())
+      .collect(Collectors.groupingBy(E.Meth::name))
+      .values().stream()
+      .allMatch(ms->{
+        assert ms.size() == 2;
+        var m1 = ms.get(0);
+        var m2 = ms.get(1);
+        var recv = new ast.E.X("this");
+        var recvT = t1;
+        var xs=Push.of(m1.xs(),"this");
+        var ts=Push.of(m2.sig().orElseThrow().ts(),t1);
+        var gxs = m1.sig().orElseThrow().gens().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList();
+        var e=new ast.E.MCall(recv,m1.name().orElseThrow(), gxs, m1.xs().stream().<ast.E>map(ast.E.X::new).toList());
+        return typeOf(xs,ts,e).equals(m2.sig().orElseThrow().ret());
+      })
+
+    throw Bug.todo();
+  }
+
+  default boolean typeOf(List<String>xs,List<ast.T>ts,ast.E e,ast.T res) {
     throw Bug.todo();
   }
 
@@ -157,6 +177,7 @@ public interface Program {
       where CMs1..CMsn = groupByM(norm(CMs)) //groupByM(CMs)=CMss groups for the same m,n
      */
     var cmsMap = cms.stream()
+      .distinct()
       .collect(Collectors.groupingBy(CM::name));
     return cmsMap.values().stream()
       .map(cmsi->pruneAux(cmsi,cmsi.size()+1))
@@ -170,7 +191,6 @@ public interface Program {
         .toList()
       );
     }
-    // TODO: I think CMs should be dedup'd see TestMeths.t15. We lost that when we left allCases
     /*
     pruneAux(CM) = CM
     pruneAux(CM0..CMn)= pruneAux(CMs) where
@@ -183,10 +203,8 @@ public interface Program {
     if (cms.size() == 1) { return first; }
     var nextCms=cms.stream().skip(1)
       .filter(cmi->!firstIsMoreSpecific(first, cmi))
-      .distinct()
       .toList();
 
-    if (nextCms.size() == 1 && nextCms.get(0).equals(first)) { return pruneAux(List.of(first),limit-1); }
     return pruneAux(Push.of(nextCms,first),limit-1);
   }
 
@@ -277,9 +295,13 @@ public interface Program {
       rename(sig.ret(),f)
       );
     }
-  default ast.T rename(ast.T t,Function<Id.GX<ast.T>,ast.T>f){
+  default ast.T rename(ast.T t, Function<Id.GX<ast.T>,ast.T>f){
     return t.match(
-      gx->propagateMdf(t.mdf(),f.apply(gx)),
+      gx->{
+        var renamed = f.apply(gx);
+        if(renamed==null){ return t; }
+        return propagateMdf(t.mdf(),renamed);
+      },
       it->new ast.T(t.mdf(),rename(it,f))
     );
   }
