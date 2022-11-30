@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
   ✅(done in parser) In a B a SM of form ()->e is ill formed (but ok as an SM)
   ✅Implements relation is acyclic //ok to implement same trait with different generics
     that is, forall n,C C[mdf X1..mdf Xn] notin supertypes(Ds, C[mdf X1..mdf Xn]) where X1..Xn are fresh.
+    Declarations being used are present
  */
 
 /*

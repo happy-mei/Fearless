@@ -17,7 +17,7 @@ public class Program implements program.Program{
   T.Dec of(Id.DecId d) {
     var res = ds.get(d);
     if (res == null) { res = Magic.getDec(d); }
-    assert res != null;
+    assert res != null: d;
     return res;
   }
 
