@@ -74,7 +74,7 @@ public interface E {
     }
     public boolean isAbs(){ return body().isEmpty(); }
     public Meth withSig(Sig s) {
-      return new Meth(Optional.of(s), name(), xs(), body());
+      return PosMap.add(new Meth(Optional.of(s), name(), xs(), body()), PosMap.getOrUnknown(this));
     }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));
