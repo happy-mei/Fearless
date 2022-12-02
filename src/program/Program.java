@@ -5,14 +5,14 @@ import astFull.E;
 import astFull.PosMap;
 import id.Id;
 import id.Mdf;
+import main.CompileError;
 import main.Fail;
 import utils.Bug;
 import utils.Pop;
 import utils.Push;
-import utils.Range;
 import visitors.InjectionVisitor;
 
-import java.util.*;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,9 +37,20 @@ public interface Program {
     if(t1.rt().equals(t2.rt())){ return true; }
     if(!t1.isIt() || !t2.isIt()){ return false; }
 
-    var isITOk = isTransitiveSubType(t1, t2);//isMdfOk && (isDirectSubType(t1, t2) || isAdaptSubType(t1, t2));
-    // TODO: more, transitive, etc.
-    return isITOk;
+    if (isTransitiveSubType(t1, t2)) { return true; }
+    if (t1.itOrThrow().name().equals(t2.itOrThrow().name())) {
+      try {
+//        return isAdaptSubType(t1, t2); // TODO: Depends on the rest of the type system
+        return false;
+      } catch (CompileError err) {
+        return false;
+      }
+    }
+    return false;
+
+//    var isITOk = isTransitiveSubType(t1, t2);//isMdfOk && (isDirectSubType(t1, t2) || isAdaptSubType(t1, t2));
+//    // TODO: more, transitive, etc.
+//    return isITOk;
   }
   /*default boolean isDirectSubType(T t1, T t2) {
     //MDF C[T1..Tn]<MDF C'[Ts]
@@ -67,9 +78,11 @@ public interface Program {
      */
     var it1 = t1.itOrThrow();
     var it2 = t2.itOrThrow();
+    assert it1.name().equals(it2.name());
     var ms1 = filterByMdf(mdf, meths(it1).stream().map(cn->cn.m).toList());
     var ms2 = filterByMdf(mdf, meths(it2).stream().map(cn->cn.m).toList());
-    var mWisePairs = Stream.concat(ms1.stream(), ms2.stream())
+
+    return Stream.concat(ms1.stream(), ms2.stream())
       .collect(Collectors.groupingBy(E.Meth::name))
       .values().stream()
       .allMatch(ms->{
@@ -77,18 +90,21 @@ public interface Program {
         var m1 = ms.get(0);
         var m2 = ms.get(1);
         var recv = new ast.E.X("this");
-        var recvT = t1;
         var xs=Push.of(m1.xs(),"this");
-        var ts=Push.of(m2.sig().orElseThrow().ts(),t1);
-        var gxs = m1.sig().orElseThrow().gens().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList();
-        var e=new ast.E.MCall(recv,m1.name().orElseThrow(), gxs, m1.xs().stream().<ast.E>map(ast.E.X::new).toList());
-        return typeOf(xs,ts,e).equals(m2.sig().orElseThrow().ret());
-      })
+        var injectionVisitor = new InjectionVisitor();
+        var coreSig = injectionVisitor.visitSig(m2.sig().orElseThrow());
+        List<T> ts=Push.of(coreSig.ts(),t1);
+        var gxs = coreSig.gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
+        var e=new ast.E.MCall(recv, m1.name().orElseThrow(), gxs, m1.xs().stream().<ast.E>map(ast.E.X::new).toList());
+        return isType(xs, ts, e, coreSig.ret());
+      });
+  }
 
+  default ast.T typeOf(List<String>xs,List<ast.T>ts, ast.E e) {
     throw Bug.todo();
   }
 
-  default boolean typeOf(List<String>xs,List<ast.T>ts,ast.E e,ast.T res) {
+  default boolean isType(List<String>xs,List<ast.T>ts, ast.E e, ast.T expected) {
     throw Bug.todo();
   }
 
