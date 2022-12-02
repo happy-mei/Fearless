@@ -484,6 +484,11 @@ public class TestMeths {
     Break[X]:{ .b:X }
     """); }
   @Test void t25() { fail("""
+    uncomposableMethods:18
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:3) a.B[], .m/0
+    ([###]/Dummy0.fear:2:5) a.A[], .m/0
     """, "a.A", """
     package a
     A:B{ .m:Break[B] }
