@@ -39,12 +39,7 @@ public interface Program {
 
     if (isTransitiveSubType(t1, t2)) { return true; }
     if (t1.itOrThrow().name().equals(t2.itOrThrow().name())) {
-      try {
-//        return isAdaptSubType(t1, t2); // TODO: Depends on the rest of the type system
-        return false;
-      } catch (CompileError err) {
-        return false;
-      }
+      return isAdaptSubType(t1, t2); // TODO: Depends on the rest of the type system
     }
     return false;
 
@@ -82,9 +77,10 @@ public interface Program {
     var ms1 = filterByMdf(mdf, meths(it1).stream().map(cn->cn.m).toList());
     var ms2 = filterByMdf(mdf, meths(it2).stream().map(cn->cn.m).toList());
 
-    return Stream.concat(ms1.stream(), ms2.stream())
+    var methsByName = Stream.concat(ms1.stream(), ms2.stream())
       .collect(Collectors.groupingBy(E.Meth::name))
-      .values().stream()
+      .values();
+    return !methsByName.isEmpty() && methsByName.stream()
       .allMatch(ms->{
         assert ms.size() == 2;
         var m1 = ms.get(0);

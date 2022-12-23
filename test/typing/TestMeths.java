@@ -2,6 +2,7 @@ package typing;
 
 import main.CompileError;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
@@ -454,14 +455,15 @@ public class TestMeths {
     B:{.m[X]:A[B]->this}
     """); }
   @Test void t21() { ok("""
-    [a.A[immPanic],imm.foo/0()[][]:imm Panic abs,
-    a.B[immPanic],imm.m/0()[X][]:imma.Bi[immX,immPanic]impl]
+    [a.A[imm Panic],imm.foo/0()[][]:imm Panic abs,
+    a.B[imm Panic],imm.m/0()[X][]:imma.Bi[immX,immPanic]impl]
     """, "a.A[Panic]", """
     package a
     A[X]:B[X]{ .foo:X }
     B[Y]:{.m[X]:Bi[X,Y]->this}
     Bi[AA,BB]:{}
     """); }
+  @Disabled
   @Test void t22() { ok("""
     """, "a.A", """
     package a
@@ -469,6 +471,7 @@ public class TestMeths {
     B:{ .m:Break[B] }
     Break[X]:{}
     """); }
+  @Disabled
   @Test void t23() { ok("""
     """, "a.A", """
     package a
@@ -476,6 +479,7 @@ public class TestMeths {
     B:{.m:Break[A]}
     Break[X]:{}
     """); }
+  @Disabled
   @Test void t24() { ok("""
     """, "a.A", """
     package a
@@ -483,6 +487,7 @@ public class TestMeths {
     B:{.m:Break[B]}
     Break[X]:{ .b:X }
     """); }
+  @Disabled
   @Test void t25() { fail("""
     uncomposableMethods:18
     These methods could not be composed.
@@ -495,6 +500,7 @@ public class TestMeths {
     B:{.m:Break[A]}
     Break[X]:{ .b:X }
     """); }
+  @Disabled
   @Test void t26() { ok("""
     """, "a.A", """
     package a
@@ -502,6 +508,7 @@ public class TestMeths {
     B:{.m:Break[B]}
     Break[X]:{ .b:Break[X] }
     """); }
+  @Disabled
   @Test void t27() { ok("""
     """, "a.A", """
     package a
