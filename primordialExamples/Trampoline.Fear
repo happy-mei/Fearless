@@ -1,0 +1,8 @@
+// use tmap in flows (or maybe to implement other flow methods like scan/etc)
+tmap[T,S,RS,R](init: iso S, fn: TF[T,S,RS,R]): Flow[R],
+
+TF[T,S,RS,R]:{
+  #(state: lent S, x: T): TRes[RS]
+}
+TRes[RS,R]:Sealed{ .nextState: iso RS, .next: mdf R }
+TRes:{ #[RS,R](nextState: iso RS, next: mdf R): TRes[RS,R] }
