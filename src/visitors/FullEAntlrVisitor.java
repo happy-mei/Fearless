@@ -170,8 +170,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     }
     var bb = ctx.bblock();
     if(bb.children==null){ return PosMap.add(new E.Lambda(mdf, its, null, List.of(), rt), pos(ctx)); }
-    var _x=opt(bb.x(),this::visitX);
-    var _n=_x==null?null:_x.name();
+    var _x=bb.SelfX();
+    var _n=_x==null?null:_x.getText().substring(1);
     var _ms=opt(bb.meth(),ms->ms.stream().map(this::visitMeth).toList());
     var _singleM=opt(bb.singleM(),this::visitSingleM);
     List<E.Meth> mms=_ms==null?List.of():_ms;
@@ -269,7 +269,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .orElse(List.of());
     var id = new Id.DecId(cName,mGen.size());
     var body = shallow ? null : visitBlock(ctx.block(), Optional.empty());
-    return PosMap.add(new T.Dec(new Id.DecId(cName,mGen.size()), mGen, body),pos(ctx));
+    if (body != null) {
+      body = body.withIT(Optional.empty());
+    }
+    return PosMap.add(new T.Dec(id, mGen, body),pos(ctx));
   }
   @Override
   public T.Alias visitAlias(AliasContext ctx) {

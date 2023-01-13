@@ -516,4 +516,29 @@ public class TestMeths {
     B:{.m:Break[A]}
     Break[X]:{ .b:Break[X] }
     """); }
+
+  /*
+  @Test void inferClashingGenMeth() { ok("""
+  {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][]{'this.g/0([]):Sig[mdf=imm,gens=[AA],ts=[],ret=immAA]->[-]}],
+  base.C/0=Dec[name=base.C/0,gxs=[],lambda=[-infer-][]{'this.g/0([]):Sig[mdf=imm,gens=[BB],ts=[],ret=immBB]->[-]}],
+  base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][base.B[],base.C[]]{
+    'this
+    .g/0([]):Sig[mdf=imm,gens=[AA],ts=[],ret=immAA]->this:infer.g/0[-]([]):infer
+    }]}
+    """, """
+    package base
+    A:B,C{ .g -> this.g }
+    B:{ .g[AA]: AA }
+    C:{ .g[BB]: BB }
+    """);}
+   */
+  @Test void clashGens() {
+    fail("""
+      """, "base.A", """
+      package base
+      A:B,C{ .g -> this.g }
+      B:{ .g[AA]: AA }
+      C:{ .g[BB]: BB }
+      """);
+  }
 }

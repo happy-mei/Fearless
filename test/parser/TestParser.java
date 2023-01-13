@@ -43,23 +43,23 @@ class TestParser {
     "x.m"); }
   @Test void testTrue(){ ok(
     """
-    [-imm base.True[]-][base.True[]]{[null]}
+    [-imm base.True[]-][base.True[]]{}
     """, "base.True"); }
   @Test void testLamNoGens(){ ok(
       """
-      [-mut animals.Cat[]-][animals.Cat[]]{[null]}
+      [-mut animals.Cat[]-][animals.Cat[]]{}
       """, "mut animals.Cat"); }
   @Test void testLamEmptyGens(){ ok(
       """
-      [-mut animals.Cat[]-][animals.Cat[]]{[null]}
+      [-mut animals.Cat[]-][animals.Cat[]]{}
       """, "mut animals.Cat[]"); }
   @Test void testLamOneGens(){ ok(
       """
-      [-mut base.List[imm pkg1.Person[]]-][base.List[imm pkg1.Person[]]]{[null]}
+      [-mut base.List[imm pkg1.Person[]]-][base.List[imm pkg1.Person[]]]{}
       """, "mut base.List[imm pkg1.Person]"); }
   @Test void testLamManyGens(){ ok(
       """
-      [-mut base.Either[imm pkg1.Person[],mut pkg1.Blah[]]-][base.Either[imm pkg1.Person[],mut pkg1.Blah[]]]{[null]}
+      [-mut base.Either[imm pkg1.Person[],mut pkg1.Blah[]]-][base.Either[imm pkg1.Person[],mut pkg1.Blah[]]]{}
       """, "mut base.Either[imm pkg1.Person, mut pkg1.Blah]"); }
   @Test void surprisingNumberOfExprs(){ ok(
     """
@@ -71,22 +71,22 @@ class TestParser {
     ,"We parse a surprising amount of stuff"); }
   @Test void singleEqSugar1(){ ok(
     """
-    recv:infer.m1/2[-]([val:infer,[-infer-][]{[null][-]([v,fear0$]):[-]->fear0$:infer}]):infer
+    recv:infer.m1/2[-]([val:infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 v = val"); }
   @Test void singleEqSugarPOp1(){ ok(
     """
-    recv:infer.m1/2[-]([val:infer,[-infer-][]{[null][-]([v,fear0$]):[-]->fear0$:infer}]):infer
+    recv:infer.m1/2[-]([val:infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 (v = val)"); }
   @Test void singleEqSugarPOp2(){ ok(
     """
-    recv:infer.m1/2[-]([val:infer,[-infer-][]{[null][-]([v,fear0$]):[-]->fear0$:infer.m2/0[-]([]):infer}]):infer
+    recv:infer.m1/2[-]([val:infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer.m2/0[-]([]):infer}]):infer
     """, "recv .m1 (v = val) .m2"); }
   @Test void singleEqSugarPOp3(){ ok(
     """
-    recv:infer.m1/2[-]([val:infer.m2/0[-]([]):infer,[-infer-][]{[null][-]([v,fear0$]):[-]->fear0$:infer.m3/0[-]([]):infer}]):infer
+    recv:infer.m1/2[-]([val:infer.m2/0[-]([]):infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer.m3/0[-]([]):infer}]):infer
     """, "recv .m1 (v = val .m2) .m3"); }
   @Test void testVarLast(){ ok("""
-    recv:infer.m1/2[-]([v:infer,[-infer-][]{[null][-]([x,fear0$]):[-]->fear0$:infer}]):infer
+    recv:infer.m1/2[-]([v:infer,[-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer}]):infer
     ""","recv .m1 x=v"); }
   @Test void eqSugarSame1() { same("recv .m1 v = val", "recv .m1 (v = val)"); }
   @Test void eqSugarSame2() { same("recv .m1 v = val .m2", "recv .m1 v = (val .m2)"); }
@@ -95,25 +95,25 @@ class TestParser {
     """, "(recv .m1 a) .m2 b"); }
   @Test void singleEqSugar2(){ ok(
     """
-    recv:infer.m1/2[-]([val:infer.m2/0[-]([]):infer,[-infer-][]{[null][-]([v,fear0$]):[-]->fear0$:infer}]):infer
+    recv:infer.m1/2[-]([val:infer.m2/0[-]([]):infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 v = val .m2"); }
   @Test void nestedCalls1(){ ok("""
-    recv:infer.m1/2[-]([v:infer,[-infer-][]{[null] [-]([x,fear0$]):[-]->fear0$:infer.m2/1[-]([a:infer]):infer}]):infer
+    recv:infer.m1/2[-]([v:infer,[-infer-][]{ [-]([x,fear0$]):[-]->fear0$:infer.m2/1[-]([a:infer]):infer}]):infer
     """, "recv .m1 x=v.m2 a"); }
   @Test void nestedCalls2(){ ok("""
-    recv:infer.m1/2[-]([v:infer,[-infer-][]{[null] [-]([x,fear0$]):[-]->fear0$:infer}]):infer.m2/1[-]([a:infer]):infer
+    recv:infer.m1/2[-]([v:infer,[-infer-][]{ [-]([x,fear0$]):[-]->fear0$:infer}]):infer.m2/1[-]([a:infer]):infer
     """, "(recv .m1 x=v) .m2 a"); }
   @Test void eqExpasnionNoPar() { ok("""
     recv:infer.m1/2[-]([
       v:infer,
-      [-infer-][]{[null][-]([x,fear0$]):[-]->fear0$:infer.m2/1[-]([a:infer]):infer}
+      [-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer.m2/1[-]([a:infer]):infer}
     ]):infer
     """, "recv .m1 x=v.m2 a"); }
   @Test void eqExpasnionPar() { ok("""
-    recv:infer.m1/2[-]([v:infer.m2/1[-]([a:infer]):infer,[-infer-][]{[null][-]([x,fear0$]):[-]->fear0$:infer}]):infer
+    recv:infer.m1/2[-]([v:infer.m2/1[-]([a:infer]):infer,[-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 x=(v.m2 a)"); }
   @Test void eqExpansionGensNoPar() { ok("""
-    recv:infer.m1/2[immA]([v:infer,[-infer-][]{[null]
+    recv:infer.m1/2[immA]([v:infer,[-infer-][]{
       [-]([x,fear0$]):[-]->fear0$:infer.m2/1[immB,immbase.C[immD]]([a:infer]):infer
     }]):infer
     """, "recv .m1[A] x=v.m2[B,base.C[D]] a"); }

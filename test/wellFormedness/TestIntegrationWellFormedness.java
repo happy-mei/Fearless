@@ -181,7 +181,7 @@ public class TestIntegrationWellFormedness {
     Local variables may not be named 'this'.
     """, """
     package base
-    A:{[this]}
+    A:{'this}
     """); }
 
   @Test void noExplicitThisMethArg() { fail("""
@@ -235,7 +235,7 @@ public class TestIntegrationWellFormedness {
     'hi' is shadowing another variable in scope.
     """, """
     package base
-    A:{[hi] .a: A -> A{[hi] .a() -> {} } }
+    A:{'hi .a: A -> A{'hi .a() -> {} } }
     """); }
 
   @Test void noMutHygOk() { ok("""

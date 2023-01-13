@@ -88,16 +88,16 @@ class TestFullParser {
       package pkg1
       """); }
   @Test void testOneDecl(){ ok("""
-    {pkg1.MyTrue/0=Dec[name=pkg1.MyTrue/0,gxs=[],lambda=[-base.True[]-][base.True[]]{[null]}]}
+    {pkg1.MyTrue/0=Dec[name=pkg1.MyTrue/0,gxs=[],lambda=[-infer-][base.True[]]{}]}
     """,
     """
     package pkg1
     MyTrue:base.True
     """); }
   @Test void testManyDecls(){ ok("""
-    {pkg1.My12/0=Dec[name=pkg1.My12/0,gxs=[],lambda=[-12[]-][12[]]{[null]}],pkg1.MyFalse/0=Dec[name=pkg1.MyFalse/0,gxs=[],lambda=[-base.False[]-][base.False[]]{[null]}],
-    pkg2.MyTrue/0=Dec[name=pkg2.MyTrue/0,gxs=[],lambda=[-base.True[]-][base.True[]]{[null]}],
-    pkg1.MyTrue/0=Dec[name=pkg1.MyTrue/0,gxs=[],lambda=[-base.True[]-][base.True[]]{[null]}]}
+    {pkg1.My12/0=Dec[name=pkg1.My12/0,gxs=[],lambda=[-infer-][12[]]{}],pkg1.MyFalse/0=Dec[name=pkg1.MyFalse/0,gxs=[],lambda=[-infer-][base.False[]]{}],
+    pkg2.MyTrue/0=Dec[name=pkg2.MyTrue/0,gxs=[],lambda=[-infer-][base.True[]]{}],
+    pkg1.MyTrue/0=Dec[name=pkg1.MyTrue/0,gxs=[],lambda=[-infer-][base.True[]]{}]}
     """,
       """
       package pkg1
@@ -131,14 +131,14 @@ class TestFullParser {
     """); }
 
   @Test void baseVoid(){ ok("""
-    {base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{[null]}]}
+    {base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{}]}
     """, """
     package base
     Void:{}
     """
     );}
   @Test void baseLoopSingleMeth(){ ok("""
-    {pkg1.Loop/0=Dec[name=pkg1.Loop/0,gxs=[],lambda=[-base.AbstractLoop[]-][base.AbstractLoop[]]{[null][-]([]):[-]->this:infer!/0[-]([]):infer}]}
+    {pkg1.Loop/0=Dec[name=pkg1.Loop/0,gxs=[],lambda=[-infer-][base.AbstractLoop[]]{[-]([]):[-]->this:infer!/0[-]([]):infer}]}
     """, """
     package pkg1
     alias base.AbstractLoop as AbsLoop,
@@ -147,7 +147,7 @@ class TestFullParser {
   );}
   @Test void baseLoop(){ ok("""
     {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=
-      [-infer-][]{[null] !/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
+      [-infer-][]{!/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
     """, """
     package base
     alias base.Void as Void,
@@ -155,7 +155,7 @@ class TestFullParser {
     """
   );}
   @Test void baseLoopExplicit(){ ok("""
-    {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=[-infer-][]{[null]!/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
+    {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=[-infer-][]{!/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
     """, """
     package base
     alias base.Void as Void,
@@ -163,7 +163,7 @@ class TestFullParser {
     """
   );}
   @Test void baseLoopMoreExplicit(){ ok("""
-    {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=[-infer-][]{[null] !/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
+    {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=[-infer-][]{ !/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
     """, """
     package base
     alias base.Void as Void,
@@ -171,42 +171,42 @@ class TestFullParser {
     """
   );}
   @Test void baseLoopAbs(){ ok("""
-    {base.AbsLoop/0=Dec[name=base.AbsLoop/0,gxs=[],lambda=[-infer-][]{[null] !/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->[-]}]}
+    {base.AbsLoop/0=Dec[name=base.AbsLoop/0,gxs=[],lambda=[-infer-][]{ !/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->[-]}]}
     """, """
     package base
     AbsLoop:{!:base.Void}
     """
   );}
   @Test void methWithArgs(){ ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{[null].foo/1([a]):Sig[mdf=imm,gens=[],ts=[immbase.A[]],ret=immbase.A[]]->[-]}]}
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/1([a]):Sig[mdf=imm,gens=[],ts=[immbase.A[]],ret=immbase.A[]]->[-]}]}
     """, """
     package base
     A:{.foo(a: A): A,}
     """
   );}
   @Test void methWith2Args(){ ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{[null].foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[imm base.A[],imm base.A[]],ret=imm base.A[]]->[-]}]}
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[imm base.A[],imm base.A[]],ret=imm base.A[]]->[-]}]}
     """, """
     package base
     A:{.foo(a: A, b: A): A,}
     """
   );}
   @Test void methWith2ArgsAndMdf(){ ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{[null].foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[imm base.A[],read base.A[]],ret=imm base.A[]]->[-]}]}
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[imm base.A[],read base.A[]],ret=imm base.A[]]->[-]}]}
     """, """
     package base
     A:{.foo(a: A, b: read A): A,}
     """
     );}
     @Test void methWithGens1(){ ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{[null].foo/2([a,b]):Sig[mdf=imm,gens=[B],ts=[imm base.A[],readB],ret=imm base.A[]]->[-]}]}
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[B],ts=[imm base.A[],readB],ret=imm base.A[]]->[-]}]}
     """, """
     package base
     A:{.foo[B](a: A, b: read B): A,}
     """
     );}
   @Test void methWithGens2(){ ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{[null].foo/2([a,b]):Sig[mdf=imm,gens=[B],ts=[imm base.A[],read B],ret=read B]->[-]}]}
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[B],ts=[imm base.A[],read B],ret=read B]->[-]}]}
     """, """
     package base
     A:{.foo[B](a: A, b: read B): read B,}
@@ -224,8 +224,8 @@ class TestFullParser {
     """
   );}
   @Test void extendsNewDec(){ ok("""
-    {base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{[null].name/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.String[]]->[-]}],
-    base.Dog/0=Dec[name=base.Dog/0,gxs=[],lambda=[-base.HasName[]-][base.HasName[]]{[null]}]}
+    {base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{.name/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.String[]]->[-]}],
+    base.Dog/0=Dec[name=base.Dog/0,gxs=[],lambda=[-infer-][base.HasName[]]{}]}
     """, """
     package base
     alias base.String as String,
@@ -234,9 +234,9 @@ class TestFullParser {
     """
   );}
   @Test void multipleExtends(){ ok("""
-    {base.HasHunger/0=Dec[name=base.HasHunger/0,gxs=[],lambda=[-infer-][]{[null].hunger/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.UNum[]]->[-]}],
-    base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{[null].name/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.String[]]->[-]}],
-    base.Dog/0=Dec[name=base.Dog/0,gxs=[],lambda=[-base.HasHunger[]-][base.HasHunger[],base.HasName[]]{[null]}]}
+    {base.HasHunger/0=Dec[name=base.HasHunger/0,gxs=[],lambda=[-infer-][]{.hunger/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.UNum[]]->[-]}],
+    base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{.name/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.String[]]->[-]}],
+    base.Dog/0=Dec[name=base.Dog/0,gxs=[],lambda=[-infer-][base.HasHunger[],base.HasName[]]{}]}
     """, """
     package base
     alias base.UNum as UNum, alias base.String as String,
@@ -249,17 +249,17 @@ class TestFullParser {
       {base.B/0=Dec[
         name=base.B/0,
         gxs=[],
-        lambda=[-infer-][]{[null]#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm 5[]]->[-imm base.A[]-][base.A[]]{[null]}.foo/2[-]([
-          [-imm5[]-][5[]]{[null]},[-infer-][]{[null][-]([lol,fear0$]):[-]->fear0$:infer}
+        lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm 5[]]->[-imm base.A[]-][base.A[]]{}.foo/2[-]([
+          [-imm5[]-][5[]]{},[-infer-][]{[-]([lol,fear0$]):[-]->fear0$:infer}
         ]):infer}
       ],base.Cont/2=Dec[
         name=base.Cont/2,
         gxs=[X,R],
-        lambda=[-infer-][]{[null]#/2([x,self]):Sig[mdf=mut,gens=[],ts=[mdf X,immbase.A[]],ret=mdf R]->[-]}],
+        lambda=[-infer-][]{#/2([x,self]):Sig[mdf=mut,gens=[],ts=[mdf X,immbase.A[]],ret=mdf R]->[-]}],
       base.A/0=Dec[
         name=base.A/0,
         gxs=[],
-        lambda=[-infer-][]{[null].foo/2([x,cont]):Sig[mdf=imm,gens=[T],ts=[mdf T,mutbase.Cont[mdf T,mdf T]],ret=mdf T]->
+        lambda=[-infer-][]{.foo/2([x,cont]):Sig[mdf=imm,gens=[T],ts=[mdf T,mutbase.Cont[mdf T,mdf T]],ret=mdf T]->
           cont:infer#/2[-]([x:infer,cont:infer]):infer}]}
     """, """
     package base
@@ -275,29 +275,29 @@ class TestFullParser {
     {base.Let/2=Dec[
       name=base.Let/2,
       gxs=[V,R],
-      lambda=[-infer-][]{[null]
+      lambda=[-infer-][]{
         .var/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immV]->[-],
         .in/1([v]):Sig[mdf=imm,gens=[],ts=[immV],ret=immR]->[-]
       }],
     base.Ref/1=Dec[
       name=base.Ref/1,
       gxs=[X],
-      lambda=[-base.NoMutHyg[imm X]-][base.NoMutHyg[imm X],base.Sealed[]]{[null]
+      lambda=[-infer-][base.NoMutHyg[imm X],base.Sealed[]]{
         */0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
         .swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdf X],ret=mdfX]->[-],
         :=/1([x]):Sig[mdf=mut,gens=[],ts=[mdf X],ret=imm base.Void[]]->
-          [-imm base.Let[]-][base.Let[]]{[null]}#/1[-]([[-infer-][]{[null]
+          [-imm base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
             .var/0([]):[-]->this:infer.swap/1[-]([x:infer]):infer,
-            .in/1([_]):[-]->[-imm base.Void[]-][base.Void[]]{[null]}
+            .in/1([_]):[-]->[-imm base.Void[]-][base.Void[]]{}
           }]):infer,
           <-/1([f]):Sig[mdf=mut,gens=[],ts=[imm base.UpdateRef[mdfX]], ret=mdfX]->
             this:infer.swap/1[-]([f:infer#/1[-]([this:infer*/0[-]([]):infer]):infer]):infer
       }],
-    base.Sealed/0=Dec[name=base.Sealed/0,gxs=[],lambda=[-infer-][]{[null]}],
-    base.Ref/0=Dec[name=base.Ref/0,gxs=[],lambda=[-infer-][]{[null]#/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=mut base.Ref[mdfX]]->this:infer#/1[-]([x:infer]):infer}],
-    base.Let/0=Dec[name=base.Let/0,gxs=[],lambda=[-infer-][]{[null]#/1([l]):Sig[mdf=imm,gens=[V,R],ts=[imm base.Let[immV,immR]],ret=immR]->l:infer.in/1[-]([l:infer.var/0[-]([]):infer]):infer}],
-    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{[null]}],
-    base.UpdateRef/1=Dec[name=base.UpdateRef/1,gxs=[X],lambda=[-infer-][]{[null]#/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-]}]}
+    base.Sealed/0=Dec[name=base.Sealed/0,gxs=[],lambda=[-infer-][]{}],
+    base.Ref/0=Dec[name=base.Ref/0,gxs=[],lambda=[-infer-][]{#/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=mut base.Ref[mdfX]]->this:infer#/1[-]([x:infer]):infer}],
+    base.Let/0=Dec[name=base.Let/0,gxs=[],lambda=[-infer-][]{#/1([l]):Sig[mdf=imm,gens=[V,R],ts=[imm base.Let[immV,immR]],ret=immR]->l:infer.in/1[-]([l:infer.var/0[-]([]):infer]):infer}],
+    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{}],
+    base.UpdateRef/1=Dec[name=base.UpdateRef/1,gxs=[X],lambda=[-infer-][]{#/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-]}]}
     """, """
     package base
     alias base.NoMutHyg as NoMutHyg,
