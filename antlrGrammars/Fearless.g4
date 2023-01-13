@@ -47,6 +47,7 @@ fragment FNumber: '0'..'9' ('.'|'_'|'u'|'0'..'9')*; //flexible for more error me
 fragment FIdLow:IdLow IdChar* ('\'')*;
 fragment FIdUp:IdUp IdChar* ('\'')*;
 X:FIdLow;
+SelfX:'\'' FIdLow;
 MName: '.' FIdLow;
 
 BlockComment: '/*' (BlockComment|.)*? '*/'	-> channel(HIDDEN) ; // nesting comments allowed
@@ -71,7 +72,7 @@ roundE : OR e CR;
 mGen   : | OS (t (Comma t)*)? CS;
 lambda : mdf block;
 block  : (t (Comma t)*)? OC bblock CC | t;
-bblock : | OS x CS singleM | singleM | OS x CS (meth (Comma meth)*)? Comma? | meth (Comma meth)* Comma?;
+bblock : | SelfX? singleM  | SelfX? (meth (Comma meth)*)? Comma?;
 
 t      : mdf fullCN mGen; //we recognize if fullCN is an X after parsing
 singleM: (x (Comma x)*)? Arrow e | e;

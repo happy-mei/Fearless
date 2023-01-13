@@ -1,5 +1,6 @@
 package astFull;
 
+import files.Pos;
 import id.Id;
 import id.Id.MethName;
 import id.Mdf;
@@ -32,18 +33,23 @@ public interface E {
     @Override public <R> R accept(FullVisitor<R> v){return v.visitLambda(this);}
     @Override public String toString() {
       var mdf = this.mdf().map(Mdf::toString).orElse("");
-      var type = mdf().isEmpty() && it().isEmpty() ? "infer" : it.map(Id.IT::toString).orElse("infer");
+      var type = mdf().isEmpty() && it().isEmpty() ? "infer" : it().map(Id.IT::toString).orElse("infer");
       var meths = meths().stream().map(Meth::toString).collect(Collectors.joining(",\n"));
+      var selfName = Optional.ofNullable(selfName()).map(sn->"'"+sn).orElse("");
 
-      return String.format("[-%s %s-]%s{[%s] %s}", mdf, type, its(), selfName(), meths);
+      return String.format("[-%s %s-]%s{%s %s}", mdf, type, its(), selfName, meths);
     }
 
     public Lambda withSelfName(String selfName) {
-      return new Lambda(mdf(), its(), selfName, meths(), it());
+      return PosMap.replace(this, new Lambda(mdf, its, selfName, meths, it));
+    }
+
+    public Lambda withIT(Optional<Id.IT<T>> it) {
+      return PosMap.replace(this, new Lambda(mdf, its, selfName, meths, it));
     }
 
     public Lambda withMeths(List<Meth> ms) {
-      return new Lambda(mdf(), its(), selfName(), ms, it());
+      return PosMap.replace(this, new Lambda(mdf, its, selfName, ms, it));
     }
   }
   record MCall(E receiver,MethName name,Optional<List<T>>ts,List<E>es, T t)implements E{

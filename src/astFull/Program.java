@@ -100,7 +100,7 @@ public class Program implements program.Program{
     }
 
     private T.Dec inferSignatures(T.Dec d) {
-      return d.withLambda(inferSignatures(d, d.lambda()));
+      return d.withLambda(inferSignatures(d, d.lambda().withSelfName("this")));
     }
     private E.Lambda inferSignatures(T.Dec dec, E.Lambda l) {
       if (l.selfName() == null) {
@@ -111,13 +111,15 @@ public class Program implements program.Program{
     }
     Id.MethName onlyAbs(T.Dec dec){
       // TODO: this probably needs to use meths and consider parent ITs too
-      var absMeths = dec.lambda().meths().stream().filter(m->m.body().isEmpty()).toList();
-      assert absMeths.size() == 1;
-      return absMeths.get(0).name().orElseThrow();
+//      p.meths(dec).stream().filter()
+//      var absMeths = dec.lambda().meths().stream().filter(m->m.body().isEmpty()).toList();
+//      assert absMeths.size() == 1;
+//      return absMeths.get(0).name().orElseThrow();
+      throw Bug.todo();
     }
     E.Meth inferSignature(T.Dec dec, E.Meth m) {
       if (m.sig().isPresent()) { return m; }
-      var name=m.name().orElse(onlyAbs(dec));
+      var name=m.name().orElseGet(() -> onlyAbs(dec));
       assert name.num()==m.xs().size();
       var decIds=p.superDecIds(dec.name());
       for(var decId:decIds){
