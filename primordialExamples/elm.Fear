@@ -1,0 +1,41 @@
+ElmArchitecture[Model,Msg]:{
+  .initial: Update[Model,Msg],
+  .update(model: F, msg: C): Update[Model,Msg],
+  .subscriptions(model: Model): Sub[Msg],
+  }
+ElmHtmlArchitecture[Model,Msg]:ElmArchitecture[Model,Msg]{
+  .view(model: M): Html[Msg],
+}
+Update[Model,Msg]:Record{ .model: Model, .cmd: Cmd[Msg] }
+Cmd[Msg]{}
+Cmd:{
+  .none: Cmd[Msg] -> {},
+  .batch[Msg](cs: List[Cmd[Msg]]): Cmd[Msg] -> Cmd.batch(cs) // magic
+  .map(... conventional functor map)...
+}
+Sub[Msg]{}
+Sub:{
+  .none: Sub[Msg] -> {},
+  .batch[Msg](cs: List[Sub[Msg]]): Sub[Msg] -> Sub.batch(cs) // magic
+  .map(... conventional functor map)...
+}
+// Html[Msg] is similar to Cmd[Msg] but has different methods for building it
+// like .div(as: List[Attr[Msg]], ns: List[Html[Msg]]): Html[Msg]
+
+
+State:{ .match[R](m: StateM[R]): R -> m.loading }
+StateM[R]:{
+  .loading: R,
+  .error(err: Str): R,
+  .loaded(content: Str): R,
+  }
+Msg:{ .match[R](m: MsgM[R]): R -> m.loading }
+MsgM[R]:{
+  .loading: R,
+  .error(err: Str): R,
+  .loaded(content: Str): R,
+  }
+
+HtmlNode:{...}
+H1:HtmlNode{...}
+Btn:HtmlNode{...}
