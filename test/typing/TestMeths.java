@@ -534,6 +534,11 @@ public class TestMeths {
    */
   @Test void clashGens() {
     fail("""
+      uncomposableMethods:18
+      These methods could not be composed.
+      conflicts:
+      (file:///home/nick/Programming/uni/fearless/Dummy0.fear:4:4) base.C[], .g/0
+      (file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:4) base.B[], .g/0
       """, "base.A", """
       package base
       A:B,C{ .g -> this.g }

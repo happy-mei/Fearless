@@ -37,10 +37,13 @@ public class Program implements program.Program{
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
     Function<Id.GX<ast.T>, ast.T> f = renameFun(t.ts(), gxs);
-    return d.lambda().meths().stream().map(mi->cm(t,mi,f)).toList();
+    return d.lambda().meths().stream().map(mi->cm(t,mi,f)).filter(Objects::nonNull).toList();
   }
   private CM cm(Id.IT<ast.T> t,astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
-    var sig=mi.sig().orElseThrow();
+    // TODO: NICK: I have changed this from orElseThrow because I think the behaviour we wanted from C[Ts]<<Ms could come from here
+//    var sig=mi.sig().orElseThrow();
+    if (mi.sig().isEmpty()) { return null; }
+    var sig = mi.sig().get();
     return new CM(t,mi,rename(new InjectionVisitor().visitSig(sig),f));
   }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
@@ -122,16 +125,26 @@ public class Program implements program.Program{
       var name=m.name().orElseGet(() -> onlyAbs(dec));
       assert name.num()==m.xs().size();
       var decIds=p.superDecIds(dec.name());
-      for(var decId:decIds){
+      var candidates = p.meths(dec).stream()
+        .filter(mi->mi.name().equals(name))
+        .map(CM::sig)
+        .distinct()
+        .toList();
+      if(candidates.size()!=1){throw Bug.todo(/*better err*/);}
+      var inferredSig = candidates.get(0);
+      return m.withSig(inferredSig.toAstFullSig());
+      /*
+for(var decId:decIds){
         var candidates = p.dom(decId).stream()
           .filter(mi->mi.name().equals(Optional.of(name)))
           .map(mi->mi.sig().get())
           .distinct()
           .toList();
-        if(candidates.size()!=1){throw Bug.todo(/*better err*/);}
+        if(candidates.size()!=1){throw Bug.todo();}
         return m.withSig(candidates.get(0));
-      }
+  }
       throw Bug.todo();
+       */
     }
   }
   @Override public String toString() { return this.ds().toString(); }
