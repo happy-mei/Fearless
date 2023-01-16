@@ -176,7 +176,39 @@ public interface Program {
      */
     // uh oh...
 
-    throw Bug.todo();
+    var it = new Id.IT<>(
+      dec.name(),
+      dec.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
+    );
+    List<CM> cms = Stream.concat(
+      cMsOf(it).stream(),
+      itsOf(it).stream().flatMap(iti->meths(iti).stream())
+    ).toList();
+    return prune(cms);
+
+//    throw Bug.todo();
+  }
+
+  default List<CM> fitMeths(astFull.T.Dec dec, Id.IT<T> it, List<E.Meth> meths) {
+    // IT<<empty = empty
+    if (meths.isEmpty()) { return List.of(); }
+
+    return dec.lambda().meths().stream()
+      // IT<< m(xs)->e Ms = IT<<Ms  //it includes   IT<< SM Ms = IT<<Ms
+      .filter(m->m.sig().isPresent())
+      .map(m->fitMeth(it, m))
+      .toList();
+  }
+
+  default CM fitMeth(Id.IT<T> it, E.Meth meth) {
+    // IT<< sig->e, Ms = norm(IT.sig->e), IT<<Ms
+    // IT<< sig, Ms = norm(IT.sig), IT<<Ms
+    if (meth.sig().isPresent()) {
+      var sig = norm(new InjectionVisitor().visitSig(meth.sig().get()));
+      return new CM(it, meth, sig);
+    }
+
+    throw Bug.unreachable();
   }
 
   default ast.E.Sig norm(ast.E.Sig s) {

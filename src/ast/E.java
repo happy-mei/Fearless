@@ -53,5 +53,13 @@ public interface E {
   }
   record Sig(Mdf mdf, List<Id.GX<T>> gens, List<T> ts, T ret){
     public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
+    public astFull.E.Sig toAstFullSig() {
+      return new astFull.E.Sig(
+        mdf,
+        gens.stream().map(gx->new Id.GX<astFull.T>(gx.name())).toList(),
+        ts.stream().map(T::toAstFullT).toList(),
+        ret.toAstFullT()
+      );
+    }
   }
 }

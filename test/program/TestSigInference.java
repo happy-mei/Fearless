@@ -134,4 +134,30 @@ public class TestSigInference {
     A:{ .fullType: A }
     B:A{ B }
     """);}
+
+  @Test void complexInfer() { ok("""
+    {a.B/1=Dec[name=a.B/1,gxs=[Y],lambda=[-infer-][]{'this
+      .m/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=imma.Bi[immX,immY]]->this:infer}],
+    a.A/1=Dec[name=a.A/1,gxs=[X],lambda=[-infer-][a.B[immX]]{'this
+      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->[-]}],
+    a.Bi/2=Dec[name=a.Bi/2,gxs=[AA,BB],lambda=[-infer-][]{'this}]}
+    """, """
+    package a
+    A[X]:B[X]{ .foo:X }
+    B[Y]:{.m[X]:Bi[X,Y]->this}
+    Bi[AA,BB]:{}
+    """); }
+  @Test void complexInfer2() { ok("""
+    {a.B/1=Dec[name=a.B/1,gxs=[Y],lambda=[-infer-][]{'this
+      .m/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=imma.Bi[immX,immY]]->this:infer}],
+    a.A/1=Dec[name=a.A/1,gxs=[X],lambda=[-infer-][a.B[immX]]{'this
+      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->[-],
+      .m/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=imma.Bi[immX,immX]]->this:infer}],
+    a.Bi/2=Dec[name=a.Bi/2,gxs=[AA,BB],lambda=[-infer-][]{'this}]}
+    """, """
+    package a
+    A[X]:B[X]{ .foo:X, .m -> this }
+    B[Y]:{.m[X]:Bi[X,Y]->this}
+    Bi[AA,BB]:{}
+    """); }
 }
