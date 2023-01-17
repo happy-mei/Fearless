@@ -2,6 +2,7 @@ package astFull;
 
 import id.Id;
 import magic.Magic;
+import main.Fail;
 import utils.Bug;
 import utils.OneOr;
 import utils.Range;
@@ -18,7 +19,7 @@ public class Program implements program.Program{
   T.Dec of(Id.DecId d) {
     var res = ds.get(d);
     if (res == null) { res = Magic.getDec(d); }
-    assert res != null: d;
+    if (res == null) { throw Fail.traitNotFound(d); }
     return res;
   }
 
@@ -133,7 +134,7 @@ public class Program implements program.Program{
         .filter(mi->mi.name().equals(name))
         .map(CM::sig)
         .toList();
-      if(candidates.size()!=1){throw Bug.todo(/*better err*/);}
+      if(candidates.size()!=1){ throw Fail.cannotInferSig(dec.name(), name); }
       var inferredSig = candidates.get(0);
       return m.withSig(inferredSig.toAstFullSig());
     }

@@ -345,16 +345,4 @@ public class TestIntegrationWellFormedness {
     package base
     A:{ recMdf .foo: A }
     """); }
-
-  @Disabled
-  @Test void marcoStuff() { ok("""
-    package base
-    List[T]:{}
-    Box[T]:{}
-    Stuff:{}
-    A:{
-      .runInParallel(data: read List[read Box[iso Stuff]]): A -> A
-    }
-    """);
-  }
 }

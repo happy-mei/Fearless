@@ -84,6 +84,9 @@ public class Fail{
   public static CompileError missingDecl(Id.DecId d){ return of("The following trait cannot be aliased because it does not exist:\n"+d); }
 
   public static CompileError invalidMethMdf(E.Sig s, Id.MethName n){ return of(String.format("%s is not a valid modifier for a method (on the method %s).", s.mdf(), n)); }
+  public static CompileError cannotInferSig(Id.DecId d, Id.MethName m){ return of(String.format("Could not infer the signature for %s in %s.", m, d)); }
+  public static CompileError traitNotFound(Id.DecId d){ return of(String.format("The trait %s could not be found.", d)); }
+  public static CompileError inferFailed(astFull.E e){ return of(String.format("Could not infer the type for the following expression:\n%s", e)); }
 }
 
 //only add to the bottom
@@ -105,6 +108,9 @@ enum ErrorCode {
   missingDecl,
   invalidMethMdf,
   conflictingMethNames,
-  uncomposableMethods;
+  uncomposableMethods,
+  cannotInferSig,
+  traitNotFound,
+  inferFailed;
   int code() {return this.ordinal() + 1;}
 }

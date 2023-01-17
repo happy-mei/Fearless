@@ -49,6 +49,12 @@ public record T(Mdf mdf, Id.RT<T> rt){
         this.gxs().stream().map(gx->new ast.T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
       );
     }
+    public Id.IT<astFull.T> toIT() {
+      return new Id.IT<>(//AstFull.T || Ast.T
+        this.name(),
+        this.gxs().stream().map(gx->new astFull.T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
+      );
+    }
   }
   @Override public String toString(){
     if(isInfer()){ return "infer"; }
