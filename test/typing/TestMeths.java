@@ -9,6 +9,8 @@ import program.Program;
 import utils.Err;
 import utils.FromContent;
 
+import java.util.Set;
+
 public class TestMeths {
   void ok(String expected, String type, String ...code){
     var it = new Parser(Parser.dummy, type).parseFullT();
@@ -427,28 +429,28 @@ public class TestMeths {
     B:{.m[X]:A}
     """); }
   @Test void t19() { ok("""
-    [a.A[],imm.m/0()[X][]:imma.A[]abs]
+    [a.A[],imm.m/0()[Fear0$][]:imma.A[]abs]
     """, "a.A", """
     package a
     A:B{ .m[X]:A }
     B:{ .m[X]:A->this}
     """); }
   @Test void t20a() { ok("""
-    [a.A[immX],imm.foo/0()[][]:immXabs,a.B[],imm.m/0()[X][]:imma.A[imma.B[]]impl]
+    [a.A[immX],imm.foo/0()[][]:immXabs,a.B[],imm.m/0()[Fear0$][]:imma.A[imma.B[]]impl]
     """, "a.A[X]", """
     package a
     A[X]:B{ .foo:X }
     B:{.m[X]:A[B]->this}
     """); }
   @Test void t20b() { ok("""
-    [a.A[imma.A[]],imm.foo/0()[][]:imma.A[]abs,a.B[],imm.m/0()[X][]:imma.A[imma.B[]]impl]
+    [a.A[imma.A[]],imm.foo/0()[][]:imma.A[]abs,a.B[],imm.m/0()[Fear0$][]:imma.A[imma.B[]]impl]
     """, "a.A[a.A]", """
     package a
     A[X]:B{ .foo:X }
     B:{.m[X]:A[B]->this}
     """); }
   @Test void t20c() { ok("""
-    [a.A[imma.B[]],imm.foo/0()[][]:imma.B[]abs,a.B[],imm.m/0()[X][]:imma.A[imma.B[]]impl]
+    [a.A[imma.B[]],imm.foo/0()[][]:imma.B[]abs,a.B[],imm.m/0()[Fear0$][]:imma.A[imma.B[]]impl]
     """, "a.A[a.B]", """
     package a
     A[X]:B{ .foo:X }
@@ -456,7 +458,7 @@ public class TestMeths {
     """); }
   @Test void t21() { ok("""
     [a.A[imm Panic],imm.foo/0()[][]:imm Panic abs,
-    a.B[imm Panic],imm.m/0()[X][]:imma.Bi[immX,immPanic]impl]
+    a.B[imm Panic],imm.m/0()[Fear0$][]:imma.Bi[immFear0$,immPanic]impl]
     """, "a.A[Panic]", """
     package a
     A[X]:B[X]{ .foo:X }
@@ -516,34 +518,4 @@ public class TestMeths {
     B:{.m:Break[A]}
     Break[X]:{ .b:Break[X] }
     """); }
-
-  /*
-  @Test void inferClashingGenMeth() { ok("""
-  {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][]{'this.g/0([]):Sig[mdf=imm,gens=[AA],ts=[],ret=immAA]->[-]}],
-  base.C/0=Dec[name=base.C/0,gxs=[],lambda=[-infer-][]{'this.g/0([]):Sig[mdf=imm,gens=[BB],ts=[],ret=immBB]->[-]}],
-  base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][base.B[],base.C[]]{
-    'this
-    .g/0([]):Sig[mdf=imm,gens=[AA],ts=[],ret=immAA]->this:infer.g/0[-]([]):infer
-    }]}
-    """, """
-    package base
-    A:B,C{ .g -> this.g }
-    B:{ .g[AA]: AA }
-    C:{ .g[BB]: BB }
-    """);}
-   */
-  @Test void clashGens() {
-    fail("""
-      uncomposableMethods:18
-      These methods could not be composed.
-      conflicts:
-      (file:///home/nick/Programming/uni/fearless/Dummy0.fear:4:4) base.C[], .g/0
-      (file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:4) base.B[], .g/0
-      """, "base.A", """
-      package base
-      A:B,C{ .g -> this.g }
-      B:{ .g[AA]: AA }
-      C:{ .g[BB]: BB }
-      """);
-  }
 }

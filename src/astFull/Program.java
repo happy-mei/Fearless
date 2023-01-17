@@ -3,6 +3,7 @@ package astFull;
 import id.Id;
 import magic.Magic;
 import utils.Bug;
+import utils.OneOr;
 import utils.Range;
 import visitors.InjectionVisitor;
 
@@ -22,8 +23,7 @@ public class Program implements program.Program{
   }
 
   T.Dec of(Id.IT<ast.T> t) {
-    var d=of(t.name());
-    throw Bug.todo();
+    return of(t.name());
   }
   @Override public List<Id.IT<ast.T>> itsOf(Id.IT<ast.T> t){
     var d=of(t.name());
@@ -32,19 +32,27 @@ public class Program implements program.Program{
     Function<Id.GX<ast.T>, ast.T> f = renameFun(t.ts(), gxs);
     return d.lambda().its().stream().map(ti->rename(liftIT(ti),f)).toList();
   }
+  /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   @Override public List<CM> cMsOf(Id.IT<ast.T> t){
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
     Function<Id.GX<ast.T>, ast.T> f = renameFun(t.ts(), gxs);
-    return d.lambda().meths().stream().map(mi->cm(t,mi,f)).filter(Objects::nonNull).toList();
+    return d.lambda().meths().stream()
+      .filter(mi->mi.sig().isPresent())
+      .map(mi->cm(t,mi,f))
+      .toList();
   }
-  private CM cm(Id.IT<ast.T> t,astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
-    // TODO: NICK: I have changed this from orElseThrow because I think the behaviour we wanted from C[Ts]<<Ms could come from here
-//    var sig=mi.sig().orElseThrow();
-    if (mi.sig().isEmpty()) { return null; }
-    var sig = mi.sig().get();
-    return new CM(t,mi,rename(new InjectionVisitor().visitSig(sig),f));
+
+  @Override public Set<Id.GX<ast.T>> gxsOf(Id.IT<ast.T> t) {
+    return of(t).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
+  }
+
+  private CM cm(Id.IT<ast.T> t, astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
+    // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
+    var sig=mi.sig().orElseThrow();
+    var cm = new CM(t, mi, rename(new InjectionVisitor().visitSig(sig), f));
+    return norm(cm);
   }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
 
@@ -113,38 +121,21 @@ public class Program implements program.Program{
       return l.withMeths(ms);
     }
     Id.MethName onlyAbs(T.Dec dec){
-      // TODO: this probably needs to use meths and consider parent ITs too
-//      p.meths(dec).stream().filter()
-//      var absMeths = dec.lambda().meths().stream().filter(m->m.body().isEmpty()).toList();
-//      assert absMeths.size() == 1;
-//      return absMeths.get(0).name().orElseThrow();
-      throw Bug.todo();
+      var m = OneOr.of("Invalid number of abstract methods", p.meths(dec.toAstT()).stream().filter(CM::isAbs));
+      return m.name();
     }
     E.Meth inferSignature(T.Dec dec, E.Meth m) {
-      if (m.sig().isPresent()) { return m; }
+      if(m.sig().isPresent()){ return m; }
       var name=m.name().orElseGet(() -> onlyAbs(dec));
+      m = m.withName(name);
       assert name.num()==m.xs().size();
-      var decIds=p.superDecIds(dec.name());
-      var candidates = p.meths(dec).stream()
+      var candidates = p.meths(dec.toAstT()).stream()
         .filter(mi->mi.name().equals(name))
         .map(CM::sig)
-        .distinct()
         .toList();
       if(candidates.size()!=1){throw Bug.todo(/*better err*/);}
       var inferredSig = candidates.get(0);
       return m.withSig(inferredSig.toAstFullSig());
-      /*
-for(var decId:decIds){
-        var candidates = p.dom(decId).stream()
-          .filter(mi->mi.name().equals(Optional.of(name)))
-          .map(mi->mi.sig().get())
-          .distinct()
-          .toList();
-        if(candidates.size()!=1){throw Bug.todo();}
-        return m.withSig(candidates.get(0));
-  }
-      throw Bug.todo();
-       */
     }
   }
   @Override public String toString() { return this.ds().toString(); }
