@@ -88,7 +88,6 @@ public class TestSigInference {
     B:A{ .fullType->this.fullType }
     """);}
 
-  // TODO: Investigating how meths with clashing generic params get inferred/chosen via meths() and 5a.
   @Test void inferOneSigGensClash() { ok("""
     {base.B/1=Dec[name=base.B/1,gxs=[X],lambda=[-infer-][base.A[]]{'this
       .bla/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->[-],
@@ -134,6 +133,55 @@ public class TestSigInference {
     package base
     A:{ .fullType: A }
     B:A{ B }
+    """);}
+
+  @Test void oneParentImplTopDecParams() { ok("""
+    {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
+      .fullType/1([b]):Sig[mdf=imm,gens=[],ts=[immbase.A[]],ret=immbase.A[]]->b:infer}],
+    base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
+      .fullType/1([a]):Sig[mdf=imm,gens=[],ts=[immbase.A[]],ret=immbase.A[]]->[-]}]}
+    """, """
+    package base
+    A:{ .fullType(a: A): A }
+    B:A{ b -> b }
+    """);}
+
+  @Test void oneParentImplGens() { ok("""
+    {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
+      .fullType/1([x]):Sig[mdf=imm,gens=[Fear0$],ts=[immFear0$],ret=immFear0$]->x:infer}],
+    base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
+      .fullType/1([a]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}]}
+    """, """
+    package base
+    A:{ .fullType[X](a: X): X }
+    B:A{ x -> x }
+    """);}
+
+  @Test void oneParentImplDecGens() { ok("""
+    {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[immbase.B[]]]{'this
+      .fullType/1([x]):Sig[mdf=imm,gens=[],ts=[immbase.B[]],ret=immbase.B[]]->[-immbase.B[]-][base.B[]]{}}],
+    base.A/1=Dec[name=base.A/1,gxs=[X],lambda=[-infer-][]{'this
+      .fullType/1([a]):Sig[mdf=imm,gens=[],ts=[immX],ret=immX]->[-]}]}
+    """, """
+    package base
+    A[X]:{ .fullType(a: X): X }
+    B:A[B]{ x -> B }
+    """);}
+
+  @Test void onlyAbsGens() { ok("""
+    {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[immbase.B[]]]{'this
+      .fullType/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.B[]]->[-immbase.B[]-][base.B[]]{}}],
+    base.A/1=Dec[name=base.A/1,gxs=[X],lambda=[-infer-][]{'this
+      .fullType/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->[-]}],
+    base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
+      .fullType/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->[-]}],
+    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{'this}]}
+    """, """
+    package base
+    Void:{}
+    A:{ .fullType: Void }
+    A[X]:{ .fullType: X }
+    B:A[B]{ B }
     """);}
 
   @Test void complexInfer() { ok("""
@@ -209,9 +257,10 @@ public class TestSigInference {
     B[Y]:Id2
     C:A,B[A]{.id a->a}
     """); }//So, how do we 'accept' that the version with X and the version with X0 are compatible
-  @Disabled // TODO
-  @Test void multiGens1() { fail("""
-    
+
+  @Test void noMethodExists() { fail("""
+    cannotInferSig:19
+    Could not infer the signature for .foo/0 in a.Bi/2.
     """, """
     package a
     A[X,Y]:B[X,Y]{ .foo:X }
