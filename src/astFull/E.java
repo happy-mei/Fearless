@@ -82,6 +82,9 @@ public interface E {
     public Meth withSig(Sig s) {
       return PosMap.add(new Meth(Optional.of(s), name(), xs(), body()), PosMap.getOrUnknown(this));
     }
+    public Meth withName(MethName name) {
+      return PosMap.add(new Meth(sig, Optional.of(name), xs(), body()), PosMap.getOrUnknown(this));
+    }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));
     }

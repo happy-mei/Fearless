@@ -1,0 +1,36 @@
+default CM norm(CM cm, Set<Id.GX<T>> xs) {
+    HashSet<Id.GX<T>> xInScope = new HashSet<>(xs);
+    new CollectX(xInScope).visitSig(cm.sig());
+    cm.m().body().ifPresent(e->e.accept(new FullCollectX(xInScope)));
+    var newSig=new RenameGens(xInScope, new HashMap<>()).visitSig(cm.sig());
+    return cm.withSig(newSig);
+  }
+
+static record CollectX(HashSet<Id.GX<T>> acc) implements ShortCircuitVisitor<Void>{
+    public Optional<Void> visitGX(Id.GX<T> t) {
+      acc.add(t);
+      return ShortCircuitVisitor.super.visitGX(t);
+    }
+  }
+  static record FullCollectX(HashSet<Id.GX<T>> acc) implements FullShortCircuitVisitor<Void> {
+    public Optional<Void> visitGX(Id.GX<astFull.T> t) {
+      acc.add(t.toAstGX());
+      return FullShortCircuitVisitor.super.visitGX(t);
+    }
+  }
+  static record RenameGens(HashSet<Id.GX<T>> xInScope, HashMap<Id.GX<T>,Id.GX<T>> subst) implements CloneVisitor {
+    public Id.GX<T> visitGX(Id.GX<T> t){
+      var inScope = xInScope.contains(t);
+      if(!inScope){ return t; }
+      return nextT(t,0);
+    }
+    Id.GX<T> nextT(Id.GX<T> t,int nextI){
+      var thisSubst = subst.get(t);
+      if(thisSubst!=null){ return thisSubst; }
+      var res = t.withName(t.name()+nextI);
+      var inScope = !xInScope.add(res);
+      subst.put(t,res);
+      if(!inScope){ return res; }
+      return nextT(t,nextI+1);
+    }
+  }

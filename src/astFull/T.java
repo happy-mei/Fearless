@@ -43,6 +43,12 @@ public record T(Mdf mdf, Id.RT<T> rt){
     public Dec accept(FullCloneVisitor v) { return v.visitDec(this); }
     public <R> Optional<R> accept(FullShortCircuitVisitor<R> v) { return v.visitDec(this); }
     public Dec withLambda(E.Lambda lambda) { return new Dec(name,gxs,lambda); }
+    public Id.IT<ast.T> toAstT() {
+      return new Id.IT<>(//AstFull.T || Ast.T
+        this.name(),
+        this.gxs().stream().map(gx->new ast.T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
+      );
+    }
   }
   @Override public String toString(){
     if(isInfer()){ return "infer"; }

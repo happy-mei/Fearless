@@ -10,16 +10,19 @@ import main.Fail;
 import utils.Bug;
 import utils.Pop;
 import utils.Push;
-import visitors.InjectionVisitor;
+import visitors.*;
 
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface Program {
   List<Id.IT<T>> itsOf(Id.IT<T> t);
+  /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   List<CM> cMsOf(Id.IT<T> t);
+  Set<Id.GX<ast.T>> gxsOf(Id.IT<T> t);
 
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1==m2){ return true; }
@@ -144,6 +147,7 @@ public interface Program {
     public Mdf mdf() { return sig().mdf(); }
     public T ret() { return sig().ret(); }
     public boolean isAbs(){ return m.isAbs(); }
+    public CM withSig(ast.E.Sig sig) { return new CM(c, m, sig); }
 
     public String toStringSimplified() {
       return c+", "+name();
@@ -161,58 +165,31 @@ public interface Program {
     ).toList();
     return prune(cms);
   }
-  default List<CM> meths(astFull.T.Dec dec) {
-    /*
-    #Define meths(C[Ts])=CMs   meths(C[Xs]:MDF B)=CMs            IT<<Ms
-      meths(C[Ts]) = prune(C[Ts]<<Ms[Xs=Ts], meths(IT1[Xs=Ts]),..,meths(ITn[Xs=Ts]))
-        where C[Xs]: IT1..ITn {x, Ms} in Ds
 
-      meths(C[Xs]:MDF IT1..ITn {x, Ms}) = prune(C[Ts]<<Ms, meths(IT1),..,meths(ITn))
-
-      IT<<empty = empty
-      IT<< m(xs)->e Ms = IT<<Ms  //it includes   IT<< SM Ms = IT<<Ms
-      IT<< sig->e, Ms = norm(IT.sig->e), IT<<Ms
-      IT<< sig, Ms = norm(IT.sig), IT<<Ms
-     */
-    // uh oh...
-
-    var it = new Id.IT<>(
-      dec.name(),
-      dec.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
-    );
-    List<CM> cms = Stream.concat(
-      cMsOf(it).stream(),
-      itsOf(it).stream().flatMap(iti->meths(iti).stream())
-    ).toList();
-    return prune(cms);
-
-//    throw Bug.todo();
-  }
-
-  default List<CM> fitMeths(astFull.T.Dec dec, Id.IT<T> it, List<E.Meth> meths) {
-    // IT<<empty = empty
-    if (meths.isEmpty()) { return List.of(); }
-
-    return dec.lambda().meths().stream()
-      // IT<< m(xs)->e Ms = IT<<Ms  //it includes   IT<< SM Ms = IT<<Ms
-      .filter(m->m.sig().isPresent())
-      .map(m->fitMeth(it, m))
-      .toList();
-  }
-
-  default CM fitMeth(Id.IT<T> it, E.Meth meth) {
-    // IT<< sig->e, Ms = norm(IT.sig->e), IT<<Ms
-    // IT<< sig, Ms = norm(IT.sig), IT<<Ms
-    if (meth.sig().isPresent()) {
-      var sig = norm(new InjectionVisitor().visitSig(meth.sig().get()));
-      return new CM(it, meth, sig);
+  static record RenameGens(Map<Id.GX<T>,Id.GX<T>> subst) implements CloneVisitor {
+    public Id.GX<T> visitGX(Id.GX<T> t) {
+      var thisSubst = subst.get(t);
+      if (thisSubst != null) { return thisSubst; }
+      return t;
     }
-
-    throw Bug.unreachable();
   }
-
-  default ast.E.Sig norm(ast.E.Sig s) {
-    throw Bug.todo();
+  default CM norm(CM cm) {
+    /*
+    norm(CM) = CM' // Note: the (optional) body is not affected
+    //Note, in CM ::= C[Ts].sig the class Xs are already replaced with Ts
+    norm(C[Ts].m[X1..Xn](xTs):T->e) = C[Ts] (.m[](xTs):T->e)[X1=Par1..Xn=Parn]
+      where we consistently select Par1..Parn globally so that
+      it never happens that the current Ds contains Par1..Parn anywhere as a nested X
+      Note: to compile with a pre compiled program we must add that
+    norm(C[Ts].m[Par1 Xs](xTs):T->e) = C[Ts].m[Par1 Xs](xTs):T->e
+     */
+    //standardNames(n)->List.of(Par1..Parn)
+    var gx=cm.sig().gens();
+    List<Id.GX<ast.T>> names=Id.GX.standardNames(gx.size());
+    Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gx.size()).boxed()
+      .collect(Collectors.toMap(gx::get, names::get));
+    var newSig=new RenameGens(subst).visitSig(cm.sig());
+    return cm.withSig(newSig);
   }
 
   default List<CM> prune(List<CM> cms) {

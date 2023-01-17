@@ -1,10 +1,12 @@
 package id;
 
+import ast.T;
 import parser.Parser;
 import utils.Bug;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 public class Id {
   public static boolean validM(String m){
@@ -40,6 +42,11 @@ public class Id {
       if (FRESH_N > 100) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
       FRESH_N = 0;
     }
+    public static List<GX<ast.T>> standardNames(int n) {
+      // this will never clash with the other FearN$ names because they are only used on declarations
+      // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).
+      return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("Fear" + fresh + "$")).toList();
+    }
     public GX{assert Id.validGX(name);}
     public GX(){
       this("Fear" + FRESH_N++ + "$");
@@ -47,6 +54,9 @@ public class Id {
     }
     public <R> R match(Function<GX<TT>,R>gx, Function<IT<TT>,R>it){ return gx.apply(this); }
     @Override public String toString(){ return name(); }
+    public GX<ast.T> toAstGX() { return (GX<ast.T>) this; }
+    public GX<astFull.T> toFullAstGX() { return (GX<astFull.T>) this; }
+    public GX<TT> withName(String name) { return new GX<>(name); }
   }
   public record IT<TT>(Id.DecId name, List<TT> ts)implements RT<TT>{
     public IT{ assert ts.size()==name.gen(); }
@@ -54,5 +64,11 @@ public class Id {
     public <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it){ return it.apply(this); }
     public IT<TT> withTs(List<TT>ts){ return new IT<>(new DecId(name.name,ts.size()), ts); }
     @Override public String toString(){ return name.name()+ts; }
+    public IT<ast.T> toAstIT(Function<TT, ast.T> transform) {
+      return new IT<ast.T>(name, ts.stream().map(transform).toList());
+    }
+    public IT<astFull.T> toFullAstIT(Function<TT, astFull.T> transform) {
+      return new IT<astFull.T>(name, ts.stream().map(transform).toList());
+    }
   }
 }
