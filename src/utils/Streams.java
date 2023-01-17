@@ -2,6 +2,7 @@ package utils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -15,6 +16,9 @@ public class Streams {
     return new Zipper<>(as,bs);
   }
   public record Zipper<A,B>(List<A> as, List<B> bs){
+    public void forEach(BiConsumer<A,B> f){
+      IntStream.range(0, as.size()).forEach(i->f.accept(as.get(i), bs.get(i)));
+    }
     public <R> Stream<R> map(BiFunction<A,B,R>f){
       return IntStream.range(0, as.size()).mapToObj(i->f.apply(as.get(i),bs.get(i)));
     }

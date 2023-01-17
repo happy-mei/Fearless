@@ -71,8 +71,17 @@ public class TestInferBodies {
     package a
     Id:{ .id[X](x: X): X -> x }
     """); }
+  @Test void inferIdentityFnAndSig() { ok("""
+    {a.Id/0=Dec[name=a.Id/0,gxs=[],lambda=Lambda[mdf=mdf,its=[a.Id[]],selfName=this,meths=[
+      .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]]]],
+    a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=Lambda[mdf=mdf,its=[a.Id2[],a.Id[]],selfName=this,meths=[
+      .id/1([x]):Sig[mdf=imm,gens=[Fear0$],ts=[immFear0$],ret=immFear0$]->x]]]}
+    """, """
+    package a
+    Id:{ .id[X](x: X): X }
+    Id2:Id{ x -> x }
+    """); }
   @Test void inferLoop() { ok("""
-    {a.Id/0=Dec[name=a.Id/0,gxs=[],lambda=Lambda[mdf=mdf,its=[a.Id[]],selfName=this,meths=[.id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->x]]]}
     """, """
     package a
     Id:{ .id[X](x: X): X -> this.id[X](x) }

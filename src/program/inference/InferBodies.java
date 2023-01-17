@@ -6,8 +6,10 @@ import astFull.PosMap;
 import id.Id;
 import main.Fail;
 import utils.Bug;
+import utils.Streams;
 import visitors.InjectionVisitor;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -19,13 +21,7 @@ public record InferBodies(astFull.Program p) {
     Map<Id.DecId, ast.T.Dec> ds = p.ds().values().stream()
       .map(d->injectionVisitor.visitDec(d.withLambda(d.lambda().withMeths(
         d.lambda().meths().stream()
-          .map(m->m.withBody(
-            m.body()
-              .map(e->fixInferStep(
-                Map.of(d.lambda().selfName(), new astFull.T(m.sig().orElseThrow().mdf(), d.toIT())),
-                e
-                )))
-            )
+          .map(m->m.withBody(m.body().map(e->fixInferStep(buildGamma(d, m), e))))
           .toList()
         ))))
       .collect(Collectors.toMap(T.Dec::name, d->d));
@@ -35,10 +31,10 @@ public record InferBodies(astFull.Program p) {
   private Map<String, astFull.T> buildGamma(astFull.T.Dec dec, astFull.E.Meth m) {
     Map<String, astFull.T> gamma = new HashMap<>();
     gamma.put(dec.lambda().selfName(), new astFull.T(m.sig().orElseThrow().mdf(), dec.toIT()));
-    var sig = m.sig().orElseThrow()E
-    // TODO: add params to gamma
+    var sig = m.sig().orElseThrow();
+    Streams.zip(m.xs(), sig.ts()).forEach(gamma::put);
 
-    return gamma;
+    return Collections.unmodifiableMap(gamma);
   }
 
   E fixInferStep(Map<String, astFull.T> gamma, E e) {
