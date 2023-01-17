@@ -316,6 +316,22 @@ public class TestSigInference {
       C:{ .g[BB]: BB }
       """);
   }
+  @Test void abstractNoCandidate() { fail("""
+    """, """
+    package a
+    Id:{ .id[X](x: X): X }
+    Id2:{ x -> x }
+    """); }
+  @Test void abstractOneArg() { ok("""
+    {a.Id/0=Dec[name=a.Id/0,gxs=[],lambda=[-infer-][]{'this
+      .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}],
+    a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=[-infer-][a.Id[]]{'this
+      .id/1([x]):Sig[mdf=imm,gens=[Fear0$],ts=[immFear0$],ret=immFear0$]->x:infer}]}
+    """, """
+    package a
+    Id:{ .id[X](x: X): X }
+    Id2:Id{ x -> x }
+    """); }
 }
 
 
