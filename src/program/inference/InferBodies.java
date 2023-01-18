@@ -21,7 +21,7 @@ public record InferBodies(astFull.Program p) {
     return p.ds().values().stream()
       .map(d->d.withLambda(d.lambda().withMethsP(
         d.lambda().meths().stream()
-          .map(m->m.withBodyP(m.body().map(e->fixInferStep(Map.of(), e))))
+          .map(m->m.withBodyP(m.body().map(e->fixInferStep(iGOf(d, m), e))))
           .toList()
       )))
       .collect(Collectors.toMap(d->d.name(), d->d));
@@ -91,7 +91,7 @@ public record InferBodies(astFull.Program p) {
     Streams.zip(m.xs(), sig.ts()).forEach(richGamma::put);
     richGamma = Collections.unmodifiableMap(richGamma);
     var e1 = m.body().get();
-    var e2 = fixType(e1,sig.ret());
+    var e2 = new RefineTypes(this.p).fixType(e1,sig.ret());
     var optBody = inferStep(richGamma,e2);
     var res = optBody.map(b->m.withBodyP(Optional.of(b)));
     return res.or(()->e1==e2
@@ -129,16 +129,6 @@ public record InferBodies(astFull.Program p) {
 
   /** extracts the annotated types for all the ie in ies */
   List<astFull.T> typesOf(List<astFull.E> ies) {
-    throw Bug.todo();
-  }
-  List<astFull.E> fixTypes(List<astFull.E> ies, List<astFull.T> iTs) {
-    return Streams.zip(ies, iTs).map(this::fixType).toList();
-  }
-  astFull.E fixType(astFull.E ie, astFull.T iT) {
-    if(!ie.t().isInfer()){ return ie; }
-    return ie.withTP(iT);
-  }
-  astFull.T best(astFull.T iT1, astFull.T iT2) {
     throw Bug.todo();
   }
 }
