@@ -270,7 +270,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var id = new Id.DecId(cName,mGen.size());
     var body = shallow ? null : visitBlock(ctx.block(), Optional.empty());
     if (body != null) {
-      body = body.withIT(Optional.empty());
+      body = body.withITP(Optional.empty());
     }
     return PosMap.add(new T.Dec(id, mGen, body),pos(ctx));
   }

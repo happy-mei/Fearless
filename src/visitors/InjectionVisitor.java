@@ -6,8 +6,6 @@ import id.Id;
 import id.Mdf;
 import utils.Push;
 
-import java.util.Optional;
-
 public class InjectionVisitor implements FullVisitor<ast.E> {
   public ast.E.MCall visitMCall(E.MCall e) {
     return PosMap.replace(e, new ast.E.MCall(
@@ -35,7 +33,7 @@ public class InjectionVisitor implements FullVisitor<ast.E> {
     return PosMap.replace(d, new ast.T.Dec(
       d.name(),
       d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList(),
-      this.visitLambda(d.lambda().withMdf(Mdf.mdf).withITs(Push.of(d.toIT(), d.lambda().its())))
+      this.visitLambda(d.lambda().withMdfP(Mdf.mdf).withITsP(Push.of(d.toIT(), d.lambda().its())))
     ));
   }
 

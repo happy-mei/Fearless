@@ -1,6 +1,5 @@
 package astFull;
 
-import files.Pos;
 import id.Id;
 import id.Id.MethName;
 import id.Mdf;
@@ -14,10 +13,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public interface E {
+public sealed interface E {
   E accept(FullCloneVisitor v);
   <R> R accept(FullVisitor<R> v);
   T t();
+  E withTP(T t);
   record Lambda(Optional<Mdf> mdf, List<Id.IT<T>>its, String selfName, List<Meth>meths, Optional<Id.IT<T>> it) implements E{
     public Lambda {
       Objects.requireNonNull(mdf);
@@ -29,6 +29,11 @@ public interface E {
       assert mdf().isPresent() && it().isPresent();
       return new T(mdf().get(), it().get());
     }
+
+    @Override public Lambda withTP(T t) {
+      return PosMap.replace(this, new Lambda(mdf, its, selfName, meths, Optional.of(t.itOrThrow())));
+    }
+
     @Override public E accept(FullCloneVisitor v){return v.visitLambda(this);}
     @Override public <R> R accept(FullVisitor<R> v){return v.visitLambda(this);}
     @Override public String toString() {
@@ -40,25 +45,40 @@ public interface E {
       return String.format("[-%s %s-]%s{%s %s}", mdf, type, its(), selfName, meths);
     }
 
-    public Lambda withSelfName(String selfName) {
+    public Lambda withSelfNameP(String selfName) {
       return PosMap.replace(this, new Lambda(mdf, its, selfName, meths, it));
     }
-    public Lambda withIT(Optional<Id.IT<T>> it) {
+    public Lambda withITP(Optional<Id.IT<T>> it) {
       return PosMap.replace(this, new Lambda(mdf, its, selfName, meths, it));
     }
-    public Lambda withITs(List<Id.IT<T>> its) {
+    public Lambda withITsP(List<Id.IT<T>> its) {
       return PosMap.replace(this, new Lambda(mdf, its, selfName, meths, it));
     }
-    public Lambda withMdf(Mdf mdf) {
+    public Lambda withMdfP(Mdf mdf) {
       return PosMap.replace(this, new Lambda(Optional.of(mdf), its, selfName, meths, it));
     }
 
-    public Lambda withMeths(List<Meth> ms) {
+    public Lambda withMethsP(List<Meth> ms) {
       return PosMap.replace(this, new Lambda(mdf, its, selfName, ms, it));
     }
   }
   record MCall(E receiver,MethName name,Optional<List<T>>ts,List<E>es, T t)implements E{
     public MCall { assert name.num() == es.size(); }
+    public MCall withReceiver(E receiver) {
+      return new MCall(receiver, name, ts, es, t);
+    }
+    public MCall withReceiverP(E receiver) {
+      return PosMap.replace(this, withReceiver(receiver));
+    }
+    public MCall withEs(List<E> es) {
+      return new MCall(receiver, name, ts, es, t);
+    }
+    public MCall withEsP(List<E> es) {
+      return PosMap.replace(this, withEs(es));
+    }
+    @Override public MCall withTP(T t) {
+      return PosMap.replace(this, new MCall(receiver, name, ts, es, t));
+    }
     @Override public E accept(FullCloneVisitor v){return v.visitMCall(this);}
     @Override public <R> R accept(FullVisitor<R> v){return v.visitMCall(this);}
     @Override public String toString() {
@@ -75,6 +95,12 @@ public interface E {
       this("fear" + FRESH_N++ + "$", t);
       if (FRESH_N == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
     }
+    public X withT(T t) {
+      return new X(name, t);
+    }
+    public X withTP(T t) {
+      return PosMap.replace(this, withT(t));
+    }
     @Override public E accept(FullCloneVisitor v){return v.visitX(this);}
     @Override public <R> R accept(FullVisitor<R> v){return v.visitX(this);}
     @Override public String toString(){ return name+":"+t; }
@@ -90,7 +116,7 @@ public interface E {
     public Meth withName(MethName name) {
       return PosMap.add(new Meth(sig, Optional.of(name), xs, body), PosMap.getOrUnknown(this));
     }
-    public Meth withBody(Optional<E> body) {
+    public Meth withBodyP(Optional<E> body) {
       return PosMap.add(new Meth(sig, name, xs, body), PosMap.getOrUnknown(this));
     }
     @Override public String toString() {
