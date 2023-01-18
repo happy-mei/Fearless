@@ -5,7 +5,6 @@ import astFull.E;
 import astFull.PosMap;
 import id.Id;
 import id.Mdf;
-import main.CompileError;
 import main.Fail;
 import utils.Bug;
 import utils.Pop;
