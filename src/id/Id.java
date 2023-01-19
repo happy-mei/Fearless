@@ -48,7 +48,10 @@ public class Id {
       // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).
       return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("Fear" + fresh + "$")).toList();
     }
-    public GX{assert Id.validGX(name);}
+    public static <TT> GX<TT> intrinsicStandardGX() {
+     return new GX<>("Fear-1$");
+    }
+    public GX{ assert Id.validGX(name); }
     public GX(){
       this("Fear" + FRESH_N++ + "$");
       if (FRESH_N == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }

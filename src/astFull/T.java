@@ -7,7 +7,6 @@ import visitors.FullCloneVisitor;
 import visitors.FullShortCircuitVisitor;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -22,6 +21,9 @@ public record T(Mdf mdf, Id.RT<T> rt){
         var ts = it.ts().stream().map(T::toAstT).toList();
         return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
       });
+  }
+  public T withMdf(Mdf mdf){
+    return new T(mdf,rt);
   }
   public Id.IT<T> itOrThrow() {
     return match(gx->{ throw Bug.of("Expected IT, got GX"); }, it->it);

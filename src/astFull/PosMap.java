@@ -7,6 +7,8 @@ import java.net.URI;
 import java.util.IdentityHashMap;
 import java.util.Optional;
 
+// alternatively to this, we can have Pos in the AST with a hashcode/equals set to not impact anything
+
 public class PosMap {
   private static final Pos Unknown = Pos.of(URI.create("unknown"), 0, 0);
   public static void reset(){ map.clear(); }
