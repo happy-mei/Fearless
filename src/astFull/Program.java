@@ -3,6 +3,7 @@ package astFull;
 import id.Id;
 import magic.Magic;
 import main.Fail;
+import program.TypeRename;
 import utils.OneOr;
 import utils.Range;
 import visitors.InjectionVisitor;
@@ -29,15 +30,15 @@ public class Program implements program.Program{
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
-    Function<Id.GX<ast.T>, ast.T> f = renameFun(t.ts(), gxs);
-    return d.lambda().its().stream().map(ti->rename(liftIT(ti),f)).toList();
+    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core().renameFun(t.ts(), gxs);
+    return d.lambda().its().stream().map(ti->TypeRename.core().renameIT(liftIT(ti),f)).toList();
   }
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   @Override public List<CM> cMsOf(Id.IT<ast.T> t){
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
-    Function<Id.GX<ast.T>, ast.T> f = renameFun(t.ts(), gxs);
+    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core().renameFun(t.ts(), gxs);
     return d.lambda().meths().stream()
       .filter(mi->mi.sig().isPresent())
       .map(mi->cm(t,mi,f))
@@ -51,7 +52,7 @@ public class Program implements program.Program{
   private CM cm(Id.IT<ast.T> t, astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
-    var cm = new CM(t, mi, rename(new InjectionVisitor().visitSig(sig), f));
+    var cm = new CM(t, mi, TypeRename.core().renameSig(new InjectionVisitor().visitSig(sig), f));
     return norm(cm);
   }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }

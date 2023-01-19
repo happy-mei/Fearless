@@ -3,7 +3,6 @@ package program;
 import main.CompileError;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import utils.Err;
@@ -331,6 +330,40 @@ public class TestSigInference {
     package a
     Id:{ .id[X](x: X): X }
     Id2:Id{ x -> x }
+    """); }
+  @Test void adaptGens() { ok("""
+    {a.A/1=Dec[name=a.A/1,gxs=[X],lambda=[-infer-][]{'this
+      .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mdfX]->[-],
+      .m2/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mutX]->[-],
+      .m3/0([]):Sig[mdf=imm,gens=[],ts=[],ret=isoX]->[-],
+      .m4/0([]):Sig[mdf=imm,gens=[],ts=[],ret=lentX]->[-],
+      .m5/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
+      .m6/0([]):Sig[mdf=lent,gens=[],ts=[],ret=recMdfX]->[-],
+      .m7/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->[-]}],
+    a.C/0=Dec[name=a.C/0,gxs=[],lambda=[-infer-][a.A[muta.B[]]]{'this
+      .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=muta.B[]]->this:infer.m1/0[-]([]):infer,
+      .m2/0([]):Sig[mdf=imm,gens=[],ts=[],ret=muta.B[]]->this:infer.m2/0[-]([]):infer,
+      .m3/0([]):Sig[mdf=imm,gens=[],ts=[],ret=isoa.B[]]->this:infer.m3/0[-]([]):infer,
+      .m4/0([]):Sig[mdf=imm,gens=[],ts=[],ret=lenta.B[]]->this:infer.m4/0[-]([]):infer,
+      .m5/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfa.B[]]->this:infer.m5/0[-]([]):infer,
+      .m6/0([]):Sig[mdf=lent,gens=[],ts=[],ret=recMdfa.B[]]->this:infer.m6/0[-]([]):infer,
+      .m7/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->this:infer.m7/0[-]([]):infer}],
+    a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[imma.B[]]]{'this
+      .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->this:infer.m1/0[-]([]):infer,
+      .m2/0([]):Sig[mdf=imm,gens=[],ts=[],ret=muta.B[]]->this:infer.m2/0[-]([]):infer,
+      .m3/0([]):Sig[mdf=imm,gens=[],ts=[],ret=isoa.B[]]->this:infer.m3/0[-]([]):infer,
+      .m4/0([]):Sig[mdf=imm,gens=[],ts=[],ret=lenta.B[]]->this:infer.m4/0[-]([]):infer,
+      .m5/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfa.B[]]->this:infer.m5/0[-]([]):infer,
+      .m6/0([]):Sig[mdf=lent,gens=[],ts=[],ret=recMdfa.B[]]->this:infer.m6/0[-]([]):infer,
+      .m7/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->this:infer.m7/0[-]([]):infer}]}
+    """, """
+    package a
+    A[X]:{ .m1:mdf X,  .m2: mut X, .m3: iso X, .m4: lent X,
+            read .m5: recMdf X,  lent .m6: recMdf X, .m7: imm X
+          }
+    B:A[B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5,
+            .m6->this.m6,.m7->this.m7,}
+    C:A[mut B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5, .m6->this.m6, .m7->this.m7 }
     """); }
 }
 

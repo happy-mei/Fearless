@@ -6,6 +6,7 @@ import astFull.PosMap;
 import id.Id;
 import id.Mdf;
 import main.Fail;
+import program.inference.RefineTypes;
 import utils.Bug;
 import utils.Pop;
 import utils.Push;
@@ -302,44 +303,8 @@ public interface Program {
     var ts = it.ts().stream().map(astFull.T::toAstT).toList();
     return new Id.IT<>(it.name(), ts);
   }
-  default Id.IT<ast.T> rename(Id.IT<ast.T> it, Function<Id.GX<T>, T> f){
-    return it.withTs(it.ts().stream().map(iti->rename(iti,f)).toList());
-  }
-
-  default ast.E.Sig rename(ast.E.Sig sig, Function<Id.GX<ast.T>,ast.T>f){
-    assert sig.gens().stream().allMatch(gx->f.apply(gx)==null);
-    return new ast.E.Sig(
-      sig.mdf(),
-      sig.gens(),
-      sig.ts().stream().map(t->rename(t,f)).toList(),
-      rename(sig.ret(),f)
-      );
-    }
-  default ast.T rename(ast.T t, Function<Id.GX<ast.T>,ast.T>f){
-    return t.match(
-      gx->{
-        var renamed = f.apply(gx);
-        if(renamed==null){ return t; }
-        return propagateMdf(t.mdf(),renamed);
-      },
-      it->new ast.T(t.mdf(),rename(it,f))
-    );
-  }
-  default ast.T propagateMdf(Mdf mdf, ast.T t){
-    assert t!=null;
-    assert !mdf.isRecMdf();
-    if(mdf.isMdf()){ return t; }
-    return t.withMdf(mdf);
-  }
-
-  default Function<Id.GX<ast.T>, ast.T> renameFun(List<ast.T> ts, List<Id.GX<ast.T>> gxs) {
-    return gx->{
-      int i = gxs.indexOf(gx);
-      if(i==-1){ return null; }
-      return ts.get(i);
-    };
-  }
 }
+//----
 
 /* m(xs) is just using the length of xs and the name (m) to extract the method
   Ds,C[Xs]|-m(xs)->e => sig->e, // task 1
