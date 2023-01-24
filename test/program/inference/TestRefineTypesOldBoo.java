@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-public class TestRefineTypes {
+public class TestRefineTypesOldBoo {
   astFull.T addInfers(astFull.T t){
     return t.match(
       gx->gx.name().equals("Infer") ? T.infer:t,

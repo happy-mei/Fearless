@@ -6,14 +6,12 @@ import astFull.PosMap;
 import id.Id;
 import id.Mdf;
 import main.Fail;
-import program.inference.RefineTypes;
 import utils.Bug;
 import utils.Pop;
 import utils.Push;
 import visitors.*;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
