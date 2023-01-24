@@ -143,6 +143,7 @@ public record RefineTypes(astFull.Program p) {
       rps.remove(optInfer.getAsInt());
       return collectRec(rps);
     }
+    // TODO: Still need to handle the mdf for the 4 cases
     var optXC1 = IntStream.range(0, rps.size()).boxed()
       .filter(i->isXC(i,rps)).findFirst();
     if(collectMulti_XC(rps, optXC1)){ return collectRec(rps); }
