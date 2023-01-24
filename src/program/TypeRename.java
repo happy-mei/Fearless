@@ -1,9 +1,8 @@
 package program;
 
-import astFull.T;
 import id.Id;
 import id.Mdf;
-import program.inference.RefineTypes;
+import program.inference.RefineTypesOldBoo;
 
 import java.util.List;
 import java.util.Map;
@@ -17,12 +16,6 @@ public interface TypeRename<T>{
       return new astFull.T(mdf, t);
     }
     public astFull.T withMdf(astFull.T t, Mdf mdf) { return t.withMdf(mdf); }
-
-    public RefineTypes.RP renameRP(RefineTypes.RP rp, Map<Id.GX<astFull.T>, astFull.T> map){
-      var t1 = renameT(rp.t1(),map::get);
-      var t2 = renameT(rp.t2(),map::get);
-      return new RefineTypes.RP(rp.pos(), t1, t2);
-    }
   }
   record CoreTTypeRename() implements TypeRename<ast.T> {
     public <R> R matchT(ast.T t, Function<Id.GX<ast.T>,R>gx, Function<Id.IT<ast.T>,R>it) { return t.match(gx, it); }

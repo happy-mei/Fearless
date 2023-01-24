@@ -28,6 +28,9 @@ public record T(Mdf mdf, Id.RT<T> rt){
   public Id.IT<T> itOrThrow() {
     return match(gx->{ throw Bug.of("Expected IT, got GX"); }, it->it);
   }
+  public Id.GX<T> gxOrThrow() {
+    return match(gx->gx, it->{ throw Bug.of("Expected GX, got IT"); });
+  }
   public <R> R match(Function<Id.GX<T>,R>gx,Function<Id.IT<T>,R>it){
     assert !this.isInfer():"Can not match on infer";
     return rt.match(gx, it);
