@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -30,6 +31,12 @@ public class Streams {
         .mapToObj(i->f.apply(as.get(i),bs.get(i)))
         .filter(Optional::isPresent)
         .map(Optional::get);
+    }
+
+    public static <T> Optional<Integer> firstPos(List<T> xs, Predicate<T> p) {
+      return IntStream.range(0, xs.size()).boxed()
+        .filter(i->p.test(xs.get(i)))
+        .findFirst();
     }
   }
 }

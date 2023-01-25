@@ -16,6 +16,7 @@ public interface TypeRename<T>{
       return new astFull.T(mdf, t);
     }
     public astFull.T withMdf(astFull.T t, Mdf mdf) { return t.withMdf(mdf); }
+    public boolean isInfer(astFull.T t) { return t.isInfer(); }
   }
   record CoreTTypeRename() implements TypeRename<ast.T> {
     public <R> R matchT(ast.T t, Function<Id.GX<ast.T>,R>gx, Function<Id.IT<ast.T>,R>it) { return t.match(gx, it); }
@@ -31,6 +32,7 @@ public interface TypeRename<T>{
         renameT(sig.ret(),f)
       );
     }
+    public boolean isInfer(ast.T t) { return false; }
   }
   static FullTTypeRename full() { return new FullTTypeRename(); }
   static CoreTTypeRename core() { return new CoreTTypeRename(); }
@@ -50,8 +52,9 @@ public interface TypeRename<T>{
       return ts.get(i);
     };
   }
-
+  boolean isInfer(T t);
   default T renameT(T t, Function<Id.GX<T>,T> f){
+    if(isInfer(t)){ return t; }
     return matchT(t,
       gx->{
         var renamed = f.apply(gx);
