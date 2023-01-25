@@ -40,9 +40,9 @@ public record RefineTypes(astFull.Program p) {
     var notMatch=!c1.name().equals(c2.name()); //name includes gen size
     if(notMatch){ return iT1; }
     // TODO should we check the subtyping between C and C' instead?
-    Optional<List<RP>> refined = refineSigGens(RP.of(c1.ts(),c2.ts()));
+    List<RP> refined = refineSigGens(RP.of(c1.ts(),c2.ts()));
     if(refined.isEmpty()){ return iT1; }
-    List<astFull.T> refinedTs = refined.get().stream().map(RP::t1).toList();
+    List<astFull.T> refinedTs = refined.stream().map(RP::t1).toList();
     if(iT1.mdf()!=iT2.mdf()){ throw Bug.unreachable(); }
     //TODO: if the MDFs are different? take the most specific? not on iso?
     return new astFull.T(iT1.mdf(),c1.withTs(refinedTs));
@@ -54,12 +54,10 @@ public record RefineTypes(astFull.Program p) {
   }
   public static final TypeRename.FullTTypeRename renamer = new TypeRename.FullTTypeRename();
 
-  Optional<List<RP>> refineSigGens(List<RP>rps){
+  List<RP> refineSigGens(List<RP>rps){
     List<Sub> subs = collect(rps);
-    var isCircular = subs.stream().anyMatch(Sub::isCircular);
-    if(isCircular){ return Optional.empty(); }
     Map<Id.GX<T>, T> map = toSub(subs);
-    return Optional.of(rps.stream().map(rp->renameRP(rp,map,renamer)).toList());
+    return rps.stream().map(rp->renameRP(rp,map,renamer)).toList();
   }
   boolean isXX(RP rp){
     return rp.t1().rt() instanceof Id.GX<?> && rp.t2().rt() instanceof Id.GX<?>;
@@ -89,7 +87,7 @@ public record RefineTypes(astFull.Program p) {
     var res = rps.remove(index);
     //collect(RPs, MDF X = _ X', RPs') =   X'=MDF X, collect(RPs[X = mdf X'], RPs'[X = mdf X'])
     var other = res.t2().withMdf(Mdf.mdf);
-    rename(rps,res.t1().gxOrThrow(),other);
+    rename(rps,new Sub(res.t1().gxOrThrow(),other));
     return new Sub(res.t2().gxOrThrow(),res.t1());
   }
   void collectSameC(int index, ArrayList<RP> rps){
@@ -98,10 +96,11 @@ public record RefineTypes(astFull.Program p) {
     var its2=e.t2().itOrThrow().ts();
     Range.of(its1).forEach(i->rps.add(index+i,new RP(its1.get(i),its2.get(i))));
   }
-  void collectMulti(int index1, int index2, ArrayList<RP> rps){
+  Sub collectMulti(int index1, int index2, ArrayList<RP> rps){
     var e = rps.remove(index1);
     index2 -= 1;
     insertGens(rps, index2, gensOf(e), gensOf(rps.get(index2)));
+    return toSub(e).orElseThrow();
   }
   List<T> gensOf(RP rp){
     if(rp.t1().rt() instanceof Id.GX<?>){ return rp.t2().itOrThrow().ts(); }
@@ -131,15 +130,14 @@ public record RefineTypes(astFull.Program p) {
   }
   boolean isXC(int index, ArrayList<RP> rps) {
     var rp = rps.get(index);
-    return (rp.t1().rt() instanceof Id.GX<?>) && (rp.t2().rt() instanceof Id.IT<?>);
-  }
-  boolean isCX(int index, ArrayList<RP> rps) {
-    var rp = rps.get(index);
-    return (rp.t1().rt() instanceof Id.IT<?>) && (rp.t2().rt() instanceof Id.GX<?>);
+    var leftX = (rp.t1().rt() instanceof Id.GX<?>) && (rp.t2().rt() instanceof Id.IT<?>);
+    var rightX = (rp.t2().rt() instanceof Id.GX<?>) && (rp.t1().rt() instanceof Id.IT<?>);
+    return leftX || rightX;
   }
   List<Sub> collect(List<RP>rps) { return collectRec(new ArrayList<>(rps)); }
-  void rename(ArrayList<RP>rps,Id.GX<T> x,T t){
-    var map = Map.of(x,t);
+  void rename(ArrayList<RP>rps,Sub s){
+    if(s.isCircular()){ return; }
+    var map = Map.of(s.x(),s.t());
     Range.of(rps).forEach(i->rps.set(i,renameRP(rps.get(i),map,renamer)));
   }
   List<Sub> collectRec(ArrayList<RP> rps) {
@@ -166,33 +164,28 @@ public record RefineTypes(astFull.Program p) {
     }
     var optXC1 = IntStream.range(0, rps.size()).boxed()
       .filter(i->isXC(i,rps)).findFirst();
-    if(collectMulti(rps, optXC1)){ return collectRec(rps); }
-    var optCX1 = IntStream.range(0, rps.size()).boxed()
-      .filter(i->isCX(i,rps)).findFirst();
-    if(collectMulti(rps, optCX1)){ return collectRec(rps); }
-
+    var optXC2 = optXC1.flatMap(xc1->Streams
+      .firstPos(xc1+1,rps,i->isSameXC(rps.get(i), rps.get(xc1))));
+    if(optXC2.isPresent()){
+      Sub xc = collectMulti(optXC1.get(),optXC2.get(), rps);
+      return Push.of(xc, collectRec(rps));
+    }
     // otherwise...
     assert !rps.isEmpty();
-    var isXC=isXC(0,rps);
-    var isCX=isCX(0,rps);
     RP head = rps.remove(0);
-    if (!isXC && !isCX){ return collectRec(rps); }
-    Sub s =isXC
-      ?new Sub(head.t1().gxOrThrow(), head.t2().withMdf(head.t1().mdf()))
-      :new Sub(head.t2().gxOrThrow(), head.t1());
-    rename(rps,s.x(),s.t());
-    return Push.of(s, collectRec(rps));
+    var sub=toSub(head);
+    if (sub.isEmpty()){ return collectRec(rps); }
+    rename(rps,sub.get());
+    return Push.of(sub.get(), collectRec(rps));
   }
-
-  private boolean collectMulti(ArrayList<RP> rps, Optional<Integer> optXC1) {
-    var optXC2 =  optXC1.flatMap(xc1->IntStream.range(xc1+1, rps.size())
-      .boxed()
-      .filter(i->isSameXC(rps.get(i),rps.get(xc1)))
-      .findFirst()
-    );
-    if(optXC2.isEmpty()){ return false; }
-    collectMulti(optXC1.get(),optXC2.get(), rps);
-    return true;
+  private Optional<Sub> toSub(RP rp){
+    var t1=rp.t1();
+    var t2=rp.t2();
+    var leftX = (t1.rt() instanceof Id.GX<?>) && (t2.rt() instanceof Id.IT<?>);
+    var rightX = (t2.rt() instanceof Id.GX<?>) && (t1.rt() instanceof Id.IT<?>);
+    if(leftX){ return Optional.of(new Sub(t1.gxOrThrow(), t2.withMdf(t1.mdf()))); }
+    if(rightX){ return Optional.of(new Sub(t2.gxOrThrow(), t1)); }
+    return Optional.empty();
   }
 
   /*
@@ -213,8 +206,9 @@ collect(MDF C[iTs] = MDF' X, RPs) =     X=MDF C[iTs] collect(RPs)
 collect(empty) = empty
   */
 
-  Map<Id.GX<T>, T> toSub(List<Sub> rps) {
-    Map<Id.GX<T>, List<Sub>> res = rps.stream()
+  Map<Id.GX<T>, T> toSub(List<Sub> subs) {
+    Map<Id.GX<T>, List<Sub>> res = subs.stream()
+      .filter(si->!si.isCircular())
       .collect(Collectors.groupingBy(Sub::x));
     return res.values().stream().collect(Collectors.toMap(
       si->si.get(0).x(),

@@ -128,8 +128,7 @@ public class TestRefineTypes {
   @Test
   // X=a.A[X,X]
   void aGenInfinite2() {ok("""
-    varName:imma.A[imma.B[],imma.A[imm a.B[],imm a.B[]]]
-    varName:imma.A[imma.A[immX,immX],imma.B[]]
+    varName:imma.A[imma.B[],imma.B[]]
     """, "varName", "a.A[a.A[X,X],X]", "a.A[X,a.B[]]", """
     package a
     A[X,Y]:{}
