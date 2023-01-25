@@ -136,6 +136,15 @@ public class TestRefineTypes {
     """);}
 
   @Test
+  void aGenInfinite3() {ok("""
+    varName:imma.A[imma.B[],imma.A[imma.B[],imma.B[]]]
+    """, "varName", "a.A[X,a.A[X,X]]", "a.A[a.B[],Y]", """
+    package a
+    A[X,Y]:{}
+    B:{}
+    """);}
+
+  @Test
   void lhsGxRhsIT() {ok("""
     varName:imm a.A[]
     """, "varName", "X", "a.A[]", """
@@ -176,12 +185,70 @@ public class TestRefineTypes {
     B:{}
     """);}
 
-//  @Test
-//  void refineMutual() {ok("""
-//
-//    """, "", "a.A[a.B[]]", "a.A[a.A[a.B[]]]", """
-//    package a
-//    A[X]:{}
-//    B[X]:{}
-//    """);}
+  @Test
+  void refineGensNoInfo() {ok("""
+    varName:imm a.A[imm X]
+    """, "varName", "a.A[X]", "a.A[X]", """
+    package a
+    A[X]:{}
+    B:{}
+    """);}
+
+  @Test
+  void refineGensMdf1() {ok("""
+    varName:imm a.A[imm X]
+    """, "varName", "a.A[mdf X]", "a.A[imm X]", """
+    package a
+    A[X]:{}
+    B:{}
+    """);}
+  /* TODO: These two fail because the RHS (t2) is always preferred over the LHS. This is probably correct,
+   so these two tests can be deleted. */
+  @Test
+  void refineGensMdf2() {ok("""
+    varName:imm a.A[imm X]
+    """, "varName", "a.A[imm X]", "a.A[mdf X]", """
+    package a
+    A[X]:{}
+    B:{}
+    """);}
+  @Test
+  void refineGensMdf3() {ok("""
+    varName:imm a.A[mut a.B[]]
+    """, "varName", "a.A[mut a.B[]]", "a.A[mdf X]", """
+    package a
+    A[X]:{}
+    B:{}
+    """);}
+  @Test
+  void refineGensMdf4() {ok("""
+    varName:imm a.A[mut a.B[]]
+    """, "varName", "a.A[mdf X]", "a.A[mut a.B[]]", """
+    package a
+    A[X]:{}
+    B:{}
+    """);}
+  @Test
+  void refineGensMdf5() {ok("""
+    varName:imm a.A[imm a.B[]]
+    """, "varName", "a.A[mut X]", "a.A[imm a.B[]]", """
+    package a
+    A[X]:{}
+    B:{}
+    """);}
+  @Test
+  void refineGensMdfNested1() {ok("""
+    """, "varName", "a.A[recMdf a.A[mdf X]]", "a.A[imm a.B[]]", """
+    package a
+    A[X]:{}
+    B:{}
+    """);}
+  @Test
+  void refineGensMdfNested2() {ok("""
+    varName:imma.A[recMdfa.A[imma.B[]]]
+    """, "varName", "a.A[recMdf a.A[mdf X]]", "a.A[recMdf a.A[imm a.B[]]]", """
+    package a
+    A[X]:{}
+    B:{}
+    """);}
 }
