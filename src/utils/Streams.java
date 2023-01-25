@@ -32,11 +32,18 @@ public class Streams {
         .filter(Optional::isPresent)
         .map(Optional::get);
     }
+  }
 
-    public static <T> Optional<Integer> firstPos(List<T> xs, Predicate<T> p) {
-      return IntStream.range(0, xs.size()).boxed()
-        .filter(i->p.test(xs.get(i)))
-        .findFirst();
-    }
+  public static <T> Optional<Integer> firstPos(List<T> xs, Predicate<Integer> p) {
+    return IntStream.range(0, xs.size()).boxed()
+      .filter(p)
+      .findFirst();
+  }
+
+  public static <T> Optional<Integer> firstPos(int start, List<T> xs, Predicate<Integer> p) {
+    assert start <= xs.size();
+    return IntStream.range(start, xs.size()).boxed()
+      .filter(p)
+      .findFirst();
   }
 }
