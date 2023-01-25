@@ -9,12 +9,12 @@ import utils.Bug;
 import utils.Push;
 import utils.Range;
 import utils.Streams;
+import visitors.FullShortCircuitVisitor;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.IntPredicate;
-import java.util.function.Predicate;
-import java.util.stream.Collector;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -40,90 +40,111 @@ public record RefineTypes(astFull.Program p) {
     var notMatch=!c1.name().equals(c2.name()); //name includes gen size
     if(notMatch){ return iT1; }
     // TODO should we check the subtyping between C and C' instead?
-    List<RP> refined = refineSigGens(new RP(c1.ts(),c2.ts()));
-    List<astFull.T> refinedTs = refined.stream().map(RP::t1).toList();
+    Optional<List<RP>> refined = refineSigGens(RP.of(c1.ts(),c2.ts()));
+    if(refined.isEmpty()){ return iT1; }
+    List<astFull.T> refinedTs = refined.get().stream().map(RP::t1).toList();
     if(iT1.mdf()!=iT2.mdf()){ throw Bug.unreachable(); }
     //TODO: if the MDFs are different? take the most specific? not on iso?
     return new astFull.T(iT1.mdf(),c1.withTs(refinedTs));
   }
-  record RP(astFull.T t1, astFull.T t2){}
+  record RP(astFull.T t1, astFull.T t2){
+    static List<RP> of(List<astFull.T> iTs, List<astFull.T> iTs1){
+      return Streams.zip(iTs,iTs1).map(RP::new).toList();
+    }
+  }
   public static final TypeRename.FullTTypeRename renamer = new TypeRename.FullTTypeRename();
-  List<RP> refineSigGens(List<RP>rps){
-    Map<Id.GX<T>, T> map = toSub(collect(rps));
-    return rps.stream().map(rp->renameRP(rp,map,renamer)).toList();
+
+  Optional<List<RP>> refineSigGens(List<RP>rps){
+    List<Sub> subs = collect(rps);
+    var isCircular = subs.stream().anyMatch(Sub::isCircular);
+    if(isCircular){ return Optional.empty(); }
+    Map<Id.GX<T>, T> map = toSub(subs);
+    return Optional.of(rps.stream().map(rp->renameRP(rp,map,renamer)).toList());
   }
   boolean isXX(RP rp){
     return rp.t1().rt() instanceof Id.GX<?> && rp.t2().rt() instanceof Id.GX<?>;
   }
-  boolean isSameCDiffGens(int i, List<RP> rps) {
+  boolean sameC(int i, List<RP> rps) {
     var rp = rps.get(i);
     if ((rp.t1().rt() instanceof Id.IT<T> t1) && (rp.t2().rt() instanceof Id.IT<T> t2)) {
-      return t1.ts().size() == t2.ts().size() && !t1.ts().equals(t2.ts());
+      return t1.name().equals(t2.name());
     }
     return false;
-  };
-  record Sub(Id.GX<T> x,T t){}
+  }
+  record Sub(Id.GX<T> x,T t){
+    boolean isCircular() {
+      if (t.isInfer() || t.rt() instanceof Id.GX<?>) { return false; }
+      assert t.rt() instanceof Id.IT<?>;
+      var hasXVisitor = new FullShortCircuitVisitor<Boolean>(){
+        @Override
+        public Optional<Boolean> visitGX(Id.GX<T> t) {
+          if (t.equals(x)) { return Optional.of(true); }
+          return Optional.empty();
+        }
+      };
+      return hasXVisitor.visitT(t).orElse(false);
+    }
+  }
   Sub collectXXOut(int index, ArrayList<RP> rps){
     var res = rps.remove(index);
     //collect(RPs, MDF X = _ X', RPs') =   X'=MDF X, collect(RPs[X = mdf X'], RPs'[X = mdf X'])
     var other = res.t2().withMdf(Mdf.mdf);
-    var map = Map.of(res.t1().gxOrThrow(),other);
-    Range.of(rps)
-      .forEach(i->rps.set(i,renameRP(rps.get(i),map,renamer)));
+    rename(rps,res.t1().gxOrThrow(),other);
     return new Sub(res.t2().gxOrThrow(),res.t1());
   }
-  void collectSameCDiffGens(int index, ArrayList<RP> rps){
+  void collectSameC(int index, ArrayList<RP> rps){
     var e = rps.remove(index);
     var its1=e.t1().itOrThrow().ts();
     var its2=e.t2().itOrThrow().ts();
     Range.of(its1).forEach(i->rps.add(index+i,new RP(its1.get(i),its2.get(i))));
   }
-  void collectMulti_XC_XC(int index1, int index2, ArrayList<RP> rps){
+  void collectMulti(int index1, int index2, ArrayList<RP> rps){
     var e = rps.remove(index1);
-    var its1=e.t2().itOrThrow().ts();
-    var its2=rps.get(index2).t2().itOrThrow().ts();
-    Range.of(its1).forEach(i->rps.add(index2+i,new RP(its1.get(i),its2.get(i))));
+    index2 -= 1;
+    insertGens(rps, index2, gensOf(e), gensOf(rps.get(index2)));
   }
-  void collectMulti_XC_CX(int index1, int index2, ArrayList<RP> rps){
-    var e = rps.remove(index1);
-    var its1=e.t2().itOrThrow().ts();
-    var its2=rps.get(index2).t1().itOrThrow().ts();
-    Range.of(its1).forEach(i->rps.add(index2+i,new RP(its1.get(i),its2.get(i))));
+  List<T> gensOf(RP rp){
+    if(rp.t1().rt() instanceof Id.GX<?>){ return rp.t2().itOrThrow().ts(); }
+    assert rp.t2().rt() instanceof Id.GX<?>;
+    return rp.t1().itOrThrow().ts();
   }
-  void collectMulti_CX_XC(int index1, int index2, ArrayList<RP> rps){
-    var e = rps.remove(index1);
-    var its1=e.t1().itOrThrow().ts();
-    var its2=rps.get(index2).t2().itOrThrow().ts();
-    Range.of(its1).forEach(i->rps.add(index2+i,new RP(its1.get(i),its2.get(i))));
-  }
-  void collectMulti_CX_CX(int index1, int index2, ArrayList<RP> rps){
-    var e = rps.remove(index1);
-    var its1=e.t1().itOrThrow().ts();
-    var its2=rps.get(index2).t1().itOrThrow().ts();
-    Range.of(its1).forEach(i->rps.add(index2+i,new RP(its1.get(i),its2.get(i))));
+  void insertGens(ArrayList<RP> rps, int index, List<T> its1, List<T> its2) {
+    Range.of(its1).forEach(i->rps.add(index+i,new RP(its1.get(i),its2.get(i))));
   }
   boolean isInferRP(int index, ArrayList<RP> rps) {
     var rp = rps.get(index);
     return rp.t1().isInfer() || rp.t2().isInfer();
   }
+  boolean isSameXC(RP rp1, RP rp2) {
+    Id.GX<?> x1 = rp1.t1().match(gx->gx,it->rp1.t2().gxOrThrow());
+    Id.DecId c1 =  rp1.t1().match(gx->rp1.t2().itOrThrow(),it->it).name();
+    Optional<Id.IT<?>> c21 = rp2.t1().match(gx->Optional.empty(), Optional::of);
+    Optional<Id.IT<?>> c22 = rp2.t2().match(gx->Optional.empty(), Optional::of);
+    if(c21.isPresent() && c22.isPresent()){ return false; }
+    if(c21.isEmpty() && c22.isEmpty()){ return false; }
+    Id.DecId c2=c21.or(()->c22).get().name();
+    if(!c1.equals(c2)){ return false; }
+    return rp2.t1().match(
+      x2->x1.equals(x2),
+      it->rp2.t2().match(x1::equals, it_->false)
+    );
+  }
   boolean isXC(int index, ArrayList<RP> rps) {
     var rp = rps.get(index);
     return (rp.t1().rt() instanceof Id.GX<?>) && (rp.t2().rt() instanceof Id.IT<?>);
-  }
-  boolean isXC(T t, int index2, ArrayList<RP> rps) {
-    var eq = t.rt().equals(rps.get(index2).t1().rt());
-    return eq && isXC(index2,rps);
-  }
-  boolean isCX(T t, int index2, ArrayList<RP> rps) {
-    var eq = t.rt().equals(rps.get(index2).t2().rt());
-    return eq && isCX(index2,rps);
   }
   boolean isCX(int index, ArrayList<RP> rps) {
     var rp = rps.get(index);
     return (rp.t1().rt() instanceof Id.IT<?>) && (rp.t2().rt() instanceof Id.GX<?>);
   }
   List<Sub> collect(List<RP>rps) { return collectRec(new ArrayList<>(rps)); }
+  void rename(ArrayList<RP>rps,Id.GX<T> x,T t){
+    var map = Map.of(x,t);
+    Range.of(rps).forEach(i->rps.set(i,renameRP(rps.get(i),map,renamer)));
+  }
   List<Sub> collectRec(ArrayList<RP> rps) {
+    if(rps.isEmpty()){ return List.of(); }
+
     var optXX = IntStream.range(0, rps.size())
       .filter(i->isXX(rps.get(i))).findFirst();
     if (optXX.isPresent()) {
@@ -131,10 +152,10 @@ public record RefineTypes(astFull.Program p) {
       return Push.of(xx, collectRec(rps));
     }
 
-    var optSameCDiffGens = IntStream.range(0, rps.size())
-      .filter(i->isSameCDiffGens(i,rps)).findFirst();
-    if (optSameCDiffGens.isPresent()) {
-      collectSameCDiffGens(optSameCDiffGens.getAsInt(), rps);
+    var optSameC = IntStream.range(0, rps.size())
+      .filter(i->sameC(i,rps)).findFirst();
+    if (optSameC.isPresent()) {
+      collectSameC(optSameC.getAsInt(), rps);
       return collectRec(rps);
     }
     var optInfer = IntStream.range(0, rps.size())
@@ -143,28 +164,34 @@ public record RefineTypes(astFull.Program p) {
       rps.remove(optInfer.getAsInt());
       return collectRec(rps);
     }
-    // TODO: Still need to handle the mdf for the 4 cases
     var optXC1 = IntStream.range(0, rps.size()).boxed()
       .filter(i->isXC(i,rps)).findFirst();
-    if(collectMulti_XC(rps, optXC1)){ return collectRec(rps); }
+    if(collectMulti(rps, optXC1)){ return collectRec(rps); }
     var optCX1 = IntStream.range(0, rps.size()).boxed()
       .filter(i->isCX(i,rps)).findFirst();
-    if(collectMulti_CX(rps, optCX1)){ return collectRec(rps); }
-    throw Bug.todo();
+    if(collectMulti(rps, optCX1)){ return collectRec(rps); }
+
+    // otherwise...
+    assert !rps.isEmpty();
+    var isXC=isXC(0,rps);
+    var isCX=isCX(0,rps);
+    RP head = rps.remove(0);
+    if (!isXC && !isCX){ return collectRec(rps); }
+    Sub s =isXC
+      ?new Sub(head.t1().gxOrThrow(), head.t2().withMdf(head.t1().mdf()))
+      :new Sub(head.t2().gxOrThrow(), head.t1());
+    rename(rps,s.x(),s.t());
+    return Push.of(s, collectRec(rps));
   }
 
-  private boolean collectMulti_XC(ArrayList<RP> rps, Optional<Integer> optXC1) {
-    var optXC2 =  optXC1.flatMap(xc1->IntStream.range(xc1, rps.size()).boxed()
-      .filter(i->isXC(rps.get(i).t1(),xc1, rps)).findFirst());
+  private boolean collectMulti(ArrayList<RP> rps, Optional<Integer> optXC1) {
+    var optXC2 =  optXC1.flatMap(xc1->IntStream.range(xc1+1, rps.size())
+      .boxed()
+      .filter(i->isSameXC(rps.get(i),rps.get(xc1)))
+      .findFirst()
+    );
     if(optXC2.isEmpty()){ return false; }
-    collectMulti_XC_XC(optXC1.get(),optXC2.get(), rps);
-    return true;
-  }
-  private boolean collectMulti_CX(ArrayList<RP> rps, Optional<Integer> optCX1) {
-    var optCX2 =  optCX1.flatMap(cx1->IntStream.range(cx1, rps.size()).boxed()
-      .filter(i->isCX(rps.get(i).t2(), cx1, rps)).findFirst());
-    if (optCX2.isEmpty()){ return false; }
-    collectMulti_XC_CX(optCX1.get(),optCX2.get(), rps);
+    collectMulti(optXC1.get(),optXC2.get(), rps);
     return true;
   }
 

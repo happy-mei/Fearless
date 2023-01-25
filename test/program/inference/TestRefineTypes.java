@@ -12,11 +12,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-public class TestRefineTypesOldBoo {
-  astFull.T addInfers(astFull.T t){
+public class TestRefineTypes {
+  T addInfers(T t){
     return t.match(
       gx->gx.name().equals("Infer") ? T.infer:t,
-      it->new astFull.T(t.mdf(),it.withTs(it.ts().stream().map(this::addInfers).toList()))
+      it->new T(t.mdf(),it.withTs(it.ts().stream().map(this::addInfers).toList()))
     );
   }
   void ok(String expected, String expr, String t1, String t2, String program){
@@ -28,8 +28,8 @@ public class TestRefineTypesOldBoo {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignatures();
 
-    var e1 = new RefineTypesOldBoo(inferredSigs).fixType(e, pT1);
-    var e2 = new RefineTypesOldBoo(inferredSigs).fixType(e1, pT2);
+    var e1 = new RefineTypes(inferredSigs).fixType(e, pT1);
+    var e2 = new RefineTypes(inferredSigs).fixType(e1, pT2);
     Err.strCmpFormat(expected, e2.toString());
   }
 
@@ -105,18 +105,32 @@ public class TestRefineTypesOldBoo {
     """);}
   @Test
   void aGenDeep() {ok("""
-    varName:imm a.A[imma.B[],imma.A[imma.B[],imma.B[]]]
-    varName:imma.A[imma.B[],imma.A[immX,immX]]
+    varName:imma.A[imma.B[],imma.A[imma.B[],imma.B[]]]
     """, "varName", "a.A[X,a.A[X,X]]", "a.A[a.B[],Y]", """
     package a
     A[X,Y]:{}
     B:{}
     """);}
   // TODO: Test gen A and gen B, which one is kept
-  @Test
-  void aGenInfinite() {ok("""
-    varName:imma.A[imma.B[],imma.A[imm X,imm X]]
+  @Test//Note: unstable, below many possible options
+  //varName:imma.A[imma.B[],imma.A[imm a.B[],imm a.B[]]]
+  //varName:imma.A[imma.A[imm a.B[],imm a.B[]],imma.A[imm a.B[],imm a.B[]]]
+  //varName:imma.A[imma.B[],imma.B[]]
+  // X = a.B
+  // X= a.A[X,X]
+  void aGenInfinite1() {ok("""
+    varName:imma.A[imma.B[],imma.B[]]
     """, "varName", "a.A[X,a.A[X,X]]", "a.A[a.B[],X]", """
+    package a
+    A[X,Y]:{}
+    B:{}
+    """);}
+  @Test
+  // X=a.A[X,X]
+  void aGenInfinite2() {ok("""
+    varName:imma.A[imma.B[],imma.A[imm a.B[],imm a.B[]]]
+    varName:imma.A[imma.A[immX,immX],imma.B[]]
+    """, "varName", "a.A[a.A[X,X],X]", "a.A[X,a.B[]]", """
     package a
     A[X,Y]:{}
     B:{}
@@ -162,4 +176,13 @@ public class TestRefineTypesOldBoo {
     A[X]:{}
     B:{}
     """);}
+
+//  @Test
+//  void refineMutual() {ok("""
+//
+//    """, "", "a.A[a.B[]]", "a.A[a.A[a.B[]]]", """
+//    package a
+//    A[X]:{}
+//    B[X]:{}
+//    """);}
 }
