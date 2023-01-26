@@ -3,12 +3,14 @@ package program.inference;
 import astFull.T;
 import astFull.E;
 import id.Id;
+import program.CM;
 import utils.Bug;
 import utils.Streams;
 import visitors.InjectionVisitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public record InferBodies(ast.Program p) {
   ast.Program inferAll(astFull.Program fullProgram){
@@ -97,7 +99,7 @@ public record InferBodies(ast.Program p) {
     Streams.zip(m.xs(), sig.ts()).forEach(richGamma::put);
     richGamma = Collections.unmodifiableMap(richGamma);
     var e1 = m.body().get();
-    var e2 = new RefineTypes(this.p).fixType(e1,sig.ret());
+    var e2 = new RefineTypes(p).fixType(e1,sig.ret());
     var optBody = inferStep(richGamma,e2);
     var res = optBody.map(b->m.withBody(Optional.of(b)));
     return res.or(()->e1==e2
@@ -105,7 +107,21 @@ public record InferBodies(ast.Program p) {
       : Optional.of(m.withBody(Optional.of(e2))));
   }
   Optional<E.Meth> bPropGetSigM(Map<String, T> gamma, E.Meth m, E.Lambda e) {
-    throw Bug.todo();
+    if (e.it().isEmpty()) { return Optional.empty(); }
+
+//    var iT = new Id.IT<ast.T>("FearFreshC$", List.of());
+//    var parentMs = e.its().stream()
+//      .flatMap(it->p.meths(it.toAstIT(T::toAstT)).stream());
+//    var localMs = e.meths().stream()
+//      .filter(mi->mi.sig().isPresent())
+//      .map(mi->CM.of(iT, mi, new InjectionVisitor().visitSig(mi.sig().get())));
+//    var ms = p.prune(Stream.concat(localMs, parentMs).toList());
+
+    List<CM> ms = p.meths(e.it().get().toAstIT(T::toAstT));
+    if (ms.size() > 1) { return Optional.empty(); }
+    var sig = ms.get(0).sig();
+
+    return Optional.of(m.withSig(sig.toAstFullSig()));
   }
   Optional<E.Meth> bPropGetSig(Map<String, T> gamma, E.Meth m, E.Lambda e) {
     throw Bug.todo();

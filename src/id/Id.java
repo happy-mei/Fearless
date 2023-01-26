@@ -14,6 +14,7 @@ public class Id {
   }
   public static boolean validDecName(String name){
     assert name!=null && !name.isEmpty();
+    if (name.endsWith("$")) { return true; }
     return new parser.Parser(Parser.dummy,name).parseFullCN();      
   }
   public static boolean validGX(String name){ 

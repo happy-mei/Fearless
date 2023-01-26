@@ -6,6 +6,7 @@ import main.Fail;
 import program.CM;
 import program.TypeRename;
 import utils.Bug;
+import utils.OneOr;
 import visitors.InjectionVisitor;
 
 import java.util.List;
