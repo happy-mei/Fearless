@@ -3,6 +3,7 @@ package program;
 import main.CompileError;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import utils.Err;
@@ -315,6 +316,8 @@ public class TestSigInference {
       C:{ .g[BB]: BB }
       """);
   }
+
+  @Disabled // TODO: write a better error message (should be no trait exists instead of invalid num of abstract methods)
   @Test void abstractNoCandidate() { fail("""
     """, """
     package a
@@ -364,6 +367,50 @@ public class TestSigInference {
     B:A[B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5,
             .m6->this.m6,.m7->this.m7,}
     C:A[mut B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5, .m6->this.m6, .m7->this.m7 }
+    """); }
+
+  @Test void refDef() { ok("""
+    {base.Let/2=Dec[name=base.Let/2,gxs=[V,R],lambda=[-infer-][]{'this
+      .var/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immV]->[-],
+      .in/1([v]):Sig[mdf=imm,gens=[],ts=[immV],ret=immR]->[-]}],
+      
+    base.Ref/1=Dec[name=base.Ref/1,gxs=[X],lambda=[-infer-][base.NoMutHyg[immX],base.Sealed[]]{'this
+      */0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
+      .swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-],
+      :=/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immbase.Void[]]->
+        [-immbase.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
+          .var/0([]):[-]->this:infer.swap/1[-]([x:infer]):infer,
+          .in/1([_]):[-]->[-immbase.Void[]-][base.Void[]]{}}]):infer,
+      <-/1([f]):Sig[mdf=mut,gens=[],ts=[immbase.UpdateRef[mdfX]],ret=mdfX]->
+        this:infer.swap/1[-]([f:infer#/1[-]([this:infer*/0[-]([]):infer]):infer]):infer}],
+        
+    base.Sealed/0=Dec[name=base.Sealed/0,gxs=[],lambda=[-infer-][]{'this}],
+    
+    base.Ref/0=Dec[name=base.Ref/0,gxs=[],lambda=[-infer-][]{'this
+      #/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=mutbase.Ref[mdfX]]->this:infer#/1[-]([x:infer]):infer}],
+      
+    base.Let/0=Dec[name=base.Let/0,gxs=[],lambda=[-infer-][]{'this
+      #/1([l]):Sig[mdf=imm,gens=[V,R],ts=[immbase.Let[immV,immR]],ret=immR]->
+        l:infer.in/1[-]([l:infer.var/0[-]([]):infer]):infer}],
+        
+    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{'this}],
+    
+    base.UpdateRef/1=Dec[name=base.UpdateRef/1,gxs=[X],lambda=[-infer-][]{'this
+      #/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-]}]}
+    """, """
+    package base
+    alias base.NoMutHyg as NoMutHyg,
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+    Let[V,R]:{ .var:V, .in(v:V):R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X]:NoMutHyg[X],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
 }
 

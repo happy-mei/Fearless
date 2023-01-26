@@ -105,4 +105,21 @@ public class TestInferBodies {
     package a
     Id:{ mut .id[X](x: mut X): mut X -> this.id[mut X](x) }
     """); }
+
+  @Test void inferRefDef() { ok("""
+    """, """
+    package base
+    alias base.NoMutHyg as NoMutHyg,
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+    Let[V,R]:{ .var:V, .in(v:V):R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X]:NoMutHyg[X],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """); }
 }
