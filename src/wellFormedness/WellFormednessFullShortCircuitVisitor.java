@@ -1,8 +1,9 @@
 package wellFormedness;
 
 import astFull.E;
-import astFull.PosMap;
 import astFull.T;
+import files.HasPos;
+import files.Pos;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
@@ -68,12 +69,12 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
     return e.ts().flatMap(this::noIsoParams)
       .or(()->super.visitMCall(e))
-      .map(err->err.pos(PosMap.getOrUnknown(e)));
+      .map(err->err.pos(e.posOrUnknown()));
   }
 
   @Override public Optional<CompileError> visitAlias(T.Alias a) {
     return super.visitAlias(a)
-      .map(err->err.pos(PosMap.getOrUnknown(a)));
+      .map(err->err.pos(a.posOrUnknown()));
   }
 
   @Override public Optional<CompileError> visitLambda(E.Lambda e) {
@@ -84,7 +85,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       )
       .or(()->hasNonDisjointMs(e))
       .or(()->super.visitLambda(e))
-      .map(err->err.pos(PosMap.getOrUnknown(e)));
+      .map(err->err.pos(e.posOrUnknown()));
   }
 
   @Override public Optional<CompileError> visitMeth(E.Meth e) {
@@ -98,23 +99,21 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
         e))
       .or(()->noShadowingGX(e.sig().map(E.Sig::gens).orElse(List.of())))
       .or(()->validMethMdf(e))
-      .map(err->err.pos(PosMap.getOrUnknown(e)))
+      .map(err->err.pos(e.posOrUnknown()))
       .or(()->super.visitMeth(e));
   }
   @Override public Optional<CompileError> visitT(T t){
     return mdfOnlyOnGX(t)
-      .or(()->super.visitT(t))
-      .map(err->err.pos(PosMap.getOrUnknown(t)));
+      .or(()->super.visitT(t));
   }
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
     return noIsoParams(t.ts())
-      .or(()->super.visitIT(t))
-      .map(err->err.pos(PosMap.getOrUnknown(t)));
+      .or(()->super.visitIT(t));
   }
 
   @Override
   public Optional<CompileError> visitDec(T.Dec d) {
-    return noMutHygValid(d).map(err->err.pos(PosMap.getOrUnknown(d)))
+    return noMutHygValid(d).map(err->err.pos(d.posOrUnknown()))
       .or(()->hasNonDisjointXs(d.gxs().stream().map(Id.GX::name).toList(), d))
       .or(()->super.visitDec(d));
   }
@@ -160,7 +159,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
     return hasNonDisjointAux(xs,d,x->x,Fail::conflictingMethParams);
   }
 
-  private <TT> Optional<CompileError> hasNonDisjointAux(List<TT> xs, Object e, Function<TT,String> toS, Function<List<String>, CompileError> errF) {
+  private <TT> Optional<CompileError> hasNonDisjointAux(List<TT> xs, HasPos e, Function<TT,String> toS, Function<List<String>, CompileError> errF) {
     var all = new ArrayList<>(xs);
     xs.stream().distinct().forEach(all::remove);
     if (all.isEmpty()) {
@@ -170,7 +169,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       .collect(Collectors.groupingBy(toS))
       .keySet().stream()
       .toList();
-    return Optional.of(errF.apply(conflicts).pos(PosMap.getOrUnknown(e)));
+    return Optional.of(errF.apply(conflicts).pos(e.posOrUnknown()));
   }
   private Optional<CompileError> noCyclicImplRelations(Program p) {
     for(var key:p.ds().keySet()){

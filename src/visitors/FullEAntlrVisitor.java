@@ -2,7 +2,6 @@ package visitors;
 
 import astFull.E;
 import astFull.Package;
-import astFull.PosMap;
 import astFull.T;
 import files.Pos;
 import generated.FearlessParser.*;
@@ -34,7 +33,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     this.resolve=resolve;
   }
   Pos pos(ParserRuleContext prc){
-    return pos(fileName,prc); 
+    return pos(fileName,prc);
     }
   public static Pos pos(Path fileName,ParserRuleContext prc){
     return Pos.of(fileName.toUri(),prc.getStart().getLine(),prc.getStart().getCharPositionInLine()); 
@@ -112,16 +111,18 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       var e = head.es().get(0);
       var freshRoot = new E.X(T.infer);
       var rest = desugar(freshRoot, newTail);
-      var cont = PosMap.add(
-        new E.Lambda(Optional.empty(), List.of(), null, List.of(
-          PosMap.add(new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest)), head.pos())
-        ), Optional.empty()),
-        head.pos()
+      var cont = new E.Lambda(
+        Optional.empty(),
+        List.of(),
+        null,
+        List.of(new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest), Optional.of(head.pos()))),
+        Optional.empty(),
+        Optional.of(head.pos())
       );
-      return PosMap.add(new E.MCall(root, new MethName(m.name(), 2), ts, List.of(e, cont), T.infer), head.pos());
+      return new E.MCall(root, new MethName(m.name(), 2), ts, List.of(e, cont), T.infer, Optional.of(head.pos()));
     }
     var es=head.es();
-    E res=PosMap.add(new E.MCall(root, new MethName(m.name(), es.size()), ts, es,T.infer), head.pos());
+    E res=new E.MCall(root, new MethName(m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
     return desugar(res,newTail);
   }
   @Override public Optional<List<T>> visitMGen(MGenContext ctx){
@@ -143,7 +144,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   @Override public E.X visitX(XContext ctx){
     check(ctx);
-    return PosMap.add(new E.X(ctx.getText(),T.infer),pos(ctx));
+    return new E.X(ctx.getText(), T.infer, Optional.of(pos(ctx)));
   }
   @Override public E visitAtomE(AtomEContext ctx){
     check(ctx);
@@ -166,17 +167,17 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var its = _its.orElse(List.of());
     if (rt.isEmpty()) { mdf = Optional.empty(); }
     if(ctx.bblock()==null){
-      return PosMap.add(new E.Lambda(mdf,its,null,List.of(),rt), pos(ctx));
+      return new E.Lambda(mdf,its,null,List.of(),rt,Optional.of(pos(ctx)));
     }
     var bb = ctx.bblock();
-    if(bb.children==null){ return PosMap.add(new E.Lambda(mdf, its, null, List.of(), rt), pos(ctx)); }
+    if(bb.children==null){ return new E.Lambda(mdf, its, null, List.of(), rt, Optional.of(pos(ctx))); }
     var _x=bb.SelfX();
     var _n=_x==null?null:_x.getText().substring(1);
     var _ms=opt(bb.meth(),ms->ms.stream().map(this::visitMeth).toList());
     var _singleM=opt(bb.singleM(),this::visitSingleM);
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
-    return PosMap.add(new E.Lambda(Optional.empty(),its,_n,mms,rt), pos(ctx));
+    return new E.Lambda(Optional.empty(),its,_n,mms,rt,Optional.of(pos(ctx)));
     }
   @Override
   public String visitFullCN(FullCNContext ctx) {
@@ -223,7 +224,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var _xs = opt(ctx.x(), xs->xs.stream().map(this::visitX).map(E.X::name).toList());
     _xs = _xs==null?List.of():_xs;
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
-    return PosMap.add(new E.Meth(Optional.empty(), Optional.empty(), _xs, body), pos(ctx));
+    return new E.Meth(Optional.empty(), Optional.empty(), _xs, body, Optional.of(pos(ctx)));
   }
   @Override
   public E.Meth visitMeth(MethContext ctx) {
@@ -236,8 +237,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var name = mh.map(MethHeader::name)
         .orElseGet(()->new MethName(ctx.m().getText(),xs.size()));
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
-    var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), xs.stream().map(E.X::t).toList(), h.ret()));
-    return PosMap.add(new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body), pos(ctx));
+    var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), xs.stream().map(E.X::t).toList(), h.ret(), Optional.of(pos(ctx))));
+    return new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body, Optional.of(pos(ctx)));
   }
   private record MethHeader(Mdf mdf, MethName name, List<Id.GX<T>> gens, List<E.X> xs, T ret){}
   @Override
@@ -253,7 +254,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override
   public List<E.X> visitGamma(GammaContext ctx) {
     return Streams.zip(ctx.x(), ctx.t())
-      .map((xCtx, tCtx)->new E.X(xCtx.getText(), this.visitT(tCtx)))
+      .map((xCtx, tCtx)->new E.X(xCtx.getText(), this.visitT(tCtx), Optional.of(pos(xCtx))))
       .toList();
   }
   public T.Dec visitTopDec(TopDecContext ctx, String pkg, boolean shallow) {
@@ -270,9 +271,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var id = new Id.DecId(cName,mGen.size());
     var body = shallow ? null : visitBlock(ctx.block(), Optional.empty());
     if (body != null) {
-      body = body.withITP(Optional.empty());
+      body = body.withIT(Optional.empty());
     }
-    return PosMap.add(new T.Dec(id, mGen, body),pos(ctx));
+    return new T.Dec(id, mGen, body, Optional.of(pos(ctx)));
   }
   @Override
   public T.Alias visitAlias(AliasContext ctx) {
@@ -284,7 +285,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var out = visitFullCN(ctx.fullCN(1));
     var outG = ctx.mGen(1);
     if(!outG.t().isEmpty()){ throw Bug.of("No gen on out Alias"); }
-    return PosMap.add(new T.Alias(inT, out), pos(ctx));
+    return new T.Alias(inT, out, Optional.of(pos(ctx)));
   }
   @Override
   public Package visitNudeProgram(NudeProgramContext ctx) {

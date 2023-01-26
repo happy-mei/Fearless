@@ -13,6 +13,7 @@ import visitors.InjectionVisitor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -88,12 +89,11 @@ public interface Program {
         assert ms.size() == 2;
         var m1 = ms.get(0);
         var m2 = ms.get(1);
-        var recv = new ast.E.X("this");
+        var recv = new ast.E.X("this", Optional.empty());
         var xs=Push.of(m1.xs(),"this");
-        var injectionVisitor = new InjectionVisitor();
         List<T> ts=Push.of(m2.sig().ts(),t1);
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
-        var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(ast.E.X::new).toList());
+        var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
         return isType(xs, ts, e, m2.sig().ret());
       });
   }

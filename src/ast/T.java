@@ -1,11 +1,14 @@
 package ast;
 
+import files.HasPos;
+import files.Pos;
 import id.Id;
 import id.Id.DecId;
 import id.Mdf;
 import utils.Bug;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 public record T(Mdf mdf, Id.RT<T> rt){
@@ -28,15 +31,18 @@ public record T(Mdf mdf, Id.RT<T> rt){
 
   public T withMdf(Mdf mdf){ return new T(mdf,rt); }
 
-  public record Dec(DecId name, List<Id.GX<T>> gxs, E.Lambda lambda){
+  public record Dec(DecId name, List<Id.GX<T>> gxs, E.Lambda lambda, Optional<Pos> pos) implements HasPos {
     public Dec{ assert gxs.size()==name.gen() && lambda!=null; }
-    public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(name,gxs,lambda); }
+    public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(name,gxs,lambda,pos); }
 
     public Id.IT<T> toIT(){
       return new Id.IT<>(//AstFull.T || Ast.T
         this.name(),
         this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
       );
+    }
+    @Override public String toString() {
+      return "Dec[name="+name+",gxs="+gxs+",lambda="+lambda+"]";
     }
   }
 }

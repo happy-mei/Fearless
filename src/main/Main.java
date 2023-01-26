@@ -1,12 +1,10 @@
 package main;
 
 import astFull.E;
-import astFull.PosMap;
 import id.Id;
 
 public class Main {
   public static void resetAll(){
-    PosMap.reset();
     E.X.reset();
     Id.GX.reset();
   }
