@@ -3,10 +3,12 @@ package astFull;
 import id.Id;
 import magic.Magic;
 import main.Fail;
+import program.CM;
 import program.TypeRename;
 import utils.OneOr;
 import utils.Range;
 import visitors.InjectionVisitor;
+import visitors.ShallowInjectionVisitor;
 
 import java.util.*;
 import java.util.function.Function;
@@ -52,7 +54,7 @@ public class Program implements program.Program{
   private CM cm(Id.IT<ast.T> t, astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
-    var cm = new CM(t, mi, TypeRename.core().renameSig(new InjectionVisitor().visitSig(sig), f));
+    var cm = CM.of(t, mi, TypeRename.core().renameSig(new InjectionVisitor().visitSig(sig), f));
     return norm(cm);
   }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
@@ -84,7 +86,7 @@ public class Program implements program.Program{
   /**
    * Applies inference 5a
    */
-  public Program inferSignatures() {
+  public astFull.Program inferSignatures(){
     var is=new InferSignatures(this);
     for(int i: Range.of(is.decs)){
       var di = is.inferSignatures(is.decs.get(i));
@@ -92,7 +94,10 @@ public class Program implements program.Program{
     }
     return is.p;
   }
-  List<E.Meth> dom(Id.DecId id){ return this.of(id).lambda().meths(); }
+  public ast.Program inferSignaturesToCore(){
+    return new ShallowInjectionVisitor().visitProgram(inferSignatures());
+  }
+  public List<E.Meth> dom(Id.DecId id){ return this.of(id).lambda().meths(); }
 
   public static class InferSignatures {
     List<T.Dec> decs;

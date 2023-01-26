@@ -76,6 +76,9 @@ public sealed interface E {
     public MCall withEsP(List<E> es) {
       return PosMap.replace(this, withEs(es));
     }
+    public MCall withTs(Optional<List<T>> ts) {
+      return new MCall(receiver, name, ts, es, t);
+    }
     @Override public MCall withTP(T t) {
       return PosMap.replace(this, new MCall(receiver, name, ts, es, t));
     }
@@ -116,8 +119,11 @@ public sealed interface E {
     public Meth withName(MethName name) {
       return PosMap.add(new Meth(sig, Optional.of(name), xs, body), PosMap.getOrUnknown(this));
     }
+    public Meth withBody(Optional<E> body) {
+      return new Meth(sig, name, xs, body);
+    }
     public Meth withBodyP(Optional<E> body) {
-      return PosMap.add(new Meth(sig, name, xs, body), PosMap.getOrUnknown(this));
+      return PosMap.add(withBody(body), PosMap.getOrUnknown(this));
     }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));

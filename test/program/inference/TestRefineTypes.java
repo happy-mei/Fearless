@@ -26,7 +26,7 @@ public class TestRefineTypes {
     var pT2 = addInfers(new Parser(Parser.dummy, t2).parseFullT());
     var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)));
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignatures();
+    var inferredSigs = p.inferSignaturesToCore();
 
     var e1 = new RefineTypes(inferredSigs).fixType(e, pT1);
     var e2 = new RefineTypes(inferredSigs).fixType(e1, pT2);
@@ -206,7 +206,7 @@ public class TestRefineTypes {
    so these two tests can be deleted. */
   @Test
   void refineGensMdf2() {ok("""
-    varName:imm a.A[imm X]
+    varName:imm a.A[mdf X]
     """, "varName", "a.A[imm X]", "a.A[mdf X]", """
     package a
     A[X]:{}
@@ -214,7 +214,7 @@ public class TestRefineTypes {
     """);}
   @Test
   void refineGensMdf3() {ok("""
-    varName:imm a.A[mut a.B[]]
+    varName:imm a.A[mdf a.B[]]
     """, "varName", "a.A[mut a.B[]]", "a.A[mdf X]", """
     package a
     A[X]:{}
@@ -238,6 +238,7 @@ public class TestRefineTypes {
     """);}
   @Test
   void refineGensMdfNested1() {ok("""
+    varName:imma.A[imma.B[]]
     """, "varName", "a.A[recMdf a.A[mdf X]]", "a.A[imm a.B[]]", """
     package a
     A[X]:{}

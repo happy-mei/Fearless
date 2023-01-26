@@ -30,5 +30,13 @@ public record T(Mdf mdf, Id.RT<T> rt){
 
   public record Dec(DecId name, List<Id.GX<T>> gxs, E.Lambda lambda){
     public Dec{ assert gxs.size()==name.gen() && lambda!=null; }
+    public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(name,gxs,lambda); }
+
+    public Id.IT<T> toIT(){
+      return new Id.IT<>(//AstFull.T || Ast.T
+        this.name(),
+        this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
+      );
+    }
   }
 }

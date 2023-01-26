@@ -1,31 +1,27 @@
 package program.inference;
 
-import astFull.E;
+import ast.Program;
 import astFull.T;
+import astFull.E;
 import id.Id;
 import id.Mdf;
+import program.CM;
 import program.TypeRename;
-import utils.Bug;
-import utils.Push;
-import utils.Range;
-import utils.Streams;
+import utils.*;
 import visitors.FullShortCircuitVisitor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public record RefineTypes(astFull.Program p) {
-  List<E> fixTypes(List<astFull.E> ies, List<astFull.T> iTs) {
+public record RefineTypes(ast.Program p) {
+  List<E> fixTypes(List<E> ies, List<T> iTs) {
     return Streams.zip(ies, iTs).map(this::fixType).toList();
   }
-  astFull.E fixType(astFull.E ie, astFull.T iT) { return ie.withTP(best(iT,ie.t())); }
+  E fixType(E ie, T iT) { return ie.withTP(best(iT,ie.t())); }
 
-  astFull.T best(astFull.T iT1, astFull.T iT2) {
+  T best(T iT1, T iT2) {
     if(iT1.equals(iT2)){ return iT1; }
     if(iT1.isInfer()){ return iT2; }
     if(iT2.isInfer()){ return iT1; }
@@ -34,7 +30,8 @@ public record RefineTypes(astFull.Program p) {
     if(iT1.rt() instanceof Id.GX<?> g1 && iT2.rt() instanceof Id.GX<?> g2){
       if(g1.equals(g2)){ return iT1; }
     }
-    if(!(iT1.rt() instanceof Id.IT<astFull.T> c1) || !(iT2.rt() instanceof Id.IT<astFull.T> c2)){
+    if( !(iT1.rt() instanceof Id.IT<T> c1)
+     || !(iT2.rt() instanceof Id.IT<T> c2)){
       throw Bug.unreachable();
     }
     var notMatch=!c1.name().equals(c2.name()); //name includes gen size
@@ -42,17 +39,68 @@ public record RefineTypes(astFull.Program p) {
     // TODO should we check the subtyping between C and C' instead?
     List<RP> refined = refineSigGens(RP.of(c1.ts(),c2.ts()));
     if(refined.isEmpty()){ return iT1; }
-    List<astFull.T> refinedTs = refined.stream().map(RP::t1).toList();
+    List<T> refinedTs = refined.stream().map(RP::t1).toList();
     if(iT1.mdf()!=iT2.mdf()){ throw Bug.unreachable(); }
     //TODO: if the MDFs are different? take the most specific? not on iso?
-    return new astFull.T(iT1.mdf(),c1.withTs(refinedTs));
+    return new T(iT1.mdf(),c1.withTs(refinedTs));
   }
-  record RP(astFull.T t1, astFull.T t2){
-    static List<RP> of(List<astFull.T> iTs, List<astFull.T> iTs1){
+  record RP(T t1, T t2){
+    static List<RP> of(List<T> iTs, List<T> iTs1){
       return Streams.zip(iTs,iTs1).map(RP::new).toList();
     }
+    static List<RP> ofCore(List<ast.T> iTs, List<ast.T> iTs1){
+      return Streams.zip(iTs,iTs1).map((iT,iT1)->new RP(iT.toAstFullT(), iT1.toAstFullT())).toList();
+    }
+
   }
   public static final TypeRename.FullTTypeRename renamer = new TypeRename.FullTTypeRename();
+
+  record RefinedSig(Id.MethName name, List<T> gens, List<T> args, T rt){}
+  List<T> renameSigPart(Set<Id.GX<ast.T>> fresh, List<RP> refined, int start, int end) {
+    return IntStream.range(start, end)
+      .mapToObj(i->refined.get(i).t1())
+      .map(t->renamer.renameT(t, gx->{
+        if (fresh.contains(gx)) { return T.infer; }
+        return new T(t.mdf(), gx);
+      }))
+      .toList();
+  }
+
+  RefinedSig refineSig(Id.IT<T> c, RefinedSig sig) {
+    var freshGXs = Id.GX.standardNames(c.ts().size() + sig.gens().size());
+    var freshGXsSet = new HashSet<>(freshGXs);
+    var freshGXsQueue = new ArrayDeque<>(freshGXs);
+    var ts = c.ts().stream().map(t->new ast.T(Mdf.mdf, freshGXsQueue.poll())).toList();    // Xs
+    var gxs = sig.gens().stream().map(gx->freshGXsQueue.poll()).toList();    // Xs'
+    var ms = p.meths(new Id.IT<>(c.name(), ts));
+    var freshSig = freshXs(ms, sig.name(), gxs);
+    var freshGens = freshSig.gens();
+    List<RP> rps = Streams.of(
+      RP.of(sig.gens(), freshGens).stream(),
+      RP.of(sig.args(), freshSig.args()).stream(),
+      Stream.of(new RP(freshSig.rt(), sig.rt()))
+    ).toList();
+    var refined = refineSigGens(rps);//BIG call
+    var refinedGens = renameSigPart(freshGXsSet, refined, 0, sig.gens().size());
+    var refinedArgs = renameSigPart(freshGXsSet, refined, sig.gens().size(), sig.gens().size() + sig.args().size());
+    var refinedRT = renameSigPart(freshGXsSet, refined, refined.size() - 1, refined.size()).get(0);
+
+    return new RefinedSig(sig.name(), refinedGens, refinedArgs, refinedRT);
+  }
+
+  RefinedSig freshXs(List<CM> ms, Id.MethName m, List<Id.GX<ast.T>> gxs) {
+    var meth = OneOr.of(
+      "More than one valid method found for "+m,
+      ms.stream().filter(mi->mi.name().equals(m))
+    );
+    var sig = meth.sig().toAstFullSig();
+    assert meth.sig().gens().size() == gxs.size();
+    return new RefinedSig(meth.name(),
+      gxs.stream().map(gx->new T(Mdf.mdf, gx.toFullAstGX())).toList(),
+      sig.ts(),
+      sig.ret()
+    );
+  }
 
   List<RP> refineSigGens(List<RP>rps){
     List<Sub> subs = collect(rps);
@@ -209,6 +257,7 @@ collect(empty) = empty
   Map<Id.GX<T>, T> toSub(List<Sub> subs) {
     Map<Id.GX<T>, List<Sub>> res = subs.stream()
       .filter(si->!si.isCircular())
+      .filter(si->!si.x().equals(si.t().rt()))
       .collect(Collectors.groupingBy(Sub::x));
     return res.values().stream().collect(Collectors.toMap(
       si->si.get(0).x(),
