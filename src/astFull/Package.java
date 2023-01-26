@@ -69,7 +69,7 @@ public record Package(
           assert n.name().startsWith(p.name());
           var shortName = n.name().substring(p.name().length()+1);
           assert !shortName.contains(".");
-          return new T.Alias(new Id.IT<>(new Id.DecId(n.name(), 0), List.of()), shortName);
+          return new T.Alias(new Id.IT<>(new Id.DecId(n.name(), 0), List.of()), shortName, Optional.empty());
         })
         .distinct()
       )
@@ -82,7 +82,7 @@ public record Package(
       if(seen.add(aliased)){ continue; }
       var conflicts = all.stream()
         .filter(al->al.to().equals(aliased))
-        .map(al->Fail.conflict(PosMap.getOrUnknown(al), a.toString()))
+        .map(al->Fail.conflict(al.posOrUnknown(), a.toString()))
         .toList();
       throw Fail.conflictingAlias(aliased, conflicts);
     }

@@ -13,14 +13,16 @@ public interface FullCloneVisitor {
     e.sig().map(this::visitSig),
     e.name().map(this::visitMethName),
     e.xs(),
-    e.body().map(b->b.accept(this))
+    e.body().map(b->b.accept(this)),
+    e.pos()
   );}
   default E visitMCall(E.MCall e){ return new E.MCall(
     e.receiver().accept(this),
     visitMethName(e.name()),
     e.ts().map(tts->tts.stream().map(this::visitT).toList()),
     e.es().stream().map(ei->ei.accept(this)).toList(),
-    visitT(e.t())
+    visitT(e.t()),
+    e.pos()
   );}
   default E visitX(E.X e){return visitXX(e);}
   default E.X visitXX(E.X e){return e;}
@@ -30,7 +32,8 @@ public interface FullCloneVisitor {
     e.its().stream().map(this::visitIT).toList(),
     e.selfName(),//visitXX is not ok since this is just a String
     e.meths().stream().map(this::visitMeth).toList(),
-    e.it().map(this::visitIT)
+    e.it().map(this::visitIT),
+    e.pos()
   ); }
   default Mdf visitMdf(Mdf mdf){return mdf;}
   default MethName visitMethName(MethName e){ return e; }
@@ -38,7 +41,8 @@ public interface FullCloneVisitor {
     visitMdf(e.mdf()),
     e.gens().stream().map(this::visitGX).toList(),
     e.ts().stream().map(this::visitT).toList(),
-    visitT(e.ret())
+    visitT(e.ret()),
+    e.pos()
   );}
   default T visitT(T t){ return new T(
     visitMdf(t.mdf()),
@@ -52,10 +56,12 @@ public interface FullCloneVisitor {
   default T.Dec visitDec(T.Dec d) { return new T.Dec(
     d.name(),
     d.gxs().stream().map(this::visitGX).toList(),
-    visitLLambda(d.lambda())
+    visitLLambda(d.lambda()),
+    d.pos()
   );}
   default T.Alias visitAlias(T.Alias a){ return new T.Alias(
     visitIT(a.from()),
-    a.to()
+    a.to(),
+    a.pos()
   ); }
 }

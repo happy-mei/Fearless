@@ -2,7 +2,6 @@ package visitors;
 
 import ast.T;
 import astFull.E;
-import astFull.PosMap;
 import id.Id;
 import id.Mdf;
 import utils.Push;
@@ -12,33 +11,36 @@ import java.util.stream.Collectors;
 
 public class InjectionVisitor implements FullVisitor<ast.E>{
   public ast.E.MCall visitMCall(E.MCall e) {
-    return PosMap.replace(e, new ast.E.MCall(
+    return new ast.E.MCall(
       e.receiver().accept(this),
       e.name(),
       e.ts().orElseThrow().stream().map(this::visitT).toList(),
-      e.es().stream().map(ei->ei.accept(this)).toList()
-    ));
+      e.es().stream().map(ei->ei.accept(this)).toList(),
+      e.pos()
+    );
   }
 
   public ast.E.X visitX(E.X e){
-    return new ast.E.X(e.name());
+    return new ast.E.X(e.name(), e.pos());
   }
 
   public ast.E.Lambda visitLambda(E.Lambda e){
-    return PosMap.replace(e, new ast.E.Lambda(
+    return new ast.E.Lambda(
       e.mdf().orElseThrow(),
       e.its().stream().map(this::visitIT).toList(),
       e.selfName(),
-      e.meths().stream().map(this::visitMeth).toList()
-    ));
+      e.meths().stream().map(this::visitMeth).toList(),
+      e.pos()
+    );
   }
 
   public ast.T.Dec visitDec(astFull.T.Dec d){
-    return PosMap.replace(d, new ast.T.Dec(
+    return new ast.T.Dec(
       d.name(),
       d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList(),
-      this.visitLambda(d.lambda().withMdfP(Mdf.mdf).withITsP(Push.of(d.toIT(), d.lambda().its())))
-    ));
+      this.visitLambda(d.lambda().withMdf(Mdf.mdf).withITs(Push.of(d.toIT(), d.lambda().its()))),
+      d.pos()
+    );
   }
 
   public ast.T visitT(astFull.T t){
@@ -53,12 +55,13 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   public ast.E.Meth visitMeth(E.Meth m){
-    return PosMap.replace(m, new ast.E.Meth(
+    return new ast.E.Meth(
       visitSig(m.sig().orElseThrow()),
       m.name().orElseThrow(),
       m.xs(),
-      m.body().map(b->b.accept(this))
-    ));
+      m.body().map(b->b.accept(this)),
+      m.pos()
+    );
   }
 
   public ast.E.Sig visitSig(E.Sig s){
@@ -66,7 +69,8 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
       s.mdf(),
       s.gens().stream().map(this::visitGX).toList(),
       s.ts().stream().map(this::visitT).toList(),
-      this.visitT(s.ret())
+      this.visitT(s.ret()),
+      s.pos()
     );
   }
 

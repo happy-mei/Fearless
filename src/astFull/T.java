@@ -1,5 +1,7 @@
 package astFull;
 
+import files.HasPos;
+import files.Pos;
 import id.Id;
 import id.Mdf;
 import utils.Bug;
@@ -11,7 +13,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public record T(Mdf mdf, Id.RT<T> rt){
+public record T(Mdf mdf, Id.RT<T> rt) {
   public static final T infer = new T(null,null);
   public boolean isInfer(){ return this==infer; }
   public ast.T toAstT() {
@@ -41,18 +43,18 @@ public record T(Mdf mdf, Id.RT<T> rt){
       Stream.concat(Stream.of(this), it.ts().stream().flatMap(T::flatten))
     );
   }
-  public record Alias(Id.IT<T> from, String to){
+  public record Alias(Id.IT<T> from, String to, Optional<Pos> pos) implements HasPos {
     public Alias accept(FullCloneVisitor v) { return v.visitAlias(this); }
     public <R> Optional<R> accept(FullShortCircuitVisitor<R> v) { return v.visitAlias(this); }
     @Override public String toString() {
       return String.format("alias %s as %s", from, to);
     }
   }
-  public record Dec(Id.DecId name, List<Id.GX<T>> gxs, E.Lambda lambda){
+  public record Dec(Id.DecId name, List<Id.GX<T>> gxs, E.Lambda lambda, Optional<Pos> pos) implements HasPos {
     public Dec{ assert name.gen()==gxs.size(); }
     public Dec accept(FullCloneVisitor v) { return v.visitDec(this); }
     public <R> Optional<R> accept(FullShortCircuitVisitor<R> v) { return v.visitDec(this); }
-    public Dec withLambda(E.Lambda lambda) { return new Dec(name,gxs,lambda); }
+    public Dec withLambda(E.Lambda lambda) { return new Dec(name, gxs, lambda, pos); }
     public Id.IT<ast.T> toAstT() {
       return new Id.IT<>(//AstFull.T || Ast.T
         this.name(),
@@ -64,6 +66,9 @@ public record T(Mdf mdf, Id.RT<T> rt){
         this.name(),
         this.gxs().stream().map(gx->new astFull.T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
       );
+    }
+    @Override public String toString() {
+      return "Dec[name="+name+",gxs="+gxs+",lambda="+lambda+"]";
     }
   }
   @Override public String toString(){

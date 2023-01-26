@@ -117,14 +117,14 @@ public class Program implements program.Program{
     }
 
     private T.Dec inferSignatures(T.Dec d) {
-      return d.withLambda(inferSignatures(d, d.lambda().withSelfNameP("this")));
+      return d.withLambda(inferSignatures(d, d.lambda().withSelfName("this")));
     }
     private E.Lambda inferSignatures(T.Dec dec, E.Lambda l) {
       if (l.selfName() == null) {
-        l = l.withSelfNameP(new E.X(T.infer).name());
+        l = l.withSelfName(new E.X(T.infer).name());
       }
       var ms = l.meths().stream().map(m->inferSignature(dec,m)).toList();
-      return l.withMethsP(ms);
+      return l.withMeths(ms);
     }
     Id.MethName onlyAbs(T.Dec dec){
       var m = OneOr.of("Invalid number of abstract methods", p.meths(dec.toAstT()).stream().filter(CM::isAbs));

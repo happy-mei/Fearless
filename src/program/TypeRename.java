@@ -29,7 +29,8 @@ public interface TypeRename<T>{
         sig.mdf(),
         sig.gens(),
         sig.ts().stream().map(t->renameT(t,f)).toList(),
-        renameT(sig.ret(),f)
+        renameT(sig.ret(),f),
+        sig.pos()
       );
     }
     public boolean isInfer(ast.T t) { return false; }

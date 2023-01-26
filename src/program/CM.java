@@ -1,8 +1,6 @@
 package program;
 
 import ast.T;
-import astFull.E;
-import astFull.PosMap;
 import files.Pos;
 import id.Id;
 import id.Mdf;
@@ -28,7 +26,7 @@ record CoreCM(Id.IT<T> c, ast.E.Meth m, ast.E.Sig sig) implements CM{
   public List<String> xs(){ return m.xs(); }
   public boolean isAbs(){ return m.isAbs(); }
   public CM withSig(ast.E.Sig sig){ return new CoreCM(c, m, sig); }
-  public Pos pos() { return PosMap.getOrUnknown(this.m); }
+  public Pos pos() { return this.m.posOrUnknown(); }
 
   @Override
   public String toString() {
@@ -42,7 +40,7 @@ record FullCM(Id.IT<T> c, astFull.E.Meth m, ast.E.Sig sig) implements CM{
   public List<String> xs(){ return m.xs(); }
   public boolean isAbs(){ return m.isAbs(); }
   public CM withSig(ast.E.Sig sig){ return new FullCM(c, m, sig); }
-  public Pos pos() { return PosMap.getOrUnknown(this.m); }
+  public Pos pos() { return this.m.posOrUnknown(); }
 
   @Override
   public String toString() {

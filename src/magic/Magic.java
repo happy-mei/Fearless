@@ -27,8 +27,9 @@ public class Magic {
         List.of(),
         null,
         List.of(),
+        Optional.empty(),
         Optional.empty()
-      ));
+      ), Optional.empty());
     }
     return null;
   }

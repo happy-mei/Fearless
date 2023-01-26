@@ -23,7 +23,7 @@ public record InferBodies(ast.Program p) {
         var l=coreDecl.lambda();
         return coreDecl.withLambda(l.withMethsP(
           Streams.zip(d.lambda().meths(),l.meths())
-            .map((fM,cM)->cM.withBodyP(fM.body().map(e->fixInferStep(iGOf(coreDecl, cM), e).accept(iV))))
+            .map((fM,cM)->cM.withBody(fM.body().map(e->fixInferStep(iGOf(coreDecl, cM), e).accept(iV))))
             .toList()
         ));
       })
@@ -63,7 +63,7 @@ public record InferBodies(ast.Program p) {
 
   // propagation
   Optional<E> methCallProp(Map<String, T> gamma, E.MCall e) {
-    return inferStep(gamma,e.receiver()).map(e::withReceiverP);
+    return inferStep(gamma,e.receiver()).map(e::withReceiver);
   }
   Optional<E> methArgProp(Map<String, T> gamma, E.MCall e) {
     boolean[] done = {false};
@@ -72,7 +72,7 @@ public record InferBodies(ast.Program p) {
       :inferStep(gamma,ei).map(ej->{done[0]=true;return ej;}
       ).orElse(ei)).toList();
     if(!done[0]){ return Optional.empty(); }
-    return Optional.of(e.withEsP(newEs));
+    return Optional.of(e.withEs(newEs));
   }
   Optional<E> bProp(Map<String, T> gamma, E.Lambda e) {
     boolean[] done = {false};
@@ -81,7 +81,7 @@ public record InferBodies(ast.Program p) {
       :bProp(gamma,mi,e).map(mj->{done[0]=true;return mj;}
     ).orElse(mi)).toList();
     if(!done[0]){ return Optional.empty(); }
-    return Optional.of(e.withMethsP(newMs));
+    return Optional.of(e.withMeths(newMs));
   }
   Optional<E.Meth> bProp(Map<String, T> gamma, E.Meth m, E.Lambda e) {
     return bPropWithSig(gamma,m,e)
@@ -98,10 +98,10 @@ public record InferBodies(ast.Program p) {
     var e1 = m.body().get();
     var e2 = new RefineTypes(this.p).fixType(e1,sig.ret());
     var optBody = inferStep(richGamma,e2);
-    var res = optBody.map(b->m.withBodyP(Optional.of(b)));
+    var res = optBody.map(b->m.withBody(Optional.of(b)));
     return res.or(()->e1==e2
       ? Optional.empty()
-      : Optional.of(m.withBodyP(Optional.of(e2))));
+      : Optional.of(m.withBody(Optional.of(e2))));
   }
   Optional<E.Meth> bPropGetSigM(Map<String, T> gamma, E.Meth m, E.Lambda e) {
     throw Bug.todo();
@@ -136,7 +136,8 @@ public record InferBodies(ast.Program p) {
       refined.name(),
       Optional.of(refined.gens()),
       fixedArgs,
-      refiner.best(refined.rt(), e.t())
+      refiner.best(refined.rt(), e.t()),
+      e.pos()
     );
     return Optional.of(res);
   }
@@ -154,7 +155,7 @@ public record InferBodies(ast.Program p) {
 
   Optional<E> var(Map<String, T> gamma, E.X e) {
     if (!e.t().isInfer()) { return Optional.empty(); }
-    return Optional.ofNullable(gamma.get(e.name())).map(e::withTP);
+    return Optional.ofNullable(gamma.get(e.name())).map(e::withT);
   }
 
   // helpers

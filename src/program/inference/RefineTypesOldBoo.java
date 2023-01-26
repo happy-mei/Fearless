@@ -15,7 +15,7 @@ public record RefineTypesOldBoo(astFull.Program p) {
   List<E> fixTypes(List<astFull.E> ies, List<astFull.T> iTs) {
     return Streams.zip(ies, iTs).map(this::fixType).toList();
   }
-  astFull.E fixType(astFull.E ie, astFull.T iT) { return ie.withTP(best(iT,ie.t())); }
+  astFull.E fixType(astFull.E ie, astFull.T iT) { return ie.withT(best(iT,ie.t())); }
 
   astFull.T best(astFull.T iT1, astFull.T iT2) {
     if(iT1.equals(iT2)){ return iT1; }

@@ -1,6 +1,5 @@
 package program.inference;
 
-import ast.Program;
 import astFull.T;
 import astFull.E;
 import id.Id;
@@ -19,7 +18,7 @@ public record RefineTypes(ast.Program p) {
   List<E> fixTypes(List<E> ies, List<T> iTs) {
     return Streams.zip(ies, iTs).map(this::fixType).toList();
   }
-  E fixType(E ie, T iT) { return ie.withTP(best(iT,ie.t())); }
+  E fixType(E ie, T iT) { return ie.withT(best(iT,ie.t())); }
 
   T best(T iT1, T iT2) {
     if(iT1.equals(iT2)){ return iT1; }
