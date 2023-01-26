@@ -2,16 +2,18 @@ package program;
 
 import ast.T;
 import astFull.E;
-import astFull.PosMap;
 import id.Id;
 import id.Mdf;
 import main.Fail;
 import utils.Bug;
 import utils.Pop;
 import utils.Push;
-import visitors.*;
+import visitors.CloneVisitor;
+import visitors.InjectionVisitor;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -75,11 +77,11 @@ public interface Program {
     var it1 = t1.itOrThrow();
     var it2 = t2.itOrThrow();
     assert it1.name().equals(it2.name());
-    var ms1 = filterByMdf(mdf, meths(it1).stream().map(cn->cn.m).toList());
-    var ms2 = filterByMdf(mdf, meths(it2).stream().map(cn->cn.m).toList());
+    List<CM> cms1 = filterByMdf(mdf, meths(it1));
+    List<CM> cms2 = filterByMdf(mdf, meths(it2));
 
-    var methsByName = Stream.concat(ms1.stream(), ms2.stream())
-      .collect(Collectors.groupingBy(E.Meth::name))
+    var methsByName = Stream.concat(cms1.stream(), cms2.stream())
+      .collect(Collectors.groupingBy(CM::name))
       .values();
     return !methsByName.isEmpty() && methsByName.stream()
       .allMatch(ms->{
@@ -89,11 +91,10 @@ public interface Program {
         var recv = new ast.E.X("this");
         var xs=Push.of(m1.xs(),"this");
         var injectionVisitor = new InjectionVisitor();
-        var coreSig = injectionVisitor.visitSig(m2.sig().orElseThrow());
-        List<T> ts=Push.of(coreSig.ts(),t1);
-        var gxs = coreSig.gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
-        var e=new ast.E.MCall(recv, m1.name().orElseThrow(), gxs, m1.xs().stream().<ast.E>map(ast.E.X::new).toList());
-        return isType(xs, ts, e, coreSig.ret());
+        List<T> ts=Push.of(m2.sig().ts(),t1);
+        var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
+        var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(ast.E.X::new).toList());
+        return isType(xs, ts, e, m2.sig().ret());
       });
   }
 
@@ -105,34 +106,34 @@ public interface Program {
     throw Bug.todo();
   }
 
-  default List<E.Meth> filterByMdf(Mdf mdf, List<E.Meth> ms) {
+  default List<CM> filterByMdf(Mdf mdf, List<CM> cms) {
     // #Define filterByMdf(MDF,Ms) = Ms'
     // filterByMdf(MDF,empty) = empty
-    if (ms.isEmpty()) { return List.of(); }
-    var m = ms.get(0);
-    ms = Pop.left(ms);
+    if (cms.isEmpty()) { return List.of(); }
+    var cm = cms.get(0);
+    cms = Pop.left(cms);
     /*
     filterByMdf(MDF,M Ms) = M,filterByMdf(MDF,Ms)
         where MDF in {iso,mut,lent}
      */
     if (mdf.isIso() || mdf.isMut() || mdf.isLent()) {
-      return Push.of(m, filterByMdf(mdf, ms));
+      return Push.of(cm, filterByMdf(mdf, cms));
     }
     /*
     filterByMdf(MDF,M Ms) = M,filterByMdf(MDF,Ms)
       where MDF in {imm,read} M.MDF in {imm,read}
      */
-    var sig = m.sig().orElseThrow();
+    var sig = cm.sig();
     var baseMdfImmOrRead = mdf.isImm() || mdf.isRead();
     var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isRead();
     if (baseMdfImmOrRead && methMdfImmOrRead) {
-      return Push.of(m, filterByMdf(mdf, ms));
+      return Push.of(cm, filterByMdf(mdf, cms));
     }
     /*
     filterByMdf(MDF,M Ms) = filterByMdf(MDF,Ms)
       otherwise
      */
-    return filterByMdf(mdf, ms);
+    return filterByMdf(mdf, cms);
   }
 
   record MWisePair(E.Meth a, E.Meth b){}
@@ -140,23 +141,8 @@ public interface Program {
     throw Bug.todo();
   }
 
-  record CM(Id.IT<T> c, E.Meth m, ast.E.Sig sig) {
-    public Id.MethName name() { return m().name().orElseThrow(); }
-    public Mdf mdf() { return sig().mdf(); }
-    public T ret() { return sig().ret(); }
-    public boolean isAbs(){ return m.isAbs(); }
-    public CM withSig(ast.E.Sig sig) { return new CM(c, m, sig); }
-
-    public String toStringSimplified() {
-      return c+", "+name();
-    }
-    @Override public String toString() {
-      return c+","+mdf()+" "+name()+"("+String.join(",", m.xs())+")"
-        +sig.gens()+sig.ts()+":"+ret()
-        +(isAbs()?"abs":"impl");
-    }
-  }
   default List<CM> meths(Id.IT<T> it) {
+    // TODO: Cache this
     List<CM> cms = Stream.concat(
       cMsOf(it).stream(),
       itsOf(it).stream().flatMap(iti->meths(iti).stream())
@@ -206,7 +192,7 @@ public interface Program {
   default CM pruneAux(List<CM> cms,int limit) {
     if(limit==0){
       throw Fail.uncomposableMethods(cms.stream()
-        .map(cm->Fail.conflict(PosMap.getOrUnknown(cm.m()), cm.toStringSimplified()))
+        .map(cm->Fail.conflict(cm.pos(), cm.toStringSimplified()))
         .toList()
       );
     }

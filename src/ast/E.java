@@ -1,5 +1,6 @@
 package ast;
 
+import astFull.PosMap;
 import id.Id;
 import id.Id.MethName;
 import id.Mdf;
@@ -22,7 +23,11 @@ public interface E {
       assert meths!=null;
     }
     @Override public E accept(CloneVisitor v){ return v.visitLambda(this); }
+
     @Override public <R> R accept(Visitor<R> v){return v.visitLambda(this);}
+    public ast.E.Lambda withMethsP(List<ast.E.Meth> ms) {
+      return PosMap.replace(this, new ast.E.Lambda(mdf, its, selfName, ms));
+    }
   }
   record MCall(E receiver, MethName name, List<T> ts, List<E> es)implements E{
     public MCall{ assert receiver!=null && name.num()==es.size() && ts!=null; }
@@ -47,6 +52,12 @@ public interface E {
     public Meth{ //noinspection OptionalAssignedToNull
       assert sig!= null && name.num()==xs.size() && body!=null; }
     public boolean isAbs(){ return body().isEmpty(); }
+    public ast.E.Meth withBody(Optional<ast.E> body) {
+      return new ast.E.Meth(sig, name, xs, body);
+    }
+    public ast.E.Meth withBodyP(Optional<ast.E> body) {
+      return PosMap.add(withBody(body), PosMap.getOrUnknown(this));
+    }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name, xs, sig, body.map(Object::toString).orElse("[-]"));
     }
