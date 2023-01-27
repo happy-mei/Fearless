@@ -14,6 +14,37 @@ import java.util.stream.Collectors;
 
 public class InjectionVisitor implements FullVisitor<ast.E>{
   public ast.E.MCall visitMCall(E.MCall e) {
+    // TODO: WHYYYYYY
+    /*
+    [-imm base.Let[]-][base.Let[]]{ }
+     #/1[infer, imm base.Void[]]([[-imm base.Let[infer, imm base.Void[]]-][]{
+     .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=infer]
+        -> this:infer.swap/1[-]([x:infer]):infer,
+     .in/1([_]): [-]
+       -> [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+
+       // old (better):
+       [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[infer, imm base.Void[]]-][]{
+         .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X]
+            -> this:mut base.Ref[mdf X].swap/1[]([x:mdf X]):mdf X,
+         .in/1([_]): [-]
+           -> [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+
+       super new:
+       [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[infer, imm base.Void[]]-][]{
+       .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=infer] ->
+          this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
+        .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
+          [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+
+      pls pls pls:
+      [-imm base.Let[]-][base.Let[]]{ }
+        #/1[infer, imm base.Void[]]([[-imm base.Let[infer, imm base.Void[]]-][]{
+          .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=infer] ->
+              this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
+          .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
+            [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+     */
     return new ast.E.MCall(
       e.receiver().accept(this),
       e.name(),
