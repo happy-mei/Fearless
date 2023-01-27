@@ -31,7 +31,7 @@ public interface E extends HasPos {
     @Override public <R> R accept(Visitor<R> v) {
       return v.visitLambda(this);
     }
-    public ast.E.Lambda withMethsP(List<Meth> meths) {
+    public ast.E.Lambda withMeths(List<Meth> meths) {
       return new ast.E.Lambda(mdf, its, selfName, meths, pos);
     }
     @Override
@@ -53,6 +53,7 @@ public interface E extends HasPos {
     public X{ assert validId(name); }
     public static boolean validId(String x){
       assert x!=null && !x.isEmpty();
+      if (x.endsWith("$")) { return true; }
       return new parser.Parser(Parser.dummy,x).parseX();      
     }
     @Override public E accept(CloneVisitor v){ return v.visitX(this); }

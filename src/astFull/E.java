@@ -28,6 +28,8 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
     }
+    /** This method correctly throw assertion error if called on a top level lambda
+    */
     @Override public T t() {
       if (mdf().isEmpty() && it().isEmpty()) { return T.infer; }
       assert mdf().isPresent() && it().isPresent();
@@ -35,7 +37,9 @@ public sealed interface E extends HasPos {
     }
 
     @Override public Lambda withT(T t) {
-      return new Lambda(mdf, its, selfName, meths, Optional.of(t.itOrThrow()), pos);
+      var mdf = Optional.ofNullable(t.isInfer() ? null:t.mdf());
+      Optional<Id.IT<T>> it = Optional.ofNullable(t.isInfer() ? null : t.match(gx->null, iti->iti));
+      return new Lambda(mdf, its, selfName, meths, it, pos);
     }
 
     @Override public E accept(FullCloneVisitor v){return v.visitLambda(this);}
@@ -96,8 +100,12 @@ public sealed interface E extends HasPos {
       if (FRESH_N > 100) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
       FRESH_N = 0;
     }
+    public static String freshName() {
+      if (FRESH_N == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
+      return "fear" + ++FRESH_N + "$";
+    }
     public X(T t){
-      this("fear" + FRESH_N++ + "$", t, Optional.empty());
+      this(freshName(), t, Optional.empty());
       if (FRESH_N == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
     }
     public X withT(T t) {
@@ -129,6 +137,9 @@ public sealed interface E extends HasPos {
   }
   record Sig(Mdf mdf, List<Id.GX<T>> gens, List<T> ts, T ret, Optional<Pos> pos){
     public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
+    public Sig withGens(List<Id.GX<T>> gens){
+      return new Sig(mdf, gens, ts, ret, pos);
+    }
     public ast.E.Sig accept(InjectionVisitor visitor) {
       return visitor.visitSig(this);
     }

@@ -141,6 +141,12 @@ public interface Program {
     throw Bug.todo();
   }
 
+  default Optional<CM> meths(Id.IT<T> it, Id.MethName name){
+    var myM_ = meths(it).stream().filter(mi->mi.name().equals(name)).toList();
+    if(myM_.isEmpty()){ return Optional.empty(); }
+    assert myM_.size()==1;
+    return Optional.of(myM_.get(0));
+  }
   default List<CM> meths(Id.IT<T> it) {
     // TODO: Cache this
     List<CM> cms = Stream.concat(

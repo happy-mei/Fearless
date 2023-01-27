@@ -58,11 +58,15 @@ public record RefineTypes(ast.Program p) {
   List<T> renameSigPart(Set<Id.GX<ast.T>> fresh, List<RP> refined, int start, int end) {
     return IntStream.range(start, end)
       .mapToObj(i->refined.get(i).t1())
-      .map(t->renamer.renameT(t, gx->{
-        if (fresh.contains(gx)) { return T.infer; }
-        return new T(t.mdf(), gx);
-      }))
+      .map(t->regenerateInfers(fresh, t))
       .toList();
+  }
+
+  static T regenerateInfers(Set<Id.GX<ast.T>> fresh, T t) {
+    return renamer.renameT(t, gx->{
+      if (fresh.contains(gx)) { return T.infer; }
+      return new T(t.mdf(), gx);
+    });
   }
 
   RefinedSig refineSig(Id.IT<T> c, RefinedSig sig) {
@@ -101,16 +105,28 @@ public record RefineTypes(ast.Program p) {
     );
   }
 
-  List<RP> refineSigGens(List<RP>rps){
+
+  RP easyInfer(RP rp) {
+    if(rp.t1().isInfer()){ return new RP(rp.t2(), rp.t2()); }
+    if(rp.t2().isInfer()){ return new RP(rp.t1(), rp.t1()); }
+    return rp;
+  }
+  
+  List<RP> refineSigGens(List<RP>rps) {
     List<Sub> subs = collect(rps);
     Map<Id.GX<T>, T> map = toSub(subs);
-    return rps.stream().map(rp->renameRP(rp,map,renamer)).toList();
+    return rps.stream()
+      .map(rp->renameRP(rp, map, renamer))
+      .map(this::easyInfer)
+      .toList();
   }
   boolean isXX(RP rp){
+    if (rp.t1().isInfer() || rp.t2().isInfer()) { return false; }
     return rp.t1().rt() instanceof Id.GX<?> && rp.t2().rt() instanceof Id.GX<?>;
   }
   boolean sameC(int i, List<RP> rps) {
     var rp = rps.get(i);
+    if (rp.t1().isInfer() || rp.t2().isInfer()) { return false; }
     if ((rp.t1().rt() instanceof Id.IT<T> t1) && (rp.t2().rt() instanceof Id.IT<T> t2)) {
       return t1.name().equals(t2.name());
     }
