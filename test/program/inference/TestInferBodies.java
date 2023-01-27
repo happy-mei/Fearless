@@ -118,6 +118,7 @@ public class TestInferBodies {
       read * : recMdf X,
       mut .swap(x: mdf X): mdf X,
       mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+    //mut :=(x: mdf X): Void -> Let#[mdf X, Void](imm Let[mdf X, Void]{ .var -> this.swap(x), .in(_)->Void }),
       mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }

@@ -1,16 +1,16 @@
 package program.inference;
 
-import astFull.T;
 import astFull.E;
+import astFull.T;
 import id.Id;
+import id.Mdf;
 import program.CM;
-import utils.Bug;
 import utils.Streams;
 import visitors.InjectionVisitor;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public record InferBodies(ast.Program p) {
   ast.Program inferAll(astFull.Program fullProgram){
@@ -18,18 +18,25 @@ public record InferBodies(ast.Program p) {
   }
 
   Map<Id.DecId, ast.T.Dec> inferDecs(astFull.Program fullProgram){
-    var iV = new InjectionVisitor();
     return fullProgram.ds().values().stream()
-      .map(d->{
-        var coreDecl = p.ds().get(d.name());
-        var l=coreDecl.lambda();
-        return coreDecl.withLambda(l.withMethsP(
-          Streams.zip(d.lambda().meths(),l.meths())
-            .map((fM,cM)->cM.withBody(fM.body().map(e->fixInferStep(iGOf(coreDecl, cM), e).accept(iV))))
-            .toList()
-        ));
-      })
+      .map(this::inferDec)
       .collect(Collectors.toMap(d->d.name(), d->d));
+  }
+  ast.T.Dec inferDec(astFull.T.Dec d){
+    var coreDecl = p.ds().get(d.name());
+    var l = coreDecl.lambda();
+    return coreDecl.withLambda(l.withMeths(
+      Streams.zip(d.lambda().meths(),l.meths())
+        .map((fullMeth, coreMeth)->fullMeth.body().map(b->inferMethBody(coreDecl,b, coreMeth)).orElse(coreMeth))
+        .toList()
+    ));
+  }
+  ast.E.Meth inferMethBody(ast.T.Dec dec, E e, ast.E.Meth coreMeth) {
+    var refiner = new RefineTypes(p);
+    var iV = new InjectionVisitor();
+    var type = refiner.fixType(e,coreMeth.sig().toAstFullSig().ret());
+    var newBody = fixInferStep(iGOf(dec, coreMeth), type).accept(iV);
+    return coreMeth.withBody(Optional.of(newBody));
   }
 
   private Map<String, astFull.T> iGOf(ast.T.Dec dec, ast.E.Meth m) {
@@ -68,11 +75,12 @@ public record InferBodies(ast.Program p) {
     return inferStep(gamma,e.receiver()).map(e::withReceiver);
   }
   Optional<E> methArgProp(Map<String, T> gamma, E.MCall e) {
+    // TODO: We may have a headed type here, can we fill in some types here?
     boolean[] done = {false};
     var newEs = e.es().stream().map(ei->done[0]
       ? ei
-      :inferStep(gamma,ei).map(ej->{done[0]=true;return ej;}
-      ).orElse(ei)).toList();
+      : inferStep(gamma,ei).map(ej->{ done[0]=true; return ej; }
+    ).orElse(ei)).toList();
     if(!done[0]){ return Optional.empty(); }
     return Optional.of(e.withEs(newEs));
   }
@@ -108,23 +116,34 @@ public record InferBodies(ast.Program p) {
   }
   Optional<E.Meth> bPropGetSigM(Map<String, T> gamma, E.Meth m, E.Lambda e) {
     if (e.it().isEmpty()) { return Optional.empty(); }
+    return onlyAbs(e.it().get()).map(m::withSig);
+  }
 
-//    var iT = new Id.IT<ast.T>("FearFreshC$", List.of());
-//    var parentMs = e.its().stream()
-//      .flatMap(it->p.meths(it.toAstIT(T::toAstT)).stream());
-//    var localMs = e.meths().stream()
-//      .filter(mi->mi.sig().isPresent())
-//      .map(mi->CM.of(iT, mi, new InjectionVisitor().visitSig(mi.sig().get())));
-//    var ms = p.prune(Stream.concat(localMs, parentMs).toList());
+  Optional<E.Sig> onlyAbs(Id.IT<astFull.T> it){ return onlyProp(it,CM::isAbs); }
 
-    List<CM> ms = p.meths(e.it().get().toAstIT(T::toAstT));
-    if (ms.size() > 1) { return Optional.empty(); }
-    var sig = ms.get(0).sig();
+  Optional<E.Sig> onlyMName(Id.IT<astFull.T> it, Id.MethName name){
+    return onlyProp(it,cm->cm.name().equals(name));
+  }
+  private Optional<E.Sig> onlyProp(Id.IT<astFull.T> it, Predicate<CM> pred) {
+    var freshGXs = Id.GX.standardNames(it.ts().size());
+    var freshGXsSet = new HashSet<>(freshGXs);
+    var freshGXsQueue = new ArrayDeque<>(freshGXs);
+    var ts = it.ts().stream().map(t->new ast.T(Mdf.mdf, freshGXsQueue.poll())).toList();
+    var ms = p.meths(new Id.IT<>(it.name(), ts)).stream()
+      .filter(pred)
+      .toList();
+    if (ms.size() != 1) { return Optional.empty(); }
 
-    return Optional.of(m.withSig(sig.toAstFullSig()));
+    var sig = ms.get(0).sig().toAstFullSig();
+    var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(freshGXsSet, t)).toList();
+    var restoredRt = RefineTypes.regenerateInfers(freshGXsSet, sig.ret());
+    return Optional.of(new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos()));
   }
   Optional<E.Meth> bPropGetSig(Map<String, T> gamma, E.Meth m, E.Lambda e) {
-    throw Bug.todo();
+    if (e.it().isEmpty()){ return Optional.empty(); }
+    var sig = onlyMName(e.it().get(), m.name().orElseThrow());
+    if(sig.isEmpty()){ return Optional.empty(); }
+    return sig.map(m::withSig);
   }
 
   // inference
@@ -162,9 +181,7 @@ public record InferBodies(ast.Program p) {
     assert e.ts().isEmpty();
     var c = e.receiver().t();
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
-    var m = p.meths(recv.toAstIT(T::toAstT)).stream()
-      .filter(mi->mi.name().equals(e.name()))
-      .findFirst().orElseThrow();
+    var m = p.meths(recv.toAstIT(T::toAstT), e.name()).orElseThrow();
     var k = m.sig().gens().size();
     var infers = Collections.nCopies(k, T.infer);
     return Optional.of(e.withTs(Optional.of(infers)));

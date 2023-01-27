@@ -4,9 +4,12 @@ import ast.T;
 import astFull.E;
 import id.Id;
 import id.Mdf;
+import main.CompileError;
+import utils.Bug;
 import utils.Push;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class InjectionVisitor implements FullVisitor<ast.E>{
@@ -28,7 +31,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     return new ast.E.Lambda(
       e.mdf().orElseThrow(),
       e.its().stream().map(this::visitIT).toList(),
-      e.selfName(),
+      Optional.ofNullable(e.selfName()).orElseGet(E.X::freshName),
       e.meths().stream().map(this::visitMeth).toList(),
       e.pos()
     );
@@ -44,6 +47,10 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   public ast.T visitT(astFull.T t){
+    if (t.isInfer()) {
+      // TODO: throw Fail.....
+      throw Bug.todo();
+    }
     return t.toAstT();
   }
 

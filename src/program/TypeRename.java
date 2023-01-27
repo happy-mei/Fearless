@@ -60,6 +60,7 @@ public interface TypeRename<T>{
       gx->{
         var renamed = f.apply(gx);
         if(renamed==null){ return t; }
+        if (isInfer(renamed)){ return renamed; }
         return propagateMdf(mdf(t),renamed);
       },
       it->newT(mdf(t),renameIT(it,f))

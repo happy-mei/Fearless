@@ -135,13 +135,9 @@ public class Program implements program.Program{
       var name=m.name().orElseGet(() -> onlyAbs(dec));
       m = m.withName(name);
       assert name.num()==m.xs().size();
-      var candidates = p.meths(dec.toAstT()).stream()
-        .filter(mi->mi.name().equals(name))
-        .map(CM::sig)
-        .toList();
-      if(candidates.size()!=1){ throw Fail.cannotInferSig(dec.name(), name); }
-      var inferredSig = candidates.get(0);
-      return m.withSig(inferredSig.toAstFullSig());
+      var inferred = p.meths(dec.toAstT(), name)
+        .orElseThrow(()->Fail.cannotInferSig(dec.name(), name));
+      return m.withSig(inferred.sig().toAstFullSig());
     }
   }
   @Override public String toString() { return this.ds().toString(); }

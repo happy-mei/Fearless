@@ -1,0 +1,1590 @@
+s->s
+  .use fs=FileSystem
+  .do fs.write(...)
+.use[C](c:CapFac[C], cont:F[C,SystemStream,Void])->cont#(c#this/*lent*/,this)
+
+cond ~= (cap,self)->self.bunchOfCalls()
+//how to avoid Stream[C,R]
+Int i=myStreamPerson
+  .dup(x={s->e})
+  .if(cond(x)).return(unused={complexComp(5)})
+//  .if(cond(x)).error(_={5})
+  .filter(..)P->P
+  .map(..)P->I
+  .first()
+
+
+Block
+  .if {true} .return {5}
+  .if {long}
+
+
+Block
+  .if true .return _={5}
+  .if true .error 5
+  .if long
+  .do e
+
+
+IfStream[C]:{
+  .return[R](r:F[R],cont:F[Void,Stream[C],R]):R
+  .var[R](x:F[T],cont:F[T,Stream[C],R]):R
+  }
+IfThenStream[C]:IfStream[C]{
+  .inner:Stream[C]
+  .return[R](r:F[R],cont:F[Void,Stream[C],R]):R->r#
+  .var[R](x:F[T],cont:F[T,Stream[C],R]):R->cont#(x#,this.inner)
+  }
+
+IfElseStream[C]:IfStream[C]{
+  .inner:Stream[C]
+  .return[R](r:F[R],cont:F[Void,Stream[C],R]):R->cont#(Void,this.inner)
+//  .var[R](x:F[T],cont:F[T,Stream[C],R]):R->cont#(x#,this.inner) ??
+  }
+
+
+
+Stream[C] {
+  [R] if(cond: Bool, ifBranch: R): SometimesStream[C, R]
+}
+
+SometimesStream[C, R]: Stream[C] {
+
+}
+
+Turn off Markdown detection: Tools -> Preferences -> Uncheck auto-detect markdown
+https://github.com/NickGeek/Fearless
+
+TODO: Show Homer and Isaac
+
+New idea? instead of {x!! methods} we could just do like python and require .f(this,x:T,y:T)->...
+
+BoxIso[T]:{
+  mut .swap(iso T):iso T
+  mut .look[R](obs:F[mut T, R]):R->boring/magic
+  mut .get:iso T
+  //NO  read .readGet:read T
+  mut .set:iso T
+  }
+BoxIso:{ #[T](e:iso T):mut BoxIso[T]->magic }
+
+FlowIso[T].map[R](isoT->isoR):FlowIso[R]
+FlowIso[T].mapI(isoT->R):Flow[R]
+
+
+f=Flow[T]:{
+  .subscribe( s:Sub[T]):Void
+
+  }
+foo:mut List[mut Actors]
+
+foo.map(mut a->e)
+
+r=f.toList()
+
+FIso[A,R]:{ #(iso A):iso R}
+P[A,B]:{ .a:mdf A, .b:,mdf B
+  iso .match(F)
+  }
+P:{#[A,B](a:mdf A, b:mdf B):mut P[mdf A, mdf B]->{.a->a,.b->b}}
+OptIsoBox[T]:{
+  mut .inner:mut BoxIso[Opt[mut T]]
+  mut look[R](obs:F[mut T, R]):R ->
+    FIso[Opt[mut T],P[mut T, R]{e->P#(e.get,obs#(e.get)) }#(this.swap{})
+
+  }
+Or simply use a prefix like {~ x methods} or { 'x methods}
+Foo:{
+  anchored superable .bar(this,..)->e
+  }
+==
+Foo:{
+  .Foo.bar(..)->e
+  .bar(this,..)->this.Foo.bar(..)
+  }
+
+
+--------------------
+Fearless
+--------------------
+expected commands
+fearless -dest PATH PATH'
+fearless PATH ==fearless -dest PATH/OUT PATH'
+
+fearless -dest PATH' PATH
+  well formed
+    PATH exists and is a readable folder
+    PATH'  exists as a (writable)folder or can be created as a (writable)folder
+
+fearless -dest PATH' PATH
+  and there is not a folder PATH/META
+  compile PATH into PATH'
+fearless -dest PATH' PATH
+  and there is a folder PATH/META
+  equivalent to fearless -dest PATH'/build PATH/build
+
+//Example default structure made by: `fearless new my-project`
+my-project
+  src/
+    build/
+      Build.fear
+      UnitTests.fear
+    myModule/C.fear
+    A.fear
+    B.fear
+  out/
+    ...
+
+--------------------
+1 Grammar User level
+--------------------
+e   ::= x | e m e' | e m(es) | e m(x=e) | e m x = e | e m[Ts](es) | e m[Ts](x=e) | v | (e)
+v   ::= l:MDF Ref[T] | MDF B
+B   ::= ITs BB
+BB  ::= {x, SM} | {SM} | {x, Ms} | {Ms}
+T   ::= MDF C[Ts] | MDF X
+MDF ::= iso | mut | lent | read | imm |recMdf | mdf
+IT  ::= C[Ts]
+SM  ::= xs->e | e //single method
+M   ::= sig, | sig->e, | m(xs)->e,
+sig ::= MDF m[Xs](G):T
+D   ::= C[Xs]:B
+m   ::= .Lid | symbols // +-*/\|!@#$%^&?~<>=  (excluding = alone and excluding containing //)
+Uid ::= uppercase Id //class names and generics; can start with _Uppercase
+Lid ::= lowercase Id //method names and parameters, can start with _low or _num
+x   ::= Lid | ‘_’ // literal underscore
+X   ::= Uid
+Al  ::= alias pks . Uid as SC | alias pks . Uid[Ts] as SC
+C::= SC | pks . Uid | +/-numbers | stringLiterals
+SC::= Uid
+
+ITX ::= IT | X
+MUTY::= mut | lent | read
+HYG ::= read | lent
+mem::= l1:v1..ln:vn
+ctxV ::= [] | ctxV m[Ts](es) | v m[Ts](vs ctxV es)
+call::= m(es) | m | m e
+
+Note: {->e} not valid syntax
+
+Precedence
+  -strong unary op
+  -weak, left associative binary op
+
+--------------------
+2 Sugar
+--------------------
+We can omit [] () {}, but e m(es) is not equivalent to e m[](es) but it is requesting [Ts] to be inferred.
+If a method has a single parameter, we can call it as a binary operator
+When calling a method we can have the [Ts] inferred
+In a sig we can write m(xs) instead of sig when overriding
+In a B when overriding a single method we can omit the m
+and if there is zero args we can omit ()->
+Method are overloaded on number of arguments
+Class names are overloaded on number of Xs
+If x is not specified in a B, it is a fresh x.
+
+Variable sugar:
+  [e0 m(x=e) calls] = e0 m(e,(x,fresh)->fresh calls)
+  Where calls eagerly contains as many calls as possible,
+  up to the end of the expression
+--------------------
+3 User-level well formedness
+--------------------
+Actual generic parameters can not be capsule
+No explicitly declared this
+Method and type parameter lists are disjoint
+No shadowing
+Disjoint trait names //overloading on generic arity
+Disjoint method names //overloading on parameter arity
+'mdf' only in front of X
+‘mdf’ and ‘recMdf’ is not used as a the modifier for a method
+Implements relation is acyclic //ok to implement same trait with different generics
+that is, forall (C,n), (C,n) notin supertypes(Ds, C, n).
+X in NoMutHyg[X] is a generic parameter on the interface implementing it
+If the lambda type is inferred then at least "{}" must be present
+In a B a SM of form ()->e is ill formed (but ok as an SM)
+All used traits exist in Ds
+_______
+#Define (C,n) in supertypes(Ds,IT)
+forall (C,n)
+   (C,n) notin supertypes(Ds, C, n)
+
+#Define supertypes(Ds,C,n) = (C',n')
+(C',n') in supertypes(Ds, C,n)
+  where C[X1..Xn]: _ C'[T1..Tk] _{_} in Ds
+
+(C2,n2) in supertypes(Ds, C0,n0)
+  where
+  (C1,n1) in supertypes(Ds, C0,n0)
+  (C2,n2) in supertypes(Ds, C1,n1)
+
+
+--------------------
+4 Simplified Grammar (after inference)
+--------------------
+e   ::= x | e m[Ts](es) | v
+v   ::= l:MDF Ref[T] | MDF B
+B   ::= ITs {x, Ms}
+M   ::= sig, | sig ->e,
+C   ::= pks . Uid | +/-numbers | stringLiterals
+--------------------
+5a Inference on signatures
+--------------------
+Ds =>Ds'     Ds|-D=>D'     Ds,C[Xs]|-M => M'   Ds,C[Xs]|-SM => M
+
+// Basically we need to desugar the following sugar from step 2 here:
+// 1. In a sig we can write m(xs) instead of sig when overriding
+// 2. In a B when overriding a single method we can omit the m
+// 3. and if there is zero args we can omit ()->
+
+All Xs introduced from inference are fresh. Thus, if m(xs)->e is inferred as a generic method, the 'e' could not use the Xs.
+
+D1..Dn => D'1..D'n
+  where forall i in 1..n
+     D'1..D'i-1 Di..Dn |- Di => D'i // ordered by inheritance relations
+
+Ds  |-  C[Xs]:ITs{Ms}  => C[Xs]:B
+  where
+    Ds |- C[Xs]:ITs{x,Ms}  => C[Xs]:B
+    x is fresh
+
+Ds  |-  C[Xs]:ITs{SM}  => C[Xs]:B
+  where
+    Ds |-C[Xs]:ITs{x,SM}  => C[Xs]:B
+    x is fresh
+
+Ds  |-  C[Xs]:ITs{x,M1..Mn}  =>  C[Xs]:ITs{x, M'1..M'n}
+  where Ds,C[Xs]|-M1=>M'1  ..  Ds,C[Xs]|-Mn=>M'n
+
+Ds  |-  C[Xs]:ITs{x,SM}  =>  C[Xs]:ITs{x, M}
+  where Ds,C[Xs]|-SM=>M
+
+Ds,C[Xs]|-sig, => sig,
+Ds,C[Xs]|-sig->e, => sig->e,
+Ds,C[Xs]|-e => sig->e, // task 3
+  where Ds,C[Xs]|- ()->e => sig->e,
+
+Ds,C[Xs]|-xs->e => sig->e, // task 2
+  where
+    onlyAbs(Ds,C[Xs]) = m(xs)
+    Ds,C[Xs]|-m(xs)->e => sig->e,
+
+Ds,C[Xs]|-m(xs)->e => sig->e, // task 1
+  C[Xs] : ITs {_} in Ds
+  (Ds|-meths(C[Xs]))(m(xs)) = sig _, //with the sig.xs as used in m(xs)
+NOTE:
+  m(xs) is just using the length of xs and the name (m) to extract the method
+
+
+--------------------
+5b Inference in expressions
+--------------------
+//We assume a trivial injection from full expressions into ies,
+//just adding :infer everywhere
+//from an ie we can write ie= _:iT to extract the iT
+
+//LOCAL SYNTAX, only applied in section 5b
+//before inference
+iT ::= MDF C[iTs] | MDF X | infer
+iG ::=x1:iT1 .. xn:iTn
+ie ::= be:iT
+be ::= x | ie.m[iTs]?(ies) | (MDF ITs)?{x,iMs}
+iM ::= sig, | sig -> ie, | m(xs)->ie, | (xs)->ie
+//after inference
+e   ::= x | e m[Ts](es) | MDF ITs {x, Ms}//TODO: replace with {''x Ms} everywhere
+T   ::= MDF C[Ts] | MDF X
+C   ::= pks . Uid | +/-numbers | stringLiterals
+
+Final 5b for each method body, with return type T:
+G|- ie:T =>* e
+  where G is trivially extracted from the signature of the method
+  //it is correctly a G as a special case of iG
+
+We define two arrows
+Step: iG|- ie=>ie'       and Transitive inference: iG|- ie=>*ie'
+
+
+--------------------
+iG|- ie=>*ie
+
+iG|- ie0=>ie1
+iG|- ie1=>*ie2
+-----------------------------------
+iG|- ie0=>* ie2
+
+
+
+//Propagation
+
+  iG|- ie=>ie'
+-------------------------------(mCall-Prop)
+  iG|- ie m[iTs]?(ies):iT=>ie' m[iTs]?(ies):iT
+
+  iG|- ie=>ie'
+---------------------------------------------------(mArg-Prop)
+  iG|- ie0 m[iTs]?(ies ie ies'):iT => ie0 m[iTs]?(ies ie' ies'):iT
+
+
+  sig = m(iG'):iT' //Note: sig has the class generics already resolved
+  ie'=fixTypes(ie,iT')
+  iG,x:iT,iG'|- ie'=>ie"
+  sig'=fixTypes(sig,typesOf(ie"))
+  //TODO: sig' should propagate ?
+---------------------------------------(B-Prop withSig)
+  iG|- (MDF ITs)?{x,iMs sig->ie, iMs'}:iT => (MDF ITs)?{iMs sig'->ie", iMs'}:iT
+
+  iT = MDF C[iTs]
+  onlyAbs(Ds,iT,xs) = sig
+  ---------------------------------------(B-Prop getSigM)
+  iG|- (MDF ITs)?{x,iMs, (xs)->ie, iMs'}:iT => (MDF ITs)?{x,iMs sig->ie, iMs'}:iT
+
+  iT = MDF C[iTs]
+  Ds|-meths(iT):Ms
+  Ms(m(xs)) = sig _
+  ---------------------------------------(B-Prop getSig)
+  iG|- (MDF ITs)?{x,iMs, m(xs)->ie, iMs'}:iT => (MDF ITs)?{x,iMs sig->ie, iMs'}:iT
+//Note: Ms(m(xs)) in addition of reporting a sig with the xs of m(xs) also renames any
+//generics that could clash otherwise
+
+///Inference
+
+--------------------- (var)
+  iG|- x:infer=>x:iG(x)
+
+  forall ie' in ie0..ien not iG|- ie'=>_
+  typesOf(ie0) = C[iTs]
+  Gens(C[iTs], m(x1..xn)) = X1..Xk
+--------------------------------------------------- (methCall no[])
+  iG|- ie0 m(ie1..ien):iT => ie0 m[infer1..inferk](ie1..ien):iT
+
+  forall ie' in ie,ies not iG|- ie'=>_
+  typesOf(ie,ies) = C[iTs],iTs0
+  refineSig(C[iTs] m[iTs'](iTs0):iT) = [iTs1](iTs2):iT'
+  ies' = fixTypes(ies,iTs2)
+--------------------------------------------------- (methCall with[])
+  iG|- ie m[iTs'](ies):iT => ie m[iTs1](ies'):best(iT',iT)
+
+_______
+#Define concreteSig(x,iT,sig) = iG'->iT'
+  for example if Function[A,B]:{ apply(a:A):B } in cd
+  concreteSig(self,Function<S,I>,apply(A):B)= self:Function<S,I>, a:S->I
+_______
+#Define typesOf(ies)=iTs
+  extracts the annotated types for all the ie in ies
+
+_______
+#Define fixTypes(ies,iTs) = ies'
+fixTypes(empty,empty) = empty
+fixTypes(be:iT ies,iT' iTs) = be:best(iT',iT) fixTypes(ies, iTs)
+
+_______
+#Define best(iT,iT') = iT"
+best(iT,iT) = iT
+best(_ X,MDF C[iTs]) = MDF C[iTs] // or _ X since it is intentional? why?
+best(MDF C[iTs],_ X) = MDF C[iTs]
+best(infer,iT) = iT
+best(iT,infer) = iT
+best(MDF X, _ X) = MDF X //asymmetrical
+best(MDF C'[iT'1..iT'k], _ C[iT1..iTn]) = MDF C'[iT'1..iT'k] //asymmetrical
+  where C'!=C or n!=k
+  //should we check the subtyping between C and C' instead?
+  //May be put as a TODO in code with a commented subtyping call
+best(MDF C[iTs], MDF C[iTs'])=MDF C[iTs"]//asymmetrical by refineSigGens
+  where refineSigGens(iTs=iTs') = iTs"
+  //TODO: if the MDFs are different? take the most specific? not on iso?
+
+
+//assert undefined best(X,X') with X!=X' undefined? Can it happen?
+
+// TODO: Modifiers are being dropped, what about e.g. a mut method being inferred from a lent head
+// also recMdf
+_______
+#Define refineSig(C[iTs] m[iTs1](iTs2):iT) = [iTs'1](iTs'2): iT' // returns basically a sig
+
+//we can deduce xs from the number of iTs2
+
+refineSig(C[iTs] m(xs)[iT1..iTn](iT'1..iT'k):iT) =
+    ([iT"1..iT"n](iT"'1..iT"'k): iT')[Xs,Xs'=infers]
+  free(Xs,Xs')
+  Xs|-C[iTs] ~= C[Ts] //we replace any infer with a free mdf X
+  Ds|-meths(C[Ts]) = Ms
+  freshXs(Ms,m(xs),Xs') = m[X1..Xn](xs:T1..Tk): T
+  refineSigGens(iT1=mdf X1 ..iTn=mdf Xn, iT'1=T1..iT'k=Tn iT=T) =
+    iT"1=_ ..iT"n=_,  iT"'1=_..iT"'k=_ iT'=_
+_______
+#Define freshXs(FF,m(xs),Xs') = sig
+freshXs(Ms,m(xs),Xs') = (m[X1..Xn](xs:T1..Tk): T)[X1..Xn=Xs']
+  Ms(m(xs))= MDF m[X1..Xn](xs:T1..Tk): T _
+
+----------
+RP::= iT=iT' //note we can write RPs as both iTs=iTs' or iT1=iT'1..iTn=iT'n
+//iT is the 'better' type that has precedence of iT
+//we need an iT that could be infer only inside best(_,_)
+_______
+propagateMdf(MDF1,MDF2) = MDF3 //may need to be used in the replacement instead of adapt
+  //apply in order
+  propagateMdf(mdf,MDF) = MDF
+  propagateMdf(MDF,mdf) = MDF
+  propagateMdf(MDF,_) = MDF
+///NOTE: we want to use it so that
+if we have C[X] :{ MH foo(p:lent X):iso X } in Ds
+rename(X=imm Bla)(MH foo(p:lent X):iso X) = MH foo(p:lent Bla):iso Bla
+
+Sub ::= X=MDF C[iTs]
+#Define  refineSigGens(RPs)=RPs'   collect(RPs)=RPs  toSub(RPs)=Subs //VERSION 0
+
+refineSigGens(RPs) = RPs[toSub(collect(RPs))]
+
+refineSigGens(RPs) = easyInfer(RP1)..easyInfer(RPn)
+  where
+    RP1..RPn = RPs[toSub(collect(RPs))]
+_______
+#Define
+easyInfer(RP)=RP'
+infer = iT  =  iT=iT
+iT = infer  =  iT=iT
+easyInfer(RP)=RP otherwise
+
+//In the rules below we always select the smallest RPs possible
+//-when applying a sub, the operation is ignored if the sub is
+// of form X=MDF C[iTs] where X is a subterm of iTs
+collect(RPs, MDF X = _ X', RPs') =   X'=MDF X, collect(RPs[X = mdf X'], RPs'[X = mdf X'])
+collect(RPs, _ C[iTs] = _ C[iTs'], RPs') = collect(RPs, iTs = iTs', RPs)
+collect(RPs, infer = _, RPs') = collect(RPs')
+collect(RPs, _ = infer, RPs') = collect(RPs')
+collect(RPs0,RP0,RPs1,RP1,RPs2) = Sub, collect(RPs[Sub])
+  where
+    subOf(RP0,RP1)= Sub, RPs'
+    RPs = RPs0,RPs1,RP1,RPs',RPs2
+    RPs0 and RPs1 are the shortests possible
+otherwise, if no other rule is applicable
+collect(MDF X = MDF' C[iTs], RPs) =     X=MDF C[iTs], collect(RPs[X=MDF C[iTs]])
+collect(MDF C[iTs] = MDF' X, RPs) =     X=MDF C[iTs], collect(RPs[X=MDF C[iTs]])
+collect(_ C[iTs] = _ C'[iTs'], RPs) =   collect(RPs)
+collect(empty) = empty
+
+subOf(MDF0 X = MDF1 C[iTs1], MDF2 X = MDF3 C[iTs3] )   = X = MDF0 C[iTs1], iTs1=iTs3
+subOf(MDF0 X = MDF1 C[iTs1], MDF2 C[iTs2] = MDF3 X )   = X = MDF0 C[iTs1], iTs1=iTs2
+subOf(MDF0 C[iTs0] = MDF1 X, MDF2 C[iTs2] = MDF3 X )   = X = MDF0 C[iTs1], iTs0=iTs2
+subOf(MDF0 C[iTs0] = MDF1 X, MDF2 X = MDF3 C[iTs3] )   = X = MDF0 C[iTs0], iTs0=iTs3
+
+toSub({}) = {}
+toSub({X = iT1..X = iTn, RPs}) = {X = best(iT1..iTn)} U toSub(RPs)
+  where X =_ not in Sub
+  //we exclude/filter the Sub of form X=MDF C[iTs] where X is a subterm of iTs
+
+----------
+//TODO: there are situations where types can expand indefinitely.
+for example best(a.A[X,a.A[X,X]], a.A[a.B[],Y])
+//TODO: but... this should just be a.A[a.B[],a.A[a.B[],a.B[]]]
+If we simply 'stop after a while' or after 1 round of reduction,
+we can still generate unbounded types by making many rounds of inference.
+(that is inference -->* would never stop)
+
+The formalization above may loop
+//TODO: if there is still some occurrence of "/" it should be replaced by refineSigGens
+
+------------------------
+5c Core Well Formedness
+------------------------
+- recMdf only for read/lent methods
+--------------------
+6 Core reduction
+--------------------
+Ds // implicit class table
+_______
+#Define MDF!MDF'
+  _!capsule= UNDEFINED
+
+  capsule!mut  = capsule
+  mut    !mut  = mut
+  lent   !mut  = lent
+  read   !mut  = lent
+  imm    !mut  = mut
+
+  _ !lent  = lent
+  _ !read  = read
+  _ !imm   = imm
+
+
+-------------------
+|mem|e --> mem'|e'
+-------------------
+
+  mem|ctxV[e]-->mem'|e'           (Ctx)
+    where: mem|e --> mem'|e'
+
+  mem|v0 m[Ts](v1..vn) --> mem|e[x0=MDF!v0, x1=T1!v1..xn=Tn!vn]   (M-Call)
+    where:
+      multiMeth(v0,m[Ts],n)=MDF m[](x1:T1..xn:Tn):T->e,
+      this=x0 if <m,n> notin dom(v0)
+      _{x0,_} = v0 otherwise
+//the MDF!vi may interact badly with multi method types
+
+  mem | Ref#[T](v) --> mem, l->v | l:v.MDF!mut Ref[_ T]     (Ref-K)
+
+  mem l->v | (l:MDF Ref[T])*() --> mem, l->v | v[withMdf MDF]   (De-Ref)
+  // T will have whatever l:MDF has, so we’re doing recMdf T
+
+  mem l->v0 | (l:MDF Ref[T]).swap(v1) --> mem, l->v1 | v0     (Ref-Swap)
+
+--------------------
+7 Core type system
+--------------------
+G   :: x1:T1..xn:Tn
+JudgmentGrammar ::= G |- e : T
+CM ::= C[Ts].M //would the X in the Ts be normalised too?
+_______
+#Define T<T'
+
+T<T
+
+MDF X < MDF' X
+  where MDF<MDF'
+
+MDF IT < MDF' IT'
+  where
+    MDF<MDF'
+    MDF IT < MDF IT'
+
+MDF IT1 < MDF IT3
+  where
+    MDF IT1 < MDF IT2
+    MDF IT2 < MDF IT3
+
+MDF C[T1..Tn]<MDF C'[Ts]
+  where
+    C[X1..Xn]:ITs {_}
+    C'[Ts] in ITs[X1..Xn=T1..Tn]
+
+MDF C[T1..Tn]< MDF C[T1'..Tn']
+  where
+    adapterOk(MDF,C,T1..Tn,T1'..Tn')
+
+_______
+#Define adapterOk(MDF,C,Ts1,Ts2)
+
+adapterOk(MDF0,C,Ts1,Ts2)
+filterByMdf(MDF0, meths(C[Ts1]) = Ms1
+filterByMdf(MDF0, meths(C[Ts2]) = Ms2
+forall MDF m[Xs](G1):T1 _,MDF m[Xs](G2):T2 _ in mWisePairs(Ms1,Ms2)
+G2,inner:MDF0 C[Ts1] |- inner.m[Xs](G2.xs) : T2
+
+_______
+#Define filterByMdf(MDF,Ms) = Ms'
+
+filterByMdf(MDF,empty) = empty
+filterByMdf(MDF,M Ms) = M,filterByMdf(MDF,Ms)
+  where MDF in {capsule,mut,lent}
+filterByMdf(MDF,M Ms) = M,filterByMdf(MDF,Ms)
+  where MDF in {imm,read} M.MDF in {imm,read}
+filterByMdf(MDF,M Ms) = filterByMdf(MDF,Ms)
+  otherwise
+
+_______
+#Define MDF < MDF'
+
+MDF < MDF
+capsule < MDF
+MDF < read
+mut < lent
+
+-------------
+Ds:Ok   D:Ok
+-------------
+
+D1..Dn:Ok
+  where D1:Ok..Dn:Ok
+
+C[Xs]:B:Ok
+  where
+    empty|- C[Xs]:mdf B[x=this] : T
+    meths(C[Xs]:mdf B) well defined
+
+-------------------
+G|- e:T
+-------------------
+
+G |- e : T                 (Sub-T)
+  where
+    G|-e:T'
+    T' < T
+
+G |- x : G(T)               (x-T)
+
+G|- e0 m[Ts](e1..en) : T    (Call-T)
+  where
+    G|-ei : Ti forall i in 0..n
+    T0 = MDF0 C0[Ts0]
+    MDF0 < MDF
+    MDF m[Xs](x1:T1..xn:Tn):T _ in multiMeth(MDF0 C0[Ts0]{},m[Ts],n)
+
+G |- l:MDF Ref[T] : MDF Ref[T]           (Ref-T)
+
+G |- MDF B : T                            (B-T)
+  where
+    in the next pre conditions Ds+=Fresh[]:B
+    Ms = meths(Fresh[]:MDF B).Ms
+    filterByMdf(MDF,Ms) = M1..Mn
+    forall Mi:M1..Mn not abstract(Mi)
+    dom(B.Ms) subsetEq dom(M1..Mn)
+    G|- Fresh[]:MDF B : T
+
+---------------------------------------
+G|- C[Xs]:MDF B:T        G;T;ITs|-M: Ok
+---------------------------------------
+
+G |- C[Xs]: MDF ITs {x, M1..Mn } : MDF IT         (Both-T)
+  where
+    IT in ITs
+    G[MDF;Mi.MDF]; x:MDF C[Xs] |-  Mi : Ok  forall i in 1..n
+
+G;x:T|-sig,: Ok                                  (Abs-OK)
+
+G;x:T|-MDF m[Xs](G0):T0->e0,: Ok                    (Meth-OK)
+  where G[x:T;MDF],G0 |- e0 : T0 //assert G is empty if T.MDF=mdf
+_______
+#Define meths(C[Ts])=CMs   meths(C[Xs]:MDF B)=CMs            cMsOf(IT, Ms, Xs)=CMs
+//CM ::= C[Ts].M
+meths(C[Ts]) = prune(cMsOf(C[Ts]), meths(IT1[Xs=Ts], Xs"),..,meths(ITn[Xs=Ts]))
+  where C[Xs]: IT1..ITn {x, Ms} in Ds
+
+meths(C[Xs]:MDF IT1..ITn {x, Ms}) =
+    prune(cMsOf(C[Ts]), meths(IT1),..,meths(ITn))
+  where Ts = mdf X1..mdf Xn
+  //note, the cMsOf(C[Ts]) above may skip the inner [Xs=Ts]
+
+cMsOf(C[Ts]) = cMsOf(IT, Ms[Xs=Ts])
+    where C[Xs]: IT1..ITn {x, Ms} in Ds
+cMsOf(IT, Ms)
+cMsOf(IT, empty) = empty
+cMsOf(IT,m(xs)->e, Ms) = cMsOf(IT, Ms)
+cMsOf(IT, sig->e, Ms) = norm(IT.sig->e), cMsOf(IT, Ms)
+cMsOf(IT, sig, Ms) = norm(IT.sig), cMsOf(IT, Ms)
+_______
+#Define prune(CMs) = CMs'   norm(CM)=CM'   allCases(CMs)=CMs'  pruneAux(CMs)=CM
+
+prune(CMs) = pruneAux(CMs1)..pruneAux(CMsn)
+  where CMs1..CMsn = groupByM(CMs) //groupByM(CMs)=CMss groups for the same m,n
+pruneAux(CM) = CM
+pruneAux(CM CMs1 CM' CMs2) = pruneAux(CM CMs1 CMs2)
+  where CM=selectMoreSpecific(CM,CM')
+pruneAux(CM CMs) = pruneAux(CMs CM)
+  where
+    forAll CM' in CMs not selectMoreSpecific(CM,CM')
+    CMs not empty
+//TODO: TEST that for any set of CM (fuzzed) pruneAux(CMs) = pruneAux(shuffle(CMs))
+
+// Norm must rename even if it’s not in scope, must be like X1,X2,X3, etc.
+norm(CM) = CM' // Note: the (optional) body is not affected
+//Note, in CM ::= C[Ts].sig the class Xs are already replaced with Ts
+norm(C[Ts].m[X1..Xn](xTs):T->e) = C[Ts] (.m[](xTs):T->e)[X1=Par1..Xn=Parn]
+  where we consistently select Par1..Parn globally so that
+  it never happens that the current Ds contains Par1..Parn anywhere as a nested X
+  Note: to compile with a pre compiled program we must add that
+norm(C[Ts].m[Par1 Xs](xTs):T->e) = C[Ts].m[Par1 Xs](xTs):T->e
+
+selectMoreSpecific(CM1,CM2) = CMi
+  where
+    CMi = Ci[Tsi] . MDF m[Xs](G):Ti e?i //Xs (not Xsi) requires the same (normed) Xs
+    {j} = {1,2}\i
+    not Ds|- Cj[Tsj]<=Ci[Tsi]
+    either
+     - Ds|- Ci[Tsi]<=Cj[Tsj] and Ds|- Ti<=Tj
+     - e?j is empty and Ti = Tj//only not derm on syntactically eq
+     - e?j is empty, Ds|- Ti<=Tj and not Ds|- Tj<=Ti
+_______
+
+#Define adapt(MDF, T) = T'
+  adapt(imm, MDF ITX)  = imm ITX
+  adapt(mut, T) = T
+  adapt(lent, imm ITX) = imm ITX
+  adapt(lent, read ITX)= recMdf ITX//may be read instead?
+  adapt(lent, mut ITX) = lent ITX
+  adapt(read, imm ITX) = imm ITX
+  adapt(read, MDF ITX) = recMdf ITX otherwise
+_______
+we here investigating meths into and how using Xs failed us
+
+//NOTE: every method lookup has to go through Ds|-meths(C[Ts])
+_______
+#Define ITs[Xs=Ts] =ITs'    M[Xs=Ts] = M'  IT[X=T]   M[X=T]
+IT[X=T]  and  M[X=T] trivially propagates and uses T[X=T'] = T"
+//assert Xs disjoint {X in subterms(Ts)}
+M[X1..Xn=T1..Tn]=fixMut(M[X1=T1,..Xn=Tn])
+ITs[X1..Xn=T1..Tn]=fixMut(ITs[X1=T1,..Xn=Tn])
+_______
+#Define T[X=T'] = T"
+  MDF X=[X'=T] = MDF X  with X!=X'
+  MDF C[T1..Tn][X=T] = MDF C[T1[X=T]..Tn[X=T]]
+  MDF X=[X=T] = adapt(MDF,T)
+
+#Define fixMut(T) = T'    fixMut(M)
+  fixMutHyg(mut C[Ts]) = lent C[Ts]
+    where Ds |- C[Ts] < NoMutHyg[HYG _]
+
+  fixMut(M) trivially propagates on all Ts in subterms(M)
+
+
+
+
+
+_______
+#Define G[x:T;MDF]=G'        x0:T0[T;MDF] = G // What can lambdas capture
+  (x1:T1..xn:Tn)[x:T;MDF] =
+    (x1:T1[T;MDF]),..,(xn:Tn[T;MDF]), x: adapt(MDF,T)
+
+  //rules to be strictly applied in order (first that can match)
+  x:T[capsule C[Ts];MDF'] = x : T[mut C[Ts];MDF']
+  x: mdf X[mut C[Ts];HYG] = x : mdf X[lent C[Ts];HYG]
+                                            where DS|-C[Ts]<NoMutHyg[X]//NO HERE
+  //NO, assert that this never happens, the type should be transformed before
+  x:T[mut ;MDF] = empty where T.MDF in {read,lent}
+  x:T[mut ;MDF] = empty where T.MDF=capsule and MDF notin {read,imm}
+  x:T[imm ;MDF] = empty where T.MDF = MUTY
+  x:T[T';MDF]   = x : adapt(restrict(T'.MDF,MDF),T)
+  x:_[_;_]      = empty otherwise (that is restrict(_,_) is undefined)
+
+_______
+#Define restrict(MDF,MDF') = MDF"
+
+restrict(MDF, imm)    = restrict(imm,read) = imm
+restrict(MUTY,read)   = read
+restrict(lent,mut)    = restrict(lent,lent) = restrict(mut,lent) = lent
+restrict(mut,capsule) = restrict(mut,mut) = mut
+_______
+#Define multiMeth(MDF ITs{Ms},m[Ts],n)
+
+multiMeth(MDF B,m[Ts],n) = allMeths(MDF, M)
+  in the following Ds+=Fresh[]:B
+  M = meths(Fresh[]).Ms(m,n)
+_______
+#Define M' in allMeths(MDF,M)
+
+allMeths(MDF0,M)={
+    MDF m[](G):T e?,
+    M'[mut=capsule], //caps promotion
+    M'[read=imm,lent=capsule,mut=capsule]  //imm promotion?//scary extension to 42
+    } U oneLentToMut(M')
+  where M[recMdf=MDF]= M'
+  assert M' can not have recMdf or mdf
+
+_______
+#Define oneLentToMut(M)    toLent(MDF)=MDF'
+
+mut m[](G[mut=capsule]):toLent(T) e? in oneLentToMut(lent m[](G):T e?)
+MDF[mut=capsule] m[](G0[mut=capsule] x:mut IT G1[mut=capsule]):toLent(T) e?
+                        in oneLentToMut(MDF m[](G0,x:lent IT G1):T e?)
+toLent(mut)=lent
+toLent(MDF)=MDF otherwise
+
+
+--------------------
+8 Translation in Java (or other)
+--------------------
+
+
+---------------------------
+Old type inference logic
+---------------------------
+#Define  refineSigGens(RPs)=RPs' ///VERSION 1
+//contract: the Ts in all the RP all have only freshly generated Xs
+
+refineSigGens(RPs0, MDF X = iT, RPs1, MDF' X = iT', RPs2) =
+  refineSigGens(RPs0, MDF X = best(iT,iT'), RPs1, MDF' X = best(iT,iT'), RPs2)
+//select all the X=iTs, replace those iTs with best(iTs) //(1 (2 (3 4))
+
+otherwise
+refineSigGens(RPs0, MDF C[Ts] = infer, RPs1) =
+  refineSigGens(RPs0, MDF C[Ts] = MDF C[Ts], RPs1)
+
+otherwise
+refineSigGens(RPs0, infer = MDF C[Ts], RPs1) =
+  refineSigGens(RPs0, MDF C[Ts] = MDF C[Ts], RPs1)
+
+otherwise
+refineSigGens(RPs0, MDF C[iTs] = MDF C[iT's], RPs1) = RPs
+  where
+    iTs and iT's and RPs' have the same size
+    refineSigGens(RPs0, MDF C[iTs] = MDF C[iT's], RPs1, iTs=iT's)= RPs,RPs'
+otherwise
+refineSigGens(RPs) = refineSigGens(RPs[X=IT])
+where RPs = RPs0, MDF' X = MDF IT, RPs1
+   or RPS = RPs0, MDF IT = MDF' X, RPs1
+otherwise
+refineSigGens(RPs) = refineSigGens(RPs[X'=X])
+where RPs = RPs0, MDF X = MDF' X', RPs1
+//We want to do this all together
+
+otherwise
+refineSigGens(RPs)=RPs if no rule can produce RPs'!=RPs
+
+_______
+#Define  refineSigGens(RPs)=RPs' ///VERSION 2
+//sub notations: expand, collect,reduce, merge
+Z ::= X = X'
+Zz ::= { Zs }
+RP ::= iT = iT'
+RQ ::= iT ~!? iT'
+	where iT ~!? iT' is syntactically equal to iT' ~!? iT
+RQz is a set of RQ
+notations iTs = iTs' and iTs ~ iTs' are
+  expanding the pairs (only defined on same gens length)
+
+RPsToRQz(iTs = iTs') = {iTs ~ iTs'}
+
+expand({C[iTs] ~ C[iTs'], RQs}) = expand({iTs ~ iTs', RQs})
+expand({X ~ C[iTs], X ~ C[iTs'], RQs}) = expand({iTs ~ ITs',X ~ C[iTs], RQs})//
+otherwise expand({RQs}) = {RQs}
+
+collect({X ~ Y, RQs}) = {Y = X} U collect({RQs[X = Y]})
+collect({C[iTs] ~ C[iTs'], RQs}) = collect({iTs ~ ITs', RQs})
+collect({X ~ C[iTs], X ~ C[iTs'], RQs}) = collect({iTs ~ ITs', RQs}) //
+collect(RQz) = empty otherwise
+
+reduce({X ~!?1 C1[iTs1], ...., X ~!?n Cn[iTsn]} U RQz) =
+    reduce({X ~!iT } U RQz[X = iT])
+  where
+    at least one !?i = empty
+    X ~!? iT not in RQz
+    iT = best(C1[iTs1], ...., Cn[iTsn])
+reduce({infer ~ _, RQs}) = reduce({RQs})
+reduce(RQz) = RQz otherwise
+
+refineSigGens(RPs) = best(RPs')
+  where
+    Zz = collect(RPsToRQz(RPs))
+    reduce(expand(RPsToRQz(RPs[Zz])))= Xs ~! iTs
+    RPs'=RPs[Zz][Xs=iTs]
+best(iT=iT') = best(iT,iT')
+
+=========
+collect{X = Y, RQs} = {Y = X} U collect{RQs[X = Y]}
+collect{C[iTs] = C[iTs'], RQs} = collect{iTs = ITs', RQs}
+collect{X = C[iTs], X = C[iTs'], RQs} = collect{X = C[iTs], iTs = ITs', RQs}
+collect{X = C[iTs], C[iTs'] = X, RQs} = collect{X = C[iTs], iTs = ITs', RQs}
+collect{C[iTs] = X, C[iTs'] = X, RQs} = collect{X = C[iTs], iTs = ITs', RQs}
+collect{RQs} = {RQs}, otherwise
+
+refineSigGens(RPs) = RPs[toSub(collect{RPs})]
+
+toSub{} = {}
+toSub{X = IT, RQs} = {X = IT} U toSub(RQs)
+	//where X = IT' not in RQs // should also be an error if this fails
+toSub{C[ITs] = D[ITs'], RQs) = toSub(RQs) // should be an error I think
+
+=============================
+// bassicaly X>IT means IT is nested within a generic class constructor in X?
+checkCyclics{X>X, RQs} = ERROR
+checkCyclics{X>Y, RQs} = checkCyclics(RQs[X = Y])
+X != Y
+checkCyclics{X=Y, RQs} = checkCyclics{RQs}
+	// assume collect has already substituted X=Y for us
+checkCyclics{X>C[IT1,...,ITn], RQs} = checkCyclics{X>IT1, ..., X>ITn, RQs}
+checkCyclics{X=C[IT1,...,ITn], RQs} = checkCyclics{X>IT1, ..., X>ITn, RQs}
+checkCyclics{C[ITs] = D[ITs'], RQs} = checkCyclics{RQs}
+	// who cares if C = D or not
+checkCyclics{} = OK
+
+X=C[Y], Y=C[X]
+C[C[X]]=C[C[X]], C[X]=C[X]
+
+C[C[X]]=C[C[X]], C[X]=C[X]
+
+
+X0 = D[X1], X0 = D[X2],
+X1 = C[Y1], X2 = C[Y2],
+Y1 = E[Z1], Y2 = E[Z2]
+Z1 = Int
+
+---------------
+collect
+X0=D[X1],X0=D[X2],X1=C[Y1],X2=C[Y2],Y1=E[Z1],Y2=E[Z2],Z1=Int
+X1=X2,X1=C[Y1],X2=C[Y2],Y1=E[Z1],Y2=E[Z2],Z1=Int    X1=X2
+X2=C[Y1],X2=C[Y2],Y1=E[Z1],Y2=E[Z2],Z1=Int
+Y1=Y2,Y1=E[Z1],Y2=E[Z2],Z1=Int                      Y1=Y2,X1=X2
+Y2=E[Z1],Y2=E[Z2],Z1=Int
+Z1=Z2,Z1=Int                                        Z1=Z2,Y1=Y2,X1=X2
+Z2=Int
+
+expand
+X0=D[X1],X0=D[X2],X1=C[Y1],X2=C[Y2],Y1=E[Z1],Y2=E[Z2],Z1=Int
+X1=X2,X0=D[X1],X1=C[Y1],X2=C[Y2],Y1=E[Z1],Y2=E[Z2],Z1=Int
+X1=X2,X0=D[X1],X1=C[Y1],X2=C[Y2],Y1=E[Z1],Y2=E[Z2],Z1=Int
+
+
+
+
+
+
+X = C[X], X = C[Y]
+
+------------------------------------------------------
+best{X, Y, ITs} = {X ~ Y, RQs}, IT
+  best{X, ITs} = {RQs}, IT
+best{X1, ..., Xm, C[ITs1], ..., C[ITsn]} = {RQs}, C[ Zs[merge{RQs}] ]
+  {RQs} = reduce{X1~X2, ..., X1~Xm, Zs ~ ITs1, ..., Zs ~ ITsn}
+	// error if inconsistent as to the number of parameters to C[...]
+	// TODO: infers? different Cs
+reduce{X ~!?1 IT1, ...., X ~!?n ITn, RQs} = {RQs"}
+  where
+    at least one !?i = empty
+    X ~!? iT" not in RQz
+    {RQs'}, iT' = best{IT1, ..., ITn}
+    {RQs"} = reduce(expand{X ~! iT', RQs[X = iT'][merge{RQs'}], RQs'})
+... // other cases for reduce as before
+// It would be better if I use RQs instead of {RQs'}
+------------------------------------------------------
+
+
+
+//------
+collect(Zz; {X ~ Y} U RQz) = collect(Zs U {Y = X}; RQz[X = Y])
+otherwise:
+  collect(Zz; RQz) = (Zz; RQz)
+
+reduce(Zz; {X ~!?1 C1[iTs1], ...., X ~!?n Cn[iTsn]} U RQz) =
+    reduce(collect(Zz, {X ~!iT } U expand(RQz[X = iT])))
+  where
+    at least one !?i = empty
+    X ~!? iT not in RQz
+    iT = best(C1[iTs1], ...., Cn[iTsn])
+
+merge(X = Y, Zz; RQz) = X = Y, merge(Zz; RQz)
+merge(empty; {Y ~_ C[iTs]} U RQz) = Y = C[iTs], merge(empty; RQz)
+merge(empty, empty) = empty
+
+otherwise:
+  reduce(Zz,RQz) = Zz,RQz
+refineSigGens(RPs) = RPs[merge(ZZ'; RQz")]
+  where collect({}, RPsToRQz(RPs)) = (Zz, RQz')
+  Zz', RQz" = reduce(Zz, expand(RQz'))
+
+---------------------------
+Even olderOld type inference logic
+---------------------------
+T ::= X | C[Ts] | ?
+FT ::= X | C[FTs]
+G ::=x1:T1 .. xn:Tn
+e ::= x:T | {xs->e}:T | e.m[Ts]?(es):T  //can use _:T
+FE ::= x:FT | {xs->FE}:FT | FE.m[FTs](FEs):FT
+
+
+Transitive
+
+--------------------
+G|- e=>*e
+
+G|- e0=>e1
+G|- e1=>*e2
+-----------------------------------
+G|- e0=>* e2
+
+Final: G|- e =>* FE
+
+STEP   G|- e=>e'
+
+
+///Propagation
+
+  G|- e=>e'
+-------------------------------
+  G|- e.m[Ts]?(es):T=>e'.m[Ts]?(es):T
+
+  G|- e=>e'
+---------------------------------------------------
+  G|- e0.m[Ts]?(es e es'):T => e0.m[Ts]?(es e' es'):T
+
+  Gof(T)=G'->T' //T must be of form C[_]
+  e'=fixTypes(e,T')
+  G,G'|- e'=>e"
+---------------------------------------
+  G|- {xs->e}:T => {xs->e"}:T
+
+
+///Inference
+
+--------------------- (var)
+  G|- x:?=>x:G(x)
+
+  forall e' in e,es not e'=>_
+  e = _:C[Ts0]
+  Gens(C.m)=Xs
+  typesOf(es)=Ts2
+  C[Ts0].m[Xs] / Ts2->T' = Ts->T
+  es'=fixTypes(es,Ts)
+--------------------------------------------------- (meth noGen)
+  G|- e.m(es):T' => e0.m[Ts1](es'):T
+
+  forall e' in e,es not e'=>_
+  e = _:C[Ts0]
+  typesOf(es)=Ts2
+  C[Ts0].m[Ts1] / Ts2->T' = Ts->T
+  es'=fixTypes(es,Ts)
+--------------------------------------------------- (meth withGen)
+  G|- e.m[Ts1](es):T' => e0.m[Ts1](es'):T
+
+_______
+#Define typesOf(es)=iTs
+  extracts the annotated types for all the e in es
+
+_______
+#Define fixTypes(es,Ts) = es'
+fixTypes(empty,empty) = empty
+fixTypes(x:T es,T' Ts) = x:best(T,T') fixTypes(es, Ts)
+
+_______
+#Define best(T,T')=T"
+best(X,C[Ts])=C[Ts]
+best(C[Ts],C'[Ts'])=C'[Ts"]
+  where Ts/Ts'=Ts"
+best(?,T)=T
+best(X,X)=X
+//assert undefined best(X,X') with X!=X' undefined? Can it happen?
+
+_______
+#Define C[Ts0].m[Ts1] / Ts->T = T1"..Tn"->T0"
+m[Xs1](x1:T1...xn:Tn):T0_ in C[Xs0]
+Ti'=Ti[Xs0=Ts0][Xs1=Ts1]
+T0'..Tn' / T Ts = T0"..Tn"
+_______
+#Define T0..Tn / T0'..Tn' = T0"..Tn"
+
+T1..Tn ? Ts / T'1..T'n T Ts' = T1..Tn T Ts / T'1..T'n T Ts'
+
+Ts' / Ts" = Ts'[X=C[Ts]] / Ts"
+  where
+    Ts' / Ts" = T1..Tn X _ / T'1..T'n C[Ts] _
+    X' notin T1..Tn //note: otherwise rule is non deterministic, consider X X/ A B
+T1..Tn / Ts = T"1..T"n
+  where
+    T1..Tn / Ts = T1..Tk C[Ts0] _ / T'1..T'k C[Ts1] _
+    T1..Tn Ts0 / Ts Ts1 = T"1..T"n _
+
+T1..Tn / Ts = T"1..T"n
+  where //no same head but subtype
+    T1..Tn / Ts = T1..Tk C[Ts0] _ / T'1..T'k C[Ts1] _
+    T1..Tn Ts0 / Ts Ts1 = T"1..T"n _
+
+Ts / _ = Ts otherwise
+//somehow finish
+
+Gof(C[Ts]) = G'->T'
+  C must have a single abstract method, G' is the signature and T' the return type
+---------------------------------------------------------
+---------------------------------------------------------
+---------------------------------------------------------
+---------------------------------------------------------
+
+mut C c=..
+mut L l1={mut meth=..c..}
+mut L l2={mut meth=..c..}
+imm list of mut c?
+
+
+Reason carefully
+-what lambdas can capture
+-can we be generic on T and not PT?
+mdf X would override the mdf in X?
+
+List[imm T]{
+  read get(int):read T
+  }
+IList[imm T]:List[T]{
+  read get(int):imm T
+  }
+MList[mut T]:List[T]{
+  poly get(int):poly T
+  }
+
+mutIList.get->immT
+mutMList.get->mutT
+readIList.get->immT
+readMList.get->readT
+
+List[T]{
+  read rget(): weakRead T//we would need immT to stay immT...
+  imm  iget():  imm T
+  mut  mget():  T   //not mut T: T as provided by the generic
+  //poly get(): poly T
+  read id(t:T): T ->t
+  imm iid(t:T): T ->t
+  mut mid(t:T): T ->t
+  }
+poly[read] = read Ret or imm Ret
+poly[imm]  = imm Ret
+poly[mut]  = untouched Ret
+
+read List[imm T]{ rget=imm T iget=*T mget=XX}
+read List[mut T]{ rget=*T    iget=*T mget=XX}
+imm  List[_ T]  { rget=immT  iget=immT mget=XX}
+mut  List[imm T]{ rget=immT/mutT iget=immT/mutT mget=immT}
+mut  List[mut T]{ rget=immT/mutT iget=immT/mutT mget=mutT}
+
+is imm List[mut T]<imm List[imm T]?
+In general, is imm C[Ts] ~=~ imm C[immOf(Ts)]  NO, see below
+applying imm F[mut Person, mut Car]~=~ imm F[Person,Car]
+  imm F[mut Person,mut Car] res= {#(p)->p.nowPoor; Car#(p)}
+  F[Person,Car] resI=res
+  resI#(iBob)
+Instead
+promotion from mut C[Ts] promotes into imm C[immOf(Ts)]  No, see below
+  F[Person,Car] res= {
+    mut F[mut Person,mut Car]ff={#(p)->p.nowPoor; Car#(p)}
+    ff
+    }
+  F[Person,Car] resI=res
+  resI#(iBob)
+
+pony read get():this->A! == our 'poly get():poly A'
+pony box->A == our weakRead
+
+List[mut A]{}
+F[A,R]:{ read #(a:A):R }
+mut F[mut Person,imm Car]
+
+
+read List[imm T]{ id(t:T): T ->t,r      rget=imm T iget=*T mget=XX}
+read List[mut T]{ id(t:T): T ->t,       rget=*T    iget=*T mget=XX}
+imm  List[_ T]  { id(t:T): T ->t,r,i    rget=immT  iget=immT mget=XX}
+mut  List[imm T]{ id(t:T): T ->t,       rget=immT/mutT iget=immT/mutT mget=immT}
+mut  List[mut T]{ id(t:T): T ->t,m      rget=immT/mutT iget=immT/mutT mget=mutT}
+
+read List[imm T]{ iid(t:T): T ->t,r      rget=imm T iget=*T mget=XX}
+read List[mut T]{ iid(t:T): T ->t,r      rget=*T    iget=*T mget=XX}
+imm  List[_ T]  { iid(t:T): T ->t,r,i    rget=immT  iget=immT mget=XX}
+mut  List[imm T]{ iid(t:T): T ->t,r,i    rget=immT/mutT iget=immT/mutT mget=immT}
+mut  List[mut T]{ iid(t:T): T ->t        rget=immT/mutT iget=immT/mutT mget=mutT}
+
+read List[imm T]{ mid(t:T): XX           rget=imm T iget=*T mget=XX}
+read List[mut T]{ mid(t:T): XX           rget=*T    iget=*T mget=XX}
+imm  List[_ T]  { mid(t:T): XX           rget=immT  iget=immT mget=XX}
+mut  List[imm T]{ mid(t:T): T ->t,r,m,   rget=immT/mutT iget=immT/mutT mget=immT}
+mut  List[mut T]{ mid(t:T): T ->t,m      rget=immT/mutT iget=immT/mutT mget=mutT}
+
+
+
+Lambdas can capture
+read/read self=read, capture imm, read,      mutAsRead
+read/imm  self=imm,  capture imm, readAsImm, mutAsImm
+read/mut  XX
+
+imm/read self=imm, capture imm
+imm/imm  self=imm, capture imm
+imm/mut  XX
+
+mut/read self=read, capture imm, mutAsRead
+mut/imm  self=imm,  capture imm, mutAsImm
+mut/mut  self=mut,  capture imm, mutAsMut
+
+
+mutList[imm T].get->immT
+mutList[mut T].get->mutT
+immList[imm T].get->immT
+immList[mut T].get->immT
+
+mutF[imm T].id(immT)->immT
+mutF[mut T].id(mutT)->mutT
+immF[imm T].id(immT)->immT
+immF[mut T].id(mutT)->mutT
+
+composite, observer, adapter, state, decorator, visitor
+6*5=30
++5 last nwen303
++10 streams 303
++5 423
+=50
+
+composite, observer in week 2
+adapter, state in week 3
+decorator, visitor in week 4
+
+Lecture 1:
+intro:
+10% wat
+mandatory req to complete 80% by the end of the course
+10% ass1 //keep them the same, but 10% to limit weight of cheating
+10% ass2
+30% group project
+5% labs
+10% term test on wat
+25% final test mandatory req 40%
+
+It is going to be a very hard course. Very programming intensive, like SWEN221.
+
+Wat will push you to approach some patterns BEFORE we see them in the lecture.
+In the lecture I will also present the model solutions for the relevant wat questions.
+First deadline this SUNDAY!!, then every friday!
+First part of the Wat about patterns, then some more recap for swen221 and streams.
+
+Java: now a modern language!
+records, interfaces with default methods and lambdas.
+
+Imperative programming:
+  using if/while/for to express behaviour
+OO programming:
+  using dynamic dispatch to express behaviour
+Functional programming:
+  using function composition to express behaviour
+
+Example, a stack:
+- Imperative style
+- Functional style
+- OO style
+As you can see it is all about dynamic dispatch.
+
+In this course we will see
+-Programming patterns:
+ * how to use dynamic dispatch to encode interesting
+   extensible behaviour.
+*  how to use dynamic dispatch to allowing us to work together
+   without the need of modifying each other's code.
+-Testing:
+ * how dynamic dispatch allows us to test code better/deeper
+ * how dynamic dispatch allows us to test code
+   sections independently (so that we can work in team)
+-Designing code:
+ * UML and relations with modern Java and dynamic dispatch
+ * How to divide code in parts so that we can work in teams on it.
+
+---------------------
+Lecture 2: Power up our coding
+Stack again
+More operations on stack
+records
+Examples of more streams
+composing code from various parts with interfaces with default methods
+  composing code from various workers using interfaces + default meth
+if normalization
+
+Lecture 3:
+Programming patterns: what are they? lego?
+Abstract factory pattern
+UML? the abstract factory pattern
+dependency injection
+
+Week 2:
+- composite, - observer
+- Git1
+- Git2
+
+Week 3:
+- Basic on testing, and testing philosophy
+- Testing in OO (needs to be in week 3) - adapter
+- state and strategy
+
+Week 4:
+- decorator, facade
+- visitor in week 4
+- helpdesk?
+
+Week 5:
+- UML1
+- UML2/crc cards?
+- Group project: explanation and discussion
+
+Week 6:
+- functional design vs aliasing
+- Antipatterns, Smells and Refactoring
+- Ass1/Ass2 model solutions
+
+
+All about dynamic dispatch
+
+
+C<T<:Foo >{  T x();  bar()=this.x().foo() }
+C<T>{ Foo toFoo(T x); T x();  bar()=this.x().foo() }
+C<Bar>{ toFoo(x)=x; x=myBar }
+
+C<Bar>{ foo(x)=x.foo; x=myBar }
+C<Bar>{ fooF=Fun; x=myBar }
+C<Bar>{ fooF=Id; x=myBar }
+
+
+C<T> { conv(): Fun[T, Foo], … conv.apply(x).foo() }
+
+
+C<T>{ T x();  bar(convert: Fun[T, Foo] = Fun)=this.x().foo() }
+
+
+class List<T>{ .. }
+F<R>{}
+F<A,R>{}
+F<A,B,R>{}
+
+C<A#, B#1>{
+  mut A# foo();
+  mut B#1<String> bar();
+  }
+
+PT::= C<PTs>| X | X<PTs>
+X::= Uid#n?
+
+m ::= .lid
+C ::= Uid
+x ::= lid
+List
+
+List<List>
+
+class List<T: *> {}
+List : * -> *
+
+F<S: *=(), T: *> {}
+
+F<A, F<B, C>>
+
+ListFactory {
+  make(): List<List> = make()
+  makeList(): List<List<List>> = List.of(make(), List.empty())
+}
+
+ListFactory.makeList().head()
+
+
+Interface Fun {
+  type Source
+  Type Target
+}
+
+Interface List {
+   Type Elem
+
+   map(Fun { type Source = Elem } f): List { type Elem = f.Target }
+}
+
+Interface Id {
+   id (x: Object): x.Self = x
+}
+
+
+
+----------------
+mut List l
+mut E e = l.#left() //or exception if the element was inserted as imm
+read E e = l.readLeft()
+imm E e = l.Left() //or exception if the element was inserted as mut
+il=(..l ..)
+imm E e = il.readLeft()
+imm E e = il.Left() //or exception if the element was inserted as mut
+
+ListBoxE
+mut ListB l
+mut BoxE e = l.#left()
+read E e = l.readLeft()
+imm E e = l.Left() //or exception if the element was inserted as mut
+il=(..l ..)
+imm E e = il.readLeft()
+imm E e = il.Left() //or exception if the element was inserted as mut
+
+
+Expr J
+-inherit same interface with diff gen types
+-lambda on gen methods
+E<F>:{
+  eval:Num
+  lit(n: Num): E<F>
+  add(left: Num, right:Num): E<F>
+  convert(f:E<F>):E<F>
+  self: F
+}
+Lit<F>:E<F>{ }
+Add<F>:E<F>{
+  left: E<F>,
+  right: E<F>
+  eval=convert(left).eval.add(convert(right).eval)
+}
+
+--- closing --
+
+EF:E<EF> {
+  lit(n:Num) = LitF[n]
+  add(left, right) = AddF[left = left, right = right]
+  convert(f:E<EF>): E<EF> = f.self
+  self: EF = this
+}
+LitF:Lit<EF>,EF {}
+AddF:Add<EF>,EF {}
+-----
+
+
+ES<F>:E<F>{
+  toS:S
+  convert(f:E<F>):ES<F>
+}
+
+LitS<F>:Lit<F>,ES<F>{ toS=..this.eval..}
+AddS<F>:Add<F>,ES<F>{
+   toS=convert(left).toS.concat(convert(right).toS)
+}
+
+EPlusE<F>:E<F>{
+  plusE(f:E<F>):E<F>
+  convert(f:E<F>):EPlusE<F>
+}
+LitP<F>:Lit<F>,EPlusE<F>{
+  plusE(f)=add(this,f)
+}
+AddP<F>:Add<F>,EPlusE<F>{
+  plusE(f)=add(convert(left).plusE(f), convert(right).plusE(f))
+}
+----
+Fancy=Trait:{
+  Elem = {}
+  List = {interface}
+  Empty = {}
+  Node = {[List] List next Elem elem}
+  }
+Map = Trait:{
+  E1 ={}
+  E2 ={}
+  Fancy1 = Fancy['Elem=E1]
+  Fancy2 = Fancy['Elem=E1]
+  class method E2 (E e)
+  class method Fancy2.List (List that) ={
+    if Fancy1.Node(next,elem)=that
+      return Fancy2.Node(this(e=next),this(that))
+    return Fancy2.Empty()
+    }
+  }
+
+MyMap = Map(in=ListIn,out=ListOut):{class method S(Num that)=that.toS()}
+myListOut=MyMap(myListIn)
+
+
+
+
+FancyList [ F: TFun<Class, Class>, E: Class | :
+  map<E2: Class>(f: Fun<E, E2>): FancyList<F, E2>
+
+  nil<E2: Class>(): FancyList<F,E2>
+  cons<E2>(x: E2, xs: FancyList<F,E2>): FancyList<F, E2>
+  convert(f:FancyList<F, E>):FancyList<F, E>
+  self: F
+]
+Nil [ F: TFun<Class, Class>, E: Class | :
+  map<E2: Class>(f: Fun<E, E2>): FancyList<F, E2> = nil<E2>()
+]
+Cons [ F: TFun<Class, Class>, E: Class | :
+  head: E
+  tail: FancyList<F, E>
+  map<E2: Class>(f: Fun<E, E2>): FancyList<F, E2> =
+    cons<E2>(f.apply(), tail.map<E2>(f))
+]
+
+
+
+With simple generics
+Class names are not types but functions from Ks->T LOVE IT
+
+C can be a type, a fun Ts->T a fun ...
+K0
+
+C(x: K, y: K'): T
+
+
+K ::= Ks->* //* | Ks -> K
+K ::= * | K -> * //V1
+K ::= * | * -> K //V2
+K ::= * | K -> K //original
+*->(*->*)
+(*->*) -> (* -> *)
+
+
+CD ::= C<XKs> :{Ms}
+XKs ::= X1 : Kn, ... Xn : Kn
+T ::= T T | C | [X:K . T]
+G ::= G<Gs> | C | [X: K | G]
+T ::= G<Gs> of kind *
+C<XKs> : Ks -> *
+
+
+CD ::= C [XKs | :Ts MDs]
+MD ::= m [XKs | (xTs):T=e] | m [XKs | (xTs):T]
+e  ::= x | e.m<Ts>(es) | T[L] | T[mLs]
+L  ::= xs|e
+mL ::= m(xs)=e
+T  ::= C | X | T<Ts> | [XKs | T]
+Tv ::= X<Tvs> | C<Tvs> | [XKs | T]
+XK ::= X:K
+xT ::= x:T
+K ::= Class | TFun<Ks, K>
+
+
+Map [ A: Class, B: Class | : Iterable<Tuple<A, B>>
+  mapValues<C:Class>(f: Fun<A, C>): Map<A, C>
+]
+
+Monad [M: TFun<Class, Class> | : Functor<M>
+  return<A: Class>(x: A): M<A>
+  flatMap<A: Class, B: Class>(x: M<A>, f: Fun<A, M<B>>): M<B>
+  map<A: Class, B: Class>(x: A, f: Fun<A, B>): M<B> = flatMap<A, B>(x, Fun[x|return(f.apply(x))])
+]
+
+
+Class {
+   name: String
+   superClasses: List[Class]
+   methods = List[Method]
+}
+Fun[B] { apply(c: Class): B}
+
+
+C = Fun[x | Fun[y | Class[name = "C", superClasses = [], methods = [...]]]
+
+
+C : Fun[Class, Fun[Fun[Class, Class], Class]]
+C<X: *, Y: * -> *>
+
+
+
+C<X: *, Y: *>
+Monad<M: * -> *>
+
+Foo<X: (*, *) -> *, Y: (*, *) -> *>
+
+Foo<Map,\A:*,B:*. Map<B, A>>
+
+Foo: ((*, *) -> *, Y: (*, *) -> *) -> *,
+Map: (*, *) -> * |- Foo<Map, \A:*,B:*. Map<B, A>>
+
+
+
+
+-constant functions ARE values
+-constant functions still need to be 'computed'
+
+Monad:{
+  flatMap<A,B,MA,MB>(x:MA, f:Fun<A,MB>):MB
+  return<A,MA>(x:A):MA
+  }
+Monad<A,B,MA,MB>:{
+  flatMap(x:MA, f:Fun<A,MB>):MB
+  returnA(x:A):MA
+  returnB(x:B):MB
+  }
+//---------
+Monad<M>:{
+  flatMap<A,B>(x:Box<M,A>, f:Fun<A,Box<M,B>>):Box<M,B>
+  return<A>(x:A):Box<M,A>
+  }
+List<A>:Box<ListM,A>{}
+Box<M,A>:{
+
+  }
+MonadL:Monad<??>{ //Box<MList,A> == List<A> List<A>: Box<ListM,A>
+  flatMap<A,B>(x:Box<M,A>, f:Fun<A,Box<M,B>>):Box<M,B>
+  //applies the fun on all elements and flatten
+  return<A>(x:A):Box<M,A> //singleton list
+  }
+
+Grammar
+
+Small step reduction
+
+Type System
+
+Special types
+
+
