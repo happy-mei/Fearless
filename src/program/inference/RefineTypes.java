@@ -2,6 +2,7 @@ package program.inference;
 
 import astFull.T;
 import astFull.E;
+import files.Pos;
 import id.Id;
 import id.Mdf;
 import program.CM;
@@ -15,6 +16,40 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public record RefineTypes(ast.Program p) {
+  E.Lambda fixTypes(E.Lambda lambda) {
+    /*
+    fixTypes(MDF ITs{'x Ms}:MDF C[iTs]) = MDF ITs{'x toMs(Ms,TSigs)}:MDF C[iTs']
+  refineSigMassive(C[iTs],tSigOf(Ms)) = C[iTs'], TSigs
+
+  tSigOf(Ms) = turns every M in Ms into a TSig, trashes the body
+  tMs(Ms,TSigs) = zips the Ms and the TSigs into better Ms; Ms is used to recover the bodies
+     */
+    var c = lambda.it().orElseThrow();
+    List<RefinedSig> sigs = lambda.meths().stream()
+      .map(this::tSigOf)
+      .toList();
+    // TODO: CURRENT STATE: THIS IS THROWING OUT THE GOOD RET
+    var res = refineSigMassive(c,sigs);
+    var ms = Streams.zip(lambda.meths(), res.sigs())
+      .map((m,s)->m.withSig(s.toSig(m.sig().flatMap(E.Sig::pos))))
+      .toList();
+    return lambda.withMeths(ms);
+  }
+  RefinedSig tSigOf(E.Meth m){
+    var sig = m.sig().orElseThrow();
+    var name = m.name().orElseThrow();
+    var gens = sig.gens().stream().map(g->new T(Mdf.mdf,g)).toList();
+    return new RefinedSig(sig.mdf(), name, gens, sig.ts(),sig.ret());
+  }
+  E.Sig fixTypes(E.Sig sig, T iTi){
+    var ret  = sig.ret();
+    var best = best(iTi, ret);
+    if(best==ret){ return sig; }
+    var res  = sig.withRet(best);
+    assert res.ret().equals(ret)
+      || ret.isInfer() || ret.rt() instanceof Id.IT<?>;
+    return res;
+  }
   List<E> fixTypes(List<E> ies, List<T> iTs) {
     return Streams.zip(ies, iTs).map(this::fixType).toList();
   }
@@ -54,11 +89,22 @@ public record RefineTypes(ast.Program p) {
   }
   public static final TypeRename.FullTTypeRename renamer = new TypeRename.FullTTypeRename();
 
-  record RefinedSig(Id.MethName name, List<T> gens, List<T> args, T rt){}
-  List<T> renameSigPart(Set<Id.GX<ast.T>> fresh, List<RP> refined, int start, int end) {
+  record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, List<T> args, T rt){
+    RefinedSig regenerateInfers(Set<Id.GX<ast.T>> fresh){
+      return new RefinedSig(mdf, name,
+        gens.stream().map(t->RefineTypes.regenerateInfers(fresh,t)).toList(),
+        args.stream().map(t->RefineTypes.regenerateInfers(fresh,t)).toList(),
+        RefineTypes.regenerateInfers(fresh,rt)
+        );
+    }
+    E.Sig toSig(Optional<Pos> pos) {
+      return new astFull.E.Sig(mdf, gens.stream().map(T::gxOrThrow).toList(), args, rt, pos);
+    }
+  }
+  static List<T> renameSigPart(Set<Id.GX<ast.T>> fresh, List<RP> refined, int start, int end) {
     return IntStream.range(start, end)
       .mapToObj(i->refined.get(i).t1())
-      .map(t->regenerateInfers(fresh, t))
+      .map(t->regenerateInfers(fresh, t))//TODO: not here
       .toList();
   }
 
@@ -88,7 +134,7 @@ public record RefineTypes(ast.Program p) {
     var refinedArgs = renameSigPart(freshGXsSet, refined, sig.gens().size(), sig.gens().size() + sig.args().size());
     var refinedRT = renameSigPart(freshGXsSet, refined, refined.size() - 1, refined.size()).get(0);
 
-    return new RefinedSig(sig.name(), refinedGens, refinedArgs, refinedRT);
+    return new RefinedSig(sig.mdf(), sig.name(), refinedGens, refinedArgs, refinedRT);
   }
 
   RefinedSig freshXs(List<CM> ms, Id.MethName m, List<Id.GX<ast.T>> gxs) {
@@ -98,15 +144,64 @@ public record RefineTypes(ast.Program p) {
     );
     var sig = meth.sig().toAstFullSig();
     assert meth.sig().gens().size() == gxs.size();
-    return new RefinedSig(meth.name(),
+    return new RefinedSig(
+      sig.mdf(),
+      meth.name(),
       gxs.stream().map(gx->new T(Mdf.mdf, gx.toFullAstGX())).toList(),
       sig.ts(),
       sig.ret()
     );
   }
 
+  record RefinedLambda(Id.IT<astFull.T> c, List<RefinedSig> sigs){}
+  RefinedLambda refineSigMassive(Id.IT<astFull.T> c, List<RefinedSig> sigs) {
+    int nGens = sigs.stream().mapToInt(s->s.gens().size()).sum();
+    var freshGXs = Id.GX.standardNames(c.ts().size() + nGens);
+    var freshGXsQueue = new ArrayDeque<>(freshGXs);
+    var freshGXsSet = new HashSet<>(freshGXs);
+    var ts  = c.ts().stream().map(t->new ast.T(Mdf.mdf, freshGXsQueue.poll())).toList();
+    List<List<Id.GX<ast.T>>> grouped = sigs.stream()
+      .map(s->s.gens().stream().map(gx->freshGXsQueue.poll()).toList())
+      .toList();
+    var cTs = new Id.IT<ast.T>(c.name(), ts);
+    var cT = new astFull.T(Mdf.mdf, cTs.toFullAstIT(ast.T::toAstFullT));
+    var cTOriginal = new T(Mdf.mdf, c);
+    List<List<RP>> rpsSigs = Streams.zip(sigs,grouped)
+      .map((sig,xs)->pairUp(xs, cTs, sig))
+      .toList();
+    List<RP> rpsAll = Stream.concat(
+      Stream.of(new RP(cT, cTOriginal)),
+      rpsSigs.stream().flatMap(l->l.stream())).toList();
+    var refined = refineSigGens(rpsAll);
+    var resC = regenerateInfers(freshGXsSet, refined.get(0).t1());
 
-  RP easyInfer(RP rp) {
+    var refinedSigs = Streams.zip(sigs,rpsSigs)
+      .map(this::toTSig)
+      .map(sig->sig.regenerateInfers(freshGXsSet))
+      .toList();
+    return new RefinedLambda(resC.itOrThrow(), refinedSigs);
+  }
+
+  List<RP> pairUp(List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig) {
+    var ms = p.meths(c);
+    var freshSig = freshXs(ms, sig.name(), gxs);
+    var freshGens = freshSig.gens();
+    return Streams.of(
+      RP.of(sig.gens(), freshGens).stream(),
+      RP.of(sig.args(), freshSig.args()).stream(),
+      Stream.of(new RP(freshSig.rt(), sig.rt()))
+    ).toList();
+  }
+
+  RefinedSig toTSig(RefinedSig sig, List<RP> rps) {
+    var q = new ArrayDeque<>(rps);
+    var gens = sig.gens().stream().map(unused->q.poll().t1()).toList();
+    var args = sig.args().stream().map(unused->q.poll().t1()).toList();
+    assert q.size()==1;
+    return new RefinedSig(sig.mdf(), sig.name(),gens,args,q.poll().t1());
+  }
+
+  RP easyInfer(RP rp){
     if(rp.t1().isInfer()){ return new RP(rp.t2(), rp.t2()); }
     if(rp.t2().isInfer()){ return new RP(rp.t1(), rp.t1()); }
     return rp;
@@ -117,7 +212,8 @@ public record RefineTypes(ast.Program p) {
     Map<Id.GX<T>, T> map = toSub(subs);
     return rps.stream()
       .map(rp->renameRP(rp, map, renamer))
-      .map(this::easyInfer)
+      //.map(t->regenerateInfers(fresh, t))
+      .map(this::easyInfer)//TODO: no, we need to first do the
       .toList();
   }
   boolean isXX(RP rp){

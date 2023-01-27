@@ -85,13 +85,17 @@ public record InferBodies(ast.Program p) {
     return Optional.of(e.withEs(newEs));
   }
   Optional<E> bProp(Map<String, T> gamma, E.Lambda e) {
+    if (e.it().isEmpty()) { return Optional.empty(); }
     boolean[] done = {false};
     List<E.Meth> newMs = e.meths().stream().map(mi->done[0]
       ? mi
-      :bProp(gamma,mi,e).map(mj->{done[0]=true;return mj;}
-    ).orElse(mi)).toList();
+      : bProp(gamma,mi,e).map(mj->{done[0]=true;return mj;}).orElse(mi))
+    .toList();
     if(!done[0]){ return Optional.empty(); }
-    return Optional.of(e.withMeths(newMs));
+    var baseLambda = e.withMeths(newMs);
+    var anyNoSig = e.meths().stream().anyMatch(mi->mi.sig().isEmpty());
+    if(anyNoSig){ return Optional.of(baseLambda); }
+    return Optional.of(new RefineTypes(p).fixTypes(baseLambda));
   }
   Optional<E.Meth> bProp(Map<String, T> gamma, E.Meth m, E.Lambda e) {
     return bPropWithSig(gamma,m,e)
@@ -99,23 +103,27 @@ public record InferBodies(ast.Program p) {
       .or(()->bPropGetSig(gamma,m,e));
   }
   Optional<E.Meth> bPropWithSig(Map<String, T> gamma, E.Meth m, E.Lambda e) {
+    var anyNoSig = e.meths().stream().anyMatch(mi->mi.sig().isEmpty());
+    if(anyNoSig){ return Optional.empty(); }
     if(m.body().isEmpty()){ return Optional.empty(); }
     if(m.sig().isEmpty()){ return Optional.empty(); }
-    Map<String, T> richGamma=new HashMap<>(gamma);
-    richGamma.put(e.selfName(),e.t()); // TODO: Nick: selfName can be null
+    Map<String, T> richGamma = new HashMap<>(gamma);
+    richGamma.put(e.selfName(),e.t()); //TODO: Nick: selfName can be null
     var sig = m.sig().orElseThrow();
     Streams.zip(m.xs(), sig.ts()).forEach(richGamma::put);
     richGamma = Collections.unmodifiableMap(richGamma);
+    var refiner = new RefineTypes(p);
     var e1 = m.body().get();
-    var e2 = new RefineTypes(p).fixType(e1,sig.ret());
+    var e2 = refiner.fixType(e1,sig.ret());
     var optBody = inferStep(richGamma,e2);
-    var res = optBody.map(b->m.withBody(Optional.of(b)));
+    var res = optBody.map(b->m.withBody(Optional.of(b)).withSig(refiner.fixTypes(sig, b.t())));
     return res.or(()->e1==e2
       ? Optional.empty()
       : Optional.of(m.withBody(Optional.of(e2))));
   }
   Optional<E.Meth> bPropGetSigM(Map<String, T> gamma, E.Meth m, E.Lambda e) {
-    if (e.it().isEmpty()) { return Optional.empty(); }
+    assert !e.it().isEmpty();
+    if(m.sig().isPresent()){ return Optional.empty(); }
     return onlyAbs(e.it().get()).map(m::withSig);
   }
 
@@ -140,7 +148,8 @@ public record InferBodies(ast.Program p) {
     return Optional.of(new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos()));
   }
   Optional<E.Meth> bPropGetSig(Map<String, T> gamma, E.Meth m, E.Lambda e) {
-    if (e.it().isEmpty()){ return Optional.empty(); }
+    assert !e.it().isEmpty();
+    if(m.sig().isPresent()){ return Optional.empty(); }
     var sig = onlyMName(e.it().get(), m.name().orElseThrow());
     if(sig.isEmpty()){ return Optional.empty(); }
     return sig.map(m::withSig);
@@ -162,7 +171,7 @@ public record InferBodies(ast.Program p) {
 
     var refiner = new RefineTypes(p);
     var refined = refiner.refineSig(recv,
-      new RefineTypes.RefinedSig(e.name(), gens, iTs, e.t())
+      new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t())
     );
     var fixedArgs = refiner.fixTypes(e.es(), refined.args());
 

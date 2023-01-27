@@ -101,8 +101,8 @@ public sealed interface E extends HasPos {
       FRESH_N = 0;
     }
     public static String freshName() {
-      if (FRESH_N == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
-      return "fear" + ++FRESH_N + "$";
+      if (FRESH_N + 1 == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
+      return "fear" + FRESH_N++ + "$";
     }
     public X(T t){
       this(freshName(), t, Optional.empty());
@@ -138,6 +138,9 @@ public sealed interface E extends HasPos {
   record Sig(Mdf mdf, List<Id.GX<T>> gens, List<T> ts, T ret, Optional<Pos> pos){
     public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
     public Sig withGens(List<Id.GX<T>> gens){
+      return new Sig(mdf, gens, ts, ret, pos);
+    }
+    public Sig withRet(T ret){
       return new Sig(mdf, gens, ts, ret, pos);
     }
     public ast.E.Sig accept(InjectionVisitor visitor) {

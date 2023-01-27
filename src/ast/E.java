@@ -67,6 +67,9 @@ public interface E extends HasPos {
     public ast.E.Meth withBody(Optional<ast.E> body) {
       return new ast.E.Meth(sig, name, xs, body, pos);
     }
+    public ast.E.Meth withSig(Sig sig) {
+      return new ast.E.Meth(sig, name, xs, body, pos);
+    }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name, xs, sig, body.map(Object::toString).orElse("[-]"));
     }
