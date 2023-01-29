@@ -175,11 +175,12 @@ public record RefineTypes(ast.Program p) {
       rpsSigs.stream().flatMap(l->l.stream())
     ).toList();
     var refined = refineSigGens(rpsAll, freshGXsSet);
+    var refined2 = refineSigGens(rpsAll, freshGXsSet);
     var resC = regenerateInfers(freshGXsSet, refined.get(0).t1());
 
     var refinedSigs = Streams.zip(sigs,rpsSigs)
-      .map((refinedSig, rps)->toTSig(refinedSig, prioritiseNonFreshRPs(rps, freshGXsSet)))
-      .map(sig->sig.regenerateInfers(freshGXsSet))
+      .map(this::toTSig)
+//      .map(sig->sig.regenerateInfers(freshGXsSet))
       .toList();
     return new RefinedLambda(resC.itOrThrow(), refinedSigs);
   }
@@ -191,7 +192,7 @@ public record RefineTypes(ast.Program p) {
     return Streams.of(
       RP.of(sig.gens(), freshGens).stream(),
       RP.of(sig.args(), freshSig.args()).stream(),
-      Stream.of(new RP(freshSig.rt(), sig.rt()))
+      Stream.of(new RP(sig.rt(), freshSig.rt()))
     ).toList();
   }
 
@@ -209,19 +210,8 @@ public record RefineTypes(ast.Program p) {
     return rp;
   }
 
-  List<RP> prioritiseNonFreshRPs(List<RP>rps, Set<Id.GX<ast.T>> freshInfers) {
-    return rps.stream()
-      .map(rp->{
-        if (rp.t1().isInfer() || !(rp.t1().rt() instanceof Id.GX<T> t1X)) { return rp; }
-        if (!freshInfers.contains(t1X)) { return rp; }
-        return new RP(rp.t2(), rp.t1());
-      })
-      .toList();
-  }
-
   List<RP> refineSigGens(List<RP>rps, Set<Id.GX<ast.T>> freshInfers) {
-    var fixFresh = prioritiseNonFreshRPs(rps, freshInfers);
-    List<Sub> subs = collect(fixFresh);
+    List<Sub> subs = collect(rps);
     Map<Id.GX<T>, T> map = toSub(subs);
     return rps.stream()
       .map(rp->renameRP(rp, map, renamer))
