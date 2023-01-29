@@ -180,7 +180,7 @@ public record RefineTypes(ast.Program p) {
 
     var refinedSigs = Streams.zip(sigs,rpsSigs)
       .map(this::toTSig)
-//      .map(sig->sig.regenerateInfers(freshGXsSet))
+//      .map(sig->sig.regenerateInfers(freshGXsSet)) // this has no impact
       .toList();
     return new RefinedLambda(resC.itOrThrow(), refinedSigs);
   }
