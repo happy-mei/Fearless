@@ -34,7 +34,8 @@ public record RefineTypes(ast.Program p) {
     var ms = Streams.zip(lambda.meths(), res.sigs())
       .map((m,s)->m.withSig(s.toSig(m.sig().flatMap(E.Sig::pos))))
       .toList();
-    return lambda.withMeths(ms);
+//    Id.IT<T> lambdaT = best(new T(Mdf.mdf, res.c()), lambda.t()).itOrThrow();
+    return lambda.withMeths(ms).withIT(Optional.ofNullable(res.c()));
   }
   RefinedSig tSigOf(E.Meth m){
     var sig = m.sig().orElseThrow();
@@ -161,21 +162,20 @@ public record RefineTypes(ast.Program p) {
     var freshGXsQueue = new ArrayDeque<>(freshGXs);
     var freshGXsSet = new HashSet<>(freshGXs);
     var ts  = c.ts().stream().map(t->new ast.T(Mdf.mdf, freshGXsQueue.poll())).toList();
-    List<List<Id.GX<ast.T>>> grouped = sigs.stream()
+    List<List<Id.GX<ast.T>>> methGens = sigs.stream()
       .map(s->s.gens().stream().map(gx->freshGXsQueue.poll()).toList())
       .toList();
     var cTs = new Id.IT<ast.T>(c.name(), ts);
     var cT = new astFull.T(Mdf.mdf, cTs.toFullAstIT(ast.T::toAstFullT));
     var cTOriginal = new T(Mdf.mdf, c);
-    List<List<RP>> rpsSigs = Streams.zip(sigs,grouped)
-      .map((sig,xs)->pairUp(xs, cTs, sig))
+    List<List<RP>> rpsSigs = Streams.zip(sigs,methGens)
+      .map((sig,mGens)->pairUp(mGens, cTs, sig))
       .toList();
     List<RP> rpsAll = Stream.concat(
       Stream.of(new RP(cT, cTOriginal)),
       rpsSigs.stream().flatMap(l->l.stream())
     ).toList();
     var refined = refineSigGens(rpsAll, freshGXsSet);
-    var refined2 = refineSigGens(rpsAll, freshGXsSet);
     var resC = regenerateInfers(freshGXsSet, refined.get(0).t1());
 
     var refinedSigs = Streams.zip(sigs,rpsSigs)
