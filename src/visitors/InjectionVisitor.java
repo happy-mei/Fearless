@@ -58,6 +58,13 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
           this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
         .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
           [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+
+      rewrite the lambda type too:
+      [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[mdf X, mdf base.Void[]]-][]{
+        .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] ->
+          this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
+        .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
+          [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
      */
     return new ast.E.MCall(
       e.receiver().accept(this),
