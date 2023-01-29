@@ -108,7 +108,7 @@ public record InferBodies(ast.Program p) {
     if(m.body().isEmpty()){ return Optional.empty(); }
     if(m.sig().isEmpty()){ return Optional.empty(); }
     Map<String, T> richGamma = new HashMap<>(gamma);
-    richGamma.put(e.selfName(),e.t()); //TODO: Nick: selfName can be null
+    richGamma.put(e.selfName(),e.t());
     var sig = m.sig().orElseThrow();
     Streams.zip(m.xs(), sig.ts()).forEach(richGamma::put);
     richGamma = Collections.unmodifiableMap(richGamma);

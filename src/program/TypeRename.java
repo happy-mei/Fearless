@@ -2,10 +2,8 @@ package program;
 
 import id.Id;
 import id.Mdf;
-import program.inference.RefineTypesOldBoo;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 public interface TypeRename<T>{
