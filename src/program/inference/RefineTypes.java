@@ -178,8 +178,11 @@ public record RefineTypes(ast.Program p) {
     var refined = refineSigGens(rpsAll, freshGXsSet);
     var resC = regenerateInfers(freshGXsSet, refined.get(0).t1());
 
+    // TODO: this is a hack I'm trying to use the output of refineSigGens instead of pairUp.
+    // if this works, refactor this into something better and update the formalism
+    var q = new ArrayDeque<>(refined.subList(1, refined.size()));
     var refinedSigs = Streams.zip(sigs,rpsSigs)
-      .map(this::toTSig)
+      .map((refinedSig, rps)->toTSig(refinedSig, q))
 //      .map(sig->sig.regenerateInfers(freshGXsSet)) // this has no impact
       .toList();
     return new RefinedLambda(resC.itOrThrow(), refinedSigs);
@@ -196,11 +199,11 @@ public record RefineTypes(ast.Program p) {
     ).toList();
   }
 
-  RefinedSig toTSig(RefinedSig sig, List<RP> rps) {
-    var q = new ArrayDeque<>(rps);
+  RefinedSig toTSig(RefinedSig sig, ArrayDeque<RP> q) {
+//    var q = new ArrayDeque<>(rps);
     var gens = sig.gens().stream().map(unused->q.poll().t1()).toList();
     var args = sig.args().stream().map(unused->q.poll().t1()).toList();
-    assert q.size()==1;
+//    assert q.size()==1;
     return new RefinedSig(sig.mdf(), sig.name(),gens,args,q.poll().t1());
   }
 
