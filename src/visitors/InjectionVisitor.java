@@ -52,18 +52,19 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
         .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
           [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
 
-      latest nick status:
-      [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[infer, imm base.Void[]]-][]{
-        .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] ->
-          this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
-        .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
-          [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
-
       rewrite the lambda type too:
       [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[mdf X, mdf base.Void[]]-][]{
         .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] ->
           this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
         .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
+          [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+
+      hack to try using the refined output instead of the pairUp:
+      // TODO: I think the remaining issue here is that we have a mix-up of imm X and mdf X. I think the imm is coming from the method
+      [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[mdf X, mdf base.Void[]]-][]{
+        .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] ->
+          this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
+        .in/1([_]): Sig[mdf=imm,gens=[],ts=[imm X],ret=imm base.Void[]] ->
           [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
      */
     return new ast.E.MCall(
