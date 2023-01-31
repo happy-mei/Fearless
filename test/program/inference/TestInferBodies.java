@@ -106,20 +106,28 @@ public class TestInferBodies {
     Id:{ mut .id[X](x: mut X): mut X -> this.id[mut X](x) }
     """); }
 
+  /*
+  [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[mdf X, mdf base.Void[]]-][]{
+        .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] ->
+          this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
+        .in/1([_]): Sig[mdf=imm,gens=[],ts=[imm X],ret=imm base.Void[]] ->
+          [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+   */
   @Test void inferRefDef() { ok("""
     """, """
     package base
     alias base.NoMutHyg as NoMutHyg,
     Sealed:{} Void:{}
-    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-    Let[V,R]:{ .var:V, .in(v:V):R }
+    Let:{ #[V,R](l:Let[mdf V,mdf R]):mdf R -> l.in(l.var) }
+    Let[V,R]:{ .var:mdf V, .in(v:mdf V):mdf R }
     Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-    Ref[X]:NoMutHyg[X],Sealed{
+    Ref[X]:NoMutHyg[X],Sealed{ // mut Ref[imm X] --> 
       read * : recMdf X,
       mut .swap(x: mdf X): mdf X,
       mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-    //mut :=(x: mdf X): Void -> Let#[mdf X, Void](imm Let[mdf X, Void]{ .var -> this.swap(x), .in(_)->Void }),
-      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+      mut <-(f: mut UpdateRef[mut X]): mdf X -> this.swap(f#(this*)),
+      // this:mutRef[mdfX].swap[-](immUpdateRef[mdf X]#[-](this:mutRef[mdfX] *[]():infer]):infer):mdf X
+      // this:mutRef[mdfX].swap[-](immUpdateRef[mdf X]#[-](this:mutRef[recMdfX]*[]([]):recMdf X):infer):mdf X
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }

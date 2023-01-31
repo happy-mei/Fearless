@@ -16,7 +16,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public record RefineTypes(ast.Program p) {
-  E.Lambda fixTypes(E.Lambda lambda) {
+  E.Lambda fixLambda(E.Lambda lambda) {
     /*
     fixTypes(MDF ITs{'x Ms}:MDF C[iTs]) = MDF ITs{'x toMs(Ms,TSigs)}:MDF C[iTs']
   refineSigMassive(C[iTs],tSigOf(Ms)) = C[iTs'], TSigs
@@ -92,51 +92,16 @@ public record RefineTypes(ast.Program p) {
   public static final TypeRename.FullTTypeRename renamer = new TypeRename.FullTTypeRename();
 
   record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, List<T> args, T rt){
-    RefinedSig regenerateInfers(Set<Id.GX<ast.T>> fresh){
-      return new RefinedSig(mdf, name,
-        gens.stream().map(t->RefineTypes.regenerateInfers(fresh,t)).toList(),
-        args.stream().map(t->RefineTypes.regenerateInfers(fresh,t)).toList(),
-        RefineTypes.regenerateInfers(fresh,rt)
-        );
-    }
     E.Sig toSig(Optional<Pos> pos) {
       return new astFull.E.Sig(mdf, gens.stream().map(T::gxOrThrow).toList(), args, rt, pos);
     }
-  }
-  static List<T> renameSigPart(Set<Id.GX<ast.T>> fresh, List<RP> refined, int start, int end) {
-    return IntStream.range(start, end)
-      .mapToObj(i->refined.get(i).t1())
-//      .map(t->regenerateInfers(fresh, t))//TODO: not here
-      .toList();
   }
 
   static T regenerateInfers(Set<Id.GX<ast.T>> fresh, T t) {
     return renamer.renameT(t, gx->{
       if (fresh.contains(gx)) { return T.infer; }
-      return new T(t.mdf(), gx);
+      return new T(Mdf.mdf, gx);
     });
-  }
-
-  RefinedSig refineSig(Id.IT<T> c, RefinedSig sig) {
-    var freshGXs = Id.GX.standardNames(c.ts().size() + sig.gens().size());
-    var freshGXsSet = new HashSet<>(freshGXs);
-    var freshGXsQueue = new ArrayDeque<>(freshGXs);
-    var ts = c.ts().stream().map(t->new ast.T(Mdf.mdf, freshGXsQueue.poll())).toList();    // Xs
-    var gxs = sig.gens().stream().map(gx->freshGXsQueue.poll()).toList();    // Xs'
-    var ms = p.meths(new Id.IT<>(c.name(), ts));
-    var freshSig = freshXs(ms, sig.name(), gxs);
-    var freshGens = freshSig.gens();
-    List<RP> rps = Streams.of(
-      RP.of(sig.gens(), freshGens).stream(),
-      RP.of(sig.args(), freshSig.args()).stream(),
-      Stream.of(new RP(freshSig.rt(), sig.rt()))
-    ).toList();
-    var refined = refineSigGens(rps, freshGXsSet);//BIG call
-    var refinedGens = renameSigPart(freshGXsSet, refined, 0, sig.gens().size());
-    var refinedArgs = renameSigPart(freshGXsSet, refined, sig.gens().size(), sig.gens().size() + sig.args().size());
-    var refinedRT = renameSigPart(freshGXsSet, refined, refined.size() - 1, refined.size()).get(0);
-
-    return new RefinedSig(sig.mdf(), sig.name(), refinedGens, refinedArgs, refinedRT);
   }
 
   RefinedSig freshXs(List<CM> ms, Id.MethName m, List<Id.GX<ast.T>> gxs) {
@@ -172,7 +137,7 @@ public record RefineTypes(ast.Program p) {
       .map((sig,mGens)->pairUp(mGens, cTs, sig))
       .toList();
     List<RP> rpsAll = Stream.concat(
-      Stream.of(new RP(cT, cTOriginal)),
+      Stream.of(new RP(cT, cTOriginal)),//Stream.of(new RP(cTOriginal, cT))
       rpsSigs.stream().flatMap(l->l.stream())
     ).toList();
     var refined = refineSigGens(rpsAll, freshGXsSet);
@@ -181,8 +146,8 @@ public record RefineTypes(ast.Program p) {
     // TODO: this is a hack I'm trying to use the output of refineSigGens instead of pairUp.
     // if this works, refactor this into something better and update the formalism
     var q = new ArrayDeque<>(refined.subList(1, refined.size()));
-    var refinedSigs = Streams.zip(sigs,rpsSigs)
-      .map((refinedSig, rps)->toTSig(refinedSig, q))
+    var refinedSigs = sigs.stream()
+      .map(refinedSig->toTSig(refinedSig, q))
 //      .map(sig->sig.regenerateInfers(freshGXsSet)) // this has no impact
       .toList();
     return new RefinedLambda(resC.itOrThrow(), refinedSigs);
@@ -193,17 +158,15 @@ public record RefineTypes(ast.Program p) {
     var freshSig = freshXs(ms, sig.name(), gxs);
     var freshGens = freshSig.gens();
     return Streams.of(
-      RP.of(sig.gens(), freshGens).stream(),
-      RP.of(sig.args(), freshSig.args()).stream(),
-      Stream.of(new RP(sig.rt(), freshSig.rt()))
+      RP.of(freshGens, sig.gens()).stream(),
+      RP.of(freshSig.args(), sig.args()).stream(),
+      Stream.of(new RP(freshSig.rt(), sig.rt()))
     ).toList();
   }
 
   RefinedSig toTSig(RefinedSig sig, ArrayDeque<RP> q) {
-//    var q = new ArrayDeque<>(rps);
     var gens = sig.gens().stream().map(unused->q.poll().t1()).toList();
     var args = sig.args().stream().map(unused->q.poll().t1()).toList();
-//    assert q.size()==1;
     return new RefinedSig(sig.mdf(), sig.name(),gens,args,q.poll().t1());
   }
 
@@ -235,6 +198,9 @@ public record RefineTypes(ast.Program p) {
     return false;
   }
   record Sub(Id.GX<T> x,T t){
+    Sub {
+      assert x.name().endsWith("$") || !t.match(gx->gx.name().endsWith("$"),it->false);
+    }
     boolean isCircular() {
       if (t.isInfer() || t.rt() instanceof Id.GX<?>) { return false; }
       assert t.rt() instanceof Id.IT<?>;
@@ -250,10 +216,19 @@ public record RefineTypes(ast.Program p) {
   }
   Sub collectXXOut(int index, ArrayList<RP> rps){
     var res = rps.remove(index);
-    //collect(RPs, MDF X = _ X', RPs') =   X'=MDF X, collect(RPs[X = mdf X'], RPs'[X = mdf X'])
-    var other = res.t2().withMdf(Mdf.mdf);
-    rename(rps,new Sub(res.t1().gxOrThrow(),other));
-    return new Sub(res.t2().gxOrThrow(),res.t1());
+    //collect(RPs, MDF X = _ X', RPs') =   X=MDF X', collect(RPs[X = mdf X'], RPs'[X = mdf X'])//proposed
+    //collect(RPs, MDF X = _ X', RPs') =   X'=MDF X, collect(RPs[X' = mdf X], RPs'[X = mdf X])//proposed
+    //var target = res.t1().withMdf(Mdf.mdf);
+    //rename(rps, new Sub(res.t2().gxOrThrow(), target));
+    //var other = res.t2().withMdf(res.t1().mdf());
+    //return new Sub(res.t1().gxOrThrow(), other);
+
+    //Sub s = new Sub(res.t2().gxOrThrow(),res.t1);
+    //Sub sMdf = new Sub(res.t2().gxOrThrow(),res.t1.withMdf(Mdf.mdf));
+    Sub s = new Sub(res.t1().gxOrThrow(),res.t2.withMdf(res.t1.mdf()));
+    Sub sMdf = new Sub(res.t1().gxOrThrow(),res.t2.withMdf(Mdf.mdf));
+    rename(rps, sMdf);
+    return s;
   }
   void collectSameC(int index, ArrayList<RP> rps){
     var e = rps.remove(index);

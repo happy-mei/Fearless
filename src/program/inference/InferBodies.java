@@ -6,6 +6,7 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import utils.Streams;
+import visitors.FullShortCircuitVisitor;
 import visitors.InjectionVisitor;
 
 import java.util.*;
@@ -56,8 +57,10 @@ public record InferBodies(ast.Program p) {
   //TODO: this may have to become iterative if the recursion gets out of control
   E fixInferStep(Map<String, T> gamma, E e) {
     var next = inferStep(gamma, e);
+    System.out.println(e);
+    assert next.map(ei->!ei.equals(e)).orElse(true);
     if (next.isEmpty()) { return e; }
-    if (e.equals(next.get())) { return e; }
+//    if (e.equals(next.get())) { return e; }
     return fixInferStep(gamma, next.get());
   }
 
@@ -71,19 +74,12 @@ public record InferBodies(ast.Program p) {
   }
 
   // propagation
-  Optional<E> methCallProp(Map<String, T> gamma, E.MCall e) {
-    return inferStep(gamma,e.receiver()).map(e::withReceiver);
+  Optional<E> refineLambda(E.Lambda e, E.Lambda baseLambda){
+    var anyNoSig = e.meths().stream().anyMatch(mi->mi.sig().isEmpty());
+    if(anyNoSig){ return Optional.of(baseLambda); }
+    return Optional.of(new RefineTypes(p).fixLambda(baseLambda));
   }
-  Optional<E> methArgProp(Map<String, T> gamma, E.MCall e) {
-    // TODO: We may have a headed type here, can we fill in some types here?
-    boolean[] done = {false};
-    var newEs = e.es().stream().map(ei->done[0]
-      ? ei
-      : inferStep(gamma,ei).map(ej->{ done[0]=true; return ej; }
-    ).orElse(ei)).toList();
-    if(!done[0]){ return Optional.empty(); }
-    return Optional.of(e.withEs(newEs));
-  }
+
   Optional<E> bProp(Map<String, T> gamma, E.Lambda e) {
     if (e.it().isEmpty()) { return Optional.empty(); }
     boolean[] done = {false};
@@ -92,15 +88,15 @@ public record InferBodies(ast.Program p) {
       : bProp(gamma,mi,e).map(mj->{done[0]=true;return mj;}).orElse(mi))
     .toList();
     if(!done[0]){ return Optional.empty(); }
-    var baseLambda = e.withMeths(newMs);
-    var anyNoSig = e.meths().stream().anyMatch(mi->mi.sig().isEmpty());
-    if(anyNoSig){ return Optional.of(baseLambda); }
-    return Optional.of(new RefineTypes(p).fixTypes(baseLambda));
+    var res = refineLambda(e, e.withMeths(newMs));
+    return res.flatMap(e1->!e1.equals(e) ? res : Optional.empty());
   }
   Optional<E.Meth> bProp(Map<String, T> gamma, E.Meth m, E.Lambda e) {
-    return bPropWithSig(gamma,m,e)
+    var res = bPropWithSig(gamma,m,e)
       .or(()->bPropGetSigM(gamma,m,e))
       .or(()->bPropGetSig(gamma,m,e));
+    assert res.map(m1->!m.equals(m1)).orElse(true);
+    return res;
   }
   Optional<E.Meth> bPropWithSig(Map<String, T> gamma, E.Meth m, E.Lambda e) {
     var anyNoSig = e.meths().stream().anyMatch(mi->mi.sig().isEmpty());
@@ -117,14 +113,19 @@ public record InferBodies(ast.Program p) {
     var e2 = refiner.fixType(e1,sig.ret());
     var optBody = inferStep(richGamma,e2);
     var res = optBody.map(b->m.withBody(Optional.of(b)).withSig(refiner.fixTypes(sig, b.t())));
-    return res.or(()->e1==e2
+    var finalRes = res.or(()->e1==e2
       ? Optional.empty()
       : Optional.of(m.withBody(Optional.of(e2))));
+    return finalRes.map(m1->!m.equals(m1)).orElse(true) ? finalRes : Optional.empty();
+//    assert finalRes.map(m1->!m.equals(m1)).orElse(true);
+//    return finalRes;
   }
   Optional<E.Meth> bPropGetSigM(Map<String, T> gamma, E.Meth m, E.Lambda e) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
-    return onlyAbs(e.it().get()).map(m::withSig);
+    var res = onlyAbs(e.it().get()).map(m::withSig);
+    assert res.map(m1->!m.equals(m1)).orElse(true);
+    return res;
   }
 
   Optional<E.Sig> onlyAbs(Id.IT<astFull.T> it){ return onlyProp(it,CM::isAbs); }
@@ -152,15 +153,36 @@ public record InferBodies(ast.Program p) {
     if(m.sig().isPresent()){ return Optional.empty(); }
     var sig = onlyMName(e.it().get(), m.name().orElseThrow());
     if(sig.isEmpty()){ return Optional.empty(); }
-    return sig.map(m::withSig);
+    var res = sig.map(m::withSig);
+    assert res.map(m1->!m.equals(m1)).orElse(true);
+    return res;
   }
 
-  // inference
   Optional<E> methCall(Map<String, T> gamma, E.MCall e) {
-    return methCallProp(gamma, e)
+    var res = methCallProp(gamma, e)
       .or(()->methArgProp(gamma,e))
       .or(()->methCallHasGens(gamma, e))
       .or(()->methCallNoGens(gamma, e));
+    assert res.map(e1->!e.equals(e1)).orElse(true);
+    return res;
+  }
+  Optional<E> methCallProp(Map<String, T> gamma, E.MCall e) {
+    Optional<E> res = inferStep(gamma,e.receiver()).map(e::withReceiver);
+    assert res.map(e1->!e.equals(e1)).orElse(true);
+    return res;
+  }
+  Optional<E> methArgProp(Map<String, T> gamma, E.MCall e) {
+    boolean[] done = {false};
+    var newEs = e.es().stream().map(ei->done[0]
+      ? ei
+      : inferStep(gamma,ei).map(ej->{ done[0]=true; return ej; }
+    ).orElse(ei)).toList();
+    if(!done[0]){ return Optional.empty(); }
+    //Sub s = new Sub(res.t2().gxOrThrow(),res.t1);
+    //Sub sMdf = new Sub(res.t2().gxOrThrow(),res.t1.withMdf(Mdf.mdf));
+    Optional<E> res = Optional.of(e.withEs(newEs));
+    assert res.map(e1->!e.equals(e1)).orElse(true);
+    return res;
   }
   Optional<E> methCallHasGens(Map<String, T> gamma, E.MCall e) {
     if (e.ts().isEmpty()) { return Optional.empty(); }
@@ -170,25 +192,27 @@ public record InferBodies(ast.Program p) {
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
     var refiner = new RefineTypes(p);
-    var refined = refiner.refineSig(recv,
-      new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t())
-    );
-    var fixedArgs = refiner.fixTypes(e.es(), refined.args());
+    var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t());
+    var refined = refiner.refineSigMassive(recv, List.of(baseSig));
+    var refinedSig = refined.sigs().get(0);
+    var fixedRecv = refiner.fixType(e.receiver(), new T(e.receiver().t().mdf(), refined.c()));
+    var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args());
 
-    assert refined.name().equals(e.name());
+    assert refinedSig.name().equals(e.name());
     var res = new E.MCall(
-      e.receiver(),
-      refined.name(),
-      Optional.of(refined.gens()),
+      fixedRecv,
+      refinedSig.name(),
+      Optional.of(refinedSig.gens()),
       fixedArgs,
-      refiner.best(refined.rt(), e.t()),
+      refiner.best(refinedSig.rt(), e.t()),
       e.pos()
     );
-    return Optional.of(res);
+    return e.equals(res) ? Optional.empty() : Optional.of(res);
   }
   Optional<E> methCallNoGens(Map<String, T> gamma, E.MCall e) {
-    assert e.ts().isEmpty();
+    if (e.ts().isPresent()) { return Optional.empty(); }
     var c = e.receiver().t();
+    // cond: e.name().name.equals("#") && c.itOrThrow().name().name().equals("base.UpdateRef")
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
     var m = p.meths(recv.toAstIT(T::toAstT), e.name()).orElseThrow();
     var k = m.sig().gens().size();
@@ -198,7 +222,9 @@ public record InferBodies(ast.Program p) {
 
   Optional<E> var(Map<String, T> gamma, E.X e) {
     if (!e.t().isInfer()) { return Optional.empty(); }
-    return Optional.ofNullable(gamma.get(e.name())).map(e::withT);
+    Optional<E> res = Optional.ofNullable(gamma.get(e.name())).map(e::withT);
+    assert res.map(e1->!e1.equals(e)).orElse(true);
+    return res;
   }
 
   // helpers
