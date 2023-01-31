@@ -5,14 +5,12 @@ import id.Id;
 import main.Main;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
-import utils.Bug;
 import utils.Err;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,11 +44,19 @@ public class TestRefineSigGens {
 
   @Test
   void replaceGens() { ok("""
-    [RP[t1=imma.Foo[immY],t2=imma.Foo[immY]]]
+    [RP[t1=imm a.Foo[mdf Y],t2=imm a.Foo[mdf Y]]]
     """, """
     package a
     Foo[A]:{}
     """, "a.Foo[mdf Y] = a.Foo[mdf X]"); }
+
+  @Test
+  void replaceGens2() { ok("""
+    [RP[t1=mut a.Foo[mdf Y],t2=mut a.Foo[mdf Y]]]
+    """, """
+    package a
+    Foo[A]:{}
+    """, "mut a.Foo[mdf Y] = mut a.Foo[mdf X]"); }
 
   @Test
   void replaceGensKeepMdf() { ok("""

@@ -8,6 +8,7 @@ import main.CompileError;
 import utils.Bug;
 import utils.Push;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -15,58 +16,11 @@ import java.util.stream.Collectors;
 public class InjectionVisitor implements FullVisitor<ast.E>{
   public ast.E.MCall visitMCall(E.MCall e) {
     // TODO: WHYYYYYY
-    /*
-    [-imm base.Let[]-][base.Let[]]{ }
-     #/1[infer, imm base.Void[]]([[-imm base.Let[infer, imm base.Void[]]-][]{
-     .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=infer]
-        -> this:infer.swap/1[-]([x:infer]):infer,
-     .in/1([_]): [-]
-       -> [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+//    this:mut base.Ref[mdf X] .swap/1[-]([f:imm base.UpdateRef[mdf X] #/1[-]([this:mut base.Ref[recMdf X] */0[]([]):recMdf X]):infer]):mdf X
 
-       // old (better):
-       [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[infer, imm base.Void[]]-][]{
-         .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X]
-            -> this:mut base.Ref[mdf X].swap/1[]([x:mdf X]):mdf X,
-         .in/1([_]): [-]
-           -> [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
-
-       super new:
-       [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[infer, imm base.Void[]]-][]{
-       .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=infer] ->
-          this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
-        .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
-          [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
-
-      pls pls pls:
-      [-imm base.Let[]-][base.Let[]]{ }
-        #/1[infer, imm base.Void[]]([[-imm base.Let[infer, imm base.Void[]]-][]{
-          .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=infer] ->
-              this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
-          .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
-            [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
-
-      putting FearN$ on the right in all RPs:
-      [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[infer, imm base.Void[]]-][]{
-        .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] ->
-          this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
-        .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
-          [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
-
-      rewrite the lambda type too:
-      [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[mdf X, mdf base.Void[]]-][]{
-        .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] ->
-          this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
-        .in/1([_]): Sig[mdf=imm,gens=[],ts=[infer],ret=infer] ->
-          [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
-
-      hack to try using the refined output instead of the pairUp:
-      // TODO: I think the remaining issue here is that we have a mix-up of imm X and mdf X. I think the imm is coming from the method
-      [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[mdf X, mdf base.Void[]]-][]{
-        .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] ->
-          this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
-        .in/1([_]): Sig[mdf=imm,gens=[],ts=[imm X],ret=imm base.Void[]] ->
-          [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
-     */
+    // [-imm base.Let[]-][base.Let[]]{ } #/1[-]([[- infer-][]{ .var/0([]): [-] -> this:infer .swap/1[-]([x:infer]):infer,
+    // .in/1([_]): [-] -> [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+    assert e.ts().isPresent();
     return new ast.E.MCall(
       e.receiver().accept(this),
       e.name(),
@@ -81,9 +35,11 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   public ast.E.Lambda visitLambda(E.Lambda e){
+    var base = e.it().map(List::of).orElseGet(List::of);
+    var its = Push.of(base, e.its());
     return new ast.E.Lambda(
       e.mdf().orElseThrow(),
-      e.its().stream().map(this::visitIT).toList(),
+      its.stream().map(this::visitIT).toList(),
       Optional.ofNullable(e.selfName()).orElseGet(E.X::freshName),
       e.meths().stream().map(this::visitMeth).toList(),
       e.pos()
