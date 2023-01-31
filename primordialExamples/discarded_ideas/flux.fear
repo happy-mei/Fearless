@@ -1,0 +1,21 @@
+FluxBox[T]:{
+  read .set(fn: EditF[mdf T]): Void,
+}
+SwapF[T]:{ #(old: mdf T): mdf T }
+FluxBox:{
+  #[T](initialState: iso T): FluxBox[iso T],
+  .immBox(initialState: T): FluxBox[T]
+}
+
+Mutex[T]:{
+  read .lock[R](fn: mut MutexFn[lent T, mdf R]): mdf R,
+}
+MutexFn[T]:{ #[R](x: mdf T): mdf R, }
+
+// Log example from Marco
+.var stuff: mut List[mut Box[iso Stuff]] = {...}
+.do {runInParallel(stuff)} //runInParallel takes a read List
+.return {stuff.stream().reduce{..}}
+
+runInParallel(data: read List[read Box[iso Stuff]])->
+  data.stream().map{box->box.swap { myIso->myIso.mutStuff()  }}

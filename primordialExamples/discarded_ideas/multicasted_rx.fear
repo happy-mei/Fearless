@@ -1,0 +1,21 @@
+Observable[T,E]:{
+  .subscribe(sub: mut Observer[T,E]): mut Subscription,
+}
+
+Observable:{
+  #[T,E](impl: mut ObservableImpl[T,E]): mut Observable[T,E] -> {
+    .subscribe(sub) -> impl(sub)
+  }
+  .shared[T,E](impl: mut ObservableImpl[T,E]): mut Observable[T,E] -> Block
+    .var rxs = List[mut Observer[T, E]]
+    .var multicaster = Observer[T,E]{
+      .next(x) -> rxs.forEach{s->s.next(x)},
+      .error(err) -> rxs.forEach{s->s.err(err)},
+      .complete -> Block
+        .do{ rxs.forEach{s->s.complete} }
+        .do{ rxs.clear }
+        .return{{}}
+    }
+    .var source = impl#multicaster
+}
+ObservableImpl[T,E]:{ #(sub: Observer[mdf T,mdf E]): Subscription }
