@@ -1,4 +1,5 @@
-//Example showing that not even a capsule method of a capsule lambda can capture a capsule local var; not even if that local var is only used one time
+//Example showing that not even a capsule method of a capsule lambda can capture
+// a capsule local var; not even if that local var is only used one time
 capsule foo(acc:mut Acc) : capsule Self -> {
   acc.save(bar:capsule Bar)//one time save as imm, another save as mut
   this
@@ -12,3 +13,109 @@ OhNo{
   break(read MutSomewhere m)-> mut Box[MutSomewhere]{imm get->m}
   }
 imm MutSomewhere nope=OhNo{}.break(myMut).get
+
+---------------------
+// Examples showing mdf and recMdf
+Foo:{}
+Box[E]:{
+  read .getRM(): recMdf E,
+  read .getM(): mdf E,
+}
+Main:{
+  _ -> Block
+    .var[mut Foo] fooM = {Foo}
+    .var[imm Foo] fooI = {Foo}
+    .var[imm Box[imm Foo]] ibif = { .getRM -> fooI, .getM -> fooI }
+    .var[mut Box[mut Foo]] mbmf = { .getRM -> fooM, .getM -> fooM }
+    // One of these two is invalid (hopefully #2):
+    .var[mut Box[imm Foo]] mbif1 = { .getRM -> fooI, .getM -> fooI }
+    .var[mut Box[imm Foo]] mbif2 = { .getRM -> fooM, .getM -> fooI }
+    // I expect this to be invalid because mut _ |- recMdf = mut and imm is
+    // not a sub-type of mut:
+    .var[mut Box[mut Foo]] idk = { .getRM -> fooI, .getM -> fooM }
+    .return{}
+}
+
+/* Proposal for recMdf logic
+
+  XIT not in G
+-----------------------(recMdf-decls)
+G |- recMdf XIT : read XIT
+
+MDF0 notin {recMdf, iso}
+--------------------------------(recMdf-IT)
+Ds;G;MDF0 IT0 |- recMdf IT : MDF0 IT
+
+--------------------------------(recMdf-iso-IT)
+Ds;G;iso IT0 |- recMdf IT : mut IT
+
+// This case isn't possible because recMdf ITs will not exist
+// --------------------------------(recMdf-recMdf-IT)
+// Ds;G;recMdf IT0 |- recMdf IT : read IT
+
+MDF0 in {mut, iso, lent}
+-----------------------(recMdf-id-X)
+Ds;G;MDF0 IT0 |- recMdf X : mdf X
+
+MDF0 notin {mut, iso, lent}
+C[Xs0] in Ds
+X1..Xk..Xn in Xs0
+Tk = imm _
+----------------------------------(recMdf-mdfImm-X)
+Ds;G;MDF0 C[Ts] |- recMdf X : imm X
+
+
+G |- XIT : MDF _
+MDF = read if MDF is recMdf
+MDF' = 
+----------------------------(recMdf-usage)
+G |- recMdf XIT : MDF XIT
+
+
+mut _ |- recMdf X : mdf X
+
+
+// special replacement logic
+#Define resolveRecMdf(MDF0, MDF1) = MDF' // recv mdf, param mdf
+
+imm _ = imm // safe because capturing
+iso _ = mut
+mut = mdf
+MDF recMdf = MDF, otherwise // or maybe read?
+
+read lent = read
+read mut = read
+read imm = imm // maybe read
+read iso = read
+read recMdf = read
+read read = read
+lent read = read
+lent mut = lent
+lent imm = imm
+mut read = read
+mut lent = lent
+mut imm = imm
+mut iso = iso
+iso read = read
+iso lent = lent
+iso mut = mut
+iso imm = imm
+iso recMdf
+iso iso
+recMdf read
+recMdf lent
+recMdf mut
+recMdf imm
+recMdf iso
+recMdf iso
+iso read
+iso lent
+iso mut
+iso imm
+iso iso
+iso recMdf
+
+resolveRecMdf(MDF0, imm) = 
+resolveRecMdf(MDF0, _) = MDF0, otherwise
+
+*/
