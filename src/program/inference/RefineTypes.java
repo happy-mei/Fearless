@@ -2,6 +2,7 @@ package program.inference;
 
 import astFull.T;
 import astFull.E;
+import astFull.UndefinedGXsVisitor;
 import files.Pos;
 import id.Id;
 import id.Mdf;
@@ -112,7 +113,7 @@ public record RefineTypes(ast.Program p) {
   }
   public static final TypeRename.FullTTypeRename renamer = new TypeRename.FullTTypeRename();
 
-  record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, List<T> args, T rt){
+  public record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, List<T> args, T rt){
     E.Sig toSig(Optional<Pos> pos) {
       return new astFull.E.Sig(mdf, gens.stream().map(T::gxOrThrow).toList(), args, rt, pos);
     }
@@ -164,13 +165,12 @@ public record RefineTypes(ast.Program p) {
     var refined = refineSigGens(rpsAll, freshGXsSet);
     var resC = regenerateInfers(freshGXsSet, refined.get(0).t1());
 
-    // TODO: this is a hack I'm trying to use the output of refineSigGens instead of pairUp.
-    // if this works, refactor this into something better and update the formalism
     var q = new ArrayDeque<>(refined.subList(1, refined.size()));
     var refinedSigs = sigs.stream()
       .map(refinedSig->toTSig(refinedSig, q))
 //      .map(sig->sig.regenerateInfers(freshGXsSet)) // this has no impact
       .toList();
+
     return new RefinedLambda(resC.itOrThrow(), refinedSigs);
   }
 
@@ -178,6 +178,9 @@ public record RefineTypes(ast.Program p) {
     var ms = p.meths(c);
     var freshSig = freshXs(ms, sig.name(), gxs);
     var freshGens = freshSig.gens();
+    var uv = new UndefinedGXsVisitor(gxs.stream().map(Id.GX::toFullAstGX).toList());
+    uv.visitRefinedSig(sig);
+    var undefined = uv.get();
     return Streams.of(
       RP.of(freshGens, sig.gens()).stream(),
       RP.of(freshSig.args(), sig.args()).stream(),

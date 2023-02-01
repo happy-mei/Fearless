@@ -417,6 +417,25 @@ public class TestSigInference {
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
+
+  @Test void immDelegate() { ok("""
+    {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
+      .m2/1([k]):Sig[mdf=imm,gens=[X0$],ts=[immX0$],ret=immbase.Void[]]->
+        this:infer.m1/1[-]([k:infer]):infer}],
+    base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
+      .m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immbase.Void[]]->
+        this:infer.m2/1[-]([x:infer]):infer,
+      .m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immK],ret=immbase.Void[]]->[-]}],
+    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{'this}]}
+    """, """
+    package base
+    A:{
+      .m1[T](x:T):Void->this.m2(x),
+      .m2[K](k:K):Void
+      }
+    B:A{ .m2(k)->this.m1(k) }
+    Void:{}
+    """); }
 }
 
 
