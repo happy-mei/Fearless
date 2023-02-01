@@ -10,7 +10,6 @@ import utils.Bug;
 import utils.Pop;
 import utils.Push;
 import visitors.CloneVisitor;
-import visitors.InjectionVisitor;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -165,10 +164,14 @@ public interface Program {
     return Optional.of(myM_.get(0));
   }
   default List<CM> meths(Id.IT<T> it) {
+    // TODO: Maybe also cache this
+    return methsAux(it).stream().map(this::freshenMethGens).toList();
+  }
+  default List<CM> methsAux(Id.IT<T> it) {
     // TODO: Cache this
     List<CM> cms = Stream.concat(
       cMsOf(it).stream(),
-      itsOf(it).stream().flatMap(iti->meths(iti).stream())
+      itsOf(it).stream().flatMap(iti->methsAux(iti).stream())
     ).toList();
     return prune(cms);
   }
@@ -192,7 +195,19 @@ public interface Program {
      */
     //standardNames(n)->List.of(Par1..Parn)
     var gx=cm.sig().gens();
-    List<Id.GX<ast.T>> names=Id.GX.standardNames5a(gx.size());
+    List<Id.GX<ast.T>> names=Id.GX.standardNamesSig(gx.size());
+    Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gx.size()).boxed()
+      .collect(Collectors.toMap(gx::get, names::get));
+    var newSig=new RenameGens(subst).visitSig(cm.sig());
+    return cm.withSig(newSig);
+  }
+
+  /**
+   * Normalised CMs are required for 5a, but the rest of the type system needs fresh names.
+   */
+  default CM freshenMethGens(CM cm) {
+    var gx=cm.sig().gens();
+    List<Id.GX<ast.T>> names=Id.GX.freshNamesSig(gx.size());
     Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gx.size()).boxed()
       .collect(Collectors.toMap(gx::get, names::get));
     var newSig=new RenameGens(subst).visitSig(cm.sig());

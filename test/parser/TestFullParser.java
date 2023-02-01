@@ -296,11 +296,12 @@ class TestFullParser {
     base.Sealed/0=Dec[name=base.Sealed/0,gxs=[],lambda=[-infer-][]{}],
     base.Ref/0=Dec[name=base.Ref/0,gxs=[],lambda=[-infer-][]{#/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=mut base.Ref[mdfX]]->this:infer#/1[-]([x:infer]):infer}],
     base.Let/0=Dec[name=base.Let/0,gxs=[],lambda=[-infer-][]{#/1([l]):Sig[mdf=imm,gens=[V,R],ts=[imm base.Let[immV,immR]],ret=immR]->l:infer.in/1[-]([l:infer.var/0[-]([]):infer]):infer}],
+    base.NoMutHyg/1=Dec[name=base.NoMutHyg/1,gxs=[X],lambda=[-infer-][]{}],
     base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{}],
     base.UpdateRef/1=Dec[name=base.UpdateRef/1,gxs=[X],lambda=[-infer-][]{#/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-]}]}
     """, """
     package base
-    alias base.NoMutHyg as NoMutHyg,
+    NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
     Let[V,R]:{ .var:V, .in(v:V):R }

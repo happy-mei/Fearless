@@ -97,8 +97,8 @@ public class TestRefineTypes {
   //We get to lent a.C[] = mut a.C[] and we take the 'best type: as specified by t2 (the best type)
   @Test
   void aGenMdf2() {ok("""
-    varName:imm a.A[mdf a.B[],read a.B[]]
-    """, "varName", "a.A[mut X,mdf a.B[]]", "a.A[mdf a.B[],read Y]", """
+    varName:imm a.A[lent a.B[],read a.B[]]
+    """, "varName", "a.A[mut X,read a.B[]]", "a.A[lent a.B[],mdf Y]", """
     package a
     A[X,Y]:{}
     B:{}
@@ -214,7 +214,7 @@ public class TestRefineTypes {
     """);}
   @Test
   void refineGensMdf3() {ok("""
-    varName:imm a.A[mdf a.B[]]
+    varName:imm a.A[mut a.B[]]
     """, "varName", "a.A[mut a.B[]]", "a.A[mdf X]", """
     package a
     A[X]:{}

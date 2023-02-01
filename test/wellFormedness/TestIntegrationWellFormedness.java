@@ -240,7 +240,7 @@ public class TestIntegrationWellFormedness {
 
   @Test void noMutHygOk() { ok("""
     package base
-    alias base.NoMutHyg as NoMutHyg,
+    NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
     Let[V,R]:{ .var:V, .in(v:V):R }
@@ -255,7 +255,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void noMutHygOkSplit() { ok("""
     package base
-    alias base.NoMutHyg as NoMutHyg,
+    NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
     Let[V,R]:{ .var:V, .in(v:V):R }
@@ -275,7 +275,7 @@ public class TestIntegrationWellFormedness {
     imm base.Ref[]
     """, """
     package base
-    alias base.NoMutHyg as NoMutHyg,
+    NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
     Let[V,R]:{ .var:V, .in(v:V):R }
@@ -295,7 +295,7 @@ public class TestIntegrationWellFormedness {
     imm base.Ref[]
     """, """
     package base
-    alias base.NoMutHyg as NoMutHyg,
+    NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
     Let[V,R]:{ .var:V, .in(v:V):R }
@@ -315,7 +315,7 @@ public class TestIntegrationWellFormedness {
     imm A
     """, """
     package base
-    alias base.NoMutHyg as NoMutHyg,
+    NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
     Let[V,R]:{ .var:V, .in(v:V):R }
