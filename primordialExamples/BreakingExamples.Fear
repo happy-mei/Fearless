@@ -36,7 +36,12 @@ Main:{
     .return{}
 }
 
-/* Proposal for recMdf logic
+/* Proposal for recMdf logic:
+
+
+- capture recMdf args as read
+- `this` needs special consideration for forwarding the original recMdf
+- different rules for recMdf X and recMdf IT, likely this needs to be adapted to method typing rules from:
 
   XIT not in G
 -----------------------(recMdf-decls)

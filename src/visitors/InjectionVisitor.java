@@ -20,6 +20,8 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
 
     // [-imm base.Let[]-][base.Let[]]{ } #/1[-]([[- infer-][]{ .var/0([]): [-] -> this:infer .swap/1[-]([x:infer]):infer,
     // .in/1([_]): [-] -> [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+
+//    this:imm base.OptDo[imm T] #/1[infer]([x:imm T]):imm base.Void[]
     assert e.ts().isPresent();
     return new ast.E.MCall(
       e.receiver().accept(this),

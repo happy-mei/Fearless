@@ -128,26 +128,12 @@ public record InferBodies(ast.Program p) {
     return res;
   }
 
-  Optional<E.Sig> onlyAbs(Id.IT<astFull.T> it){ return onlyProp(it,CM::isAbs); }
+  Optional<E.Sig> onlyAbs(Id.IT<astFull.T> it){ return p.fullSig(it,CM::isAbs); }
 
   Optional<E.Sig> onlyMName(Id.IT<astFull.T> it, Id.MethName name){
-    return onlyProp(it,cm->cm.name().equals(name));
+    return p.fullSig(it,cm->cm.name().equals(name));
   }
-  private Optional<E.Sig> onlyProp(Id.IT<astFull.T> it, Predicate<CM> pred) {
-    var freshGXs = Id.GX.standardNames(it.ts().size());
-    var freshGXsSet = new HashSet<>(freshGXs);
-    var freshGXsQueue = new ArrayDeque<>(freshGXs);
-    var ts = it.ts().stream().map(t->new ast.T(Mdf.mdf, freshGXsQueue.poll())).toList();
-    var ms = p.meths(new Id.IT<>(it.name(), ts)).stream()
-      .filter(pred)
-      .toList();
-    if (ms.size() != 1) { return Optional.empty(); }
 
-    var sig = ms.get(0).sig().toAstFullSig();
-    var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(freshGXsSet, t)).toList();
-    var restoredRt = RefineTypes.regenerateInfers(freshGXsSet, sig.ret());
-    return Optional.of(new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos()));
-  }
   Optional<E.Meth> bPropGetSig(Map<String, T> gamma, E.Meth m, E.Lambda e) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
@@ -193,29 +179,43 @@ public record InferBodies(ast.Program p) {
 
     var refiner = new RefineTypes(p);
     var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t());
-    var refined = refiner.refineSigMassive(recv, List.of(baseSig));
+    var refined = refiner.refineSigMassive(c.mdf(), recv, List.of(baseSig));
     var refinedSig = refined.sigs().get(0);
     var fixedRecv = refiner.fixType(e.receiver(), new T(e.receiver().t().mdf(), refined.c()));
     var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args());
+    var fixedGens = e.ts().map(userGens -> replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
 
     assert refinedSig.name().equals(e.name());
     var res = new E.MCall(
       fixedRecv,
       refinedSig.name(),
-      Optional.of(refinedSig.gens()),
+      Optional.of(fixedGens),
       fixedArgs,
       refiner.best(refinedSig.rt(), e.t()),
       e.pos()
     );
     return e.equals(res) ? Optional.empty() : Optional.of(res);
   }
+  public static T replaceOnlyInfers(T user, T inferred) {
+    if (user.isInfer()) { return inferred; }
+    if (!(user.rt() instanceof Id.IT<T> userIT
+      && inferred.rt() instanceof Id.IT<T> inferredIT)) { return user; }
+    if (!userIT.name().equals(inferredIT.name())) { return user; }
+    return new T(user.mdf(), userIT.withTs(replaceOnlyInfers(userIT.ts(), inferredIT.ts())));
+  }
+  public static List<T> replaceOnlyInfers(List<T> userGens, List<T> inferredGens) {
+    return Streams.zip(userGens, inferredGens)
+      .map(InferBodies::replaceOnlyInfers)
+      .toList();
+  }
   Optional<E> methCallNoGens(Map<String, T> gamma, E.MCall e) {
     if (e.ts().isPresent()) { return Optional.empty(); }
     var c = e.receiver().t();
     // cond: e.name().name.equals("#") && c.itOrThrow().name().name().equals("base.UpdateRef")
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
-    var m = p.meths(recv.toAstIT(T::toAstT), e.name()).orElseThrow();
-    var k = m.sig().gens().size();
+
+    var sig = p.fullSig(recv, cm->cm.name().equals(e.name())).orElseThrow();
+    var k = sig.gens().size();
     var infers = Collections.nCopies(k, T.infer);
     return Optional.of(e.withTs(Optional.of(infers)));
   }

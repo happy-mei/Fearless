@@ -22,6 +22,7 @@ public final class T {
   public T(Mdf mdf, Id.RT<T> rt) {
     Objects.requireNonNull(mdf);
     Objects.requireNonNull(rt);
+    assert rt instanceof Id.GX<T> || mdf != Mdf.mdf;
     this.mdf = mdf;
     this.rt = rt;
   }
@@ -47,6 +48,11 @@ public final class T {
   public T withMdf(Mdf mdf) {
     assert !this.isInfer();
     return new T(mdf, rt);
+  }
+  public T propagateMdf(Mdf mdf){
+    assert !this.isInfer();
+    if(mdf.isMdf()){ return this; }
+    return this.withMdf(mdf);
   }
   public Id.IT<T> itOrThrow() {
     return match(gx->{
