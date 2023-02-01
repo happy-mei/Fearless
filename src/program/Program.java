@@ -23,6 +23,10 @@ public interface Program {
   List<CM> cMsOf(Id.IT<T> t);
   Set<Id.GX<ast.T>> gxsOf(Id.IT<T> t);
 
+  static void reset() {
+    methsCache.clear();
+  }
+
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1==m2){ return true; }
     return switch(m1){
@@ -163,17 +167,24 @@ public interface Program {
     assert myM_.size()==1;
     return Optional.of(myM_.get(0));
   }
+
   default List<CM> meths(Id.IT<T> it) {
-    // TODO: Maybe also cache this
-    return methsAux(it).stream().map(this::freshenMethGens).toList();
+    return methsAux(it).stream().map(cm->freshenMethGens(cm, Set.of())).toList();
   }
+  default List<CM> meths(Id.IT<T> it, Set<String> undefinedUsedXs) {
+    return methsAux(it).stream().map(cm->freshenMethGens(cm, undefinedUsedXs)).toList();
+  }
+  HashMap<Id.IT<T>, List<CM>> methsCache = new HashMap<>();
   default List<CM> methsAux(Id.IT<T> it) {
-    // TODO: Cache this
+    // Can't use computeIfAbsent here because concurrent modification thanks to mutual recursion :-(
+    if (methsCache.containsKey(it)) { return methsCache.get(it); }
     List<CM> cms = Stream.concat(
       cMsOf(it).stream(),
       itsOf(it).stream().flatMap(iti->methsAux(iti).stream())
     ).toList();
-    return prune(cms);
+    var res = prune(cms);
+    methsCache.put(it, res);
+    return res;
   }
 
   static record RenameGens(Map<Id.GX<T>,Id.GX<T>> subst) implements CloneVisitor {
@@ -205,11 +216,12 @@ public interface Program {
   /**
    * Normalised CMs are required for 5a, but the rest of the type system needs fresh names.
    */
-  default CM freshenMethGens(CM cm) {
-    var gx=cm.sig().gens();
-    List<Id.GX<ast.T>> names=Id.GX.freshNamesSig(gx.size());
-    Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gx.size()).boxed()
-      .collect(Collectors.toMap(gx::get, names::get));
+  default CM freshenMethGens(CM cm, Set<String> undefinedUsedXs) {
+    var gxs=cm.sig().gens();
+    var names = new ArrayDeque<>(Id.GX.freshNamesSig(gxs.size() - undefinedUsedXs.size()));
+    var recoveredNames = gxs.stream().map(gx->undefinedUsedXs.contains(gx.name()) ? gx : names.poll()).toList();
+    Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gxs.size()).boxed()
+      .collect(Collectors.toMap(gxs::get, recoveredNames::get));
     var newSig=new RenameGens(subst).visitSig(cm.sig());
     return cm.withSig(newSig);
   }

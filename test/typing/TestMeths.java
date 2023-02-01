@@ -518,4 +518,16 @@ public class TestMeths {
     B:{.m:Break[A]}
     Break[X]:{ .b:Break[X] }
     """); }
+
+  @Test void methGens() { ok("""
+    [base.A[],imm.m2/1(k)[X0$][immX0$]:imm base.Void[]abs,
+    base.A[],imm.m1/1(x)[X1$][immX1$]:imm base.Void[]impl]
+    """, "base.A", """
+    package base
+    A:{
+      .m1[T](x:T):Void->this.m2(x),
+      .m2[K](k:K):Void
+      }
+    Void:{}
+    """); }
 }

@@ -230,6 +230,34 @@ public class TestInferBodies {
     NoMutHyg[X]:{}
     """); }
 
+  @Test void immDelegateExplicit() { ok("""
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this
+      .m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immbase.Void[]]->this.m2/1[mdfT]([x]),.
+      m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immK],ret=immbase.Void[]]->[-]}],
+    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-mdf-][base.Void[]]{'this}]}
+    """, """
+    package base
+    A:{
+      .m1[T](x:T):Void->this.m2[mdf T](x),
+      .m2[K](k:K):Void
+      }
+    Void:{}
+    """); }
+
+  @Test void immDelegateExplicitImmGen() { ok("""
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this
+      .m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immbase.Void[]]->this.m2/1[imm T]([x]),.
+      m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immK],ret=immbase.Void[]]->[-]}],
+    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-mdf-][base.Void[]]{'this}]}
+    """, """
+    package base
+    A:{
+      .m1[T](x:T):Void->this.m2[T](x),
+      .m2[K](k:K):Void
+      }
+    Void:{}
+    """); }
+
   @Test void immDelegate() { ok("""
     {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this
       .m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immbase.Void[]]->this.m2/1[immT]([x]),
