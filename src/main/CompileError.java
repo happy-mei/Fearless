@@ -3,11 +3,13 @@ package main;
 import files.Pos;
 
 import java.io.Serial;
+import java.util.Optional;
 
 public class CompileError extends RuntimeException{
   @Serial private static final long serialVersionUID = 1L;
   Pos pos;
   public CompileError pos(Pos pos){ this.pos=pos; return this; }
+  public CompileError pos(Optional<Pos> pos){ return pos.map(this::pos).orElse(this); }
   public CompileError() {super();}
   public CompileError(Throwable cause) {super(cause);}
   public CompileError(String msg) {super(msg);}

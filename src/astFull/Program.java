@@ -2,6 +2,7 @@ package astFull;
 
 import id.Id;
 import magic.Magic;
+import main.CompileError;
 import main.Fail;
 import program.CM;
 import program.TypeRename;
@@ -127,17 +128,21 @@ public class Program implements program.Program{
       return l.withMeths(ms);
     }
     Id.MethName onlyAbs(T.Dec dec){
-      var m = OneOr.of("Invalid number of abstract methods", p.meths(dec.toAstT()).stream().filter(CM::isAbs));
+      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), p.meths(dec.toAstT()).stream().filter(CM::isAbs));
       return m.name();
     }
     E.Meth inferSignature(T.Dec dec, E.Meth m) {
-      if(m.sig().isPresent()){ return m; }
-      var name=m.name().orElseGet(() -> onlyAbs(dec));
-      m = m.withName(name);
-      assert name.num()==m.xs().size();
-      var inferred = p.meths(dec.toAstT(), name)
-        .orElseThrow(()->Fail.cannotInferSig(dec.name(), name));
-      return m.withSig(inferred.sig().toAstFullSig());
+      try {
+        if(m.sig().isPresent()){ return m; }
+        var name=m.name().orElseGet(() -> onlyAbs(dec));
+        var namedMeth = m.withName(name);
+        assert name.num()==namedMeth.xs().size();
+        var inferred = p.meths(dec.toAstT(), name)
+          .orElseThrow(()->Fail.cannotInferSig(dec.name(), name));
+        return namedMeth.withSig(inferred.sig().toAstFullSig());
+      } catch (CompileError e) {
+        throw e.pos(m.pos());
+      }
     }
   }
   @Override public String toString() { return this.ds().toString(); }
