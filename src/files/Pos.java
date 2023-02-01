@@ -1,6 +1,7 @@
 package files;
 
 import java.net.URI;
+import java.util.Objects;
 
 //Note: we plan to soft connect positions with AST node by having a static external hash map
 public record Pos(URI fileName, int line, int column) implements java.io.Serializable {
@@ -33,5 +34,9 @@ public record Pos(URI fileName, int line, int column) implements java.io.Seriali
    */
   @Override public int hashCode() {
     return 0;
+  }
+
+  public int realHashCode() {
+    return Objects.hash(fileName, line, column);
   }
 }

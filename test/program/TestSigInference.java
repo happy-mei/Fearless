@@ -149,7 +149,7 @@ public class TestSigInference {
 
   @Test void oneParentImplGens() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
-      .fullType/1([x]):Sig[mdf=imm,gens=[X1$],ts=[immX1$],ret=immX1$]->x:infer}],
+      .fullType/1([x]):Sig[mdf=imm,gens=[X0$],ts=[immX0$],ret=immX0$]->x:infer}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
       .fullType/1([a]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}]}
     """, """
@@ -332,7 +332,7 @@ public class TestSigInference {
     {a.Id/0=Dec[name=a.Id/0,gxs=[],lambda=[-infer-][]{'this
       .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}],
     a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=[-infer-][a.Id[]]{'this
-      .id/1([x]):Sig[mdf=imm,gens=[X1$],ts=[immX1$],ret=immX1$]->x:infer}]}
+      .id/1([x]):Sig[mdf=imm,gens=[X0$],ts=[immX0$],ret=immX0$]->x:infer}]}
     """, """
     package a
     Id:{ .id[X](x: X): X }
