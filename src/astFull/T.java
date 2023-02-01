@@ -45,6 +45,9 @@ public final class T {
         return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
       });
   }
+  /**Note: this is not considering Mdf.mdf specially.
+   We discussed it and it important for the withers to be consistent.
+   There are places where we purposely do .withMdf(Mdf.mdf)*/
   public T withMdf(Mdf mdf) {
     assert !this.isInfer();
     return new T(mdf, rt);

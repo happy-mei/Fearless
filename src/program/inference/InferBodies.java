@@ -125,6 +125,7 @@ public record InferBodies(ast.Program p) {
   Optional<E.Meth> bPropGetSigM(Map<String, T> gamma, E.Meth m, E.Lambda e) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
+    if(m.name().isPresent()){ return Optional.empty(); }
     var res = onlyAbs(e.it().get()).map(m::withSig);
     assert res.map(m1->!m.equals(m1)).orElse(true);
     return res;
@@ -139,7 +140,8 @@ public record InferBodies(ast.Program p) {
   Optional<E.Meth> bPropGetSig(Map<String, T> gamma, E.Meth m, E.Lambda e) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
-    var sig = onlyMName(e.it().get(), m.name().orElseThrow());
+    if(m.name().isEmpty()){ return Optional.empty(); }
+    var sig = onlyMName(e.it().get(), m.name().get());
     if(sig.isEmpty()){ return Optional.empty(); }
     var res = sig.map(m::withSig);
     assert res.map(m1->!m.equals(m1)).orElse(true);
