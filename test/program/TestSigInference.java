@@ -101,6 +101,7 @@ public class TestSigInference {
     """);}
 
   @Test void inferClashingGenMeth() { fail("""
+    In position [###]:2:14
     uncomposableMethods:18
     These methods could not be composed.
     conflicts:
@@ -259,6 +260,7 @@ public class TestSigInference {
     """); }//So, how do we 'accept' that the version with X and the version with X0 are compatible
 
   @Test void noMethodExists() { fail("""
+    In position [###]Dummy0.fear:4:12
     cannotInferSig:19
     Could not infer the signature for .foo/0 in a.Bi/2.
     """, """
@@ -317,8 +319,10 @@ public class TestSigInference {
       """);
   }
 
-  @Disabled // TODO: write a better error message (should be no trait exists instead of invalid num of abstract methods)
   @Test void abstractNoCandidate() { fail("""
+    In position [###]/Dummy0.fear:3:6
+    cannotInferAbsSig:22
+    Could not infer the signature for the abstract lambda in a.Id2/0. There must be one abstract lambda in the trait.
     """, """
     package a
     Id:{ .id[X](x: X): X }

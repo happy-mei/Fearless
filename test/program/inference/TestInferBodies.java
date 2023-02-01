@@ -79,7 +79,7 @@ public class TestInferBodies {
     {a.Id/0=Dec[name=a.Id/0,gxs=[],lambda=[-mdf-][a.Id[]]{'this
       .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}],
     a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=[-mdf-][a.Id2[],a.Id[]]{'this
-      .id/1([x]):Sig[mdf=imm,gens=[Fear0$],ts=[immFear0$],ret=immFear0$]->x}]}
+      .id/1([x]):Sig[mdf=imm,gens=[X1$],ts=[immX1$],ret=immX1$]->x}]}
     """,  """
     package a
     Id:{ .id[X](x: X): X }
@@ -115,13 +115,13 @@ public class TestInferBodies {
     """); }
 
   @Test void immOpt() { ok("""
-    {base.OptMap/2=Dec[name=base.OptMap/2,gxs=[T,R],lambda=[-mdf-][base.OptMap[mdfT,mdfR],
-    base.OptMatch[immT,immbase.Opt[immR]]]{'this
+    {base.OptMap/2=Dec[name=base.OptMap/2,gxs=[T,R],lambda=[-mdf-][base.OptMap[mdfT,mdfR],base.OptMatch[immT,immbase.Opt[immR]]]{'this
       #/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],
       .some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immbase.Opt[immR]]->
         [-imm-][base.Opt[],base.Opt[]]{'fear0$}#/1[mdfR]([this#/1[]([x])]),
       .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Opt[immR]]->
         [-imm-][base.Opt[immR]]{'fear1$}}],
+        
     base.OptDo/1=Dec[name=base.OptDo/1,gxs=[T],lambda=[-mdf-][base.OptDo[mdfT],base.OptMatch[immT,immbase.Void[]]]{'this
       #/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immbase.Void[]]->[-],
       .some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immbase.Void[]]->[-imm-][base.Opt[],base.Opt[]]{'fear2$}#/1[immbase.Opt[immT]]([this._doRes/2[]([this#/1[]([x]),x])]),
@@ -131,6 +131,7 @@ public class TestInferBodies {
       #/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immbase.Opt[immT]]->
         [-imm-][base.Opt[immT]]{'fear5$.match/1([m]):Sig[mdf=imm,gens=[T],ts=[immbase.OptMatch[immT,immT]],ret=immT]->
           m.some/1[]([x])}}],
+          
     base.Opt/1=Dec[name=base.Opt/1,gxs=[T],lambda=[-mdf-][base.Opt[mdfT],base.NoMutHyg[immT]]{'this
       .match/1([m]):Sig[mdf=imm,gens=[R],ts=[immbase.OptMatch[immT,immR]],ret=immR]->
         m.none/0[]([]),
@@ -140,11 +141,14 @@ public class TestInferBodies {
           this.match/1[mdfR]([f]),
       .flatMap/1([f]):Sig[mdf=imm,gens=[R],ts=[immbase.OptFlatMap[immT,immR]],ret=immbase.Opt[immR]]->
         this.match/1[mdfR]([f])}],
+        
     base.OptFlatMap/2=Dec[name=base.OptFlatMap/2,gxs=[T,R],lambda=[-mdf-][base.OptFlatMap[mdfT,mdfR],base.OptMatch[immT,immbase.Opt[immR]]]{'this
       .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Opt[immR]]->
         [-imm-][base.Opt[immR]]{'fear6$}}],
+        
     base.NoMutHyg/1=Dec[name=base.NoMutHyg/1,gxs=[X],lambda=[-mdf-][base.NoMutHyg[mdfX]]{'this}],
     base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-mdf-][base.Void[]]{'this}],
+    
     base.OptMatch/2=Dec[name=base.OptMatch/2,gxs=[T,R],lambda=[-mdf-][base.OptMatch[mdfT,mdfR]]{'this
       .some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],
       .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immR]->[-]}]}
@@ -297,10 +301,10 @@ public class TestInferBodies {
 
   @Test void nestedGensClash(){ ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-mdf-][base.B[],base.A[]]{'this
-      .foo/0([]):Sig[mdf=imm,gens=[Fear0$],ts=[],ret=immbase.A[]]->
+      .foo/0([]):Sig[mdf=imm,gens=[X0$],ts=[],ret=immbase.A[]]->
         [-imm-][base.A[]]{'fear0$
-          .foo/0([]):Sig[mdf=imm,gens=[Fear1$],ts=[],ret=immbase.A[]]->
-            [-imm-][base.A[]]{'fear1$.foo/0([]):Sig[mdf=imm,gens=[Fear2$],ts=[],ret=immbase.A[]]->this}}}],
+          .foo/0([]):Sig[mdf=imm,gens=[X1$],ts=[],ret=immbase.A[]]->
+            [-imm-][base.A[]]{'fear1$.foo/0([]):Sig[mdf=imm,gens=[X2$],ts=[],ret=immbase.A[]]->this}}}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this.foo/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=immbase.A[]]->[-]}]}
     """, """
     package base
