@@ -279,7 +279,7 @@ public class TestInferBodies {
   @Test void inferRefDef() { ok("""
     """, """
     package base
-    alias base.NoMutHyg as NoMutHyg,
+    NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[mdf V,mdf R]):mdf R -> l.in(l.var) }
     Let[V,R]:{ .var:mdf V, .in(v:mdf V):mdf R }
@@ -297,9 +297,10 @@ public class TestInferBodies {
 
   @Test void nestedGensClash(){ ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-mdf-][base.B[],base.A[]]{'this
-      .foo/0([]):Sig[mdf=imm,gens=[Par0$],ts=[],ret=immbase.A[]]->
-        [-imm-][base.A[]]{'fear0$.foo/0([]):Sig[mdf=imm,gens=[Par0$],ts=[],ret=immbase.A[]]->[-imm-][base.A[]]{'fear1$
-          .foo/0([]):Sig[mdf=imm,gens=[Par0$],ts=[],ret=immbase.A[]]->this}}}],
+      .foo/0([]):Sig[mdf=imm,gens=[Fear0$],ts=[],ret=immbase.A[]]->
+        [-imm-][base.A[]]{'fear0$
+          .foo/0([]):Sig[mdf=imm,gens=[Fear1$],ts=[],ret=immbase.A[]]->
+            [-imm-][base.A[]]{'fear1$.foo/0([]):Sig[mdf=imm,gens=[Fear2$],ts=[],ret=immbase.A[]]->this}}}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this.foo/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=immbase.A[]]->[-]}]}
     """, """
     package base
@@ -314,7 +315,4 @@ public class TestInferBodies {
       }
     }
     """); }
-  //TODO: we need to make so that the parameters Xs inferred in signatures are
-  //-not clashing
-  //-user readable
 }

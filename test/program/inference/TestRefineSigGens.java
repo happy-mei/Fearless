@@ -44,7 +44,7 @@ public class TestRefineSigGens {
 
   @Test
   void replaceGens() { ok("""
-    [RP[t1=imm a.Foo[mdf Y],t2=imm a.Foo[mdf Y]]]
+    [RP[t1=imm a.Foo[mdf X],t2=imm a.Foo[mdf X]]]
     """, """
     package a
     Foo[A]:{}
@@ -52,7 +52,7 @@ public class TestRefineSigGens {
 
   @Test
   void replaceGens2() { ok("""
-    [RP[t1=mut a.Foo[mdf Y],t2=mut a.Foo[mdf Y]]]
+    [RP[t1=mut a.Foo[mdf X],t2=mut a.Foo[mdf X]]]
     """, """
     package a
     Foo[A]:{}
@@ -60,11 +60,11 @@ public class TestRefineSigGens {
 
   @Test
   void replaceGensKeepMdf() { ok("""
-    [RP[t1=mdfa.Foo[mdfY],t2=mdfa.Foo[mdfY]]]
+    [RP[t1=imm a.Foo[mdfX],t2=imm a.Foo[mdfX]]]
     """, """
     package a
     Foo[A]:{}
-    """, "mdf a.Foo[mdf Y] = mdf a.Foo[mdf X]"); }
+    """, "imm a.Foo[mdf Y] = imm a.Foo[mdf X]"); }
 
   @Test
   void aGen() { ok("""
@@ -77,7 +77,7 @@ public class TestRefineSigGens {
 
   @Test
   void aGen2() { ok("""
-    [RP[t1=imma.A[imma.B[],imma.B[]],t2=imma.A[imma.B[],imma.B[]]],RP[t1=immX,t2=imma.B[]]]
+    [RP[t1=imma.A[imma.B[],imma.B[]],t2=imma.A[imma.B[],imma.B[]]],RP[t1=immY,t2=imma.B[]]]
     """, """
     package a
     A[X,Y]:{}

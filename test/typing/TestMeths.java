@@ -429,28 +429,28 @@ public class TestMeths {
     B:{.m[X]:A}
     """); }
   @Test void t19() { ok("""
-    [a.A[],imm.m/0()[Fear0$][]:imma.A[]abs]
+    [a.A[],imm.m/0()[X0$][]:imma.A[]abs]
     """, "a.A", """
     package a
     A:B{ .m[X]:A }
     B:{ .m[X]:A->this}
     """); }
   @Test void t20a() { ok("""
-    [a.A[immX],imm.foo/0()[][]:immXabs,a.B[],imm.m/0()[Fear0$][]:imma.A[imma.B[]]impl]
+    [a.A[immX],imm.foo/0()[][]:immXabs,a.B[],imm.m/0()[X0$][]:imma.A[imma.B[]]impl]
     """, "a.A[X]", """
     package a
     A[X]:B{ .foo:X }
     B:{.m[X]:A[B]->this}
     """); }
   @Test void t20b() { ok("""
-    [a.A[imma.A[]],imm.foo/0()[][]:imma.A[]abs,a.B[],imm.m/0()[Fear0$][]:imma.A[imma.B[]]impl]
+    [a.A[imma.A[]],imm.foo/0()[][]:imma.A[]abs,a.B[],imm.m/0()[X0$][]:imma.A[imma.B[]]impl]
     """, "a.A[a.A]", """
     package a
     A[X]:B{ .foo:X }
     B:{.m[X]:A[B]->this}
     """); }
   @Test void t20c() { ok("""
-    [a.A[imma.B[]],imm.foo/0()[][]:imma.B[]abs,a.B[],imm.m/0()[Fear0$][]:imma.A[imma.B[]]impl]
+    [a.A[imma.B[]],imm.foo/0()[][]:imma.B[]abs,a.B[],imm.m/0()[X0$][]:imma.A[imma.B[]]impl]
     """, "a.A[a.B]", """
     package a
     A[X]:B{ .foo:X }
@@ -458,7 +458,7 @@ public class TestMeths {
     """); }
   @Test void t21() { ok("""
     [a.A[imm Panic],imm.foo/0()[][]:imm Panic abs,
-    a.B[imm Panic],imm.m/0()[Fear0$][]:imma.Bi[immFear0$,immPanic]impl]
+    a.B[imm Panic],imm.m/0()[X0$][]:imma.Bi[immX0$,immPanic]impl]
     """, "a.A[Panic]", """
     package a
     A[X]:B[X]{ .foo:X }

@@ -17,6 +17,9 @@ public interface CM {
   ast.E.Sig sig();
   default Mdf mdf(){ return sig().mdf(); }
   default T ret(){ return sig().ret(); }
+  default String qualifiedName() {
+    return c().name()+"$"+name();
+  }
   default String toStringSimplified(){ return c() + ", " + name(); }
   static CM of(Id.IT<T> c, ast.E.Meth m, ast.E.Sig sig){ return new CoreCM(c,m,sig); }
   static CM of(Id.IT<T> c, astFull.E.Meth m, ast.E.Sig sig){ return new FullCM(c,m,sig); }

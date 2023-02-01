@@ -80,7 +80,7 @@ public class TestSigInference {
   @Test void inferOneSigGens() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{
       'this
-      .fullType/0([]):Sig[mdf=imm,gens=[Fear0$],ts=[],ret=immFear0$]->this:infer.fullType/0[-]([]):infer}],
+      .fullType/0([]):Sig[mdf=imm,gens=[X0$],ts=[],ret=immX0$]->this:infer.fullType/0[-]([]):infer}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this.fullType/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=immX]->[-]}]}
     """, """
     package base
@@ -91,7 +91,7 @@ public class TestSigInference {
   @Test void inferOneSigGensClash() { ok("""
     {base.B/1=Dec[name=base.B/1,gxs=[X],lambda=[-infer-][base.A[]]{'this
       .bla/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->[-],
-      .fullType/0([]):Sig[mdf=imm,gens=[Fear0$],ts=[],ret=immFear0$]->this:infer.fullType/0[-]([]):infer}],
+      .fullType/0([]):Sig[mdf=imm,gens=[X0$],ts=[],ret=immX0$]->this:infer.fullType/0[-]([]):infer}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
       .fullType/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=immX]->[-]}]}
     """, """
@@ -116,7 +116,7 @@ public class TestSigInference {
   @Test void inferOneSigGensAndParams() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{
       'this
-      .fullType/1([y]):Sig[mdf=imm,gens=[Fear0$],ts=[immFear0$],ret=immbase.A[]]->[-immbase.B[]-][base.B[]]{}}],
+      .fullType/1([y]):Sig[mdf=imm,gens=[X0$],ts=[immX0$],ret=immbase.A[]]->[-immbase.B[]-][base.B[]]{}}],
       base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this.fullType/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immbase.A[]]->[-]}]}
     """, """
     package base
@@ -148,7 +148,7 @@ public class TestSigInference {
 
   @Test void oneParentImplGens() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
-      .fullType/1([x]):Sig[mdf=imm,gens=[Fear0$],ts=[immFear0$],ret=immFear0$]->x:infer}],
+      .fullType/1([x]):Sig[mdf=imm,gens=[X1$],ts=[immX1$],ret=immX1$]->x:infer}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
       .fullType/1([a]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}]}
     """, """
@@ -201,7 +201,7 @@ public class TestSigInference {
       .m/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=imma.Bi[immX,immY]]->this:infer}],
     a.A/1=Dec[name=a.A/1,gxs=[X],lambda=[-infer-][a.B[immX]]{'this
       .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->[-],
-      .m/0([]):Sig[mdf=imm,gens=[Fear0$],ts=[],ret=imma.Bi[imm Fear0$,imm Fear0$]]->this:infer}],
+      .m/0([]):Sig[mdf=imm,gens=[X0$],ts=[],ret=imma.Bi[imm X0$,imm X0$]]->this:infer}],
     a.Bi/2=Dec[name=a.Bi/2,gxs=[AA,BB],lambda=[-infer-][]{'this}]}
     """, """
     package a
@@ -215,7 +215,7 @@ public class TestSigInference {
     a.Id/0=Dec[name=a.Id/0,gxs=[],lambda=[-infer-][]{'this
       .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}],
     a.C/0=Dec[name=a.C/0,gxs=[],lambda=[-infer-][a.A[],a.B[imma.A[]]]{'this
-      .id/1([a]):Sig[mdf=imm,gens=[Fear0$],ts=[immFear0$],ret=immFear0$]->a:infer}]}
+      .id/1([a]):Sig[mdf=imm,gens=[X0$],ts=[immX0$],ret=immX0$]->a:infer}]}
     """, """
     package a
     Id:{ .id[X](x:X):X }
@@ -227,7 +227,7 @@ public class TestSigInference {
     {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][a.Id1[]]{'this}],
     a.B/1=Dec[name=a.B/1,gxs=[Y],lambda=[-infer-][a.Id2[]]{'this}],
     a.C/0=Dec[name=a.C/0,gxs=[],lambda=[-infer-][a.A[],a.B[imma.A[]]]{'this
-      .id/1([a]):Sig[mdf=imm,gens=[Fear0$],ts=[immFear0$],ret=immFear0$]->a:infer}],
+      .id/1([a]):Sig[mdf=imm,gens=[X0$],ts=[immX0$],ret=immX0$]->a:infer}],
     a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=[-infer-][]{'this
       .id/1([x]):Sig[mdf=imm,gens=[Z],ts=[immZ],ret=immZ]->[-]}],
     a.Id1/0=Dec[name=a.Id1/0,gxs=[],lambda=[-infer-][]{'this
@@ -244,7 +244,7 @@ public class TestSigInference {
     {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][a.Id1[]]{'this}],
     a.B/1=Dec[name=a.B/1,gxs=[Y],lambda=[-infer-][a.Id2[]]{'this}],
     a.C/0=Dec[name=a.C/0,gxs=[],lambda=[-infer-][a.A[],a.B[imma.A[]]]{'this
-      .id/1([a]):Sig[mdf=imm,gens=[Fear0$],ts=[immFear0$],ret=immFear0$]->a:infer}],
+      .id/1([a]):Sig[mdf=imm,gens=[X0$],ts=[immX0$],ret=immX0$]->a:infer}],
     a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=[-infer-][]{'this
       .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}],
     a.Id1/0=Dec[name=a.Id1/0,gxs=[],lambda=[-infer-][]{'this
@@ -272,7 +272,7 @@ public class TestSigInference {
     {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][]{'this
       .m/2([x,y]):Sig[mdf=imm,gens=[X,Y],ts=[immX,immY],ret=immY]->[-]}],
       a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[]]{'this
-        .m/2([a1,a2]):Sig[mdf=imm,gens=[Fear0$,Fear1$],ts=[immFear0$,immFear1$],ret=immFear1$]->a2:infer}]}
+        .m/2([a1,a2]):Sig[mdf=imm,gens=[X0$,X1$],ts=[immX0$,immX1$],ret=immX1$]->a2:infer}]}
     """, """
     package a
     A:{ .m[X,Y](x:X,y:Y): Y }
@@ -283,7 +283,7 @@ public class TestSigInference {
       .m/2([x,y]):Sig[mdf=imm,gens=[X,Y],ts=[imma.Foo[immX],immY],ret=immY]->[-]}],
     a.Foo/1=Dec[name=a.Foo/1,gxs=[X],lambda=[-infer-][]{'this}],
     a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[]]{'this
-      .m/2([a1,a2]):Sig[mdf=imm,gens=[Fear0$,Fear1$],ts=[imma.Foo[immFear0$],immFear1$],ret=immFear1$]->a2:infer}]}
+      .m/2([a1,a2]):Sig[mdf=imm,gens=[X0$,X1$],ts=[imma.Foo[immX0$],immX1$],ret=immX1$]->a2:infer}]}
     """, """
     package a
     Foo[X]:{}
@@ -295,7 +295,7 @@ public class TestSigInference {
       .m/2([x,y]):Sig[mdf=read,gens=[X,Y],ts=[muta.Foo[immX],recMdfY],ret=recMdfY]->[-]}],
     a.Foo/1=Dec[name=a.Foo/1,gxs=[X],lambda=[-infer-][]{'this}],
     a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[]]{'this
-      .m/2([a1,a2]):Sig[mdf=read,gens=[Fear0$,Fear1$],ts=[muta.Foo[immFear0$],recMdfFear1$],ret=recMdfFear1$]->a2:infer}]}
+      .m/2([a1,a2]):Sig[mdf=read,gens=[X0$,X1$],ts=[muta.Foo[immX0$],recMdfX1$],ret=recMdfX1$]->a2:infer}]}
     """, """
     package a
     Foo[X]:{}
@@ -308,7 +308,7 @@ public class TestSigInference {
         .g/0([]):Sig[mdf=imm,gens=[AA],ts=[],ret=immAA]->[-]}],
         base.C/0=Dec[name=base.C/0,gxs=[],lambda=[-infer-][]{'this.g/0([]):Sig[mdf=imm,gens=[BB],ts=[],ret=immBB]->[-]}],
         base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][base.B[],base.C[]]{'this
-          .g/0([]):Sig[mdf=imm,gens=[Fear0$],ts=[],ret=immFear0$]->this:infer.g/0[-]([]):infer}]}
+          .g/0([]):Sig[mdf=imm,gens=[X0$],ts=[],ret=immX0$]->this:infer.g/0[-]([]):infer}]}
       """, """
       package base
       A:B,C{ .g -> this.g }
@@ -328,7 +328,7 @@ public class TestSigInference {
     {a.Id/0=Dec[name=a.Id/0,gxs=[],lambda=[-infer-][]{'this
       .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}],
     a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=[-infer-][a.Id[]]{'this
-      .id/1([x]):Sig[mdf=imm,gens=[Fear0$],ts=[immFear0$],ret=immFear0$]->x:infer}]}
+      .id/1([x]):Sig[mdf=imm,gens=[X1$],ts=[immX1$],ret=immX1$]->x:infer}]}
     """, """
     package a
     Id:{ .id[X](x: X): X }
@@ -393,13 +393,14 @@ public class TestSigInference {
       #/1([l]):Sig[mdf=imm,gens=[V,R],ts=[immbase.Let[immV,immR]],ret=immR]->
         l:infer.in/1[-]([l:infer.var/0[-]([]):infer]):infer}],
         
+    base.NoMutHyg/1=Dec[name=base.NoMutHyg/1,gxs=[X],lambda=[-infer-][]{'this}],
     base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{'this}],
     
     base.UpdateRef/1=Dec[name=base.UpdateRef/1,gxs=[X],lambda=[-infer-][]{'this
       #/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-]}]}
     """, """
     package base
-    alias base.NoMutHyg as NoMutHyg,
+    NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
     Let[V,R]:{ .var:V, .in(v:V):R }

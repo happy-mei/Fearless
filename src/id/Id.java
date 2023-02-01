@@ -3,6 +3,7 @@ package id;
 import parser.Parser;
 import utils.Bug;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -42,24 +43,27 @@ public class Id {
       if (FRESH_N > 100) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
       FRESH_N = 0;
     }
-    public static List<GX<ast.T>> standardNames5a(int n) {
+    public static List<GX<ast.T>> standardNamesSig(int n) {
       // this will never clash with the other FearN$ names because they are only used on declarations
       // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).
       return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("Par" + fresh + "$")).toList();
     }
+    public static List<GX<ast.T>> freshNamesSig(int n) {
+      // Standardised naming is needed for meths() to work. The rest of the type system requires fresh names
+      // to prevent any shadowing
+      return IntStream.range(0, n).mapToObj(unused->GX.<ast.T>freshParam()).toList();
+    }
     public static List<GX<ast.T>> standardNames(int n) {
       // this will never clash with the other FearN$ names because they are only used on declarations
       // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).
-      return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("Fear" + fresh + "$")).toList();
+      return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("FearX" + fresh + "$")).toList();
     }
-    public static <TT> GX<TT> intrinsicStandardGX() {
-     return new GX<>("Fear-1$");
+    private static <TT> GX<TT> freshParam() {
+      if (FRESH_N + 1 == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
+      return new GX<>("X" + FRESH_N++ + "$");
     }
+
     public GX{ assert Id.validGX(name); }
-    public GX(){
-      this("Fear" + FRESH_N++ + "$");
-      if (FRESH_N == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
-    }
     public <R> R match(Function<GX<TT>,R>gx, Function<IT<TT>,R>it){ return gx.apply(this); }
     @Override public String toString(){ return name(); }
     public GX<ast.T> toAstGX() { return (GX<ast.T>) this; }
