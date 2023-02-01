@@ -1,10 +1,12 @@
 package id;
 
+import files.Pos;
 import parser.Parser;
 import utils.Bug;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -39,7 +41,9 @@ public class Id {
 
   public record GX<TT>(String name)implements RT<TT>{
     private static int FRESH_N = 0;
+    private static HashMap<Integer, List<GX<ast.T>>> freshNames = new HashMap<>();
     public static void reset() {
+      freshNames.clear();
       if (FRESH_N > 100) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
       FRESH_N = 0;
     }
@@ -48,10 +52,11 @@ public class Id {
       // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).
       return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("Par" + fresh + "$")).toList();
     }
-    public static List<GX<ast.T>> freshNamesSig(int n) {
+    public static List<GX<ast.T>> freshNamesSig(int n, Pos methPos) {
+      Objects.requireNonNull(methPos);
       // Standardised naming is needed for meths() to work. The rest of the type system requires fresh names
       // to prevent any shadowing
-      return IntStream.range(0, n).mapToObj(unused->GX.<ast.T>freshParam()).toList();
+      return freshNames.computeIfAbsent(methPos.realHashCode(), pos->IntStream.range(0, n).mapToObj(unused->GX.<ast.T>freshParam()).toList());
     }
     public static List<GX<ast.T>> standardNames(int n) {
       // this will never clash with the other FearN$ names because they are only used on declarations

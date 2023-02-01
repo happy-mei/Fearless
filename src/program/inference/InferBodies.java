@@ -49,8 +49,10 @@ public record InferBodies(ast.Program p) {
   private Map<String, astFull.T> iGOf(String selfName, astFull.T lambdaT, ast.E.Meth m) {
     Map<String, astFull.T> gamma = new HashMap<>();
     gamma.put(selfName, lambdaT);
-    var sig = m.sig();
-    Streams.zip(m.xs(), sig.ts()).forEach((k,t)->gamma.put(k, t.toAstFullT()));
+    // TODO: trying using meths here, it breaks things TBD
+//    var sig = m.sig();
+    var sig = p.fullSig(lambdaT.itOrThrow(), cm->cm.name().equals(m.name())).orElseThrow();
+    Streams.zip(m.xs(), sig.ts()).forEach(gamma::put);
     return Collections.unmodifiableMap(gamma);
   }
 
@@ -223,7 +225,7 @@ public record InferBodies(ast.Program p) {
   Optional<E> var(Map<String, T> gamma, E.X e) {
     if (!e.t().isInfer()) { return Optional.empty(); }
     Optional<E> res = Optional.ofNullable(gamma.get(e.name())).map(e::withT);
-    assert res.map(e1->!e1.equals(e)).orElse(true);
+    assert res.map(e1->!e1.equals(e)).orElse(false);
     return res;
   }
 

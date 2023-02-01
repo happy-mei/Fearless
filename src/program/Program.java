@@ -169,10 +169,7 @@ public interface Program {
   }
 
   default List<CM> meths(Id.IT<T> it) {
-    return methsAux(it).stream().map(cm->freshenMethGens(cm, Set.of())).toList();
-  }
-  default List<CM> meths(Id.IT<T> it, Set<String> undefinedUsedXs) {
-    return methsAux(it).stream().map(cm->freshenMethGens(cm, undefinedUsedXs)).toList();
+    return methsAux(it).stream().map(this::freshenMethGens).toList();
   }
   HashMap<Id.IT<T>, List<CM>> methsCache = new HashMap<>();
   default List<CM> methsAux(Id.IT<T> it) {
@@ -216,12 +213,11 @@ public interface Program {
   /**
    * Normalised CMs are required for 5a, but the rest of the type system needs fresh names.
    */
-  default CM freshenMethGens(CM cm, Set<String> undefinedUsedXs) {
+  default CM freshenMethGens(CM cm) {
     var gxs=cm.sig().gens();
-    var names = new ArrayDeque<>(Id.GX.freshNamesSig(gxs.size() - undefinedUsedXs.size()));
-    var recoveredNames = gxs.stream().map(gx->undefinedUsedXs.contains(gx.name()) ? gx : names.poll()).toList();
+    var names = Id.GX.freshNamesSig(gxs.size(), cm.pos());
     Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gxs.size()).boxed()
-      .collect(Collectors.toMap(gxs::get, recoveredNames::get));
+      .collect(Collectors.toMap(gxs::get, names::get));
     var newSig=new RenameGens(subst).visitSig(cm.sig());
     return cm.withSig(newSig);
   }
