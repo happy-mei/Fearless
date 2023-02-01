@@ -143,6 +143,9 @@ public sealed interface E extends HasPos {
     public Sig withRet(T ret){
       return new Sig(mdf, gens, ts, ret, pos);
     }
+    public Sig withTs(List<T> ts){
+      return new Sig(mdf, gens, ts, ret, pos);
+    }
     public ast.E.Sig accept(InjectionVisitor visitor) {
       return visitor.visitSig(this);
     }

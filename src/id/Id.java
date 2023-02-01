@@ -42,6 +42,11 @@ public class Id {
       if (FRESH_N > 100) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
       FRESH_N = 0;
     }
+    public static List<GX<ast.T>> standardNames5a(int n) {
+      // this will never clash with the other FearN$ names because they are only used on declarations
+      // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).
+      return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("Par" + fresh + "$")).toList();
+    }
     public static List<GX<ast.T>> standardNames(int n) {
       // this will never clash with the other FearN$ names because they are only used on declarations
       // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).

@@ -5,16 +5,15 @@ import astFull.E;
 import id.Id;
 import id.Mdf;
 import main.Fail;
+import program.inference.RefineTypes;
 import utils.Bug;
 import utils.Pop;
 import utils.Push;
 import visitors.CloneVisitor;
 import visitors.InjectionVisitor;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -141,6 +140,24 @@ public interface Program {
     throw Bug.todo();
   }
 
+  default Optional<E.Sig> fullSig(Id.IT<astFull.T> it, Predicate<CM> pred) {
+    var freshGXs = Id.GX.standardNames(it.ts().size());
+    var freshGXsSet = new HashSet<>(freshGXs);
+    var freshGXsQueue = new ArrayDeque<>(freshGXs);
+    var ts = it.ts().stream().map(t->new ast.T(Mdf.mdf, freshGXsQueue.poll())).toList();
+    var myM_ = meths(new Id.IT<>(it.name(), ts)).stream()
+      .filter(pred)
+      .toList();
+    if(myM_.isEmpty()){ return Optional.empty(); }
+    assert myM_.size()==1;
+
+    var cm = myM_.get(0);
+    var sig = cm.sig().toAstFullSig();
+    var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(freshGXsSet, t)).toList();
+    var restoredRt = RefineTypes.regenerateInfers(freshGXsSet, sig.ret());
+    return Optional.of(new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos()));
+  }
+
   default Optional<CM> meths(Id.IT<T> it, Id.MethName name){
     var myM_ = meths(it).stream().filter(mi->mi.name().equals(name)).toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
@@ -175,7 +192,7 @@ public interface Program {
      */
     //standardNames(n)->List.of(Par1..Parn)
     var gx=cm.sig().gens();
-    List<Id.GX<ast.T>> names=Id.GX.standardNames(gx.size());
+    List<Id.GX<ast.T>> names=Id.GX.standardNames5a(gx.size());
     Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gx.size()).boxed()
       .collect(Collectors.toMap(gx::get, names::get));
     var newSig=new RenameGens(subst).visitSig(cm.sig());
