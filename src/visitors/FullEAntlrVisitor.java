@@ -8,7 +8,7 @@ import generated.FearlessParser.*;
 import id.Id;
 import id.Id.MethName;
 import id.Mdf;
-import main.Fail;
+import failure.Fail;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;

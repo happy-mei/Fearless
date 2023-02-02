@@ -53,10 +53,11 @@ public class Id {
       return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("Par" + fresh + "$")).toList();
     }
     public static List<GX<ast.T>> freshNamesSig(int n, Pos methPos) {
-      Objects.requireNonNull(methPos);
+      return IntStream.range(0, n).mapToObj(unused->GX.<ast.T>freshParam()).toList();
+//      Objects.requireNonNull(methPos);
       // Standardised naming is needed for meths() to work. The rest of the type system requires fresh names
       // to prevent any shadowing
-      return freshNames.computeIfAbsent(methPos.realHashCode(), pos->IntStream.range(0, n).mapToObj(unused->GX.<ast.T>freshParam()).toList());
+//      return freshNames.computeIfAbsent(methPos.realHashCode(), pos->IntStream.range(0, n).mapToObj(unused->GX.<ast.T>freshParam()).toList());
     }
     public static List<GX<ast.T>> standardNames(int n) {
       // this will never clash with the other FearN$ names because they are only used on declarations

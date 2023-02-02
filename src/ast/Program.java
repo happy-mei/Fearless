@@ -2,11 +2,9 @@ package ast;
 
 import id.Id;
 import magic.Magic;
-import main.Fail;
+import failure.Fail;
 import program.CM;
 import program.TypeRename;
-import utils.Bug;
-import utils.OneOr;
 import visitors.InjectionVisitor;
 
 import java.util.List;

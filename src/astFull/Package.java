@@ -3,7 +3,7 @@ package astFull;
 import generated.FearlessParser.TopDecContext;
 import id.Id;
 import magic.Magic;
-import main.Fail;
+import failure.Fail;
 import utils.Range;
 import utils.Streams;
 import visitors.FullEAntlrVisitor;

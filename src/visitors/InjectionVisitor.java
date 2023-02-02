@@ -4,7 +4,6 @@ import ast.T;
 import astFull.E;
 import id.Id;
 import id.Mdf;
-import main.CompileError;
 import utils.Bug;
 import utils.Push;
 

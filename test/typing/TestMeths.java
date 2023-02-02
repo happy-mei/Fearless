@@ -1,6 +1,6 @@
 package typing;
 
-import main.CompileError;
+import failure.CompileError;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -9,19 +9,17 @@ import program.Program;
 import utils.Err;
 import utils.FromContent;
 
-import java.util.Set;
-
 public class TestMeths {
   void ok(String expected, String type, String ...code){
     var it = new Parser(Parser.dummy, type).parseFullT();
     Program p= FromContent.of(code);
-    Err.strCmpFormat(expected, p.meths(it.toAstT().itOrThrow()).toString());
+    Err.strCmpFormat(expected, p.meths(it.toAstT().itOrThrow(), 0).toString());
   }
   void fail(String expected, String type, String ...code) {
     var it = new Parser(Parser.dummy, type).parseFullT();
     Program p = FromContent.of(code);
     try {
-      var res = p.meths(it.toAstT().itOrThrow());
+      var res = p.meths(it.toAstT().itOrThrow(), 0);
       Assertions.fail("Expected failure, got\n" + res);
     } catch (CompileError e) {
       Err.strCmp(expected, e.toString());
@@ -429,28 +427,28 @@ public class TestMeths {
     B:{.m[X]:A}
     """); }
   @Test void t19() { ok("""
-    [a.A[],imm.m/0()[X0$][]:imma.A[]abs]
+    [a.A[],imm.m/0()[X0/0$][]:imma.A[]abs]
     """, "a.A", """
     package a
     A:B{ .m[X]:A }
     B:{ .m[X]:A->this}
     """); }
   @Test void t20a() { ok("""
-    [a.A[immX],imm.foo/0()[][]:immXabs,a.B[],imm.m/0()[X0$][]:imma.A[imma.B[]]impl]
+    [a.A[immX],imm.foo/0()[][]:immXabs,a.B[],imm.m/0()[X0/0$][]:imma.A[imma.B[]]impl]
     """, "a.A[X]", """
     package a
     A[X]:B{ .foo:X }
     B:{.m[X]:A[B]->this}
     """); }
   @Test void t20b() { ok("""
-    [a.A[imma.A[]],imm.foo/0()[][]:imma.A[]abs,a.B[],imm.m/0()[X0$][]:imma.A[imma.B[]]impl]
+    [a.A[imma.A[]],imm.foo/0()[][]:imma.A[]abs,a.B[],imm.m/0()[X0/0$][]:imma.A[imma.B[]]impl]
     """, "a.A[a.A]", """
     package a
     A[X]:B{ .foo:X }
     B:{.m[X]:A[B]->this}
     """); }
   @Test void t20c() { ok("""
-    [a.A[imma.B[]],imm.foo/0()[][]:imma.B[]abs,a.B[],imm.m/0()[X0$][]:imma.A[imma.B[]]impl]
+    [a.A[imma.B[]],imm.foo/0()[][]:imma.B[]abs,a.B[],imm.m/0()[X0/0$][]:imma.A[imma.B[]]impl]
     """, "a.A[a.B]", """
     package a
     A[X]:B{ .foo:X }
@@ -458,7 +456,7 @@ public class TestMeths {
     """); }
   @Test void t21() { ok("""
     [a.A[imm Panic],imm.foo/0()[][]:imm Panic abs,
-    a.B[imm Panic],imm.m/0()[X0$][]:imma.Bi[immX0$,immPanic]impl]
+    a.B[imm Panic],imm.m/0()[X0/0$][]:imma.Bi[immX0/0$,immPanic]impl]
     """, "a.A[Panic]", """
     package a
     A[X]:B[X]{ .foo:X }
@@ -520,8 +518,8 @@ public class TestMeths {
     """); }
 
   @Test void methGens() { ok("""
-    [base.A[],imm.m2/1(k)[X0$][immX0$]:imm base.Void[]abs,
-    base.A[],imm.m1/1(x)[X1$][immX1$]:imm base.Void[]impl]
+    [base.A[],imm.m2/1(k)[X0/0$][immX0/0$]:imm base.Void[]abs,
+    base.A[],imm.m1/1(x)[X0/0$][immX0/0$]:imm base.Void[]impl]
     """, "base.A", """
     package base
     A:{

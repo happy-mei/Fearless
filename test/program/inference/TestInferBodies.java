@@ -1,11 +1,12 @@
 package program.inference;
 
-import main.CompileError;
+import failure.CompileError;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
+import utils.Base;
 import utils.Err;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 
@@ -25,7 +26,8 @@ public class TestInferBodies {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
-    Err.strCmpFormat(expected, inferred.toString());
+    var cleaned = Base.ignoreBase(inferred);
+    Err.strCmpFormat(expected, cleaned.toString());
   }
   void fail(String expectedErr, String... content){
     assert content.length > 0;
@@ -45,6 +47,10 @@ public class TestInferBodies {
       Err.strCmp(expectedErr, e.toString());
     }
   }
+
+  @Test void baseLib() { ok("""
+    {test.NoMutHyg/1=Dec[name=test.NoMutHyg/1,gxs=[X],lambda=[-mdf-][test.NoMutHyg[mdfX]]{'this}],test.True/0=Dec[name=test.True/0,gxs=[],lambda=[-mdf-][test.True[],test.Bool[]]{'this.and/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->b,.or/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->this,.not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Bool[]]->[-imm-][test.Bool[],test.False[]]{'fear0$},?/1([f]):Sig[mdf=imm,gens=[X0/0$],ts=[muttest.ThenElse[immX0/0$]],ret=immX0/0$]->f.then/0[]([])}],test.False/0=Dec[name=test.False/0,gxs=[],lambda=[-mdf-][test.False[],test.Bool[]]{'this.and/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->this,.or/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->b,.not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Bool[]]->[-imm-][test.Bool[],test.True[]]{'fear1$},?/1([f]):Sig[mdf=imm,gens=[X0/0$],ts=[muttest.ThenElse[immX0/0$]],ret=immX0/0$]->f.else/0[]([])}],test.ThenElse/1=Dec[name=test.ThenElse/1,gxs=[R],lambda=[-mdf-][test.ThenElse[mdfR]]{'this.then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immR]->[-],.else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immR]->[-]}],test.Bool/0=Dec[name=test.Bool/0,gxs=[],lambda=[-mdf-][test.Bool[],test.Sealed[]]{'this.and/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->[-],.or/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->[-],.not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Bool[]]->[-],?/1([f]):Sig[mdf=imm,gens=[R],ts=[muttest.ThenElse[immR]],ret=immR]->[-]}],test.OptMatch/2=Dec[name=test.OptMatch/2,gxs=[T,R],lambda=[-mdf-][test.OptMatch[mdfT,mdfR]]{'this.some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immR]->[-]}],test.Opt/0=Dec[name=test.Opt/0,gxs=[],lambda=[-mdf-][test.Opt[]]{'this#/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immtest.Opt[immT]]->[-imm-][test.Opt[mdfT]]{'fear2$.match/1([m]):Sig[mdf=imm,gens=[X1/0$],ts=[immtest.OptMatch[immT,immX1/0$]],ret=immX1/0$]->m.some/1[]([x])}}],test.Opt/1=Dec[name=test.Opt/1,gxs=[T],lambda=[-mdf-][test.Opt[mdfT],test.NoMutHyg[immT]]{'this.match/1([m]):Sig[mdf=imm,gens=[R],ts=[immtest.OptMatch[immT,immR]],ret=immR]->m.none/0[]([]),.map/1([f]):Sig[mdf=imm,gens=[R],ts=[immtest.OptMap[immT,immR]],ret=immtest.Opt[immR]]->this.match/1[immtest.Opt[immR]]([f]),.do/1([f]):Sig[mdf=imm,gens=[],ts=[immtest.OptDo[immT]],ret=immtest.Opt[immT]]->this.match/1[immtest.Opt[immT]]([f]),.flatMap/1([f]):Sig[mdf=imm,gens=[R],ts=[immtest.OptFlatMap[immT,immR]],ret=immtest.Opt[immR]]->this.match/1[immtest.Opt[immR]]([f])}],test.OptDo/1=Dec[name=test.OptDo/1,gxs=[T],lambda=[-mdf-][test.OptDo[mdfT],test.OptMatch[immT,immtest.Void[]]]{'this#/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immtest.Void[]]->[-],.some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immtest.Void[]]->[-imm-][test.Opt[],test.Opt[]]{'fear3$}#/1[immtest.Opt[immT]]([this._doRes/2[]([this#/1[]([x]),x])]),.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear4$},._doRes/2([y,x]):Sig[mdf=imm,gens=[],ts=[immtest.Void[],immT],ret=immtest.Opt[immT]]->[-imm-][test.Opt[],test.Opt[]]{'fear5$}#/1[immT]([x])}],test.OptFlatMap/2=Dec[name=test.OptFlatMap/2,gxs=[T,R],lambda=[-mdf-][test.OptFlatMap[mdfT,mdfR],test.OptMatch[immT,immtest.Opt[immR]]]{'this.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Opt[immR]]->[-imm-][test.Opt[immR]]{'fear6$}}],test.OptMap/2=Dec[name=test.OptMap/2,gxs=[T,R],lambda=[-mdf-][test.OptMap[mdfT,mdfR],test.OptMatch[immT,immtest.Opt[immR]]]{'this#/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],.some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immtest.Opt[immR]]->[-imm-][test.Opt[],test.Opt[]]{'fear7$}#/1[immR]([this#/1[]([x])]),.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Opt[immR]]->[-imm-][test.Opt[immR]]{'fear8$}}],test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}],test.Sealed/0=Dec[name=test.Sealed/0,gxs=[],lambda=[-mdf-][test.Sealed[]]{'this}]}
+    """, Base.immBaseLib("test")); }
 
   @Test void emptyProgram() { ok("""
     {}
@@ -79,7 +85,7 @@ public class TestInferBodies {
     {a.Id/0=Dec[name=a.Id/0,gxs=[],lambda=[-mdf-][a.Id[]]{'this
       .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}],
     a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=[-mdf-][a.Id2[],a.Id[]]{'this
-      .id/1([x]):Sig[mdf=imm,gens=[X1$],ts=[immX1$],ret=immX1$]->x}]}
+      .id/1([x]):Sig[mdf=imm,gens=[X0/0$],ts=[immX0/0$],ret=immX0/0$]->x}]}
     """,  """
     package a
     Id:{ .id[X](x: X): X }
@@ -115,50 +121,14 @@ public class TestInferBodies {
     """); }
 
   @Test void immOpt() { ok("""
-    {base.OptMap/2=Dec[name=base.OptMap/2,gxs=[T,R],lambda=[-mdf-][base.OptMap[mdfT,mdfR],base.OptMatch[immT,immbase.Opt[immR]]]{'this
-      #/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],
-      .some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immbase.Opt[immR]]->
-        [-imm-][base.Opt[],base.Opt[]]{'fear0$}#/1[mdfR]([this#/1[]([x])]),
-      .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Opt[immR]]->
-        [-imm-][base.Opt[immR]]{'fear1$}}],
-        
-    base.OptDo/1=Dec[name=base.OptDo/1,gxs=[T],lambda=[-mdf-][base.OptDo[mdfT],base.OptMatch[immT,immbase.Void[]]]{'this
-      #/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immbase.Void[]]->[-],
-      .some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immbase.Void[]]->[-imm-][base.Opt[],base.Opt[]]{'fear2$}#/1[immbase.Opt[immT]]([this._doRes/2[]([this#/1[]([x]),x])]),
-      .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->[-imm-][base.Void[]]{'fear3$},
-      ._doRes/2([y,x]):Sig[mdf=imm,gens=[],ts=[immbase.Void[],immT],ret=immbase.Opt[immT]]->[-imm-][base.Opt[],base.Opt[]]{'fear4$}#/1[mdfT]([x])}],
-    base.Opt/0=Dec[name=base.Opt/0,gxs=[],lambda=[-mdf-][base.Opt[]]{'this
-      #/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immbase.Opt[immT]]->
-        [-imm-][base.Opt[immT]]{'fear5$.match/1([m]):Sig[mdf=imm,gens=[T],ts=[immbase.OptMatch[immT,immT]],ret=immT]->
-          m.some/1[]([x])}}],
-          
-    base.Opt/1=Dec[name=base.Opt/1,gxs=[T],lambda=[-mdf-][base.Opt[mdfT],base.NoMutHyg[immT]]{'this
-      .match/1([m]):Sig[mdf=imm,gens=[R],ts=[immbase.OptMatch[immT,immR]],ret=immR]->
-        m.none/0[]([]),
-      .map/1([f]):Sig[mdf=imm,gens=[R],ts=[immbase.OptMap[immT,immR]],ret=immbase.Opt[immR]]->
-        this.match/1[mdfR]([f]),
-      .do/1([f]):Sig[mdf=imm,gens=[],ts=[immbase.OptDo[immT]],ret=immbase.Opt[immT]]->
-          this.match/1[mdfR]([f]),
-      .flatMap/1([f]):Sig[mdf=imm,gens=[R],ts=[immbase.OptFlatMap[immT,immR]],ret=immbase.Opt[immR]]->
-        this.match/1[mdfR]([f])}],
-        
-    base.OptFlatMap/2=Dec[name=base.OptFlatMap/2,gxs=[T,R],lambda=[-mdf-][base.OptFlatMap[mdfT,mdfR],base.OptMatch[immT,immbase.Opt[immR]]]{'this
-      .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Opt[immR]]->
-        [-imm-][base.Opt[immR]]{'fear6$}}],
-        
-    base.NoMutHyg/1=Dec[name=base.NoMutHyg/1,gxs=[X],lambda=[-mdf-][base.NoMutHyg[mdfX]]{'this}],
-    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-mdf-][base.Void[]]{'this}],
-    
-    base.OptMatch/2=Dec[name=base.OptMatch/2,gxs=[T,R],lambda=[-mdf-][base.OptMatch[mdfT,mdfR]]{'this
-      .some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],
-      .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immR]->[-]}]}
+    {test.OptDo/1=Dec[name=test.OptDo/1,gxs=[T],lambda=[-mdf-][test.OptDo[mdfT],test.OptMatch[immT,immtest.Void[]]]{'this#/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immtest.Void[]]->[-],.some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immtest.Void[]]->[-imm-][test.Opt[],test.Opt[]]{'fear0$}#/1[immtest.Opt[immT]]([this._doRes/2[]([this#/1[]([x]),x])]),.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear1$},._doRes/2([y,x]):Sig[mdf=imm,gens=[],ts=[immtest.Void[],immT],ret=immtest.Opt[immT]]->[-imm-][test.Opt[],test.Opt[]]{'fear2$}#/1[immT]([x])}],test.NoMutHyg/1=Dec[name=test.NoMutHyg/1,gxs=[X],lambda=[-mdf-][test.NoMutHyg[mdfX]]{'this}],test.OptFlatMap/2=Dec[name=test.OptFlatMap/2,gxs=[T,R],lambda=[-mdf-][test.OptFlatMap[mdfT,mdfR],test.OptMatch[immT,immtest.Opt[immR]]]{'this.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Opt[immR]]->[-imm-][test.Opt[immR]]{'fear3$}}],test.OptMatch/2=Dec[name=test.OptMatch/2,gxs=[T,R],lambda=[-mdf-][test.OptMatch[mdfT,mdfR]]{'this.some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immR]->[-]}],test.OptMap/2=Dec[name=test.OptMap/2,gxs=[T,R],lambda=[-mdf-][test.OptMap[mdfT,mdfR],test.OptMatch[immT,immtest.Opt[immR]]]{'this#/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],.some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immtest.Opt[immR]]->[-imm-][test.Opt[],test.Opt[]]{'fear4$}#/1[immR]([this#/1[]([x])]),.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Opt[immR]]->[-imm-][test.Opt[immR]]{'fear5$}}],test.Opt/0=Dec[name=test.Opt/0,gxs=[],lambda=[-mdf-][test.Opt[]]{'this#/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immtest.Opt[immT]]->[-imm-][test.Opt[mdfT]]{'fear6$.match/1([m]):Sig[mdf=imm,gens=[X1/0$],ts=[immtest.OptMatch[immT,immX1/0$]],ret=immX1/0$]->m.some/1[]([x])}}],test.Opt/1=Dec[name=test.Opt/1,gxs=[T],lambda=[-mdf-][test.Opt[mdfT],test.NoMutHyg[immT]]{'this.match/1([m]):Sig[mdf=imm,gens=[R],ts=[immtest.OptMatch[immT,immR]],ret=immR]->m.none/0[]([]),.map/1([f]):Sig[mdf=imm,gens=[R],ts=[immtest.OptMap[immT,immR]],ret=immtest.Opt[immR]]->this.match/1[immtest.Opt[immR]]([f]),.do/1([f]):Sig[mdf=imm,gens=[],ts=[immtest.OptDo[immT]],ret=immtest.Opt[immT]]->this.match/1[immtest.Opt[immT]]([f]),.flatMap/1([f]):Sig[mdf=imm,gens=[R],ts=[immtest.OptFlatMap[immT,immR]],ret=immtest.Opt[immR]]->this.match/1[immtest.Opt[immR]]([f])}],test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
     """, """
-    package base
+    package test
     Opt[T]:NoMutHyg[T]{
       .match[R](m: OptMatch[T, R]): R -> m.none,
-      .map[R](f: OptMap[T,R]): Opt[R]->this.match[R](f),
-      .do(f: OptDo[T]):Opt[T]->this.match[R](f),
-      .flatMap[R](f: OptFlatMap[T, R]): Opt[R]->this.match[R](f),
+      .map[R](f: OptMap[T,R]): Opt[R]->this.match(f),
+      .do(f: OptDo[T]):Opt[T]->this.match(f),
+      .flatMap[R](f: OptFlatMap[T, R]): Opt[R]->this.match(f),
       }
     OptMatch[T,R]:{ .some(x:T): R, .none: R }
     OptFlatMap[T,R]:OptMatch[T,Opt[R]]{ .none->{} }
@@ -175,41 +145,9 @@ public class TestInferBodies {
     """); }
 
   @Test void immOptInferR() { ok("""
-    {base.OptMap/2=Dec[name=base.OptMap/2,gxs=[T,R],lambda=[-mdf-][base.OptMap[mdfT,mdfR],
-    base.OptMatch[immT,immbase.Opt[immR]]]{'this
-      #/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],
-      .some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immbase.Opt[immR]]->
-        [-imm-][base.Opt[],base.Opt[]]{'fear0$}#/1[mdfR]([this#/1[]([x])]),
-      .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Opt[immR]]->
-        [-imm-][base.Opt[immR]]{'fear1$}}],
-    base.OptDo/1=Dec[name=base.OptDo/1,gxs=[T],lambda=[-mdf-][base.OptDo[mdfT],base.OptMatch[immT,immbase.Void[]]]{'this
-      #/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immbase.Void[]]->[-],
-      .some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immbase.Void[]]->[-imm-][base.Opt[],base.Opt[]]{'fear2$}#/1[immbase.Opt[immT]]([this._doRes/2[]([this#/1[]([x]),x])]),
-      .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->[-imm-][base.Void[]]{'fear3$},
-      ._doRes/2([y,x]):Sig[mdf=imm,gens=[],ts=[immbase.Void[],immT],ret=immbase.Opt[immT]]->[-imm-][base.Opt[],base.Opt[]]{'fear4$}#/1[mdfT]([x])}],
-    base.Opt/0=Dec[name=base.Opt/0,gxs=[],lambda=[-mdf-][base.Opt[]]{'this
-      #/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immbase.Opt[immT]]->
-        [-imm-][base.Opt[immT]]{'fear5$.match/1([m]):Sig[mdf=imm,gens=[T],ts=[immbase.OptMatch[immT,immT]],ret=immT]->
-          m.some/1[]([x])}}],
-    base.Opt/1=Dec[name=base.Opt/1,gxs=[T],lambda=[-mdf-][base.Opt[mdfT],base.NoMutHyg[immT]]{'this
-      .match/1([m]):Sig[mdf=imm,gens=[R],ts=[immbase.OptMatch[immT,immR]],ret=immR]->
-        m.none/0[]([]),
-      .map/1([f]):Sig[mdf=imm,gens=[R],ts=[immbase.OptMap[immT,immR]],ret=immbase.Opt[immR]]->
-        this.match/1[mdfR]([f]),
-      .do/1([f]):Sig[mdf=imm,gens=[],ts=[immbase.OptDo[immT]],ret=immbase.Opt[immT]]->
-          this.match/1[mdfR]([f]),
-      .flatMap/1([f]):Sig[mdf=imm,gens=[R],ts=[immbase.OptFlatMap[immT,immR]],ret=immbase.Opt[immR]]->
-        this.match/1[mdfR]([f])}],
-    base.OptFlatMap/2=Dec[name=base.OptFlatMap/2,gxs=[T,R],lambda=[-mdf-][base.OptFlatMap[mdfT,mdfR],base.OptMatch[immT,immbase.Opt[immR]]]{'this
-      .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Opt[immR]]->
-        [-imm-][base.Opt[immR]]{'fear6$}}],
-    base.NoMutHyg/1=Dec[name=base.NoMutHyg/1,gxs=[X],lambda=[-mdf-][base.NoMutHyg[mdfX]]{'this}],
-    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-mdf-][base.Void[]]{'this}],
-    base.OptMatch/2=Dec[name=base.OptMatch/2,gxs=[T,R],lambda=[-mdf-][base.OptMatch[mdfT,mdfR]]{'this
-      .some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],
-      .none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immR]->[-]}]}
+    {test.OptDo/1=Dec[name=test.OptDo/1,gxs=[T],lambda=[-mdf-][test.OptDo[mdfT],test.OptMatch[immT,immtest.Void[]]]{'this#/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immtest.Void[]]->[-],.some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immtest.Void[]]->[-imm-][test.Opt[],test.Opt[]]{'fear0$}#/1[immtest.Opt[immT]]([this._doRes/2[]([this#/1[]([x]),x])]),.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear1$},._doRes/2([y,x]):Sig[mdf=imm,gens=[],ts=[immtest.Void[],immT],ret=immtest.Opt[immT]]->[-imm-][test.Opt[],test.Opt[]]{'fear2$}#/1[immT]([x])}],test.NoMutHyg/1=Dec[name=test.NoMutHyg/1,gxs=[X],lambda=[-mdf-][test.NoMutHyg[mdfX]]{'this}],test.OptFlatMap/2=Dec[name=test.OptFlatMap/2,gxs=[T,R],lambda=[-mdf-][test.OptFlatMap[mdfT,mdfR],test.OptMatch[immT,immtest.Opt[immR]]]{'this.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Opt[immR]]->[-imm-][test.Opt[immR]]{'fear3$}}],test.OptMatch/2=Dec[name=test.OptMatch/2,gxs=[T,R],lambda=[-mdf-][test.OptMatch[mdfT,mdfR]]{'this.some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immR]->[-]}],test.OptMap/2=Dec[name=test.OptMap/2,gxs=[T,R],lambda=[-mdf-][test.OptMap[mdfT,mdfR],test.OptMatch[immT,immtest.Opt[immR]]]{'this#/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immR]->[-],.some/1([x]):Sig[mdf=imm,gens=[],ts=[immT],ret=immtest.Opt[immR]]->[-imm-][test.Opt[],test.Opt[]]{'fear4$}#/1[immR]([this#/1[]([x])]),.none/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Opt[immR]]->[-imm-][test.Opt[immR]]{'fear5$}}],test.Opt/0=Dec[name=test.Opt/0,gxs=[],lambda=[-mdf-][test.Opt[]]{'this#/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immtest.Opt[immT]]->[-imm-][test.Opt[mdfT]]{'fear6$.match/1([m]):Sig[mdf=imm,gens=[X1/0$],ts=[immtest.OptMatch[immT,immX1/0$]],ret=immX1/0$]->m.some/1[]([x])}}],test.Opt/1=Dec[name=test.Opt/1,gxs=[T],lambda=[-mdf-][test.Opt[mdfT],test.NoMutHyg[immT]]{'this.match/1([m]):Sig[mdf=imm,gens=[R],ts=[immtest.OptMatch[immT,immR]],ret=immR]->m.none/0[]([]),.map/1([f]):Sig[mdf=imm,gens=[R],ts=[immtest.OptMap[immT,immR]],ret=immtest.Opt[immR]]->this.match/1[immtest.Opt[immR]]([f]),.do/1([f]):Sig[mdf=imm,gens=[],ts=[immtest.OptDo[immT]],ret=immtest.Opt[immT]]->this.match/1[immtest.Opt[immT]]([f]),.flatMap/1([f]):Sig[mdf=imm,gens=[R],ts=[immtest.OptFlatMap[immT,immR]],ret=immtest.Opt[immR]]->this.match/1[immtest.Opt[immR]]([f])}],test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
     """, """
-    package base
+    package test
     Opt[T]:NoMutHyg[T]{
       .match[R](m: OptMatch[T, R]): R -> m.none,
       .map[R](f: OptMap[T,R]): Opt[R]->this.match(f),
@@ -231,12 +169,12 @@ public class TestInferBodies {
     """); }
 
   @Test void immDelegateExplicit() { ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this
-      .m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immbase.Void[]]->this.m2/1[mdfT]([x]),.
-      m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immK],ret=immbase.Void[]]->[-]}],
-    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-mdf-][base.Void[]]{'this}]}
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-mdf-][test.A[]]{'this
+      .m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immtest.Void[]]->this.m2/1[mdfT]([x]),.
+      m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immK],ret=immtest.Void[]]->[-]}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
     """, """
-    package base
+    package test
     A:{
       .m1[T](x:T):Void->this.m2[mdf T](x),
       .m2[K](k:K):Void
@@ -245,12 +183,12 @@ public class TestInferBodies {
     """); }
 
   @Test void immDelegateExplicitImmGen() { ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this
-      .m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immbase.Void[]]->this.m2/1[imm T]([x]),.
-      m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immK],ret=immbase.Void[]]->[-]}],
-    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-mdf-][base.Void[]]{'this}]}
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-mdf-][test.A[]]{'this
+      .m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immtest.Void[]]->this.m2/1[imm T]([x]),.
+      m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immK],ret=immtest.Void[]]->[-]}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
     """, """
-    package base
+    package test
     A:{
       .m1[T](x:T):Void->this.m2[T](x),
       .m2[K](k:K):Void
@@ -259,12 +197,12 @@ public class TestInferBodies {
     """); }
 
   @Test void immDelegate() { ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this
-      .m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immbase.Void[]]->this.m2/1[immT]([x]),
-      .m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immK],ret=immbase.Void[]]->[-]}],
-    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-mdf-][base.Void[]]{'this}]}
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-mdf-][test.A[]]{'this
+      .m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immT],ret=immtest.Void[]]->this.m2/1[immT]([x]),
+      .m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immK],ret=immtest.Void[]]->[-]}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
     """, """
-    package base
+    package test
     A:{
       .m1[T](x:T):Void->this.m2(x),
       .m2[K](k:K):Void
@@ -272,9 +210,9 @@ public class TestInferBodies {
     Void:{}
     """); }
   @Test void immDelegate2() { ok("""
-    {base.B/1=Dec[name=base.B/1,gxs=[X],lambda=[-mdf-][base.B[mdfX]]{'this}],base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this.m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immbase.B[immT]],ret=immbase.Void[]]->this.m2/1[immT]([x]),.m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immbase.B[immK]],ret=immbase.Void[]]->[-]}],base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-mdf-][base.Void[]]{'this}]}
+    {test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this}],test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-mdf-][test.A[]]{'this.m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immtest.B[immT]],ret=immtest.Void[]]->this.m2/1[immT]([x]),.m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immtest.B[immK]],ret=immtest.Void[]]->[-]}],test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
     """, """
-    package base
+    package test
     B[X]:{}
     A:{
       .m1[T](x:B[T]):Void->this.m2(x),
@@ -283,9 +221,9 @@ public class TestInferBodies {
     Void:{}
     """); }
   @Test void immDelegate3() { ok("""
-    {base.B/1=Dec[name=base.B/1,gxs=[X],lambda=[-mdf-][base.B[mdfX]]{'this}],base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this.m1/1([x]):Sig[mdf=imm,gens=[T],ts=[immbase.B[immT]],ret=immbase.Void[]]->this.m2/1[mdfT]([x]),.m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immbase.B[immK]],ret=immbase.Void[]]->[-]}],base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-mdf-][base.Void[]]{'this}]}
+    {test.B/2=Dec[name=test.B/2,gxs=[T,R],lambda=[-mdf-][test.B[mdfT,mdfR]]{'this}],test.A/1=Dec[name=test.A/1,gxs=[T],lambda=[-mdf-][test.A[mdfT]]{'this.m1/1([x]):Sig[mdf=imm,gens=[R],ts=[immtest.B[immT,immR]],ret=immtest.Void[]]->this.m2/1[immR]([x]),.m2/1([k]):Sig[mdf=imm,gens=[K],ts=[immtest.B[immT,immK]],ret=immtest.Void[]]->[-]}],test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
     """, """
-    package base
+    package test
     B[T,R]:{}
     A[T]:{
       .m1[R](x:B[T,R]):Void->this.m2(x),
@@ -301,16 +239,16 @@ public class TestInferBodies {
     }
   * */
   /*
-  [-imm base.Let[]-][base.Let[]]{ } #/1[infer, imm base.Void[]]([[-imm base.Let[mdf X, mdf base.Void[]]-][]{
+  [-imm test.Let[]-][test.Let[]]{ } #/1[infer, imm test.Void[]]([[-imm test.Let[mdf X, mdf test.Void[]]-][]{
         .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] ->
-          this:mut base.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
-        .in/1([_]): Sig[mdf=imm,gens=[],ts=[imm X],ret=imm base.Void[]] ->
-          [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
+          this:mut test.Ref[mdf X] .swap/1[]([x:mdf X]):mdf X,
+        .in/1([_]): Sig[mdf=imm,gens=[],ts=[imm X],ret=imm test.Void[]] ->
+          [-imm test.Void[]-][test.Void[]]{ }}]):imm test.Void[]
    */
   @Disabled
   @Test void inferRefDef() { ok("""
     """, """
-    package base
+    package test
     NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[mdf V,mdf R]):mdf R -> l.in(l.var) }
@@ -328,14 +266,14 @@ public class TestInferBodies {
     """); }
 
   @Test void nestedGensClash(){ ok("""
-    {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-mdf-][base.B[],base.A[]]{'this
-      .foo/0([]):Sig[mdf=imm,gens=[X0$],ts=[],ret=immbase.A[]]->
-        [-imm-][base.A[]]{'fear0$
-          .foo/0([]):Sig[mdf=imm,gens=[X1$],ts=[],ret=immbase.A[]]->
-            [-imm-][base.A[]]{'fear1$.foo/0([]):Sig[mdf=imm,gens=[X2$],ts=[],ret=immbase.A[]]->this}}}],
-    base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mdf-][base.A[]]{'this.foo/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=immbase.A[]]->[-]}]}
+    {test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-mdf-][test.B[],test.A[]]{'this
+      .foo/0([]):Sig[mdf=imm,gens=[X0/0$],ts=[],ret=immtest.A[]]->
+        [-imm-][test.A[]]{'fear0$
+          .foo/0([]):Sig[mdf=imm,gens=[X1/0$],ts=[],ret=immtest.A[]]->
+            [-imm-][test.A[]]{'fear1$.foo/0([]):Sig[mdf=imm,gens=[X2/0$],ts=[],ret=immtest.A[]]->this}}}],
+    test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-mdf-][test.A[]]{'this.foo/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=immtest.A[]]->[-]}]}
     """, """
-    package base
+    package test
     A:{
       .foo[X]:A
     }
@@ -347,4 +285,35 @@ public class TestInferBodies {
       }
     }
     """); }
+
+  @Test void bool() { ok("""
+    {test.True/0=Dec[name=test.True/0,gxs=[],lambda=[-mdf-][test.True[],test.Bool[]]{'this
+      .and/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->b,
+      .or/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->this,
+      .not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Bool[]]->[-imm-][test.Bool[],test.False[]]{'fear0$},
+      ?/1([f]):Sig[mdf=imm,gens=[X0/0$],ts=[muttest.ThenElse[immX0/0$]],ret=immX0/0$]->f.then/0[]([])}],test.False/0=Dec[name=test.False/0,gxs=[],lambda=[-mdf-][test.False[],test.Bool[]]{'this.and/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->this,.or/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->b,.not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Bool[]]->[-imm-][test.Bool[],test.True[]]{'fear1$},?/1([f]):Sig[mdf=imm,gens=[X0/0$],ts=[muttest.ThenElse[immX0/0$]],ret=immX0/0$]->f.else/0[]([])}],test.ThenElse/1=Dec[name=test.ThenElse/1,gxs=[R],lambda=[-mdf-][test.ThenElse[mdfR]]{'this.then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immR]->[-],.else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immR]->[-]}],test.Bool/0=Dec[name=test.Bool/0,gxs=[],lambda=[-mdf-][test.Bool[],test.Sealed[]]{'this.and/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->[-],.or/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->[-],.not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Bool[]]->[-],?/1([f]):Sig[mdf=imm,gens=[R],ts=[muttest.ThenElse[immR]],ret=immR]->[-]}],test.Sealed/0=Dec[name=test.Sealed/0,gxs=[],lambda=[-mdf-][test.Sealed[]]{'this}]}
+    """, """
+    package test
+    Bool:Sealed{
+      .and(b: Bool): Bool,
+      .or(b: Bool): Bool,
+      .not: Bool,
+      ?[R](f: mut ThenElse[R]): R, // ?  because `bool ? { .then->aa, .else->bb }` is kinda like a ternary
+      }
+    Sealed:{}
+    True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
+    False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
+    ThenElse[R]:{ mut .then: R, mut .else: R, }
+    """); }
+
+  @Test void boolUsage() { ok("""
+    [-imm base.False[]-][base.False[]]{ } .or/1[]([[-imm base.Bool[]-][base.True[]]{ }]):imm base.Bool[] ?/1[imm X0/0$]([[-mut base.ThenElse[imm X0/0$]-][]{ .then/0([]): Sig[mdf=mut,gens=[],ts=[],ret=infer] -> [-imm 42[]-][42[]]{ },
+    .else/0([]): Sig[mdf=mut,gens=[],ts=[],ret=infer] -> [-imm 0[]-][0[]]{ }}]):imm X0/0$
+    """, """
+    package test
+    alias base.Main as Main, alias base.False as False, alias base.True as True,
+    Test:Main{
+      _->False.or(True)?{.then->42,.else->0}
+    }
+    """, Base.immBaseLib); }
 }

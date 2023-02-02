@@ -1,5 +1,6 @@
 package ast;
 
+import failure.CompileError;
 import files.HasPos;
 import files.Pos;
 import id.Id;
@@ -11,7 +12,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public record T(Mdf mdf, Id.RT<T> rt){
+public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
+  public <R> R resMatch(Function<T,R> ok, Function<CompileError,R> err){ return ok.apply(this); }
   @Override public String toString(){ return ""+mdf+" "+rt; }
   public T{ assert mdf!=null && rt!=null; }
   public <R> R match(Function<Id.GX<T>,R>gx, Function<Id.IT<T>,R>it){ return rt.match(gx, it); }
