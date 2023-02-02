@@ -1,12 +1,15 @@
-package main;
+package failure;
 
+import ast.T;
 import files.Pos;
 
 import java.io.Serial;
 import java.util.Optional;
+import java.util.function.Function;
 
-public class CompileError extends RuntimeException{
+public class CompileError extends RuntimeException implements Res{
   @Serial private static final long serialVersionUID = 1L;
+  public <R> R resMatch(Function<T, R> ok, Function<CompileError, R> err){ return err.apply(this); }
   Pos pos;
   public CompileError pos(Pos pos){ this.pos=pos; return this; }
   public CompileError pos(Optional<Pos> pos){ return pos.map(this::pos).orElse(this); }

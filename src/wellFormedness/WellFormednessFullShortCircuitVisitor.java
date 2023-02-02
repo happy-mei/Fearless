@@ -3,12 +3,11 @@ package wellFormedness;
 import astFull.E;
 import astFull.T;
 import files.HasPos;
-import files.Pos;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
-import main.CompileError;
-import main.Fail;
+import failure.CompileError;
+import failure.Fail;
 import astFull.Program;
 import visitors.FullShortCircuitVisitorWithEnv;
 
@@ -181,7 +180,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
 
   private Optional<CompileError> noMutHygValid(T.Dec dec) {
     return dec.lambda().its().stream()
-      .filter(it->it.name().equals(Magic.noMutHyg))
+      .filter(it->it.name().equals(Magic.NoMutHyg))
       .flatMap(it->it.ts().stream())
       .<Optional<CompileError>>map(t->t.match(
           gx->dec.gxs().contains(gx) ? Optional.empty() : Optional.of(Fail.invalidNoMutHyg(t)),

@@ -2,8 +2,8 @@ package astFull;
 
 import id.Id;
 import magic.Magic;
-import main.CompileError;
-import main.Fail;
+import failure.CompileError;
+import failure.Fail;
 import program.CM;
 import program.TypeRename;
 import utils.OneOr;
@@ -128,7 +128,8 @@ public class Program implements program.Program{
       return l.withMeths(ms);
     }
     Id.MethName onlyAbs(T.Dec dec){
-      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), p.meths(dec.toAstT()).stream().filter(CM::isAbs));
+      // depth doesn't matter here because we just extract the name
+      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), p.meths(dec.toAstT(), -1).stream().filter(CM::isAbs));
       return m.name();
     }
     E.Meth inferSignature(T.Dec dec, E.Meth m) {
@@ -137,7 +138,7 @@ public class Program implements program.Program{
         var name=m.name().orElseGet(() -> onlyAbs(dec));
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();
-        var inferred = p.meths(dec.toAstT(), name)
+        var inferred = p.meths(dec.toAstT(), name, 0)
           .orElseThrow(()->Fail.cannotInferSig(dec.name(), name));
         return namedMeth.withSig(inferred.sig().toAstFullSig());
       } catch (CompileError e) {

@@ -1,8 +1,7 @@
 package program.inference;
 
-import astFull.T;
 import astFull.E;
-import astFull.UndefinedGXsVisitor;
+import astFull.T;
 import files.Pos;
 import id.Id;
 import id.Mdf;
@@ -19,7 +18,7 @@ import java.util.stream.Stream;
 import static program.inference.InferBodies.replaceOnlyInfers;
 
 public record RefineTypes(ast.Program p) {
-  E.Lambda fixLambda(E.Lambda lambda) {
+  E.Lambda fixLambda(E.Lambda lambda, int depth) {
     /*
     fixTypes(MDF ITs{'x Ms}:MDF C[iTs]) = MDF ITs{'x toMs(Ms,TSigs)}:MDF C[iTs']
   refineSigMassive(C[iTs],tSigOf(Ms)) = C[iTs'], TSigs
@@ -31,7 +30,7 @@ public record RefineTypes(ast.Program p) {
     List<RefinedSig> sigs = lambda.meths().stream()
       .map(this::tSigOf)
       .toList();
-    var res = refineSigMassive(lambda.mdf().orElseThrow(), c,sigs);
+    var res = refineSigMassive(lambda.mdf().orElseThrow(), c, sigs, depth);
     var ms = Streams.zip(lambda.meths(), res.sigs())
       .map(this::tM)
       .toList();
@@ -133,17 +132,19 @@ public record RefineTypes(ast.Program p) {
     );
     var sig = meth.sig().toAstFullSig();
     assert meth.sig().gens().size() == gxs.size();
+    var tgxs = gxs.stream().map(gx->new T(Mdf.mdf, gx.toFullAstGX())).toList();
+    var f = renamer.renameFun(tgxs,sig.gens());
     return new RefinedSig(
       sig.mdf(),
       meth.name(),
-      gxs.stream().map(gx->new T(Mdf.mdf, gx.toFullAstGX())).toList(),
-      sig.ts(),
-      sig.ret()
+      tgxs,
+      sig.ts().stream().map(t->renamer.renameT(t, f)).toList(),
+      renamer.renameT(sig.ret(),f)
     );
   }
 
   record RefinedLambda(Id.IT<astFull.T> c, List<RefinedSig> sigs){}
-  RefinedLambda refineSigMassive(Mdf mdf, Id.IT<astFull.T> c, List<RefinedSig> sigs) {
+  RefinedLambda refineSigMassive(Mdf mdf, Id.IT<astFull.T> c, List<RefinedSig> sigs, int depth) {
     int nGens = sigs.stream().mapToInt(s->s.gens().size()).sum();
     var freshGXs = Id.GX.standardNames(c.ts().size() + nGens);
     var freshGXsQueue = new ArrayDeque<>(freshGXs);
@@ -156,7 +157,7 @@ public record RefineTypes(ast.Program p) {
     var cT = new astFull.T(mdf, cTs.toFullAstIT(ast.T::toAstFullT));
     var cTOriginal = new T(mdf, c);
     List<List<RP>> rpsSigs = Streams.zip(sigs,methGens)
-      .map((sig,mGens)->pairUp(mGens, cTs, sig))
+      .map((sig,mGens)->pairUp(mGens, cTs, sig, depth))
       .toList();
     List<RP> rpsAll = Stream.concat(
       Stream.of(new RP(cT, cTOriginal)),//Stream.of(new RP(cTOriginal, cT))
@@ -174,13 +175,10 @@ public record RefineTypes(ast.Program p) {
     return new RefinedLambda(resC.itOrThrow(), refinedSigs);
   }
 
-  List<RP> pairUp(List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig) {
-    var ms = p.meths(c);
+  List<RP> pairUp(List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
+    var ms = p.meths(c, depth);
     var freshSig = freshXs(ms, sig.name(), gxs);
     var freshGens = freshSig.gens();
-    var uv = new UndefinedGXsVisitor(gxs.stream().map(Id.GX::toFullAstGX).toList());
-    uv.visitRefinedSig(sig);
-    var undefined = uv.get();
     return Streams.of(
       RP.of(freshGens, sig.gens()).stream(),
       RP.of(freshSig.args(), sig.args()).stream(),

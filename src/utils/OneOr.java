@@ -1,6 +1,6 @@
 package utils;
 
-import main.CompileError;
+import failure.CompileError;
 
 import java.util.function.Supplier;
 import java.util.stream.Stream;

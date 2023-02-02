@@ -4,7 +4,8 @@ import ast.T;
 import astFull.E;
 import id.Id;
 import id.Mdf;
-import main.Fail;
+import id.Refresher;
+import failure.Fail;
 import program.inference.RefineTypes;
 import utils.Bug;
 import utils.Pop;
@@ -80,8 +81,8 @@ public interface Program {
     var it1 = t1.itOrThrow();
     var it2 = t2.itOrThrow();
     assert it1.name().equals(it2.name());
-    List<CM> cms1 = filterByMdf(mdf, meths(it1));
-    List<CM> cms2 = filterByMdf(mdf, meths(it2));
+    List<CM> cms1 = filterByMdf(mdf, meths(it1, 0));
+    List<CM> cms2 = filterByMdf(mdf, meths(it2, 0));
 
     var methsByName = Stream.concat(cms1.stream(), cms2.stream())
       .collect(Collectors.groupingBy(CM::name))
@@ -143,12 +144,12 @@ public interface Program {
     throw Bug.todo();
   }
 
-  default Optional<E.Sig> fullSig(Id.IT<astFull.T> it, Predicate<CM> pred) {
+  default Optional<E.Sig> fullSig(Id.IT<astFull.T> it, int depth, Predicate<CM> pred) {
     var freshGXs = Id.GX.standardNames(it.ts().size());
     var freshGXsSet = new HashSet<>(freshGXs);
     var freshGXsQueue = new ArrayDeque<>(freshGXs);
     var ts = it.ts().stream().map(t->new ast.T(Mdf.mdf, freshGXsQueue.poll())).toList();
-    var myM_ = meths(new Id.IT<>(it.name(), ts)).stream()
+    var myM_ = meths(new Id.IT<>(it.name(), ts), depth).stream()
       .filter(pred)
       .toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
@@ -161,15 +162,16 @@ public interface Program {
     return Optional.of(new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos()));
   }
 
-  default Optional<CM> meths(Id.IT<T> it, Id.MethName name){
-    var myM_ = meths(it).stream().filter(mi->mi.name().equals(name)).toList();
+  default Optional<CM> meths(Id.IT<T> it, Id.MethName name, int depth){
+    var myM_ = meths(it, depth).stream().filter(mi->mi.name().equals(name)).toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
     assert myM_.size()==1;
     return Optional.of(myM_.get(0));
   }
 
-  default List<CM> meths(Id.IT<T> it) {
-    return methsAux(it).stream().map(this::freshenMethGens).toList();
+  default List<CM> meths(Id.IT<T> it, int depth) {
+
+    return methsAux(it).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
   HashMap<Id.IT<T>, List<CM>> methsCache = new HashMap<>();
   default List<CM> methsAux(Id.IT<T> it) {
@@ -203,7 +205,7 @@ public interface Program {
      */
     //standardNames(n)->List.of(Par1..Parn)
     var gx=cm.sig().gens();
-    List<Id.GX<ast.T>> names=Id.GX.standardNamesSig(gx.size());
+    List<Id.GX<ast.T>> names = new Refresher<ast.T>(0).freshNames(gx.size());
     Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gx.size()).boxed()
       .collect(Collectors.toMap(gx::get, names::get));
     var newSig=new RenameGens(subst).visitSig(cm.sig());
@@ -213,9 +215,9 @@ public interface Program {
   /**
    * Normalised CMs are required for 5a, but the rest of the type system needs fresh names.
    */
-  default CM freshenMethGens(CM cm) {
+  default CM freshenMethGens(CM cm, int depth) {
     var gxs=cm.sig().gens();
-    var names = Id.GX.freshNamesSig(gxs.size(), cm.pos());
+    var names = new Refresher<T>(depth).freshNames(gxs.size());
     Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gxs.size()).boxed()
       .collect(Collectors.toMap(gxs::get, names::get));
     var newSig=new RenameGens(subst).visitSig(cm.sig());

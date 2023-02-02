@@ -1,6 +1,6 @@
 package parser;
 
-import main.CompileError;
+import failure.CompileError;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
