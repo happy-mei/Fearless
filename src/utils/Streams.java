@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -39,6 +40,10 @@ public class Streams {
       IntStream.range(0, as.size())
         .forEach(i->acc.set(folder.apply(acc.get(), as.get(i), bs.get(i))));
       return acc.get();
+    }
+    public boolean anyMatch(BiPredicate<A,B> test){
+      return IntStream.range(0, as.size())
+        .anyMatch(i->test.test(as.get(i),bs.get(i)));
     }
   }
 

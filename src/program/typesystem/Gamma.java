@@ -1,12 +1,12 @@
 package program.typesystem;
 
-import ast.Program;
+import program.Program;
 import ast.T;
 import id.Mdf;
 
 import java.util.Optional;
 
-interface Gamma{
+public interface Gamma{
   default T get(ast.E.X x){ return getO(x).orElseThrow(); }
   default T get(String s){ return getO(s).orElseThrow(); }
   default Optional<T> getO(ast.E.X x){ return getO(x.name()); }

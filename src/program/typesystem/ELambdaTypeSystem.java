@@ -3,14 +3,13 @@ package program.typesystem;
 import ast.E;
 import ast.T;
 import ast.T.Dec;
-import ast.Program;
 import failure.CompileError;
 import failure.Fail;
 import failure.Res;
 import id.Id;
 import id.Mdf;
 import program.CM;
-import utils.Bug;
+import program.Program;
 import utils.Streams;
 
 import java.util.List;

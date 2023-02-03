@@ -6,6 +6,7 @@ import failure.CompileError;
 import failure.Fail;
 import program.CM;
 import program.TypeRename;
+import utils.Bug;
 import utils.OneOr;
 import utils.Range;
 import visitors.InjectionVisitor;
@@ -18,6 +19,12 @@ import java.util.stream.Collectors;
 public class Program implements program.Program{
   private final Map<Id.DecId, T.Dec> ds;
   public Program(Map<Id.DecId, T.Dec> ds) { this.ds = ds; }
+
+  public List<ast.E.Lambda> lambdas() { throw Bug.unreachable(); }
+
+  public program.Program withDec(ast.T.Dec d) {
+    throw Bug.unreachable();
+  }
 
   T.Dec of(Id.DecId d) {
     var res = ds.get(d);
@@ -55,7 +62,7 @@ public class Program implements program.Program{
   private CM cm(Id.IT<ast.T> t, astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
-    var cm = CM.of(t, mi, TypeRename.core().renameSig(new InjectionVisitor().visitSig(sig), f));
+    var cm = CM.of(t, mi, TypeRename.coreRec().renameSig(new InjectionVisitor().visitSig(sig), f));
     return norm(cm);
   }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }

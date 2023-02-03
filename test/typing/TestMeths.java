@@ -463,7 +463,6 @@ public class TestMeths {
     B[Y]:{.m[X]:Bi[X,Y]->this}
     Bi[AA,BB]:{}
     """); }
-  @Disabled
   @Test void t22() { ok("""
     """, "a.A", """
     package a
@@ -471,7 +470,6 @@ public class TestMeths {
     B:{ .m:Break[B] }
     Break[X]:{}
     """); }
-  @Disabled
   @Test void t23() { ok("""
     """, "a.A", """
     package a
@@ -479,7 +477,6 @@ public class TestMeths {
     B:{.m:Break[A]}
     Break[X]:{}
     """); }
-  @Disabled
   @Test void t24() { ok("""
     """, "a.A", """
     package a
@@ -487,7 +484,6 @@ public class TestMeths {
     B:{.m:Break[B]}
     Break[X]:{ .b:X }
     """); }
-  @Disabled
   @Test void t25() { fail("""
     uncomposableMethods:18
     These methods could not be composed.
@@ -500,7 +496,6 @@ public class TestMeths {
     B:{.m:Break[A]}
     Break[X]:{ .b:X }
     """); }
-  @Disabled
   @Test void t26() { ok("""
     """, "a.A", """
     package a
@@ -508,7 +503,6 @@ public class TestMeths {
     B:{.m:Break[B]}
     Break[X]:{ .b:Break[X] }
     """); }
-  @Disabled
   @Test void t27() { ok("""
     """, "a.A", """
     package a

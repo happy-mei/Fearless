@@ -2,14 +2,18 @@ package program;
 
 import ast.T;
 import astFull.E;
+import failure.Res;
 import id.Id;
 import id.Mdf;
 import id.Refresher;
 import failure.Fail;
 import program.inference.RefineTypes;
+import program.typesystem.ETypeSystem;
+import program.typesystem.Gamma;
 import utils.Bug;
 import utils.Pop;
 import utils.Push;
+import utils.Streams;
 import visitors.CloneVisitor;
 
 import java.util.*;
@@ -23,9 +27,23 @@ public interface Program {
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   List<CM> cMsOf(Id.IT<T> t);
   Set<Id.GX<ast.T>> gxsOf(Id.IT<T> t);
+  Program withDec(T.Dec d);
+  List<ast.E.Lambda> lambdas();
 
   static void reset() {
     methsCache.clear();
+  }
+
+  default void typeCheck() {
+    var g = Gamma.empty();
+    var checker = ETypeSystem.of(this, g, Optional.empty(), 0);
+    lambdas().stream()
+      .map(checker::visitLambda)
+      .map(Res::err)
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .findAny()
+      .ifPresent(err->{ throw err; });
   }
 
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
@@ -95,47 +113,39 @@ public interface Program {
         var recv = new ast.E.X("this", Optional.empty());
         var xs=Push.of(m1.xs(),"this");
         List<T> ts=Push.of(m2.sig().ts(),t1);
+
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
         return isType(xs, ts, e, m2.sig().ret());
       });
   }
 
-  default ast.T typeOf(List<String>xs,List<ast.T>ts, ast.E e) {
-    throw Bug.todo();
+  default failure.Res typeOf(List<String>xs,List<ast.T>ts, ast.E e) {
+    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
+    var v = ETypeSystem.of(this,g, Optional.empty(),0);
+    return e.accept(v);
   }
 
   default boolean isType(List<String>xs,List<ast.T>ts, ast.E e, ast.T expected) {
-    throw Bug.todo();
+    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
+    var v = ETypeSystem.of(this,g, Optional.of(expected),0);
+    var res = e.accept(v);
+    return res.resMatch(t->isSubType(t,expected),err->false);
   }
 
   default List<CM> filterByMdf(Mdf mdf, List<CM> cms) {
-    // #Define filterByMdf(MDF,Ms) = Ms'
-    // filterByMdf(MDF,empty) = empty
     if (cms.isEmpty()) { return List.of(); }
     var cm = cms.get(0);
     cms = Pop.left(cms);
-    /*
-    filterByMdf(MDF,M Ms) = M,filterByMdf(MDF,Ms)
-        where MDF in {iso,mut,lent}
-     */
     if (mdf.isIso() || mdf.isMut() || mdf.isLent()) {
       return Push.of(cm, filterByMdf(mdf, cms));
     }
-    /*
-    filterByMdf(MDF,M Ms) = M,filterByMdf(MDF,Ms)
-      where MDF in {imm,read} M.MDF in {imm,read}
-     */
     var sig = cm.sig();
     var baseMdfImmOrRead = mdf.isImm() || mdf.isRead();
     var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isRead();
     if (baseMdfImmOrRead && methMdfImmOrRead) {
       return Push.of(cm, filterByMdf(mdf, cms));
     }
-    /*
-    filterByMdf(MDF,M Ms) = filterByMdf(MDF,Ms)
-      otherwise
-     */
     return filterByMdf(mdf, cms);
   }
 
