@@ -5,6 +5,7 @@ import magic.Magic;
 import failure.Fail;
 import program.CM;
 import program.TypeRename;
+import utils.Bug;
 import visitors.InjectionVisitor;
 
 import java.util.*;
@@ -16,6 +17,7 @@ public class Program implements program.Program  {
   public Program(Map<Id.DecId, T.Dec> ds) { this.ds = ds; }
 
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
+  public List<ast.E.Lambda> lambdas() { return this.ds().values().stream().map(T.Dec::lambda).toList(); }
 
   public Program withDec(T.Dec d) {
     var ds = new HashMap<>(ds());
@@ -59,7 +61,7 @@ public class Program implements program.Program  {
 
   private CM cm(Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
-    var cm = CM.of(t, mi, TypeRename.core().renameSig(mi.sig(), f));
+    var cm = CM.of(t, mi, TypeRename.coreRec().renameSig(mi.sig(), f));
     return norm(cm);
   }
 }

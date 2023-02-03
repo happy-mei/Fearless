@@ -4,6 +4,7 @@ import id.Id;
 import id.Mdf;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public interface TypeRename<T>{
@@ -16,7 +17,7 @@ public interface TypeRename<T>{
     public astFull.T withMdf(astFull.T t, Mdf mdf) { return t.withMdf(mdf); }
     public boolean isInfer(astFull.T t) { return t.isInfer(); }
   }
-  record CoreTTypeRename() implements TypeRename<ast.T> {
+  class CoreTTypeRename implements TypeRename<ast.T> {
     public <R> R matchT(ast.T t, Function<Id.GX<ast.T>,R>gx, Function<Id.IT<ast.T>,R>it) { return t.match(gx, it); }
     public Mdf mdf(ast.T t) { return t.mdf(); }
     public ast.T newT(Mdf mdf, Id.IT<ast.T> t) { return new ast.T(mdf, t); }
@@ -33,8 +34,21 @@ public interface TypeRename<T>{
     }
     public boolean isInfer(ast.T t) { return false; }
   }
+  class CoreRecMdfTypeRename extends CoreTTypeRename {
+    /** This is adaptRecMDF(MDF) ITX with t = MDF ITX */
+    public ast.T propagateMdf(Mdf mdf, ast.T t){
+      if(!mdf.isRecMdf()){ return super.propagateMdf(mdf,t); }
+      assert t!=null;
+      var m=t.mdf();
+      if(m.isImm()){ return t; }
+      if(m.isRead()){ return t; }
+      assert !m.isIso();
+      return t.withMdf(Mdf.recMdf);
+    }
+  }
   static FullTTypeRename full() { return new FullTTypeRename(); }
   static CoreTTypeRename core() { return new CoreTTypeRename(); }
+  static CoreRecMdfTypeRename coreRec() { return new CoreRecMdfTypeRename(); }
 
   <R> R matchT(T t, Function<Id.GX<T>,R> gx, Function<Id.IT<T>,R> it);
   Mdf mdf(T t);

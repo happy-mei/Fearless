@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public record InferBodies(ast.Program p) {
-  ast.Program inferAll(astFull.Program fullProgram){
+  public ast.Program inferAll(astFull.Program fullProgram){
     return new ast.Program(inferDecs(fullProgram));
   }
 

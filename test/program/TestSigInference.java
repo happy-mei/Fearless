@@ -359,8 +359,8 @@ public class TestSigInference {
       .m2/0([]):Sig[mdf=imm,gens=[],ts=[],ret=muta.B[]]->this:infer.m2/0[-]([]):infer,
       .m3/0([]):Sig[mdf=imm,gens=[],ts=[],ret=isoa.B[]]->this:infer.m3/0[-]([]):infer,
       .m4/0([]):Sig[mdf=imm,gens=[],ts=[],ret=lenta.B[]]->this:infer.m4/0[-]([]):infer,
-      .m5/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfa.B[]]->this:infer.m5/0[-]([]):infer,
-      .m6/0([]):Sig[mdf=lent,gens=[],ts=[],ret=recMdfa.B[]]->this:infer.m6/0[-]([]):infer,
+      .m5/0([]):Sig[mdf=read,gens=[],ts=[],ret=imm a.B[]]->this:infer.m5/0[-]([]):infer,
+      .m6/0([]):Sig[mdf=lent,gens=[],ts=[],ret=imm a.B[]]->this:infer.m6/0[-]([]):infer,
       .m7/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->this:infer.m7/0[-]([]):infer}]}
     """, """
     package a

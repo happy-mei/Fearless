@@ -2,7 +2,7 @@ package program.typesystem;
 
 import ast.E;
 import ast.T;
-import ast.Program;
+import program.Program;
 import utils.Bug;
 import visitors.Visitor;
 import failure.Res;
