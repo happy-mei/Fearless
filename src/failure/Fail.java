@@ -4,6 +4,7 @@ import astFull.E;
 import astFull.T;
 import files.Pos;
 import id.Id;
+import program.CM;
 import utils.Bug;
 
 import java.lang.reflect.Modifier;
@@ -92,6 +93,12 @@ public class Fail{
   public static CompileError methTypeError(ast.T expected, ast.T actual, Id.MethName m){
     return of(String.format("Expected the method %s to return %s, got %s.", expected, actual, m));
   }
+  public static CompileError unimplementedInLambda(List<CM> ms){
+    var unimplemented = ms.stream()
+      .map(m->"("+m.pos()+") "+m.name())
+      .collect(Collectors.joining("\n"));
+    return of(String.format("The lambda must implement the following methods:\n%s", unimplemented));
+  }
 }
 
 //only add to the bottom
@@ -117,6 +124,8 @@ enum ErrorCode {
   cannotInferSig,
   traitNotFound,
   inferFailed,
-  cannotInferAbsSig;
+  cannotInferAbsSig,
+  methTypeError,
+  unimplementedInLambda;
   int code() {return this.ordinal() + 1;}
 }

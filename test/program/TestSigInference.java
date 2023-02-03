@@ -435,6 +435,76 @@ public class TestSigInference {
     B:A{ .m2(k)->this.m1(k) }
     Void:{}
     """); }
+
+
+  // TODO: These are clearly too permissive for example:
+  /*
+  i.e.
+mut List[mut P] p=mutMyFamilyImm
+p.get():mut Person
+mutMyFamilyImm.get():imm Person
+   */
+  @Test void familyGensExtension() { ok("""
+    {test.Family2/0=Dec[name=test.Family2/0,gxs=[],lambda=[-infer-][test.List[muttest.Person[]]]{'this
+      .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=muttest.Person[]]->[-]}],
+    test.Family1/0=Dec[name=test.Family1/0,gxs=[],lambda=[-infer-][test.List[muttest.Person[]]]{'this}],
+    test.Person/0=Dec[name=test.Person/0,gxs=[],lambda=[-infer-][]{'this}],
+    test.Family1a/0=Dec[name=test.Family1a/0,gxs=[],lambda=[-infer-][test.Family1[]]{'this
+      .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdftest.Person[]]->[-immtest.Person[]-][test.Person[]]{}}],
+    test.List/1=Dec[name=test.List/1,gxs=[X],lambda=[-infer-][]{'this
+      .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}]}
+    """, """
+    package test
+    Person:{}
+    List[X]:{ read .get(): recMdf X }
+    Family1:List[mut Person]{}
+    Family1a:Family1{ Person }
+    Family2:List[mut Person]{ read .get(): mut Person }
+    //Family2a:Family2{ Person }
+    //Family3:Family1,Family2{ Person }
+    """); }
+  @Test void familyGensExtension1a() { ok("""
+    {test.Family2/0=Dec[name=test.Family2/0,gxs=[],lambda=[-infer-][test.List[muttest.Person[]]]{'this.get/0([]):Sig[mdf=read,gens=[],ts=[],ret=muttest.Person[]]->[-infer-][]{}}],test.Family1/0=Dec[name=test.Family1/0,gxs=[],lambda=[-infer-][test.List[muttest.Person[]]]{'this}],test.Person/0=Dec[name=test.Person/0,gxs=[],lambda=[-infer-][]{'this}],test.Family1a/0=Dec[name=test.Family1a/0,gxs=[],lambda=[-infer-][test.Family1[]]{'this.get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdftest.Person[]]->[-immtest.Person[]-][test.Person[]]{}}],test.List/1=Dec[name=test.List/1,gxs=[X],lambda=[-infer-][]{'this.get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}]}
+    """, """
+    package test
+    Person:{}
+    List[X]:{ read .get(): recMdf X }
+    Family1:List[mut Person]{}
+    Family1a:Family1{ Person }
+    Family2:List[mut Person]{ read .get(): mut Person -> {} }
+    //Family2a:Family2{ read .get(): mut Person -> {} }
+    //Family3:Family1,Family2{ Person }
+    """); }
+  @Test void familyGensExtension1b() { ok("""
+    """, """
+    package test
+    Person:{}
+    List[X]:{ read .get(): recMdf X }
+    FamilyImm2:List[imm Person]{ read .get(): imm Person -> {} }
+    FamilyMut:List[mut Person]{ read .get(): mut Person -> {}}
+    FamilyRead:List[mut Person]{ read .get(): read Person -> {}}
+    FamilyIso:List[mut Person]{ read .get(): iso Person -> {}}
+    FamilyImm:List[mut Person]{ read .get(): imm Person -> {}}
+    FamilyLent:List[mut Person]{ read .get(): lent Person -> {}}
+    FamilyRecMdf:List[mut Person]{ read .get(): recMdf Person -> {}}
+    """); }
+  @Test void familyGensExtension2() { fail("""
+    In position file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:8:25
+    uncomposableMethods:18
+    These methods could not be composed.
+    conflicts:
+    (file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:3:10) test.List[mut test.Person[]], .get/0
+    (file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:6:26) test.Family2[], .get/0
+    """, """
+    package test
+    Person:{}
+    List[X]:{ read .get(): recMdf X }
+    Family1:List[mut Person]{}
+    Family1a:Family1{ Person }
+    Family2:List[mut Person]{ read .get(): mut Person }
+    Family2a:Family2{ Person }
+    Family3:Family1,Family2{ Person }
+    """); }
 }
 
 

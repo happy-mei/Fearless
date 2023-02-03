@@ -2,8 +2,12 @@ package id;
 
 import utils.Bug;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 public enum Mdf{
   mut,lent,read,iso,recMdf,mdf,imm;
+  public boolean is(Mdf... valid){ return Arrays.stream(valid).anyMatch(v->this==v); }
   public boolean isMut(){return this==mut;}
   public boolean isLent(){return this==lent;}
   public boolean isRead(){return this==read;}
@@ -24,7 +28,7 @@ public enum Mdf{
     if (this == mut) { return other; }
     if (this == lent) {
       if (other == imm) { return other; }
-      if (other == read) { return recMdf; }
+      if (other == read) { return other; }
       if (other == mut) { return lent; }
     }
     if (this == read) {
@@ -32,5 +36,15 @@ public enum Mdf{
       return recMdf;
     }
     throw Bug.unreachable();
+  }
+
+  public Optional<Mdf> restrict(Mdf mMdf) {
+    if (mMdf.isImm() || (this.isImm() && mMdf.isRead())) { return Optional.of(imm); }
+    if (this.isLikeMut() && mMdf.isRead()) { return Optional.of(read); }
+    if (isLent() && mMdf.isMut()){ return Optional.of(lent); }
+    if (isLent() && mMdf.isLent()){ return Optional.of(lent); }
+    if (isMut() && mMdf.isLent()){ return Optional.of(lent); }
+    if ((this.isMut() && mMdf.isIso()) || (this.isMut() && mMdf.isMut())) { return Optional.of(mut); }
+    return Optional.empty();
   }
 }

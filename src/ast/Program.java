@@ -7,9 +7,7 @@ import program.CM;
 import program.TypeRename;
 import visitors.InjectionVisitor;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -18,6 +16,13 @@ public class Program implements program.Program  {
   public Program(Map<Id.DecId, T.Dec> ds) { this.ds = ds; }
 
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
+
+  public Program withDec(T.Dec d) {
+    var ds = new HashMap<>(ds());
+    assert !ds.containsKey(d.name());
+    ds.put(d.name(), d);
+    return new Program(Collections.unmodifiableMap(ds));
+  }
 
   T.Dec of(Id.DecId d) {
     var res = ds.get(d);

@@ -47,26 +47,14 @@ public class Id {
       if (FRESH_N > 100) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
       FRESH_N = 0;
     }
-    public static List<GX<ast.T>> standardNamesSig(int n) {
-      // this will never clash with the other FearN$ names because they are only used on declarations
-      // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).
-      return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("Par" + fresh + "$")).toList();
-    }
-    public static List<GX<ast.T>> freshNamesSig(int n, Pos methPos) {
-      return IntStream.range(0, n).mapToObj(unused->GX.<ast.T>freshParam()).toList();
-//      Objects.requireNonNull(methPos);
-      // Standardised naming is needed for meths() to work. The rest of the type system requires fresh names
-      // to prevent any shadowing
-//      return freshNames.computeIfAbsent(methPos.realHashCode(), pos->IntStream.range(0, n).mapToObj(unused->GX.<ast.T>freshParam()).toList());
-    }
     public static List<GX<ast.T>> standardNames(int n) {
       // this will never clash with the other FearN$ names because they are only used on declarations
       // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).
       return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("FearX" + fresh + "$")).toList();
     }
-    private static <TT> GX<TT> freshParam() {
+    public static <TT> GX<TT> fresh() {
       if (FRESH_N + 1 == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
-      return new GX<>("X" + FRESH_N++ + "$");
+      return new GX<>("Fear" + FRESH_N++ + "$");
     }
 
     public GX{ assert Id.validGX(name); }
