@@ -1,0 +1,255 @@
+----
+MARCO 3/Feb/20223 -- proposal for more recMdf variants. It makes it more clear but adds more modfiers
+MDF  ::= mut | imm | read | lent | iso | mdf | recMut | recRead | recLent | recMdf
+MDF  ::= mut | imm | read | lent | iso | mdf | recMut | recImm | recRead | recLent | recIso | recMdf
+BMDF ::= mut|imm|read|lent|iso
+
+T[MDF0 Xs=Ts] = T'
+
+recImm  ITX[MDF0 Xs=Ts] = imm  ITX[MDF0 Xs=Ts]
+recMut  ITX[MDF0 Xs=Ts] = MDF0 ITX[MDF0 Xs=Ts]
+recRead ITX[imm  Xs=Ts] = imm  ITX[imm  Xs=Ts]
+recRead ITX[BMDF Xs=Ts] = read ITX[BMDF Xs=Ts]   with BMDF!=imm
+recLent ITX[imm  Xs=Ts] = imm  ITX[imm  Xs=Ts]
+recLent ITX[read Xs=Ts] = read ITX[BMDF Xs=Ts]   with BMDF!=imm
+recLent ITX[BMDF Xs=Ts] = lent ITX[BMDF Xs=Ts]   with BMDF!=imm,read
+recIso  ITX[BMDF Xs=Ts] = recMut ITX[BMDF Xs=Ts]
+recMdf    X[BMDF Xs=Ts] = rec_MDF X[MDF0 Xs=Ts]  with X=MDF T in Xs=Ts
+BMDF      X[MDF0 Xs=Ts] = BMDF T[MDF0 Xs=Ts]     with X=MDF T in Xs=Ts   //or BMDF T ??
+mdf       X[MDF0 Xs=Ts] = MDF T[MDF0 Xs=Ts]      with X=MDF T in Xs=Ts
+BMDF     IT[T1..Tn][MDF0 Xs=Ts] = BMDF IT[  T1[MDF0 Xs=Ts]..Tn[MDF0 Xs=Ts]]
+
+
+Property:
+T[MDF0 X1=T1 X2=T2] = T[MDF0 X1=T1][MDF0 X2=T2]
+
+END MARCO 3/Feb/20223 -- proposal for more recMdf variants.
+-----
+
+
+
+
+
+A:{read .a(b:recMdf B):recMdf B->b.b}
+B:{read .b():recMdf B -> this}
+
+C[X]:{read .get(p:mdf X): mdf X->p}
+C[X]:{read .get(p:mdf X): recMdf X->field}
+C[mut Person] --> {read .get(p:mut Person): mut Person->p}
+C[mut Person] --> {read .get(p:mut Person): recMut Person->field }  //recMut Person
+
+
+C[X]:{read .get(p:mdf X): mdf X->p} -->
+  C[mut Person]:{ read .get(p:mut Person): mut Person->p }
+
+C[X]:{read .get(p:mdf X): recMdf X->field} //recMut Person --->
+  C[mut Person]:{ read .get(p:mut Person): recMdf Person -> field }
+
+C[X]:{read .get(p:mdf X): recMdf X->field}
+
+------------- Nick formalism for recMdf in meths
+#Define meths(C[Ts])=CMs  cMsOf(IT, Ms, Xs)=CMs   adaptRecMdf(Ts, Xs) = Ts
+//CM ::= C[Ts].M
+meths(C[Ts]) = prune(cMsOf(C[Ts]), meths(IT1[Xs=Ts]),..,meths(ITn[Xs=Ts]))
+  where C[Xs]: IT1..ITn {x, Ms} in Ds
+
+cMsOf(C[Ts]) = cMsOf(IT, Ms[[Xs=Ts]])
+    where C[Xs]: IT1..ITn {x, Ms} in Ds
+cMsOf(IT, Ms)
+cMsOf(IT, empty) = empty
+cMsOf(IT,m(xs)->e, Ms) = cMsOf(IT, Ms)
+cMsOf(IT, sig->e, Ms) = norm(IT.sig->e), cMsOf(IT, Ms)
+cMsOf(IT, sig, Ms) = norm(IT.sig), cMsOf(IT, Ms)
+
+
+_______
+#Define Ms[[Xs=Ts]] = Ms'    T[[Xs=Ts]]=T'
+Ms[[Xs=Ts]] propagates to the subterms until it reaches the T
+
+MDF X[[Xs=Ts]]=X[Xs=Ts]  with MDF !=recMdf
+MDF C[Ts'][[Xs=Ts]]=MDF C[Ts'[[Xs=Ts]]]
+recMdf X[[Xs=Ts]]= adaptRecMdf(MDF) ITX  with  MDF ITX = X[Xs=Ts]
+
+adaptRecMdf(imm) = imm
+adaptRecMdf(read) = read
+adaptRecMdf(iso) = assert undefined
+adaptRecMdf(_) = recMdf otherwise
+
+_______
+#Define meths(T).Ms(m[Ts],n) returns a Ts'->T where:
+meths(MDF IT0).Ms(m[Ts],n) = T0 (T1..Tn->T)[MDF, Xs=Ts]
+  meths(IT0) = _M_
+  M = MDF0 m[Xs](x1:T1..xn:Tn):T->e?
+  T0 = MDF0 IT0
+//the result can have mdf if there is some 'mdf' in Ts or in IT0
+T1..Tn,T can have recMdf if MDF0 in lent, read
+_______
+#Define M[MDF, Xs=Ts]    T[MDF, Xs=Ts]
+M[MDF,Xs=Ts] propagates to the subterms until it reaches the T
+
+MDF X[MDF0, Xs=Ts] = X[Xs=Ts] with MDF != recMdf
+MDF C[Ts'][MDF0, Xs=Ts] = MDF C[Ts'[MDF0, Xs=Ts]] with MDF != recMdf
+recMdf C[Ts'][MDF0, Xs=Ts] = MDF0 C[Ts'[MDF0, Xs=Ts]] with MDF0 != iso
+recMdf C[Ts'][iso, Xs=Ts] = mut C[Ts'[iso, Xs=Ts]]
+recMdf X[MDF0, Xs=Ts] = adapt(MDF0,X[Xs=Ts])
+
+-----------
+C[X]:{read .get: recMdf X}
+Class gen rewrite (no method gens changing):
+C[imm Person] --> {read .get: imm Person}
+C[mut Person] --> {read .get: recMdf Person}  //recMut Person
+C[lent Person] --> {read .get: recMdf Person}
+C[read Person] --> {read .get: read Person}
+C[iso Person] // not possible
+
+
+
+// NOTE: C:{read .get[Y]: recMdf Y} --> C:{read .get[Y]: recMdf Y} (STAYS THE SAME)
+We resolve that on method call
+
+
+For example:
+C[X]:{read .get[Y](x: recMdf X): recMdf Pair[recMdf X, recMdf Y]}
+C[imm Person] --> {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}
+C[mut Person] --> {read .get[Y](x: mut Person): recMdf Pair[mut Person, recMdf Y]}
+C[lent Person] --> {read .get[Y](x: lent Person): recMdf Pair[lent Person, recMdf Y]}
+C[read Person] --> {read .get[Y](x: read Person): recMdf Pair[read Person, recMdf Y]}
+C[iso Person] // not possible
+
+then on a call:
+imm {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[imm Foo]() -> imm Pair[imm Person, imm Foo]
+imm {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[mut Foo]() -> imm Pair[imm Person, mut Foo] // hmm
+imm {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[lent Foo]() -> imm Pair[imm Person, lent Foo] // hmm
+imm {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[read Foo]() -> imm Pair[imm Person, read Foo] // hmm
+
+mut {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[imm Foo]() -> mut Pair[imm Person, imm Foo]
+mut {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[mut Foo]() -> mut Pair[imm Person, mut Foo]
+mut {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[lent Foo]() -> mut Pair[imm Person, lent Foo]
+mut {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[read Foo]() -> mut Pair[imm Person, read Foo]
+
+(iso is same as mut)
+iso {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[imm Foo]() -> mut Pair[imm Person, imm Foo]
+iso {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[mut Foo]() -> mut Pair[imm Person, mut Foo]
+iso {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[lent Foo]() -> mut Pair[imm Person, lent Foo]
+iso {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[read Foo]() -> mut Pair[imm Person, read Foo]
+
+lent {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[imm Foo]() -> lent Pair[imm Person, imm Foo]
+lent {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[mut Foo]() -> lent Pair[imm Person, lent Foo]
+lent {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[lent Foo]() -> lent Pair[imm Person, lent Foo]
+lent {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[read Foo]() -> lent Pair[imm Person, read Foo]
+
+read {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[imm Foo]() -> read Pair[imm Person, imm Foo]
+read {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[mut Foo]() -> read Pair[imm Person, read Foo]
+read {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[lent Foo]() -> read Pair[imm Person, read Foo]
+read {read .get[Y](x: imm Person): recMdf Pair[imm Person, recMdf Y]}.get[read Foo]() -> read Pair[imm Person, read Foo]
+-------------
+
+
+List[X]:{ read .get():recMdf X }
+FamilyMut:List[mut Person]:{ read .get(): recMut Person ->..}
+
+List[X]:{ read .get():recMdf X }
+FamilyImm:List[imm Person]:{ read .get(): imm Person ->..}
+
+package test
+Person:{}
+List[X]:{ read .get(): recMdf X }
+FamilyImm2:List[imm Person]{ read .get(): imm Person -> {} }
+FamilyMut:List[mut Person]{ read .get(): mut Person -> {}}
+FamilyRead:List[mut Person]{ read .get(): read Person -> {}}
+FamilyIso:List[mut Person]{ read .get(): iso Person -> {}}
+FamilyImm:List[mut Person]{ read .get(): imm Person -> {}}
+FamilyLent:List[mut Person]{ read .get(): lent Person -> {}}
+FamilyRecMdf:List[mut Person]{ read .get(): recMdf Person -> {}}
+
+mut List[mut P] p=mutMyFamilyImm
+p.get():mut Person
+mutMyFamilyImm.get():imm Person
+List[X]:{ read .get():recMdf X }
+//Family1:List[mut Person]:{}
+FamilyMut:List[mut Person]:{ read .get(): mut Person ->..}
+FamilyRead:List[mut Person]:{ read .get(): read Person ->..}
+FamilyIso:List[mut Person]:{ read .get(): iso Person ->..}
+? in {recMdf,mut,}
+
+package test
+Person:{}
+List[X]:{ read .get(): recMdf X }
+Family1:List[mut Person]{}
+Family1a:Family1{ Person }
+Family2:List[mut Person]{ read .get(): mut Person }
+//Family2a:Family2{ Person }
+//Family3:Family1,Family2{ Person }
+
+{test.Family2/0=Dec[name=test.Family2/0,gxs=[],lambda=[-infer-][test.List[muttest.Person[]]]{'this
+ .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=muttest.Person[]]->[-]}],
+
+
+
+In position file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:8:25
+uncomposableMethods:18
+These methods could not be composed.
+conflicts:
+(file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:3:10) test.List[mut test.Person[]], .get/0
+(file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:6:26) test.Family2[], .get/0
+
+
+--- nick's proposal
+#Define recMdf(MDF, IT)
+recMdf(iso, IT) = mut IT
+recMdf(MDF, IT) = MDF IT, otherwise
+
+#Define recMdf(MDF, X, Xs=Ts)
+recMdf(MDF, X, Xs=Ts) = imm X where
+  X = imm _ in Xs=Ts
+
+recMdf(read, X, Xs=Ts) = read X
+recMdf(lent, X, Xs=Ts) = lent X // no, what about read X
+
+recMdf(MDF, X, Xs=Ts) = MDF' X where   .m1[X](): recMdf X // if this is called with mut .m1[MDF' Person]() --> MDF' Person
+  X = MDF' _ in Xs=Ts
+otherwise
+
+L[E]{ read .get(i):recMdf E }
+i/m/l/r -- iso,recMdf,mdf
+L[P].get() : imm P
+L[mut P].get() : mut P // not possible to capture
+L[lent P].get() : lent P // not possible to capture
+L[read P].get() : read P // not possible to capture
+
+mutL[P].get() : imm P
+mutL[mut P].get() : mut P
+mutL[lent P].get() : lent P // NOT POSSIBLE to capture any lents
+mutL[read P].get() : read P // NOT POSSIBLE to capture any reads
+
+lentL[P].get() : imm P
+lentL[mut P].get() : lent P
+lentL[lent P].get() : lent P
+lentL[read P].get() : read P
+
+readL[P].get() : imm P
+readL[mut P].get() : read P
+readL[lent P].get() : read P
+readL[read P].get() : read P
+
+---
+
+_______
+#Define T[recMdf=MDF][Xs=Ts]
+  recMdf IT[recMdf=MDF][Xs=Ts] = MDF IT[Xs=Ts]
+  MDF' IT[recMdf=MDF][Xs=Ts] = MDF' IT[Xs=Ts]
+    with MDF'!=recMdf
+  recMdf X[recMdf=MDF][Xs=Ts] = T[Xs=Ts]
+    with
+      X = MDF' _ in Xs=Ts
+      adapt(MDF,MDF'X) = T
+//recMdf T does not means T with the mdf of the receiver
+T with the modifier as if T was stored in the receiver
+rec=mut-> id
+T is imm->id
+
+Foo:{
+  .foo[X](p1:mdf X)->this.bar[mdf X](p1)
+  .bar[Z](mdf Z)
+  }
+G = this: Foo, p1: mdf X

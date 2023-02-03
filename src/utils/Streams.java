@@ -16,6 +16,7 @@ public class Streams {
     assert as.size()==bs.size();
     return new Zipper<>(as,bs);
   }
+
   public record Zipper<A,B>(List<A> as, List<B> bs){
     public void forEach(BiConsumer<A,B> f){
       IntStream.range(0, as.size()).forEach(i->f.accept(as.get(i), bs.get(i)));
@@ -32,6 +33,13 @@ public class Streams {
         .filter(Optional::isPresent)
         .map(Optional::get);
     }
+
+    public <R> R fold(Acc<R, A, B> folder, R initial) {
+      Box<R> acc = new Box<>(initial);
+      IntStream.range(0, as.size())
+        .forEach(i->acc.set(folder.apply(acc.get(), as.get(i), bs.get(i))));
+      return acc.get();
+    }
   }
 
   public static <T> Optional<Integer> firstPos(List<T> xs, Predicate<Integer> p) {
@@ -45,5 +53,9 @@ public class Streams {
     return IntStream.range(start, xs.size()).boxed()
       .filter(p)
       .findFirst();
+  }
+
+  public interface Acc<R,A,B> {
+    R apply(R acc, A a, B b);
   }
 }

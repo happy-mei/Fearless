@@ -344,4 +344,12 @@ public class TestIntegrationWellFormedness {
     package base
     A:{ recMdf .foo: A }
     """); }
+
+  // TODO: add this to the formalism
+  @Test void noRecMdfInImplements() { fail("""
+    """, """
+    package base
+    A[X]:{}
+    B[Y]:A[recMdf Y]{}
+    """); }
 }

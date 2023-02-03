@@ -14,15 +14,12 @@ public interface Base {
   static String immBaseLib = immBaseLib("base");
   static String immBaseLib(String pkg) {
     return "package " + pkg + """
-      
+
       Void:{}
       NoMutHyg[X]:{}
       Sealed:{}
       Main:{ #[R](s: lent System): R }
       System:{} // Root capability
-          
-      Num:{}
-      UNum:{}
           
       Bool:Sealed{
         .and(b: Bool): Bool,
@@ -71,7 +68,7 @@ public interface Base {
         -(n: mdf T): mdf T,
         *(n: mdf T): mdf T,
         /(n: mdf T): mdf T,
-        %(n: mdf T): mdf T
+        %(n: mdf T): mdf T,
         **(n: mdf T): mdf T, // pow
           
         // bitwise
@@ -89,7 +86,7 @@ public interface Base {
         ==(n: mdf T): Bool,
         }
         
-        _NumInstance:Num:{
+        _NumInstance:Num{
           
           }
       """;
