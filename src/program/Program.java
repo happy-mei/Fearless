@@ -64,7 +64,7 @@ public interface Program {
 
     if (isTransitiveSubType(t1, t2)) { return true; }
     if (t1.itOrThrow().name().equals(t2.itOrThrow().name())) {
-      return isAdaptSubType(t1, t2); // TODO: Depends on the rest of the type system
+      return isAdaptSubType(t1, t2);
     }
     return false;
 
@@ -105,7 +105,8 @@ public interface Program {
     var methsByName = Stream.concat(cms1.stream(), cms2.stream())
       .collect(Collectors.groupingBy(CM::name))
       .values();
-    return !methsByName.isEmpty() && methsByName.stream()
+    // TODO: What about methsByName.isEmpty(), is A[X]:{} a sub type of A[any]?
+    return methsByName.stream()
       .allMatch(ms->{
         assert ms.size() == 2;
         var m1 = ms.get(0);
