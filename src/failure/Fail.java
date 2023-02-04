@@ -40,7 +40,7 @@ public class Fail{
     var arr=Thread.currentThread().getStackTrace();
     var kind=arr[2].getMethodName();
     int code=ErrorCode.valueOf(kind).code();
-    return new CompileError(kind+":"+code+"\n"+msg);
+    return new CompileError("[E"+code+" "+kind+"]\n"+msg);
   }
 
   //ALL OUR ERRORS
@@ -99,6 +99,10 @@ public class Fail{
       .collect(Collectors.joining("\n"));
     return of(String.format("The lambda must implement the following methods:\n%s", unimplemented));
   }
+
+  public static CompileError circularSubType(ast.T t1, ast.T t2){
+    return of(String.format("There is a cyclical sub-typing relationship between "+t1+" and "+t2+"."));
+  }
 }
 
 //only add to the bottom
@@ -126,6 +130,7 @@ enum ErrorCode {
   inferFailed,
   cannotInferAbsSig,
   methTypeError,
-  unimplementedInLambda;
+  unimplementedInLambda,
+  circularSubType;
   int code() {return this.ordinal() + 1;}
 }

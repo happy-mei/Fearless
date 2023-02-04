@@ -122,7 +122,7 @@ class TestParser {
     """, "recv .m1[pkg1.A[B]]"); }
   @Test void failNestedGenerics() { fail("""
     In position [###]/Dummy.fear:1:5
-    concreteTypeInFormalParams:3
+    [E3 concreteTypeInFormalParams]
     Trait and method declarations may only have generic type parameters. This concrete type was provided instead:
     imm pkg1.A[imm B]
     Alternatively, are you attempting to shadow an existing class name?

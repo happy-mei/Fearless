@@ -62,7 +62,7 @@ public class TestTypeSystem {
   // TODO: error message is wrong
   @Test void simpleTypeError(){ fail("""
     In position [###]/Dummy0.fear:4:2
-    methTypeError:23
+    [E23 methTypeError]
     Expected the method mdf Fear0$[] to return imm test.A[], got .fail/0.
     """, """
     package test

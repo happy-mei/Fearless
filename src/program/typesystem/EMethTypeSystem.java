@@ -49,7 +49,7 @@ interface EMethTypeSystem extends ETypeSystem {
     var v = this.withT(Optional.of(t));
     var res = e.accept(v);
     if (res.t().isEmpty()){ return false; }
-    return p().isSubType(res.tOrThrow(), t);
+    return p().tryIsSubType(res.tOrThrow(), t);
   }
 
 

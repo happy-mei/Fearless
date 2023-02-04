@@ -2,7 +2,9 @@ package program;
 
 import ast.T;
 import astFull.E;
+import failure.CompileError;
 import failure.Res;
+import files.Pos;
 import id.Id;
 import id.Mdf;
 import id.Refresher;
@@ -29,9 +31,11 @@ public interface Program {
   Set<Id.GX<ast.T>> gxsOf(Id.IT<T> t);
   Program withDec(T.Dec d);
   List<ast.E.Lambda> lambdas();
+  Optional<Pos> posOf(Id.IT<ast.T> t);
 
   static void reset() {
     methsCache.clear();
+    subTypeCache.clear();
   }
 
   default void typeCheck() {
@@ -57,7 +61,33 @@ public interface Program {
     };
   }
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }
+  record SubTypeQuery(T t1, T t2){}
+  enum SubTypeResult { Yes, No, Unknown }
+  HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();
+  default boolean tryIsSubType(T t1, T t2) {
+    try {
+      return isSubType(t1, t2);
+    } catch (CompileError ce) {
+      return false;
+    }
+  }
   default boolean isSubType(T t1, T t2) {
+    var q = new SubTypeQuery(t1, t2);
+    if (subTypeCache.containsKey(q)) {
+      var res = subTypeCache.get(q);
+      if (res == SubTypeResult.Unknown) {
+        throw Fail.circularSubType(t1, t2);
+      }
+      return subTypeCache.get(q) == SubTypeResult.Yes;
+    }
+    subTypeCache.put(q, SubTypeResult.Unknown);
+    var isSubType = isSubTypeAux(t1, t2);
+    var result = isSubType ? SubTypeResult.Yes : SubTypeResult.No;
+    subTypeCache.put(q, result);
+    return isSubType;
+  }
+
+  default boolean isSubTypeAux(T t1, T t2) {
     if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
     if(t1.rt().equals(t2.rt())){ return true; }
     if(!t1.isIt() || !t2.isIt()){ return false; }
@@ -67,18 +97,7 @@ public interface Program {
       return isAdaptSubType(t1, t2);
     }
     return false;
-
-//    var isITOk = isTransitiveSubType(t1, t2);//isMdfOk && (isDirectSubType(t1, t2) || isAdaptSubType(t1, t2));
-//    // TODO: more, transitive, etc.
-//    return isITOk;
   }
-  /*default boolean isDirectSubType(T t1, T t2) {
-    //MDF C[T1..Tn]<MDF C'[Ts]
-    //where
-    //  C[X1..Xn]:ITs {_}
-    //  C'[Ts] in ITs[X1..Xn=T1..Tn]
-    return itsOf(t1.itOrThrow()).stream().anyMatch(it->it.equals(t2.itOrThrow()));
-  }*/
 
   default boolean isAdaptSubType(T t1, T t2) {
   /*MDF C[T1..Tn]< MDF C[T1'..Tn']
@@ -105,7 +124,6 @@ public interface Program {
     var methsByName = Stream.concat(cms1.stream(), cms2.stream())
       .collect(Collectors.groupingBy(CM::name))
       .values();
-    // TODO: What about methsByName.isEmpty(), is A[X]:{} a sub type of A[any]?
     return methsByName.stream()
       .allMatch(ms->{
         assert ms.size() == 2;
@@ -181,7 +199,6 @@ public interface Program {
   }
 
   default List<CM> meths(Id.IT<T> it, int depth) {
-
     return methsAux(it).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
   HashMap<Id.IT<T>, List<CM>> methsCache = new HashMap<>();
@@ -192,7 +209,7 @@ public interface Program {
       cMsOf(it).stream(),
       itsOf(it).stream().flatMap(iti->methsAux(iti).stream())
     ).toList();
-    var res = prune(cms);
+    var res = prune(cms, posOf(it));
     methsCache.put(it, res);
     return res;
   }
@@ -235,7 +252,7 @@ public interface Program {
     return cm.withSig(newSig);
   }
 
-  default List<CM> prune(List<CM> cms) {
+  default List<CM> prune(List<CM> cms, Optional<Pos> lambdaPos) {
     /*
     prune(CMs) = pruneAux(CMs1)..pruneAux(CMsn)
       where CMs1..CMsn = groupByM(norm(CMs)) //groupByM(CMs)=CMss groups for the same m,n
@@ -244,16 +261,16 @@ public interface Program {
       .distinct()
       .collect(Collectors.groupingBy(CM::name));
     return cmsMap.values().stream()
-      .map(cmsi->pruneAux(cmsi,cmsi.size()+1))
+      .map(cmsi->pruneAux(cmsi, lambdaPos, cmsi.size()+1))
       .toList();
   }
 
-  default CM pruneAux(List<CM> cms,int limit) {
+  default CM pruneAux(List<CM> cms, Optional<Pos> lambdaPos, int limit) {
     if(limit==0){
       throw Fail.uncomposableMethods(cms.stream()
         .map(cm->Fail.conflict(cm.pos(), cm.toStringSimplified()))
         .toList()
-      );
+      ).pos(lambdaPos);
     }
     /*
     pruneAux(CM) = CM
@@ -269,7 +286,7 @@ public interface Program {
       .filter(cmi->!firstIsMoreSpecific(first, cmi))
       .toList();
 
-    return pruneAux(Push.of(nextCms,first),limit-1);
+    return pruneAux(Push.of(nextCms,first), lambdaPos, limit - 1);
   }
 
   /*default List<CM> allCases(List<CM> cms) {
@@ -309,21 +326,21 @@ public interface Program {
     assert a.name().equals(b.name());
     var ta = new T(Mdf.mdf, a.c());
     var tb = new T(Mdf.mdf, b.c());
-    if(isSubType(tb, ta)){ return false; }
+    if(tryIsSubType(tb, ta)){ return false; }
     var ok=a.sig().gens().equals(b.sig().gens())
       && a.sig().ts().equals(b.sig().ts())
       && a.mdf()==b.mdf();
     if(!ok){ return false; }
 
-    var isSubType = isSubType(ta, tb) && isSubType(a.ret(), b.ret());
+    var isSubType = tryIsSubType(ta, tb) && tryIsSubType(a.ret(), b.ret());
     if(isSubType){ return true; }
 
     var is1AbsAndRetEq = b.isAbs() && a.ret().equals(b.ret());
     if(is1AbsAndRetEq){ return true; }
 
     var is1AbsAndRetSubtype = b.isAbs()
-      && isSubType(a.ret(), b.ret())
-      && !isSubType(b.ret(), a.ret());
+      && tryIsSubType(a.ret(), b.ret())
+      && !tryIsSubType(b.ret(), a.ret());
     if(is1AbsAndRetSubtype){ return true; }
 
     return false;
