@@ -197,7 +197,8 @@ public class TestMeths {
     B:A{ .foo(b:A):B }
     """); }
   @Test void clashRt() { fail("""
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:4:0
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     ([###]/Dummy0.fear:3:4) a.A[], .foo/1
@@ -209,7 +210,8 @@ public class TestMeths {
     B:A{ .foo(b:B):Num }
     """); }
   @Test void moreSpecific() { fail("""
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     ([###]/Dummy0.fear:3:4) a.B[], .foo/1
@@ -239,7 +241,8 @@ public class TestMeths {
     B:{ .m: Num }
     """); }
   @Test void t3() { fail("""
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:3:0
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     ([###]/Dummy0.fear:4:4) a.B[], .m/0
@@ -259,7 +262,8 @@ public class TestMeths {
     C:{ .m: C }
     """); }
   @Test void t4b() { fail("""
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     ([###]/Dummy0.fear:4:4) a.C[], .m/0
@@ -271,7 +275,8 @@ public class TestMeths {
     C:{ .m: C }
     """); }
   @Test void t4c() { fail("""
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:4:0
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     ([###]/Dummy0.fear:6:4) a.C[], .m/0
@@ -304,7 +309,8 @@ public class TestMeths {
     D:{ .m: D }
     """); }
   @Test void t7() { fail("""
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:3:0
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     ([###]/Dummy0.fear:4:5) a.B[], .m/0
@@ -350,7 +356,8 @@ public class TestMeths {
     C:{ .m(c:A): A->this }
     """); }
   @Test void t12() { fail("""
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     ([###]/Dummy0.fear:4:4) a.C[], .m/1
@@ -391,7 +398,8 @@ public class TestMeths {
     List[T]:{}
     """); }
   @Test void t16() { fail("""
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     ([###]/Dummy0.fear:5:6) a.K[imm a.List[imm a.A[]]], .kk/0
@@ -404,9 +412,13 @@ public class TestMeths {
     K[Y]:{.kk:Y}
     List[T]:{}
     """); }
-  @Test void t17() { ok("""
-    [a.B[imma.A[]],imm.m/0()[][]:imma.List[imma.A[]]abs,
-    a.K[imma.A[]],imm.kk/0()[][]:imma.A[]abs]
+  @Test void t17a() { fail("""
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:5:7) a.K[imm a.List[imm a.A[]]], .kk/0
+    ([###]/Dummy0.fear:5:7) a.K[imm a.A[]], .kk/0
     """, "a.A", """
     package a
     A:B[A],C[List[A]]{}
@@ -415,8 +427,20 @@ public class TestMeths {
     K[Y]:{ .kk:A }
     List[T]:{}
     """); }
+  @Test void t17b() { ok("""
+    [a.B[imma.A[]],imm.m/0()[][]:imma.List[imma.A[]]abs,
+    a.K[imma.List[imma.A[]]],imm.kk/0()[][]:imma.A[]abs]
+    """, "a.A", """
+    package a
+    A:B[A],C[List[A]]{}
+    B[X]:K[List[X]]{.m:List[X]}
+    C[Y]:K[Y]{.m:Y}
+    K[Y]:{ .kk:A }
+    List[T]:{}
+    """); }
   @Test void t18() { fail("""
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     ([###]/Dummy0.fear:3:3) a.B[], .m/0
@@ -464,6 +488,7 @@ public class TestMeths {
     Bi[AA,BB]:{}
     """); }
   @Test void t22() { ok("""
+    [a.A[],imm.m/0()[][]:imma.Break[imma.A[]]abs]
     """, "a.A", """
     package a
     A:B{ .m:Break[A] }
@@ -471,6 +496,7 @@ public class TestMeths {
     Break[X]:{}
     """); }
   @Test void t23() { ok("""
+    [a.A[],imm.m/0()[][]:imma.Break[imma.B[]]abs]
     """, "a.A", """
     package a
     A:B{ .m:Break[B] } //pass, note, A/B inverted
@@ -478,6 +504,7 @@ public class TestMeths {
     Break[X]:{}
     """); }
   @Test void t24() { ok("""
+    [a.A[],imm.m/0()[][]:imma.Break[imma.A[]]abs]
     """, "a.A", """
     package a
     A:B{ .m:Break[A] }
@@ -485,29 +512,43 @@ public class TestMeths {
     Break[X]:{ .b:X }
     """); }
   @Test void t25() { fail("""
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:3) a.B[], .m/0
+    ([###]/Dummy0.fear:3:4) a.B[], .m/0
     ([###]/Dummy0.fear:2:5) a.A[], .m/0
     """, "a.A", """
     package a
-    A:B{ .m:Break[B] }
-    B:{.m:Break[A]}
+    A:B{ .m:Break[B] } // fails because this is a less specific override than B (cannot loosen)
+    B:{ .m:Break[A] }
     Break[X]:{ .b:X }
     """); }
-  @Test void t26() { ok("""
+
+  @Test void loopingSupTypes1() { fail("""
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:4) a.B[], .m/0
+    ([###]/Dummy0.fear:2:5) a.A[], .m/0
     """, "a.A", """
     package a
-    A:B{ .m:Break[A] }//pass? is this the looping one?
-    B:{.m:Break[B]}
-    Break[X]:{ .b:Break[X] }
+    A:B{ .m: Break[A] }//pass? is this the looping one?
+    B:{ .m: Break[B] }
+    Break[X]:{ .b: Break[X] }
     """); }
-  @Test void t27() { ok("""
+  @Test void loopingSupTypes2() { fail("""
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    (file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:4) a.B[], .m/0
+    (file:///home/nick/Programming/uni/fearless/Dummy0.fear:2:5) a.A[], .m/0
     """, "a.A", """
     package a
     A:B{ .m:Break[B] }//pass? or is this one?
-    B:{.m:Break[A]}
+    B:{ .m:Break[A] }
     Break[X]:{ .b:Break[X] }
     """); }
 

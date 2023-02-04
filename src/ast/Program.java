@@ -1,5 +1,6 @@
 package ast;
 
+import files.Pos;
 import id.Id;
 import magic.Magic;
 import failure.Fail;
@@ -24,6 +25,10 @@ public class Program implements program.Program  {
     assert !ds.containsKey(d.name());
     ds.put(d.name(), d);
     return new Program(Collections.unmodifiableMap(ds));
+  }
+
+  public Optional<Pos> posOf(Id.IT<ast.T> t) {
+    return of(t.name()).pos();
   }
 
   T.Dec of(Id.DecId d) {

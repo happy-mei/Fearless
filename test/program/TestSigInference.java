@@ -101,7 +101,7 @@ public class TestSigInference {
 
   @Test void inferClashingGenMeth() { fail("""
     In position [###]:2:14
-    uncomposableMethods:18
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     ([###]/Dummy0.fear:4:4) base.C[], .g/0
@@ -260,7 +260,7 @@ public class TestSigInference {
 
   @Test void noMethodExists() { fail("""
     In position [###]Dummy0.fear:4:12
-    cannotInferSig:19
+    [E19 cannotInferSig]
     Could not infer the signature for .foo/0 in a.Bi/2.
     """, """
     package a
@@ -320,7 +320,7 @@ public class TestSigInference {
 
   @Test void abstractNoCandidate() { fail("""
     In position [###]/Dummy0.fear:3:6
-    cannotInferAbsSig:22
+    [E22 cannotInferAbsSig]
     Could not infer the signature for the abstract lambda in a.Id2/0. There must be one abstract lambda in the trait.
     """, """
     package a
@@ -489,8 +489,8 @@ mutMyFamilyImm.get():imm Person
     FamilyRecMdf:List[mut Person]{ read .get(): recMdf Person -> {}}
     """); }
   @Test void familyGensExtension2() { fail("""
-    In position file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:8:25
-    uncomposableMethods:18
+    In position [###]/Dummy0.fear:8:25
+    [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
     (file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:3:10) test.List[mut test.Person[]], .get/0

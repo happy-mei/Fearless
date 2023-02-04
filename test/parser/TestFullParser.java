@@ -61,7 +61,7 @@ class TestFullParser {
       alias base.True as True,
       """); }
   @Test void failConflictingAliases1(){ fail("""
-    conflictingAlias:1
+    [E1 conflictingAlias]
     This alias is in conflict with other aliases in the same package: True
     conflicts:
     ([###]Dummy0.fear:2:0) alias base.True[] as True
@@ -114,7 +114,7 @@ class TestFullParser {
       MyTrue:base.True
       """); }
   @Test void failConflictingDecls1(){ fail("""
-      conflictingDecl:2
+      [E2 conflictingDecl]
       This trait declaration is in conflict with other trait declarations in the same package: MyTrue/0
       conflicts:
       ([###]/Dummy0.fear:2:0) MyTrue/0
@@ -214,7 +214,7 @@ class TestFullParser {
   );}
   @Test void failConcreteInGens(){ fail("""
     In position [###]/Dummy0.fear:2:7
-    concreteTypeInFormalParams:3
+    [E3 concreteTypeInFormalParams]
     Trait and method declarations may only have generic type parameters. This concrete type was provided instead:
     imm base.A[]
     Alternatively, are you attempting to shadow an existing class name?

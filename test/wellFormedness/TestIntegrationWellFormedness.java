@@ -48,7 +48,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void noIsoParamsLambda1() { fail("""
     In position [###]/Dummy0.fear:3:2
-    isoInTypeArgs:5
+    [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
@@ -58,7 +58,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void noIsoParamsLambda2() { fail("""
     In position [###]/Dummy0.fear:3:2
-    isoInTypeArgs:5
+    [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
@@ -68,7 +68,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void noIsoParamsLambdaNested1() { fail("""
     In position [###]/Dummy0.fear:3:2
-    isoInTypeArgs:5
+    [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
@@ -78,7 +78,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void noIsoParamsLambdaNested2() { fail("""
     In position [###]/Dummy0.fear:4:2
-    isoInTypeArgs:5
+    [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
@@ -96,7 +96,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void noIsoParamsAlias1() { fail("""
     In position [###]/Dummy0.fear:2:0
-    isoInTypeArgs:5
+    [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
@@ -107,7 +107,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void noIsoParamsAliasNested1() { fail("""
     In position [###]/Dummy0.fear:2:0
-    isoInTypeArgs:5
+    [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
@@ -119,7 +119,7 @@ public class TestIntegrationWellFormedness {
 
   @Test void noIsoParamsMethRet() { fail("""
     In position [###]/Dummy0.fear:3:2
-    isoInTypeArgs:5
+    [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
@@ -134,7 +134,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void isoParamsMethParams() { fail("""
     In position [###]/Dummy0.fear:3:2
-    isoInTypeArgs:5
+    [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
@@ -144,7 +144,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void isoParamsMethParamsGens() { fail("""
     In position [###]/Dummy0.fear:3:2
-    isoInTypeArgs:5
+    [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
     iso T
     """, """
@@ -154,7 +154,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void isoParamsMethCall() { fail("""
     In position [###]/Dummy0.fear:3:2
-    isoInTypeArgs:5
+    [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
     iso pkg1.A[]
     """, """
@@ -176,7 +176,7 @@ public class TestIntegrationWellFormedness {
 
   @Test void noExplicitThisBlockId() { fail("""
     In position [###]/Dummy0.fear:2:2
-    explicitThis:6
+    [E6 explicitThis]
     Local variables may not be named 'this'.
     """, """
     package base
@@ -185,7 +185,7 @@ public class TestIntegrationWellFormedness {
 
   @Test void noExplicitThisMethArg() { fail("""
     In position [###]/Dummy0.fear:2:2
-    explicitThis:6
+    [E6 explicitThis]
     Local variables may not be named 'this'.
     """, """
     package base
@@ -194,7 +194,7 @@ public class TestIntegrationWellFormedness {
 
   @Test void disjointArgList() { fail("""
     In position [###]/Dummy0.fear:2:2
-    conflictingMethParams:7
+    [E7 conflictingMethParams]
     Parameters on methods must have different names. The following parameters were conflicting: a
     """, """
     package base
@@ -203,7 +203,7 @@ public class TestIntegrationWellFormedness {
 
   @Test void disjointMethGens() { fail("""
     In position [###]/Dummy0.fear:2:2
-    conflictingMethParams:7
+    [E7 conflictingMethParams]
     Parameters on methods must have different names. The following parameters were conflicting: T
     """, """
     package base
@@ -212,7 +212,7 @@ public class TestIntegrationWellFormedness {
 
   @Test void disjointDecGens() { fail("""
     In position [###]/Dummy0.fear:2:0
-    conflictingMethParams:7
+    [E7 conflictingMethParams]
     Parameters on methods must have different names. The following parameters were conflicting: T
     """, """
     package base
@@ -221,7 +221,7 @@ public class TestIntegrationWellFormedness {
 
   @Test void noShadowingMeths() { fail("""
     In position [###]/Dummy0.fear:2:2
-    conflictingMethNames:17
+    [E17 conflictingMethNames]
     Methods may not have the same name and number of parameters. The following methods were conflicting: .a/0
     """, """
     package base
@@ -230,7 +230,7 @@ public class TestIntegrationWellFormedness {
 
   @Test void noShadowingLambda() { fail("""
     In position [###]/Dummy0.fear:2:2
-    shadowingX:9
+    [E9 shadowingX]
     'hi' is shadowing another variable in scope.
     """, """
     package base
@@ -269,7 +269,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void noMutHygConcrete() { fail("""
     In position [###]/Dummy0.fear:7:0
-    concreteInNoMutHyg:12
+    [E12 concreteInNoMutHyg]
     The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:
     imm base.Ref[]
     """, """
@@ -289,7 +289,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void noMutHygConcreteSplit() { fail("""
     In position [###]/Dummy0.fear:7:0
-    concreteInNoMutHyg:12
+    [E12 concreteInNoMutHyg]
     The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:
     imm base.Ref[]
     """, """
@@ -309,7 +309,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void noMutHygNotUsed() { fail("""
     In position [###]/Dummy0.fear:7:0
-    invalidNoMutHyg:13
+    [E13 invalidNoMutHyg]
     The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. This generic type is not a type parameter of the trait:
     imm A
     """, """
@@ -330,7 +330,7 @@ public class TestIntegrationWellFormedness {
 
   @Test void mdfAsMethMdf() { fail("""
     In position [###]/Dummy0.fear:2:2
-    invalidMethMdf:16
+    [E16 invalidMethMdf]
     mdf is not a valid modifier for a method (on the method .foo/0).
     """, """
     package base
@@ -338,7 +338,7 @@ public class TestIntegrationWellFormedness {
     """); }
   @Test void recMdfAsMethMdf() { fail("""
     In position [###]/Dummy0.fear:2:2
-    invalidMethMdf:16
+    [E16 invalidMethMdf]
     recMdf is not a valid modifier for a method (on the method .foo/0).
     """, """
     package base

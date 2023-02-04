@@ -1,5 +1,6 @@
 package astFull;
 
+import files.Pos;
 import id.Id;
 import magic.Magic;
 import failure.CompileError;
@@ -21,9 +22,12 @@ public class Program implements program.Program{
   public Program(Map<Id.DecId, T.Dec> ds) { this.ds = ds; }
 
   public List<ast.E.Lambda> lambdas() { throw Bug.unreachable(); }
-
   public program.Program withDec(ast.T.Dec d) {
     throw Bug.unreachable();
+  }
+
+  public Optional<Pos> posOf(Id.IT<ast.T> t) {
+    return of(t).pos();
   }
 
   T.Dec of(Id.DecId d) {

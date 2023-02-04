@@ -1,11 +1,13 @@
 package typing;
 
+import failure.CompileError;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
+import utils.Err;
 import utils.FromContent;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 
@@ -14,12 +16,23 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestSubTyping {
-  //TODO: we may want to move it to a more general Utils
   void ok(String t1, String t2, boolean res, String ...code){
     var ty1 = new Parser(Parser.dummy, t1).parseFullT();
     var ty2 = new Parser(Parser.dummy, t2).parseFullT();
-    Program p= FromContent.of(code);
+    Program p = FromContent.of(code);
     Assertions.assertEquals(res,p.isSubType(ty1, ty2), String.format("t1: %s\nt2: %s", ty1, ty2));
+  }
+
+  void fail(String expected, String t1, String t2, String ...code){
+    var ty1 = new Parser(Parser.dummy, t1).parseFullT();
+    var ty2 = new Parser(Parser.dummy, t2).parseFullT();
+    Program p = FromContent.of(code);
+    try {
+      p.isSubType(ty1, ty2);
+      Assertions.fail("Expected failure");
+    } catch (CompileError e) {
+      Err.strCmp(expected, e.toString());
+    }
   }
 
   @Test void reflSub() { ok("a.A","a.A",true,"package a\nA:{}"); }
@@ -62,6 +75,16 @@ public class TestSubTyping {
     package a
     A:{} B:A C:B D:C E:D
     """); }
+  @Test void loopingAdapt() { fail("""
+    [E25 circularSubType]
+    There is a cyclical sub-typing relationship between imm a.Break[imm A] and imm a.Break[imm B].
+    """, "a.Break[A]", "a.Break[B]", """
+    package a
+    A:B{ .m: Break[A] }
+    B:{ .m: Break[B] }
+    Break[X]:{ .b: Break[X] }
+    // Break[A]:{ .self: Break[B], .b: Break[A] -> this.self.b } // loop
+    """); }
 
   final String pointEx = """
     package a
@@ -81,5 +104,4 @@ public class TestSubTyping {
   @Test void sortedListOfTExtendsListTOfNot3() { ok("a.SortedList[X]","a.List[a.List[a.Num]]",false,pointEx); }
   @Test void sortedListMixedGens() { ok("a.SortedList[a.ColouredPoint]","a.SortedList[a.Point]",true,pointEx); }
   @Test void inverseSortedListMixedGens() { ok("a.SortedList[a.Point]","a.SortedList[a.ColouredPoint]",false,pointEx); }
-
 }
