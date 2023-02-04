@@ -65,18 +65,21 @@ public class TestSubTyping {
 
   final String pointEx = """
     package a
-    List[T]:{} SortedList[T]:List[mdf T]
+    List[T]:{
+      read .get: recMdf T
+    }
+    SortedList[T]:List[mdf T]
     Num:{}
     Point:{ .x: Num, .y: Num }
     ColouredPoint:Point{ .colour: Num }
     """;
-  @Test void sortedListOfTExtendsListTOfT() { ok("a.SortedList[Num]","a.List[Num]",true,pointEx); }
-  @Test void sortedListOfTExtendsListTOfTMdf() { ok("a.SortedList[Num]","a.List[read Num]",false,pointEx); }
+  @Test void sortedListOfTExtendsListTOfT() { ok("a.SortedList[a.Num]","a.List[a.Num]",true,pointEx); }
+  @Test void sortedListOfTExtendsListTOfTMdf() { ok("a.SortedList[a.Num]","a.List[read a.Num]",false,pointEx); }
   @Test void sortedListOfTExtendsListTOfX() { ok("a.SortedList[X]","a.List[X]",true,pointEx); }
-  @Test void sortedListOfTExtendsListTOfNot1() { ok("a.SortedList[Num]","a.List[X]",false,pointEx); }
-  @Test void sortedListOfTExtendsListTOfNot2() { ok("a.SortedList[X]","a.List[Num]",false,pointEx); }
-  @Test void sortedListOfTExtendsListTOfNot3() { ok("a.SortedList[X]","a.List[a.List[Num]]",false,pointEx); }
-  @Test void sortedListMixedGens() { ok("a.SortedList[ColouredPoint]","a.SortedList[Point]",true,pointEx); }
-  @Test void inverseSortedListMixedGens() { ok("a.SortedList[Point]","a.SortedList[ColouredPoint]",false,pointEx); }
+  @Test void sortedListOfTExtendsListTOfNot1() { ok("a.SortedList[a.Num]","a.List[X]",false,pointEx); }
+  @Test void sortedListOfTExtendsListTOfNot2() { ok("a.SortedList[X]","a.List[a.Num]",false,pointEx); }
+  @Test void sortedListOfTExtendsListTOfNot3() { ok("a.SortedList[X]","a.List[a.List[a.Num]]",false,pointEx); }
+  @Test void sortedListMixedGens() { ok("a.SortedList[a.ColouredPoint]","a.SortedList[a.Point]",true,pointEx); }
+  @Test void inverseSortedListMixedGens() { ok("a.SortedList[a.Point]","a.SortedList[a.ColouredPoint]",false,pointEx); }
 
 }
