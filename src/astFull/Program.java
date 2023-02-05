@@ -32,7 +32,7 @@ public class Program implements program.Program{
 
   T.Dec of(Id.DecId d) {
     var res = ds.get(d);
-    if (res == null) { res = Magic.getDec(d); }
+    if (res == null) { res = Magic.getFullDec(this::of, d); }
     if (res == null) { throw Fail.traitNotFound(d); }
     return res;
   }
@@ -104,6 +104,7 @@ public class Program implements program.Program{
       var di = is.inferSignatures(is.decs.get(i));
       is.updateDec(di,i);
     }
+    program.Program.reset();
     return is.p;
   }
   public ast.Program inferSignaturesToCore(){

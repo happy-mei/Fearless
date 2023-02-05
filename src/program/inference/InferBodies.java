@@ -5,15 +5,15 @@ import astFull.T;
 import id.Id;
 import id.Mdf;
 import program.CM;
+import program.Program;
 import utils.Streams;
-import visitors.FullShortCircuitVisitor;
 import visitors.InjectionVisitor;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public record InferBodies(ast.Program p) {
+  // TODO: no such element exception inferring meth call for meth that doesn't exist
   public ast.Program inferAll(astFull.Program fullProgram){
     return new ast.Program(inferDecs(fullProgram));
   }
@@ -58,7 +58,7 @@ public record InferBodies(ast.Program p) {
   //TODO: this may have to become iterative if the recursion gets out of control
   E fixInferStep(Map<String, T> gamma, E e, int depth) {
     var next = inferStep(gamma, e, depth);
-    System.out.println(e);
+//    System.out.println(e);
     assert next.map(ei->!ei.equals(e)).orElse(true);
     if (next.isEmpty()) { return e; }
 //    if (e.equals(next.get())) { return e; }
@@ -125,14 +125,16 @@ public record InferBodies(ast.Program p) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isPresent()){ return Optional.empty(); }
-    var res = onlyAbs(e.it().get(), depth).map(m::withSig);
+    var res = onlyAbs(e.it().get(), depth).map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()));
     assert res.map(m1->!m.equals(m1)).orElse(true);
     return res;
   }
 
-  Optional<E.Sig> onlyAbs(Id.IT<astFull.T> it, int depth){ return p.fullSig(it, depth, CM::isAbs); }
+  Optional<Program.FullMethSig> onlyAbs(Id.IT<astFull.T> it, int depth){
+    return p.fullSig(it, depth, CM::isAbs);
+  }
 
-  Optional<E.Sig> onlyMName(Id.IT<astFull.T> it, Id.MethName name, int depth){
+  Optional<Program.FullMethSig> onlyMName(Id.IT<astFull.T> it, Id.MethName name, int depth){
     return p.fullSig(it, depth, cm->cm.name().equals(name));
   }
 
@@ -142,7 +144,7 @@ public record InferBodies(ast.Program p) {
     if(m.name().isEmpty()){ return Optional.empty(); }
     var sig = onlyMName(e.it().get(), m.name().get(), depth);
     if(sig.isEmpty()){ return Optional.empty(); }
-    var res = sig.map(m::withSig);
+    var res = sig.map(s->m.withSig(s.sig()));
     assert res.map(m1->!m.equals(m1)).orElse(true);
     return res;
   }
@@ -217,7 +219,7 @@ public record InferBodies(ast.Program p) {
     // cond: e.name().name.equals("#") && c.itOrThrow().name().name().equals("base.UpdateRef")
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
-    var sig = p.fullSig(recv, depth, cm->cm.name().equals(e.name())).orElseThrow();
+    var sig = p.fullSig(recv, depth, cm->cm.name().equals(e.name())).orElseThrow().sig();
     var k = sig.gens().size();
     var infers = Collections.nCopies(k, T.infer);
     return Optional.of(e.withTs(Optional.of(infers)));

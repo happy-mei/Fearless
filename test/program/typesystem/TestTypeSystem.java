@@ -59,6 +59,8 @@ public class TestTypeSystem {
     A:{ .m: A -> this }
     """); }
 
+  @Test void baseLib(){ ok( Base.immBaseLib); }
+
   // TODO: error message is wrong
   @Test void simpleTypeError(){ fail("""
     In position [###]/Dummy0.fear:4:2
@@ -78,4 +80,20 @@ public class TestTypeSystem {
     B:A{}
     C:{ .m2: A -> A.m1(B) }
     """); }
+
+  @Test void numbers1(){ ok( """
+    package test
+    A:{ .m(a: 42): 42 -> 42 }
+    """, Base.immBaseLib); }
+
+  // TODO: write a test that shows that the error message for this code makes sense:
+  /*
+      // (Void is the wrong R and this returns Opt[Opt[T]] instead of Opt[T] or the written Void.
+        OptDo[T]:OptMatch[T,Void]{
+        #(t:T):Void,   //#[R](t:T):R,
+        .some(x) -> Opt#this._doRes(this#x, x),
+        .none->{},
+        ._doRes(y:Void,x:T):T -> Opt#x
+        }
+   */
 }

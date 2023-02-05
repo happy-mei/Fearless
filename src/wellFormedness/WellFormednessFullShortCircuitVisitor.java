@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+// TODO: Sealed and _C/_m restrictions
 /*
   ✅Actual generic parameters can not be iso //checked in Alias, Lambda, mCall, and Meth
   ✅No explicitly declared this

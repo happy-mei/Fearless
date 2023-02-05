@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public interface FromContent {
-  static Program of(String[] content){
+  static astFull.Program of(String[] content){
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
     var ps = Arrays.stream(content)
