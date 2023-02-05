@@ -30,6 +30,7 @@ public record RefineTypes(ast.Program p) {
     List<RefinedSig> sigs = lambda.meths().stream()
       .map(this::tSigOf)
       .toList();
+    // TODO: here we turn imm T into mdf T due to RP[mdf Fear0$, imm T]..... this is not good.
     var res = refineSigMassive(lambda.mdf().orElseThrow(), c, sigs, depth);
     var ms = Streams.zip(lambda.meths(), res.sigs())
       .map(this::tM)
