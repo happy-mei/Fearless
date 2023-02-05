@@ -91,7 +91,7 @@ public class Fail{
   public static CompileError inferFailed(astFull.E e){ return of(String.format("Could not infer the type for the following expression:\n%s", e)); }
 
   public static CompileError methTypeError(ast.T expected, ast.T actual, Id.MethName m){
-    return of(String.format("Expected the method %s to return %s, got %s.", expected, actual, m));
+    return of(String.format("Expected the method %s to return %s, got %s.", m, expected, actual));
   }
   public static CompileError unimplementedInLambda(List<CM> ms){
     var unimplemented = ms.stream()

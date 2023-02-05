@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
+import utils.Base;
 import utils.Err;
 import utils.FromContent;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;

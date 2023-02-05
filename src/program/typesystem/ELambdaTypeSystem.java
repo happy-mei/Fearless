@@ -12,16 +12,17 @@ import program.CM;
 import program.Program;
 import utils.Streams;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 interface ELambdaTypeSystem extends ETypeSystem{
   default Res visitLambda(E.Lambda b){
-
-//    expectedT()
     Mdf mdf=b.mdf();
-    Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
-    Dec d=new Dec(fresh,List.of(),b,b.pos());
+    var parent = b.its().get(0);
+    var parentGxs = p().gxsOf(parent).stream().toList();
+    Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), parentGxs.size());
+    Dec d=new Dec(fresh,parentGxs,b,b.pos());
     Program p0=p().withDec(d);
     var filtered=p0.meths(d.toIT(), depth()+1).stream()
       .filter(cmi->filterByMdf(mdf,cmi))
@@ -29,11 +30,14 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var sadlyAbs=filtered.stream()
       .filter(CM::isAbs)
       .toList();
-    if (!sadlyAbs.isEmpty()) { return Fail.unimplementedInLambda(sadlyAbs); }
+    if (!sadlyAbs.isEmpty()) {
+      return Fail.unimplementedInLambda(sadlyAbs);
+    }
     var sadlyExtra=b.meths().stream()
       .filter(m->filtered.stream().anyMatch(cm->cm.name().equals(m.name())))
       .toList();
-    assert sadlyExtra.isEmpty();//TODO: can we break this assertion?
+//    assert sadlyExtra.isEmpty();//TODO: can we break this assertion? Yes. If we override a method.
+      // TODO: figure out a better error for the case where a non-overriden method is added (or can we just allow it?)
     return withProgram(p0).bothT(d);
   }
 
@@ -63,7 +67,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var subOk=res.t()
       .flatMap(ti->p().isSubType(ti,m.sig().ret())
         ? Optional.empty()
-        : Optional.of(Fail.methTypeError(t, ti, m.name()).pos(m.pos()))
+        : Optional.of(Fail.methTypeError(m.sig().ret(), ti, m.name()).pos(m.pos()))
       );
     return res.err().or(()->subOk);
   }

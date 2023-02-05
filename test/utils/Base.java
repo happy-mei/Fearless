@@ -40,29 +40,22 @@ public interface Base {
       OptMatch[T,R]:{ .some(x:T): R, .none: R }
       OptFlatMap[T,R]:OptMatch[T,Opt[R]]{ .none->{} }
       OptMap[T,R]:OptMatch[T,Opt[R]]{ #(t:T):R, .some(x) -> Opt#(this#x), .none->{} }
-      OptDo[T]:OptMatch[T,Void]{
+      OptDo[T]:OptMatch[T,Opt[T]]{
         #(t:T):Void,   //#[R](t:T):R,
-        .some(x) -> Opt#(this._doRes(this#x, x)),
+        .some(x) -> Opt#this._doRes(this#x, x),
         .none->{},
-        ._doRes(y:Void,x:T):Opt[T]->Opt#x
+        ._doRes(y:Void,x:T):T -> x
         }
-      Opt:{ #[T](x: T): Opt[T] -> { .match(m)->m.some(x)} }
+      Opt:{ #[T](x: T): Opt[T] -> { .match(m)->m.some(x) } } // TODO: this inferred Opt[mdf T] for the lambda
       
       Stringable:{
         .str: Str,
       }
           
       // Nums
-      Num:Sealed,MathOpts[Num],Stringable{
-        .str: Str,
-        //.unum: UNum
-        }
-          
-      UNum:MathOps[UNum],Sealed,Stringable{
-        .str: Str,
-        .num: Num
-        }
-          
+      Num:Sealed,MathOps[Num],Stringable{ .unum: UNum }
+      UNum:Sealed,MathOps[UNum],Stringable{ .num: Num }
+
       MathOps[T]:{
         +(n: mdf T): mdf T,
         -(n: mdf T): mdf T,
@@ -86,8 +79,54 @@ public interface Base {
         ==(n: mdf T): Bool,
         }
         
+        // Fake concrete type for all numbers. The real implementation is generated at code-gen.
         _NumInstance:Num{
-          
+          .unum -> this.unum,
+          .str -> this.str,
+          +(n) -> this+n,
+          -(n) -> this-n,
+          *(n) -> this*n,
+          /(n) -> this/n,
+          %(n) -> this%n,
+          **(n) -> this**n,
+            
+          // bitwise
+          >>(n) -> this>>n,
+          <<(n) -> this<<n,
+          ^(n) -> this^n,
+          &(n) -> this&n,
+          |(n) -> this|n,
+            
+          // Comparisons
+          >n -> this>n,
+          <n -> this<n,
+          >=n -> this>=n,
+          <=n -> this<=n,
+          ==n -> this==n,
+          }
+        _UNumInstance:UNum{
+          .num -> this.num,
+          .str -> this.str,
+          +(n) -> this+n,
+          -(n) -> this-n,
+          *(n) -> this*n,
+          /(n) -> this/n,
+          %(n) -> this%n,
+          **(n) -> this**n,
+            
+          // bitwise
+          >>(n) -> this>>n,
+          <<(n) -> this<<n,
+          ^(n) -> this^n,
+          &(n) -> this&n,
+          |(n) -> this|n,
+            
+          // Comparisons
+          >n -> this>n,
+          <n -> this<n,
+          >=n -> this>=n,
+          <=n -> this<=n,
+          ==n -> this==n,
           }
       """;
   }

@@ -173,7 +173,8 @@ public interface Program {
     throw Bug.todo();
   }
 
-  default Optional<E.Sig> fullSig(Id.IT<astFull.T> it, int depth, Predicate<CM> pred) {
+  record FullMethSig(Id.MethName name, E.Sig sig){}
+  default Optional<FullMethSig> fullSig(Id.IT<astFull.T> it, int depth, Predicate<CM> pred) {
     var freshGXs = Id.GX.standardNames(it.ts().size());
     var freshGXsSet = new HashSet<>(freshGXs);
     var freshGXsQueue = new ArrayDeque<>(freshGXs);
@@ -188,7 +189,8 @@ public interface Program {
     var sig = cm.sig().toAstFullSig();
     var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(freshGXsSet, t)).toList();
     var restoredRt = RefineTypes.regenerateInfers(freshGXsSet, sig.ret());
-    return Optional.of(new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos()));
+    var restoredSig = new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos());
+    return Optional.of(new FullMethSig(cm.name(), restoredSig));
   }
 
   default Optional<CM> meths(Id.IT<T> it, Id.MethName name, int depth){
