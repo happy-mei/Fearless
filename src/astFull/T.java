@@ -106,6 +106,7 @@ public final class T {
       return v.visitDec(this);
     }
 
+    public T.Dec withName(Id.DecId name) { return new T.Dec(name, gxs, lambda, pos); }
     public Dec withLambda(E.Lambda lambda) {
       return new Dec(name, gxs, lambda, pos);
     }

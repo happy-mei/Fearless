@@ -35,6 +35,7 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
 
   public record Dec(DecId name, List<Id.GX<T>> gxs, E.Lambda lambda, Optional<Pos> pos) implements HasPos {
     public Dec{ assert gxs.size()==name.gen() && lambda!=null; }
+    public ast.T.Dec withName(Id.DecId name) { return new ast.T.Dec(name,gxs,lambda,pos); }
     public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(name,gxs,lambda,pos); }
 
     public Id.IT<T> toIT(){
