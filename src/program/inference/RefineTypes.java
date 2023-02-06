@@ -222,7 +222,7 @@ public record RefineTypes(ast.Program p) {
   }
   record Sub(Id.GX<T> x,T t){
     Sub {
-//      assert x.name().endsWith("$") || !t.match(gx->gx.name().endsWith("$"),it->false);
+      assert x.name().endsWith("$") || !t.match(gx->gx.name().endsWith("$"),it->false);
     }
     boolean isCircular() {
       if (t.isInfer() || t.rt() instanceof Id.GX<?>) { return false; }
