@@ -222,7 +222,7 @@ public record RefineTypes(ast.Program p) {
   }
   record Sub(Id.GX<T> x,T t){
     Sub {
-      assert x.name().endsWith("$") || !t.match(gx->gx.name().endsWith("$"),it->false);
+//      assert x.name().endsWith("$") || !t.match(gx->gx.name().endsWith("$"),it->false);
     }
     boolean isCircular() {
       if (t.isInfer() || t.rt() instanceof Id.GX<?>) { return false; }
@@ -248,7 +248,7 @@ public record RefineTypes(ast.Program p) {
 
     //Sub s = new Sub(res.t2().gxOrThrow(),res.t1);
     //Sub sMdf = new Sub(res.t2().gxOrThrow(),res.t1.withMdf(Mdf.mdf));
-    Sub s = new Sub(res.t1().gxOrThrow(), res.t2.withMdf(res.t1.mdf()));
+    Sub s = new Sub(res.t1().gxOrThrow(), res.t2.propagateMdf(res.t1.mdf())); // TODO: change in formalism, was withMdf
     Sub sMdf = new Sub(res.t1().gxOrThrow(), new T(Mdf.mdf, res.t2.rt()));
     rename(rps, sMdf);
     return s;

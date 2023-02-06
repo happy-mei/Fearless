@@ -1,6 +1,7 @@
 package magic;
 
 import astFull.E;
+import astFull.Program;
 import astFull.T;
 import id.Id;
 import id.Mdf;
@@ -41,15 +42,9 @@ public class Magic {
 
   public static ast.T.Dec getDec(Function<Id.DecId, ast.T.Dec> resolve, Id.DecId id) {
     // TODO: strings and unsigned
-    if (Character.isDigit(id.name().charAt(0))) {
-      var base = resolve.apply(new Id.DecId("base._NumInstance", 0)).toIT();
-      return new ast.T.Dec(id, List.of(), new ast.E.Lambda(
-        Mdf.imm,
-        List.of(new Id.IT<>(id.name(), List.of()), base),
-        E.X.freshName(),
-        List.of(),
-        Optional.empty()
-      ), Optional.empty());
+    if (Character.isDigit(id.name().charAt(0)) && id.gen() == 0) {
+      var baseDec = resolve.apply(new Id.DecId("base._NumInstance", 0));
+      return baseDec.withName(id);
     }
     return null;
   }
