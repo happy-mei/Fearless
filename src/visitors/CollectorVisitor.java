@@ -1,32 +1,31 @@
 package visitors;
 
-import astFull.E;
+import ast.E;
+import ast.T;
 import id.Id;
 import id.Mdf;
-import program.inference.RefineTypes;
 
 import java.util.Collection;
 
-public interface FullCollectorVisitor<C extends Collection<?>> extends FullVisitor<Void> {
+public interface CollectorVisitor<C extends Collection<?>> extends Visitor<Void> {
   C res();
 
   default Void visitMCall(E.MCall e) {
     e.receiver().accept(this);
-    e.ts().ifPresent(tsi->tsi.forEach(this::visitT));
+    e.ts().forEach(this::visitT);
     e.es().forEach(ei->ei.accept(this));
     return null;
   }
   default Void visitX(E.X e) { return null; }
   default Void visitLambda(E.Lambda e) {
-    e.mdf().ifPresent(this::visitMdf);
+    visitMdf(e.mdf());
     e.its().forEach(this::visitIT);
-    e.it().ifPresent(this::visitIT);
     e.meths().forEach(this::visitMeth);
     return null;
   }
   default Void visitMeth(E.Meth m) {
-    m.name().ifPresent(this::visitMethName);
-    m.sig().ifPresent(this::visitSig);
+    visitMethName(m.name());
+    visitSig(m.sig());
     m.body().ifPresent(e->e.accept(this));
     return null;
   }
@@ -37,24 +36,16 @@ public interface FullCollectorVisitor<C extends Collection<?>> extends FullVisit
     visitT(s.ret());
     return null;
   }
-  default Void visitRefinedSig(RefineTypes.RefinedSig s) {
-    visitMdf(s.mdf());
-    s.gens().forEach(this::visitT);
-    s.args().forEach(this::visitT);
-    visitT(s.rt());
-    return null;
-  }
   default void visitMdf(Mdf mdf) {}
-  default void visitT(astFull.T t) {
-    if (t.isInfer()) { return; }
+  default void visitT(T t) {
     t.match(this::visitGX, this::visitIT);
   }
-  default Void visitIT(Id.IT<astFull.T> it) {
+  default Void visitIT(Id.IT<T> it) {
     visitDecId(it.name());
     it.ts().forEach(this::visitT);
     return null;
   }
-  default Void visitGX(Id.GX<astFull.T> gx) { return null; }
+  default Void visitGX(Id.GX<T> gx) { return null; }
   default Void visitMethName(Id.MethName m) { return null; }
   default Void visitDecId(Id.DecId d) { return null; }
 }
