@@ -18,6 +18,8 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
+// TODO: Change this to keep names as-is, leave that all to the JavaCodegen visitor (etc.)
+
 public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   private final List<MIR.Trait> freshTraits = new ArrayList<>();
 

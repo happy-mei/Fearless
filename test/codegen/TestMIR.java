@@ -61,166 +61,175 @@ public class TestMIR {
   }
 
   @Test void emptyProgram() { ok("""
-    {"ds":{}}
+    {"pkgs":{}}
     """, """
     package test
     """);}
 
   @Test void simpleProgram() { ok("""
 {
-    "ds": {
-        "test.Foo_0": {
+  "pkgs": {
+    "test": [
+      {
+        "name": "test.Bar_0",
+        "gens": [],
+        "its": [
+          "test.Bar_0",
+          "test.Baz_1"
+        ],
+        "meths": [
+          {
+            "name": "loop",
+            "mdf": "imm",
             "gens": [],
-            "its": [
+            "xs": [],
+            "rt": "test.Baz_1<test.Bar_0>",
+            "body": {
+              "op": "MIR$MCall",
+              "recv": {
+                "op": "MIR$X",
+                "mdf": "imm",
+                "name": "this",
+                "type": "test.Bar_0"
+              },
+              "name": "loop",
+              "args": []
+            },
+            "abs": false
+          },
+          {
+            "name": "$35",
+            "mdf": "imm",
+            "gens": [],
+            "xs": [],
+            "rt": "test.Foo_0",
+            "body": {
+              "op": "MIR$Lambda",
+              "mdf": "imm",
+              "freshName": "test.Fear7$36_0",
+              "selfName": "fear0$",
+              "its": [
                 "test.Foo_0"
-            ],
-            "meths": {}
-        },
-        "test.Bar_0": {
+              ],
+              "captures": [],
+              "meths": []
+            },
+            "abs": false
+          }
+        ]
+      },
+      {
+        "name": "test.Foo_0",
+        "gens": [],
+        "its": [
+          "test.Foo_0"
+        ],
+        "meths": []
+      },
+      {
+        "name": "test.Ok_0",
+        "gens": [],
+        "its": [
+          "test.Ok_0"
+        ],
+        "meths": [
+          {
+            "name": "$35",
+            "mdf": "imm",
             "gens": [],
-            "its": [
-                "test.Bar_0",
-                "test.Baz_1"
-            ],
-            "meths": {
-                "loop": {
-                    "name": "loop",
-                    "mdf": "imm",
-                    "gens": [],
-                    "xs": [],
-                    "rt": "test.Baz_1<test.Bar_0>",
-                    "body": {
-                        "op": "MIR$MCall",
-                        "recv": {
-                            "op": "MIR$X",
-                            "mdf": "imm",
-                            "name": "this",
-                            "type": "test.Bar_0"
-                        },
-                        "name": "loop",
-                        "args": []
-                    },
-                    "abs": false
-                },
-                "$35": {
-                    "name": "$35",
-                    "mdf": "imm",
-                    "gens": [],
-                    "xs": [],
-                    "rt": "test.Foo_0",
-                    "body": {
-                        "op": "MIR$Lambda",
-                        "mdf": "imm",
-                        "selfName": "fear0$",
-                        "its": [
-                            "test.Foo_0",
-                            "test.Foo_0"
-                        ],
-                        "captures": [],
-                        "meths": []
-                    },
-                    "abs": false
-                }
-            }
-        },
-        "test.Yo_0": {
+            "xs": [],
+            "rt": "test.Ok_0",
+            "body": null,
+            "abs": true
+          }
+        ]
+      },
+      {
+        "name": "test.Baz_1",
+        "gens": [
+          "X"
+        ],
+        "its": [
+          "test.Baz_1"
+        ],
+        "meths": [
+          {
+            "name": "$35",
+            "mdf": "imm",
             "gens": [],
-            "its": [
-                "test.Yo_0"
-            ],
-            "meths": {
-                "lm": {
-                    "name": "lm",
-                    "mdf": "imm",
-                    "gens": [],
-                    "xs": [],
-                    "rt": "test.Ok_0",
-                    "body": {
-                        "op": "MIR$Lambda",
-                        "mdf": "imm",
-                        "selfName": "ok",
-                        "its": [
-                            "test.Ok_0"
-                        ],
-                        "captures": [],
-                        "meths": [
-                            {
-                                "name": "$35",
-                                "mdf": "imm",
-                                "gens": [],
-                                "xs": [],
-                                "rt": "test.Ok_0",
-                                "body": {
-                                    "op": "MIR$MCall",
-                                    "recv": {
-                                        "op": "MIR$X",
-                                        "mdf": "imm",
-                                        "name": "ok",
-                                        "type": "Fear8$36_0"
-                                    },
-                                    "name": "$35",
-                                    "args": []
-                                },
-                                "abs": false
-                            }
-                        ]
-                    },
-                    "abs": false
-                }
-            }
-        },
-        "Fear7$36_0": {
+            "xs": [],
+            "rt": "X",
+            "body": null,
+            "abs": true
+          }
+        ]
+      },
+      {
+        "name": "test.Yo_0",
+        "gens": [],
+        "its": [
+          "test.Yo_0"
+        ],
+        "meths": [
+          {
+            "name": "lm",
+            "mdf": "imm",
             "gens": [],
-            "its": [
-                "test.Foo_0",
-                "test.Foo_0"
-            ],
-            "meths": {}
-        },
-        "test.Ok_0": {
-            "gens": [],
-            "its": [
+            "xs": [],
+            "rt": "test.Ok_0",
+            "body": {
+              "op": "MIR$Lambda",
+              "mdf": "imm",
+              "freshName": "test.Fear8$36_0",
+              "selfName": "ok",
+              "its": [
                 "test.Ok_0"
-            ],
-            "meths": {
-                "$35": {
+              ],
+              "captures": [],
+              "meths": [
+                {
+                  "name": "$35",
+                  "mdf": "imm",
+                  "gens": [],
+                  "xs": [],
+                  "rt": "test.Ok_0",
+                  "body": {
+                    "op": "MIR$MCall",
+                    "recv": {
+                      "op": "MIR$X",
+                      "mdf": "imm",
+                      "name": "ok",
+                      "type": "Fear8$36_0"
+                    },
                     "name": "$35",
-                    "mdf": "imm",
-                    "gens": [],
-                    "xs": [],
-                    "rt": "test.Ok_0",
-                    "body": null,
-                    "abs": true
+                    "args": []
+                  },
+                  "abs": false
                 }
-            }
-        },
-        "test.Baz_1": {
-            "gens": [
-                "X"
-            ],
-            "its": [
-                "test.Baz_1"
-            ],
-            "meths": {
-                "$35": {
-                    "name": "$35",
-                    "mdf": "imm",
-                    "gens": [],
-                    "xs": [],
-                    "rt": "X",
-                    "body": null,
-                    "abs": true
-                }
-            }
-        },
-        "Fear8$36_0": {
-            "gens": [],
-            "its": [
-                "test.Ok_0"
-            ],
-            "meths": {}
-        }
-    }
+              ]
+            },
+            "abs": false
+          }
+        ]
+      },
+      {
+        "name": "test.Fear7$36_0",
+        "gens": [],
+        "its": [
+          "test.Foo_0"
+        ],
+        "meths": []
+      },
+      {
+        "name": "test.Fear8$36_0",
+        "gens": [],
+        "its": [
+          "test.Ok_0"
+        ],
+        "meths": []
+      }
+    ]
+  }
 }
     """, """
     package test
