@@ -345,11 +345,32 @@ public class TestIntegrationWellFormedness {
     A:{ recMdf .foo: A }
     """); }
 
-  // TODO: add this to the formalism
   @Test void noRecMdfInImplements() { fail("""
     """, """
     package base
     A[X]:{}
     B[Y]:A[recMdf Y]{}
+    """); }
+  @Test void noRecMdfInNonReadRet() { fail("""
+    """, """
+    package base
+    A[X]:{ .foo(): recMdf X }
+    """); }
+  @Test void noRecMdfInNonReadRetNested() { fail("""
+    """, """
+    package base
+    A[X]:{ .foo(): A[recMdf X] }
+    """); }
+  @Test void noRecMdfInNonReadArgs() { fail("""
+    """, """
+    package base
+    Foo:{}
+    A[X]:{ .foo(f: recMdf Foo): Foo -> f }
+    """); }
+  @Test void noRecMdfInNonReadArgsNested() { fail("""
+    """, """
+    package base
+    Foo:{}
+    A[X]:{ .foo(f: A[recMdf X]): Foo -> f }
     """); }
 }

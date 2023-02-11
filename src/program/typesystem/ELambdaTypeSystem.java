@@ -20,7 +20,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
   default Res visitLambda(E.Lambda b){
     Mdf mdf=b.mdf();
     var parent = b.its().get(0);
-    var parentGxs = p().gxsOf(parent).stream().toList();
+    var parentGxs = p().gxsOf(parent).stream().toList(); // TODO: why parentGXs here?
     Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), parentGxs.size());
     Dec d=new Dec(fresh,parentGxs,b,b.pos());
     Program p0=p().withDec(d);
@@ -46,7 +46,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     //var errMdf = expectedT.map(ti->!p().isSubType(ti.mdf(),b.mdf())).orElse(false);
     //after discussion, line above not needed
     var expectedT=expectedT().stream()
-      .filter(ti->b.its().contains(ti.itOrThrow()))
+      .filter(ti->ti.match(gx->true, it->b.its().contains(it)))
       .findFirst();
     T retT = expectedT //TOP LEVEL = declared type
       .map(t->t.withMdf(b.mdf()))
