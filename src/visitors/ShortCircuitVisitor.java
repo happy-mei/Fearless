@@ -1,13 +1,14 @@
 package visitors;
 
 import ast.E;
+import ast.Program;
 import ast.T;
 import id.Id;
 import id.Id.DecId;
 import id.Id.MethName;
 import id.Mdf;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -15,9 +16,11 @@ public interface ShortCircuitVisitor<R> extends Visitor<Optional<R>> {
   default Optional<R> visitMeth(E.Meth e){
     return visitSig(e.sig())
       .or(()->visitMethName(e.name()))
+      .or(()->visitT(e.sig().ret()))
+      .or(()->visitAll(e.sig().ts(),this::visitT))
       .or(()->e.body().flatMap(b->b.accept(this)));
   }
-  static <R,ET> Optional<R> visitAll(List<ET> ts, Function<ET,Optional<R>> f){
+  static <R,ET> Optional<R> visitAll(Collection<ET> ts, Function<ET,Optional<R>> f){
     for(var e:ts){
       var r=f.apply(e);
       if(r.isPresent()){ return r; }
@@ -51,6 +54,9 @@ public interface ShortCircuitVisitor<R> extends Visitor<Optional<R>> {
   default Optional<R> visitGX(Id.GX<T> t){ return Optional.empty(); }
   default Optional<R> visitDec(T.Dec d){
     return visitAll(d.gxs(),this::visitGX).or(()->visitLambda(d.lambda()));
+  }
+  default Optional<R> visitProgram(Program p){
+    return visitAll(p.ds().values(), this::visitDec);
   }
   default Optional<R> visitDecId(DecId di){ return Optional.empty(); }
 }

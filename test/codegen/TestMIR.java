@@ -11,6 +11,7 @@ import parser.Parser;
 import program.inference.InferBodies;
 import utils.Err;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
+import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ public class TestMIR {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
+    new WellFormednessShortCircuitVisitor().visitProgram(inferred);
     inferred.typeCheck();
     var mir = new MIRInjectionVisitor().visitProgram(inferred);
     var toJson = new ObjectMapper().registerModule(new Jdk8Module().configureAbsentsAsNulls(true));

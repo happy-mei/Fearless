@@ -496,4 +496,30 @@ public class TestInferBodies {
     Opt[T]:{}
     Opt:{ #[T](x: T): Opt[T] -> {} }
     """); }
+
+  @Test void useUndefinedX() { fail("""
+    """, """
+    package test
+    A[X]:{ .foo(x: X): X -> B{ x }.argh }
+    B:{ read .argh: recMdf X } // should fail because X is not defined here
+    """); }
+  @Test
+  void recMdfInSubHygMethGens() { ok("""
+    package base
+    A[X]:{ .foo(x: X): X -> B{ x }.argh }
+    B:{ read .argh[X]: recMdf X }
+    """); }
+  @Test
+  void recMdfInSubHyg() { ok("""
+    package base
+    A[X]:{ .foo(x: X): X -> B[X]{ x }.argh }
+    B[X]:{ read .argh: recMdf X }
+    """); }
+  @Test
+  void callingEphemeralMethod() { fail("""
+    """, """
+    package base
+    A[X]:{ .foo(x: X): X -> {.foo: recMdf X -> x}.foo }
+    B:{}
+    """); }
 }

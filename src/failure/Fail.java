@@ -4,6 +4,7 @@ import astFull.E;
 import astFull.T;
 import files.Pos;
 import id.Id;
+import id.Mdf;
 import program.CM;
 import utils.Bug;
 
@@ -103,6 +104,13 @@ public class Fail{
   public static CompileError circularSubType(ast.T t1, ast.T t2){
     return of(String.format("There is a cyclical sub-typing relationship between "+t1+" and "+t2+"."));
   }
+
+  public static CompileError recMdfInNonHyg(Mdf mdf, Id.MethName m, ast.T t){
+    return of("Invalid modifier for "+t+".\nrecMdf may only be used in read or lent methods. The method "+m+" has the "+mdf+" modifier.");
+  }
+  public static CompileError recMdfInImpls(ast.T t){
+    return of("Invalid modifier for "+t+".\nrecMdf may not be used in the list of implemented traits.");
+  }
 }
 
 //only add to the bottom
@@ -131,6 +139,8 @@ enum ErrorCode {
   cannotInferAbsSig,
   methTypeError,
   unimplementedInLambda,
-  circularSubType;
+  circularSubType,
+  recMdfInNonHyg,
+  recMdfInImpls;
   int code() {return this.ordinal() + 1;}
 }
