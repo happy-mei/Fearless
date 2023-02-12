@@ -563,4 +563,37 @@ public class TestMeths {
       }
     Void:{}
     """); }
+
+  @Test void adaptRecMdfImm() { ok("""
+    [test.List[imm test.Person[]],read.get/0()[][]:imm test.Person[]abs]
+    """, "test.Family", """
+    package test
+    Person:{}
+    List[X]:{ read .get(): recMdf X }
+    Family:List[imm Person]{}
+    """); }
+  @Test void adaptRecMdfRead() { ok("""
+    [test.List[read test.Person[]],read.get/0()[][]:read test.Person[]abs]
+    """, "test.Family", """
+    package test
+    Person:{}
+    List[X]:{ read .get(): recMdf X }
+    Family:List[read Person]{}
+    """); }
+  @Test void adaptRecMdfMut() { ok("""
+    [test.List[mut test.Person[]],read.get/0()[][]:recMdf test.Person[]abs]
+    """, "test.Family", """
+    package test
+    Person:{}
+    List[X]:{ read .get(): recMdf X }
+    Family:List[mut Person]{}
+    """); }
+  @Test void adaptRecMdfLent() { ok("""
+    [test.List[lent test.Person[]],read.get/0()[][]:recMdf test.Person[]abs]
+    """, "test.Family", """
+    package test
+    Person:{}
+    List[X]:{ read .get(): recMdf X }
+    Family:List[lent Person]{}
+    """); }
 }

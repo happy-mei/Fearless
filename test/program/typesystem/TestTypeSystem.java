@@ -181,6 +181,20 @@ public class TestTypeSystem {
     A:{ .m(a: 56, b: 12): Num -> b+a }
     """, Base.immBaseLib); }
 
+  @Test void noRecMdfWeakening() { fail("""
+    In position [###]/Dummy0.fear:4:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    [###]/Dummy0.fear:3:10) test.List[mut test.Person[]], .get/0
+    ([###]/Dummy0.fear:4:26) test.Family2[], .get/0
+    """, """
+    package test
+    Person:{}
+    List[X]:{ read .get(): recMdf X }
+    Family2:List[mut Person]{ read .get(): mut Person }
+    """); }
+
   // TODO: write a test that shows that the error message for this code makes sense:
   /*
       // (Void is the wrong R and this returns Opt[Opt[T]] instead of Opt[T] or the written Void.

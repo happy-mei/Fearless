@@ -50,7 +50,7 @@ public class TestWellFormedness {
 
   @Test
   void noRecMdfInImplements() { fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:5
+    In position [###]/Dummy0.fear:3:5
     [E27 recMdfInImpls]
     Invalid modifier for recMdf Y.
     recMdf may not be used in the list of implemented traits.
@@ -73,7 +73,7 @@ public class TestWellFormedness {
     B[X]:{ read .argh: recMdf X }
     """); }
   @Test void noRecMdfInNonReadRet() { fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:2:7
+    In position [###]/Dummy0.fear:2:7
     [E26 recMdfInNonHyg]
     Invalid modifier for recMdf X.
     recMdf may only be used in read or lent methods. The method .foo/0 has the imm modifier.
@@ -82,7 +82,7 @@ public class TestWellFormedness {
     A[X]:{ .foo(): recMdf X }
     """); }
   @Test void noRecMdfInNonReadRetNested() { fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:2:7
+    In position [###]/Dummy0.fear:2:7
     [E26 recMdfInNonHyg]
     Invalid modifier for recMdf X.
     recMdf may only be used in read or lent methods. The method .foo/0 has the imm modifier.
@@ -101,7 +101,7 @@ public class TestWellFormedness {
     A[X]:{ .foo(f: recMdf Foo): Foo -> f }
     """); }
   @Test void noRecMdfInNonReadArgsNested() { fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:7
+    In position [###]/Dummy0.fear:3:7
     [E26 recMdfInNonHyg]
     Invalid modifier for recMdf X.
     recMdf may only be used in read or lent methods. The method .foo/1 has the imm modifier.
