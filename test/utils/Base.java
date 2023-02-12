@@ -48,6 +48,9 @@ public interface Base {
         }
       Opt:{ #[T](x: T): Opt[T] -> { .match(m)->m.some(x) } } // TODO: this inferred Opt[mdf T] for the lambda
       
+      Str:{
+        .len: UNum
+      }
       Stringable:{
         .str: Str,
       }

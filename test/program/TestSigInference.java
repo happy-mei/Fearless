@@ -372,7 +372,7 @@ public class TestSigInference {
     C:A[mut B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5, .m6->this.m6, .m7->this.m7 }
     """); }
 
-  @Test void refDef() { ok("""
+  @Test void nullrefDef() { ok("""
     {base.Let/2=Dec[name=base.Let/2,gxs=[V,R],lambda=[-infer-][]{'this
       .var/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immV]->[-],
       .in/1([v]):Sig[mdf=imm,gens=[],ts=[immV],ret=immR]->[-]}],

@@ -133,8 +133,8 @@ public class TestTypeSystem {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy1.fear:88:4) 43[], <=/1
-    ([###]/Dummy1.fear:88:4) 42[], <=/1
+    ([###]/Dummy1.fear:91:4) 43[], <=/1
+    ([###]/Dummy1.fear:91:4) 42[], <=/1
     """, """
     package test
     alias base.Num as Num,

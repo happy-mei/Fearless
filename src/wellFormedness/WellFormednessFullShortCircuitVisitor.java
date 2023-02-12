@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
   ✅Implements relation is acyclic //ok to implement same trait with different generics
     that is, forall n,C C[mdf X1..mdf Xn] notin supertypes(Ds, C[mdf X1..mdf Xn]) where X1..Xn are fresh.
     Declarations being used are present
-    In B.ITs no recMdf is used
  */
 
 /*
@@ -123,6 +122,28 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
     return noCyclicImplRelations(p)
       .or(()->super.visitProgram(p));
   }
+
+  @Override
+  public Optional<CompileError> visitGX(Id.GX<T> t) {
+    if (env.has(t)) { return super.visitGX(t); }
+    return Optional.of(Fail.undefinedName(t.name()));
+  }
+
+  @Override
+  public Optional<CompileError> visitX(E.X e) {
+    if (env.has(e)) { return super.visitX(e); }
+    return Optional.of(Fail.undefinedName(e.name()));
+  }
+//  private boolean hasUndeclaredXs(List<Id.IT<T>> its) {
+//    return its.stream()
+//      .flatMap(it->it.ts().stream())
+//      .allMatch(t->t.match(gx->env.has(gx), it->hasUndeclaredXs(List.of(it))));
+//  }
+//  private boolean hasUndeclaredXs(List<Id.IT<T>> its) {
+//    return its.stream()
+//      .flatMap(it->it.ts().stream())
+//      .allMatch(t->t.match(gx->env.has(gx), it->hasUndeclaredXs(List.of(it))));
+//  }
 
   private Optional<CompileError> noIsoParams(List<T> genArgs) {
     return genArgs.stream()

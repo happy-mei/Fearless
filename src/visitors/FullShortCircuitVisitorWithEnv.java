@@ -16,7 +16,7 @@ public class FullShortCircuitVisitorWithEnv<R> implements FullShortCircuitVisito
 
   public Optional<R> visitDec(T.Dec d){
     var oldEnv=env;
-    this.env=env.add(d.gxs());
+    this.env=env.add(d);
     try{ return FullShortCircuitVisitor.super.visitDec(d); }
     finally{ this.env=oldEnv;}
 

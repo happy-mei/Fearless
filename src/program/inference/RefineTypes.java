@@ -161,8 +161,9 @@ public record RefineTypes(ast.Program p) {
       .map((sig,mGens)->pairUp(mGens, cTs, sig, depth))
       .toList();
     List<RP> rpsAll = Stream.concat(
-      Stream.of(new RP(cT, cTOriginal)),//Stream.of(new RP(cTOriginal, cT))
-      rpsSigs.stream().flatMap(l->l.stream())
+      Stream.of(new RP(cT, cTOriginal)),
+      //Stream.of(new RP(cTOriginal, cT)) // alternatively
+      rpsSigs.stream().flatMap(Collection::stream)
     ).toList();
     var refined = refineSigGens(rpsAll, freshGXsSet);
     var resC = regenerateInfers(freshGXsSet, refined.get(0).t1());

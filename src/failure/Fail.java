@@ -111,6 +111,9 @@ public class Fail{
   public static CompileError recMdfInImpls(ast.T t){
     return of("Invalid modifier for "+t+".\nrecMdf may not be used in the list of implemented traits.");
   }
+  public static CompileError undefinedName(String name){
+    return of("The identifier \""+name+"\" is undefined.");
+  }
 }
 
 //only add to the bottom
@@ -141,6 +144,7 @@ enum ErrorCode {
   unimplementedInLambda,
   circularSubType,
   recMdfInNonHyg,
-  recMdfInImpls;
+  recMdfInImpls,
+  undefinedName;
   int code() {return this.ordinal() + 1;}
 }

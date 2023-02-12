@@ -344,4 +344,22 @@ public class TestFullWellFormedness {
     package base
     A:{ recMdf .foo: A }
     """); }
+
+  @Test void useUndefinedX() { fail("""
+    In position [###]/Dummy0.fear:3:2
+    [E28 undefinedName]
+    The identifier "X" is undefined.
+    """, """
+    package test
+    A[X]:{ .foo(x: X): X -> B{ x }.argh }
+    B:{ read .argh: recMdf X } // should fail because X is not defined here
+    """); }
+  @Test void useUndefinedIdent() { fail("""
+    In position [###]/Dummy0.fear:2:5
+    [E28 undefinedName]
+    The identifier "b" is undefined.
+    """, """
+    package test
+    A[X]:{ .foo(x: X): X -> this.foo(b) }
+    """); }
 }

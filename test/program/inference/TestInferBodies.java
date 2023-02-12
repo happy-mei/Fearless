@@ -383,7 +383,7 @@ public class TestInferBodies {
     .else/0([]): Sig[mdf=mut,gens=[],ts=[],ret=infer] -> [-imm 0[]-][0[]]{ }}]):imm X0/0$
     """, """
     package test
-    alias base.Main as Main, alias base.False as False, alias base.True as True,
+    alias base.Main as Main, alias base.Num as Num, alias base.False as False, alias base.True as True,
     Test:Main{
       _->False.or(True) ?[Num]{ .then -> 42, .else -> 0 }
     }
@@ -497,12 +497,6 @@ public class TestInferBodies {
     Opt:{ #[T](x: T): Opt[T] -> {} }
     """); }
 
-  @Test void useUndefinedX() { fail("""
-    """, """
-    package test
-    A[X]:{ .foo(x: X): X -> B{ x }.argh }
-    B:{ read .argh: recMdf X } // should fail because X is not defined here
-    """); }
   @Test
   void recMdfInSubHygMethGens() { ok("""
     package base
