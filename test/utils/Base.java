@@ -11,14 +11,20 @@ public interface Base {
     );
   }
 
-  static String immBaseLib = immBaseLib("base");
+  String minimalBase = """
+  package base
+  Main[R]:{ #(s: lent System): mdf R }
+  System:{}
+  """;
+
+  String immBaseLib = immBaseLib("base");
   static String immBaseLib(String pkg) {
     return "package " + pkg + """
 
       Void:{}
       NoMutHyg[X]:{}
       Sealed:{}
-      Main:{ #[R](s: lent System): R }
+      Main[R]:{ #(s: lent System): mdf R }
       System:{} // Root capability
           
       Bool:Sealed{

@@ -194,6 +194,21 @@ public class TestTypeSystem {
     List[X]:{ read .get(): recMdf X }
     Family2:List[mut Person]{ read .get(): mut Person }
     """); }
+  @Test void boolNumRet() { ok("""
+    package test
+    alias base.Main as Main, alias base.Num as Num, alias base.False as False, alias base.True as True,
+    Test:Main[Num]{
+      _->False.or(True)?{.then->42,.else->0}
+    }
+    """, Base.immBaseLib); }
+  @Test void boolSameRet() { ok("""
+    package test
+    alias base.Main as Main, alias base.Num as Num, alias base.False as False, alias base.True as True,
+    Foo:{}
+    Test:Main[Foo]{
+      _->False.or(True)?{.then->Foo,.else->Foo}
+    }
+    """, Base.immBaseLib); }
 
   // TODO: write a test that shows that the error message for this code makes sense:
   /*

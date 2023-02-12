@@ -6,6 +6,7 @@ import main.Main;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.inference.InferBodies;
+import utils.Base;
 import utils.Err;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
@@ -15,15 +16,17 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestJavaCodegen {
-  void ok(String expected, String entry, String... content){
+  void ok(String expected, String entry, String... content) {
     assert content.length > 0;
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
     var ps = Arrays.stream(content)
-      .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
+      .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
     var p = Parser.parseAll(ps);
-    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
+    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
+      throw err;
+    });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
     new WellFormednessShortCircuitVisitor().visitProgram(inferred);
@@ -34,12 +37,16 @@ public class TestJavaCodegen {
   }
 
   @Test void emptyProgram() { ok("""
-    interface FProgram{
-    public static void main(String[] args){ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(); }
+    interface FProgram{interface base{interface System_0{
+    }
+    interface Main_1<R>{
+    R $35$(base.System_0 s$);}
+    }
+    public static void main(String[] args){ base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(new base.System_0(){}); }
     }
     """, "fake.Fake", """
     package test
-    """);}
+    """, Base.minimalBase);}
 
   @Test void simpleProgram() { ok("""
 interface FProgram{interface test{interface Bar_0 extends test.Baz_1{
@@ -49,7 +56,7 @@ return f$thiz.loop$();
 }
 default test.Foo_0 $35$(){
 var f$thiz = this;
-return new test.Fear7$36_0(){
+return new test.Fear9$36_0(){
 };
 }}
 interface Foo_0{
@@ -61,18 +68,23 @@ X $35$();}
 interface Yo_0{
 default test.Ok_0 lm$(){
 var f$thiz = this;
-return new test.Fear8$36_0(){
+return new test.Fear10$36_0(){
 public test.Ok_0 $35$(){
 var ok$ = this;
 return ok$.$35$();
 }};
 }}
-interface Fear7$36_0 extends test.Foo_0{
+interface Fear9$36_0 extends test.Foo_0{
 }
-interface Fear8$36_0 extends test.Ok_0{
+interface Fear10$36_0 extends test.Ok_0{
 }
 }
-public static void main(String[] args){ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(); }
+interface base{interface System_0{
+}
+interface Main_1<R>{
+R $35$(base.System_0 s$);}
+}
+public static void main(String[] args){ base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(new base.System_0(){}); }
 }
     """, "fake.Fake", """
     package test
@@ -81,13 +93,13 @@ public static void main(String[] args){ base.Main_0 entry = new fake.Fake_0(){};
     Ok:{ #: Ok }
     Yo:{ .lm: Ok -> {'ok ok# } }
     Foo:{}
-    """);}
+    """, Base.minimalBase);}
 
   @Test void bools() {ok("""
 interface FProgram{interface test{interface True_0 extends test.Bool_0{
 default test.Bool_0 not$(){
 var f$thiz = this;
-return new test.Fear7$36_0(){
+return new test.Fear9$36_0(){
 };
 }
 default <X0$470$36> X0$470$36 $63$(test.ThenElse_1<X0$470$36> f$){
@@ -105,7 +117,7 @@ return b$;
 interface False_0 extends test.Bool_0{
 default test.Bool_0 not$(){
 var f$thiz = this;
-return new test.Fear8$36_0(){
+return new test.Fear10$36_0(){
 };
 }
 default <X0$470$36> X0$470$36 $63$(test.ThenElse_1<X0$470$36> f$){
@@ -130,12 +142,17 @@ test.Bool_0 or$(test.Bool_0 b$);
 test.Bool_0 and$(test.Bool_0 b$);}
 interface Sealed_0{
 }
-interface Fear7$36_0 extends test.Bool_0,test.False_0{
+interface Fear9$36_0 extends test.Bool_0,test.False_0{
 }
-interface Fear8$36_0 extends test.Bool_0,test.True_0{
+interface Fear10$36_0 extends test.Bool_0,test.True_0{
 }
 }
-public static void main(String[] args){ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(); }
+interface base{interface System_0{
+}
+interface Main_1<R>{
+R $35$(base.System_0 s$);}
+}
+public static void main(String[] args){ base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(new base.System_0(){}); }
 }
     """, "fake.Fake", """
     package test
@@ -149,41 +166,36 @@ public static void main(String[] args){ base.Main_0 entry = new fake.Fake_0(){};
     True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
-    """);}
+    """, Base.minimalBase);}
   @Test void multiPackage() { ok("""
 interface FProgram{interface test{interface Foo_0{
 }
-interface HelloWorld_0 extends base.Main_0{
+interface HelloWorld_0 extends base.Main_1{
 default test.Foo_0 $35$(base.System_0 s$){
 var f$thiz = this;
-return new test.Fear7$36_0(){
+return new test.Fear5$36_0(){
 };
 }}
-interface Fear7$36_0 extends test.Foo_0{
+interface Fear5$36_0 extends test.Foo_0{
 }
 }
-interface base{interface Sealed_0{
+interface base{interface System_0{
 }
-interface System_0 extends base.Sealed_0{
+interface Main_1<R>{
+R $35$(base.System_0 s$);}
 }
-interface Void_0{
-}
-interface Main_0{
-<R> R $35$(base.System_0 s$);}
-}
-public static void main(String[] args){ base.Main_0 entry = new test.HelloWorld_0(){}; entry.$35$(); }
+public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_0(){}; entry.$35$(new base.System_0(){}); }
 }
     """, "test.HelloWorld", """
     package test
-    alias base.Main as Main, alias base.Void as Void,
-    HelloWorld:Main{
+    alias base.Main as Main,
+    HelloWorld:Main[Foo]{
       #s -> Foo
     }
     Foo:{}
     """, """
     package base
-    Void:{} Sealed:{}
-    Main:{ #[R](s: lent System): R }
-    System:Sealed{}
+    Main[R]:{ #(s: lent System): mdf R }
+    System:{}
     """); }
 }
