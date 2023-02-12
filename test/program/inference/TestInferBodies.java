@@ -388,6 +388,7 @@ public class TestInferBodies {
       _->False.or(True) ?[Num]{ .then -> 42, .else -> 0 }
     }
     """, Base.immBaseLib); }
+  // TODO: why isn't this inferring gens?
   @Test void boolUsageExplicitGensBasic() { ok("""
     [-imm base.False[]-][base.False[]]{ } .or/1[]([[-imm base.Bool[]-][base.True[]]{ }]):imm base.Bool[] ?/1[imm X0/0$]([[-mut base.ThenElse[imm X0/0$]-][]{ .then/0([]): Sig[mdf=mut,gens=[],ts=[],ret=infer] -> [-imm 42[]-][42[]]{ },
     .else/0([]): Sig[mdf=mut,gens=[],ts=[],ret=infer] -> [-imm 0[]-][0[]]{ }}]):imm X0/0$
@@ -448,12 +449,41 @@ public class TestInferBodies {
           .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear3$}])
           ?/1[immbase.Num[]]([[-mut-][base.ThenElse[imm base.Num[]]]{'fear4$
             .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Num[]]->[-imm-][base.Num[],42[]]{'fear5$},
-            .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Num[]]->[-imm-][base.Num[],0[]]{'fear6$}}])}]}
+            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Num[]]->[-imm-][base.Num[],0[]]{'fear6$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Num as Num, alias base.False as False, alias base.True as True,
     Test:Main[Num]{
       _->False.or(True) ?[Num]{ .then: Num -> 42, .else -> 0 }
+    }
+    """, """
+    package base
+    Sealed:{}
+    Main[R]:{ #(s: lent System): mdf R }
+    System:{} // Root capability
+    Bool:Sealed{
+    .and(b: Bool): Bool,
+    .or(b: Bool): Bool,
+    .not: Bool,
+    ?[R](f: mut ThenElse[R]): R, // ?  because `bool ? { .then->aa, .else->bb }` is kinda like a ternary
+    }
+    True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
+    False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
+    ThenElse[R]:{ mut .then: R, mut .else: R, }
+    """); }
+  @Test void boolUsageExplicitGensRTBasic3() { ok("""
+    {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[imm base.Num[]]]{'this
+      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=imm base.Num[]]->
+        [-imm-][base.False[],base.False[]]{'fear2$}
+          .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear3$}])
+          ?/1[immbase.Num[]]([[-mut-][base.ThenElse[imm base.Num[]]]{'fear4$
+            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Num[]]->[-imm-][base.Num[],42[]]{'fear5$},
+            .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Num[]]->[-imm-][base.Num[],0[]]{'fear6$}}])}]}
+    """, """
+    package test
+    alias base.Main as Main, alias base.Num as Num, alias base.False as False, alias base.True as True,
+    Test:Main[Num]{
+      _->False.or(True) ?[Num]{ .then -> 42, .else: Num -> 0 }
     }
     """, """
     package base
