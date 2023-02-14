@@ -33,8 +33,7 @@ public class TestRefineTypes {
     Err.strCmpFormat(expected, e2.toString());
   }
 
-  @Test
-  void ab() {ok("""
+  @Test void ab() {ok("""
     varName:imm a.B[]
     """, "varName", "a.A[]", "a.B[]", """
     package a
@@ -42,8 +41,7 @@ public class TestRefineTypes {
     B:A{}
     """);}
 
-  @Test
-  void firstInfer() {ok("""
+  @Test void firstInfer() {ok("""
     varName:imm a.B[]
     """, "varName", "Infer", "a.B[]", """
     package a
@@ -51,8 +49,7 @@ public class TestRefineTypes {
     B:A{}
     """);}
 
-  @Test
-  void secondInfer() {ok("""
+  @Test void secondInfer() {ok("""
     varName:imm a.A[]
     """, "varName", "a.A[]", "Infer", """
     package a
@@ -60,23 +57,20 @@ public class TestRefineTypes {
     B:A{}
     """);}
 
-  @Test
-  void inferInfer() {ok("""
+  @Test void inferInfer() {ok("""
     varName:infer
     """, "varName", "Infer", "Infer", """
     package a
     A:{}
     B:A{}
     """);}
-  @Test
-  void same() {ok("""
+  @Test void same() {ok("""
     varName:imm a.A[]
     """, "varName", "a.A[]", "a.A[]", """
     package a
     A:{}
     """);}
-  @Test
-  void aGen() {ok("""
+  @Test void aGen() {ok("""
     varName:imm a.A[imm a.B[],imm a.B[]]
     """, "varName", "a.A[X,a.B[]]", "a.A[a.B[],Y]", """
     package a
@@ -95,16 +89,14 @@ public class TestRefineTypes {
     """);}
   //Yes, it should be a.A[lent a.C[],_] instead of a.A[mut a.C[],_]:
   //We get to lent a.C[] = mut a.C[] and we take the 'best type: as specified by t2 (the best type)
-  @Test
-  void aGenMdf2() {ok("""
+  @Test void aGenMdf2() {ok("""
     varName:imm a.A[lent a.B[],read a.B[]]
     """, "varName", "a.A[mut X,read a.B[]]", "a.A[lent a.B[],mdf Y]", """
     package a
     A[X,Y]:{}
     B:{}
     """);}
-  @Test
-  void aGenDeep() {ok("""
+  @Test void aGenDeep() {ok("""
     varName:imma.A[imma.B[],imma.A[imma.B[],imma.B[]]]
     """, "varName", "a.A[X,a.A[X,X]]", "a.A[a.B[],Y]", """
     package a
@@ -135,8 +127,7 @@ public class TestRefineTypes {
     B:{}
     """);}
 
-  @Test
-  void aGenInfinite3() {ok("""
+  @Test void aGenInfinite3() {ok("""
     varName:imma.A[imma.B[],imma.A[imma.B[],imma.B[]]]
     """, "varName", "a.A[X,a.A[X,X]]", "a.A[a.B[],Y]", """
     package a
@@ -144,23 +135,20 @@ public class TestRefineTypes {
     B:{}
     """);}
 
-  @Test
-  void lhsGxRhsIT() {ok("""
+  @Test void lhsGxRhsIT() {ok("""
     varName:imm a.A[]
     """, "varName", "X", "a.A[]", """
     package a
     A:{}
     """);}
-  @Test
-  void lhsITRhsGx() {ok("""
+  @Test void lhsITRhsGx() {ok("""
     varName:imm a.A[]
     """, "varName", "a.A[]", "X", """
     package a
     A:{}
     """);}
 
-  @Test
-  void refineGens() {ok("""
+  @Test void refineGens() {ok("""
     varName:imm a.A[imm a.B[]]
     """, "varName", "a.A[Infer]", "a.A[a.B[]]", """
     package a
@@ -168,16 +156,14 @@ public class TestRefineTypes {
     B:{}
     """);}
 
-  @Test
-  void refineGensNested1() {ok("""
+  @Test void refineGensNested1() {ok("""
     varName:imm a.A[imm a.A[imm a.B[]]]
     """, "varName", "a.A[Infer]", "a.A[a.A[a.B[]]]", """
     package a
     A[X]:{}
     B:{}
     """);}
-  @Test
-  void refineGensNested2() {ok("""
+  @Test void refineGensNested2() {ok("""
     varName:imm a.A[imm a.A[imm a.B[]]]
     """, "varName", "a.A[imm a.A[Infer]]", "a.A[a.A[a.B[]]]", """
     package a
@@ -185,8 +171,7 @@ public class TestRefineTypes {
     B:{}
     """);}
 
-  @Test
-  void refineGensNoInfo() {ok("""
+  @Test void refineGensNoInfo() {ok("""
     varName:imm a.A[imm X]
     """, "varName", "a.A[X]", "a.A[X]", """
     package a
@@ -194,8 +179,7 @@ public class TestRefineTypes {
     B:{}
     """);}
 
-  @Test
-  void refineGensMdf1() {ok("""
+  @Test void refineGensMdf1() {ok("""
     varName:imm a.A[imm X]
     """, "varName", "a.A[mdf X]", "a.A[imm X]", """
     package a
@@ -204,48 +188,42 @@ public class TestRefineTypes {
     """);}
   /* TODO: These two fail because the RHS (t2) is always preferred over the LHS. This is probably correct,
    so these two tests can be deleted. */
-  @Test
-  void refineGensMdf2() {ok("""
+  @Test void refineGensMdf2() {ok("""
     varName:imm a.A[mdf X]
     """, "varName", "a.A[imm X]", "a.A[mdf X]", """
     package a
     A[X]:{}
     B:{}
     """);}
-  @Test
-  void refineGensMdf3() {ok("""
+  @Test void refineGensMdf3() {ok("""
     varName:imm a.A[mut a.B[]]
     """, "varName", "a.A[mut a.B[]]", "a.A[mdf X]", """
     package a
     A[X]:{}
     B:{}
     """);}
-  @Test
-  void refineGensMdf4() {ok("""
+  @Test void refineGensMdf4() {ok("""
     varName:imm a.A[mut a.B[]]
     """, "varName", "a.A[mdf X]", "a.A[mut a.B[]]", """
     package a
     A[X]:{}
     B:{}
     """);}
-  @Test
-  void refineGensMdf5() {ok("""
+  @Test void refineGensMdf5() {ok("""
     varName:imm a.A[imm a.B[]]
     """, "varName", "a.A[mut X]", "a.A[imm a.B[]]", """
     package a
     A[X]:{}
     B:{}
     """);}
-  @Test
-  void refineGensMdfNested1() {ok("""
+  @Test void refineGensMdfNested1() {ok("""
     varName:imma.A[imma.B[]]
     """, "varName", "a.A[recMdf a.A[mdf X]]", "a.A[imm a.B[]]", """
     package a
     A[X]:{}
     B:{}
     """);}
-  @Test
-  void refineGensMdfNested2() {ok("""
+  @Test void refineGensMdfNested2() {ok("""
     varName:imma.A[recMdfa.A[imma.B[]]]
     """, "varName", "a.A[recMdf a.A[mdf X]]", "a.A[recMdf a.A[imm a.B[]]]", """
     package a

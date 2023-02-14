@@ -15,12 +15,9 @@ import java.util.stream.Collectors;
 public class InjectionVisitor implements FullVisitor<ast.E>{
   public ast.E.MCall visitMCall(E.MCall e) {
     // TODO: WHYYYYYY
-//    this:mut base.Ref[mdf X] .swap/1[-]([f:imm base.UpdateRef[mdf X] #/1[-]([this:mut base.Ref[recMdf X] */0[]([]):recMdf X]):infer]):mdf X
-
-    // [-imm base.Let[]-][base.Let[]]{ } #/1[-]([[- infer-][]{ .var/0([]): [-] -> this:infer .swap/1[-]([x:infer]):infer,
-    // .in/1([_]): [-] -> [-imm base.Void[]-][base.Void[]]{ }}]):imm base.Void[]
-
-//    this:imm base.OptDo[imm T] #/1[infer]([x:imm T]):imm base.Void[]
+//    [-imm base.False[]-][base.False[]]{ } .or/1[]([[-imm base.Bool[]-][base.True[]]{ }]):imm base.Bool[] ?/1[imm base.Num[]]([[-mut base.ThenElse[imm X0/0$]-][]{
+//    .then/0([]): Sig[mdf=mut,gens=[],ts=[],ret=infer] -> [-imm 42[]-][42[]]{ },
+//    .else/0([]): Sig[mdf=mut,gens=[],ts=[],ret=infer] -> [-imm 0[]-][0[]]{ }}]):imm X0/0$
     assert e.ts().isPresent();
     return new ast.E.MCall(
       e.receiver().accept(this),

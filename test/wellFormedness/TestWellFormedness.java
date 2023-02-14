@@ -48,8 +48,7 @@ public class TestWellFormedness {
     }
   }
 
-  @Test
-  void noRecMdfInImplements() { fail("""
+  @Test void noRecMdfInImplements() { fail("""
     In position [###]/Dummy0.fear:3:5
     [E27 recMdfInImpls]
     Invalid modifier for recMdf Y.
@@ -59,15 +58,13 @@ public class TestWellFormedness {
     A[X]:{}
     B[Y]:A[recMdf Y]{}
     """); }
-  @Test
-  void recMdfAllowedInHyg() { ok("""
+  @Test void recMdfAllowedInHyg() { ok("""
     package base
     A[X]:{ read .foo(): recMdf X }
     B[X]:{ lent .foo(): recMdf X }
     C[X]:{ lent .foo(c: recMdf X): recMdf X -> c }
     """); }
-  @Test
-  void recMdfAllowedInSubHyg() { ok("""
+  @Test void recMdfAllowedInSubHyg() { ok("""
     package base
     A[X]:{ .foo(x: X): X -> B[X]{ x }.argh }
     B[X]:{ read .argh: recMdf X }

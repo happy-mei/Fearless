@@ -117,7 +117,7 @@ public record InferBodies(ast.Program p) {
     var res = optBody.map(b->m.withBody(Optional.of(b)).withSig(refiner.fixTypes(sig, b.t())));
     var finalRes = res.or(()->e1==e2
       ? Optional.empty()
-      : Optional.of(m.withBody(Optional.of(e2))));
+      : Optional.of(m.withBody(Optional.of(e2)).withSig(refiner.fixTypes(sig, e2.t()))));
     return finalRes.map(m1->!m.equals(m1)).orElse(true) ? finalRes : Optional.empty();
 //    assert finalRes.map(m1->!m.equals(m1)).orElse(true);
 //    return finalRes;
