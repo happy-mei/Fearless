@@ -166,18 +166,21 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var rt = _its.flatMap(its->GetO.of(its,0));
     var its = _its.orElse(List.of());
     if (rt.isEmpty()) { mdf = Optional.empty(); }
+    mdf.filter(Mdf::isMdf).ifPresent(mdf1->{ throw Fail.invalidMdf(rt.get()); });
     if(ctx.bblock()==null){
       return new E.Lambda(mdf,its,null,List.of(),rt,Optional.of(pos(ctx)));
     }
     var bb = ctx.bblock();
-    if(bb.children==null){ return new E.Lambda(mdf, its, null, List.of(), rt, Optional.of(pos(ctx))); }
+    if(bb.children==null){
+      return new E.Lambda(mdf, its, null, List.of(), rt, Optional.of(pos(ctx)));
+    }
     var _x=bb.SelfX();
     var _n=_x==null?null:_x.getText().substring(1);
     var _ms=opt(bb.meth(),ms->ms.stream().map(this::visitMeth).toList());
     var _singleM=opt(bb.singleM(),this::visitSingleM);
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
-    return new E.Lambda(Optional.empty(),its,_n,mms,rt,Optional.of(pos(ctx)));
+    return new E.Lambda(mdf,its,_n,mms,rt,Optional.of(pos(ctx)));
     }
   @Override
   public String visitFullCN(FullCNContext ctx) {
@@ -186,6 +189,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override
   public Mdf visitMdf(MdfContext ctx) {
     if(ctx.getText().isEmpty()){ return Mdf.imm; }
+    return Mdf.valueOf(ctx.getText());
+  }
+  public Mdf visitExplicitMdf(MdfContext ctx) {
+    if(ctx.getText().isEmpty()){ return null; }
     return Mdf.valueOf(ctx.getText());
   }
   public Id.IT<T> visitIT(TContext ctx) {

@@ -107,4 +107,35 @@ public class TestWellFormedness {
     Foo:{}
     A[X]:{ .foo(f: A[recMdf X]): Foo -> f }
     """); }
+
+  @Test void explicitMdfLambdaRecMdf1(){ ok("""
+    package test
+    Foo:{}
+    Bar:{ read .a: recMdf Foo -> recMdf Foo }
+    """); }
+  @Test void explicitMdfLambdaRecMdf2(){ ok("""
+    package test
+    Foo:{}
+    Bar:{ lent .a: recMdf Foo -> recMdf Foo }
+    """); }
+  @Test void explicitMdfLambdaRecMdfONonHyg1(){ fail("""
+    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:6
+    [E26 recMdfInNonHyg]
+    Invalid modifier for recMdf test.Foo[].
+    recMdf may only be used in read or lent methods. The method .a/0 has the imm modifier.
+    """, """
+    package test
+    Foo:{}
+    Bar:{ .a: recMdf Foo -> recMdf Foo }
+    """); }
+  @Test void explicitMdfLambdaRecMdfONonHyg2(){ fail("""
+    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:6
+    [E26 recMdfInNonHyg]
+    Invalid modifier for recMdf test.Foo[].
+    recMdf may only be used in read or lent methods. The method .a/0 has the imm modifier.
+    """, """
+    package test
+    Foo:{}
+    Bar:{ .a: Foo -> recMdf Foo }
+    """); }
 }

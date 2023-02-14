@@ -78,6 +78,7 @@ public class Fail{
     return of(String.format("Implements relations must be acyclic. There is a cycle on the class %s.", baseClass));
   }
   public static CompileError invalidMdf(T t){return of("The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type "+t);}
+  public static CompileError invalidMdf(Id.IT<T> it){return of("The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type "+it);}
 
   public static CompileError concreteInNoMutHyg(T t){return of("The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:\n" + t);}
   public static CompileError invalidNoMutHyg(T t){return of("The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. This generic type is not a type parameter of the trait:\n" + t);}
@@ -107,6 +108,9 @@ public class Fail{
 
   public static CompileError recMdfInNonHyg(Mdf mdf, Id.MethName m, ast.T t){
     return of("Invalid modifier for "+t+".\nrecMdf may only be used in read or lent methods. The method "+m+" has the "+mdf+" modifier.");
+  }
+  public static CompileError recMdfInNonHyg(Mdf mdf, Id.MethName m, ast.E.Lambda e){
+    return of("Invalid lambda modifier.\nrecMdf may only be used in read or lent methods. The method "+m+" has the "+mdf+" modifier.");
   }
   public static CompileError recMdfInImpls(ast.T t){
     return of("Invalid modifier for "+t+".\nrecMdf may not be used in the list of implemented traits.");

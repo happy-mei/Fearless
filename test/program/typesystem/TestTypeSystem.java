@@ -210,6 +210,22 @@ public class TestTypeSystem {
     }
     """, Base.immBaseLib); }
 
+  @Test void ref1() { ok("""
+    package test
+    NoMutHyg[X]:{}
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[mdf V,mdf R]):mdf R -> l.in(l.var) }
+    Let[V,R]:{ .var:mdf V, .in(v:mdf V):mdf R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X]:NoMutHyg[X],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: mut UpdateRef[mut X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """); }
+
   // TODO: write a test that shows that the error message for this code makes sense:
   /*
       // (Void is the wrong R and this returns Opt[Opt[T]] instead of Opt[T] or the written Void.

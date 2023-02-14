@@ -44,6 +44,11 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
   private Optional<CompileError> noRecMdfInNonHyg(E.Meth m) {
     if (m.sig().mdf().isHyg()) { return Optional.empty(); }
     return new ShortCircuitVisitor<CompileError>(){
+      @Override
+      public Optional<CompileError> visitLambda(E.Lambda e) {
+        if (e.mdf().isRecMdf()) { return Optional.of(Fail.recMdfInNonHyg(m.sig().mdf(), m.name(), e).pos(e.pos())); }
+        return ShortCircuitVisitor.super.visitLambda(e);
+      }
       public Optional<CompileError> visitT(T t) {
         if (t.mdf().isRecMdf()) { return Optional.of(Fail.recMdfInNonHyg(m.sig().mdf(), m.name(), t).pos(m.pos())); }
         return ShortCircuitVisitor.super.visitT(t);

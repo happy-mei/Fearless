@@ -135,4 +135,15 @@ class TestParser {
   // TODO: (recv .m1 x=v) .m2 a is weird because the = method has executed first, so x is out of scope
   @Test void sameTest6(){ same("recv .m1[A] x=v .m2[B,base.C[D]]", "recv .m1[A] x=(v .m2[B,base.C[D]])"); }
   @Test void sameTestVarLast(){ same("recv.m1(x=v)", "recv .m1 x=v"); }
+  @Test void implicitLambdaMdf(){ ok("[-imm pkg1.L[]-][pkg1.L[]]{}", "pkg1.L{}"); }
+  @Test void explicitMdfLambdaIso(){ ok("[-iso pkg1.L[]-][pkg1.L[]]{}", "iso pkg1.L{}"); }
+  @Test void explicitMdfLambdaImm(){ ok("[-imm pkg1.L[]-][pkg1.L[]]{}", "imm pkg1.L{}"); }
+  @Test void explicitMdfLambdaMut(){ ok("[-mut pkg1.L[]-][pkg1.L[]]{}", "mut pkg1.L{}"); }
+  @Test void explicitMdfLambdaRead(){ ok("[-read pkg1.L[]-][pkg1.L[]]{}", "read pkg1.L{}"); }
+  @Test void explicitMdfLambdaLent(){ ok("[-lent pkg1.L[]-][pkg1.L[]]{}", "lent pkg1.L{}"); }
+  @Test void explicitMdfLambdaRecMdf(){ ok("[-recMdf pkg1.L[]-][pkg1.L[]]{}", "recMdf pkg1.L{}"); }
+  @Test void explicitMdfLambdaMdf(){ fail("""
+    [E11 invalidMdf]
+    The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type pkg1.L[]
+    """, "mdf pkg1.L{}"); }
 }
