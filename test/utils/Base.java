@@ -26,6 +26,9 @@ public interface Base {
       Sealed:{}
       Main[R]:{ #(s: lent System): mdf R }
       System:{} // Root capability
+      
+      Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+      Let[V,R]:{ .var:V, .in(v:V):R }
           
       Bool:Sealed{
         .and(b: Bool): Bool,
@@ -137,6 +140,15 @@ public interface Base {
           <=n -> this<=n,
           ==n -> this==n,
           }
+        
+        Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+        Ref[X]:NoMutHyg[X],Sealed{
+          read * : recMdf X,
+          mut .swap(x: mdf X): mdf X,
+          mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+          mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+        }
+        UpdateRef[X]:{ mut #(x: mdf X): mdf X }
       """;
   }
 }
