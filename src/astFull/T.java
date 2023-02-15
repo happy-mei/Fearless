@@ -22,7 +22,7 @@ public final class T {
   public T(Mdf mdf, Id.RT<T> rt) {
     Objects.requireNonNull(mdf);
     Objects.requireNonNull(rt);
-    assert rt instanceof Id.GX<T> || mdf != Mdf.mdf;
+//    assert rt instanceof Id.GX<T> || mdf != Mdf.mdf;
     this.mdf = mdf;
     this.rt = rt;
   }

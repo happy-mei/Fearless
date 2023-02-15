@@ -27,6 +27,7 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
+      assert its.stream().distinct().count() == its.size();
     }
     /** This method correctly throw assertion error if called on a top level lambda
     */

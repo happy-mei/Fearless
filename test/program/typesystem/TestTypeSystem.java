@@ -9,6 +9,7 @@ import program.inference.InferBodies;
 import utils.Base;
 import utils.Err;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
+import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -29,6 +30,7 @@ public class TestTypeSystem {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
+    new WellFormednessShortCircuitVisitor().visitProgram(inferred);
     inferred.typeCheck();
   }
   void fail(String expectedErr, String... content){
