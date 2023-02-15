@@ -1,5 +1,6 @@
 package ast;
 
+import failure.Fail;
 import files.HasPos;
 import files.Pos;
 import id.Id;
@@ -26,6 +27,9 @@ public interface E extends HasPos {
       assert !its.isEmpty();
       assert X.validId(selfName);
       assert meths != null;
+      if (its.stream().map(Id.IT::name).distinct().count() != its.size()) {
+        throw Fail.noDupImpls(its).pos(pos);
+      }
     }
 
     @Override public E accept(CloneVisitor v) {

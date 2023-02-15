@@ -36,7 +36,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     var base = e.it().map(List::of).orElseGet(List::of);
     var its = Push.of(base, e.its().stream().filter(it->{
       if (base.isEmpty()) { return true; }
-      return !it.equals(base.get(0));
+      return !it.name().equals(base.get(0).name());
     }).toList());
     return new ast.E.Lambda(
       e.mdf().orElseThrow(),

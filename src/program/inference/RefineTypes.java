@@ -115,13 +115,16 @@ public record RefineTypes(ast.Program p) {
     return new T(iT1.mdf(),c1.withTs(refinedTs));
   }
   record RP(T t1, T t2){
+    RP {
+      if (!t1.isInfer() && !t2.isInfer() && t1.mdf().isRecMdf()) { t1 = t1.withMdf(t2.mdf()); }
+    }
+
     static List<RP> of(List<T> iTs, List<T> iTs1){
       return Streams.zip(iTs,iTs1).map(RP::new).toList();
     }
     static List<RP> ofCore(List<ast.T> iTs, List<ast.T> iTs1){
       return Streams.zip(iTs,iTs1).map((iT,iT1)->new RP(iT.toAstFullT(), iT1.toAstFullT())).toList();
     }
-
   }
   public static final TypeRename.FullTTypeRename renamer = new TypeRename.FullTTypeRename();
 
@@ -261,7 +264,10 @@ public record RefineTypes(ast.Program p) {
 
     //Sub s = new Sub(res.t2().gxOrThrow(),res.t1);
     //Sub sMdf = new Sub(res.t2().gxOrThrow(),res.t1.withMdf(Mdf.mdf));
-    Sub s = new Sub(res.t1().gxOrThrow(), res.t2.propagateMdf(res.t1.mdf())); // TODO: change in formalism, was withMdf
+    // TODO: This recMdf handling is new and not in the formalism
+//    var mdf = res.t1.mdf().isRecMdf() ? res.t2.mdf() : res.t1.mdf();
+    var mdf = res.t1.mdf();
+    Sub s = new Sub(res.t1().gxOrThrow(), res.t2.propagateMdf(mdf)); // TODO: change in formalism, was withMdf
     Sub sMdf = new Sub(res.t1().gxOrThrow(), new T(Mdf.mdf, res.t2.rt()));
     rename(rps, sMdf);
     return s;

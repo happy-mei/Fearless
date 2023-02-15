@@ -213,7 +213,7 @@ public class TestTypeSystem {
     """, Base.immBaseLib); }
 
   @Test void ref1() { ok("""
-    package test
+    package base
     NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[mdf V,mdf R]):mdf R -> l.in(l.var) }

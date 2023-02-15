@@ -1,5 +1,6 @@
 package astFull;
 
+import failure.Fail;
 import files.HasPos;
 import files.Pos;
 import id.Id;
@@ -31,7 +32,9 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
-      assert its.stream().distinct().count() == its.size();
+      if (its.stream().map(Id.IT::name).distinct().count() != its.size()) {
+        throw Fail.noDupImpls(its).pos(pos);
+      }
     }
     /** This method correctly throw assertion error if called on a top level lambda
     */

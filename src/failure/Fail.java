@@ -10,7 +10,9 @@ import utils.Bug;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Fail{
@@ -118,6 +120,15 @@ public class Fail{
   public static CompileError undefinedName(String name){
     return of("The identifier \""+name+"\" is undefined.");
   }
+  public static <TT> CompileError noDupImpls(List<Id.IT<TT>> its){
+    var dups = its.stream().map(Id.IT::name)
+      .collect(Collectors.groupingBy(d->d))
+      .entrySet().stream()
+      .filter(kv->kv.getValue().size() > 1)
+      .map(d->d.getKey().toString())
+      .collect(Collectors.joining("\n"));
+    return of("The following traits are implemented more than once:\n"+dups+"\nA trait may only be listed once regardless of type parameters.");
+  }
 }
 
 //only add to the bottom
@@ -149,6 +160,7 @@ enum ErrorCode {
   circularSubType,
   recMdfInNonHyg,
   recMdfInImpls,
-  undefinedName;
+  undefinedName,
+  noDupImpls;
   int code() {return this.ordinal() + 1;}
 }

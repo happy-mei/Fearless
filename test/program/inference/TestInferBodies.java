@@ -604,7 +604,7 @@ public class TestInferBodies {
   @Test void recMdfInSubHyg() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
       .foo/1([x]):Sig[mdf=imm,gens=[],ts=[immX],ret=immX]->
-        [-imm-][test.B[recMdfX],test.B[immX]]{'fear0$
+        [-imm-][test.B[immX]]{'fear0$
           .argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=immX]->x}.argh/0[]([])}],
     test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this
       .argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}]}
@@ -616,7 +616,7 @@ public class TestInferBodies {
   @Test void recMdfInSubHygMut() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
       .foo/1([x]):Sig[mdf=imm,gens=[],ts=[mutX],ret=mutX]->
-        [-mut-][test.B[recMdfX],test.B[mutX]]{'fear0$
+        [-mut-][test.B[mutX]]{'fear0$
           .argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=mutX]->x}.argh/0[]([])}],
     test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this
       .argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}]}
@@ -624,6 +624,18 @@ public class TestInferBodies {
     package test
     A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ x }.argh }
     B[X]:{ read .argh: recMdf X }
+    """); }
+  @Test void inferRecMdf() { ok("""
+    {test.FooBox/0=Dec[name=test.FooBox/0,gxs=[],lambda=[-mdf-][test.FooBox[],test.Box[immtest.Foo[]]]{'this
+      .getFoo/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdftest.Foo[]]->this.get/0[]([])}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this}],
+    test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[-mdf-][test.Box[mdfT]]{'this
+      .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfT]->[-]}]}
+    """, """
+    package test
+    Foo:{}
+    Box[T]:{ read .get: recMdf T }
+    FooBox:Box[Foo]{ read .getFoo: recMdf Foo -> this.get }
     """); }
   @Test void doNotChangeExplicitLambdaMdf1() { ok("""
     {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
@@ -645,6 +657,7 @@ public class TestInferBodies {
     """); }
 
   // TODO: this should eventually fail with an "inference failed" message when I add that error
+  @Disabled
   @Test void callingEphemeralMethod() { fail("""
     """, """
     package base

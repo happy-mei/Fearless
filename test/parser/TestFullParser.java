@@ -314,4 +314,26 @@ class TestFullParser {
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """);}
+
+  @Test void noDupTraitsDiffGens() { fail("""
+    In position [###]/Dummy0.fear:7:9
+    [E29 noDupImpls]
+    The following traits are implemented more than once:
+    base.NoMutHyg/1
+    A trait may only be listed once regardless of type parameters.
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    Sealed:{} Void:{}
+    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
+    Let[V,R]:{ .var:V, .in(v:V):R }
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X,Y]:NoMutHyg[X],NoMutHyg[Y],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+    }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """); }
 }
