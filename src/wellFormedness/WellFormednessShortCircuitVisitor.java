@@ -33,6 +33,12 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
       .or(()->ShortCircuitVisitor.super.visitMeth(e));
   }
 
+  @Override
+  public Optional<CompileError> visitT(T t) {
+    assert !(t.mdf().isMdf() && t.isIt());
+    return ShortCircuitVisitor.super.visitT(t);
+  }
+
   private Optional<CompileError> noRecMdfInImpls(Id.IT<T> it) {
     return new ShortCircuitVisitor<CompileError>(){
       public Optional<CompileError> visitT(T t) {

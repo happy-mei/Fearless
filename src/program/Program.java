@@ -57,7 +57,11 @@ public interface Program {
       case lent, imm -> m2.isRead();
       case read-> false;
       case iso-> true;
-      case recMdf, mdf -> throw Bug.unreachable();
+//      case recMdf, mdf -> throw Bug.unreachable();
+      case recMdf, mdf -> {
+        System.out.println("weird case of recMdf/mdf subtype comparison: "+m1+" "+m2);
+        yield true;
+      }
     };
   }
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }
