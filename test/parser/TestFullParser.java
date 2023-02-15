@@ -249,8 +249,8 @@ class TestFullParser {
       {base.B/0=Dec[
         name=base.B/0,
         gxs=[],
-        lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm 5[]]->[-imm base.A[]-][base.A[]]{}.foo/2[-]([
-          [-imm5[]-][5[]]{},[-infer-][]{[-]([lol,fear0$]):[-]->fear0$:infer}
+        lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm 5[]]->[-base.A[]-][base.A[]]{}.foo/2[-]([
+          [-5[]-][5[]]{},[-infer-][]{[-]([lol,fear0$]):[-]->fear0$:infer}
         ]):infer}
       ],base.Cont/2=Dec[
         name=base.Cont/2,
@@ -286,9 +286,9 @@ class TestFullParser {
         */0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
         .swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdf X],ret=mdfX]->[-],
         :=/1([x]):Sig[mdf=mut,gens=[],ts=[mdf X],ret=imm base.Void[]]->
-          [-imm base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
+          [-base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
             .var/0([]):[-]->this:infer.swap/1[-]([x:infer]):infer,
-            .in/1([_]):[-]->[-imm base.Void[]-][base.Void[]]{}
+            .in/1([_]):[-]->[-base.Void[]-][base.Void[]]{}
           }]):infer,
           <-/1([f]):Sig[mdf=mut,gens=[],ts=[imm base.UpdateRef[mdfX]], ret=mdfX]->
             this:infer.swap/1[-]([f:infer#/1[-]([this:infer*/0[-]([]):infer]):infer]):infer

@@ -155,7 +155,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         .filter(a->a!=null));
   }
   @Override public E.Lambda visitLambda(LambdaContext ctx){
-    var res=visitBlock(ctx.block(), Optional.of(visitMdf(ctx.mdf())));
+    var res=visitBlock(ctx.block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())));
     if (res.its().isEmpty() && !ctx.mdf().getText().isEmpty()) { throw Fail.modifierOnInferredLambda().pos(pos(ctx)); }
     return res;
     }

@@ -625,6 +625,24 @@ public class TestInferBodies {
     A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ x }.argh }
     B[X]:{ read .argh: recMdf X }
     """); }
+  @Test void doNotChangeExplicitLambdaMdf1() { ok("""
+    {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
+      .a/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm test.Foo[]]->[-mut-][test.Foo[]]{'fear0$}}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this}]}
+    """, """
+    package test
+    Foo:{}
+    Bar:{ .a: Foo -> mut Foo }
+    """); }
+  @Test void doNotChangeExplicitLambdaMdf2() { ok("""
+    {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
+      .a/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm test.Foo[]]->[-recMdf-][test.Foo[]]{'fear0$}}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this}]}
+    """, """
+    package test
+    Foo:{}
+    Bar:{ .a: Foo -> recMdf Foo }
+    """); }
 
   // TODO: this should eventually fail with an "inference failed" message when I add that error
   @Test void callingEphemeralMethod() { fail("""

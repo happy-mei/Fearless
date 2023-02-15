@@ -119,7 +119,7 @@ public class TestWellFormedness {
     Bar:{ lent .a: recMdf Foo -> recMdf Foo }
     """); }
   @Test void explicitMdfLambdaRecMdfONonHyg1(){ fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:6
+    In position [###]/Dummy0.fear:3:6
     [E26 recMdfInNonHyg]
     Invalid modifier for recMdf test.Foo[].
     recMdf may only be used in read or lent methods. The method .a/0 has the imm modifier.
@@ -129,9 +129,9 @@ public class TestWellFormedness {
     Bar:{ .a: recMdf Foo -> recMdf Foo }
     """); }
   @Test void explicitMdfLambdaRecMdfONonHyg2(){ fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:6
+    In position [###]/Dummy0.fear:3:24
     [E26 recMdfInNonHyg]
-    Invalid modifier for recMdf test.Foo[].
+    Invalid lambda modifier.
     recMdf may only be used in read or lent methods. The method .a/0 has the imm modifier.
     """, """
     package test

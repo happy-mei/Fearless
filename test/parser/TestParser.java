@@ -43,7 +43,7 @@ class TestParser {
     "x.m"); }
   @Test void testTrue(){ ok(
     """
-    [-imm base.True[]-][base.True[]]{}
+    [-base.True[]-][base.True[]]{}
     """, "base.True"); }
   @Test void testLamNoGens(){ ok(
       """
@@ -135,7 +135,7 @@ class TestParser {
   // TODO: (recv .m1 x=v) .m2 a is weird because the = method has executed first, so x is out of scope
   @Test void sameTest6(){ same("recv .m1[A] x=v .m2[B,base.C[D]]", "recv .m1[A] x=(v .m2[B,base.C[D]])"); }
   @Test void sameTestVarLast(){ same("recv.m1(x=v)", "recv .m1 x=v"); }
-  @Test void implicitLambdaMdf(){ ok("[-imm pkg1.L[]-][pkg1.L[]]{}", "pkg1.L{}"); }
+  @Test void implicitLambdaMdf(){ ok("[-pkg1.L[]-][pkg1.L[]]{}", "pkg1.L{}"); }
   @Test void explicitMdfLambdaIso(){ ok("[-iso pkg1.L[]-][pkg1.L[]]{}", "iso pkg1.L{}"); }
   @Test void explicitMdfLambdaImm(){ ok("[-imm pkg1.L[]-][pkg1.L[]]{}", "imm pkg1.L{}"); }
   @Test void explicitMdfLambdaMut(){ ok("[-mut pkg1.L[]-][pkg1.L[]]{}", "mut pkg1.L{}"); }

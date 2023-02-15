@@ -19,6 +19,10 @@ public sealed interface E extends HasPos {
   E accept(FullCloneVisitor v);
   <R> R accept(FullVisitor<R> v);
   T t();
+  default T t(Mdf altMdf) { return t(); }
+  default Optional<Mdf> mdf() {
+    return t().isInfer() ? Optional.empty() : Optional.of(t().mdf());
+  }
   E withPos(Optional<Pos> pos);
   E withT(T t);
 
@@ -35,6 +39,10 @@ public sealed interface E extends HasPos {
       if (mdf().isEmpty() && it().isEmpty()) { return T.infer; }
       assert mdf().isPresent() && it().isPresent();
       return new T(mdf().get(), it().get());
+    }
+    @Override public T t(Mdf altMdf) {
+      if (it().isEmpty()) { return T.infer; }
+      return new T(mdf().orElse(altMdf), it().get());
     }
 
     @Override public Lambda withT(T t) {

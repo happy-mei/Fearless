@@ -31,7 +31,7 @@ public record RefineTypes(ast.Program p) {
       .map(this::tSigOf)
       .toList();
     // TODO: here we turn imm T into mdf T due to RP[mdf Fear0$, imm T]..... this is not good.
-    var res = refineSigMassive(lambda.mdf().orElseThrow(), c, sigs, depth);
+    var res = refineSigMassive(lambda.mdf().orElse(Mdf.imm), c, sigs, depth);
     var ms = Streams.zip(lambda.meths(), res.sigs())
       .map(this::tM)
       .toList();
@@ -75,9 +75,15 @@ public record RefineTypes(ast.Program p) {
   List<E> fixTypes(List<E> ies, List<T> iTs) {
     return Streams.zip(ies, iTs).map(this::fixType).toList();
   }
-  E fixType(E ie, T iT) { return ie.withT(best(iT,ie.t())); }
+  E fixType(E ie, T iT) {
+    T ieT = iT.isInfer() ? ie.t(Mdf.imm) : ie.t(iT.mdf());
+    return ie.withT(best(ie.mdf(), iT, ieT));
+  }
 
   T best(T iT1, T iT2) {
+    return best(Optional.empty(), iT1, iT2);
+  }
+  T best(Optional<Mdf> eMdf, T iT1, T iT2) {
     if(iT1.equals(iT2)){ return iT1; }
     if(iT1.isInfer()){ return iT2; }
     if(iT2.isInfer()){ return iT1; }
@@ -90,9 +96,15 @@ public record RefineTypes(ast.Program p) {
      || !(iT2.rt() instanceof Id.IT<T> c2)){
       throw Bug.unreachable();
     }
+
+    // TODO should we check the subtyping between C and C' instead?
     var notMatch=!c1.name().equals(c2.name()); //name includes gen size
     if(notMatch){ return iT1; }
-    // TODO should we check the subtyping between C and C' instead?
+
+    // Keep the explicit mdf from the expression if it has one
+    var mdf = eMdf.orElse(iT1.mdf());
+    iT1 = iT1.propagateMdf(mdf);
+
     List<RP> refined = refineSigGens(RP.of(c1.ts(),c2.ts()), Set.of());
     if(refined.isEmpty()){ return iT1; }
     List<T> refinedTs = refined.stream().map(RP::t1).toList();

@@ -179,7 +179,7 @@ public record InferBodies(ast.Program p) {
   Optional<E> methCallHasGens(Map<String, T> gamma, E.MCall e, int depth) {
     if (e.ts().isEmpty()) { return Optional.empty(); }
     var gens = e.ts().get();
-    var c = e.receiver().t();
+    var c = e.receiver().t(Mdf.mdf);
     var iTs = typesOf(e.es());
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
@@ -187,7 +187,8 @@ public record InferBodies(ast.Program p) {
     var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t());
     var refined = refiner.refineSigMassive(c.mdf(), recv, List.of(baseSig), depth);
     var refinedSig = refined.sigs().get(0);
-    var fixedRecv = refiner.fixType(e.receiver(), new T(e.receiver().t().mdf(), refined.c()));
+    var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
+    var fixedRecv = refiner.fixType(e.receiver(), new T(fixedRecvT.mdf(), refined.c()));
     var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args());
     var fixedGens = e.ts().map(userGens -> replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
 
@@ -216,8 +217,7 @@ public record InferBodies(ast.Program p) {
   }
   Optional<E> methCallNoGens(Map<String, T> gamma, E.MCall e, int depth) {
     if (e.ts().isPresent()) { return Optional.empty(); }
-    var c = e.receiver().t();
-    // cond: e.name().name.equals("#") && c.itOrThrow().name().name().equals("base.UpdateRef")
+    var c = e.receiver().t(Mdf.mdf); // safe because this T's MDF is never used
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
     var sig = p.fullSig(recv, depth, cm->cm.name().equals(e.name())).orElseThrow().sig();
@@ -240,7 +240,7 @@ public record InferBodies(ast.Program p) {
 
   /** extracts the annotated types for all the ie in ies */
   List<T> typesOf(List<E> ies) {
-    return ies.stream().map(E::t).toList();
+    return ies.stream().map(e->e.t(Mdf.imm)).toList();
   }
 }
 
