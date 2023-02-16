@@ -31,7 +31,7 @@ public class TestMIR {
     var inferred = new InferBodies(inferredSigs).inferAll(p);
     new WellFormednessShortCircuitVisitor().visitProgram(inferred);
     inferred.typeCheck();
-    var mir = new MIRInjectionVisitor().visitProgram(inferred);
+    var mir = new MIRInjectionVisitor(inferred).visitProgram();
     var toJson = new ObjectMapper().registerModule(new Jdk8Module().configureAbsentsAsNulls(true));
     try {
       Err.strCmpFormat(expected, toJson.writeValueAsString(mir));
@@ -53,7 +53,7 @@ public class TestMIR {
     inferred.typeCheck();
     var toJson = new ObjectMapper();
     try {
-      var mir = toJson.writeValueAsString(new MIRInjectionVisitor().visitProgram(inferred));
+      var mir = toJson.writeValueAsString(new MIRInjectionVisitor(inferred).visitProgram());
       Assertions.fail("Did not fail, got:\n" + mir);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

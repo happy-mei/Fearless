@@ -16,7 +16,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       throw Bug.todo();
     }
     var entryName = getName(entry);
-    var init = "\npublic static void main(String[] args){ base.Main_1 entry = new "+entryName+"(){}; entry.$35$(new base.System_0(){}); }\n";
+    var init = "\nstatic void main(String[] args){ base.Main_1 entry = new "+entryName+"(){}; entry.$35$(new base.System_0(){}); }\n";
 
     return "interface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))
@@ -30,10 +30,10 @@ public class JavaCodegen implements MIRVisitor<String> {
   public String visitTrait(String pkg, MIR.Trait trait) {
     var shortName = trait.name();
     if (trait.name().startsWith(pkg)) { shortName = trait.name().substring(pkg.length()+1); }
-    var gens = trait.gens().isEmpty() ? "" : "<"+String.join(",", trait.gens())+">";
+//    var gens = trait.gens().isEmpty() ? "" : "<"+String.join(",", trait.gens())+">";
     var its = trait.its().stream().filter(tr->!tr.equals(trait.name())).collect(Collectors.joining(","));
     var impls = its.isEmpty() ? "" : " extends "+its;
-    var start = "interface "+shortName+gens+impls+"{\n";
+    var start = "interface "+shortName+impls+"{\n";
     var singletonGet = trait.canSingleton() ? trait.name()+" _$self = new "+ trait.name()+"(){};" : "";
     return start + singletonGet + trait.meths().stream()
       .map(m->visitMeth(m, "this", false))
@@ -41,15 +41,15 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
   public String visitMeth(MIR.Meth meth, String selfName, boolean concrete) {
     var selfVar = "var "+name(selfName)+" = this;\n";
-    var gens = meth.gens().isEmpty() ? "" : "<"+String.join(",", meth.gens())+"> ";
+//    var gens = meth.gens().isEmpty() ? "" : "<"+String.join(",", meth.gens())+"> ";
     var args = meth.xs().stream()
       .map(this::typePair)
       .collect(Collectors.joining(","));
     var visibility = concrete ? "public " : "default ";
     if (meth.isAbs()) { visibility = ""; }
-    var start = visibility+gens+meth.rt()+" "+name(meth.name())+"("+args+")";
+    var start = visibility+meth.rt()+" "+name(meth.name())+"("+args+")";
     if (meth.body().isEmpty()) { return start + ";"; }
-    return start + "{\n"+selfVar+"return "+meth.body().get().accept(this)+";\n}";
+    return start + "{\n"+selfVar+"return (("+meth.rt()+")"+meth.body().get().accept(this)+");\n}";
   }
 
   public String visitX(MIR.X x) {
