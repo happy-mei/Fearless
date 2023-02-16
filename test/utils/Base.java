@@ -65,11 +65,18 @@ public interface Base {
       }
           
       // Nums
-      Num:Sealed,MathOps[Num],Stringable{
-        .match({})
+      Int:Sealed,MathOps[Int],IntOps[Int],Stringable{
+        .uint: UInt,
+        .float: Float
         }
-      Int:Num,MathOps[Int],IntOps[Int],Stringable{}
-      UInt:Num,Sealed,MathOps[UInt],IntOps[UInt],Stringable{}
+      UInt:Sealed,MathOps[UInt],IntOps[UInt],Stringable{
+        .int: Int,
+        .float: Float
+        }
+      Float:Sealed,MathOps[UInt],IntOps[UInt],Stringable{
+        .int: Int,
+        .uint: UInt
+        }
 
       MathOps[T]:{
         +(n: T): T,
@@ -96,8 +103,9 @@ public interface Base {
         }
         
       // Fake concrete type for all numbers. The real implementation is generated at code-gen.
-      _NumInstance:Num{
-        .uInt -> this.uInt,
+      _IntInstance:Int{
+        .uint -> this.uint,
+        .float -> this.float,
         .str -> this.str,
         +(n) -> this+n,
         -(n) -> this-n,
@@ -121,7 +129,33 @@ public interface Base {
         ==n -> this==n,
         }
       _UIntInstance:UInt{
-        .num -> this.num,
+        .int -> this.int,
+        .float -> this.float,
+        .str -> this.str,
+        +(n) -> this+n,
+        -(n) -> this-n,
+        *(n) -> this*n,
+        /(n) -> this/n,
+        %(n) -> this%n,
+        **(n) -> this**n,
+          
+        // bitwise
+        >>(n) -> this>>n,
+        <<(n) -> this<<n,
+        ^(n) -> this^n,
+        &(n) -> this&n,
+        |(n) -> this|n,
+          
+        // Comparisons
+        >n -> this>n,
+        <n -> this<n,
+        >=n -> this>=n,
+        <=n -> this<=n,
+        ==n -> this==n,
+        }
+      _FloatInstance:Float{
+        .int -> this.int,
+        .uint -> this.uint,
         .str -> this.str,
         +(n) -> this+n,
         -(n) -> this-n,
