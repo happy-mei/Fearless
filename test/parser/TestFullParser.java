@@ -234,13 +234,13 @@ class TestFullParser {
     """
   );}
   @Test void multipleExtends(){ ok("""
-    {base.HasHunger/0=Dec[name=base.HasHunger/0,gxs=[],lambda=[-infer-][]{.hunger/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.UNum[]]->[-]}],
+    {base.HasHunger/0=Dec[name=base.HasHunger/0,gxs=[],lambda=[-infer-][]{.hunger/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.UInt[]]->[-]}],
     base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{.name/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.String[]]->[-]}],
     base.Dog/0=Dec[name=base.Dog/0,gxs=[],lambda=[-infer-][base.HasHunger[],base.HasName[]]{}]}
     """, """
     package base
-    alias base.UNum as UNum, alias base.String as String,
-    HasHunger:{ .hunger: UNum, }
+    alias base.UInt as UInt, alias base.String as String,
+    HasHunger:{ .hunger: UInt, }
     HasName:{ .name: String, }
     Dog:HasHunger,HasName{}
     """

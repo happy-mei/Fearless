@@ -18,7 +18,7 @@ public interface MIRVisitor<R> {
   R visitLambda(MIR.Lambda newL);
   R visitRef(MIR.Ref ref);
   R visitNum(MIR.Num n);
-  R visitUNum(MIR.UNum n);
+  R visitUInt(MIR.UInt n);
   R visitStr(MIR.Str str);
 //  R visitNewDynLambda(MIR.NewDynLambda newL);
 //  R visitNewStaticLambda(MIR.NewStaticLambda newL);

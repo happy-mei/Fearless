@@ -44,6 +44,9 @@ public interface E extends HasPos {
     public ast.E.Lambda withMeths(List<Meth> meths) {
       return new ast.E.Lambda(mdf, its, selfName, meths, pos);
     }
+    public ast.E.Lambda withITs(List<Id.IT<T>> its) {
+      return new ast.E.Lambda(mdf, its, selfName, meths, pos);
+    }
     @Override
     public String toString() {
       var meths = meths().stream().map(Meth::toString).collect(Collectors.joining(",\n"));

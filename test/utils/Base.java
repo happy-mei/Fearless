@@ -58,97 +58,101 @@ public interface Base {
       Opt:{ #[T](x: T): Opt[T] -> { .match(m)->m.some(x) } } // TODO: this inferred Opt[mdf T] for the lambda
       
       Str:{
-        .len: UNum
+        .len: UInt
       }
       Stringable:{
         .str: Str,
       }
           
       // Nums
-      Num:Sealed,MathOps[Num],Stringable{ .unum: UNum }
-      UNum:Sealed,MathOps[UNum],Stringable{ .num: Num }
+      Num:Sealed,MathOps[Num],Stringable{
+        .match({})
+        }
+      Int:Num,MathOps[Int],IntOps[Int],Stringable{}
+      UInt:Num,Sealed,MathOps[UInt],IntOps[UInt],Stringable{}
 
       MathOps[T]:{
-        +(n: mdf T): mdf T,
-        -(n: mdf T): mdf T,
-        *(n: mdf T): mdf T,
-        /(n: mdf T): mdf T,
-        %(n: mdf T): mdf T,
-        **(n: mdf T): mdf T, // pow
-          
-        // bitwise
-        >>(n: mdf T): mdf T,
-        <<(n: mdf T): mdf T,
-        ^(n: mdf T): mdf T,
-        &(n: mdf T): mdf T,
-        |(n: mdf T): mdf T,
+        +(n: T): T,
+        -(n: T): T,
+        *(n: T): T,
+        /(n: T): T,
+        %(n: T): T,
+        **(n: T): T, // pow
           
         // Comparisons
-        >(n: mdf T): Bool,
-        <(n: mdf T): Bool,
-        >=(n: mdf T): Bool,
-        <=(n: mdf T): Bool,
-        ==(n: mdf T): Bool,
+        >(n: T): Bool,
+        <(n: T): Bool,
+        >=(n: T): Bool,
+        <=(n: T): Bool,
+        ==(n: T): Bool,
+        }
+      IntOps[T]:{
+        // bitwise
+        >>(n: T): T,
+        <<(n: T): T,
+        ^(n: T): T,
+        &(n: T): T,
+        |(n: T): T,
         }
         
-        // Fake concrete type for all numbers. The real implementation is generated at code-gen.
-        _NumInstance:Num{
-          .unum -> this.unum,
-          .str -> this.str,
-          +(n) -> this+n,
-          -(n) -> this-n,
-          *(n) -> this*n,
-          /(n) -> this/n,
-          %(n) -> this%n,
-          **(n) -> this**n,
-            
-          // bitwise
-          >>(n) -> this>>n,
-          <<(n) -> this<<n,
-          ^(n) -> this^n,
-          &(n) -> this&n,
-          |(n) -> this|n,
-            
-          // Comparisons
-          >n -> this>n,
-          <n -> this<n,
-          >=n -> this>=n,
-          <=n -> this<=n,
-          ==n -> this==n,
-          }
-        _UNumInstance:UNum{
-          .num -> this.num,
-          .str -> this.str,
-          +(n) -> this+n,
-          -(n) -> this-n,
-          *(n) -> this*n,
-          /(n) -> this/n,
-          %(n) -> this%n,
-          **(n) -> this**n,
-            
-          // bitwise
-          >>(n) -> this>>n,
-          <<(n) -> this<<n,
-          ^(n) -> this^n,
-          &(n) -> this&n,
-          |(n) -> this|n,
-            
-          // Comparisons
-          >n -> this>n,
-          <n -> this<n,
-          >=n -> this>=n,
-          <=n -> this<=n,
-          ==n -> this==n,
-          }
-        
-        Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-        Ref[X]:NoMutHyg[X],Sealed{
-          read * : recMdf X,
-          mut .swap(x: mdf X): mdf X,
-          mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-          mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+      // Fake concrete type for all numbers. The real implementation is generated at code-gen.
+      _NumInstance:Num{
+        .uInt -> this.uInt,
+        .str -> this.str,
+        +(n) -> this+n,
+        -(n) -> this-n,
+        *(n) -> this*n,
+        /(n) -> this/n,
+        %(n) -> this%n,
+        **(n) -> this**n,
+          
+        // bitwise
+        >>(n) -> this>>n,
+        <<(n) -> this<<n,
+        ^(n) -> this^n,
+        &(n) -> this&n,
+        |(n) -> this|n,
+          
+        // Comparisons
+        >n -> this>n,
+        <n -> this<n,
+        >=n -> this>=n,
+        <=n -> this<=n,
+        ==n -> this==n,
         }
-        UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+      _UIntInstance:UInt{
+        .num -> this.num,
+        .str -> this.str,
+        +(n) -> this+n,
+        -(n) -> this-n,
+        *(n) -> this*n,
+        /(n) -> this/n,
+        %(n) -> this%n,
+        **(n) -> this**n,
+          
+        // bitwise
+        >>(n) -> this>>n,
+        <<(n) -> this<<n,
+        ^(n) -> this^n,
+        &(n) -> this&n,
+        |(n) -> this|n,
+          
+        // Comparisons
+        >n -> this>n,
+        <n -> this<n,
+        >=n -> this>=n,
+        <=n -> this<=n,
+        ==n -> this==n,
+        }
+        
+      Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+      Ref[X]:NoMutHyg[X],Sealed{
+        read * : recMdf X,
+        mut .swap(x: mdf X): mdf X,
+        mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+        mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+      }
+      UpdateRef[X]:{ mut #(x: mdf X): mdf X }
       """;
   }
 }

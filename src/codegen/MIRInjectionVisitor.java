@@ -120,7 +120,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       return new MIR.Num(e.mdf(), Integer.parseInt(name, 10));
     }
     if (name.charAt(name.length()-1) == 'u' && Character.isDigit(name.charAt(0))) {
-      return new MIR.UNum(e.mdf(), Integer.parseInt(name, 10));
+      return new MIR.UInt(e.mdf(), Integer.parseInt(name, 10));
     }
 
     throw Bug.unreachable();

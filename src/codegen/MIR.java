@@ -71,9 +71,9 @@ public interface MIR {
       return v.visitNum(this);
     }
   }
-  record UNum(Mdf mdf, long n) implements MIR {
+  record UInt(Mdf mdf, long n) implements MIR {
     @Override public <R> R accept(MIRVisitor<R> v) {
-      return v.visitUNum(this);
+      return v.visitUInt(this);
     }
   }
   record Str(Mdf mdf, String str) implements MIR {

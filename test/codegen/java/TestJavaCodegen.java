@@ -264,7 +264,7 @@ public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_
       var f$thiz = this;
       return ((base.Bool_0)f$thiz);
       }}
-      interface UNum_0 extends base.Sealed_0,base.MathOps_1,base.Stringable_0{
+      interface UInt_0 extends base.Sealed_0,base.MathOps_1,base.Stringable_0{
       base.Bool_0 $60$61$(Object n$);
       Object $42$42$(Object n$);
       Object $62$62$(Object n$);
@@ -375,9 +375,9 @@ public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$62$61$(n$));
       }
-      default base.UNum_0 unum$(){
+      default base.UInt_0 unum$(){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.unum$());
+      return ((base.UInt_0)f$thiz.uInt$());
       }
       default base.Bool_0 $62$(base.Num_0 n$){
       var f$thiz = this;
@@ -423,78 +423,78 @@ public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_
       var f$thiz = this;
       return ((base.Num_0)f$thiz.$37$(n$));
       }}
-      interface $95UNumInstance_0 extends base.UNum_0{
-      default base.Bool_0 $60$61$(base.UNum_0 n$){
+      interface $95UIntInstance_0 extends base.UInt_0{
+      default base.Bool_0 $60$61$(base.UInt_0 n$){
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$60$61$(n$));
       }
-      default base.Bool_0 $61$61$(base.UNum_0 n$){
+      default base.Bool_0 $61$61$(base.UInt_0 n$){
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$61$61$(n$));
       }
-      default base.UNum_0 $60$60$(base.UNum_0 n$){
+      default base.UInt_0 $60$60$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$60$60$(n$));
+      return ((base.UInt_0)f$thiz.$60$60$(n$));
       }
-      default base.UNum_0 $62$62$(base.UNum_0 n$){
+      default base.UInt_0 $62$62$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$62$62$(n$));
+      return ((base.UInt_0)f$thiz.$62$62$(n$));
       }
-      default base.UNum_0 $42$42$(base.UNum_0 n$){
+      default base.UInt_0 $42$42$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$42$42$(n$));
+      return ((base.UInt_0)f$thiz.$42$42$(n$));
       }
-      default base.Bool_0 $62$61$(base.UNum_0 n$){
+      default base.Bool_0 $62$61$(base.UInt_0 n$){
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$62$61$(n$));
       }
-      default base.Bool_0 $62$(base.UNum_0 n$){
+      default base.Bool_0 $62$(base.UInt_0 n$){
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$62$(n$));
       }
-      default base.UNum_0 $94$(base.UNum_0 n$){
+      default base.UInt_0 $94$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$94$(n$));
+      return ((base.UInt_0)f$thiz.$94$(n$));
       }
       default base.Str_0 str$(){
       var f$thiz = this;
       return ((base.Str_0)f$thiz.str$());
       }
-      default base.Bool_0 $60$(base.UNum_0 n$){
+      default base.Bool_0 $60$(base.UInt_0 n$){
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$60$(n$));
       }
-      default base.UNum_0 $124$(base.UNum_0 n$){
+      default base.UInt_0 $124$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$124$(n$));
+      return ((base.UInt_0)f$thiz.$124$(n$));
       }
-      default base.UNum_0 $47$(base.UNum_0 n$){
+      default base.UInt_0 $47$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$47$(n$));
+      return ((base.UInt_0)f$thiz.$47$(n$));
       }
       default base.Num_0 num$(){
       var f$thiz = this;
       return ((base.Num_0)f$thiz.num$());
       }
-      default base.UNum_0 $45$(base.UNum_0 n$){
+      default base.UInt_0 $45$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$45$(n$));
+      return ((base.UInt_0)f$thiz.$45$(n$));
       }
-      default base.UNum_0 $43$(base.UNum_0 n$){
+      default base.UInt_0 $43$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$43$(n$));
+      return ((base.UInt_0)f$thiz.$43$(n$));
       }
-      default base.UNum_0 $42$(base.UNum_0 n$){
+      default base.UInt_0 $42$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$42$(n$));
+      return ((base.UInt_0)f$thiz.$42$(n$));
       }
-      default base.UNum_0 $38$(base.UNum_0 n$){
+      default base.UInt_0 $38$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$38$(n$));
+      return ((base.UInt_0)f$thiz.$38$(n$));
       }
-      default base.UNum_0 $37$(base.UNum_0 n$){
+      default base.UInt_0 $37$(base.UInt_0 n$){
       var f$thiz = this;
-      return ((base.UNum_0)f$thiz.$37$(n$));
+      return ((base.UInt_0)f$thiz.$37$(n$));
       }}
       interface True_0 extends base.Bool_0{
       default base.Bool_0 not$(){
@@ -523,7 +523,7 @@ public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_
       Object $60$60$(Object n$);
       base.Bool_0 $61$61$(Object n$);
       base.Bool_0 $62$61$(Object n$);
-      base.UNum_0 unum$();
+      base.UInt_0 unum$();
       base.Str_0 str$();
       Object $94$(Object n$);
       base.Bool_0 $62$(Object n$);
@@ -579,7 +579,7 @@ public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_
       return ((base.Opt_1)f$thiz.match$(f$));
       }}
       interface Str_0{
-      base.UNum_0 len$();}
+      base.UInt_0 len$();}
       interface Fear44$36_0 extends base.Bool_0,base.True_0{
       }
       interface Fear45$36_0 extends base.Bool_0,base.False_0{

@@ -12,8 +12,11 @@ import java.util.function.Function;
 
 public class Magic {
   public static final Id.DecId NoMutHyg = new Id.DecId("base.NoMutHyg", 1);
-  public static final Id.DecId UNum = new Id.DecId("base.UNum", 0);
+  public static final Id.DecId UInt = new Id.DecId("base.UInt", 0);
   public static final Id.DecId Num = new Id.DecId("base.Num", 0);
+  public static final Id.DecId Str = new Id.DecId("base.Str", 0);
+  public static final Id.DecId RefK = new Id.DecId("base.Ref", 0);
+  public static final Id.DecId Ref = new Id.DecId("base.Ref", 1);
 
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
     var isAlphaNumeric  = !name.isEmpty() && (Character.isDigit(name.charAt(0)) || name.startsWith("\""));

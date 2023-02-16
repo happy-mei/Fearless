@@ -84,7 +84,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     return ""+n.n();
   }
 
-  @Override public String visitUNum(MIR.UNum n) {
+  @Override public String visitUInt(MIR.UInt n) {
     return  ""+n.n();
   }
 
