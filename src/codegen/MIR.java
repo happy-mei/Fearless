@@ -1,6 +1,7 @@
 package codegen;
 
 import ast.E;
+import ast.T;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -30,12 +31,6 @@ public interface MIR {
   record Meth(String name, Mdf mdf, List<String> gens, List<X> xs, String rt, Optional<MIR> body) {
     public boolean isAbs() { return body.isEmpty(); }
   }
-
-  record L(Mdf mdf, long id) {
-    public static void reset() { N = 0; }
-    static long N = 0;
-    L(Mdf mdf) { this(mdf, N++); }
-  }
   record X(Mdf mdf, String name, String type) implements MIR  {
     public <R> R accept(MIRVisitor<R> v) {
       return v.visitX(this);
@@ -64,6 +59,26 @@ public interface MIR {
   record Lambda(Mdf mdf, String freshName, String selfName, List<String> its, List<X> captures, List<Meth> meths) implements MIR {
     public <R> R accept(MIRVisitor<R> v) {
       return v.visitLambda(this);
+    }
+  }
+  record Ref(T type, MIR value) implements MIR {
+    public <R> R accept(MIRVisitor<R> v) {
+      return v.visitRef(this);
+    }
+  }
+  record Num(Mdf mdf, long n) implements MIR {
+    @Override public <R> R accept(MIRVisitor<R> v) {
+      return v.visitNum(this);
+    }
+  }
+  record UNum(Mdf mdf, long n) implements MIR {
+    @Override public <R> R accept(MIRVisitor<R> v) {
+      return v.visitUNum(this);
+    }
+  }
+  record Str(Mdf mdf, String str) implements MIR {
+    @Override public <R> R accept(MIRVisitor<R> v) {
+      return v.visitStr(this);
     }
   }
 //  record Share(MIR e) implements MIR {

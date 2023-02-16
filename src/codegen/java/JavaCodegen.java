@@ -3,6 +3,7 @@ package codegen.java;
 import ast.T;
 import codegen.MIR;
 import id.Id;
+import magic.Magic;
 import utils.Bug;
 import visitors.MIRVisitor;
 
@@ -73,6 +74,22 @@ public class JavaCodegen implements MIRVisitor<String> {
       .map(m->visitMeth(m, l.selfName(), true))
       .collect(Collectors.joining("\n"));
     return start + ms + "}";
+  }
+
+  @Override public String visitRef(MIR.Ref ref) {
+    throw Bug.todo();
+  }
+
+  @Override public String visitNum(MIR.Num n) {
+    return ""+n.n();
+  }
+
+  @Override public String visitUNum(MIR.UNum n) {
+    return  ""+n.n();
+  }
+
+  @Override public String visitStr(MIR.Str str) {
+    return String.format("\"%s\"", str.str().replace("\"", "\\\""));
   }
 
 //  public String visitNewLambda(MIR.NewLambda newL) {

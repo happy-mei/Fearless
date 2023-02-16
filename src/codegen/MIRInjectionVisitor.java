@@ -5,6 +5,8 @@ import ast.Program;
 import ast.T;
 import id.Id;
 import id.Mdf;
+import magic.Magic;
+import utils.Bug;
 import utils.Streams;
 import visitors.CollectorVisitor;
 import visitors.GammaVisitor;
@@ -67,7 +69,11 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     return new MIR.X(type.mdf(), x, getName(type));
   }
 
-  public MIR.Lambda visitLambda(String pkg, E.Lambda e, Map<String, T> gamma) {
+  public MIR visitLambda(String pkg, E.Lambda e, Map<String, T> gamma) {
+    if (Magic.resolve(e.its().get(0).name().name()).isPresent()) {
+      return visitMagic(pkg, e, gamma);
+    }
+
     var captureCollector = new CaptureCollector();
     captureCollector.visitLambda(e);
     List<MIR.X> captures = captureCollector.res().stream().map(x->visitX(x, gamma)).toList();
@@ -105,6 +111,19 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       captures,
       ms
     );
+  }
+  public MIR visitMagic(String pkg, E.Lambda e, Map<String, T> gamma) {
+    var id = e.its().get(0).name();
+    var name = id.name();
+
+    if (Character.isDigit(name.charAt(0))) {
+      return new MIR.Num(e.mdf(), Integer.parseInt(name, 10));
+    }
+    if (name.charAt(name.length()-1) == 'u' && Character.isDigit(name.charAt(0))) {
+      return new MIR.UNum(e.mdf(), Integer.parseInt(name, 10));
+    }
+
+    throw Bug.unreachable();
   }
 
   public MIR.Meth visitMeth(String pkg, E.Meth m, Map<String, T> gamma) {
