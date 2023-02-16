@@ -48,7 +48,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     return new MIR.Trait(
       getName(dec.name()),
       gens,
-      dec.lambda().its().stream().distinct().map(MIRInjectionVisitor::getName).toList(),
+      getImplsNames(dec.lambda().its(), dec.name()),
       ms
     );
   }
@@ -74,7 +74,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
 
     var fresh = new Id.DecId(Id.GX.fresh().name(), 0);
     var freshName = pkg+"."+getName(fresh);
-    MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), e.its().stream().distinct().map(MIRInjectionVisitor::getName).toList(), List.of());
+    MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), getImplsNames(e.its(), fresh), List.of());
     freshTraits.add(freshTrait);
 
     var g = new HashMap<>(gamma);
@@ -84,7 +84,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       e.mdf(),
       freshName,
       e.selfName(),
-      e.its().stream().distinct().map(MIRInjectionVisitor::getName).toList(),
+      getImplsNames(e.its(), fresh),
       captures,
       ms
     );
@@ -120,6 +120,16 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
         return "<"+it.ts().stream().map(MIRInjectionVisitor::getNameGens).collect(Collectors.joining(","))+">";
       }
     );
+  }
+
+  private static List<String> getImplsNames(List<Id.IT<T>> its, Id.DecId name) {
+    return its.stream()
+      .filter(it1->!it1.name().equals(name))
+      .map(MIRInjectionVisitor::getNameGens)
+      .toList();
+  }
+  private static String getNameGens(Id.IT<T> it) {
+    return getNameGens(new T(Mdf.mdf, it));
   }
   private static String getName(Id.GX<T> gx) { return getBase(gx.name()); }
   private static String getName(Id.IT<T> it) { return getName(it.name()); }

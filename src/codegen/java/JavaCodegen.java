@@ -2,7 +2,6 @@ package codegen.java;
 
 import ast.T;
 import codegen.MIR;
-import codegen.MIRInjectionVisitor;
 import id.Id;
 import utils.Bug;
 import visitors.MIRVisitor;
