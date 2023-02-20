@@ -40,11 +40,11 @@ public class TestMeths {
   * A:B {ma}
   * B:{mb}
   * --
-  * A:B{m:Num}
-  * B:{m:Num}
+  * A:B{m:Int}
+  * B:{m:Int}
   * ----
   * A:B{m:Str} //err
-  * B:{m:Num}
+  * B:{m:Int}
   *----
   * A:B,C{m:A} //ok
   * B:{m:B}
@@ -205,9 +205,9 @@ public class TestMeths {
     ([###]/Dummy0.fear:4:5) a.B[], .foo/1
     """, "a.B", """
     package a
-    Str:{} Num:{}
+    Str:{} Int:{}
     A:{ .foo(a:A):Str }
-    B:A{ .foo(b:B):Num }
+    B:A{ .foo(b:B):Int }
     """); }
   @Test void moreSpecific() { fail("""
     In position [###]/Dummy0.fear:2:0
@@ -233,12 +233,12 @@ public class TestMeths {
     B:{ .m: B }
     """); }
   @Test void t2() { ok("""
-    [a.A[],imm.m/0()[][]:imma.Num[]abs]
+    [a.A[],imm.m/0()[][]:imma.Int[]abs]
     """, "a.A", """
     package a
-    Num:{}
-    A:B { .m: Num }
-    B:{ .m: Num }
+    Int:{}
+    A:B { .m: Int }
+    B:{ .m: Int }
     """); }
   @Test void t3() { fail("""
     In position [###]/Dummy0.fear:3:0
@@ -249,9 +249,9 @@ public class TestMeths {
     ([###]/Dummy0.fear:3:6) a.A[], .m/0
     """, "a.A", """
     package a
-    Num:{} Str:{}
+    Int:{} Str:{}
     A:B { .m: Str }
-    B:{ .m: Num }
+    B:{ .m: Int }
     """); }
   @Test void t4a() { ok("""
     [a.A[],imm.m/0()[][]:imma.A[]abs]
@@ -283,8 +283,8 @@ public class TestMeths {
     ([###]/Dummy0.fear:5:4) a.B[], .m/0
     """, "a.A", """
     package a
-    A:AA { .m: Num}
-    Num:{}
+    A:AA { .m: Int}
+    Int:{}
     AA:B,C { }
     B:{ .m: B }
     C:{ .m: C }
@@ -302,7 +302,7 @@ public class TestMeths {
     [a.A[],imm.m/0()[][]:imma.B[]abs]
     """, "a.A", """
     package a
-    Num:{} Str:{}
+    Int:{} Str:{}
     A:B,C,D { .m: B }
     B:D{ .m: D }
     C:D{ .m: D }
@@ -317,7 +317,7 @@ public class TestMeths {
     ([###]/Dummy0.fear:3:10) a.A[], .m/0
     """, "a.A", """
     package a
-    Num:{} Str:{}
+    Int:{} Str:{}
     A:B,C,D { .m: D }
     B:D{ .m: B }
     C:D{ .m: B }

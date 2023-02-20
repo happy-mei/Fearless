@@ -336,4 +336,11 @@ class TestFullParser {
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
+
+  @Test void magicIntbers() { ok("""
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{.foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm5[]]->[-5[]-][5[]]{}}]}
+    """, """
+    package test
+    A:{ .foo: 5 -> 5 }
+    """); }
 }

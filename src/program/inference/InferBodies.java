@@ -220,6 +220,7 @@ public record InferBodies(ast.Program p) {
     var c = e.receiver().t(Mdf.mdf); // safe because this T's MDF is never used
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
+    // TODO: handle methods that don't exist with a good user facing message
     var sig = p.fullSig(recv, depth, cm->cm.name().equals(e.name())).orElseThrow().sig();
     var k = sig.gens().size();
     var infers = Collections.nCopies(k, T.infer);

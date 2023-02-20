@@ -277,7 +277,7 @@ public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_
       Object $124$(Object n$);
       base.Bool_0 $60$(Object n$);
       Object $47$(Object n$);
-      base.Num_0 num$();
+      base.Int_0 num$();
       Object $45$(Object n$);
       Object $43$(Object n$);
       Object $42$(Object n$);
@@ -350,78 +350,78 @@ public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_
       return ((base.Opt_1)new base.Opt_1(){
       });
       }}
-      interface $95NumInstance_0 extends base.Num_0{
-      default base.Bool_0 $60$61$(base.Num_0 n$){
+      interface $95IntInstance_0 extends base.Int_0{
+      default base.Bool_0 $60$61$(base.Int_0 n$){
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$60$61$(n$));
       }
-      default base.Bool_0 $61$61$(base.Num_0 n$){
+      default base.Bool_0 $61$61$(base.Int_0 n$){
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$61$61$(n$));
       }
-      default base.Num_0 $60$60$(base.Num_0 n$){
+      default base.Int_0 $60$60$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$60$60$(n$));
+      return ((base.Int_0)f$thiz.$60$60$(n$));
       }
-      default base.Num_0 $62$62$(base.Num_0 n$){
+      default base.Int_0 $62$62$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$62$62$(n$));
+      return ((base.Int_0)f$thiz.$62$62$(n$));
       }
-      default base.Num_0 $42$42$(base.Num_0 n$){
+      default base.Int_0 $42$42$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$42$42$(n$));
+      return ((base.Int_0)f$thiz.$42$42$(n$));
       }
-      default base.Bool_0 $62$61$(base.Num_0 n$){
+      default base.Bool_0 $62$61$(base.Int_0 n$){
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$62$61$(n$));
       }
       default base.UInt_0 unum$(){
       var f$thiz = this;
-      return ((base.UInt_0)f$thiz.uInt$());
+      return ((base.UInt_0)f$thiz.uint$());
       }
-      default base.Bool_0 $62$(base.Num_0 n$){
+      default base.Bool_0 $62$(base.Int_0 n$){
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$62$(n$));
       }
-      default base.Num_0 $94$(base.Num_0 n$){
+      default base.Int_0 $94$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$94$(n$));
+      return ((base.Int_0)f$thiz.$94$(n$));
       }
       default base.Str_0 str$(){
       var f$thiz = this;
       return ((base.Str_0)f$thiz.str$());
       }
-      default base.Bool_0 $60$(base.Num_0 n$){
+      default base.Bool_0 $60$(base.Int_0 n$){
       var f$thiz = this;
       return ((base.Bool_0)f$thiz.$60$(n$));
       }
-      default base.Num_0 $124$(base.Num_0 n$){
+      default base.Int_0 $124$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$124$(n$));
+      return ((base.Int_0)f$thiz.$124$(n$));
       }
-      default base.Num_0 $47$(base.Num_0 n$){
+      default base.Int_0 $47$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$47$(n$));
+      return ((base.Int_0)f$thiz.$47$(n$));
       }
-      default base.Num_0 $45$(base.Num_0 n$){
+      default base.Int_0 $45$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$45$(n$));
+      return ((base.Int_0)f$thiz.$45$(n$));
       }
-      default base.Num_0 $43$(base.Num_0 n$){
+      default base.Int_0 $43$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$43$(n$));
+      return ((base.Int_0)f$thiz.$43$(n$));
       }
-      default base.Num_0 $42$(base.Num_0 n$){
+      default base.Int_0 $42$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$42$(n$));
+      return ((base.Int_0)f$thiz.$42$(n$));
       }
-      default base.Num_0 $38$(base.Num_0 n$){
+      default base.Int_0 $38$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$38$(n$));
+      return ((base.Int_0)f$thiz.$38$(n$));
       }
-      default base.Num_0 $37$(base.Num_0 n$){
+      default base.Int_0 $37$(base.Int_0 n$){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.$37$(n$));
+      return ((base.Int_0)f$thiz.$37$(n$));
       }}
       interface $95UIntInstance_0 extends base.UInt_0{
       default base.Bool_0 $60$61$(base.UInt_0 n$){
@@ -472,9 +472,9 @@ public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_
       var f$thiz = this;
       return ((base.UInt_0)f$thiz.$47$(n$));
       }
-      default base.Num_0 num$(){
+      default base.Int_0 num$(){
       var f$thiz = this;
-      return ((base.Num_0)f$thiz.num$());
+      return ((base.Int_0)f$thiz.num$());
       }
       default base.UInt_0 $45$(base.UInt_0 n$){
       var f$thiz = this;
@@ -516,7 +516,7 @@ public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_
       }}
       interface UpdateRef_1{
       Object $35$(Object x$);}
-      interface Num_0 extends base.Sealed_0,base.MathOps_1,base.Stringable_0{
+      interface Int_0 extends base.Sealed_0,base.MathOps_1,base.Stringable_0{
       base.Bool_0 $60$61$(Object n$);
       Object $42$42$(Object n$);
       Object $62$62$(Object n$);
@@ -594,7 +594,7 @@ public static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_
       """, Base.immBaseLib);
   }
 
-  @Test void magicNumInlining() { ok("""
+  @Test void magicIntInlining() { ok("""
     """, "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.True as True, alias base.False as False, alias base.Bool as Bool,

@@ -43,12 +43,13 @@ interface EMethTypeSystem extends ETypeSystem {
     return p().isSubType(expectedT().get().mdf(),tst.t().mdf());
   }
   default boolean okAll(List<E>es,List<T> ts) {
-    return Streams.zip(es,ts).anyMatch(this::ok);
+    return Streams.zip(es,ts).allMatch(this::ok);
   }
   default boolean ok(E e,T t) {
     var v = this.withT(Optional.of(t));
     var res = e.accept(v);
     if (res.t().isEmpty()){ return false; }
+    System.out.println("|-"+e+":"+t);
     return p().tryIsSubType(res.tOrThrow(), t);
   }
 

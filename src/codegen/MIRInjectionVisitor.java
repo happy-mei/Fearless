@@ -5,8 +5,6 @@ import ast.Program;
 import ast.T;
 import id.Id;
 import id.Mdf;
-import magic.Magic;
-import utils.Bug;
 import utils.Streams;
 import visitors.CollectorVisitor;
 import visitors.GammaVisitor;
@@ -29,11 +27,10 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     Map<String, List<MIR.Trait>> ds = Stream.concat(
         traits.stream(),
         freshTraits.stream()
-      ).collect(Collectors.groupingBy(t->t.name().split("\\..+$")[0]));
+      ).collect(Collectors.groupingBy(t->t.name().pkg()));
     return new MIR.Program(ds);
   }
   public MIR.Trait visitDec(String pkg, T.Dec dec) {
-    List<String> gens = dec.gxs().stream().map(MIRInjectionVisitor::getName).toList();
     var ms = p.meths(dec.toIT(), 0).stream()
       .map(cm->{
         var m = p.ds().get(cm.c().name())
@@ -48,9 +45,9 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       .toList();
     var impls = simplifyImpls(dec.lambda().its().stream().filter(it->!it.name().equals(dec.name())).toList());
     return new MIR.Trait(
-      getName(dec.name()),
-      gens,
-      getImplsNames(impls),
+      dec.name(),
+      dec.gxs(),
+      impls,
       ms
     );
   }
@@ -58,7 +55,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   public MIR.MCall visitMCall(String pkg, E.MCall e, Map<String, T> gamma) {
     return new MIR.MCall(
       e.receiver().accept(this, pkg, gamma),
-      getName(e.name()),
+      e.name(),
       e.es().stream().map(ei->ei.accept(this, pkg, gamma)).toList()
     );
   }
@@ -66,14 +63,10 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   public MIR.X visitX(E.X e, Map<String, T> gamma) { return visitX(e.name(), gamma); }
   public MIR.X visitX(String x, Map<String, T> gamma) {
     var type = requireNonNull(gamma.get(x));
-    return new MIR.X(type.mdf(), x, getName(type));
+    return new MIR.X(x, type);
   }
 
   public MIR visitLambda(String pkg, E.Lambda e, Map<String, T> gamma) {
-    if (Magic.resolve(e.its().get(0).name().name()).isPresent()) {
-      return visitMagic(pkg, e, gamma);
-    }
-
     var captureCollector = new CaptureCollector();
     captureCollector.visitLambda(e);
     List<MIR.X> captures = captureCollector.res().stream().map(x->visitX(x, gamma)).toList();
@@ -86,7 +79,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       List<MIR.Meth> ms = e.meths().stream().map(m->visitMeth(pkg, m, g)).toList();
       return new MIR.Lambda(
         e.mdf(),
-        getName(it.name()),
+        it.name(),
         e.selfName(),
         List.of(),
         captures,
@@ -95,9 +88,9 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     }
 
     var fresh = new Id.DecId(Id.GX.fresh().name(), 0);
-    var freshName = pkg+"."+getName(fresh);
-    var implNames = getImplsNames(impls.stream().filter(it->!it.name().equals(fresh)).toList());
-    MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), implNames, List.of());
+    var freshName = new Id.DecId(pkg+"."+fresh, 0);
+    impls = impls.stream().filter(it->!it.name().equals(fresh)).toList();
+    MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), impls, List.of());
     freshTraits.add(freshTrait);
 
     var g = new HashMap<>(gamma);
@@ -107,23 +100,10 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       e.mdf(),
       freshName,
       e.selfName(),
-      implNames,
+      impls,
       captures,
       ms
     );
-  }
-  public MIR visitMagic(String pkg, E.Lambda e, Map<String, T> gamma) {
-    var id = e.its().get(0).name();
-    var name = id.name();
-
-    if (Character.isDigit(name.charAt(0))) {
-      return new MIR.Num(e.mdf(), Integer.parseInt(name, 10));
-    }
-    if (name.charAt(name.length()-1) == 'u' && Character.isDigit(name.charAt(0))) {
-      return new MIR.UInt(e.mdf(), Integer.parseInt(name, 10));
-    }
-
-    throw Bug.unreachable();
   }
 
   public MIR.Meth visitMeth(String pkg, E.Meth m, Map<String, T> gamma) {
@@ -131,33 +111,19 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     List<MIR.X> xs = Streams.zip(m.xs(), m.sig().ts())
       .map((x,t)->{
         g.put(x, t);
-        return new MIR.X(t.mdf(), x, getName(t));
+        return new MIR.X(x, t);
       })
       .toList();
-    List<String> gens = m.sig().gens().stream().map(MIRInjectionVisitor::getName).toList();
 
     return new MIR.Meth(
-      getName(m.name()),
+      m.name(),
       m.sig().mdf(),
-      gens,
+      m.sig().gens(),
       xs,
-      getName(m.sig().ret()),
+      m.sig().ret(),
       m.body().map(e->e.accept(this, pkg, g))
     );
   }
-
-  private static String getName(T t) { return t.match(MIRInjectionVisitor::getName, MIRInjectionVisitor::getName); }
-//  private static String getNameGens(T t) {
-//    var base = getName(t);
-//    return base + t.match(
-//      gx->"",
-//      it->{
-//        if (it.ts().isEmpty()) { return ""; }
-//        return "<"+it.ts().stream().map(MIRInjectionVisitor::getNameGens).collect(Collectors.joining(","))+">";
-//      }
-//    );
-//  }
-//
 
   /** Removes any redundant ITs from the list of impls for a lambda. */
   private List<Id.IT<T>> simplifyImpls(List<Id.IT<T>> its) {
@@ -165,26 +131,6 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       .filter(it->its.stream()
         .noneMatch(it1->it != it1 && p.isSubType(new T(Mdf.mdf, it1), new T(Mdf.mdf, it))))
       .toList();
-  }
-
-  private List<String> getImplsNames(List<Id.IT<T>> its) {
-    return its.stream()
-      .map(MIRInjectionVisitor::getName)
-      .toList();
-  }
-//  private static String getNameGens(Id.IT<T> it) {
-//    return getNameGens(new T(Mdf.mdf, it));
-//  }
-  private static String getName(Id.GX<T> gx) { return "Object"; }
-  private static String getName(Id.IT<T> it) { return getName(it.name()); }
-  private static String getName(Id.DecId d) { return getBase(d.name())+"_"+d.gen(); }
-  private static String getName(Id.MethName m) { return getBase(m.name()); }
-  private static String getBase(String name) {
-    if (name.startsWith(".")) { name = name.substring(1); }
-    return name.chars().mapToObj(c->{
-      if (c == '.' || Character.isAlphabetic(c) || Character.isDigit(c)) { return Character.toString(c); }
-      return "$"+c;
-    }).collect(Collectors.joining());
   }
 
   private static class CaptureCollector implements CollectorVisitor<List<String>> {

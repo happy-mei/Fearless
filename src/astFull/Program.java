@@ -2,6 +2,7 @@ package astFull;
 
 import files.Pos;
 import id.Id;
+import id.Mdf;
 import magic.Magic;
 import failure.CompileError;
 import failure.Fail;
@@ -120,8 +121,13 @@ public class Program implements program.Program{
       return ds.stream().sorted(this::sortDec).collect(Collectors.toList());
     }
     private int sortDec(T.Dec d1,T.Dec d2){
-      if(p.superDecIds(d1.name()).contains(d2.name())) { return -1; }
-      if(p.superDecIds(d2.name()).contains(d1.name())) { return 1; }
+      // TODO: This is not transitive (because we say == when there is no relation, not just on eq)
+      // We may need to do a topological sort here or something
+      System.out.println(d1.name()+" and "+d2.name());
+      if (p.isSubType(new T(Mdf.mdf, d1.toIT()), new T(Mdf.mdf, d2.toIT()))) { return -1; }
+      if (p.isSubType(new T(Mdf.mdf, d2.toIT()), new T(Mdf.mdf, d1.toIT()))) { return 1; }
+//      if(p.superDecIds(d1.name()).contains(d2.name())) { return -1; }
+//      if(p.superDecIds(d2.name()).contains(d1.name())) { return 1; }
       return 0;
     }
     private void updateDec(T.Dec d, int i) {

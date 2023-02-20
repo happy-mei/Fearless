@@ -1,6 +1,7 @@
 package program.typesystem;
 
 import failure.CompileError;
+import failure.Fail;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -87,62 +88,68 @@ public class TestTypeSystem {
     package test
     A:{ .m(a: 42): 42 -> 42 }
     """, Base.immBaseLib); }
+
+  @Test void numbersNoBase(){ ok( """
+    package test
+    A:{ .m(a: 42): 42 -> 42 }
+    """, Base.onlyNums); }
+
   @Test void numbersSubTyping1(){ ok( """
     package test
-    alias base.Num as Num,
-    A:{ .m(a: 42): Num -> a }
+    alias base.Int as Int,
+    A:{ .m(a: 42): Int -> a }
     """, Base.immBaseLib); }
   @Test void numbersSubTyping2(){ fail("""
     In position [###]/Dummy0.fear:3:4
     [E23 methTypeError]
-    Expected the method .m/1 to return imm 42[], got imm base.Num[].
+    Expected the method .m/1 to return imm 42[], got imm base.Int[].
     """, """
     package test
-    alias base.Num as Num,
-    A:{ .m(a: Num): 42 -> a }
+    alias base.Int as Int,
+    A:{ .m(a: Int): 42 -> a }
     """, Base.immBaseLib); }
   @Test void numbersSubTyping3(){ ok( """
     package test
-    alias base.Num as Num,
-    A:{ .a: Num }
+    alias base.Int as Int,
+    A:{ .a: Int }
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
     """, Base.immBaseLib); }
   @Test void numbersSubTyping4(){ ok( """
     package test
-    alias base.Num as Num,
-    A:{ .a: Num }
+    alias base.Int as Int,
+    A:{ .a: Int }
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
-    D:B{ .b: Num -> this.a }
+    D:B{ .b: Int -> this.a }
     """, Base.immBaseLib); }
   @Test void numbersGenericTypes1(){ ok( """
     package test
-    alias base.Num as Num,
+    alias base.Int as Int,
     A[N]:{ .count: N }
     B:A[42]{ 42 }
-    C:A[Num]{ 42 }
+    C:A[Int]{ 42 }
     """, Base.immBaseLib); }
   @Test void numbersGenericTypes2(){ ok( """
     package test
-    alias base.Num as Num,
+    alias base.Int as Int,
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 42 }
-    C:A[Num]{ .count -> 56, .sum -> 3001 }
+    C:A[Int]{ .count -> 56, .sum -> 3001 }
     """, Base.immBaseLib); }
   @Test void numbersGenericTypes2a(){ fail("""
     In position [###]/Dummy0.fear:4:31
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy1.fear:91:4) 43[], <=/1
-    ([###]/Dummy1.fear:91:4) 42[], <=/1
+    ([###]/Dummy1.fear:45:6) 43[], .float/0
+    ([###]/Dummy1.fear:45:6) 42[], .float/0
     """, """
     package test
-    alias base.Num as Num,
+    alias base.Int as Int,
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 43 }
-    """, Base.immBaseLib); }
+    """, Base.onlyNums); }
   @Test void numbersGenericTypes2aWorksThanksTo5b(){ ok("""
     package test
     FortyTwo:{}
@@ -168,19 +175,19 @@ public class TestTypeSystem {
   @Test void numbersSubTyping4a(){ fail("""
     In position [###]/Dummy0.fear:6:5
     [E23 methTypeError]
-    Expected the method .b/0 to return imm 42[], got imm base.Num[].
+    Expected the method .b/0 to return imm 42[], got imm base.Int[].
     """, """
     package test
-    alias base.Num as Num,
-    A:{ .a: Num }
+    alias base.Int as Int,
+    A:{ .a: Int }
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
     D:B{ .b: 42 -> this.a }
-    """, Base.immBaseLib); }
-  @Test void twoNums(){ ok( """
+    """, Base.onlyNums); }
+  @Test void twoInts(){ ok( """
     package test
-    alias base.Num as Num,
-    A:{ .m(a: 56, b: 12): Num -> b+a }
+    alias base.Int as Int,
+    A:{ .m(a: 56, b: 12): Int -> b+a }
     """, Base.immBaseLib); }
 
   @Test void noRecMdfWeakening() { fail("""
@@ -196,16 +203,16 @@ public class TestTypeSystem {
     List[X]:{ read .get(): recMdf X }
     Family2:List[mut Person]{ read .get(): mut Person }
     """); }
-  @Test void boolNumRet() { ok("""
+  @Test void boolIntRet() { ok("""
     package test
-    alias base.Main as Main, alias base.Num as Num, alias base.False as False, alias base.True as True,
-    Test:Main[Num]{
+    alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
+    Test:Main[Int]{
       _->False.or(True)?{.then->42,.else->0}
     }
     """, Base.immBaseLib); }
   @Test void boolSameRet() { ok("""
     package test
-    alias base.Main as Main, alias base.Num as Num, alias base.False as False, alias base.True as True,
+    alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Foo:{}
     Test:Main[Foo]{
       _->False.or(True)?{.then->Foo,.else->Foo}
@@ -227,6 +234,41 @@ public class TestTypeSystem {
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
+
+  @Test void numImpls1() { ok("""
+    package test
+    alias base.Int as Int,
+    Foo:{ .bar: 5 -> 5 }
+    Bar:{
+      .nm(n: Int): Int -> n,
+      .check: Int -> this.nm(Foo.bar)
+      }
+    """, Base.onlyNums);}
+
+  @Test void numImpls2() { ok("""
+    package test
+    alias base.Int as Int,
+    Bar:{
+      .nm(n: Int): Int -> n,
+      .check: Int -> this.nm(5)
+      }
+    """, Base.onlyNums);}
+
+  @Test void numImpls3() { fail("""
+    In position [###]/Dummy0.fear:5:25
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy1.fear:65:6) 5[], <=/1
+    ([###]/Dummy1.fear:30:6) base.MathOps[imm base.Float[]], <=/1
+    """, """
+    package test
+    alias base.Int as Int, alias base.Float as Float,
+    Bar:{
+      .nm(n: Float): Int -> 12,
+      .check: Int -> this.nm(5)
+      }
+    """, Base.onlyNums);}
 
   // TODO: write a test that shows that the error message for this code makes sense:
   /*

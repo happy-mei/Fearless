@@ -61,7 +61,7 @@ class TestParser {
       """
       [-mut base.Either[imm pkg1.Person[],mut pkg1.Blah[]]-][base.Either[imm pkg1.Person[],mut pkg1.Blah[]]]{}
       """, "mut base.Either[imm pkg1.Person, mut pkg1.Blah]"); }
-  @Test void surprisingNumberOfExprs(){ ok(
+  @Test void surprisingIntberOfExprs(){ ok(
     """
       we:infer.parse/0[-]([]):infer.a/0[-]([]):infer.surprising/0[-]([]):infer.amount/0[-]([]):infer.of/0[-]([]):infer.stuff/0[-]([]):infer
       """

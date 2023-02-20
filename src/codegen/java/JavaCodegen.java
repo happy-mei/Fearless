@@ -3,7 +3,6 @@ package codegen.java;
 import ast.T;
 import codegen.MIR;
 import id.Id;
-import magic.Magic;
 import utils.Bug;
 import visitors.MIRVisitor;
 
@@ -12,6 +11,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class JavaCodegen implements MIRVisitor<String> {
+  private final MagicImpls magic = new MagicImpls(this);
+
   public String visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) {
     if (!pkgs.containsKey("base")) {
       throw Bug.todo();
@@ -29,13 +30,17 @@ public class JavaCodegen implements MIRVisitor<String> {
       .collect(Collectors.joining("\n")) + "\n}";
   }
   public String visitTrait(String pkg, MIR.Trait trait) {
-    var shortName = trait.name();
-    if (trait.name().startsWith(pkg)) { shortName = trait.name().substring(pkg.length()+1); }
+    var longName = getName(trait.name());
+    var shortName = longName;
+    if (trait.name().pkg().equals(pkg)) { shortName = longName.substring(pkg.length()+1); }
 //    var gens = trait.gens().isEmpty() ? "" : "<"+String.join(",", trait.gens())+">";
-    var its = trait.its().stream().filter(tr->!tr.equals(trait.name())).collect(Collectors.joining(","));
+    var its = trait.its().stream()
+      .map(JavaCodegen::getName)
+      .filter(tr->!tr.equals(longName))
+      .collect(Collectors.joining(","));
     var impls = its.isEmpty() ? "" : " extends "+its;
     var start = "interface "+shortName+impls+"{\n";
-    var singletonGet = trait.canSingleton() ? trait.name()+" _$self = new "+ trait.name()+"(){};" : "";
+    var singletonGet = trait.canSingleton() ? longName+" _$self = new "+ longName+"(){};" : "";
     return start + singletonGet + trait.meths().stream()
       .map(m->visitMeth(m, "this", false))
       .collect(Collectors.joining("\n")) + "}";
@@ -48,9 +53,9 @@ public class JavaCodegen implements MIRVisitor<String> {
       .collect(Collectors.joining(","));
     var visibility = concrete ? "public " : "default ";
     if (meth.isAbs()) { visibility = ""; }
-    var start = visibility+meth.rt()+" "+name(meth.name())+"("+args+")";
+    var start = visibility+meth.rt()+" "+name(getName(meth.name()))+"("+args+")";
     if (meth.body().isEmpty()) { return start + ";"; }
-    return start + "{\n"+selfVar+"return (("+meth.rt()+")"+meth.body().get().accept(this)+");\n}";
+    return start + "{\n"+selfVar+"return (("+getName(meth.rt())+")"+meth.body().get().accept(this)+");\n}";
   }
 
   public String visitX(MIR.X x) {
@@ -58,7 +63,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitMCall(MIR.MCall mCall) {
-    var start = mCall.recv().accept(this)+"."+name(mCall.name())+"(";
+    var start = mCall.recv().accept(this)+"."+name(getName(mCall.name()))+"(";
     var args = mCall.args().stream()
       .map(a->a.accept(this))
       .collect(Collectors.joining(","));
@@ -66,7 +71,12 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitLambda(MIR.Lambda l) {
-    var start = "new "+l.freshName()+"(){\n";
+    var magicImpl = magic.get(l);
+    if (magicImpl.isPresent()) {
+      return magicImpl.get().instantiate();
+    }
+
+    var start = "new "+getName(l.freshName())+"(){\n";
 //    var captures = l.captures().stream()
 //      .map(c->"public _$capture_"+c.name()+"() { return "+c.name()+"; }")
 //      .collect(Collectors.joining("\n"));
@@ -74,22 +84,6 @@ public class JavaCodegen implements MIRVisitor<String> {
       .map(m->visitMeth(m, l.selfName(), true))
       .collect(Collectors.joining("\n"));
     return start + ms + "}";
-  }
-
-  @Override public String visitRef(MIR.Ref ref) {
-    throw Bug.todo();
-  }
-
-  @Override public String visitNum(MIR.Num n) {
-    return ""+n.n();
-  }
-
-  @Override public String visitUInt(MIR.UInt n) {
-    return  ""+n.n();
-  }
-
-  @Override public String visitStr(MIR.Str str) {
-    return String.format("\"%s\"", str.str().replace("\"", "\\\""));
   }
 
 //  public String visitNewLambda(MIR.NewLambda newL) {
@@ -109,12 +103,18 @@ public class JavaCodegen implements MIRVisitor<String> {
 //  }
 
   private String typePair(MIR.X x) {
-    return x.type()+" "+name(x.name());
+    return getName(x.type())+" "+name(x.name());
   }
   private String name(String x) {
     return x.equals("this") ? "f$thiz" : x+"$";
   }
-  private static String getName(Id.GX<T> gx) { return getBase(gx.name()); }
+  private static List<String> getImplsNames(List<Id.IT<T>> its) {
+    return its.stream()
+      .map(JavaCodegen::getName)
+      .toList();
+  }
+  private static String getName(T t) { return t.match(JavaCodegen::getName, JavaCodegen::getName); }
+  private static String getName(Id.GX<T> gx) { return "Object"; }
   private static String getName(Id.IT<T> it) { return getName(it.name()); }
   private static String getName(Id.DecId d) { return getBase(d.name())+"_"+d.gen(); }
   private static String getName(Id.MethName m) { return getBase(m.name()); }

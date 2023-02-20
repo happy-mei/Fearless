@@ -64,7 +64,7 @@ public interface Base {
         .str: Str,
       }
           
-      // Nums
+      // Ints
       Int:Sealed,MathOps[Int],IntOps[Int],Stringable{
         .uint: UInt,
         .float: Float
@@ -73,7 +73,7 @@ public interface Base {
         .int: Int,
         .float: Float
         }
-      Float:Sealed,MathOps[UInt],IntOps[UInt],Stringable{
+      Float:Sealed,MathOps[Float],Stringable{
         .int: Int,
         .uint: UInt
         }
@@ -163,14 +163,6 @@ public interface Base {
         /(n) -> this/n,
         %(n) -> this%n,
         **(n) -> this**n,
-          
-        // bitwise
-        >>(n) -> this>>n,
-        <<(n) -> this<<n,
-        ^(n) -> this^n,
-        &(n) -> this&n,
-        |(n) -> this|n,
-          
         // Comparisons
         >n -> this>n,
         <n -> this<n,
@@ -189,4 +181,116 @@ public interface Base {
       UpdateRef[X]:{ mut #(x: mdf X): mdf X }
       """;
   }
+
+  String onlyNums = """
+      package base
+      Str:{} Stringable:{ .str: Str } Bool:{} Sealed:{}
+          
+      // Ints
+      Int:Sealed,MathOps[Int],IntOps[Int],Stringable{
+        .uint: UInt,
+        .float: Float
+        }
+      UInt:Sealed,MathOps[UInt],IntOps[UInt],Stringable{
+        .int: Int,
+        .float: Float
+        }
+      Float:Sealed,MathOps[Float],Stringable{
+        .int: Int,
+        .uint: UInt
+        }
+
+      MathOps[T]:{
+        +(n: T): T,
+        -(n: T): T,
+        *(n: T): T,
+        /(n: T): T,
+        %(n: T): T,
+        **(n: T): T, // pow
+          
+        // Comparisons
+        >(n: T): Bool,
+        <(n: T): Bool,
+        >=(n: T): Bool,
+        <=(n: T): Bool,
+        ==(n: T): Bool,
+        }
+      IntOps[T]:{
+        // bitwise
+        >>(n: T): T,
+        <<(n: T): T,
+        ^(n: T): T,
+        &(n: T): T,
+        |(n: T): T,
+        }
+        
+      // Fake concrete type for all numbers. The real implementation is generated at code-gen.
+      _IntInstance:Int{
+        .uint -> this.uint,
+        .float -> this.float,
+        .str -> this.str,
+        +(n) -> this+n,
+        -(n) -> this-n,
+        *(n) -> this*n,
+        /(n) -> this/n,
+        %(n) -> this%n,
+        **(n) -> this**n,
+          
+        // bitwise
+        >>(n) -> this>>n,
+        <<(n) -> this<<n,
+        ^(n) -> this^n,
+        &(n) -> this&n,
+        |(n) -> this|n,
+          
+        // Comparisons
+        >n -> this>n,
+        <n -> this<n,
+        >=n -> this>=n,
+        <=n -> this<=n,
+        ==n -> this==n,
+        }
+      _UIntInstance:UInt{
+        .int -> this.int,
+        .float -> this.float,
+        .str -> this.str,
+        +(n) -> this+n,
+        -(n) -> this-n,
+        *(n) -> this*n,
+        /(n) -> this/n,
+        %(n) -> this%n,
+        **(n) -> this**n,
+          
+        // bitwise
+        >>(n) -> this>>n,
+        <<(n) -> this<<n,
+        ^(n) -> this^n,
+        &(n) -> this&n,
+        |(n) -> this|n,
+          
+        // Comparisons
+        >n -> this>n,
+        <n -> this<n,
+        >=n -> this>=n,
+        <=n -> this<=n,
+        ==n -> this==n,
+        }
+      _FloatInstance:Float{
+        .int -> this.int,
+        .uint -> this.uint,
+        .str -> this.str,
+        +(n) -> this+n,
+        -(n) -> this-n,
+        *(n) -> this*n,
+        /(n) -> this/n,
+        %(n) -> this%n,
+        **(n) -> this**n,
+        // Comparisons
+        >n -> this>n,
+        <n -> this<n,
+        >=n -> this>=n,
+        <=n -> this<=n,
+        ==n -> this==n,
+        }
+  """;
 }

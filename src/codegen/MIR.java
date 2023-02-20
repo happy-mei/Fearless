@@ -22,63 +22,31 @@ public interface MIR {
   <R> R accept(MIRVisitor<R> v);
 
   record Program(Map<String, List<Trait>> pkgs) {}
-  record Trait(String name, List<String> gens, List<String> its, List<Meth> meths) {
+  record Trait(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<Meth> meths) {
     public boolean canSingleton() {
       return false; // TODO
 //      return meths().values().stream().noneMatch(Meth::isAbs);
     }
   }
-  record Meth(String name, Mdf mdf, List<String> gens, List<X> xs, String rt, Optional<MIR> body) {
+  record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<X> xs, T rt, Optional<MIR> body) {
     public boolean isAbs() { return body.isEmpty(); }
   }
-  record X(Mdf mdf, String name, String type) implements MIR  {
+  record X(String name, T type) implements MIR  {
     public <R> R accept(MIRVisitor<R> v) {
       return v.visitX(this);
     }
   }
-  record MCall(MIR recv, String name, List<MIR> args) implements MIR {
+  record MCall(MIR recv, Id.MethName name, List<MIR> args) implements MIR {
     public <R> R accept(MIRVisitor<R> v) {
       return v.visitMCall(this);
     }
   }
-//  record NewLambda(Mdf mdf, String kind, String name, String selfName, List<X> captures) implements MIR {
-//    public <R> R accept(MIRVisitor<R> v) {
-//      return v.visitNewLambda(this);
-//    }
-//  }
-//  record NewDynLambda(Mdf mdf, String name, List<X> captures, List<Meth> meths) implements MIR {
-//    public <R> R accept(MIRVisitor<R> v) {
-//      return v.visitNewDynLambda(this);
-//    }
-//  }
-//  record NewStaticLambda(Mdf mdf, String name) implements MIR {
-//    public <R> R accept(MIRVisitor<R> v) {
-//      return v.visitNewStaticLambda(this);
-//    }
-//  }
-  record Lambda(Mdf mdf, String freshName, String selfName, List<String> its, List<X> captures, List<Meth> meths) implements MIR {
+  record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, List<X> captures, List<Meth> meths) implements MIR {
     public <R> R accept(MIRVisitor<R> v) {
       return v.visitLambda(this);
     }
-  }
-  record Ref(T type, MIR value) implements MIR {
-    public <R> R accept(MIRVisitor<R> v) {
-      return v.visitRef(this);
-    }
-  }
-  record Num(Mdf mdf, long n) implements MIR {
-    @Override public <R> R accept(MIRVisitor<R> v) {
-      return v.visitNum(this);
-    }
-  }
-  record UInt(Mdf mdf, long n) implements MIR {
-    @Override public <R> R accept(MIRVisitor<R> v) {
-      return v.visitUInt(this);
-    }
-  }
-  record Str(Mdf mdf, String str) implements MIR {
-    @Override public <R> R accept(MIRVisitor<R> v) {
-      return v.visitStr(this);
+    public Lambda withITs(List<Id.IT<T>> its) {
+      return new Lambda(mdf, freshName, selfName, its, captures, meths);
     }
   }
 //  record Share(MIR e) implements MIR {
