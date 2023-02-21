@@ -53,7 +53,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       .collect(Collectors.joining(","));
     var visibility = concrete ? "public " : "default ";
     if (meth.isAbs()) { visibility = ""; }
-    var start = visibility+meth.rt()+" "+name(getName(meth.name()))+"("+args+")";
+    var start = visibility+getName(meth.rt())+" "+name(getName(meth.name()))+"("+args+")";
     if (meth.body().isEmpty()) { return start + ";"; }
     return start + "{\n"+selfVar+"return (("+getName(meth.rt())+")"+meth.body().get().accept(this)+");\n}";
   }

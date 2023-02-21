@@ -73,46 +73,117 @@ public class TestMIR {
   "pkgs": {
     "test": [
       {
-        "name": "test.Bar_0",
+        "name": {
+          "name": "test.Bar",
+          "gen": 0
+        },
         "gens": [],
         "its": [
-          "test.Bar_0",
-          "test.Baz_1"
+          {
+            "name": {
+              "name": "test.Baz",
+              "gen": 1
+            },
+            "ts": [
+              {
+                "mdf": "imm",
+                "rt": {
+                  "name": {
+                    "name": "test.Foo",
+                    "gen": 0
+                  },
+                  "ts": []
+                },
+                "it": true
+              }
+            ]
+          }
         ],
         "meths": [
           {
-            "name": "loop",
+            "name": {
+              "name": ".loop",
+              "num": 0
+            },
             "mdf": "imm",
             "gens": [],
             "xs": [],
-            "rt": "test.Baz_1<test.Bar_0>",
+            "rt": {
+              "mdf": "imm",
+              "rt": {
+                "name": {
+                  "name": "test.Baz",
+                  "gen": 1
+                },
+                "ts": [
+                  {
+                    "mdf": "imm",
+                    "rt": {
+                      "name": {
+                        "name": "test.Bar",
+                        "gen": 0
+                      },
+                      "ts": []
+                    },
+                    "it": true
+                  }
+                ]
+              },
+              "it": true
+            },
             "body": {
               "op": "MIR$MCall",
               "recv": {
                 "op": "MIR$X",
-                "mdf": "imm",
                 "name": "this",
-                "type": "test.Bar_0"
+                "type": {
+                  "mdf": "imm",
+                  "rt": {
+                    "name": {
+                      "name": "test.Bar",
+                      "gen": 0
+                    },
+                    "ts": []
+                  },
+                  "it": true
+                }
               },
-              "name": "loop",
+              "name": {
+                "name": ".loop",
+                "num": 0
+              },
               "args": []
             },
             "abs": false
           },
           {
-            "name": "$35",
+            "name": {
+              "name": "#",
+              "num": 0
+            },
             "mdf": "imm",
             "gens": [],
             "xs": [],
-            "rt": "test.Foo_0",
+            "rt": {
+              "mdf": "imm",
+              "rt": {
+                "name": {
+                  "name": "test.Foo",
+                  "gen": 0
+                },
+                "ts": []
+              },
+              "it": true
+            },
             "body": {
               "op": "MIR$Lambda",
               "mdf": "imm",
-              "freshName": "test.Fear7$36_0",
+              "freshName": {
+                "name": "test.Foo",
+                "gen": 0
+              },
               "selfName": "fear0$",
-              "its": [
-                "test.Foo_0"
-              ],
+              "its": [],
               "captures": [],
               "meths": []
             },
@@ -121,89 +192,156 @@ public class TestMIR {
         ]
       },
       {
-        "name": "test.Foo_0",
+        "name": {
+          "name": "test.Foo",
+          "gen": 0
+        },
         "gens": [],
-        "its": [
-          "test.Foo_0"
-        ],
+        "its": [],
         "meths": []
       },
       {
-        "name": "test.Ok_0",
+        "name": {
+          "name": "test.Ok",
+          "gen": 0
+        },
         "gens": [],
-        "its": [
-          "test.Ok_0"
-        ],
+        "its": [],
         "meths": [
           {
-            "name": "$35",
+            "name": {
+              "name": "#",
+              "num": 0
+            },
             "mdf": "imm",
             "gens": [],
             "xs": [],
-            "rt": "test.Ok_0",
+            "rt": {
+              "mdf": "imm",
+              "rt": {
+                "name": {
+                  "name": "test.Ok",
+                  "gen": 0
+                },
+                "ts": []
+              },
+              "it": true
+            },
             "body": null,
             "abs": true
           }
         ]
       },
       {
-        "name": "test.Baz_1",
+        "name": {
+          "name": "test.Baz",
+          "gen": 1
+        },
         "gens": [
-          "X"
+          {
+            "name": "X"
+          }
         ],
-        "its": [
-          "test.Baz_1"
-        ],
+        "its": [],
         "meths": [
           {
-            "name": "$35",
+            "name": {
+              "name": "#",
+              "num": 0
+            },
             "mdf": "imm",
             "gens": [],
             "xs": [],
-            "rt": "X",
+            "rt": {
+              "mdf": "imm",
+              "rt": {
+                "name": "X"
+              },
+              "it": false
+            },
             "body": null,
             "abs": true
           }
         ]
       },
       {
-        "name": "test.Yo_0",
+        "name": {
+          "name": "test.Yo",
+          "gen": 0
+        },
         "gens": [],
-        "its": [
-          "test.Yo_0"
-        ],
+        "its": [],
         "meths": [
           {
-            "name": "lm",
+            "name": {
+              "name": ".lm",
+              "num": 0
+            },
             "mdf": "imm",
             "gens": [],
             "xs": [],
-            "rt": "test.Ok_0",
+            "rt": {
+              "mdf": "imm",
+              "rt": {
+                "name": {
+                  "name": "test.Ok",
+                  "gen": 0
+                },
+                "ts": []
+              },
+              "it": true
+            },
             "body": {
               "op": "MIR$Lambda",
               "mdf": "imm",
-              "freshName": "test.Fear8$36_0",
+              "freshName": {
+                "name": "test.Ok",
+                "gen": 0
+              },
               "selfName": "ok",
-              "its": [
-                "test.Ok_0"
-              ],
+              "its": [],
               "captures": [],
               "meths": [
                 {
-                  "name": "$35",
+                  "name": {
+                    "name": "#",
+                    "num": 0
+                  },
                   "mdf": "imm",
                   "gens": [],
                   "xs": [],
-                  "rt": "test.Ok_0",
+                  "rt": {
+                    "mdf": "imm",
+                    "rt": {
+                      "name": {
+                        "name": "test.Ok",
+                        "gen": 0
+                      },
+                      "ts": []
+                    },
+                    "it": true
+                  },
                   "body": {
                     "op": "MIR$MCall",
                     "recv": {
                       "op": "MIR$X",
-                      "mdf": "imm",
                       "name": "ok",
-                      "type": "Fear8$36_0"
+                      "type": {
+                        "mdf": "imm",
+                        "rt": {
+                          "name": {
+                            "name": "test.Ok",
+                            "gen": 0
+                          },
+                          "ts": []
+                        },
+                        "it": true
+                      }
                     },
-                    "name": "$35",
+                    "name": {
+                      "name": "#",
+                      "num": 0
+                    },
                     "args": []
                   },
                   "abs": false
@@ -213,22 +351,6 @@ public class TestMIR {
             "abs": false
           }
         ]
-      },
-      {
-        "name": "test.Fear7$36_0",
-        "gens": [],
-        "its": [
-          "test.Foo_0"
-        ],
-        "meths": []
-      },
-      {
-        "name": "test.Fear8$36_0",
-        "gens": [],
-        "its": [
-          "test.Ok_0"
-        ],
-        "meths": []
       }
     ]
   }
