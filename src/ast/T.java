@@ -11,6 +11,7 @@ import utils.Bug;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
   public <R> R resMatch(Function<T,R> ok, Function<CompileError,R> err){ return ok.apply(this); }
@@ -29,6 +30,9 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
         var ts = it.ts().stream().map(T::toAstFullT).toList();
         return new astFull.T(mdf(), new Id.IT<>(it.name(), ts));
       });
+  }
+  public Stream<Id.GX<T>> deepGXs() {
+    return rt().match(Stream::of, it->it.ts().stream().flatMap(T::deepGXs));
   }
 
   public T withMdf(Mdf mdf){ return new T(mdf,rt); }

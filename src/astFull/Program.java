@@ -117,7 +117,7 @@ public class Program implements program.Program{
     List<T.Dec> decs;
     Program p;
     InferSignatures(Program p){ this.p=p; this.decs = orderDecs(p.ds().values()); }
-    private List<T.Dec> orderDecs(Collection<T.Dec>ds){
+    private List<T.Dec> orderDecs(Collection<T.Dec> ds){
       // Do a topological sort on the dep graph (should be a DAG) so we infer parents before children.
       // Just using Kahn's algorithm here
       var sorted = new ArrayList<T.Dec>();

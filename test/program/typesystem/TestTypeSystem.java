@@ -1,7 +1,6 @@
 package program.typesystem;
 
 import failure.CompileError;
-import failure.Fail;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -269,6 +268,27 @@ public class TestTypeSystem {
       .check: Int -> this.nm(5)
       }
     """, Base.onlyNums);}
+
+  @Test void simpleThis() { ok("""
+    package test
+    A:{
+      .a: C -> B{ this.c }.c,
+      .c: C -> {}
+      }
+    B:{ .c: C }
+    C:{ }
+    """); }
+
+  @Test void lambdaCapturesThis() { ok("""
+    package test
+    Let:{ #[V,R](l: mut Let[V, R]): R -> l.in(l.var) }
+    Let[V,R]:{ mut .var: V, mut .in(v: V): R }
+    Void:{}
+    Ref[X]:{
+        mut .swap(x: X): X,
+        mut :=(x: X): Void -> Let#mut Let[X,Void]{ .var -> this.swap(x), .in(_) -> Void },
+      }
+    """); }
 
   // TODO: write a test that shows that the error message for this code makes sense:
   /*

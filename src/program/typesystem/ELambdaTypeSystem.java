@@ -11,7 +11,9 @@ import id.Mdf;
 import program.CM;
 import program.Program;
 import utils.Streams;
+import visitors.CollectorVisitor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -23,9 +25,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
 //    var parentGxs = p().gxsOf(parent).stream().toList(); // TODO: why parentGXs here?
 //    Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), parentGxs.size());
 //    Dec d=new Dec(fresh,parentGxs,b,b.pos());
+    var gxs = b.its().stream().flatMap(it->it.ts().stream().flatMap(T::deepGXs)).distinct().toList();
     Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
     Dec d=new Dec(fresh,List.of(),b,b.pos());
-    System.out.println(d);
     Program p0=p().withDec(d);
     var filtered=p0.meths(d.toIT(), depth()+1).stream()
       .filter(cmi->filterByMdf(mdf,cmi))
@@ -39,7 +41,6 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var sadlyExtra=b.meths().stream()
       .filter(m->filtered.stream().anyMatch(cm->cm.name().equals(m.name())))
       .toList();
-    if (!sadlyExtra.isEmpty()) System.out.println(sadlyExtra);
 //    assert sadlyExtra.isEmpty();//TODO: can we break this assertion? Yes. If we override a method.
       // TODO: figure out a better error for the case where a non-overriden method is added (or can we just allow it?)
     return withProgram(p0).bothT(d);

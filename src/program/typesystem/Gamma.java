@@ -12,7 +12,9 @@ public interface Gamma{
   default Optional<T> getO(ast.E.X x){ return getO(x.name()); }
   Optional<T> getO(String s);
   static Gamma empty(){ return x->Optional.empty(); }
-  default Gamma add(String s, T t){ return x->x.equals(s)?Optional.of(t):this.getO(x); }
+  default Gamma add(String s, T t) {
+    return x->x.equals(s)?Optional.of(t):this.getO(x);
+  }
   default Gamma capture(Program p, String x, T t, Mdf mMdf) {
     Gamma g = xi->this.getO(xi).flatMap(ti->xT(p,t,ti,mMdf));
     return g.add(x,t.withMdf(mMdf.adapt(t)));
@@ -25,6 +27,6 @@ public interface Gamma{
     if (self.isMut() && captured.isHyg()) { return Optional.empty(); }
     if (self.isMut() && captured.isIso() && !mMdf.is(Mdf.read, Mdf.imm)) { return Optional.empty(); }
     if (self.isImm() && captured.isLikeMut()) { return Optional.empty(); }
-    return captured.restrict(mMdf).map(mdfi->mdfi.adapt(self)).map(t::withMdf);
+    return captured.restrict(mMdf).map(mdfi->mdfi.adapt(self)).map(ti::withMdf);
   }
 }
