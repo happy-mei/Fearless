@@ -129,6 +129,10 @@ public class Fail{
       .collect(Collectors.joining("\n"));
     return of("The following traits are implemented more than once:\n"+dups+"\nA trait may only be listed once regardless of type parameters.");
   }
+
+  public static CompileError badCapture(String name) {
+    return of("The identifier '" + name + "' cannot be captured by this lambda.");
+  }
 }
 
 //only add to the bottom
@@ -161,6 +165,7 @@ enum ErrorCode {
   recMdfInNonHyg,
   recMdfInImpls,
   undefinedName,
-  noDupImpls;
+  noDupImpls,
+  badCapture;
   int code() {return this.ordinal() + 1;}
 }

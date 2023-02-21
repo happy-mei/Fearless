@@ -25,6 +25,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
 //    var parentGxs = p().gxsOf(parent).stream().toList(); // TODO: why parentGXs here?
 //    Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), parentGxs.size());
 //    Dec d=new Dec(fresh,parentGxs,b,b.pos());
+    System.out.println(b);
     var gxs = b.its().stream().flatMap(it->it.ts().stream().flatMap(T::deepGXs)).distinct().toList();
     Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
     Dec d=new Dec(fresh,List.of(),b,b.pos());
@@ -58,14 +59,14 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .orElseGet(()->new T(b.mdf(), b.its().get(0)));
     T selfT = new T(b.mdf(),d.toIT());
     var selfName=b.selfName();
-    var mRes=b.meths().stream().flatMap(mi->mOk(selfName,selfT,mi).stream()).toList();
+    var mRes=b.meths().stream().flatMap(mi->mOk(selfName, selfT, mi).stream()).toList();
     if(mRes.isEmpty()){ return retT; }
     return mRes.get(0);
   }
-  default Optional<CompileError> mOk(String x, T t, E.Meth m){
+  default Optional<CompileError> mOk(String selfName, T selfT, E.Meth m){
     if(m.isAbs()){ return Optional.empty(); }
     var mMdf=m.sig().mdf();
-    var g0  = g().capture(p(),x,t,mMdf);
+    var g0  = g().capture(p(), selfName, selfT.withMdf(mMdf), mMdf);
     var gg  = Streams.zip(m.xs(),m.sig().ts()).fold(Gamma::add, g0);
     var e   = m.body().orElseThrow();
     Res res = e.accept(ETypeSystem.of(p(),gg,Optional.of(m.sig().ret()),depth()+1));

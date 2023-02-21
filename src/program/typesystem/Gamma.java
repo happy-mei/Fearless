@@ -1,14 +1,15 @@
 package program.typesystem;
 
+import failure.Fail;
 import program.Program;
 import ast.T;
 import id.Mdf;
 
 import java.util.Optional;
 
-public interface Gamma{
-  default T get(ast.E.X x){ return getO(x).orElseThrow(); }
-  default T get(String s){ return getO(s).orElseThrow(); }
+public interface Gamma {
+  default T get(ast.E.X x){ return getO(x).orElseThrow(()->Fail.badCapture(x.name()).pos(x.pos())); }
+  default T get(String s){ return getO(s).orElseThrow(()->Fail.badCapture(s)); }
   default Optional<T> getO(ast.E.X x){ return getO(x.name()); }
   Optional<T> getO(String s);
   static Gamma empty(){ return x->Optional.empty(); }
@@ -27,6 +28,6 @@ public interface Gamma{
     if (self.isMut() && captured.isHyg()) { return Optional.empty(); }
     if (self.isMut() && captured.isIso() && !mMdf.is(Mdf.read, Mdf.imm)) { return Optional.empty(); }
     if (self.isImm() && captured.isLikeMut()) { return Optional.empty(); }
-    return captured.restrict(mMdf).map(mdfi->mdfi.adapt(self)).map(ti::withMdf);
+    return self.restrict(mMdf).map(mdfi->mdfi.adapt(self)).map(ti::withMdf);
   }
 }
