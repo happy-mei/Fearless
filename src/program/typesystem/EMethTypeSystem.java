@@ -45,8 +45,6 @@ interface EMethTypeSystem extends ETypeSystem {
     return p().isSubType(expectedT().get().mdf(),tst.t().mdf());
   }
   default boolean okAll(List<E>es,List<T> ts) {
-    System.out.println("--------"+es+"------");
-    System.out.println("--------"+ts+"------");
     return Streams.zip(es,ts).allMatch(this::ok);
   }
   default boolean ok(E e,T t) {
@@ -55,7 +53,6 @@ interface EMethTypeSystem extends ETypeSystem {
     if (res.t().isEmpty()){
       return false;
     }
-    System.out.println(res.tOrThrow()+" is "+t+" = "+p().tryIsSubType(res.tOrThrow(), t));
     return p().tryIsSubType(res.tOrThrow(), t);
   }
 

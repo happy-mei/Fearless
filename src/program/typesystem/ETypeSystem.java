@@ -15,7 +15,9 @@ public interface ETypeSystem extends Visitor<Res> {
   Optional<T> expectedT();
   int depth();
   Res bothT(T.Dec d);
-  default Res visitX(E.X e){ return g().get(e); }
+  default Res visitX(E.X e){
+    return g().get(e);
+  }
 
   static ETypeSystem of(Program p, Gamma g, Optional<T> expectedT,int depth){
     record Ts(Program p, Gamma g,Optional<T> expectedT,int depth) implements EMethTypeSystem, ELambdaTypeSystem{}

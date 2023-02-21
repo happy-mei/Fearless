@@ -130,8 +130,13 @@ public class Fail{
     return of("The following traits are implemented more than once:\n"+dups+"\nA trait may only be listed once regardless of type parameters.");
   }
 
-  public static CompileError badCapture(String name) {
-    return of("The identifier '" + name + "' cannot be captured by this lambda.");
+  public static CompileError badCapture(String x, ast.T xT, ast.T lambdaT, Mdf methMdf) {
+    return of("'"+xT.mdf()+" "+x+"' cannot be captured by "+aVsAn(methMdf)+" method in "+aVsAn(lambdaT.mdf())+" lambda.");
+  }
+
+  private static String aVsAn(Mdf mdf) {
+    if (mdf.isImm()) { return "an "+mdf; }
+    return "a "+mdf;
   }
 }
 

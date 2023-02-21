@@ -59,6 +59,8 @@ public interface Program {
       case iso-> true;
 //      case recMdf, mdf -> throw Bug.unreachable();
       case recMdf, mdf -> {
+        // TODO: we need to narrow isSubType(mdf, recMdf) to isSubType(mdf, mdf) in the Meth-OK case
+        // I think allowing true here is unsound, so do this asap
         System.out.println("weird case of recMdf/mdf subtype comparison: "+m1+" "+m2);
         yield true;
       }

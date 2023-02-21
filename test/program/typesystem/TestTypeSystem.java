@@ -218,7 +218,11 @@ public class TestTypeSystem {
     }
     """, Base.immBaseLib); }
 
-  @Test void ref1() { ok("""
+  @Test void ref1() { fail("""
+    In position [###]/Dummy0.fear:10:42
+    [E30 badCapture]
+    'mut this' cannot be captured by an imm method in an imm lambda.
+    """, """
     package base
     NoMutHyg[X]:{}
     Sealed:{} Void:{}

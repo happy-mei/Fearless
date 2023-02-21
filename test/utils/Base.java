@@ -27,8 +27,8 @@ public interface Base {
       Main[R]:{ #(s: lent System): mdf R }
       System:{} // Root capability
       
-      Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-      Let[V,R]:{ .var:V, .in(v:V):R }
+      Let:{ #[V,R](l:mut Let[mdf V, mdf R]): mdf R -> l.in(l.var) }
+      Let[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
           
       Bool:Sealed{
         .and(b: Bool): Bool,
@@ -175,8 +175,8 @@ public interface Base {
       Ref[X]:NoMutHyg[X],Sealed{
         read * : recMdf X,
         mut .swap(x: mdf X): mdf X,
-        mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-        mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+        mut :=(x: mdf X): Void -> Let#mut Let[mdf X, Void]{ .var -> this.swap(x), .in(_) -> Void },
+        mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
       }
       UpdateRef[X]:{ mut #(x: mdf X): mdf X }
       """;

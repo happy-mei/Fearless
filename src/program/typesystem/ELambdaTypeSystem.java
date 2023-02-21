@@ -25,8 +25,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
 //    var parentGxs = p().gxsOf(parent).stream().toList(); // TODO: why parentGXs here?
 //    Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), parentGxs.size());
 //    Dec d=new Dec(fresh,parentGxs,b,b.pos());
-    System.out.println(b);
-    var gxs = b.its().stream().flatMap(it->it.ts().stream().flatMap(T::deepGXs)).distinct().toList();
+//    var gxs = b.its().stream().flatMap(it->it.ts().stream().flatMap(T::deepGXs)).distinct().toList();
     Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
     Dec d=new Dec(fresh,List.of(),b,b.pos());
     Program p0=p().withDec(d);
