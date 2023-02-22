@@ -69,7 +69,8 @@ public class JavaCodegen implements MIRVisitor<String> {
   public String visitMCall(MIR.MCall mCall) {
     var magicImpl = magic.get(mCall.recv());
     if (magicImpl.isPresent()) {
-      return magicImpl.get().call(mCall.name(), mCall.args(), Map.of());
+      var impl = magicImpl.get().call(mCall.name(), mCall.args(), Map.of());
+      if (impl.isPresent()) { return impl.get(); }
     }
 
     var start = mCall.recv().accept(this)+"."+name(getName(mCall.name()))+"(";
@@ -80,8 +81,11 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitLambda(MIR.Lambda l) {
+    return visitLambda(l, true);
+  }
+  public String visitLambda(MIR.Lambda l, boolean checkMagic) {
     var magicImpl = magic.get(l);
-    if (magicImpl.isPresent()) {
+    if (checkMagic && magicImpl.isPresent()) {
       return magicImpl.get().instantiate();
     }
 

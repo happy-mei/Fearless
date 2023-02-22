@@ -17,7 +17,7 @@ public class Magic {
   public static final Id.DecId Float = new Id.DecId("base.Float", 0);
   public static final Id.DecId Str = new Id.DecId("base.Str", 0);
   public static final Id.DecId RefK = new Id.DecId("base.Ref", 0);
-  public static final Id.DecId Ref = new Id.DecId("base.Ref", 1);
+  public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);
 
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
     var isAlphaNumeric  = !name.isEmpty() && (Character.isDigit(name.charAt(0)) || name.startsWith("\""));

@@ -435,6 +435,41 @@ public class TestSigInference {
     B:A{ .m2(k)->this.m1(k) }
     Void:{}
     """); }
+
+  @Test void bools() { ok("""
+    {base.ThenElse/1=Dec[name=base.ThenElse/1,gxs=[R],lambda=[-infer-][]{'this
+      .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-],
+      .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}],
+    base.Sealed/0=Dec[name=base.Sealed/0,gxs=[],lambda=[-infer-][]{'this}],
+    base.Bool/0=Dec[name=base.Bool/0,gxs=[],lambda=[-infer-][base.Sealed[]]{'this
+      .and/1([b]):Sig[mdf=imm,gens=[],ts=[immbase.Bool[]],ret=immbase.Bool[]]->[-],
+      .or/1([b]):Sig[mdf=imm,gens=[],ts=[immbase.Bool[]],ret=immbase.Bool[]]->[-],
+      .not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Bool[]]->[-],
+      ?/1([f]):Sig[mdf=imm,gens=[R],ts=[mutbase.ThenElse[mdf R]],ret=mdfR]->[-]}],
+    base.Str/0=Dec[name=base.Str/0,gxs=[],lambda=[-infer-][]{'this}],
+    base.True/0=Dec[name=base.True/0,gxs=[],lambda=[-infer-][base.Bool[]]{'this
+      .and/1([b]):Sig[mdf=imm,gens=[],ts=[immbase.Bool[]],ret=immbase.Bool[]]->b:infer,
+      .or/1([b]):Sig[mdf=imm,gens=[],ts=[immbase.Bool[]],ret=immbase.Bool[]]->this:infer,
+      .not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Bool[]]->[-base.False[]-][base.False[]]{},
+      ?/1([f]):Sig[mdf=imm,gens=[X0/0$],ts=[mutbase.ThenElse[mdf X0/0$]],ret=mdfX0/0$]->f:infer.then/0[-]([]):infer}],
+    base.False/0=Dec[name=base.False/0,gxs=[],lambda=[-infer-][base.Bool[]]{'this
+      .and/1([b]):Sig[mdf=imm,gens=[],ts=[immbase.Bool[]],ret=immbase.Bool[]]->this:infer,
+      .or/1([b]):Sig[mdf=imm,gens=[],ts=[immbase.Bool[]],ret=immbase.Bool[]]->b:infer,
+      .not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Bool[]]->[-base.True[]-][base.True[]]{},
+      ?/1([f]):Sig[mdf=imm,gens=[X0/0$],ts=[mutbase.ThenElse[mdf X0/0$]],ret=mdfX0/0$]->f:infer.else/0[-]([]):infer}]}
+    """, """
+    package base
+    Sealed:{} Str:{}
+    Bool:Sealed{
+      .and(b: Bool): Bool,
+      .or(b: Bool): Bool,
+      .not: Bool,
+      ?[R](f: mut ThenElse[mdf R]): mdf R, // ?  because `bool ? { .then->aa, .else->bb }` is kinda like a ternary
+      }
+    True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
+    False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
+    ThenElse[R]:{ mut .then: mdf R, mut .else: mdf R, }
+    """); }
 }
 
 

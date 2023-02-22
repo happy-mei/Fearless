@@ -44,6 +44,7 @@ public interface MagicImpls<R> extends MIRVisitor<Optional<MIR.Lambda>> {
 //      if (isMagic(Magic.Float, l)) { return Optional.of(float_(l)); }
 //      if (isMagic(Magic.Str, l)) { return Optional.of(str(l)); }
 //      if (isMagic(Magic.RefK, l)) { return Optional.of(refK(l)); }
+      if (isMagic(Magic.Assert, l)) { return Optional.of(assert_(l)); }
       return Optional.empty();
     });
   }
@@ -63,5 +64,6 @@ public interface MagicImpls<R> extends MIRVisitor<Optional<MIR.Lambda>> {
   MagicTrait<R> float_(MIR.Lambda e);
   MagicTrait<R> str(MIR.Lambda e);
   MagicTrait<R> refK(MIR.Lambda e);
+  MagicTrait<R> assert_(MIR.Lambda e);
   ast.Program p();
 }

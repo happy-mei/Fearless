@@ -691,6 +691,50 @@ public class TestInferBodies {
       }
     """, Base.immBaseLib);}
 
+  @Test void assertions() { ok("""
+    {test.Assert/0=Dec[name=test.Assert/0,gxs=[],lambda=[-mdf-][test.Assert[]]{'this
+      #/2([assertion,cont]):Sig[mdf=imm,gens=[R],ts=[immbase.Bool[],muttest.AssertCont[mdfR]],ret=mdfR]->
+        assertion?/1[mdfR]([[-mut-][base.ThenElse[mdf R]]{'fear0$
+          .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdf R]->cont#/0[]([]),
+          .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->this._fail/0[mdfR]([])}]),
+      #/3([assertion,msg,cont]):Sig[mdf=imm,gens=[R],ts=[immbase.Bool[],immbase.Str[],muttest.AssertCont[mdfR]],ret=mdfR]->
+        assertion?/1[mdfR]([[-mut-][base.ThenElse[mdf R]]{'fear1$
+          .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdf R]->cont#/0[]([]),
+          .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->this._fail/1[mdfR]([msg])}]),
+      ._fail/0([]):Sig[mdf=imm,gens=[R],ts=[],ret=mdfR]->this._fail/0[mdfR]([]),
+      ._fail/1([msg]):Sig[mdf=imm,gens=[R],ts=[immbase.Str[]],ret=mdfR]->this._fail/1[mdfR]([msg])}],
+    test.AssertCont/1=Dec[name=test.AssertCont/1,gxs=[R],lambda=[-mdf-][test.AssertCont[mdfR]]{'this
+      #/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}]}
+    """, """
+    package test
+    alias base.Bool as Bool, alias base.Str as Str,
+    Assert:{
+      #[R](assertion: Bool, cont: mut AssertCont[mdf R]): mdf R -> assertion ? {
+        .then -> cont#,
+        .else -> this._fail[mdf R]()
+        },
+      #[R](assertion: Bool, msg: Str, cont: mut AssertCont[mdf R]): mdf R -> assertion ? {
+        .then -> cont#,
+        .else -> this._fail[mdf R](msg)
+        },
+      ._fail[R]: mdf R -> this._fail,
+      ._fail[R](msg: Str): mdf R -> this._fail(msg),
+      }
+    AssertCont[R]:{ mut #: mdf R }
+    """, """
+    package base
+    Sealed:{} Str:{}
+    Bool:Sealed{
+      .and(b: Bool): Bool,
+      .or(b: Bool): Bool,
+      .not: Bool,
+      ?[R](f: mut ThenElse[mdf R]): mdf R, // ?  because `bool ? { .then->aa, .else->bb }` is kinda like a ternary
+      }
+    True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
+    False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
+    ThenElse[R]:{ mut .then: mdf R, mut .else: mdf R, }
+    """); }
+
   // TODO: this should eventually fail with an "inference failed" message when I add that error
   @Disabled
   @Test void callingEphemeralMethod() { fail("""

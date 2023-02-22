@@ -27,7 +27,7 @@ public record Env(List<String> xs,List<T> ts, List<Id.GX<T>> gxs, T decT) {
       Push.of(xs,m.xs()),
       Push.of(ts,m.sig().map(E.Sig::ts)
         .orElseGet(()->Collections.nCopies(m.xs().size(), T.infer))),
-      m.sig().map(gx->Push.of(gxs,gx.gens())).orElse(List.of()),
+      m.sig().map(sig->Push.of(gxs,sig.gens())).orElse(gxs),
       decT.withMdf(m.sig().map(E.Sig::mdf).orElse(decT.mdf()))
     );
   }

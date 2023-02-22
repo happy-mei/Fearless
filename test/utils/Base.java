@@ -34,11 +34,25 @@ public interface Base {
         .and(b: Bool): Bool,
         .or(b: Bool): Bool,
         .not: Bool,
-        ?[R](f: mut ThenElse[R]): R, // ?  because `bool ? { .then->aa, .else->bb }` is kinda like a ternary
+        ?[R](f: mut ThenElse[mdf R]): mdf R, // ?  because `bool ? { .then->aa, .else->bb }` is kinda like a ternary
         }
       True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
       False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
-      ThenElse[R]:{ mut .then: R, mut .else: R, }
+      ThenElse[R]:{ mut .then: mdf R, mut .else: mdf R, }
+      
+      Assert:Sealed{
+        #[R](assertion: Bool, cont: mut AssertCont[mdf R]): mdf R -> assertion ? {
+          .then -> cont#,
+          .else -> this._fail[mdf R]()
+          },
+        #[R](assertion: Bool, msg: Str, cont: mut AssertCont[mdf R]): mdf R -> assertion ? {
+          .then -> cont#,
+          .else -> this._fail[mdf R](msg)
+          },
+        ._fail[R]: mdf R -> this._fail,
+        ._fail[R](msg: Str): mdf R -> this._fail(msg),
+        }
+      AssertCont[R]:{ mut #: mdf R }
           
       Opt[T]:NoMutHyg[T]{
         .match[R](m: OptMatch[T, R]): R -> m.none,
