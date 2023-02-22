@@ -18,8 +18,11 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
       @Override public MIR.Lambda instance() { return e; }
+      @Override public String type() {
+        return "Long";
+      }
       @Override public String instantiate() {
-        return name().name().name();
+        return name().name().name()+"L";
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         return Optional.of(_call(m, args, gamma));
@@ -37,7 +40,10 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.name().equals("*")) { return instantiate()+"*"+args.get(0).accept(gen); }
         if (m.name().equals("/")) { return instantiate()+"/"+args.get(0).accept(gen); }
         if (m.name().equals("%")) { return instantiate()+"%"+args.get(0).accept(gen); }
-        if (m.name().equals("**")) { return "Math.pow("+instantiate()+","+args.get(0).accept(gen)+")"; }
+        if (m.name().equals("**")) {
+          // TODO: implement this iteratively in fearless
+          throw Bug.todo();
+        }
         if (m.name().equals(">>")) { return instantiate()+">>"+args.get(0).accept(gen); }
         if (m.name().equals("<<")) { return instantiate()+"<<"+args.get(0).accept(gen); }
         if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
@@ -54,14 +60,78 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
   }
 
   @Override public MagicTrait<String> uint(MIR.Lambda e) {
-    throw Bug.todo();
+    var name = new Id.IT<T>(e.freshName().name(), List.of());
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return name; }
+      @Override public MIR.Lambda instance() { return e; }
+      @Override public String type() {
+        return "Long";
+      }
+      @Override public String instantiate() {
+        if (Character.isDigit(name.name().name().charAt(0))) {
+          var n = name().name().name();
+          long val = Long.parseUnsignedLong(n.substring(0, n.length() - 1), 10);
+          return val+"L";
+        }
+        // TODO: accept the MIR e here too and use that (i.e. the X)
+        throw Bug.todo();
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        return Optional.of(_call(m, args, gamma));
+      }
+      private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        // _NumInstance
+        if (m.name().equals(".int")) {
+          return uint(e.withITs(List.of(new Id.IT<>(name().name().name(), List.of())))).instantiate();
+        }
+        if (m.name().equals(".str")) {
+          return str(e.withITs(List.of(new Id.IT<>("\""+name().name().name()+"\"", List.of())))).instantiate();
+        }
+        if (m.name().equals("+")) { return instantiate()+"+"+args.get(0).accept(gen); }
+        if (m.name().equals("-")) { return instantiate()+"-"+args.get(0).accept(gen); }
+        if (m.name().equals("*")) { return instantiate()+"*"+args.get(0).accept(gen); }
+        if (m.name().equals("/")) { return "Long.divideUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
+        if (m.name().equals("%")) { return "Long.remainderUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
+        if (m.name().equals("**")) {
+          // TODO: implement this iteratively in fearless
+          throw Bug.todo();
+        }
+        if (m.name().equals(">>")) { return instantiate()+">>"+args.get(0).accept(gen); }
+        if (m.name().equals("<<")) { return instantiate()+"<<"+args.get(0).accept(gen); }
+        if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
+        if (m.name().equals("&")) { return instantiate()+"&"+args.get(0).accept(gen); }
+        if (m.name().equals("|")) { return instantiate()+"|"+args.get(0).accept(gen); }
+        if (m.name().equals(">")) { return "Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>0?new base.True_0(){}:new base.False_0(){}"; }
+        if (m.name().equals("<")) { return "Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<0?new base.True_0(){}:new base.False_0(){}"; }
+        if (m.name().equals(">=")) { return "Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>=0?new base.True_0(){}:new base.False_0(){}"; }
+        if (m.name().equals("<=")) { return "Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<=0?new base.True_0(){}:new base.False_0(){}"; }
+        if (m.name().equals("==")) { return "Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")==0?new base.True_0(){}:new base.False_0(){}"; }
+        throw Bug.unreachable();
+      }
+    };
   }
   @Override public MagicTrait<String> float_(MIR.Lambda e) {
     throw Bug.todo();
   }
 
   @Override public MagicTrait<String> str(MIR.Lambda e) {
-    throw Bug.todo();
+    var name = new Id.IT<T>(e.freshName().name(), List.of());
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return name; }
+      @Override public MIR.Lambda instance() { return e; }
+      @Override public String type() {
+        return "String";
+      }
+      @Override public String instantiate() {
+        return name.name().name();
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        if (m.equals(new Id.MethName(".len", 0))) {
+          return Optional.of(""+(name.name().name().length() - 2));
+        }
+        throw Bug.unreachable();
+      }
+    };
   }
   @Override public MagicTrait<String> refK(MIR.Lambda e) {
     throw Bug.todo();
@@ -70,6 +140,10 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
       @Override public MIR.Lambda instance() { return e; }
+
+      @Override public String type() {
+        return "Assert_0";
+      }
       @Override public String instantiate() {
         return gen.visitLambda(e, false);
       }

@@ -4,11 +4,13 @@ import ast.Program;
 import ast.T;
 import codegen.MIR;
 import id.Id;
+import magic.MagicTrait;
 import utils.Bug;
 import visitors.MIRVisitor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class JavaCodegen implements MIRVisitor<String> {
@@ -34,6 +36,10 @@ public class JavaCodegen implements MIRVisitor<String> {
       .collect(Collectors.joining("\n")) + "\n}";
   }
   public String visitTrait(String pkg, MIR.Trait trait) {
+    if (pkg.equals("base") && trait.name().name().endsWith("Instance")) {
+      return "";
+    }
+
     var longName = getName(trait.name());
     var shortName = longName;
     if (trait.name().pkg().equals(pkg)) { shortName = longName.substring(pkg.length()+1); }
@@ -125,7 +131,15 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
   private static String getName(T t) { return t.match(JavaCodegen::getName, JavaCodegen::getName); }
   private static String getName(Id.GX<T> gx) { return "Object"; }
-  private static String getName(Id.IT<T> it) { return getName(it.name()); }
+  private static String getName(Id.IT<T> it) {
+    return switch (it.name().name()) {
+      case "base.Int" -> "Long";
+      case "base.UInt" -> "Long";
+      case "base.Float" -> "Double";
+      case "base.Str" -> "String";
+      default -> getName(it.name());
+    };
+  }
   private static String getName(Id.DecId d) { return getBase(d.name())+"_"+d.gen(); }
   private static String getName(Id.MethName m) { return getBase(m.name()); }
   private static String getBase(String name) {

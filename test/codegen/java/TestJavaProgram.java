@@ -66,4 +66,17 @@ public class TestJavaProgram {
     Void:{}
     Test:Main[Void]{ _ -> Assert#(False, "power level less than 9000", { Void }) }
     """, Base.immBaseLib);}
+
+  @Test void conditionals1() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    Void:{}
+    Test:Main[Void]{ _ -> Assert#(420 > 9000, { Void }) }
+    """, Base.immBaseLib);}
+  @Test void conditionals2() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    Void:{}
+    Test:Main[Void]{ _ -> Assert#("hi".len() > 9000u, { Void }) }
+    """, Base.immBaseLib);}
 }

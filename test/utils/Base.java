@@ -71,12 +71,15 @@ public interface Base {
         }
       Opt:{ #[T](x: T): Opt[T] -> { .match(m)->m.some(x) } } // TODO: this inferred Opt[mdf T] for the lambda
       
-      Str:{
+      Str:Sealed{
         .len: UInt
       }
       Stringable:{
         .str: Str,
       }
+      _StrInstance:Str{
+        .len -> this.len
+        }
           
       // Ints
       Int:Sealed,MathOps[Int],IntOps[Int],Stringable{

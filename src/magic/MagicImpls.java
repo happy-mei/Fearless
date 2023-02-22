@@ -40,9 +40,9 @@ public interface MagicImpls<R> extends MIRVisitor<Optional<MIR.Lambda>> {
     return e.accept(this).flatMap(l->{
       // TODO: this may be incorrect, what if we have .x(n: Num), the n implements Num but not 5 or whatever?
       if (isMagic(Magic.Int, l)) { return Optional.of(int_(l)); }
-//      if (isMagic(Magic.UInt, l)) { return Optional.of(uint(l)); }
-//      if (isMagic(Magic.Float, l)) { return Optional.of(float_(l)); }
-//      if (isMagic(Magic.Str, l)) { return Optional.of(str(l)); }
+      if (isMagic(Magic.UInt, l)) { return Optional.of(uint(l)); }
+      if (isMagic(Magic.Float, l)) { return Optional.of(float_(l)); }
+      if (isMagic(Magic.Str, l)) { return Optional.of(str(l)); }
 //      if (isMagic(Magic.RefK, l)) { return Optional.of(refK(l)); }
       if (isMagic(Magic.Assert, l)) { return Optional.of(assert_(l)); }
       return Optional.empty();

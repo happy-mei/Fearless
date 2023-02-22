@@ -29,26 +29,24 @@ public class Magic {
   }
 
   public static astFull.T.Dec getFullDec(Function<Id.DecId, astFull.T.Dec> resolve, Id.DecId id) {
-    // TODO: strings and unsigned
-    if (Character.isDigit(id.name().charAt(0))) {
-      T.Dec base;
-      if (id.name().chars().anyMatch(c->c=='.')) {
-        base = resolve.apply(new Id.DecId("base._FloatInstance", 0));
-      } else if (id.name().endsWith("u")) {
-        base = resolve.apply(new Id.DecId("base._UIntInstance", 0));
-      } else {
-        base = resolve.apply(new Id.DecId("base._IntInstance", 0));
-      }
-
-      return base.withName(id);
-    }
-    return null;
+    var base = _getDec(resolve, id);
+    return base.map(b->b.withName(id)).orElse(null);
   }
 
   public static ast.T.Dec getDec(Function<Id.DecId, ast.T.Dec> resolve, Id.DecId id) {
-    // TODO: strings and unsigned
+    var base = _getDec(resolve, id);
+    return base.map(b->{
+      assert b.lambda().its().size() == 2; // instance, kind
+      return b.withName(id).withLambda(b.lambda().withITs(List.of(
+        new Id.IT<>(id, List.of()),
+        b.lambda().its().get(1)
+      )));
+    }).orElse(null);
+  }
+
+  private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
     if (Character.isDigit(id.name().charAt(0)) && id.gen() == 0) {
-      ast.T.Dec baseDec;
+      T baseDec;
       if (id.name().chars().anyMatch(c->c=='.')) {
         baseDec = resolve.apply(new Id.DecId("base._FloatInstance", 0));
       } else if (id.name().endsWith("u")) {
@@ -56,12 +54,11 @@ public class Magic {
       } else {
         baseDec = resolve.apply(new Id.DecId("base._IntInstance", 0));
       }
-      assert baseDec.lambda().its().size() == 2; // instance, kind
-      return baseDec.withName(id).withLambda(baseDec.lambda().withITs(List.of(
-        new Id.IT<>(id, List.of()),
-        baseDec.lambda().its().get(1)
-      )));
+      return Optional.of(baseDec);
     }
-    return null;
+    if (id.name().charAt(0) == '"') {
+      return Optional.of(resolve.apply(new Id.DecId("base._StrInstance", 0)));
+    }
+    return Optional.empty();
   }
 }
