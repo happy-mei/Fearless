@@ -136,7 +136,7 @@ public class TestMIR {
               "recv": {
                 "op": "MIR$X",
                 "name": "this",
-                "type": {
+                "t": {
                   "mdf": "imm",
                   "rt": {
                     "name": {
@@ -152,7 +152,30 @@ public class TestMIR {
                 "name": ".loop",
                 "num": 0
               },
-              "args": []
+              "args": [],
+              "t": {
+                "mdf": "imm",
+                "rt": {
+                  "name": {
+                    "name": "test.Baz",
+                    "gen": 1
+                  },
+                  "ts": [
+                    {
+                      "mdf": "imm",
+                      "rt": {
+                        "name": {
+                          "name": "test.Bar",
+                          "gen": 0
+                        },
+                        "ts": []
+                      },
+                      "it": true
+                    }
+                  ]
+                },
+                "it": true
+              }
             },
             "abs": false
           },
@@ -326,7 +349,7 @@ public class TestMIR {
                     "recv": {
                       "op": "MIR$X",
                       "name": "ok",
-                      "type": {
+                      "t": {
                         "mdf": "imm",
                         "rt": {
                           "name": {
@@ -342,7 +365,18 @@ public class TestMIR {
                       "name": "#",
                       "num": 0
                     },
-                    "args": []
+                    "args": [],
+                    "t": {
+                      "mdf": "imm",
+                      "rt": {
+                        "name": {
+                          "name": "test.Ok",
+                          "gen": 0
+                        },
+                        "ts": []
+                      },
+                      "it": true
+                    }
                   },
                   "abs": false
                 }

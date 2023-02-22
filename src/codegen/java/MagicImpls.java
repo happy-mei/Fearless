@@ -1,5 +1,6 @@
 package codegen.java;
 
+import ast.Program;
 import ast.T;
 import codegen.MIR;
 import id.Id;
@@ -9,12 +10,10 @@ import utils.Bug;
 import java.util.List;
 import java.util.Map;
 
-public record MagicImpls(JavaCodegen gen) implements magic.MagicImpls<String> {
+public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls<String> {
   @Override public MagicTrait<String> int_(MIR.Lambda e) {
-    var name = e.its().stream()
-      .filter(it->Character.isDigit(it.name().name().charAt(0)))
-      .findAny()
-      .orElseThrow();
+    var name = new Id.IT<T>(e.freshName().name(), List.of());
+    assert Character.isDigit(name.name().name().charAt(0)) : name;
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
       @Override public MIR.Lambda instance() { return e; }
@@ -40,11 +39,11 @@ public record MagicImpls(JavaCodegen gen) implements magic.MagicImpls<String> {
         if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
         if (m.name().equals("&")) { return instantiate()+"&"+args.get(0).accept(gen); }
         if (m.name().equals("|")) { return instantiate()+"|"+args.get(0).accept(gen); }
-        if (m.name().equals(">")) { return instantiate()+">"+args.get(0).accept(gen)+"?new base.True(){}:new base.False();"; }
-        if (m.name().equals("<")) { return instantiate()+"<"+args.get(0).accept(gen)+"?new base.True(){}:new base.False();"; }
-        if (m.name().equals(">=")) { return instantiate()+">="+args.get(0).accept(gen)+"?new base.True(){}:new base.False();"; }
-        if (m.name().equals("<=")) { return instantiate()+"<="+args.get(0).accept(gen)+"?new base.True(){}:new base.False();"; }
-        if (m.name().equals("==")) { return instantiate()+"=="+args.get(0).accept(gen)+"?new base.True(){}:new base.False();"; }
+        if (m.name().equals(">")) { return instantiate()+">"+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){}"; }
+        if (m.name().equals("<")) { return instantiate()+"<"+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){}"; }
+        if (m.name().equals(">=")) { return instantiate()+">="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){}"; }
+        if (m.name().equals("<=")) { return instantiate()+"<="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){}"; }
+        if (m.name().equals("==")) { return instantiate()+"=="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){}"; }
         throw Bug.unreachable();
       }
     };

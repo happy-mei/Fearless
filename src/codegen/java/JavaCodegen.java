@@ -1,5 +1,6 @@
 package codegen.java;
 
+import ast.Program;
 import ast.T;
 import codegen.MIR;
 import id.Id;
@@ -11,7 +12,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class JavaCodegen implements MIRVisitor<String> {
-  private final MagicImpls magic = new MagicImpls(this);
+  private final MagicImpls magic;
+  public JavaCodegen(Program p) {
+    this.magic = new MagicImpls(this, p);
+  }
 
   public String visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) {
     if (!pkgs.containsKey("base")) {
@@ -55,7 +59,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     if (meth.isAbs()) { visibility = ""; }
     var start = visibility+getName(meth.rt())+" "+name(getName(meth.name()))+"("+args+")";
     if (meth.body().isEmpty()) { return start + ";"; }
-    return start + "{\n"+selfVar+"return (("+getName(meth.rt())+")"+meth.body().get().accept(this)+");\n}";
+    return start + "{\n"+selfVar+"return (("+getName(meth.rt())+")("+meth.body().get().accept(this)+"));\n}";
   }
 
   public String visitX(MIR.X x) {
@@ -63,6 +67,11 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitMCall(MIR.MCall mCall) {
+    var magicImpl = magic.get(mCall.recv());
+    if (magicImpl.isPresent()) {
+      return magicImpl.get().call(mCall.name(), mCall.args(), Map.of());
+    }
+
     var start = mCall.recv().accept(this)+"."+name(getName(mCall.name()))+"(";
     var args = mCall.args().stream()
       .map(a->a.accept(this))
@@ -77,9 +86,6 @@ public class JavaCodegen implements MIRVisitor<String> {
     }
 
     var start = "new "+getName(l.freshName())+"(){\n";
-//    var captures = l.captures().stream()
-//      .map(c->"public _$capture_"+c.name()+"() { return "+c.name()+"; }")
-//      .collect(Collectors.joining("\n"));
     var ms = l.meths().stream()
       .map(m->visitMeth(m, l.selfName(), true))
       .collect(Collectors.joining("\n"));
@@ -103,7 +109,7 @@ public class JavaCodegen implements MIRVisitor<String> {
 //  }
 
   private String typePair(MIR.X x) {
-    return getName(x.type())+" "+name(x.name());
+    return getName(x.t())+" "+name(x.name());
   }
   private String name(String x) {
     return x.equals("this") ? "f$thiz" : x+"$";

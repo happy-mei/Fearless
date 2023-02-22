@@ -1,25 +1,23 @@
 package codegen;
 
-import ast.E;
 import ast.T;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import id.Id;
 import id.Mdf;
-import utils.Bug;
 import visitors.MIRVisitor;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "op")
 @JsonSerialize
 @JsonInclude(JsonInclude.Include.NON_ABSENT)
 public interface MIR {
   <R> R accept(MIRVisitor<R> v);
+  T t();
 
   record Program(Map<String, List<Trait>> pkgs) {}
   record Trait(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<Meth> meths) {
@@ -31,12 +29,12 @@ public interface MIR {
   record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<X> xs, T rt, Optional<MIR> body) {
     public boolean isAbs() { return body.isEmpty(); }
   }
-  record X(String name, T type) implements MIR  {
+  record X(String name, T t) implements MIR  {
     public <R> R accept(MIRVisitor<R> v) {
       return v.visitX(this);
     }
   }
-  record MCall(MIR recv, Id.MethName name, List<MIR> args) implements MIR {
+  record MCall(MIR recv, Id.MethName name, List<MIR> args, T t) implements MIR {
     public <R> R accept(MIRVisitor<R> v) {
       return v.visitMCall(this);
     }
@@ -44,6 +42,9 @@ public interface MIR {
   record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, List<X> captures, List<Meth> meths) implements MIR {
     public <R> R accept(MIRVisitor<R> v) {
       return v.visitLambda(this);
+    }
+    public T t() {
+      return new T(mdf, new Id.IT<>(freshName, List.of()));
     }
     public Lambda withITs(List<Id.IT<T>> its) {
       return new Lambda(mdf, freshName, selfName, its, captures, meths);

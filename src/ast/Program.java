@@ -31,7 +31,7 @@ public class Program implements program.Program  {
     return of(t.name()).pos();
   }
 
-  T.Dec of(Id.DecId d) {
+  public T.Dec of(Id.DecId d) {
     var res = ds.get(d);
     if (res == null) { res = Magic.getDec(this::of, d); }
     if (res == null) { throw Fail.traitNotFound(d); }

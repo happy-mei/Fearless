@@ -13,13 +13,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Objects.requireNonNull;
-
 // TODO: Change this to keep names as-is, leave that all to the JavaCodegen visitor (etc.)
 
 public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   private final List<MIR.Trait> freshTraits = new ArrayList<>();
-  private final Program p;
+  private Program p;
   public MIRInjectionVisitor(Program p) { this.p = p; }
 
   public MIR.Program visitProgram() {
@@ -53,20 +51,27 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   }
 
   public MIR.MCall visitMCall(String pkg, E.MCall e, Map<String, T> gamma) {
+    var recv = e.receiver().accept(this, pkg, gamma);
+    var meth = p.meths(recv.t().itOrThrow(), e.name(), 0).orElseThrow();
     return new MIR.MCall(
-      e.receiver().accept(this, pkg, gamma),
+      recv,
       e.name(),
-      e.es().stream().map(ei->ei.accept(this, pkg, gamma)).toList()
+      e.es().stream().map(ei->ei.accept(this, pkg, gamma)).toList(),
+      meth.ret()
     );
   }
 
   public MIR.X visitX(E.X e, Map<String, T> gamma) { return visitX(e.name(), gamma); }
   public MIR.X visitX(String x, Map<String, T> gamma) {
-    var type = requireNonNull(gamma.get(x));
+    var type = gamma.get(x);
+    if (type == null) { throw new NotInGammaException(x); }
     return new MIR.X(x, type);
   }
+  public static class NotInGammaException extends RuntimeException {
+    public NotInGammaException(String x) { super(x); }
+  }
 
-  public MIR visitLambda(String pkg, E.Lambda e, Map<String, T> gamma) {
+  public MIR.Lambda visitLambda(String pkg, E.Lambda e, Map<String, T> gamma) {
     var captureCollector = new CaptureCollector();
     captureCollector.visitLambda(e);
     List<MIR.X> captures = captureCollector.res().stream().map(x->visitX(x, gamma)).toList();
@@ -92,6 +97,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     impls = impls.stream().filter(it->!it.name().equals(fresh)).toList();
     MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), impls, List.of());
     freshTraits.add(freshTrait);
+    p = p.withDec(new T.Dec(freshName, List.of(), e, e.pos()));
 
     var g = new HashMap<>(gamma);
     g.put(e.selfName(), new T(e.mdf(), new Id.IT<>(fresh, List.of())));
