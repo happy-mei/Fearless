@@ -230,9 +230,10 @@ public record InferBodies(ast.Program p) {
   Optional<E> var(Map<String, T> gamma, E.X e) {
     if (!e.t().isInfer()) { return Optional.empty(); }
     Optional<E> res = Optional.ofNullable(gamma.get(e.name())).map(e::withT);
-    if (!res.map(e1->!e1.equals(e)).orElse(false)) {
+    if (res.map(e1->e1.equals(e)).orElse(true)) {
       // TODO: X not found compiler error
-      throw Bug.todo();
+      return Optional.empty();
+//      throw Bug.todo();
     }
     return res;
   }

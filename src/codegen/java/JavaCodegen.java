@@ -122,7 +122,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     return getName(x.t())+" "+name(x.name());
   }
   private String name(String x) {
-    return x.equals("this") ? "f$thiz" : x+"$";
+    return x.equals("this") ? "f$thiz" : x.replace("'", "$"+(int)'\'')+"$";
   }
   private static List<String> getImplsNames(List<Id.IT<T>> its) {
     return its.stream()
@@ -145,7 +145,9 @@ public class JavaCodegen implements MIRVisitor<String> {
   private static String getBase(String name) {
     if (name.startsWith(".")) { name = name.substring(1); }
     return name.chars().mapToObj(c->{
-      if (c == '.' || Character.isAlphabetic(c) || Character.isDigit(c)) { return Character.toString(c); }
+      if (c != '\'' && (c == '.' || Character.isAlphabetic(c) || Character.isDigit(c))) {
+        return Character.toString(c);
+      }
       return "$"+c;
     }).collect(Collectors.joining());
   }

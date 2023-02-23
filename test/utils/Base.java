@@ -19,39 +19,35 @@ public interface Base {
 
   String immBaseLib = immBaseLib("base");
   static String immBaseLib(String pkg) {
+    // TODO: calling mut meths from lent seems broken
     return "package " + pkg + """
 
       Void:{}
       NoMutHyg[X]:{}
       Sealed:{}
       Main[R]:{ #(s: lent System[R]): mdf R }
-      ReturnStmt[R]:{ mut #: mdf R }
+      LentReturnStmt[R]:{ lent #: mdf R }
       System[R]:Sealed{
-        //mut .use[C](c: CapFactory[_RootCap, lent C], cont: mut UseCapCont[lent C, lent System[mdf R]]): mdf R ->
-        //  cont#(c#_RootCap, this), // TODO: use a block here to call c.close afterwards
-        mut .clone(): iso System[mdf R] -> {},
-        mut .return(ret: mut ReturnStmt[mdf R]): mdf R -> ret#
+        lent .use[C](c: CapFactory[lent _RootCap, lent C], cont: lent UseCapCont[C, mdf R]): mdf R ->
+          cont#(c#_RootCap, this), // TODO: use a block here to call c.close afterwards
+        // mut .clone(): iso System[mdf R] -> {},
+        lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
         }
       _RootCap:Sealed,IO{
         .print(msg) -> this.print(msg),
         .println(msg) -> this.println(msg),
         }
-      UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
+      UseCapCont[C, R]:{ lent #(cap: lent C, self: lent System[mdf R]): mdf R }
       CapFactory[C,R]:{
         #(s: lent C): lent R,
-        .close(c: lent C): Void,
+        .close(c: lent R): Void,
         }
-      Cap[C]:{
-        mut .get: lent C,
-        .close(c: lent C): Void -> {},
-        }
-      
       IO:{
-        mut .print(msg: Str): Void,
-        mut .println(msg: Str): Void,
+        lent .print(msg: Str): Void,
+        lent .println(msg: Str): Void,
         }
-      IO':CapFactory[lent IO, lent IO]{
-        #(auth: lent IO): lent IO -> auth,
+      IO':CapFactory[lent _RootCap, lent IO]{
+        #(auth: lent _RootCap): lent IO -> auth,
         .close(c: lent IO): Void -> {},
         }
       

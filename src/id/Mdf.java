@@ -24,6 +24,7 @@ public enum Mdf{
     return this.adapt(t.mdf());
   }
   public Mdf adapt(Mdf other) {
+    if (this == other) { return this; }
     if (this == imm) { return imm; }
     if (this == mut) { return other; }
     if (this == lent) {

@@ -276,7 +276,7 @@ public interface Program {
   default CM pruneAux(List<CM> cms, Optional<Pos> lambdaPos, int limit) {
     if(limit==0){
       throw Fail.uncomposableMethods(cms.stream()
-        .map(cm->Fail.conflict(cm.pos(), cm.toStringSimplified()))
+        .map(cm->Fail.conflict(cm.pos(), cm.toString()))
         .toList()
       ).pos(lambdaPos);
     }

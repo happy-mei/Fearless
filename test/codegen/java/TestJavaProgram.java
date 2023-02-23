@@ -214,4 +214,21 @@ public class TestJavaProgram {
     Void:{}
     Test:Main[Void]{ _ -> Assert#(False, (5 + 2) .str, { Void }) }
     """, Base.immBaseLib);}
+
+  // TODO: using brackets around (io, s') breaks antlr, fix the grammar
+  @Test void println() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    Test:Main[Void]{ s -> s
+      .use[base.IO](base.IO', { io, s' -> s'.return{ io.println "Hello, World!" } })
+      }
+    """, Base.immBaseLib);}
+  @Test void printlnSugar() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    Test:Main[Void]{ s -> s
+      .use io = base.IO'
+      .return{ io.println("Hello, World!") }
+      }
+    """, Base.immBaseLib);}
 }
