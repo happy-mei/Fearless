@@ -17,6 +17,7 @@ import java.util.Optional;
 @JsonInclude(JsonInclude.Include.NON_ABSENT)
 public interface MIR {
   <R> R accept(MIRVisitor<R> v);
+  <R> R accept(MIRVisitor<R> v, boolean checkMagic);
   T t();
 
   record Program(Map<String, List<Trait>> pkgs) {}
@@ -31,17 +32,26 @@ public interface MIR {
   }
   record X(String name, T t) implements MIR  {
     public <R> R accept(MIRVisitor<R> v) {
-      return v.visitX(this);
+      return this.accept(v, true);
+    }
+    public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
+      return v.visitX(this, checkMagic);
     }
   }
   record MCall(MIR recv, Id.MethName name, List<MIR> args, T t) implements MIR {
     public <R> R accept(MIRVisitor<R> v) {
-      return v.visitMCall(this);
+      return this.accept(v, true);
+    }
+    public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
+      return v.visitMCall(this, checkMagic);
     }
   }
   record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, List<X> captures, List<Meth> meths) implements MIR {
     public <R> R accept(MIRVisitor<R> v) {
-      return v.visitLambda(this);
+      return this.accept(v, true);
+    }
+    public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
+      return v.visitLambda(this, checkMagic);
     }
     public T t() {
       return new T(mdf, new Id.IT<>(freshName, List.of()));

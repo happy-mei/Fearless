@@ -13,9 +13,12 @@ public interface MIRVisitor<R> {
   R visitMeth(MIR.Meth meth, String selfName, boolean concrete);
 
   // Expressions/values
-  R visitX(MIR.X x);
-  R visitMCall(MIR.MCall mCall);
-  R visitLambda(MIR.Lambda newL);
+  default R visitX(MIR.X x) { return visitX(x, true); }
+  R visitX(MIR.X x, boolean checkMagic);
+  default R visitMCall(MIR.MCall mCall) { return visitMCall(mCall, true); }
+  R visitMCall(MIR.MCall mCall, boolean checkMagic);
+  default R visitLambda(MIR.Lambda newL) { return visitLambda(newL, true); }
+  R visitLambda(MIR.Lambda newL, boolean checkMagic);
 //  R visitNewDynLambda(MIR.NewDynLambda newL);
 //  R visitNewStaticLambda(MIR.NewStaticLambda newL);
 //  R visitShare(MIR.Share s);

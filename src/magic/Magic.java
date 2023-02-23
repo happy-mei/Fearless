@@ -20,8 +20,8 @@ public class Magic {
   public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);
 
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
-    var isAlphaNumeric  = !name.isEmpty() && (Character.isDigit(name.charAt(0)) || name.startsWith("\""));
-    if(isAlphaNumeric){ return Optional.of(new Id.IT<>(name, List.of())); }
+    var isLiteral  = !name.isEmpty() && MagicImpls.isLiteral(name);
+    if(isLiteral){ return Optional.of(new Id.IT<>(name, List.of())); }
     return switch(name){
 //      case noMutHygName -> Optional.of(new Id.IT<>(new Id.DecId(noMutHygName, 0), List.of()));
       default -> Optional.empty();
@@ -45,7 +45,7 @@ public class Magic {
   }
 
   private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
-    if (Character.isDigit(id.name().charAt(0)) && id.gen() == 0) {
+    if ((Character.isDigit(id.name().charAt(0)) || id.name().startsWith("-")) && id.gen() == 0) {
       T baseDec;
       if (id.name().chars().anyMatch(c->c=='.')) {
         baseDec = resolve.apply(new Id.DecId("base._FloatInstance", 0));

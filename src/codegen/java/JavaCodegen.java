@@ -24,7 +24,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       throw Bug.todo();
     }
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ base.Main_1 entry = new "+entryName+"(){}; entry.$35$(new base.System_0(){}); }\n";
+    var init = "\nstatic void main(String[] args){ base.Main_1 entry = new "+entryName+"(){}; entry.$35$(new base.System_1(){}); }\n";
 
     return "interface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))
@@ -68,18 +68,18 @@ public class JavaCodegen implements MIRVisitor<String> {
     return start + "{\n"+selfVar+"return (("+getName(meth.rt())+")("+meth.body().get().accept(this)+"));\n}";
   }
 
-  public String visitX(MIR.X x) {
+  public String visitX(MIR.X x, boolean checkMagic) {
     return name(x.name());
   }
 
-  public String visitMCall(MIR.MCall mCall) {
+  public String visitMCall(MIR.MCall mCall, boolean checkMagic) {
     var magicImpl = magic.get(mCall.recv());
-    if (magicImpl.isPresent()) {
+    if (checkMagic && magicImpl.isPresent()) {
       var impl = magicImpl.get().call(mCall.name(), mCall.args(), Map.of());
       if (impl.isPresent()) { return impl.get(); }
     }
 
-    var start = mCall.recv().accept(this)+"."+name(getName(mCall.name()))+"(";
+    var start = mCall.recv().accept(this, false)+"."+name(getName(mCall.name()))+"(";
     var args = mCall.args().stream()
       .map(a->a.accept(this))
       .collect(Collectors.joining(","));

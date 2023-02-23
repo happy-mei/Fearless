@@ -134,6 +134,10 @@ public class Fail{
     return of("'"+xT.mdf()+" "+x+"' cannot be captured by "+aVsAn(methMdf)+" method in "+aVsAn(lambdaT.mdf())+" lambda.");
   }
 
+  public static CompileError invalidNum(String n, String kind) {
+    return of("The number "+n+" is not a valid "+kind);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -171,6 +175,7 @@ enum ErrorCode {
   recMdfInImpls,
   undefinedName,
   noDupImpls,
-  badCapture;
+  badCapture,
+  invalidNum;
   int code() {return this.ordinal() + 1;}
 }

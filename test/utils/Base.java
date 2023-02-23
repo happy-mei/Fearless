@@ -13,8 +13,8 @@ public interface Base {
 
   String minimalBase = """
   package base
-  Main[R]:{ #(s: lent System): mdf R }
-  System:{}
+  Main[R]:{ #(s: lent System[R]): mdf R }
+  System[R]:{}
   """;
 
   String immBaseLib = immBaseLib("base");
@@ -24,20 +24,50 @@ public interface Base {
       Void:{}
       NoMutHyg[X]:{}
       Sealed:{}
-      Main[R]:{ #(s: lent System): mdf R }
-      System:{} // Root capability
+      Main[R]:{ #(s: lent System[R]): mdf R }
+      ReturnStmt[R]:{ mut #: mdf R }
+      System[R]:Sealed{
+        //mut .use[C](c: CapFactory[_RootCap, lent C], cont: mut UseCapCont[lent C, lent System[mdf R]]): mdf R ->
+        //  cont#(c#_RootCap, this), // TODO: use a block here to call c.close afterwards
+        mut .clone(): iso System[mdf R] -> {},
+        mut .return(ret: mut ReturnStmt[mdf R]): mdf R -> ret#
+        }
+      _RootCap:Sealed,IO{
+        .print(msg) -> this.print(msg),
+        .println(msg) -> this.println(msg),
+        }
+      UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
+      CapFactory[C,R]:{
+        #(s: lent C): lent R,
+        .close(c: lent C): Void,
+        }
+      Cap[C]:{
+        mut .get: lent C,
+        .close(c: lent C): Void -> {},
+        }
+      
+      IO:{
+        mut .print(msg: Str): Void,
+        mut .println(msg: Str): Void,
+        }
+      IO':CapFactory[lent IO, lent IO]{
+        #(auth: lent IO): lent IO -> auth,
+        .close(c: lent IO): Void -> {},
+        }
       
       Let:{ #[V,R](l:mut Let[mdf V, mdf R]): mdf R -> l.in(l.var) }
       Let[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
           
-      Bool:Sealed{
+      Bool:Sealed,Stringable{
         .and(b: Bool): Bool,
+        &&(b: Bool): Bool -> this.and(b),
         .or(b: Bool): Bool,
+        ||(b: Bool): Bool -> this.or(b),
         .not: Bool,
         ?[R](f: mut ThenElse[mdf R]): mdf R, // ?  because `bool ? { .then->aa, .else->bb }` is kinda like a ternary
         }
-      True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
-      False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
+      True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then(), .str -> "True" }
+      False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else(), .str -> "False" }
       ThenElse[R]:{ mut .then: mdf R, mut .else: mdf R, }
       
       Assert:Sealed{

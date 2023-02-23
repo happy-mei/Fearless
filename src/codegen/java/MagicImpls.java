@@ -3,6 +3,7 @@ package codegen.java;
 import ast.Program;
 import ast.T;
 import codegen.MIR;
+import failure.Fail;
 import id.Id;
 import magic.MagicTrait;
 import utils.Bug;
@@ -11,18 +12,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static magic.MagicImpls.isLiteral;
+
 public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls<String> {
-  @Override public MagicTrait<String> int_(MIR.Lambda e) {
-    var name = new Id.IT<T>(e.freshName().name(), List.of());
-    assert Character.isDigit(name.name().name().charAt(0)) : name;
+  @Override public MagicTrait<String> int_(MIR.Lambda l, MIR e) {
+    var name = new Id.IT<T>(l.freshName().name(), List.of());
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
-      @Override public MIR.Lambda instance() { return e; }
+      @Override public MIR.Lambda instance() { return l; }
       @Override public String type() {
         return "Long";
       }
       @Override public String instantiate() {
-        return name().name().name()+"L";
+        var lambdaName = name().name().name();
+        try {
+          return isLiteral(lambdaName) ? Long.parseLong(lambdaName)+"L" : e.accept(gen, false);
+        } catch (NumberFormatException ignored) {
+          throw Fail.invalidNum(lambdaName, "Int");
+        }
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         return Optional.of(_call(m, args, gamma));
@@ -30,10 +37,10 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         // _NumInstance
         if (m.name().equals(".uint")) {
-          return uint(e.withITs(List.of(new Id.IT<>(name().name().name()+"u", List.of())))).instantiate();
+          return instantiate(); // only different at type level
         }
         if (m.name().equals(".str")) {
-          return str(e.withITs(List.of(new Id.IT<>("\""+name().name().name()+"\"", List.of())))).instantiate();
+          return "Long.toString("+instantiate()+")";
         }
         if (m.name().equals("+")) { return instantiate()+"+"+args.get(0).accept(gen); }
         if (m.name().equals("-")) { return instantiate()+"-"+args.get(0).accept(gen); }
@@ -59,22 +66,25 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     };
   }
 
-  @Override public MagicTrait<String> uint(MIR.Lambda e) {
-    var name = new Id.IT<T>(e.freshName().name(), List.of());
+  @Override public MagicTrait<String> uint(MIR.Lambda l, MIR e) {
+    var name = new Id.IT<T>(l.freshName().name(), List.of());
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
-      @Override public MIR.Lambda instance() { return e; }
+      @Override public MIR.Lambda instance() { return l; }
       @Override public String type() {
         return "Long";
       }
       @Override public String instantiate() {
-        if (Character.isDigit(name.name().name().charAt(0))) {
-          var n = name().name().name();
-          long val = Long.parseUnsignedLong(n.substring(0, n.length() - 1), 10);
-          return val+"L";
+        var lambdaName = name().name().name();
+        if (isLiteral(lambdaName)) {
+          try {
+            long l = Long.parseUnsignedLong(lambdaName.substring(0, lambdaName.length()-1));
+            return l+"L";
+          } catch (NumberFormatException err) {
+            throw Fail.invalidNum(lambdaName, "UInt");
+          }
         }
-        // TODO: accept the MIR e here too and use that (i.e. the X)
-        throw Bug.todo();
+        return e.accept(gen);
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         return Optional.of(_call(m, args, gamma));
@@ -82,10 +92,10 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         // _NumInstance
         if (m.name().equals(".int")) {
-          return uint(e.withITs(List.of(new Id.IT<>(name().name().name(), List.of())))).instantiate();
+          return instantiate(); // only different at type level
         }
         if (m.name().equals(".str")) {
-          return str(e.withITs(List.of(new Id.IT<>("\""+name().name().name()+"\"", List.of())))).instantiate();
+          return "Long.toUnsignedString("+instantiate()+")";
         }
         if (m.name().equals("+")) { return instantiate()+"+"+args.get(0).accept(gen); }
         if (m.name().equals("-")) { return instantiate()+"-"+args.get(0).accept(gen); }
@@ -110,42 +120,43 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       }
     };
   }
-  @Override public MagicTrait<String> float_(MIR.Lambda e) {
+  @Override public MagicTrait<String> float_(MIR.Lambda l, MIR e) {
     throw Bug.todo();
   }
 
-  @Override public MagicTrait<String> str(MIR.Lambda e) {
-    var name = new Id.IT<T>(e.freshName().name(), List.of());
+  @Override public MagicTrait<String> str(MIR.Lambda l, MIR e) {
+    var name = new Id.IT<T>(l.freshName().name(), List.of());
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
-      @Override public MIR.Lambda instance() { return e; }
+      @Override public MIR.Lambda instance() { return l; }
       @Override public String type() {
         return "String";
       }
       @Override public String instantiate() {
-        return name.name().name();
+        var lambdaName = name().name().name();
+        return isLiteral(lambdaName) ? lambdaName : e.accept(gen, false);
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName(".len", 0))) {
-          return Optional.of(""+(name.name().name().length() - 2));
+          return Optional.of(instantiate()+".length()");
         }
         throw Bug.unreachable();
       }
     };
   }
-  @Override public MagicTrait<String> refK(MIR.Lambda e) {
+  @Override public MagicTrait<String> refK(MIR.Lambda l, MIR e) {
     throw Bug.todo();
   }
-  @Override public MagicTrait<String> assert_(MIR.Lambda e) {
+  @Override public MagicTrait<String> assert_(MIR.Lambda l, MIR e) {
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
-      @Override public MIR.Lambda instance() { return e; }
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
 
       @Override public String type() {
         return "Assert_0";
       }
       @Override public String instantiate() {
-        return gen.visitLambda(e, false);
+        return gen.visitLambda(l, false);
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName("._fail", 0))) {
