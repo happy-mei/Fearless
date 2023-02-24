@@ -26,6 +26,7 @@ public interface MagicImpls<R> {
       if (isMagic(Magic.Str, l, e)) { return Optional.of(str(l, e)); }
 //      if (isMagic(Magic.RefK, l, e)) { return Optional.of(refK(l, e)); }
       if (isMagic(Magic.Assert, l, e)) { return Optional.of(assert_(l, e)); }
+      if (isMagic(Magic.RootCap, l, e)) { return Optional.of(rootCap(l, e)); }
       return Optional.empty();
     });
   }
@@ -36,7 +37,6 @@ public interface MagicImpls<R> {
     if (!name.startsWith("base.") && Character.isJavaIdentifierStart(name.charAt(0))) {
       return false;
     }
-    if (name.startsWith("base._")) { return false; } // Ignore all base helpers
     return p().isSubType(new T(l.mdf(), new Id.IT<>(l.freshName(), List.of())), new T(l.mdf(), new Id.IT<>(magicDec, List.of())));
   }
 
@@ -46,6 +46,7 @@ public interface MagicImpls<R> {
   MagicTrait<R> str(MIR.Lambda l, MIR e);
   MagicTrait<R> refK(MIR.Lambda l, MIR e);
   MagicTrait<R> assert_(MIR.Lambda l, MIR e);
+  MagicTrait<R> rootCap(MIR.Lambda l, MIR e);
   ast.Program p();
 
   record LambdaVisitor(Program p) implements MIRVisitor<Optional<MIR.Lambda>> {

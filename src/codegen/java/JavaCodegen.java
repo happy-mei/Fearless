@@ -59,6 +59,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     var selfVar = "var "+name(selfName)+" = this;\n";
 //    var gens = meth.gens().isEmpty() ? "" : "<"+String.join(",", meth.gens())+"> ";
     var args = meth.xs().stream()
+      .map(x->new MIR.X(x.name(), new T(x.t().mdf(), new Id.GX<>("Object")))) // required for overriding meths with generic args
       .map(this::typePair)
       .collect(Collectors.joining(","));
     var visibility = concrete ? "public " : "default ";
@@ -69,7 +70,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitX(MIR.X x, boolean checkMagic) {
-    return name(x.name());
+    return "(("+getName(x.t())+")("+name(x.name())+"))";
   }
 
   public String visitMCall(MIR.MCall mCall, boolean checkMagic) {
@@ -133,9 +134,8 @@ public class JavaCodegen implements MIRVisitor<String> {
   private static String getName(Id.GX<T> gx) { return "Object"; }
   private static String getName(Id.IT<T> it) {
     return switch (it.name().name()) {
-      case "base.Int" -> "Long";
-      case "base.UInt" -> "Long";
-      case "base.Float" -> "Double";
+      case "base.Int", "base.UInt" -> "long";
+      case "base.Float" -> "double";
       case "base.Str" -> "String";
       default -> getName(it.name());
     };

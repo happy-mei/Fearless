@@ -223,7 +223,22 @@ public class TestJavaProgram {
       .use[base.IO](base.IO', { io, s' -> s'.return{ io.println "Hello, World!" } })
       }
     """, Base.immBaseLib);}
+  @Test void printlnInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    Test:Main[Void]{ s -> s
+      .use(base.IO', { io, s' -> s'.return{ io.println "Hello, World!" } })
+      }
+    """, Base.immBaseLib);}
   @Test void printlnSugar() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Void as Void, alias base.IO as IO, alias base.IO' as IO',
+    Test:Main[Void]{ s -> s
+      .use[IO] io = IO'
+      .return{ io.println("Hello, World!") }
+      }
+    """, Base.immBaseLib); }
+  @Test void printlnSugarInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
     Test:Main[Void]{ s -> s

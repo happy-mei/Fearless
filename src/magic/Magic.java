@@ -18,6 +18,7 @@ public class Magic {
   public static final Id.DecId Str = new Id.DecId("base.Str", 0);
   public static final Id.DecId RefK = new Id.DecId("base.Ref", 0);
   public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);
+  public static final Id.DecId RootCap = new Id.DecId("base._RootCap", 0);
 
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
     var isLiteral  = !name.isEmpty() && MagicImpls.isLiteral(name);

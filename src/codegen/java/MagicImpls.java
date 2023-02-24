@@ -5,6 +5,7 @@ import ast.T;
 import codegen.MIR;
 import failure.Fail;
 import id.Id;
+import id.Mdf;
 import magic.MagicTrait;
 import utils.Bug;
 
@@ -20,9 +21,6 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
       @Override public MIR.Lambda instance() { return l; }
-      @Override public String type() {
-        return "Long";
-      }
       @Override public String instantiate() {
         var lambdaName = name().name().name();
         try {
@@ -71,9 +69,6 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
       @Override public MIR.Lambda instance() { return l; }
-      @Override public String type() {
-        return "Long";
-      }
       @Override public String instantiate() {
         var lambdaName = name().name().name();
         if (isLiteral(lambdaName)) {
@@ -129,9 +124,6 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
       @Override public MIR.Lambda instance() { return l; }
-      @Override public String type() {
-        return "String";
-      }
       @Override public String instantiate() {
         var lambdaName = name().name().name();
         return isLiteral(lambdaName) ? lambdaName : e.accept(gen, false);
@@ -144,17 +136,15 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       }
     };
   }
+
   @Override public MagicTrait<String> refK(MIR.Lambda l, MIR e) {
     throw Bug.todo();
   }
+
   @Override public MagicTrait<String> assert_(MIR.Lambda l, MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
       @Override public MIR.Lambda instance() { return l; }
-
-      @Override public String type() {
-        return "Assert_0";
-      }
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
@@ -174,6 +164,35 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
               System.err.println(%s);
               System.exit(1);
               yield null;
+            }}
+            """, args.get(0).accept(gen)));
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<String> rootCap(MIR.Lambda l, MIR e) {
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        return gen.visitLambda(l, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        if (m.equals(new Id.MethName(".print", 1))) {
+          return Optional.of(String.format("""
+            switch (1) { default -> {
+              System.out.print(%s);
+              yield new base.Void_0(){};
+            }}
+            """, args.get(0).accept(gen)));
+        }
+        if (m.equals(new Id.MethName(".println", 1))) {
+          return Optional.of(String.format("""
+            switch (1) { default -> {
+              System.out.println(%s);
+              yield new base.Void_0(){};
             }}
             """, args.get(0).accept(gen)));
         }
