@@ -3,11 +3,13 @@ package id;
 import files.Pos;
 import parser.Parser;
 import utils.Bug;
+import utils.OneOr;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Id {
@@ -28,8 +30,14 @@ public class Id {
   }
   public record DecId(String name,int gen){
     public DecId{ assert validDecName(name) && gen>=0; }
+
+    static Pattern pkgRegex = Pattern.compile("(.+\\.)+([A-Za-z0-9_']+)$");
     public String pkg() {
-      return name.split("\\..+$")[0];
+      var pkg = OneOr.of("Malformed package", pkgRegex.matcher(name).results()).group(1);
+      return pkg.substring(0, pkg.length() - 1);
+    }
+    public String shortName() {
+      return OneOr.of("Malformed package", pkgRegex.matcher(name).results()).group(2);
     }
     @Override public String toString() {
       return String.format("%s/%d", name, gen);

@@ -131,10 +131,10 @@ public record InferBodies(ast.Program p) {
     return res;
   }
 
+  // todo: make a new Dec for the lambda here and do a p.withDec to get the correct meths result
   Optional<Program.FullMethSig> onlyAbs(Id.IT<astFull.T> it, int depth){
     return p.fullSig(it, depth, CM::isAbs);
   }
-
   Optional<Program.FullMethSig> onlyMName(Id.IT<astFull.T> it, Id.MethName name, int depth){
     return p.fullSig(it, depth, cm->cm.name().equals(name));
   }

@@ -31,7 +31,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       .collect(Collectors.joining("\n"))+init+"}";
   }
   public String visitPackage(String pkg, List<MIR.Trait> ds) {
-    return "interface "+pkg+"{" + ds.stream()
+    return "interface "+getPkgName(pkg)+"{" + ds.stream()
       .map(t->visitTrait(pkg, t))
       .collect(Collectors.joining("\n")) + "\n}";
   }
@@ -42,7 +42,7 @@ public class JavaCodegen implements MIRVisitor<String> {
 
     var longName = getName(trait.name());
     var shortName = longName;
-    if (trait.name().pkg().equals(pkg)) { shortName = longName.substring(pkg.length()+1); }
+    if (trait.name().pkg().equals(pkg)) { shortName = getBase(trait.name().shortName())+"_"+trait.name().gen(); }
 //    var gens = trait.gens().isEmpty() ? "" : "<"+String.join(",", trait.gens())+">";
     var its = trait.its().stream()
       .map(JavaCodegen::getName)
@@ -140,7 +140,13 @@ public class JavaCodegen implements MIRVisitor<String> {
       default -> getName(it.name());
     };
   }
-  private static String getName(Id.DecId d) { return getBase(d.name())+"_"+d.gen(); }
+  private static String getPkgName(String pkg) {
+    return pkg.replace(".", "$"+(int)'.');
+  }
+  private static String getName(Id.DecId d) {
+    var pkg = getPkgName(d.pkg());
+    return pkg+"."+getBase(d.shortName())+"_"+d.gen();
+  }
   private static String getName(Id.MethName m) { return getBase(m.name()); }
   private static String getBase(String name) {
     if (name.startsWith(".")) { name = name.substring(1); }

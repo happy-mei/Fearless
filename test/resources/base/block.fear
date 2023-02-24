@@ -1,0 +1,62 @@
+package base
+
+Do:{ mut #: Void }
+ReturnStmt[R]:{ mut #: mdf R }
+Condition:{ mut #: Bool }
+Continuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
+//LoopBody[T]:{ mut #: ControlFlow[mdf T] }
+//ControlFlow:{
+//  read .continue: mut ControlFlow[Void] -> {},
+//  read .break: mut ControlFlow[Void] -> { m -> m.break },
+//  read .return[T](rv: mdf T): mut ControlFlow[mdf T] -> { m -> m.return(rv) }
+//  }
+//ControlFlow[T]:Sealed{
+//  read .match[R](m: mut ControlFlowMatch[mdf T, mdf R]): mdf R -> m.continue,
+//  }
+//ControlFlowMatch[T,R]:{
+//  mut .continue: mdf R,
+//  mut .break: mdf R,
+//  mut .return(rv: mdf T): mdf R,
+//  }
+
+Block[R]:{
+  mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+  mut .if(a: mut Condition): mut BlockIf[mdf R] -> a# ? {
+    .then -> BlockIfTrue[mdf R]{ this },
+    .else -> BlockIfFalse[mdf R]{ this },
+    },
+  mut .var[X](x: mut ReturnStmt[mdf X], cont: mut Continuation[mdf X,mdf R]): mdf R -> cont#(x#, this),
+  mut .do(a: mut Do): mut Block[mdf R] -> this._do(a#),
+  mut ._do(a: Void): mut Block[mdf R] -> this,
+//  mut .loop(a: mut LoopBody[mdf R]): mut Block[mdf R] -> a#.match{
+//    .continue -> this.loop(a),
+//    .break -> this,
+//    .return(rv) -> DecidedBlock[mdf R]{ rv },
+//    },
+  }
+BlockIf[R]:{
+  mut .outer: mut Block[mdf R],
+  mut .return(a:mut ReturnStmt[mdf R]): mut Block[mdf R],
+//  mut .error(a:mut ReturnStmt[Info]): mut Block[mdf R],
+  mut .do(a:mut Do): mut Block[mdf R],
+  }
+BlockIfTrue[R]:BlockIf[mdf R]{
+  .return(a) -> this._return(a#),
+  mut ._return(x: mdf R): mut DecidedBlock[mdf R] -> { x },
+//  .error(a) -> Error#(a#),
+  .do(a) -> this._do(a#),
+  mut ._do(v: Void): mut Block[mdf R] -> this.outer,
+  }
+BlockIfFalse[R]:BlockIf[mdf R]{
+  .return(a) -> this.outer,
+//  .error(a) -> this.outer,
+  .do(a) -> this.outer,
+  }
+DecidedBlock[R]:Block[mdf R]{
+  mut .res: mdf R,
+  .return(a) -> this.res,
+  .var(_,ignored) -> this.res, // todo: allow .var(_,_) -> this.res,
+  .if(a) -> BlockIfFalse[R]{this},
+  .do(a) -> this,
+//  .loop(a) -> this,
+  }

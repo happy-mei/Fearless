@@ -1,0 +1,11 @@
+package base
+
+Str:Sealed{
+  .len: UInt
+  }
+Stringable:{
+  .str: Str,
+  }
+_StrInstance:Str{
+  .len -> this.len
+  }

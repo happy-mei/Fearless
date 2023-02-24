@@ -14,16 +14,19 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 public class TestTypeSystem {
   //  TODO: mut Box[read X] is not valid even after promotion
   // TODO: .m: mut Box[mdf X] must return lent Box[read Person] if mdf X becomes read X (same with lent)
   // TODO: Factory of mutBox and immBox, what types do we get?
-  void ok(String... content){
+  void ok(String... content){ ok(false, content); }
+  void ok(boolean loadBase, String... content){
     assert content.length > 0;
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
-    var ps = Arrays.stream(content)
+    String[] baseLibs = loadBase ? Base.baseLib : new String[0];
+    var ps = Stream.concat(Arrays.stream(content), Arrays.stream(baseLibs))
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
     var p = Parser.parseAll(ps);
@@ -33,7 +36,8 @@ public class TestTypeSystem {
     new WellFormednessShortCircuitVisitor().visitProgram(inferred);
     inferred.typeCheck();
   }
-  void fail(String expectedErr, String... content){
+  void fail(String expectedErr, String... content){ fail(false, expectedErr, content); }
+  void fail(boolean loadBase, String expectedErr, String... content){
     assert content.length > 0;
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
@@ -61,7 +65,7 @@ public class TestTypeSystem {
     A:{ .m: A -> this }
     """); }
 
-  @Test void baseLib(){ ok( Base.immBaseLib); }
+  @Test void baseLib(){ ok(Base.baseLib); }
 
   // TODO: error message is wrong
   @Test void simpleTypeError(){ fail("""
@@ -83,22 +87,22 @@ public class TestTypeSystem {
     C:{ .m2: A -> A.m1(B) }
     """); }
 
-  @Test void numbers1(){ ok( """
+  @Test void numbers1(){ ok( true, """
     package test
     A:{ .m(a: 42): 42 -> 42 }
-    """, Base.immBaseLib); }
+    """); }
 
   @Test void numbersNoBase(){ ok( """
     package test
     A:{ .m(a: 42): 42 -> 42 }
-    """, Base.onlyNums); }
+    """, Base.load("nums.fear")); }
 
-  @Test void numbersSubTyping1(){ ok( """
+  @Test void numbersSubTyping1(){ ok(true, """
     package test
     alias base.Int as Int,
     A:{ .m(a: 42): Int -> a }
-    """, Base.immBaseLib); }
-  @Test void numbersSubTyping2(){ fail("""
+    """); }
+  @Test void numbersSubTyping2(){ fail(true, """
     In position [###]/Dummy0.fear:3:4
     [E23 methTypeError]
     Expected the method .m/1 to return imm 42[], got imm base.Int[].
@@ -106,36 +110,36 @@ public class TestTypeSystem {
     package test
     alias base.Int as Int,
     A:{ .m(a: Int): 42 -> a }
-    """, Base.immBaseLib); }
-  @Test void numbersSubTyping3(){ ok( """
+    """); }
+  @Test void numbersSubTyping3(){ ok(true, """
     package test
     alias base.Int as Int,
     A:{ .a: Int }
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
-    """, Base.immBaseLib); }
-  @Test void numbersSubTyping4(){ ok( """
+    """); }
+  @Test void numbersSubTyping4(){ ok(true, """
     package test
     alias base.Int as Int,
     A:{ .a: Int }
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
     D:B{ .b: Int -> this.a }
-    """, Base.immBaseLib); }
-  @Test void numbersGenericTypes1(){ ok( """
+    """); }
+  @Test void numbersGenericTypes1(){ ok(true, """
     package test
     alias base.Int as Int,
     A[N]:{ .count: N }
     B:A[42]{ 42 }
     C:A[Int]{ 42 }
-    """, Base.immBaseLib); }
-  @Test void numbersGenericTypes2(){ ok( """
+    """); }
+  @Test void numbersGenericTypes2(){ ok(true, """
     package test
     alias base.Int as Int,
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 42 }
     C:A[Int]{ .count -> 56, .sum -> 3001 }
-    """, Base.immBaseLib); }
+    """); }
   @Test void numbersGenericTypes2a(){ fail("""
     In position [###]/Dummy0.fear:4:31
     [E18 uncomposableMethods]
@@ -148,7 +152,7 @@ public class TestTypeSystem {
     alias base.Int as Int,
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 43 }
-    """, Base.onlyNums); }
+    """, Base.load("nums.fear")); }
   @Test void numbersGenericTypes2aWorksThanksTo5b(){ ok("""
     package test
     FortyTwo:{}
@@ -182,12 +186,12 @@ public class TestTypeSystem {
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
     D:B{ .b: 42 -> this.a }
-    """, Base.onlyNums); }
-  @Test void twoInts(){ ok( """
+    """, Base.load("nums.fear")); }
+  @Test void twoInts(){ ok(true, """
     package test
     alias base.Int as Int,
     A:{ .m(a: 56, b: 12): Int -> b+a }
-    """, Base.immBaseLib); }
+    """); }
 
   @Test void noRecMdfWeakening() { fail("""
     In position [###]/Dummy0.fear:4:0
@@ -202,21 +206,21 @@ public class TestTypeSystem {
     List[X]:{ read .get(): recMdf X }
     Family2:List[mut Person]{ read .get(): mut Person }
     """); }
-  @Test void boolIntRet() { ok("""
+  @Test void boolIntRet() { ok(true, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Test:Main[Int]{
       _->False.or(True)?{.then->42,.else->0}
     }
-    """, Base.immBaseLib); }
-  @Test void boolSameRet() { ok("""
+    """); }
+  @Test void boolSameRet() { ok(true, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Foo:{}
     Test:Main[Foo]{
       _->False.or(True)?{.then->Foo,.else->Foo}
     }
-    """, Base.immBaseLib); }
+    """); }
 
   @Test void ref1() { fail("""
     In position [###]/Dummy0.fear:10:42
@@ -246,7 +250,7 @@ public class TestTypeSystem {
       .nm(n: Int): Int -> n,
       .check: Int -> this.nm(Foo.bar)
       }
-    """, Base.onlyNums);}
+    """, Base.load("nums.fear"));}
 
   @Test void numImpls2() { ok("""
     package test
@@ -255,7 +259,7 @@ public class TestTypeSystem {
       .nm(n: Int): Int -> n,
       .check: Int -> this.nm(5)
       }
-    """, Base.onlyNums);}
+    """, Base.load("nums.fear"));}
 
   @Test void numImpls3() { fail("""
     In position [###]/Dummy0.fear:5:25
@@ -271,7 +275,7 @@ public class TestTypeSystem {
       .nm(n: Float): Int -> 12,
       .check: Int -> this.nm(5)
       }
-    """, Base.onlyNums);}
+    """, Base.load("nums.fear"));}
 
   @Test void simpleThis() { ok("""
     package test
