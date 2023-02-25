@@ -41,7 +41,8 @@ public class TestTypeSystem {
     assert content.length > 0;
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
-    var ps = Arrays.stream(content)
+    String[] baseLibs = loadBase ? Base.baseLib : new String[0];
+    var ps = Stream.concat(Arrays.stream(content), Arrays.stream(baseLibs))
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
     var p = Parser.parseAll(ps);
@@ -95,6 +96,9 @@ public class TestTypeSystem {
   @Test void numbersNoBase(){ ok( """
     package test
     A:{ .m(a: 42): 42 -> 42 }
+    """, """
+    package base
+    Sealed:{} Stringable:{ .str: Str } Str:{} Bool:{}
     """, Base.load("nums.fear")); }
 
   @Test void numbersSubTyping1(){ ok(true, """
@@ -140,19 +144,19 @@ public class TestTypeSystem {
     B:A[42]{ .count -> 42, .sum -> 42 }
     C:A[Int]{ .count -> 56, .sum -> 3001 }
     """); }
-  @Test void numbersGenericTypes2a(){ fail("""
+  @Test void numbersGenericTypes2a(){ fail(true, """
     In position [###]/Dummy0.fear:4:31
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy1.fear:45:6) 43[], .float/0
-    ([###]/Dummy1.fear:45:6) 42[], .float/0
+    ([###]/Dummy4.fear:43:2) 43[], .float/0
+    ([###]/Dummy4.fear:43:2) 42[], .float/0
     """, """
     package test
     alias base.Int as Int,
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 43 }
-    """, Base.load("nums.fear")); }
+    """); }
   @Test void numbersGenericTypes2aWorksThanksTo5b(){ ok("""
     package test
     FortyTwo:{}
@@ -175,7 +179,7 @@ public class TestTypeSystem {
     A[N]:{ .count: N, .sum: N }
     B:A[FortyTwo]{ .count -> FortyTwo, .sum -> FortyThree }
     """); }
-  @Test void numbersSubTyping4a(){ fail("""
+  @Test void numbersSubTyping5a(){ fail(true, """
     In position [###]/Dummy0.fear:6:5
     [E23 methTypeError]
     Expected the method .b/0 to return imm 42[], got imm base.Int[].
@@ -186,7 +190,7 @@ public class TestTypeSystem {
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
     D:B{ .b: 42 -> this.a }
-    """, Base.load("nums.fear")); }
+    """); }
   @Test void twoInts(){ ok(true, """
     package test
     alias base.Int as Int,
@@ -242,7 +246,7 @@ public class TestTypeSystem {
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
 
-  @Test void numImpls1() { ok("""
+  @Test void numImpls1() { ok(true, """
     package test
     alias base.Int as Int,
     Foo:{ .bar: 5 -> 5 }
@@ -250,24 +254,24 @@ public class TestTypeSystem {
       .nm(n: Int): Int -> n,
       .check: Int -> this.nm(Foo.bar)
       }
-    """, Base.load("nums.fear"));}
+    """);}
 
-  @Test void numImpls2() { ok("""
+  @Test void numImpls2() { ok(true, """
     package test
     alias base.Int as Int,
     Bar:{
       .nm(n: Int): Int -> n,
       .check: Int -> this.nm(5)
       }
-    """, Base.load("nums.fear"));}
+    """);}
 
-  @Test void numImpls3() { fail("""
+  @Test void numImpls3() { fail(true, """
     In position [###]/Dummy0.fear:5:25
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy1.fear:65:6) 5[], <=/1
-    ([###]/Dummy1.fear:30:6) base.MathOps[imm base.Float[]], <=/1
+    ([###]/Dummy4.fear:63:2) 5[], <=/1
+    ([###]/Dummy4.fear:28:2) base.MathOps[imm base.Float[]], <=/1
     """, """
     package test
     alias base.Int as Int, alias base.Float as Float,
@@ -275,7 +279,7 @@ public class TestTypeSystem {
       .nm(n: Float): Int -> 12,
       .check: Int -> this.nm(5)
       }
-    """, Base.load("nums.fear"));}
+    """);}
 
   @Test void simpleThis() { ok("""
     package test
@@ -296,6 +300,131 @@ public class TestTypeSystem {
         mut .swap(x: X): X,
         mut :=(x: X): Void -> Let#mut Let[X,Void]{ .var -> this.swap(x), .in(_) -> Void },
       }
+    """); }
+
+  @Test void callMutFromLent() { ok("""
+    package test
+    A:{
+      .b: lent B -> {},
+      .doThing: Void -> this.b.foo.ret
+      }
+    B:{
+      mut .foo(): mut B -> this,
+      mut .ret(): Void -> {},
+      }
+    Void:{}
+    """); }
+  @Test void callMutFromIso() { ok("""
+    package test
+    A:{
+      .b: lent B -> {},
+      .doThing: Void -> this.b.foo.ret
+      }
+    B:{
+      mut .foo(): mut B -> this,
+      mut .ret(): Void -> {},
+      }
+    Void:{}
+    """); }
+  @Test void noCallMutFromImm() { fail("""
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
+    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
+    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
+    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
+    """, """
+    package test
+    A:{
+      .b: imm B -> {},
+      .doThing: Void -> this.b.foo.ret
+      }
+    B:{
+      mut .foo(): mut B -> this,
+      mut .ret(): Void -> {},
+      }
+    Void:{}
+    """); }
+  @Test void noCallMutFromRead() { fail("""
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
+    TsT[ts=[imm Fear2$[]], t=read test.B[]]
+    TsT[ts=[imm Fear2$[]], t=read test.B[]]
+    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
+    """, """
+    package test
+    A:{
+      .b: read B -> {},
+      .doThing: Void -> this.b.foo.ret
+      }
+    B:{
+      mut .foo(): mut B -> this,
+      mut .ret(): Void -> {},
+      }
+    Void:{}
+    """); }
+  @Test void noCallMutFromRecMdfImm() { fail("""
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
+    TsT[ts=[read Fear2$[]], t=imm test.B[]]
+    TsT[ts=[read Fear2$[]], t=imm test.B[]]
+    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
+    """, """
+    package test
+    A:{
+      read .b: recMdf B -> {},
+      .doThing: Void -> this.b.foo.ret
+      }
+    B:{
+      mut .foo(): mut B -> this,
+      mut .ret(): Void -> {},
+      }
+    Void:{}
+    """); }
+  @Test void noCallMutFromRecMdfRead() { fail("""
+    In position [###]/Dummy0.fear:4:29
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
+    TsT[ts=[read Fear2$[]], t=read test.B[]]
+    TsT[ts=[read Fear2$[]], t=read test.B[]]
+    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
+    """, """
+    package test
+    A:{
+      read .b: recMdf B -> {},
+      read .doThing: Void -> this.b.foo.ret
+      }
+    B:{
+      mut .foo(): mut B -> this,
+      mut .ret(): Void -> {},
+      }
+    Void:{}
+    """); }
+  @Test void CallMutFromRecMdfLent() { ok("""
+    package test
+    A:{
+      lent .b: recMdf B -> {},
+      lent .doThing: Void -> this.b.foo.ret
+      }
+    B:{
+      mut .foo(): mut B -> this,
+      mut .ret(): Void -> {},
+      }
+    Void:{}
+    """); }
+  @Test void CallMutFromRecMdfMut() { ok("""
+    package test
+    A:{
+      lent .b: recMdf B -> {},
+      mut .doThing: Void -> this.b.foo.ret
+      }
+    B:{
+      mut .foo(): mut B -> this,
+      mut .ret(): Void -> {},
+      }
+    Void:{}
     """); }
 
   // TODO: write a test that shows that the error message for this code makes sense:

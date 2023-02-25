@@ -3,6 +3,7 @@ package program.typesystem;
 import ast.E;
 import ast.T;
 import failure.CompileError;
+import failure.Fail;
 import failure.Res;
 import id.Id;
 import id.Id.MethName;
@@ -15,10 +16,11 @@ import utils.Push;
 import utils.Streams;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-interface EMethTypeSystem extends ETypeSystem {
+public interface EMethTypeSystem extends ETypeSystem {
 
   default Res visitMCall(E.MCall e) {
     var e0 = e.receiver();
@@ -31,18 +33,37 @@ interface EMethTypeSystem extends ETypeSystem {
     List<TsT> tst = optTst.get().stream()
       .filter(this::filterOnRes)
       .toList();
+
+    if (tst.isEmpty()) {
+      throw Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.get()).pos(e.pos());
+    }
+
     List<E> es = Push.of(e0,e.es());
     for (var tsti : tst) {
       if(okAll(es, tsti.ts())) {
         return tsti.t();
       }
     }
-    //two cases here: all failed, or none passed the filter
-    return new CompileError();//TODO:better error, but what error?
+
+    String calls = tst.stream()
+      .map(tst1->{
+        var call = Streams.zip(es, tst1.ts())
+          .map((e1,t1)->{
+            var getT = this.withT(Optional.of(t1));
+            return e1.accept(getT).t().map(e1T->e1+": "+e1T);
+          })
+          .toList();
+        if (call.stream().anyMatch(Optional::isEmpty)) { return Optional.<String>empty(); }
+        return Optional.of("("+call.stream().map(Optional::orElseThrow).collect(Collectors.joining(", "))+") <: "+tst1);
+      })
+      .filter(Optional::isPresent)
+      .map(Optional::orElseThrow)
+      .collect(Collectors.joining("\n"));
+    throw Fail.callTypeError(e, calls).pos(e.pos());
   }
   default boolean filterOnRes(TsT tst){
     if(expectedT().isEmpty()){ return true; }
-    return p().isSubType(expectedT().get().mdf(),tst.t().mdf());
+    return p().isSubType(tst.t().mdf(), expectedT().get().mdf());
   }
   default boolean okAll(List<E>es,List<T> ts) {
     return Streams.zip(es,ts).allMatch(this::ok);
@@ -127,12 +148,12 @@ interface EMethTypeSystem extends ETypeSystem {
       .map(i->transformLents(i,ts,t));
     return Stream.concat(r,ps).toList();
   }
-}
 
-record TsT(List<T> ts, T t){
-  public TsT renameMdfs(Map<Mdf, Mdf> replacements) {
-    List<T> ts = ts().stream().map(ti->ti.withMdf(replacements.getOrDefault(ti.mdf(), ti.mdf()))).toList();
-    T t = t().withMdf(replacements.getOrDefault(t().mdf(), t().mdf()));
-    return new TsT(ts, t);
+  record TsT(List<T> ts, T t){
+    public TsT renameMdfs(Map<Mdf, Mdf> replacements) {
+      List<T> ts = ts().stream().map(ti->ti.withMdf(replacements.getOrDefault(ti.mdf(), ti.mdf()))).toList();
+      T t = t().withMdf(replacements.getOrDefault(t().mdf(), t().mdf()));
+      return new TsT(ts, t);
+    }
   }
 }

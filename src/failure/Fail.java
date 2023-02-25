@@ -6,13 +6,14 @@ import files.Pos;
 import id.Id;
 import id.Mdf;
 import program.CM;
+import program.typesystem.EMethTypeSystem;
 import utils.Bug;
+import utils.Push;
+import utils.Streams;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Fail{
@@ -138,6 +139,17 @@ public class Fail{
     return of("The number "+n+" is not a valid "+kind);
   }
 
+  public static CompileError noCandidateMeths(ast.E.MCall e, ast.T expected, List<EMethTypeSystem.TsT> candidates) {
+    String tsts = candidates.stream()
+      .map(tst->tst.toString())
+      .collect(Collectors.joining("\n"));
+    return of("When attempting to type check the method call: "+e+", no candidates for "+e.name()+" returned the expected type "+expected+". The candidates were:\n"+tsts);
+  }
+
+  public static CompileError callTypeError(ast.E.MCall e, String calls) {
+    return of("Type error: None of the following candidates for this method call:\n"+e+"\nwere valid:\n"+calls);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -176,6 +188,8 @@ enum ErrorCode {
   undefinedName,
   noDupImpls,
   badCapture,
-  invalidNum;
+  invalidNum,
+  noCandidateMeths,
+  callTypeError;
   int code() {return this.ordinal() + 1;}
 }
