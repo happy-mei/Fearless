@@ -10,6 +10,7 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import program.Program;
+import utils.Bug;
 import utils.Streams;
 import visitors.CollectorVisitor;
 
@@ -48,10 +49,14 @@ interface ELambdaTypeSystem extends ETypeSystem{
 
   default Res bothT(Dec d) {
     var b = d.lambda();
+    if (expectedT().map(t->t.rt() instanceof Id.GX<T>).orElse(false)) {
+      throw Fail.bothTExpectedGens(expectedT().orElseThrow(), d.name()).pos(b.pos());
+    }
     //var errMdf = expectedT.map(ti->!p().isSubType(ti.mdf(),b.mdf())).orElse(false);
     //after discussion, line above not needed
+    var its = p().itsOf(d.toIT());
     var expectedT=expectedT().stream()
-      .filter(ti->ti.match(gx->true, it->b.its().contains(it)))
+      .filter(ti->ti.match(gx->false, its::contains))
       .findFirst();
     T retT = expectedT //TOP LEVEL = declared type
       .map(t->t.withMdf(b.mdf()))

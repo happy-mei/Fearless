@@ -77,7 +77,6 @@ public interface EMethTypeSystem extends ETypeSystem {
     return p().tryIsSubType(res.tOrThrow(), t);
   }
 
-
   default Optional<List<TsT>> multiMeth(T rec, MethName m, List<T> ts) {
     return extractMeth(rec, m, ts).map(this::allMeth);
   }
@@ -133,7 +132,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   default TsT transformLents(int i,List<T> ts, T t){
     var ts0 = IntStream.range(0,ts.size()).mapToObj(j->j==i
       ? ts.get(i).withMdf(Mdf.mut)
-      : mutToIso(ts.get(i))
+      : mutToIso(ts.get(j))
     ).toList();
     return new TsT(ts0,mutToIso(t));
   }

@@ -428,6 +428,9 @@ public class TestTypeSystem {
     """); }
 
   @Test void incompatibleGens() { fail("""
+    In position [###]/Dummy1.fear:6:12
+    [E34 bothTExpectedGens]
+    Type error: the generic type lent C cannot be a super-type of any concrete type, like Fear76$/0.
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.IO as IO, alias base.IO' as IO',
@@ -441,6 +444,85 @@ public class TestTypeSystem {
     LentReturnStmt[R]:{ lent #: mdf R }
     System[R]:{
       lent .use[C](c: CapFactory[lent C, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+        cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
+      lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
+      }
+        
+    NotTheRootCap:{}
+    _RootCap:IO{ .println(msg) -> this.println(msg), }
+    UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
+    CapFactory[C,R]:{
+      #(s: lent C): lent R,
+      .close(c: lent R): Void,
+      }
+    IO:{
+      lent .print(msg: Str): Void,
+      lent .println(msg: Str): Void,
+      }
+    IO':CapFactory[lent IO, lent IO]{
+      #(auth: lent IO): lent IO -> auth,
+      .close(c: lent IO): Void -> {},
+      }
+    """, Base.load("lang.fear"), Base.load("strings.fear"), Base.load("nums.fear"), Base.load("bools.fear")); }
+  @Test void incompatibleITs() { fail("""
+    In position [###]/Dummy1.fear:6:11
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    c #/1[]([[-lent-][base._RootCap[], base.NotTheRootCap[]]{'fear6$ }])
+    were valid:
+    """, """
+    package test
+    alias base.Main as Main, alias base.Void as Void, alias base.IO as IO, alias base.IO' as IO',
+    Test:Main[Void]{ s -> s
+      .use[IO] io = IO'
+      .return{ io.println("Hello, World!") }
+      }
+    """, """
+    package base
+    // bad version of caps.fear
+    LentReturnStmt[R]:{ lent #: mdf R }
+    System[R]:{
+      lent .use[C](c: CapFactory[lent _RootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+        cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
+      lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
+      }
+        
+    NotTheRootCap:{}
+    _RootCap:IO{ .println(msg) -> this.println(msg), }
+    UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
+    CapFactory[C,R]:{
+      #(s: lent C): lent R,
+      .close(c: lent R): Void,
+      }
+    IO:{
+      lent .print(msg: Str): Void,
+      lent .println(msg: Str): Void,
+      }
+    IO':CapFactory[lent IO, lent IO]{
+      #(auth: lent IO): lent IO -> auth,
+      .close(c: lent IO): Void -> {},
+      }
+    """, Base.load("lang.fear"), Base.load("strings.fear"), Base.load("nums.fear"), Base.load("bools.fear")); }
+  @Test void incompatibleITsDeep() { fail("""
+    In position [###]/Dummy0.fear:4:16
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy1.fear:22:2) base.IO'[], #/1
+    ([###]/Dummy1.fear:14:2) base.CapFactory[lent base.NotTheRootCap[], lent base.IO[]], #/1
+    """, """
+    package test
+    alias base.Main as Main, alias base.Void as Void, alias base.IO as IO, alias base.IO' as IO',
+    Test:Main[Void]{ s -> s
+      .use[IO] io = IO'
+      .return{ io.println("Hello, World!") }
+      }
+    """, """
+    package base
+    // bad version of caps.fear
+    LentReturnStmt[R]:{ lent #: mdf R }
+    System[R]:{
+      lent .use[C](c: CapFactory[lent NotTheRootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
         cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
       lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
       }

@@ -150,6 +150,10 @@ public class Fail{
     return of("Type error: None of the following candidates for this method call:\n"+e+"\nwere valid:\n"+calls);
   }
 
+  public static CompileError bothTExpectedGens(ast.T expected, Id.DecId dec) {
+    return of("Type error: the generic type "+expected+" cannot be a super-type of any concrete type, like "+dec+".");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -190,6 +194,7 @@ enum ErrorCode {
   badCapture,
   invalidNum,
   noCandidateMeths,
-  callTypeError;
+  callTypeError,
+  bothTExpectedGens;
   int code() {return this.ordinal() + 1;}
 }
