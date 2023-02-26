@@ -12,6 +12,7 @@ import failure.Fail;
 import program.inference.RefineTypes;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
+import program.typesystem.TraitTypeSystem;
 import utils.*;
 import visitors.CloneVisitor;
 
@@ -33,18 +34,6 @@ public interface Program {
   static void reset() {
     methsCache.clear();
     subTypeCache.clear();
-  }
-
-  default void typeCheck() {
-    var g = Gamma.empty();
-    var checker = ETypeSystem.of(this, g, Optional.empty(), 0);
-    lambdas().stream()
-      .map(checker::visitLambda)
-      .map(Res::err)
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .findAny()
-      .ifPresent(err->{ throw err; });
   }
 
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
@@ -179,7 +168,7 @@ public interface Program {
   record FullMethSig(Id.MethName name, E.Sig sig){}
   default Optional<FullMethSig> fullSig(List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
     var nFresh = new Box<>(0);
-    var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).toList();
+    var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
     var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), new ast.E.Lambda(
       Mdf.mdf,
       coreIts,

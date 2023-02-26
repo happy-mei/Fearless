@@ -8,13 +8,14 @@ import id.Id.IT;
 import id.Mdf;
 import utils.Mapper;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface TraitTypeSystem {
   Program p();
-  static List<CompileError> dsOk(List<Dec> ds){
-    Program p = new Program(Mapper.of(c->ds.stream().forEach(e->c.put(e.name(),e))));
+  static List<CompileError> dsOk(Collection<Dec> ds){
+    Program p = new Program(Mapper.of(c->ds.forEach(e->c.put(e.name(),e))));
     TraitTypeSystem ttt=()->p;
     return ds.stream().flatMap(di->ttt.dOk(di).stream()).toList();
   }
@@ -25,8 +26,8 @@ public interface TraitTypeSystem {
     assert b.selfName().equals("this");
     //TODO: is this ok, by reusing the other meth?
     //if so, should we remove the other meth from the formalism?
-    var cT=new IT<T>(c,xs.stream().map(x->new T(Mdf.mdf,x)).toList());
-    try{ var meths=p().meths(cT,0); }
+    var cT=new IT<>(c,xs.stream().map(x->new T(Mdf.mdf,x)).toList());
+    try{ p().meths(cT,0); }
     catch(CompileError ce){ return Optional.of(ce); }
     assert d.lambda().mdf()==Mdf.mdf;
     return ETypeSystem.of(p(),Gamma.empty(),Optional.empty(),0).bothT(d).err();

@@ -330,9 +330,9 @@ public class TestTypeSystem {
     In position [###]/Dummy0.fear:4:24
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
-    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
-    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
+    TsT[ts=[imm test.A[]], t=imm test.B[]]
+    TsT[ts=[imm test.A[]], t=imm test.B[]]
+    TsT[ts=[imm test.A[]], t=imm test.B[]]
     """, """
     package test
     A:{
@@ -349,9 +349,9 @@ public class TestTypeSystem {
     In position [###]/Dummy0.fear:4:24
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    TsT[ts=[imm Fear2$[]], t=read test.B[]]
-    TsT[ts=[imm Fear2$[]], t=read test.B[]]
-    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
+    TsT[ts=[imm test.A[]], t=read test.B[]]
+    TsT[ts=[imm test.A[]], t=read test.B[]]
+    TsT[ts=[imm test.A[]], t=imm test.B[]]
     """, """
     package test
     A:{
@@ -368,9 +368,9 @@ public class TestTypeSystem {
     In position [###]/Dummy0.fear:4:24
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    TsT[ts=[read Fear2$[]], t=imm test.B[]]
-    TsT[ts=[read Fear2$[]], t=imm test.B[]]
-    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
+    TsT[ts=[read test.A[]], t=imm test.B[]]
+    TsT[ts=[read test.A[]], t=imm test.B[]]
+    TsT[ts=[imm test.A[]], t=imm test.B[]]
     """, """
     package test
     A:{
@@ -387,9 +387,9 @@ public class TestTypeSystem {
     In position [###]/Dummy0.fear:4:29
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    TsT[ts=[read Fear2$[]], t=read test.B[]]
-    TsT[ts=[read Fear2$[]], t=read test.B[]]
-    TsT[ts=[imm Fear2$[]], t=imm test.B[]]
+    TsT[ts=[read test.A[]], t=read test.B[]]
+    TsT[ts=[read test.A[]], t=read test.B[]]
+    TsT[ts=[imm test.A[]], t=imm test.B[]]
     """, """
     package test
     A:{
@@ -426,6 +426,41 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
+
+  @Test void incompatibleGens() { fail("""
+    """, """
+    package test
+    alias base.Main as Main, alias base.Void as Void, alias base.IO as IO, alias base.IO' as IO',
+    Test:Main[Void]{ s -> s
+      .use[IO] io = IO'
+      .return{ io.println("Hello, World!") }
+      }
+    """, """
+    package base
+    // bad version of caps.fear
+    LentReturnStmt[R]:{ lent #: mdf R }
+    System[R]:{
+      lent .use[C](c: CapFactory[lent C, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+        cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
+      lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
+      }
+        
+    NotTheRootCap:{}
+    _RootCap:IO{ .println(msg) -> this.println(msg), }
+    UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
+    CapFactory[C,R]:{
+      #(s: lent C): lent R,
+      .close(c: lent R): Void,
+      }
+    IO:{
+      lent .print(msg: Str): Void,
+      lent .println(msg: Str): Void,
+      }
+    IO':CapFactory[lent IO, lent IO]{
+      #(auth: lent IO): lent IO -> auth,
+      .close(c: lent IO): Void -> {},
+      }
+    """, Base.load("lang.fear"), Base.load("strings.fear"), Base.load("nums.fear"), Base.load("bools.fear")); }
 
   // TODO: write a test that shows that the error message for this code makes sense:
   /*

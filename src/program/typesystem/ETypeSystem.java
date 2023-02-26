@@ -2,10 +2,9 @@ package program.typesystem;
 
 import ast.E;
 import ast.T;
-import program.Program;
-import utils.Bug;
-import visitors.Visitor;
 import failure.Res;
+import program.Program;
+import visitors.Visitor;
 
 import java.util.Optional;
 

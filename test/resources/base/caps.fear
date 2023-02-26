@@ -2,12 +2,13 @@ package base
 
 LentReturnStmt[R]:{ lent #: mdf R }
 System[R]:Sealed{
-  lent .use[C](c: CapFactory[lent _RootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
-    cont#(c#_RootCap, this), // TODO: use a block here to call c.close afterwards
+  lent .use[C](c: CapFactory[lent C, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+    cont#(c#NotTheRootCap, this), // TODO: use a block here to call c.close afterwards
   // mut .clone(): iso System[mdf R] -> {},
   lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
   }
 
+NotTheRootCap:{}
 _RootCap:Sealed,IO{
   .print(msg) -> this.print(msg),
   .println(msg) -> this.println(msg),
@@ -21,7 +22,7 @@ IO:{
   lent .print(msg: Str): Void,
   lent .println(msg: Str): Void,
   }
-IO':CapFactory[lent _RootCap, lent IO]{
-  #(auth: lent _RootCap): lent IO -> auth,
+IO':CapFactory[lent IO, lent IO]{
+  #(auth: lent IO): lent IO -> auth,
   .close(c: lent IO): Void -> {},
   }
