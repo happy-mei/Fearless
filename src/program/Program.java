@@ -12,10 +12,7 @@ import failure.Fail;
 import program.inference.RefineTypes;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
-import utils.Bug;
-import utils.Pop;
-import utils.Push;
-import utils.Streams;
+import utils.*;
 import visitors.CloneVisitor;
 
 import java.util.*;
@@ -180,12 +177,18 @@ public interface Program {
   }
 
   record FullMethSig(Id.MethName name, E.Sig sig){}
-  default Optional<FullMethSig> fullSig(Id.IT<astFull.T> it, int depth, Predicate<CM> pred) {
-    var freshGXs = Id.GX.standardNames(it.ts().size());
-    var freshGXsSet = new HashSet<>(freshGXs);
-    var freshGXsQueue = new ArrayDeque<>(freshGXs);
-    var ts = it.ts().stream().map(t->new ast.T(Mdf.mdf, freshGXsQueue.poll())).toList();
-    var myM_ = meths(new Id.IT<>(it.name(), ts), depth).stream()
+  default Optional<FullMethSig> fullSig(List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
+    var nFresh = new Box<>(0);
+    var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).toList();
+    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), new ast.E.Lambda(
+      Mdf.mdf,
+      coreIts,
+      "fearTmp$",
+      List.of(),
+      Optional.empty()
+    ), Optional.empty());
+    var p = this.withDec(dec);
+    var myM_ = p.meths(dec.toIT(), depth).stream()
       .filter(pred)
       .toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
@@ -193,6 +196,7 @@ public interface Program {
 
     var cm = myM_.get(0);
     var sig = cm.sig().toAstFullSig();
+    var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
     var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(freshGXsSet, t)).toList();
     var restoredRt = RefineTypes.regenerateInfers(freshGXsSet, sig.ret());
     var restoredSig = new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos());

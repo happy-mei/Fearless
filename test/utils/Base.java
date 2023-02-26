@@ -28,7 +28,7 @@ public interface Base {
     load("assertions.fear"),
     load("ref.fear"),
     load("optionals.fear"),
-//    load("block.fear"),
+    load("block.fear"),
     load("errors.fear"),
   };
 

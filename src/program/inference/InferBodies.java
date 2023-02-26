@@ -7,6 +7,7 @@ import id.Mdf;
 import program.CM;
 import program.Program;
 import utils.Bug;
+import utils.Push;
 import utils.Streams;
 import visitors.InjectionVisitor;
 
@@ -126,24 +127,26 @@ public record InferBodies(ast.Program p) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isPresent()){ return Optional.empty(); }
-    var res = onlyAbs(e.it().get(), depth).map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()));
+    var res = onlyAbs(e, depth).map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()));
     assert res.map(m1->!m.equals(m1)).orElse(true);
     return res;
   }
 
   // todo: make a new Dec for the lambda here and do a p.withDec to get the correct meths result
-  Optional<Program.FullMethSig> onlyAbs(Id.IT<astFull.T> it, int depth){
-    return p.fullSig(it, depth, CM::isAbs);
+  Optional<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
+    var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
+    return p.fullSig(its, depth, CM::isAbs);
   }
-  Optional<Program.FullMethSig> onlyMName(Id.IT<astFull.T> it, Id.MethName name, int depth){
-    return p.fullSig(it, depth, cm->cm.name().equals(name));
+  Optional<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
+    var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
+    return p.fullSig(its, depth, cm->cm.name().equals(name));
   }
 
   Optional<E.Meth> bPropGetSig(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isEmpty()){ return Optional.empty(); }
-    var sig = onlyMName(e.it().get(), m.name().get(), depth);
+    var sig = onlyMName(e, m.name().get(), depth);
     if(sig.isEmpty()){ return Optional.empty(); }
     var res = sig.map(s->m.withSig(s.sig()));
     assert res.map(m1->!m.equals(m1)).orElse(true);
@@ -221,7 +224,7 @@ public record InferBodies(ast.Program p) {
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
     // TODO: handle methods that don't exist with a good user facing message
-    var sig = p.fullSig(recv, depth, cm->cm.name().equals(e.name())).orElseThrow().sig();
+    var sig = p.fullSig(List.of(recv), depth, cm->cm.name().equals(e.name())).orElseThrow().sig();
     var k = sig.gens().size();
     var infers = Collections.nCopies(k, T.infer);
     return Optional.of(e.withTs(Optional.of(infers)));

@@ -56,7 +56,7 @@ DecidedBlock[R]:Block[mdf R]{
   mut .res: mdf R,
   .return(a) -> this.res,
   .var(_,ignored) -> this.res, // todo: allow .var(_,_) -> this.res,
-  .if(a) -> BlockIfFalse[R]{this},
+  .if(a) -> BlockIfFalse[mdf R]{this},
   .do(a) -> this,
 //  .loop(a) -> this,
   }

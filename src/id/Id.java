@@ -55,7 +55,7 @@ public class Id {
     private static HashMap<Integer, List<GX<ast.T>>> freshNames = new HashMap<>();
     public static void reset() {
       freshNames.clear();
-      if (FRESH_N > 100) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
+      if (FRESH_N > 300) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
       FRESH_N = 0;
     }
     public static List<GX<ast.T>> standardNames(int n) {

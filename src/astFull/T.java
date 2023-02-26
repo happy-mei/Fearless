@@ -4,10 +4,12 @@ import files.HasPos;
 import files.Pos;
 import id.Id;
 import id.Mdf;
+import utils.Box;
 import utils.Bug;
 import visitors.FullCloneVisitor;
 import visitors.FullShortCircuitVisitor;
 
+import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,6 +44,19 @@ public final class T {
       gx->new ast.T(mdf(), new Id.GX<>(gx.name())),
       it->{
         var ts = it.ts().stream().map(T::toAstT).toList();
+        return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
+      });
+  }
+  public ast.T toAstTFreshenInfers(Box<Integer> nFresh) {
+    if (this.isInfer()) {
+      int n = nFresh.get();
+      nFresh.set(n+1);
+      return new ast.T(Mdf.mdf, new Id.GX<>("FearTmp"+n+"$"));
+    }
+    return this.match(
+      gx->new ast.T(mdf(), new Id.GX<>(gx.name())),
+      it->{
+        var ts = it.ts().stream().map(t->t.toAstTFreshenInfers(nFresh)).toList();
         return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
       });
   }
