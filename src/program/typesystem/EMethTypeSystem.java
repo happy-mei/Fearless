@@ -35,7 +35,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       .toList();
 
     if (tst.isEmpty()) {
-      throw Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.get()).pos(e.pos());
+      return Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.get()).pos(e.pos());
     }
 
     List<E> es = Push.of(e0,e.es());
@@ -53,13 +53,10 @@ public interface EMethTypeSystem extends ETypeSystem {
             return e1.accept(getT).t().map(e1T->e1+": "+e1T);
           })
           .toList();
-        if (call.stream().anyMatch(Optional::isEmpty)) { return Optional.<String>empty(); }
-        return Optional.of("("+call.stream().map(Optional::orElseThrow).collect(Collectors.joining(", "))+") <: "+tst1);
+        return "("+call.stream().map(oT->oT.orElse("?")).collect(Collectors.joining(", "))+") <: "+tst1;
       })
-      .filter(Optional::isPresent)
-      .map(Optional::orElseThrow)
       .collect(Collectors.joining("\n"));
-    throw Fail.callTypeError(e, calls).pos(e.pos());
+    return Fail.callTypeError(e, calls).pos(e.pos());
   }
   default boolean filterOnRes(TsT tst){
     if(expectedT().isEmpty()){ return true; }

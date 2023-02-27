@@ -544,6 +544,12 @@ public class TestTypeSystem {
       }
     """, Base.load("lang.fear"), Base.load("strings.fear"), Base.load("nums.fear"), Base.load("bools.fear")); }
 
+  @Test void recMdfInSubHyg() { ok(false, """
+    package test
+    A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ x }.argh }
+    B[X]:{ read .argh: recMdf X }
+    """); }
+
   // TODO: write a test that shows that the error message for this code makes sense:
   /*
       // (Void is the wrong R and this returns Opt[Opt[T]] instead of Opt[T] or the written Void.
