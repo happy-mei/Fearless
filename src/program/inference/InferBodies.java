@@ -132,7 +132,6 @@ public record InferBodies(ast.Program p) {
     return res;
   }
 
-  // todo: make a new Dec for the lambda here and do a p.withDec to get the correct meths result
   Optional<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
     return p.fullSig(its, depth, CM::isAbs);
