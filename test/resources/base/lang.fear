@@ -1,4 +1,5 @@
 package base
+alias base.caps.System as System,
 
 Main[R]:{ #(s: lent System[R]): mdf R }
 NoMutHyg[X]:{}

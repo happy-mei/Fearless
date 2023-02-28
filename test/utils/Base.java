@@ -21,7 +21,7 @@ public interface Base {
 
   String[] baseLib = {
     load("lang.fear"),
-    load("caps.fear"),
+    load("caps/caps.fear"),
     load("bools.fear"),
     load("nums.fear"),
     load("strings.fear"),

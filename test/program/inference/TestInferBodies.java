@@ -387,7 +387,7 @@ public class TestInferBodies {
 
   @Test void boolUsage() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
-      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[immbase.Int[]]],ret=immbase.Int[]]->
+      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.caps.System[immbase.Int[]]],ret=immbase.Int[]]->
         [-imm-][base.False[]]{'fear6$}
           .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear7$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear8$
@@ -399,10 +399,10 @@ public class TestInferBodies {
     Test:Main[Int]{
       _->False.or(True)?{.then->42,.else->0}
     }
-    """, Base.load("lang.fear"), Base.load("caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear")); }
+    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear")); }
   @Test void boolUsageExplicitGens() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
-      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[immbase.Int[]]],ret=immbase.Int[]]->
+      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.caps.System[immbase.Int[]]],ret=immbase.Int[]]->
         [-imm-][base.False[]]{'fear6$}
           .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear7$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear8$
@@ -414,7 +414,7 @@ public class TestInferBodies {
     Test:Main[Int]{
       _->False.or(True) ?[Int]{ .then -> 42, .else -> 0 }
     }
-    """, Base.load("lang.fear"), Base.load("caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear")); }
+    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear")); }
   // TODO: why isn't this inferring gens?
   @Test void boolUsageExplicitGensBasicSameT() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[imm42[]]]{'this
@@ -665,13 +665,13 @@ public class TestInferBodies {
       .nm(n: Int): Int -> n,
       .check: Int -> this.nm(Foo.bar)
       }
-    """, Base.load("lang.fear"), Base.load("caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"));}
+    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"));}
 
   @Test void numImpls2() { ok("""
     {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
       .nm/1([n]):Sig[mdf=imm,gens=[],ts=[immbase.Int[]],ret=immbase.Int[]]->n,
       .check/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->
-        this.nm/1[]([[-imm-][base.Int[],5[]]{'fear2$}])}]}
+        this.nm/1[]([[-imm-][base.Int[],5[]]{'fear3$}])}]}
     """, """
     package test
     alias base.Int as Int,
@@ -679,7 +679,7 @@ public class TestInferBodies {
       .nm(n: Int): Int -> n,
       .check: Int -> this.nm(5)
       }
-    """, Base.load("lang.fear"), Base.load("caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"));}
+    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"));}
 
   @Test void numImpls3() { fail("""
     """, """
@@ -689,7 +689,7 @@ public class TestInferBodies {
       .nm(n: 6): Int -> 12,
       .check: Int -> this.nm(5)
       }
-    """, Base.load("lang.fear"), Base.load("caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"));}
+    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"));}
 
   @Test void assertions() { ok("""
     {test.Assert/0=Dec[name=test.Assert/0,gxs=[],lambda=[-mdf-][test.Assert[]]{'this

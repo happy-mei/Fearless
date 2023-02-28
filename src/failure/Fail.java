@@ -152,6 +152,10 @@ public class Fail{
     return of("Type error: the generic type "+expected+" cannot be a super-type of any concrete type, like "+dec+".");
   }
 
+  public static CompileError sealedCreation(Id.DecId sealedDec, String pkg) {
+    return of("The sealed trait "+sealedDec+" cannot be created in a different package ("+pkg+").");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -193,6 +197,7 @@ enum ErrorCode {
   invalidNum,
   noCandidateMeths,
   callTypeError,
-  bothTExpectedGens;
+  bothTExpectedGens,
+  sealedCreation;
   int code() {return this.ordinal() + 1;}
 }

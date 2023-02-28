@@ -1,4 +1,5 @@
-package base
+package base.caps
+alias base.Sealed as Sealed, alias base.Void as Void, alias base.Str as Str,
 
 LentReturnStmt[R]:{ lent #: mdf R }
 System[R]:Sealed{

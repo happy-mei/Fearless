@@ -35,7 +35,7 @@ public class TestJavaProgram {
     });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
-    new WellFormednessShortCircuitVisitor().visitProgram(inferred);
+    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     inferred.typeCheck();
     var mir = new MIRInjectionVisitor(inferred).visitProgram();
     var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
@@ -56,7 +56,7 @@ public class TestJavaProgram {
     });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
-    new WellFormednessShortCircuitVisitor().visitProgram(inferred);
+    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     inferred.typeCheck();
     var mir = new MIRInjectionVisitor(inferred).visitProgram();
     try {
@@ -221,19 +221,20 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Void as Void,
     Test:Main[Void]{ s -> s
-      .use[base.IO](base.IO', { io, s' -> s'.return{ io.println "Hello, World!" } })
+      .use[base.caps.IO](base.caps.IO', { io, s' -> s'.return{ io.println "Hello, World!" } })
       }
     """);}
   @Test void printlnInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
     Test:Main[Void]{ s -> s
-      .use(base.IO', { io, s' -> s'.return{ io.println "Hello, World!" } })
+      .use(base.caps.IO', { io, s' -> s'.return{ io.println "Hello, World!" } })
       }
     """);}
   @Test void printlnSugar() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
-    alias base.Main as Main, alias base.Void as Void, alias base.IO as IO, alias base.IO' as IO',
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.IO' as IO',
     Test:Main[Void]{ s -> s
       .use[IO] io = IO'
       .return{ io.println("Hello, World!") }
@@ -242,11 +243,12 @@ public class TestJavaProgram {
   @Test void printlnSugarInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO' as IO',
     Test:Main[Void]{ s -> s
-      .use io = base.IO'
+      .use io = IO'
       .return{ io.println("Hello, World!") }
       }
-    """);}
+    """); }
 
   @Test void nestedPkgs() { ok(new Res("", "", 0), "test.Test", """
     package test

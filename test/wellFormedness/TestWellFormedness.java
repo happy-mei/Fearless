@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.inference.InferBodies;
+import utils.Base;
 import utils.Err;
 
 import java.nio.file.Path;
@@ -25,7 +26,7 @@ public class TestWellFormedness {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
-    var res = new WellFormednessShortCircuitVisitor().visitProgram(inferred);
+    var res = new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     var isWellFormed = res.isEmpty();
     assertTrue(isWellFormed, res.map(Object::toString).orElse(""));
   }
@@ -36,11 +37,12 @@ public class TestWellFormedness {
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
     var p = Parser.parseAll(ps);
+    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
 
     try {
-      var error = new WellFormednessShortCircuitVisitor().visitProgram(inferred);
+      var error = new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
       if (error.isEmpty()) { Assertions.fail("Did not fail"); }
       Err.strCmp(expectedErr, error.map(Object::toString).orElseThrow());
     } catch (CompileError e) {
@@ -137,5 +139,75 @@ public class TestWellFormedness {
     package test
     Foo:{}
     Bar:{ .a: Foo -> recMdf Foo }
+    """); }
+
+  @Test void sealedOutsidePkg() { fail("""
+    In position [###]/Dummy1.fear:2:2
+    [E35 sealedCreation]
+    The sealed trait a.A/0 cannot be created in a different package (b).
+    """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{}
+    B:A{}
+    """, """
+    package b
+    C:a.A{}
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void sealedOutsidePkgNested() { fail("""
+    In position [###]/Dummy1.fear:2:2
+    [E35 sealedCreation]
+    The sealed trait a.A/0 cannot be created in a different package (b).
+    """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{}
+    B:A{}
+    """, """
+    package b
+    C:a.B{}
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void sealedOutsidePkgInline() { fail("""
+    In position [###]/Dummy1.fear:4:17
+    [E35 sealedCreation]
+    The sealed trait a.A/0 cannot be created in a different package (b).
+    """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{ .a: Foo -> {} }
+    B:A{}
+    Foo:{}
+    """, """
+    package b
+    alias a.A as A, alias a.Foo as Foo,
+    C:{
+      .foo(): Foo -> A.a
+      }
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void sealedOutsidePkgConstructor() { ok("""
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{ .a: Foo -> {} }
+    A':{ #: A -> {} }
+    B:A{}
+    Foo:{}
+    """, """
+    package b
+    alias a.A' as A', alias a.Foo as Foo,
+    C:{
+      .foo(): Foo -> A'#.a
+      }
+    """, """
+    package base
+    Sealed:{}
     """); }
 }

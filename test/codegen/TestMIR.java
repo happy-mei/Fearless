@@ -29,7 +29,7 @@ public class TestMIR {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
-    new WellFormednessShortCircuitVisitor().visitProgram(inferred);
+    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     inferred.typeCheck();
     var mir = new MIRInjectionVisitor(inferred).visitProgram();
     var toJson = new ObjectMapper().registerModule(new Jdk8Module().configureAbsentsAsNulls(true));

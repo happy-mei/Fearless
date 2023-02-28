@@ -1,40 +1,41 @@
 package wellFormedness;
 
 import ast.E;
+import ast.Program;
 import ast.T;
-import astFull.Program;
 import failure.CompileError;
 import failure.Fail;
-import files.HasPos;
 import id.Id;
-import id.Mdf;
 import magic.Magic;
-import visitors.FullShortCircuitVisitorWithEnv;
 import visitors.ShortCircuitVisitor;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 // TODO: Sealed and _C/_m restrictions
 public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<CompileError> {
+  private final Program p;
+  private Optional<String> pkg = Optional.empty();
+  public WellFormednessShortCircuitVisitor(Program p) { this.p = p; }
+
   @Override
-  public Optional<CompileError> visitLambda(E.Lambda e) {
+  public Optional<CompileError> visitDec(T.Dec d) {
+    pkg = Optional.of(d.name().pkg());
+    return ShortCircuitVisitor.super.visitDec(d);
+  }
+
+  @Override public Optional<CompileError> visitLambda(E.Lambda e) {
     return ShortCircuitVisitor.visitAll(e.its(), it->noRecMdfInImpls(it).map(err->err.pos(e.pos())))
+      .or(()->noSealedOutsidePkg(e))
       .or(()->ShortCircuitVisitor.super.visitLambda(e));
   }
 
-  @Override
-  public Optional<CompileError> visitMeth(E.Meth e) {
+  @Override public Optional<CompileError> visitMeth(E.Meth e) {
     return noRecMdfInNonHyg(e)
       .or(()->ShortCircuitVisitor.super.visitMeth(e));
   }
 
-  @Override
-  public Optional<CompileError> visitT(T t) {
+  @Override public Optional<CompileError> visitT(T t) {
     assert !(t.mdf().isMdf() && t.isIt());
     return ShortCircuitVisitor.super.visitT(t);
   }
@@ -60,5 +61,20 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
         return ShortCircuitVisitor.super.visitT(t);
       }
     }.visitMeth(m);
+  }
+
+  private Optional<CompileError> noSealedOutsidePkg(E.Lambda e) {
+    var pkg = this.pkg.orElseThrow();
+    return getSealedDec(e.its()).filter(dec->!dec.pkg().equals(pkg)).map(dec->Fail.sealedCreation(dec, pkg).pos(e.pos()));
+  }
+
+  private Optional<Id.DecId> getSealedDec(List<Id.IT<T>> its) {
+    if (its.isEmpty()) { return Optional.empty(); }
+    return its.stream()
+//      .map(Id.IT::name)
+      .filter(it->p.itsOf(it).stream().anyMatch(it1->it1.name().equals(Magic.Sealed)))
+      .map(Id.IT::name)
+      .findFirst()
+      .or(()->getSealedDec(its.stream().flatMap(it->p.itsOf(it).stream()).toList()));
   }
 }

@@ -31,14 +31,14 @@ public class Program implements program.Program{
     return of(t).pos();
   }
 
-  T.Dec of(Id.DecId d) {
+  public T.Dec of(Id.DecId d) {
     var res = ds.get(d);
     if (res == null) { res = Magic.getFullDec(this::of, d); }
     if (res == null) { throw Fail.traitNotFound(d); }
     return res;
   }
 
-  T.Dec of(Id.IT<ast.T> t) {
+  public T.Dec of(Id.IT<ast.T> t) {
     return of(t.name());
   }
   @Override public List<Id.IT<ast.T>> itsOf(Id.IT<ast.T> t){

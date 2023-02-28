@@ -33,7 +33,7 @@ public class TestTypeSystem {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
-    new WellFormednessShortCircuitVisitor().visitProgram(inferred);
+    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     inferred.typeCheck();
   }
   void fail(String expectedErr, String... content){ fail(false, expectedErr, content); }
@@ -327,12 +327,15 @@ public class TestTypeSystem {
     Void:{}
     """); }
   @Test void noCallMutFromImm() { fail("""
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    TsT[ts=[imm test.A[]], t=imm test.B[]]
-    TsT[ts=[imm test.A[]], t=imm test.B[]]
-    TsT[ts=[imm test.A[]], t=imm test.B[]]
+    In position [###]/Dummy0.fear:4:26
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .b/0[]([]) .foo/0[]([])
+    were valid:
+    (?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -346,12 +349,15 @@ public class TestTypeSystem {
     Void:{}
     """); }
   @Test void noCallMutFromRead() { fail("""
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    TsT[ts=[imm test.A[]], t=read test.B[]]
-    TsT[ts=[imm test.A[]], t=read test.B[]]
-    TsT[ts=[imm test.A[]], t=imm test.B[]]
+    In position [###]/Dummy0.fear:4:26
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .b/0[]([]) .foo/0[]([])
+    were valid:
+    (?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -365,12 +371,15 @@ public class TestTypeSystem {
     Void:{}
     """); }
   @Test void noCallMutFromRecMdfImm() { fail("""
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    TsT[ts=[read test.A[]], t=imm test.B[]]
-    TsT[ts=[read test.A[]], t=imm test.B[]]
-    TsT[ts=[imm test.A[]], t=imm test.B[]]
+    In position [###]/Dummy0.fear:4:26
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .b/0[]([]) .foo/0[]([])
+    were valid:
+    (?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -384,12 +393,15 @@ public class TestTypeSystem {
     Void:{}
     """); }
   @Test void noCallMutFromRecMdfRead() { fail("""
-    In position [###]/Dummy0.fear:4:29
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    TsT[ts=[read test.A[]], t=read test.B[]]
-    TsT[ts=[read test.A[]], t=read test.B[]]
-    TsT[ts=[imm test.A[]], t=imm test.B[]]
+    In position [###]/Dummy0.fear:4:31
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .b/0[]([]) .foo/0[]([])
+    were valid:
+    (?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -428,18 +440,20 @@ public class TestTypeSystem {
     """); }
 
   @Test void incompatibleGens() { fail("""
-    In position [###]/Dummy1.fear:6:12
+    In position [###]/Dummy1.fear:7:12
     [E34 bothTExpectedGens]
-    Type error: the generic type lent C cannot be a super-type of any concrete type, like Fear76$/0.
+    Type error: the generic type lent C cannot be a super-type of any concrete type, like Fear71$/0.
     """, """
     package test
-    alias base.Main as Main, alias base.Void as Void, alias base.IO as IO, alias base.IO' as IO',
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.IO' as IO',
     Test:Main[Void]{ s -> s
       .use[IO] io = IO'
       .return{ io.println("Hello, World!") }
       }
     """, """
-    package base
+    package base.caps
+    alias base.Sealed as Sealed, alias base.Void as Void, alias base.Str as Str,
     // bad version of caps.fear
     LentReturnStmt[R]:{ lent #: mdf R }
     System[R]:{
@@ -465,20 +479,27 @@ public class TestTypeSystem {
       }
     """, Base.load("lang.fear"), Base.load("strings.fear"), Base.load("nums.fear"), Base.load("bools.fear")); }
   @Test void incompatibleITs() { fail("""
-    In position [###]/Dummy1.fear:6:11
+    In position [###]/Dummy1.fear:7:8
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
-    c #/1[]([[-lent-][base._RootCap[], base.NotTheRootCap[]]{'fear6$ }])
+    cont #/2[]([c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear1$ }]), this])
     were valid:
+    (cont: mut base.caps.UseCapCont[imm C, mdf R], ?, this: lent base.caps.System[mdf R]) <: TsT[ts=[mut base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]], t=mdf R]
+    (cont: mut base.caps.UseCapCont[imm C, mdf R], ?, this: lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]], t=mdf R]
+    (cont: mut base.caps.UseCapCont[imm C, mdf R], ?, this: lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], iso C, iso base.caps.System[mdf R]], t=mdf R]
+    (cont: mut base.caps.UseCapCont[imm C, mdf R], ?, this: lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], mut C, lent base.caps.System[mdf R]], t=mdf R]
+    (cont: mut base.caps.UseCapCont[imm C, mdf R], ?, this: lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], lent C, mut base.caps.System[mdf R]], t=mdf R]
     """, """
     package test
-    alias base.Main as Main, alias base.Void as Void, alias base.IO as IO, alias base.IO' as IO',
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.IO' as IO',
     Test:Main[Void]{ s -> s
       .use[IO] io = IO'
       .return{ io.println("Hello, World!") }
       }
     """, """
-    package base
+    package base.caps
+    alias base.Sealed as Sealed, alias base.Void as Void, alias base.Str as Str,
     // bad version of caps.fear
     LentReturnStmt[R]:{ lent #: mdf R }
     System[R]:{
@@ -498,27 +519,29 @@ public class TestTypeSystem {
       lent .print(msg: Str): Void,
       lent .println(msg: Str): Void,
       }
-    IO':CapFactory[lent IO, lent IO]{
-      #(auth: lent IO): lent IO -> auth,
+    IO':CapFactory[lent _RootCap, lent IO]{
+      #(auth: lent _RootCap): lent IO -> auth,
       .close(c: lent IO): Void -> {},
       }
     """, Base.load("lang.fear"), Base.load("strings.fear"), Base.load("nums.fear"), Base.load("bools.fear")); }
   @Test void incompatibleITsDeep() { fail("""
-    In position [###]/Dummy0.fear:4:16
+    In position [###]/Dummy0.fear:5:16
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy1.fear:22:2) base.IO'[], #/1
-    ([###]/Dummy1.fear:14:2) base.CapFactory[lent base.NotTheRootCap[], lent base.IO[]], #/1
+    ([###]/Dummy1.fear:23:2) base.caps.IO'[], #/1
+    ([###]/Dummy1.fear:15:2) base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], #/1
     """, """
     package test
-    alias base.Main as Main, alias base.Void as Void, alias base.IO as IO, alias base.IO' as IO',
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.IO' as IO',
     Test:Main[Void]{ s -> s
       .use[IO] io = IO'
       .return{ io.println("Hello, World!") }
       }
     """, """
-    package base
+    package base.caps
+    alias base.Sealed as Sealed, alias base.Void as Void, alias base.Str as Str,
     // bad version of caps.fear
     LentReturnStmt[R]:{ lent #: mdf R }
     System[R]:{

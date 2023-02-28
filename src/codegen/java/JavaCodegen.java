@@ -24,7 +24,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       throw Bug.todo();
     }
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ base.Main_1 entry = new "+entryName+"(){}; entry.$35$(new base.System_1(){}); }\n";
+    var init = "\nstatic void main(String[] args){ base.Main_1 entry = new "+entryName+"(){}; entry.$35$(new base$46caps.System_1(){}); }\n";
 
     return "interface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))

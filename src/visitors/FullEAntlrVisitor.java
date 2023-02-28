@@ -197,7 +197,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   public Id.IT<T> visitIT(TContext ctx) {
     T t=visitT(ctx,false);
-    return t.match(gx->{throw Fail.expectedConcreteType(t);}, it->it);
+    return t.match(gx->{throw Fail.expectedConcreteType(t).pos(pos(ctx));}, it->it);
   }
   @Override
   public T visitNudeT(NudeTContext ctx) { return visitT(ctx.t()); }
