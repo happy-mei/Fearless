@@ -24,7 +24,7 @@ public interface MagicImpls<R> {
       if (isMagic(Magic.UInt, l, e)) { return Optional.of(uint(l, e)); }
       if (isMagic(Magic.Float, l, e)) { return Optional.of(float_(l, e)); }
       if (isMagic(Magic.Str, l, e)) { return Optional.of(str(l, e)); }
-//      if (isMagic(Magic.RefK, l, e)) { return Optional.of(refK(l, e)); }
+      if (isMagic(Magic.RefK, l, e)) { return Optional.of(refK(l, e)); }
       if (isMagic(Magic.Assert, l, e)) { return Optional.of(assert_(l, e)); }
       if (isMagic(Magic.RootCap, l, e)) { return Optional.of(rootCap(l, e)); }
       return Optional.empty();

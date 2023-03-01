@@ -24,7 +24,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       @Override public String instantiate() {
         var lambdaName = name().name().name();
         try {
-          return isLiteral(lambdaName) ? Long.parseLong(lambdaName)+"L" : e.accept(gen, true);
+          return isLiteral(lambdaName) ? Long.parseLong(lambdaName)+"L" : "((long)"+e.accept(gen)+")";
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lambdaName, "Int");
         }
@@ -79,7 +79,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
             throw Fail.invalidNum(lambdaName, "UInt");
           }
         }
-        return e.accept(gen);
+        return "((long)"+e.accept(gen)+")";
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         return Optional.of(_call(m, args, gamma));
@@ -126,7 +126,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       @Override public MIR.Lambda instance() { return l; }
       @Override public String instantiate() {
         var lambdaName = name().name().name();
-        return isLiteral(lambdaName) ? lambdaName : e.accept(gen, true);
+        return isLiteral(lambdaName) ? lambdaName : "((String)"+e.accept(gen)+")";
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName(".len", 0))) {
@@ -138,7 +138,26 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
   }
 
   @Override public MagicTrait<String> refK(MIR.Lambda l, MIR e) {
-    throw Bug.todo();
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        return gen.visitLambda(l, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        if (m.equals(new Id.MethName("#", 1))) {
+          var x = args.get(0);
+          return Optional.of(String.format("""
+            new base.Ref_1(){
+              protected Object x = %s;
+              public Object $42$() { return this.x; }
+              public Object swap$(Object x$) { var x1 = this.x; this.x = x$; return x1; }
+            }
+            """, x.accept(gen)));
+        }
+        return Optional.empty();
+      }
+    };
   }
 
   @Override public MagicTrait<String> assert_(MIR.Lambda l, MIR e) {

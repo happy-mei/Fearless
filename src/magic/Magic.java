@@ -1,10 +1,6 @@
 package magic;
 
-import astFull.E;
-import astFull.Program;
-import astFull.T;
 import id.Id;
-import id.Mdf;
 
 import java.util.List;
 import java.util.Optional;
