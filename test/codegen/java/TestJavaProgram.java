@@ -209,11 +209,29 @@ public class TestJavaProgram {
     Test:Main[Void]{ _ -> Assert#(False, -123456789 .str, { Void }) }
     """);}
 
-  @Test void subtraction() { ok(new Res("", "3", 1), "test.Test", """
+  @Test void addition() { ok(new Res("", "7", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _ -> Assert#(False, (5 + 2) .str, { Void }) }
+    """);}
+  @Test void subtraction() { ok(new Res("", "3", 1), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    Void:{}
+    Test:Main[Void]{ _ -> Assert#(False, (5 - 2) .str, { Void }) }
+    """);}
+  @Test void subtractionNeg() { ok(new Res("", "-2", 1), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    Void:{}
+    Test:Main[Void]{ _ -> Assert#(False, (0 - 2) .str, { Void }) }
+    """);}
+  @Test void subtractionUnderflow() { ok(new Res("", "9223372036854775807", 1), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    Void:{}
+    Test:Main[Void]{ _ -> Assert#(False, ((0 - 2) - 9223372036854775807) .str, { Void }) }
     """);}
 
   // TODO: using brackets around (io, s') breaks antlr, fix the grammar

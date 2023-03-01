@@ -24,7 +24,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       @Override public String instantiate() {
         var lambdaName = name().name().name();
         try {
-          return isLiteral(lambdaName) ? Long.parseLong(lambdaName)+"L" : e.accept(gen, false);
+          return isLiteral(lambdaName) ? Long.parseLong(lambdaName)+"L" : e.accept(gen, true);
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lambdaName, "Int");
         }
@@ -126,7 +126,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       @Override public MIR.Lambda instance() { return l; }
       @Override public String instantiate() {
         var lambdaName = name().name().name();
-        return isLiteral(lambdaName) ? lambdaName : e.accept(gen, false);
+        return isLiteral(lambdaName) ? lambdaName : e.accept(gen, true);
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName(".len", 0))) {
