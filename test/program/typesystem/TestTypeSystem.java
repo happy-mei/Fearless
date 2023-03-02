@@ -281,6 +281,22 @@ public class TestTypeSystem {
       }
     """);}
 
+  @Test void numImpl4() { fail(true, """
+    In position [###]/Dummy0.fear:5:25
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy4.fear:43:2) 5[], .float/0
+    ([###]/Dummy4.fear:43:2) 6[], .float/0
+    """, """
+    package test
+    alias base.Int as Int,
+    Bar:{
+      .nm(n: 6): Int -> 12,
+      .check: Int -> this.nm(5)
+      }
+    """);}
+
   @Test void simpleThis() { ok("""
     package test
     A:{

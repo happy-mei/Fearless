@@ -60,12 +60,9 @@ public record InferBodies(ast.Program p) {
 
   //TODO: this may have to become iterative if the recursion gets out of control
   E fixInferStep(Map<String, T> gamma, E e, int depth) {
-    System.out.println(e);
     var next = inferStep(gamma, e, depth);
-//    System.out.println(e);
     assert next.map(ei->!ei.equals(e)).orElse(true);
     if (next.isEmpty()) { return e; }
-//    if (e.equals(next.get())) { return e; }
     return fixInferStep(gamma, next.get(), depth);
   }
 
@@ -171,8 +168,8 @@ public record InferBodies(ast.Program p) {
     boolean[] done = {false};
     var newEs = e.es().stream().map(ei->done[0]
       ? ei
-      : inferStep(gamma, ei, depth).map(ej->{ done[0]=true; return ej; }
-    ).orElse(ei)).toList();
+      : inferStep(gamma, ei, depth).map(ej->{ done[0]=true; return ej; }).orElse(ei)
+    ).toList();
     if(!done[0]){ return Optional.empty(); }
     //Sub s = new Sub(res.t2().gxOrThrow(),res.t1);
     //Sub sMdf = new Sub(res.t2().gxOrThrow(),res.t1.withMdf(Mdf.mdf));

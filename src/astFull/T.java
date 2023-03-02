@@ -83,7 +83,7 @@ public final class T {
     });
   }
   public <R> R match(Function<Id.GX<T>, R> gx, Function<Id.IT<T>, R> it) {
-    assert !this.isInfer() : "Can not match on infer";
+    if (this.isInfer()) { throw new MatchOnInfer(); }
     return rt.match(gx, it);
   }
   public Stream<T> flatten() {
@@ -168,4 +168,7 @@ public final class T {
     return Objects.hash(mdf, rt);
   }
 
+  public static class MatchOnInfer extends RuntimeException{
+    public MatchOnInfer() { super("Cannot match on infer."); }
+  }
 }

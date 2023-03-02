@@ -98,9 +98,17 @@ public record RefineTypes(ast.Program p) {
       throw Bug.unreachable();
     }
 
-    // TODO should we check the subtyping between C and C' instead?
+    // TODO should we check the subtyping between C and C' instead? Yes. Update the formalism
     var notMatch=!c1.name().equals(c2.name()); //name includes gen size
-    if(notMatch){ return iT1; }
+    if(notMatch){
+      try {
+        if (p.isSubType(iT1, iT2)) { return iT1; }
+        if (p.isSubType(iT2, iT1)) { return iT2; }
+      } catch (T.MatchOnInfer e){
+        return iT1;
+      }
+      return iT1;
+    }
 
     // Keep the explicit mdf from the expression if it has one
     var mdf = eMdf.orElse(iT1.mdf());

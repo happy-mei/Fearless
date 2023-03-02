@@ -34,7 +34,7 @@ public class Magic {
   public static ast.T.Dec getDec(Function<Id.DecId, ast.T.Dec> resolve, Id.DecId id) {
     var base = _getDec(resolve, id);
     return base.map(b->{
-      assert b.lambda().its().size() == 2; // instance, kind
+      assert b.lambda().its().size() == 2 : b.lambda(); // instance, kind
       return b.withName(id).withLambda(b.lambda().withITs(List.of(
         new Id.IT<>(id, List.of()),
         b.lambda().its().get(1)

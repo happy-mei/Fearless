@@ -218,9 +218,9 @@ interface Test_0 extends base.Main_1{
 default test$46foo.Bar_0 $35$(Object _$){
 var f$thiz = this;
 return ((test$46foo.Bar_0)(new test$46foo.Bar_0(){
-public test.Foo_0 a$(){
+public test$46foo.Bar_0 a$(){
 var fear0$$ = this;
-return ((test.Foo_0)(new test$46foo.Bar_0(){
+return ((test$46foo.Bar_0)(new test$46foo.Bar_0(){
 }));
 }}));
 }}

@@ -355,12 +355,12 @@ public class TestInferBodies {
     {test.True/0=Dec[name=test.True/0,gxs=[],lambda=[-mdf-][test.True[],test.Bool[]]{'this
       .and/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->b,
       .or/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->this,
-      .not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Bool[]]->[-imm-][test.Bool[],test.False[]]{'fear0$},
+      .not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Bool[]]->[-imm-][test.False[]]{'fear0$},
       ?/1([f]):Sig[mdf=imm,gens=[X0/0$],ts=[muttest.ThenElse[immX0/0$]],ret=immX0/0$]->f.then/0[]([])}],
     test.False/0=Dec[name=test.False/0,gxs=[],lambda=[-mdf-][test.False[],test.Bool[]]{'this
       .and/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->this,
       .or/1([b]):Sig[mdf=imm,gens=[],ts=[immtest.Bool[]],ret=immtest.Bool[]]->b,
-      .not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Bool[]]->[-imm-][test.Bool[],test.True[]]{'fear1$},
+      .not/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Bool[]]->[-imm-][test.True[]]{'fear1$},
       ?/1([f]):Sig[mdf=imm,gens=[X0/0$],ts=[muttest.ThenElse[immX0/0$]],ret=immX0/0$]->f.else/0[]([])}],
     test.ThenElse/1=Dec[name=test.ThenElse/1,gxs=[R],lambda=[-mdf-][test.ThenElse[mdfR]]{'this
       .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immR]->[-],
@@ -389,10 +389,10 @@ public class TestInferBodies {
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
       #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.caps.System[immbase.Int[]]],ret=immbase.Int[]]->
         [-imm-][base.False[]]{'fear6$}
-          .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear7$}])
+          .or/1[]([[-imm-][base.True[]]{'fear7$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear8$
-            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],42[]]{'fear9$},
-            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],0[]]{'fear10$}}])}]}
+            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear9$},
+            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear10$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -404,10 +404,10 @@ public class TestInferBodies {
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
       #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.caps.System[immbase.Int[]]],ret=immbase.Int[]]->
         [-imm-][base.False[]]{'fear6$}
-          .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear7$}])
+          .or/1[]([[-imm-][base.True[]]{'fear7$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear8$
-            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],42[]]{'fear9$},
-            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],0[]]{'fear10$}}])}]}
+            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear9$},
+            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear10$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -420,7 +420,7 @@ public class TestInferBodies {
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[imm42[]]]{'this
       #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=imm42[]]->
         [-imm-][base.False[]]{'fear2$}
-          .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear3$}])
+          .or/1[]([[-imm-][base.True[]]{'fear3$}])
           ?/1[imm42[]]([[-mut-][base.ThenElse[imm42[]]]{'fear4$
             .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear5$},
             .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear6$}}])}]}
@@ -449,7 +449,7 @@ public class TestInferBodies {
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
       #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=immbase.Int[]]->
         [-imm-][base.False[]]{'fear2$}
-          .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear3$}])
+          .or/1[]([[-imm-][base.True[]]{'fear3$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear4$
             .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],42[]]{'fear5$},
             .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],0[]]{'fear6$}}])}]}
@@ -470,6 +470,9 @@ public class TestInferBodies {
     .not: Bool,
     ?[R](f: mut ThenElse[R]): R, // ?  because `bool ? { .then->aa, .else->bb }` is kinda like a ternary
     }
+    Int:{}
+    _IntInstance:IntOpts{}
+    IntOpts:{}
     True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
@@ -478,7 +481,7 @@ public class TestInferBodies {
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
       #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=immbase.Int[]]->
         [-imm-][base.False[]]{'fear2$}
-          .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear3$}])
+          .or/1[]([[-imm-][base.True[]]{'fear3$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear4$
             .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],42[]]{'fear5$},
             .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],0[]]{'fear6$}}])}]}
@@ -502,12 +505,15 @@ public class TestInferBodies {
     True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
+    Int:{}
+    _IntInstance:IntOpts{}
+    IntOpts:{}
     """); }
   @Test void boolUsageExplicitGensRTBasic2() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[imm base.Int[]]]{'this
       #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=imm base.Int[]]->
         [-imm-][base.False[]]{'fear2$}
-          .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear3$}])
+          .or/1[]([[-imm-][base.True[]]{'fear3$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[imm base.Int[]]]{'fear4$
             .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],42[]]{'fear5$},
             .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],0[]]{'fear6$}}])}]}
@@ -531,12 +537,15 @@ public class TestInferBodies {
     True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
+    Int:{}
+    _IntInstance:IntOpts{}
+    IntOpts:{}
     """); }
   @Test void boolUsageExplicitGensRTBasic3() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
       #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=immbase.Int[]]->
         [-imm-][base.False[]]{'fear2$}
-          .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear3$}])
+          .or/1[]([[-imm-][base.True[]]{'fear3$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear4$
             .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],42[]]{'fear5$},
             .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],0[]]{'fear6$}}])}]}
@@ -560,6 +569,9 @@ public class TestInferBodies {
     True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
+    Int:{}
+    _IntInstance:IntOpts{}
+    IntOpts:{}
     """); }
 
   @Test void factoryTrait() { ok("""
@@ -657,6 +669,12 @@ public class TestInferBodies {
     """); }
 
   @Test void numImpls1() { ok("""
+    {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
+      .nm/1([n]):Sig[mdf=imm,gens=[],ts=[immbase.Int[]],ret=immbase.Int[]]->n,
+      .check/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->
+        this.nm/1[]([[-imm-][test.Foo[]]{'fear3$}.bar/0[]([])])}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this
+      .bar/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm5[]]->[-imm-][5[]]{'fear4$}}]}
     """, """
     package test
     alias base.Int as Int,
@@ -671,22 +689,12 @@ public class TestInferBodies {
     {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
       .nm/1([n]):Sig[mdf=imm,gens=[],ts=[immbase.Int[]],ret=immbase.Int[]]->n,
       .check/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->
-        this.nm/1[]([[-imm-][base.Int[],5[]]{'fear3$}])}]}
+        this.nm/1[]([[-imm-][5[]]{'fear3$}])}]}
     """, """
     package test
     alias base.Int as Int,
     Bar:{
       .nm(n: Int): Int -> n,
-      .check: Int -> this.nm(5)
-      }
-    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"));}
-
-  @Test void numImpls3() { fail("""
-    """, """
-    package test
-    alias base.Int as Int, alias base.UInt as UInt,
-    Bar:{
-      .nm(n: 6): Int -> 12,
       .check: Int -> this.nm(5)
       }
     """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"));}
