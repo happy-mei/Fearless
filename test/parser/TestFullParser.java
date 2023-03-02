@@ -270,6 +270,64 @@ class TestFullParser {
       }
     """
   );}
+  @Test void equalsSugar2() { ok("""
+    {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-infer-][]{#/2([x,cont]):Sig[mdf=mut,gens=[],ts=[mdfX,muttest.Candy[mdfR]],ret=mdfR]->[-]}],
+    test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-infer-][]{#/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}],
+    test.Candy/1=Dec[name=test.Candy/1,gxs=[R],lambda=[-infer-][]{
+      .sugar/2([x,cont]):Sig[mdf=mut,gens=[X],ts=[mdfX,muttest.Cont[mdfX,mdfR]],ret=mdfR]->cont:infer#/2[-]([x:infer,this:infer]):infer,
+      .return/1([a]):Sig[mdf=mut,gens=[],ts=[muttest.ReturnStmt[mdfR]],ret=mdfR]->a:infer#/0[-]([]):infer}],
+    test.Usage/0=Dec[name=test.Usage/0,gxs=[],lambda=[-infer-][]{
+      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
+        [-test.Candy[immtest.Void[]]-][test.Candy[immtest.Void[]]]{}
+          .sugar/2[immtest.Foo[]]([[-test.Foo[]-][test.Foo[]]{},[-infer-][]{[-]([f,fear0$]):[-]->
+            fear0$:infer.return/1[-]([[-infer-][]{[-]([]):[-]->f:infer.v/0[-]([]):infer}]):infer}]):infer}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-infer-][]{.v/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-infer-][]{}}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-infer-][]{}]}
+    """, """
+    package test
+    Void:{}
+    Foo:{ .v: Void -> {} }
+    Cont[X,R]:{ mut #(x: mdf X, cont: mut Candy[mdf R]): mdf R }
+    ReturnStmt[R]:{ mut #: mdf R }
+    Candy[R]:{
+      mut .sugar[X](x: mdf X, cont: mut Cont[mdf X, mdf R]): mdf R -> cont#(x, this),
+      mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+      }
+    Usage:{
+      .foo: Void -> Candy[Void]
+        .sugar[Foo](f = Foo)
+        .return{ f.v }
+      }
+    """); }
+  @Test void equalsSugar2a() { ok("""
+    {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-infer-][]{#/2([x,cont]):Sig[mdf=mut,gens=[],ts=[mdfX,muttest.Candy[mdfR]],ret=mdfR]->[-]}],
+    test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-infer-][]{#/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}],
+    test.Candy/1=Dec[name=test.Candy/1,gxs=[R],lambda=[-infer-][]{
+      .sugar/2([x,cont]):Sig[mdf=mut,gens=[X],ts=[mdfX,muttest.Cont[mdfX,mdfR]],ret=mdfR]->cont:infer#/2[-]([x:infer,this:infer]):infer,
+      .return/1([a]):Sig[mdf=mut,gens=[],ts=[muttest.ReturnStmt[mdfR]],ret=mdfR]->a:infer#/0[-]([]):infer}],
+    test.Usage/0=Dec[name=test.Usage/0,gxs=[],lambda=[-infer-][]{
+      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
+        [-test.Candy[immtest.Void[]]-][test.Candy[immtest.Void[]]]{}
+          .sugar/2[immtest.Foo[]]([[-test.Foo[]-][test.Foo[]]{},[-infer-][]{[-]([f,fear0$]):[-]->
+            fear0$:infer.return/1[-]([[-infer-][]{[-]([]):[-]->f:infer.v/0[-]([]):infer}]):infer}]):infer}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-infer-][]{.v/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-infer-][]{}}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-infer-][]{}]}
+    """, """
+    package test
+    Void:{}
+    Foo:{ .v: Void -> {} }
+    Cont[X,R]:{ mut #(x: mdf X, cont: mut Candy[mdf R]): mdf R }
+    ReturnStmt[R]:{ mut #: mdf R }
+    Candy[R]:{
+      mut .sugar[X](x: mdf X, cont: mut Cont[mdf X, mdf R]): mdf R -> cont#(x, this),
+      mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+      }
+    Usage:{
+      .foo: Void -> Candy[Void]
+        .sugar[Foo] f = Foo
+        .return{ f.v }
+      }
+    """); }
 
   @Test void refDef() { ok("""
     {base.Let/2=Dec[

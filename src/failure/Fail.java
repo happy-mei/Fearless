@@ -119,6 +119,7 @@ public class Fail{
   public static CompileError undefinedName(String name){
     return of("The identifier \""+name+"\" is undefined.");
   }
+
   public static <TT> CompileError noDupImpls(List<Id.IT<TT>> its){
     var dups = its.stream().map(Id.IT::name)
       .collect(Collectors.groupingBy(d->d))
@@ -154,6 +155,10 @@ public class Fail{
 
   public static CompileError sealedCreation(Id.DecId sealedDec, String pkg) {
     return of("The sealed trait "+sealedDec+" cannot be created in a different package ("+pkg+").");
+  }
+
+  public static CompileError undefinedMethod(Id.MethName name, Id.IT<T> recv){
+    return of("\""+name+"\" does not exist in "+recv+".");
   }
 
   private static String aVsAn(Mdf mdf) {
@@ -198,6 +203,7 @@ enum ErrorCode {
   noCandidateMeths,
   callTypeError,
   bothTExpectedGens,
-  sealedCreation;
+  sealedCreation,
+  undefinedMethod;
   int code() {return this.ordinal() + 1;}
 }

@@ -50,31 +50,34 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Object visitBblock(BblockContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitPOp(POpContext ctx){ throw Bug.unreachable(); }
   @Override public T.Dec visitTopDec(TopDecContext ctx) { throw Bug.unreachable(); }
-  @Override public Object visitCallOp(CallOpContext ctx) { throw Bug.unreachable(); }
   @Override public Object visitNudeX(NudeXContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeM(NudeMContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeFullCN(NudeFullCNContext ctx){ throw Bug.unreachable(); }
   @Override public MethName visitM(MContext ctx){ throw Bug.unreachable(); }
   @Override public MethName visitBlock(BlockContext ctx){ throw Bug.unreachable(); }
+  @Override public Call visitCallOp(CallOpContext ctx) {
+    check(ctx);
+    return new Call(
+      new MethName(ctx.m().getText(),1),
+      visitMGen(ctx.mGen()),
+      Optional.ofNullable(ctx.x()).map(this::visitX),
+      List.of(visitPostE(ctx.postE())),
+      pos(ctx)
+    );
+  }
 
   @Override public E visitNudeE(NudeEContext ctx){
-    check(ctx);    
+    check(ctx);
     return visitE(ctx.e());
   }
-  
+
   @Override public E visitE(EContext ctx){
     check(ctx);
     E root = visitPostE(ctx.postE());
     var calls = ctx.callOp();
     if(calls.isEmpty()){ return root; }
     var res = calls.stream()
-      .map(c-> new Call(
-        new MethName(c.m().getText(),1),
-        visitMGen(c.mGen()),
-        Optional.ofNullable(c.x()).map(this::visitX),
-        List.of(visitPostE(c.postE())),
-        pos(c)
-      ))
+      .map(this::visitCallOp)
       .toList();
 
     return desugar(root, res);
@@ -87,17 +90,18 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public E visitPostE(PostEContext ctx){
     check(ctx);
     E root = visitAtomE(ctx.atomE());
-    return desugar(root,ctx.pOp().stream().map(this::fromPOp).toList());
+    return desugar(root, ctx.pOp().stream().flatMap(pOp->fromPOp(pOp).stream()).toList());
   }
   record Call(MethName m, Optional<List<T>> mGen, Optional<E.X> x, List<E> es, Pos pos){}
-  Call fromPOp(POpContext ctx) {
-    return new Call(
+  List<Call> fromPOp(POpContext ctx) {
+    var call = new Call(
       new MethName(ctx.m().getText(),ctx.e().size()),
       visitMGen(ctx.mGen()),
       Optional.ofNullable(ctx.x()).map(this::visitX),
       ctx.e().stream().map(this::visitE).toList(),
       pos(ctx)
-      );
+    );
+    return Push.of(call, ctx.callOp().stream().map(this::visitCallOp).toList());
   }
   E desugar(E root,List<Call> tail){
     if(tail.isEmpty()){ return root; }

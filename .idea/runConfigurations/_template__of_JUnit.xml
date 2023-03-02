@@ -4,6 +4,9 @@
     <useClassPathOnly />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
+    <option name="TEST_SEARCH_SCOPE">
+      <value defaultName="wholeProject" />
+    </option>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

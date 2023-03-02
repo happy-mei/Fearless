@@ -735,6 +735,143 @@ public class TestInferBodies {
     ThenElse[R]:{ mut .then: mdf R, mut .else: mdf R, }
     """); }
 
+  @Test void sugar1() { ok("""
+    {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-mdf-][test.Cont[mdfX,mdfR]]{'this
+      #/2([x,cont]):Sig[mdf=mut,gens=[],ts=[mdfX,muttest.Candy[mdfR]],ret=mdfR]->[-]}],
+    test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-mdf-][test.ReturnStmt[mdfR]]{'this
+      #/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}],
+    test.Candy/1=Dec[name=test.Candy/1,gxs=[R],lambda=[-mdf-][test.Candy[mdfR]]{'this
+      .sugar/2([x,cont]):Sig[mdf=mut,gens=[X],ts=[mdfX,muttest.Cont[mdfX,mdfR]],ret=mdfR]->cont#/2[]([x,this]),
+      .return/1([a]):Sig[mdf=mut,gens=[],ts=[muttest.ReturnStmt[mdfR]],ret=mdfR]->a#/0[]([])}],
+    test.Usage/0=Dec[name=test.Usage/0,gxs=[],lambda=[-mdf-][test.Usage[]]{'this
+      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
+        [-imm-][test.Candy[immtest.Void[]]]{'fear1$}
+          .sugar/2[immtest.Foo[]]([
+            [-imm-][test.Foo[]]{'fear2$},
+            [-mut-][test.Cont[immtest.Foo[],immtest.Void[]]]{'fear3$
+              #/2([f,fear0$]):Sig[mdf=mut,gens=[],ts=[immtest.Foo[],muttest.Candy[immtest.Void[]]],ret=immtest.Void[]]->
+                fear0$.return/1[]([[-mut-][test.ReturnStmt[immtest.Void[]]]{'fear4$#/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immtest.Void[]]->f.v/0[]([])}])}])}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this.v/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear5$}}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
+    """, """
+    package test
+    Void:{}
+    Foo:{ .v: Void -> {} }
+    Cont[X,R]:{ mut #(x: mdf X, cont: mut Candy[mdf R]): mdf R }
+    ReturnStmt[R]:{ mut #: mdf R }
+    Candy[R]:{
+      mut .sugar[X](x: mdf X, cont: mut Cont[mdf X, mdf R]): mdf R -> cont#(x, this),
+      mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+      }
+    Usage:{
+      .foo: Void -> Candy[Void]
+        .sugar[Foo] f = Foo
+        .return{ f.v }
+      }
+    """); }
+  @Test void sugar1InferSugar() { ok("""
+    {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-mdf-][test.Cont[mdfX,mdfR]]{'this
+      #/2([x,cont]):Sig[mdf=mut,gens=[],ts=[mdfX,muttest.Candy[mdfR]],ret=mdfR]->[-]}],
+    test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-mdf-][test.ReturnStmt[mdfR]]{'this
+      #/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}],
+    test.Candy/1=Dec[name=test.Candy/1,gxs=[R],lambda=[-mdf-][test.Candy[mdfR]]{'this
+      .sugar/2([x,cont]):Sig[mdf=mut,gens=[X],ts=[mdfX,muttest.Cont[mdfX,mdfR]],ret=mdfR]->cont#/2[]([x,this]),
+      .return/1([a]):Sig[mdf=mut,gens=[],ts=[muttest.ReturnStmt[mdfR]],ret=mdfR]->a#/0[]([])}],
+    test.Usage/0=Dec[name=test.Usage/0,gxs=[],lambda=[-mdf-][test.Usage[]]{'this
+      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
+        [-imm-][test.Candy[immtest.Void[]]]{'fear1$}
+          .sugar/2[immtest.Foo[]]([
+            [-imm-][test.Foo[]]{'fear2$},
+            [-mut-][test.Cont[immtest.Foo[],immtest.Void[]]]{'fear3$
+              #/2([f,fear0$]):Sig[mdf=mut,gens=[],ts=[immtest.Foo[],muttest.Candy[immtest.Void[]]],ret=immtest.Void[]]->
+                fear0$.return/1[]([[-mut-][test.ReturnStmt[immtest.Void[]]]{'fear4$#/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immtest.Void[]]->f.v/0[]([])}])}])}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this.v/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear5$}}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
+    """, """
+    package test
+    Void:{}
+    Foo:{ .v: Void -> {} }
+    Cont[X,R]:{ mut #(x: mdf X, cont: mut Candy[mdf R]): mdf R }
+    ReturnStmt[R]:{ mut #: mdf R }
+    Candy[R]:{
+      mut .sugar[X](x: mdf X, cont: mut Cont[mdf X, mdf R]): mdf R -> cont#(x, this),
+      mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+      }
+    Usage:{
+      .foo: Void -> Candy[Void]
+        .sugar f = Foo
+        .return{ f.v }
+      }
+    """); }
+  @Test void sugar1MismatchedXs() { ok("""
+    {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-mdf-][test.Cont[mdfX,mdfR]]{'this
+      #/2([y,cont]):Sig[mdf=mut,gens=[],ts=[mdfX,muttest.Candy[mdfR]],ret=mdfR]->[-]}],
+    test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-mdf-][test.ReturnStmt[mdfR]]{'this
+      #/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}],
+    test.Candy/1=Dec[name=test.Candy/1,gxs=[R],lambda=[-mdf-][test.Candy[mdfR]]{'this
+      .sugar/2([z,cont]):Sig[mdf=mut,gens=[X],ts=[mdfX,muttest.Cont[mdfX,mdfR]],ret=mdfR]->cont#/2[]([z,this]),
+      .return/1([a]):Sig[mdf=mut,gens=[],ts=[muttest.ReturnStmt[mdfR]],ret=mdfR]->a#/0[]([])}],
+    test.Usage/0=Dec[name=test.Usage/0,gxs=[],lambda=[-mdf-][test.Usage[]]{'this
+      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
+        [-imm-][test.Candy[immtest.Void[]]]{'fear1$}
+          .sugar/2[immtest.Foo[]]([
+            [-imm-][test.Foo[]]{'fear2$},
+            [-mut-][test.Cont[immtest.Foo[],immtest.Void[]]]{'fear3$
+              #/2([f,fear0$]):Sig[mdf=mut,gens=[],ts=[immtest.Foo[],muttest.Candy[immtest.Void[]]],ret=immtest.Void[]]->
+                fear0$.return/1[]([[-mut-][test.ReturnStmt[immtest.Void[]]]{'fear4$#/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immtest.Void[]]->f.v/0[]([])}])}])}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this.v/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear5$}}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
+    """, """
+    package test
+    Void:{}
+    Foo:{ .v: Void -> {} }
+    Cont[X,R]:{ mut #(y: mdf X, cont: mut Candy[mdf R]): mdf R }
+    ReturnStmt[R]:{ mut #: mdf R }
+    Candy[R]:{
+      mut .sugar[X](z: mdf X, cont: mut Cont[mdf X, mdf R]): mdf R -> cont#(z, this),
+      mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+      }
+    Usage:{
+      .foo: Void -> Candy[Void]
+        .sugar[Foo] f = Foo
+        .return{ f.v }
+      }
+    """); }
+  @Test void sugar1Brackets() { ok("""
+    {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-mdf-][test.Cont[mdfX,mdfR]]{'this
+      #/2([x,cont]):Sig[mdf=mut,gens=[],ts=[mdfX,muttest.Candy[mdfR]],ret=mdfR]->[-]}],
+    test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-mdf-][test.ReturnStmt[mdfR]]{'this
+      #/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}],
+    test.Candy/1=Dec[name=test.Candy/1,gxs=[R],lambda=[-mdf-][test.Candy[mdfR]]{'this
+      .sugar/2([x,cont]):Sig[mdf=mut,gens=[X],ts=[mdfX,muttest.Cont[mdfX,mdfR]],ret=mdfR]->cont#/2[]([x,this]),
+      .return/1([a]):Sig[mdf=mut,gens=[],ts=[muttest.ReturnStmt[mdfR]],ret=mdfR]->a#/0[]([])}],
+    test.Usage/0=Dec[name=test.Usage/0,gxs=[],lambda=[-mdf-][test.Usage[]]{'this
+      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
+        [-imm-][test.Candy[immtest.Void[]]]{'fear1$}
+          .sugar/2[immtest.Foo[]]([
+            [-imm-][test.Foo[]]{'fear2$},
+            [-mut-][test.Cont[immtest.Foo[],immtest.Void[]]]{'fear3$
+              #/2([f,fear0$]):Sig[mdf=mut,gens=[],ts=[immtest.Foo[],muttest.Candy[immtest.Void[]]],ret=immtest.Void[]]->
+                fear0$.return/1[]([[-mut-][test.ReturnStmt[immtest.Void[]]]{'fear4$#/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immtest.Void[]]->f.v/0[]([])}])}])}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this.v/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear5$}}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
+    """, """
+    package test
+    Void:{}
+    Foo:{ .v: Void -> {} }
+    Cont[X,R]:{ mut #(x: mdf X, cont: mut Candy[mdf R]): mdf R }
+    ReturnStmt[R]:{ mut #: mdf R }
+    Candy[R]:{
+      mut .sugar[X](x: mdf X, cont: mut Cont[mdf X, mdf R]): mdf R -> cont#(x, this),
+      mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+      }
+    Usage:{
+      .foo: Void -> Candy[Void]
+        .sugar[Foo](f = Foo)
+        .return{ f.v }
+      }
+    """); }
+
   // TODO: this should eventually fail with an "inference failed" message when I add that error
   @Disabled
   @Test void callingEphemeralMethod() { fail("""

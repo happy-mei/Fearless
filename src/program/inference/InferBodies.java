@@ -2,6 +2,7 @@ package program.inference;
 
 import astFull.E;
 import astFull.T;
+import failure.Fail;
 import id.Id;
 import id.Mdf;
 import program.CM;
@@ -224,7 +225,9 @@ public record InferBodies(ast.Program p) {
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
     // TODO: handle methods that don't exist with a good user facing message
-    var sig = p.fullSig(List.of(recv), depth, cm->cm.name().equals(e.name())).orElseThrow().sig();
+    var cm = p.fullSig(List.of(recv), depth, cm1->cm1.name().equals(e.name()));
+    if (cm.isEmpty()) { throw Fail.undefinedMethod(e.name(), recv).pos(e.pos()); }
+    var sig = cm.get().sig();
     var k = sig.gens().size();
     var infers = Collections.nCopies(k, T.infer);
     return Optional.of(e.withTs(Optional.of(infers)));
