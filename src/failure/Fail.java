@@ -158,7 +158,11 @@ public class Fail{
   }
 
   public static CompileError undefinedMethod(Id.MethName name, Id.IT<T> recv){
-    return of("\""+name+"\" does not exist in "+recv+".");
+    return of(name+" does not exist in "+recv+".");
+  }
+
+  public static CompileError noSubTypingRelationship(Id.IT<T> it1, Id.IT<T> it2){
+    return of("There is no sub-typing relationship between "+it1+" and "+it2+".");
   }
 
   private static String aVsAn(Mdf mdf) {
@@ -204,6 +208,7 @@ enum ErrorCode {
   callTypeError,
   bothTExpectedGens,
   sealedCreation,
-  undefinedMethod;
+  undefinedMethod,
+  noSubTypingRelationship;
   int code() {return this.ordinal() + 1;}
 }

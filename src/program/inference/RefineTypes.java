@@ -102,11 +102,14 @@ public record RefineTypes(ast.Program p) {
     var notMatch=!c1.name().equals(c2.name()); //name includes gen size
     if(notMatch){
       try {
-        if (p.isSubType(iT1, iT2)) { return iT1; }
-        if (p.isSubType(iT2, iT1)) { return iT2; }
+        var t1 = new T(Mdf.mdf, c1);
+        var t2 = new T(Mdf.mdf, c2);
+        if (p.isSubType(t1, t2)) { return iT1; }
+        if (p.isSubType(t2, t1)) { return iT2; }
       } catch (T.MatchOnInfer e){
         return iT1;
       }
+//      throw Fail.noSubTypingRelationship(c1, c2);
       return iT1;
     }
 

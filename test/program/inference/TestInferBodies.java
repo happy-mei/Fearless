@@ -451,8 +451,8 @@ public class TestInferBodies {
         [-imm-][base.False[]]{'fear2$}
           .or/1[]([[-imm-][base.True[]]{'fear3$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear4$
-            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],42[]]{'fear5$},
-            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],0[]]{'fear6$}}])}]}
+            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear5$},
+            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear6$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -471,8 +471,7 @@ public class TestInferBodies {
     ?[R](f: mut ThenElse[R]): R, // ?  because `bool ? { .then->aa, .else->bb }` is kinda like a ternary
     }
     Int:{}
-    _IntInstance:IntOpts{}
-    IntOpts:{}
+    _IntInstance:Int{}
     True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
@@ -483,8 +482,8 @@ public class TestInferBodies {
         [-imm-][base.False[]]{'fear2$}
           .or/1[]([[-imm-][base.True[]]{'fear3$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear4$
-            .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],42[]]{'fear5$},
-            .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],0[]]{'fear6$}}])}]}
+            .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear5$},
+            .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear6$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -506,7 +505,7 @@ public class TestInferBodies {
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
     Int:{}
-    _IntInstance:IntOpts{}
+    _IntInstance:Int{}
     IntOpts:{}
     """); }
   @Test void boolUsageExplicitGensRTBasic2() { ok("""
@@ -515,8 +514,8 @@ public class TestInferBodies {
         [-imm-][base.False[]]{'fear2$}
           .or/1[]([[-imm-][base.True[]]{'fear3$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[imm base.Int[]]]{'fear4$
-            .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],42[]]{'fear5$},
-            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],0[]]{'fear6$}}])}]}
+            .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear5$},
+            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear6$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -538,7 +537,7 @@ public class TestInferBodies {
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
     Int:{}
-    _IntInstance:IntOpts{}
+    _IntInstance:Int{}
     IntOpts:{}
     """); }
   @Test void boolUsageExplicitGensRTBasic3() { ok("""
@@ -547,8 +546,8 @@ public class TestInferBodies {
         [-imm-][base.False[]]{'fear2$}
           .or/1[]([[-imm-][base.True[]]{'fear3$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear4$
-            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],42[]]{'fear5$},
-            .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->[-imm-][base.Int[],0[]]{'fear6$}}])}]}
+            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear5$},
+            .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear6$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -570,7 +569,7 @@ public class TestInferBodies {
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
     Int:{}
-    _IntInstance:IntOpts{}
+    _IntInstance:Int{}
     IntOpts:{}
     """); }
 

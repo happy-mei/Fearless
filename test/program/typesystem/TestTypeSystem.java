@@ -541,12 +541,15 @@ public class TestTypeSystem {
       }
     """, Base.load("lang.fear"), Base.load("strings.fear"), Base.load("nums.fear"), Base.load("bools.fear")); }
   @Test void incompatibleITsDeep() { fail("""
-    In position [###]/Dummy0.fear:5:16
-    [E18 uncomposableMethods]
-    These methods could not be composed.
-    conflicts:
-    ([###]/Dummy1.fear:23:2) base.caps.IO'[], #/1
-    ([###]/Dummy1.fear:15:2) base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], #/1
+    In position [###]/Dummy0.fear:5:2
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.IO'[]]{'fear7$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear8$ #/2([io, fear0$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear0$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear9$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear10$ }])}])}])
+    were valid:
+    (s: lent base.caps.System[imm base.Void[]], [-imm-][base.caps.IO'[]]{'fear7$ }: imm base.caps.IO'[], [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear8$ #/2([io, fear0$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear0$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear9$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear10$ }])}])}: mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
+    (s: lent base.caps.System[imm base.Void[]], [-imm-][base.caps.IO'[]]{'fear7$ }: imm base.caps.IO'[], [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear8$ #/2([io, fear0$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear0$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear9$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear10$ }])}])}: mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
+    (s: lent base.caps.System[imm base.Void[]], [-imm-][base.caps.IO'[]]{'fear7$ }: imm base.caps.IO'[], [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear8$ #/2([io, fear0$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear0$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear9$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear10$ }])}])}: mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[iso base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
+    (s: lent base.caps.System[imm base.Void[]], [-imm-][base.caps.IO'[]]{'fear7$ }: imm base.caps.IO'[], [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear8$ #/2([io, fear0$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear0$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear9$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear10$ }])}])}: mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[mut base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
