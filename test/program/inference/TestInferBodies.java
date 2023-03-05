@@ -304,9 +304,9 @@ public class TestInferBodies {
       */0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
       .swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-],
       :=/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->
-        [-imm-][test.Let[]]{'fear0$}#/1[mdfX,immtest.Void[]]([[-imm-][test.Let[mdfX,immtest.Void[]]]{'fear1$
+        [-imm-][test.Let[]]{'fear1$}#/1[mdfX,immtest.Void[]]([[-imm-][test.Let[mdfX,immtest.Void[]]]{'fear2$
           .var/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mdfX]->this.swap/1[]([x]),
-          .in/1([_]):Sig[mdf=imm,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear2$}}]),
+          .in/1([fear0$]):Sig[mdf=imm,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear3$}}]),
       <-/1([f]):Sig[mdf=mut,gens=[],ts=[muttest.UpdateRef[mutX]],ret=mdfX]->this.swap/1[]([f#/1[]([this*/0[]([])])])}],
       test.UpdateRef/1=Dec[name=test.UpdateRef/1,gxs=[X],lambda=[-mdf-][test.UpdateRef[mdfX]]{'this
         #/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-]}],
@@ -387,12 +387,12 @@ public class TestInferBodies {
 
   @Test void boolUsage() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
-      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.caps.System[immbase.Int[]]],ret=immbase.Int[]]->
-        [-imm-][base.False[]]{'fear6$}
-          .or/1[]([[-imm-][base.True[]]{'fear7$}])
-          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear8$
-            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear9$},
-            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear10$}}])}]}
+      #/1([fear0$]):Sig[mdf=imm,gens=[],ts=[lentbase.caps.System[immbase.Int[]]],ret=immbase.Int[]]->
+        [-imm-][base.False[]]{'fear7$}
+          .or/1[]([[-imm-][base.True[]]{'fear8$}])
+          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear9$
+            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear10$},
+            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear11$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -402,12 +402,12 @@ public class TestInferBodies {
     """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear")); }
   @Test void boolUsageExplicitGens() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
-      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.caps.System[immbase.Int[]]],ret=immbase.Int[]]->
-        [-imm-][base.False[]]{'fear6$}
-          .or/1[]([[-imm-][base.True[]]{'fear7$}])
-          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear8$
-            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear9$},
-            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear10$}}])}]}
+      #/1([fear0$]):Sig[mdf=imm,gens=[],ts=[lentbase.caps.System[immbase.Int[]]],ret=immbase.Int[]]->
+        [-imm-][base.False[]]{'fear7$}
+          .or/1[]([[-imm-][base.True[]]{'fear8$}])
+          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear9$
+            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear10$},
+            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear11$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -418,12 +418,12 @@ public class TestInferBodies {
   // TODO: why isn't this inferring gens?
   @Test void boolUsageExplicitGensBasicSameT() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[imm42[]]]{'this
-      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=imm42[]]->
-        [-imm-][base.False[]]{'fear2$}
-          .or/1[]([[-imm-][base.True[]]{'fear3$}])
-          ?/1[imm42[]]([[-mut-][base.ThenElse[imm42[]]]{'fear4$
-            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear5$},
-            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear6$}}])}]}
+      #/1([fear0$]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=imm42[]]->
+        [-imm-][base.False[]]{'fear3$}
+          .or/1[]([[-imm-][base.True[]]{'fear4$}])
+          ?/1[imm42[]]([[-mut-][base.ThenElse[imm42[]]]{'fear5$
+            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear6$},
+            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear7$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -447,12 +447,12 @@ public class TestInferBodies {
     """); }
   @Test void boolUsageExplicitGensBasic() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
-      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=immbase.Int[]]->
-        [-imm-][base.False[]]{'fear2$}
-          .or/1[]([[-imm-][base.True[]]{'fear3$}])
-          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear4$
-            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear5$},
-            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear6$}}])}]}
+      #/1([fear0$]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=immbase.Int[]]->
+        [-imm-][base.False[]]{'fear3$}
+          .or/1[]([[-imm-][base.True[]]{'fear4$}])
+          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear5$
+            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear6$},
+            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear7$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -478,12 +478,12 @@ public class TestInferBodies {
     """); }
   @Test void boolUsageExplicitGensRTBasic1() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
-      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=immbase.Int[]]->
-        [-imm-][base.False[]]{'fear2$}
-          .or/1[]([[-imm-][base.True[]]{'fear3$}])
-          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear4$
-            .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear5$},
-            .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear6$}}])}]}
+      #/1([fear0$]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=immbase.Int[]]->
+        [-imm-][base.False[]]{'fear3$}
+          .or/1[]([[-imm-][base.True[]]{'fear4$}])
+          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear5$
+            .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear6$},
+            .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear7$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -510,12 +510,12 @@ public class TestInferBodies {
     """); }
   @Test void boolUsageExplicitGensRTBasic2() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[imm base.Int[]]]{'this
-      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=imm base.Int[]]->
-        [-imm-][base.False[]]{'fear2$}
-          .or/1[]([[-imm-][base.True[]]{'fear3$}])
-          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[imm base.Int[]]]{'fear4$
-            .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear5$},
-            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear6$}}])}]}
+      #/1([fear0$]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=imm base.Int[]]->
+        [-imm-][base.False[]]{'fear3$}
+          .or/1[]([[-imm-][base.True[]]{'fear4$}])
+          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[imm base.Int[]]]{'fear5$
+            .then/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear6$},
+            .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear7$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
@@ -542,12 +542,12 @@ public class TestInferBodies {
     """); }
   @Test void boolUsageExplicitGensRTBasic3() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
-      #/1([_]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=immbase.Int[]]->
-        [-imm-][base.False[]]{'fear2$}
-          .or/1[]([[-imm-][base.True[]]{'fear3$}])
-          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear4$
-            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear5$},
-            .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear6$}}])}]}
+      #/1([fear0$]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=immbase.Int[]]->
+        [-imm-][base.False[]]{'fear3$}
+          .or/1[]([[-imm-][base.True[]]{'fear4$}])
+          ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear5$
+            .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear6$},
+            .else/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear7$}}])}]}
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,

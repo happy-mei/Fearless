@@ -30,8 +30,7 @@ public enum Mdf{
     if (this == lent) {
       if (other == imm) { return other; }
       if (other == read) { return other; }
-      if (other == recMdf) {
-        return other; } // TODO: new
+      if (other == recMdf) { return other; } // TODO: new, not in formalism
       if (other == mut) { return lent; }
     }
     if (this == read) {

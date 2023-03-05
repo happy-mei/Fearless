@@ -19,7 +19,6 @@ public interface MagicImpls<R> {
 
   default Optional<MagicTrait<R>> get(MIR e) {
     return e.accept(new LambdaVisitor(p())).flatMap(l->{
-      // TODO: this may be incorrect, what if we have .x(n: Num), the n implements Num but not 5 or whatever?
       if (isMagic(Magic.Int, l, e)) { return Optional.of(int_(l, e)); }
       if (isMagic(Magic.UInt, l, e)) { return Optional.of(uint(l, e)); }
       if (isMagic(Magic.Float, l, e)) { return Optional.of(float_(l, e)); }

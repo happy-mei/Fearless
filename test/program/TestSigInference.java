@@ -383,7 +383,7 @@ public class TestSigInference {
       :=/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immbase.Void[]]->
         [-base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
           .var/0([]):[-]->this:infer.swap/1[-]([x:infer]):infer,
-          .in/1([_]):[-]->[-base.Void[]-][base.Void[]]{}}]):infer,
+          .in/1([fear0$]):[-]->[-base.Void[]-][base.Void[]]{}}]):infer,
       <-/1([f]):Sig[mdf=mut,gens=[],ts=[immbase.UpdateRef[mdfX]],ret=mdfX]->
         this:infer.swap/1[-]([f:infer#/1[-]([this:infer*/0[-]([]):infer]):infer]):infer}],
         

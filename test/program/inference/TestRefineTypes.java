@@ -186,8 +186,6 @@ public class TestRefineTypes {
     A[X]:{}
     B:{}
     """);}
-  /* TODO: These two fail because the RHS (t2) is always preferred over the LHS. This is probably correct,
-   so these two tests can be deleted. */
   @Test void refineGensMdf2() {ok("""
     varName:imm a.A[mdf X]
     """, "varName", "a.A[imm X]", "a.A[mdf X]", """

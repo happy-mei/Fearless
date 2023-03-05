@@ -13,8 +13,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// TODO: Change this to keep names as-is, leave that all to the JavaCodegen visitor (etc.)
-
 public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   private final List<MIR.Trait> freshTraits = new ArrayList<>();
   private Program p;

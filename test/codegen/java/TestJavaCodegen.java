@@ -215,11 +215,11 @@ static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_0(){}; 
 interface FProgram{interface test{interface Foo_0{
 test.Foo_0 a$();}
 interface Test_0 extends base.Main_1{
-default test$46foo.Bar_0 $35$(Object _$){
+default test$46foo.Bar_0 $35$(Object fear0$$){
 var f$thiz = this;
 return ((test$46foo.Bar_0)(new test$46foo.Bar_0(){
 public test$46foo.Bar_0 a$(){
-var fear0$$ = this;
+var fear1$$ = this;
 return ((test$46foo.Bar_0)(new test$46foo.Bar_0(){
 }));
 }}));

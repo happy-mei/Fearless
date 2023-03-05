@@ -7,7 +7,6 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import program.Program;
-import utils.Bug;
 import utils.Push;
 import utils.Streams;
 import visitors.InjectionVisitor;
@@ -16,7 +15,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public record InferBodies(ast.Program p) {
-  // TODO: no such element exception inferring meth call for meth that doesn't exist
   public ast.Program inferAll(astFull.Program fullProgram){
     return new ast.Program(inferDecs(fullProgram));
   }
@@ -221,7 +219,6 @@ public record InferBodies(ast.Program p) {
     var c = e.receiver().t(Mdf.mdf); // safe because this T's MDF is never used
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
-    // TODO: handle methods that don't exist with a good user facing message
     var cm = p.fullSig(List.of(recv), depth, cm1->cm1.name().equals(e.name()));
     if (cm.isEmpty()) { throw Fail.undefinedMethod(e.name(), recv).pos(e.pos()); }
     var sig = cm.get().sig();

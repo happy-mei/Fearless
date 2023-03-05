@@ -182,7 +182,6 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   }
 
   private <TT> Optional<CompileError> hasNonDisjointAux(List<TT> xs, HasPos e, Function<TT,String> toS, Function<List<String>, CompileError> errF) {
-    // TODO: some renaming or something to allow multiple _
     var all = new ArrayList<>(xs);
     xs.stream().distinct().forEach(all::remove);
     if (all.isEmpty()) {

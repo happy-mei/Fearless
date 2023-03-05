@@ -68,7 +68,6 @@ public class TestTypeSystem {
 
   @Test void baseLib(){ ok(Base.baseLib); }
 
-  // TODO: error message is wrong
   @Test void simpleTypeError(){ fail("""
     In position [###]/Dummy0.fear:4:2
     [E23 methTypeError]

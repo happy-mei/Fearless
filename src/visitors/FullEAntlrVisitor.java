@@ -148,7 +148,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   @Override public E.X visitX(XContext ctx){
     check(ctx);
-    return new E.X(ctx.getText(), T.infer, Optional.of(pos(ctx)));
+    // TODO: ensure _ is not used outside of formal params
+    var name = ctx.getText();
+    name = name.equals("_") ? E.X.freshName() : name;
+    return new E.X(name, T.infer, Optional.of(pos(ctx)));
   }
   @Override public E visitAtomE(AtomEContext ctx){
     check(ctx);

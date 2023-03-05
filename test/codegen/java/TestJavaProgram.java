@@ -291,7 +291,6 @@ public class TestJavaProgram {
     Test:Main[Void]{ _ -> Assert#((GetRef#5).swap(6) == 5, { Void }) }
     GetRef:{ #(n: Int): mut Ref[Int] -> Ref#n }
     """); }
-  // TODO: Ref#5 parses wrong (becomes block#5 due to var desugar)
   @Test void ref3() { ok(new Res("", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert, alias base.Block as Block,
