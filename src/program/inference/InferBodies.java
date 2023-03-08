@@ -58,6 +58,7 @@ public record InferBodies(ast.Program p) {
 
   //TODO: this may have to become iterative if the recursion gets out of control
   E fixInferStep(Map<String, T> gamma, E e, int depth) {
+//    System.out.println(e);
     var next = inferStep(gamma, e, depth);
     assert next.map(ei->!ei.equals(e)).orElse(true);
     if (next.isEmpty()) { return e; }
@@ -66,6 +67,7 @@ public record InferBodies(ast.Program p) {
 
   // rule name version
   Optional<E> inferStep(Map<String, T> gamma, E e, int depth){
+//    System.out.println(e);
     return switch(e){
       case E.X e1->var(gamma, e1);
       case E.MCall e1->methCall(gamma, e1, depth);
@@ -184,11 +186,12 @@ public record InferBodies(ast.Program p) {
 
     var refiner = new RefineTypes(p);
     var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t());
+    // TODO: this doesn't consider narrowing down to gens on ITs (i.e. IO':CapFactory[...] does not help refine CapFactory[...] because this only uses IO')
     var refined = refiner.refineSigMassive(c.mdf(), recv, List.of(baseSig), depth);
     var refinedSig = refined.sigs().get(0);
     var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
     var fixedRecv = refiner.fixType(e.receiver(), new T(fixedRecvT.mdf(), refined.c()));
-    var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args());
+    var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args(), depth);
     var fixedGens = e.ts().map(userGens -> replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
 
     assert refinedSig.name().equals(e.name());
@@ -231,9 +234,8 @@ public record InferBodies(ast.Program p) {
     if (!e.t().isInfer()) { return Optional.empty(); }
     Optional<E> res = Optional.ofNullable(gamma.get(e.name())).map(e::withT);
     if (res.map(e1->e1.equals(e)).orElse(true)) {
-      // TODO: X not found compiler error
+//      throw Fail.undefinedName(e.name()).pos(e.pos());
       return Optional.empty();
-//      throw Bug.todo();
     }
     return res;
   }

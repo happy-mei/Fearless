@@ -26,7 +26,18 @@ public record RefineTypes(ast.Program p) {
   tSigOf(Ms) = turns every M in Ms into a TSig, trashes the body
   tMs(Ms,TSigs) = zips the Ms and the TSigs into better Ms; Ms is used to recover the bodies
      */
+    if (lambda.meths().stream().anyMatch(m->m.sig().isEmpty())) {
+      return lambda;
+    }
+
     var c = lambda.it().orElseThrow();
+//    var nFresh = new Box<>(0);
+//    var its = p().itsOf(c.toAstIT(it->it.toAstTFreshenInfers(nFresh))).stream().map(it->it.toFullAstIT(ast.T::toAstFullT)).toList();
+//    var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<ast.T>("FearTmp"+n+"$")).collect(Collectors.toSet());
+//    its = its.stream().map(it->RefineTypes.regenerateInfers(freshGXsSet, new T(Mdf.mdf, it))).map(T::itOrThrow).toList();
+//
+//    var l = lambda.withITs(Push.of(lambda.its(), its).stream().distinct().toList());
+
     List<RefinedSig> sigs = lambda.meths().stream()
       .map(this::tSigOf)
       .toList();
@@ -34,7 +45,7 @@ public record RefineTypes(ast.Program p) {
     var ms = Streams.zip(lambda.meths(), res.sigs())
       .map(this::tM)
       .toList();
-//    Id.IT<T> lambdaT = best(new T(Mdf.mdf, res.c()), lambda.t()).itOrThrow();
+//    Id.IT<T> lT = best(new T(Mdf.mdf, res.c()), l.t()).itOrThrow();
     return lambda.withMeths(ms).withIT(Optional.ofNullable(res.c()));
   }
 
@@ -72,8 +83,15 @@ public record RefineTypes(ast.Program p) {
       || ret.isInfer() || ret.rt() instanceof Id.IT<?>;
     return res;
   }
-  List<E> fixTypes(List<E> ies, List<T> iTs) {
-    return Streams.zip(ies, iTs).map(this::fixType).toList();
+  List<E> fixTypes(List<E> ies, List<T> iTs, int depth) {
+    return Streams.zip(ies, iTs).map((ie, iT)->fixType(ie, iT, depth)).toList();
+  }
+  E fixType(E ie, T iT, int depth) { // TODO: not in formalism yet
+    var fixed = fixType(ie, iT);
+    if (fixed instanceof E.Lambda l) {
+      return fixLambda(l, depth);
+    }
+    return fixed;
   }
   E fixType(E ie, T iT) {
     T ieT = iT.isInfer() ? ie.t(Mdf.imm) : ie.t(iT.mdf());
@@ -100,14 +118,16 @@ public record RefineTypes(ast.Program p) {
     // TODO should we check the subtyping between C and C' instead? Yes. Update the formalism
     var notMatch=!c1.name().equals(c2.name()); //name includes gen size
     if(notMatch){
-      try {
-        var t1 = new T(Mdf.mdf, c1);
-        var t2 = new T(Mdf.mdf, c2);
-        if (p.isSubType(t1, t2)) { return iT1; }
-        if (p.isSubType(t2, t1)) { return iT2; }
-      } catch (T.MatchOnInfer e){
-        return iT1;
-      }
+      var t1 = new T(Mdf.mdf, c1);
+      var t2 = new T(Mdf.mdf, c2);
+      ast.T t1C; try { t1C = t1.toAstT(); }
+        catch (T.MatchOnInfer e) { return iT2; }
+      ast.T t2C; try { t2C = t2.toAstT(); }
+        catch (T.MatchOnInfer e) { return iT1; }
+
+      if (p.isSubType(t1C, t2C)) { return iT1; }
+      if (p.isSubType(t2C, t1C)) { return iT2; }
+
 //      throw Fail.noSubTypingRelationship(c1, c2);
       return iT1;
     }
