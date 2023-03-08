@@ -291,12 +291,13 @@ public class TestJavaProgram {
     Test:Main[Void]{ _ -> Assert#((GetRef#5).swap(6) == 5, { Void }) }
     GetRef:{ #(n: Int): mut Ref[Int] -> Ref#n }
     """); }
+  // TODO: loops if we give a broken value like `.var[mut Ref[Int]](n = Ref#5)` (not a ReturnStmt)
   @Test void ref3() { ok(new Res("", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert, alias base.Block as Block,
-    alias base.Ref as Ref, alias base.Int as Int,
+    alias base.Ref as Ref, alias base.Int as Int, alias base.ReturnStmt as ReturnStmt,
     Test:Main[Void]{ _ -> Block[Void]
-      .var[mut Ref[Int]](n = Ref#5)
+      .var[mut Ref[Int]](n = mut ReturnStmt[mut Ref[Int]]{ mut #: mut Ref[Int] -> Ref#5 })
       .do{ Assert#(n.swap(6) == 5) }
       .do{ Assert#(n* == 6) }
       .return{{}}
