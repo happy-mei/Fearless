@@ -296,9 +296,8 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert, alias base.Block as Block,
     alias base.Ref as Ref, alias base.Int as Int, alias base.ReturnStmt as ReturnStmt,
-    Test:Main[Void]{ _ -> Block[Void]
-      //.var[mut Ref[Int]](n = mut ReturnStmt[mut Ref[Int]]{ mut #: mut Ref[Int] -> mut Ref#[Int](5) })
-      .var[mut Ref[Int]](n = { Ref#5 })
+    Test:Main[Void]{ _ -> mut Block[Void]
+      .var(n = { Ref#[Int]5 })
       .do{ Assert#(n.swap(6) == 5) }
       .do{ Assert#(n* == 6) }
       .return{{}}

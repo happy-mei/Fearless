@@ -8,6 +8,7 @@ import id.Id;
 import id.Mdf;
 import visitors.MIRVisitor;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,7 +55,7 @@ public interface MIR {
       return v.visitLambda(this, checkMagic);
     }
     public T t() {
-      return new T(mdf, new Id.IT<>(freshName, List.of()));
+      return new T(mdf, new Id.IT<>(freshName, Collections.nCopies(freshName.gen(), new T(Mdf.mdf, new Id.GX<>("FearIgnored$")))));
     }
     public Lambda withITs(List<Id.IT<T>> its) {
       return new Lambda(mdf, freshName, selfName, its, captures, meths);

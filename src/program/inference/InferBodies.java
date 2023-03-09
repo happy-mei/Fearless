@@ -59,7 +59,6 @@ public record InferBodies(ast.Program p) {
 
   //TODO: this may have to become iterative if the recursion gets out of control
   E fixInferStep(Map<String, T> gamma, E e, int depth) {
-    System.out.println(e);
     var next = inferStep(gamma, e, depth);
     assert next.map(ei->!ei.equals(e)).orElse(true);
     if (next.isEmpty()) { return e; }
@@ -194,7 +193,6 @@ public record InferBodies(ast.Program p) {
     var fixedRecv = refiner.fixType(e.receiver(), new T(fixedRecvT.mdf(), refined.c()), depth);
     var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args(), depth);
     var fixedGens = e.ts().map(userGens->replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
-    System.out.println(refinedSig.rt()+" and "+e.t()+" and "+refiner.best(refinedSig.rt(), e.t()));
 
     assert refinedSig.name().equals(e.name());
     var res = new E.MCall(
