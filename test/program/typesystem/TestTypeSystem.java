@@ -347,10 +347,10 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     this .b/0[]([]) .foo/0[]([])
     were valid:
-    (?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -369,10 +369,10 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     this .b/0[]([]) .foo/0[]([])
     were valid:
-    (?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -391,10 +391,10 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     this .b/0[]([]) .foo/0[]([])
     were valid:
-    (?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -413,10 +413,10 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     this .b/0[]([]) .foo/0[]([])
     were valid:
-    (?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -499,11 +499,11 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     cont #/2[]([c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear1$ }]), this])
     were valid:
-    (cont: mut base.caps.UseCapCont[imm C, mdf R], ?, this: lent base.caps.System[mdf R]) <: TsT[ts=[mut base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]], t=mdf R]
-    (cont: mut base.caps.UseCapCont[imm C, mdf R], ?, this: lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]], t=mdf R]
-    (cont: mut base.caps.UseCapCont[imm C, mdf R], ?, this: lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], iso C, iso base.caps.System[mdf R]], t=mdf R]
-    (cont: mut base.caps.UseCapCont[imm C, mdf R], ?, this: lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], mut C, lent base.caps.System[mdf R]], t=mdf R]
-    (cont: mut base.caps.UseCapCont[imm C, mdf R], ?, this: lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], lent C, mut base.caps.System[mdf R]], t=mdf R]
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear1$ }])?, lent base.caps.System[mdf R]) <: TsT[ts=[mut base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]], t=mdf R]
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear1$ }])?, lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]], t=mdf R]
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear1$ }])?, lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], iso C, iso base.caps.System[mdf R]], t=mdf R]
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear1$ }])?, lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], mut C, lent base.caps.System[mdf R]], t=mdf R]
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear1$ }])?, lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], lent C, mut base.caps.System[mdf R]], t=mdf R]
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
@@ -545,10 +545,10 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.IO'[]]{'fear7$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear8$ #/2([io, fear0$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear0$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear9$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear10$ }])}])}])
     were valid:
-    (s: lent base.caps.System[imm base.Void[]], [-imm-][base.caps.IO'[]]{'fear7$ }: imm base.caps.IO'[], [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear8$ #/2([io, fear0$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear0$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear9$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear10$ }])}])}: mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
-    (s: lent base.caps.System[imm base.Void[]], [-imm-][base.caps.IO'[]]{'fear7$ }: imm base.caps.IO'[], [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear8$ #/2([io, fear0$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear0$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear9$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear10$ }])}])}: mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
-    (s: lent base.caps.System[imm base.Void[]], [-imm-][base.caps.IO'[]]{'fear7$ }: imm base.caps.IO'[], [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear8$ #/2([io, fear0$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear0$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear9$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear10$ }])}])}: mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[iso base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
-    (s: lent base.caps.System[imm base.Void[]], [-imm-][base.caps.IO'[]]{'fear7$ }: imm base.caps.IO'[], [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear8$ #/2([io, fear0$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear0$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear9$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear10$ }])}])}: mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[mut base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[iso base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: TsT[ts=[mut base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]], t=imm base.Void[]]
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
@@ -589,6 +589,7 @@ public class TestTypeSystem {
     package test
     A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ x }.argh }
     B[X]:{ read .argh: recMdf X }
+    C:{ #: mut C -> A[C].foo({}) }
     """); }
 
   // TODO: write a test that shows that the error message for this code makes sense:
