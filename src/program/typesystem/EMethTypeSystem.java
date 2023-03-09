@@ -50,10 +50,11 @@ public interface EMethTypeSystem extends ETypeSystem {
         var call = Streams.zip(es, tst1.ts())
           .map((e1,t1)->{
             var getT = this.withT(Optional.of(t1));
-            return e1.accept(getT).t().map(e1T->e1+": "+e1T);
+//            return e1.accept(getT).t().map(e1T->e1+": "+e1T);
+            return e1.accept(getT).t().map(T::toString).orElseGet(()->"?"+e1+"?");
           })
           .toList();
-        return "("+call.stream().map(oT->oT.orElse("?")).collect(Collectors.joining(", "))+") <: "+tst1;
+        return "("+ String.join(", ", call) +") <: "+tst1;
       })
       .collect(Collectors.joining("\n"));
     return Fail.callTypeError(e, calls).pos(e.pos());

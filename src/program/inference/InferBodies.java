@@ -13,6 +13,7 @@ import visitors.InjectionVisitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public record InferBodies(ast.Program p) {
   public ast.Program inferAll(astFull.Program fullProgram){
@@ -58,7 +59,7 @@ public record InferBodies(ast.Program p) {
 
   //TODO: this may have to become iterative if the recursion gets out of control
   E fixInferStep(Map<String, T> gamma, E e, int depth) {
-//    System.out.println(e);
+    System.out.println(e);
     var next = inferStep(gamma, e, depth);
     assert next.map(ei->!ei.equals(e)).orElse(true);
     if (next.isEmpty()) { return e; }
@@ -190,9 +191,10 @@ public record InferBodies(ast.Program p) {
     var refined = refiner.refineSigMassive(c.mdf(), recv, List.of(baseSig), depth);
     var refinedSig = refined.sigs().get(0);
     var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
-    var fixedRecv = refiner.fixType(e.receiver(), new T(fixedRecvT.mdf(), refined.c()));
+    var fixedRecv = refiner.fixType(e.receiver(), new T(fixedRecvT.mdf(), refined.c()), depth);
     var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args(), depth);
-    var fixedGens = e.ts().map(userGens -> replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
+    var fixedGens = e.ts().map(userGens->replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
+    System.out.println(refinedSig.rt()+" and "+e.t()+" and "+refiner.best(refinedSig.rt(), e.t()));
 
     assert refinedSig.name().equals(e.name());
     var res = new E.MCall(
@@ -200,7 +202,7 @@ public record InferBodies(ast.Program p) {
       refinedSig.name(),
       Optional.of(fixedGens),
       fixedArgs,
-      refiner.best(refinedSig.rt(), e.t()),
+      refiner.best(e.t(), refinedSig.rt()),
       e.pos()
     );
     return e.equals(res) ? Optional.empty() : Optional.of(res);
