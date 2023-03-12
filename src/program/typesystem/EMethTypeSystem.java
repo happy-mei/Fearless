@@ -108,7 +108,8 @@ public interface EMethTypeSystem extends ETypeSystem {
     });
   }
 
-  default T fancyRename(T t,Mdf mdf0, Map<GX<T>,T> map) {//[MDF, Xs=Ts]
+  /** This is [MDF, Xs=Ts] (recMdf rewriting for meth calls) */
+  default T fancyRename(T t,Mdf mdf0, Map<GX<T>,T> map) {
     Mdf mdf=t.mdf();
     return t.match(
       gx->{

@@ -39,17 +39,11 @@ public interface Program {
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1==m2){ return true; }
     return switch(m1){
-      case mut-> m2.isLikeMut();
+      case mut -> m2.isLikeMut();
       case lent, imm -> m2.isRead();
-      case read-> false;
-      case iso-> true;
-//      case recMdf, mdf -> throw Bug.unreachable();
-      case recMdf, mdf -> {
-        // TODO: we need to narrow isSubType(mdf, recMdf) to isSubType(mdf, mdf) in the Meth-OK case
-        // I think allowing true here is unsound, so do this asap
-        System.out.println("weird case of recMdf/mdf subtype comparison: "+m1+" "+m2);
-        yield true;
-      }
+      case read -> false;
+      case iso -> true;
+      case recMdf, mdf -> throw Bug.of("Unreachable sub-type: "+m1+" <: "+m2);
     };
   }
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }

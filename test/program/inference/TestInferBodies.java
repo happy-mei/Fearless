@@ -624,6 +624,7 @@ public class TestInferBodies {
     A[X]:{ .foo(x: X): X -> B[X]{ x }.argh }
     B[X]:{ read .argh: recMdf X }
     """); }
+  // TODO: still unsure if this should be failing or if the expected is what we want
   @Test void recMdfInSubHygMut() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
       .foo/1([x]):Sig[mdf=imm,gens=[],ts=[mutX],ret=mutX]->

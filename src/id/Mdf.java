@@ -26,11 +26,14 @@ public enum Mdf{
   public Mdf adapt(Mdf other) {
     if (this == other) { return this; }
     if (this == imm) { return imm; }
-    if (this == mut) { return other; }
+    if (this == mut) {
+      if (other == recMdf) { return mut; }
+      return other;
+    }
     if (this == lent) {
       if (other == imm) { return other; }
       if (other == read) { return other; }
-      if (other == recMdf) { return other; } // TODO: new, not in formalism
+      if (other == recMdf) { return other; }
       if (other == mut) { return lent; }
     }
     if (this == read) {
