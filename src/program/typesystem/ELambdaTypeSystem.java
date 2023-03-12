@@ -11,13 +11,13 @@ import id.Mdf;
 import program.CM;
 import program.Program;
 import utils.Bug;
+import utils.Mapper;
 import utils.Streams;
 import visitors.CollectorVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import static program.typesystem.EMethTypeSystem.fancyRename;
 
 interface ELambdaTypeSystem extends ETypeSystem{
   default Res visitLambda(E.Lambda b){
@@ -69,15 +69,21 @@ interface ELambdaTypeSystem extends ETypeSystem{
   }
   default Optional<CompileError> mOk(String selfName, T selfT, E.Meth m){
     if(m.isAbs()){ return Optional.empty(); }
-    var mMdf=m.sig().mdf();
-    var g0  = g().capture(p(), selfName, selfT.withMdf(mMdf), mMdf);
-    var gg  = Streams.zip(m.xs(),m.sig().ts()).fold(Gamma::add, g0);
+    var mMdf = m.sig().mdf();
+
+    var selfTi = fancyRename(selfT, mMdf, Map.of());
+    var args = m.sig().ts().stream().map(ti->fancyRename(ti, mMdf, Map.of())).toList();
+    var ret = fancyRename(m.sig().ret(), mMdf, Map.of());
+
+    var g0  = g().capture(p(), selfName, selfTi, mMdf);
+    var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
     var e   = m.body().orElseThrow();
-    Res res = e.accept(ETypeSystem.of(p(),gg,Optional.of(m.sig().ret()),depth()+1));
+    Res res = e.accept(ETypeSystem.of(p(),gg,Optional.of(ret),depth()+1));
     var subOk=res.t()
-      .flatMap(ti->p().isSubType(ti,m.sig().ret())
+      .map(ti->fancyRename(ti, mMdf, Map.of()))
+      .flatMap(ti->p().isSubType(ti,ret)
         ? Optional.empty()
-        : Optional.of(Fail.methTypeError(m.sig().ret(), ti, m.name()).pos(m.pos()))
+        : Optional.of(Fail.methTypeError(ret, ti, m.name()).pos(m.pos()))
       );
     return res.err().or(()->subOk);
   }

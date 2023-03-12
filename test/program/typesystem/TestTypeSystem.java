@@ -453,6 +453,41 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
+  @Test void recMdfToMut() { ok("""
+    package test
+    A:{
+      read .b(a: recMdf A): recMdf B -> {},
+      mut .break: mut B -> this.b(this),
+      }
+    B:{}
+    """); }
+  @Test void captureRecMdfAsMut() { ok("""
+    package test
+    A:{
+      read .b(a: recMdf A): recMdf B -> {},
+      mut .break: read B -> LetMut#[mut B, read B]{ .var -> this.b(this), .in(b) -> b.foo },
+      }
+    B:{
+      read .foo(): read B
+      }
+    Void:{}
+    LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
+    LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+    """); }
+  // TODO: the recMdf here needs to become mut in inference or something
+  @Test void inferCaptureRecMdfAsMut() { ok("""
+    package test
+    A:{
+      read .b(a: recMdf A): recMdf B -> {},
+      mut .break: read B -> LetMut#{ .var -> this.b(this), .in(b) -> b.foo },
+      }
+    B:{
+      read .foo(): read B
+      }
+    Void:{}
+    LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
+    LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+    """); }
 
   @Test void incompatibleGens() { fail("""
     In position [###]/Dummy1.fear:7:12

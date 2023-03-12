@@ -109,7 +109,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
 
   /** This is [MDF, Xs=Ts] (recMdf rewriting for meth calls) */
-  default T fancyRename(T t,Mdf mdf0, Map<GX<T>,T> map) {
+  static T fancyRename(T t,Mdf mdf0, Map<GX<T>,T> map) {
     Mdf mdf=t.mdf();
     return t.match(
       gx->{
@@ -119,7 +119,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       },
       it->{
         var newTs = it.ts().stream().map(ti->fancyRename(ti,mdf0,map)).toList();
-        if(!mdf.isRecMdf()){ return new T(mdf,it.withTs(newTs)); }
+        if(!mdf.isRecMdf() && !mdf.isMdf()){ return new T(mdf,it.withTs(newTs)); }
         if(!mdf0.isIso()){ return new T(mdf0,it.withTs(newTs)); }
         return new T(Mdf.mut,it.withTs(newTs));
       });
