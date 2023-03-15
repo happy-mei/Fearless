@@ -68,13 +68,15 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var mMdf = m.sig().mdf();
 
 //    var selfTi = fancyRename(selfT, mMdf, Map.of());
-//    var args = m.sig().ts().stream().map(ti->fancyRename(ti, mMdf, Map.of())).toList();
+    var selfTi = selfT.mdf().isMdf() ? selfT.withMdf(m.sig().mdf()) : selfT;
+//    var selfTi = selfT;
     var args = m.sig().ts();
+//    var args = m.sig().ts().stream().map(ti->fancyRename(ti, mMdf, Map.of())).toList();
 //    var ret = fancyRename(m.sig().ret(), mMdf, Map.of());
     var ret = m.sig().ret();
 
     // todo: assert empty gamma for MDF mdf
-    var g0  = g().capture(p(), selfName, selfT, mMdf);
+    var g0  = g().capture(p(), selfName, selfTi, mMdf);
     var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
     return flex(gg, m, e, ret);

@@ -313,7 +313,7 @@ public class TestFullWellFormedness {
   @Test void useUndefinedX() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E28 undefinedName]
-    The identifier "X" is undefined.
+    The identifier "X" is undefined or cannot be captured.
     """, """
     package test
     A[X]:{ .foo(x: X): X -> B{ x }.argh }
@@ -322,7 +322,7 @@ public class TestFullWellFormedness {
   @Test void useUndefinedIdent() { fail("""
     In position [###]/Dummy0.fear:2:5
     [E28 undefinedName]
-    The identifier "b" is undefined.
+    The identifier "X" is undefined or cannot be captured.
     """, """
     package test
     A[X]:{ .foo(x: X): X -> this.foo(b) }

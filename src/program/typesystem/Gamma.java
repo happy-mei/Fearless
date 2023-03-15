@@ -36,7 +36,7 @@ public interface Gamma {
     var captured = ti.mdf();
     if (t.mdf().isIso()) { return xT(x, t.withMdf(Mdf.mut), ti, mMdf); }
     //TODO: ignoring the NoMutHyg thing for now
-    if (self.isMut() && captured.isHyg()
+    if (self.isMut() && captured.is(Mdf.read, Mdf.lent, Mdf.mdf)
         || self.isMut() && captured.isIso() && !mMdf.is(Mdf.read, Mdf.imm)
         || self.isImm() && captured.isLikeMut()) {
           throw Fail.badCapture(x, ti, t, mMdf);

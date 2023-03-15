@@ -664,8 +664,8 @@ public class TestTypeSystem {
     """); }
   @Test void noCaptureMdfInMut() { fail(false, """
     In position [###]/Dummy0.fear:4:29
-    [E28 undefinedName]
-    The identifier "this" is undefined or cannot be captured.
+    [E30 badCapture]
+    'read this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A[X]:{ mut .prison: mdf X }
@@ -674,9 +674,9 @@ public class TestTypeSystem {
       }
     """); }
   @Test void noCaptureMdfInMut2() { fail(false, """
-    In position [###]/Dummy0.fear:4:29
-    [E28 undefinedName]
-    The identifier "this" is undefined or cannot be captured.
+    In position [###]/Dummy0.fear:4:34
+    [E30 badCapture]
+    'read this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A[X]:{ mut .prison: mdf X }
@@ -687,8 +687,8 @@ public class TestTypeSystem {
 
   @Test void noCaptureMdfInMut3() { fail(false, """
     In position [###]/Dummy0.fear:4:38
-    [E23 methTypeError]
-    Expected the method .prison/0 to return mdf X, got mut X.
+    [E30 badCapture]
+    'mdf x' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A[X]:{ mut .prison: mdf X }
