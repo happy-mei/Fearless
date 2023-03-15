@@ -10,14 +10,9 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import program.Program;
-import utils.Bug;
-import utils.Mapper;
 import utils.Streams;
-import visitors.CollectorVisitor;
 
 import java.util.*;
-
-import static program.typesystem.EMethTypeSystem.fancyRename;
 
 interface ELambdaTypeSystem extends ETypeSystem{
   default Res visitLambda(E.Lambda b){
@@ -69,21 +64,54 @@ interface ELambdaTypeSystem extends ETypeSystem{
   }
   default Optional<CompileError> mOk(String selfName, T selfT, E.Meth m){
     if(m.isAbs()){ return Optional.empty(); }
+    var e   = m.body().orElseThrow();
     var mMdf = m.sig().mdf();
 
-    var selfTi = fancyRename(selfT, mMdf, Map.of());
-    var args = m.sig().ts().stream().map(ti->fancyRename(ti, mMdf, Map.of())).toList();
-    var ret = fancyRename(m.sig().ret(), mMdf, Map.of());
+//    var selfTi = fancyRename(selfT, mMdf, Map.of());
+//    var args = m.sig().ts().stream().map(ti->fancyRename(ti, mMdf, Map.of())).toList();
+    var args = m.sig().ts();
+//    var ret = fancyRename(m.sig().ret(), mMdf, Map.of());
+    var ret = m.sig().ret();
 
-    var g0  = g().capture(p(), selfName, selfTi, mMdf);
+    // todo: assert empty gamma for MDF mdf
+    var g0  = g().capture(p(), selfName, selfT, mMdf);
     var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
-    var e   = m.body().orElseThrow();
-    Res res = e.accept(ETypeSystem.of(p(),gg,Optional.of(ret),depth()+1));
-    var subOk=res.t()
-      .map(ti->fancyRename(ti, mMdf, Map.of()))
-      .flatMap(ti->p().isSubType(ti,ret)
+
+    return flex(gg, m, e, ret);
+  }
+
+  default Optional<CompileError> flex(Gamma g, E.Meth m, E e, T ret) {
+    var baseCase=okWithSubType(g, m, e, ret);
+    var baseDestiny=baseCase.isEmpty() || !ret.mdf().is(Mdf.iso, Mdf.imm);
+    if(baseDestiny){ return baseCase; }
+    //res is iso or imm, thus is promotable
+
+    var criticalFailure = okWithSubType(g, m, e, ret.withMdf(Mdf.read));
+    if (criticalFailure.isPresent()) { return criticalFailure; }
+
+    var isoPromotion = okWithSubType(x->g.getO(x)
+      .map(t->{
+        if (!t.mdf().isMut()) { return t; }
+        return t.withMdf(Mdf.lent); }),
+      m, e, ret.withMdf(Mdf.mut));
+    if(ret.mdf().isIso() || isoPromotion.isEmpty()){ return isoPromotion; }
+
+    return okWithSubType(x->g
+      .getO(x)
+      .flatMap(t->{
+        if (t.mdf().isLikeMut()) { return Optional.empty(); }
+        return Optional.of(t); }),
+      m, e, ret.withMdf(Mdf.read))
+      .flatMap(ignored->baseCase);
+    //TODO: merge errors? this may say error lambda can not capture mut instead of mut is not imm
+  }
+
+  default Optional<CompileError> okWithSubType(Gamma g, E.Meth m, E e, T expected) {
+    var res = e.accept(ETypeSystem.of(p(), g, Optional.of(expected), depth()+1));
+    var subOk = res.t()
+      .flatMap(ti->p().isSubType(ti, expected)
         ? Optional.empty()
-        : Optional.of(Fail.methTypeError(ret, ti, m.name()).pos(m.pos()))
+        : Optional.of(Fail.methTypeError(expected, ti, m.name()).pos(m.pos()))
       );
     return res.err().or(()->subOk);
   }

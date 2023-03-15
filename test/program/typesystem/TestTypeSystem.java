@@ -627,6 +627,75 @@ public class TestTypeSystem {
     C:{ #: mut C -> A[C].foo({}) }
     """); }
 
+  @Test void breakingEarlyFancyRename() { fail(false, """
+    In position [###]/Dummy0.fear:3:2
+    [E23 methTypeError]
+    Expected the method .foo/2 to return recMdf test.A[], got read test.A[].
+    """, """
+    package test
+    A:{
+      read .foo(a:recMdf A, b:read A):recMdf A -> b
+      }
+    B:{
+      .foo(mutR: mut A, readR: read A): mut A -> mutR.foo(mutR, readR)
+      }
+    """); }
+
+  @Test void recMdfCallsRecMdf() { ok(false, """
+    package test
+    A:{
+      read .inner: recMdf  A -> this,
+      read .outer: recMdf A -> this.inner,
+      }
+    """); }
+  @Test void recMdfCallsRecMdfa() { ok(false, """
+    package test
+    A:{
+      read .inner: recMdf  A -> this
+      }
+    """); }
+  @Test void noCaptureReadInMut() { fail(false, """
+    """, """
+    package test
+    A:{ mut .prison: read B }
+    B:{
+      read .break: mut A -> { this }
+      }
+    """); }
+  @Test void noCaptureMdfInMut() { fail(false, """
+    In position [###]/Dummy0.fear:4:29
+    [E28 undefinedName]
+    The identifier "this" is undefined or cannot be captured.
+    """, """
+    package test
+    A[X]:{ mut .prison: mdf X }
+    B:{
+      read .break: mut A[B] -> { this }
+      }
+    """); }
+  @Test void noCaptureMdfInMut2() { fail(false, """
+    In position [###]/Dummy0.fear:4:29
+    [E28 undefinedName]
+    The identifier "this" is undefined or cannot be captured.
+    """, """
+    package test
+    A[X]:{ mut .prison: mdf X }
+    B:{
+      read .break: mut A[read B] -> { this }
+      }
+    """); }
+
+  @Test void noCaptureMdfInMut3() { fail(false, """
+    In position [###]/Dummy0.fear:4:38
+    [E23 methTypeError]
+    Expected the method .prison/0 to return mdf X, got mut X.
+    """, """
+    package test
+    A[X]:{ mut .prison: mdf X }
+    B[X]:{
+      .break(x: mdf X): mut A[mdf X] -> { x }
+      }
+    """); }
   // TODO: write a test that shows that the error message for this code makes sense:
   /*
       // (Void is the wrong R and this returns Opt[Opt[T]] instead of Opt[T] or the written Void.

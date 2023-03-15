@@ -37,13 +37,14 @@ public interface Program {
   }
 
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
-    if(m1==m2){ return true; }
+    if(m1 == m2){ return true; }
+    if (m2 == Mdf.read) { return true; }
     return switch(m1){
       case mut -> m2.isLikeMut();
       case lent, imm -> m2.isRead();
       case read -> false;
       case iso -> true;
-      case mdf, recMdf -> throw Bug.of("Unreachable sub-type: "+m1+" < "+m2);
+      case mdf, recMdf -> throw Bug.of("Unreachable sub-type: "+m1+" < "+m2); // may be valid and false
     };
   }
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }

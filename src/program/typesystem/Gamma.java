@@ -6,6 +6,8 @@ import program.Program;
 import ast.T;
 import id.Mdf;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface Gamma {

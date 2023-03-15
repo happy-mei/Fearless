@@ -117,7 +117,7 @@ public class Fail{
     return of("Invalid modifier for "+t+".\nrecMdf may not be used in the list of implemented traits.");
   }
   public static CompileError undefinedName(String name){
-    return of("The identifier \""+name+"\" is undefined.");
+    return of("The identifier \""+name+"\" is undefined or cannot be captured.");
   }
 
   public static <TT> CompileError noDupImpls(List<Id.IT<TT>> its){

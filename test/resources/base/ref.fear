@@ -4,7 +4,13 @@ Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
 Ref[X]:NoMutHyg[X],Sealed{
   read * : recMdf X,
   mut .swap(x: mdf X): mdf X,
-  mut :=(x: mdf X): Void -> LetMut#{ .var -> this.swap(x), .in(_) -> Void },
+  mut .test1(x: mdf X): mut LetMut[mdf X,Void]->{
+    .var ->this.swap(x), .in(_) -> Void },//x should not be in scope
+    //add unit test with a mut lambda captuing a read
+    //add another with capturing a mdf
+  mut .test2(x:mdf X): Void -> LetMut#[mdf X, Void](this.test1(x)),
+  mut :=(x: mdf X): Void -> LetMut#[mdf X,Void]mut LetMut[mdf X,Void]{ .var ->
+   this.swap(x), .in(_) -> Void },
   mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
   }
 UpdateRef[X]:{ mut #(x: mdf X): mdf X }

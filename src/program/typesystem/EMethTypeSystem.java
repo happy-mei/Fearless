@@ -49,7 +49,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       .map(tst1->{
         var call = Streams.zip(es, tst1.ts())
           .map((e1,t1)->{
-            var getT = this.withT(Optional.of(t1));
+            var getT = this.withT(Optional.empty());
 //            return e1.accept(getT).t().map(e1T->e1+": "+e1T);
             return e1.accept(getT).t().map(T::toString).orElseGet(()->"?"+e1+"?");
           })
