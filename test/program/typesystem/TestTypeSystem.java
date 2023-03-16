@@ -347,10 +347,10 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     this .b/0[]([]) .foo/0[]([])
     were valid:
-    (?this .b/0[]([])?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
+    (imm test.B[]) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (imm test.B[]) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (imm test.B[]) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (imm test.B[]) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -369,10 +369,10 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     this .b/0[]([]) .foo/0[]([])
     were valid:
-    (?this .b/0[]([])?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
+    (read test.B[]) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (read test.B[]) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (read test.B[]) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (read test.B[]) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -391,10 +391,10 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     this .b/0[]([]) .foo/0[]([])
     were valid:
-    (?this .b/0[]([])?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
+    (imm test.B[]) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (imm test.B[]) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (imm test.B[]) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (imm test.B[]) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -413,10 +413,10 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     this .b/0[]([]) .foo/0[]([])
     were valid:
-    (?this .b/0[]([])?) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
-    (?this .b/0[]([])?) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
+    (recMdf test.B[]) <: TsT[ts=[mut test.B[]], t=mut test.B[]]
+    (recMdf test.B[]) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (recMdf test.B[]) <: TsT[ts=[iso test.B[]], t=iso test.B[]]
+    (recMdf test.B[]) <: TsT[ts=[iso test.B[]], t=mut test.B[]]
     """, """
     package test
     A:{
@@ -651,10 +651,13 @@ public class TestTypeSystem {
   @Test void recMdfCallsRecMdfa() { ok(false, """
     package test
     A:{
-      read .inner: recMdf  A -> this
+      read .inner: recMdf A -> this
       }
     """); }
   @Test void noCaptureReadInMut() { fail(false, """
+    In position [###]/Dummy0.fear:4:26
+    [E30 badCapture]
+    'recMdf this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A:{ mut .prison: read B }
@@ -665,7 +668,7 @@ public class TestTypeSystem {
   @Test void noCaptureMdfInMut() { fail(false, """
     In position [###]/Dummy0.fear:4:29
     [E30 badCapture]
-    'read this' cannot be captured by a mut method in a mut lambda.
+    'recMdf this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A[X]:{ mut .prison: mdf X }
@@ -676,12 +679,12 @@ public class TestTypeSystem {
   @Test void noCaptureMdfInMut2() { fail(false, """
     In position [###]/Dummy0.fear:4:34
     [E30 badCapture]
-    'read this' cannot be captured by a mut method in a mut lambda.
+    'recMdf this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A[X]:{ mut .prison: mdf X }
     B:{
-      read .break: mut A[read B] -> { this }
+      read .break: mut A[read B] -> { this } // this capture was being allowed because this:mdf B was adapted with read to become this:recMdf B (which can be captured by mut)
       }
     """); }
 
@@ -695,6 +698,15 @@ public class TestTypeSystem {
     B[X]:{
       .break(x: mdf X): mut A[mdf X] -> { x }
       }
+    """); }
+
+  @Test void recMdfFluent() { ok(false, """
+    package test
+    Let:{
+      read #[V,R](l: recMdf Let[mdf V, mdf R]): recMdf Let[mdf V, mdf R],
+      read .run[V,R](l: recMdf LetMut[mdf V, mdf R]): mdf R -> l.in(l.var)
+      }
+    Let[V,R]:{ recMdf .var: mdf V, recMdf .in(v: mdf V): mdf R }
     """); }
   // TODO: write a test that shows that the error message for this code makes sense:
   /*

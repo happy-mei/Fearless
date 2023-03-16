@@ -329,6 +329,28 @@ public class TestInferBodies {
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
+  @Test void inferCallGens(){ ok("""
+    {test.NoMutHyg/1=Dec[name=test.NoMutHyg/1,gxs=[X],lambda=[-mdf-][test.NoMutHyg[mdfX]]{'this}],test.LetMut/0=Dec[name=test.LetMut/0,gxs=[],lambda=[-mdf-][test.LetMut[]]{'this#/1([l]):Sig[mdf=imm,gens=[V,R],ts=[muttest.LetMut[mdfV,mdfR]],ret=mdfR]->l.in/1[]([l.var/0[]([])])}],test.Ref/1=Dec[name=test.Ref/1,gxs=[X],lambda=[-mdf-][test.Ref[mdfX],test.NoMutHyg[immX],test.Sealed[]]{'this*/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],.swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-],.test1/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=muttest.LetMut[mdfX,immtest.Void[]]]->[-mut-][test.LetMut[mdfX,immtest.Void[]]]{'fear2$.var/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfX]->this.swap/1[]([x]),.in/1([fear0$]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear3$}},.test2/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.LetMut[]]{'fear4$}#/1[mdfX,immtest.Void[]]([this.test1/1[]([x])]),:=/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.LetMut[]]{'fear5$}#/1[mdfX,immtest.Void[]]([[-mut-][test.LetMut[mdfX,immtest.Void[]]]{'fear6$.var/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfX]->this.swap/1[]([x]),.in/1([fear1$]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear7$}}]),<-/1([f]):Sig[mdf=mut,gens=[],ts=[muttest.UpdateRef[mdfX]],ret=mdfX]->this.swap/1[]([f#/1[]([this*/0[]([])])])}],test.UpdateRef/1=Dec[name=test.UpdateRef/1,gxs=[X],lambda=[-mdf-][test.UpdateRef[mdfX]]{'this#/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-]}],test.Ref/0=Dec[name=test.Ref/0,gxs=[],lambda=[-mdf-][test.Ref[]]{'this#/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=muttest.Ref[mdfX]]->this#/1[mdfX]([x])}],test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}],test.Sealed/0=Dec[name=test.Sealed/0,gxs=[],lambda=[-mdf-][test.Sealed[]]{'this}],test.LetMut/2=Dec[name=test.LetMut/2,gxs=[V,R],lambda=[-mdf-][test.LetMut[mdfV,mdfR]]{'this.var/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfV]->[-],.in/1([v]):Sig[mdf=mut,gens=[],ts=[mdfV],ret=mdfR]->[-]}]}
+    """, """
+    package test
+    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Ref[X]:NoMutHyg[X],Sealed{
+      read * : recMdf X,
+      mut .swap(x: mdf X): mdf X,
+      mut .test1(x: mdf X): mut LetMut[mdf X,Void]->{
+        .var ->this.swap(x), .in(_) -> Void },
+      mut .test2(x:mdf X): Void -> LetMut#(this.test1(x)),
+      mut :=(x: mdf X): Void -> LetMut#[mdf X,Void]mut LetMut[mdf X,Void]{ .var ->
+       this.swap(x), .in(_) -> Void },
+      mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+      }
+    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    """, """
+    package test
+    NoMutHyg[X]:{} Void:{} Sealed:{}
+    LetMut:{ #[V,R](l: mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
+    LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+    """); }
 
   @Test void nestedGensClash(){ ok("""
     {test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-mdf-][test.B[],test.A[]]{'this

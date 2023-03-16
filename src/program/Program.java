@@ -44,7 +44,11 @@ public interface Program {
       case lent, imm -> m2.isRead();
       case read -> false;
       case iso -> true;
-      case mdf, recMdf -> throw Bug.of("Unreachable sub-type: "+m1+" < "+m2); // may be valid and false
+      case recMdf -> {
+        System.out.println("Weird sub-type: "+m1+" < "+m2);
+        yield false;
+      }
+      case mdf -> throw Bug.of("Unreachable sub-type: "+m1+" < "+m2); // may be valid and false
     };
   }
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }

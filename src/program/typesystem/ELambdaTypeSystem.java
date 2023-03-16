@@ -68,8 +68,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var mMdf = m.sig().mdf();
 
 //    var selfTi = fancyRename(selfT, mMdf, Map.of());
-    var selfTi = selfT.mdf().isMdf() ? selfT.withMdf(m.sig().mdf()) : selfT;
-//    var selfTi = selfT;
+//    var selfTi = selfT.mdf().isMdf() ? selfT.withMdf(m.sig().mdf()) : selfT;
+    var selfTi = selfT;
     var args = m.sig().ts();
 //    var args = m.sig().ts().stream().map(ti->fancyRename(ti, mMdf, Map.of())).toList();
 //    var ret = fancyRename(m.sig().ret(), mMdf, Map.of());
@@ -89,7 +89,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     //res is iso or imm, thus is promotable
 
     var criticalFailure = okWithSubType(g, m, e, ret.withMdf(Mdf.read));
-    if (criticalFailure.isPresent()) { return criticalFailure; }
+    if (criticalFailure.isPresent()) { return baseCase; }
 
     var isoPromotion = okWithSubType(x->g.getO(x)
       .map(t->{

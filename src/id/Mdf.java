@@ -27,13 +27,15 @@ public enum Mdf{
     if (this == other) { return this; }
     if (this == imm) { return imm; }
     if (this == mut) {
-      if (other == recMdf) { return mut; }
+//      if (other == recMdf) { return mut; }
+      if (other == mdf) { return mut; }
       return other;
     }
     if (this == lent) {
       if (other == imm) { return other; }
       if (other == read) { return other; }
       if (other == recMdf) { return other; } // maybe return lent here instead
+      if (other == mdf) { return lent; }
       if (other == mut) { return lent; }
     }
     if (this == read) {
