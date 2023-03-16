@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import failure.CompileError;
 import main.Main;
+import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
@@ -62,13 +63,13 @@ public class TestMIR {
     }
   }
 
-  @Test void emptyProgram() { ok("""
+  @Example void emptyProgram() { ok("""
     {"pkgs":{}}
     """, """
     package test
     """);}
 
-  @Test void simpleProgram() { ok("""
+  @Example void simpleProgram() { ok("""
 {
   "pkgs": {
     "test": [

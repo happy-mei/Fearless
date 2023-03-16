@@ -2,6 +2,7 @@ package program;
 
 import failure.CompileError;
 import main.Main;
+import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
@@ -41,7 +42,7 @@ public class TestSigInference {
     }
   }
 
-  @Test void noInference() { ok("""
+  @Example void noInference() { ok("""
     {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
       .fullType/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.A[]]->[-base.A[]-][base.A[]]{}
     }]}
@@ -50,7 +51,7 @@ public class TestSigInference {
     A:{ .fullType: A -> A }
     """);}
 
-  @Test void inferOneSig() { ok("""
+  @Example void inferOneSig() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{
        'this
        .fullType/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.A[]]
@@ -65,7 +66,7 @@ public class TestSigInference {
     B:A{ .fullType->B }
     """);}
 
-  @Test void inferOneSigParams() { ok("""
+  @Example void inferOneSigParams() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{
     'this
     .fullType/1([a]):Sig[mdf=imm,gens=[],ts=[immbase.A[]],ret=immbase.A[]]->[-base.B[]-][base.B[]]{}}],
@@ -76,7 +77,7 @@ public class TestSigInference {
     B:A{ .fullType a->B }
     """);}
 
-  @Test void inferOneSigGens() { ok("""
+  @Example void inferOneSigGens() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{
       'this
       .fullType/0([]):Sig[mdf=imm,gens=[X0/0$],ts=[],ret=immX0/0$]->this:infer.fullType/0[-]([]):infer}],
@@ -87,7 +88,7 @@ public class TestSigInference {
     B:A{ .fullType->this.fullType }
     """);}
 
-  @Test void inferOneSigGensClash() { ok("""
+  @Example void inferOneSigGensClash() { ok("""
     {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
       .fullType/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=immX]->[-]}],
     base.B/1=Dec[name=base.B/1,gxs=[X],lambda=[-infer-][base.A[]]{'this
@@ -99,7 +100,7 @@ public class TestSigInference {
     B[X]:A{ .bla:X, .fullType->this.fullType }
     """);}
 
-  @Test void inferClashingGenMeth() { fail("""
+  @Example void inferClashingGenMeth() { fail("""
     In position [###]:2:14
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -113,7 +114,7 @@ public class TestSigInference {
     C:{ .g[BB]: BB }
     """);}
 
-  @Test void inferOneSigGensAndParams() { ok("""
+  @Example void inferOneSigGensAndParams() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{
       'this
       .fullType/1([y]):Sig[mdf=imm,gens=[X0/0$],ts=[immX0/0$],ret=immbase.A[]]->[-base.B[]-][base.B[]]{}}],
@@ -124,7 +125,7 @@ public class TestSigInference {
     B:A{ .fullType(y)->B }
     """);}
 
-  @Test void oneParentImplTopDec() { ok("""
+  @Example void oneParentImplTopDec() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
       .fullType/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.A[]]->[-base.B[]-][base.B[]]{}}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
@@ -135,7 +136,7 @@ public class TestSigInference {
     B:A{ B }
     """);}
 
-  @Test void oneParentImplTopDecParams() { ok("""
+  @Example void oneParentImplTopDecParams() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
       .fullType/1([b]):Sig[mdf=imm,gens=[],ts=[immbase.A[]],ret=immbase.A[]]->b:infer}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
@@ -146,7 +147,7 @@ public class TestSigInference {
     B:A{ b -> b }
     """);}
 
-  @Test void oneParentImplGens() { ok("""
+  @Example void oneParentImplGens() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
       .fullType/1([x]):Sig[mdf=imm,gens=[X0/0$],ts=[immX0/0$],ret=immX0/0$]->x:infer}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
@@ -157,7 +158,7 @@ public class TestSigInference {
     B:A{ x -> x }
     """);}
 
-  @Test void oneParentImplDecGens() { ok("""
+  @Example void oneParentImplDecGens() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[immbase.B[]]]{'this
       .fullType/1([x]):Sig[mdf=imm,gens=[],ts=[immbase.B[]],ret=immbase.B[]]->[-base.B[]-][base.B[]]{}}],
     base.A/1=Dec[name=base.A/1,gxs=[X],lambda=[-infer-][]{'this
@@ -168,7 +169,7 @@ public class TestSigInference {
     B:A[B]{ x -> B }
     """);}
 
-  @Test void onlyAbsGens() { ok("""
+  @Example void onlyAbsGens() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[immbase.B[]]]{'this
       .fullType/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.B[]]->[-base.B[]-][base.B[]]{}}],
     base.A/1=Dec[name=base.A/1,gxs=[X],lambda=[-infer-][]{'this
@@ -184,7 +185,7 @@ public class TestSigInference {
     B:A[B]{ B }
     """);}
 
-  @Test void complexInfer() { ok("""
+  @Example void complexInfer() { ok("""
     {a.B/1=Dec[name=a.B/1,gxs=[Y],lambda=[-infer-][]{'this
       .m/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=imma.Bi[immX,immY]]->this:infer}],
     a.A/1=Dec[name=a.A/1,gxs=[X],lambda=[-infer-][a.B[immX]]{'this
@@ -196,7 +197,7 @@ public class TestSigInference {
     B[Y]:{.m[X]:Bi[X,Y]->this}
     Bi[AA,BB]:{}
     """); }
-  @Test void complexInfer2() { ok("""
+  @Example void complexInfer2() { ok("""
     {a.B/1=Dec[name=a.B/1,gxs=[Y],lambda=[-infer-][]{'this
       .m/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=imma.Bi[immX,immY]]->this:infer}],
     a.A/1=Dec[name=a.A/1,gxs=[X],lambda=[-infer-][a.B[immX]]{'this
@@ -209,7 +210,7 @@ public class TestSigInference {
     B[Y]:{.m[X]:Bi[X,Y]->this}
     Bi[AA,BB]:{}
     """); }
-  @Test void diamondRename1() { ok("""
+  @Example void diamondRename1() { ok("""
     {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][a.Id[]]{'this}],
     a.B/1=Dec[name=a.B/1,gxs=[X],lambda=[-infer-][a.Id[]]{'this}],
     a.Id/0=Dec[name=a.Id/0,gxs=[],lambda=[-infer-][]{'this
@@ -223,7 +224,7 @@ public class TestSigInference {
     B[X]:Id
     C:A,B[A]{.id a->a}
     """); }//So, how do we 'accept' that the version with X and the version with X0 are compatible
-  @Test void diamondRenameNotComposable() { ok("""
+  @Example void diamondRenameNotComposable() { ok("""
     {a.B/1=Dec[name=a.B/1,gxs=[Y],lambda=[-infer-][a.Id2[]]{'this}],
     a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][a.Id1[]]{'this}],
     a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=[-infer-][]{'this
@@ -240,7 +241,7 @@ public class TestSigInference {
     B[Y]:Id2
     C:A,B[A]{.id a->a}
     """); }//So, how do we 'accept' that the version with X and the version with X0 are compatible
-  @Test void diamondRename2() { ok("""
+  @Example void diamondRename2() { ok("""
     {a.B/1=Dec[name=a.B/1,gxs=[Y],lambda=[-infer-][a.Id2[]]{'this}],
     a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][a.Id1[]]{'this}],
     a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=[-infer-][]{'this
@@ -258,7 +259,7 @@ public class TestSigInference {
     C:A,B[A]{.id a->a}
     """); }//So, how do we 'accept' that the version with X and the version with X0 are compatible
 
-  @Test void noMethodExists() { fail("""
+  @Example void noMethodExists() { fail("""
     In position [###]Dummy0.fear:4:12
     [E19 cannotInferSig]
     Could not infer the signature for .foo/0 in a.Bi/2.
@@ -269,7 +270,7 @@ public class TestSigInference {
     Bi[AA,BB]:{ .foo -> this.foo }
     """); }
 
-  @Test void multiGens2() { ok("""
+  @Example void multiGens2() { ok("""
     {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][]{'this
       .m/2([x,y]):Sig[mdf=imm,gens=[X,Y],ts=[immX,immY],ret=immY]->[-]}],
       a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[]]{'this
@@ -279,7 +280,7 @@ public class TestSigInference {
     A:{ .m[X,Y](x:X,y:Y): Y }
     B:A{ .m(a1,a2) -> a2 }
     """); }
-  @Test void multiGensOneConcrete() { ok("""
+  @Example void multiGensOneConcrete() { ok("""
     {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][]{'this
       .m/2([x,y]):Sig[mdf=imm,gens=[X,Y],ts=[imma.Foo[immX],immY],ret=immY]->[-]}],
     a.Foo/1=Dec[name=a.Foo/1,gxs=[X],lambda=[-infer-][]{'this}],
@@ -291,7 +292,7 @@ public class TestSigInference {
     A:{ .m[X,Y](x:Foo[X],y:Y): Y }
     B:A{ .m(a1,a2) -> a2 }
     """); }
-  @Test void multiGensOneConcreteMdfs() { ok("""
+  @Example void multiGensOneConcreteMdfs() { ok("""
     {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][]{'this
       .m/2([x,y]):Sig[mdf=read,gens=[X,Y],ts=[muta.Foo[immX],recMdfY],ret=recMdfY]->[-]}],
     a.Foo/1=Dec[name=a.Foo/1,gxs=[X],lambda=[-infer-][]{'this}],
@@ -303,7 +304,7 @@ public class TestSigInference {
     A:{ read .m[X,Y](x:mut Foo[X],y:recMdf Y): recMdf Y }
     B:A{ .m(a1,a2) -> a2 }
     """); }
-  @Test void sameGens() {
+  @Example void sameGens() {
     ok("""
       {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][]{'this
         .g/0([]):Sig[mdf=imm,gens=[AA],ts=[],ret=immAA]->[-]}],
@@ -318,7 +319,7 @@ public class TestSigInference {
       """);
   }
 
-  @Test void abstractNoCandidate() { fail("""
+  @Example void abstractNoCandidate() { fail("""
     In position [###]/Dummy0.fear:3:6
     [E22 cannotInferAbsSig]
     Could not infer the signature for the abstract lambda in a.Id2/0. There must be one abstract lambda in the trait.
@@ -327,7 +328,7 @@ public class TestSigInference {
     Id:{ .id[X](x: X): X }
     Id2:{ x -> x }
     """); }
-  @Test void abstractOneArg() { ok("""
+  @Example void abstractOneArg() { ok("""
     {a.Id/0=Dec[name=a.Id/0,gxs=[],lambda=[-infer-][]{'this
       .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}],
     a.Id2/0=Dec[name=a.Id2/0,gxs=[],lambda=[-infer-][a.Id[]]{'this
@@ -337,7 +338,7 @@ public class TestSigInference {
     Id:{ .id[X](x: X): X }
     Id2:Id{ x -> x }
     """); }
-  @Test void adaptGens() { ok("""
+  @Example void adaptGens() { ok("""
     {a.A/1=Dec[name=a.A/1,gxs=[X],lambda=[-infer-][]{'this
       .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mdfX]->[-],
       .m2/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mutX]->[-],
@@ -372,7 +373,7 @@ public class TestSigInference {
     C:A[mut B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5, .m6->this.m6, .m7->this.m7 }
     """); }
 
-  @Test void nullrefDef() { ok("""
+  @Example void nullrefDef() { ok("""
     {base.Let/2=Dec[name=base.Let/2,gxs=[V,R],lambda=[-infer-][]{'this
       .var/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immV]->[-],
       .in/1([v]):Sig[mdf=imm,gens=[],ts=[immV],ret=immR]->[-]}],
@@ -417,7 +418,7 @@ public class TestSigInference {
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
 
-  @Test void immDelegate() { ok("""
+  @Example void immDelegate() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
       .m2/1([k]):Sig[mdf=imm,gens=[X0/0$],ts=[immX0/0$],ret=immbase.Void[]]->
         this:infer.m1/1[-]([k:infer]):infer}],
@@ -436,7 +437,7 @@ public class TestSigInference {
     Void:{}
     """); }
 
-  @Test void bools() { ok("""
+  @Example void bools() { ok("""
     {base.ThenElse/1=Dec[name=base.ThenElse/1,gxs=[R],lambda=[-infer-][]{'this
       .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-],
       .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}],

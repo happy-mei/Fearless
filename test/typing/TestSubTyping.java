@@ -1,20 +1,16 @@
 package typing;
 
 import failure.CompileError;
-import main.Main;
+import id.Mdf;
+import net.jqwik.api.Example;
+import net.jqwik.api.ForAll;
+import net.jqwik.api.Property;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
-import utils.Base;
 import utils.Err;
 import utils.FromContent;
-import wellFormedness.WellFormednessFullShortCircuitVisitor;
-
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestSubTyping {
   void ok(String t1, String t2, boolean res, String ...code){
@@ -36,21 +32,29 @@ public class TestSubTyping {
     }
   }
 
-  @Test void reflSub() { ok("a.A","a.A",true,"package a\nA:{}"); }
-  @Test void noDSub() { ok("a.A","a.B",false,"package a\nA:{} B:{}"); }
-  @Test void directSub() { ok("a.A","a.B",true,"package a\nA:a.B{} B:{}"); }
-  @Test void inverseDirectSub() { ok("a.B","a.A",false,"package a\nA:a.B{} B:{}"); }
-  @Test void reflXSub() { ok("X","X",true,"package a\nA:a.B{} B:{}"); }
+  @Property public void mdfIsCommonSupertype(@ForAll Mdf mdf) {;
+    ok(mdf+" a.A", "read a.A", true, "package a\nA:{}");
+  }
 
-  @Test void directSubMdf() { ok("a.A","read a.A",true,"package a\n A:{}"); }
-  @Test void inverseDirectSubMdf() { ok("read a.A","a.A",false,"package a\n A:{}"); }
-  @Test void noSubMdf() { ok(
+  @Property public void isoIsCommonSubtype(@ForAll Mdf mdf) {
+    ok("iso a.A", mdf+" a.A", true, "package a\nA:{}");
+  }
+
+  @Example void reflSub() { ok("a.A","a.A",true,"package a\nA:{}"); }
+  @Example void noDSub() { ok("a.A","a.B",false,"package a\nA:{} B:{}"); }
+  @Example void directSub() { ok("a.A","a.B",true,"package a\nA:a.B{} B:{}"); }
+  @Example void inverseDirectSub() { ok("a.B","a.A",false,"package a\nA:a.B{} B:{}"); }
+  @Example void reflXSub() { ok("X","X",true,"package a\nA:a.B{} B:{}"); }
+
+  @Example void directSubMdf() { ok("a.A","read a.A",true,"package a\n A:{}"); }
+  @Example void inverseDirectSubMdf() { ok("read a.A","a.A",false,"package a\n A:{}"); }
+  @Example void noSubMdf() { ok(
     "mut a.A","imm a.A",false,
     """
     package a
     A:{}
     """); }
-  @Test void inverseTransitiveSub() { ok(
+  @Example void inverseTransitiveSub() { ok(
     "a.A","a.C",false,
     """
     package a
@@ -58,25 +62,25 @@ public class TestSubTyping {
     B:A{}
     C:B{}
     """); }
-  @Test void transitiveSub() { ok(
+  @Example void transitiveSub() { ok(
     "a.C","a.A",true,
     """
     package a
     A:{} B:A C:B
     """); }
-  @Test void transitiveManyStepsSub() { ok(
+  @Example void transitiveManyStepsSub() { ok(
     "a.E","a.A",true,
     """
     package a
     A:{} B:A C:F,B,G{} D:C E:D F:{} G:{}
     """); }
-  @Test void inverseTransitiveManyStepsSub() { ok(
+  @Example void inverseTransitiveManyStepsSub() { ok(
     "a.A","a.E",false,
     """
     package a
     A:{} B:A C:B D:C E:D
     """); }
-  @Test void loopingAdapt() { fail("""
+  @Example void loopingAdapt() { fail("""
     [E25 circularSubType]
     There is a cyclical sub-typing relationship between imm a.Break[imm A] and imm a.Break[imm B].
     """, "a.Break[A]", "a.Break[B]", """
@@ -97,14 +101,14 @@ public class TestSubTyping {
     Point:{ .x: Int, .y: Int }
     ColouredPoint:Point{ .colour: Int }
     """;
-  @Test void sortedListOfTExtendsListTOfT() { ok("a.SortedList[a.Int]","a.List[a.Int]",true,pointEx); }
-  @Test void sortedListOfTExtendsListTOfTMdfFail() { ok("a.SortedList[a.Int]","a.List[mut a.Int]",false,pointEx); }
-  @Test void sortedListOfTExtendsListTOfTMdf() { ok("a.SortedList[a.Int]","a.List[read a.Int]",true,pointEx); }
-  @Test void sortedListOfTExtendsListTOfTMdfReflexive() { ok("a.SortedList[read a.Int]","a.List[a.Int]",true,pointEx); }
-  @Test void sortedListOfTExtendsListTOfX() { ok("a.SortedList[X]","a.List[X]",true,pointEx); }
-  @Test void sortedListOfTExtendsListTOfNot1() { ok("a.SortedList[a.Int]","a.List[X]",false,pointEx); }
-  @Test void sortedListOfTExtendsListTOfNot2() { ok("a.SortedList[X]","a.List[a.Int]",false,pointEx); }
-  @Test void sortedListOfTExtendsListTOfNot3() { ok("a.SortedList[X]","a.List[a.List[a.Int]]",false,pointEx); }
-  @Test void sortedListMixedGens() { ok("a.SortedList[a.ColouredPoint]","a.SortedList[a.Point]",true,pointEx); }
-  @Test void inverseSortedListMixedGens() { ok("a.SortedList[a.Point]","a.SortedList[a.ColouredPoint]",false,pointEx); }
+  @Example void sortedListOfTExtendsListTOfT() { ok("a.SortedList[a.Int]","a.List[a.Int]",true,pointEx); }
+  @Example void sortedListOfTExtendsListTOfTMdfFail() { ok("a.SortedList[a.Int]","a.List[mut a.Int]",false,pointEx); }
+  @Example void sortedListOfTExtendsListTOfTMdf() { ok("a.SortedList[a.Int]","a.List[read a.Int]",true,pointEx); }
+  @Example void sortedListOfTExtendsListTOfTMdfReflexive() { ok("a.SortedList[read a.Int]","a.List[a.Int]",true,pointEx); }
+  @Example void sortedListOfTExtendsListTOfX() { ok("a.SortedList[X]","a.List[X]",true,pointEx); }
+  @Example void sortedListOfTExtendsListTOfNot1() { ok("a.SortedList[a.Int]","a.List[X]",false,pointEx); }
+  @Example void sortedListOfTExtendsListTOfNot2() { ok("a.SortedList[X]","a.List[a.Int]",false,pointEx); }
+  @Example void sortedListOfTExtendsListTOfNot3() { ok("a.SortedList[X]","a.List[a.List[a.Int]]",false,pointEx); }
+  @Example void sortedListMixedGens() { ok("a.SortedList[a.ColouredPoint]","a.SortedList[a.Point]",true,pointEx); }
+  @Example void inverseSortedListMixedGens() { ok("a.SortedList[a.Point]","a.SortedList[a.ColouredPoint]",false,pointEx); }
 }

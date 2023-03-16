@@ -2,6 +2,7 @@ package parser;
 
 import failure.CompileError;
 import main.Main;
+import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import utils.Err;
@@ -34,13 +35,13 @@ class TestFullParser {
       Err.strCmp(expectedErr, e.toString());
     }
   }
-  @Test void testEmptyPackage(){ ok("""
+  @Example void testEmptyPackage(){ ok("""
     {}
     """,
     """
     package pkg1
     """); }
-  @Test void testMultiFile(){ ok("""
+  @Example void testMultiFile(){ ok("""
     {}
     """,
       """
@@ -49,7 +50,7 @@ class TestFullParser {
       """
       package pkg1
       """); }
-  @Test void testAliasConflictsPackageLocal1(){ ok("""
+  @Example void testAliasConflictsPackageLocal1(){ ok("""
     {}
     """,
       """
@@ -60,7 +61,7 @@ class TestFullParser {
       package pkg2
       alias base.True as True,
       """); }
-  @Test void failConflictingAliases1(){ fail("""
+  @Example void failConflictingAliases1(){ fail("""
     [E1 conflictingAlias]
     This alias is in conflict with other aliases in the same package: True
     conflicts:
@@ -75,7 +76,7 @@ class TestFullParser {
       package pkg1
       alias base.True as True,
       """); }
-  @Test void testMultiPackage(){ ok("""
+  @Example void testMultiPackage(){ ok("""
     {}
     """,
       """
@@ -87,14 +88,14 @@ class TestFullParser {
       """
       package pkg1
       """); }
-  @Test void testOneDecl(){ ok("""
+  @Example void testOneDecl(){ ok("""
     {pkg1.MyTrue/0=Dec[name=pkg1.MyTrue/0,gxs=[],lambda=[-infer-][base.True[]]{}]}
     """,
     """
     package pkg1
     MyTrue:base.True
     """); }
-  @Test void testManyDecls(){ ok("""
+  @Example void testManyDecls(){ ok("""
     {pkg1.My12/0=Dec[name=pkg1.My12/0,gxs=[],lambda=[-infer-][12[]]{}],pkg1.MyFalse/0=Dec[name=pkg1.MyFalse/0,gxs=[],lambda=[-infer-][base.False[]]{}],
     pkg2.MyTrue/0=Dec[name=pkg2.MyTrue/0,gxs=[],lambda=[-infer-][base.True[]]{}],
     pkg1.MyTrue/0=Dec[name=pkg1.MyTrue/0,gxs=[],lambda=[-infer-][base.True[]]{}]}
@@ -113,7 +114,7 @@ class TestFullParser {
       package pkg2
       MyTrue:base.True
       """); }
-  @Test void failConflictingDecls1(){ fail("""
+  @Example void failConflictingDecls1(){ fail("""
       [E2 conflictingDecl]
       This trait declaration is in conflict with other trait declarations in the same package: MyTrue/0
       conflicts:
@@ -130,14 +131,14 @@ class TestFullParser {
     MyTrue:base.True
     """); }
 
-  @Test void baseVoid(){ ok("""
+  @Example void baseVoid(){ ok("""
     {base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{}]}
     """, """
     package base
     Void:{}
     """
     );}
-  @Test void baseLoopSingleMeth(){ ok("""
+  @Example void baseLoopSingleMeth(){ ok("""
     {pkg1.Loop/0=Dec[name=pkg1.Loop/0,gxs=[],lambda=[-infer-][base.AbstractLoop[]]{[-]([]):[-]->this:infer!/0[-]([]):infer}]}
     """, """
     package pkg1
@@ -145,7 +146,7 @@ class TestFullParser {
     Loop:AbsLoop{this!}
     """
   );}
-  @Test void baseLoop(){ ok("""
+  @Example void baseLoop(){ ok("""
     {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=
       [-infer-][]{!/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
     """, """
@@ -154,7 +155,7 @@ class TestFullParser {
     Loop:{!:Void->this!}
     """
   );}
-  @Test void baseLoopExplicit(){ ok("""
+  @Example void baseLoopExplicit(){ ok("""
     {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=[-infer-][]{!/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
     """, """
     package base
@@ -162,7 +163,7 @@ class TestFullParser {
     Loop:{imm !():imm Void->this!}
     """
   );}
-  @Test void baseLoopMoreExplicit(){ ok("""
+  @Example void baseLoopMoreExplicit(){ ok("""
     {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=[-infer-][]{ !/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
     """, """
     package base
@@ -170,49 +171,49 @@ class TestFullParser {
     Loop[]:{imm ![]():imm Void[]->this!}
     """
   );}
-  @Test void baseLoopAbs(){ ok("""
+  @Example void baseLoopAbs(){ ok("""
     {base.AbsLoop/0=Dec[name=base.AbsLoop/0,gxs=[],lambda=[-infer-][]{ !/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->[-]}]}
     """, """
     package base
     AbsLoop:{!:base.Void}
     """
   );}
-  @Test void methWithArgs(){ ok("""
+  @Example void methWithArgs(){ ok("""
     {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/1([a]):Sig[mdf=imm,gens=[],ts=[immbase.A[]],ret=immbase.A[]]->[-]}]}
     """, """
     package base
     A:{.foo(a: A): A,}
     """
   );}
-  @Test void methWith2Args(){ ok("""
+  @Example void methWith2Args(){ ok("""
     {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[imm base.A[],imm base.A[]],ret=imm base.A[]]->[-]}]}
     """, """
     package base
     A:{.foo(a: A, b: A): A,}
     """
   );}
-  @Test void methWith2ArgsAndMdf(){ ok("""
+  @Example void methWith2ArgsAndMdf(){ ok("""
     {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[imm base.A[],read base.A[]],ret=imm base.A[]]->[-]}]}
     """, """
     package base
     A:{.foo(a: A, b: read A): A,}
     """
     );}
-    @Test void methWithGens1(){ ok("""
+    @Example void methWithGens1(){ ok("""
     {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[B],ts=[imm base.A[],readB],ret=imm base.A[]]->[-]}]}
     """, """
     package base
     A:{.foo[B](a: A, b: read B): A,}
     """
     );}
-  @Test void methWithGens2(){ ok("""
+  @Example void methWithGens2(){ ok("""
     {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[B],ts=[imm base.A[],read B],ret=read B]->[-]}]}
     """, """
     package base
     A:{.foo[B](a: A, b: read B): read B,}
     """
   );}
-  @Test void failConcreteInGens(){ fail("""
+  @Example void failConcreteInGens(){ fail("""
     In position [###]/Dummy0.fear:2:7
     [E3 concreteTypeInFormalParams]
     Trait and method declarations may only have generic type parameters. This concrete type was provided instead:
@@ -223,7 +224,7 @@ class TestFullParser {
     A:{.foo[A](a: A, b: A): A}
     """
   );}
-  @Test void extendsNewDec(){ ok("""
+  @Example void extendsNewDec(){ ok("""
     {base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{.name/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.String[]]->[-]}],
     base.Dog/0=Dec[name=base.Dog/0,gxs=[],lambda=[-infer-][base.HasName[]]{}]}
     """, """
@@ -233,7 +234,7 @@ class TestFullParser {
     Dog:HasName
     """
   );}
-  @Test void multipleExtends(){ ok("""
+  @Example void multipleExtends(){ ok("""
     {base.HasHunger/0=Dec[name=base.HasHunger/0,gxs=[],lambda=[-infer-][]{.hunger/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.UInt[]]->[-]}],
     base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{.name/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.String[]]->[-]}],
     base.Dog/0=Dec[name=base.Dog/0,gxs=[],lambda=[-infer-][base.HasHunger[],base.HasName[]]{}]}
@@ -245,7 +246,7 @@ class TestFullParser {
     Dog:HasHunger,HasName{}
     """
   );}
-  @Test void equalsSugar1(){ ok("""
+  @Example void equalsSugar1(){ ok("""
       {base.B/0=Dec[
         name=base.B/0,
         gxs=[],
@@ -270,7 +271,7 @@ class TestFullParser {
       }
     """
   );}
-  @Test void equalsSugar2() { ok("""
+  @Example void equalsSugar2() { ok("""
     {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-infer-][]{#/2([x,cont]):Sig[mdf=mut,gens=[],ts=[mdfX,muttest.Candy[mdfR]],ret=mdfR]->[-]}],
     test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-infer-][]{#/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}],
     test.Candy/1=Dec[name=test.Candy/1,gxs=[R],lambda=[-infer-][]{
@@ -299,7 +300,7 @@ class TestFullParser {
         .return{ f.v }
       }
     """); }
-  @Test void equalsSugar2a() { ok("""
+  @Example void equalsSugar2a() { ok("""
     {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-infer-][]{#/2([x,cont]):Sig[mdf=mut,gens=[],ts=[mdfX,muttest.Candy[mdfR]],ret=mdfR]->[-]}],
     test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-infer-][]{#/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfR]->[-]}],
     test.Candy/1=Dec[name=test.Candy/1,gxs=[R],lambda=[-infer-][]{
@@ -329,7 +330,7 @@ class TestFullParser {
       }
     """); }
 
-  @Test void refDef() { ok("""
+  @Example void refDef() { ok("""
     {base.Let/2=Dec[
       name=base.Let/2,
       gxs=[V,R],
@@ -373,7 +374,7 @@ class TestFullParser {
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """);}
 
-  @Test void noDupTraitsDiffGens() { fail("""
+  @Example void noDupTraitsDiffGens() { fail("""
     In position [###]/Dummy0.fear:7:9
     [E29 noDupImpls]
     The following traits are implemented more than once:
@@ -395,7 +396,7 @@ class TestFullParser {
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
 
-  @Test void magicIntbers() { ok("""
+  @Example void magicIntbers() { ok("""
     {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{.foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm5[]]->[-5[]-][5[]]{}}]}
     """, """
     package test

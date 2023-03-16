@@ -3,6 +3,7 @@ package program.inference;
 import astFull.T;
 import id.Id;
 import main.Main;
+import net.jqwik.api.Example;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import utils.Err;
@@ -42,28 +43,28 @@ public class TestRefineSigGens {
     Err.strCmpFormat(expected, refined.toString());
   }
 
-  @Test void replaceGens() { ok("""
+  @Example void replaceGens() { ok("""
     [RP[t1=imm a.Foo[mdf X],t2=imm a.Foo[mdf X]]]
     """, """
     package a
     Foo[A]:{}
     """, "a.Foo[mdf Y] = a.Foo[mdf X]"); }
 
-  @Test void replaceGens2() { ok("""
+  @Example void replaceGens2() { ok("""
     [RP[t1=mut a.Foo[mdf X],t2=mut a.Foo[mdf X]]]
     """, """
     package a
     Foo[A]:{}
     """, "mut a.Foo[mdf Y] = mut a.Foo[mdf X]"); }
 
-  @Test void replaceGensKeepMdf() { ok("""
+  @Example void replaceGensKeepMdf() { ok("""
     [RP[t1=imm a.Foo[mdfX],t2=imm a.Foo[mdfX]]]
     """, """
     package a
     Foo[A]:{}
     """, "imm a.Foo[mdf Y] = imm a.Foo[mdf X]"); }
 
-  @Test void aGen() { ok("""
+  @Example void aGen() { ok("""
     [RP[t1=imma.A[imma.B[],imma.B[]],t2=imma.A[imma.B[],imma.B[]]]]
     """, """
     package a
@@ -71,7 +72,7 @@ public class TestRefineSigGens {
     B:{}
     """, "a.A[X,a.B[]] = a.A[a.B[],Y]"); }
 
-  @Test void aGen2() { ok("""
+  @Example void aGen2() { ok("""
     [RP[t1=imma.A[imma.B[],imma.B[]],t2=imma.A[imma.B[],imma.B[]]],RP[t1=immY,t2=imma.B[]]]
     """, """
     package a

@@ -2,6 +2,7 @@ package program.typesystem;
 
 import failure.CompileError;
 import main.Main;
+import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
@@ -57,18 +58,18 @@ public class TestTypeSystem {
     }
   }
 
-  @Test void emptyProgram(){ ok("""
+  @Example void emptyProgram(){ ok("""
     package test
     """); }
 
-  @Test void simpleProgram(){ ok( """
+  @Example void simpleProgram(){ ok( """
     package test
     A:{ .m: A -> this }
     """); }
 
-  @Test void baseLib(){ ok(Base.baseLib); }
+  @Example void baseLib(){ ok(Base.baseLib); }
 
-  @Test void simpleTypeError(){ fail("""
+  @Example void simpleTypeError(){ fail("""
     In position [###]/Dummy0.fear:4:2
     [E23 methTypeError]
     Expected the method .fail/0 to return imm test.B[], got imm test.A[].
@@ -80,19 +81,19 @@ public class TestTypeSystem {
     }
     """); }
 
-  @Test void subTypingCall(){ ok( """
+  @Example void subTypingCall(){ ok( """
     package test
     A:{ .m1(a: A): A -> a }
     B:A{}
     C:{ .m2: A -> A.m1(B) }
     """); }
 
-  @Test void numbers1(){ ok( true, """
+  @Example void numbers1(){ ok( true, """
     package test
     A:{ .m(a: 42): 42 -> 42 }
     """); }
 
-  @Test void numbersNoBase(){ ok( """
+  @Example void numbersNoBase(){ ok( """
     package test
     A:{ .m(a: 42): 42 -> 42 }
     """, """
@@ -100,12 +101,12 @@ public class TestTypeSystem {
     Sealed:{} Stringable:{ .str: Str } Str:{} Bool:{}
     """, Base.load("nums.fear")); }
 
-  @Test void numbersSubTyping1(){ ok(true, """
+  @Example void numbersSubTyping1(){ ok(true, """
     package test
     alias base.Int as Int,
     A:{ .m(a: 42): Int -> a }
     """); }
-  @Test void numbersSubTyping2(){ fail(true, """
+  @Example void numbersSubTyping2(){ fail(true, """
     In position [###]/Dummy0.fear:3:4
     [E23 methTypeError]
     Expected the method .m/1 to return imm 42[], got imm base.Int[].
@@ -114,14 +115,14 @@ public class TestTypeSystem {
     alias base.Int as Int,
     A:{ .m(a: Int): 42 -> a }
     """); }
-  @Test void numbersSubTyping3(){ ok(true, """
+  @Example void numbersSubTyping3(){ ok(true, """
     package test
     alias base.Int as Int,
     A:{ .a: Int }
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
     """); }
-  @Test void numbersSubTyping4(){ ok(true, """
+  @Example void numbersSubTyping4(){ ok(true, """
     package test
     alias base.Int as Int,
     A:{ .a: Int }
@@ -129,21 +130,21 @@ public class TestTypeSystem {
     C:A{ .a -> 420 }
     D:B{ .b: Int -> this.a }
     """); }
-  @Test void numbersGenericTypes1(){ ok(true, """
+  @Example void numbersGenericTypes1(){ ok(true, """
     package test
     alias base.Int as Int,
     A[N]:{ .count: N }
     B:A[42]{ 42 }
     C:A[Int]{ 42 }
     """); }
-  @Test void numbersGenericTypes2(){ ok(true, """
+  @Example void numbersGenericTypes2(){ ok(true, """
     package test
     alias base.Int as Int,
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 42 }
     C:A[Int]{ .count -> 56, .sum -> 3001 }
     """); }
-  @Test void numbersGenericTypes2a(){ fail(true, """
+  @Example void numbersGenericTypes2a(){ fail(true, """
     In position [###]/Dummy0.fear:4:31
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -156,14 +157,14 @@ public class TestTypeSystem {
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 43 }
     """); }
-  @Test void numbersGenericTypes2aWorksThanksTo5b(){ ok("""
+  @Example void numbersGenericTypes2aWorksThanksTo5b(){ ok("""
     package test
     FortyTwo:{}
     FortyThree:{}
     A[N]:{ .count: N, .sum: N }
     B:A[FortyTwo]{ .count -> FortyTwo, .sum -> FortyThree }
     """); }
-  @Test void numbersGenericTypes2aNoMagic(){ fail("""
+  @Example void numbersGenericTypes2aNoMagic(){ fail("""
     In position [###]/Dummy0.fear:6:43
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -178,7 +179,7 @@ public class TestTypeSystem {
     A[N]:{ .count: N, .sum: N }
     B:A[FortyTwo]{ .count -> FortyTwo, .sum -> FortyThree }
     """); }
-  @Test void numbersSubTyping5a(){ fail(true, """
+  @Example void numbersSubTyping5a(){ fail(true, """
     In position [###]/Dummy0.fear:6:5
     [E23 methTypeError]
     Expected the method .b/0 to return imm 42[], got imm base.Int[].
@@ -190,13 +191,13 @@ public class TestTypeSystem {
     C:A{ .a -> 420 }
     D:B{ .b: 42 -> this.a }
     """); }
-  @Test void twoInts(){ ok(true, """
+  @Example void twoInts(){ ok(true, """
     package test
     alias base.Int as Int,
     A:{ .m(a: 56, b: 12): Int -> b+a }
     """); }
 
-  @Test void noRecMdfWeakening() { fail("""
+  @Example void noRecMdfWeakening() { fail("""
     In position [###]/Dummy0.fear:4:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -209,14 +210,14 @@ public class TestTypeSystem {
     List[X]:{ read .get(): recMdf X }
     Family2:List[mut Person]{ read .get(): mut Person }
     """); }
-  @Test void boolIntRet() { ok(true, """
+  @Example void boolIntRet() { ok(true, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Test:Main[Int]{
       _->False.or(True)?{.then->42,.else->0}
     }
     """); }
-  @Test void boolSameRet() { ok(true, """
+  @Example void boolSameRet() { ok(true, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Foo:{}
@@ -225,7 +226,7 @@ public class TestTypeSystem {
     }
     """); }
 
-  @Test void ref1() { fail("""
+  @Example void ref1() { fail("""
     In position [###]/Dummy0.fear:10:42
     [E30 badCapture]
     'mut this' cannot be captured by an imm method in an imm lambda.
@@ -245,7 +246,7 @@ public class TestTypeSystem {
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
 
-  @Test void numImpls1() { ok(true, """
+  @Example void numImpls1() { ok(true, """
     package test
     alias base.Int as Int,
     Foo:{ .bar: 5 -> 5 }
@@ -255,7 +256,7 @@ public class TestTypeSystem {
       }
     """);}
 
-  @Test void numImpls2() { ok(true, """
+  @Example void numImpls2() { ok(true, """
     package test
     alias base.Int as Int,
     Bar:{
@@ -264,7 +265,7 @@ public class TestTypeSystem {
       }
     """);}
 
-  @Test void numImpls3() { fail(true, """
+  @Example void numImpls3() { fail(true, """
     In position [###]/Dummy0.fear:5:25
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -280,7 +281,7 @@ public class TestTypeSystem {
       }
     """);}
 
-  @Test void numImpl4() { fail(true, """
+  @Example void numImpl4() { fail(true, """
     In position [###]/Dummy0.fear:5:25
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -296,7 +297,7 @@ public class TestTypeSystem {
       }
     """);}
 
-  @Test void simpleThis() { ok("""
+  @Example void simpleThis() { ok("""
     package test
     A:{
       .a: C -> B{ this.c }.c,
@@ -306,7 +307,7 @@ public class TestTypeSystem {
     C:{ }
     """); }
 
-  @Test void lambdaCapturesThis() { ok("""
+  @Example void lambdaCapturesThis() { ok("""
     package test
     Let:{ #[V,R](l: mut Let[V, R]): R -> l.in(l.var) }
     Let[V,R]:{ mut .var: V, mut .in(v: V): R }
@@ -317,7 +318,7 @@ public class TestTypeSystem {
       }
     """); }
 
-  @Test void callMutFromLent() { ok("""
+  @Example void callMutFromLent() { ok("""
     package test
     A:{
       .b: lent B -> {},
@@ -329,7 +330,7 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
-  @Test void callMutFromIso() { ok("""
+  @Example void callMutFromIso() { ok("""
     package test
     A:{
       .b: lent B -> {},
@@ -341,7 +342,7 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
-  @Test void noCallMutFromImm() { fail("""
+  @Example void noCallMutFromImm() { fail("""
     In position [###]/Dummy0.fear:4:26
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
@@ -363,7 +364,7 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
-  @Test void noCallMutFromRead() { fail("""
+  @Example void noCallMutFromRead() { fail("""
     In position [###]/Dummy0.fear:4:26
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
@@ -385,7 +386,7 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
-  @Test void noCallMutFromRecMdfImm() { fail("""
+  @Example void noCallMutFromRecMdfImm() { fail("""
     In position [###]/Dummy0.fear:4:26
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
@@ -407,7 +408,7 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
-  @Test void noCallMutFromRecMdfRead() { fail("""
+  @Example void noCallMutFromRecMdfRead() { fail("""
     In position [###]/Dummy0.fear:4:31
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
@@ -429,7 +430,7 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
-  @Test void CallMutFromRecMdfLent() { ok("""
+  @Example void CallMutFromRecMdfLent() { ok("""
     package test
     A:{
       lent .b: recMdf B -> {},
@@ -441,7 +442,7 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
-  @Test void CallMutFromRecMdfMut() { ok("""
+  @Example void CallMutFromRecMdfMut() { ok("""
     package test
     A:{
       lent .b: recMdf B -> {},
@@ -453,7 +454,7 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
-  @Test void recMdfToMut() { ok("""
+  @Example void recMdfToMut() { ok("""
     package test
     A:{
       read .b(a: recMdf A): recMdf B -> {},
@@ -461,7 +462,7 @@ public class TestTypeSystem {
       }
     B:{}
     """); }
-  @Test void captureRecMdfAsMut() { ok("""
+  @Example void captureRecMdfAsMut() { ok("""
     package test
     A:{
       read .b(a: recMdf A): recMdf B -> {},
@@ -475,7 +476,7 @@ public class TestTypeSystem {
     LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
     """); }
   // TODO: the recMdf here needs to become mut in inference or something
-  @Test void inferCaptureRecMdfAsMut() { ok("""
+  @Example void inferCaptureRecMdfAsMut() { ok("""
     package test
     A:{
       read .b(a: recMdf A): recMdf B -> {},
@@ -489,7 +490,7 @@ public class TestTypeSystem {
     LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
     """); }
 
-  @Test void incompatibleGens() { fail("""
+  @Example void incompatibleGens() { fail("""
     In position [###]/Dummy1.fear:7:12
     [E34 bothTExpectedGens]
     Type error: the generic type lent C cannot be a super-type of any concrete type, like Fear71$/0.
@@ -528,7 +529,7 @@ public class TestTypeSystem {
       .close(c: lent IO): Void -> {},
       }
     """, Base.load("lang.fear"), Base.load("strings.fear"), Base.load("nums.fear"), Base.load("bools.fear")); }
-  @Test void incompatibleITs() { fail("""
+  @Example void incompatibleITs() { fail("""
     In position [###]/Dummy1.fear:7:8
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
@@ -574,7 +575,7 @@ public class TestTypeSystem {
       .close(c: lent IO): Void -> {},
       }
     """, Base.load("lang.fear"), Base.load("strings.fear"), Base.load("nums.fear"), Base.load("bools.fear")); }
-  @Test void incompatibleITsDeep() { fail("""
+  @Example void incompatibleITsDeep() { fail("""
     In position [###]/Dummy0.fear:5:2
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
@@ -620,14 +621,14 @@ public class TestTypeSystem {
       }
     """, Base.load("lang.fear"), Base.load("strings.fear"), Base.load("nums.fear"), Base.load("bools.fear")); }
 
-  @Test void recMdfInSubHyg() { ok(false, """
+  @Example void recMdfInSubHyg() { ok(false, """
     package test
     A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ x }.argh }
     B[X]:{ read .argh: recMdf X }
     C:{ #: mut C -> A[C].foo({}) }
     """); }
 
-  @Test void breakingEarlyFancyRename() { fail(false, """
+  @Example void breakingEarlyFancyRename() { fail(false, """
     In position [###]/Dummy0.fear:3:2
     [E23 methTypeError]
     Expected the method .foo/2 to return recMdf test.A[], got read test.A[].
@@ -641,20 +642,20 @@ public class TestTypeSystem {
       }
     """); }
 
-  @Test void recMdfCallsRecMdf() { ok(false, """
+  @Example void recMdfCallsRecMdf() { ok(false, """
     package test
     A:{
       read .inner: recMdf  A -> this,
       read .outer: recMdf A -> this.inner,
       }
     """); }
-  @Test void recMdfCallsRecMdfa() { ok(false, """
+  @Example void recMdfCallsRecMdfa() { ok(false, """
     package test
     A:{
       read .inner: recMdf A -> this
       }
     """); }
-  @Test void noCaptureReadInMut() { fail(false, """
+  @Example void noCaptureReadInMut() { fail(false, """
     In position [###]/Dummy0.fear:4:26
     [E30 badCapture]
     'recMdf this' cannot be captured by a mut method in a mut lambda.
@@ -665,7 +666,7 @@ public class TestTypeSystem {
       read .break: mut A -> { this }
       }
     """); }
-  @Test void noCaptureMdfInMut() { fail(false, """
+  @Example void noCaptureMdfInMut() { fail(false, """
     In position [###]/Dummy0.fear:4:29
     [E30 badCapture]
     'recMdf this' cannot be captured by a mut method in a mut lambda.
@@ -676,7 +677,7 @@ public class TestTypeSystem {
       read .break: mut A[B] -> { this }
       }
     """); }
-  @Test void noCaptureMdfInMut2() { fail(false, """
+  @Example void noCaptureMdfInMut2() { fail(false, """
     In position [###]/Dummy0.fear:4:34
     [E30 badCapture]
     'recMdf this' cannot be captured by a mut method in a mut lambda.
@@ -688,7 +689,7 @@ public class TestTypeSystem {
       }
     """); }
 
-  @Test void noCaptureMdfInMut3() { fail(false, """
+  @Example void noCaptureMdfInMut3() { fail(false, """
     In position [###]/Dummy0.fear:4:38
     [E30 badCapture]
     'mdf x' cannot be captured by a mut method in a mut lambda.
@@ -700,7 +701,7 @@ public class TestTypeSystem {
       }
     """); }
 
-  @Test void recMdfFluent() { ok(false, """
+  @Example void recMdfFluent() { ok(false, """
     package test
     Let:{
       read #[V,R](l: recMdf Let[mdf V, mdf R]): recMdf Let[mdf V, mdf R],

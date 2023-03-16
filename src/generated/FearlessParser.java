@@ -1,4 +1,4 @@
-// Generated from java-escape by ANTLR 4.11.1
+// Generated from /Users/nick/Programming/PhD/fearless/antlrGrammars/Fearless.g4 by ANTLR 4.12.0
 package generated;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
 public class FearlessParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.11.1", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.12.0", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -89,7 +89,7 @@ public class FearlessParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "java-escape"; }
+	public String getGrammarFileName() { return "Fearless.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -482,7 +482,7 @@ public class FearlessParser extends Parser {
 				setState(84);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((_la) & ~0x3f) == 0 && ((1L << _la) & 134217982L) != 0) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 134217982L) != 0)) {
 					{
 					setState(76);
 					t();
@@ -624,7 +624,7 @@ public class FearlessParser extends Parser {
 				setState(100);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((_la) & ~0x3f) == 0 && ((1L << _la) & 134217982L) != 0) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 134217982L) != 0)) {
 					{
 					setState(92);
 					t();
@@ -757,7 +757,7 @@ public class FearlessParser extends Parser {
 				setState(125);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((_la) & ~0x3f) == 0 && ((1L << _la) & 75497726L) != 0) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 75497726L) != 0)) {
 					{
 					setState(117);
 					meth();
@@ -1677,7 +1677,7 @@ public class FearlessParser extends Parser {
 				setState(262);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if (((_la) & ~0x3f) == 0 && ((1L << _la) & 137398526L) != 0) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 137398526L) != 0)) {
 					{
 					setState(255);
 					e();

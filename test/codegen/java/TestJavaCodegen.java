@@ -3,6 +3,7 @@ package codegen.java;
 import codegen.MIRInjectionVisitor;
 import id.Id;
 import main.Main;
+import net.jqwik.api.Example;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.inference.InferBodies;
@@ -38,7 +39,7 @@ public class TestJavaCodegen {
     Err.strCmp(expected, java);
   }
 
-  @Test void emptyProgram() { ok("""
+  @Example void emptyProgram() { ok("""
     interface FProgram{interface base{interface System_1 extends base.Sealed_0{
     }
     interface Sealed_0{
@@ -56,7 +57,7 @@ public class TestJavaCodegen {
     package test
     """, Base.minimalBase);}
 
-  @Test void simpleProgram() { ok("""
+  @Example void simpleProgram() { ok("""
 interface FProgram{interface test{interface Bar_0 extends test.Baz_1{
 default test.Baz_1 loop$(){
 var f$thiz = this;
@@ -105,7 +106,7 @@ static void main(String[] args){ base.Main_1 entry = new fake.Fake_0(){}; entry.
     Foo:{}
     """, Base.minimalBase);}
 
-  @Test void bools() {ok("""
+  @Example void bools() {ok("""
 interface FProgram{interface test{interface True_0 extends test.Bool_0{
 default test.Bool_0 not$(){
 var f$thiz = this;
@@ -179,7 +180,7 @@ static void main(String[] args){ base.Main_1 entry = new fake.Fake_0(){}; entry.
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
     """, Base.minimalBase);}
-  @Test void multiPackage() { ok("""
+  @Example void multiPackage() { ok("""
 interface FProgram{interface test{interface Foo_0{
 }
 interface HelloWorld_0 extends base.Main_1{
@@ -211,7 +212,7 @@ static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_0(){}; 
     Foo:{}
     """, Base.minimalBase); }
 
-  @Test void nestedPkgs() { ok("""
+  @Example void nestedPkgs() { ok("""
 interface FProgram{interface test{interface Foo_0{
 test.Foo_0 a$();}
 interface Test_0 extends base.Main_1{
