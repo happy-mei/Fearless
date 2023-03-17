@@ -36,11 +36,14 @@ public interface Gamma {
     var captured = ti.mdf();
     if (t.mdf().isIso()) { return xT(x, t.withMdf(Mdf.mut), ti, mMdf); }
     //TODO: ignoring the NoMutHyg thing for now
-    if (self.isMut() && captured.is(Mdf.read, Mdf.lent, Mdf.mdf, Mdf.recMdf)
-        || self.isMut() && captured.isIso() && !mMdf.is(Mdf.read, Mdf.imm)
-        || self.isImm() && captured.isLikeMut()) {
+    // TODO: maybe explain _why_ the capture cannot be allowed in the error message
+    var mutCapturesHyg = self.isMut() && captured.is(Mdf.read, Mdf.lent, Mdf.mdf, Mdf.recMdf);
+    var mutBadlyCapturesIso = self.isMut() && captured.isIso() && !mMdf.is(Mdf.read, Mdf.imm);
+    var immCapturesMuty = self.isImm() && (captured.isLikeMut() || captured.isRecMdf());
+    var recMdfCapturesMuty = self.isRecMdf() && captured.isLikeMut();
+    if (mutCapturesHyg || mutBadlyCapturesIso || immCapturesMuty || recMdfCapturesMuty) {
           throw Fail.badCapture(x, ti, t, mMdf);
-        }
+    }
     return self.restrict(mMdf).map(mdfi->mdfi.adapt(captured))
       .map(ti::withMdf)
       .orElseThrow(()->Fail.badCapture(x, ti, t, mMdf));

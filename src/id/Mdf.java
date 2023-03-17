@@ -47,11 +47,12 @@ public enum Mdf{
 
   public Optional<Mdf> restrict(Mdf mMdf) {
     if (mMdf.isImm() || (this.isImm() && mMdf.isRead())) { return Optional.of(imm); }
-    if (this.isLikeMut() && mMdf.isRead()) { return Optional.of(read); }
+    if (isLikeMut() && mMdf.isRead() || (isRecMdf() && mMdf.isRead())) { return Optional.of(read); }
     if (isLent() && mMdf.isMut()){ return Optional.of(lent); }
     if (isLent() && mMdf.isLent()){ return Optional.of(lent); }
     if (isMut() && mMdf.isLent()){ return Optional.of(lent); }
-    if ((this.isMut() && mMdf.isIso()) || (this.isMut() && mMdf.isMut())) { return Optional.of(mut); }
+    if ((isMut() && mMdf.isIso()) || (isMut() && mMdf.isMut())) { return Optional.of(mut); }
+    if (isRecMdf() && mMdf.is(lent, mut, iso)) { return Optional.of(lent); }
     return Optional.empty();
   }
 }

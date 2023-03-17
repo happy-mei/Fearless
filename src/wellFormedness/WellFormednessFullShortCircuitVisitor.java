@@ -154,8 +154,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   }
   private Optional<CompileError> mdfOnlyOnGX(T t) {
     if(t.isInfer() || !t.mdf().isMdf()){ return Optional.empty(); }
-    return t.match(gx->Optional.empty(),
-      it->Optional.of(Fail.invalidMdf(t)));
+    return t.match(gx->Optional.empty(), it->Optional.of(Fail.invalidMdf(t)));
   }
   private Optional<CompileError> noExplicitThis(List<String> xs) {
     return xs.stream().anyMatch(x->x.equals("this")) ? Optional.of(Fail.explicitThis()) : Optional.empty();

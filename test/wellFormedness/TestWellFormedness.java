@@ -1,8 +1,9 @@
 package wellFormedness;
 
 import failure.CompileError;
+import id.Mdf;
 import main.Main;
-import net.jqwik.api.Example;
+import net.jqwik.api.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
@@ -211,4 +212,27 @@ public class TestWellFormedness {
     package base
     Sealed:{}
     """); }
+
+  @Property void recMdfRetOnlyOnReadOrLentHappy(@ForAll("hygMdf") Mdf mdf) { ok(String.format("""
+    package test
+    A:{ %s .foo: recMdf Res }
+    Res:{}
+    """, mdf)); }
+  @Property void recMdfRetOnlyOnReadOrLentSad(@ForAll("nonHygMdf") Mdf mdf) { fail(String.format("""
+    In position [###]/Dummy0.fear:2:4
+    [E26 recMdfInNonHyg]
+    Invalid modifier for recMdf test.Res[].
+    recMdf may only be used in read or lent methods. The method .foo/0 has the %s modifier.
+    """, mdf), String.format("""
+    package test
+    A:{ %s .foo: recMdf Res }
+    Res:{}
+    """, mdf));}
+
+  @Provide Arbitrary<Mdf> hygMdf() {
+    return Arbitraries.of(Mdf.read, Mdf.lent);
+  }
+  @Provide Arbitrary<Mdf> nonHygMdf() {
+    return Arbitraries.of(Arrays.stream(Mdf.values()).filter(mdf->!mdf.isHyg() && !mdf.is(Mdf.mdf, Mdf.recMdf)).toList());
+  }
 }
