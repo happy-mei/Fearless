@@ -1,5 +1,6 @@
 package utils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -33,6 +34,18 @@ public class Streams {
         .mapToObj(i->f.apply(as.get(i),bs.get(i)))
         .filter(Optional::isPresent)
         .map(Optional::get);
+    }
+
+    public Zipper<A,B> filter(BiPredicate<A,B>f){
+      var asi = new ArrayList<>();
+      var bsi = new ArrayList<>();
+      IntStream.range(0, as.size())
+        .filter(i->f.test(as.get(i),bs.get(i)))
+        .forEachOrdered(i->{
+          asi.add(as.get(i));
+          bsi.add(bs.get(i));
+        });
+      return new Zipper<>(as, bs);
     }
 
     public <R> R fold(Acc<R, A, B> folder, R initial) {

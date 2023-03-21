@@ -67,45 +67,38 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var e   = m.body().orElseThrow();
     var mMdf = m.sig().mdf();
 
-//    var selfTi = fancyRename(selfT, mMdf, Map.of());
-//    var selfTi = selfT.mdf().isMdf() ? selfT.withMdf(m.sig().mdf()) : selfT;
     var selfTi = selfT;
     var args = m.sig().ts();
-//    var args = m.sig().ts().stream().map(ti->fancyRename(ti, mMdf, Map.of())).toList();
-//    var ret = fancyRename(m.sig().ret(), mMdf, Map.of());
     var ret = m.sig().ret();
 
     // todo: assert empty gamma for MDF mdf
     var g0  = g().capture(p(), selfName, selfTi, mMdf);
     var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
-    return flex(gg, m, e, ret);
-  }
-
-  default Optional<CompileError> flex(Gamma g, E.Meth m, E e, T ret) {
-    var baseCase=okWithSubType(g, m, e, ret);
+    var baseCase=okWithSubType(gg, m, e, ret);
     var baseDestiny=baseCase.isEmpty() || !ret.mdf().is(Mdf.iso, Mdf.imm);
     if(baseDestiny){ return baseCase; }
     //res is iso or imm, thus is promotable
 
-    var criticalFailure = okWithSubType(g, m, e, ret.withMdf(Mdf.read));
+    var criticalFailure = okWithSubType(gg, m, e, ret.withMdf(Mdf.read));
     if (criticalFailure.isPresent()) { return baseCase; }
 
-    var isoPromotion = okWithSubType(x->g.getO(x)
-      .map(t->{
-        if (!t.mdf().isMut()) { return t; }
-        return t.withMdf(Mdf.lent); }),
-      m, e, ret.withMdf(Mdf.mut));
+    Gamma mutAsLentG = x->g().getO(x).map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t);
+    g0 = mutAsLentG.capture(p(), selfName, selfTi.mdf().isMut() ? selfTi.withMdf(Mdf.lent) : selfTi, mMdf);
+    gg  = Streams.zip(
+      m.xs(),
+      args.stream().map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t).toList()
+    ).fold(Gamma::add, g0);
+    var isoPromotion = okWithSubType(gg, m, e, ret.withMdf(Mdf.mut));
     if(ret.mdf().isIso() || isoPromotion.isEmpty()){ return isoPromotion; }
 
-    return okWithSubType(x->g
-      .getO(x)
-      .flatMap(t->{
-        if (t.mdf().isLikeMut()) { return Optional.empty(); }
-        return Optional.of(t); }),
-      m, e, ret.withMdf(Mdf.read))
-      .flatMap(ignored->baseCase);
-    //TODO: merge errors? this may say error lambda can not capture mut instead of mut is not imm
+    Gamma noMutyG = x->g().getO(x).flatMap(t->{
+      if (t.mdf().isLikeMut()) { return Optional.empty(); }
+      return Optional.of(t);
+    });
+    g0 = selfTi.mdf().isLikeMut() ? Gamma.empty() : noMutyG.capture(p(), selfName, selfTi, mMdf);
+    gg = Streams.zip(m.xs(), args).filter((x,t)->!t.mdf().isLikeMut()).fold(Gamma::add, g0);
+    return okWithSubType(gg, m, e, ret.withMdf(Mdf.read)).flatMap(ignored->baseCase);
   }
 
   default Optional<CompileError> okWithSubType(Gamma g, E.Meth m, E e, T expected) {

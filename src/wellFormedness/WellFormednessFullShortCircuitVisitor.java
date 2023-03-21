@@ -65,6 +65,8 @@ Evil:Main{
     .var[imm Person]{ a.multiGet(p, r) } // I now have an imm and mut refs to the same person
     ...
  */
+
+// TODO: rule about iso only being used once? Do we not need it becuase we never capture iso as iso
 public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisitorWithEnv<CompileError> {
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
     return e.ts().flatMap(this::noIsoParams)

@@ -35,16 +35,18 @@ public interface Gamma {
     var self = t.mdf();
     var captured = ti.mdf();
     if (t.mdf().isIso()) { return xT(x, t.withMdf(Mdf.mut), ti, mMdf); }
+    var isoToImm = captured.isIso();
+    if (isoToImm){ return xT(x, t, ti.withMdf(Mdf.imm), mMdf); }
     //TODO: ignoring the NoMutHyg thing for now
     // TODO: maybe explain _why_ the capture cannot be allowed in the error message
     var mutCapturesHyg = self.isMut() && captured.is(Mdf.read, Mdf.lent, Mdf.mdf, Mdf.recMdf);
-    var mutBadlyCapturesIso = self.isMut() && captured.isIso() && !mMdf.is(Mdf.read, Mdf.imm);
     var immCapturesMuty = self.isImm() && (captured.isLikeMut() || captured.isRecMdf());
     var recMdfCapturesMuty = self.isRecMdf() && captured.isLikeMut();
-    if (mutCapturesHyg || mutBadlyCapturesIso || immCapturesMuty || recMdfCapturesMuty) {
+    if (mutCapturesHyg || immCapturesMuty || recMdfCapturesMuty) {
           throw Fail.badCapture(x, ti, t, mMdf);
     }
-    return self.restrict(mMdf).map(mdfi->mdfi.adapt(captured))
+    var fixedCaptured = self.isRecMdf() || !captured.isRecMdf()  ? captured : Mdf.read;
+    return self.restrict(mMdf).map(mdfi->mdfi.adapt(fixedCaptured))
       .map(ti::withMdf)
       .orElseThrow(()->Fail.badCapture(x, ti, t, mMdf));
   }

@@ -23,18 +23,21 @@ public enum Mdf{
   public Mdf adapt(ast.T t) {
     return this.adapt(t.mdf());
   }
+  /**
+   * How we see the type 'other' from the receiver 'this'
+   * basically 'this.other'
+   */
   public Mdf adapt(Mdf other) {
     if (this == other) { return this; }
     if (this == imm) { return imm; }
     if (this == mut) {
-//      if (other == recMdf) { return mut; }
       if (other == mdf) { return mut; }
       return other;
     }
     if (this == lent) {
       if (other == imm) { return other; }
       if (other == read) { return other; }
-      if (other == recMdf) { return other; } // maybe return lent here instead
+      if (other == recMdf){ return read; }
       if (other == mdf) { return lent; }
       if (other == mut) { return lent; }
     }
@@ -53,6 +56,7 @@ public enum Mdf{
     if (isMut() && mMdf.isLent()){ return Optional.of(lent); }
     if ((isMut() && mMdf.isIso()) || (isMut() && mMdf.isMut())) { return Optional.of(mut); }
     if (isRecMdf() && mMdf.is(lent, mut, iso)) { return Optional.of(lent); }
+    System.err.println("uh oh restrict is undefined for "+this+" and "+mMdf);
     return Optional.empty();
   }
 }
