@@ -11,7 +11,6 @@ import static program.typesystem.RunTypeSystem.expectFail;
 import static program.typesystem.RunTypeSystem.ok;
 
 public class TestCaptureRules {
-
   void c(Mdf lambda,Mdf captured,Mdf method,Mdf ... capturedAs){
     //assert capturedAs.length!=0;
     var cs = List.of(capturedAs);
@@ -149,7 +148,7 @@ public class TestCaptureRules {
   @Example void t154(){ c(mut,   recMdf,   read  /*impossible*/); }
   @Example void t155(){ c(iso,   recMdf,   read  /*impossible*/); }
   @Example void t156(){ c(mdf,   recMdf,   read   /*not well formed lambda*/); }
-  @Example void t157(){ c(recMdf,recMdf,   read,   read,recMdf); } //No, why it wants Imm
+  @Example void t157(){ c(recMdf,recMdf,   read,   read,recMdf); }
 }
 //a mut lambda could capture a mut as iso inside an iso method?
 

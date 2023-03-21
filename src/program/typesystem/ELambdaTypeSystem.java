@@ -93,11 +93,11 @@ interface ELambdaTypeSystem extends ETypeSystem{
     if(ret.mdf().isIso() || isoPromotion.isEmpty()){ return isoPromotion; }
 
     Gamma noMutyG = x->g().getO(x).flatMap(t->{
-      if (t.mdf().isLikeMut()) { return Optional.empty(); }
+      if (t.mdf().isLikeMut() || t.mdf().isRecMdf()) { return Optional.empty(); }
       return Optional.of(t);
     });
-    g0 = selfTi.mdf().isLikeMut() ? Gamma.empty() : noMutyG.capture(p(), selfName, selfTi, mMdf);
-    gg = Streams.zip(m.xs(), args).filter((x,t)->!t.mdf().isLikeMut()).fold(Gamma::add, g0);
+    g0 = selfTi.mdf().isLikeMut() || selfTi.mdf().isRecMdf() ? Gamma.empty() : noMutyG.capture(p(), selfName, selfTi, mMdf);
+    gg = Streams.zip(m.xs(), args).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
     return okWithSubType(gg, m, e, ret.withMdf(Mdf.read)).flatMap(ignored->baseCase);
   }
 
