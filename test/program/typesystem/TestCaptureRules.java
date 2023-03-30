@@ -149,6 +149,14 @@ public class TestCaptureRules {
   @Example void t155(){ c(iso,   recMdf,   read  /*impossible*/); }
   @Example void t156(){ c(mdf,   recMdf,   read   /*not well formed lambda*/); }
   @Example void t157(){ c(recMdf,recMdf,   read,   read,recMdf); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t161(){ c(imm,   imm,   read,   read,imm); }
+  @Example void t162(){ c(read,  imm,   read,   read,imm); }
+  @Example void t163(){ c(lent,  imm,   read,   read,imm); }
+  @Example void t164(){ c(mut,   imm,   read,   read,imm); }
+  @Example void t165(){ c(iso,   imm,   read,   read,imm); }
+  @Example void t166(){ c(mdf,   imm,   read   /*not well formed lambda*/); }
+  @Example void t167(){ c(recMdf,imm,   read,   read,imm); }
 }
 //a mut lambda could capture a mut as iso inside an iso method?
 
