@@ -29,7 +29,8 @@ public interface Gamma {
   }
   default Gamma capture(Program p, String x, T t, Mdf mMdf) {
     Gamma g = xi->this.getO(xi).map(ti->xT(xi,t,ti,mMdf));
-    return g.add(x,t.withMdf(mMdf.adapt(t)));
+    var capturedMdf = t.mdf().isIso() ? Mdf.imm : t.mdf();
+    return g.add(x,t.withMdf(mMdf.adapt(capturedMdf)));
   }
   static T xT(String x, T t, T ti, Mdf mMdf){
     var self = t.mdf();

@@ -45,6 +45,7 @@ public enum Mdf{
       if (other == imm) { return imm; }
       return recMdf;
     }
+    System.err.println("uh oh adapt is undefined for "+this+" and "+other);
     throw Bug.unreachable();
   }
 
@@ -52,8 +53,7 @@ public enum Mdf{
     if (mMdf.isImm() || (this.isImm() && mMdf.isRead())) { return Optional.of(imm); }
     if (isLikeMut() && mMdf.isRead() || (isRecMdf() && mMdf.isRead())) { return Optional.of(read); }
     if (isLent() && mMdf.isMut()){ return Optional.of(lent); }
-    if (isLent() && mMdf.isLent()){ return Optional.of(lent); }
-    if (isMut() && mMdf.isLent()){ return Optional.of(lent); }
+    if (mMdf.isLent()){ return Optional.of(lent); }
     if ((isMut() && mMdf.isIso()) || (isMut() && mMdf.isMut())) { return Optional.of(mut); }
     if (isRecMdf() && mMdf.is(lent, mut, iso)) { return Optional.of(lent); }
     System.err.println("uh oh restrict is undefined for "+this+" and "+mMdf);

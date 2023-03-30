@@ -27,6 +27,7 @@ public class TestCaptureRules {
     """;
   void cInnerOk(Mdf lambda,Mdf captured,Mdf method,Mdf capturedAs){
     var fCode=code.formatted(method,capturedAs,captured,lambda,lambda);
+    System.out.println(fCode);
     try{ok(fCode);}
     catch(AssertionError t){ throw new AssertionError("failed on "+fCode+"\nwith:\n"+t); }
   }
@@ -176,18 +177,19 @@ public class TestCaptureRules {
   @Example void t217(){ c(recMdf,read,  lent   /*impossible*/); }
   //                     lambda, captured, method, ...capturedAs
   @Example void t221(){ c(imm,   lent,  lent   /*impossible*/); }
-  @Example void t222(){ c(read,  lent,  lent,   read,recMdf); }//recMdf is ok, at least can not find counter example, the lent lambda can become mut only in controlled way
-  @Example void t223(){ c(lent,  lent,  lent,   read,recMdf); }//the lambda is created read, and can not become anything else but imm.
+  @Example void t222(){ c(read,  lent,  lent,   read,lent); } // this capture is fine because the method cannot ever be called
+  @Example void t223(){ c(lent,  lent,  lent,   read,lent); }
   @Example void t224(){ c(mut,   lent,  lent   /*impossible*/); }//NOT NoMutHyg
   @Example void t225(){ c(iso,   lent,  lent   /*impossible*/); }
   @Example void t226(){ c(mdf,   lent,  lent   /*not well formed lambda*/); }
   @Example void t227(){ c(recMdf,lent,  lent   /*impossible*/); }
   //                     lambda, captured, method, ...capturedAs
+  // TODO: not sure how I feel about these muts being captured as lent
   @Example void t231(){ c(imm,   mut,   lent  /*impossible*/); }
-  @Example void t232(){ c(read,  mut,   lent,   read,recMdf); }
-  @Example void t233(){ c(lent,  mut,   lent,   read,recMdf); }
-  @Example void t234(){ c(mut,   mut,   lent,   read,recMdf); }
-  @Example void t235(){ c(iso,   mut,   lent,   read,recMdf); }
+  @Example void t232(){ c(read,  mut,   lent,   read,lent); }
+  @Example void t233(){ c(lent,  mut,   lent,   read,lent); }
+  @Example void t234(){ c(mut,   mut,   lent,   read,lent); }
+  @Example void t235(){ c(iso,   mut,   lent,   read,lent); }
   @Example void t236(){ c(mdf,   mut,   lent   /*not well formed lambda*/); }
   @Example void t237(){ c(recMdf,mut,   lent  /*impossible*/); }
   //                     lambda, captured, method, ...capturedAs
@@ -213,7 +215,7 @@ public class TestCaptureRules {
   @Example void t264(){ c(mut,   recMdf,   lent  /*impossible*/); }
   @Example void t265(){ c(iso,   recMdf,   lent  /*impossible*/); }
   @Example void t266(){ c(mdf,   recMdf,   lent   /*not well formed lambda*/); }
-  @Example void t267(){ c(recMdf,recMdf,   lent,   read,recMdf); }
+  @Example void t267(){ c(recMdf,recMdf,   lent,   read); }
   //                     lambda, captured, method, ...capturedAs
   @Example void t271(){ c(imm,   imm,   lent,   read,imm); }
   @Example void t272(){ c(read,  imm,   lent,   read,imm); }
@@ -222,15 +224,6 @@ public class TestCaptureRules {
   @Example void t275(){ c(iso,   imm,   lent,   read,imm); }
   @Example void t276(){ c(mdf,   imm,   lent   /*not well formed lambda*/); }
   @Example void t277(){ c(recMdf,imm,   lent,   read,imm); }
-
-  //                     lambda, captured, method, ...capturedAs
-  @Example void t281(){ c(imm,   imm,   lent,   imm,read); }
-  @Example void t282(){ c(read,  imm,   lent,   imm,read); }
-  @Example void t283(){ c(lent,  imm,   lent,   imm,read); }
-  @Example void t284(){ c(mut,   imm,   lent,   imm,read); }
-  @Example void t285(){ c(iso,   imm,   lent,   imm,read); }
-  @Example void t286(){ c(mdf,   imm,   lent   /*not well formed lambda*/); }
-  @Example void t287(){ c(recMdf,imm,   lent,   imm,read); }
 }
 //a mut lambda could capture a mut as iso inside an iso method?
 
