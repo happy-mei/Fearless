@@ -1,14 +1,16 @@
 package program;
 
+import astFull.T;
 import id.Id;
 import id.Mdf;
+import magic.Magic;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 public interface TypeRename<T>{
-  record FullTTypeRename() implements TypeRename<astFull.T> {
+  record FullTTypeRename(astFull.Program p) implements TypeRename<astFull.T> {
     public <R> R matchT(astFull.T t, Function<Id.GX<astFull.T>, R> gx, Function<Id.IT<astFull.T>, R> it) { return t.match(gx, it); }
     public Mdf mdf(astFull.T t) { return t.mdf(); }
     public astFull.T newT(Mdf mdf, Id.IT<astFull.T> t) {
@@ -16,6 +18,13 @@ public interface TypeRename<T>{
     }
     public astFull.T withMdf(astFull.T t, Mdf mdf) { return t.withMdf(mdf); }
     public boolean isInfer(astFull.T t) { return t.isInfer(); }
+    public boolean isNoMutHyg(astFull.T t) {
+      if (t.isInfer()) { return false; }
+      return t.match(
+        gx->false,
+        it->p.isSubType(new astFull.T(Mdf.mdf, it), new astFull.T(Mdf.mdf, new Id.IT<astFull.T>(Magic.NoMutHyg)))
+      );
+    }
   }
   class CoreTTypeRename implements TypeRename<ast.T> {
     public <R> R matchT(ast.T t, Function<Id.GX<ast.T>,R>gx, Function<Id.IT<ast.T>,R>it) { return t.match(gx, it); }
@@ -66,6 +75,7 @@ public interface TypeRename<T>{
     };
   }
   boolean isInfer(T t);
+  boolean isNoMutHyg(T t);
   default T renameT(T t, Function<Id.GX<T>,T> f){
     if(isInfer(t)){ return t; }
     return matchT(t,
@@ -73,14 +83,18 @@ public interface TypeRename<T>{
         var renamed = f.apply(gx);
         if(renamed==null){ return t; }
         if (isInfer(renamed)){ return renamed; }
-        return propagateMdf(mdf(t),renamed);
+        return fixMut(propagateMdf(mdf(t),renamed));
       },
-      it->newT(mdf(t),renameIT(it,f))
+      it->fixMut(newT(mdf(t),renameIT(it,f)))
     );
   }
   default T propagateMdf(Mdf mdf, T t){
     assert t!=null;
     if(mdf.isMdf()){ return t; }
     return withMdf(t,mdf);
+  }
+  default T fixMut(T t) {
+    if (!mdf(t).isMut() || !isNoMutHyg(t)) { return t; }
+    return propagateMdf(Mdf.lent, t);
   }
 }
