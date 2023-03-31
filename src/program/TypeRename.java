@@ -1,16 +1,17 @@
 package program;
 
-import astFull.T;
+import ast.T;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 public interface TypeRename<T>{
-  record FullTTypeRename(astFull.Program p) implements TypeRename<astFull.T> {
+  record FullTTypeRename(Program p) implements TypeRename<astFull.T> {
     public <R> R matchT(astFull.T t, Function<Id.GX<astFull.T>, R> gx, Function<Id.IT<astFull.T>, R> it) { return t.match(gx, it); }
     public Mdf mdf(astFull.T t) { return t.mdf(); }
     public astFull.T newT(Mdf mdf, Id.IT<astFull.T> t) {
@@ -18,15 +19,15 @@ public interface TypeRename<T>{
     }
     public astFull.T withMdf(astFull.T t, Mdf mdf) { return t.withMdf(mdf); }
     public boolean isInfer(astFull.T t) { return t.isInfer(); }
-    public boolean isNoMutHyg(astFull.T t) {
-      if (t.isInfer()) { return false; }
-      return t.match(
-        gx->false,
-        it->p.isSubType(new astFull.T(Mdf.mdf, it), new astFull.T(Mdf.mdf, new Id.IT<astFull.T>(Magic.NoMutHyg)))
-      );
+    public Optional<Mdf> getNoMutHygMdf(astFull.T t) {
+      if (t.isInfer()) { return Optional.empty(); }
+      if (!(t.rt() instanceof Id.IT<astFull.T> it)) { return Optional.empty(); }
+      return p.getNoMutHygMdf(it.toAstIT(astFull.T::toAstT));
     }
   }
   class CoreTTypeRename implements TypeRename<ast.T> {
+    private final Program p;
+    public CoreTTypeRename(Program p) { this.p = p; }
     public <R> R matchT(ast.T t, Function<Id.GX<ast.T>,R>gx, Function<Id.IT<ast.T>,R>it) { return t.match(gx, it); }
     public Mdf mdf(ast.T t) { return t.mdf(); }
     public ast.T newT(Mdf mdf, Id.IT<ast.T> t) { return new ast.T(mdf, t); }
@@ -42,8 +43,14 @@ public interface TypeRename<T>{
       );
     }
     public boolean isInfer(ast.T t) { return false; }
+    public Optional<Mdf> getNoMutHygMdf(ast.T t) {
+      if (!(t.rt() instanceof Id.IT<ast.T> it)) { return Optional.empty(); }
+      return p.getNoMutHygMdf(it);
+    }
   }
   class CoreRecMdfTypeRename extends CoreTTypeRename {
+    public CoreRecMdfTypeRename(Program p) { super(p); }
+
     /** This is adaptRecMDF(MDF) ITX with t = MDF ITX */
     public ast.T propagateMdf(Mdf mdf, ast.T t){
       if(!mdf.isRecMdf()){ return super.propagateMdf(mdf,t); }
@@ -55,9 +62,9 @@ public interface TypeRename<T>{
       return t.withMdf(Mdf.recMdf);
     }
   }
-  static FullTTypeRename full() { return new FullTTypeRename(); }
-  static CoreTTypeRename core() { return new CoreTTypeRename(); }
-  static CoreRecMdfTypeRename coreRec() { return new CoreRecMdfTypeRename(); }
+  static FullTTypeRename full(Program p) { return new FullTTypeRename(p); }
+  static CoreTTypeRename core(Program p) { return new CoreTTypeRename(p); }
+  static CoreRecMdfTypeRename coreRec(Program p) { return new CoreRecMdfTypeRename(p); }
 
   <R> R matchT(T t, Function<Id.GX<T>,R> gx, Function<Id.IT<T>,R> it);
   Mdf mdf(T t);
@@ -75,7 +82,7 @@ public interface TypeRename<T>{
     };
   }
   boolean isInfer(T t);
-  boolean isNoMutHyg(T t);
+  Optional<Mdf> getNoMutHygMdf(T t);
   default T renameT(T t, Function<Id.GX<T>,T> f){
     if(isInfer(t)){ return t; }
     return matchT(t,
@@ -94,7 +101,13 @@ public interface TypeRename<T>{
     return withMdf(t,mdf);
   }
   default T fixMut(T t) {
-    if (!mdf(t).isMut() || !isNoMutHyg(t)) { return t; }
-    return propagateMdf(Mdf.lent, t);
+    if (!mdf(t).isMut()) { return t; }
+    return getNoMutHygMdf(t)
+      .filter(Mdf::couldBeHyg)
+      .map(mdf->{
+        System.out.println("turning lent");
+        return propagateMdf(Mdf.lent, t);
+      })
+      .orElse(t);
   }
 }

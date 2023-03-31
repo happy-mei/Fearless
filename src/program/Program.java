@@ -9,6 +9,7 @@ import id.Id;
 import id.Mdf;
 import id.Refresher;
 import failure.Fail;
+import magic.Magic;
 import program.inference.RefineTypes;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
@@ -77,8 +78,10 @@ public interface Program {
     subTypeCache.put(q, result);
     return isSubType;
   }
-
   default boolean isSubTypeAux(T t1, T t2) {
+    if ((t2.rt() instanceof Id.IT<?> it) && it.name().equals(Magic.InternalAny)) {
+      return true;
+    }
     if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
     if(t1.rt().equals(t2.rt())){ return true; }
     if(!t1.isIt() || !t2.isIt()){ return false; }
@@ -128,6 +131,15 @@ public interface Program {
         var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
         return isType(xs, ts, e, m2.sig().ret());
       });
+  }
+
+  default Optional<Mdf> getNoMutHygMdf(Id.IT<ast.T> t) {
+    var its = itsOf(t);
+    return its.stream()
+      .filter(it->it.name().equals(Magic.NoMutHyg))
+      .map(it->it.ts().get(0).mdf())
+      .findAny()
+      .or(()->its.stream().map(this::getNoMutHygMdf).filter(Optional::isPresent).map(Optional::get).findAny());
   }
 
   default failure.Res typeOf(List<String>xs,List<ast.T>ts, ast.E e) {
@@ -185,8 +197,8 @@ public interface Program {
     var cm = myM_.get(0);
     var sig = cm.sig().toAstFullSig();
     var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
-    var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(freshGXsSet, t)).toList();
-    var restoredRt = RefineTypes.regenerateInfers(freshGXsSet, sig.ret());
+    var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(this, freshGXsSet, t)).toList();
+    var restoredRt = RefineTypes.regenerateInfers(this, freshGXsSet, sig.ret());
     var restoredSig = new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos());
     return Optional.of(new FullMethSig(cm.name(), restoredSig));
   }

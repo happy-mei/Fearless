@@ -51,10 +51,10 @@ public class Program implements program.Program  {
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
-    Function<Id.GX<T>, T> f = TypeRename.core().renameFun(t.ts(), gxs);
+    Function<Id.GX<T>, T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
     return d.lambda().its().stream()
       .filter(ti->!ti.name().equals(t.name()))
-      .map(ti->TypeRename.core().renameIT(ti,f))
+      .map(ti->TypeRename.core(this).renameIT(ti,f))
       .toList();
   }
   @Override
@@ -62,7 +62,7 @@ public class Program implements program.Program  {
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
-    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core().renameFun(t.ts(), gxs);
+    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
     return d.lambda().meths().stream()
       .map(mi->cm(t,mi,f))
       .toList();
@@ -75,7 +75,7 @@ public class Program implements program.Program  {
 
   private CM cm(Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
-    var cm = CM.of(t, mi, TypeRename.coreRec().renameSig(mi.sig(), f));
+    var cm = CM.of(t, mi, TypeRename.coreRec(this).renameSig(mi.sig(), f));
     return norm(cm);
   }
 }

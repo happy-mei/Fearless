@@ -16,6 +16,7 @@ public enum Mdf{
   public boolean isMdf(){return this==mdf;}
   public boolean isImm(){return this==imm;}
   public boolean isHyg(){return isRead() || isLent();}
+  public boolean couldBeHyg(){return isRead() || isLent() || isMdf() || isRecMdf();}
   public boolean isLikeMut(){return isRead() || isLent() || isMut();}
   public Mdf adapt(astFull.T t) {
     return this.adapt(t.mdf());

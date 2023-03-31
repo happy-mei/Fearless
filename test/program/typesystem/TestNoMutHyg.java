@@ -1,5 +1,6 @@
 package program.typesystem;
 
+import net.jqwik.api.Disabled;
 import net.jqwik.api.Example;
 import static program.typesystem.RunTypeSystem.*;
 
@@ -7,7 +8,7 @@ public class TestNoMutHyg {
   @Example void methMakingNoMutHygReturnsLent() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
-    Box[X]:NoMutHyg[X]{
+    Box[X]:NoMutHyg[mdf X]{
       read .get: recMdf X
       }
     Box':{
@@ -20,4 +21,8 @@ public class TestNoMutHyg {
     package base
     NoMutHyg[X]:{}
     """); }
+  @Disabled
+  @Example void shouldKeepMdfIfXIsNotHyg() {
+    // TODO
+  }
 }

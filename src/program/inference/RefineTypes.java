@@ -1,5 +1,6 @@
 package program.inference;
 
+import ast.Program;
 import astFull.E;
 import astFull.T;
 import files.Pos;
@@ -17,7 +18,11 @@ import java.util.stream.Stream;
 
 import static program.inference.InferBodies.replaceOnlyInfers;
 
-public record RefineTypes(ast.Program p) {
+public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
+  public RefineTypes(Program p) {
+    this(p, new TypeRename.FullTTypeRename(p));
+  }
+
   E.Lambda fixLambda(E.Lambda lambda, int depth) {
     /*
     fixTypes(MDF ITs{'x Ms}:MDF C[iTs]) = MDF ITs{'x toMs(Ms,TSigs)}:MDF C[iTs']
@@ -157,7 +162,6 @@ public record RefineTypes(ast.Program p) {
       return Streams.zip(iTs,iTs1).map((iT,iT1)->new RP(iT.toAstFullT(), iT1.toAstFullT())).toList();
     }
   }
-  public static final TypeRename.FullTTypeRename renamer = new TypeRename.FullTTypeRename();
 
   public record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, List<T> args, T rt){
     E.Sig toSig(Optional<Pos> pos) {
@@ -165,7 +169,8 @@ public record RefineTypes(ast.Program p) {
     }
   }
 
-  public static T regenerateInfers(Set<Id.GX<ast.T>> fresh, T t) {
+  public static T regenerateInfers(program.Program p, Set<Id.GX<ast.T>> fresh, T t) {
+    var renamer = TypeRename.full(p);
     return renamer.renameT(t, gx->{
       if (fresh.contains(gx)) { return T.infer; }
       return new T(Mdf.mdf, gx);
@@ -213,7 +218,7 @@ public record RefineTypes(ast.Program p) {
       rpsSigs.stream().flatMap(Collection::stream)
     ).toList();
     var refined = refineSigGens(rpsAll, freshGXsSet);
-    var resC = regenerateInfers(freshGXsSet, refined.get(0).t1());
+    var resC = regenerateInfers(p, freshGXsSet, refined.get(0).t1());
 
     var q = new ArrayDeque<>(refined.subList(1, refined.size()));
     var refinedSigs = sigs.stream()
@@ -252,7 +257,7 @@ public record RefineTypes(ast.Program p) {
     Map<Id.GX<T>, T> map = toSub(subs);
     return rps.stream()
       .map(rp->renameRP(rp, map, renamer))
-      .map(rp->new RP(regenerateInfers(freshInfers, rp.t1()), regenerateInfers(freshInfers, rp.t2())))
+      .map(rp->new RP(regenerateInfers(p, freshInfers, rp.t1()), regenerateInfers(p, freshInfers, rp.t2())))
       .map(this::easyInfer)
       .toList();
   }

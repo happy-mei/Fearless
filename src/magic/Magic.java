@@ -7,6 +7,9 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public class Magic {
+  /** InternalAny is only used for compiler-internal sub-typing checks. It is not usable in code anywhere. */
+  public static final Id.DecId InternalAny = new Id.DecId("base.internals.Any", 0);
+
   public static final Id.DecId NoMutHyg = new Id.DecId("base.NoMutHyg", 1);
   public static final Id.DecId Sealed = new Id.DecId("base.Sealed", 0);
   public static final Id.DecId UInt = new Id.DecId("base.UInt", 0);
