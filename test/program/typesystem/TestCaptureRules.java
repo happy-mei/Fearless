@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static id.Mdf.*;
+import static java.util.List.of;
 import static program.typesystem.RunTypeSystem.expectFail;
 import static program.typesystem.RunTypeSystem.ok;
 
 public class TestCaptureRules {
+
+  void newC(Mdf lambda,Mdf captured,Mdf method,List<Mdf> capturedAs, List<Mdf> capturedAsG){}
   void c(Mdf lambda,Mdf captured,Mdf method,Mdf ... capturedAs){
     //assert capturedAs.length!=0;
     var cs = List.of(capturedAs);
@@ -23,8 +26,23 @@ public class TestCaptureRules {
     package test
     B:{}
     L:{ %s .absMeth: %s B }
-    A:{ read .m(par :%s B) : %s L -> %s L{.absMeth->par} }
+    A:{ read .m(par: %s B) : %s L -> %s L{.absMeth->par} }
     """;
+
+  String codeGen1="""
+    package test
+    B:{}
+    L[X]:{ %s .absMeth: %s X }
+    A:{ read .m(par: %s B) : %s L[%s B] -> %s L[%s B]{.absMeth->par} }
+    """;
+
+  String codeGen2="""
+    package test
+    B:{}
+    L[X]:{ %s .absMeth: %s X }
+    A:{ read .m[T](par: %s T) : %s L[%s T] -> %s L[%s T]{.absMeth->par} }
+    """;
+
   void cInnerOk(Mdf lambda,Mdf captured,Mdf method,Mdf capturedAs){
     var fCode=code.formatted(method,capturedAs,captured,lambda,lambda);
     System.out.println(fCode);
@@ -39,6 +57,7 @@ public class TestCaptureRules {
 
   //                     lambda, captured, method, ...capturedAs
   @Example void t001(){ c(imm,   imm,   imm,   imm,read); }
+  //@Example void t001(){ c(imm,   imm,   imm,   of(imm,read), of()); }
   @Example void t002(){ c(read,  imm,   imm,   imm,read); }
   @Example void t003(){ c(lent,  imm,   imm,   imm,read); }
   @Example void t004(){ c(mut,   imm,   imm,   imm,read); }
@@ -192,7 +211,7 @@ public class TestCaptureRules {
   @Example void t236(){ c(mdf,   mut,   lent   /*not well formed lambda*/); }
   @Example void t237(){ c(recMdf,mut,   lent  /*impossible*/); }
   //                     lambda, captured, method, ...capturedAs
-  @Example void t241(){ c(imm,   iso,   lent    /*impossible*/); }
+  @Example void t241(){ c(imm,   iso,   lent    /*impossible*/); } //TODO: Marco up to here
   @Example void t242(){ c(read,  iso,   lent    /*impossible*/); }
   @Example void t243(){ c(lent,  iso,   lent,   imm,read); }
   @Example void t244(){ c(mut,   iso,   lent,   imm,read); }
