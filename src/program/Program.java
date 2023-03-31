@@ -97,6 +97,7 @@ public interface Program {
   */
     assert t1.mdf() == t2.mdf();
     var mdf = t1.mdf();
+    if (mdf.isMdf()) { return false; }
 
     /*
     #Define adapterOk(MDF,C,Ts1,Ts2)
@@ -144,10 +145,11 @@ public interface Program {
   }
 
   default List<CM> filterByMdf(Mdf mdf, List<CM> cms) {
+    assert !mdf.isMdf();
     if (cms.isEmpty()) { return List.of(); }
     var cm = cms.get(0);
     cms = Pop.left(cms);
-    if (mdf.isIso() || mdf.isMut() || mdf.isLent()) {
+    if (mdf.isIso() || mdf.isMut() || mdf.isLent() || mdf.isRecMdf()) {
       return Push.of(cm, filterByMdf(mdf, cms));
     }
     var sig = cm.sig();

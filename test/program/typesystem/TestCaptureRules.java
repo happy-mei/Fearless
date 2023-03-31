@@ -160,8 +160,8 @@ public class TestCaptureRules {
   @Example void t167(){ c(recMdf,imm,   read,   read,imm); }
 
   //                     lambda, captured, method, ...capturedAs
-  @Example void t201(){ c(imm,   imm,   lent,   imm,read); }
-  @Example void t202(){ c(read,  imm,   lent,   imm,read); }
+  @Example void t201(){ c(imm,   imm,   lent    /*impossible*/); }
+  @Example void t202(){ c(read,  imm,   lent    /*impossible*/); }
   @Example void t203(){ c(lent,  imm,   lent,   imm,read); }
   @Example void t204(){ c(mut,   imm,   lent,   imm,read); }
   @Example void t205(){ c(iso,   imm,   lent,   imm,read); }
@@ -169,7 +169,7 @@ public class TestCaptureRules {
   @Example void t207(){ c(recMdf,imm,   lent,   imm,read); }
   //                     lambda, captured, method, ...capturedAs
   @Example void t211(){ c(imm,   read,  lent   /*impossible*/); }
-  @Example void t212(){ c(read,  read,  lent,   read); }
+  @Example void t212(){ c(read,  read,  lent   /*impossible*/); }
   @Example void t213(){ c(lent,  read,  lent,   read); }
   @Example void t214(){ c(mut,   read,  lent   /*impossible*/); }//NOT NoMutHyg
   @Example void t215(){ c(iso,   read,  lent   /*impossible*/); }
@@ -177,24 +177,23 @@ public class TestCaptureRules {
   @Example void t217(){ c(recMdf,read,  lent   /*impossible*/); }
   //                     lambda, captured, method, ...capturedAs
   @Example void t221(){ c(imm,   lent,  lent   /*impossible*/); }
-  @Example void t222(){ c(read,  lent,  lent,   read,lent); } // this capture is fine because the method cannot ever be called
+  @Example void t222(){ c(read,  lent,  lent   /*impossible*/); } // this capture is fine because the method cannot ever be called
   @Example void t223(){ c(lent,  lent,  lent,   read,lent); }
   @Example void t224(){ c(mut,   lent,  lent   /*impossible*/); }//NOT NoMutHyg
   @Example void t225(){ c(iso,   lent,  lent   /*impossible*/); }
   @Example void t226(){ c(mdf,   lent,  lent   /*not well formed lambda*/); }
   @Example void t227(){ c(recMdf,lent,  lent   /*impossible*/); }
   //                     lambda, captured, method, ...capturedAs
-  // TODO: not sure how I feel about these muts being captured as lent
   @Example void t231(){ c(imm,   mut,   lent  /*impossible*/); }
-  @Example void t232(){ c(read,  mut,   lent,   read,lent); }
+  @Example void t232(){ c(read,  mut,   lent  /*impossible*/); }
   @Example void t233(){ c(lent,  mut,   lent,   read,lent); }
   @Example void t234(){ c(mut,   mut,   lent,   read,lent); }
   @Example void t235(){ c(iso,   mut,   lent,   read,lent); }
   @Example void t236(){ c(mdf,   mut,   lent   /*not well formed lambda*/); }
   @Example void t237(){ c(recMdf,mut,   lent  /*impossible*/); }
   //                     lambda, captured, method, ...capturedAs
-  @Example void t241(){ c(imm,   iso,   lent,   imm,read); }
-  @Example void t242(){ c(read,  iso,   lent,   imm,read); }
+  @Example void t241(){ c(imm,   iso,   lent    /*impossible*/); }
+  @Example void t242(){ c(read,  iso,   lent    /*impossible*/); }
   @Example void t243(){ c(lent,  iso,   lent,   imm,read); }
   @Example void t244(){ c(mut,   iso,   lent,   imm,read); }
   @Example void t245(){ c(iso,   iso,   lent,   imm,read); }
@@ -210,15 +209,15 @@ public class TestCaptureRules {
   @Example void t257(){ c(recMdf,mdf,   lent /*not well formed parameter with mdf*/); }/*not well formed parameter with mdf*/
   //                     lambda, captured, method, ...capturedAs
   @Example void t261(){ c(imm,   recMdf,   lent  /*impossible*/); }
-  @Example void t262(){ c(read,  recMdf,   lent,   read); }
+  @Example void t262(){ c(read,  recMdf,   lent  /*impossible*/); }
   @Example void t263(){ c(lent,  recMdf,   lent,   read); }
   @Example void t264(){ c(mut,   recMdf,   lent  /*impossible*/); }
   @Example void t265(){ c(iso,   recMdf,   lent  /*impossible*/); }
   @Example void t266(){ c(mdf,   recMdf,   lent   /*not well formed lambda*/); }
   @Example void t267(){ c(recMdf,recMdf,   lent,   read); }
   //                     lambda, captured, method, ...capturedAs
-  @Example void t271(){ c(imm,   imm,   lent,   read,imm); }
-  @Example void t272(){ c(read,  imm,   lent,   read,imm); }
+  @Example void t271(){ c(imm,   imm,   lent    /*impossible*/); }
+  @Example void t272(){ c(read,  imm,   lent    /*impossible*/); }
   @Example void t273(){ c(lent,  imm,   lent,   read,imm); }
   @Example void t274(){ c(mut,   imm,   lent,   read,imm); }
   @Example void t275(){ c(iso,   imm,   lent,   read,imm); }

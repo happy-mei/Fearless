@@ -25,14 +25,21 @@ interface ELambdaTypeSystem extends ETypeSystem{
     Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
     Dec d=new Dec(fresh,List.of(),b,b.pos());
     Program p0=p().withDec(d);
+    var validMethods = b.meths().stream()
+      .filter(m->filterByMdf(mdf,m.sig().mdf()))
+      .toList();
+    if (validMethods.size() != b.meths().size()) {
+      throw Fail.uncallableMeths(mdf, b.meths().stream().filter(m->!validMethods.contains(m)).toList());
+    }
+
     var filtered=p0.meths(d.toIT(), depth()+1).stream()
-      .filter(cmi->filterByMdf(mdf,cmi))
+      .filter(cmi->filterByMdf(mdf,cmi.mdf()))
       .toList();
     var sadlyAbs=filtered.stream()
       .filter(CM::isAbs)
       .toList();
     if (!sadlyAbs.isEmpty()) {
-      return Fail.unimplementedInLambda(sadlyAbs);
+      return Fail.unimplementedInLambda(sadlyAbs).pos(b.pos());
     }
     var sadlyExtra=b.meths().stream()
       .filter(m->filtered.stream().anyMatch(cm->cm.name().equals(m.name())))
@@ -111,8 +118,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
     return res.err().or(()->subOk);
   }
 
-  default boolean filterByMdf(Mdf mdf, CM m) {
-    if (mdf.is(Mdf.iso, Mdf.mut, Mdf.lent)) { return true; }
-    return mdf.is(Mdf.imm, Mdf.read) && m.mdf().is(Mdf.imm, Mdf.read);
+  default boolean filterByMdf(Mdf mdf, Mdf mMdf) {
+    assert !mdf.isMdf();
+    if (mdf.is(Mdf.iso, Mdf.mut, Mdf.lent, Mdf.recMdf)) { return true; }
+    return mdf.is(Mdf.imm, Mdf.read) && mMdf.is(Mdf.imm, Mdf.read);
   }
 }

@@ -276,7 +276,7 @@ public class TestTypeSystem {
   @Example void inferCaptureRecMdfAsMut() { ok("""
     package test
     A:{
-      read .b(a: recMdf A): recMdf B -> {},
+      read .b(a: recMdf A): recMdf B -> {'b .foo -> b },
       mut .break: read B -> LetMut#{ .var -> this.b(this), .in(b) -> b.foo },
       }
     B:{

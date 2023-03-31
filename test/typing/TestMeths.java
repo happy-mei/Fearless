@@ -413,7 +413,18 @@ public class TestMeths {
     K[Y]:{.kk:Y}
     List[T]:{}
     """); }
-  @Example void t17a() { fail("""
+  // this should pass because A is a concrete type in .kk (sneaky!)
+  @Example void t17a() { ok("""
+    [a.B[imm a.A[]],imm .m/0()[][]:imm a.List[imm a.A[]]abs, a.K[imm a.A[]],imm .kk/0()[][]:imm a.A[]abs]
+    """, "a.A", """
+    package a
+    A:B[A],C[List[A]]{}
+    B[X]:K[X]{.m:List[X]}
+    C[Y]:K[Y]{.m:Y}
+    K[Y]:{ .kk:A }
+    List[T]:{}
+    """); }
+  @Example void t17b() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -425,10 +436,10 @@ public class TestMeths {
     A:B[A],C[List[A]]{}
     B[X]:K[X]{.m:List[X]}
     C[Y]:K[Y]{.m:Y}
-    K[Y]:{ .kk:A }
+    K[Y]:{ .kk:Y }
     List[T]:{}
     """); }
-  @Example void t17b() { ok("""
+  @Example void t17c() { ok("""
     [a.B[imma.A[]],imm.m/0()[][]:imma.List[imma.A[]]abs,
     a.K[imma.List[imma.A[]]],imm.kk/0()[][]:imma.A[]abs]
     """, "a.A", """
