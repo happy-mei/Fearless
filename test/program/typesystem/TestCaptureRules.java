@@ -311,7 +311,7 @@ public class TestCaptureRules {
   @Example void t377(){ c1(recMdf,imm,   mut,   of(read,imm)); }
 
   //                     lambda, captured, method, ...capturedAs
-  @Example void t401(){ c1(imm,   imm,   iso,    of(/*impossible*/)); } // TODO: Nick up to here
+  @Example void t401(){ c1(imm,   imm,   iso,    of(/*impossible*/)); }
   @Example void t402(){ c1(read,  imm,   iso,    of(/*impossible*/)); }
   @Example void t403(){ c1(lent,  imm,   iso,   of(imm,read)); }
   @Example void t404(){ c1(mut,   imm,   iso,   of(imm,read)); }
@@ -321,14 +321,14 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Example void t411(){ c1(imm,   read,  iso,   of(/*impossible*/)); }
   @Example void t412(){ c1(read,  read,  iso,   of(/*impossible*/)); }
-  @Example void t413(){ c1(lent,  read,  iso,   of(read)); } // yes because call I can call the mut method through a lent
+  @Example void t413(){ c1(lent,  read,  iso,   of(read)); }
   @Example void t414(){ c1(mut,   read,  iso,   of(/*impossible*/)); }//NOT NoMutHyg
   @Example void t415(){ c1(iso,   read,  iso,   of(/*impossible*/)); }
   @Example void t416(){ c1(mdf,   read,  iso,   of(/*not well formed lambda*/)); }
   @Example void t417(){ c1(recMdf,read,  iso,   of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
   @Example void t421(){ c1(imm,   lent,  iso,   of(/*impossible*/)); }
-  @Example void t422(){ c1(read,  lent,  iso,   of(/*impossible*/)); } // this capture is fine because the method cannot ever be called
+  @Example void t422(){ c1(read,  lent,  iso,   of(/*impossible*/)); }
   @Example void t423(){ c1(lent,  lent,  iso,   of(read,lent)); }
   @Example void t424(){ c1(mut,   lent,  iso,   of(/*impossible*/)); }//NOT NoMutHyg
   @Example void t425(){ c1(iso,   lent,  iso,   of(/*impossible*/)); }
@@ -367,7 +367,7 @@ public class TestCaptureRules {
   @Example void t466(){ c1(mdf,   recMdf,   iso,   of(/*not well formed lambda*/)); }
   @Example void t467(){ c1(recMdf,recMdf,   iso,   of(read)); }
   //                     lambda, captured, method, ...capturedAs
-  @Example void t471(){ c1(imm,   imm,   iso,    of(/*impossible*/)); }
+  @Example void t471(){ c1(imm,   imm,   iso,    of(/*impossible*/)); } // todo: up to
   @Example void t472(){ c1(read,  imm,   iso,    of(/*impossible*/)); }
   @Example void t473(){ c1(lent,  imm,   iso,   of(read,imm)); }
   @Example void t474(){ c1(mut,   imm,   iso,   of(read,imm)); }
