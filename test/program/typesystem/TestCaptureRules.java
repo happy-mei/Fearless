@@ -317,7 +317,7 @@ public class TestCaptureRules {
   @Example void t404(){ c1(mut,   imm,   iso,   of(imm,read)); }
   @Example void t405(){ c1(iso,   imm,   iso,   of(imm,read)); }
   @Example void t406(){ c1(mdf,   imm,   iso,   of(/*not well formed lambda*/)); }
-  @Example void t407(){ c1(recMdf,imm,   iso,   of(imm,read)); }
+  @Example void t407(){ c1(recMdf,imm,   iso,   of(imm,read)); } // yes, recMdf could be iso
   //                     lambda, captured, method, ...capturedAs
   @Example void t411(){ c1(imm,   read,  iso,   of(/*impossible*/)); }
   @Example void t412(){ c1(read,  read,  iso,   of(/*impossible*/)); }
@@ -337,7 +337,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Example void t431(){ c1(imm,   mut,   iso,  of(/*impossible*/)); }
   @Example void t432(){ c1(read,  mut,   iso,  of(/*impossible*/)); }
-  @Example void t433(){ c1(lent,  mut,   iso,   of(read,lent)); } // TODO: double check this
+  @Example void t433(){ c1(lent,  mut,   iso,   of(read,lent,mut)); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
   @Example void t434(){ c1(mut,   mut,   iso,   of(read,lent,mut)); }
   @Example void t435(){ c1(iso,   mut,   iso,   of(read,lent,mut)); }
   @Example void t436(){ c1(mdf,   mut,   iso,   of(/*not well formed lambda*/)); }
@@ -347,7 +347,7 @@ public class TestCaptureRules {
   @Example void t442(){ c1(read,  iso,   iso,    of(/*impossible*/)); }
   @Example void t443(){ c1(lent,  iso,   iso,   of(imm,read)); }
   @Example void t444(){ c1(mut,   iso,   iso,   of(imm,read)); }
-  @Example void t445(){ c1(iso,   iso,   iso,   of(imm,read)); }
+  @Example void t445(){ c1(iso,   iso,   iso,   of(imm,read)); } // all iso is captured as imm
   @Example void t446(){ c1(mdf,   iso,   iso,   of(/*not well formed lambda*/)); }
   @Example void t447(){ c1(recMdf,iso,   iso,   of(imm,read)); }
   //                     lambda, captured, method, ...capturedAs
@@ -367,7 +367,7 @@ public class TestCaptureRules {
   @Example void t466(){ c1(mdf,   recMdf,   iso,   of(/*not well formed lambda*/)); }
   @Example void t467(){ c1(recMdf,recMdf,   iso,   of(read)); }
   //                     lambda, captured, method, ...capturedAs
-  @Example void t471(){ c1(imm,   imm,   iso,    of(/*impossible*/)); } // todo: up to
+  @Example void t471(){ c1(imm,   imm,   iso,    of(/*impossible*/)); }
   @Example void t472(){ c1(read,  imm,   iso,    of(/*impossible*/)); }
   @Example void t473(){ c1(lent,  imm,   iso,   of(read,imm)); }
   @Example void t474(){ c1(mut,   imm,   iso,   of(read,imm)); }

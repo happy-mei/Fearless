@@ -30,7 +30,7 @@ public enum Mdf{
   public Mdf adapt(Mdf other) {
     if (this == other) { return this; }
     if (this == imm) { return imm; }
-    if (this == iso) { return other; } // TODO: not in formalism
+    if (this == iso) { return mut.adapt(other); }
     if (this == mut) {
       if (other == mdf) { return mut; }
       return other;
@@ -54,7 +54,7 @@ public enum Mdf{
     if (mMdf.isImm() || (this.isImm() && mMdf.isRead())) { return Optional.of(imm); }
     if (isLikeMut() && mMdf.isRead() || (isRecMdf() && mMdf.isRead())) { return Optional.of(read); }
     if (isLent() && mMdf.isMut()){ return Optional.of(lent); }
-    if (isLent() && mMdf.isIso()){ return Optional.of(lent); }
+    if (isLent() && mMdf.isIso()){ return Optional.of(mut); }
     if (mMdf.isLent()){ return Optional.of(lent); }
     if ((isMut() && mMdf.isIso()) || (isMut() && mMdf.isMut())) { return Optional.of(mut); }
     if (isRecMdf() && mMdf.is(lent, mut, iso)) { return Optional.of(lent); }
