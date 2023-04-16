@@ -504,6 +504,454 @@ public class TestCaptureRules {
   @Example void t675(){ c1(iso,   imm,   recMdf, of(/*not well formed method*/)); }
   @Example void t676(){ c1(mdf,   imm,   recMdf, of(/*not well formed method*/)); }
   @Example void t677(){ c1(recMdf,imm,   recMdf, of(/*not well formed method*/)); }
+
+  // ---------------------- c2 ---------------------
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2001(){ c2(imm,   imm,   imm,   of(imm,read,mdf)); }
+  @Example void t2002(){ c2(read,  imm,   imm,   of(imm,read,mdf)); }
+  @Example void t2003(){ c2(lent,  imm,   imm,   of(imm,read,mdf)); }
+  @Example void t2004(){ c2(mut,   imm,   imm,   of(imm,read,mdf)); }
+  @Example void t2005(){ c2(iso,   imm,   imm,   of(imm,read,mdf)); }
+  @Example void t2006(){ c2(mdf,   imm,   imm,   of(/*not well formed lambda*/)); }
+  @Example void t2007(){ c2(recMdf,imm,   imm,   of(imm,read,mdf)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2011(){ c2(imm,   read,  imm,   of(/*impossible*/)); }
+  @Example void t2012(){ c2(read,  read,  imm,   of(imm,read,mdf)); }
+  @Example void t2013(){ c2(lent,  read,  imm,   of(imm,read,mdf)); }
+  @Example void t2014(){ c2(mut,   read,  imm,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t2015(){ c2(iso,   read,  imm,   of(/*impossible*/)); }
+  @Example void t2016(){ c2(mdf,   read,  imm,   of(/*not well formed lambda*/)); }
+  @Example void t2017(){ c2(recMdf,read,  imm,   of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2021(){ c2(imm,   lent,  imm,   of(/*impossible*/)); }
+  @Example void t2022(){ c2(read,  lent,  imm,   of(imm,read,mdf)); } // TODO: Nick here
+  @Example void t2023(){ c2(lent,  lent,  imm,   of(imm,read)); }
+  @Example void t2024(){ c2(mut,   lent,  imm,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t2025(){ c2(iso,   lent,  imm,   of(/*impossible*/)); }
+  @Example void t2026(){ c2(mdf,   lent,  imm,   of(/*not well formed lambda*/)); }
+  @Example void t2027(){ c2(recMdf,lent,  imm,   of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2031(){ c2(imm,   mut,   imm,  of(/*impossible*/)); }
+  @Example void t2032(){ c2(read,  mut,   imm,   of(imm,read)); }
+  @Example void t2033(){ c2(lent,  mut,   imm,   of(imm,read)); }
+  @Example void t2034(){ c2(mut,   mut,   imm,   of(imm,read)); }
+  @Example void t2035(){ c2(iso,   mut,   imm,   of(imm,read)); }
+  @Example void t2036(){ c2(mdf,   mut,   imm,   of(/*not well formed lambda*/)); }
+  @Example void t2037(){ c2(recMdf,mut,   imm,  of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2041(){ c2(imm,   iso,   imm,   of(imm,read)); }
+  @Example void t2042(){ c2(read,  iso,   imm,   of(imm,read)); }
+  @Example void t2043(){ c2(lent,  iso,   imm,   of(imm,read)); }
+  @Example void t2044(){ c2(mut,   iso,   imm,   of(imm,read)); }
+  @Example void t2045(){ c2(iso,   iso,   imm,   of(imm,read)); }
+  @Example void t2046(){ c2(mdf,   iso,   imm,   of(/*not well formed lambda*/)); }
+  @Example void t2047(){ c2(recMdf,iso,   imm,   of(imm,read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2051(){ c2(imm,   mdf,   imm, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2052(){ c2(read,  mdf,   imm, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2053(){ c2(lent,  mdf,   imm, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2054(){ c2(mut,   mdf,   imm, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2055(){ c2(iso,   mdf,   imm, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2056(){ c2(mdf,   mdf,   imm, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2057(){ c2(recMdf,mdf,   imm, of(/*not well formed parameter with mdf*/)); }/*not well formed parameter with mdf*/
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2061(){ c2(imm,   recMdf,   imm,  of(/*impossible*/)); }
+  @Example void t2062(){ c2(read,  recMdf,   imm,   of(imm,read)); }
+  @Example void t2063(){ c2(lent,  recMdf,   imm,   of(imm,read)); }
+  @Example void t2064(){ c2(mut,   recMdf,   imm,  of(/*impossible*/)); }
+  @Example void t2065(){ c2(iso,   recMdf,   imm,  of(/*impossible*/)); }
+  @Example void t2066(){ c2(mdf,   recMdf,   imm,   of(/*not well formed lambda*/)); }
+  @Example void t2067(){ c2(recMdf,recMdf,   imm,   of(imm,read)); }
+
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2181(){ c2(imm,   imm,   read,   of(imm,read)); }
+  @Example void t2182(){ c2(read,  imm,   read,   of(imm,read)); }
+  @Example void t2183(){ c2(lent,  imm,   read,   of(imm,read)); }
+  @Example void t2184(){ c2(mut,   imm,   read,   of(imm,read)); }
+  @Example void t2185(){ c2(iso,   imm,   read,   of(imm,read)); }
+  @Example void t2186(){ c2(mdf,   imm,   read,   of(/*not well formed lambda*/)); }
+  @Example void t2187(){ c2(recMdf,imm,   read,   of(imm,read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2101(){ c2(imm,   read,  read,   of(/*impossible*/)); }
+  @Example void t2102(){ c2(read,  read,  read,   of(read)); }
+  @Example void t2103(){ c2(lent,  read,  read,   of(read)); }
+  @Example void t2104(){ c2(mut,   read,  read,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t2105(){ c2(iso,   read,  read,   of(/*impossible*/)); }
+  @Example void t2106(){ c2(mdf,   read,  read,   of(/*not well formed lambda*/)); }
+  @Example void t2107(){ c2(recMdf,read,  read,   of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2111(){ c2(imm,   lent,  read,   of(/*impossible*/)); }
+  @Example void t2112(){ c2(read,  lent,  read,   of(read,recMdf)); }//recMdf is ok, at least can not find counter example, the lent lambda can become mut only in controlled way
+  @Example void t2113(){ c2(lent,  lent,  read,   of(read,recMdf)); }//the lambda is created read, and can not become anything else but imm.
+  @Example void t2114(){ c2(mut,   lent,  read,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t2115(){ c2(iso,   lent,  read,   of(/*impossible*/)); }
+  @Example void t2116(){ c2(mdf,   lent,  read,   of(/*not well formed lambda*/)); }
+  @Example void t2117(){ c2(recMdf,lent,  read,   of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2121(){ c2(imm,   mut,   read,  of(/*impossible*/)); }
+  @Example void t2122(){ c2(read,  mut,   read,   of(read,recMdf)); }
+  @Example void t2123(){ c2(lent,  mut,   read,   of(read,recMdf)); }
+  @Example void t2124(){ c2(mut,   mut,   read,   of(read,recMdf)); }
+  @Example void t2125(){ c2(iso,   mut,   read,   of(read,recMdf)); }
+  @Example void t2126(){ c2(mdf,   mut,   read,   of(/*not well formed lambda*/)); }
+  @Example void t2127(){ c2(recMdf,mut,   read,  of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2131(){ c2(imm,   iso,   read,   of(imm,read)); }
+  @Example void t2132(){ c2(read,  iso,   read,   of(imm,read)); }
+  @Example void t2133(){ c2(lent,  iso,   read,   of(imm,read)); }
+  @Example void t2134(){ c2(mut,   iso,   read,   of(imm,read)); }
+  @Example void t2135(){ c2(iso,   iso,   read,   of(imm,read)); }
+  @Example void t2136(){ c2(mdf,   iso,   read,   of(/*not well formed lambda*/)); }
+  @Example void t2137(){ c2(recMdf,iso,   read,   of(imm,read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2141(){ c2(imm,   mdf,   read, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2142(){ c2(read,  mdf,   read, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2143(){ c2(lent,  mdf,   read, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2144(){ c2(mut,   mdf,   read, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2145(){ c2(iso,   mdf,   read, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2146(){ c2(mdf,   mdf,   read, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2147(){ c2(recMdf,mdf,   read, of(/*not well formed parameter with mdf*/)); }/*not well formed parameter with mdf*/
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2151(){ c2(imm,   recMdf,   read,  of(/*impossible*/)); }
+  @Example void t2152(){ c2(read,  recMdf,   read,   of(read)); }
+  @Example void t2153(){ c2(lent,  recMdf,   read,   of(read)); }
+  @Example void t2154(){ c2(mut,   recMdf,   read,  of(/*impossible*/)); }
+  @Example void t2155(){ c2(iso,   recMdf,   read,  of(/*impossible*/)); }
+  @Example void t2156(){ c2(mdf,   recMdf,   read,   of(/*not well formed lambda*/)); }
+  @Example void t2157(){ c2(recMdf,recMdf,   read,   of(read,recMdf)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2161(){ c2(imm,   imm,   read,   of(read,imm)); }
+  @Example void t2162(){ c2(read,  imm,   read,   of(read,imm)); }
+  @Example void t2163(){ c2(lent,  imm,   read,   of(read,imm)); }
+  @Example void t2164(){ c2(mut,   imm,   read,   of(read,imm)); }
+  @Example void t2165(){ c2(iso,   imm,   read,   of(read,imm)); }
+  @Example void t2166(){ c2(mdf,   imm,   read,   of(/*not well formed lambda*/)); }
+  @Example void t2167(){ c2(recMdf,imm,   read,   of(read,imm)); }
+
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2201(){ c2(imm,   imm,   lent,    of(/*impossible*/)); }
+  @Example void t2202(){ c2(read,  imm,   lent,    of(/*impossible*/)); }
+  @Example void t2203(){ c2(lent,  imm,   lent,   of(imm,read)); }
+  @Example void t2204(){ c2(mut,   imm,   lent,   of(imm,read)); }
+  @Example void t2205(){ c2(iso,   imm,   lent,   of(imm,read)); }
+  @Example void t2206(){ c2(mdf,   imm,   lent,   of(/*not well formed lambda*/)); }
+  @Example void t2207(){ c2(recMdf,imm,   lent,   of(imm,read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2211(){ c2(imm,   read,  lent,   of(/*impossible*/)); }
+  @Example void t2212(){ c2(read,  read,  lent,   of(/*impossible*/)); }
+  @Example void t2213(){ c2(lent,  read,  lent,   of(read)); }
+  @Example void t2214(){ c2(mut,   read,  lent,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t2215(){ c2(iso,   read,  lent,   of(/*impossible*/)); }
+  @Example void t2216(){ c2(mdf,   read,  lent,   of(/*not well formed lambda*/)); }
+  @Example void t2217(){ c2(recMdf,read,  lent,   of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2221(){ c2(imm,   lent,  lent,   of(/*impossible*/)); }
+  @Example void t2222(){ c2(read,  lent,  lent,   of(/*impossible*/)); } // this capture is fine because the method cannot ever be called
+  @Example void t2223(){ c2(lent,  lent,  lent,   of(read,lent)); }
+  @Example void t2224(){ c2(mut,   lent,  lent,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t2225(){ c2(iso,   lent,  lent,   of(/*impossible*/)); }
+  @Example void t2226(){ c2(mdf,   lent,  lent,   of(/*not well formed lambda*/)); }
+  @Example void t2227(){ c2(recMdf,lent,  lent,   of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2231(){ c2(imm,   mut,   lent,  of(/*impossible*/)); }
+  @Example void t2232(){ c2(read,  mut,   lent,  of(/*impossible*/)); }
+  @Example void t2233(){ c2(lent,  mut,   lent,   of(read,lent)); }
+  @Example void t2234(){ c2(mut,   mut,   lent,   of(read,lent)); }
+  @Example void t2235(){ c2(iso,   mut,   lent,   of(read,lent)); }
+  @Example void t2236(){ c2(mdf,   mut,   lent,   of(/*not well formed lambda*/)); }
+  @Example void t2237(){ c2(recMdf,mut,   lent,  of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2241(){ c2(imm,   iso,   lent,    of(/*impossible*/)); } //TODO: Marco up to here
+  @Example void t2242(){ c2(read,  iso,   lent,    of(/*impossible*/)); }
+  @Example void t2243(){ c2(lent,  iso,   lent,   of(imm,read)); }
+  @Example void t2244(){ c2(mut,   iso,   lent,   of(imm,read)); }
+  @Example void t2245(){ c2(iso,   iso,   lent,   of(imm,read)); }
+  @Example void t2246(){ c2(mdf,   iso,   lent,   of(/*not well formed lambda*/)); }
+  @Example void t2247(){ c2(recMdf,iso,   lent,   of(imm,read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2251(){ c2(imm,   mdf,   lent, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2252(){ c2(read,  mdf,   lent, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2253(){ c2(lent,  mdf,   lent, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2254(){ c2(mut,   mdf,   lent, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2255(){ c2(iso,   mdf,   lent, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2256(){ c2(mdf,   mdf,   lent, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2257(){ c2(recMdf,mdf,   lent, of(/*not well formed parameter with mdf*/)); }/*not well formed parameter with mdf*/
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2261(){ c2(imm,   recMdf,   lent,  of(/*impossible*/)); }
+  @Example void t2262(){ c2(read,  recMdf,   lent,  of(/*impossible*/)); }
+  @Example void t2263(){ c2(lent,  recMdf,   lent,   of(read)); }
+  @Example void t2264(){ c2(mut,   recMdf,   lent,  of(/*impossible*/)); }
+  @Example void t2265(){ c2(iso,   recMdf,   lent,  of(/*impossible*/)); }
+  @Example void t2266(){ c2(mdf,   recMdf,   lent,   of(/*not well formed lambda*/)); }
+  @Example void t2267(){ c2(recMdf,recMdf,   lent,   of(read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2271(){ c2(imm,   imm,   lent,    of(/*impossible*/)); }
+  @Example void t2272(){ c2(read,  imm,   lent,    of(/*impossible*/)); }
+  @Example void t2273(){ c2(lent,  imm,   lent,   of(read,imm)); }
+  @Example void t2274(){ c2(mut,   imm,   lent,   of(read,imm)); }
+  @Example void t2275(){ c2(iso,   imm,   lent,   of(read,imm)); }
+  @Example void t2276(){ c2(mdf,   imm,   lent,   of(/*not well formed lambda*/)); }
+  @Example void t2277(){ c2(recMdf,imm,   lent,   of(read,imm)); }
+
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2301(){ c2(imm,   imm,   mut,    of(/*impossible*/)); }
+  @Example void t2302(){ c2(read,  imm,   mut,    of(/*impossible*/)); }
+  @Example void t2303(){ c2(lent,  imm,   mut,   of(imm,read)); }
+  @Example void t2304(){ c2(mut,   imm,   mut,   of(imm,read)); }
+  @Example void t2305(){ c2(iso,   imm,   mut,   of(imm,read)); }
+  @Example void t2306(){ c2(mdf,   imm,   mut,   of(/*not well formed lambda*/)); }
+  @Example void t2307(){ c2(recMdf,imm,   mut,   of(imm,read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2311(){ c2(imm,   read,  mut,   of(/*impossible*/)); }
+  @Example void t2312(){ c2(read,  read,  mut,   of(/*impossible*/)); }
+  @Example void t2313(){ c2(lent,  read,  mut,   of(read)); } // yes because call I can call the mut method through a lent
+  @Example void t2314(){ c2(mut,   read,  mut,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t2315(){ c2(iso,   read,  mut,   of(/*impossible*/)); }
+  @Example void t2316(){ c2(mdf,   read,  mut,   of(/*not well formed lambda*/)); }
+  @Example void t2317(){ c2(recMdf,read,  mut,   of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2321(){ c2(imm,   lent,  mut,   of(/*impossible*/)); }
+  @Example void t2322(){ c2(read,  lent,  mut,   of(/*impossible*/)); } // this capture is fine because the method cannot ever be called
+  @Example void t2323(){ c2(lent,  lent,  mut,   of(read,lent)); }
+  @Example void t2324(){ c2(mut,   lent,  mut,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t2325(){ c2(iso,   lent,  mut,   of(/*impossible*/)); }
+  @Example void t2326(){ c2(mdf,   lent,  mut,   of(/*not well formed lambda*/)); }
+  @Example void t2327(){ c2(recMdf,lent,  mut,   of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2331(){ c2(imm,   mut,   mut,  of(/*impossible*/)); }
+  @Example void t2332(){ c2(read,  mut,   mut,  of(/*impossible*/)); }
+  @Example void t2333(){ c2(lent,  mut,   mut,   of(read,lent)); } // TODO: double check this
+  @Example void t2334(){ c2(mut,   mut,   mut,   of(read,lent,mut)); }
+  @Example void t2335(){ c2(iso,   mut,   mut,   of(read,lent,mut)); }
+  @Example void t2336(){ c2(mdf,   mut,   mut,   of(/*not well formed lambda*/)); }
+  @Example void t2337(){ c2(recMdf,mut,   mut,  of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2341(){ c2(imm,   iso,   mut,    of(/*impossible*/)); }
+  @Example void t2342(){ c2(read,  iso,   mut,    of(/*impossible*/)); }
+  @Example void t2343(){ c2(lent,  iso,   mut,   of(imm,read)); }
+  @Example void t2344(){ c2(mut,   iso,   mut,   of(imm,read)); }
+  @Example void t2345(){ c2(iso,   iso,   mut,   of(imm,read)); }
+  @Example void t2346(){ c2(mdf,   iso,   mut,   of(/*not well formed lambda*/)); }
+  @Example void t2347(){ c2(recMdf,iso,   mut,   of(imm,read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2351(){ c2(imm,   mdf,   mut, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2352(){ c2(read,  mdf,   mut, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2353(){ c2(lent,  mdf,   mut, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2354(){ c2(mut,   mdf,   mut, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2355(){ c2(iso,   mdf,   mut, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2356(){ c2(mdf,   mdf,   mut, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2357(){ c2(recMdf,mdf,   mut, of(/*not well formed parameter with mdf*/)); }/*not well formed parameter with mdf*/
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2361(){ c2(imm,   recMdf,   mut,  of(/*impossible*/)); }
+  @Example void t2362(){ c2(read,  recMdf,   mut,  of(/*impossible*/)); }
+  @Example void t2363(){ c2(lent,  recMdf,   mut,   of(read)); }
+  @Example void t2364(){ c2(mut,   recMdf,   mut,  of(/*impossible*/)); }
+  @Example void t2365(){ c2(iso,   recMdf,   mut,  of(/*impossible*/)); }
+  @Example void t2366(){ c2(mdf,   recMdf,   mut,   of(/*not well formed lambda*/)); }
+  @Example void t2367(){ c2(recMdf,recMdf,   mut,   of(read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2371(){ c2(imm,   imm,   mut,    of(/*impossible*/)); }
+  @Example void t2372(){ c2(read,  imm,   mut,    of(/*impossible*/)); }
+  @Example void t2373(){ c2(lent,  imm,   mut,   of(read,imm)); }
+  @Example void t2374(){ c2(mut,   imm,   mut,   of(read,imm)); }
+  @Example void t2375(){ c2(iso,   imm,   mut,   of(read,imm)); }
+  @Example void t2376(){ c2(mdf,   imm,   mut,   of(/*not well formed lambda*/)); }
+  @Example void t2377(){ c2(recMdf,imm,   mut,   of(read,imm)); }
+
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2401(){ c2(imm,   imm,   iso,    of(/*impossible*/)); }
+  @Example void t2402(){ c2(read,  imm,   iso,    of(/*impossible*/)); }
+  @Example void t2403(){ c2(lent,  imm,   iso,   of(imm,read)); }
+  @Example void t2404(){ c2(mut,   imm,   iso,   of(imm,read)); }
+  @Example void t2405(){ c2(iso,   imm,   iso,   of(imm,read)); }
+  @Example void t2406(){ c2(mdf,   imm,   iso,   of(/*not well formed lambda*/)); }
+  @Example void t2407(){ c2(recMdf,imm,   iso,   of(imm,read)); } // yes, recMdf could be iso
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2411(){ c2(imm,   read,  iso,   of(/*impossible*/)); }
+  @Example void t2412(){ c2(read,  read,  iso,   of(/*impossible*/)); }
+  @Example void t2413(){ c2(lent,  read,  iso,   of(read)); }
+  @Example void t2414(){ c2(mut,   read,  iso,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t2415(){ c2(iso,   read,  iso,   of(/*impossible*/)); }
+  @Example void t2416(){ c2(mdf,   read,  iso,   of(/*not well formed lambda*/)); }
+  @Example void t2417(){ c2(recMdf,read,  iso,   of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2421(){ c2(imm,   lent,  iso,   of(/*impossible*/)); }
+  @Example void t2422(){ c2(read,  lent,  iso,   of(/*impossible*/)); }
+  @Example void t2423(){ c2(lent,  lent,  iso,   of(read,lent)); }
+  @Example void t2424(){ c2(mut,   lent,  iso,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t2425(){ c2(iso,   lent,  iso,   of(/*impossible*/)); }
+  @Example void t2426(){ c2(mdf,   lent,  iso,   of(/*not well formed lambda*/)); }
+  @Example void t2427(){ c2(recMdf,lent,  iso,   of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2431(){ c2(imm,   mut,   iso,  of(/*impossible*/)); }
+  @Example void t2432(){ c2(read,  mut,   iso,  of(/*impossible*/)); }
+  @Example void t2433(){ c2(lent,  mut,   iso,   of(read,lent,mut)); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
+  @Example void t2434(){ c2(mut,   mut,   iso,   of(read,lent,mut)); }
+  @Example void t2435(){ c2(iso,   mut,   iso,   of(read,lent,mut)); }
+  @Example void t2436(){ c2(mdf,   mut,   iso,   of(/*not well formed lambda*/)); }
+  @Example void t2437(){ c2(recMdf,mut,   iso,  of(/*impossible*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2441(){ c2(imm,   iso,   iso,    of(/*impossible*/)); }
+  @Example void t2442(){ c2(read,  iso,   iso,    of(/*impossible*/)); }
+  @Example void t2443(){ c2(lent,  iso,   iso,   of(imm,read)); }
+  @Example void t2444(){ c2(mut,   iso,   iso,   of(imm,read)); }
+  @Example void t2445(){ c2(iso,   iso,   iso,   of(imm,read)); } // all iso is captured as imm
+  @Example void t2446(){ c2(mdf,   iso,   iso,   of(/*not well formed lambda*/)); }
+  @Example void t2447(){ c2(recMdf,iso,   iso,   of(imm,read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2451(){ c2(imm,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2452(){ c2(read,  mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2453(){ c2(lent,  mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2454(){ c2(mut,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2455(){ c2(iso,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2456(){ c2(mdf,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t2457(){ c2(recMdf,mdf,   iso, of(/*not well formed parameter with mdf*/)); }/*not well formed parameter with mdf*/
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2461(){ c2(imm,   recMdf,   iso,  of(/*impossible*/)); }
+  @Example void t2462(){ c2(read,  recMdf,   iso,  of(/*impossible*/)); }
+  @Example void t2463(){ c2(lent,  recMdf,   iso,   of(read)); }
+  @Example void t2464(){ c2(mut,   recMdf,   iso,  of(/*impossible*/)); }
+  @Example void t2465(){ c2(iso,   recMdf,   iso,  of(/*impossible*/)); }
+  @Example void t2466(){ c2(mdf,   recMdf,   iso,   of(/*not well formed lambda*/)); }
+  @Example void t2467(){ c2(recMdf,recMdf,   iso,   of(read)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2471(){ c2(imm,   imm,   iso,    of(/*impossible*/)); }
+  @Example void t2472(){ c2(read,  imm,   iso,    of(/*impossible*/)); }
+  @Example void t2473(){ c2(lent,  imm,   iso,   of(read,imm)); }
+  @Example void t2474(){ c2(mut,   imm,   iso,   of(read,imm)); }
+  @Example void t2475(){ c2(iso,   imm,   iso,   of(read,imm)); }
+  @Example void t2476(){ c2(mdf,   imm,   iso,   of(/*not well formed lambda*/)); }
+  @Example void t2477(){ c2(recMdf,imm,   iso,   of(read,imm)); }
+
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2501(){ c2(imm,   imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2502(){ c2(read,  imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2503(){ c2(lent,  imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2504(){ c2(mut,   imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2505(){ c2(iso,   imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2506(){ c2(mdf,   imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2507(){ c2(recMdf,imm,   mdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2511(){ c2(imm,   read,  mdf, of(/*not well formed method*/)); }
+  @Example void t2512(){ c2(read,  read,  mdf, of(/*not well formed method*/)); }
+  @Example void t2513(){ c2(lent,  read,  mdf, of(/*not well formed method*/)); }
+  @Example void t2514(){ c2(mut,   read,  mdf, of(/*not well formed method*/)); }
+  @Example void t2515(){ c2(iso,   read,  mdf, of(/*not well formed method*/)); }
+  @Example void t2516(){ c2(mdf,   read,  mdf, of(/*not well formed method*/)); }
+  @Example void t2517(){ c2(recMdf,read,  mdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2521(){ c2(imm,   lent,  mdf, of(/*not well formed method*/)); }
+  @Example void t2522(){ c2(read,  lent,  mdf, of(/*not well formed method*/)); }
+  @Example void t2523(){ c2(lent,  lent,  mdf, of(/*not well formed method*/)); }
+  @Example void t2524(){ c2(mut,   lent,  mdf, of(/*not well formed method*/)); }
+  @Example void t2525(){ c2(iso,   lent,  mdf, of(/*not well formed method*/)); }
+  @Example void t2526(){ c2(mdf,   lent,  mdf, of(/*not well formed method*/)); }
+  @Example void t2527(){ c2(recMdf,lent,  mdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2531(){ c2(imm,   mut,   mdf, of(/*not well formed method*/)); }
+  @Example void t2532(){ c2(read,  mut,   mdf, of(/*not well formed method*/)); }
+  @Example void t2533(){ c2(lent,  mut,   mdf, of(/*not well formed method*/)); }
+  @Example void t2534(){ c2(mut,   mut,   mdf, of(/*not well formed method*/)); }
+  @Example void t2535(){ c2(iso,   mut,   mdf, of(/*not well formed method*/)); }
+  @Example void t2536(){ c2(mdf,   mut,   mdf, of(/*not well formed method*/)); }
+  @Example void t2537(){ c2(recMdf,mut,   mdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2541(){ c2(imm,   iso,   mdf, of(/*not well formed method*/)); }
+  @Example void t2542(){ c2(read,  iso,   mdf, of(/*not well formed method*/)); }
+  @Example void t2543(){ c2(lent,  iso,   mdf, of(/*not well formed method*/)); }
+  @Example void t2544(){ c2(mut,   iso,   mdf, of(/*not well formed method*/)); }
+  @Example void t2545(){ c2(iso,   iso,   mdf, of(/*not well formed method*/)); }
+  @Example void t2546(){ c2(mdf,   iso,   mdf, of(/*not well formed method*/)); }
+  @Example void t2547(){ c2(recMdf,iso,   mdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2551(){ c2(imm,   mdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2552(){ c2(read,  mdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2553(){ c2(lent,  mdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2554(){ c2(mut,   mdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2555(){ c2(iso,   mdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2556(){ c2(mdf,   mdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2557(){ c2(recMdf,mdf,   mdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2561(){ c2(imm,   recMdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2562(){ c2(read,  recMdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2563(){ c2(lent,  recMdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2564(){ c2(mut,   recMdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2565(){ c2(iso,   recMdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2566(){ c2(mdf,   recMdf,   mdf, of(/*not well formed method*/)); }
+  @Example void t2567(){ c2(recMdf,recMdf,   mdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2571(){ c2(imm,   imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2572(){ c2(read,  imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2573(){ c2(lent,  imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2574(){ c2(mut,   imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2575(){ c2(iso,   imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2576(){ c2(mdf,   imm,   mdf, of(/*not well formed method*/)); }
+  @Example void t2577(){ c2(recMdf,imm,   mdf, of(/*not well formed method*/)); }
+
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2601(){ c2(imm,   imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2602(){ c2(read,  imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2603(){ c2(lent,  imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2604(){ c2(mut,   imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2605(){ c2(iso,   imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2606(){ c2(mdf,   imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2607(){ c2(recMdf,imm,   recMdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2611(){ c2(imm,   read,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2612(){ c2(read,  read,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2613(){ c2(lent,  read,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2614(){ c2(mut,   read,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2615(){ c2(iso,   read,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2616(){ c2(mdf,   read,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2617(){ c2(recMdf,read,  recMdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2621(){ c2(imm,   lent,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2622(){ c2(read,  lent,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2623(){ c2(lent,  lent,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2624(){ c2(mut,   lent,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2625(){ c2(iso,   lent,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2626(){ c2(mdf,   lent,  recMdf, of(/*not well formed method*/)); }
+  @Example void t2627(){ c2(recMdf,lent,  recMdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2631(){ c2(imm,   mut,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2632(){ c2(read,  mut,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2633(){ c2(lent,  mut,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2634(){ c2(mut,   mut,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2635(){ c2(iso,   mut,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2636(){ c2(mdf,   mut,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2637(){ c2(recMdf,mut,   recMdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2641(){ c2(imm,   iso,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2642(){ c2(read,  iso,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2643(){ c2(lent,  iso,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2644(){ c2(mut,   iso,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2645(){ c2(iso,   iso,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2646(){ c2(mdf,   iso,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2647(){ c2(recMdf,iso,   recMdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2651(){ c2(imm,   mdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2652(){ c2(read,  mdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2653(){ c2(lent,  mdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2654(){ c2(mut,   mdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2655(){ c2(iso,   mdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2656(){ c2(mdf,   mdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2657(){ c2(recMdf,mdf,   recMdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2661(){ c2(imm,   recMdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2662(){ c2(read,  recMdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2663(){ c2(lent,  recMdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2664(){ c2(mut,   recMdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2665(){ c2(iso,   recMdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2666(){ c2(mdf,   recMdf,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2667(){ c2(recMdf,recMdf,   recMdf, of(/*not well formed method*/)); }
+  //                     lambda, captured, method, ...capturedAs
+  @Example void t2671(){ c2(imm,   imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2672(){ c2(read,  imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2673(){ c2(lent,  imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2674(){ c2(mut,   imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2675(){ c2(iso,   imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2676(){ c2(mdf,   imm,   recMdf, of(/*not well formed method*/)); }
+  @Example void t2677(){ c2(recMdf,imm,   recMdf, of(/*not well formed method*/)); }
 }
 //a mut lambda could capture a mut as iso inside an iso method?
 
