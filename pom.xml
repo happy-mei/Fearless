@@ -86,5 +86,10 @@
                 </configuration>
             </plugin>
         </plugins>
+        <sourceDirectory>src</sourceDirectory>
+        <testSourceDirectory>test</testSourceDirectory>
+        <testResources>
+            <testResource>test/resources</testResource>
+        </testResources>
     </build>
 </project>
