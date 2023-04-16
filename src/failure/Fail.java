@@ -165,6 +165,11 @@ public class Fail{
     return of("There is no sub-typing relationship between "+it1+" and "+it2+".");
   }
 
+  public static CompileError uncallableMeths(Mdf lambdaMdf, List<ast.E.Meth> ms) {
+    var meths = ms.stream().map(m->m.sig().mdf()+" "+m.name()).toList();
+    return of("Methods that cannot be called must not be defined. The following methods are impossible to call on an "+lambdaMdf+" lambda:\n"+String.join(", ", meths));
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -209,6 +214,7 @@ enum ErrorCode {
   bothTExpectedGens,
   sealedCreation,
   undefinedMethod,
-  noSubTypingRelationship;
+  noSubTypingRelationship,
+  uncallableMeths;
   int code() {return this.ordinal() + 1;}
 }

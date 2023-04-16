@@ -412,13 +412,8 @@ public class TestMethsPost5a {
     K[Y]:{.kk:Y}
     List[T]:{}
     """); }
-  @Example void t17a() { fail("""
-    In position [###]/Dummy0.fear:2:0
-    [E18 uncomposableMethods]
-    These methods could not be composed.
-    conflicts:
-    ([###]/Dummy0.fear:5:7) a.K[imm a.List[imm a.A[]]], .kk/0
-    ([###]/Dummy0.fear:5:7) a.K[imm a.A[]], .kk/0
+  @Example void t17a() { ok("""
+    [a.B[imm a.A[]],imm .m/0()[][]:imm a.List[imm a.A[]]abs, a.K[imm a.A[]],imm .kk/0()[][]:imm a.A[]abs]
     """, "a.A", """
     package a
     A:B[A],C[List[A]]{}
@@ -427,7 +422,22 @@ public class TestMethsPost5a {
     K[Y]:{ .kk:A }
     List[T]:{}
     """); }
-  @Example void t17b() { ok("""
+  @Example void t17b() { fail("""
+    In position [###]Dummy0.fear:2:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]Dummy0.fear:5:7) a.K[imm a.List[imm a.A[]]], .kk/0
+    ([###]Dummy0.fear:5:7) a.K[imm a.A[]], .kk/0
+    """, "a.A", """
+    package a
+    A:B[A],C[List[A]]{}
+    B[X]:K[X]{.m:List[X]}
+    C[Y]:K[Y]{.m:Y}
+    K[Y]:{ .kk:Y }
+    List[T]:{}
+    """); }
+  @Example void t17c() { ok("""
     [a.B[imma.A[]],imm.m/0()[][]:imma.List[imma.A[]]abs,
     a.K[imma.List[imma.A[]]],imm.kk/0()[][]:imma.A[]abs]
     """, "a.A", """
