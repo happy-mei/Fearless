@@ -195,9 +195,10 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
     return Optional.of(errF.apply(conflicts).pos(e.posOrUnknown()));
   }
   private Optional<CompileError> noCyclicImplRelations(Program p) {
-    for(var key:p.ds().keySet()){
+    for(var entry:p.ds().entrySet()){
+      var key = entry.getKey();
       var ks = p.superDecIds(key);
-      if(ks.contains(key)){ return Optional.of(Fail.cyclicImplRelation(key)); }
+      if(ks.contains(key)){ return Optional.of(Fail.cyclicImplRelation(key).pos(entry.getValue().pos())); }
     }
     return Optional.empty();
   }

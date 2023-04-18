@@ -3,6 +3,7 @@ package program.inference;
 import ast.Program;
 import astFull.E;
 import astFull.T;
+import failure.Fail;
 import files.Pos;
 import id.Id;
 import id.Mdf;
@@ -145,7 +146,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     if(refined.isEmpty()){ return iT1; }
     List<T> refinedTs = refined.stream().map(RP::t1).toList();
     if(iT1.mdf()!=iT2.mdf()){
-      throw Bug.unreachable();
+      throw Fail.incompatibleMdfs(iT1, iT2);
     }
     //TODO: if the MDFs are different? take the most specific? not on iso?
     return new T(iT1.mdf(),c1.withTs(refinedTs));

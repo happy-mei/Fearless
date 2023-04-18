@@ -2,6 +2,7 @@ package program.inference;
 
 import astFull.E;
 import astFull.T;
+import failure.CompileError;
 import failure.Fail;
 import id.Id;
 import id.Mdf;
@@ -184,26 +185,30 @@ public record InferBodies(ast.Program p) {
     var iTs = typesOf(e.es());
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
-    var refiner = new RefineTypes(p);
-    var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t());
-    // TODO: this doesn't consider narrowing down to gens on ITs (i.e. IO':CapFactory[...] does not help refine CapFactory[...] because this only uses IO')
-    var refined = refiner.refineSigMassive(c.mdf(), recv, List.of(baseSig), depth);
-    var refinedSig = refined.sigs().get(0);
-    var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
-    var fixedRecv = refiner.fixType(e.receiver(), new T(fixedRecvT.mdf(), refined.c()), depth);
-    var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args(), depth);
-    var fixedGens = e.ts().map(userGens->replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
+    try {
+      var refiner = new RefineTypes(p);
+      var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t());
+      // TODO: this doesn't consider narrowing down to gens on ITs (i.e. IO':CapFactory[...] does not help refine CapFactory[...] because this only uses IO')
+      var refined = refiner.refineSigMassive(c.mdf(), recv, List.of(baseSig), depth);
+      var refinedSig = refined.sigs().get(0);
+      var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
+      var fixedRecv = refiner.fixType(e.receiver(), new T(fixedRecvT.mdf(), refined.c()), depth);
+      var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args(), depth);
+      var fixedGens = e.ts().map(userGens->replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
 
-    assert refinedSig.name().equals(e.name());
-    var res = new E.MCall(
-      fixedRecv,
-      refinedSig.name(),
-      Optional.of(fixedGens),
-      fixedArgs,
-      refiner.best(e.t(), refinedSig.rt()),
-      e.pos()
-    );
-    return e.equals(res) ? Optional.empty() : Optional.of(res);
+      assert refinedSig.name().equals(e.name());
+      var res = new E.MCall(
+        fixedRecv,
+        refinedSig.name(),
+        Optional.of(fixedGens),
+        fixedArgs,
+        refiner.best(e.t(), refinedSig.rt()),
+        e.pos()
+      );
+      return e.equals(res) ? Optional.empty() : Optional.of(res);
+    } catch (CompileError err) {
+      throw err.pos(e.pos());
+    }
   }
   public static T replaceOnlyInfers(T user, T inferred) {
     if (user.isInfer()) { return inferred; }

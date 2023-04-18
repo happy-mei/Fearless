@@ -42,10 +42,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
       return Fail.unimplementedInLambda(sadlyAbs).pos(b.pos());
     }
     var sadlyExtra=b.meths().stream()
-      .filter(m->filtered.stream().anyMatch(cm->cm.name().equals(m.name())))
+      .filter(m->filtered.stream().noneMatch(cm->cm.name().equals(m.name())))
       .toList();
-//    assert sadlyExtra.isEmpty();//TODO: can we break this assertion? Yes. If we override a method.
-      // TODO: figure out a better error for the case where a non-overriden method is added (or can we just allow it?)
+    assert sadlyExtra.isEmpty();//TODO: can we break this assertion?
     return withProgram(p0).bothT(d);
   }
 

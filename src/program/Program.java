@@ -3,17 +3,15 @@ package program;
 import ast.T;
 import astFull.E;
 import failure.CompileError;
-import failure.Res;
+import failure.Fail;
 import files.Pos;
 import id.Id;
 import id.Mdf;
 import id.Refresher;
-import failure.Fail;
 import magic.Magic;
 import program.inference.RefineTypes;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
-import program.typesystem.TraitTypeSystem;
 import utils.*;
 import visitors.CloneVisitor;
 
@@ -134,13 +132,14 @@ public interface Program {
       });
   }
 
-  default Optional<Mdf> getNoMutHygMdf(Id.IT<ast.T> t) {
+  default Stream<T> getNoMutHygs(Id.IT<ast.T> t) {
     var its = itsOf(t);
-    return its.stream()
-      .filter(it->it.name().equals(Magic.NoMutHyg))
-      .map(it->it.ts().get(0).mdf())
-      .findAny()
-      .or(()->its.stream().map(this::getNoMutHygMdf).filter(Optional::isPresent).map(Optional::get).findAny());
+    return Stream.concat(
+      its.stream()
+        .filter(it->it.name().equals(Magic.NoMutHyg))
+        .map(it->it.ts().get(0)),
+      its.stream().flatMap(this::getNoMutHygs)
+    );
   }
 
   default failure.Res typeOf(List<String>xs,List<ast.T>ts, ast.E e) {

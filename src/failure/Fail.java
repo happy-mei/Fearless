@@ -170,6 +170,11 @@ public class Fail{
     return of("Methods that cannot be called must not be defined. The following methods are impossible to call on an "+lambdaMdf+" lambda:\n"+String.join(", ", meths));
   }
 
+  public static CompileError incompatibleMdfs(T t1, T t2){
+    return of("The modifiers for "+t1+" and "+t2+" are not compatible.\n" +
+      "This could be a case of NoMutHyg applying a more restrictive modifier than written.");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -215,6 +220,7 @@ enum ErrorCode {
   sealedCreation,
   undefinedMethod,
   noSubTypingRelationship,
-  uncallableMeths;
+  uncallableMeths,
+  incompatibleMdfs;
   int code() {return this.ordinal() + 1;}
 }

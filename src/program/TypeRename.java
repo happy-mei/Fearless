@@ -3,12 +3,10 @@ package program;
 import ast.T;
 import id.Id;
 import id.Mdf;
-import magic.Magic;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public interface TypeRename<T>{
   record FullTTypeRename(Program p) implements TypeRename<astFull.T> {
@@ -19,10 +17,10 @@ public interface TypeRename<T>{
     }
     public astFull.T withMdf(astFull.T t, Mdf mdf) { return t.withMdf(mdf); }
     public boolean isInfer(astFull.T t) { return t.isInfer(); }
-    public Optional<Mdf> getNoMutHygMdf(astFull.T t) {
-      if (t.isInfer()) { return Optional.empty(); }
-      if (!(t.rt() instanceof Id.IT<astFull.T> it)) { return Optional.empty(); }
-      return p.getNoMutHygMdf(it.toAstIT(astFull.T::toAstT));
+    public Stream<Mdf> getNoMutHygMdfs(astFull.T t) {
+      if (t.isInfer()) { return Stream.empty(); }
+      if (!(t.rt() instanceof Id.IT<astFull.T> it)) { return Stream.empty(); }
+      return p.getNoMutHygs(it.toAstIT(astFull.T::toAstT)).map(ast.T::mdf);
     }
   }
   class CoreTTypeRename implements TypeRename<ast.T> {
@@ -43,9 +41,9 @@ public interface TypeRename<T>{
       );
     }
     public boolean isInfer(ast.T t) { return false; }
-    public Optional<Mdf> getNoMutHygMdf(ast.T t) {
-      if (!(t.rt() instanceof Id.IT<ast.T> it)) { return Optional.empty(); }
-      return p.getNoMutHygMdf(it);
+    public Stream<Mdf> getNoMutHygMdfs(ast.T t) {
+      if (!(t.rt() instanceof Id.IT<ast.T> it)) { return Stream.empty(); }
+      return p.getNoMutHygs(it).map(ast.T::mdf);
     }
   }
   class CoreRecMdfTypeRename extends CoreTTypeRename {
@@ -82,7 +80,7 @@ public interface TypeRename<T>{
     };
   }
   boolean isInfer(T t);
-  Optional<Mdf> getNoMutHygMdf(T t);
+  Stream<Mdf> getNoMutHygMdfs(T t);
   default T renameT(T t, Function<Id.GX<T>,T> f){
     if(isInfer(t)){ return t; }
     return matchT(t,
@@ -102,12 +100,9 @@ public interface TypeRename<T>{
   }
   default T fixMut(T t) {
     if (!mdf(t).isMut()) { return t; }
-    return getNoMutHygMdf(t)
-      .filter(Mdf::couldBeHyg)
-      .map(mdf->{
-        System.out.println("turning lent");
-        return propagateMdf(Mdf.lent, t);
-      })
-      .orElse(t);
+    var shouldFix = getNoMutHygMdfs(t).anyMatch(Mdf::isHyg);
+    if (!shouldFix) { return t; }
+    System.out.println("turning lent");
+    return propagateMdf(Mdf.lent, t);
   }
 }

@@ -23,6 +23,7 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
     return match(gx->gx, it->{ throw Bug.of("Expected GX, got IT"); });
   }
   public boolean isIt() { return this.match(gx->false, it->true); }
+  public boolean isGX() { return this.match(gx->true, it->false); }
   public astFull.T toAstFullT() {
     return this.match(
       gx->new astFull.T(mdf(), new Id.GX<>(gx.name())),

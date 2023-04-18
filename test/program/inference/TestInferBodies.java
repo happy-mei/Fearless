@@ -1116,6 +1116,27 @@ public class TestInferBodies {
     NoMutHyg[X]:{}
     """); }
 
+  @Example void dontOverrideMdf() { ok("""
+    {test.Box/1=Dec[name=test.Box/1,gxs=[X],lambda=[-mdf-][test.Box[mdfX],base.NoMutHyg[mdfX]]{'this
+      .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}],
+    test.Box'/0=Dec[name=test.Box'/0,gxs=[],lambda=[-mdf-][test.Box'[]]{'this
+      .mut2lent/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=muttest.Box[mdfX]]->
+        [-mut-][test.Box[mdf X]]{'fear0$
+          .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->x}}]}
+    """, """
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    Box[X]:NoMutHyg[mdf X]{
+      read .get: recMdf X
+      }
+    Box':{
+      .mut2lent[X](x: mdf X): mut Box[mdf X] -> mut Box[mdf X]{ x }
+      }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+
   // TODO: this should eventually fail with an "inference failed" message when I add that error
   @Disabled
   @Example void callingEphemeralMethod() { fail("""
