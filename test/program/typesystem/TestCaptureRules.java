@@ -49,7 +49,7 @@ public class TestCaptureRules {
     """;
 
   void cInnerOk(String code){
-    System.out.println(code);
+//    System.out.println(code);
     try{ok(code);}
     catch(AssertionError t){ throw new AssertionError("failed on "+code+"\nwith:\n"+t); }
   }

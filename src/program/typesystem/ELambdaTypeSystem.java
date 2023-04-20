@@ -109,7 +109,6 @@ interface ELambdaTypeSystem extends ETypeSystem{
 
   default Optional<CompileError> okWithSubType(Gamma g, E.Meth m, E e, T expected) {
     var res = e.accept(ETypeSystem.of(p(), g, Optional.of(expected), depth()+1));
-    System.out.println("expected "+expected+" got "+res);
     var subOk = res.t()
       .flatMap(ti->p().isSubType(ti, expected)
         ? Optional.empty()
