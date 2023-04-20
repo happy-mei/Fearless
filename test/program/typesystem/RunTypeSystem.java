@@ -35,12 +35,12 @@ public interface RunTypeSystem {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
-    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
-    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     try {
+      var p = Parser.parseAll(ps);
+      new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
+      var inferredSigs = p.inferSignaturesToCore();
+      var inferred = new InferBodies(inferredSigs).inferAll(p);
+      new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
       inferred.typeCheck();
       Assertions.fail("Did not fail!\n");
     } catch (CompileError e) {

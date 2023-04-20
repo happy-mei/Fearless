@@ -385,4 +385,55 @@ public class TestTypeSystem {
         ._doRes(y:Void,x:T):T -> Opt#x
         }
    */
+
+  // These are okay because recMdf X where MDF X = imm X becomes imm X.
+  // this method always returns imm X in this case.
+  @Example void noCaptureImmAsRecMdf() { ok("""
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    """); }
+  @Example void noCaptureImmAsRecMdfExample() { ok("""
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    C:{ #: imm B -> (A.m(B)).absMeth }
+    """); }
+  @Example void noCaptureImmAsRecMdfCounterEx() { fail("""
+    In position [###]/Dummy0.fear:5:25
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: [-imm-][test.A[]]{'fear1$ } .m/1[]([[-imm-][test.B[]]{'fear2$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type lent test.B[]. The candidates were:
+    TsT[ts=[read test.L[imm test.B[]]], t=imm test.B[]]
+    TsT[ts=[read test.L[imm test.B[]]], t=imm test.B[]]
+    TsT[ts=[imm test.L[imm test.B[]]], t=imm test.B[]]
+    """, """
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    C:{ #: lent B -> (A.m(B)).absMeth }
+    """); }
+  @Example void noCaptureImmAsRecMdfTopLvl1() { ok("""
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    L'[X]:L[imm X]{ read .absMeth: imm X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
+    """); }
+  @Example void noCaptureImmAsRecMdfTopLvl2() { fail("""
+    In position [###]/Dummy0.fear:4:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:7) test.L[mdf FearX0$], .absMeth/0
+    ([###]/Dummy0.fear:4:16) test.L'[mdf FearX0$], .absMeth/0
+    """, """
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    L'[X]:L[mdf X]{ read .absMeth: imm X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
+    """); }
 }
