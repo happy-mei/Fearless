@@ -436,4 +436,33 @@ public class TestTypeSystem {
     L'[X]:L[mdf X]{ read .absMeth: imm X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
     """); }
+
+  @Example void recMdfInheritance() { ok("""
+    package test
+    Foo:{}
+    A[X]:{ read .m: recMdf X -> this.m }
+    B:A[imm Foo]
+    C:B
+    CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
+    CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
+    CanPass2:{ read .m(par: mut C) : imm Foo -> par.m  }
+    //NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }    
+    """); }
+
+  @Example void recMdfInheritanceFail() { fail("""
+    In position [###]/Dummy0.fear:7:48
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: par .m/0[]([]), no candidates for .m/0 returned the expected type mut test.Foo[]. The candidates were:
+    TsT[ts=[read test.B[]], t=imm test.Foo[]]
+    TsT[ts=[read test.B[]], t=imm test.Foo[]]
+    TsT[ts=[imm test.B[]], t=imm test.Foo[]]
+    """, """
+    package test
+    Foo:{}
+    A[X]:{ read .m: recMdf X -> this.m }
+    B:A[imm Foo]{}
+    CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
+    CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
+    NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
+    """); }
 }
