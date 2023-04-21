@@ -465,4 +465,18 @@ public class TestTypeSystem {
     CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
     NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
     """); }
+
+  @Example void immToReadCapture() { ok("""
+    package test
+    B:{}
+    L[X]:{ imm .absMeth: read X }
+    A:{ read .m[T](par: imm T) : read L[imm T] -> read L[imm T]{.absMeth->par} }
+    """); }
+
+  @Example void immCapture() { ok("""
+    package test
+    B:{}
+    L[X]:{ imm .absMeth: imm X }
+    A:{ read .m[T](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
+    """); }
 }
