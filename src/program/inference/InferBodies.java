@@ -67,7 +67,6 @@ public record InferBodies(ast.Program p) {
 
   // rule name version
   Optional<E> inferStep(Map<String, T> gamma, E e, int depth){
-//    System.out.println(e);
     return switch(e){
       case E.X e1->var(gamma, e1);
       case E.MCall e1->methCall(gamma, e1, depth);

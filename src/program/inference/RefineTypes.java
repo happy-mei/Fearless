@@ -45,8 +45,9 @@ public record RefineTypes(ast.Program p) {
     var ms = Streams.zip(lambda.meths(), res.sigs())
       .map(this::tM)
       .toList();
-//    Id.IT<T> lT = best(new T(Mdf.mdf, res.c()), l.t()).itOrThrow();
-    return lambda.withMeths(ms).withIT(Optional.ofNullable(res.c()));
+//    Id.IT<T> lT = best(new T(Mdf.mdf, res.c()), l.t()).itOrThrow();S
+    var newIT = replaceOnlyInfers(lambda.t(Mdf.mdf), new T(lambda.t(Mdf.mdf).mdf(), res.c()));
+    return lambda.withMeths(ms).withIT(Optional.ofNullable(newIT.itOrThrow()));
   }
 
   E.Meth tM(E.Meth m, RefinedSig refined) {

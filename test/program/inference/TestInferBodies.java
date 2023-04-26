@@ -1116,6 +1116,20 @@ public class TestInferBodies {
     NoMutHyg[X]:{}
     """); }
 
+  @Example void immToReadCapture() { ok("""
+    {test.L/1=Dec[name=test.L/1,gxs=[X],lambda=[-mdf-][test.L[mdfX]]{'this
+      .absMeth/0([]):Sig[mdf=imm,gens=[],ts=[],ret=readX]->[-]}],
+    test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-mdf-][test.B[]]{'this}],
+    test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-mdf-][test.A[]]{'this
+      .m/1([par]):Sig[mdf=read,gens=[T],ts=[immT],ret=readtest.L[immT]]->
+        [-read-][test.L[imm T]]{'fear0$.absMeth/0([]):Sig[mdf=imm,gens=[],ts=[],ret=readT]->par}}]}
+    """, """
+    package test
+    B:{}
+    L[X]:{ imm .absMeth: read X }
+    A:{ read .m[T](par: imm T) : read L[imm T] -> read L[imm T]{.absMeth->par} }
+    """); }
+
   // TODO: this should eventually fail with an "inference failed" message when I add that error
   @Disabled
   @Example void callingEphemeralMethod() { fail("""
