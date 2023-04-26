@@ -23,7 +23,9 @@ public class TestCaptureRules {
     Stream.of(Mdf.values()).filter(mdf->!capturedAs.contains(mdf))
       .forEach(mdf->cInnerFail(codeGen2.formatted(method, mdf, captured, lambda, captured, lambda, captured)));
   }
-  void c3(Mdf lambda,Mdf captured,Mdf method,List<Mdf>... _capturePairs) {
+
+  @SafeVarargs
+  final void c3(Mdf lambda, Mdf captured, Mdf method, List<Mdf>... _capturePairs) {
     assert _capturePairs.length>0;
     assert Stream.of(_capturePairs).allMatch(l->l.size()%2==0);
     List<Mdf> capturePairs = Stream.of(_capturePairs).flatMap(l->l.stream()).toList();
@@ -1001,33 +1003,33 @@ A:{ read .m[T](par: imm T) : imm L[mut T] -> imm L[mut T]{.absMeth->par} }
   static List<Mdf> mdfImm = of(mdf,imm  , mdf,read);
   //                     lambda, captured, method, ...capturePairs
   @Example void t3001(){ c3(imm,   imm,   imm,   readAll,immAll,mdfImm); }
-  @Example void t3002(){ c3(read,  imm,   imm,   mdfImm,of(read,read  , imm,imm)); } //read,imm is failing because of an inference bug
-  @Example void t3003(){ c3(lent,  imm,   imm,   mdfImm,of(read,read  , imm,imm)); } //read,imm is failing because of an inference bug
-  @Example void t3004(){ c3(mut,   imm,   imm,   mdfImm,of(read,read  , imm,imm)); } //same
+  @Example void t3002(){ c3(read,  imm,   imm,   readAll,immAll,mdfImm); }
+  @Example void t3003(){ c3(lent,  imm,   imm,   readAll,immAll,mdfImm); }
+  @Example void t3004(){ c3(mut,   imm,   imm,   readAll,immAll,mdfImm); }
   @Example void t3005(){ c3(iso,   imm,   imm,   mdfImm,immAll,readAll); }
   @Example void t3006(){ c3(mdf,   imm,   imm,   of()); }
-  @Example void t3007(){ c3(recMdf,imm,   imm,   mdfImm,of(read,read  , imm,imm)); }//same
+  @Example void t3007(){ c3(recMdf,imm,   imm,   readAll,immAll,mdfImm); }
   //                     lambda, captured, method, ...capturedAs
   @Example void t3011(){ c3(imm,   read,  imm,   of()); }
-  @Example void t3012(){ c3(read,  read,  imm,   mdfImm,of(read,read , imm,imm)); }//same
-  @Example void t3013(){ c3(lent,  read,  imm,   mdfImm,of(read,read , imm,imm)); }//same
+  @Example void t3012(){ c3(read,  read,  imm,   readAll,immAll,mdfImm); }
+  @Example void t3013(){ c3(lent,  read,  imm,   readAll,immAll,mdfImm); }
   @Example void t3014(){ c3(mut,   read,  imm,   of()); }//NOT NoMutHyg
   @Example void t3015(){ c3(iso,   read,  imm,   of()); }
   @Example void t3016(){ c3(mdf,   read,  imm,   of()); }
   @Example void t3017(){ c3(recMdf,read,  imm,   of()); }
   //                     lambda, captured, method, ...capturedAs
   @Example void t3021(){ c3(imm,   lent,  imm,   of()); }
-  @Example void t3022(){ c3(read,  lent,  imm,   mdfImm,of(read,read , imm,imm)); }//same
-  @Example void t3023(){ c3(lent,  lent,  imm,   mdfImm,of(read,read , imm,imm)); }//same
+  @Example void t3022(){ c3(read,  lent,  imm,   readAll,immAll,mdfImm); }
+  @Example void t3023(){ c3(lent,  lent,  imm,   readAll,immAll,mdfImm); }
   @Example void t3024(){ c3(mut,   lent,  imm,   of()); }//NOT NoMutHyg
   @Example void t3025(){ c3(iso,   lent,  imm,   of()); }
   @Example void t3026(){ c3(mdf,   lent,  imm,   of()); }
   @Example void t3027(){ c3(recMdf,lent,  imm,   of()); }
   //                     lambda, captured, method, ...capturedAs
   @Example void t3031(){ c3(imm,   mut,   imm,  of()); }
-  @Example void t3032(){ c3(read,  mut,   imm,  mdfImm,of(read,read , imm,imm)); }//same
-  @Example void t3033(){ c3(lent,  mut,   imm,  mdfImm,of(read,read , imm,imm)); }//same
-  @Example void t3034(){ c3(mut,   mut,   imm,  mdfImm,of(read,read , imm,imm, imm,mut)); }//same
+  @Example void t3032(){ c3(read,  mut,   imm,  readAll,immAll,mdfImm); }
+  @Example void t3033(){ c3(lent,  mut,   imm,  readAll,immAll,mdfImm); }
+  @Example void t3034(){ c3(mut,   mut,   imm,  readAll,immAll,mdfImm); }
   /*
   package test
 B:{}
@@ -1048,7 +1050,7 @@ A0:{ read .m(par: mut B) : mut L -> mut L{.absMeth->par} }
    */
   //two rules: imm,imm implies read,imm
   //           imm,imm on imm methods should imply imm,mut using adapt
-  @Example void t3035(){ c3(iso,   mut,   imm,  mdfImm,of(read,read , imm,imm)); }//same
+  @Example void t3035(){ c3(iso,   mut,   imm,  readAll,immAll,mdfImm); }
   @Example void t3036(){ c3(mdf,   mut,   imm,  of()); }
   @Example void t3037(){ c3(recMdf,mut,   imm,  of()); }
   //                     lambda, captured, method, ...capturedAs
