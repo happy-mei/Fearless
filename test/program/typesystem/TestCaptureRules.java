@@ -18,11 +18,41 @@ public class TestCaptureRules {
     Stream.of(Mdf.values()).filter(mdf->!capturedAs.contains(mdf))
       .forEach(mdf->cInnerFail(codeGen1.formatted(method, mdf, captured, lambda, lambda)));
   }
+  String codeGen1 = """
+    package test
+    B:{}
+    L:{ %s .absMeth: %s B }
+    A:{ read .m(par: %s B) : %s L -> %s L{.absMeth->par} }
+    """;
+
   void c2(Mdf lambda,Mdf captured,Mdf method, List<Mdf> capturedAs) {
-    capturedAs.forEach(mdf->cInnerOk(codeGen2.formatted(method, mdf, captured, lambda, captured, lambda, captured)));
+    capturedAs.forEach(mdf->{
+      cInnerOk(codeGen2a.formatted(method, mdf, captured, lambda, captured, lambda, captured));
+      if (!mdf.is(mdf, recMdf)) {
+        cInnerOk(codeGen2b.formatted(method, mdf, captured, captured, lambda, lambda));
+      }
+    });
     Stream.of(Mdf.values()).filter(mdf->!capturedAs.contains(mdf))
-      .forEach(mdf->cInnerFail(codeGen2.formatted(method, mdf, captured, lambda, captured, lambda, captured)));
+      .forEach(mdf->{
+        cInnerFail(codeGen2a.formatted(method, mdf, captured, lambda, captured, lambda, captured));
+        if (!mdf.is(mdf, recMdf)) {
+          cInnerFail(codeGen2b.formatted(method, mdf, captured, captured, lambda, lambda));
+        }
+      });
   }
+  String codeGen2a = """
+    package test
+    B:{}
+    L[X]:{ %s .absMeth: %s X }
+    A:{ read .m(par: %s B) : %s L[%s B] -> %s L[%s B]{.absMeth->par} }
+    """;
+  String codeGen2b = """
+    package test
+    B:{}
+    L[X]:{ %s .absMeth: %s X }
+    L:L[%s B]
+    A:{ read .m(par: %s B) : %s L -> %s L{.absMeth->par} }
+    """;
 
   @SafeVarargs
   final void c3(Mdf lambda, Mdf captured, Mdf method, List<Mdf>... _capturePairs) {
@@ -50,34 +80,45 @@ public class TestCaptureRules {
     var validCaps = new ArrayList<Capture>();
     var exceptions = new ArrayList<Throwable>();
     permutations.forEach(c->{
-      var code = codeGen3.formatted(method, c.capAs, captured, lambda, c.capAsG, lambda, c.capAsG);
-      System.out.println(code);
+      var codeA = codeGen3a.formatted(method, c.capAs, captured, lambda, c.capAsG, lambda, c.capAsG);
+      System.out.println(codeA);
+      var codeB = codeGen3b.formatted(method, c.capAs, c.capAsG, captured, lambda, lambda);
+      System.out.println("----\n"+codeB);
       var ok = caps.contains(c);
-      if (ok) {  
-        try{cInnerOk(code); validCaps.add(c);}
-        catch (AssertionError | CompileError e) { exceptions.add(e); }
+      if (ok) {
+        try {
+          cInnerOk(codeA);
+          if (!c.capAs.is(mdf, recMdf) && !c.capAsG.is(mdf, recMdf)) {
+            cInnerOk(codeB);
+          }
+          validCaps.add(c);
+        } catch (AssertionError | CompileError e) { exceptions.add(e); }
       }
       else {
-        try { cInnerFail(code); }
-        catch (AssertionError e) { validCaps.add(c); exceptions.add(e); }
+        try {
+          cInnerFail(codeA);
+          if (!c.capAs.is(mdf, recMdf) && !c.capAsG.is(mdf, recMdf)) {
+            cInnerFail(codeB);
+          }
+        } catch (AssertionError e) { validCaps.add(c); exceptions.add(e); }
         }
       });
     if(!exceptions.isEmpty()){
       throw new AssertionError("valid pairs:\n"+validCaps+"\n\nbut we got the following errors:"+exceptions);
     }
   }
-  String codeGen1 = """
-    package test
-    B:{}
-    L:{ %s .absMeth: %s B }
-    A:{ read .m(par: %s B) : %s L -> %s L{.absMeth->par} }
-    """;
-
-  String codeGen2 = """
+  String codeGen3a = """
     package test
     B:{}
     L[X]:{ %s .absMeth: %s X }
-    A:{ read .m(par: %s B) : %s L[%s B] -> %s L[%s B]{.absMeth->par} }
+    A:{ read .m[T](par: %s T) : %s L[%s T] -> %s L[%s T]{.absMeth->par} }
+    """;
+  String codeGen3b = """
+    package test
+    B:{}
+    L[X]:{ %s .absMeth: %s X }
+    L:L[%s B]
+    A:{ read .m(par: %s B) : %s L -> %s L{.absMeth->par} }
     """;
 
   void cInnerOk(String code){
@@ -986,18 +1027,6 @@ public class TestCaptureRules {
   @Example void t2677(){ c2(recMdf,imm,   recMdf, of(/*not well formed method*/)); }
   
   // ----------------------------- c3 --------------------------------
-  String codeGen3 = """
-    package test
-    B:{}
-    L[X]:{ %s .absMeth: %s X }
-    A:{ read .m[T](par: %s T) : %s L[%s T] -> %s L[%s T]{.absMeth->par} }
-    """;
-  /*
- package test
-B:{}
-L[X]:{ imm .absMeth: mdf X }
-A:{ read .m[T](par: imm T) : imm L[mut T] -> imm L[mut T]{.absMeth->par} }
-   */
   static List<Mdf> readAll = of(read,mut  , read,lent  , read,read  , read,recMdf  , read,mdf  , read,imm);
   static List<Mdf> immAll = of(imm,mut  , imm,lent  , imm,read  , imm,recMdf  , imm,mdf  , imm,imm);
   static List<Mdf> mdfImm = of(mdf,imm  , mdf,read);
@@ -1030,24 +1059,6 @@ A:{ read .m[T](par: imm T) : imm L[mut T] -> imm L[mut T]{.absMeth->par} }
   @Example void t3032(){ c3(read,  mut,   imm,  readAll,immAll,mdfImm); }
   @Example void t3033(){ c3(lent,  mut,   imm,  readAll,immAll,mdfImm); }
   @Example void t3034(){ c3(mut,   mut,   imm,  readAll,immAll,mdfImm); }
-  /*
-  package test
-B:{}
-L[X]:{ imm .absMeth: imm X }
-A:{ read .m[T](par: mut T) : mut L[imm T] -> mut L[imm T]{.absMeth->par} }
-
-B:{}//this below should work
-L[X]:{ imm .absMeth: imm X }
-A:{ read .m[T](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
-//equivalent working code
-L:L[mut B]
-A0:{ read .m(par: mut B) : mut L -> mut L{.absMeth->par} }
-//test with short c3 first, then if no mdf/recMdf test with longer c3 and should get same result
-//TODO: check if a similar better testing strategy can be done with c2
-
-[E23 methTypeError]
-  Expected the method .m/1 to return mut test.L[mut T], got mut test.L[imm T].
-   */
   //two rules: imm,imm implies read,imm
   //           imm,imm on imm methods should imply imm,mut using adapt
   @Example void t3035(){ c3(iso,   mut,   imm,  readAll,immAll,mdfImm); }
