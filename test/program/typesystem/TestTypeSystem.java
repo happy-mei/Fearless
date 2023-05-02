@@ -479,4 +479,15 @@ public class TestTypeSystem {
     L[X]:{ imm .absMeth: imm X }
     A:{ read .m[T](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
     """); }
+
+  @Example void readMethOnImmLambdaCannotCaptureRead() { fail("""
+    In position [###]/Dummy0.fear:4:69
+    [E30 badCapture]
+    'read par' cannot be captured by a read method in an imm lambda.
+    """, """
+    package test
+    B:{}
+    L[X]:{ read .absMeth: read X }
+    A:{ read .m[T](par: read T) : imm L[imm T] -> imm L[imm T]{.absMeth->par} }
+    """);}
 }
