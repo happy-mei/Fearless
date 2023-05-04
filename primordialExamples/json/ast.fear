@@ -1,0 +1,19 @@
+package json
+alias base.Stringable as Stringable, base.Str as Str, base.Float as Float, base.List as List, base.Map as Map,
+
+Node:Stringable{
+  .query(query: Str): Node -> this.query, // todo
+  .match[R](m: NodeM[R]): R
+  }
+NodeM[R]:{
+  .null: R,
+  .str(x: Str): R,
+  .num(x: Float): R,
+  .bool(x: Bool): R,
+  .array(x: List[Node]): R,
+  .obj(x: Map[Str, Node]): R,
+  }
+Null:Node{
+  .match(m) -> m.null,
+  .str -> "null",
+  }

@@ -1,0 +1,27 @@
+package json
+
+Token:{}
+Null:Token
+OC:Token
+CC:Token
+Comma:Token
+Quote:Token
+Str:Token{ *: base.Str }
+Colon:Token
+Negative:Token
+DecimalPt:Token
+ExponentPos:Token
+ExponentNeg:Token
+NaN:Token
+True:Token
+False:Token
+
+Parser:{
+  .tokens: LList[Token],
+  .ctx: LList[Char],
+  .step(ch: Char): Lexer ->
+
+  }
+Agent:{}
+DocumentLexer:Lexer{
+  }

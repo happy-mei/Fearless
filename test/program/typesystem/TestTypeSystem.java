@@ -385,4 +385,117 @@ public class TestTypeSystem {
         ._doRes(y:Void,x:T):T -> Opt#x
         }
    */
+
+  // These are okay because recMdf X where MDF X = imm X becomes imm X.
+  // this method always returns imm X in this case.
+  @Example void noCaptureImmAsRecMdf() { ok("""
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    """); }
+  @Example void noCaptureImmAsRecMdfExample() { ok("""
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    C:{ #: imm B -> (A.m(B)).absMeth }
+    """); }
+  @Example void noCaptureImmAsRecMdfCounterEx() { fail("""
+    In position [###]/Dummy0.fear:5:25
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: [-imm-][test.A[]]{'fear1$ } .m/1[]([[-imm-][test.B[]]{'fear2$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type lent test.B[]. The candidates were:
+    TsT[ts=[read test.L[imm test.B[]]], t=imm test.B[]]
+    TsT[ts=[read test.L[imm test.B[]]], t=imm test.B[]]
+    TsT[ts=[imm test.L[imm test.B[]]], t=imm test.B[]]
+    """, """
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    C:{ #: lent B -> (A.m(B)).absMeth }
+    """); }
+  @Example void noCaptureImmAsRecMdfTopLvl1() { ok("""
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    L'[X]:L[imm X]{ read .absMeth: imm X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
+    """); }
+  @Example void noCaptureImmAsRecMdfTopLvl2() { fail("""
+    In position [###]/Dummy0.fear:4:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:7) test.L[mdf FearX0$], .absMeth/0
+    ([###]/Dummy0.fear:4:16) test.L'[mdf FearX0$], .absMeth/0
+    """, """
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    L'[X]:L[mdf X]{ read .absMeth: imm X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
+    """); }
+
+  @Example void recMdfInheritance() { ok("""
+    package test
+    Foo:{}
+    A[X]:{ read .m: recMdf X -> this.m }
+    B:A[imm Foo]
+    C:B
+    CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
+    CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
+    CanPass2:{ read .m(par: mut C) : imm Foo -> par.m  }
+    //NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }    
+    """); }
+
+  @Example void recMdfInheritanceFail() { fail("""
+    In position [###]/Dummy0.fear:7:48
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: par .m/0[]([]), no candidates for .m/0 returned the expected type mut test.Foo[]. The candidates were:
+    TsT[ts=[read test.B[]], t=imm test.Foo[]]
+    TsT[ts=[read test.B[]], t=imm test.Foo[]]
+    TsT[ts=[imm test.B[]], t=imm test.Foo[]]
+    """, """
+    package test
+    Foo:{}
+    A[X]:{ read .m: recMdf X -> this.m }
+    B:A[imm Foo]{}
+    CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
+    CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
+    NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
+    """); }
+
+  @Example void immToReadCapture() { ok("""
+    package test
+    B:{}
+    L[X]:{ imm .absMeth: read X }
+    A:{ read .m[T](par: imm T) : read L[imm T] -> read L[imm T]{.absMeth->par} }
+    """); }
+
+  @Example void immCapture() { ok("""
+    package test
+    B:{}
+    L[X]:{ imm .absMeth: imm X }
+    A:{ read .m[T](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
+    """); }
+
+  @Example void readMethOnImmLambdaCannotCaptureRead() { fail("""
+    In position [###]/Dummy0.fear:4:69
+    [E30 badCapture]
+    'read par' cannot be captured by a read method in an imm lambda.
+    """, """
+    package test
+    B:{}
+    L[X]:{ read .absMeth: read X }
+    A:{ read .m[T](par: read T) : imm L[imm T] -> imm L[imm T]{.absMeth->par} }
+    """);}
+
+  @Example void mdfParamAsLent() { ok("""
+    package test
+    B:{}
+    L[X]:{ mut .absMeth: lent X }
+    A:{ read .m[T](par: mdf T) : lent L[mut T] -> lent L[mut T]{.absMeth->par} }
+    C:{ #: lent L[mut B] -> A{}.m[read B](B) }
+    """); }
 }

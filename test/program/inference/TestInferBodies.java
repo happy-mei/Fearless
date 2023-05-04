@@ -1116,6 +1116,20 @@ public class TestInferBodies {
     NoMutHyg[X]:{}
     """); }
 
+  @Example void immToReadCapture() { ok("""
+    {test.L/1=Dec[name=test.L/1,gxs=[X],lambda=[-mdf-][test.L[mdfX]]{'this
+      .absMeth/0([]):Sig[mdf=imm,gens=[],ts=[],ret=readX]->[-]}],
+    test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-mdf-][test.B[]]{'this}],
+    test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-mdf-][test.A[]]{'this
+      .m/1([par]):Sig[mdf=read,gens=[T],ts=[immT],ret=readtest.L[immT]]->
+        [-read-][test.L[imm T]]{'fear0$.absMeth/0([]):Sig[mdf=imm,gens=[],ts=[],ret=readT]->par}}]}
+    """, """
+    package test
+    B:{}
+    L[X]:{ imm .absMeth: read X }
+    A:{ read .m[T](par: imm T) : read L[imm T] -> read L[imm T]{.absMeth->par} }
+    """); }
+
   @Example void dontOverrideMdf() { ok("""
     {test.Box/1=Dec[name=test.Box/1,gxs=[X],lambda=[-mdf-][test.Box[mdfX],base.NoMutHyg[mdfX]]{'this
       .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}],
