@@ -32,14 +32,14 @@ public enum Mdf{
     if (this == imm) { return imm; }
     if (this == iso) { return mut.adapt(other); }
     if (this == mut) {
-      if (other == mdf) { return mut; }
+      if (other == mdf) { return read; }
       return other;
     }
     if (this == lent) {
       if (other == imm) { return other; }
       if (other == read) { return other; }
       if (other == recMdf){ return read; }
-      if (other == mdf) { return lent; }
+      if (other == mdf) { return read; }
       if (other == mut) { return lent; }
     }
     if (this == read) {

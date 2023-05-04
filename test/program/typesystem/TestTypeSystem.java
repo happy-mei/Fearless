@@ -490,4 +490,12 @@ public class TestTypeSystem {
     L[X]:{ read .absMeth: read X }
     A:{ read .m[T](par: read T) : imm L[imm T] -> imm L[imm T]{.absMeth->par} }
     """);}
+
+  @Example void mdfParamAsLent() { ok("""
+    package test
+    B:{}
+    L[X]:{ mut .absMeth: lent X }
+    A:{ read .m[T](par: mdf T) : lent L[mut T] -> lent L[mut T]{.absMeth->par} }
+    C:{ #: lent L[mut B] -> A{}.m[read B](B) }
+    """); }
 }
