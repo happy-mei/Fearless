@@ -270,7 +270,10 @@ public class TestTypeSystem {
       }
     Void:{}
     LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
-    LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+    LetMut[V,R]:base.NoMutHyg[V]{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+    """, """
+    package base
+    NoMutHyg[X]:{}
     """); }
   // TODO: the recMdf here needs to become mut in inference or something
   @Example void inferCaptureRecMdfAsMut() { ok("""
