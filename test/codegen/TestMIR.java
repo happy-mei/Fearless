@@ -95,7 +95,8 @@ public class TestMIR {
                   },
                   "ts": []
                 },
-                "it": true
+                "it": true,
+                "gx": false
               }
             ]
           }
@@ -126,11 +127,13 @@ public class TestMIR {
                       },
                       "ts": []
                     },
-                    "it": true
+                    "it": true,
+                    "gx": false
                   }
                 ]
               },
-              "it": true
+              "it": true,
+              "gx": false
             },
             "body": {
               "op": "MIR$MCall",
@@ -146,7 +149,8 @@ public class TestMIR {
                     },
                     "ts": []
                   },
-                  "it": true
+                  "it": true,
+                  "gx": false
                 }
               },
               "name": {
@@ -171,11 +175,13 @@ public class TestMIR {
                         },
                         "ts": []
                       },
-                      "it": true
+                      "it": true,
+                      "gx": false
                     }
                   ]
                 },
-                "it": true
+                "it": true,
+                "gx": false
               }
             },
             "abs": false
@@ -197,7 +203,8 @@ public class TestMIR {
                 },
                 "ts": []
               },
-              "it": true
+              "it": true,
+              "gx": false
             },
             "body": {
               "op": "MIR$Lambda",
@@ -249,7 +256,8 @@ public class TestMIR {
                 },
                 "ts": []
               },
-              "it": true
+              "it": true,
+              "gx": false
             },
             "body": null,
             "abs": true
@@ -281,7 +289,8 @@ public class TestMIR {
               "rt": {
                 "name": "X"
               },
-              "it": false
+              "it": false,
+              "gx": true
             },
             "body": null,
             "abs": true
@@ -313,7 +322,8 @@ public class TestMIR {
                 },
                 "ts": []
               },
-              "it": true
+              "it": true,
+              "gx": false
             },
             "body": {
               "op": "MIR$Lambda",
@@ -343,7 +353,8 @@ public class TestMIR {
                       },
                       "ts": []
                     },
-                    "it": true
+                    "it": true,
+                    "gx": false
                   },
                   "body": {
                     "op": "MIR$MCall",
@@ -359,7 +370,8 @@ public class TestMIR {
                           },
                           "ts": []
                         },
-                        "it": true
+                        "it": true,
+                        "gx": false
                       }
                     },
                     "name": {
@@ -376,7 +388,8 @@ public class TestMIR {
                         },
                         "ts": []
                       },
-                      "it": true
+                      "it": true,
+                      "gx": false
                     }
                   },
                   "abs": false
