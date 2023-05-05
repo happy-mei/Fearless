@@ -147,4 +147,82 @@ class TestParser {
     [E11 invalidMdf]
     The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type pkg1.L[]
     """, "mdf pkg1.L{}"); }
+
+  /*
+  Right now a method call without parentheses have less binding power of
+a method call with parenthesis.
+Except for a no argument method call, a.foo behaves the same as a.foo()
+
+I wonder if we should remove the 'Except' part.
+
+right now we are doing
+list.flow
+  .map{..}
+  .filter{..}
+  .to List
+because if it was
+list.flow
+  .map{..}
+  .filter{..}
+  .toList
+it would have precedence as follows:
+list.flow
+  .map{..}
+  .filter
+  ({..}.toList)
+
+But, I'm not sure if we will always have arguments on our flows, and
+for may cases, like the builder pattern, it is very natural to have
+just a call.
+
+Stuff.build
+  .name(...)
+  .age(..)
+  .build
+
+We originally designed our precedence because we wanted
+a .and b .not
+to be interpreted as
+a .and (b .not)
+But... maybe it was a mistake?
+
+Would  the interpretation (a .and b) .not  become more natural going forward?
+   */
+  @Example void flowPrecedence1() { ok("""
+    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}]):infer.to/1[-]([[-base.List[]-][base.List[]]{}]):infer
+    """, """
+    list.flow
+      .map{}
+      .filter{}
+      .to base.List
+    """); }
+  @Example void flowPrecedence2() { ok("""
+    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}.toList/0[-]([]):infer]):infer
+    """, """
+    list.flow
+      .map{}
+      .filter{}
+      .toList
+    """); }
+  @Example void flowPrecedence2a() { ok("""
+    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}.toList/0[-]([]):infer]):infer
+    """, """
+    list.flow
+      .map{}
+      .filter
+      ({}.toList)
+    """); }
+  @Example void flowPrecedence2b() { ok("""
+    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}]):infer.toList/0[-]([]):infer
+    """, """
+    (list.flow
+      .map{}
+      .filter{})
+      .toList
+    """); }
+  @Example void precedence3() { same("""
+    (a + b) - c
+    """, """
+    a + b - c
+    """); }
 }
