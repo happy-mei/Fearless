@@ -32,9 +32,6 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
-      if (its.stream().map(Id.IT::name).distinct().count() != its.size()) {
-        throw Fail.noDupImpls(its).pos(pos);
-      }
     }
     /** This method correctly throw assertion error if called on a top level lambda
     */

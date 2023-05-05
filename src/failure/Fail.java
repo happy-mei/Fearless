@@ -120,16 +120,6 @@ public class Fail{
     return of("The identifier \""+name+"\" is undefined or cannot be captured.");
   }
 
-  public static <TT> CompileError noDupImpls(List<Id.IT<TT>> its){
-    var dups = its.stream().map(Id.IT::name)
-      .collect(Collectors.groupingBy(d->d))
-      .entrySet().stream()
-      .filter(kv->kv.getValue().size() > 1)
-      .map(d->d.getKey().toString())
-      .collect(Collectors.joining("\n"));
-    return of("The following traits are implemented more than once:\n"+dups+"\nA trait may only be listed once regardless of type parameters.");
-  }
-
   public static CompileError badCapture(String x, ast.T xT, ast.T lambdaT, Mdf methMdf) {
     return of("'"+xT.mdf()+" "+x+"' cannot be captured by "+aVsAn(methMdf)+" method in "+aVsAn(lambdaT.mdf())+" lambda.");
   }
