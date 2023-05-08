@@ -1,11 +1,11 @@
 package main;
 
 import astFull.E;
-import com.github.bogdanovmn.cmdline.CmdLineApp;
-import id.Id;
-import org.apache.commons.cli.*;
-import program.Program;
 import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
+import failure.CompileError;
+import id.Id;
+import org.apache.commons.cli.Option;
+import program.Program;
 import utils.Bug;
 
 public class Main {
@@ -24,7 +24,7 @@ public class Main {
       .withArg("run", "r", "Compile and run the given fearless program")
         .withArg("entry-point", "The qualified name for the entry-trait that implements base.Main")
         .withDependencies("run", "entry-point")
-      .withFlag("regenerate-aliases", null, "Print the default alias file for a new package to standard output")
+      .withFlag("regenerate-aliases", "ra", "Print the default alias file for a new package to standard output")
       .withFlag("imm-base", "Use a pure version of the Fearless standard library")
       .withAtLeastOneRequiredOption("help", "new", "run", "regenerate-aliases")
       .withEntryPoint(res->{
@@ -35,7 +35,10 @@ public class Main {
           fearc.newPkg(res.getOptionValue("new"));
           return;
         }
-        if (res.hasOption("run")) { throw Bug.todo(); }
+        if (res.hasOption("run")) {
+          fearc.run(res.getOptionValue("entry-point"), res.getOptionValues("run"));
+          return;
+        }
         if (res.hasOption("regenerate-aliases")) {
           System.out.println(fearc.regenerateAliases());
           return;
@@ -46,10 +49,11 @@ public class Main {
 
     try {
       cli.build().run();
+    } catch (CompileError | IllegalStateException e) {
+      System.out.println(e);
+      System.exit(1);
     } catch (Exception e) {
       throw Bug.of(e);
-//      System.out.println("Invalid arguments: "+e.getMessage());
-//      System.exit(1);
     }
   }
 

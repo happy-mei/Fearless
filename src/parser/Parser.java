@@ -2,6 +2,7 @@ package parser;
 
 import astFull.E;
 import astFull.Package;
+import astFull.Program;
 import astFull.T;
 import astFull.T.Alias;
 import files.Pos;
@@ -11,7 +12,6 @@ import generated.FearlessParser.NudeEContext;
 import generated.FearlessParser.NudeProgramContext;
 import id.Id;
 import org.antlr.v4.runtime.*;
-import astFull.Program;
 import utils.Bug;
 import visitors.FullEAntlrVisitor;
 
@@ -57,6 +57,16 @@ public record Parser(Path fileName,String content){
     return new Program(Collections.unmodifiableMap(allPs.stream().map(Package::parse).reduce(new HashMap<>(),
         (acc, val) -> { acc.putAll(val); return acc; },
         (m1, m2) -> { assert m1==m2; return m1;}
+    )));
+  }
+  public static Program parseAll(Map<String, List<Package>> ps) {
+    var allPs=ps.values().stream()
+      .map(allPi->Package.merge(List.of(), allPi))
+      .toList();
+    assert allPs.stream().map(Package::name).distinct().count()==allPs.size();//redundant?
+    return new Program(Collections.unmodifiableMap(allPs.stream().map(Package::parse).reduce(new HashMap<>(),
+      (acc, val) -> { acc.putAll(val); return acc; },
+      (m1, m2) -> { assert m1==m2; return m1;}
     )));
   }
 

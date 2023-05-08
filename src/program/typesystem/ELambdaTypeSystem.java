@@ -30,7 +30,10 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .filter(m->filterByMdf(mdf,m.sig().mdf()))
       .toList();
     if (validMethods.size() != b.meths().size()) {
-      throw Fail.uncallableMeths(mdf, b.meths().stream().filter(m->!validMethods.contains(m)).toList());
+      throw Fail.uncallableMeths(
+        mdf,
+        b.meths().stream().filter(m->!validMethods.contains(m)).toList()
+      ).pos(b.pos());
     }
 
     var filtered=p0.meths(d.toIT(), depth()+1).stream()
