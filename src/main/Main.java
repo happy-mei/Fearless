@@ -1,31 +1,81 @@
 package main;
 
 import astFull.E;
+import com.github.bogdanovmn.cmdline.CmdLineApp;
 import id.Id;
 import org.apache.commons.cli.*;
 import program.Program;
+import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
+import utils.Bug;
 
 public class Main {
-  public static void main(String[] args) {
-    CommandLineParser parser = new DefaultParser();
-    var formatter = new HelpFormatter();
-    var options = buildCli();
-    formatter.printHelp("fear", options);
-    try {
-      var res = parser.parse(options, args);
-    } catch (ParseException exp) {
-      System.out.println("Invalid arguments: " + exp.getMessage());
-      System.exit(1);
-    }
-  }
-
   public static void resetAll(){
     E.X.reset();
     Id.GX.reset();
     Program.reset();
   }
 
-  private static Options buildCli() {
-    return new Options();
+  public static void main(String[] args) {
+    args = args.length > 0 ? args : new String[]{"--help"};
+    var cli = new CmdLineAppBuilder(args)
+      .withJarName("fearless")
+      .withDescription("The compiler for the Fearless programming language. See https://fearlang.org for more information.")
+      .withArg("new", "Create a new package")
+      .withArg("run", "r", "Compile and run the given fearless program")
+        .withArg("entry-point", "The qualified name for the entry-trait that implements base.Main")
+        .withDependencies("run", "entry-point")
+      .withFlag("regenerate-aliases", null, "Print the default alias file for a new package to standard output")
+      .withFlag("imm-base", "Use a pure version of the Fearless standard library")
+      .withAtLeastOneRequiredOption("help", "new", "run", "regenerate-aliases")
+      .withEntryPoint(res->{
+        var bv = res.hasOption("imm-base") ? CompilerFrontEnd.BaseVariant.Imm : CompilerFrontEnd.BaseVariant.Std;
+        var fearc = new CompilerFrontEnd(bv);
+
+        if (res.hasOption("new")) {
+          fearc.newPkg(res.getOptionValue("new"));
+          return;
+        }
+        if (res.hasOption("run")) { throw Bug.todo(); }
+        if (res.hasOption("regenerate-aliases")) {
+          System.out.println(fearc.regenerateAliases());
+          return;
+        }
+        throw Bug.unreachable();
+      });
+
+
+    try {
+      cli.build().run();
+    } catch (Exception e) {
+      throw Bug.of(e);
+//      System.out.println("Invalid arguments: "+e.getMessage());
+//      System.exit(1);
+    }
   }
+
+//  private static Options buildCli() {
+//    var res = new Options();
+//    res.addOption(Option.builder()
+//      .desc("Create a new Fearless package")
+//      .longOpt("new")
+//      .hasArg().numberOfArgs(1)
+//      .argName("package name")
+//      .optionalArg(false)
+//      .build()
+//    );
+//    res.addOption(Option.builder()
+//      .desc("Generate aliases for the standard library")
+//      .longOpt("gen-aliases")
+//      .optionalArg(true)
+//      .argName("output path")
+//      .build()
+//    );
+//    res.addOption(Option.builder()
+//      .desc("Compile and run the provided fearless files")
+//      .hasArgs()
+//      .longOpt("run")
+//    )
+//
+//    return res;
+//  }
 }

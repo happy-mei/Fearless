@@ -24,7 +24,7 @@ public record Package(
     IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, i, false));
     return Collections.unmodifiableMap(res);
   }
-  private Collection<T.Dec> shallowParse(){
+  public Collection<T.Dec> shallowParse(){
     var res = new HashMap<Id.DecId,T.Dec>();
     IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, i, true));
     return res.values();
