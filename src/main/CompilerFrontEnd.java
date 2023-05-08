@@ -2,6 +2,7 @@ package main;
 
 import astFull.Package;
 import codegen.MIRInjectionVisitor;
+import codegen.java.ImmJavaCodegen;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaProgram;
 import ast.Program;
@@ -76,7 +77,12 @@ public record CompilerFrontEnd(BaseVariant bv) {
   }
   private JavaProgram toJava(Id.DecId entry, Program p) {
     var mir = new MIRInjectionVisitor(p).visitProgram();
-    var src = new JavaCodegen(p).visitProgram(mir.pkgs(), entry);
+    var codegen = switch (bv) {
+      case Std -> new JavaCodegen(p);
+      case Imm -> new ImmJavaCodegen(p);
+    };
+    var src = codegen.visitProgram(mir.pkgs(), entry);
+    System.out.println(src);
     return new JavaProgram(src);
   }
 

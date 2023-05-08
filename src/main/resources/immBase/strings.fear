@@ -1,7 +1,8 @@
 package base
 
-Str:Sealed{
-  .len: UInt
+Str:Sealed,Stringable{
+  .len: UInt,
+  .str -> this, //todo: magic
   }
 Stringable:{
   .str: Str,

@@ -132,6 +132,9 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.equals(new Id.MethName(".len", 0))) {
           return Optional.of(instantiate()+".length()");
         }
+        if (m.equals(new Id.MethName(".str", 0))) {
+          return Optional.of(instantiate());
+        }
         throw Bug.unreachable();
       }
     };

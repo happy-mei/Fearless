@@ -143,7 +143,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   private static String getPkgName(String pkg) {
     return pkg.replace(".", "$"+(int)'.');
   }
-  private static String getName(Id.DecId d) {
+  protected static String getName(Id.DecId d) {
     var pkg = getPkgName(d.pkg());
     return pkg+"."+getBase(d.shortName())+"_"+d.gen();
   }
