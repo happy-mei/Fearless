@@ -1,17 +1,17 @@
 package base
 
-Opt:{ #[T](x: T): Opt[T] -> { .match(m)->m.some(x) } } // TODO: this inferred Opt[mdf T] for the lambda
-Opt[T]:NoMutHyg[T]{
+Opt:{ #[T](x: T): Opt[T] -> { .match(m) -> m.some(x) } }
+Opt[T]:{
   read .match[R](m: OptMatch[T, R]): R -> m.none,
   read .map[R](f: OptMap[T,R]): Opt[R] -> this.match(f),
-  read .do(f: OptDo[T]):Opt[T] -> this.match(f),
+  read .do(f: OptDo[T]): Opt[T] -> this.match(f),
   read .flatMap[R](f: OptFlatMap[T, R]): Opt[R] ->this.match(f),
   read .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
   read .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
   }
 OptMatch[T,R]:{ .some(x:T): R, .none: R }
-OptFlatMap[T,R]:OptMatch[T,Opt[R]]{ .none->{} }
-OptMap[T,R]:OptMatch[T,Opt[R]]{ #(t:T):R, .some(x) -> Opt#(this#x), .none->{} }
+OptFlatMap[T,R]:OptMatch[T,Opt[R]]{ .none -> {} }
+OptMap[T,R]:OptMatch[T,Opt[R]]{ #(t:T):R, .some(x) -> Opt#(this#x), .none -> {} }
 OptDo[T]:OptMatch[T,Opt[T]]{
   #(t:T):Void,   //#[R](t:T):R,
   .some(x) -> Opt#this._doRes(this#x, x),

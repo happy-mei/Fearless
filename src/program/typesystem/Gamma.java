@@ -36,15 +36,14 @@ public interface Gamma {
     if (t.mdf().isIso()) { return xT(x, t.withMdf(Mdf.mut), ti, mMdf, p); }
     var isoToImm = captured.isIso();
     if (isoToImm){ return xT(x, t, ti.withMdf(Mdf.imm), mMdf, p); }
-    //TODO: This is the section of the formalism with "NO HERE", but the transformation cannot happen earlier
-    // I think the issue is that while the signature changes, the inferred body lambda making doesn't
-    // so the body is still making a mut lambda even if it's now returning lent
+
     var isMdfInMutHyg = captured.isMdf() && self.isMut() && mMdf.isHyg() && ti.isGX();
     var isNoMutHygCapture = isMdfInMutHyg && t.match(gx->false, it->p.getNoMutHygs(it).anyMatch(t_->t_.equals(ti)));
     if (isNoMutHygCapture) {
       System.out.println("capturing as-if lent");
       return xT(x, t.withMdf(Mdf.lent), ti, mMdf, p);
     }
+
     // TODO: maybe explain _why_ the capture cannot be allowed in the error message
     var mutCapturesHyg = self.isMut() && captured.is(Mdf.read, Mdf.lent, Mdf.mdf, Mdf.recMdf);
     var immCapturesMuty = self.isImm() && (captured.isLikeMut() || captured.isRecMdf());

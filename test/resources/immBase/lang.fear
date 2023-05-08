@@ -1,0 +1,16 @@
+package base
+
+Main:{ #(): Stringable }
+Sealed:{}
+Void:{}
+
+Loop:{!: Void->this! }
+Debug:Sealed{ #[T](x: T): T -> x } // TODO: magic
+
+Let:{ #[V,R](l: Let[V, R]): R -> l.in(l.var) }
+Let[V,R]:{ .var: V, .in(v: V): R }
+
+F[R]:{ #: R }
+F[A,R]:{ #(a: A): R }
+F[A,B,R]:{ #(a: A, b: B): R }
+F[A,B,C,R]:{ #(a: A, b: B, c: C): R }

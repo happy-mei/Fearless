@@ -41,13 +41,12 @@ public interface Program {
     return switch(m1){
       case mut -> m2.isLikeMut();
       case lent, imm -> m2.isRead();
-      case read -> false;
+      case read, mdf -> false;
       case iso -> true;
       case recMdf -> {
         System.out.println("Weird sub-type: "+m1+" < "+m2);
         yield false;
       }
-      case mdf -> throw Bug.of("Unreachable sub-type: "+m1+" < "+m2); // may be valid and false
     };
   }
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }

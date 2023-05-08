@@ -494,11 +494,49 @@ public class TestTypeSystem {
     A:{ read .m[T](par: read T) : imm L[imm T] -> imm L[imm T]{.absMeth->par} }
     """);}
 
+  @Example void immReturnsReadAsLent() { fail("""
+    In position file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:4:61
+    [E23 methTypeError]
+    Expected the method .absMeth/0 to return lent T, got imm T.
+    """, """
+    package test
+    B:{}
+    L[X]:{ imm .absMeth: lent X }
+    A:{ read .m[T](par: read T) : lent L[imm T] -> lent L[imm T]{.absMeth->par} }
+    """); }
+
   @Example void mdfParamAsLent() { ok("""
     package test
     B:{}
     L[X]:{ mut .absMeth: lent X }
     A:{ read .m[T](par: mdf T) : lent L[mut T] -> lent L[mut T]{.absMeth->par} }
     C:{ #: lent L[mut B] -> A{}.m[read B](B) }
+    """); }
+
+  @Example void noMutHygRenamedGX() { ok("""
+    package test
+    alias base.NoMutHyg as NoMH,
+    Person:{}
+    
+    Foo[X]:NoMH[mdf X]{ read .stuff: recMdf X }
+    FooP0[Y]:Foo[mdf Y]{}
+    FooP1:{ #(p: read Person): mut Foo[read Person] -> { p } }
+    FooP2:{ #(p: read Person): mut FooP0[read Person] -> { p } }
+    
+    Test:{
+      .t1(t: read Person): mut Foo[read Person] -> FooP1#t,
+      .t2(t: read Person): mut FooP0[read Person] -> FooP2#t,
+      .t2a(t: read Person): mut Foo[read Person] -> FooP2#t,
+      }
+    
+    //Foo[X]:NoMH[X]{stuff[X]}
+    //FooP0[Y]:Foo[Y]
+    //FooP1:Foo[Person]
+    //FooP2:{stuff[Person]}
+    //m(x)->FooP1{ x }
+    //m(x)->FooP2{ x }
+    """,  """
+    package base
+    NoMutHyg[X]:{}
     """); }
 }

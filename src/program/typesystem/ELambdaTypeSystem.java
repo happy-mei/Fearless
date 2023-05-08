@@ -10,6 +10,7 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import program.Program;
+import program.TypeRename;
 import utils.Streams;
 
 import java.util.*;
@@ -62,7 +63,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     T retT = expectedT //TOP LEVEL = declared type
       .map(t->t.withMdf(b.mdf()))
       .orElseGet(()->new T(b.mdf(), b.its().get(0)));
-    T selfT = new T(b.mdf(),d.toIT());
+    T selfT = TypeRename.core(p()).fixMut(new T(b.mdf(),d.toIT()));
     var selfName=b.selfName();
     var mRes=b.meths().stream().flatMap(mi->mOk(selfName, selfT, mi).stream()).toList();
     if(mRes.isEmpty()){ return retT; }

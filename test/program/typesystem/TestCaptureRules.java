@@ -134,6 +134,7 @@ public class TestCaptureRules {
     L[X]:NoMutHyg[mdf X]{ %s .absMeth: %s X }
     A:{ read .m[T](par: %s T) : %s L[%s T] -> %s L[%s T]{.absMeth->par} }
     """;
+  //codeGen3NoMutHygB is not run when %s is mdf/recMdf
   String codeGen3NoMutHygB = """
     package test
     alias base.NoMutHyg as NoMutHyg,
@@ -1355,7 +1356,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Example void t3451(){ c3(imm,   mdf,   iso, of()); }
   @Example void t3452(){ c3(read,  mdf,   iso, of()); }
-  @Example void t3453(){ c3(lent,  mdf,   iso, readAll,of(mdf,read)); }
+  @Example void t3453(){ c3(lent,  mdf,   iso, readAll,of(mdf,read, mdf,mdf)); }
   @Example void t3454(){ c3(mut,   mdf,   iso, of()); }
   @Example void t3455(){ c3(iso,   mdf,   iso, of()); }
   @Example void t3456(){ c3(mdf,   mdf,   iso, of()); }
@@ -1519,7 +1520,14 @@ public class TestCaptureRules {
   @Example void t4011(){ c4(imm,   read,  imm,   of()); }
   @Example void t4012(){ c4(read,  read,  imm,   readAll,immAll,mdfImm); }
   @Example void t4013(){ c4(lent,  read,  imm,   readAll,immAll,mdfImm); }
-  @Example void t4014(){ c4(mut,   read,  imm,   of()); }//NOT NoMutHyg
+  // [read,lent  , read,read  , mdf,read  , imm,lent  , imm,read  ]
+  /*
+B:{}
+L[X]:NoMutHyg[mdf X]{ imm .absMeth: read X }
+L:L[lent B]
+A:{ read .m(par: read B) : mut L[lent B] -> mut L{.absMeth->par} }
+   */
+  @Example void t4014(){ c4(mut,   read,  imm,   readAll,immAll,mdfImm); }
   @Example void t4015(){ c4(iso,   read,  imm,   of()); }
   @Example void t4016(){ c4(mdf,   read,  imm,   of()); }
   @Example void t4017(){ c4(recMdf,read,  imm,   of()); }

@@ -70,12 +70,12 @@ public class TestNoMutHyg {
       .mut2mut[X](x: mdf X): mut Box[mdf X] -> { x }
       }
     Test:{
-      #(t: Test): mut Box[Test] -> Box'.mut2mut(t),
+      #(t: Test): mut Box[imm Test] -> Box'.mut2mut(t),
       }
     """, """
     package base
     NoMutHyg[X]:{}
     """); }
-  // TODO: multiple nomuthyg params
+  // TODO: multiple nomuthyg params (NoMutHyg[X] but not of Y)
   // TODO: interesting note about capturing "read this" in the case of NoMutHyg
 }
