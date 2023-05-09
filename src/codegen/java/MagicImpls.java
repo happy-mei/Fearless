@@ -126,16 +126,17 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       @Override public MIR.Lambda instance() { return l; }
       @Override public String instantiate() {
         var lambdaName = name().name().name();
-        return isLiteral(lambdaName) ? lambdaName : "((String)"+e.accept(gen)+")";
+        var inner = isLiteral(lambdaName) ? lambdaName : "((String)"+e.accept(gen)+")";
+        return """
+          new base.Str_0(){
+            protected String x = %s;
+            public String toString() { return this.x; }
+            public long len$() { return this.x.length(); }
+          }
+          """.formatted(inner);
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
-        if (m.equals(new Id.MethName(".len", 0))) {
-          return Optional.of(instantiate()+".length()");
-        }
-        if (m.equals(new Id.MethName(".str", 0))) {
-          return Optional.of(instantiate());
-        }
-        throw Bug.unreachable();
+        return Optional.empty();
       }
     };
   }

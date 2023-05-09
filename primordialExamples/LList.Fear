@@ -10,7 +10,7 @@ Cons:{
 //alias mut LListMatch[recMdf E,mdf R,recMdf LList[recMdf E]] as _LListMatch
 LList[E]:NoMutHyg[E],Sealed,Iterable[recMdf E]{
   read .match[R](
-    m: mut LListMatch[ recMdf E, mdf R, recMdf LList[recMdf E] ]
+    m: mut LListMatch[recMdf E, mdf R, recMdf LList[recMdf E] ]
     ): mdf R -> m.empty,
   read .isEmpty: Bool -> this.match {
     .empty -> True,

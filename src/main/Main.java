@@ -4,9 +4,12 @@ import astFull.E;
 import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
 import failure.CompileError;
 import id.Id;
-import org.apache.commons.cli.Option;
 import program.Program;
+import utils.Box;
 import utils.Bug;
+
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class Main {
   public static void resetAll(){
@@ -17,6 +20,7 @@ public class Main {
 
   public static void main(String[] args) {
     args = args.length > 0 ? args : new String[]{"--help"};
+    var verbosity = new Box<>(new CompilerFrontEnd.Verbosity(false, false));
     var cli = new CmdLineAppBuilder(args)
       .withJarName("fearless")
       .withDescription("The compiler for the Fearless programming language. See https://fearlang.org for more information.")
@@ -26,17 +30,24 @@ public class Main {
         .withDependencies("run", "entry-point")
       .withFlag("regenerate-aliases", "ra", "Print the default alias file for a new package to standard output")
       .withFlag("imm-base", "Use a pure version of the Fearless standard library")
+      .withFlag("show-internal-stack-traces", "Show stack traces within the compiler on errors for debugging purposes")
+      .withFlag("print-codegen", "pc", "Print the output of the codegen stage to standard output")
       .withAtLeastOneRequiredOption("help", "new", "run", "regenerate-aliases")
       .withEntryPoint(res->{
         var bv = res.hasOption("imm-base") ? CompilerFrontEnd.BaseVariant.Imm : CompilerFrontEnd.BaseVariant.Std;
-        var fearc = new CompilerFrontEnd(bv);
+
+        verbosity.set(new CompilerFrontEnd.Verbosity(
+          res.hasOption("show-internal-stack-traces"),
+          res.hasOption("print-codegen")
+        ));
+        var fearc = new CompilerFrontEnd(bv, verbosity.get());
 
         if (res.hasOption("new")) {
           fearc.newPkg(res.getOptionValue("new"));
           return;
         }
         if (res.hasOption("run")) {
-          fearc.run(res.getOptionValue("entry-point"), res.getOptionValues("run"));
+          fearc.run(res.getOptionValue("entry-point"), res.getOptionValues("run"), res.getArgList());
           return;
         }
         if (res.hasOption("regenerate-aliases")) {
@@ -50,6 +61,7 @@ public class Main {
     try {
       cli.build().run();
     } catch (CompileError | IllegalStateException e) {
+      if (verbosity.get().showInternalStackTraces()) { throw e; }
       System.out.println(e);
       System.exit(1);
     } catch (Exception e) {

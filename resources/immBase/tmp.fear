@@ -1,3 +1,2 @@
 package base
-
 MyApp:Main{ "Hello, World!" }

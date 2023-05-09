@@ -141,7 +141,7 @@ class FailConsole extends ConsoleErrorListener{
   public final Path fileName;
   public FailConsole(Path fileName,StringBuilder sb){ this.fileName=fileName;this.sb=sb; }
   @Override public void syntaxError(Recognizer<?, ?> r,Object o,int line,int charPos,String msg,RecognitionException e){
-    sb.append(Pos.of(fileName.toUri(), line, charPos)).append(" ").append(msg);
+    sb.append(Pos.of(fileName.toUri(), line, charPos)).append(" ").append(msg).append('\n');
     }
   static void setFail(Path fileName, Lexer l, org.antlr.v4.runtime.Parser p, StringBuilder errorst, StringBuilder errorsp) {
     l.removeErrorListener(ConsoleErrorListener.INSTANCE);

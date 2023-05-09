@@ -2,6 +2,7 @@ package failure;
 
 import ast.T;
 import files.Pos;
+import utils.Bug;
 
 import java.io.Serial;
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class CompileError extends RuntimeException implements Res{
   public static CompileError of(){ return new CompileError(); }
   public static CompileError of(Throwable cause){ return new CompileError(cause); }
   public static CompileError of(String msg){ return new CompileError(msg); }
+  public static <T> T err(String msg){ throw new CompileError(msg); }
 
   @Override public String toString(){
     if (this.pos == null) { return this.getMessage(); }

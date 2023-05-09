@@ -6,6 +6,7 @@ Opt[T]:{
   read .map[R](f: OptMap[T,R]): Opt[R] -> this.match(f),
   read .do(f: OptDo[T]): Opt[T] -> this.match(f),
   read .flatMap[R](f: OptFlatMap[T, R]): Opt[R] ->this.match(f),
+  read ||(alt: T): T -> this.match{ .some(x) -> x, .none -> alt },
   read .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
   read .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
   }

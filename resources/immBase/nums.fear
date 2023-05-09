@@ -13,7 +13,7 @@ Float:Sealed,MathOps[Float],Stringable{
   .uint: UInt
   }
 
-MathOps[T]:{
+MathOps[T]:Sealed{
   +(n: T): T,
   -(n: T): T,
   *(n: T): T,
@@ -28,7 +28,7 @@ MathOps[T]:{
   <=(n: T): Bool,
   ==(n: T): Bool,
   }
-IntOps[T]:{
+IntOps[T]:Sealed{
   // bitwise
   >>(n: T): T,
   <<(n: T): T,

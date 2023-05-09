@@ -2,7 +2,7 @@ package base
 
 Str:Sealed,Stringable{
   .len: UInt,
-  .str -> this, //todo: magic
+  .str -> this,
   }
 Stringable:{
   .str: Str,

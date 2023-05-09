@@ -8,7 +8,7 @@ public abstract class Decl extends Node {
   static class Dec extends Decl {
     static Dec Ref = new Dec("base.Ref/1");
 
-    @Child final String name;
+    @Child String name;
     Dec(String name) {
       this.name = name;
     }

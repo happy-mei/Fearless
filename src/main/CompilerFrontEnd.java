@@ -1,12 +1,13 @@
 package main;
 
+import ast.Program;
 import astFull.Package;
+import astFull.T;
 import codegen.MIRInjectionVisitor;
 import codegen.java.ImmJavaCodegen;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaProgram;
-import ast.Program;
-import astFull.T;
+import failure.CompileError;
 import id.Id;
 import parser.Parser;
 import program.inference.InferBodies;
@@ -15,21 +16,26 @@ import utils.Bug;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
-public record CompilerFrontEnd(BaseVariant bv) {
+public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
+  record Verbosity(boolean showInternalStackTraces, boolean printCodegen){
+    Verbosity showInternalStackTraces(boolean showInternalStackTraces) { return new Verbosity(showInternalStackTraces, printCodegen); }
+    Verbosity printCodegen(boolean printCodegen) { return new Verbosity(showInternalStackTraces, printCodegen); }
+  }
   enum BaseVariant { Std, Imm }
   static Box<Map<String, List<Package>>> immBaseLib = new Box<>(null);
 
@@ -46,17 +52,20 @@ public record CompilerFrontEnd(BaseVariant bv) {
     }
   }
 
-  void run(String entryPoint, String[] files) {
+  void run(String entryPoint, String[] files, List<String> cliArgs) {
     var entry = new Id.DecId(entryPoint, 0);
     var p = compile(files);
     var java = toJava(entry, p);
     var classFile = java.compile();
 
-    var pb = new ProcessBuilder("java", classFile.getFileName().toString().split("\\.class")[0]);
+    String[] command = Stream.concat(
+      Stream.of("java", classFile.getFileName().toString().split("\\.class")[0]),
+      cliArgs.stream()
+    ).toArray(String[]::new);
+    var pb = new ProcessBuilder(command);
     pb.directory(classFile.getParent().toFile());
+    pb.inheritIO();
     Process proc; try { proc = pb.start();
-      proc.getInputStream().transferTo(System.out);
-      proc.getErrorStream().transferTo(System.err);
     } catch (IOException e) {
       throw Bug.of(e);
     }
@@ -82,7 +91,9 @@ public record CompilerFrontEnd(BaseVariant bv) {
       case Imm -> new ImmJavaCodegen(p);
     };
     var src = codegen.visitProgram(mir.pkgs(), entry);
-    System.out.println(src);
+    if (v.printCodegen) {
+      System.out.println(src);
+    }
     return new JavaProgram(src);
   }
 
@@ -103,7 +114,7 @@ public record CompilerFrontEnd(BaseVariant bv) {
         case Std -> throw Bug.todo();
         case Imm -> {
           var res = immBaseLib.get();
-          if (res == null) { res = load("/immBase"); immBaseLib.set(res); }
+          if (res == null) { res = resolveResource("/immBase", CompilerFrontEnd::load); immBaseLib.set(res); }
           yield res;
         }
       };
@@ -112,13 +123,24 @@ public record CompilerFrontEnd(BaseVariant bv) {
     }
     return ps;
   }
-  static Map<String, List<Package>> load(String root) throws URISyntaxException, IOException {
-    var top = Paths.get(requireNonNull(CompilerFrontEnd.class.getResource(root)).toURI());
-    try(var fs = Files.walk(top)) {
+
+  static <R> R resolveResource(String root, Function<Path, R> f) throws IOException, URISyntaxException {
+    var top = requireNonNull(CompilerFrontEnd.class.getResource(root)).toURI();
+    if (!top.getScheme().equals("jar")) {
+      return f.apply(Path.of(top));
+    }
+    try(var fs = FileSystems.newFileSystem(top, Map.of())) {
+      return f.apply(fs.getPath(root));
+    }
+  }
+  static Map<String, List<Package>> load(Path root) {
+    try(var fs = Files.walk(root)) {
       return fs
-        .filter(p->p.toFile().isFile())
-        .map(path->new Parser(path, read(path)).parseFile(Bug::err))
+        .filter(Files::isRegularFile)
+        .map(path->new Parser(path, read(path)).parseFile(CompileError::err))
         .collect(Collectors.groupingBy(Package::name));
+    } catch (IOException e) {
+      throw Bug.of(e);
     }
   }
   static String read(Path p) {

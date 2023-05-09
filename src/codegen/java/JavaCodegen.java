@@ -4,6 +4,7 @@ import ast.Program;
 import ast.T;
 import codegen.MIR;
 import id.Id;
+import magic.Magic;
 import magic.MagicTrait;
 import utils.Bug;
 import visitors.MIRVisitor;
@@ -45,7 +46,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     if (trait.name().pkg().equals(pkg)) { shortName = getBase(trait.name().shortName())+"_"+trait.name().gen(); }
 //    var gens = trait.gens().isEmpty() ? "" : "<"+String.join(",", trait.gens())+">";
     var its = trait.its().stream()
-      .map(JavaCodegen::getName)
+      .map(this::getName)
       .filter(tr->!tr.equals(longName))
       .collect(Collectors.joining(","));
     var impls = its.isEmpty() ? "" : " extends "+its;
@@ -125,19 +126,23 @@ public class JavaCodegen implements MIRVisitor<String> {
   private String name(String x) {
     return x.equals("this") ? "f$thiz" : x.replace("'", "$"+(int)'\'')+"$";
   }
-  private static List<String> getImplsNames(List<Id.IT<T>> its) {
+  private List<String> getImplsNames(List<Id.IT<T>> its) {
     return its.stream()
-      .map(JavaCodegen::getName)
+      .map(this::getName)
       .toList();
   }
-  private static String getName(T t) { return t.match(JavaCodegen::getName, JavaCodegen::getName); }
-  private static String getName(Id.GX<T> gx) { return "Object"; }
-  private static String getName(Id.IT<T> it) {
+  private String getName(T t) { return t.match(this::getName, this::getName); }
+  private String getName(Id.GX<T> gx) { return "Object"; }
+  private String getName(Id.IT<T> it) {
     return switch (it.name().name()) {
       case "base.Int", "base.UInt" -> "long";
       case "base.Float" -> "double";
-      case "base.Str" -> "String";
-      default -> getName(it.name());
+      default -> {
+        if (magic.isMagic(Magic.Int, it.name())) { yield "long"; }
+        if (magic.isMagic(Magic.UInt, it.name())) { yield "long"; }
+        if (magic.isMagic(Magic.Float, it.name())) { yield "float"; }
+        yield getName(it.name());
+      }
     };
   }
   private static String getPkgName(String pkg) {
