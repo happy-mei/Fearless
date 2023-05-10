@@ -54,11 +54,11 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
         if (m.name().equals("&")) { return instantiate()+"&"+args.get(0).accept(gen); }
         if (m.name().equals("|")) { return instantiate()+"|"+args.get(0).accept(gen); }
-        if (m.name().equals(">")) { return instantiate()+">"+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){}"; }
-        if (m.name().equals("<")) { return instantiate()+"<"+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){}"; }
-        if (m.name().equals(">=")) { return instantiate()+">="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){}"; }
-        if (m.name().equals("<=")) { return instantiate()+"<="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){}"; }
-        if (m.name().equals("==")) { return instantiate()+"=="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){}"; }
+        if (m.name().equals(">")) { return "("+instantiate()+">"+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){})"; }
+        if (m.name().equals("<")) { return "("+instantiate()+"<"+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){})"; }
+        if (m.name().equals(">=")) { return "("+instantiate()+">="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){})"; }
+        if (m.name().equals("<=")) { return "("+instantiate()+"<="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){})"; }
+        if (m.name().equals("==")) { return "("+instantiate()+"=="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){})"; }
         throw Bug.unreachable();
       }
     };
@@ -106,11 +106,11 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
         if (m.name().equals("&")) { return instantiate()+"&"+args.get(0).accept(gen); }
         if (m.name().equals("|")) { return instantiate()+"|"+args.get(0).accept(gen); }
-        if (m.name().equals(">")) { return "Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>0?new base.True_0(){}:new base.False_0(){}"; }
-        if (m.name().equals("<")) { return "Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<0?new base.True_0(){}:new base.False_0(){}"; }
-        if (m.name().equals(">=")) { return "Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>=0?new base.True_0(){}:new base.False_0(){}"; }
-        if (m.name().equals("<=")) { return "Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<=0?new base.True_0(){}:new base.False_0(){}"; }
-        if (m.name().equals("==")) { return "Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")==0?new base.True_0(){}:new base.False_0(){}"; }
+        if (m.name().equals(">")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>0?new base.True_0(){}:new base.False_0(){})"; }
+        if (m.name().equals("<")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<0?new base.True_0(){}:new base.False_0(){})"; }
+        if (m.name().equals(">=")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>=0?new base.True_0(){}:new base.False_0(){})"; }
+        if (m.name().equals("<=")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<=0?new base.True_0(){}:new base.False_0(){})"; }
+        if (m.name().equals("==")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")==0?new base.True_0(){}:new base.False_0(){})"; }
         throw Bug.unreachable();
       }
     };

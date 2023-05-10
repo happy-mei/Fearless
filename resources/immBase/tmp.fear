@@ -1,2 +1,6 @@
 package base
-MyApp:Main{ "Hello, World!" }
+MyApp:Main{
+  Cons#("Hello, World!", {})
+    .get 1u
+    .match{ .some(msg) -> msg, .none -> "Sad" }
+  }

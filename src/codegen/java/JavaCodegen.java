@@ -65,7 +65,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       .collect(Collectors.joining(","));
     var visibility = concrete ? "public " : "default ";
     if (meth.isAbs()) { visibility = ""; }
-    var start = visibility+getName(meth.rt())+" "+name(getName(meth.name()))+"("+args+")";
+    var start = visibility+getRetName(meth.rt())+" "+name(getName(meth.name()))+"("+args+")";
     if (meth.body().isEmpty()) { return start + ";"; }
     return start + "{\n"+selfVar+"return (("+getName(meth.rt())+")("+meth.body().get().accept(this)+"));\n}";
   }
@@ -133,15 +133,20 @@ public class JavaCodegen implements MIRVisitor<String> {
       .toList();
   }
   private String getName(T t) { return t.match(this::getName, this::getName); }
+  private String getRetName(T t) { return t.match(this::getName, it->getName(it, true)); }
   private String getName(Id.GX<T> gx) { return "Object"; }
-  private String getName(Id.IT<T> it) {
+  private String getName(Id.IT<T> it) { return getName(it, false); }
+  private String getName(Id.IT<T> it, boolean isRet) {
     return switch (it.name().name()) {
-      case "base.Int", "base.UInt" -> "Long";
-      case "base.Float" -> "Double";
+      case "base.Int", "base.UInt" -> isRet ? "Long" : "long";
+      case "base.Float" -> isRet ? "Double" : "double";
+      case "base.Str" -> getName(it.name());
       default -> {
-        if (magic.isMagic(Magic.Int, it.name())) { yield "Long"; }
-        if (magic.isMagic(Magic.UInt, it.name())) { yield "Long"; }
-        if (magic.isMagic(Magic.Float, it.name())) { yield "Double"; }
+        if (magic.isMagic(Magic.Int, it.name())) { yield isRet ? "Long" : "long"; }
+        if (magic.isMagic(Magic.UInt, it.name())) { yield isRet ? "Long" : "long"; }
+        if (magic.isMagic(Magic.Float, it.name())) { yield isRet ? "Double" : "double"; }
+        if (magic.isMagic(Magic.Float, it.name())) { yield isRet ? "Double" : "double"; }
+        if (magic.isMagic(Magic.Str, it.name())) { yield getName(new Id.DecId("base.Str", 0)); }
         yield getName(it.name());
       }
     };
