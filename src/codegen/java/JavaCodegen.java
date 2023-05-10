@@ -81,7 +81,8 @@ public class JavaCodegen implements MIRVisitor<String> {
       if (impl.isPresent()) { return impl.get(); }
     }
 
-    var start = mCall.recv().accept(this, false)+"."+name(getName(mCall.name()))+"(";
+    var magicRecv = !(mCall.recv() instanceof MIR.Lambda);
+    var start = mCall.recv().accept(this, magicRecv)+"."+name(getName(mCall.name()))+"(";
     var args = mCall.args().stream()
       .map(a->a.accept(this))
       .collect(Collectors.joining(","));
@@ -135,12 +136,12 @@ public class JavaCodegen implements MIRVisitor<String> {
   private String getName(Id.GX<T> gx) { return "Object"; }
   private String getName(Id.IT<T> it) {
     return switch (it.name().name()) {
-      case "base.Int", "base.UInt" -> "long";
-      case "base.Float" -> "double";
+      case "base.Int", "base.UInt" -> "Long";
+      case "base.Float" -> "Double";
       default -> {
-        if (magic.isMagic(Magic.Int, it.name())) { yield "long"; }
-        if (magic.isMagic(Magic.UInt, it.name())) { yield "long"; }
-        if (magic.isMagic(Magic.Float, it.name())) { yield "float"; }
+        if (magic.isMagic(Magic.Int, it.name())) { yield "Long"; }
+        if (magic.isMagic(Magic.UInt, it.name())) { yield "Long"; }
+        if (magic.isMagic(Magic.Float, it.name())) { yield "Double"; }
         yield getName(it.name());
       }
     };

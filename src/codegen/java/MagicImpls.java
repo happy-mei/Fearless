@@ -131,7 +131,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
           new base.Str_0(){
             protected String x = %s;
             public String toString() { return this.x; }
-            public long len$() { return this.x.length(); }
+            public Long len$() { return (long)this.x.length(); }
           }
           """.formatted(inner);
       }
