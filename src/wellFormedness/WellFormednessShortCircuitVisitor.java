@@ -6,7 +6,9 @@ import ast.T;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
+import id.Mdf;
 import magic.Magic;
+import utils.Bug;
 import visitors.ShortCircuitVisitor;
 
 import java.util.List;
@@ -18,8 +20,7 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
   private Optional<String> pkg = Optional.empty();
   public WellFormednessShortCircuitVisitor(Program p) { this.p = p; }
 
-  @Override
-  public Optional<CompileError> visitDec(T.Dec d) {
+  @Override public Optional<CompileError> visitDec(T.Dec d) {
     pkg = Optional.of(d.name().pkg());
     return ShortCircuitVisitor.super.visitDec(d);
   }
@@ -37,7 +38,16 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
 
   @Override public Optional<CompileError> visitT(T t) {
     assert !(t.mdf().isMdf() && t.isIt());
-    return ShortCircuitVisitor.super.visitT(t);
+    return noHygInMut(t).or(()->ShortCircuitVisitor.super.visitT(t));
+  }
+
+  private Optional<CompileError> noHygInMut(T t) {
+    if (!(t.rt() instanceof Id.IT<T> it)) { return Optional.empty(); }
+    if (t.mdf().isMut() && it.ts().stream().map(T::mdf).anyMatch(Mdf::isHyg)) {
+      throw new CompileError(); // todo: error msg
+//      return Optional.of(Fail.)
+    }
+    return Optional.empty();
   }
 
   private Optional<CompileError> noRecMdfInImpls(Id.IT<T> it) {
