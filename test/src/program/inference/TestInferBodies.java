@@ -443,7 +443,7 @@ public class TestInferBodies {
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[imm42[]]]{'this
       #/1([fear0$]):Sig[mdf=imm,gens=[],ts=[lentbase.System[]],ret=imm42[]]->
         [-imm-][base.False[]]{'fear3$}
-          .or/1[]([[-imm-][base.True[]]{'fear4$}])
+          .or/1[]([[-imm-][base.Bool[],base.True[]]{'fear4$}])
           ?/1[imm42[]]([[-mut-][base.ThenElse[imm42[]]]{'fear5$
             .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear6$},
             .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear7$}}])}]}
@@ -712,7 +712,7 @@ public class TestInferBodies {
     {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
       .nm/1([n]):Sig[mdf=imm,gens=[],ts=[immbase.Int[]],ret=immbase.Int[]]->n,
       .check/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->
-        this.nm/1[]([[-imm-][5[]]{'fear3$}])}]}
+        this.nm/1[]([[-imm-][base.Int[],5[]]{'fear3$}])}]}
     """, """
     package test
     alias base.Int as Int,

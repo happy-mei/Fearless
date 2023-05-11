@@ -1,6 +1,6 @@
 package base
 MyApp:Main{
-  Cons#("Hello, World!", {})
-    .get 1u
-    .match{ .some(msg) -> msg, .none -> "Sad" }
+// todo: long cannot be Stringable (will probably need to use full objs to wrap all of these :-( )
+  args -> ((args.head || "No input :-(").len * 100u).str
+//  Cons#[Str]("Hello, World!", Cons#[Str]("Bye, World!", {})).get 3u || "Sad"
   }

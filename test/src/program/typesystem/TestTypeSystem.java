@@ -430,8 +430,8 @@ public class TestTypeSystem {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:7) test.L[mdf FearX0$], .absMeth/0
-    ([###]/Dummy0.fear:4:16) test.L'[mdf FearX0$], .absMeth/0
+    ([###]/Dummy0.fear:3:7) test.L[mdf X], .absMeth/0
+    ([###]/Dummy0.fear:4:16) test.L'[mdf X], .absMeth/0
     """, """
     package test
     B:{}
@@ -449,7 +449,7 @@ public class TestTypeSystem {
     CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
     CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
     CanPass2:{ read .m(par: mut C) : imm Foo -> par.m  }
-    //NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }    
+    //NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
     """); }
 
   @Example void recMdfInheritanceFail() { fail("""
@@ -495,7 +495,7 @@ public class TestTypeSystem {
     """);}
 
   @Example void immReturnsReadAsLent() { fail("""
-    In position file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:4:61
+    In position [###]/Dummy0.fear:4:61
     [E23 methTypeError]
     Expected the method .absMeth/0 to return lent T, got imm T.
     """, """

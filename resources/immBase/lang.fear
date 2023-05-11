@@ -1,6 +1,6 @@
 package base
 
-Main:{ #(): Stringable }
+Main:{ #(args: LList[Str]): Stringable }
 Sealed:{}
 Void:{}
 

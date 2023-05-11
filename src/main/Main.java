@@ -8,9 +8,6 @@ import program.Program;
 import utils.Box;
 import utils.Bug;
 
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
 public class Main {
   public static void resetAll(){
     E.X.reset();

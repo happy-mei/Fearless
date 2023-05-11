@@ -20,7 +20,9 @@ public interface TypeRename<T>{
     public Stream<Mdf> getNoMutHygMdfs(astFull.T t) {
       if (t.isInfer()) { return Stream.empty(); }
       if (!(t.rt() instanceof Id.IT<astFull.T> it)) { return Stream.empty(); }
-      return p.getNoMutHygs(it.toAstIT(astFull.T::toAstT)).map(ast.T::mdf);
+      Id.IT<ast.T> coreIT; try { coreIT = it.toAstIT(astFull.T::toAstT); }
+        catch (astFull.T.MatchOnInfer e) { return Stream.empty(); }
+      return p.getNoMutHygs(coreIT).map(ast.T::mdf);
     }
   }
   class CoreTTypeRename implements TypeRename<ast.T> {

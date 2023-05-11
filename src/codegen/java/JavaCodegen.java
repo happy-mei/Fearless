@@ -82,11 +82,11 @@ public class JavaCodegen implements MIRVisitor<String> {
     }
 
     var magicRecv = !(mCall.recv() instanceof MIR.Lambda);
-    var start = mCall.recv().accept(this, magicRecv)+"."+name(getName(mCall.name()))+"(";
+    var start = "(("+getRetName(mCall.t())+")"+mCall.recv().accept(this, magicRecv)+"."+name(getName(mCall.name()))+"(";
     var args = mCall.args().stream()
       .map(a->a.accept(this))
       .collect(Collectors.joining(","));
-    return start+args+")";
+    return start+args+"))";
   }
 
   public String visitLambda(MIR.Lambda l) {

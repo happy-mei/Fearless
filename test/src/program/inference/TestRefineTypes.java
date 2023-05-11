@@ -35,7 +35,7 @@ public class TestRefineTypes {
   }
 
   @Example void ab() {ok("""
-    varName:imm a.B[]
+    varName:imm a.A[]
     """, "varName", "a.A[]", "a.B[]", """
     package a
     A:{}

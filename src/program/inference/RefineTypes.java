@@ -132,8 +132,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
       ast.T t2C; try { t2C = t2.toAstT(); }
         catch (T.MatchOnInfer e) { return iT1; }
 
-      if (p.isSubType(t1C, t2C)) { return iT1; }
-      if (p.isSubType(t2C, t1C)) { return iT2; }
+      if (p.isSubType(t1C, t2C)) { return iT2; }
+      if (p.isSubType(t2C, t1C)) { return iT1; }
 
 //      throw Fail.noSubTypingRelationship(c1, c2);
       return iT1;
