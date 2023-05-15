@@ -77,7 +77,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var e   = m.body().orElseThrow();
     var mMdf = m.sig().mdf();
 
-    var selfTi = selfT;
+    var selfTi = selfT.mdf().isMdf() ? selfT.withMdf(mMdf) : selfT;
     var args = m.sig().ts();
     var ret = m.sig().ret();
 

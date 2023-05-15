@@ -14,8 +14,8 @@ public interface Base {
   }
 
   static String load(String file) {
-    var in = Thread.currentThread().getContextClassLoader().getResourceAsStream("base/"+file);
-    assert in != null: "base/"+file+" is not present";
+    var in = Thread.currentThread().getContextClassLoader().getResourceAsStream("base/" +file);
+    assert in != null: "base/" +file+" is not present";
     return new BufferedReader(new InputStreamReader(in)).lines().collect(Collectors.joining("\n"));
   }
 

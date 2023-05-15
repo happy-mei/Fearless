@@ -69,7 +69,9 @@ public interface EMethTypeSystem extends ETypeSystem {
   default boolean ok(E e,T t) {
     var v = this.withT(Optional.of(t));
     var res = e.accept(v);
+    // TODO: propagate res.err()
     if (res.t().isEmpty()){
+      e.accept(v);
       return false;
     }
     return p().tryIsSubType(res.tOrThrow(), t);

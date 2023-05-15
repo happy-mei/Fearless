@@ -1,7 +1,7 @@
 package base
 alias base.caps.System as System,
 
-Main[R]:{ #(s: lent System[R]): mdf R }
+Main[R]:{ #(args: LList[Str], s: lent System[R]): mdf R }
 NoMutHyg[X]:{}
 Sealed:{}
 Void:{}
@@ -10,11 +10,11 @@ Loop:{!: Void->this! }
 Debug:Sealed{ #[T](x: T): T -> x } // TODO: magic
 HasIdentity:{ mut .idEq(other: read HasIdentity): Bool -> this.idEq(other) } // TODO: magic
 
-Let:{ #[V,R](l: Let[V, R]): R -> l.in(l.var) }
-Let[V,R]:{ .var: V, .in(v: V): R }
+Let:{ #[mdf V, mdf R](l: mut Let[mdf V, mdf R]): mdf R -> l.in(l.var) }
+Let[V,R]:NoMutHyg[mdf V],NoMutHyg[mdf R]{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
 
-LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
-LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+//LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
+//LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
 
 F[R]:{ #: R }
 F[A,R]:{ #(a: A): R }

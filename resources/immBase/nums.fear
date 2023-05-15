@@ -1,16 +1,22 @@
 package base
 
-Int:Sealed,MathOps[Int],IntOps[Int],Stringable{
+Int:Sealed,MathOps[Int],IntOps[Int]{
   .uint: UInt,
-  .float: Float
+  .float: Float,
+  // not Stringable due to limitations of the Java codegen target
+  .str: Str,
   }
-UInt:Sealed,MathOps[UInt],IntOps[UInt],Stringable{
+UInt:Sealed,MathOps[UInt],IntOps[UInt]{
   .int: Int,
-  .float: Float
+  .float: Float,
+  // not Stringable due to limitations of the Java codegen target
+  .str: Str,
   }
-Float:Sealed,MathOps[Float],Stringable{
+Float:Sealed,MathOps[Float]{
   .int: Int,
-  .uint: UInt
+  .uint: UInt,
+  // not Stringable due to limitations of the Java codegen target
+  .str: Str,
   }
 
 MathOps[T]:Sealed{

@@ -37,7 +37,9 @@ public interface Gamma {
     var isoToImm = captured.isIso();
     if (isoToImm){ return xT(x, t, ti.withMdf(Mdf.imm), mMdf, p); }
 
-    var isMdfInMutHyg = captured.isMdf() && self.isMut() && mMdf.isHyg() && ti.isGX();
+    // TODO: why mMdf.isHyg()?
+//    var isMdfInMutHyg = captured.is(Mdf.mdf, Mdf.recMdf) && self.isMut() && mMdf.isHyg() && ti.isGX();
+    var isMdfInMutHyg = captured.is(Mdf.mdf, Mdf.recMdf) && self.isMut() && ti.isGX();
     var isNoMutHygCapture = isMdfInMutHyg && t.match(gx->false, it->p.getNoMutHygs(it).anyMatch(t_->t_.equals(ti)));
     if (isNoMutHygCapture) {
       System.out.println("capturing as-if lent");

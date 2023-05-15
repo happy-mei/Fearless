@@ -1,0 +1,10 @@
+package base
+
+Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+Ref[X]:NoMutHyg[X],Sealed{
+  read * : recMdf X,
+  mut .swap(x: mdf X): mdf X,
+  mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_) -> Void },
+  mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+  }
+UpdateRef[X]:NoMutHyg[mdf X]{ mut #(x: mdf X): mdf X }

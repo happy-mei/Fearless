@@ -1,0 +1,32 @@
+package base
+
+Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } } // TODO: this inferred Opt[mdf T] for the lambda
+Opt[T]:NoMutHyg[mdf T]{
+  read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+  read .matchRecMdf[R](m: recMdf OptMatchRecMdf[recMdf T, mdf R]): mdf R -> m.none,
+  read .map[R](f: mut OptMap[recMdf T, mdf R]): recMdf Opt[mdf R] -> this.match(f),
+  read .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): recMdf Opt[mdf R] -> this.match(f),
+  read .do(f: mut OptDo[recMdf T]): recMdf Opt[recMdf T] -> this.match(f),
+  read ||(alt: recMdf T): recMdf T -> this.matchRecMdf{ .some(x) -> x, .none -> alt },
+//  read ||(alt: recMdf T): recMdf T -> this.match{ .some(x) -> x, .none -> alt },
+  read .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
+  read .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
+  }
+OptMatch[T,R]:NoMutHyg[mdf R]{ lent .some(x: mdf T): mdf R, lent .none: mdf R }
+OptMatchRecMdf[T,R]:NoMutHyg[mdf R]{ read .some(x: mdf T): mdf R, read .none: mdf R }
+OptMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
+  .some(x) -> Opt#(this#x),
+  .none -> {},
+  lent #(t: mdf T): mdf R,
+  }
+OptFlatMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
+  .some(x) -> this#x,
+  .none -> {},
+  lent #(t: mdf T): mut Opt[mdf R],
+  }
+OptDo[T]:OptMatch[mdf T, mut Opt[mdf T]]{
+  .some(x) -> Opt#this._doRes(this#x, x),
+  .none->{},
+  read #(t: mdf T): Void,   //#[R](t:T):R,
+  read ._doRes(y: Void, x: mdf T): mdf T -> x
+  }

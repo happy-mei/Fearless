@@ -38,6 +38,7 @@ public interface Program {
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1 == m2){ return true; }
     if (m2 == Mdf.read) { return true; }
+    if (m1 == Mdf.recMdf && m2 == Mdf.mdf) { return true; } // TODO: I think this will be fine, not in formalism yet
     return switch(m1){
       case mut -> m2.isLikeMut();
       case lent, imm -> m2.isRead();
@@ -84,6 +85,8 @@ public interface Program {
     if(!t1.isIt() || !t2.isIt()){ return false; }
 
     if (isTransitiveSubType(t1, t2)) { return true; }
+
+    if (t1.mdf() != t2.mdf()) { return false; }
     if (t1.itOrThrow().name().equals(t2.itOrThrow().name())) {
       return isAdaptSubType(t1, t2);
     }

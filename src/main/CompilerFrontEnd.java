@@ -111,7 +111,11 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
   Map<String, List<Package>> parseBase() {
     Map<String, List<Package>> ps; try { ps =
       switch (bv) {
-        case Std -> throw Bug.todo();
+        case Std -> {
+          var res = immBaseLib.get();
+          if (res == null) { res = resolveResource("/base", CompilerFrontEnd::load); immBaseLib.set(res); }
+          yield res;
+        }
         case Imm -> {
           var res = immBaseLib.get();
           if (res == null) { res = resolveResource("/immBase", CompilerFrontEnd::load); immBaseLib.set(res); }

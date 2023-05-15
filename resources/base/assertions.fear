@@ -13,4 +13,4 @@ Assert:Sealed{
   ._fail[R]: mdf R -> this._fail,
   ._fail[R](msg: Str): mdf R -> this._fail(msg),
   }
-AssertCont[R]:{ mut #: mdf R }
+AssertCont[R]:NoMutHyg[R]{ mut #: mdf R }

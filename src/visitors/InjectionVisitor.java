@@ -38,6 +38,9 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
       if (base.isEmpty()) { return true; }
       return !it.name().equals(base.get(0).name());
     }).toList());
+
+    // TODO: throw if no ITs (i.e. cannot infer type of lambda)
+
     return new ast.E.Lambda(
       e.mdf().orElseThrow(),
       its.stream().map(this::visitIT).toList(),

@@ -191,8 +191,8 @@ public class TestTypeSystemWithBase {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy4.fear:63:2) 5[], <=/1
-    ([###]/Dummy4.fear:28:2) base.MathOps[imm base.Float[]], <=/1
+    ([###]/Dummy4.fear:69:2) 5[], <=/1
+    ([###]/Dummy4.fear:34:2) base.MathOps[imm base.Float[]], <=/1
     """, """
     package test
     alias base.Int as Int, alias base.Float as Float,

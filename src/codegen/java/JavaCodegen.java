@@ -20,12 +20,25 @@ public class JavaCodegen implements MIRVisitor<String> {
     this.magic = new MagicImpls(this, p);
   }
 
+  static String argsToLList() {
+    var string2Str = MagicImpls.STR_TEMPLATE.formatted("arg");
+    return """
+      var cons = new base.Cons_0(){};
+      base.LList_1 cliArgs = new base.LList_1(){};
+      for (int i = args.length - 1; i >= 0; --i) {
+        var arg = args[i];
+        var fArg = %s;
+        cliArgs = cons.$35$(fArg, cliArgs);
+      }
+      """.formatted(string2Str);
+  }
+
   public String visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) {
     if (!pkgs.containsKey("base")) {
       throw Bug.todo();
     }
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ base.Main_1 entry = new "+entryName+"(){}; entry.$35$(new base$46caps.System_1(){}); }\n";
+    var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_1 entry = new "+entryName+"(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }\n";
 
     return "interface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))
@@ -48,6 +61,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     var its = trait.its().stream()
       .map(this::getName)
       .filter(tr->!tr.equals(longName))
+      .distinct()
       .collect(Collectors.joining(","));
     var impls = its.isEmpty() ? "" : " extends "+its;
     var start = "interface "+shortName+impls+"{\n";

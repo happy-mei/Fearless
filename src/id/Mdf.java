@@ -38,8 +38,10 @@ public enum Mdf{
     if (this == lent) {
       if (other == imm) { return other; }
       if (other == read) { return other; }
-      if (other == recMdf){ return read; }
-      if (other == mdf) { return read; }
+//      if (other == recMdf){ return read; } // TODO: Why? Turning off until I remember
+      if (other == recMdf) { return recMdf; }
+//      if (other == mdf) { return read; }
+      if (other == mdf) { return mdf; }
       if (other == mut) { return lent; }
     }
     if (this == read) {
