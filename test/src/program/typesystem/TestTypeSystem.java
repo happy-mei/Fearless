@@ -1,6 +1,9 @@
 package program.typesystem;
 
 import net.jqwik.api.Example;
+import utils.Base;
+
+import java.util.Arrays;
 
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
@@ -539,4 +542,140 @@ public class TestTypeSystem {
     package base
     NoMutHyg[X]:{}
     """); }
+
+  @Example void numbersNoBase(){ ok( """
+    package test
+    A:{ .m(a: 42): 42 -> 42 }
+    """, """
+    package base
+    Sealed:{} Stringable:{ .str: Str } Str:{} Bool:{}
+    """, Base.load("nums.fear")); }
+
+  @Example void incompatibleITsDeep() { fail("""
+    In position [###]/Dummy0.fear:5:16
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy1.fear:23:2) base.caps.IO'[], #/1
+    ([###]/Dummy1.fear:15:2) base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], #/1
+    """, """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    Test:Main[Void]{ #(_, s) -> s
+      .use[IO] io = IO'
+      .return{ io.println("Hello, World!") }
+      }
+    """, """
+    package base.caps
+    alias base.Sealed as Sealed, alias base.Void as Void, alias base.Str as Str,
+    // bad version of caps.fear
+    LentReturnStmt[R]:{ lent #: mdf R }
+    System[R]:{
+      lent .use[C](c: CapFactory[lent NotTheRootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+        cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
+      lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
+      }
+        
+    NotTheRootCap:{}
+    _RootCap:IO{ .println(msg) -> this.println(msg), }
+    UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
+    CapFactory[C,R]:{
+      #(s: lent C): lent R,
+      .close(c: lent R): Void,
+      }
+    IO:{
+      lent .print(msg: Str): Void,
+      lent .println(msg: Str): Void,
+      }
+    IO':CapFactory[lent IO, lent IO]{
+      #(auth: lent IO): lent IO -> auth,
+      .close(c: lent IO): Void -> {},
+      }
+    """, Base.load("lang.fear"), Base.load("bools.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("optionals.fear"), Base.load("lists.fear")); }
+  @Example void incompatibleGens() { fail("""
+    In position [###]/Dummy1.fear:7:12
+    [E34 bothTExpectedGens]
+    Type error: the generic type lent C cannot be a super-type of any concrete type, like Fear[###]/0.
+    """, """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    Test:Main[Void]{ #(_, s) -> s
+      .use[IO] io = IO'
+      .return{ io.println("Hello, World!") }
+      }
+    """, """
+    package base.caps
+    alias base.Sealed as Sealed, alias base.Void as Void, alias base.Str as Str,
+    // bad version of caps.fear
+    LentReturnStmt[R]:{ lent #: mdf R }
+    System[R]:{
+      lent .use[C](c: CapFactory[lent C, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+        cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
+      lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
+      }
+        
+    NotTheRootCap:{}
+    _RootCap:IO{ .println(msg) -> this.println(msg), }
+    UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
+    CapFactory[C,R]:{
+      #(s: lent C): lent R,
+      .close(c: lent R): Void,
+      }
+    IO:{
+      lent .print(msg: Str): Void,
+      lent .println(msg: Str): Void,
+      }
+    IO':CapFactory[lent IO, lent IO]{
+      #(auth: lent IO): lent IO -> auth,
+      .close(c: lent IO): Void -> {},
+      }
+    """, Base.load("lang.fear"), Base.load("bools.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("optionals.fear"), Base.load("lists.fear")); }
+  @Example void incompatibleITs() { fail("""
+    In position [###]/Dummy1.fear:7:8
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    cont #/2[]([c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear[###]$ }]), this])
+    were valid:
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: TsT[ts=[mut base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]], t=mdf R]
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]], t=mdf R]
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], iso C, iso base.caps.System[mdf R]], t=mdf R]
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], mut C, lent base.caps.System[mdf R]], t=mdf R]
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps._RootCap[], base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: TsT[ts=[iso base.caps.UseCapCont[imm C, mdf R], lent C, mut base.caps.System[mdf R]], t=mdf R]
+    """, """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    Test:Main[Void]{ #(_, s) -> s
+      .use[IO] io = IO'
+      .return{ io.println("Hello, World!") }
+      }
+    """, """
+    package base.caps
+    alias base.Sealed as Sealed, alias base.Void as Void, alias base.Str as Str,
+    // bad version of caps.fear
+    LentReturnStmt[R]:{ lent #: mdf R }
+    System[R]:{
+      lent .use[C](c: CapFactory[lent _RootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+        cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
+      lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
+      }
+        
+    NotTheRootCap:{}
+    _RootCap:IO{ .println(msg) -> this.println(msg), }
+    UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
+    CapFactory[C,R]:{
+      #(s: lent C): lent R,
+      .close(c: lent R): Void,
+      }
+    IO:{
+      lent .print(msg: Str): Void,
+      lent .println(msg: Str): Void,
+      }
+    IO':CapFactory[lent _RootCap, lent IO]{
+      #(auth: lent _RootCap): lent IO -> auth,
+      .close(c: lent IO): Void -> {},
+      }
+    """, Base.load("lang.fear"), Base.load("bools.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("optionals.fear"), Base.load("lists.fear")); }
 }

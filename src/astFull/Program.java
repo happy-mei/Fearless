@@ -166,6 +166,7 @@ public class Program implements program.Program{
       try {
         if(m.sig().isPresent()){ return m; }
         var name=m.name().orElseGet(() -> onlyAbs(dec));
+        if (m.xs().size() != name.num()) { throw Fail.cannotInferSig(dec.name(), name); }
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();
         var inferred = p.meths(dec.toAstT(), name, 0)

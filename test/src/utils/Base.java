@@ -30,6 +30,7 @@ public interface Base {
     load("optionals.fear"),
     load("block.fear"),
     load("errors.fear"),
+    load("lists.fear")
   };
 
   String minimalBase = """

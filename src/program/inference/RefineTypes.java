@@ -146,11 +146,13 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     List<RP> refined = refineSigGens(RP.of(c1.ts(),c2.ts()), Set.of());
     if(refined.isEmpty()){ return iT1; }
     List<T> refinedTs = refined.stream().map(RP::t1).toList();
-    if(iT1.mdf()!=iT2.mdf()){
-      throw Fail.incompatibleMdfs(iT1, iT2);
-    }
+
     //TODO: if the MDFs are different? take the most specific? not on iso?
-    return new T(iT1.mdf(),c1.withTs(refinedTs));
+    // We were throwing. I'm gonna try taking iT1 on the assumption that's the user-provided type
+//    if(iT1.mdf()!=iT2.mdf()){
+//      throw Fail.incompatibleMdfs(iT1, iT2);
+//    }
+    return new T(mdf, c1.withTs(refinedTs));
   }
   record RP(T t1, T t2){
     RP {
