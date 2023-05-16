@@ -17,10 +17,10 @@ LList[E]:Sealed{
     .empty -> {},
     .elem(h, t) -> (i == 0u) ? { .then -> imm Opt#h, .else -> t.get(i - 1u) }
     },
-//  .head: Opt[E] -> this.match{
-//    .empty -> {},
-//    .elem(h,_) -> Opt#h,
-//    },
+  .head: Opt[E] -> this.match{
+    .empty -> {},
+    .elem(h,_) -> Opt#h,
+    },
   .tail: LList[E] -> this.match{
     .empty -> {},
     .elem(_,t) -> t,

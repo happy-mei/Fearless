@@ -147,7 +147,7 @@ public class TestTypeSystemWithBase {
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Test:Main[Int]{
-      _->False.or(True)?{.then->42,.else->0}
+      _,_->False.or(True)?{.then->42,.else->0}
     }
     """); }
   @Example void boolSameRet() { ok("""
@@ -155,7 +155,7 @@ public class TestTypeSystemWithBase {
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Foo:{}
     Test:Main[Foo]{
-      _->False.or(True)?{.then->Foo,.else->Foo}
+      _,_->False.or(True)?{.then->Foo,.else->Foo}
     }
     """); }
 

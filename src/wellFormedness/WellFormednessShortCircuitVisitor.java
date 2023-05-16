@@ -22,18 +22,20 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
 
   @Override public Optional<CompileError> visitDec(T.Dec d) {
     pkg = Optional.of(d.name().pkg());
-    return ShortCircuitVisitor.super.visitDec(d);
+    return ShortCircuitVisitor.super.visitDec(d).map(err->err.parentPos(d.pos()));
   }
 
   @Override public Optional<CompileError> visitLambda(E.Lambda e) {
     return ShortCircuitVisitor.visitAll(e.its(), it->noRecMdfInImpls(it).map(err->err.pos(e.pos())))
       .or(()->noSealedOutsidePkg(e))
-      .or(()->ShortCircuitVisitor.super.visitLambda(e));
+      .or(()->ShortCircuitVisitor.super.visitLambda(e))
+      .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitMeth(E.Meth e) {
     return noRecMdfInNonHyg(e)
-      .or(()->ShortCircuitVisitor.super.visitMeth(e));
+      .or(()->ShortCircuitVisitor.super.visitMeth(e))
+      .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitT(T t) {
@@ -44,8 +46,7 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
   private Optional<CompileError> noHygInMut(T t) {
     if (!(t.rt() instanceof Id.IT<T> it)) { return Optional.empty(); }
     if (t.mdf().isMut() && it.ts().stream().map(T::mdf).anyMatch(Mdf::isHyg)) {
-      throw new CompileError(); // todo: error msg
-//      return Optional.of(Fail.)
+      return Optional.of(Fail.mutCapturesHyg(t));
     }
     return Optional.empty();
   }

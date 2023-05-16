@@ -391,11 +391,14 @@ class TestFullParser {
     A:{ .foo(a: A, b: A): A }
     B:A{ .foo(a, b) -> b }
     """); }
-
-  @Example void multiArgInferred() { ok("""
+  @Example void multiArgInferred1() { ok("""
+    {test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-infer-][test.A[]]{
+      [-]([a,b]):[-]->b:infer}],
+    test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{
+      .foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[immtest.A[],immtest.A[]],ret=immtest.A[]]->[-]}]}
     """, """
     package test
     A:{ .foo(a: A, b: A): A }
-    B:A{ (a, b) -> b }
+    B:A{ a, b -> b }
     """); }
 }

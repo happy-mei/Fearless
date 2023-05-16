@@ -213,6 +213,31 @@ public class TestWellFormedness {
     Sealed:{}
     """); }
 
+  @Example void noMutHygType1() { fail("""
+    In position [###]/Dummy0.fear:2:7
+    [E40 mutCapturesHyg]
+    The type mut a.A[read a.A[imm X]] is not valid because a mut lambda may not capture hygienic references.
+    """, """
+    package a
+    A[X]:{ .no: mut A[read A[X]] }
+    """); }
+  @Example void noMutHygType2() { fail("""
+    In position [###]/Dummy0.fear:2:7
+    [E40 mutCapturesHyg]
+    The type mut a.A[lent a.A[imm X]] is not valid because a mut lambda may not capture hygienic references.
+    """, """
+    package a
+    A[X]:{ .no: mut A[lent A[X]] }
+    """); }
+  @Example void noMutHygType3() { ok("""
+    package a
+    A[X]:{ .no: mut A[X] }
+    """); }
+  @Example void noMutHygType4() { ok("""
+    package a
+    A[X]:{ .no: read A[read A[X]] }
+    """); }
+
   @Property void recMdfRetOnlyOnReadOrLentHappy(@ForAll("hygMdf") Mdf mdf) { ok(String.format("""
     package test
     A:{ %s .foo: recMdf Res }

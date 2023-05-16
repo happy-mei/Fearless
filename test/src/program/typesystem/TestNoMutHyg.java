@@ -38,27 +38,6 @@ public class TestNoMutHyg {
     package base
     NoMutHyg[X]:{}
     """); }
-  @Example void methMakingNoMutHygCannotBeMutIfHyg() { fail("""
-    In position [###]/Dummy0.fear:10:45
-    [E39 incompatibleMdfs]
-    The modifiers for mut test.Box[read test.Test[]] and lent test.Box[read test.Test[]] are not compatible.
-    This could be a case of NoMutHyg applying a more restrictive modifier than written.
-    """, """
-    package test
-    alias base.NoMutHyg as NoMutHyg,
-    Box[X]:NoMutHyg[mdf X]{
-      read .get: recMdf X
-      }
-    Box':{
-      .mut2lent[X](x: mdf X): mut Box[mdf X] -> { x }
-      }
-    Test:{
-      #(t: read Test): mut Box[read Test] -> Box'.mut2lent(t),
-      }
-    """, """
-    package base
-    NoMutHyg[X]:{}
-    """); }
 
   @Example void shouldKeepMdfIfXIsNotHyg() { ok("""
     package test

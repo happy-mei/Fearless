@@ -22,6 +22,10 @@ public class Err {
     return strCmp(expected,actual);
   }
   public static boolean strCmp(String expected,String actual){
+    if (expected == null || actual == null) {
+      assertEquals(expected,actual);
+      throw Bug.of();
+    }
     actual = actual.trim();
     expected = expected.trim();
     try{assertTrue(strCmpAux(expected,actual,Err.hole));}

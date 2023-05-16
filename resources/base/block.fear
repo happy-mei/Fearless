@@ -1,5 +1,47 @@
 package base
 
+Block[R]:{
+  read .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+  read .do(a: mut Do): read Block[mdf R] -> this._do(a#),
+    read ._do(v: Void): read Block[mdf R] -> {},
+  read .var[X](x: mut ReturnStmt[mdf X], cont: mut Continuation[mdf X, mdf R]): mdf R -> cont#(x#, this),
+  read .if(a: mut Condition): read BlockIf[mdf R] -> a#.hygIf{
+    .then -> read BlockIfTrue[mdf R]{ this },
+    .else -> read BlockIfFalse[mdf R]{ this }
+    },
+  }
+
+BlockIf[R]:{
+  read ._outer: read Block[mdf R],
+  read .return(a: mut ReturnStmt[mdf R]): read Block[mdf R],
+  read .error(a: mut ReturnStmt[Void]): read Block[mdf R], // todo: proper errors
+  read .do(a: mut Do): read Block[mdf R],
+  }
+BlockIfTrue[R]:BlockIf[mdf R]{
+  .return(a) -> this._return(a#),
+    read ._return(x: mdf R): recMdf DecidedBlock[mdf R] -> { x },
+  .error(a) -> this.error(a),
+  .do(a) -> this._do(a#),
+    read ._do(v: Void): read Block[mdf R] -> this._outer,
+  }
+BlockIfFalse[R]:BlockIf[mdf R]{
+  .return(a) -> this._outer,
+  .error(a) -> this._outer,
+  .do(a) -> this._outer,
+  }
+DecidedBlock[R]:Block[mdf R]{
+  read ._res: recMdf R,
+  .return(a) -> this._res,
+  .do(a) -> this,
+  .var(_,_) -> this._res,
+  .if(a) -> BlockIfFalse[mdf R]{ this },
+  }
+
+ReturnStmt[R]:NoMutHyg[R]{ mut #: mdf R }
+Do:{ mut #: Void }
+Condition:{ mut #: Bool }
+Continuation[X,R]:{ mut #(x: mdf X, self: read Block[mdf R]): mdf R }
+
 //Do:{ mut #: Void }
 //ReturnStmt[R]:{ mut #: mdf R }
 //Condition:{ mut #: Bool }

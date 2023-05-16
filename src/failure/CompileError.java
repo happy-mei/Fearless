@@ -14,6 +14,7 @@ public class CompileError extends RuntimeException implements Res{
   Pos pos;
   public CompileError pos(Pos pos){ this.pos=pos; return this; }
   public CompileError pos(Optional<Pos> pos){ return pos.map(this::pos).orElse(this); }
+
   public CompileError() {super();}
   public CompileError(Throwable cause) {super(cause);}
   public CompileError(String msg) {super(msg);}
@@ -22,6 +23,14 @@ public class CompileError extends RuntimeException implements Res{
   public static CompileError of(Throwable cause){ return new CompileError(cause); }
   public static CompileError of(String msg){ return new CompileError(msg); }
   public static <T> T err(String msg){ throw new CompileError(msg); }
+
+  /** Returns a CompileError with the provided position if none is already set.
+   * Useful for ensuring some context is available without overriding a more specific position.
+   */
+  public CompileError parentPos(Optional<Pos> pos){
+    if (this.pos != null || pos.isEmpty()) { return this; }
+    return pos(pos.get());
+  }
 
   @Override public String toString(){
     if (this.pos == null) { return this.getMessage(); }

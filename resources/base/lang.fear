@@ -20,3 +20,6 @@ F[R]:{ #: R }
 F[A,R]:{ #(a: A): R }
 F[A,B,R]:{ #(a: A, b: B): R }
 F[A,B,C,R]:{ #(a: A, b: B, c: C): R }
+
+Box:{ #[R](r: mdf R): mut Box[mdf R] -> { r } }
+Box[R]:NoMutHyg[mdf R]{ read #: recMdf R }

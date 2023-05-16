@@ -1,7 +1,18 @@
 package base
 alias base.caps.IO as IO, alias base.caps.IO' as IO',
-MyApp:Main[Void]{
-#(args, s) -> s
+MyApp:Main[Void]{ args, s -> s
   .use[IO] io = IO'
-  .return{ io.println("Hello, World!") }
+  .return{ io.println(ImmMain#args) }
+  }
+ImmMain:{
+  #(args: LList[Str]): Str -> args.get 1u | this.errMsg*,
+  // TODO: this promotion should work:
+//  #(args: LList[Str]): Str -> args.get 0u || (Box#"Sad"),
+
+  .errMsg: mut Ref[Str] -> Block[mut Ref[Str]]
+    .var res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
+    .do{ res* := "mutability!" }
+    .if{ True }.return{ Ref#[Str]"Short-cut" }
+    .if{ True }.do{ res* := "moar mutability" }
+    .return{ res* }
   }

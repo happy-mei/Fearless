@@ -165,6 +165,10 @@ public class Fail{
       "This could be a case of NoMutHyg applying a more restrictive modifier than written.");
   }
 
+  public static CompileError mutCapturesHyg(ast.T t1){
+    return of("The type "+t1+" is not valid because a mut lambda may not capture hygienic references.");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -211,6 +215,7 @@ enum ErrorCode {
   undefinedMethod,
   noSubTypingRelationship,
   uncallableMeths,
-  incompatibleMdfs;
+  incompatibleMdfs,
+  mutCapturesHyg;
   int code() {return this.ordinal() + 1;}
 }
