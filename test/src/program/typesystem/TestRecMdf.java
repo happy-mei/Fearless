@@ -145,4 +145,24 @@ public class TestRecMdf {
     Consumer[X]:{ #(x: mdf X): Void }
     NoPromote:{} Void:{}
     """); }
+  @Example void shouldCollapseWhenCalledNestedGenImm1() { ok("""
+    package test
+    A[X]:{
+      read .m1(_: mut NoPromote): Consumer[recMdf X],
+      imm .m2: Consumer[imm X] -> this.m1{},
+      }
+    Consumer[X]:{ #(x: mdf X): Void }
+    NoPromote:{} Void:{}
+    """); }
+
+  @Example void shouldCollapseWhenCalledNestedGenSplitImm1() { ok("""
+    package test
+    A[X]:{
+      read .m1(_: mut NoPromote): Consumer[recMdf X],
+      }
+    A'[X]:A[mdf X]{ x -> this.m1(x) }
+    B[X]:{ imm .m2: Consumer[imm X] -> A'[mdf X].m1{} }
+    Consumer[X]:{ #(x: mdf X): Void }
+    NoPromote:{} Void:{}
+    """); }
 }
