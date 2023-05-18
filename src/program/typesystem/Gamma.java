@@ -42,7 +42,6 @@ public interface Gamma {
     var isMdfInMutHyg = captured.is(Mdf.mdf, Mdf.recMdf) && self.isMut() && ti.isGX();
     var isNoMutHygCapture = isMdfInMutHyg && t.match(gx->false, it->p.getNoMutHygs(it).anyMatch(t_->t_.equals(ti)));
     if (isNoMutHygCapture) {
-      System.out.println("capturing as-if lent");
       return xT(x, t.withMdf(Mdf.lent), ti, mMdf, p);
     }
 
