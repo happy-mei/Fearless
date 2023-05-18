@@ -3,36 +3,33 @@ package base
 Opt:{
   #[T](x: mdf T): mut Opt[mdf T] -> {
     .match(m) -> m.some(x),
-    .matchRecMdf(m) -> m.some(x),
+//    .matchRecMdf(m) -> m.some(x),
     }
   }
 Opt[T]:NoMutHyg[mdf T]{
   read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-  read .matchRecMdf[R](m: recMdf OptMatchRecMdf[recMdf T, mdf R]): mdf R -> m.none,
-  read .map[R](f: mut OptMap[recMdf T, mdf R]): recMdf Opt[mdf R] -> this.match(f),
-  read .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
-  read .do(f: mut OptDo[recMdf T]): recMdf Opt[recMdf T] -> this.match(f),
-  read |(alt: recMdf T): recMdf T -> this.matchRecMdf{ .some(x) -> x, .none -> alt },
-  read ||(alt: recMdf Box[recMdf T]): recMdf T -> this.matchRecMdf{ .some(x) -> x, .none -> alt# },
+//  read .matchRecMdf[R](m: recMdf OptMatchRecMdf[recMdf T, mdf R]): mdf R -> m.none,
+  read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
+  read .flatMap[R](f: mut OptMap[recMdf T, recMdf Opt[mdf R]]): mut Opt[mdf R] -> this.match{ .some(x) -> f#x, .none -> {} },
+  read .do(f: mut OptMap[recMdf T, Void]): mut Opt[recMdf T] -> Yeet.with(this.map(f), this.map{ x -> x }),
+//  read |(alt: recMdf T): recMdf T -> this.match{ .some(x) -> x, .none -> alt },
+//  read |(alt: recMdf T): recMdf T -> this.matchRecMdf{ .some(x) -> x, .none -> alt },
+//  read ||(alt: recMdf Box[recMdf T]): recMdf T -> this.matchRecMdf{ .some(x) -> x, .none -> alt# },
 //  read ||(alt: recMdf T): recMdf T -> this.match{ .some(x) -> x, .none -> alt },
   read .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
   read .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
   }
 OptMatch[T,R]:NoMutHyg[mdf R]{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-OptMatchRecMdf[T,R]:NoMutHyg[mdf R]{ read .some(x: mdf T): mdf R, read .none: mdf R }
-OptMap[T,R]:OptMatch[mdf T, recMdf Opt[mdf R]]{
-  .some(x) -> Opt#(this#x),
-  .none -> {},
-  mut #(t: mdf T): mdf R,
-  }
-OptFlatMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
-  .some(x) -> this#x,
-  .none -> {},
-  mut #(t: mdf T): mut Opt[mdf R],
-  }
-OptDo[T]:OptMatch[mdf T, recMdf Opt[mdf T]]{
-  .some(x) -> Opt#this._doRes(this#x, x),
-  .none->{},
-  read #(t: mdf T): Void,   //#[R](t:T):R,
-  read ._doRes(y: Void, x: mdf T): mdf T -> x
-  }
+//OptMatchRecMdf[T,R]:NoMutHyg[mdf R]{ read .some(x: mdf T): mdf R, read .none: mdf R }
+OptMap[T,R]:{ mut #(x: mdf T): mdf R }
+//OptFlatMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
+//  .some(x) -> this#x,
+//  .none -> {},
+//  mut #(t: mdf T): mut Opt[mdf R],
+//  }
+//OptDo[T]:OptMatch[mdf T, mdf T]{
+//  .some(x) -> this._doRes(this#x, x),
+//  .none->{},
+//  read #(t: mdf T): Void,   //#[R](t:T):R,
+//  read ._doRes(y: Void, x: mdf T): mdf T -> x
+//  }

@@ -99,7 +99,12 @@ public interface EMethTypeSystem extends ETypeSystem {
     return p().meths(recIT, m, depth()).map(cm -> {
       var mdf = rec.mdf();
       var mdf0 = cm.mdf();
-      Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
+      var topGens = p().gxsOf(cm.c());
+      // TODO: might need to handle renaming recMdf in type sigs??
+      Map<GX<T>,T> xsTsMap = Mapper.of(c->{
+//        Streams.zip(topGens.stream().toList(), cm.c().ts()).forEach(c::put);
+        Streams.zip(cm.sig().gens(), ts).forEach(c::put);
+      });
       var t0 = rec.withMdf(mdf0);
       var params = Push.of(
         t0,
@@ -117,6 +122,8 @@ public interface EMethTypeSystem extends ETypeSystem {
       gx->{
         if(!mdf.isRecMdf()){ return map.getOrDefault(gx,t); }
         var ti = map.getOrDefault(gx,t);
+//        if (ti.mdf().isRecMdf()) { ti = ti.withMdf(Mdf.mdf); } // TODO: trying to fix it with this
+//        if (mdf0.isMut()) { return ti; } // because adapt(mut X, recMdf X) == mdf X
         return ti.withMdf(mdf0.adapt(ti));
       },
       it->{

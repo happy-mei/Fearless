@@ -157,6 +157,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
             new base.Ref_1(){
               protected Object x = %s;
               public Object $42$() { return this.x; }
+              public Object get$() { return this.x; }
               public Object swap$(Object x$) { var x1 = this.x; this.x = x$; return x1; }
             }
             """, x.accept(gen)));

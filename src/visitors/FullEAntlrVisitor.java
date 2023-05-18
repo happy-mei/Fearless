@@ -212,6 +212,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public T visitT(TContext ctx) { return visitT(ctx,true); }
   public T visitT(TContext ctx, boolean canMdf) {
     if(!canMdf && !ctx.mdf().getText().isEmpty()){
+      // todo: error message for something like A:imm B (no mdf allowed)
       throw Bug.todo();
     }
     Mdf mdf = visitMdf(ctx.mdf());

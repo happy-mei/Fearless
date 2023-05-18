@@ -126,6 +126,7 @@ public record InferBodies(ast.Program p) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isPresent()){ return Optional.empty(); }
+    // TODO: make sure the number of params matches the returned method before calling withName
     var res = onlyAbs(e, depth).map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()));
     assert res.map(m1->!m.equals(m1)).orElse(true);
     return res;

@@ -113,12 +113,16 @@ interface ELambdaTypeSystem extends ETypeSystem{
 
   default Optional<CompileError> okWithSubType(Gamma g, E.Meth m, E e, T expected) {
     var res = e.accept(ETypeSystem.of(p(), g, Optional.of(expected), depth()+1));
-    var subOk = res.t()
-      .flatMap(ti->p().isSubType(ti, expected)
-        ? Optional.empty()
-        : Optional.of(Fail.methTypeError(expected, ti, m.name()).pos(m.pos()))
-      );
-    return res.err().or(()->subOk);
+    try {
+      var subOk = res.t()
+        .flatMap(ti->p().isSubType(ti, expected)
+          ? Optional.empty()
+          : Optional.of(Fail.methTypeError(expected, ti, m.name()).pos(m.pos()))
+        );
+      return res.err().or(()->subOk);
+    } catch (CompileError err) {
+      return Optional.of(err.parentPos(e.pos()));
+    }
   }
 
   default boolean filterByMdf(Mdf mdf, Mdf mMdf) {

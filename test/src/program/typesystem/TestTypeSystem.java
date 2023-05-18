@@ -678,4 +678,18 @@ public class TestTypeSystem {
       .close(c: lent IO): Void -> {},
       }
     """, Base.load("lang.fear"), Base.load("bools.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("optionals.fear"), Base.load("lists.fear")); }
+  @Example void recMdfCannotBeSubtypeOfMdf() { fail("""
+    In position [###]/Dummy0.fear:2:7
+    [E23 methTypeError]
+    Expected the method #/1 to return mdf A, got recMdf A.
+    """, """
+    package test
+    F[A]:{ read #(a:recMdf A):mdf A->a }
+    M:{ mut .mutMe: mut M -> this.mutMe } // if this method can be called from M it is broken
+    Break:{
+      .myF: imm F[mut M] -> {},
+      .b1(m: imm M): mut M -> this.myF#m,
+      .b2(m: imm M): mut M -> (this.myF#m).mutMe,
+      }
+    """); }
 }
