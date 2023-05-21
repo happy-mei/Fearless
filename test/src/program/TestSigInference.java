@@ -105,8 +105,8 @@ public class TestSigInference {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:4:4) base.C[], .g/0
-    ([###]/Dummy0.fear:3:4) base.B[], .g/0
+    ([###]/Dummy0.fear:4:4) base.C[], .g/0[X0/0$](): imm X0/0$
+    ([###]/Dummy0.fear:3:4) base.B[], .g/0[X0/0$, X0/1$](): imm X0/0$
     """, """
     package base
     A[AA,BB]:B,C{ .g -> this.g }

@@ -412,69 +412,69 @@ public class TestCaptureRules {
   @Example void t377(){ c1(recMdf,imm,   mut,   of(read,imm)); }
 
   //                     lambda, captured, method, ...capturedAs
-  @Example @Disabled void t401(){ c1(imm,   imm,   iso,    of(/*impossible*/)); }
-  @Example @Disabled void t402(){ c1(read,  imm,   iso,    of(/*impossible*/)); }
-  @Example @Disabled void t403(){ c1(lent,  imm,   iso,   of(imm,read)); }
-  @Example @Disabled void t404(){ c1(mut,   imm,   iso,   of(imm,read)); }
-  @Example @Disabled void t405(){ c1(iso,   imm,   iso,   of(imm,read)); }
-  @Example @Disabled void t406(){ c1(mdf,   imm,   iso,   of(/*not well formed lambda*/)); }
-  @Example @Disabled void t407(){ c1(recMdf,imm,   iso,   of(imm,read)); } // yes, recMdf could be iso
+  @Example void t401(){ c1(imm,   imm,   iso,    of(/*impossible*/)); }
+  @Example void t402(){ c1(read,  imm,   iso,    of(/*impossible*/)); }
+  @Example void t403(){ c1(lent,  imm,   iso,   of(imm,read)); }
+  @Example void t404(){ c1(mut,   imm,   iso,   of(imm,read)); }
+  @Example void t405(){ c1(iso,   imm,   iso,   of(imm,read)); }
+  @Example void t406(){ c1(mdf,   imm,   iso,   of(/*not well formed lambda*/)); }
+  @Example void t407(){ c1(recMdf,imm,   iso,   of(imm,read)); } // yes, recMdf could be iso
   //                     lambda, captured, method, ...capturedAs
-  @Example @Disabled void t411(){ c1(imm,   read,  iso,   of(/*impossible*/)); }
-  @Example @Disabled void t412(){ c1(read,  read,  iso,   of(/*impossible*/)); }
-  @Example @Disabled void t413(){ c1(lent,  read,  iso,   of(read)); }
-  @Example @Disabled void t414(){ c1(mut,   read,  iso,   of(/*impossible*/)); }//NOT NoMutHyg
-  @Example @Disabled void t415(){ c1(iso,   read,  iso,   of(/*impossible*/)); }
-  @Example @Disabled void t416(){ c1(mdf,   read,  iso,   of(/*not well formed lambda*/)); }
-  @Example @Disabled void t417(){ c1(recMdf,read,  iso,   of(/*impossible*/)); }
+  @Example void t411(){ c1(imm,   read,  iso,   of(/*impossible*/)); }
+  @Example void t412(){ c1(read,  read,  iso,   of(/*impossible*/)); }
+  @Example void t413(){ c1(lent,  read,  iso,   of(read)); }
+  @Example void t414(){ c1(mut,   read,  iso,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t415(){ c1(iso,   read,  iso,   of(/*impossible*/)); }
+  @Example void t416(){ c1(mdf,   read,  iso,   of(/*not well formed lambda*/)); }
+  @Example void t417(){ c1(recMdf,read,  iso,   of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
-  @Example @Disabled void t421(){ c1(imm,   lent,  iso,   of(/*impossible*/)); }
-  @Example @Disabled void t422(){ c1(read,  lent,  iso,   of(/*impossible*/)); }
-  @Example @Disabled void t423(){ c1(lent,  lent,  iso,   of(read,lent)); }
-  @Example @Disabled void t424(){ c1(mut,   lent,  iso,   of(/*impossible*/)); }//NOT NoMutHyg
-  @Example @Disabled void t425(){ c1(iso,   lent,  iso,   of(/*impossible*/)); }
-  @Example @Disabled void t426(){ c1(mdf,   lent,  iso,   of(/*not well formed lambda*/)); }
-  @Example @Disabled void t427(){ c1(recMdf,lent,  iso,   of(/*impossible*/)); }
+  @Example void t421(){ c1(imm,   lent,  iso,   of(/*impossible*/)); }
+  @Example void t422(){ c1(read,  lent,  iso,   of(/*impossible*/)); }
+  @Example void t423(){ c1(lent,  lent,  iso,   of(read,lent)); }
+  @Example void t424(){ c1(mut,   lent,  iso,   of(/*impossible*/)); }//NOT NoMutHyg
+  @Example void t425(){ c1(iso,   lent,  iso,   of(/*impossible*/)); }
+  @Example void t426(){ c1(mdf,   lent,  iso,   of(/*not well formed lambda*/)); }
+  @Example void t427(){ c1(recMdf,lent,  iso,   of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
-  @Example @Disabled void t431(){ c1(imm,   mut,   iso,  of(/*impossible*/)); }
-  @Example @Disabled void t432(){ c1(read,  mut,   iso,  of(/*impossible*/)); }
-  @Example @Disabled void t433(){ c1(lent,  mut,   iso,   of(read,lent,mut)); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
-  @Example @Disabled void t434(){ c1(mut,   mut,   iso,   of(read,lent,mut)); }
-  @Example @Disabled void t435(){ c1(iso,   mut,   iso,   of(read,lent,mut)); }
-  @Example @Disabled void t436(){ c1(mdf,   mut,   iso,   of(/*not well formed lambda*/)); }
-  @Example @Disabled void t437(){ c1(recMdf,mut,   iso,  of(/*impossible*/)); }
+  @Example void t431(){ c1(imm,   mut,   iso,  of(/*impossible*/)); }
+  @Example void t432(){ c1(read,  mut,   iso,  of(/*impossible*/)); }
+  @Example void t433(){ c1(lent,  mut,   iso,   of(read,lent,mut)); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
+  @Example void t434(){ c1(mut,   mut,   iso,   of(read,lent,mut)); }
+  @Example void t435(){ c1(iso,   mut,   iso,   of(read,lent,mut)); }
+  @Example void t436(){ c1(mdf,   mut,   iso,   of(/*not well formed lambda*/)); }
+  @Example void t437(){ c1(recMdf,mut,   iso,  of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
-  @Example @Disabled void t441(){ c1(imm,   iso,   iso,    of(/*impossible*/)); }
-  @Example @Disabled void t442(){ c1(read,  iso,   iso,    of(/*impossible*/)); }
-  @Example @Disabled void t443(){ c1(lent,  iso,   iso,   of(imm,read)); }
-  @Example @Disabled void t444(){ c1(mut,   iso,   iso,   of(imm,read)); }
-  @Example @Disabled void t445(){ c1(iso,   iso,   iso,   of(imm,read)); } // all iso is captured as imm
-  @Example @Disabled void t446(){ c1(mdf,   iso,   iso,   of(/*not well formed lambda*/)); }
-  @Example @Disabled void t447(){ c1(recMdf,iso,   iso,   of(imm,read)); }
+  @Example void t441(){ c1(imm,   iso,   iso,    of(/*impossible*/)); }
+  @Example void t442(){ c1(read,  iso,   iso,    of(/*impossible*/)); }
+  @Example void t443(){ c1(lent,  iso,   iso,   of(imm,read)); }
+  @Example void t444(){ c1(mut,   iso,   iso,   of(imm,read)); }
+  @Example void t445(){ c1(iso,   iso,   iso,   of(imm,read)); } // all iso is captured as imm
+  @Example void t446(){ c1(mdf,   iso,   iso,   of(/*not well formed lambda*/)); }
+  @Example void t447(){ c1(recMdf,iso,   iso,   of(imm,read)); }
   //                     lambda, captured, method, ...capturedAs
-  @Example @Disabled void t451(){ c1(imm,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
-  @Example @Disabled void t452(){ c1(read,  mdf,   iso, of(/*not well formed parameter with mdf*/)); }
-  @Example @Disabled void t453(){ c1(lent,  mdf,   iso, of(/*not well formed parameter with mdf*/)); }
-  @Example @Disabled void t454(){ c1(mut,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
-  @Example @Disabled void t455(){ c1(iso,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
-  @Example @Disabled void t456(){ c1(mdf,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
-  @Example @Disabled void t457(){ c1(recMdf,mdf,   iso, of(/*not well formed parameter with mdf*/)); }/*not well formed parameter with mdf*/
+  @Example void t451(){ c1(imm,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t452(){ c1(read,  mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t453(){ c1(lent,  mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t454(){ c1(mut,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t455(){ c1(iso,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t456(){ c1(mdf,   mdf,   iso, of(/*not well formed parameter with mdf*/)); }
+  @Example void t457(){ c1(recMdf,mdf,   iso, of(/*not well formed parameter with mdf*/)); }/*not well formed parameter with mdf*/
   //                     lambda, captured, method, ...capturedAs
-  @Example @Disabled void t461(){ c1(imm,   recMdf,   iso,  of(/*impossible*/)); }
-  @Example @Disabled void t462(){ c1(read,  recMdf,   iso,  of(/*impossible*/)); }
-  @Example @Disabled void t463(){ c1(lent,  recMdf,   iso,   of(read)); }
-  @Example @Disabled void t464(){ c1(mut,   recMdf,   iso,  of(/*impossible*/)); }
-  @Example @Disabled void t465(){ c1(iso,   recMdf,   iso,  of(/*impossible*/)); }
-  @Example @Disabled void t466(){ c1(mdf,   recMdf,   iso,   of(/*not well formed lambda*/)); }
-  @Example @Disabled void t467(){ c1(recMdf,recMdf,   iso,   of(read)); }
+  @Example void t461(){ c1(imm,   recMdf,   iso,  of(/*impossible*/)); }
+  @Example void t462(){ c1(read,  recMdf,   iso,  of(/*impossible*/)); }
+  @Example void t463(){ c1(lent,  recMdf,   iso,   of(read)); }
+  @Example void t464(){ c1(mut,   recMdf,   iso,  of(/*impossible*/)); }
+  @Example void t465(){ c1(iso,   recMdf,   iso,  of(/*impossible*/)); }
+  @Example void t466(){ c1(mdf,   recMdf,   iso,   of(/*not well formed lambda*/)); }
+  @Example void t467(){ c1(recMdf,recMdf,   iso,   of(read)); }
   //                     lambda, captured, method, ...capturedAs
-  @Example @Disabled void t471(){ c1(imm,   imm,   iso,    of(/*impossible*/)); }
-  @Example @Disabled void t472(){ c1(read,  imm,   iso,    of(/*impossible*/)); }
-  @Example @Disabled void t473(){ c1(lent,  imm,   iso,   of(read,imm)); }
-  @Example @Disabled void t474(){ c1(mut,   imm,   iso,   of(read,imm)); }
-  @Example @Disabled void t475(){ c1(iso,   imm,   iso,   of(read,imm)); }
-  @Example @Disabled void t476(){ c1(mdf,   imm,   iso,   of(/*not well formed lambda*/)); }
-  @Example @Disabled void t477(){ c1(recMdf,imm,   iso,   of(read,imm)); }
+  @Example void t471(){ c1(imm,   imm,   iso,    of(/*impossible*/)); }
+  @Example void t472(){ c1(read,  imm,   iso,    of(/*impossible*/)); }
+  @Example void t473(){ c1(lent,  imm,   iso,   of(read,imm)); }
+  @Example void t474(){ c1(mut,   imm,   iso,   of(read,imm)); }
+  @Example void t475(){ c1(iso,   imm,   iso,   of(read,imm)); }
+  @Example void t476(){ c1(mdf,   imm,   iso,   of(/*not well formed lambda*/)); }
+  @Example void t477(){ c1(recMdf,imm,   iso,   of(read,imm)); }
 
   //                     lambda, captured, method, ...capturedAs
   @Example void t501(){ c1(imm,   imm,   mdf, of(/*not well formed method*/)); }
