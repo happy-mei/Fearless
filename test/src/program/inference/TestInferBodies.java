@@ -1160,6 +1160,33 @@ public class TestInferBodies {
     NoMutHyg[X]:{}
     """); }
 
+  @Example void nestedRecMdfExplicitMdf() { ok("""
+    {test.F/1=Dec[name=test.F/1,gxs=[X],lambda=[-mdf-][test.F[mdfX]]{'this#/1([x]):Sig[mdf=imm,gens=[],ts=[mdfX],ret=mdfX]->x}],
+    test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
+      .m1/2([a,b]):Sig[mdf=read,gens=[],ts=[recMdfX,immtest.F[recMdfX]],ret=recMdfX]->b#/1[]([a])}],
+    test.B/1=Dec[name=test.B/1,gxs=[Y],lambda=[-mdf-][test.B[mdfY]]{'this
+      #/1([a]):Sig[mdf=read,gens=[],ts=[muttest.A[muttest.B[recMdfY]]],ret=recMdftest.B[recMdfY]]->
+        a.m1/2[]([[-recMdf-][test.B[recMdfY]]{'fear0$},[-imm-][test.F[recMdftest.B[recMdfY]]]{'fear1$}])}],
+    test.C/0=Dec[name=test.C/0,gxs=[],lambda=[-mdf-][test.C[]]{'this
+      #/1([b]):Sig[mdf=imm,gens=[],ts=[muttest.B[muttest.C[]]],ret=muttest.B[muttest.C[]]]->
+        b#/1[]([[-mut-][test.A[muttest.B[recMdf test.C[]]]]{'fear2$}]),
+      .i/1([b]):Sig[mdf=imm,gens=[],ts=[muttest.B[immtest.C[]]],ret=muttest.B[immtest.C[]]]->
+        b#/1[]([[-mut-][test.A[muttest.B[imm test.C[]]]]{'fear3$}])}]}
+    """, """
+    package test
+    A[X]:{
+      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      }
+    F[X]:{ imm #(x: mdf X): mdf X -> x, }
+    B[Y]:{
+      read #(a: mut A[mut B[recMdf Y]]): recMdf B[recMdf Y] -> a.m1(recMdf B[recMdf Y], F[recMdf B[recMdf Y]]),
+      }
+    C:{
+      #(b: mut B[mut C]): mut B[mut C] -> b#({}),
+      .i(b: mut B[imm C]): mut B[imm C] -> b#(mut A[mut B[imm C]]),
+      }
+    """); }
+
   // TODO: this should eventually fail with an "inference failed" message when I add that error
   @Disabled
   @Example void callingEphemeralMethod() { fail("""

@@ -6,6 +6,7 @@ import id.Id;
 import id.Mdf;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface CM {
   Id.MethName name();
@@ -20,7 +21,7 @@ public interface CM {
   default String qualifiedName() {
     return c().name()+"$"+name();
   }
-  default String toStringSimplified(){ return c() + ", " + name(); }
+  default String toStringSimplified(){ return c() + ", " + name()+"["+ sig().gens().stream().map(Id.GX::toString).collect(Collectors.joining(", "))+"]"+"("+sig().ts().stream().map(T::toString).collect(Collectors.joining(", "))+"): "+ sig().ret(); }
   static CM of(Id.IT<T> c, ast.E.Meth m, ast.E.Sig sig){ return new CoreCM(c,m,sig); }
   static CM of(Id.IT<T> c, astFull.E.Meth m, ast.E.Sig sig){ return new FullCM(c,m,sig); }
 

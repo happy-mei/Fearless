@@ -13,7 +13,8 @@ import program.Program;
 import program.TypeRename;
 import utils.Streams;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 interface ELambdaTypeSystem extends ETypeSystem{
   default Res visitLambda(E.Lambda b){
@@ -80,6 +81,19 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var selfTi = selfT.mdf().isMdf() ? selfT.withMdf(mMdf) : selfT;
     var args = m.sig().ts();
     var ret = m.sig().ret();
+//    System.out.println("before: "+m.body().get());
+//    E e = m.body().orElseThrow().accept(new CloneVisitor(){
+//      @Override public T visitT(T t) {
+//        return fancyRename(t, selfT.mdf(), Map.of());
+//      }
+//      @Override public E.Lambda visitLambda(E.Lambda e) { return e; }
+//    });
+//    System.out.println("after: "+e);
+//    var selfTiRaw = selfT.mdf().isMdf() ? selfT.withMdf(mMdf) : selfT;
+//    var selfTi = fancyRename(selfTiRaw, selfTiRaw.mdf(), Map.of());
+//
+//    var args = m.sig().ts().stream().map(t->fancyRename(t, selfTi.mdf(), Map.of())).toList();
+//    var ret = fancyRename(m.sig().ret(), selfTi.mdf(), Map.of());
 
     // todo: assert empty gamma for MDF mdf
     var g0  = g().capture(p(), selfName, selfTi, mMdf);

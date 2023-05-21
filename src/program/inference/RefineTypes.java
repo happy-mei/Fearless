@@ -102,7 +102,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
   E fixType(E ie, T iT) {
     T ieT = iT.isInfer() ? ie.t(Mdf.imm) : ie.t(iT.mdf());
-    return ie.withT(best(ie.mdf(), iT, ieT));
+    return ie.withT(best(ie.mdf(), ieT, iT));
   }
 
   T best(T iT1, T iT2) {

@@ -22,10 +22,8 @@ public interface CloneVisitor{
     e.es().stream().map(ei->ei.accept(this)).toList(),
     e.pos()
   );}
-  default E visitX(E.X e){return visitXX(e);}
-  default E.X visitXX(E.X e){return e;}
-  default E visitLambda(E.Lambda e){ return visitLLambda(e); }
-  default E.Lambda visitLLambda(E.Lambda e){ return new E.Lambda(
+  default E.X visitX(E.X e){return e;}
+  default E.Lambda visitLambda(E.Lambda e){ return new E.Lambda(
     visitMdf(e.mdf()),
     e.its().stream().map(this::visitIT).toList(),
     e.selfName(),
@@ -53,7 +51,7 @@ public interface CloneVisitor{
   default T.Dec visitDec(T.Dec d) { return new T.Dec(
     visitDecId(d.name()),
     d.gxs().stream().map(this::visitGX).toList(),
-    visitLLambda(d.lambda()),
+    visitLambda(d.lambda()),
     d.pos()
   );}
   default DecId visitDecId(DecId di){ return di; }
