@@ -201,8 +201,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:4) a.A[], .foo/1
-    ([###]/Dummy0.fear:4:5) a.B[], .foo/1
+    ([###]/Dummy0.fear:3:4) a.A[], .foo/1[](imm a.A[]): imm a.Str[]
+    ([###]/Dummy0.fear:4:5) a.B[], .foo/1[](imm a.B[]): imm a.Int[]
     """, "a.B", """
     package a
     Str:{} Int:{}
@@ -214,9 +214,9 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:4) a.B[], .foo/1
-    ([###]/Dummy0.fear:4:4) a.C[], .foo/1
-    ([###]/Dummy0.fear:2:7) a.A[], .foo/1
+    ([###]/Dummy0.fear:3:4) a.B[], .foo/1[](imm a.B[]): imm a.B[]
+    ([###]/Dummy0.fear:4:4) a.C[], .foo/1[](imm a.C[]): imm a.C[]
+    ([###]/Dummy0.fear:2:7) a.A[], .foo/1[](imm a.A[]): imm a.A[]
     """, "a.A", """
     package a
     A:B,C{ .foo(a:A):A }
@@ -245,8 +245,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:4:4) a.B[], .m/0
-    ([###]/Dummy0.fear:3:6) a.A[], .m/0
+    ([###]/Dummy0.fear:4:4) a.B[], .m/0[](): imm a.Int[]
+    ([###]/Dummy0.fear:3:6) a.A[], .m/0[](): imm a.Str[]
     """, "a.A", """
     package a
     Int:{} Str:{}
@@ -266,8 +266,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:4:4) a.C[], .m/0
-    ([###]/Dummy0.fear:3:4) a.B[], .m/0
+    ([###]/Dummy0.fear:4:4) a.C[], .m/0[](): imm a.C[]
+    ([###]/Dummy0.fear:3:4) a.B[], .m/0[](): imm a.B[]
     """, "a.A", """
     package a
     A:B,C { }
@@ -279,8 +279,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:6:4) a.C[], .m/0
-    ([###]/Dummy0.fear:5:4) a.B[], .m/0
+    ([###]/Dummy0.fear:6:4) a.C[], .m/0[](): imm a.C[]
+    ([###]/Dummy0.fear:5:4) a.B[], .m/0[](): imm a.B[]
     """, "a.A", """
     package a
     A:AA { .m: Int}
@@ -313,8 +313,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:4:5) a.B[], .m/0
-    ([###]/Dummy0.fear:3:10) a.A[], .m/0
+    ([###]/Dummy0.fear:4:5) a.B[], .m/0[](): imm a.B[]
+    ([###]/Dummy0.fear:3:10) a.A[], .m/0[](): imm a.D[]
     """, "a.A", """
     package a
     Int:{} Str:{}
@@ -360,8 +360,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:4:4) a.C[], .m/1
-    ([###]/Dummy0.fear:3:4) a.B[], .m/1
+    ([###]/Dummy0.fear:4:4) a.C[], .m/1[](imm a.A[]): imm a.A[]
+    ([###]/Dummy0.fear:3:4) a.B[], .m/1[](imm a.A[]): imm a.A[]
     """, "a.A", """
     package a
     A:B,C{}
@@ -402,8 +402,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:5:6) a.K[imm a.List[imm a.A[]]], .kk/0
-    ([###]/Dummy0.fear:5:6) a.K[imm a.A[]], .kk/0
+    ([###]/Dummy0.fear:5:6) a.K[imm a.List[imm a.A[]]], .kk/0[](): imm a.List[imm a.A[]]
+    ([###]/Dummy0.fear:5:6) a.K[imm a.A[]], .kk/0[](): imm a.A[]
     """, "a.A", """
     package a
     A:B[A],C[List[A]]{}
@@ -427,8 +427,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]Dummy0.fear:5:7) a.K[imm a.List[imm a.A[]]], .kk/0
-    ([###]Dummy0.fear:5:7) a.K[imm a.A[]], .kk/0
+    ([###]/Dummy0.fear:5:7) a.K[imm a.List[imm a.A[]]], .kk/0[](): imm a.List[imm a.A[]]
+    ([###]/Dummy0.fear:5:7) a.K[imm a.A[]], .kk/0[](): imm a.A[]
     """, "a.A", """
     package a
     A:B[A],C[List[A]]{}
@@ -453,8 +453,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:3) a.B[], .m/0
-    ([###]/Dummy0.fear:2:4) a.A[], .m/0
+    ([###]/Dummy0.fear:3:3) a.B[], .m/0[X0/0$](): imm a.A[]
+    ([###]/Dummy0.fear:2:4) a.A[], .m/0[](): imm a.A[]
     """, "a.A", """
     package a
     A:B{.m:A}
@@ -526,8 +526,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:4) a.B[], .m/0
-    ([###]/Dummy0.fear:2:5) a.A[], .m/0
+    ([###]/Dummy0.fear:3:4) a.B[], .m/0[](): imm a.Break[imm a.A[]]
+    ([###]/Dummy0.fear:2:5) a.A[], .m/0[](): imm a.Break[imm a.B[]]
     """, "a.A", """
     package a
     A:B{ .m:Break[B] } // fails because this is a less specific override than B (cannot loosen)
@@ -540,8 +540,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:4) a.B[], .m/0
-    ([###]/Dummy0.fear:2:5) a.A[], .m/0
+    ([###]/Dummy0.fear:3:4) a.B[], .m/0[](): imm a.Break[imm a.B[]]
+    ([###]/Dummy0.fear:2:5) a.A[], .m/0[](): imm a.Break[imm a.A[]]
     """, "a.A", """
     package a
     A:B{ .m: Break[A] }//pass? is this the looping one?
@@ -553,8 +553,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:4) a.B[], .m/0
-    ([###]/Dummy0.fear:2:5) a.A[], .m/0
+    ([###]/Dummy0.fear:3:4) a.B[], .m/0[](): imm a.Break[imm a.A[]]
+    ([###]/Dummy0.fear:2:5) a.A[], .m/0[](): imm a.Break[imm a.B[]]
     """, "a.A", """
     package a
     A:B{ .m:Break[B] }//pass? or is this one?

@@ -21,16 +21,14 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   static String argsToLList() {
-    var string2Str = MagicImpls.STR_TEMPLATE.formatted("arg");
     return """
       var cons = new base.Cons_0(){};
       base.LList_1 cliArgs = new base.LList_1(){};
       for (int i = args.length - 1; i >= 0; --i) {
         var arg = args[i];
-        var fArg = %s;
-        cliArgs = cons.$35$(fArg, cliArgs);
+        cliArgs = cons.$35$(arg, cliArgs);
       }
-      """.formatted(string2Str);
+      """;
   }
 
   public String visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) {
@@ -154,13 +152,13 @@ public class JavaCodegen implements MIRVisitor<String> {
     return switch (it.name().name()) {
       case "base.Int", "base.UInt" -> isRet ? "Long" : "long";
       case "base.Float" -> isRet ? "Double" : "double";
-      case "base.Str" -> getName(it.name());
+      case "base.Str" -> "String";
       default -> {
         if (magic.isMagic(Magic.Int, it.name())) { yield isRet ? "Long" : "long"; }
         if (magic.isMagic(Magic.UInt, it.name())) { yield isRet ? "Long" : "long"; }
         if (magic.isMagic(Magic.Float, it.name())) { yield isRet ? "Double" : "double"; }
         if (magic.isMagic(Magic.Float, it.name())) { yield isRet ? "Double" : "double"; }
-        if (magic.isMagic(Magic.Str, it.name())) { yield getName(new Id.DecId("base.Str", 0)); }
+        if (magic.isMagic(Magic.Str, it.name())) { yield "String"; }
         yield getName(it.name());
       }
     };

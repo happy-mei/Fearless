@@ -103,6 +103,8 @@
                     <useModulePath>false</useModulePath>
                     <!-- TODO: temp during dev -->
                     <skip>true</skip>
+                    <forkCount>1C</forkCount>
+                    <reuseForks>true</reuseForks>
                     <testFailureIgnore>true</testFailureIgnore>
                 </configuration>
             </plugin>

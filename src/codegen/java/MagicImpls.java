@@ -16,14 +16,6 @@ import java.util.Optional;
 import static magic.MagicImpls.isLiteral;
 
 public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls<String> {
-  public static final String STR_TEMPLATE = """
-    new base.Str_0(){
-      private final String x = %s;
-      public String toString() { return this.x; }
-      public Long len$() { return (long)this.x.length(); }
-    }
-    """;
-
   @Override public MagicTrait<String> int_(MIR.Lambda l, MIR e) {
     var name = new Id.IT<T>(l.freshName().name(), List.of());
     return new MagicTrait<>() {
@@ -46,7 +38,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
           return instantiate(); // only different at type level
         }
         if (m.name().equals(".str")) {
-          return STR_TEMPLATE.formatted("Long.toString("+instantiate()+")");
+          return "Long.toString("+instantiate()+")";
         }
         if (m.name().equals("+")) { return instantiate()+"+"+args.get(0).accept(gen); }
         if (m.name().equals("-")) { return instantiate()+"-"+args.get(0).accept(gen); }
@@ -98,7 +90,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
           return instantiate(); // only different at type level
         }
         if (m.name().equals(".str")) {
-          return STR_TEMPLATE.formatted("Long.toUnsignedString("+instantiate()+")");
+          return "Long.toUnsignedString("+instantiate()+")";
         }
         if (m.name().equals("+")) { return instantiate()+"+"+args.get(0).accept(gen); }
         if (m.name().equals("-")) { return instantiate()+"-"+args.get(0).accept(gen); }
@@ -134,11 +126,16 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       @Override public MIR.Lambda instance() { return l; }
       @Override public String instantiate() {
         var lambdaName = name().name().name();
-        var inner = isLiteral(lambdaName) ? lambdaName : "((String)"+e.accept(gen)+")";
-        return STR_TEMPLATE.formatted(inner);
+        return isLiteral(lambdaName) ? lambdaName : "((String)"+e.accept(gen)+")";
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
-        return Optional.empty();
+        if (m.equals(new Id.MethName(".len", 0))) {
+          return Optional.of(instantiate()+".length()");
+        }
+        if (m.equals(new Id.MethName(".str", 0))) {
+          return Optional.of(instantiate());
+        }
+        throw Bug.unreachable();
       }
     };
   }

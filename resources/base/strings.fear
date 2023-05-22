@@ -3,11 +3,12 @@ package base
 Str:Sealed{
   .len: UInt,
   // Str is not Stringable due to limitations of the Java codegen target
-  .str: Str -> this,
+  .str: Str,
   }
 Stringable:{
   .str: Str,
   }
 _StrInstance:Str{
-  .len -> this.len
+  .len -> this.len,
+  .str -> this.str,
   }

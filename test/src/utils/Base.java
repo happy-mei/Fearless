@@ -13,11 +13,14 @@ public interface Base {
     );
   }
 
-  static String load(String file) {
-    var in = Thread.currentThread().getContextClassLoader().getResourceAsStream("base/" +file);
-    assert in != null: "base/" +file+" is not present";
+  static String load(String prefix, String file) {
+    var path = prefix+"/"+file;
+    var in = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+    assert in != null: path+" is not present";
     return new BufferedReader(new InputStreamReader(in)).lines().collect(Collectors.joining("\n"));
   }
+  static String load(String file) { return load("base", file); }
+  static String loadImm(String file) { return load("immBase", file); }
 
   String[] baseLib = {
     load("lang.fear"),
@@ -31,6 +34,16 @@ public interface Base {
     load("block.fear"),
     load("errors.fear"),
     load("lists.fear")
+  };
+
+  String[] immBaseLib = {
+    loadImm("lang.fear"),
+    loadImm("bools.fear"),
+    loadImm("nums.fear"),
+    loadImm("strings.fear"),
+    loadImm("assertions.fear"),
+    loadImm("optionals.fear"),
+    loadImm("lists.fear")
   };
 
   String minimalBase = """
