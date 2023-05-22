@@ -5,19 +5,19 @@ Cons:{
   #[E](h: E, t: LList[E]): LList[E] -> { .match(m) -> m.elem(h, t) },
   }
 LList[E]:Sealed{
-  .match[R](m: LListMatch[E, R]): R -> m.empty,
+  .match[R](m: LListMatch[E, mdf R]): mdf R -> m.empty,
   .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
-  .size: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.size + 1u, },
+  .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
   ++(l1: LList[E]): LList[E] -> this.match{
     .empty -> l1,
     .elem(h, t) -> Cons#(h, t ++ l1)
     },
   +(e: E): LList[E] -> this ++ Cons#(e, {}),
-  .get(i: UInt) : Opt[E] -> this.match{ // TODO
+  .get(i: UInt): iso Opt[E] -> this.match{
     .empty -> {},
-    .elem(h, t) -> (i == 0u) ? { .then -> imm Opt#h, .else -> t.get(i - 1u) }
+    .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
     },
-  .head: Opt[E] -> this.match{
+  .head: iso Opt[E] -> this.match{
     .empty -> {},
     .elem(h,_) -> Opt#h,
     },
@@ -26,4 +26,4 @@ LList[E]:Sealed{
     .elem(_,t) -> t,
     },
   }
-LListMatch[E,R]:{ .elem(head: E, tail: LList[E]): R, .empty: R }
+LListMatch[E, mdf R]:{ .elem(head: E, tail: LList[E]): mdf R, .empty: mdf R }

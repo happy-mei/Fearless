@@ -7,7 +7,7 @@ Cons:{
 LList[E]:Sealed{
   .match[R](m: LListMatch[E, R]): R -> m.empty,
   .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
-  .size: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.size + 1u, },
+  .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
   ++(l1: LList[E]): LList[E] -> this.match{
     .empty -> l1,
     .elem(h, t) -> Cons#(h, t ++ l1)
