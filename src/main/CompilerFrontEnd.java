@@ -8,28 +8,31 @@ import codegen.java.ImmJavaCodegen;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaProgram;
 import failure.CompileError;
+import failure.Fail;
 import id.Id;
+import org.zalando.fauxpas.ThrowingFunction;
 import parser.Parser;
 import program.inference.InferBodies;
 import utils.Box;
 import utils.Bug;
+import utils.Push;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
+import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
 public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
   record Verbosity(boolean showInternalStackTraces, boolean printCodegen){
@@ -38,6 +41,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
   }
   enum BaseVariant { Std, Imm }
   static Box<Map<String, List<Package>>> immBaseLib = new Box<>(null);
+  static Box<Map<String, List<Package>>> baseLib = new Box<>(null);
 
   void newPkg(String name) {
     // TODO: check valid package name
@@ -55,6 +59,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
   void run(String entryPoint, String[] files, List<String> cliArgs) {
     var entry = new Id.DecId(entryPoint, 0);
     var p = compile(files);
+    // TODO: validate entry trait name
     var java = toJava(entry, p);
     var classFile = java.compile();
 
@@ -75,13 +80,29 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
   }
 
   Program compile(String[] files) {
-    var p = Parser.parseAll(parseBase());
+    var base = parseBase();
+    Map<String, List<Package>> ps = new HashMap<>(base);
+    Arrays.stream(files)
+      .map(Path::of)
+      .map(path->{
+        try { return CompilerFrontEnd.load(path); }
+        catch (FileSystemException err) { throw Fail.fsError(err); }
+        catch (IOException err) { throw Fail.ioError(err); }
+      })
+      .flatMap(pkgs->pkgs.entrySet().stream())
+      .forEach(pkg->ps.compute(
+        pkg.getKey(),
+        (name, ps_)->Optional.ofNullable(ps_)
+          .map(ps__->Stream.concat(ps__.stream(), pkg.getValue().stream()).distinct().toList())
+          .orElse(pkg.getValue())
+      ));
+
+    var p = Parser.parseAll(ps);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     inferred.typeCheck();
-    // TODO: compile user code
     return inferred;
   }
   private JavaProgram toJava(Id.DecId entry, Program p) {
@@ -109,16 +130,17 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
   }
 
   Map<String, List<Package>> parseBase() {
+    var load = throwingFunction(CompilerFrontEnd::load);
     Map<String, List<Package>> ps; try { ps =
       switch (bv) {
         case Std -> {
-          var res = immBaseLib.get();
-          if (res == null) { res = resolveResource("/base", CompilerFrontEnd::load); immBaseLib.set(res); }
+          var res = baseLib.get();
+          if (res == null) { res = resolveResource("/base", load); baseLib.set(res); }
           yield res;
         }
         case Imm -> {
           var res = immBaseLib.get();
-          if (res == null) { res = resolveResource("/immBase", CompilerFrontEnd::load); immBaseLib.set(res); }
+          if (res == null) { res = resolveResource("/immBase", load); immBaseLib.set(res); }
           yield res;
         }
       };
@@ -137,21 +159,18 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
       return f.apply(fs.getPath(root));
     }
   }
-  static Map<String, List<Package>> load(Path root) {
+
+  static Map<String, List<Package>> load(Path root) throws IOException {
     try(var fs = Files.walk(root)) {
       return fs
         .filter(Files::isRegularFile)
-        .map(path->new Parser(path, read(path)).parseFile(CompileError::err))
+        .map(throwingFunction(path->new Parser(path, read(path)).parseFile(CompileError::err)))
         .collect(Collectors.groupingBy(Package::name));
-    } catch (IOException e) {
-      throw Bug.of(e);
     }
   }
-  static String read(Path p) {
+  static String read(Path p) throws IOException {
     try(var br = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
       return br.lines().collect(Collectors.joining("\n"));
-    } catch (IOException e) {
-      throw Bug.of(e);
     }
   }
 }

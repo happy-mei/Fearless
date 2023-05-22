@@ -9,9 +9,13 @@ import program.CM;
 import program.typesystem.EMethTypeSystem;
 import utils.Bug;
 
+import java.io.IOException;
 import java.lang.reflect.Modifier;
+import java.nio.file.FileSystemException;
+import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Fail{
@@ -169,6 +173,14 @@ public class Fail{
     return of("The type "+t1+" is not valid because a mut lambda may not capture hygienic references.");
   }
 
+  public static CompileError ioError(IOException err) {
+    return of("There was an error handling: "+err.getLocalizedMessage()+".");
+  }
+  public static CompileError fsError(FileSystemException err) {
+    var extra = Optional.ofNullable(err.getReason()).map(reason->" because "+reason+".").orElse(".");
+    return of(err.getFile()+" does not exist or cannot be read"+extra);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -216,6 +228,8 @@ enum ErrorCode {
   noSubTypingRelationship,
   uncallableMeths,
   incompatibleMdfs,
-  mutCapturesHyg;
+  mutCapturesHyg,
+  ioError,
+  fsError;
   int code() {return this.ordinal() + 1;}
 }
