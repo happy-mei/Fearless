@@ -4,8 +4,8 @@ MyApp:Main[Void]{ args, s -> s
   .return{ io.println(ImmMain#args) }
   }
 ImmMain:{
-//  #(args: LList[Str]): Str -> args.get 1u | this.errMsg*,
-  #(args: LList[Str]): Str -> (this.errMsg(True))*,
+  #(args: LList[Str]): Str -> (this.errMsg(args.get 0u).isSome) *,
+//  #(args: LList[Str]): Str -> (this.errMsg(True))*,
   // TODO: this promotion should work:
 //  #(args: LList[Str]): Str -> args.get 0u || (Box#"Sad"),
 
