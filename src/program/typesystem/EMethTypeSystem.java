@@ -89,7 +89,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
 
   default Optional<List<TsT>> multiMeth(T rec, MethName m, List<T> ts) {
-    return extractMeth(rec, m, ts).map(this::allMeth);
+    return resolveMeth(rec, m, ts).map(this::allMeth);
   }
 
   default List<TsT> allMeth(TsT tst) {
@@ -105,18 +105,19 @@ public interface EMethTypeSystem extends ETypeSystem {
     ).toList();
   }
 
-  default Optional<TsT> extractMeth(T rec, MethName m, List<T> ts) {
+  default Optional<TsT> resolveMeth(T rec, MethName m, List<T> ts) {
     if (!(rec.rt() instanceof Id.IT<T> recIT)) { return Optional.empty(); }
-    return p().meths(recIT, m, depth()).map(cm -> {
+    return p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
       var mdf = rec.mdf();
       var mdf0 = cm.mdf();
-      // TODO: this check is not in the formalism and is also kinda broken (see shouldApplyRecMdfInTypeParams4a)
-      if (containsRecMdf(rec)) {
-        return new TsT(Push.of(rec.withMdf(mdf0), cm.sig().ts()), cm.ret());
-      }
+//      // TODO: this check is not in the formalism and is also kinda broken (see shouldApplyRecMdfInTypeParams4a)
+//      if (containsRecMdf(rec)) {
+//        return new TsT(Push.of(rec.withMdf(mdf0), cm.sig().ts()), cm.ret());
+//      }
       Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
-      var t0 = fancyRename(rec, mdf, xsTsMap).withMdf(mdf0);
+//      var t0 = fancyRename(rec, mdf, xsTsMap).withMdf(mdf0);
 //      var t0 = rec.withMdf(mdf0);
+      var t0 = new T(mdf0, cm.c());
       var params = Push.of(
         t0,
         cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()
@@ -132,7 +133,9 @@ public interface EMethTypeSystem extends ETypeSystem {
     var renamed = t.match(
       gx->{
         if(!mdf.isRecMdf()){ return map.getOrDefault(gx,t); }
-        var ti = map.getOrDefault(gx,t);
+        var ti = map.get(gx);
+        if (ti == null) { return t; }
+//        var ti = map.getOrDefault(gx,t);
         return ti.withMdf(mdf0.adapt(ti));
       },
       it->{

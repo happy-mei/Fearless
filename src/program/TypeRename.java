@@ -1,6 +1,5 @@
 package program;
 
-import ast.T;
 import id.Id;
 import id.Mdf;
 
@@ -49,22 +48,32 @@ public interface TypeRename<T>{
     }
   }
   class CoreRecMdfTypeRename extends CoreTTypeRename {
-    public CoreRecMdfTypeRename(Program p) { super(p); }
+    private final Mdf recvMdf;
+    public CoreRecMdfTypeRename(Program p, Mdf recvMdf) {
+      super(p);
+      this.recvMdf = recvMdf;
+    }
 
     /** This is adaptRecMDF(MDF) ITX with t = MDF ITX */
     public ast.T propagateMdf(Mdf mdf, ast.T t){
       if(!mdf.isRecMdf()){ return super.propagateMdf(mdf,t); }
       assert t!=null;
-      var m=t.mdf();
-      if(m.isImm()){ return t; }
-      if(m.isRead()){ return t; }
-      assert !m.isIso();
-      return t.withMdf(Mdf.recMdf);
+      if (recvMdf.isMdf()) {
+        return t.withMdf(Mdf.recMdf);
+      }
+      var resolvedMdf = recvMdf.adapt(t.mdf());
+      System.out.println("Adapting "+recvMdf+" with "+t.mdf()+" to make "+resolvedMdf);
+      return t.withMdf(resolvedMdf);
+//      var m=t.mdf();
+//      if(m.isImm()){ return t; }
+//      if(m.isRead()){ return t; }
+//      assert !m.isIso();
+//      return t.withMdf(Mdf.recMdf);
     }
   }
   static FullTTypeRename full(Program p) { return new FullTTypeRename(p); }
   static CoreTTypeRename core(Program p) { return new CoreTTypeRename(p); }
-  static CoreRecMdfTypeRename coreRec(Program p) { return new CoreRecMdfTypeRename(p); }
+  static CoreRecMdfTypeRename coreRec(Program p, Mdf recvMdf) { return new CoreRecMdfTypeRename(p, recvMdf); }
 
   <R> R matchT(T t, Function<Id.GX<T>,R> gx, Function<Id.IT<T>,R> it);
   Mdf mdf(T t);

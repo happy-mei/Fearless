@@ -1,6 +1,7 @@
 package typing;
 
 import failure.CompileError;
+import id.Mdf;
 import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,13 +14,13 @@ public class TestMethsPost5a {
   void ok(String expected, String type, String ...code){
     var it = new Parser(Parser.dummy, type).parseFullT();
     var p = FromContent.of(code).inferSignatures();
-    Err.strCmpFormat(expected, p.meths(it.toAstT().itOrThrow(), 0).toString());
+    Err.strCmpFormat(expected, p.meths(Mdf.mdf, it.toAstT().itOrThrow(), 0).toString());
   }
   void fail(String expected, String type, String ...code) {
     var it = new Parser(Parser.dummy, type).parseFullT();
     var p = FromContent.of(code).inferSignatures();
     try {
-      var res = p.meths(it.toAstT().itOrThrow(), 0);
+      var res = p.meths(Mdf.mdf, it.toAstT().itOrThrow(), 0);
       Assertions.fail("Expected failure, got\n" + res);
     } catch (CompileError e) {
       Err.strCmp(expected, e.toString());

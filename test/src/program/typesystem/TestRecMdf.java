@@ -60,10 +60,35 @@ public class TestRecMdf {
   @Example void shouldCollapseWhenCalledGenMut() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): recMdf X,
-      mut .m2: mdf X -> this.m1{},
+      read .m1(a: recMdf X, _: mut NoPromote): recMdf X,
+      mut .m2(a: mdf X): mdf X -> this.m1(a, mut NoPromote{}),
       }
     NoPromote:{}
+    """); }
+  @Example void shouldCollapseWhenCalledGenMut2() { ok("""
+    package test
+    A[X]:{
+      read .get: recMdf X -> this.get
+      }
+    B:{
+      .m1Mut[Y](a: mut A[mut      Y]): mut Y     -> a.get,
+      .m2Mut   (a: mut A[mut Person]): mut Person-> a.get,
+      
+      .m1Read[Y](a: read A[read      Y]): read Y     -> a.get,
+      .m2Read   (a: read A[read Person]): read Person-> a.get,
+      
+      .m1Lent[Y](a: lent A[lent      Y]): lent Y     -> a.get,
+      .m2Lent   (a: lent A[lent Person]): lent Person-> a.get,
+      
+      .m1Mdf[Y](a: mut A[mdf      Y]): mdf Y     -> a.get,
+      //.m2Mdf   (a: mdf A[mdf Person]): mdf Person-> a.get,
+      
+      .m1Imm[Y](a: imm A[imm      Y]): imm Y     -> a.get,
+      .m1_Imm[Y](a: mut A[imm      Y]): imm Y     -> a.get,
+      .m2Imm   (a: imm A[imm Person]): imm Person-> a.get,
+      .m2_Imm   (a: mut A[imm Person]): imm Person-> a.get,
+      }
+    Person:{}
     """); }
   @Example void shouldCollapseWhenCalledGenImm() { ok("""
     package test
@@ -89,8 +114,14 @@ public class TestRecMdf {
       }
     NoPromote:{}
     """); }
-  // TODO: not sure about this one
-  @Example void shouldCollapseWhenCalledGenLent() { ok("""
+  @Example void shouldCollapseWhenCalledGenLent() { fail("""
+    In position [###]/Dummy0.fear:4:28
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .m1/1[]([[-mut-][test.NoPromote[]]{'fear0$ }]), no candidates for .m1/1 returned the expected type recMdf X. The candidates were:
+    (read test.A[mdf X], mut test.NoPromote[]): mdf X
+    (read test.A[mdf X], iso test.NoPromote[]): mdf X
+    (imm test.A[mdf X], iso test.NoPromote[]): mdf X
+    """, """
     package test
     A[X]:{
       read .m1(_: mut NoPromote): recMdf X,
@@ -194,7 +225,8 @@ public class TestRecMdf {
   @Example void shouldApplyRecMdfInTypeParams1b() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    //Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x), } }
     Opt[T]:NoMutHyg[mdf T]{
       read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }
@@ -206,7 +238,8 @@ public class TestRecMdf {
   @Example void shouldApplyRecMdfInTypeParams2() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    //Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x), } }
     Opt[T]:NoMutHyg[mdf T]{
       read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
@@ -275,23 +308,48 @@ public class TestRecMdf {
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
+      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] ->
+        a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
       }
     C:{
-      #(b: mut B[mut C]): mut B[mut C] -> b#({}),
+      #(b: mut B[mut C]): mut B[mut C] -> b#(mut A[mut B[mut C]]{}),
       }
     """); }
-  @Example void shouldApplyRecMdfInTypeParams4b() { ok("""
+  @Example void shouldApplyRecMdfInTypeParams4aV2() { ok("""
     package test
     A[X]:{
       read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): recMdf B[recMdf Y] -> a.m1(recMdf B[recMdf Y], F[recMdf B[recMdf Y]]),
+      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> this#a,
       }
     C:{
-      #(b: mut B[mut C]): mut B[mut C] -> b#({}),
+      #(b: mut B[mut C]): mut B[mut C] -> b#(mut A[mut B[mut C]]{}),
+      }
+    """); }
+  @Example void shouldApplyRecMdfInTypeParams4b() { fail("""
+    In position [###]/Dummy0.fear:10:5
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    a .m1/2[]([[-recMdf-][test.B[recMdf Y]]{'fear0$ }, [-imm-][test.F[recMdf test.B[recMdf Y]]]{'fear1$ }])
+    were valid:
+    (mut test.A[mut test.B[recMdf Y]], recMdf test.B[recMdf Y], imm test.F[recMdf test.B[recMdf Y]]) <: (read test.A[mut test.B[recMdf Y]], iso test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]): iso test.B[recMdf Y]
+    (mut test.A[mut test.B[recMdf Y]], recMdf test.B[recMdf Y], imm test.F[recMdf test.B[recMdf Y]]) <: (imm test.A[mut test.B[recMdf Y]], iso test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]): iso test.B[recMdf Y]
+    """, """
+    package test
+    A[X]:{
+      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      }
+    F[X]:{ imm #(x: mdf X): mdf X -> x, }
+    // Fails because if B[Y] is imm, we'll fail because recMdf X will be mut B[..] and recMdf B[..] in the rt here
+    // will be imm B[..]
+    B[Y]:{
+      read #(a: mut A[mut B[recMdf Y]]): recMdf B[recMdf Y] ->
+        a.m1(recMdf B[recMdf Y], F[recMdf B[recMdf Y]]),
+      }
+    C:{
+      #(b: mut B[mut C]): mut B[mut C] -> b#(mut A[mut B[mut C]]{}),
       }
     """); }
   @Example void shouldApplyRecMdfInTypeParams4c() { ok("""
@@ -301,11 +359,13 @@ public class TestRecMdf {
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): recMdf B[recMdf Y] -> a.m1(recMdf B[recMdf Y], F[recMdf B[recMdf Y]]),
+      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] ->
+        a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
       }
     C:{
-      #(b: mut B[mut C]): mut B[mut C] -> b#({}),
+      #(b: mut B[mut C]): mut B[mut C] -> b#(mut A[mut B[mut C]]),
       .i(b: mut B[imm C]): mut B[imm C] -> b#(mut A[mut B[imm C]]),
+      .ii(b: mut B[imm C]): imm B[imm C] -> b#(mut A[mut B[imm C]]),
       }
     """); }
 }

@@ -27,7 +27,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     return new MIR.Program(ds);
   }
   public MIR.Trait visitDec(String pkg, T.Dec dec) {
-    var ms = p.meths(dec.toIT(), 0).stream()
+    var ms = p.meths(Mdf.mdf, dec.toIT(), 0).stream()
       .map(cm->{
         var m = p.ds().get(cm.c().name())
           .lambda()
@@ -50,7 +50,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
 
   public MIR.MCall visitMCall(String pkg, E.MCall e, Map<String, T> gamma) {
     var recv = e.receiver().accept(this, pkg, gamma);
-    var meth = p.meths(recv.t().itOrThrow(), e.name(), 0).orElseThrow();
+    var meth = p.meths(recv.t().mdf(), recv.t().itOrThrow(), e.name(), 0).orElseThrow();
     return new MIR.MCall(
       recv,
       e.name(),

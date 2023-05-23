@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 public interface Program {
   List<Id.IT<T>> itsOf(Id.IT<T> t);
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
-  List<CM> cMsOf(Id.IT<T> t);
+  List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t);
   Set<Id.GX<ast.T>> gxsOf(Id.IT<T> t);
   Program withDec(T.Dec d);
   List<ast.E.Lambda> lambdas();
@@ -114,8 +114,8 @@ public interface Program {
     var it1 = t1.itOrThrow();
     var it2 = t2.itOrThrow();
     assert it1.name().equals(it2.name());
-    List<CM> cms1 = filterByMdf(mdf, meths(it1, 0));
-    List<CM> cms2 = filterByMdf(mdf, meths(it2, 0));
+    List<CM> cms1 = filterByMdf(mdf, meths(Mdf.mdf, it1, 0));
+    List<CM> cms2 = filterByMdf(mdf, meths(Mdf.mdf, it2, 0));
 
     var methsByName = Stream.concat(cms1.stream(), cms2.stream())
       .collect(Collectors.groupingBy(CM::name))
@@ -181,7 +181,7 @@ public interface Program {
   }
 
   record FullMethSig(Id.MethName name, E.Sig sig){}
-  default Optional<FullMethSig> fullSig(List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
+  default Optional<FullMethSig> fullSig(Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
     var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), new ast.E.Lambda(
@@ -192,7 +192,7 @@ public interface Program {
       Optional.empty()
     ), Optional.empty());
     var p = this.withDec(dec);
-    var myM_ = p.meths(dec.toIT(), depth).stream()
+    var myM_ = p.meths(Mdf.mdf, dec.toIT(), depth).stream()
       .filter(pred)
       .toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
@@ -207,26 +207,29 @@ public interface Program {
     return Optional.of(new FullMethSig(cm.name(), restoredSig));
   }
 
-  default Optional<CM> meths(Id.IT<T> it, Id.MethName name, int depth){
-    var myM_ = meths(it, depth).stream().filter(mi->mi.name().equals(name)).toList();
+  default Optional<CM> meths(Mdf recvMdf, Id.IT<T> it, Id.MethName name, int depth){
+    var myM_ = meths(recvMdf, it, depth).stream().filter(mi->mi.name().equals(name)).toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
     assert myM_.size()==1;
     return Optional.of(myM_.get(0));
   }
 
-  default List<CM> meths(Id.IT<T> it, int depth) {
-    return methsAux(it).stream().map(cm->freshenMethGens(cm, depth)).toList();
+  default List<CM> meths(Mdf recvMdf, Id.IT<T> it, int depth) {
+    return methsAux(recvMdf, it).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
-  HashMap<Id.IT<T>, List<CM>> methsCache = new HashMap<>();
-  default List<CM> methsAux(Id.IT<T> it) {
+  record MethsCacheKey(Mdf recvMdf, Id.IT<T> it){}
+  HashMap<MethsCacheKey, List<CM>> methsCache = new HashMap<>();
+  default List<CM> methsAux(Mdf recvMdf, Id.IT<T> it) {
+    var cacheKey = new MethsCacheKey(recvMdf, it);
     // Can't use computeIfAbsent here because concurrent modification thanks to mutual recursion :-(
-    if (methsCache.containsKey(it)) { return methsCache.get(it); }
+    if (methsCache.containsKey(cacheKey)) { return methsCache.get(cacheKey); }
+    System.out.println("looking up "+cacheKey);
     List<CM> cms = Stream.concat(
-      cMsOf(it).stream(),
-      itsOf(it).stream().flatMap(iti->methsAux(iti).stream())
+      cMsOf(recvMdf, it).stream(),
+      itsOf(it).stream().flatMap(iti->methsAux(recvMdf, iti).stream())
     ).toList();
     var res = prune(cms, posOf(it));
-    methsCache.put(it, res);
+    methsCache.put(cacheKey, res);
     return res;
   }
 

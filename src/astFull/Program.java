@@ -49,14 +49,14 @@ public class Program implements program.Program{
     return d.lambda().its().stream().map(ti->TypeRename.core(this).renameIT(liftIT(ti),f)).toList();
   }
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
-  @Override public List<CM> cMsOf(Id.IT<ast.T> t){
+  @Override public List<CM> cMsOf(Mdf recvMdf, Id.IT<ast.T> t){
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
     return d.lambda().meths().stream()
       .filter(mi->mi.sig().isPresent())
-      .map(mi->cm(t,mi,f))
+      .map(mi->cm(recvMdf, t, mi, f))
       .toList();
   }
 
@@ -64,10 +64,10 @@ public class Program implements program.Program{
     return of(t).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
   }
 
-  private CM cm(Id.IT<ast.T> t, astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
+  private CM cm(Mdf recvMdf, Id.IT<ast.T> t, astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
-    var cm = CM.of(t, mi, TypeRename.coreRec(this).renameSig(new InjectionVisitor().visitSig(sig), f));
+    var cm = CM.of(t, mi, TypeRename.coreRec(this, recvMdf).renameSig(new InjectionVisitor().visitSig(sig), f));
     return norm(cm);
   }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
@@ -159,7 +159,7 @@ public class Program implements program.Program{
     }
     Id.MethName onlyAbs(T.Dec dec){
       // depth doesn't matter here because we just extract the name
-      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), p.meths(dec.toAstT(), -1).stream().filter(CM::isAbs));
+      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), p.meths(Mdf.mdf, dec.toAstT(), -1).stream().filter(CM::isAbs));
       return m.name();
     }
     E.Meth inferSignature(T.Dec dec, E.Meth m) {
@@ -169,7 +169,7 @@ public class Program implements program.Program{
         if (m.xs().size() != name.num()) { throw Fail.cannotInferSig(dec.name(), name); }
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();
-        var inferred = p.meths(dec.toAstT(), name, 0)
+        var inferred = p.meths(Mdf.mdf, dec.toAstT(), name, 0)
           .orElseThrow(()->Fail.cannotInferSig(dec.name(), name));
         return namedMeth.withSig(inferred.sig().toAstFullSig());
       } catch (CompileError e) {

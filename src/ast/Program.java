@@ -3,6 +3,7 @@ package ast;
 import failure.CompileError;
 import files.Pos;
 import id.Id;
+import id.Mdf;
 import magic.Magic;
 import failure.Fail;
 import program.CM;
@@ -58,13 +59,13 @@ public class Program implements program.Program  {
       .toList();
   }
   @Override
-  public List<CM> cMsOf(Id.IT<T> t) {
+  public List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t) {
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
     return d.lambda().meths().stream()
-      .map(mi->cm(t,mi,f))
+      .map(mi->cm(recvMdf, t, mi, f))
       .toList();
   }
   @Override public Set<Id.GX<T>> gxsOf(Id.IT<T> t) {
@@ -73,9 +74,9 @@ public class Program implements program.Program  {
 
   @Override public String toString() { return this.ds.toString(); }
 
-  private CM cm(Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
+  private CM cm(Mdf recvMdf, Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
-    var cm = CM.of(t, mi, TypeRename.coreRec(this).renameSig(mi.sig(), f));
+    var cm = CM.of(t, mi, TypeRename.coreRec(this, recvMdf).renameSig(mi.sig(), f));
     return norm(cm);
   }
 }

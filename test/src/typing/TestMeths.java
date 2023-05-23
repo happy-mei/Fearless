@@ -1,6 +1,7 @@
 package typing;
 
 import failure.CompileError;
+import id.Mdf;
 import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -14,13 +15,13 @@ public class TestMeths {
   void ok(String expected, String type, String ...code){
     var it = new Parser(Parser.dummy, type).parseFullT();
     Program p= FromContent.of(code);
-    Err.strCmpFormat(expected, p.meths(it.toAstT().itOrThrow(), 0).toString());
+    Err.strCmpFormat(expected, p.meths(Mdf.mdf, it.toAstT().itOrThrow(), 0).toString());
   }
   void fail(String expected, String type, String ...code) {
     var it = new Parser(Parser.dummy, type).parseFullT();
     Program p = FromContent.of(code);
     try {
-      var res = p.meths(it.toAstT().itOrThrow(), 0);
+      var res = p.meths(Mdf.mdf, it.toAstT().itOrThrow(), 0);
       Assertions.fail("Expected failure, got\n" + res);
     } catch (CompileError e) {
       Err.strCmp(expected, e.toString());
@@ -593,7 +594,7 @@ public class TestMeths {
     Family:List[read Person]{}
     """); }
   @Example void adaptRecMdfMut() { ok("""
-    [test.List[mut test.Person[]],read.get/0()[][]:recMdf test.Person[]abs]
+    [test.List[mut test.Person[]],read.get/0()[][]:mut test.Person[]abs]
     """, "test.Family", """
     package test
     Person:{}
@@ -601,11 +602,19 @@ public class TestMeths {
     Family:List[mut Person]{}
     """); }
   @Example void adaptRecMdfLent() { ok("""
-    [test.List[lent test.Person[]],read.get/0()[][]:recMdf test.Person[]abs]
+    [test.List[lent test.Person[]],read.get/0()[][]:lent test.Person[]abs]
     """, "test.Family", """
     package test
     Person:{}
     List[X]:{ read .get(): recMdf X }
     Family:List[lent Person]{}
+    """); }
+  @Example void adaptRecMdfMdf() { ok("""
+    [test.List[mdfP],read.get/0()[][]:recMdfP abs]
+    """, "test.Family[mdf P]", """
+    package test
+    Person:{}
+    List[X]:{ read .get(): recMdf X }
+    Family[P]:List[mdf P]{}
     """); }
 }
