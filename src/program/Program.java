@@ -82,6 +82,7 @@ public interface Program {
       return true;
     }
     if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
+    t1 = t1.withMdf(Mdf.mdf); t2 = t2.withMdf(Mdf.mdf);
     if(t1.rt().equals(t2.rt())){ return true; }
     if(!t1.isIt() || !t2.isIt()){ return false; }
 
@@ -223,7 +224,6 @@ public interface Program {
     var cacheKey = new MethsCacheKey(recvMdf, it);
     // Can't use computeIfAbsent here because concurrent modification thanks to mutual recursion :-(
     if (methsCache.containsKey(cacheKey)) { return methsCache.get(cacheKey); }
-    System.out.println("looking up "+cacheKey);
     List<CM> cms = Stream.concat(
       cMsOf(recvMdf, it).stream(),
       itsOf(it).stream().flatMap(iti->methsAux(recvMdf, iti).stream())

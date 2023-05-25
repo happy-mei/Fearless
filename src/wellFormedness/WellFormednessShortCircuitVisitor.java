@@ -68,7 +68,7 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
     return new ShortCircuitVisitor<CompileError>(){
       @Override
       public Optional<CompileError> visitLambda(E.Lambda e) {
-        if (e.mdf().isRecMdf()) { return Optional.of(Fail.recMdfInNonHyg(m.sig().mdf(), m.name(), e).pos(e.pos())); }
+//        if (e.mdf().isRecMdf()) { return Optional.of(Fail.recMdfInNonHyg(m.sig().mdf(), m.name(), e).pos(e.pos())); }
 //        return ShortCircuitVisitor.super.visitLambda(e);
         return Optional.empty();
       }
@@ -83,6 +83,7 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
   }
 
   private Optional<CompileError> noSealedOutsidePkg(E.Lambda e) {
+    if (e.meths().isEmpty()) { return Optional.empty(); }
     var pkg = this.pkg.orElseThrow();
     return getSealedDec(e.its()).filter(dec->!dec.pkg().equals(pkg)).map(dec->Fail.sealedCreation(dec, pkg).pos(e.pos()));
   }

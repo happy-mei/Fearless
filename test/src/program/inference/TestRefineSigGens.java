@@ -43,28 +43,28 @@ public class TestRefineSigGens {
     Err.strCmpFormat(expected, refined.toString());
   }
 
-  @Example void replaceGens() { ok("""
+  @Test void replaceGens() { ok("""
     [RP[t1=imm a.Foo[mdf X],t2=imm a.Foo[mdf X]]]
     """, """
     package a
     Foo[A]:{}
     """, "a.Foo[mdf Y] = a.Foo[mdf X]"); }
 
-  @Example void replaceGens2() { ok("""
+  @Test void replaceGens2() { ok("""
     [RP[t1=mut a.Foo[mdf X],t2=mut a.Foo[mdf X]]]
     """, """
     package a
     Foo[A]:{}
     """, "mut a.Foo[mdf Y] = mut a.Foo[mdf X]"); }
 
-  @Example void replaceGensKeepMdf() { ok("""
+  @Test void replaceGensKeepMdf() { ok("""
     [RP[t1=imm a.Foo[mdfX],t2=imm a.Foo[mdfX]]]
     """, """
     package a
     Foo[A]:{}
     """, "imm a.Foo[mdf Y] = imm a.Foo[mdf X]"); }
 
-  @Example void aGen() { ok("""
+  @Test void aGen() { ok("""
     [RP[t1=imma.A[imma.B[],imma.B[]],t2=imma.A[imma.B[],imma.B[]]]]
     """, """
     package a
@@ -72,7 +72,7 @@ public class TestRefineSigGens {
     B:{}
     """, "a.A[X,a.B[]] = a.A[a.B[],Y]"); }
 
-  @Example void aGen2() { ok("""
+  @Test void aGen2() { ok("""
     [RP[t1=imma.A[imma.B[],imma.B[]],t2=imma.A[imma.B[],imma.B[]]],RP[t1=immY,t2=imma.B[]]]
     """, """
     package a

@@ -52,7 +52,7 @@ public class TestWellFormedness {
     }
   }
 
-  @Example void noRecMdfInImplements() { fail("""
+  @Test void noRecMdfInImplements() { fail("""
     In position [###]/Dummy0.fear:3:5
     [E27 recMdfInImpls]
     Invalid modifier for recMdf Y.
@@ -62,18 +62,18 @@ public class TestWellFormedness {
     A[X]:{}
     B[Y]:A[recMdf Y]{}
     """); }
-  @Example void recMdfAllowedInHyg() { ok("""
+  @Test void recMdfAllowedInHyg() { ok("""
     package base
     A[X]:{ read .foo(): recMdf X }
     B[X]:{ lent .foo(): recMdf X }
     C[X]:{ lent .foo(c: recMdf X): recMdf X -> c }
     """); }
-  @Example void recMdfAllowedInSubHyg() { ok("""
+  @Test void recMdfAllowedInSubHyg() { ok("""
     package base
     A[X]:{ .foo(x: X): X -> B[X]{ x }.argh }
     B[X]:{ read .argh: recMdf X }
     """); }
-  @Example void noRecMdfInNonReadRet() { fail("""
+  @Test void noRecMdfInNonReadRet() { fail("""
     In position [###]/Dummy0.fear:2:7
     [E26 recMdfInNonHyg]
     Invalid modifier for recMdf X.
@@ -82,7 +82,7 @@ public class TestWellFormedness {
     package base
     A[X]:{ .foo(): recMdf X }
     """); }
-  @Example void noRecMdfInNonReadRetNested() { fail("""
+  @Test void noRecMdfInNonReadRetNested() { fail("""
     In position [###]/Dummy0.fear:2:7
     [E26 recMdfInNonHyg]
     Invalid modifier for recMdf X.
@@ -91,7 +91,7 @@ public class TestWellFormedness {
     package base
     A[X]:{ .foo(): A[recMdf X] }
     """); }
-  @Example void noRecMdfInNonReadArgs() { fail("""
+  @Test void noRecMdfInNonReadArgs() { fail("""
     In position [###]/Dummy0.fear:3:7
     [E26 recMdfInNonHyg]
     Invalid modifier for recMdf base.Foo[].
@@ -101,7 +101,7 @@ public class TestWellFormedness {
     Foo:{}
     A[X]:{ .foo(f: recMdf Foo): Foo -> f }
     """); }
-  @Example void noRecMdfInNonReadArgsNested() { fail("""
+  @Test void noRecMdfInNonReadArgsNested() { fail("""
     In position [###]/Dummy0.fear:3:7
     [E26 recMdfInNonHyg]
     Invalid modifier for recMdf X.
@@ -112,17 +112,17 @@ public class TestWellFormedness {
     A[X]:{ .foo(f: A[recMdf X]): Foo -> f }
     """); }
 
-  @Example void explicitMdfLambdaRecMdf1(){ ok("""
+  @Test void explicitMdfLambdaRecMdf1(){ ok("""
     package test
     Foo:{}
     Bar:{ read .a: recMdf Foo -> recMdf Foo }
     """); }
-  @Example void explicitMdfLambdaRecMdf2(){ ok("""
+  @Test void explicitMdfLambdaRecMdf2(){ ok("""
     package test
     Foo:{}
     Bar:{ lent .a: recMdf Foo -> recMdf Foo }
     """); }
-  @Example void explicitMdfLambdaRecMdfONonHyg1(){ fail("""
+  @Test void explicitMdfLambdaRecMdfONonHyg1(){ fail("""
     In position [###]/Dummy0.fear:3:6
     [E26 recMdfInNonHyg]
     Invalid modifier for recMdf test.Foo[].
@@ -132,7 +132,7 @@ public class TestWellFormedness {
     Foo:{}
     Bar:{ .a: recMdf Foo -> recMdf Foo }
     """); }
-  @Example void explicitMdfLambdaRecMdfONonHyg2(){ fail("""
+  @Test void explicitMdfLambdaRecMdfONonHyg2(){ fail("""
     In position [###]/Dummy0.fear:3:24
     [E26 recMdfInNonHyg]
     Invalid lambda modifier.
@@ -143,7 +143,7 @@ public class TestWellFormedness {
     Bar:{ .a: Foo -> recMdf Foo }
     """); }
 
-  @Example void sealedOutsidePkg() { fail("""
+  @Test void sealedOutsidePkg() { fail("""
     In position [###]/Dummy1.fear:2:2
     [E35 sealedCreation]
     The sealed trait a.A/0 cannot be created in a different package (b).
@@ -159,7 +159,7 @@ public class TestWellFormedness {
     package base
     Sealed:{}
     """); }
-  @Example void sealedOutsidePkgNested() { fail("""
+  @Test void sealedOutsidePkgNested() { fail("""
     In position [###]/Dummy1.fear:2:2
     [E35 sealedCreation]
     The sealed trait a.A/0 cannot be created in a different package (b).
@@ -175,7 +175,7 @@ public class TestWellFormedness {
     package base
     Sealed:{}
     """); }
-  @Example void sealedOutsidePkgInline() { fail("""
+  @Test void sealedOutsidePkgInline() { fail("""
     In position [###]/Dummy1.fear:4:17
     [E35 sealedCreation]
     The sealed trait a.A/0 cannot be created in a different package (b).
@@ -195,7 +195,7 @@ public class TestWellFormedness {
     package base
     Sealed:{}
     """); }
-  @Example void sealedOutsidePkgConstructor() { ok("""
+  @Test void sealedOutsidePkgConstructor() { ok("""
     package a
     alias base.Sealed as Sealed,
     A:Sealed{ .a: Foo -> {} }
@@ -213,7 +213,7 @@ public class TestWellFormedness {
     Sealed:{}
     """); }
 
-  @Example void noMutHygType1() { fail("""
+  @Test void noMutHygType1() { fail("""
     In position [###]/Dummy0.fear:2:7
     [E40 mutCapturesHyg]
     The type mut a.A[read a.A[imm X]] is not valid because a mut lambda may not capture hygienic references.
@@ -221,7 +221,7 @@ public class TestWellFormedness {
     package a
     A[X]:{ .no: mut A[read A[X]] }
     """); }
-  @Example void noMutHygType2() { fail("""
+  @Test void noMutHygType2() { fail("""
     In position [###]/Dummy0.fear:2:7
     [E40 mutCapturesHyg]
     The type mut a.A[lent a.A[imm X]] is not valid because a mut lambda may not capture hygienic references.
@@ -229,11 +229,11 @@ public class TestWellFormedness {
     package a
     A[X]:{ .no: mut A[lent A[X]] }
     """); }
-  @Example void noMutHygType3() { ok("""
+  @Test void noMutHygType3() { ok("""
     package a
     A[X]:{ .no: mut A[X] }
     """); }
-  @Example void noMutHygType4() { ok("""
+  @Test void noMutHygType4() { ok("""
     package a
     A[X]:{ .no: read A[read A[X]] }
     """); }

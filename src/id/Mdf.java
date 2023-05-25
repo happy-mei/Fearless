@@ -53,7 +53,7 @@ public enum Mdf{
       return recMdf;
     }
     if (this == mdf) { return other; }
-//    if (this == recMdf) { return recMdf; } // TODO: maybe????
+    if (this == recMdf) { return read.adapt(other); } // TODO: maybe????
     System.err.println("uh oh adapt is undefined for "+this+" and "+other);
     throw Bug.unreachable();
   }

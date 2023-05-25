@@ -1,12 +1,12 @@
 package program.typesystem;
 
-import net.jqwik.api.Example;
+import org.junit.jupiter.api.Test;
 
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
 
 public class TestRecMdf {
-  @Example void shouldCollapseWhenCalled1() { ok("""
+  @Test void shouldCollapseWhenCalled1() { ok("""
     package test
     A:{
       read .m1(_: mut NoPromote): recMdf A,
@@ -14,14 +14,14 @@ public class TestRecMdf {
       }
     NoPromote:{}
     """); }
-  @Example void shouldCollapseWhenCalled1a() { ok("""
+  @Test void shouldCollapseWhenCalled1a() { ok("""
     package test
     A:{
       read .m1: recMdf A -> {},
       mut .m2: read A -> this.m1,
       }
     """); }
-  @Example void shouldCollapseWhenCalled1b() { fail("""
+  @Test void shouldCollapseWhenCalled1b() { fail("""
     In position [###]/Dummy0.fear:4:20
     [E28 undefinedName]
     The identifier "this" is undefined or cannot be captured.
@@ -33,7 +33,7 @@ public class TestRecMdf {
       }
     NoPromote:{}
     """); }
-  @Example void shouldCollapseWhenCalled1c() { ok("""
+  @Test void shouldCollapseWhenCalled1c() { ok("""
     package test
     A:{
       read .m1(_: mut NoPromote): recMdf A,
@@ -41,7 +41,7 @@ public class TestRecMdf {
       }
     NoPromote:{}
     """); }
-  @Example void shouldCollapseWhenCalled1d() { fail("""
+  @Test void shouldCollapseWhenCalled1d() { fail("""
     In position [###]/Dummy0.fear:4:24
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .m1/1[]([[-mut-][test.NoPromote[]]{'fear0$ }]), no candidates for .m1/1 returned the expected type mut test.A[]. The candidates were:
@@ -57,7 +57,7 @@ public class TestRecMdf {
     NoPromote:{}
     """); }
 
-  @Example void shouldCollapseWhenCalledGenMut() { ok("""
+  @Test void shouldCollapseWhenCalledGenMut() { ok("""
     package test
     A[X]:{
       read .m1(a: recMdf X, _: mut NoPromote): recMdf X,
@@ -65,7 +65,7 @@ public class TestRecMdf {
       }
     NoPromote:{}
     """); }
-  @Example void shouldCollapseWhenCalledGenMut2() { ok("""
+  @Test void shouldCollapseWhenCalledGenMut2() { ok("""
     package test
     A[X]:{
       read .get: recMdf X -> this.get
@@ -90,7 +90,7 @@ public class TestRecMdf {
       }
     Person:{}
     """); }
-  @Example void shouldCollapseWhenCalledGenImm() { ok("""
+  @Test void shouldCollapseWhenCalledGenImm() { ok("""
     package test
     A[X]:{
       read .m1(_: mut NoPromote): recMdf X,
@@ -98,7 +98,7 @@ public class TestRecMdf {
       }
     NoPromote:{}
     """); }
-  @Example void shouldCollapseWhenCalledGenRead1() { ok("""
+  @Test void shouldCollapseWhenCalledGenRead1() { ok("""
     package test
     A[X]:{
       read .m1(_: mut NoPromote): recMdf X,
@@ -106,7 +106,7 @@ public class TestRecMdf {
       }
     NoPromote:{}
     """); }
-  @Example void shouldCollapseWhenCalledGenRead2() { ok("""
+  @Test void shouldCollapseWhenCalledGenRead2() { ok("""
     package test
     A[X]:{
       read .m1(_: mut NoPromote): recMdf X,
@@ -114,7 +114,7 @@ public class TestRecMdf {
       }
     NoPromote:{}
     """); }
-  @Example void shouldCollapseWhenCalledGenLent() { fail("""
+  @Test void shouldCollapseWhenCalledGenLent() { fail("""
     In position [###]/Dummy0.fear:4:28
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .m1/1[]([[-mut-][test.NoPromote[]]{'fear0$ }]), no candidates for .m1/1 returned the expected type recMdf X. The candidates were:
@@ -129,7 +129,7 @@ public class TestRecMdf {
       }
     NoPromote:{}
     """); }
-  @Example void shouldCollapseWhenCalledGenIso1() { ok("""
+  @Test void shouldCollapseWhenCalledGenIso1() { ok("""
     package test
     A[X]:{
       read .m1(_: mut NoPromote): recMdf X,
@@ -138,7 +138,7 @@ public class TestRecMdf {
     NoPromote:{}
     """); }
   // should fail because iso can capture imm too
-  @Example void shouldCollapseWhenCalledGenIso2() { fail("""
+  @Test void shouldCollapseWhenCalledGenIso2() { fail("""
     In position [###]/Dummy0.fear:4:24
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .m1/1[]([[-mut-][test.NoPromote[]]{'fear0$ }]), no candidates for .m1/1 returned the expected type mut X. The candidates were:
@@ -154,7 +154,7 @@ public class TestRecMdf {
     NoPromote:{}
     """); }
 
-  @Example void shouldCollapseWhenCalledNestedGenMut1() { ok("""
+  @Test void shouldCollapseWhenCalledNestedGenMut1() { ok("""
     package test
     A[X]:{
       read .m1(_: mut NoPromote): Consumer[recMdf X],
@@ -163,7 +163,7 @@ public class TestRecMdf {
     Consumer[X]:{ #(x: mdf X): Void }
     NoPromote:{} Void:{}
     """); }
-  @Example void shouldCollapseWhenCalledNestedGenMut2() { fail("""
+  @Test void shouldCollapseWhenCalledNestedGenMut2() { fail("""
     In position [###]/Dummy0.fear:4:2
     [E23 methTypeError]
     Expected the method .m2/0 to return imm test.Consumer[imm X], got imm test.Consumer[mdf X].
@@ -176,7 +176,7 @@ public class TestRecMdf {
     Consumer[X]:{ #(x: mdf X): Void }
     NoPromote:{} Void:{}
     """); }
-  @Example void shouldCollapseWhenCalledNestedGenImm1() { ok("""
+  @Test void shouldCollapseWhenCalledNestedGenImm1() { ok("""
     package test
     A[X]:{
       read .m1(_: mut NoPromote): Consumer[recMdf X],
@@ -186,7 +186,7 @@ public class TestRecMdf {
     NoPromote:{} Void:{}
     """); }
 
-  @Example void shouldCollapseWhenCalledNestedGenSplitImm1() { ok("""
+  @Test void shouldCollapseWhenCalledNestedGenSplitImm1() { ok("""
     package test
     A[X]:{
       read .m1(_: mut NoPromote): Consumer[recMdf X],
@@ -196,7 +196,7 @@ public class TestRecMdf {
     Consumer[X]:{ #(x: mdf X): Void }
     NoPromote:{} Void:{}
     """); }
-  @Example void shouldCollapseWhenCalledNestedGenSplitMut1() { ok("""
+  @Test void shouldCollapseWhenCalledNestedGenSplitMut1() { ok("""
     package test
     A[X]:{
       read .m1(_: mut NoPromote): Consumer[recMdf X],
@@ -206,7 +206,7 @@ public class TestRecMdf {
     Consumer[X]:{ #(x: mdf X): Void }
     NoPromote:{} Void:{}
     """); }
-  @Example void shouldCollapseWhenCalledNestedGenSplitMut2() { ok("""
+  @Test void shouldCollapseWhenCalledNestedGenSplitMut2() { ok("""
     package test
     A[X]:{
       read .m1(_: mut NoPromote): Consumer[recMdf X],
@@ -217,16 +217,16 @@ public class TestRecMdf {
     NoPromote:{} Void:{}
     """); }
 
-  @Example void shouldApplyRecMdfInTypeParams1a() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams1a() { ok("""
     package test
     Opt[T]:{ read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none, }
     OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     """); }
-  @Example void shouldApplyRecMdfInTypeParams1b() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams1b() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
-    //Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x), } }
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+//    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x), } }
     Opt[T]:NoMutHyg[mdf T]{
       read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }
@@ -235,11 +235,11 @@ public class TestRecMdf {
     package base
     NoMutHyg[X]:{}
     """); }
-  @Example void shouldApplyRecMdfInTypeParams2() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams2() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
-    //Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x), } }
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+//    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x), } }
     Opt[T]:NoMutHyg[mdf T]{
       read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
@@ -253,14 +253,32 @@ public class TestRecMdf {
     package base
     NoMutHyg[X]:{}
     """); }
-  @Example void shouldApplyRecMdfInTypeParams3a() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams2a() { ok("""
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt[T]:NoMutHyg[mdf T]{
+      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
+      read .flatMap[R](f: mut OptMap[recMdf T, recMdf Opt[mdf R]]): mut Opt[mdf R] -> this.match{
+        .some(x) -> f#x,
+        .none -> {}
+        },
+      }
+    OptMatch[T,R]:NoMutHyg[mdf R]{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void shouldApplyRecMdfInTypeParams3a() { ok("""
     package test
     A[X]:{
       read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     """); }
-  @Example void shouldApplyRecMdfInTypeParams3b() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams3b() { ok("""
     package test
     A[X]:{
       read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
@@ -270,7 +288,7 @@ public class TestRecMdf {
       #(a: imm A[imm B]): imm B -> a.m1(this, F[imm B]),
       }
     """); }
-  @Example void shouldApplyRecMdfInTypeParams3c() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams3c() { ok("""
     package test
     A[X]:{
       read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
@@ -280,7 +298,7 @@ public class TestRecMdf {
       #(a: mut A[imm B]): imm B -> a.m1(this, F[imm B]),
       }
     """); }
-  @Example void shouldApplyRecMdfInTypeParams3d() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams3d() { ok("""
     package test
     A[X]:{
       read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
@@ -290,7 +308,7 @@ public class TestRecMdf {
       mut #(a: mut A[mut B]): mut B -> a.m1(this, F[mut B]),
       }
     """); }
-  @Example void shouldApplyRecMdfInTypeParams3e() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams3e() { ok("""
     package test
     A[X]:{
       read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
@@ -301,7 +319,7 @@ public class TestRecMdf {
       }
     """); }
   // TODO: This is failing because our check that disables fancyRename is shallow
-  @Example void shouldApplyRecMdfInTypeParams4a() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams4a() { ok("""
     package test
     A[X]:{
       read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
@@ -315,7 +333,7 @@ public class TestRecMdf {
       #(b: mut B[mut C]): mut B[mut C] -> b#(mut A[mut B[mut C]]{}),
       }
     """); }
-  @Example void shouldApplyRecMdfInTypeParams4aV2() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams4aV2() { ok("""
     package test
     A[X]:{
       read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
@@ -328,7 +346,7 @@ public class TestRecMdf {
       #(b: mut B[mut C]): mut B[mut C] -> b#(mut A[mut B[mut C]]{}),
       }
     """); }
-  @Example void shouldApplyRecMdfInTypeParams4b() { fail("""
+  @Test void shouldApplyRecMdfInTypeParams4b() { fail("""
     In position [###]/Dummy0.fear:10:5
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
@@ -352,7 +370,7 @@ public class TestRecMdf {
       #(b: mut B[mut C]): mut B[mut C] -> b#(mut A[mut B[mut C]]{}),
       }
     """); }
-  @Example void shouldApplyRecMdfInTypeParams4c() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams4c() { ok("""
     package test
     A[X]:{
       read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
@@ -367,5 +385,85 @@ public class TestRecMdf {
       .i(b: mut B[imm C]): mut B[imm C] -> b#(mut A[mut B[imm C]]),
       .ii(b: mut B[imm C]): imm B[imm C] -> b#(mut A[mut B[imm C]]),
       }
+    """); }
+
+  // These are okay because recMdf X where MDF X = imm X becomes imm X.
+  // this method always returns imm X in this case.
+  @Test void noCaptureImmAsRecMdf() { ok("""
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    """); }
+  @Test void noCaptureImmAsRecMdfExample() { ok("""
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    C:{ #: imm B -> (A.m(B)).absMeth }
+    """); }
+  @Test void noCaptureImmAsRecMdfCounterEx() { fail("""
+    In position [###]/Dummy0.fear:5:25
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: [-imm-][test.A[]]{'fear1$ } .m/1[]([[-imm-][test.B[]]{'fear2$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type lent test.B[]. The candidates were:
+    (read test.L[imm test.B[]]): imm test.B[]
+    (read test.L[imm test.B[]]): imm test.B[]
+    (imm test.L[imm test.B[]]): imm test.B[]
+    """, """
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    C:{ #: lent B -> (A.m(B)).absMeth }
+    """); }
+  @Test void noCaptureImmAsRecMdfTopLvl1() { ok("""
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    L'[X]:L[imm X]{ read .absMeth: imm X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
+    """); }
+  @Test void noCaptureImmAsRecMdfTopLvl2() { fail("""
+    In position [###]/Dummy0.fear:4:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:7) test.L[mdf FearX0$], .absMeth/0[](): recMdf FearX0$
+    ([###]/Dummy0.fear:4:16) test.L'[mdf FearX0$], .absMeth/0[](): imm FearX0$
+    """, """
+    package test
+    B:{}
+    L[X]:{ read .absMeth: recMdf X }
+    L'[X]:L[mdf X]{ read .absMeth: imm X }
+    A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
+    """); }
+
+  @Test void recMdfInheritance() { ok("""
+    package test
+    Foo:{}
+    A[X]:{ read .m: recMdf X -> this.m }
+    B:A[imm Foo]
+    C:B
+    CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
+    CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
+    CanPass2:{ read .m(par: mut C) : imm Foo -> par.m  }
+//    NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
+    """); }
+
+  @Test void recMdfInheritanceFail() { fail("""
+    In position [###]/Dummy0.fear:7:48
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: par .m/0[]([]), no candidates for .m/0 returned the expected type mut test.Foo[]. The candidates were:
+    (read test.B[]): imm test.Foo[]
+    (read test.B[]): imm test.Foo[]
+    (imm test.B[]): imm test.Foo[]
+    """, """
+    package test
+    Foo:{}
+    A[X]:{ read .m: recMdf X -> this.m }
+    B:A[imm Foo]{}
+    CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
+    CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
+    NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
     """); }
 }

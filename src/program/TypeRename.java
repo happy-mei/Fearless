@@ -58,17 +58,11 @@ public interface TypeRename<T>{
     public ast.T propagateMdf(Mdf mdf, ast.T t){
       if(!mdf.isRecMdf()){ return super.propagateMdf(mdf,t); }
       assert t!=null;
-      if (recvMdf.isMdf()) {
+      if (recvMdf.isMdf() && t.mdf().isMdf()) {
         return t.withMdf(Mdf.recMdf);
       }
       var resolvedMdf = recvMdf.adapt(t.mdf());
-      System.out.println("Adapting "+recvMdf+" with "+t.mdf()+" to make "+resolvedMdf);
       return t.withMdf(resolvedMdf);
-//      var m=t.mdf();
-//      if(m.isImm()){ return t; }
-//      if(m.isRead()){ return t; }
-//      assert !m.isIso();
-//      return t.withMdf(Mdf.recMdf);
     }
   }
   static FullTTypeRename full(Program p) { return new FullTTypeRename(p); }

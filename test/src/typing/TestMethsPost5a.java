@@ -27,11 +27,11 @@ public class TestMethsPost5a {
     }
   }
 
-  @Example void noMeths() { ok("[]", "a.A", """
+  @Test void noMeths() { ok("[]", "a.A", """
     package a
     A:{}
     """); }
-  @Example void oneMeth() { ok("""
+  @Test void oneMeth() { ok("""
     [a.A[],imm .foo/1(a)[][imm a.A[]]:imm a.A[]impl]
     """, "a.A", """
     package a
@@ -156,26 +156,26 @@ public class TestMethsPost5a {
    * B:{m:Break[A]}
    * Break[X]:{ b:Break[X] }
    * */
-  @Example void twoMethOneAbs() { ok("""
+  @Test void twoMethOneAbs() { ok("""
     [a.A[],imm.foo/1(a)[][imma.A[]]:imm a.A[]impl,a.A[],imm .bar/2(a1,a2)[][imma.A[],read a.A[]]:mut a.A[]abs]
     """, "a.A", """
     package a
     A:{ .foo(a:A):A->this, .bar(a1: A, a2: read A): mut A }
     """); }
-  @Example void twoMethBothImpl() { ok("""
+  @Test void twoMethBothImpl() { ok("""
     [a.A[],imm .foo/1(a)[][imm a.A[]]:imma.A[]impl,a.A[],imm .bar/2(a1,a2)[][imm a.A[],read a.A[]]:mut a.A[]impl]
     """, "a.A", """
     package a
     A:{ .foo(a:A):A->this, .bar(a1: A, a2: read A): mut A->{} }
     """); }
-  @Example void oneAbs() { ok("""
+  @Test void oneAbs() { ok("""
     [a.A[],imm .foo/1(a)[][imm a.A[]]:imm a.A[]abs]
     """, "a.A", """
     package a
     A:{ .foo(a:A):A }
     """); }
 
-  @Example void noOverride() { ok("""
+  @Test void noOverride() { ok("""
     [a.A[],imm .foo/1(a)[][imm a.A[]]:imm a.A[]abs,
      a.B[],imm .bar/1(b)[][imm a.B[]]:imm a.B[]abs]
     """, "a.B", """
@@ -183,21 +183,21 @@ public class TestMethsPost5a {
     A:{ .foo(a:A):A }
     B:A{ .bar(b:B):B }
     """); }
-  @Example void sameMeth() { ok("""
+  @Test void sameMeth() { ok("""
     [a.B[],imm.foo/1(b)[][imma.A[]]:imma.A[]abs]
     """, "a.B", """
     package a
     A:{ .foo(a:A):A }
     B:A{ .foo(b:A):A }
     """); }
-  @Example void refineRt() { ok("""
+  @Test void refineRt() { ok("""
     [a.B[],imm.foo/1(b)[][imma.A[]]:imm a.B[]abs]
     """, "a.B", """
     package a
     A:{ .foo(a:A):A }
     B:A{ .foo(b:A):B }
     """); }
-  @Example void clashRt() { fail("""
+  @Test void clashRt() { fail("""
     In position [###]/Dummy0.fear:4:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -210,7 +210,7 @@ public class TestMethsPost5a {
     A:{ .foo(a:A):Str }
     B:A{ .foo(b:B):Int }
     """); }
-  @Example void moreSpecific() { fail("""
+  @Test void moreSpecific() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -226,14 +226,14 @@ public class TestMethsPost5a {
     """); }
 
   /* TURBO TEST TIME-- JUST LOADS OF THEM */
-  @Example void t1() { ok("""
+  @Test void t1() { ok("""
     [a.A[],imm.m/0()[][]:imma.A[]abs]
     """, "a.A", """
     package a
     A:B { .m: A }
     B:{ .m: B }
     """); }
-  @Example void t2() { ok("""
+  @Test void t2() { ok("""
     [a.A[],imm.m/0()[][]:imma.Int[]abs]
     """, "a.A", """
     package a
@@ -241,7 +241,7 @@ public class TestMethsPost5a {
     A:B { .m: Int }
     B:{ .m: Int }
     """); }
-  @Example void t3() { fail("""
+  @Test void t3() { fail("""
     In position [###]/Dummy0.fear:3:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -254,7 +254,7 @@ public class TestMethsPost5a {
     A:B { .m: Str }
     B:{ .m: Int }
     """); }
-  @Example void t4a() { ok("""
+  @Test void t4a() { ok("""
     [a.A[],imm.m/0()[][]:imma.A[]abs]
     """, "a.A", """
     package a
@@ -262,7 +262,7 @@ public class TestMethsPost5a {
     B:{ .m: B }
     C:{ .m: C }
     """); }
-  @Example void t4b() { fail("""
+  @Test void t4b() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -275,7 +275,7 @@ public class TestMethsPost5a {
     B:{ .m: B }
     C:{ .m: C }
     """); }
-  @Example void t4c() { fail("""
+  @Test void t4c() { fail("""
     In position [###]/Dummy0.fear:4:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -290,7 +290,7 @@ public class TestMethsPost5a {
     B:{ .m: B }
     C:{ .m: C }
     """); }
-  @Example void t5() { ok("""
+  @Test void t5() { ok("""
     [a.A[],imm.m/0()[][]:imma.A[]abs]
     """, "a.A", """
     package a
@@ -299,7 +299,7 @@ public class TestMethsPost5a {
     C:{ .m: C }
     D:{ .m: D }
     """); }
-  @Example void t6() { ok("""
+  @Test void t6() { ok("""
     [a.A[],imm.m/0()[][]:imma.B[]abs]
     """, "a.A", """
     package a
@@ -309,7 +309,7 @@ public class TestMethsPost5a {
     C:D{ .m: D }
     D:{ .m: D }
     """); }
-  @Example void t7() { fail("""
+  @Test void t7() { fail("""
     In position [###]/Dummy0.fear:3:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -324,7 +324,7 @@ public class TestMethsPost5a {
     C:D{ .m: B }
     D:{ .m: B }
     """); }
-  @Example void t8() { ok("""
+  @Test void t8() { ok("""
     [a.A[],imm.m/1(a)[][imma.A[]]:imma.A[]abs]
     """, "a.A", """
     package a
@@ -332,7 +332,7 @@ public class TestMethsPost5a {
     A[X]:A[X,X]{ .m(b:A):A }
     A[X,Y]:{ .m(c:A):A[X,Y] }
     """); }
-  @Example void t9() { ok("""
+  @Test void t9() { ok("""
     [a.B[],imm.m/1(b)[][imma.A[]]:imma.A[]abs]
     """, "a.A", """
     package a
@@ -340,7 +340,7 @@ public class TestMethsPost5a {
     B:{ .m(b:A): A }
     C:{ .m(c:A): A }
     """); }
-  @Example void t10() { ok("""
+  @Test void t10() { ok("""
     [a.B[],imm.m/1(b)[][imma.A[]]:imma.A[]impl]
     """, "a.A", """
     package a
@@ -348,7 +348,7 @@ public class TestMethsPost5a {
     B:{ .m(b:A): A->this }
     C:{ .m(c:A): A }
     """); }
-  @Example void t11() { ok("""
+  @Test void t11() { ok("""
     [a.C[],imm.m/1(c)[][imma.A[]]:imma.A[]impl]
     """, "a.A", """
     package a
@@ -356,7 +356,7 @@ public class TestMethsPost5a {
     B:{ .m(b:A): A }
     C:{ .m(c:A): A->this }
     """); }
-  @Example void t12() { fail("""
+  @Test void t12() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -369,7 +369,7 @@ public class TestMethsPost5a {
     B:{ .m(b:A): A->this }
     C:{ .m(c:A): A->this }
     """); }
-  @Example void t13() { ok("""
+  @Test void t13() { ok("""
     [a.B[],imm.m/1(b)[][imma.A[]]:imma.A[]abs]
     """, "a.A", """
     package a
@@ -378,7 +378,7 @@ public class TestMethsPost5a {
     C:D{ .m(c:A): A }
     D:{ .m(d:A):A->this }
     """); }
-  @Example void t14() { ok("""
+  @Test void t14() { ok("""
     [a.B[imma.A[]],imm.m/0()[][]:imma.List[imma.A[]]abs]
     """, "a.A", """
     package a
@@ -387,7 +387,7 @@ public class TestMethsPost5a {
     C[Y]:{ .m: Y }
     List[T]:{}
     """); }
-  @Example void t15() { ok("""
+  @Test void t15() { ok("""
     [a.B[imma.A[]],imm.m/0()[][]:imma.List[imma.A[]]abs,
     a.K[imma.List[imma.A[]]],imm.kk/0()[][]:imma.List[imma.A[]]abs]
     """, "a.A", """
@@ -398,7 +398,7 @@ public class TestMethsPost5a {
     K[Y]:{.kk:Y}
     List[T]:{}
     """); }
-  @Example void t16() { fail("""
+  @Test void t16() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -413,7 +413,7 @@ public class TestMethsPost5a {
     K[Y]:{.kk:Y}
     List[T]:{}
     """); }
-  @Example void t17a() { ok("""
+  @Test void t17a() { ok("""
     [a.B[imm a.A[]],imm .m/0()[][]:imm a.List[imm a.A[]]abs, a.K[imm a.A[]],imm .kk/0()[][]:imm a.A[]abs]
     """, "a.A", """
     package a
@@ -423,7 +423,7 @@ public class TestMethsPost5a {
     K[Y]:{ .kk:A }
     List[T]:{}
     """); }
-  @Example void t17b() { fail("""
+  @Test void t17b() { fail("""
     In position [###]Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -438,7 +438,7 @@ public class TestMethsPost5a {
     K[Y]:{ .kk:Y }
     List[T]:{}
     """); }
-  @Example void t17c() { ok("""
+  @Test void t17c() { ok("""
     [a.B[imma.A[]],imm.m/0()[][]:imma.List[imma.A[]]abs,
     a.K[imma.List[imma.A[]]],imm.kk/0()[][]:imma.A[]abs]
     """, "a.A", """
@@ -449,7 +449,7 @@ public class TestMethsPost5a {
     K[Y]:{ .kk:A }
     List[T]:{}
     """); }
-  @Example void t18() { fail("""
+  @Test void t18() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -461,35 +461,35 @@ public class TestMethsPost5a {
     A:B{.m:A}
     B:{.m[X]:A}
     """); }
-  @Example void t19() { ok("""
+  @Test void t19() { ok("""
     [a.A[],imm.m/0()[X0/0$][]:imma.A[]abs]
     """, "a.A", """
     package a
     A:B{ .m[X]:A }
     B:{ .m[X]:A->this}
     """); }
-  @Example void t20a() { ok("""
+  @Test void t20a() { ok("""
     [a.A[immX],imm.foo/0()[][]:immXabs,a.B[],imm.m/0()[X0/0$][]:imma.A[imma.B[]]impl]
     """, "a.A[X]", """
     package a
     A[X]:B{ .foo:X }
     B:{.m[X]:A[B]->this}
     """); }
-  @Example void t20b() { ok("""
+  @Test void t20b() { ok("""
     [a.A[imma.A[]],imm.foo/0()[][]:imma.A[]abs,a.B[],imm.m/0()[X0/0$][]:imma.A[imma.B[]]impl]
     """, "a.A[a.A]", """
     package a
     A[X]:B{ .foo:X }
     B:{.m[X]:A[B]->this}
     """); }
-  @Example void t20c() { ok("""
+  @Test void t20c() { ok("""
     [a.A[imma.B[]],imm.foo/0()[][]:imma.B[]abs,a.B[],imm.m/0()[X0/0$][]:imma.A[imma.B[]]impl]
     """, "a.A[a.B]", """
     package a
     A[X]:B{ .foo:X }
     B:{.m[X]:A[B]->this}
     """); }
-  @Example void t21() { ok("""
+  @Test void t21() { ok("""
     [a.A[imm Panic],imm.foo/0()[][]:imm Panic abs,
     a.B[imm Panic],imm.m/0()[X0/0$][]:imma.Bi[immX0/0$,immPanic]impl]
     """, "a.A[Panic]", """
@@ -498,7 +498,7 @@ public class TestMethsPost5a {
     B[Y]:{.m[X]:Bi[X,Y]->this}
     Bi[AA,BB]:{}
     """); }
-  @Example void t22() { ok("""
+  @Test void t22() { ok("""
     [a.A[],imm.m/0()[][]:imma.Break[imma.A[]]abs]
     """, "a.A", """
     package a
@@ -506,7 +506,7 @@ public class TestMethsPost5a {
     B:{ .m:Break[B] }
     Break[X]:{}
     """); }
-  @Example void t23() { ok("""
+  @Test void t23() { ok("""
     [a.A[],imm.m/0()[][]:imma.Break[imma.B[]]abs]
     """, "a.A", """
     package a
@@ -514,7 +514,7 @@ public class TestMethsPost5a {
     B:{.m:Break[A]}
     Break[X]:{}
     """); }
-  @Example void t24() { ok("""
+  @Test void t24() { ok("""
     [a.A[],imm.m/0()[][]:imma.Break[imma.A[]]abs]
     """, "a.A", """
     package a
@@ -522,7 +522,7 @@ public class TestMethsPost5a {
     B:{.m:Break[B]}
     Break[X]:{ .b:X }
     """); }
-  @Example void t25() { fail("""
+  @Test void t25() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -536,7 +536,7 @@ public class TestMethsPost5a {
     Break[X]:{ .b:X }
     """); }
 
-  @Example void loopingSupTypes1() { fail("""
+  @Test void loopingSupTypes1() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -549,7 +549,7 @@ public class TestMethsPost5a {
     B:{ .m: Break[B] }
     Break[X]:{ .b: Break[X] }
     """); }
-  @Example void loopingSupTypes2() { fail("""
+  @Test void loopingSupTypes2() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -563,7 +563,7 @@ public class TestMethsPost5a {
     Break[X]:{ .b:Break[X] }
     """); }
 
-  @Example void methGens() { ok("""
+  @Test void methGens() { ok("""
     [base.A[],imm.m2/1(k)[X0/0$][immX0/0$]:imm base.Void[]abs,
     base.A[],imm.m1/1(x)[X0/0$][immX0/0$]:imm base.Void[]impl]
     """, "base.A", """
@@ -590,19 +590,19 @@ public class TestMethsPost5a {
   Fresh2:Bool,False{}
   ThenElse[R]:{ mut .then: R, mut .else: R, }
   """;
-  @Example void bool1() { ok("""
+  @Test void bool1() { ok("""
     [bools.Bool[],imm.not/0()[][]:immbools.Bool[]abs,bools.Bool[],imm?/1(f)[X0/0$][mutbools.ThenElse[immX0/0$]]:immX0/0$abs,bools.Bool[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]abs,bools.Bool[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]abs]
     """, "bools.Bool", boolPkg); }
-  @Example void bool2() { ok("""
+  @Test void bool2() { ok("""
     [bools.True[],imm.not/0()[][]:immbools.Bool[]impl,bools.True[],imm?/1(f)[X0/0$][mutbools.ThenElse[immX0/0$]]:immX0/0$impl,bools.True[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.True[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl]
     """, "bools.True", boolPkg); }
-  @Example void bool3() { ok("""
+  @Test void bool3() { ok("""
     [bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X0/0$][mutbools.ThenElse[immX0/0$]]:immX0/0$impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl]
     """, "bools.False", boolPkg); }
-  @Example void bool4() { ok("""
+  @Test void bool4() { ok("""
     [bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X0/0$][mutbools.ThenElse[immX0/0$]]:immX0/0$impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl]
     """, "bools.Fresh1", boolPkg); }
-  @Example void bool5() { ok("""
+  @Test void bool5() { ok("""
     [bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X0/0$][mutbools.ThenElse[immX0/0$]]:immX0/0$impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl]
     """, "bools.Fresh2", boolPkg); }
 }

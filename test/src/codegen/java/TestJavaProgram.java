@@ -70,40 +70,40 @@ public class TestJavaProgram {
     }
   }
 
-  @Example void emptyProgram() { ok(new Res("", "", 0), "test.Test", """
+  @Test void emptyProgram() { ok(new Res("", "", 0), "test.Test", """
     package test
     alias base.Main as Main,
     Void:{}
     Test:Main[Void]{ _, _ -> {} }
     """);}
 
-  @Example void assertTrue() { ok(new Res("", "", 0), "test.Test", """
+  @Test void assertTrue() { ok(new Res("", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(True, { Void }) }
     """);}
-  @Example void assertFalse() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
+  @Test void assertFalse() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, { Void }) }
     """);}
-  @Example void assertFalseMsg() { ok(new Res("", "power level less than 9000", 1), "test.Test", """
+  @Test void assertFalseMsg() { ok(new Res("", "power level less than 9000", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, "power level less than 9000", { Void }) }
     """);}
 
-  @Example void falseToStr() { ok(new Res("", "False", 1), "test.Test", """
+  @Test void falseToStr() { ok(new Res("", "False", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, Foo.bs(False), { Void }) }
     Foo:{ .bs(b: base.Bool): base.Str -> b.str }
     """);}
-  @Example void trueToStr() { ok(new Res("", "True", 1), "test.Test", """
+  @Test void trueToStr() { ok(new Res("", "True", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
@@ -111,82 +111,82 @@ public class TestJavaProgram {
     Foo:{ .bs(s: base.Stringable): base.Str -> s.str }
     """);}
 
-  @Example void binaryAnd1() { ok(new Res("", "True", 1), "test.Test", """
+  @Test void binaryAnd1() { ok(new Res("", "True", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, (True && True) .str, { Void }) }
     """);}
-  @Example void binaryAnd2() { ok(new Res("", "False", 1), "test.Test", """
+  @Test void binaryAnd2() { ok(new Res("", "False", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, (True && False) .str, { Void }) }
     """);}
-  @Example void binaryAnd3() { ok(new Res("", "False", 1), "test.Test", """
+  @Test void binaryAnd3() { ok(new Res("", "False", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, (False && False) .str, { Void }) }
     """);}
-  @Example void binaryOr1() { ok(new Res("", "True", 1), "test.Test", """
+  @Test void binaryOr1() { ok(new Res("", "True", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, (True || True) .str, { Void }) }
     """);}
-  @Example void binaryOr2() { ok(new Res("", "True", 1), "test.Test", """
+  @Test void binaryOr2() { ok(new Res("", "True", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, (True || False) .str, { Void }) }
     """);}
-  @Example void binaryOr3() { ok(new Res("", "True", 1), "test.Test", """
+  @Test void binaryOr3() { ok(new Res("", "True", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, (False || True) .str, { Void }) }
     """);}
-  @Example void binaryOr4() { ok(new Res("", "False", 1), "test.Test", """
+  @Test void binaryOr4() { ok(new Res("", "False", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, (False || False) .str, { Void }) }
     """);}
 
-  @Example void conditionals1() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
+  @Test void conditionals1() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(420 > 9000, { Void }) }
     """);}
-  @Example void conditionals2() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
+  @Test void conditionals2() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#("hi".len() > 9000u, { Void }) }
     """);}
 
-  @Example void longToStr() { ok(new Res("", "123456789", 1), "test.Test", """
+  @Test void longToStr() { ok(new Res("", "123456789", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, 123456789 .str, { Void }) }
     """);}
-  @Example void longLongToStr() { ok(new Res("", "9223372036854775807", 1), "test.Test", """
+  @Test void longLongToStr() { ok(new Res("", "9223372036854775807", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, 9223372036854775807 .str, { Void }) }
     """);}
 
-  @Example void veryLongLongToStr() { ok(new Res("", "9223372036854775808", 1), "test.Test", """
+  @Test void veryLongLongToStr() { ok(new Res("", "9223372036854775808", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, 9223372036854775808u .str, { Void }) }
     """);}
-  @Example void veryLongLongIntFail() { fail("""
+  @Test void veryLongLongIntFail() { fail("""
     [E31 invalidNum]
     The number 9223372036854775808 is not a valid Int
     """, "test.Test", """
@@ -195,7 +195,7 @@ public class TestJavaProgram {
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, 9223372036854775808 .str, { Void }) }
     """);}
-  @Example void veryLongLongUIntFail() { fail("""
+  @Test void veryLongLongUIntFail() { fail("""
     [E31 invalidNum]
     The number 10000000000000000000000u is not a valid UInt
     """, "test.Test", """
@@ -204,32 +204,32 @@ public class TestJavaProgram {
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, 10000000000000000000000u .str, { Void }) }
     """);}
-  @Example void negativeToStr() { ok(new Res("", "-123456789", 1), "test.Test", """
+  @Test void negativeToStr() { ok(new Res("", "-123456789", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, -123456789 .str, { Void }) }
     """);}
 
-  @Example void addition() { ok(new Res("", "7", 1), "test.Test", """
+  @Test void addition() { ok(new Res("", "7", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, (5 + 2) .str, { Void }) }
     """);}
-  @Example void subtraction() { ok(new Res("", "3", 1), "test.Test", """
+  @Test void subtraction() { ok(new Res("", "3", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, (5 - 2) .str, { Void }) }
     """);}
-  @Example void subtractionNeg() { ok(new Res("", "-2", 1), "test.Test", """
+  @Test void subtractionNeg() { ok(new Res("", "-2", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
     Test:Main[Void]{ _, _ -> Assert#(False, (0 - 2) .str, { Void }) }
     """);}
-  @Example void subtractionUnderflow() { ok(new Res("", "9223372036854775807", 1), "test.Test", """
+  @Test void subtractionUnderflow() { ok(new Res("", "9223372036854775807", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
@@ -237,7 +237,7 @@ public class TestJavaProgram {
     """);}
 
   // TODO: using brackets around (io, s') breaks antlr, fix the grammar
-  @Example void println() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+  @Test void println() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
     Test:Main[Void]{ _, s -> s
@@ -245,14 +245,14 @@ public class TestJavaProgram {
       }
     """);}
   @Disabled
-  @Example void printlnInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+  @Test void printlnInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
     Test:Main[Void]{ _, s -> s
       .use(base.caps.IO', { io, s' -> s'.return{ io.println "Hello, World!" } })
       }
     """);}
-  @Example void printlnSugar() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+  @Test void printlnSugar() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
     alias base.caps.IO as IO, alias base.caps.IO' as IO',
@@ -263,7 +263,7 @@ public class TestJavaProgram {
     """); }
 
   @Disabled
-  @Example void printlnSugarInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+  @Test void printlnSugarInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
     alias base.caps.IO' as IO',
@@ -273,7 +273,7 @@ public class TestJavaProgram {
       }
     """); }
 
-  @Example void nestedPkgs() { ok(new Res("", "", 0), "test.Test", """
+  @Test void nestedPkgs() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:base.Main[test.foo.Bar]{ _, _ -> { .a -> test.foo.Bar } }
     Foo:{ .a: Foo }
@@ -282,14 +282,14 @@ public class TestJavaProgram {
     Bar:test.Foo{ .a -> this }
     """); }
 
-    @Example void ref1() { ok(new Res("", "", 0), "test.Test", """
+    @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
     alias base.Ref as Ref, alias base.Int as Int,
     Test:Main[Void]{ _, _ -> Assert#((GetRef#5)* == 5, { Void }) }
     GetRef:{ #(n: Int): mut Ref[Int] -> Ref#n }
     """); }
-  @Example void ref2() { ok(new Res("", "", 0), "test.Test", """
+  @Test void ref2() { ok(new Res("", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
     alias base.Ref as Ref, alias base.Int as Int,
@@ -297,7 +297,7 @@ public class TestJavaProgram {
     GetRef:{ #(n: Int): mut Ref[Int] -> Ref#n }
     """); }
   // TODO: loops if we give a broken value like `.var[mut Ref[Int]](n = Ref#5)` (not a ReturnStmt)
-  @Example void ref3() { ok(new Res("", "", 0), "test.Test", """
+  @Test void ref3() { ok(new Res("", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert, alias base.Block as Block,
     alias base.Ref as Ref, alias base.Int as Int, alias base.ReturnStmt as ReturnStmt,
@@ -309,7 +309,7 @@ public class TestJavaProgram {
       }
     """); }
 
-//  @Example void ref1() { ok(new Res("", "", 0), "test.Test", """
+//  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test
 //    alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
 //    alias base.Ref as Ref, alias base.Int as Int,

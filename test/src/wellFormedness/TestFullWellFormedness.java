@@ -42,12 +42,12 @@ public class TestFullWellFormedness {
       Err.strCmp(expectedErr, e.toString());
     }
   }
-  @Example void noIsoParamsLambdaOk() { ok("""
+  @Test void noIsoParamsLambdaOk() { ok("""
     package pkg1
     Opt[T]:{}
     A:Opt[A]
     """); }
-  @Example void noIsoParamsLambda1() { fail("""
+  @Test void noIsoParamsLambda1() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
@@ -57,7 +57,7 @@ public class TestFullWellFormedness {
     Opt[T]:{}
     A:Opt[iso A]
     """); }
-  @Example void noIsoParamsLambda2() { fail("""
+  @Test void noIsoParamsLambda2() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
@@ -67,7 +67,7 @@ public class TestFullWellFormedness {
     Opt[T]:{}
     A:{ #: Opt[iso A] -> Opt[iso A] }
     """); }
-  @Example void noIsoParamsLambdaNested1() { fail("""
+  @Test void noIsoParamsLambdaNested1() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
@@ -77,7 +77,7 @@ public class TestFullWellFormedness {
     Opt[T]:{}
     A:Opt[mut Opt[iso A]]
     """); }
-  @Example void noIsoParamsLambdaNested2() { fail("""
+  @Test void noIsoParamsLambdaNested2() { fail("""
     In position [###]/Dummy0.fear:4:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
@@ -89,13 +89,13 @@ public class TestFullWellFormedness {
     A:B[Opt[A], Opt[Opt[iso A]]]
     """); }
 
-  @Example void noIsoParamsAliasOk() { ok("""
+  @Test void noIsoParamsAliasOk() { ok("""
     package pkg1
     alias Opt[pkg1.A] as OptA,
     Opt[T]:{}
     A:{}
     """); }
-  @Example void noIsoParamsAlias1() { fail("""
+  @Test void noIsoParamsAlias1() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
@@ -106,7 +106,7 @@ public class TestFullWellFormedness {
     Opt[T]:{}
     A:{}
     """); }
-  @Example void noIsoParamsAliasNested1() { fail("""
+  @Test void noIsoParamsAliasNested1() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
@@ -118,7 +118,7 @@ public class TestFullWellFormedness {
     A:{}
     """); }
 
-  @Example void noIsoParamsMethRet() { fail("""
+  @Test void noIsoParamsMethRet() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
@@ -128,12 +128,12 @@ public class TestFullWellFormedness {
     Opt[T]:{}
     A:{ #: Opt[iso A] -> {} }
     """); }
-  @Example void isoParamsMethParamsOk() { ok("""
+  @Test void isoParamsMethParamsOk() { ok("""
     package pkg1
     Opt[T]:{}
     A:{ #(x: iso A): A -> {} }
     """); }
-  @Example void isoParamsMethParams() { fail("""
+  @Test void isoParamsMethParams() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
@@ -143,7 +143,7 @@ public class TestFullWellFormedness {
     Opt[T]:{}
     A:{ #(x: A[iso A]): A -> {} }
     """); }
-  @Example void isoParamsMethParamsGens() { fail("""
+  @Test void isoParamsMethParamsGens() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
@@ -153,7 +153,7 @@ public class TestFullWellFormedness {
     Opt[T]:{}
     A:{ #[T](x: A[iso T]): A -> {} }
     """); }
-  @Example void isoParamsMethCall() { fail("""
+  @Test void isoParamsMethCall() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in type modifiers:
@@ -166,7 +166,7 @@ public class TestFullWellFormedness {
       .foo(): A -> this#[iso A]A
       }
     """); }
-  @Example void paramsMethCallOk() { ok("""
+  @Test void paramsMethCallOk() { ok("""
     package pkg1
     Opt[T]:{}
     A:{
@@ -175,7 +175,7 @@ public class TestFullWellFormedness {
       }
     """); }
 
-  @Example void noExplicitThisBlockId() { fail("""
+  @Test void noExplicitThisBlockId() { fail("""
     In position [###]/Dummy0.fear:2:2
     [E6 explicitThis]
     Local variables may not be named 'this'.
@@ -184,7 +184,7 @@ public class TestFullWellFormedness {
     A:{'this}
     """); }
 
-  @Example void noExplicitThisMethArg() { fail("""
+  @Test void noExplicitThisMethArg() { fail("""
     In position [###]/Dummy0.fear:2:2
     [E6 explicitThis]
     Local variables may not be named 'this'.
@@ -193,7 +193,7 @@ public class TestFullWellFormedness {
     A:{ .foo(this: A): A }
     """); }
 
-  @Example void disjointArgList() { fail("""
+  @Test void disjointArgList() { fail("""
     In position [###]/Dummy0.fear:2:2
     [E7 conflictingMethParams]
     Parameters on methods must have different names. The following parameters were conflicting: a
@@ -202,7 +202,7 @@ public class TestFullWellFormedness {
     A:{ .foo(a: A, a: A): A }
     """); }
 
-  @Example void disjointMethGens() { fail("""
+  @Test void disjointMethGens() { fail("""
     In position [###]/Dummy0.fear:2:2
     [E7 conflictingMethParams]
     Parameters on methods must have different names. The following parameters were conflicting: T
@@ -211,7 +211,7 @@ public class TestFullWellFormedness {
     A:{ .foo[T,T](a: T, b: T): A }
     """); }
 
-  @Example void disjointDecGens() { fail("""
+  @Test void disjointDecGens() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E7 conflictingMethParams]
     Parameters on methods must have different names. The following parameters were conflicting: T
@@ -220,7 +220,7 @@ public class TestFullWellFormedness {
     A[T,T]:{ .foo(a: T, b: T): A }
     """); }
 
-  @Example void noShadowingMeths() { fail("""
+  @Test void noShadowingMeths() { fail("""
     In position [###]/Dummy0.fear:2:2
     [E17 conflictingMethNames]
     Methods may not have the same name and number of parameters. The following methods were conflicting: .a/0
@@ -229,7 +229,7 @@ public class TestFullWellFormedness {
     A:{ .a: A, .a: A }
     """); }
 
-  @Example void noShadowingLambda() { fail("""
+  @Test void noShadowingLambda() { fail("""
     In position [###]/Dummy0.fear:2:2
     [E9 shadowingX]
     'hi' is shadowing another variable in scope.
@@ -238,7 +238,7 @@ public class TestFullWellFormedness {
     A:{'hi .a: A -> A{'hi .a() -> {} } }
     """); }
 
-  @Example void noMutHygOk() { ok("""
+  @Test void noMutHygOk() { ok("""
     package base
     NoMutHyg[X]:{}
     Sealed:{} Void:{}
@@ -253,7 +253,7 @@ public class TestFullWellFormedness {
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
-  @Example void noMutHygConcrete() { fail("""
+  @Test void noMutHygConcrete() { fail("""
     In position [###]/Dummy0.fear:7:0
     [E12 concreteInNoMutHyg]
     The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:
@@ -273,7 +273,7 @@ public class TestFullWellFormedness {
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
-  @Example void noMutHygNotUsed() { fail("""
+  @Test void noMutHygNotUsed() { fail("""
     In position [###]/Dummy0.fear:7:0
     [E13 invalidNoMutHyg]
     The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. This generic type is not a type parameter of the trait:
@@ -329,7 +329,7 @@ public class TestFullWellFormedness {
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
 
-  @Example void mdfAsMethMdf() { fail("""
+  @Test void mdfAsMethMdf() { fail("""
     In position [###]/Dummy0.fear:2:2
     [E16 invalidMethMdf]
     mdf is not a valid modifier for a method (on the method .foo/0).
@@ -337,7 +337,7 @@ public class TestFullWellFormedness {
     package base
     A:{ mdf .foo: A }
     """); }
-  @Example void recMdfAsMethMdf() { fail("""
+  @Test void recMdfAsMethMdf() { fail("""
     In position [###]/Dummy0.fear:2:2
     [E16 invalidMethMdf]
     recMdf is not a valid modifier for a method (on the method .foo/0).
@@ -346,7 +346,7 @@ public class TestFullWellFormedness {
     A:{ recMdf .foo: A }
     """); }
 
-  @Example void useUndefinedX() { fail("""
+  @Test void useUndefinedX() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E28 undefinedName]
     The identifier "X" is undefined or cannot be captured.
@@ -355,7 +355,7 @@ public class TestFullWellFormedness {
     A[X]:{ .foo(x: X): X -> B{ x }.argh }
     B:{ read .argh: recMdf X } // should fail because X is not defined here
     """); }
-  @Example void useUndefinedIdent() { fail("""
+  @Test void useUndefinedIdent() { fail("""
     In position [###]/Dummy0.fear:2:5
     [E28 undefinedName]
     The identifier "b" is undefined or cannot be captured.

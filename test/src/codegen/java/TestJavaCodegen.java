@@ -39,7 +39,7 @@ public class TestJavaCodegen {
     Err.strCmp(expected, java);
   }
 
-  @Example void emptyProgram() { ok("""
+  @Test void emptyProgram() { ok("""
     interface FProgram{interface base{interface System_1 extends base.Sealed_0{
     }
     interface Sealed_0{
@@ -57,7 +57,7 @@ public class TestJavaCodegen {
     package test
     """, Base.minimalBase);}
 
-  @Example void simpleProgram() { ok("""
+  @Test void simpleProgram() { ok("""
 interface FProgram{interface test{interface Bar_0 extends test.Baz_1{
 default test.Baz_1 loop$(){
 var f$thiz = this;
@@ -106,7 +106,7 @@ static void main(String[] args){ base.Main_1 entry = new fake.Fake_0(){}; entry.
     Foo:{}
     """, Base.minimalBase);}
 
-  @Example void bools() {ok("""
+  @Test void bools() {ok("""
 interface FProgram{interface test{interface True_0 extends test.Bool_0{
 default test.Bool_0 not$(){
 var f$thiz = this;
@@ -180,7 +180,7 @@ static void main(String[] args){ base.Main_1 entry = new fake.Fake_0(){}; entry.
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
     """, Base.minimalBase);}
-  @Example void multiPackage() { ok("""
+  @Test void multiPackage() { ok("""
 interface FProgram{interface test{interface Foo_0{
 }
 interface HelloWorld_0 extends base.Main_1{
@@ -212,7 +212,7 @@ static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_0(){}; 
     Foo:{}
     """, Base.minimalBase); }
 
-  @Example void nestedPkgs() { ok("""
+  @Test void nestedPkgs() { ok("""
 interface FProgram{interface test{interface Foo_0{
 test.Foo_0 a$();}
 interface Test_0 extends base.Main_1{

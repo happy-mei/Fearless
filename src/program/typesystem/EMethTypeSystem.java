@@ -84,8 +84,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       res.err().ifPresent(errors::add);
       return false;
     }
-    var exprT = res.tOrThrow();
-    return p().tryIsSubType(exprT, t);
+    return p().tryIsSubType(res.tOrThrow(), t);
   }
 
   default Optional<List<TsT>> multiMeth(T rec, MethName m, List<T> ts) {
@@ -116,8 +115,8 @@ public interface EMethTypeSystem extends ETypeSystem {
 //      }
       Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
 //      var t0 = fancyRename(rec, mdf, xsTsMap).withMdf(mdf0);
-//      var t0 = rec.withMdf(mdf0);
-      var t0 = new T(mdf0, cm.c());
+      var t0 = rec.withMdf(mdf0);
+//      var t0 = new T(mdf0, cm.c());
       var params = Push.of(
         t0,
         cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()

@@ -4,6 +4,7 @@ import failure.CompileError;
 import main.Main;
 import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.inference.InferBodies;
 import utils.Base;
@@ -50,31 +51,31 @@ public class TestTypeSystemWithBase {
     }
   }
 
-  @Example void simpleProgram(){ ok( """
+  @Test void simpleProgram(){ ok( """
     package test
     A:{ .m: A -> this }
     """); }
 
-  @Example void baseLib(){ ok(); }
+  @Test void baseLib(){ ok(); }
 
-  @Example void subTypingCall(){ ok( """
+  @Test void subTypingCall(){ ok( """
     package test
     A:{ .m1(a: A): A -> a }
     B:A{}
     C:{ .m2: A -> A.m1(B) }
     """); }
 
-  @Example void numbers1(){ ok( """
+  @Test void numbers1(){ ok( """
     package test
     A:{ .m(a: 42): 42 -> 42 }
     """); }
 
-  @Example void numbersSubTyping1(){ ok("""
+  @Test void numbersSubTyping1(){ ok("""
     package test
     alias base.Int as Int,
     A:{ .m(a: 42): Int -> a }
     """); }
-  @Example void numbersSubTyping2(){ fail("""
+  @Test void numbersSubTyping2(){ fail("""
     In position [###]/Dummy0.fear:3:4
     [E23 methTypeError]
     Expected the method .m/1 to return imm 42[], got imm base.Int[].
@@ -83,14 +84,14 @@ public class TestTypeSystemWithBase {
     alias base.Int as Int,
     A:{ .m(a: Int): 42 -> a }
     """); }
-  @Example void numbersSubTyping3(){ ok("""
+  @Test void numbersSubTyping3(){ ok("""
     package test
     alias base.Int as Int,
     A:{ .a: Int }
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
     """); }
-  @Example void numbersSubTyping4(){ ok("""
+  @Test void numbersSubTyping4(){ ok("""
     package test
     alias base.Int as Int,
     A:{ .a: Int }
@@ -98,34 +99,31 @@ public class TestTypeSystemWithBase {
     C:A{ .a -> 420 }
     D:B{ .b: Int -> this.a }
     """); }
-  @Example void numbersGenericTypes1(){ ok("""
+  @Test void numbersGenericTypes1(){ ok("""
     package test
     alias base.Int as Int,
     A[N]:{ .count: N }
     B:A[42]{ 42 }
     C:A[Int]{ 42 }
     """); }
-  @Example void numbersGenericTypes2(){ ok("""
+  @Test void numbersGenericTypes2(){ ok("""
     package test
     alias base.Int as Int,
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 42 }
     C:A[Int]{ .count -> 56, .sum -> 3001 }
     """); }
-  @Example void numbersGenericTypes2a(){ fail("""
-    In position [###]/Dummy0.fear:4:31
-    [E18 uncomposableMethods]
-    These methods could not be composed.
-    conflicts:
-    ([###]/Dummy4.fear:49:2) 43[], .float/0
-    ([###]/Dummy4.fear:49:2) 42[], .float/0
+  @Test void numbersGenericTypes2a(){ fail("""
+    In position [###]/Dummy0.fear:4:23
+    [E23 methTypeError]
+    Expected the method .sum/0 to return imm 42[], got imm 43[].
     """, """
     package test
     alias base.Int as Int,
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 43 }
     """); }
-  @Example void numbersSubTyping5a(){ fail("""
+  @Test void numbersSubTyping5a(){ fail("""
     In position [###]/Dummy0.fear:6:5
     [E23 methTypeError]
     Expected the method .b/0 to return imm 42[], got imm base.Int[].
@@ -137,20 +135,20 @@ public class TestTypeSystemWithBase {
     C:A{ .a -> 420 }
     D:B{ .b: 42 -> this.a }
     """); }
-  @Example void twoInts(){ ok("""
+  @Test void twoInts(){ ok("""
     package test
     alias base.Int as Int,
     A:{ .m(a: 56, b: 12): Int -> b+a }
     """); }
 
-  @Example void boolIntRet() { ok("""
+  @Test void boolIntRet() { ok("""
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Test:Main[Int]{
       _,_->False.or(True)?{.then->42,.else->0}
     }
     """); }
-  @Example void boolSameRet() { ok("""
+  @Test void boolSameRet() { ok("""
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Foo:{}
@@ -159,7 +157,7 @@ public class TestTypeSystemWithBase {
     }
     """); }
 
-  @Example void numImpls1() { ok("""
+  @Test void numImpls1() { ok("""
     package test
     alias base.Int as Int,
     Foo:{ .bar: 5 -> 5 }
@@ -169,7 +167,7 @@ public class TestTypeSystemWithBase {
       }
     """);}
 
-  @Example void numImpls2() { ok("""
+  @Test void numImpls2() { ok("""
     package test
     alias base.Int as Int,
     Bar:{
@@ -178,13 +176,15 @@ public class TestTypeSystemWithBase {
       }
     """);}
 
-  @Example void numImpls3() { fail("""
-    In position [###]/Dummy0.fear:5:25
-    [E18 uncomposableMethods]
-    These methods could not be composed.
-    conflicts:
-    ([###]/Dummy4.fear:69:2) 5[], <=/1
-    ([###]/Dummy4.fear:34:2) base.MathOps[imm base.Float[]], <=/1
+  @Test void numImpls3() { fail("""
+    In position [###]/Dummy0.fear:5:21
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .nm/1[]([[-imm-][5[]]{'fear35$ }])
+    were valid:
+    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm base.Float[]): imm base.Int[]
+    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm base.Float[]): imm base.Int[]
+    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm base.Float[]): imm base.Int[]
     """, """
     package test
     alias base.Int as Int, alias base.Float as Float,
@@ -194,13 +194,15 @@ public class TestTypeSystemWithBase {
       }
     """);}
 
-  @Example void numImpl4() { fail("""
-    In position [###]/Dummy0.fear:5:25
-    [E18 uncomposableMethods]
-    These methods could not be composed.
-    conflicts:
-    ([###]/Dummy4.fear:49:2) 5[], .float/0
-    ([###]/Dummy4.fear:49:2) 6[], .float/0
+  @Test void numImpl4() { fail("""
+    In position [###]/Dummy0.fear:5:21
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .nm/1[]([[-imm-][5[]]{'fear35$ }])
+    were valid:
+    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm 6[]): imm base.Int[]
+    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm 6[]): imm base.Int[]
+    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm 6[]): imm base.Int[]
     """, """
     package test
     alias base.Int as Int,

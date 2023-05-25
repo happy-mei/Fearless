@@ -1,12 +1,13 @@
 package program.typesystem;
 
 import net.jqwik.api.Example;
+import org.junit.jupiter.api.Test;
 
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
 
 public class TestNoMutHyg {
-  @Example void methMakingNoMutHygReturnsLent() { ok("""
+  @Test void methMakingNoMutHygReturnsLent() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
     Box[X]:NoMutHyg[mdf X]{
@@ -22,7 +23,7 @@ public class TestNoMutHyg {
     package base
     NoMutHyg[X]:{}
     """); }
-@Example void methMakingNoMutHygReturnsLent2() { ok("""
+@Test void methMakingNoMutHygReturnsLent2() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
     Box[X]:NoMutHyg[mdf X]{
@@ -39,7 +40,7 @@ public class TestNoMutHyg {
     NoMutHyg[X]:{}
     """); }
 
-  @Example void shouldKeepMdfIfXIsNotHyg() { ok("""
+  @Test void shouldKeepMdfIfXIsNotHyg() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
     Box[X]:NoMutHyg[mdf X]{

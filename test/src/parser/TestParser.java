@@ -38,112 +38,112 @@ class TestParser {
       Err.strCmp(expectedErr, e.toString());
     }
   }
-  @Example void testMCall(){ ok("""
+  @Test void testMCall(){ ok("""
     x:infer.m/0[-]([]):infer
     """,
     "x.m"); }
-  @Example void testTrue(){ ok(
+  @Test void testTrue(){ ok(
     """
     [-base.True[]-][base.True[]]{}
     """, "base.True"); }
-  @Example void testLamNoGens(){ ok(
+  @Test void testLamNoGens(){ ok(
       """
       [-mut animals.Cat[]-][animals.Cat[]]{}
       """, "mut animals.Cat"); }
-  @Example void testLamEmptyGens(){ ok(
+  @Test void testLamEmptyGens(){ ok(
       """
       [-mut animals.Cat[]-][animals.Cat[]]{}
       """, "mut animals.Cat[]"); }
-  @Example void testLamOneGens(){ ok(
+  @Test void testLamOneGens(){ ok(
       """
       [-mut base.List[imm pkg1.Person[]]-][base.List[imm pkg1.Person[]]]{}
       """, "mut base.List[imm pkg1.Person]"); }
-  @Example void testLamManyGens(){ ok(
+  @Test void testLamManyGens(){ ok(
       """
       [-mut base.Either[imm pkg1.Person[],mut pkg1.Blah[]]-][base.Either[imm pkg1.Person[],mut pkg1.Blah[]]]{}
       """, "mut base.Either[imm pkg1.Person, mut pkg1.Blah]"); }
-  @Example void surprisingIntberOfExprs(){ ok(
+  @Test void surprisingIntberOfExprs(){ ok(
     """
       we:infer.parse/0[-]([]):infer.a/0[-]([]):infer.surprising/0[-]([]):infer.amount/0[-]([]):infer.of/0[-]([]):infer.stuff/0[-]([]):infer
       """
     ,"we .parse .a .surprising .amount .of .stuff"); }
-  @Example void testFail1(){ fail(
+  @Test void testFail1(){ fail(
     "[###]Dummy.fear:1:3 mismatched input 'parse' expecting {'mut', 'lent', 'read', 'iso', 'recMdf', 'mdf', 'imm', FullCN}"
     ,"We parse a surprising amount of stuff"); }
-  @Example void singleEqSugar1(){ ok(
+  @Test void singleEqSugar1(){ ok(
     """
     recv:infer.m1/2[-]([val:infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 v = val"); }
-  @Example void singleEqSugarPOp1(){ ok(
+  @Test void singleEqSugarPOp1(){ ok(
     """
     recv:infer.m1/2[-]([val:infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 (v = val)"); }
-  @Example void singleEqSugarPOp2(){ ok(
+  @Test void singleEqSugarPOp2(){ ok(
     """
     recv:infer.m1/2[-]([val:infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer.m2/0[-]([]):infer}]):infer
     """, "recv .m1 (v = val) .m2"); }
-  @Example void singleEqSugarPOp3(){ ok(
+  @Test void singleEqSugarPOp3(){ ok(
     """
     recv:infer.m1/2[-]([val:infer.m2/0[-]([]):infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer.m3/0[-]([]):infer}]):infer
     """, "recv .m1 (v = val .m2) .m3"); }
-  @Example void testVarLast(){ ok("""
+  @Test void testVarLast(){ ok("""
     recv:infer.m1/2[-]([v:infer,[-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer}]):infer
     ""","recv .m1 x=v"); }
-  @Example void eqSugarSame1() { same("recv .m1 v = val", "recv .m1 (v = val)"); }
-  @Example void eqSugarSame2() { same("recv .m1 v = val .m2", "recv .m1 v = (val .m2)"); }
-  @Example void chainedMethCall() { ok("""
+  @Test void eqSugarSame1() { same("recv .m1 v = val", "recv .m1 (v = val)"); }
+  @Test void eqSugarSame2() { same("recv .m1 v = val .m2", "recv .m1 v = (val .m2)"); }
+  @Test void chainedMethCall() { ok("""
     recv:infer.m1/1[-]([a:infer]):infer .m2/1[-]([b:infer]):infer
     """, "(recv .m1 a) .m2 b"); }
-  @Example void singleEqSugar2(){ ok(
+  @Test void singleEqSugar2(){ ok(
     """
     recv:infer.m1/2[-]([val:infer.m2/0[-]([]):infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 v = val .m2"); }
-  @Example void nestedCalls1(){ ok("""
+  @Test void nestedCalls1(){ ok("""
     recv:infer.m1/2[-]([v:infer,[-infer-][]{ [-]([x,fear0$]):[-]->fear0$:infer.m2/1[-]([a:infer]):infer}]):infer
     """, "recv .m1 x=v.m2 a"); }
-  @Example void nestedCalls2(){ ok("""
+  @Test void nestedCalls2(){ ok("""
     recv:infer.m1/2[-]([v:infer,[-infer-][]{ [-]([x,fear0$]):[-]->fear0$:infer}]):infer.m2/1[-]([a:infer]):infer
     """, "(recv .m1 x=v) .m2 a"); }
-  @Example void eqExpasnionNoPar() { ok("""
+  @Test void eqExpasnionNoPar() { ok("""
     recv:infer.m1/2[-]([
       v:infer,
       [-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer.m2/1[-]([a:infer]):infer}
     ]):infer
     """, "recv .m1 x=v.m2 a"); }
-  @Example void eqExpasnionPar() { ok("""
+  @Test void eqExpasnionPar() { ok("""
     recv:infer.m1/2[-]([v:infer.m2/1[-]([a:infer]):infer,[-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer}]):infer
     """, "recv .m1 x=(v.m2 a)"); }
-  @Example void eqExpansionGensNoPar() { ok("""
+  @Test void eqExpansionGensNoPar() { ok("""
     recv:infer.m1/2[immA]([v:infer,[-infer-][]{
       [-]([x,fear0$]):[-]->fear0$:infer.m2/1[immB,immbase.C[immD]]([a:infer]):infer
     }]):infer
     """, "recv .m1[A] x=v.m2[B,base.C[D]] a"); }
-  @Example void nestedGenerics() { ok("""
+  @Test void nestedGenerics() { ok("""
     recv:infer .m1/0[imm pkg1.A[imm B]]([]):infer
     """, "recv .m1[pkg1.A[B]]"); }
-  @Example void failNestedGenerics() { fail("""
+  @Test void failNestedGenerics() { fail("""
     In position [###]/Dummy.fear:1:5
     [E3 concreteTypeInFormalParams]
     Trait and method declarations may only have generic type parameters. This concrete type was provided instead:
     imm pkg1.A[imm B]
     Alternatively, are you attempting to shadow an existing class name?
     """, "{ .m1[pkg1.A[B]]: base.Void }"); }
-  @Example void sameTest1(){ same("m.a", "m.a"); }
-  @Example void sameTest2(){ same("recv .m1 a .m2 b .m3 c", "((recv .m1 a) .m2 b) .m3 c"); }
-  @Example void sameTest3(){ same("recv .m1 a .m2 b", "(recv .m1 a) .m2 b"); }
-  @Example void sameTest4(){ same("recv .m1 a .m2", "recv .m1 (a .m2)"); }
-  @Example void sameTest5(){ same("recv .m1 x=v .m2", "recv .m1 x=(v .m2)"); }
+  @Test void sameTest1(){ same("m.a", "m.a"); }
+  @Test void sameTest2(){ same("recv .m1 a .m2 b .m3 c", "((recv .m1 a) .m2 b) .m3 c"); }
+  @Test void sameTest3(){ same("recv .m1 a .m2 b", "(recv .m1 a) .m2 b"); }
+  @Test void sameTest4(){ same("recv .m1 a .m2", "recv .m1 (a .m2)"); }
+  @Test void sameTest5(){ same("recv .m1 x=v .m2", "recv .m1 x=(v .m2)"); }
   // TODO: (recv .m1 x=v) .m2 a is weird because the = method has executed first, so x is out of scope
-  @Example void sameTest6(){ same("recv .m1[A] x=v .m2[B,base.C[D]]", "recv .m1[A] x=(v .m2[B,base.C[D]])"); }
-  @Example void sameTestVarLast(){ same("recv.m1(x=v)", "recv .m1 x=v"); }
-  @Example void implicitLambdaMdf(){ ok("[-pkg1.L[]-][pkg1.L[]]{}", "pkg1.L{}"); }
-  @Example void explicitMdfLambdaIso(){ ok("[-iso pkg1.L[]-][pkg1.L[]]{}", "iso pkg1.L{}"); }
-  @Example void explicitMdfLambdaImm(){ ok("[-imm pkg1.L[]-][pkg1.L[]]{}", "imm pkg1.L{}"); }
-  @Example void explicitMdfLambdaMut(){ ok("[-mut pkg1.L[]-][pkg1.L[]]{}", "mut pkg1.L{}"); }
-  @Example void explicitMdfLambdaRead(){ ok("[-read pkg1.L[]-][pkg1.L[]]{}", "read pkg1.L{}"); }
-  @Example void explicitMdfLambdaLent(){ ok("[-lent pkg1.L[]-][pkg1.L[]]{}", "lent pkg1.L{}"); }
-  @Example void explicitMdfLambdaRecMdf(){ ok("[-recMdf pkg1.L[]-][pkg1.L[]]{}", "recMdf pkg1.L{}"); }
-  @Example void explicitMdfLambdaMdf(){ fail("""
+  @Test void sameTest6(){ same("recv .m1[A] x=v .m2[B,base.C[D]]", "recv .m1[A] x=(v .m2[B,base.C[D]])"); }
+  @Test void sameTestVarLast(){ same("recv.m1(x=v)", "recv .m1 x=v"); }
+  @Test void implicitLambdaMdf(){ ok("[-pkg1.L[]-][pkg1.L[]]{}", "pkg1.L{}"); }
+  @Test void explicitMdfLambdaIso(){ ok("[-iso pkg1.L[]-][pkg1.L[]]{}", "iso pkg1.L{}"); }
+  @Test void explicitMdfLambdaImm(){ ok("[-imm pkg1.L[]-][pkg1.L[]]{}", "imm pkg1.L{}"); }
+  @Test void explicitMdfLambdaMut(){ ok("[-mut pkg1.L[]-][pkg1.L[]]{}", "mut pkg1.L{}"); }
+  @Test void explicitMdfLambdaRead(){ ok("[-read pkg1.L[]-][pkg1.L[]]{}", "read pkg1.L{}"); }
+  @Test void explicitMdfLambdaLent(){ ok("[-lent pkg1.L[]-][pkg1.L[]]{}", "lent pkg1.L{}"); }
+  @Test void explicitMdfLambdaRecMdf(){ ok("[-recMdf pkg1.L[]-][pkg1.L[]]{}", "recMdf pkg1.L{}"); }
+  @Test void explicitMdfLambdaMdf(){ fail("""
     [E11 invalidMdf]
     The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type pkg1.L[]
     """, "mdf pkg1.L{}"); }
@@ -188,7 +188,7 @@ But... maybe it was a mistake?
 
 Would  the interpretation (a .and b) .not  become more natural going forward?
    */
-  @Example void flowPrecedence1() { ok("""
+  @Test void flowPrecedence1() { ok("""
     list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}]):infer.to/1[-]([[-base.List[]-][base.List[]]{}]):infer
     """, """
     list.flow
@@ -196,7 +196,7 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
       .filter{}
       .to base.List
     """); }
-  @Example void flowPrecedence2() { ok("""
+  @Test void flowPrecedence2() { ok("""
     list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}.toList/0[-]([]):infer]):infer
     """, """
     list.flow
@@ -204,7 +204,7 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
       .filter{}
       .toList
     """); }
-  @Example void flowPrecedence2a() { ok("""
+  @Test void flowPrecedence2a() { ok("""
     list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}.toList/0[-]([]):infer]):infer
     """, """
     list.flow
@@ -212,7 +212,7 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
       .filter
       ({}.toList)
     """); }
-  @Example void flowPrecedence2b() { ok("""
+  @Test void flowPrecedence2b() { ok("""
     list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}]):infer.toList/0[-]([]):infer
     """, """
     (list.flow
@@ -220,7 +220,7 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
       .filter{})
       .toList
     """); }
-  @Example void precedence3() { same("""
+  @Test void precedence3() { same("""
     (a + b) - c
     """, """
     a + b - c
