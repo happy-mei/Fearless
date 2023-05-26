@@ -38,8 +38,6 @@ public interface Program {
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1 == m2){ return true; }
     if (m2 == Mdf.read) { return true; }
-//    if (m1 == Mdf.recMdf && m2 == Mdf.mdf) { return true; } // TODO: I think this will be fine, not in formalism yet
-//    if (m1 == Mdf.mdf && m2 == Mdf.recMdf) { return true; } // TODO: I think this will be fine, not in formalism yet
     return switch(m1){
       case mut -> m2.isLikeMut();
       case lent, imm -> m2.isRead();
