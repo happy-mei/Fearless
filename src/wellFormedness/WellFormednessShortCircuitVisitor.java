@@ -37,9 +37,7 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
   }
 
   @Override public Optional<CompileError> visitMeth(E.Meth e) {
-    return noRecMdfInNonHyg(e)
-      .or(()->ShortCircuitVisitor.super.visitMeth(e))
-      .map(err->err.parentPos(e.pos()));
+    return ShortCircuitVisitor.super.visitMeth(e).map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitT(T t) {
@@ -62,24 +60,6 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
         return ShortCircuitVisitor.super.visitT(t);
       }
     }.visitIT(it);
-  }
-  private Optional<CompileError> noRecMdfInNonHyg(E.Meth m) {
-    if (m.sig().mdf().isHyg()) { return Optional.empty(); }
-    return new ShortCircuitVisitor<CompileError>(){
-      @Override
-      public Optional<CompileError> visitLambda(E.Lambda e) {
-//        if (e.mdf().isRecMdf()) { return Optional.of(Fail.recMdfInNonHyg(m.sig().mdf(), m.name(), e).pos(e.pos())); }
-//        return ShortCircuitVisitor.super.visitLambda(e);
-        return Optional.empty();
-      }
-      public Optional<CompileError> visitT(T t) {
-        if (t.mdf().isRecMdf()) {
-          // TODO: temp pls fix this well formedness rule
-//          return Optional.of(Fail.recMdfInNonHyg(m.sig().mdf(), m.name(), t).pos(m.pos()));
-        }
-        return ShortCircuitVisitor.super.visitT(t);
-      }
-    }.visitMeth(m);
   }
 
   private Optional<CompileError> noSealedOutsidePkg(E.Lambda e) {

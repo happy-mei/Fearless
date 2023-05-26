@@ -9,7 +9,10 @@ import magic.Magic;
 import failure.CompileError;
 import failure.Fail;
 import astFull.Program;
+import visitors.FullShortCircuitVisitor;
 import visitors.FullShortCircuitVisitorWithEnv;
+import visitors.FullVisitor;
+import visitors.ShortCircuitVisitor;
 
 import java.util.*;
 import java.util.function.Function;
@@ -101,6 +104,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
         e))
       .or(()->noShadowingGX(e.sig().map(E.Sig::gens).orElse(List.of())))
       .or(()->validMethMdf(e))
+      .or(()->noRecMdfInNonHyg(e))
       .map(err->err.pos(e.posOrUnknown()))
       .or(()->super.visitMeth(e));
   }
@@ -222,6 +226,24 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       if (!ismMdfOrRecMdf) { return Optional.empty(); }
       return Optional.of(Fail.invalidMethMdf(e.sig().get(), e.name().get()));
     });
+  }
+
+  private Optional<CompileError> noRecMdfInNonHyg(E.Meth m) {
+    if (m.sig().stream().anyMatch(sig->sig.mdf().isHyg())) { return Optional.empty(); }
+    return new FullShortCircuitVisitor<CompileError>(){
+      @Override public Optional<CompileError> visitLambda(E.Lambda e) {
+        if (e.mdf().map(Mdf::isRecMdf).orElse(false)) {
+          return Optional.of(Fail.recMdfInNonHyg(m, e).pos(e.pos()));
+        }
+        return FullShortCircuitVisitor.super.visitLambda(e);
+      }
+      @Override public Optional<CompileError> visitT(T t) {
+        if (!t.isInfer() && t.mdf().isRecMdf()) {
+          return Optional.of(Fail.recMdfInNonHyg(m, t).pos(m.pos()));
+        }
+        return FullShortCircuitVisitor.super.visitT(t);
+      }
+    }.visitMeth(m);
   }
 }
 

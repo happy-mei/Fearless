@@ -53,115 +53,6 @@ public class TestWellFormedness {
     }
   }
 
-  @Test void noRecMdfInImplements() { fail("""
-    In position [###]/Dummy0.fear:3:5
-    [E27 recMdfInImpls]
-    Invalid modifier for recMdf Y.
-    recMdf may not be used in the list of implemented traits.
-    """, """
-    package base
-    A[X]:{}
-    B[Y]:A[recMdf Y]{}
-    """); }
-  @Test void recMdfAllowedInHyg() { ok("""
-    package base
-    A[X]:{ read .foo(): recMdf X }
-    B[X]:{ lent .foo(): recMdf X }
-    C[X]:{ lent .foo(c: recMdf X): recMdf X -> c }
-    """); }
-  @Test void recMdfAllowedInSubHyg() { ok("""
-    package base
-    A[X]:{ .foo(x: X): X -> B[X]{ x }.argh }
-    B[X]:{ read .argh: recMdf X }
-    """); }
-  @Test void noRecMdfInNonReadRet() { fail("""
-    In position [###]/Dummy0.fear:2:7
-    [E26 recMdfInNonHyg]
-    Invalid modifier for recMdf X.
-    recMdf may only be used in read or lent methods. The method .foo/0 has the imm modifier.
-    """, """
-    package base
-    A[X]:{ .foo(): recMdf X }
-    """); }
-  @Test void noRecMdfInNonReadRetNested() { fail("""
-    In position [###]/Dummy0.fear:2:7
-    [E26 recMdfInNonHyg]
-    Invalid modifier for recMdf X.
-    recMdf may only be used in read or lent methods. The method .foo/0 has the imm modifier.
-    """, """
-    package base
-    A[X]:{ .foo(): A[recMdf X] }
-    """); }
-  @Test void noRecMdfInNonReadArgs() { fail("""
-    In position [###]/Dummy0.fear:3:7
-    [E26 recMdfInNonHyg]
-    Invalid modifier for recMdf base.Foo[].
-    recMdf may only be used in read or lent methods. The method .foo/1 has the imm modifier.
-    """, """
-    package base
-    Foo:{}
-    A[X]:{ .foo(f: recMdf Foo): Foo -> f }
-    """); }
-  @Test void noRecMdfInNonReadArgsNested() { fail("""
-    In position [###]/Dummy0.fear:3:7
-    [E26 recMdfInNonHyg]
-    Invalid modifier for recMdf X.
-    recMdf may only be used in read or lent methods. The method .foo/1 has the imm modifier.
-    """, """
-    package base
-    Foo:{}
-    A[X]:{ .foo(f: A[recMdf X]): Foo -> f }
-    """); }
-  @Test void complexValidRecMdf() { ok("""
-    package test
-    alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
-    Opt[T]:NoMutHyg[mdf T]{
-      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
-      read .flatMap[R](f: mut OptMap[recMdf T, recMdf Opt[mdf R]]): mut Opt[mdf R] -> this.match{
-        .some(x) -> f#x,
-        .none -> {}
-        },
-      }
-    OptMatch[T,R]:NoMutHyg[mdf R]{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
-    """, """
-    package base
-    NoMutHyg[X]:{}
-    """); }
-
-  @Test void explicitMdfLambdaRecMdf1(){ ok("""
-    package test
-    Foo:{}
-    Bar:{ read .a: recMdf Foo -> recMdf Foo }
-    """); }
-  @Test void explicitMdfLambdaRecMdf2(){ ok("""
-    package test
-    Foo:{}
-    Bar:{ lent .a: recMdf Foo -> recMdf Foo }
-    """); }
-  @Test void explicitMdfLambdaRecMdfONonHyg1(){ fail("""
-    In position [###]/Dummy0.fear:3:6
-    [E26 recMdfInNonHyg]
-    Invalid modifier for recMdf test.Foo[].
-    recMdf may only be used in read or lent methods. The method .a/0 has the imm modifier.
-    """, """
-    package test
-    Foo:{}
-    Bar:{ .a: recMdf Foo -> recMdf Foo }
-    """); }
-  @Test void explicitMdfLambdaRecMdfONonHyg2(){ fail("""
-    In position [###]/Dummy0.fear:3:24
-    [E26 recMdfInNonHyg]
-    Invalid lambda modifier.
-    recMdf may only be used in read or lent methods. The method .a/0 has the imm modifier.
-    """, """
-    package test
-    Foo:{}
-    Bar:{ .a: Foo -> recMdf Foo }
-    """); }
-
   @Test void sealedOutsidePkg() { fail("""
     In position [###]/Dummy1.fear:2:2
     [E35 sealedCreation]
@@ -281,26 +172,14 @@ public class TestWellFormedness {
     A[X]:{ .no: read A[read A[X]] }
     """); }
 
-  @Property void recMdfRetOnlyOnReadOrLentHappy(@ForAll("hygMdf") Mdf mdf) { ok(String.format("""
-    package test
-    A:{ %s .foo: recMdf Res }
-    Res:{}
-    """, mdf)); }
-  @Property void recMdfRetOnlyOnReadOrLentSad(@ForAll("nonHygMdf") Mdf mdf) { fail(String.format("""
-    In position [###]/Dummy0.fear:2:4
-    [E26 recMdfInNonHyg]
-    Invalid modifier for recMdf test.Res[].
-    recMdf may only be used in read or lent methods. The method .foo/0 has the %s modifier.
-    """, mdf), String.format("""
-    package test
-    A:{ %s .foo: recMdf Res }
-    Res:{}
-    """, mdf));}
-
-  @Provide Arbitrary<Mdf> hygMdf() {
-    return Arbitraries.of(Mdf.read, Mdf.lent);
-  }
-  @Provide Arbitrary<Mdf> nonHygMdf() {
-    return Arbitraries.of(Arrays.stream(Mdf.values()).filter(mdf->!mdf.isHyg() && !mdf.is(Mdf.mdf, Mdf.recMdf)).toList());
-  }
+  @Test void noRecMdfInImplements() { fail("""
+    In position [###]/Dummy0.fear:3:5
+    [E27 recMdfInImpls]
+    Invalid modifier for recMdf Y.
+    recMdf may not be used in the list of implemented traits.
+    """, """
+    package base
+    A[X]:{}
+    B[Y]:A[recMdf Y]{}
+    """); }
 }
