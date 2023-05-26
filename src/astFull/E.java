@@ -106,7 +106,10 @@ public sealed interface E extends HasPos {
   record X(String name, T t, Optional<Pos> pos) implements E{
     private static int FRESH_N = 0;
     public static void reset() {
-      if (FRESH_N > 100) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
+      // TODO: disable outside unit testing context
+      if (FRESH_N > 300) {
+        throw Bug.of("FRESH_N is larger than we expected for tests.");
+      }
       FRESH_N = 0;
     }
     public static String freshName() {

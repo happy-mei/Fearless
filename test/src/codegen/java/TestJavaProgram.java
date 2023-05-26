@@ -18,6 +18,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -25,6 +26,9 @@ import static utils.RunJava.Res;
 
 public class TestJavaProgram {
   void ok(Res expected, String entry, String... content) {
+    okWithArgs(expected, entry, List.of(), content);
+  }
+  void okWithArgs(Res expected, String entry, List<String> args, String... content) {
     assert content.length > 0;
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
@@ -41,11 +45,14 @@ public class TestJavaProgram {
     inferred.typeCheck();
     var mir = new MIRInjectionVisitor(inferred).visitProgram();
     var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
-    System.out.println(java);
-    var res = RunJava.of(new JavaProgram(java).compile()).join();
+    var res = RunJava.of(new JavaProgram(java).compile(), args).join();
     Assertions.assertEquals(expected, res);
   }
+
   void fail(String expectedErr, String entry, String... content) {
+    failWithArgs(expectedErr, entry, List.of(), content);
+  }
+  void failWithArgs(String expectedErr, String entry, List<String> args, String... content) {
     assert content.length > 0;
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
@@ -63,7 +70,7 @@ public class TestJavaProgram {
     var mir = new MIRInjectionVisitor(inferred).visitProgram();
     try {
       var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
-      var res = RunJava.of(new JavaProgram(java).compile()).join();
+      var res = RunJava.of(new JavaProgram(java).compile(), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
@@ -308,6 +315,63 @@ public class TestJavaProgram {
       .return{{}}
       }
     """); }
+
+  static String cliArgsOrElseGet = """
+    package test
+    MyApp:Main[Void]{ args, s -> s
+      .use[IO] io = IO'
+      .return{ io.println(ImmMain#args) }
+      }
+    ImmMain:{
+      #(args: LList[Str]): Str -> args.get(1u) || mut Box[Str]{ (this.errMsg((args.head).isSome)) * },
+      .errMsg(retCounter: Bool): mut Ref[Str] -> Do#
+        .var res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
+        .var counter = { Count.int(42) }
+        .do{ res* := "mutability!" }
+        .do{ Yeet#(counter++) }
+        .if{ False }.return{ Ref#[Str]"Short cut" }
+        .if{ True }.do{ Yeet#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
+        .if{ True }.do{ res* := "moar mutability" }
+        .if{ retCounter.not }.return{ res* }
+        .return{ Ref#(counter*.str) }
+      }
+    """;
+  @Test void cliArgs1a() { okWithArgs(new Res("moar mutability", "", 0), "test.MyApp", List.of(), cliArgsOrElseGet, Base.mutBaseAliases); }
+  @Test void cliArgs1b() { okWithArgs(new Res("387000", "", 0), "test.MyApp", List.of(
+    "hi"
+  ), cliArgsOrElseGet, Base.mutBaseAliases); }
+  @Test void cliArgs1c() { okWithArgs(new Res("bye", "", 0), "test.MyApp", List.of(
+    "hi",
+    "bye"
+  ), cliArgsOrElseGet, Base.mutBaseAliases); }
+  String getCliArgsOrElse = """
+    package test
+    MyApp:Main[Void]{ args, s -> s
+      .use[IO] io = IO'
+      .return{ io.println(ImmMain#args) }
+      }
+    ImmMain:{
+      #(args: LList[Str]): Str -> args.get(1u) | (this.errMsg((args.head).isSome)) *,
+      .errMsg(retCounter: Bool): mut Ref[Str] -> Do#
+        .var res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
+        .var counter = { Count.int(42) }
+        .do{ res* := "mutability!" }
+        .do{ Yeet#(counter++) }
+        .if{ False }.return{ Ref#[Str]"Short cut" }
+        .if{ True }.do{ Yeet#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
+        .if{ True }.do{ res* := "moar mutability" }
+        .if{ retCounter.not }.return{ res* }
+        .return{ Ref#(counter*.str) }
+      }
+    """;
+  @Test void cliArgs2a() { okWithArgs(new Res("moar mutability", "", 0), "test.MyApp", List.of(), getCliArgsOrElse, Base.mutBaseAliases); }
+  @Test void cliArgs2b() { okWithArgs(new Res("387000", "", 0), "test.MyApp", List.of(
+    "hi"
+  ), getCliArgsOrElse, Base.mutBaseAliases); }
+  @Test void cliArgs2c() { okWithArgs(new Res("bye", "", 0), "test.MyApp", List.of(
+    "hi",
+    "bye"
+  ), getCliArgsOrElse, Base.mutBaseAliases); }
 
 //  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test

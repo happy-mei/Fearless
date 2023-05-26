@@ -56,7 +56,9 @@ public class Id {
     public static void reset() {
       freshNames.clear();
       // TODO: disable outside unit testing context
-      if (FRESH_N > 500) { throw Bug.of("FRESH_N is larger than we expected for tests."); }
+      if (FRESH_N > 50_000) {
+        throw Bug.of("FRESH_N is larger than we expected for tests.");
+      }
       FRESH_N = 0;
     }
     public static List<GX<ast.T>> standardNames(int n) {

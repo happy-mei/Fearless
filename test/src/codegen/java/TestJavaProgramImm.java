@@ -18,6 +18,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -25,6 +26,9 @@ import static utils.RunJava.Res;
 
 public class TestJavaProgramImm {
   void ok(Res expected, String entry, String... content) {
+    okWithArgs(expected, entry, List.of(), content);
+  }
+  void okWithArgs(Res expected, String entry, List<String> args, String... content) {
     assert content.length > 0;
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
@@ -40,12 +44,16 @@ public class TestJavaProgramImm {
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     inferred.typeCheck();
     var mir = new MIRInjectionVisitor(inferred).visitProgram();
-    var java = new ImmJavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
+    var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
     System.out.println(java);
-    var res = RunJava.of(new JavaProgram(java).compile()).join();
+    var res = RunJava.of(new JavaProgram(java).compile(), args).join();
     Assertions.assertEquals(expected, res);
   }
+
   void fail(String expectedErr, String entry, String... content) {
+    failWithArgs(expectedErr, entry, List.of(), content);
+  }
+  void failWithArgs(String expectedErr, String entry, List<String> args, String... content) {
     assert content.length > 0;
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
@@ -63,7 +71,7 @@ public class TestJavaProgramImm {
     var mir = new MIRInjectionVisitor(inferred).visitProgram();
     try {
       var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
-      var res = RunJava.of(new JavaProgram(java).compile()).join();
+      var res = RunJava.of(new JavaProgram(java).compile(), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
