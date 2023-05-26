@@ -9,6 +9,7 @@ import id.Id;
 import id.Id.GX;
 import id.Id.MethName;
 import id.Mdf;
+import program.TypeRename;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
@@ -109,14 +110,8 @@ public interface EMethTypeSystem extends ETypeSystem {
     return p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
       var mdf = rec.mdf();
       var mdf0 = cm.mdf();
-//      // TODO: this check is not in the formalism and is also kinda broken (see shouldApplyRecMdfInTypeParams4a)
-//      if (containsRecMdf(rec)) {
-//        return new TsT(Push.of(rec.withMdf(mdf0), cm.sig().ts()), cm.ret());
-//      }
       Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
-//      var t0 = fancyRename(rec, mdf, xsTsMap).withMdf(mdf0);
       var t0 = rec.withMdf(mdf0);
-//      var t0 = new T(mdf0, cm.c());
       var params = Push.of(
         t0,
         cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()
@@ -127,11 +122,14 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
 
   /** This is [MDF, Xs=Ts] (recMdf rewriting for meth calls) */
-  static T fancyRename(T t, Mdf mdf0, Map<GX<T>,T> map) {
+  default T fancyRename(T t, Mdf mdf0, Map<GX<T>,T> map) {
     Mdf mdf=t.mdf();
-    var renamed = t.match(
+    return t.match(
       gx->{
-        if(!mdf.isRecMdf()){ return map.getOrDefault(gx,t); }
+        if(!mdf.isRecMdf()){
+          var renamed = map.getOrDefault(gx, t);
+          return TypeRename.core(p()).propagateMdf(mdf, renamed);
+        }
         var ti = map.get(gx);
         if (ti == null) { return t; }
 //        var ti = map.getOrDefault(gx,t);
@@ -143,10 +141,6 @@ public interface EMethTypeSystem extends ETypeSystem {
         if(mdf0.isIso()){ return new T(Mdf.mut, it.withTs(newTs)); }
         return new T(mdf0, it.withTs(newTs));
       });
-//    assert !renamed.mdf().isRecMdf() : "recMdf should be flattened by now";
-//    System.out.println(renamed);
-    return renamed;
-//    return t; // todo: disabling for now
   }
   default List<T> mutToIso(List<T> ts){
     return ts.stream().map(this::mutToIso).toList();
