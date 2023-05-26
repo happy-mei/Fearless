@@ -15,12 +15,10 @@ import java.util.stream.Collectors;
 public class InjectionVisitor implements FullVisitor<ast.E>{
   public ast.E.MCall visitMCall(E.MCall e) {
     // TODO: WHYYYYYY
-//    [-imm base.False[]-][base.False[]]{ } .or/1[]([[-imm base.Bool[]-][base.True[]]{ }]):imm base.Bool[] ?/1[imm base.Num[]]([[-mut base.ThenElse[imm X0/0$]-][]{
-//    .then/0([]): Sig[mdf=mut,gens=[],ts=[],ret=infer] -> [-imm 42[]-][42[]]{ },
-//    .else/0([]): Sig[mdf=mut,gens=[],ts=[],ret=infer] -> [-imm 0[]-][0[]]{ }}]):imm X0/0$
+    var recv = e.receiver().accept(this);
     assert e.ts().isPresent();
     return new ast.E.MCall(
-      e.receiver().accept(this),
+      recv,
       e.name(),
       e.ts().orElseThrow().stream().map(this::visitT).toList(),
       e.es().stream().map(ei->ei.accept(this)).toList(),

@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static program.typesystem.RunTypeSystem.ok;
 
 public class TestWellFormedness {
   void ok(String... content){
@@ -111,6 +112,24 @@ public class TestWellFormedness {
     Foo:{}
     A[X]:{ .foo(f: A[recMdf X]): Foo -> f }
     """); }
+  @Test void complexValidRecMdf() { ok("""
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt[T]:NoMutHyg[mdf T]{
+      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
+      read .flatMap[R](f: mut OptMap[recMdf T, recMdf Opt[mdf R]]): mut Opt[mdf R] -> this.match{
+        .some(x) -> f#x,
+        .none -> {}
+        },
+      }
+    OptMatch[T,R]:NoMutHyg[mdf R]{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
 
   @Test void explicitMdfLambdaRecMdf1(){ ok("""
     package test
@@ -151,10 +170,10 @@ public class TestWellFormedness {
     package a
     alias base.Sealed as Sealed,
     A:Sealed{}
-    B:A{}
+    B:A{ .m1: A }
     """, """
     package b
-    C:a.A{}
+    C:a.A{ .m1: a.A }
     """, """
     package base
     Sealed:{}
@@ -164,6 +183,30 @@ public class TestWellFormedness {
     [E35 sealedCreation]
     The sealed trait a.A/0 cannot be created in a different package (b).
     """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{}
+    B:A{ .m1: A }
+    """, """
+    package b
+    C:a.B{ this }
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void sealedOutsidePkgNoOverrides() { ok("""
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{}
+    B:A{}
+    """, """
+    package b
+    C:a.A{}
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void sealedOutsidePkgNestedNoOverrides() { ok("""
     package a
     alias base.Sealed as Sealed,
     A:Sealed{}
@@ -182,14 +225,14 @@ public class TestWellFormedness {
     """, """
     package a
     alias base.Sealed as Sealed,
-    A:Sealed{ .a: Foo -> {} }
-    B:A{}
+    A:Sealed{ .a: Foo }
+    B:A{ .a -> {} }
     Foo:{}
     """, """
     package b
     alias a.A as A, alias a.Foo as Foo,
     C:{
-      .foo(): Foo -> A.a
+      .foo(): Foo -> a.A{ Foo }.a
       }
     """, """
     package base

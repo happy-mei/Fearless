@@ -226,7 +226,6 @@ public class TestRecMdf {
     package test
     alias base.NoMutHyg as NoMutHyg,
     Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
-//    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x), } }
     Opt[T]:NoMutHyg[mdf T]{
       read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }
@@ -239,7 +238,6 @@ public class TestRecMdf {
     package test
     alias base.NoMutHyg as NoMutHyg,
     Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
-//    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x), } }
     Opt[T]:NoMutHyg[mdf T]{
       read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
