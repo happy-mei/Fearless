@@ -682,12 +682,12 @@ public class TestInferBodies {
     """); }
   @Test void doNotChangeExplicitLambdaMdf2() { ok("""
     {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
-      .a/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm test.Foo[]]->[-recMdf-][test.Foo[]]{'fear[###]$}}],
+      .a/0([]):Sig[mdf=read,gens=[],ts=[],ret=imm test.Foo[]]->[-recMdf-][test.Foo[]]{'fear[###]$}}],
     test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this}]}
     """, """
     package test
     Foo:{}
-    Bar:{ .a: Foo -> recMdf Foo }
+    Bar:{ read .a: Foo -> recMdf Foo }
     """); }
 
   @Test void numImpls1() { ok("""

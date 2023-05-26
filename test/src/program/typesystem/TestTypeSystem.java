@@ -1,11 +1,8 @@
 package program.typesystem;
 
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
-
-import java.util.Arrays;
 
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
@@ -243,59 +240,6 @@ public class TestTypeSystem {
     Void:{}
     """); }
   @Test void noCallMutFromRecMdfImm() { fail("""
-    In position [###]/Dummy0.fear:4:26
-    [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
-    this .b/0[]([]) .foo/0[]([])
-    were valid:
-    (imm test.B[]) <: (mut test.B[]): mut test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-        (read test.A[]): imm test.B[]
-        (read test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
-        
-    (imm test.B[]) <: (iso test.B[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (read test.A[]): imm test.B[]
-        (read test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
-        
-    (imm test.B[]) <: (iso test.B[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (read test.A[]): imm test.B[]
-        (read test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
-        
-    (imm test.B[]) <: (iso test.B[]): mut test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (read test.A[]): imm test.B[]
-        (read test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
-    """, """
-    package test
-    A:{
-      read .b: recMdf B -> {},
-      .doThing: Void -> this.b.foo.ret
-      }
-    B:{
-      mut .foo(): mut B -> this,
-      mut .ret(): Void -> {},
-      }
-    Void:{}
-    """); }
-  @Test void noCallMutFromRecMdfRead() { fail("""
     In position [###]/Dummy0.fear:4:31
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
@@ -435,15 +379,19 @@ public class TestTypeSystem {
   @Test void recMdfCallsRecMdf() { ok("""
     package test
     A:{
-      read .inner: recMdf A -> this,
-      read .outer: recMdf A -> this.inner,
+      read .inner: recMdf A -> {},
+      read .outer: recMdf A -> recMdf A.inner,
       }
     """); }
   @Test void recMdfCallsRecMdfa() { ok("""
     package test
     A:{
-      read .inner: recMdf A -> a
+      read .asRecMdf: recMdf A -> recMdf A{'inner
+        read .inner: recMdf A -> inner
+        },
+      read .inner: recMdf A,
       }
+    B:{ #(a: mut A): mut A -> a.inner }
     """); }
   @Test void noCaptureReadInMut() { fail("""
     In position [###]/Dummy0.fear:4:26
@@ -621,10 +569,6 @@ public class TestTypeSystem {
     In position [###]/Dummy0.fear:4:59
     [E23 methTypeError]
     Expected the method .absMeth/0 to return lent T, got mdf T.
-        
-    In position [###]/Dummy0.fear:5:4
-    [E23 methTypeError]
-    Expected the method #/0 to return lent test.L[mut test.B[]], got lent test.L[read test.B[]].
     """, """
     package test
     B:{}
@@ -675,10 +619,10 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.IO'[]]{'fear48$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear49$ #/2([io, fear1$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear1$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear50$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear51$ }])}])}])
     were valid:
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (iso base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (mut base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], imm base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (iso base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (mut base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,

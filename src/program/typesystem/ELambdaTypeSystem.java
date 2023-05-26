@@ -80,6 +80,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var mMdf = m.sig().mdf();
 
     var selfTi = selfT.mdf().isMdf() ? selfT.withMdf(mMdf) : selfT;
+//    var selfTi = selfT.mdf().isRead() ? selfT.withMdf(Mdf.recMdf) : selfT; // TODO: new in formalism
     var args = m.sig().ts();
     var ret = m.sig().ret();
 //    System.out.println("before: "+m.body().get());

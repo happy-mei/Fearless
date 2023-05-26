@@ -80,7 +80,7 @@ public interface Program {
       return true;
     }
     if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
-    t1 = t1.withMdf(Mdf.mdf); t2 = t2.withMdf(Mdf.mdf);
+    t1 = t1.withMdf(t1.mdf()); t2 = t2.withMdf(t1.mdf());
     if(t1.rt().equals(t2.rt())){ return true; }
     if(!t1.isIt() || !t2.isIt()){ return false; }
 
