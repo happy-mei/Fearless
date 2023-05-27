@@ -32,9 +32,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) {
-    if (!pkgs.containsKey("base")) {
-      throw Bug.todo();
-    }
+    assert pkgs.containsKey("base");
     var entryName = getName(entry);
     var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_1 entry = new "+entryName+"(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }\n";
 

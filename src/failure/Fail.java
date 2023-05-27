@@ -187,6 +187,10 @@ public class Fail{
     return of(err.getFile()+" does not exist or cannot be read"+extra);
   }
 
+  public static CompileError invalidEntryPoint(Id.DecId entry, Id.IT<?> main) {
+    return of(entry+" must implement "+main);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -236,6 +240,7 @@ enum ErrorCode {
   incompatibleMdfs,
   mutCapturesHyg,
   ioError,
-  fsError;
+  fsError,
+  invalidEntryPoint;
   int code() {return this.ordinal() + 1;}
 }

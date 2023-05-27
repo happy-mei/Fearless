@@ -2,7 +2,6 @@ package main;
 
 import ast.Program;
 import astFull.Package;
-import astFull.T;
 import codegen.MIRInjectionVisitor;
 import codegen.java.ImmJavaCodegen;
 import codegen.java.JavaCodegen;
@@ -10,16 +9,16 @@ import codegen.java.JavaProgram;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
-import org.zalando.fauxpas.ThrowingFunction;
+import id.Mdf;
+import magic.Magic;
 import parser.Parser;
 import program.inference.InferBodies;
 import utils.Box;
 import utils.Bug;
-import utils.Push;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystemException;
@@ -59,7 +58,14 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
   void run(String entryPoint, String[] files, List<String> cliArgs) {
     var entry = new Id.DecId(entryPoint, 0);
     var p = compile(files);
-    // TODO: validate entry trait name
+
+    var main = p.of(switch (bv) {
+      case Std -> Magic.Main;
+      case Imm -> Magic.ImmMain;
+    }).toIT();
+    var isEntryValid = p.isSubType(new ast.T(Mdf.mdf, p.of(entry).toIT()), new ast.T(Mdf.mdf, main));
+    if (!isEntryValid) { throw Fail.invalidEntryPoint(entry, main); }
+
     var java = toJava(entry, p);
     var classFile = java.compile();
 
@@ -122,7 +128,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
     return parseBase().values().stream()
       .flatMap(Collection::stream)
       .flatMap(pkg->pkg.shallowParse().stream())
-      .map(T.Dec::name)
+      .map(astFull.T.Dec::name)
       .filter(dec->!dec.shortName().startsWith("_"))
       .map(dec->"alias "+dec.name()+" as "+dec.shortName()+",")
       .distinct()

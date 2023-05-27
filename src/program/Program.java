@@ -76,9 +76,6 @@ public interface Program {
     return isSubType;
   }
   default boolean isSubTypeAux(T t1, T t2) {
-    if ((t2.rt() instanceof Id.IT<?> it) && it.name().equals(Magic.InternalAny)) {
-      return true;
-    }
     if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
     t1 = t1.withMdf(t1.mdf()); t2 = t2.withMdf(t1.mdf());
     if(t1.rt().equals(t2.rt())){ return true; }
@@ -100,7 +97,7 @@ public interface Program {
   */
     assert t1.mdf() == t2.mdf();
     var mdf = t1.mdf();
-    if (mdf.isMdf()) { return false; }
+    if (mdf.isMdf()) { return true; }
 
     /*
     #Define adapterOk(MDF,C,Ts1,Ts2)

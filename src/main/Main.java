@@ -59,7 +59,7 @@ public class Main {
       cli.build().run();
     } catch (CompileError | IllegalStateException e) {
       if (verbosity.get().showInternalStackTraces()) { throw e; }
-      System.out.println(e);
+      System.err.println(e);
       System.exit(1);
     } catch (Exception e) {
       throw Bug.of(e);
