@@ -40,19 +40,25 @@ public class TestJavaCodegen {
   }
 
   @Test void emptyProgram() { ok("""
-    interface FProgram{interface base{interface System_1 extends base.Sealed_0{
-    }
-    interface Sealed_0{
-    }
-    interface NoMutHyg_1{
-    }
-    interface Void_0{
-    }
-    interface Main_1{
-    Object $35$(Object s$);}
-    }
-    static void main(String[] args){ base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.System_1(){}); }
-    }
+interface FProgram{interface base{interface System_1 extends base.Sealed_0{
+}
+interface Sealed_0{
+}
+interface NoMutHyg_1{
+}
+interface Void_0{
+}
+interface Main_1{
+Object $35$(Object s$);}
+}
+static void main(String[] args){ var cons = new base.Cons_0(){};
+base.LList_1 cliArgs = new base.LList_1(){};
+for (int i = args.length - 1; i >= 0; --i) {
+  var arg = args[i];
+  cliArgs = cons.$35$(arg, cliArgs);
+}
+ base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+}
     """, "fake.Fake", false, """
     package test
     """, Base.minimalBase);}
@@ -61,7 +67,7 @@ public class TestJavaCodegen {
 interface FProgram{interface test{interface Bar_0 extends test.Baz_1{
 default test.Baz_1 loop$(){
 var f$thiz = this;
-return ((test.Baz_1)(((test.Bar_0)(f$thiz)).loop$()));
+return ((test.Baz_1)(((test.Baz_1)((test.Bar_0)(f$thiz)).loop$())));
 }
 default test.Foo_0 $35$(){
 var f$thiz = this;
@@ -80,7 +86,7 @@ var f$thiz = this;
 return ((test.Ok_0)(new test.Ok_0(){
 public test.Ok_0 $35$(){
 var ok$ = this;
-return ((test.Ok_0)(((test.Ok_0)(ok$)).$35$()));
+return ((test.Ok_0)(((test.Ok_0)((test.Ok_0)(ok$)).$35$())));
 }}));
 }}
 }
@@ -95,7 +101,13 @@ interface Void_0{
 interface Main_1{
 Object $35$(Object s$);}
 }
-static void main(String[] args){ base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.System_1(){}); }
+static void main(String[] args){ var cons = new base.Cons_0(){};
+base.LList_1 cliArgs = new base.LList_1(){};
+for (int i = args.length - 1; i >= 0; --i) {
+  var arg = args[i];
+  cliArgs = cons.$35$(arg, cliArgs);
+}
+ base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
     package test
@@ -115,7 +127,7 @@ return ((test.Bool_0)(new test.False_0(){
 }
 default Object $63$(Object f$){
 var f$thiz = this;
-return ((Object)(((test.ThenElse_1)(f$)).then$()));
+return ((Object)(((Object)((test.ThenElse_1)(f$)).then$())));
 }
 default test.Bool_0 or$(Object b$){
 var f$thiz = this;
@@ -133,7 +145,7 @@ return ((test.Bool_0)(new test.True_0(){
 }
 default Object $63$(Object f$){
 var f$thiz = this;
-return ((Object)(((test.ThenElse_1)(f$)).else$()));
+return ((Object)(((Object)((test.ThenElse_1)(f$)).else$())));
 }
 default test.Bool_0 or$(Object b$){
 var f$thiz = this;
@@ -165,7 +177,13 @@ interface Void_0{
 interface Main_1{
 Object $35$(Object s$);}
 }
-static void main(String[] args){ base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.System_1(){}); }
+static void main(String[] args){ var cons = new base.Cons_0(){};
+base.LList_1 cliArgs = new base.LList_1(){};
+for (int i = args.length - 1; i >= 0; --i) {
+  var arg = args[i];
+  cliArgs = cons.$35$(arg, cliArgs);
+}
+ base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
     package test
@@ -201,7 +219,13 @@ interface Void_0{
 interface Main_1{
 Object $35$(Object s$);}
 }
-static void main(String[] args){ base.Main_1 entry = new test.HelloWorld_0(){}; entry.$35$(new base$46caps.System_1(){}); }
+static void main(String[] args){ var cons = new base.Cons_0(){};
+base.LList_1 cliArgs = new base.LList_1(){};
+for (int i = args.length - 1; i >= 0; --i) {
+  var arg = args[i];
+  cliArgs = cons.$35$(arg, cliArgs);
+}
+ base.Main_1 entry = new test.HelloWorld_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "test.HelloWorld", false, """
     package test
@@ -243,7 +267,13 @@ interface Void_0{
 interface Main_1{
 Object $35$(Object s$);}
 }
-static void main(String[] args){ base.Main_1 entry = new test.Test_0(){}; entry.$35$(new base$46caps.System_1(){}); }
+static void main(String[] args){ var cons = new base.Cons_0(){};
+base.LList_1 cliArgs = new base.LList_1(){};
+for (int i = args.length - 1; i >= 0; --i) {
+  var arg = args[i];
+  cliArgs = cons.$35$(arg, cliArgs);
+}
+ base.Main_1 entry = new test.Test_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "test.Test", false, """
     package test
