@@ -81,7 +81,7 @@ public class TestRefineTypes {
 
   @Test//varName:imm a.A[mut a.B[],read a.B[]]
   void aGenMdf1() {ok("""
-    varName:imma.A[lent a.C[],read a.B[]]
+    varName:imma.A[muta.C[],imma.B[]]
     """, "varName", "a.A[mut X,imm a.B[]]", "a.A[lent a.C[],read Y]", """
     package a
     A[X,Y]:{}
@@ -89,9 +89,9 @@ public class TestRefineTypes {
     C:{}
     """);}
   //Yes, it should be a.A[lent a.C[],_] instead of a.A[mut a.C[],_]:
-  //We get to lent a.C[] = mut a.C[] and we take the 'best type: as specified by t2 (the best type)
+  //We get to lent a.C[] = mut a.C[] and we take the 'best type: as specified by t1 (the user's type)
   @Test void aGenMdf2() {ok("""
-    varName:imm a.A[lent a.B[],read a.B[]]
+    varName:imma.A[muta.B[],reada.B[]]
     """, "varName", "a.A[mut X,read a.B[]]", "a.A[lent a.B[],mdf Y]", """
     package a
     A[X,Y]:{}
@@ -112,7 +112,7 @@ public class TestRefineTypes {
   // X = a.B
   // X= a.A[X,X]
   void aGenInfinite1() {ok("""
-    varName:imma.A[imma.B[],imma.B[]]
+    varName:imma.A[imma.B[],imma.A[imma.B[],imma.B[]]]
     """, "varName", "a.A[X,a.A[X,X]]", "a.A[a.B[],X]", """
     package a
     A[X,Y]:{}
@@ -121,7 +121,7 @@ public class TestRefineTypes {
   @Test
   // X=a.A[X,X]
   void aGenInfinite2() {ok("""
-    varName:imma.A[imma.B[],imma.B[]]
+    varName:imma.A[imma.A[imma.B[],imma.B[]],imma.B[]]
     """, "varName", "a.A[a.A[X,X],X]", "a.A[X,a.B[]]", """
     package a
     A[X,Y]:{}
@@ -164,14 +164,21 @@ public class TestRefineTypes {
     A[X]:{}
     B:{}
     """);}
-  // TODO: infer should NOT be winning here
+  // infer wins here because we go step-by-step instead of eagerly refining everything in one go
   @Test void refineGensNested2() {ok("""
-    varName:imm a.A[imm a.A[imm a.B[]]]
+    varName:imm a.A[imm a.A[infer]]
     """, "varName", "a.A[imm a.A[Infer]]", "a.A[a.A[a.B[]]]", """
     package a
     A[X]:{}
     B:{}
     """);}
+//  @Test void refineGensNested2() {ok("""
+//    varName:imm a.A[imm a.A[imm a.B[]]]
+//    """, "varName", "a.A[imm a.A[Infer]]", "a.A[a.A[a.B[]]]", """
+//    package a
+//    A[X]:{}
+//    B:{}
+//    """);}
 
   @Test void refineGensNoInfo() {ok("""
     varName:imm a.A[imm X]
@@ -182,14 +189,14 @@ public class TestRefineTypes {
     """);}
 
   @Test void refineGensMdf1() {ok("""
-    varName:imm a.A[imm X]
+    varName:imma.A[mdfX]
     """, "varName", "a.A[mdf X]", "a.A[imm X]", """
     package a
     A[X]:{}
     B:{}
     """);}
   @Test void refineGensMdf2() {ok("""
-    varName:imm a.A[mdf X]
+    varName:imma.A[immX]
     """, "varName", "a.A[imm X]", "a.A[mdf X]", """
     package a
     A[X]:{}
@@ -210,14 +217,14 @@ public class TestRefineTypes {
     B:{}
     """);}
   @Test void refineGensMdf5() {ok("""
-    varName:imm a.A[imm a.B[]]
+    varName:imma.A[muta.B[]]
     """, "varName", "a.A[mut X]", "a.A[imm a.B[]]", """
     package a
     A[X]:{}
     B:{}
     """);}
   @Test void refineGensMdfNested1() {ok("""
-    varName:imma.A[imma.B[]]
+    varName:imma.A[imma.A[mdfX]]
     """, "varName", "a.A[recMdf a.A[mdf X]]", "a.A[imm a.B[]]", """
     package a
     A[X]:{}

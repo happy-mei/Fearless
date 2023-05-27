@@ -1060,7 +1060,7 @@ public class TestInferBodies {
       }
     """); }
 
-  @Disabled
+  @Disabled // TODO
   @Test void sugar1InferSugarIO() { ok("""
     """, """
     package test

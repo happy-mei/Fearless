@@ -146,6 +146,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     List<RP> refined = refineSigGens(RP.of(c1.ts(),c2.ts()), Set.of());
     if(refined.isEmpty()){ return iT1; }
     List<T> refinedTs = refined.stream().map(RP::t1).toList();
+//    List<T> refinedTs = refined.stream().map(rp->best(rp.t1(), rp.t2())).toList();
 
     //TODO: if the MDFs are different? take the most specific? not on iso?
     // We were throwing. I'm gonna try taking iT1 on the assumption that's the user-provided type
