@@ -40,7 +40,6 @@ interface ELambdaTypeSystem extends ETypeSystem{
       ).pos(b.pos());
     }
 
-    // TODO: maybe mdf instead of MDF to keep things easily promotable?
     var filtered=p0.meths(Mdf.mdf, d.toIT(), depth()+1).stream()
       .filter(cmi->filterByMdf(mdf,cmi.mdf()))
       .toList();

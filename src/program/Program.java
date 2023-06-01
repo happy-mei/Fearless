@@ -110,8 +110,8 @@ public interface Program {
     var it1 = t1.itOrThrow();
     var it2 = t2.itOrThrow();
     assert it1.name().equals(it2.name());
-    List<CM> cms1 = filterByMdf(mdf, meths(Mdf.mdf, it1, 0));
-    List<CM> cms2 = filterByMdf(mdf, meths(Mdf.mdf, it2, 0));
+    List<CM> cms1 = filterByMdf(mdf, meths(mdf, it1, 0));
+    List<CM> cms2 = filterByMdf(mdf, meths(mdf, it2, 0));
 
     var methsByName = Stream.concat(cms1.stream(), cms2.stream())
       .collect(Collectors.groupingBy(CM::name))
@@ -177,7 +177,7 @@ public interface Program {
   }
 
   record FullMethSig(Id.MethName name, E.Sig sig){}
-  default Optional<FullMethSig> fullSig(Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
+  default Optional<FullMethSig> fullSig(List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
     var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), new ast.E.Lambda(

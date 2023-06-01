@@ -102,7 +102,7 @@ public class TestSubTyping {
     ColouredPoint:Point{ .colour: Int }
     """;
   @Test void sortedListOfTExtendsListTOfT() { ok("a.SortedList[a.Int]","a.List[a.Int]",true,pointEx); }
-  @Test void sortedListOfTExtendsListTOfTMdfFail() { ok("a.SortedList[a.Int]","a.List[mut a.Int]",false,pointEx); }
+  @Test void sortedListOfTExtendsListTOfTMdfFail() { ok("a.SortedList[a.Int]","a.List[mut a.Int]",true,pointEx); }
   @Test void sortedListOfTExtendsListTOfTMdf() { ok("a.SortedList[a.Int]","a.List[read a.Int]",true,pointEx); }
   @Test void sortedListOfTExtendsListTOfTMdfReflexive() { ok("a.SortedList[read a.Int]","a.List[a.Int]",true,pointEx); }
   @Test void sortedListOfTExtendsListTOfX() { ok("a.SortedList[X]","a.List[X]",true,pointEx); }
@@ -111,4 +111,25 @@ public class TestSubTyping {
   @Test void sortedListOfTExtendsListTOfNot3() { ok("a.SortedList[X]","a.List[a.List[a.Int]]",false,pointEx); }
   @Test void sortedListMixedGens() { ok("a.SortedList[a.ColouredPoint]","a.SortedList[a.Point]",true,pointEx); }
   @Test void inverseSortedListMixedGens() { ok("a.SortedList[a.Point]","a.SortedList[a.ColouredPoint]",false,pointEx); }
+
+  final String pointEx2 = """
+    package a
+    List[T]:{
+      read .get: mdf T
+    }
+    SortedList[T]:List[mdf T]
+    Int:{}
+    Point:{ .x: Int, .y: Int }
+    ColouredPoint:Point{ .colour: Int }
+    """;
+  @Test void sortedListOfTExtendsListTOfT2() { ok("a.SortedList[a.Int]","a.List[a.Int]",true,pointEx2); }
+  @Test void sortedListOfTExtendsListTOfTMdfFail2() { ok("a.SortedList[a.Int]","a.List[mut a.Int]",false,pointEx2); }
+  @Test void sortedListOfTExtendsListTOfTMdf2() { ok("a.SortedList[a.Int]","a.List[read a.Int]",true,pointEx2); }
+  @Test void sortedListOfTExtendsListTOfTMdfReflexive2() { ok("a.SortedList[read a.Int]","a.List[a.Int]",true,pointEx2); }
+  @Test void sortedListOfTExtendsListTOfX2() { ok("a.SortedList[X]","a.List[X]",true,pointEx2); }
+  @Test void sortedListOfTExtendsListTOfNot12() { ok("a.SortedList[a.Int]","a.List[X]",false,pointEx2); }
+  @Test void sortedListOfTExtendsListTOfNot22() { ok("a.SortedList[X]","a.List[a.Int]",false,pointEx2); }
+  @Test void sortedListOfTExtendsListTOfNot32() { ok("a.SortedList[X]","a.List[a.List[a.Int]]",false,pointEx2); }
+  @Test void sortedListMixedGens2() { ok("a.SortedList[a.ColouredPoint]","a.SortedList[a.Point]",true,pointEx2); }
+  @Test void inverseSortedListMixedGens2() { ok("a.SortedList[a.Point]","a.SortedList[a.ColouredPoint]",false,pointEx2); }
 }
