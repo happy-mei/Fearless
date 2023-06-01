@@ -465,9 +465,20 @@ public class TestRecMdf {
     NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
     """); }
 
-  @Test void recMdfInSubHyg() { ok("""
+  @Test void recMdfInSubHyg1() { ok("""
     package test
     A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ x }.argh }
     B[X]:{ read .argh: recMdf X }
+    """); }
+  @Test void recMdfInSubHyg2() { ok("""
+    package test
+    A:{ .foo(x: mut Foo): mut Foo -> mut B{ x }.argh }
+    B:{ read .argh: recMdf Foo }
+    Foo:{}
+    """); }
+  @Test void recMdfInSubHyg3() { ok("""
+    package test
+    A:{ .foo[X](x: mut X): mut X -> mut B{ x }.argh[mut X] }
+    B:{ read .argh[X]: recMdf X }
     """); }
 }

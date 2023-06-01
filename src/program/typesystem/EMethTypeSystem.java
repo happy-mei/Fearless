@@ -20,7 +20,16 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface EMethTypeSystem extends ETypeSystem {
+//  ArrayDeque<T> unboundXs = new ArrayDeque<>();
   default Res visitMCall(E.MCall e) {
+    // todo: part of the hack I tried for meth gens (it works, but not for class gens)
+//    var baseM = p().meths(Mdf.mdf, e., e.name(), depth());
+//    var xTsMap = Streams.zip(, e.ts()).fold(Gamma::add, g0);
+//    assert unboundXs.isEmpty();
+//    unboundXs.addAll(e.ts());
+    return visitMCall_(e);
+  }
+  default Res visitMCall_(E.MCall e) {
     var e0 = e.receiver();
     var v = this.withT(Optional.empty());
     Res rE0 = e0.accept(v);

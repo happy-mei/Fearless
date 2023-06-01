@@ -11,9 +11,12 @@ import id.Mdf;
 import program.CM;
 import program.Program;
 import program.TypeRename;
+import utils.Box;
+import utils.Mapper;
 import utils.Streams;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 interface ELambdaTypeSystem extends ETypeSystem{
@@ -127,8 +130,17 @@ interface ELambdaTypeSystem extends ETypeSystem{
     return okWithSubType(gg, m, e, ret.withMdf(Mdf.read)).flatMap(ignored->baseCase);
   }
 
+//  Box<XTsMap> xTsMap = new Box<>(XTsMap.empty());
   default Optional<CompileError> okWithSubType(Gamma g, E.Meth m, E e, T expected) {
     var res = e.accept(ETypeSystem.of(p(), g, Optional.of(expected), depth()+1));
+    // TODO: this hack works for method gens but not class gens
+//    m.sig().gens().forEach(gx->{
+//      var t = EMethTypeSystem.unboundXs.pollFirst();
+//      if (t == null) { return; }
+//      xTsMap.set(xTsMap.get().add(gx.name(), t));
+//    });
+//    var expected2 = TypeRename.core(p()).renameT(expected, gx->xTsMap.get().getO(gx).orElse(null));
+//    var res2 = res.t().map(t_->TypeRename.coreRec(p(), Mdf.mut).renameT(t_, gx->xTsMap.get().getO(gx).orElse(null)));
     try {
       var subOk = res.t()
         .flatMap(ti->p().isSubType(ti, expected)

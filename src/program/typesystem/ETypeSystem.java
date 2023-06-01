@@ -25,7 +25,7 @@ public interface ETypeSystem extends Visitor<Res> {
   }
 
   static ETypeSystem of(Program p, Gamma g, Optional<T> expectedT,int depth){
-    record Ts(Program p, Gamma g,Optional<T> expectedT,int depth) implements EMethTypeSystem, ELambdaTypeSystem{}
+    record Ts(Program p, Gamma g, Optional<T> expectedT, int depth) implements EMethTypeSystem, ELambdaTypeSystem{}
     return new Ts(p,g,expectedT,depth);
   }
   default ETypeSystem withT(Optional<T> expectedT){ return of(p(), g(), expectedT, depth()); }
