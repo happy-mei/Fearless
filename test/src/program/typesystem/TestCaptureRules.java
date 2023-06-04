@@ -235,9 +235,9 @@ public class TestCaptureRules {
   @Test void t105(){ c1(iso,   read,  read,   of(/*impossible*/)); }
   @Test void t106(){ c1(mdf,   read,  read,   of(/*not well formed lambda*/)); }
   @Test void t107(){ c1(recMdf,read,  read,   of(/*impossible*/)); }
-  //                     lambda, captured, method, ...capturedAs
+  //                    lambda, captured, method, ...capturedAs
   @Test void t111(){ c1(imm,   lent,  read,   of(/*impossible*/)); }
-  @Test void t112(){ c1(read,  lent,  read,   of(read,recMdf)); }//recMdf is ok, at least can not find counter example, the lent lambda can become mut only in controlled way
+  @Test void t112(){ c1(read,  lent,  read,   of(read,recMdf)); }//,recMdf recMdf is ok, at least can not find counter example, the lent lambda can become mut only in controlled way
   @Test void t113(){ c1(lent,  lent,  read,   of(read,recMdf)); }//the lambda is created read, and can not become anything else but imm.
   @Test void t114(){ c1(mut,   lent,  read,   of(/*impossible*/)); }//NOT NoMutHyg
   @Test void t115(){ c1(iso,   lent,  read,   of(/*impossible*/)); }

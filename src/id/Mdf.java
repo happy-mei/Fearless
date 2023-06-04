@@ -21,20 +21,19 @@ public enum Mdf{
   }
   public boolean isLikeMut(){return isRead() || isLent() || isMut();}
   public boolean isStrong(){return isImm() || isRead();}
-  public Mdf adapt(astFull.T t) {
-    return this.adapt(t.mdf());
+  public Mdf adapt(ast.T t, AdaptType adaptType) {
+    return this.adapt(t.mdf(), adaptType);
   }
-  public Mdf adapt(ast.T t) {
-    return this.adapt(t.mdf());
-  }
+
+  public enum AdaptType { Capture, ResolveRecMdf }
   /**
    * How we see the type 'other' from the receiver 'this'
    * basically 'this.other'
    */
-  public Mdf adapt(Mdf other) {
+  public Mdf adapt(Mdf other, AdaptType adaptType) {
     if (this == other) { return this; }
     if (this == imm) { return imm; }
-    if (this == iso) { return mut.adapt(other); }
+    if (this == iso) { return mut.adapt(other, adaptType); }
     if (this == mut) {
       if (other == recMdf) { return mdf; } // TODO: not in formalism
       return other;
@@ -50,10 +49,13 @@ public enum Mdf{
     }
     if (this == read) {
       if (other == imm) { return imm; }
-      return recMdf;
+      return switch (adaptType) { // TODO: new in formalism
+        case Capture -> recMdf;
+        case ResolveRecMdf -> read;
+      };
     }
     if (this == mdf) { return other; }
-    if (this == recMdf) { return read.adapt(other); } // TODO: maybe????
+    if (this == recMdf) { return read.adapt(other, adaptType); } // TODO: maybe????
     System.err.println("uh oh adapt is undefined for "+this+" and "+other);
     throw Bug.unreachable();
   }

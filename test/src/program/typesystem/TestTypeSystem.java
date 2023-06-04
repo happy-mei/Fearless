@@ -324,6 +324,151 @@ public class TestTypeSystem {
       }
     B:{}
     """); }
+  @Test void readThisIsRecMdf() { ok("""
+    package test
+    A:{
+      read .self: recMdf A -> this,
+      }
+    """); }
+  @Test void readThisIsRead() { ok("""
+    package test
+    A:{
+      read .self: read A -> this,
+      }
+    """); }
+  @Test void bicycle1() { fail("""
+    In position [###]/Dummy0.fear:3:49
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: b .wheel/0[]([]), no candidates for .wheel/0 returned the expected type recMdf test.Wheel[]. The candidates were:
+    (read test.Bicycle[]): read test.Wheel[]
+    (read test.Bicycle[]): read test.Wheel[]
+    (imm test.Bicycle[]): imm test.Wheel[]
+    """, """
+    package test
+    A:{
+      read .wheel(b: read Bicycle): recMdf Wheel -> b.wheel,
+      }
+    Bicycle:{
+      read .wheel: recMdf Wheel -> {}
+      }
+    Wheel:{}
+    """); }
+  @Test void bicycle2() { ok("""
+    package test
+    A:{
+      read .wheel(b: read Bicycle): read Wheel[read Bicycle] -> b.wheel,
+      }
+    Bicycle:{
+      read .wheel: recMdf Wheel[recMdf Bicycle] -> {}
+      }
+    Wheel[T]:{
+      .getBike: mdf T -> this.getBike,
+      }
+    """); }
+  @Test void bicycle3() { ok("""
+    package test
+    A:{
+      read .wheel(b: read Bicycle): read Wheel[read Bicycle] -> b.wheel,
+      read .accept(b: read Bicycle, w: read Wheel[read Bicycle]): Voodo->
+        b.acceptWheel(w),
+      }
+    Bicycle:{
+      read .wheel: recMdf Wheel[recMdf Bicycle] -> {},
+      read .acceptWheel(w: recMdf Wheel[recMdf Bicycle]): Voodo -> {},
+      }
+    Voodo:{}
+    Wheel[T]:{
+      .getBike: mdf T -> this.getBike,
+      }
+    """); }
+  @Test void bicycle4() { ok("""
+    package test
+    A[T]:{
+      read .wheel1(b: read Bicycle[mdf T]): read Wheel[read T] -> b.wheel,
+      read .wheel2(b: read Bicycle[mut T]): read Wheel[read T] -> b.wheel,
+      read .wheel3(b: read Bicycle[imm T]): read Wheel[imm T] -> b.wheel,
+      }
+    Bicycle[T]:{
+      read .wheel: recMdf Wheel[recMdf T] -> {},
+      }
+    Voodo:{}
+    Wheel[T]:{
+      .getBike: mdf T -> this.getBike,
+      }
+    """); }
+  @Test void bicycle5() { ok("""
+    package test
+    A[T]:{
+      read .wheel1(b: read Bicycle[mdf T]): read T -> b.wheel,
+      }
+    Bicycle[T]:{
+      read .wheel: recMdf T -> Voodo.loop,
+      }
+    Voodo:{
+      read .loop[T]: mdf T -> this.loop,
+      }
+    Wheel[T]:{
+      .getBike: mdf T -> this.getBike,
+      }
+    """); }
+  @Test void bicycle6() { fail("""
+    In position [###]/Dummy0.fear:3:53
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: b .wheel/0[]([]), no candidates for .wheel/0 returned the expected type recMdf T. The candidates were:
+    (read test.Bicycle[mdf T]): read T
+    (read test.Bicycle[mdf T]): read T
+    (imm test.Bicycle[mdf T]): imm T
+    """, """
+    package test
+    A[T]:{
+      read .wheel1(b: read Bicycle[mdf T]): recMdf T -> b.wheel,
+      }
+    Bicycle[T]:{
+      read .wheel: recMdf T -> Voodo.loop,
+      }
+    Voodo:{
+      read .loop[T]: mdf T -> this.loop,
+      }
+    Wheel[T]:{
+      .getBike: mdf T -> this.getBike,
+      }
+      
+    """); }
+  @Test void box() { ok("""
+    package test
+    Box:{ #[R](r: mdf R): mut Box[mdf R] -> { r } }
+    Box[R]:base.NoMutHyg[mdf R]{ read #: recMdf R }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void boxInnerGens() { ok("""
+    package test
+    Box:{ #[R](r: mdf R): mut Box[mdf R] -> { r } }
+    Box[R]:base.NoMutHyg[mdf R]{ read #: recMdf R }
+    BoxF[R]:base.NoMutHyg[mdf R]{ read #: mut F[recMdf R] }
+    F[A,B]:{ read #(a: mdf A): mdf B }
+    F[A]:{read #:mdf A}
+    Usage[A,B]:{ #(b: mut Box[mut F[read A, read B]]): mut F[read A, read B] -> b# }
+    Usage2[A,B]:{ read #(b: mut Box[mut F[read A, read B]]): mut F[read A, read B] -> b# }
+    // This is okay because adapterOk works in ways that are dark and mysterious
+    Usage3[A,B]:{ read #(b: recMdf Box[recMdf F[read A, read B]]): recMdf F[recMdf A, read B] -> b# }
+    Usage4[A,B]:{ read #(b: mut Box[mut F[mdf A]]): mut F[mdf A] -> b# }
+    Usage5[A,B]:{ read #(b: mut Box[mut F[mdf A]]): mut F[mdf A] -> b# }
+    Usage6[A,B]:{ read #(b: mut BoxF[mdf A]): mut F[mdf A] -> b# }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void invalidIsoPromotionWithRecMdf() { ok("""
+    package test
+    A:{
+      read .m():recMdf A->this,
+      //mut .break1:iso A->this,//bad and fails obviusly
+      //mut .break2:iso A->this.m(),//bad
+      read .noBreak:recMdf A->this.m(),//should pass
+      }
+    """); }
   @Test void captureRecMdfAsMut() { ok("""
     package test
     A:{
@@ -767,5 +912,53 @@ public class TestTypeSystem {
       .b1(m: imm M): mut M -> this.myF#m,
       .b2(m: imm M): mut M -> (this.myF#m).mutMe,
       }
+    """); }
+
+  // TODO: test lent to mut promotion
+  @Test void minimalMatcher() { ok("""
+    package test
+    //we can have lent matcher with lent cases that can capture all (but mut as lent), and can only return mut as lent :-(
+    //we can have mut matcher with mut cases that can capture mut,imm,iso, can return mdf R
+    alias base.NoMutHyg as NoMutHyg,
+    Matcher[R]:{ //Look ma, no NoMutHyg
+      lent .get: mdf R
+      }
+    PreR:{
+      read .get: read MyRes -> {},
+      }
+    MyRes:{}
+    MatcherContainer:{
+      read .match[R](m: lent Matcher[mdf R]): mdf R -> m.get
+      }
+    Usage:{
+      .direct(preR: read PreR): read MyRes -> MatcherContainer.match{ preR.get },
+      .indirect(r: read MyRes): read MyRes -> MatcherContainer.match{ r }
+      }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void minimalMatcher2() { ok("""
+    package test
+    //we can have lent matcher with lent cases that can capture all (but mut as lent), and can only return mut as lent :-(
+    //we can have mut matcher with mut cases that can capture mut,imm,iso, can return mdf R
+    alias base.NoMutHyg as NoMutHyg,
+    Matcher[R]:{ //Look ma, no NoMutHyg
+      mut .get: mdf R
+      }
+    PreR:{
+      mut .get: mut MyRes -> {},
+      }
+    MyRes:{}
+    MatcherContainer:{
+      read .match[R](m: mut Matcher[mdf R]): mdf R -> m.get
+      }
+    Usage:{
+      .direct(preR: mut PreR): mut MyRes -> MatcherContainer.match{ preR.get },
+      .indirect(r: mut MyRes): mut MyRes -> MatcherContainer.match{ r }
+      }
+    """, """
+    package base
+    NoMutHyg[X]:{}
     """); }
 }

@@ -28,7 +28,7 @@ public class TestRecMdf {
     """, """
     package test
     A:{
-      read .m1(_: mut NoPromote): recMdf A,
+      read .m1(_: mut NoPromote): recMdf A -> this,//with or without NoPromote, makes mut this-> imm!
       mut .m2: imm A -> this.m1{},
       }
     NoPromote:{}
@@ -68,7 +68,8 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledGenMut2() { ok("""
     package test
     A[X]:{
-      read .get: recMdf X -> this.get
+      read .get: recMdf X -> this.loop,
+      read .loop[T]: mdf T -> this.loop,
       }
     B:{
       .m1Mut[Y](a: mut A[mut      Y]): mut Y     -> a.get,
@@ -110,7 +111,7 @@ public class TestRecMdf {
     package test
     A[X]:{
       read .m1(_: mut NoPromote): recMdf X,
-      read .m2: recMdf X -> this.m1{},
+      read .m2: read X -> this.m1{},
       }
     NoPromote:{}
     """); }
@@ -237,13 +238,18 @@ public class TestRecMdf {
   @Test void shouldApplyRecMdfInTypeParams2() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x),
+      }}
     Opt[T]:NoMutHyg[mdf T]{
       read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
-      read .do(f: mut OptMap[recMdf T, Void]): mut Opt[recMdf T] -> Yeet.with(this.map(f), this.map{ x -> x }),
+      read .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match(mut OptMatch[read T, mdf R]{
+       mut .some(x: mdf T): mut Opt[mdf R] -> Opt#(f#x),
+       mut .none: mut Opt[mdf R] -> {}
+       }),
+      read .do(f: mut OptMap[mdf T, Void]): mut Opt[mdf T] -> Yeet.with(this.map(f), this.map{ x -> x }),
       }
-    OptMatch[T,R]:NoMutHyg[mdf R]{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     OptMap[T,R]:{ mut #(x: mdf T): mdf R }
     Yeet:{ .with[X,R](_: mdf X, res: mdf R): mdf R -> res }
     Void:{}
@@ -439,13 +445,14 @@ public class TestRecMdf {
   @Test void recMdfInheritance() { ok("""
     package test
     Foo:{}
-    A[X]:{ read .m: recMdf X -> this.m }
+    A[X]:{ read .m: recMdf X -> Loop# }
     B:A[imm Foo]
     C:B
     CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
     CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
     CanPass2:{ read .m(par: mut C) : imm Foo -> par.m  }
 //    NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
+    Loop:{ #[X]: mdf X -> this# }
     """); }
 
   @Test void recMdfInheritanceFail() { fail("""
@@ -481,4 +488,76 @@ public class TestRecMdf {
     A:{ .foo[X](x: mut X): mut X -> mut B{ x }.argh[mut X] }
     B:{ read .argh[X]: recMdf X }
     """); }
+  @Test void recMdfInSubHyg3b() { ok("""
+    package test
+    A:{ .foo[X](x: mut X): mut X -> mut B{ read .argh[X']: recMdf X' -> x }.argh[mut X] }
+    B:{ read .argh[X]: recMdf X }
+    """); }
+
+  // TODO: give these all sane names
+  @Test void recMdfInSubHyg1a() { ok("""
+    package test
+    A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ x } }
+    B[X]:{ read .argh: recMdf X }
+    """); }
+  @Test void recMdfInSubHyg2a() { ok("""
+    package test
+    A:{ .foo(x: mut Foo): mut B -> mut B{ x } }
+    B:{ read .argh: recMdf Foo }
+    Foo:{}
+    """); }
+  @Test void recMdfInSubHyg2b() { ok("""
+    package test
+    A:{ .foo(x: mut Foo): mut B[mut Foo] -> mut B[mut Foo]{ x } }
+    B[X]:{ read .argh: recMdf X }
+    Foo:{}
+    """); }
+  @Test void recMdfInSubHyg3d() { fail("""
+    In position [###]/Dummy0.fear:2:38
+    [E23 methTypeError]
+    Expected the method .argh/0 to return recMdf X1/0$, got recMdf test.Foo[].
+    """, """
+    package test
+    A:{ .foo(x: mut Foo): mut B -> mut B{ x } }
+    B:{ read .argh[X]: recMdf X }
+    Foo:{}
+    """); }
+  @Test void recMdfInSubHyg3e() { fail("""
+    In position [###]/Dummy0.fear:2:38
+    [E23 methTypeError]
+    Expected the method .argh/0 to return read X, got mut test.Foo[].
+    ""","""
+    package test
+    A:{ .foo(x: mut Foo): mut B -> mut B{ mut .argh[X]: read X -> x } }
+    B:{ mut .argh[X]: read X }
+    Foo:{}
+    """); }
+  @Test void recMdfInSubHyg3a() { ok("""
+    package test
+    A:{ .foo[X](x: mut X): mut B -> mut B{ x } }
+    B:{ read .argh[X]: recMdf X }
+    """); }
+  @Test void recMdfInSubHyg3c() { ok("""
+    package test
+    A:{ .foo[X](x: mut X): mut B -> mut B{ read .argh[X']: recMdf X' -> x } }
+    B:{ read .argh[X]: recMdf X }
+    """); }
+
+  /*
+  -----//pass??
+AA:{
+read .a(b:recMdf B):recMdf A->recMdf A{
+  read .b():recMdf B ->b
+  }
+}
+A:{ read .b():recMdf B }
+-------//fails
+AA:{
+read .a(b:recMdf B):mut A-> mut A{
+  read .b():recMdf B ->b
+  }
+}
+A:{ read .b():recMdf B }
+
+   */
 }

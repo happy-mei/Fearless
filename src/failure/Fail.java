@@ -111,16 +111,13 @@ public class Fail{
     return of(String.format("There is a cyclical sub-typing relationship between "+t1+" and "+t2+"."));
   }
 
-  public static CompileError recMdfInNonHyg(E.Meth m, astFull.T t){
-    var mdf = m.sig().map(E.Sig::mdf).map(Mdf::toString).orElse("unknown");
-    return of("Invalid modifier for "+t+"."+recMdfInNonHygMsg(m));
+  public static CompileError recMdfInNonHyg(Mdf mdf, Id.MethName name, astFull.T t){
+    return of("Invalid modifier for "+t+"."+recMdfInNonHygMsg(mdf, name));
   }
-  public static CompileError recMdfInNonHyg(E.Meth m, E.Lambda e){
-    return of("Invalid lambda modifier."+recMdfInNonHygMsg(m));
+  public static CompileError recMdfInNonHyg(Mdf mdf, Id.MethName name, ast.T t){
+    return of("Invalid modifier for "+t+"."+recMdfInNonHygMsg(mdf, name));
   }
-  private static String recMdfInNonHygMsg(E.Meth m) {
-    var mdf = m.sig().map(E.Sig::mdf).map(Mdf::toString).orElse("unknown");
-    var name = m.name().map(Id.MethName::toString).orElse("unknown");
+  private static String recMdfInNonHygMsg(Mdf mdf, Id.MethName name) {
     return "\nrecMdf may only be used in read or lent methods. The method "+name+" has the "+mdf+" modifier.";
   }
   public static CompileError recMdfInImpls(ast.T t){

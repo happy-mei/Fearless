@@ -61,7 +61,7 @@ public interface TypeRename<T>{
       if (recvMdf.isMdf() && t.mdf().isMdf()) {
         return t.withMdf(Mdf.recMdf);
       }
-      var resolvedMdf = recvMdf.adapt(t.mdf());
+      var resolvedMdf = recvMdf.adapt(t.mdf(), Mdf.AdaptType.ResolveRecMdf);
       return t.withMdf(resolvedMdf);
     }
   }

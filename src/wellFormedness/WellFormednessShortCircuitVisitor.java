@@ -9,6 +9,7 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import utils.Bug;
+import visitors.FullShortCircuitVisitor;
 import visitors.ShortCircuitVisitor;
 
 import java.util.List;
@@ -37,7 +38,9 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
   }
 
   @Override public Optional<CompileError> visitMeth(E.Meth e) {
-    return ShortCircuitVisitor.super.visitMeth(e).map(err->err.parentPos(e.pos()));
+    return noRecMdfInNonHyg(e.sig(), e.name())
+      .or(()->ShortCircuitVisitor.super.visitMeth(e))
+      .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitT(T t) {
@@ -46,11 +49,24 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
   }
 
   private Optional<CompileError> noHygInMut(T t) {
-    if (!(t.rt() instanceof Id.IT<T> it)) { return Optional.empty(); }
-    if (t.mdf().isMut() && it.ts().stream().map(T::mdf).anyMatch(Mdf::isHyg)) {
-      return Optional.of(Fail.mutCapturesHyg(t));
-    }
+    // TODO: re-evaluate this
+//    if (!(t.rt() instanceof Id.IT<T> it)) { return Optional.empty(); }
+//    if (t.mdf().isMut() && it.ts().stream().map(T::mdf).anyMatch(Mdf::isHyg)) {
+//      return Optional.of(Fail.mutCapturesHyg(t));
+//    }
     return Optional.empty();
+  }
+
+  private Optional<CompileError> noRecMdfInNonHyg(E.Sig s, Id.MethName name) {
+    if (s.mdf().isHyg()) { return Optional.empty(); }
+    return new ShortCircuitVisitor<CompileError>(){
+      @Override public Optional<CompileError> visitT(T t) {
+        if (t.mdf().isRecMdf()) {
+          return Optional.of(Fail.recMdfInNonHyg(s.mdf(), name, t).pos(s.pos()));
+        }
+        return ShortCircuitVisitor.super.visitT(t);
+      }
+    }.visitSig(s);
   }
 
   private Optional<CompileError> noRecMdfInImpls(Id.IT<T> it) {

@@ -81,8 +81,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var e   = m.body().orElseThrow();
     var mMdf = m.sig().mdf();
 
-    var selfTi = selfT.mdf().isMdf() ? selfT.withMdf(mMdf) : selfT;
-//    var selfTi = selfT.mdf().isRead() ? selfT.withMdf(Mdf.recMdf) : selfT; // TODO: new in formalism
+//    var selfTi = selfT;
     var args = m.sig().ts();
     var ret = m.sig().ret();
 //    System.out.println("before: "+m.body().get());
@@ -100,7 +99,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
 //    var ret = fancyRename(m.sig().ret(), selfTi.mdf(), Map.of());
 
     // todo: assert empty gamma for MDF mdf
-    var g0  = g().capture(p(), selfName, selfTi, mMdf);
+    var g0  = g().capture(p(), selfName, selfT, mMdf);
+//    var selfTi = g0.get("")
     var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
     var baseCase=okWithSubType(gg, m, e, ret);
@@ -112,7 +112,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     if (criticalFailure.isPresent()) { return baseCase; }
 
     Gamma mutAsLentG = x->g().getO(x).map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t);
-    g0 = mutAsLentG.capture(p(), selfName, selfTi.mdf().isMut() ? selfTi.withMdf(Mdf.lent) : selfTi, mMdf);
+    g0 = mutAsLentG.capture(p(), selfName, selfT, mMdf.isMut() ? Mdf.lent : mMdf);
     gg  = Streams.zip(
       m.xs(),
       args.stream().map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t).toList()
@@ -124,7 +124,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       if (t.mdf().isLikeMut() || t.mdf().isRecMdf()) { return Optional.empty(); }
       return Optional.of(t);
     });
-    g0 = selfTi.mdf().isLikeMut() || selfTi.mdf().isRecMdf() ? Gamma.empty() : noMutyG.capture(p(), selfName, selfTi, mMdf);
+    g0 = selfT.mdf().isLikeMut() || selfT.mdf().isRecMdf() ? Gamma.empty() : noMutyG.capture(p(), selfName, selfT, mMdf);
     gg = Streams.zip(m.xs(), args).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
     return okWithSubType(gg, m, e, ret.withMdf(Mdf.read)).flatMap(ignored->baseCase);
   }

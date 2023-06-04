@@ -104,7 +104,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
         e))
       .or(()->noShadowingGX(e.sig().map(E.Sig::gens).orElse(List.of())))
       .or(()->validMethMdf(e))
-      .or(()->noRecMdfInNonHyg(e))
+      .or(()->e.sig().flatMap(s->e.name().flatMap(name->noRecMdfInNonHyg(s, name))))
       .map(err->err.pos(e.posOrUnknown()))
       .or(()->super.visitMeth(e));
   }
@@ -228,22 +228,17 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
     });
   }
 
-  private Optional<CompileError> noRecMdfInNonHyg(E.Meth m) {
-    if (m.sig().stream().anyMatch(sig->sig.mdf().isHyg())) { return Optional.empty(); }
+
+  private Optional<CompileError> noRecMdfInNonHyg(E.Sig s, Id.MethName name) {
+    if (s.mdf().isHyg()) { return Optional.empty(); }
     return new FullShortCircuitVisitor<CompileError>(){
-      @Override public Optional<CompileError> visitLambda(E.Lambda e) {
-        if (e.mdf().map(Mdf::isRecMdf).orElse(false)) {
-          return Optional.of(Fail.recMdfInNonHyg(m, e).pos(e.pos()));
-        }
-        return FullShortCircuitVisitor.super.visitLambda(e);
-      }
       @Override public Optional<CompileError> visitT(T t) {
-        if (!t.isInfer() && t.mdf().isRecMdf()) {
-          return Optional.of(Fail.recMdfInNonHyg(m, t).pos(m.pos()));
+        if (t.mdf().isRecMdf()) {
+          return Optional.of(Fail.recMdfInNonHyg(s.mdf(), name, t).pos(s.pos()));
         }
         return FullShortCircuitVisitor.super.visitT(t);
       }
-    }.visitMeth(m);
+    }.visitSig(s);
   }
 }
 
