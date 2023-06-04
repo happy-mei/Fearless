@@ -11,12 +11,9 @@ import id.Mdf;
 import program.CM;
 import program.Program;
 import program.TypeRename;
-import utils.Box;
-import utils.Mapper;
 import utils.Streams;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 interface ELambdaTypeSystem extends ETypeSystem{
@@ -99,8 +96,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
 //    var ret = fancyRename(m.sig().ret(), selfTi.mdf(), Map.of());
 
     // todo: assert empty gamma for MDF mdf
-    var g0  = g().capture(p(), selfName, selfT, mMdf);
-//    var selfTi = g0.get("")
+    var g0  = g().captureSelf(p(), selfName, selfT, mMdf);
+    var selfTi = g0.get(selfName);
     var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
     var baseCase=okWithSubType(gg, m, e, ret);
@@ -112,7 +109,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     if (criticalFailure.isPresent()) { return baseCase; }
 
     Gamma mutAsLentG = x->g().getO(x).map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t);
-    g0 = mutAsLentG.capture(p(), selfName, selfT, mMdf.isMut() ? Mdf.lent : mMdf);
+    g0 = mutAsLentG.captureSelf(p(), selfName, selfTi, mMdf.isMut() ? Mdf.lent : mMdf);
     gg  = Streams.zip(
       m.xs(),
       args.stream().map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t).toList()
@@ -124,7 +121,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       if (t.mdf().isLikeMut() || t.mdf().isRecMdf()) { return Optional.empty(); }
       return Optional.of(t);
     });
-    g0 = selfT.mdf().isLikeMut() || selfT.mdf().isRecMdf() ? Gamma.empty() : noMutyG.capture(p(), selfName, selfT, mMdf);
+    g0 = selfTi.mdf().isLikeMut() || selfTi.mdf().isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(p(), selfName, selfTi, mMdf);
     gg = Streams.zip(m.xs(), args).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
     return okWithSubType(gg, m, e, ret.withMdf(Mdf.read)).flatMap(ignored->baseCase);
   }

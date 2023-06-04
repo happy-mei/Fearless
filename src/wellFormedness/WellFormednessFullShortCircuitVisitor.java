@@ -104,7 +104,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
         e))
       .or(()->noShadowingGX(e.sig().map(E.Sig::gens).orElse(List.of())))
       .or(()->validMethMdf(e))
-      .or(()->e.sig().flatMap(s->e.name().flatMap(name->noRecMdfInNonHyg(s, name))))
+      .or(()->e.sig().flatMap(s->e.name().flatMap(name->noRecMdfInNonHyg(s, name))).map(err->err.pos(e.pos())))
       .map(err->err.pos(e.posOrUnknown()))
       .or(()->super.visitMeth(e));
   }

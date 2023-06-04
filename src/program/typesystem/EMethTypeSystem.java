@@ -20,16 +20,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface EMethTypeSystem extends ETypeSystem {
-//  ArrayDeque<T> unboundXs = new ArrayDeque<>();
   default Res visitMCall(E.MCall e) {
-    // todo: part of the hack I tried for meth gens (it works, but not for class gens)
-//    var baseM = p().meths(Mdf.mdf, e., e.name(), depth());
-//    var xTsMap = Streams.zip(, e.ts()).fold(Gamma::add, g0);
-//    assert unboundXs.isEmpty();
-//    unboundXs.addAll(e.ts());
-    return visitMCall_(e);
-  }
-  default Res visitMCall_(E.MCall e) {
     var e0 = e.receiver();
     var v = this.withT(Optional.empty());
     Res rE0 = e0.accept(v);
@@ -50,7 +41,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     for (TsT(List<T> ts, T t) : tst) {
       var errors = new ArrayList<CompileError>();
       nestedErrors.add(errors);
-      if (okAll(es, ts, null, errors)) {
+      if (okAll(es, ts, errors)) {
         return t;
       }
     }
@@ -83,7 +74,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     if(expectedT().isEmpty()){ return true; }
     return p().isSubType(tst.t().mdf(), expectedT().get().mdf());
   }
-  @Override default boolean okAll(List<E> es, List<T> ts, Mdf receiverMdf, ArrayList<CompileError> errors) {
+  @Override default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors) {
     // TODO: this won't work because we need the receiverMdf for the recv in the lambda
     return Streams.zip(es,ts).allMatch((e, t)->ok(e, t, ts.get(0).mdf(), errors));
   }
@@ -156,6 +147,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     return ts.stream().map(this::mutToIso).toList();
   }
   default T mutToIso(T t){ return t.mdf().isMut()?t.withMdf(Mdf.iso):t; }
+  default T toLent(T t) { return t.mdf().isMut() ? t.withMdf(Mdf.lent) : t; }
   default TsT transformLents(int i,List<T> ts, T t){
     var ts0 = IntStream.range(0,ts.size()).mapToObj(j->j==i
       ? ts.get(i).withMdf(Mdf.mut)
@@ -164,10 +156,9 @@ public interface EMethTypeSystem extends ETypeSystem {
     return new TsT(ts0,mutToIso(t));
   }
   default List<TsT> oneLentToMut(TsT tst){
-    Stream<TsT> r = Stream.of();
     var ts = tst.ts();
     var t = tst.t();
-    if(t.mdf().isMut()){ r=Stream.of(new TsT(mutToIso(ts),t.withMdf(Mdf.mut))); }
+    Stream<TsT> r = Stream.of(new TsT(mutToIso(ts),toLent(t)));
     var lents = IntStream.range(0,ts.size())
       .filter(i->ts.get(i).mdf().isLent()).boxed().toList();
     Stream<TsT> ps=lents.stream()

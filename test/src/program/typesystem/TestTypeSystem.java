@@ -121,6 +121,54 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
+  @Test void callMutFromLent2() { ok("""
+    package test
+    A:{
+      .b: lent B -> {},
+      .doThing: mut B -> this.b
+      }
+    B:{}
+    """); }
+  // the other tests are only parsing due to iso promotion
+  @Test void callMutFromLent2a() { fail("""
+    In position [###]/Dummy0.fear:4:30
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .b/0[]([])
+    were valid:
+    (recMdf test.A[]) <: (imm test.A[]): iso test.B[]
+    """, """
+    package test
+    A:{
+      read .b: lent B -> {},
+      read .doThing: mut B -> this.b
+      }
+    B:{}
+    """); }
+  @Test void callMutFromLent3() { ok("""
+    package test
+    A:{
+      .b(a: mut A): lent B -> {},
+      .doThing: mut B -> this.b(iso A)
+      }
+    B:{}
+    """); }
+  @Test void callMutFromLentFail1() { fail("""
+    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:4:25
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .b/1[]([[-mut-][test.A[]]{'fear1$ }])
+    were valid:
+    (imm test.A[], mut test.A[]) <: (imm test.A[], iso test.A[]): iso test.B[]
+    """, """
+    package test
+    A:{
+      .b(a: mut A): lent B -> {},
+      .doThing: mut B -> this.b({})
+      }
+    B:{}
+    """); }
+
   @Test void callMutFromIso() { ok("""
     package test
     A:{
@@ -292,17 +340,23 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
-  @Test void CallMutFromRecMdfLent() { ok("""
+  @Test void lentFromRecMdfLent() { ok("""
     package test
     A:{
       lent .b: recMdf B -> {},
-      lent .doThing: Void -> this.b.foo.ret
+      lent .doThing: lent B -> this.b
       }
-    B:{
-      mut .foo(): mut B -> this,
-      mut .ret(): Void -> {},
+    B:{}
+    """); }
+  // TODO: Do we want to expand Meth-OK to allow this?
+  @Test void mutFromRecMdfLent() { ok("""
+    package test
+    A:{
+      lent .b: recMdf B -> {},
+      read .promote(b: lent B): mut B -> b,
+      lent .doThing: mut B -> this.promote(this.b)
       }
-    Void:{}
+    B:{}
     """); }
   @Test void CallMutFromRecMdfMut() { ok("""
     package test

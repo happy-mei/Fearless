@@ -479,8 +479,7 @@ public class TestFullWellFormedness {
     Res:{}
     """, mdf));}
 
-  @Provide
-  Arbitrary<Mdf> hygMdf() {
+  @Provide Arbitrary<Mdf> hygMdf() {
     return Arbitraries.of(Mdf.read, Mdf.lent);
   }
   @Provide Arbitrary<Mdf> nonHygMdf() {

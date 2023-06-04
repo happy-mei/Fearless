@@ -1,16 +1,20 @@
 package typing;
 
+import ast.T;
 import failure.CompileError;
+import id.Id;
 import id.Mdf;
-import net.jqwik.api.Example;
-import net.jqwik.api.ForAll;
-import net.jqwik.api.Property;
+import net.jqwik.api.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
+import program.TypeRename;
 import utils.Err;
 import utils.FromContent;
+
+import java.util.Arrays;
+import java.util.Map;
 
 public class TestSubTyping {
   void ok(String t1, String t2, boolean res, String ...code){
@@ -32,7 +36,7 @@ public class TestSubTyping {
     }
   }
 
-  @Property public void mdfIsCommonSupertype(@ForAll Mdf mdf) {;
+  @Property public void mdfIsCommonSupertype(@ForAll Mdf mdf) {
     ok(mdf+" a.A", "read a.A", true, "package a\nA:{}");
   }
 

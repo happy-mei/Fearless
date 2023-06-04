@@ -38,7 +38,7 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
   }
 
   @Override public Optional<CompileError> visitMeth(E.Meth e) {
-    return noRecMdfInNonHyg(e.sig(), e.name())
+    return noRecMdfInNonHyg(e.sig(), e.name()).map(err->err.pos(e.pos()))
       .or(()->ShortCircuitVisitor.super.visitMeth(e))
       .map(err->err.parentPos(e.pos()));
   }

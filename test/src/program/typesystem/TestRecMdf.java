@@ -1,5 +1,7 @@
 package program.typesystem;
 
+import net.jqwik.api.ForAll;
+import net.jqwik.api.Property;
 import org.junit.jupiter.api.Test;
 
 import static program.typesystem.RunTypeSystem.fail;
@@ -22,13 +24,14 @@ public class TestRecMdf {
       }
     """); }
   @Test void shouldCollapseWhenCalled1b() { fail("""
-    In position [###]/Dummy0.fear:4:20
+    In position [###]/Dummy0.fear:5:20
     [E28 undefinedName]
     The identifier "this" is undefined or cannot be captured.
     """, """
     package test
     A:{
-      read .m1(_: mut NoPromote): recMdf A -> this,//with or without NoPromote, makes mut this-> imm!
+      // Broken because with or without NoPromote, makes mut this -> imm!
+      read .m1(_: mut NoPromote): recMdf A -> this,
       mut .m2: imm A -> this.m1{},
       }
     NoPromote:{}
@@ -242,8 +245,8 @@ public class TestRecMdf {
       read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x),
       }}
     Opt[T]:NoMutHyg[mdf T]{
-      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-      read .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match(mut OptMatch[read T, mdf R]{
+      read .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.none,
+      read .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match(mut OptMatch[mdf T, mut Opt[mdf R]]{
        mut .some(x: mdf T): mut Opt[mdf R] -> Opt#(f#x),
        mut .none: mut Opt[mdf R] -> {}
        }),
