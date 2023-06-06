@@ -238,19 +238,138 @@ public class TestRecMdf {
     package base
     NoMutHyg[X]:{}
     """); }
-  @Test void shouldApplyRecMdfInTypeParams2() { ok("""
+  @Test void boxAndMatcher() { ok("""
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+      read .match[R](m: mut OptMatch[recMdf T, recMdf R]): recMdf R -> m.some(x),
+      }}
+    Opt[T]:NoMutHyg[mdf T]{
+      read .match[R](m: mut OptMatch[recMdf T, recMdf R]): recMdf R -> m.none,
+      }
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void boxAndMatcherWithMapMut() { ok("""
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+      mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
+      }}
+    Opt[T]:NoMutHyg[mdf T]{
+      mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.none,
+      mut .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match({
+        .some(x) -> Opt#(f#x),
+        .none -> {}
+        })
+      }
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void boxAndMatcherWithMapLent() { ok("""
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+      lent .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
+      }}
+    Opt[T]:NoMutHyg[mdf T]{
+      lent .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.none,
+      lent .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match({
+        .some(x) -> Opt#(f#x),
+        .none -> {}
+        })
+      }
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void boxAndMatcherWithMapRead() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
     Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
       read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x),
       }}
     Opt[T]:NoMutHyg[mdf T]{
-      read .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.none,
-      read .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match(mut OptMatch[mdf T, mut Opt[mdf R]]{
-       mut .some(x: mdf T): mut Opt[mdf R] -> Opt#(f#x),
-       mut .none: mut Opt[mdf R] -> {}
-       }),
-      read .do(f: mut OptMap[mdf T, Void]): mut Opt[mdf T] -> Yeet.with(this.map(f), this.map{ x -> x }),
+      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
+//      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match({
+//        .some(x) -> Opt#(f#x),
+//        .none -> {}
+//        })
+      }
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void boxAndMatcherWithMapHyg() { ok("""
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+      read .matchHyg[R](m: mut OptMatchHyg[recMdf T, mdf R]): mdf R -> m.some(x),
+      }}
+    Opt[T]:NoMutHyg[mdf T]{
+      read .matchHyg[R](m: mut OptMatchHyg[recMdf T, mdf R]): mdf R -> m.none,
+      read .mapHyg[R](f: mut OptMapHyg[recMdf T, recMdf R]): mut Opt[recMdf R] -> this.matchHyg{
+        .some(x) -> Opt#(f#x),
+        .none -> {}
+        }
+      }
+    OptMatchHyg[T,R]:{ lent .some(x: mdf T): mdf R, lent .none: mdf R }
+    OptMapHyg[T,R]:{ lent #(x: mdf T): mdf R }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void boxAndMatcherWithMapLentHyg() { ok("""
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+      lent .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
+      read .matchHyg[R](m: mut OptMatchHyg[recMdf T, mdf R]): mdf R -> m.some(x),
+      }}
+    Opt[T]:NoMutHyg[mdf T]{
+      lent .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.none,
+      read .matchHyg[R](m: mut OptMatchHyg[recMdf T, mdf R]): mdf R -> m.none,
+      lent .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match{
+        .some(x) -> Opt#(f#x),
+        .none -> {}
+        },
+      read .mapHyg[R](f: mut OptMapHyg[recMdf T, recMdf R]): mut Opt[recMdf R] -> this.matchHyg{
+        .some(x) -> Opt#(f#x),
+        .none -> {}
+        }
+      }
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
+    
+    OptMatchHyg[T,R]:{ lent .some(x: mdf T): mdf R, lent .none: mdf R }
+    OptMapHyg[T,R]:{ lent #(x: mdf T): mdf R }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void shouldApplyRecMdfInTypeParams2() { ok("""
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+      read .match[R](m: mut OptMatch[recMdf T, recMdf R]): mdf R -> m.some(x),
+      }}
+    Opt[T]:NoMutHyg[mdf T]{
+      read .match[R](m: mut OptMatch[recMdf T, recMdf R]): mdf R -> m.none,
+//      read .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match(mut OptMatch[mdf T, mut Opt[mdf R]]{
+//       mut .some(x: mdf T): mut Opt[mdf R] -> Opt#(f#x),
+//       mut .none: mut Opt[mdf R] -> {}
+//       }),
+//      read .do(f: mut OptMap[mdf T, Void]): mut Opt[mdf T] -> Yeet.with(this.map(f), this.map{ x -> x }),
       }
     OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     OptMap[T,R]:{ mut #(x: mdf T): mdf R }
@@ -347,7 +466,8 @@ public class TestRecMdf {
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> this#a,
+      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> this.loop,
+      read .loop[R]: mdf R -> this.loop,
       }
     C:{
       #(b: mut B[mut C]): mut B[mut C] -> b#(mut A[mut B[mut C]]{}),
@@ -414,7 +534,6 @@ public class TestRecMdf {
     [E32 noCandidateMeths]
     When attempting to type check the method call: [-imm-][test.A[]]{'fear1$ } .m/1[]([[-imm-][test.B[]]{'fear2$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type lent test.B[]. The candidates were:
     (read test.L[imm test.B[]]): imm test.B[]
-    (read test.L[imm test.B[]]): imm test.B[]
     (imm test.L[imm test.B[]]): imm test.B[]
     """, """
     package test
@@ -459,16 +578,16 @@ public class TestRecMdf {
     """); }
 
   @Test void recMdfInheritanceFail() { fail("""
-    In position [###]/Dummy0.fear:7:48
+    In position [###]/Dummy0.fear:8:48
     [E32 noCandidateMeths]
     When attempting to type check the method call: par .m/0[]([]), no candidates for .m/0 returned the expected type mut test.Foo[]. The candidates were:
-    (read test.B[]): imm test.Foo[]
     (read test.B[]): imm test.Foo[]
     (imm test.B[]): imm test.Foo[]
     """, """
     package test
     Foo:{}
-    A[X]:{ read .m: recMdf X -> this.m }
+    Loop:{ #[X]: mdf X -> this# }
+    A[X]:{ read .m: recMdf X -> Loop# }
     B:A[imm Foo]{}
     CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
     CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }

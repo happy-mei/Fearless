@@ -184,8 +184,9 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 
   RefinedSig freshXs(List<CM> ms, Id.MethName m, List<Id.GX<ast.T>> gxs) {
     // TODO: what about helper methods added on the creation of a lambda that aren't in the top dec?
+    // TODO: improve error message
     var meth = OneOr.of(
-      "More than one valid method found for "+m,
+      "Could not find a method (or more than one) with the name "+m,
       ms.stream().filter(mi->mi.name().equals(m))
     );
     var sig = meth.sig().toAstFullSig();

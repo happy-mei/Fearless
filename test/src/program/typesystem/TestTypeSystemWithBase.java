@@ -29,7 +29,7 @@ public class TestTypeSystemWithBase {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
-    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
+    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
     inferred.typeCheck();
   }
   void fail(String expectedErr, String... content){

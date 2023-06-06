@@ -33,7 +33,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       .toList();
 
     if (tst.isEmpty()) {
-      return Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.get()).pos(e.pos());
+      return Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.get().stream().distinct().toList()).pos(e.pos());
     }
 
     List<E> es = Push.of(e0,e.es());
@@ -67,7 +67,7 @@ public interface EMethTypeSystem extends ETypeSystem {
           : "";
         return "("+ String.join(", ", call) +") <: "+tst1+dependentErrors;
       }).toList();
-      var calls=calls1.stream().collect(Collectors.joining("\n"));
+    var calls= String.join("\n", calls1);
     return Fail.callTypeError(e, calls).pos(e.pos());
   }
   default boolean filterOnRes(TsT tst){

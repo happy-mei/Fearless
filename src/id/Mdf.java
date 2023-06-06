@@ -55,7 +55,11 @@ public enum Mdf{
       };
     }
     if (this == mdf) { return other; }
-    if (this == recMdf) { return read.adapt(other, adaptType); } // TODO: maybe????
+    // TODO: maybe???? all new
+    if (this == recMdf) {
+      if (other == mdf) { return recMdf; }
+      if (other == imm) { return imm; }
+    }
     System.err.println("uh oh adapt is undefined for "+this+" and "+other);
     throw Bug.unreachable();
   }

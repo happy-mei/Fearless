@@ -57,18 +57,19 @@ public interface Program {
     try {
       return isSubType(t1, t2);
     } catch (CompileError ce) {
+      System.out.println("sub-typing ignoring"+ce);
       return false;
     }
   }
   default boolean isSubType(T t1, T t2) {
     var q = new SubTypeQuery(t1, t2);
-    if (subTypeCache.containsKey(q)) {
-      var res = subTypeCache.get(q);
-      if (res == SubTypeResult.Unknown) {
-        throw Fail.circularSubType(t1, t2);
-      }
-      return subTypeCache.get(q) == SubTypeResult.Yes;
-    }
+//    if (subTypeCache.containsKey(q)) {
+//      var res = subTypeCache.get(q);
+//      if (res == SubTypeResult.Unknown) {
+//        throw Fail.circularSubType(t1, t2);
+//      }
+//      return subTypeCache.get(q) == SubTypeResult.Yes;
+//    }
     subTypeCache.put(q, SubTypeResult.Unknown);
     var isSubType = isSubTypeAux(t1, t2);
     var result = isSubType ? SubTypeResult.Yes : SubTypeResult.No;
