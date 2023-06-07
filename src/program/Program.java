@@ -178,7 +178,7 @@ public interface Program {
   }
 
   record FullMethSig(Id.MethName name, E.Sig sig){}
-  default Optional<FullMethSig> fullSig(List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
+  default Optional<FullMethSig> fullSig(Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
     var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), new ast.E.Lambda(
@@ -189,7 +189,7 @@ public interface Program {
       Optional.empty()
     ), Optional.empty());
     var p = this.withDec(dec);
-    var myM_ = p.meths(Mdf.mdf, dec.toIT(), depth).stream()
+    var myM_ = p.meths(recvMdf, dec.toIT(), depth).stream()
       .filter(pred)
       .toList();
     if(myM_.isEmpty()){ return Optional.empty(); }

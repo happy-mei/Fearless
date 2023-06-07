@@ -6,7 +6,7 @@ NoMutHyg[X]:{}
 Sealed:{}
 Void:{}
 
-Loop:{!: Void->this! }
+Abort:{ ![R]: mdf R -> this! } // can be optimised to just terminate (goes stuck)
 Debug:Sealed{ #[T](x: T): T -> x } // TODO: magic
 HasIdentity:{ mut .idEq(other: read HasIdentity): Bool -> this.idEq(other) } // TODO: magic
 

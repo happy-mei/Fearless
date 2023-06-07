@@ -4,11 +4,12 @@ MyApp:Main[Void]{ args, s -> s
   .return{ io.println(ImmMain#args) }
   }
 ImmMain:{
-  // TODO: why can't I .matchHyg here?
-  #(args: LList[Str]): Str -> args.get(1u).match{
-    .some(x) -> x,
-    .none -> (this.errMsg((args.head).isSome)) *,
-    },
+  #(args: LList[Str]): Str -> args.get(1u) || { ((this.errMsg((args.head).isSome)) *) },
+    // simpler version of above:
+//  #(args: LList[Str]): Str -> args.get(1u).match{
+//    .some(x) -> x,
+//    .none -> (this.errMsg((args.head).isSome)) *,
+//    },
 //  #(args: LList[Str]): Str -> (this.errMsg(True))*,
   // TODO: this promotion should work:
 //  #(args: LList[Str]): Str -> args.get 0u || (Box#"Sad"),

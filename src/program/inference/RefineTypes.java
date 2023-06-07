@@ -216,7 +216,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var cT = new astFull.T(mdf, cTs.toFullAstIT(ast.T::toAstFullT));
     var cTOriginal = new T(mdf, c);
     List<List<RP>> rpsSigs = Streams.zip(sigs,methGens)
-      .map((sig,mGens)->pairUp(mGens, cTs, sig, depth))
+      .map((sig,mGens)->pairUp(mdf, mGens, cTs, sig, depth))
       .toList();
     List<RP> rpsAll = Stream.concat(
       Stream.of(new RP(cT, cTOriginal)),
@@ -235,8 +235,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     return new RefinedLambda(resC.itOrThrow(), refinedSigs);
   }
 
-  List<RP> pairUp(List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
-    var ms = p.meths(Mdf.mdf, c, depth);
+  List<RP> pairUp(Mdf recvMdf, List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
+    var ms = p.meths(recvMdf, c, depth);
     var freshSig = freshXs(ms, sig.name(), gxs);
     var freshGens = freshSig.gens();
     return Streams.of(

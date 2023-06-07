@@ -7,46 +7,55 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
+import program.Program;
 import utils.Base;
 import utils.Err;
+import utils.Streams;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 public class TestInferBodies {
   void ok(String expected, String... content){
-    assert content.length > 0;
-    Main.resetAll();
-    AtomicInteger pi = new AtomicInteger();
-    var ps = Arrays.stream(content)
-      .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
-      .toList();
-    var p = Parser.parseAll(ps);
-    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
+    var parsed = parseProgram(content);
+    var inferred = new InferBodies(parsed.core).inferAll(parsed.full);
     var cleaned = Base.ignoreBase(inferred);
     Err.strCmpFormat(expected, cleaned.toString());
   }
+  void same(String programA, String programB, String... extras){
+    var a = parseProgram(programA, extras);
+    var aCleaned = Base.ignoreBase(new InferBodies(a.core).inferAll(a.full));
+    var b = parseProgram(programB, extras);
+    var bCleaned = Base.ignoreBase(new InferBodies(b.core).inferAll(b.full));
+    Err.strCmpFormat(aCleaned.toString(), bCleaned.toString());
+  }
   void fail(String expectedErr, String... content){
-    assert content.length > 0;
-    Main.resetAll();
-    AtomicInteger pi = new AtomicInteger();
-    var ps = Arrays.stream(content)
-      .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
-      .toList();
-    var p = Parser.parseAll(ps);
-    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
+    var parsed = parseProgram(content);
 
     try {
-      var inferred = new InferBodies(inferredSigs).inferAll(p);
+      var inferred = new InferBodies(parsed.core).inferAll(parsed.full);
       Assertions.fail("Did not fail, got:\n" + Base.ignoreBase(inferred));
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
     }
+  }
+  record ParsedProgram(astFull.Program full, ast.Program core){}
+  private ParsedProgram parseProgram(String... content) {
+    assert content.length > 0;
+    return parseProgram("package test\n", content);
+  }
+  private ParsedProgram parseProgram(String first, String... content) {
+    Main.resetAll();
+    AtomicInteger pi = new AtomicInteger();
+    var ps = Stream.concat(Stream.of(first), Arrays.stream(content))
+      .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
+      .toList();
+    var p = Parser.parseAll(ps);
+    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
+    return new ParsedProgram(p, p.inferSignaturesToCore());
   }
 
   @Test void baseLib() {ok("""
@@ -1184,6 +1193,24 @@ public class TestInferBodies {
       #(b: mut B[mut C]): mut B[mut C] -> b#({}),
       .i(b: mut B[imm C]): mut B[imm C] -> b#(mut A[mut B[imm C]]),
       }
+    """); }
+
+  @Test void inferCollapsesRecMdf() { same("""
+    package test
+    Foo[T]:{
+      read .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
+      }
+    F[T]:{ mut #(x: mdf T): mdf T }
+    A:{}
+    Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map(F[A]{ _->A }) }
+    """, """
+    package test
+    Foo[T]:{
+      read .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
+      }
+    F[T]:{ mut #(x: mdf T): mdf T }
+    A:{}
+    Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map{ _->A } }
     """); }
 
   // TODO: this should eventually fail with an "inference failed" message when I add that error

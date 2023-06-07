@@ -134,11 +134,11 @@ public record InferBodies(ast.Program p) {
 
   Optional<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(its, depth, CM::isAbs);
+    return p.fullSig(Mdf.mdf, its, depth, CM::isAbs);
   }
   Optional<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(its, depth, cm->cm.name().equals(name));
+    return p.fullSig(Mdf.mdf, its, depth, cm->cm.name().equals(name));
   }
 
   Optional<E.Meth> bPropGetSig(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
@@ -227,7 +227,7 @@ public record InferBodies(ast.Program p) {
     var c = e.receiver().t(Mdf.mdf); // safe because this T's MDF is never used
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
-    var cm = p.fullSig(List.of(recv), depth, cm1->cm1.name().equals(e.name()));
+    var cm = p.fullSig(c.mdf(), List.of(recv), depth, cm1->cm1.name().equals(e.name()));
     if (cm.isEmpty()) { throw Fail.undefinedMethod(e.name(), recv).pos(e.pos()); }
     var sig = cm.get().sig();
     var k = sig.gens().size();

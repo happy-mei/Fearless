@@ -3,6 +3,7 @@ package program.typesystem;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import org.junit.jupiter.api.Test;
+import static utils.Base.load;
 
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
@@ -357,45 +358,52 @@ public class TestRecMdf {
     package base
     NoMutHyg[X]:{}
     """); }
-  @Test void shouldApplyRecMdfInTypeParams2() { ok("""
+  @Test void boxAndMatcherDedicated() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
     Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
-      read .match[R](m: mut OptMatch[recMdf T, recMdf R]): mdf R -> m.some(x),
+      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x),
       }}
     Opt[T]:NoMutHyg[mdf T]{
-      read .match[R](m: mut OptMatch[recMdf T, recMdf R]): mdf R -> m.none,
-//      read .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match(mut OptMatch[mdf T, mut Opt[mdf R]]{
-//       mut .some(x: mdf T): mut Opt[mdf R] -> Opt#(f#x),
-//       mut .none: mut Opt[mdf R] -> {}
-//       }),
-//      read .do(f: mut OptMap[mdf T, Void]): mut Opt[mdf T] -> Yeet.with(this.map(f), this.map{ x -> x }),
+      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
+//      read .map[R](f: mut OptMatch[mdf T, mut Opt[mdf R]]): mut Opt[mdf R] -> this.match(f),
+      read .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
       }
     OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
-    Yeet:{ .with[X,R](_: mdf X, res: mdf R): mdf R -> res }
-    Void:{}
+    OptMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
+      mut #(x: mdf T): mdf R,
+      .some(x) -> Opt#(this#x),
+      .none -> {},
+      }
+    OptFlatMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
+      mut #(x: mdf T): mut Opt[mdf R],
+      .some(x) -> this#x,
+      .none -> {},
+      }
+    Usage:{ #(a: Opt[Foo]): Opt[Bar] -> a.map{_ -> Bar} }
+    Foo:{} Bar:{}
     """, """
     package base
     NoMutHyg[X]:{}
     """); }
-  @Test void shouldApplyRecMdfInTypeParams2a() { ok("""
+  @Test void inferRecMdf1() { ok("""
     package test
-    alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
-    Opt[T]:NoMutHyg[mdf T]{
-      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
-      read .flatMap[R](f: mut OptMap[recMdf T, recMdf Opt[mdf R]]): mut Opt[mdf R] -> this.match{
-        .some(x) -> f#x,
-        .none -> {}
-        },
+    Foo[T]:{
+      read .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
       }
-    OptMatch[T,R]:NoMutHyg[mdf R]{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
-    """, """
-    package base
-    NoMutHyg[X]:{}
+    F[T]:{ mut #(x: mdf T): mdf T }
+    A:{}
+    Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map(F[A]{ _->A }) }
+    """); }
+  @Test void inferRecMdf2() { ok("""
+    package test
+    Foo[T]:{
+      read .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
+      }
+    F[T]:{ mut #(x: mdf T): mdf T }
+    A:{}
+    Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map{ _->A } }
     """); }
   @Test void shouldApplyRecMdfInTypeParams3a() { ok("""
     package test
