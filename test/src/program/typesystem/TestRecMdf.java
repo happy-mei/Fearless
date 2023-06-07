@@ -485,10 +485,10 @@ public class TestRecMdf {
     In position [###]/Dummy0.fear:10:5
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
-    a .m1/2[]([[-recMdf-][test.B[recMdf Y]]{'fear0$ }, [-imm-][test.F[recMdf test.B[recMdf Y]]]{'fear1$ }])
+    a .m1/2[]([[-recMdf-][test.B[recMdf Y]]{'fear0$ }, [-imm-][test.F[mut test.B[recMdf Y]]]{'fear1$ }])
     were valid:
-    (mut test.A[mut test.B[recMdf Y]], recMdf test.B[recMdf Y], imm test.F[recMdf test.B[recMdf Y]]) <: (read test.A[mut test.B[recMdf Y]], iso test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]): iso test.B[recMdf Y]
-    (mut test.A[mut test.B[recMdf Y]], recMdf test.B[recMdf Y], imm test.F[recMdf test.B[recMdf Y]]) <: (imm test.A[mut test.B[recMdf Y]], iso test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]): iso test.B[recMdf Y]
+    (mut test.A[mut test.B[recMdf Y]], recMdf test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]) <: (read test.A[mut test.B[recMdf Y]], iso test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]): iso test.B[recMdf Y]
+    (mut test.A[mut test.B[recMdf Y]], recMdf test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]) <: (imm test.A[mut test.B[recMdf Y]], iso test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]): iso test.B[recMdf Y]
     """, """
     package test
     A[X]:{
@@ -562,7 +562,7 @@ public class TestRecMdf {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:7) test.L[mdf FearX0$], .absMeth/0[](): recMdf FearX0$
+    ([###]/Dummy0.fear:3:7) test.L[mdf FearX0$], .absMeth/0[](): mdf FearX0$
     ([###]/Dummy0.fear:4:16) test.L'[mdf FearX0$], .absMeth/0[](): imm FearX0$
     """, """
     package test
