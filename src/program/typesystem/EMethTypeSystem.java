@@ -51,9 +51,7 @@ public interface EMethTypeSystem extends ETypeSystem {
         var call = Streams.zip(es, tst1.ts())
           .map((e1,t1)->{
             var getT = this.withT(Optional.empty());
-//            return e1.accept(getT).t().map(e1T->e1+": "+e1T);
             return e1.accept(getT).t()
-//              .map(t->fancyRename(t, tst1.ts.get(0).mdf(), Map.of()))
               .map(T::toString)
               .orElseGet(()->"?"+e1+"?");
           })
@@ -75,10 +73,9 @@ public interface EMethTypeSystem extends ETypeSystem {
     return p().isSubType(tst.t().mdf(), expectedT().get().mdf());
   }
   @Override default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors) {
-    // TODO: this won't work because we need the receiverMdf for the recv in the lambda
-    return Streams.zip(es,ts).allMatch((e, t)->ok(e, t, ts.get(0).mdf(), errors));
+    return Streams.zip(es,ts).allMatch((e, t)->ok(e, t, errors));
   }
-  default boolean ok(E e, T t, Mdf recieverMdf, ArrayList<CompileError> errors) {
+  default boolean ok(E e, T t, ArrayList<CompileError> errors) {
     var v = this.withT(Optional.of(t));
     var res = e.accept(v);
     if (res.t().isEmpty()){
@@ -102,7 +99,7 @@ public interface EMethTypeSystem extends ETypeSystem {
         Mdf.mut, Mdf.iso
       ))),
       oneLentToMut(tst).stream()
-    ).toList();
+    ).distinct().toList();
   }
 
   default Optional<TsT> resolveMeth(T rec, MethName m, List<T> ts) {

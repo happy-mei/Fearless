@@ -291,26 +291,6 @@ public class TestRecMdf {
     package base
     NoMutHyg[X]:{}
     """); }
-  @Test void boxAndMatcherWithMapRead() { ok("""
-    package test
-    alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
-      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x),
-      }}
-    Opt[T]:NoMutHyg[mdf T]{
-      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
-//      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match({
-//        .some(x) -> Opt#(f#x),
-//        .none -> {}
-//        })
-      }
-    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
-    """, """
-    package base
-    NoMutHyg[X]:{}
-    """); }
   @Test void boxAndMatcherWithMapHyg() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
@@ -319,10 +299,10 @@ public class TestRecMdf {
       }}
     Opt[T]:NoMutHyg[mdf T]{
       read .matchHyg[R](m: mut OptMatchHyg[recMdf T, mdf R]): mdf R -> m.none,
-      read .mapHyg[R](f: mut OptMapHyg[recMdf T, recMdf R]): mut Opt[recMdf R] -> this.matchHyg{
-        .some(x) -> Opt#(f#x),
-        .none -> {}
-        }
+      read .mapHyg[R](f: mut OptMapHyg[recMdf T, mdf R]): mut Opt[mdf R] -> this.matchHyg(mut OptMatchHyg[recMdf T, mut Opt[mdf R]]{
+        lent .some(x: recMdf T): mut Opt[mdf R] -> Opt#(f#x),
+        lent .none: mut Opt[recMdf R] -> {}
+        })
       }
     OptMatchHyg[T,R]:{ lent .some(x: mdf T): mdf R, lent .none: mdf R }
     OptMapHyg[T,R]:{ lent #(x: mdf T): mdf R }

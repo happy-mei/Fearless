@@ -183,8 +183,6 @@ public class TestTypeSystemWithBase {
     this .nm/1[]([[-imm-][5[]]{'fear35$ }])
     were valid:
     (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm base.Float[]): imm base.Int[]
-    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm base.Float[]): imm base.Int[]
-    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm base.Float[]): imm base.Int[]
     """, """
     package test
     alias base.Int as Int, alias base.Float as Float,
@@ -200,8 +198,6 @@ public class TestTypeSystemWithBase {
     Type error: None of the following candidates for this method call:
     this .nm/1[]([[-imm-][5[]]{'fear35$ }])
     were valid:
-    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm 6[]): imm base.Int[]
-    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm 6[]): imm base.Int[]
     (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm 6[]): imm base.Int[]
     """, """
     package test

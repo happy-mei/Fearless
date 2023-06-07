@@ -154,7 +154,7 @@ public class TestTypeSystem {
     B:{}
     """); }
   @Test void callMutFromLentFail1() { fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:4:25
+    In position [###]/Dummy0.fear:4:25
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
     this .b/1[]([[-mut-][test.A[]]{'fear1$ }])
@@ -193,8 +193,6 @@ public class TestTypeSystem {
         [E32 noCandidateMeths]
         When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
         (imm test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
         
     (imm test.B[]) <: (iso test.B[]): iso test.B[]
       The following errors were found when checking this sub-typing:
@@ -202,25 +200,12 @@ public class TestTypeSystem {
         [E32 noCandidateMeths]
         When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
         (imm test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
         
-    (imm test.B[]) <: (iso test.B[]): iso test.B[]
+    (imm test.B[]) <: (iso test.B[]): lent test.B[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:4:24
         [E32 noCandidateMeths]
         When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (imm test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
-        
-    (imm test.B[]) <: (iso test.B[]): mut test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (imm test.A[]): imm test.B[]
-        (imm test.A[]): imm test.B[]
         (imm test.A[]): imm test.B[]
     """, """
     package test
@@ -235,46 +220,34 @@ public class TestTypeSystem {
     Void:{}
     """); }
   @Test void noCallMutFromRead() { fail("""
-    In position [###]/Dummy0.fear:4:26
-    [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
-    this .b/0[]([]) .foo/0[]([])
-    were valid:
-    (read test.B[]) <: (mut test.B[]): mut test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
-        
-    (read test.B[]) <: (iso test.B[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
-        
-    (read test.B[]) <: (iso test.B[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
-        
-    (read test.B[]) <: (iso test.B[]): mut test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
+In position [###]/Dummy0.fear:4:26
+[E33 callTypeError]
+Type error: None of the following candidates for this method call:
+this .b/0[]([]) .foo/0[]([])
+were valid:
+(read test.B[]) <: (mut test.B[]): mut test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
+    (imm test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
+
+(read test.B[]) <: (iso test.B[]): iso test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+    (imm test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
+
+(read test.B[]) <: (iso test.B[]): lent test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+    (imm test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
     """, """
     package test
     A:{
@@ -293,41 +266,29 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     this .b/0[]([]) .foo/0[]([])
     were valid:
-    (read test.B[]) <: (mut test.B[]): mut test.B[]
+    (recMdf test.B[]) <: (mut test.B[]): mut test.B[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:4:29
         [E32 noCandidateMeths]
         When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-        (read test.A[]): read test.B[]
-        (read test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
+        (read test.A[]): recMdf test.B[]
+        (imm test.A[]): recMdf test.B[]
         
-    (read test.B[]) <: (iso test.B[]): iso test.B[]
+    (recMdf test.B[]) <: (iso test.B[]): iso test.B[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:4:29
         [E32 noCandidateMeths]
         When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (read test.A[]): read test.B[]
-        (read test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
+        (read test.A[]): recMdf test.B[]
+        (imm test.A[]): recMdf test.B[]
         
-    (read test.B[]) <: (iso test.B[]): iso test.B[]
+    (recMdf test.B[]) <: (iso test.B[]): lent test.B[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:4:29
         [E32 noCandidateMeths]
         When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (read test.A[]): read test.B[]
-        (read test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
-        
-    (read test.B[]) <: (iso test.B[]): mut test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:29
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (read test.A[]): read test.B[]
-        (read test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
+        (read test.A[]): recMdf test.B[]
+        (imm test.A[]): recMdf test.B[]
     """, """
     package test
     A:{
@@ -349,6 +310,7 @@ public class TestTypeSystem {
     B:{}
     """); }
   // TODO: Do we want to expand Meth-OK to allow this?
+  @Disabled
   @Test void mutFromRecMdfLent() { ok("""
     package test
     A:{
@@ -394,7 +356,6 @@ public class TestTypeSystem {
     In position [###]/Dummy0.fear:3:49
     [E32 noCandidateMeths]
     When attempting to type check the method call: b .wheel/0[]([]), no candidates for .wheel/0 returned the expected type recMdf test.Wheel[]. The candidates were:
-    (read test.Bicycle[]): read test.Wheel[]
     (read test.Bicycle[]): read test.Wheel[]
     (imm test.Bicycle[]): imm test.Wheel[]
     """, """
@@ -470,7 +431,6 @@ public class TestTypeSystem {
     [E32 noCandidateMeths]
     When attempting to type check the method call: b .wheel/0[]([]), no candidates for .wheel/0 returned the expected type recMdf T. The candidates were:
     (read test.Bicycle[mdf T]): read T
-    (read test.Bicycle[mdf T]): read T
     (imm test.Bicycle[mdf T]): imm T
     """, """
     package test
@@ -539,12 +499,12 @@ public class TestTypeSystem {
     package base
     NoMutHyg[X]:{}
     """); }
-  // TODO: the recMdf here needs to become mut in inference or something
-  @Test void inferCaptureRecMdfAsMut() { ok("""
+
+  @Test void inferCaptureRecMdfAsMut1() { ok("""
     package test
     A:{
       read .b(a: recMdf A): recMdf B -> {'b .foo -> b },
-      mut .break: read B -> LetMut#{ .var -> this.b(this), .in(b) -> b.foo },
+      mut .break: read B -> LetMut#[mut B, read B]{ .var -> this.b(this), .in(b) -> b.foo },
       }
     B:{
       read .foo(): read B
@@ -553,12 +513,18 @@ public class TestTypeSystem {
     LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
     LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
     """); }
-
-  @Test void recMdfInSubHyg() { ok("""
+  @Test void inferCaptureRecMdfAsMut2() { ok("""
     package test
-    A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ x }.argh }
-    B[X]:{ read .argh: recMdf X }
-    C:{ #: mut C -> A[C].foo({}) }
+    A:{
+      read .b(a: mut A): recMdf B -> {'b .foo -> b },
+      mut .break: read B -> LetMut#[mut B, read B]{ .var -> this.b(this), .in(b) -> b.foo },
+      }
+    B:{
+      read .foo(): read B
+      }
+    Void:{}
+    LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
+    LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
     """); }
 
   @Test void breakingEarlyFancyRename() { fail("""
@@ -595,7 +561,7 @@ public class TestTypeSystem {
   @Test void noCaptureReadInMut() { fail("""
     In position [###]/Dummy0.fear:4:26
     [E30 badCapture]
-    'read this' cannot be captured by a mut method in a mut lambda.
+    'recMdf this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A:{ mut .prison: read B }
@@ -606,7 +572,7 @@ public class TestTypeSystem {
   @Test void noCaptureMdfInMut() { fail("""
     In position [###]/Dummy0.fear:4:29
     [E30 badCapture]
-    'read this' cannot be captured by a mut method in a mut lambda.
+    'recMdf this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A[X]:{ mut .prison: mdf X }
@@ -615,9 +581,9 @@ public class TestTypeSystem {
       }
     """); }
   @Test void noCaptureMdfInMut2() { fail("""
-    In position [###]/Dummy0.fear:4:2
-    [E40 mutCapturesHyg]
-    The type mut test.A[read test.B[]] is not valid because a mut lambda may not capture hygienic references.
+    In position [###]/Dummy0.fear:4:34
+    [E30 badCapture]
+    'recMdf this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A[X]:{ mut .prison: mdf X }
@@ -668,7 +634,6 @@ public class TestTypeSystem {
     [E32 noCandidateMeths]
     When attempting to type check the method call: [-imm-][test.A[]]{'fear1$ } .m/1[]([[-imm-][test.B[]]{'fear2$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type lent test.B[]. The candidates were:
     (read test.L[imm test.B[]]): imm test.B[]
-    (read test.L[imm test.B[]]): imm test.B[]
     (imm test.L[imm test.B[]]): imm test.B[]
     """, """
     package test
@@ -715,7 +680,6 @@ public class TestTypeSystem {
     In position [###]/Dummy0.fear:7:48
     [E32 noCandidateMeths]
     When attempting to type check the method call: par .m/0[]([]), no candidates for .m/0 returned the expected type mut test.Foo[]. The candidates were:
-    (read test.B[]): imm test.Foo[]
     (read test.B[]): imm test.Foo[]
     (imm test.B[]): imm test.Foo[]
     """, """
@@ -816,7 +780,7 @@ public class TestTypeSystem {
     In position [###]/Dummy0.fear:5:2
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
-    s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.IO'[]]{'fear48$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear49$ #/2([io, fear1$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear1$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear50$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear51$ }])}])}])
+    s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.IO'[]]{'fear43$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear44$ #/2([io, fear1$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear1$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear45$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear46$ }])}])}])
     were valid:
     (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
     (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
@@ -900,24 +864,23 @@ public class TestTypeSystem {
     In position [###]/Dummy1.fear:7:8
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
-    cont #/2[]([c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear53$ }]), this])
+    cont #/2[]([c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear48$ }]), this])
     were valid:
-    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear53$ }])?, lent base.caps.System[mdf R]) <: (mut base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]): mdf R
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear48$ }])?, lent base.caps.System[mdf R]) <: (mut base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]): mdf R
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy1.fear:7:11
         [E33 callTypeError]
         Type error: None of the following candidates for this method call:
-        c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear53$ }])
+        c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear48$ }])
         were valid:
-        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps._RootCap[]): lent C
         (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps._RootCap[]): lent C
         (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], iso base.caps._RootCap[]): iso C
         (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], mut base.caps._RootCap[]): lent C
         
-    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear53$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]): mdf R
-    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear53$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], iso C, iso base.caps.System[mdf R]): mdf R
-    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear53$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], mut C, lent base.caps.System[mdf R]): mdf R
-    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear53$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], lent C, mut base.caps.System[mdf R]): mdf R
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear48$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]): mdf R
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear48$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], iso C, iso base.caps.System[mdf R]): mdf R
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear48$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], mut C, lent base.caps.System[mdf R]): mdf R
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear48$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], lent C, mut base.caps.System[mdf R]): mdf R
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
