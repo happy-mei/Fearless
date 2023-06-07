@@ -47,6 +47,11 @@
             <artifactId>faux-pas</artifactId>
             <version>0.9.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.lsp4j</groupId>
+            <artifactId>org.eclipse.lsp4j</artifactId>
+            <version>0.21.0</version>
+        </dependency>
 
         <!--  Test deps  -->
         <dependency>
@@ -119,6 +124,7 @@
                 <version>3.5.0</version>
                 <executions>
                     <execution>
+                        <id>build-compiler-jar</id>
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
@@ -133,6 +139,25 @@
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
                             <finalName>fearless</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-lsp-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>lsp.FearlessLanguageServer</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <finalName>fearless-lsp</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                         </configuration>
                     </execution>
