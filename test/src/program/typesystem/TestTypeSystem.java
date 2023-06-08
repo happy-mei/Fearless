@@ -654,7 +654,7 @@ were valid:
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:7) test.L[mdf FearX0$], .absMeth/0[](): recMdf FearX0$
+    ([###]/Dummy0.fear:3:7) test.L[mdf FearX0$], .absMeth/0[](): mdf FearX0$
     ([###]/Dummy0.fear:4:16) test.L'[mdf FearX0$], .absMeth/0[](): imm FearX0$
     """, """
     package test
@@ -740,8 +740,40 @@ were valid:
     C:{ #: lent L[mut B] -> A{}.m[read B](B) }
     """); }
 
-  @Disabled // due to new well formedness
-  @Test void noMutHygRenamedGX() { ok("""
+  @Test void noMutHygRenamedGX1() { ok("""
+    package test
+    alias base.NoMutHyg as NoMH,
+    Person:{}
+    
+    Foo[X]:NoMH[mdf X]{ read .stuff: recMdf X }
+    FooP0[Y]:Foo[mdf Y]{}
+    FooP1:{ #(p: read Person): mut Foo[read Person] -> { p } }
+    FooP2:{ #(p: read Person): mut FooP0[read Person] -> { p } }
+    
+    Test:{
+      .t1(t: read Person): lent Foo[read Person] -> FooP1#t,
+      .t2(t: read Person): lent FooP0[read Person] -> FooP2#t,
+      .t2a(t: read Person): lent Foo[read Person] -> FooP2#t,
+      }
+    
+    //Foo[X]:NoMH[X]{stuff[X]}
+    //FooP0[Y]:Foo[Y]
+    //FooP1:Foo[Person]
+    //FooP2:{stuff[Person]}
+    //m(x)->FooP1{ x }
+    //m(x)->FooP2{ x }
+    """,  """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void noMutHygRenamedGX2() { fail("""
+    In position [###]/Dummy0.fear:11:52
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    [-imm-][test.FooP1[]]{'fear2$ } #/1[]([t])
+    were valid:
+    (imm test.FooP1[], read test.Person[]) <: (imm test.FooP1[], imm test.Person[]): iso test.Foo[read test.Person[]]
+    """, """
     package test
     alias base.NoMutHyg as NoMH,
     Person:{}
@@ -977,5 +1009,20 @@ were valid:
     """, """
     package base
     NoMutHyg[X]:{}
+    """); }
+
+  @Test void nestedRecMdfExplicitMdf() { ok("""
+    package test
+    A[X]:{
+      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      }
+    F[X]:{ imm #(x: mdf X): mdf X -> x, }
+    B[Y]:{
+      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
+      }
+    C:{
+      #(b: mut B[mut C]): mut B[mut C] -> b#({}),
+      .i(b: mut B[imm C]): mut B[imm C] -> b#(mut A[mut B[imm C]]),
+      }
     """); }
 }

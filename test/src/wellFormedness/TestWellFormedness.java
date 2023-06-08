@@ -147,22 +147,23 @@ public class TestWellFormedness {
     Sealed:{}
     """); }
 
-  @Test void noMutHygType1() { fail("""
-    In position [###]/Dummy0.fear:2:7
-    [E40 mutCapturesHyg]
-    The type mut a.A[read a.A[imm X]] is not valid because a mut lambda may not capture hygienic references.
-    """, """
-    package a
-    A[X]:{ .no: mut A[read A[X]] }
-    """); }
-  @Test void noMutHygType2() { fail("""
-    In position [###]/Dummy0.fear:2:7
-    [E40 mutCapturesHyg]
-    The type mut a.A[lent a.A[imm X]] is not valid because a mut lambda may not capture hygienic references.
-    """, """
-    package a
-    A[X]:{ .no: mut A[lent A[X]] }
-    """); }
+  // This well formedness requirement doesn't make sense because it only considers boxes (but not functions that do not capture)
+//  @Test void noMutHygType1() { fail("""
+//    In position [###]/Dummy0.fear:2:7
+//    [E40 mutCapturesHyg]
+//    The type mut a.A[read a.A[imm X]] is not valid because a mut lambda may not capture hygienic references.
+//    """, """
+//    package a
+//    A[X]:{ .no: mut A[read A[X]] }
+//    """); }
+//  @Test void noMutHygType2() { fail("""
+//    In position [###]/Dummy0.fear:2:7
+//    [E40 mutCapturesHyg]
+//    The type mut a.A[lent a.A[imm X]] is not valid because a mut lambda may not capture hygienic references.
+//    """, """
+//    package a
+//    A[X]:{ .no: mut A[lent A[X]] }
+//    """); }
   @Test void noMutHygType3() { ok("""
     package a
     A[X]:{ .no: mut A[X] }

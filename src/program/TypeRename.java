@@ -107,7 +107,6 @@ public interface TypeRename<T>{
     if (!mdf(t).isMut()) { return t; }
     var shouldFix = getNoMutHygMdfs(t).anyMatch(Mdf::isHyg);
     if (!shouldFix) { return t; }
-    System.out.println("turning lent");
     return propagateMdf(Mdf.lent, t);
   }
 }

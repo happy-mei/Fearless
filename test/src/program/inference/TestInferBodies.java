@@ -1173,11 +1173,11 @@ public class TestInferBodies {
     test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
       .m1/2([a,b]):Sig[mdf=read,gens=[],ts=[recMdfX,immtest.F[recMdfX]],ret=recMdfX]->b#/1[]([a])}],
     test.B/1=Dec[name=test.B/1,gxs=[Y],lambda=[-mdf-][test.B[mdfY]]{'this
-      #/1([a]):Sig[mdf=read,gens=[],ts=[muttest.A[muttest.B[recMdfY]]],ret=recMdftest.B[recMdfY]]->
-        a.m1/2[]([[-recMdf-][test.B[recMdfY]]{'fear0$},[-imm-][test.F[recMdftest.B[recMdfY]]]{'fear1$}])}],
+      #/1([a]):Sig[mdf=read,gens=[],ts=[muttest.A[muttest.B[recMdfY]]],ret=mut test.B[recMdfY]]->
+        a.m1/2[]([[-mut-][test.B[recMdfY]]{'fear0$},[-imm-][test.F[mut test.B[recMdfY]]]{'fear1$}])}],
     test.C/0=Dec[name=test.C/0,gxs=[],lambda=[-mdf-][test.C[]]{'this
       #/1([b]):Sig[mdf=imm,gens=[],ts=[muttest.B[muttest.C[]]],ret=muttest.B[muttest.C[]]]->
-        b#/1[]([[-mut-][test.A[muttest.B[recMdf test.C[]]]]{'fear2$}]),
+        b#/1[]([[-mut-][test.A[muttest.B[mut test.C[]]]]{'fear2$}]),
       .i/1([b]):Sig[mdf=imm,gens=[],ts=[muttest.B[immtest.C[]]],ret=muttest.B[immtest.C[]]]->
         b#/1[]([[-mut-][test.A[muttest.B[imm test.C[]]]]{'fear3$}])}]}
     """, """
@@ -1187,7 +1187,7 @@ public class TestInferBodies {
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): recMdf B[recMdf Y] -> a.m1(recMdf B[recMdf Y], F[recMdf B[recMdf Y]]),
+      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
       }
     C:{
       #(b: mut B[mut C]): mut B[mut C] -> b#({}),

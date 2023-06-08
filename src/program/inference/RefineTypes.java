@@ -235,8 +235,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     return new RefinedLambda(resC.itOrThrow(), refinedSigs);
   }
 
-  List<RP> pairUp(Mdf recvMdf, List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
-    var ms = p.meths(recvMdf, c, depth);
+  List<RP> pairUp(Mdf lambdaMdf, List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
+    var ms = p.meths(lambdaMdf, c, depth);
     var freshSig = freshXs(ms, sig.name(), gxs);
     var freshGens = freshSig.gens();
     return Streams.of(

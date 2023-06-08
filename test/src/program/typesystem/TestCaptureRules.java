@@ -852,7 +852,7 @@ public class TestCaptureRules {
   @Test void t2364(){ c2(mut,   recMdf,   mut,  of(/*impossible*/)); }
   @Test void t2365(){ c2(iso,   recMdf,   mut,  of(/*impossible*/)); }
   @Test void t2366(){ c2(mdf,   recMdf,   mut,   of(/*not well formed lambda*/)); }
-  @Test void t2367(){ c2(recMdf,recMdf,   mut,   of(read,mdf)); }
+  @Test void t2367(){ c2(recMdf,recMdf,   mut,   of(read)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2371(){ c2(imm,   imm,   mut,    of(/*impossible*/)); }
   @Test void t2372(){ c2(read,  imm,   mut,    of(/*impossible*/)); }
@@ -917,7 +917,7 @@ public class TestCaptureRules {
   @Test void t2464(){ c2(mut,   recMdf,   iso,  of(/*impossible*/)); }
   @Test void t2465(){ c2(iso,   recMdf,   iso,  of(/*impossible*/)); }
   @Test void t2466(){ c2(mdf,   recMdf,   iso,   of(/*not well formed lambda*/)); }
-  @Test void t2467(){ c2(recMdf,recMdf,   iso,   of(read,mdf)); }
+  @Test void t2467(){ c2(recMdf,recMdf,   iso,   of(read)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2471(){ c2(imm,   imm,   iso,    of(/*impossible*/)); }
   @Test void t2472(){ c2(read,  imm,   iso,    of(/*impossible*/)); }
@@ -1138,10 +1138,10 @@ public class TestCaptureRules {
   @Test void t3105(){ c3(iso,   read,  read,   of()); }
   @Test void t3106(){ c3(mdf,   read,  read,   of()); }
   @Test void t3107(){ c3(recMdf,read,  read,   of()); }
-  //                     lambda, captured, method, ...capturedAs
+  //                     lambda, captured, method, ...(capturedAs, capturedAsG)
   @Test void t3111(){ c3(imm,   lent,  read,   of()); }
-  @Test void t3112(){ c3(read,  lent,  read,   readAll,of(recMdf,mut  , recMdf,lent  , recMdf,read  , recMdf,mdf  , mdf,read, mdf,mdf)); }// captures lent as recMdf (adapt)
-  @Test void t3113(){ c3(lent,  lent,  read,   readAll,of(recMdf,mut  , recMdf,lent  , recMdf,read  , recMdf,mdf  , mdf,read, mdf,mdf)); }
+  @Test void t3112(){ c3(read,  lent,  read,   readAll,of(recMdf,read  , recMdf,recMdf  , recMdf,mdf  , mdf,read  , mdf,recMdf)); }
+  @Test void t3113(){ c3(lent,  lent,  read,   readAll,of(recMdf,read  , recMdf,recMdf  , recMdf,mdf  , mdf,read  , mdf,recMdf)); }
   @Test void t3114(){ c3(mut,   lent,  read,   of()); }//NOT NoMutHyg
   @Test void t3115(){ c3(iso,   lent,  read,   of()); }
   @Test void t3116(){ c3(mdf,   lent,  read,   of()); }

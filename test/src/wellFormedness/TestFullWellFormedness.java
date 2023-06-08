@@ -453,12 +453,7 @@ public class TestFullWellFormedness {
     Foo:{}
     Bar:{ .a: recMdf Foo -> recMdf Foo }
     """); }
-  @Test void explicitMdfLambdaRecMdfONonHyg2(){ fail("""
-    In position [###]/Dummy0.fear:3:4
-    [E26 recMdfInNonHyg]
-    Invalid lambda modifier.
-    recMdf may only be used in read or lent methods. The method .a/0 has the imm modifier.
-    """, """
+  @Test void recMdfOkayInNonSigs(){ ok("""
     package test
     Foo:{}
     Bar:{ .a: Foo -> recMdf Foo }
