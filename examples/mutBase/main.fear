@@ -1,5 +1,5 @@
 package examples
-MyApp:Main[Void]{ args, s -> s
+MyApp:Main{ args, s -> s
   .use[IO] io = IO'
   .return{ io.println(ImmMain#args) }
   }

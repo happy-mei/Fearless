@@ -418,8 +418,8 @@ public class TestInferBodies {
     """); }
 
   @Test void boolUsage() { ok("""
-    {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
-      #/2([fear[###]$,fear[###]$]):Sig[mdf=imm,gens=[],ts=[immbase.LList[immbase.Str[]],lentbase.caps.System[immbase.Int[]]],ret=immbase.Int[]]->
+    {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[]]{'this
+      #/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->
         [-imm-][base.False[]]{'fear[###]$}
           .or/1[]([[-imm-][base.True[]]{'fear[###]$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear[###]$
@@ -428,13 +428,13 @@ public class TestInferBodies {
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
-    Test:Main[Int]{
-      _,_->False.or(True)?{.then->42,.else->0}
+    Test:{
+      #: Int -> False.or(True)?{.then->42,.else->0}
     }
     """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear"), Base.load("lists.fear"), Base.load("optionals.fear")); }
   @Test void boolUsageExplicitGens() { ok("""
-    {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[immbase.Int[]]]{'this
-      #/2([fear[###]$,fear[###]$]):Sig[mdf=imm,gens=[],ts=[immbase.LList[immbase.Str[]],lentbase.caps.System[immbase.Int[]]],ret=immbase.Int[]]->
+    {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[]]{'this
+      #/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->
         [-imm-][base.False[]]{'fear[###]$}
           .or/1[]([[-imm-][base.True[]]{'fear[###]$}])
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear[###]$
@@ -443,8 +443,8 @@ public class TestInferBodies {
     """, """
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
-    Test:Main[Int]{
-      _,_->False.or(True) ?[Int]{ .then -> 42, .else -> 0 }
+    Test:{
+      #: Int -> False.or(True) ?[Int]{ .then -> 42, .else -> 0 }
     }
     """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear"), Base.load("lists.fear"), Base.load("optionals.fear")); }
   // TODO: why isn't this inferring gens?

@@ -144,16 +144,16 @@ public class TestTypeSystemWithBase {
   @Test void boolIntRet() { ok("""
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
-    Test:Main[Int]{
-      _,_->False.or(True)?{.then->42,.else->0}
+    Test:{
+      #: Int -> False.or(True)?{.then->42,.else->0}
     }
     """); }
   @Test void boolSameRet() { ok("""
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Foo:{}
-    Test:Main[Foo]{
-      _,_->False.or(True)?{.then->Foo,.else->Foo}
+    Test:{
+      #: Foo -> False.or(True)?{.then->Foo,.else->Foo}
     }
     """); }
 

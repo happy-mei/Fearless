@@ -822,7 +822,7 @@ were valid:
     package test
     alias base.Main as Main, alias base.Void as Void,
     alias base.caps.IO as IO, alias base.caps.IO' as IO',
-    Test:Main[Void]{ #(_, s) -> s
+    Test:Main{ #(_, s) -> s
       .use[IO] io = IO'
       .return{ io.println("Hello, World!") }
       }
@@ -861,7 +861,7 @@ were valid:
     package test
     alias base.Main as Main, alias base.Void as Void,
     alias base.caps.IO as IO, alias base.caps.IO' as IO',
-    Test:Main[Void]{ #(_, s) -> s
+    Test:Main{ #(_, s) -> s
       .use[IO] io = IO'
       .return{ io.println("Hello, World!") }
       }
@@ -917,7 +917,7 @@ were valid:
     package test
     alias base.Main as Main, alias base.Void as Void,
     alias base.caps.IO as IO, alias base.caps.IO' as IO',
-    Test:Main[Void]{ #(_, s) -> s
+    Test:Main{ #(_, s) -> s
       .use[IO] io = IO'
       .return{ io.println("Hello, World!") }
       }

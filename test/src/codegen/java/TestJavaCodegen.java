@@ -48,8 +48,8 @@ interface NoMutHyg_1{
 }
 interface Void_0{
 }
-interface Main_1{
-Object $35$(Object s$);}
+interface Main_0{
+base.Void_0 $35$(Object s$);}
 }
 static void main(String[] args){ var cons = new base.Cons_0(){};
 base.LList_1 cliArgs = new base.LList_1(){};
@@ -57,7 +57,7 @@ for (int i = args.length - 1; i >= 0; --i) {
   var arg = args[i];
   cliArgs = cons.$35$(arg, cliArgs);
 }
- base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
     package test
@@ -98,8 +98,8 @@ interface NoMutHyg_1{
 }
 interface Void_0{
 }
-interface Main_1{
-Object $35$(Object s$);}
+interface Main_0{
+base.Void_0 $35$(Object s$);}
 }
 static void main(String[] args){ var cons = new base.Cons_0(){};
 base.LList_1 cliArgs = new base.LList_1(){};
@@ -107,7 +107,7 @@ for (int i = args.length - 1; i >= 0; --i) {
   var arg = args[i];
   cliArgs = cons.$35$(arg, cliArgs);
 }
- base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
     package test
@@ -174,8 +174,8 @@ interface NoMutHyg_1{
 }
 interface Void_0{
 }
-interface Main_1{
-Object $35$(Object s$);}
+interface Main_0{
+base.Void_0 $35$(Object s$);}
 }
 static void main(String[] args){ var cons = new base.Cons_0(){};
 base.LList_1 cliArgs = new base.LList_1(){};
@@ -183,7 +183,7 @@ for (int i = args.length - 1; i >= 0; --i) {
   var arg = args[i];
   cliArgs = cons.$35$(arg, cliArgs);
 }
- base.Main_1 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
     package test
@@ -199,12 +199,10 @@ for (int i = args.length - 1; i >= 0; --i) {
     ThenElse[R]:{ mut .then: R, mut .else: R, }
     """, Base.minimalBase);}
   @Test void multiPackage() { ok("""
-interface FProgram{interface test{interface Foo_0{
-}
-interface HelloWorld_0 extends base.Main_1{
-default test.Foo_0 $35$(Object s$){
+interface FProgram{interface test{interface HelloWorld_0 extends base.Main_0{
+default base.Void_0 $35$(Object s$){
 var f$thiz = this;
-return ((test.Foo_0)(new test.Foo_0(){
+return ((base.Void_0)(new base.Void_0(){
 }));
 }}
 }
@@ -216,8 +214,8 @@ interface NoMutHyg_1{
 }
 interface Void_0{
 }
-interface Main_1{
-Object $35$(Object s$);}
+interface Main_0{
+base.Void_0 $35$(Object s$);}
 }
 static void main(String[] args){ var cons = new base.Cons_0(){};
 base.LList_1 cliArgs = new base.LList_1(){};
@@ -225,26 +223,31 @@ for (int i = args.length - 1; i >= 0; --i) {
   var arg = args[i];
   cliArgs = cons.$35$(arg, cliArgs);
 }
- base.Main_1 entry = new test.HelloWorld_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+ base.Main_0 entry = new test.HelloWorld_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "test.HelloWorld", false, """
     package test
     alias base.Main as Main,
-    HelloWorld:Main[Foo]{
-      #s -> Foo
+    HelloWorld:Main{
+      #s -> base.Void
     }
-    Foo:{}
     """, Base.minimalBase); }
 
   @Test void nestedPkgs() { ok("""
 interface FProgram{interface test{interface Foo_0{
 test.Foo_0 a$();}
-interface Test_0 extends base.Main_1{
-default test$46foo.Bar_0 $35$(Object fear0$$){
+interface Test_0 extends base.Main_0{
+default base.Void_0 $35$(Object fear0$$){
+var f$thiz = this;
+return ((base.Void_0)(new base.Void_0(){
+}));
+}}
+interface A_0{
+default test$46foo.Bar_0 $35$(){
 var f$thiz = this;
 return ((test$46foo.Bar_0)(new test$46foo.Bar_0(){
 public test$46foo.Bar_0 a$(){
-var fear1$$ = this;
+var fear2$$ = this;
 return ((test$46foo.Bar_0)(new test$46foo.Bar_0(){
 }));
 }}));
@@ -264,8 +267,8 @@ interface NoMutHyg_1{
 }
 interface Void_0{
 }
-interface Main_1{
-Object $35$(Object s$);}
+interface Main_0{
+base.Void_0 $35$(Object s$);}
 }
 static void main(String[] args){ var cons = new base.Cons_0(){};
 base.LList_1 cliArgs = new base.LList_1(){};
@@ -273,11 +276,12 @@ for (int i = args.length - 1; i >= 0; --i) {
   var arg = args[i];
   cliArgs = cons.$35$(arg, cliArgs);
 }
- base.Main_1 entry = new test.Test_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+ base.Main_0 entry = new test.Test_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "test.Test", false, """
     package test
-    Test:base.Main[test.foo.Bar]{ _ -> { .a -> test.foo.Bar } }
+    Test:base.Main[]{ _ -> {} }
+    A:{ #: test.foo.Bar -> { .a -> test.foo.Bar } }
     Foo:{ .a: Foo }
     """, """
     package test.foo

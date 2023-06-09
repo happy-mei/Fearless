@@ -1,5 +1,5 @@
 package closest
-Test:Main[Void]{ _,_ -> Do#
+Test:Main{ _,_ -> Do#
   .var[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
   .return{ Assert#(closest == 52, closest.str, {{}}) }
   }

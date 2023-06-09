@@ -48,7 +48,7 @@ public interface Base {
 
   String minimalBase = """
     package base
-    Main[R]:{ #(s: lent System[R]): mdf R }
+    Main:{ #(s: lent System[Void]): Void }
     NoMutHyg[X]:{}
     Sealed:{}
     Void:{}
