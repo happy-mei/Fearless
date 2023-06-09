@@ -373,6 +373,52 @@ public class TestJavaProgram {
     "bye"
   ), getCliArgsOrElse, Base.mutBaseAliases); }
 
+  @Test void findClosestInt() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main[Void]{ _,_ -> Do#
+      .var[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
+      .return{ Assert#(closest == 52, closest.str, {{}}) }
+      }
+    Closest:{
+      #(ns: LList[Int], target: Int): Int -> Do#
+        .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
+        .var[mut Ref[Int]] closest = { Ref#(ns.head!) }
+        .do{ mut Closest'{ 'self
+          h, t -> h.match{
+            .none -> {},
+            .some(n) -> (target - n).abs < (target - closest*).abs ? {
+              .then -> closest := n,
+              .else -> self#(t.head, t.tail)
+              }
+            }
+          }#(ns.head, ns.tail) }
+        .return{ closest* }
+      }
+    Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
+    """, Base.mutBaseAliases); }
+
+  @Test void absIntPos() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main[Void]{ _,_ -> Assert#(5 .abs == 5) }
+    """, Base.mutBaseAliases); }
+  @Test void absIntZero() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main[Void]{ _,_ -> Assert#(0 .abs == 0) }
+    """, Base.mutBaseAliases); }
+  @Test void absIntNeg() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main[Void]{ _,_ -> Assert#(-5 .abs == 5) }
+    """, Base.mutBaseAliases); }
+
+  @Test void absUIntPos() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main[Void]{ _,_ -> Assert#(5u .abs == 5u) }
+    """, Base.mutBaseAliases); }
+  @Test void absUIntZero() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main[Void]{ _,_ -> Assert#(0u .abs == 0u) }
+    """, Base.mutBaseAliases); }
+
 //  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test
 //    alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,

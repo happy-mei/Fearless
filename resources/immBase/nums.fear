@@ -26,6 +26,7 @@ MathOps[T]:Sealed{
   /(n: T): T,
   %(n: T): T,
   **(n: T): T, // pow
+  .abs: T,
 
   // Comparisons
   >(n: T): Bool,
@@ -54,6 +55,7 @@ _IntInstance:Int{
   /(n) -> this/n,
   %(n) -> this%n,
   **(n) -> this**n,
+  .abs -> this.abs,
 
   // bitwise
   >>(n) -> this>>n,
@@ -79,6 +81,7 @@ _UIntInstance:UInt{
   /(n) -> this/n,
   %(n) -> this%n,
   **(n) -> this**n,
+  .abs -> this.abs,
 
   // bitwise
   >>(n) -> this>>n,
@@ -104,6 +107,7 @@ _FloatInstance:Float{
   /(n) -> this/n,
   %(n) -> this%n,
   **(n) -> this**n,
+  .abs -> this.abs,
   // Comparisons
   >n -> this>n,
   <n -> this<n,

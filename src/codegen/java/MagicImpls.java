@@ -49,6 +49,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
           // TODO: implement this iteratively in fearless
           throw Bug.todo();
         }
+        if (m.name().equals(".abs")) { return "Math.abs("+instantiate()+")"; }
         if (m.name().equals(">>")) { return instantiate()+">>"+args.get(0).accept(gen); }
         if (m.name().equals("<<")) { return instantiate()+"<<"+args.get(0).accept(gen); }
         if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
@@ -101,6 +102,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
           // TODO: implement this iteratively in fearless
           throw Bug.todo();
         }
+        if (m.name().equals(".abs")) { return instantiate(); } // no-op for unsigned
         if (m.name().equals(">>")) { return instantiate()+">>"+args.get(0).accept(gen); }
         if (m.name().equals("<<")) { return instantiate()+"<<"+args.get(0).accept(gen); }
         if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
