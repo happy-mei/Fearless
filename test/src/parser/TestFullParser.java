@@ -76,6 +76,38 @@ class TestFullParser {
       package pkg1
       alias base.True as True,
       """); }
+  @Test void aliasAsDifferentName() { ok("""
+    {foo.Bar/0=Dec[name=foo.Bar/0,gxs=[],lambda=[-infer-][]{}],
+    test.Bloop/0=Dec[name=test.Bloop/0,gxs=[],lambda=[-infer-][foo.Bar[]]{}]}
+    """, """
+    package test
+    alias foo.Bar as Baz,
+    Bloop:Baz
+    """, """
+    package foo
+    Bar:{}
+    """); }
+  @Test void aliasGenericHiding() { ok("""
+    {test.Yolo/0=Dec[name=test.Yolo/0,gxs=[],lambda=[-infer-][]{}],
+    test.Bloop3/0=Dec[name=test.Bloop3/0,gxs=[],lambda=[-infer-][foo.Bar[immtest.Yolo[],immtest.Yolo[]]]{}],
+    foo.Bar/0=Dec[name=foo.Bar/0,gxs=[],lambda=[-infer-][]{}],foo.Bar/2=Dec[name=foo.Bar/2,gxs=[A,B],lambda=[-infer-][]{}],
+    foo.Bar/1=Dec[name=foo.Bar/1,gxs=[A],lambda=[-infer-][]{}],
+    test.Bloop2/0=Dec[name=test.Bloop2/0,gxs=[],lambda=[-infer-][foo.Bar[immtest.Yolo[]],foo.Bar[immtest.Yolo[]]]{}],
+    test.Bloop1/0=Dec[name=test.Bloop1/0,gxs=[],lambda=[-infer-][foo.Bar[]]{}]}
+    """, """
+    package test
+    alias foo.Bar as Baz,
+    alias foo.Bar[test.Yolo] as YoloBar,
+    Yolo:{}
+    Bloop1:Baz
+    Bloop2:Baz[Yolo],YoloBar{}
+    Bloop3:YoloBar[Yolo]
+    """, """
+    package foo
+    Bar:{}
+    Bar[A]:{}
+    Bar[A,B]:{}
+    """); }
   @Test void testMultiPackage(){ ok("""
     {}
     """,

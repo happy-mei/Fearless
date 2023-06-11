@@ -1044,4 +1044,20 @@ were valid:
     package base
     NoMutHyg[X]:{}
     """); }
+
+  @Test void aliasGenericHiding() { fail("""
+    [E20 traitNotFound]
+    The trait foo.Bar/3 could not be found.
+    """, """
+    package test
+    alias foo.Bar as Baz,
+    alias foo.Bar[test.Yolo] as YoloBar,
+    Yolo:{}
+    Bloop3:YoloBar[Yolo,Yolo]
+    """, """
+    package foo
+    Bar:{}
+    Bar[A]:{}
+    Bar[A,B]:{}
+    """); }
 }
