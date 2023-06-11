@@ -1025,4 +1025,23 @@ were valid:
       .i(b: mut B[imm C]): mut B[imm C] -> b#(mut A[mut B[imm C]]),
       }
     """); }
+
+  @Test void captureReadAsRecMdf() { fail("""
+    In position [###]/Dummy0.fear:7:45
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: [-imm-][test.A[]]{'fear0$ } .m/1[read test.B[]]([[-read-][test.B[]]{'fear1$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type mut test.B[]. The candidates were:
+    (read test.L[read test.B[]]): read test.B[]
+    (imm test.L[read test.B[]]): imm test.B[]
+    """, """
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    B:{}
+    L[X]:NoMutHyg[mdf X]{ read .absMeth: recMdf X }
+    A:{ read .m[T](par: read T): mut L[read T] -> mut L[read T]{.absMeth->par} }
+    
+    Break:{ #(rb: read B): mut B -> (A.m(read B)).absMeth }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
 }
