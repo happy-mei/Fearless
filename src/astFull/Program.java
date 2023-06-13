@@ -59,6 +59,17 @@ public class Program implements program.Program{
       .map(mi->cm(recvMdf, t, mi, f))
       .toList();
   }
+  @Override public CM plainCM(CM fancyCM){
+    var d=of(fancyCM.c().name());
+    assert fancyCM.c().ts().size()==d.gxs().size();
+    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
+    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(fancyCM.c().ts(), gxs);
+    return d.lambda().meths().stream()
+      .filter(mi->mi.name().map(name->name.equals(fancyCM.name())).orElse(false))
+      .map(mi->cmCore(fancyCM.c(), mi, f))
+      .findFirst()
+      .orElseThrow();
+  }
 
   @Override public Set<Id.GX<ast.T>> gxsOf(Id.IT<ast.T> t) {
     return of(t).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
@@ -68,6 +79,12 @@ public class Program implements program.Program{
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
     var cm = CM.of(t, mi, TypeRename.coreRec(this, recvMdf).renameSig(new InjectionVisitor().visitSig(sig), f));
+    return norm(cm);
+  }
+  private CM cmCore(Id.IT<ast.T> t, astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
+    // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
+    var sig=mi.sig().orElseThrow();
+    var cm = CM.of(t, mi, TypeRename.core(this).renameSig(new InjectionVisitor().visitSig(sig), f));
     return norm(cm);
   }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }

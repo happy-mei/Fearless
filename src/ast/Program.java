@@ -68,6 +68,17 @@ public class Program implements program.Program  {
       .map(mi->cm(recvMdf, t, mi, f))
       .toList();
   }
+  public CM plainCM(CM fancyCM) {
+    var d=of(fancyCM.c().name());
+    assert fancyCM.c().ts().size()==d.gxs().size();
+    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
+    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(fancyCM.c().ts(), gxs);
+    return d.lambda().meths().stream()
+      .filter(mi->mi.name().equals(fancyCM.name()))
+      .map(mi->cmCore(d.toIT(), mi, f))
+      .findFirst()
+      .orElseThrow();
+  }
   @Override public Set<Id.GX<T>> gxsOf(Id.IT<T> t) {
     return of(t.name()).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
   }
@@ -77,6 +88,11 @@ public class Program implements program.Program  {
   private CM cm(Mdf recvMdf, Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var cm = CM.of(t, mi, TypeRename.coreRec(this, recvMdf).renameSig(mi.sig(), f));
+    return norm(cm);
+  }
+  private CM cmCore(Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
+    // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
+    var cm = CM.of(t, mi, TypeRename.core(this).renameSig(mi.sig(), f));
     return norm(cm);
   }
 }

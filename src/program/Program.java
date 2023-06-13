@@ -25,6 +25,7 @@ public interface Program {
   List<Id.IT<T>> itsOf(Id.IT<T> t);
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t);
+  CM plainCM(CM fancyCM);
   Set<Id.GX<ast.T>> gxsOf(Id.IT<T> t);
   Program withDec(T.Dec d);
   List<ast.E.Lambda> lambdas();
@@ -339,6 +340,8 @@ public interface Program {
            - e?j is empty, Ds|- Ti<=Tj and not Ds|- Tj<=Ti
        */
     assert a.name().equals(b.name());
+    var segfs = plainCM(a);
+    var segfs2 = plainCM(b);
     var ta = new T(Mdf.mut, a.c());
     var tb = new T(Mdf.mut, b.c());
     if(tryIsSubType(tb, ta)){ return false; }

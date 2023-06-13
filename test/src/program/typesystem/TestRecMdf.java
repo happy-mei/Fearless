@@ -537,7 +537,7 @@ public class TestRecMdf {
 
   @Test void recMdfInSubHyg1() { ok("""
     package test
-    A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ x }.argh }
+    A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ read .argh: recMdf X -> x }.argh }
     B[X]:{ read .argh: recMdf X }
     """); }
   @Test void recMdfInSubHyg2() { ok("""
