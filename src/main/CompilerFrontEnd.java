@@ -69,8 +69,9 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
     var java = toJava(entry, p);
     var classFile = java.compile();
 
+    var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
     String[] command = Stream.concat(
-      Stream.of("java", classFile.getFileName().toString().split("\\.class")[0]),
+      Stream.of(jrePath.toString(), classFile.getFileName().toString().split("\\.class")[0]),
       cliArgs.stream()
     ).toArray(String[]::new);
     var pb = new ProcessBuilder(command);

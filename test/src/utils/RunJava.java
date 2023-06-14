@@ -10,8 +10,9 @@ import java.util.stream.Stream;
 public interface RunJava {
   record Res(String stdOut, String stdErr, int exitCode){}
   static CompletableFuture<Res> of(Path classFile, List<String> cliArgs) {
+    var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
     String[] command = Stream.concat(
-      Stream.of("java", classFile.getFileName().toString().split("\\.class")[0]),
+      Stream.of(jrePath.toString(), classFile.getFileName().toString().split("\\.class")[0]),
       cliArgs.stream()
     ).toArray(String[]::new);
     var pb = new ProcessBuilder(command);
