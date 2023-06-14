@@ -1060,4 +1060,11 @@ were valid:
     Bar[A]:{}
     Bar[A,B]:{}
     """); }
+
+  @Test void shouldKeepIsoThisAsIso() { ok("""
+    package test
+    A[X]:{
+      iso .m: iso A[mdf X] -> this,
+      }
+    """); }
 }

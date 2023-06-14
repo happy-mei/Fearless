@@ -46,6 +46,7 @@ public enum Mdf{
 //      if (other == mdf) { return read; }
       if (other == mdf) { return mdf; }
       if (other == mut) { return lent; }
+      if (other == iso) { return lent; }
     }
     if (this == read) {
       if (other == imm) { return imm; }

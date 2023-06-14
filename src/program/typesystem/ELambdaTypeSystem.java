@@ -81,23 +81,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
 //    var selfTi = selfT;
     var args = m.sig().ts();
     var ret = m.sig().ret();
-//    System.out.println("before: "+m.body().get());
-//    E e = m.body().orElseThrow().accept(new CloneVisitor(){
-//      @Override public T visitT(T t) {
-//        return fancyRename(t, selfT.mdf(), Map.of());
-//      }
-//      @Override public E.Lambda visitLambda(E.Lambda e) { return e; }
-//    });
-//    System.out.println("after: "+e);
-//    var selfTiRaw = selfT.mdf().isMdf() ? selfT.withMdf(mMdf) : selfT;
-//    var selfTi = fancyRename(selfTiRaw, selfTiRaw.mdf(), Map.of());
-//
-//    var args = m.sig().ts().stream().map(t->fancyRename(t, selfTi.mdf(), Map.of())).toList();
-//    var ret = fancyRename(m.sig().ret(), selfTi.mdf(), Map.of());
-
     // todo: assert empty gamma for MDF mdf
     var g0  = g().captureSelf(p(), selfName, selfT, mMdf);
-    var selfTi = g0.get(selfName);
+    Mdf selfTMdf = g0.get(selfName).mdf();
     var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
     var baseCase=okWithSubType(gg, m, e, ret);
@@ -109,7 +95,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     if (criticalFailure.isPresent()) { return baseCase; }
 
     Gamma mutAsLentG = x->g().getO(x).map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t);
-    g0 = mutAsLentG.captureSelf(p(), selfName, selfTi, mMdf.isMut() ? Mdf.lent : mMdf);
+    g0 = mutAsLentG.captureSelf(p(), selfName, selfT, mMdf.isMut() ? Mdf.lent : mMdf);
     gg  = Streams.zip(
       m.xs(),
       args.stream().map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t).toList()
@@ -121,7 +107,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       if (t.mdf().isLikeMut() || t.mdf().isRecMdf()) { return Optional.empty(); }
       return Optional.of(t);
     });
-    g0 = selfTi.mdf().isLikeMut() || selfTi.mdf().isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(p(), selfName, selfTi, mMdf);
+    g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(p(), selfName, selfT, mMdf);
     gg = Streams.zip(m.xs(), args).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
     return okWithSubType(gg, m, e, ret.withMdf(Mdf.read)).flatMap(ignored->baseCase);
   }

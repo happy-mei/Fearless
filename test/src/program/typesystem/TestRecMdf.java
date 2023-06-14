@@ -2,6 +2,7 @@ package program.typesystem;
 
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import static utils.Base.load;
 
@@ -147,16 +148,40 @@ public class TestRecMdf {
     In position [###]/Dummy0.fear:4:24
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .m1/1[]([[-mut-][test.NoPromote[]]{'fear0$ }]), no candidates for .m1/1 returned the expected type mut X. The candidates were:
-    (read test.A[mdf X], mut test.NoPromote[]): imm X
-    (read test.A[mdf X], iso test.NoPromote[]): imm X
-    (imm test.A[mdf X], iso test.NoPromote[]): imm X
+    (read test.A[mdf X], mut test.NoPromote[]): mdf X
+    (read test.A[mdf X], iso test.NoPromote[]): mdf X
+    (imm test.A[mdf X], iso test.NoPromote[]): mdf X
     """, """
     package test
     A[X]:{
       read .m1(_: mut NoPromote): recMdf X,
-      iso .m2: iso X -> this.m1{},
+      iso .m2: iso X -> this.m1(mut NoPromote{}),
       }
     NoPromote:{}
+    """); }
+
+  @Test void shouldCollapseWhenCalledGenIso3() { ok("""
+    package test
+    A[X]:{
+      read .m1(_: mut NoPromote): recMdf X,
+      iso .m2: mdf X -> this.m1(mut NoPromote{}),
+      mut .m3: mdf X -> this.m1(mut NoPromote{}),
+      }
+    NoPromote:{}
+    """); }
+
+  @Test void mutAsIso1() { ok("""
+    package test
+    A:{ #: iso B -> mut B{} }
+    B:{}
+    """); }
+  // TODO: we should make this pass by allowing lambdas to be promoted to iso on creation, and meth calls too?
+  @Disabled @Test void mutAsIso2() { ok("""
+    package test
+    A:{ #(b:iso B): iso B -> mut B{},
+        ##:iso B ->this#(mut B{}),
+       }
+    B:{}
     """); }
 
   @Test void shouldCollapseWhenCalledNestedGenMut1() { ok("""
@@ -537,7 +562,7 @@ public class TestRecMdf {
 
   @Test void recMdfInSubHyg1() { ok("""
     package test
-    A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ read .argh: recMdf X -> x }.argh }
+    A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ read .argh: recMdf X -> x } }
     B[X]:{ read .argh: recMdf X }
     """); }
   @Test void recMdfInSubHyg2() { ok("""
