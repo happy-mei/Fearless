@@ -560,47 +560,29 @@ public class TestRecMdf {
     NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
     """); }
 
-  @Test void recMdfInSubHyg1() { ok("""
-    package test
-    A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ read .argh: recMdf X -> x } }
-    B[X]:{ read .argh: recMdf X }
-    """); }
-  @Test void recMdfInSubHyg2() { ok("""
-    package test
-    A:{ .foo(x: mut Foo): mut Foo -> mut B{ x }.argh }
-    B:{ read .argh: recMdf Foo }
-    Foo:{}
-    """); }
-  @Test void recMdfInSubHyg3() { ok("""
-    package test
-    A:{ .foo[X](x: mut X): mut X -> mut B{ x }.argh[mut X] }
-    B:{ read .argh[X]: recMdf X }
-    """); }
-  @Test void recMdfInSubHyg3b() { ok("""
-    package test
-    A:{ .foo[X](x: mut X): mut X -> mut B{ read .argh[X']: recMdf X' -> x }.argh[mut X] }
-    B:{ read .argh[X]: recMdf X }
-    """); }
-
-  // TODO: give these all sane names
-  @Test void recMdfInSubHyg1a() { ok("""
+  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGeneric() { ok("""
     package test
     A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ x } }
     B[X]:{ read .argh: recMdf X }
     """); }
-  @Test void recMdfInSubHyg2a() { ok("""
+  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGenericExplicit() { ok("""
+    package test
+    A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ read .argh: recMdf X -> x } }
+    B[X]:{ read .argh: recMdf X }
+    """); }
+  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeConcrete() { ok("""
     package test
     A:{ .foo(x: mut Foo): mut B -> mut B{ x } }
     B:{ read .argh: recMdf Foo }
     Foo:{}
     """); }
-  @Test void recMdfInSubHyg2b() { ok("""
+  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeConcreteGeneric() { ok("""
     package test
     A:{ .foo(x: mut Foo): mut B[mut Foo] -> mut B[mut Foo]{ x } }
     B[X]:{ read .argh: recMdf X }
     Foo:{}
     """); }
-  @Test void recMdfInSubHyg3d() { fail("""
+  @Test void methGensMismatch1() { fail("""
     In position [###]/Dummy0.fear:2:38
     [E23 methTypeError]
     Expected the method .argh/0 to return recMdf X1/0$, got recMdf test.Foo[].
@@ -610,7 +592,7 @@ public class TestRecMdf {
     B:{ read .argh[X]: recMdf X }
     Foo:{}
     """); }
-  @Test void recMdfInSubHyg3e() { fail("""
+  @Test void methGensMismatch2() { fail("""
     In position [###]/Dummy0.fear:2:38
     [E23 methTypeError]
     Expected the method .argh/0 to return read X, got mut test.Foo[].
@@ -620,12 +602,11 @@ public class TestRecMdf {
     B:{ mut .argh[X]: read X }
     Foo:{}
     """); }
-  @Test void recMdfInSubHyg3a() { ok("""
-    package test
-    A:{ .foo[X](x: mut X): mut B -> mut B{ x } }
-    B:{ read .argh[X]: recMdf X }
-    """); }
-  @Test void recMdfInSubHyg3c() { ok("""
+  @Test void methGensMismatch3() { fail("""
+    In position [###]/Dummy0.fear:2:39
+    [E23 methTypeError]
+    Expected the method .argh/0 to return recMdf X', got recMdf X.
+    """, """
     package test
     A:{ .foo[X](x: mut X): mut B -> mut B{ read .argh[X']: recMdf X' -> x } }
     B:{ read .argh[X]: recMdf X }

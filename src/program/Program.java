@@ -299,7 +299,7 @@ public interface Program {
     var first=cms.get(0);
     if (cms.size() == 1) { return first; }
     var nextCms=cms.stream().skip(1)
-      .filter(cmi->!firstIsMoreSpecific(first, cmi))
+      .filter(cmi->!firstIsMoreSpecific(first, cmi) && !firstIsMoreSpecific(plainCM(first), plainCM(cmi)))
       .toList();
 
     return pruneAux(Push.of(nextCms,first), lambdaPos, limit - 1);
@@ -340,8 +340,8 @@ public interface Program {
            - e?j is empty, Ds|- Ti<=Tj and not Ds|- Tj<=Ti
        */
     assert a.name().equals(b.name());
-    var segfs = plainCM(a);
-    var segfs2 = plainCM(b);
+//    a = plainCM(a);
+//    b = plainCM(b);
     var ta = new T(Mdf.mut, a.c());
     var tb = new T(Mdf.mut, b.c());
     if(tryIsSubType(tb, ta)){ return false; }
