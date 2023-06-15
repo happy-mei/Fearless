@@ -59,10 +59,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
     var entry = new Id.DecId(entryPoint, 0);
     var p = compile(files);
 
-    var main = p.of(switch (bv) {
-      case Std -> Magic.Main;
-      case Imm -> Magic.ImmMain;
-    }).toIT();
+    var main = p.of(Magic.Main).toIT();
     var isEntryValid = p.isSubType(new ast.T(Mdf.mdf, p.of(entry).toIT()), new ast.T(Mdf.mdf, main));
     if (!isEntryValid) { throw Fail.invalidEntryPoint(entry, main); }
 
