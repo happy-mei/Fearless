@@ -109,7 +109,11 @@ public class Program implements program.Program{
     var currentDec = of(current);
     for(var it : currentDec.lambda().its()) {
       var novel=visited.add(it.name());
-      if(novel){ superDecIds(visited, it.name()); }
+      try {
+        if(novel){ superDecIds(visited, it.name()); }
+      } catch (CompileError err) {
+        throw err.parentPos(currentDec.pos());
+      }
     }
   }
 

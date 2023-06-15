@@ -560,7 +560,12 @@ public class TestRecMdf {
     NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
     """); }
 
-  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGeneric() { ok("""
+  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGeneric() { fail("""
+    In position [###]/Dummy0.fear:2:53
+    [E23 methTypeError]
+    Expected the method .argh/0 to return mut X, got recMdf X.
+    Try writing the signature for .argh/0 explicitly if it needs to return a recMdf type.
+    """, """
     package test
     A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ x } }
     B[X]:{ read .argh: recMdf X }
@@ -576,7 +581,12 @@ public class TestRecMdf {
     B:{ read .argh: recMdf Foo }
     Foo:{}
     """); }
-  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeConcreteGeneric() { ok("""
+  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeConcreteGeneric() { fail("""
+    In position [###]/Dummy0.fear:2:56
+    [E23 methTypeError]
+    Expected the method .argh/0 to return mut test.Foo[], got recMdf test.Foo[].
+    Try writing the signature for .argh/0 explicitly if it needs to return a recMdf type.
+    """, """
     package test
     A:{ .foo(x: mut Foo): mut B[mut Foo] -> mut B[mut Foo]{ x } }
     B[X]:{ read .argh: recMdf X }

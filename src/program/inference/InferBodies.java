@@ -60,6 +60,7 @@ public record InferBodies(ast.Program p) {
 
   //TODO: this may have to become iterative if the recursion gets out of control
   E fixInferStep(Map<String, T> gamma, E e, int depth) {
+    System.out.println(e);
     var next = inferStep(gamma, e, depth);
     assert next.map(ei->!ei.equals(e)).orElse(true);
     if (next.isEmpty()) { return e; }
@@ -132,15 +133,6 @@ public record InferBodies(ast.Program p) {
     return res;
   }
 
-  Optional<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
-    var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(Mdf.mdf, its, depth, CM::isAbs);
-  }
-  Optional<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
-    var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(Mdf.mdf, its, depth, cm->cm.name().equals(name));
-  }
-
   Optional<E.Meth> bPropGetSig(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
@@ -150,6 +142,15 @@ public record InferBodies(ast.Program p) {
     var res = sig.map(s->m.withSig(s.sig()));
     assert res.map(m1->!m.equals(m1)).orElse(true);
     return res;
+  }
+
+  Optional<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
+    var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
+    return p.fullSig(Mdf.mdf, its, depth, CM::isAbs);
+  }
+  Optional<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
+    var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
+    return p.fullSig(Mdf.mdf, its, depth, cm->cm.name().equals(name));
   }
 
   Optional<E> methCall(Map<String, T> gamma, E.MCall e, int depth) {

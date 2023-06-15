@@ -2,28 +2,51 @@ package base
 
 // Cons#(1, Cons#(2, Cons#(4, {})))
 Cons:{
-  #[E](h: E, t: LList[E]): LList[E] -> { .match(m) -> m.elem(h, t) },
+  #[E](h: mdf E, t: lent LList[mdf E]): lent LList[mdf E] -> {
+//    read .match[R](m: mut LListMatch[recMdf E, mdf R]): mdf R -> m.elem(h, t),
+//    .match(m) -> m.elem(h, t),
+    .matchHyg(m) -> m.elem(h, t)
+    }}
+LList[E]:Sealed,NoMutHyg[mdf E]{
+//  read .match[R](m: mut LListMatch[recMdf E, mdf R]): mdf R -> m.empty,
+  read .matchHyg[R](m: lent LListMatchHyg[recMdf E, mdf E, mdf R]): mdf R -> m.empty,
+  read .isEmpty: Bool -> this.matchHyg{ .empty -> True, .elem(_,_) -> False, },
+  read .len: UInt -> this.matchHyg{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
+  read ++(l1: lent LList[recMdf E]): lent LList[recMdf E] -> this.matchHyg(_LListConcat[recMdf E, mdf E]{ l1 }),
+//  read ++(l1: lent LList[mdf E]): lent LList[mdf E] -> this.matchHyg{ .empty -> l1, .elem(h,t) -> Cons#(h, t ++ l1) },
+//  read ++(l1: lent LList[mdf E]): lent LList[mdf E] -> Abort!,
+//  read +(e: mdf E): lent LList[mdf E] -> this ++ Cons#[mdf E](e, {}),
+  read +(e: E): LList[E] -> Abort!,
+  read .get(i: UInt): iso Opt[E] -> Abort!,
+//  read .head: iso Opt[E] -> Abort!,
+  read .tail: LList[E] -> Abort!,
+//  read .get(i: UInt): iso Opt[E] -> this.match{
+//    .empty -> {},
+//    .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
+//    },
+  read .head: mut Opt[recMdf E] -> this.matchHyg(_LListHead[recMdf E, mdf E]),
+//  read .tail: LList[E] -> this.matchHyg(_LListTail[recMdf E, mdf E]),
+//  read .tail: LList[E] -> this.match{
+//    .empty -> {},
+//    .elem(_,t) -> t,
+//    },
   }
-LList[E]:Sealed{
-  .match[R](m: LListMatch[E, mdf R]): mdf R -> m.empty,
-  .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
-  .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
-  ++(l1: LList[E]): LList[E] -> this.match{
-    .empty -> l1,
-    .elem(h, t) -> Cons#(h, t ++ l1)
-    },
-  +(e: E): LList[E] -> this ++ Cons#(e, {}),
-  .get(i: UInt): iso Opt[E] -> this.match{
-    .empty -> {},
-    .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
-    },
-  .head: iso Opt[E] -> this.match{
-    .empty -> {},
-    .elem(h,_) -> Opt#h,
-    },
-  .tail: LList[E] -> this.match{
-    .empty -> {},
-    .elem(_,t) -> t,
-    },
+//LListMatch[E,R]:{ mut .elem(head: mdf E, tail: read LList[mdf E]): mdf R, mut .empty: mdf R }
+LListMatchHyg[E,T,R]:{ lent .elem(head: mdf E, tail: read LList[mdf T]): mdf R, lent .empty: mdf R }
+//_LListIsEmpty[E,T]:LListMatchHyg[mdf E, mdf T, Bool]{ .empty -> True, .elem(_,_) -> False, }
+//_LListLen[E,T]:LListMatchHyg[mdf E, mdf T, UInt]{ .empty -> 0u, .elem(_,t) -> t.len + 1u, }
+_LListConcat[E,T]:LListMatchHyg[mdf E, mdf E, lent LList[mdf E]]{
+  lent .l1: lent LList[mdf E],
+  .empty -> this.l1,
+  .elem(h,t) -> Cons#(h, t ++ this.l1)
   }
-LListMatch[E, mdf R]:{ .elem(head: E, tail: LList[E]): mdf R, .empty: mdf R }
+_LListHead[E,T]:LListMatchHyg[mdf E, mdf T, mut Opt[mdf E]]{ .empty -> {}, .elem(h,_) -> Opt#h }
+_LListTail[E,T]:LListMatchHyg[mdf E, mdf T, read LList[mdf T]]{ .empty -> {}, .elem(_,t) -> t }
+
+//List[E]:Sealed,NoMutHyg[mdf E]{
+//  read .size: UInt,
+//  read .isEmpty: Bool,
+//  read .get(i: UInt): iso Opt[recMdf E],
+//  mut +(e: mdf E): Void,
+//  mut ++(l1: recMdf List[mdf E]): Void,
+//  }

@@ -98,7 +98,11 @@ public class Fail{
   public static CompileError inferFailed(astFull.E e){ return of(String.format("Could not infer the type for the following expression:\n%s", e)); }
 
   public static CompileError methTypeError(ast.T expected, ast.T actual, Id.MethName m){
-    return of(String.format("Expected the method %s to return %s, got %s.", m, expected, actual));
+    var msg = "Expected the method "+m+" to return "+expected+", got "+actual+".";
+    if (!expected.mdf().isRecMdf() && actual.mdf().isRecMdf()) {
+      return of(msg+"\nTry writing the signature for "+m+" explicitly if it needs to return a recMdf type.");
+    }
+    return of(msg);
   }
   public static CompileError unimplementedInLambda(List<CM> ms){
     var unimplemented = ms.stream()

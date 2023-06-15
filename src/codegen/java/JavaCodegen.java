@@ -22,11 +22,10 @@ public class JavaCodegen implements MIRVisitor<String> {
 
   static String argsToLList() {
     return """
-      var cons = new base.Cons_0(){};
       base.LList_1 cliArgs = new base.LList_1(){};
-      for (int i = args.length - 1; i >= 0; --i) {
+      for (int i = 0; i < args.length; ++i) {
         var arg = args[i];
-        cliArgs = cons.$35$(arg, cliArgs);
+        cliArgs = cliArgs.$43$(arg);
       }
       """;
   }

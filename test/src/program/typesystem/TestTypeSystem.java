@@ -948,13 +948,30 @@ were valid:
       .close(c: lent IO): Void -> {},
       }
     """, Base.load("lang.fear"), Base.load("bools.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("optionals.fear"), Base.load("lists.fear")); }
-  @Test void recMdfCannotBeSubtypeOfMdf() { fail("""
+  @Test void recMdfCannotBeSubtypeOfMdf1() { fail("""
     In position [###]/Dummy0.fear:2:7
     [E23 methTypeError]
     Expected the method #/1 to return mdf A, got recMdf A.
+    Try writing the signature for #/1 explicitly if it needs to return a recMdf type.
     """, """
     package test
     F[A]:{ read #(a:recMdf A):mdf A->a }
+    M:{ mut .mutMe: mut M -> this.mutMe } // if this method can be called from M it is broken
+    Break:{
+      .myF: imm F[mut M] -> {},
+      .b1(m: imm M): mut M -> this.myF#m,
+      .b2(m: imm M): mut M -> (this.myF#m).mutMe,
+      }
+    """); }
+  @Test void recMdfCannotBeSubtypeOfMdf2() { fail("""
+    In position [###]/Dummy0.fear:6:34
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .myF/0[]([]) #/1[]([m]), no candidates for #/1 returned the expected type mut test.M[]. The candidates were:
+    (read test.F[mut test.M[]], imm test.M[]): imm test.M[]
+    (imm test.F[mut test.M[]], imm test.M[]): imm test.M[]
+    """, """
+    package test
+    F[A]:{ read #(a:recMdf A):recMdf A->a }
     M:{ mut .mutMe: mut M -> this.mutMe } // if this method can be called from M it is broken
     Break:{
       .myF: imm F[mut M] -> {},

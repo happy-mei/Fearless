@@ -1213,6 +1213,18 @@ public class TestInferBodies {
     Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map{ _->A } }
     """); }
 
+  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGenericExplicit() { ok("""
+    {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
+      .foo/1([x]):Sig[mdf=imm,gens=[],ts=[mutX],ret=muttest.B[mutX]]->
+        [-mut-][test.B[mutX]]{'fear0$.argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->x}}],
+    test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this
+      .argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}]}
+    """, """
+    package test
+    A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ read .argh: recMdf X -> x } }
+    B[X]:{ read .argh: recMdf X }
+    """);}
+
   // TODO: this should eventually fail with an "inference failed" message when I add that error
   @Disabled
   @Test void callingEphemeralMethod() { fail("""
