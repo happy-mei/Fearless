@@ -20,13 +20,14 @@ public interface MagicImpls<R> {
 
   default Optional<MagicTrait<R>> get(MIR e) {
     return e.accept(new LambdaVisitor(p())).flatMap(l->{
-      if (isMagic(Magic.Int, l)) { return Optional.of(int_(l, e)); }
-      if (isMagic(Magic.UInt, l)) { return Optional.of(uint(l, e)); }
-      if (isMagic(Magic.Float, l)) { return Optional.of(float_(l, e)); }
-      if (isMagic(Magic.Str, l)) { return Optional.of(str(l, e)); }
-      if (isMagic(Magic.RefK, l)) { return Optional.of(refK(l, e)); }
-      if (isMagic(Magic.Assert, l)) { return Optional.of(assert_(l, e)); }
-      if (isMagic(Magic.RootCap, l)) { return Optional.of(rootCap(l, e)); }
+      if (isMagic(Magic.Int, l)) { return Optional.ofNullable(int_(l, e)); }
+      if (isMagic(Magic.UInt, l)) { return Optional.ofNullable(uint(l, e)); }
+      if (isMagic(Magic.Float, l)) { return Optional.ofNullable(float_(l, e)); }
+      if (isMagic(Magic.Str, l)) { return Optional.ofNullable(str(l, e)); }
+      if (isMagic(Magic.RefK, l)) { return Optional.ofNullable(refK(l, e)); }
+      if (isMagic(Magic.Assert, l)) { return Optional.ofNullable(assert_(l, e)); }
+      if (isMagic(Magic.Abort, l)) { return Optional.ofNullable(abort(l, e)); }
+      if (isMagic(Magic.RootCap, l)) { return Optional.ofNullable(rootCap(l, e)); }
       return Optional.empty();
     });
   }
@@ -54,6 +55,7 @@ public interface MagicImpls<R> {
   MagicTrait<R> str(MIR.Lambda l, MIR e);
   MagicTrait<R> refK(MIR.Lambda l, MIR e);
   MagicTrait<R> assert_(MIR.Lambda l, MIR e);
+  default MagicTrait<R> abort(MIR.Lambda l, MIR e) { return  null; }
   MagicTrait<R> rootCap(MIR.Lambda l, MIR e);
   ast.Program p();
 

@@ -1,0 +1,27 @@
+package newlists
+alias base.Opt as Opt, alias base.NoMutHyg as NoMutHyg, alias base.Sealed as Sealed,
+
+LListMut:{
+  #[E](head: mut E): mut LListMut[mut E] -> this.cons(head, {}),
+  .cons[E](head: mut E, tail: mut LListMut[mdf E]): mut LListMut[mdf E] -> {
+    .match(m) -> m.elem(head, tail),
+    },
+  }
+LListMut[E]:Sealed{
+  mut .match[R](m: mut LListMutMatch[mdf E, mdf R]): mdf R -> m.empty,
+  mut .pushFront(head: mut E): mut LListMut[mdf E] -> LListMut.cons(head, this),
+  read .head: mut Opt[recMdf E] -> {},
+  }
+LListMutMatch[E,R]:{
+  mut .elem(head: mut E, tail: lent LListMut[mdf E]): mdf R,
+  mut .empty: mdf R,
+  }
+
+Usage:{
+  .m1: mut LListMut[mut Foo] -> LListMut#(mut Foo),
+  .m2: mut LListMut[Foo] -> this.m1.pushFront(mut Foo),
+  .m3: LListMut[Foo] -> this.m1.pushFront(mut Foo),
+  .m4: LListMut[Foo] -> this.m3
+  }
+Foo:{}
+No:Foo{}

@@ -5,7 +5,6 @@ import ast.T;
 import codegen.MIR;
 import failure.Fail;
 import id.Id;
-import id.Mdf;
 import magic.MagicTrait;
 import utils.Bug;
 
@@ -191,6 +190,28 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
               yield null;
             }}
             """, args.get(0).accept(gen)));
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<String> abort(MIR.Lambda l, MIR e) {
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        return gen.visitLambda(l, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        if (m.equals(new Id.MethName("!", 0))) {
+          return Optional.of("""
+            switch (1) { default -> {
+              System.err.println("Program aborted at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
+              System.exit(1);
+              yield null;
+            }}
+            """);
         }
         return Optional.empty();
       }
