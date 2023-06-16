@@ -340,8 +340,6 @@ public interface Program {
            - e?j is empty, Ds|- Ti<=Tj and not Ds|- Tj<=Ti
        */
     assert a.name().equals(b.name());
-//    a = plainCM(a);
-//    b = plainCM(b);
     var ta = new T(Mdf.mut, a.c());
     var tb = new T(Mdf.mut, b.c());
     if(tryIsSubType(tb, ta)){ return false; }

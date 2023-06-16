@@ -1,0 +1,52 @@
+package newnewlists
+alias base.Opt as Opt, alias base.NoMutHyg as NoMutHyg, alias base.Sealed as Sealed,
+alias base.True as True, alias base.False as False, alias base.Bool as Bool,
+alias base.UInt as UInt,
+
+LListMut:{
+  #[E](head: mdf E): mut LListMut[mdf E] -> this.cons(head, {}),
+  .cons[E](head: mdf E, tail: mut LListMut[mdf E]): mut LListMut[mdf E] -> {
+    .match(m) -> m.elem(head, tail),
+    .head -> Opt#[recMdf E](head),
+    .headRaw -> Opt#[mdf E](head),
+    .tail -> tail,
+    },
+  }
+LListMut[E]:Sealed,NoMutHyg[mdf E]{
+  read .match[R](m: mut LListMutMatch[recMdf E, mdf E, mdf R]): mdf R -> m.empty,
+  read .head: mut Opt[recMdf E] -> {},
+  mut .headRaw: mut Opt[mdf E] -> {},
+  read .tail: recMdf LListMut[mdf E] -> {},
+  read .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
+  read .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
+  mut ++(l1: mut LListMut[mdf E]): mut LListMut[mdf E] -> this.headRaw.map{ h -> LListMut.cons(h, this.tail ++ l1) } | l1,
+  mut +(e: mdf E): mut LListMut[mdf E] -> this ++ (LListMut#e),
+  }
+LListMutMatch[E,TE,R]:{
+  mut .elem(head: mdf E, rawTail: read LListMut[mdf TE]): mdf R,
+  mut .empty: mdf R,
+  }
+//LListConcat:{ #[T](l1: mut LListMutMatch[mdf E]): lent LListConcat[mdf T] -> { alt } }
+//LListConcat[T]:OptMatch[mdf T, mdf T]{ .some(x) -> x }
+
+ImmUsage:{
+  .m1(l: iso LListMut[Foo], e: Foo): LListMut[Foo] -> l + e,
+//  .m1(l: LListMut[Foo], e: Foo): LListMut[Foo] -> LList.cons(e, l),
+  }
+
+Usage:{
+  .m1: mut LListMut[mut Foo] -> LListMut#(mut Foo),
+  .head1(l: mut LListMut[mut Foo]): mut Opt[mut Foo] -> l.head,
+  .tail1(l: mut LListMut[mut Foo]): mut LListMut[mut Foo] -> l.tail,
+  .head2(l: LListMut[mut Foo]): Opt[Foo] -> l.head,
+  .tail2(l: LListMut[mut Foo]): LListMut[mut Foo] -> l.tail,
+  .head3(l: LListMut[Foo]): Opt[Foo] -> l.head,
+  .tail3(l: LListMut[Foo]): LListMut[Foo] -> l.tail,
+//  .m2: LListMut[Foo] -> LList#(iso Foo), // TODO: well formedness bug (creates an ill-formed type iso LListMut[iso E])
+//  .m2a: LListMut[Foo] -> this.m2,
+  .m3: LListMut[mut Foo] -> LListMut.cons(mut Foo, this.m1),
+//  .m4: LListMut[Foo] -> this.m3,
+  .m5: iso LListMut[mut Foo] -> this.m1,
+  }
+Foo:{}
+No:Foo{}

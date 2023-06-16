@@ -60,6 +60,9 @@ public record InferBodies(ast.Program p) {
 
   //TODO: this may have to become iterative if the recursion gets out of control
   E fixInferStep(Map<String, T> gamma, E e, int depth) {
+//    if (e.toString().contains("newnewlists")) {
+//      System.out.println(e+"\n----");
+//    }
     var next = inferStep(gamma, e, depth);
     assert next.map(ei->!ei.equals(e)).orElse(true);
     if (next.isEmpty()) { return e; }
