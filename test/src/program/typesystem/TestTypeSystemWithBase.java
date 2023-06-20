@@ -9,6 +9,7 @@ import parser.Parser;
 import program.inference.InferBodies;
 import utils.Base;
 import utils.Err;
+import utils.RunJava;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -207,4 +208,13 @@ public class TestTypeSystemWithBase {
       .check: Int -> this.nm(5)
       }
     """);}
+
+  @Test void shouldPromoteList() { ok("""
+    package test
+    Foo:{
+      .toMut: mut List[Int] -> (LListMut#[Int]35 + 52 + 84 + 14).toList,
+      .toIso: iso List[Int] -> (LListMut#[Int]35 + 52 + 84 + 14).toList,
+      .toImm: List[Int] -> (LListMut#[Int]35 + 52 + 84 + 14).toList
+      }
+    """, Base.mutBaseAliases);}
 }

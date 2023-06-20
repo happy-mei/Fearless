@@ -59,6 +59,7 @@ public enum Mdf{
     // TODO: maybe???? all new
     if (this == recMdf) {
       if (other == mdf) { return recMdf; }
+      if (other == mut) { return read; }
       if (other == imm) { return imm; }
 //      if (other == mut) { return mut; }
     }

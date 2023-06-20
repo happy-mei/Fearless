@@ -50,10 +50,12 @@ LListMut[E]:Sealed,NoMutHyg[mdf E]{
     .elem(h,t) -> (i == 0u).ifHyg{ .then -> Opt#h, .else -> t.look(i - 1u) }
     },
   lent .get(i: UInt): mut Opt[mdf E] -> {},
+  .getImm(i: UInt): iso Opt[E] -> (i == 0u).ifHyg{ .then -> this.head, .else -> this.tail.getImm(i - 1u) },
 
   mut .headRaw: mut Opt[mdf E] -> {},
   mut ++(l1: mut LListMut[mdf E]): mut LListMut[mdf E] -> this.headRaw.map{ h -> LListMut.cons(h, this.tail ++ l1) } | l1,
   mut +(e: mdf E): mut LListMut[mdf E] -> this ++ (LListMut#e),
+  mut .toList: mut List[mdf E] -> List.fromLListMut(this),
   }
 LListMutMatch[E,TE,R]:{
   mut .elem(head: mdf E, tail: read LListMut[mdf TE]): mdf R,
@@ -65,10 +67,37 @@ _LListMutGet[E]:ThenElse[mut Opt[mdf E]]{
   .else -> {}
   }
 
-////List[E]:Sealed,NoMutHyg[mdf E]{
-////  read .size: UInt,
-////  read .isEmpty: Bool,
-////  read .get(i: UInt): iso Opt[recMdf E],
-////  mut +(e: mdf E): Void,
-////  mut ++(l1: recMdf List[mdf E]): Void,
-////  }
+List:{
+  #[E]: mut List[mdf E] -> this._new(Ref#mut _ListState[mdf E]),
+  #[E](e: mdf E): mut List[mdf E] -> this.fromLListMut(LListMut#e),
+  // TODO: this up to 10 or something
+  #[E](e1: mdf E, e2: mdf E, e3: mdf E): mut List[mdf E] -> this.fromLListMut(LListMut.cons(e1, LListMut.cons(e2, LListMut#e3))),
+  .fromLListMut[E](list: mut LListMut[mdf E]): mut List[mdf E] -> this._new(Ref#(_ListState#(list.len, list))),
+  ._new[E](s: mut Ref[mut _ListState[mdf E]]): mut List[mdf E] -> { 'list
+    .len -> s*.len,
+    .isEmpty -> s*.inner.isEmpty,
+    .look(i) -> s*.inner.look(i),
+    .get(i) -> s*.inner.get(i),
+    .getImm(i) -> s*.inner.getImm(i),
+    .add(e) -> s := _ListState#(s*.len + 1u, s*.inner + e),
+//    .addAll(other) -> Yeet#(s*.inner ++ other),
+    }}
+List[E]:Sealed,NoMutHyg[mdf E]{
+  read .len: UInt,
+  read .isEmpty: Bool,
+  read .look(i: UInt): lent Opt[read E],
+  lent .get(i: UInt): mut Opt[mdf E],
+  .getImm(i: UInt): iso Opt[E],
+  mut .add(e: mdf E): Void,
+//  mut .addAll(other: mut List[mdf E]): Void,
+  }
+_ListState[E]:NoMutHyg[E]{
+  read .len: UInt -> 0u,
+  read .inner: recMdf LListMut[mdf E] -> {}
+  }
+_ListState:{
+  #[E](len: UInt, inner: mut LListMut[mdf E]): mut _ListState[mdf E] -> {
+    .len -> len,
+    .inner -> inner
+    }
+  }

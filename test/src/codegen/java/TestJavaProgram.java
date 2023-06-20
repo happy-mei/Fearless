@@ -444,7 +444,30 @@ public class TestJavaProgram {
       }
     Closest':{ mut #(h: Opt[Int], t: LListMut[Int]): Void }
     """, Base.mutBaseAliases); }
-  @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), "test.Test", """
+  @Test void findClosestIntMut3() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _,_ -> Do#
+      .var[Int] closest = { Closest#(LListMut#[Int]35 + 52 + 84 + 14, 49) }
+      .return{ Assert#(closest == 52, closest.str, {{}}) }
+      }
+    Closest:{
+      #(ns: LListMut[Int], target: Int): Int -> Do#
+        .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
+        .var[mut Ref[Int]] closest = { Ref#((ns.getImm(0u))!) }
+        .do{ mut Closest'{ 'self
+          h, t -> h.match{
+            .none -> {},
+            .some(n) -> (target - n).abs < (target - closest*).abs ? {
+              .then -> closest := n,
+              .else -> self#(t.head, t.tail)
+              }
+            }
+          }#(ns.head, ns.tail) }
+        .return{ closest* }
+      }
+    Closest':{ mut #(h: Opt[Int], t: LListMut[Int]): Void }
+    """, Base.mutBaseAliases); }
+  @Test void findClosestIntMutWithMutLList() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _,_ -> Do#
       .var[Int] closest = { Closest#(LListMut#[Int]35 + 52 + 84 + 14, 49) }
@@ -462,10 +485,33 @@ public class TestJavaProgram {
               .else -> self#(t.head, t.tail)
               }
             }
-          }#(ns.head, ns.tail) }
+          }#(ns.tail.head, ns.tail.tail) }
         .return{ closest* }
       }
     Closest':{ mut #(h: Opt[Int], t: LListMut[Int]): Void }
+    """, Base.mutBaseAliases); }
+  @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _,_ -> Do#
+      .var[Int] closest = { Closest#((LListMut#[Int]35 + 52 + 84 + 14).toList, 49) }
+      .return{ Assert#(closest == 52, closest.str, {{}}) }
+      }
+    Closest:{
+      #(ns: mut List[Int], target: Int): Int -> Do#
+        .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
+        .var[mut Ref[Int]] closest = { Ref#((ns.get(0u))!) }
+        .do{ mut Closest'{ 'self
+          i -> ns.get(i).match{
+            .none -> {},
+            .some(n) -> (target - n).abs < (target - closest*).abs ? {
+              .then -> closest := n,
+              .else -> self#(i + 1u)
+              }
+            }
+          }#(1u) }
+        .return{ closest* }
+      }
+    Closest':{ mut #(i: UInt): Void }
     """, Base.mutBaseAliases); }
 
   @Test void absIntPos() { ok(new Res("", "", 0), "test.Test", """
