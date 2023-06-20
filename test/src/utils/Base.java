@@ -33,7 +33,8 @@ public interface Base {
     load("optionals.fear"),
     load("block.fear"),
     load("errors.fear"),
-    load("lists.fear")
+    load("lists.fear"),
+    load("iter.fear")
   };
 
   String[] immBaseLib = {
@@ -114,5 +115,7 @@ public interface Base {
     alias base.OptMap as OptMap,
     alias base.OptMatchHyg as OptMatchHyg,
     alias base.OptMatch as OptMatch,
+    alias base.Iterable as Iterable,
+    alias base.Iter as Iter,
     """;
 }
