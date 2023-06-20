@@ -397,6 +397,30 @@ public class TestJavaProgram {
       }
     Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }
+  @Test void findClosestIntMut() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _,_ -> Do#
+      .var[Int] closest = { Closest#(LListMut#[Int]35 + 52 + 84 + 14, 49) }
+      .return{ Assert#(closest == 52, closest.str, {{}}) }
+      }
+    Closest:{
+      #(ns: LListMut[Int], target: Int): Int -> Do#
+        .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
+        .var[Int] closest' = { (ns.look(0u))! }
+        .var[mut Ref[Int]] closest = { Ref#(closest') }
+        .do{ mut Closest'{ 'self
+          h, t -> h.match{
+            .none -> {},
+            .some(n) -> (target - n).abs < (target - closest*).abs ? {
+              .then -> closest := n,
+              .else -> self#(t.head, t.tail)
+              }
+            }
+          }#(ns.head, ns.tail) }
+        .return{ closest* }
+      }
+    Closest':{ mut #(h: Opt[Int], t: LListMut[Int]): Void }
+    """, Base.mutBaseAliases); }
 
   @Test void absIntPos() { ok(new Res("", "", 0), "test.Test", """
     package test

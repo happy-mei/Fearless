@@ -106,6 +106,8 @@ public interface Base {
     alias base.Stringable as Stringable,
     alias base.LList as LList,
     alias base.LListMatch as LListMatch,
+    alias base.LListMut as LListMut,
+    alias base.LListMutMatch as LListMutMatch,
     alias base.Cons as Cons,
     alias base.Opt as Opt,
     alias base.OptMap as OptMap,
