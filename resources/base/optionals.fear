@@ -1,8 +1,12 @@
 package base
 
-Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x), } }
+Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+  .match(m) -> m.some(x),
+  .matchHyg(m) -> m.some(x),
+  }}
 Opt[T]:NoMutHyg[mdf T]{
   read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+  read .matchHyg[R](m: lent OptMatchHyg[recMdf T, mdf R]): mdf R -> m.none,
   read !: recMdf T -> this.match(_OptUnwrap[recMdf T]),
   read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
   read .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
@@ -14,6 +18,7 @@ Opt[T]:NoMutHyg[mdf T]{
   read .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
   }
 OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+OptMatchHyg[T,R]:{ lent .some(x: mdf T): mdf R, lent .none: mdf R }
 OptMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
   mut #(x: mdf T): mdf R,
   .some(x) -> Opt#(this#x),

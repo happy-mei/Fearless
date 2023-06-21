@@ -1,17 +1,29 @@
 package base
 
 Iter[E]:{
-  mut .next: mut Opt[mdf E],
-//  mut .find(p: mut IterPredicate[mdf E]): mut Opt[mdf E] -> this.next.match{
-//    .none -> {},
-//    .some(e) -> p#e?{ .then -> Opt#e, .else -> this.find(p) },
-//    },
+  lent .next: lent Opt[mdf E],
+  lent .find(p: lent IterPredicate[mdf E]): lent Opt[mdf E] -> this.next.matchHyg{
+    .some(x) -> p#x.ifHyg{ .then -> Opt#x, .else -> this.find(p) },
+    .none -> {}
+    },
+//  mut .find(p: mut IterPredicate[mdf E]): mut Opt[mdf E] -> Do#
+//    .var[lent Opt[mdf E]] res = { this.next }
+//    // TODO: inference breaks:
+//    // .if{ mut #: Bool -> this.next.map{ e -> p#e } | False }.return{ res }
+//    .if{ res.isSome }.return{{}}
+//    .if{ mut #: Bool -> this.next.map{ e -> p#e } || {False} }.return{ res }
+//    .return{ this.find(p) },
 
-  mut .map[R](f: mut IterMapper[mdf E, mdf R]): mut Iter[mdf R] -> { .next -> this.next.map{ a -> f#a } },
+  lent .map[R](f: mut IterMapper[mdf E, mdf R]): lent Iter[mdf R] -> {
+    .next -> this.next.matchHyg{
+      .some(x) -> Opt#(f#x),
+      .none -> {}
+      }},
+  lent .filter(p: lent IterPredicate[mdf E]): lent Iter[mdf E] -> { .next -> this.find(p) },
   }
 
 IterForEacher[E]:{ mut #(e: mdf E): Void }
 IterFolder[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
 IterScanner[E,R,S]:{ mut #(state: mut Ref[mdf S], e: mdf E): mdf S }
-IterMapper[E,R]:{ mut #(e: mdf E): mdf R }
-IterPredicate[E]:{ mut #(e: mdf E): Bool }
+IterMapper[E,R]:{ lent #(e: mdf E): mdf R }
+IterPredicate[E]:{ lent #(e: mdf E): Bool }

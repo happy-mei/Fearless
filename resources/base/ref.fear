@@ -5,7 +5,7 @@ Ref[X]:NoMutHyg[X],Sealed{
   read *: recMdf X,
   mut .get: mdf X,
 //  mut .get2: mdf X -> this*,
-  mut .swap(x: mdf X): mdf X,
+  lent .swap(x: mdf X): mdf X,
   mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_) -> Void },
   mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this.get)),
 //  mut <-(f: mut UpdateRef[mdf X]): mdf X -> Do#
@@ -36,16 +36,17 @@ Count:{
       *=(n2) -> c <- { c' -> c' * n2 },
       }
     },
-//  .uint(c: UInt): mut Count[UInt] -> Let#{
-//    .var -> Ref#c,
-//    .in(c) -> {
-//      * -> c*,
-//      .swap(x) -> c.swap(x),
-//      ++ -> c <- { c' -> c' + 1u },
-////      -- -> c <- { c' -> c' - 1u },
-////      +=(n: UNum) -> c <- { c' -> c' + n },
-////      -=(n: UNum) -> c <- { c' -> c' - n },
-////      *=(n: UNum) -> c <- { c' -> c' * n },
-//      }
-//    }
+  .uint(n: UInt): mut Count[UInt] -> Let#{
+    .var -> Ref#n,
+    .in(c) -> {
+      * -> c*,
+      .get -> c.get,
+      .swap(x) -> c.swap(x),
+      ++ -> c <- { c' -> c' + 1u },
+      -- -> c <- { c' -> c' - 1u },
+      +=(n2) -> c <- { c' -> c' + n2 },
+      -=(n2) -> c <- { c' -> c' - n2 },
+      *=(n2) -> c <- { c' -> c' * n2 },
+      }
+    }
   }

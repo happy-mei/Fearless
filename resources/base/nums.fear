@@ -1,47 +1,47 @@
 package base
 
 Int:Sealed,MathOps[Int],IntOps[Int]{
-  .uint: UInt,
-  .float: Float,
+  read .uint: UInt,
+  read .float: Float,
   // not Stringable due to limitations of the Java codegen target
-  .str: Str,
+  read .str: Str,
   }
 UInt:Sealed,MathOps[UInt],IntOps[UInt]{
-  .int: Int,
-  .float: Float,
+  read .int: Int,
+  read .float: Float,
   // not Stringable due to limitations of the Java codegen target
-  .str: Str,
+  read .str: Str,
   }
 Float:Sealed,MathOps[Float]{
-  .int: Int,
-  .uint: UInt,
+  read .int: Int,
+  read .uint: UInt,
   // not Stringable due to limitations of the Java codegen target
-  .str: Str,
+  read .str: Str,
   }
 
 MathOps[T]:Sealed{
-  +(n: T): T,
-  -(n: T): T,
-  *(n: T): T,
-  /(n: T): T,
-  %(n: T): T,
-  **(n: T): T, // pow
-  .abs: T,
+  read +(n: read T): T,
+  read -(n: read T): T,
+  read *(n: read T): T,
+  read /(n: read T): T,
+  read %(n: read T): T,
+  read **(n: read T): T, // pow
+  read .abs: T,
 
   // Comparisons
-  >(n: T): Bool,
-  <(n: T): Bool,
-  >=(n: T): Bool,
-  <=(n: T): Bool,
-  ==(n: T): Bool,
+  read >(n: read T): Bool,
+  read <(n: read T): Bool,
+  read >=(n: read T): Bool,
+  read <=(n: read T): Bool,
+  read ==(n: read T): Bool,
   }
 IntOps[T]:Sealed{
   // bitwise
-  >>(n: T): T,
-  <<(n: T): T,
-  ^(n: T): T,
-  &(n: T): T,
-  |(n: T): T,
+  read >>(n: read T): T,
+  read <<(n: read T): T,
+  read ^(n: read T): T,
+  read &(n: read T): T,
+  read |(n: read T): T,
   }
 
 // Fake concrete type for all numbers. The real implementation is generated at code-gen.

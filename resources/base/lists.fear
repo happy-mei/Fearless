@@ -54,10 +54,14 @@ LListMut[E]:Sealed,NoMutHyg[mdf E]{
     },
   lent .get(i: UInt): mut Opt[mdf E] -> {},
   .getImm(i: UInt): iso Opt[E] -> (i == 0u).ifHyg{ .then -> this.head, .else -> this.tail.getImm(i - 1u) },
-  // todo: read iter with a hyg block
-  mut .iterMut: mut Iter[mdf E] -> Do#
-    .var[mut Ref[mut LListMut[mdf E]]] cursor = { Ref#this }
-    .return{{ .next -> (cursor.swap(cursor*.tail)).head }},
+  read .iter: mut Iter[read E] -> Let.hyg{
+    .var -> Ref#this,
+    .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
+    },
+  mut .iterMut: mut Iter[mdf E] -> Let#{
+    .var -> Ref#[lent LListMut[mdf E]]this,
+    .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
+    },
 
   mut .headRaw: mut Opt[mdf E] -> {},
   mut ++(l1: mut LListMut[mdf E]): mut LListMut[mdf E] -> this.headRaw.map{ h -> LListMut.cons(h, this.tail ++ l1) } | l1,
@@ -90,12 +94,14 @@ List:{
     .get(i) -> s*.inner.get(i),
     .getImm(i) -> s*.inner.getImm(i),
     .add(e) -> s := _ListState#(s*.len + 1u, s*.inner + e),
-//    .addAll(other) -> Yeet#(s*.inner ++ other),
-//    .iter -> Do#
-//      .var[mut Ref[UInt]] cur = { Ref#0u }
-//      .return{{
-//        .next -> list.get(cur.swap(cur* + 1u))
-//        }}
+    .iter -> Let.hyg{
+      .var -> Count.uint(0u),
+      .in(cursor) -> { .next -> list.look(cursor.swap(cursor* + 1u)) }
+      },
+    .iterMut -> Let#{
+      .var -> Count.uint(0u),
+      .in(cursor) -> { .next -> list.get(cursor.swap(cursor* + 1u)) }
+      },
     }}
 List[E]:Sealed,NoMutHyg[mdf E]{
   read .len: UInt,
@@ -104,6 +110,8 @@ List[E]:Sealed,NoMutHyg[mdf E]{
   lent .get(i: UInt): mut Opt[mdf E],
   .getImm(i: UInt): iso Opt[E],
   mut .add(e: mdf E): Void,
+  read .iter: lent Iter[read E],
+  mut .iterMut: mut Iter[mdf E],
 //  mut .addAll(other: mut List[mdf E]): Void,
   }
 _ListState[E]:NoMutHyg[E]{
