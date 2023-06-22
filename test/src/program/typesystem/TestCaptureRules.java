@@ -1364,7 +1364,7 @@ public class TestCaptureRules {
   @Test void t3454(){ c3(mut,   mdf,   iso, of()); }
   @Test void t3455(){ c3(iso,   mdf,   iso, of()); }
   @Test void t3456(){ c3(mdf,   mdf,   iso, of()); }
-  @Test void t3457(){ c3(recMdf,mdf,   iso, readAll,of(mdf,read, mdf,mdf)); }
+  @Test void t3457(){ c3(recMdf,mdf,   iso, readAll,immAll,of(mdf,read, mdf,mdf, mdf,imm, mdf,read)); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3461(){ c3(imm,   recMdf,   iso,  of()); }
   @Test void t3462(){ c3(read,  recMdf,   iso,  of()); }
