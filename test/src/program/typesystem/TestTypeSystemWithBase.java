@@ -181,7 +181,7 @@ public class TestTypeSystemWithBase {
     In position [###]/Dummy0.fear:5:21
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
-    this .nm/1[]([[-imm-][5[]]{'fear35$ }])
+    this .nm/1[]([[-imm-][5[]]{'fear[###]$ }])
     were valid:
     (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm base.Float[]): imm base.Int[]
     """, """
@@ -197,7 +197,7 @@ public class TestTypeSystemWithBase {
     In position [###]/Dummy0.fear:5:21
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
-    this .nm/1[]([[-imm-][5[]]{'fear35$ }])
+    this .nm/1[]([[-imm-][5[]]{'fear[###]$ }])
     were valid:
     (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm 6[]): imm base.Int[]
     """, """

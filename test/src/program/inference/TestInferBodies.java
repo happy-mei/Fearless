@@ -431,7 +431,7 @@ public class TestInferBodies {
     Test:{
       #: Int -> False.or(True)?{.then->42,.else->0}
     }
-    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear"), Base.load("lists.fear"), Base.load("optionals.fear")); }
+    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear"), Base.load("lists.fear"), Base.load("iter.fear"), Base.load("optionals.fear")); }
   @Test void boolUsageExplicitGens() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[]]{'this
       #/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->
@@ -446,7 +446,7 @@ public class TestInferBodies {
     Test:{
       #: Int -> False.or(True) ?[Int]{ .then -> 42, .else -> 0 }
     }
-    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear"), Base.load("lists.fear"), Base.load("optionals.fear")); }
+    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear"), Base.load("lists.fear"), Base.load("iter.fear"), Base.load("optionals.fear")); }
   // TODO: why isn't this inferring gens?
   @Test void boolUsageExplicitGensBasicSameT() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[imm42[]]]{'this
@@ -714,7 +714,7 @@ public class TestInferBodies {
       .nm(n: Int): Int -> n,
       .check: Int -> this.nm(Foo.bar)
       }
-    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"), Base.load("lists.fear"), Base.load("optionals.fear"));}
+    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"), Base.load("lists.fear"), Base.load("iter.fear"), Base.load("optionals.fear"));}
 
   @Test void numImpls2() { ok("""
     {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
@@ -728,7 +728,7 @@ public class TestInferBodies {
       .nm(n: Int): Int -> n,
       .check: Int -> this.nm(5)
       }
-    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"), Base.load("lists.fear"), Base.load("optionals.fear"));}
+    """, Base.load("lang.fear"), Base.load("caps/caps.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"), Base.load("lists.fear"), Base.load("iter.fear"), Base.load("optionals.fear"));}
 
   @Test void assertions() { ok("""
     {test.Assert/0=Dec[name=test.Assert/0,gxs=[],lambda=[-mdf-][test.Assert[]]{'this

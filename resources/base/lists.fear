@@ -96,11 +96,11 @@ List:{
     .add(e) -> s := _ListState#(s*.len + 1u, s*.inner + e),
     .iter -> Let.hyg{
       .var -> Count.uint(0u),
-      .in(cursor) -> { .next -> list.look(cursor.swap(cursor* + 1u)) }
+      .in(cursor) -> { .next -> list.look(cursor++) }
       },
     .iterMut -> Let#{
       .var -> Count.uint(0u),
-      .in(cursor) -> { .next -> list.get(cursor.swap(cursor* + 1u)) }
+      .in(cursor) -> { .next -> list.get(cursor++) }
       },
     }}
 List[E]:Sealed,NoMutHyg[mdf E]{
