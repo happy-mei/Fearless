@@ -41,6 +41,16 @@ public class Program implements program.Program  {
     return of(t.name()).pos();
   }
 
+  private final HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();
+  @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
+    return subTypeCache;
+  }
+
+  private final HashMap<MethsCacheKey, List<CM>> methsCache = new HashMap<>();
+  @Override public HashMap<MethsCacheKey, List<CM>> methsCache() {
+    return methsCache;
+  }
+
   public T.Dec of(Id.DecId d) {
     var res = ds.get(d);
     if (res == null) { res = Magic.getDec(this::of, d); }

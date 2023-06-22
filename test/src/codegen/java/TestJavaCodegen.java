@@ -51,12 +51,8 @@ interface Void_0{
 interface Main_0{
 base.Void_0 $35$(Object s$);}
 }
-static void main(String[] args){ var cons = new base.Cons_0(){};
-base.LList_1 cliArgs = new base.LList_1(){};
-for (int i = args.length - 1; i >= 0; --i) {
-  var arg = args[i];
-  cliArgs = cons.$35$(arg, cliArgs);
-}
+static void main(String[] args){ base.LList_1 cliArgs = new base.LList_1(){};
+for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
  base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
@@ -101,12 +97,8 @@ interface Void_0{
 interface Main_0{
 base.Void_0 $35$(Object s$);}
 }
-static void main(String[] args){ var cons = new base.Cons_0(){};
-base.LList_1 cliArgs = new base.LList_1(){};
-for (int i = args.length - 1; i >= 0; --i) {
-  var arg = args[i];
-  cliArgs = cons.$35$(arg, cliArgs);
-}
+static void main(String[] args){ base.LList_1 cliArgs = new base.LList_1(){};
+for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
  base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
@@ -177,12 +169,8 @@ interface Void_0{
 interface Main_0{
 base.Void_0 $35$(Object s$);}
 }
-static void main(String[] args){ var cons = new base.Cons_0(){};
-base.LList_1 cliArgs = new base.LList_1(){};
-for (int i = args.length - 1; i >= 0; --i) {
-  var arg = args[i];
-  cliArgs = cons.$35$(arg, cliArgs);
-}
+static void main(String[] args){ base.LList_1 cliArgs = new base.LList_1(){};
+for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
  base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
@@ -217,12 +205,8 @@ interface Void_0{
 interface Main_0{
 base.Void_0 $35$(Object s$);}
 }
-static void main(String[] args){ var cons = new base.Cons_0(){};
-base.LList_1 cliArgs = new base.LList_1(){};
-for (int i = args.length - 1; i >= 0; --i) {
-  var arg = args[i];
-  cliArgs = cons.$35$(arg, cliArgs);
-}
+static void main(String[] args){ base.LList_1 cliArgs = new base.LList_1(){};
+for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
  base.Main_0 entry = new test.HelloWorld_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "test.HelloWorld", false, """
@@ -270,12 +254,8 @@ interface Void_0{
 interface Main_0{
 base.Void_0 $35$(Object s$);}
 }
-static void main(String[] args){ var cons = new base.Cons_0(){};
-base.LList_1 cliArgs = new base.LList_1(){};
-for (int i = args.length - 1; i >= 0; --i) {
-  var arg = args[i];
-  cliArgs = cons.$35$(arg, cliArgs);
-}
+static void main(String[] args){ base.LList_1 cliArgs = new base.LList_1(){};
+for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
  base.Main_0 entry = new test.Test_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
 }
     """, "test.Test", false, """

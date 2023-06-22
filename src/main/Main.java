@@ -12,7 +12,6 @@ public class Main {
   public static void resetAll(){
     E.X.reset();
     Id.GX.reset();
-    Program.reset();
   }
 
   public static void main(String[] args) {

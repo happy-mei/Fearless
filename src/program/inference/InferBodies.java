@@ -24,7 +24,7 @@ public record InferBodies(ast.Program p) {
   Map<Id.DecId, ast.T.Dec> inferDecs(astFull.Program fullProgram){
     return fullProgram.ds().values().stream()
       .map(this::inferDec)
-      .collect(Collectors.toMap(d->d.name(), d->d));
+      .collect(Collectors.toMap(ast.T.Dec::name, d->d));
   }
   ast.T.Dec inferDec(astFull.T.Dec d){
     var coreDecl = p.ds().get(d.name());

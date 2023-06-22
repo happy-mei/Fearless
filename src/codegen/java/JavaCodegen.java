@@ -23,10 +23,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   static String argsToLList() {
     return """
       base.LList_1 cliArgs = new base.LList_1(){};
-      for (int i = 0; i < args.length; ++i) {
-        var arg = args[i];
-        cliArgs = cliArgs.$43$(arg);
-      }
+      for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
       """;
   }
 

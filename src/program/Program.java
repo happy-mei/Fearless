@@ -31,9 +31,9 @@ public interface Program {
   List<ast.E.Lambda> lambdas();
   Optional<Pos> posOf(Id.IT<ast.T> t);
 
-  static void reset() {
-    methsCache.clear();
-    subTypeCache.clear();
+  default void reset() {
+    this.methsCache().clear();
+    this.subTypeCache().clear();
   }
 
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
@@ -53,7 +53,7 @@ public interface Program {
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }
   record SubTypeQuery(T t1, T t2){}
   enum SubTypeResult { Yes, No, Unknown }
-  HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();
+  HashMap<SubTypeQuery, SubTypeResult> subTypeCache();
   default boolean tryIsSubType(T t1, T t2) {
     try {
       return isSubType(t1, t2);
@@ -64,6 +64,7 @@ public interface Program {
   }
   default boolean isSubType(T t1, T t2) {
     var q = new SubTypeQuery(t1, t2);
+    var subTypeCache = this.subTypeCache();
     if (subTypeCache.containsKey(q)) {
       var res = subTypeCache.get(q);
       if (res == SubTypeResult.Unknown) {
@@ -216,8 +217,9 @@ public interface Program {
     return methsAux(recvMdf, it).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
   record MethsCacheKey(Mdf recvMdf, Id.IT<T> it){}
-  HashMap<MethsCacheKey, List<CM>> methsCache = new HashMap<>();
+  HashMap<MethsCacheKey, List<CM>> methsCache();
   default List<CM> methsAux(Mdf recvMdf, Id.IT<T> it) {
+    var methsCache = this.methsCache();
     var cacheKey = new MethsCacheKey(recvMdf, it);
     // Can't use computeIfAbsent here because concurrent modification thanks to mutual recursion :-(
     if (methsCache.containsKey(cacheKey)) { return methsCache.get(cacheKey); }

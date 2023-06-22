@@ -26,6 +26,9 @@ public class Streams {
     public <R> Stream<R> map(BiFunction<A,B,R>f){
       return IntStream.range(0, as.size()).mapToObj(i->f.apply(as.get(i),bs.get(i)));
     }
+    public <R> Stream<R> parallelMap(BiFunction<A,B,R>f){
+      return IntStream.range(0, as.size()).parallel().mapToObj(i->f.apply(as.get(i),bs.get(i)));
+    }
     public <R> Stream<R> flatMap(BiFunction<A,B,Stream<R>>f){
       return IntStream.range(0, as.size()).boxed().flatMap(i->f.apply(as.get(i),bs.get(i)));
     }
