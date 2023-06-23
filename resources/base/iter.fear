@@ -40,7 +40,7 @@ Iter[E]:{
     .some(e) -> this.fold(f#(initial, e), f),
     .none -> initial
     },
-  mut .foldImm[R](initial: R, f: mut IterFolder[mdf E, R]): R -> this.next.match{
+  lent .foldImm[R](initial: R, f: lent IterFolderHyg[mdf E, R]): R -> this.next.matchHyg{
     .some(e) -> this.foldImm(f#(initial, e), f),
     .none -> initial
     },
@@ -48,17 +48,16 @@ Iter[E]:{
     .some(e) -> this.foldMut(f#(initial, e), f),
     .none -> initial
     },
-  mut .for(f: mut IterForEacher[mdf E]): Void -> this.foldImm(Void, { _, e -> f#e }),
-  // TODO: inference breaks this:
-//  lent .count: UInt -> this.fold(0u, { acc, _ -> acc + 1u }),
-  mut .toList: mut List[mdf E] -> Let#{
-    .var -> List#[mdf E],
-    .in(res) -> Yeet.with(this.for{ e -> res.add(e) }, res)
-    },
-  mut .toLListMut: mut LListMut[mdf E] -> this.foldMut(LListMut[mdf E], { acc, e -> acc + e }),
+
+  lent .count: UInt -> this.fold[UInt](0u, IterFolderHyg[mdf E, UInt]{ acc, _ -> acc + 1u }),
+  lent .for(f: lent IterForEacher[mdf E]): Void -> this.foldImm(Void, { _, e -> f#e }),
+  lent .toList: mut List[mdf E] ->
+    this.fold(iso List#[mdf E], { acc, e -> Yeet.with(acc.add(e), acc) }),
+  lent .toLListMut: mut LListMut[mdf E] ->
+    this.fold(iso LListMut[mdf E], { acc, e -> acc + e }),
   }
 
-IterForEacher[E]:{ mut #(e: mdf E): Void }
+IterForEacher[E]:{ lent #(e: mdf E): Void }
 IterFolder[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
 IterFolderHyg[E,R]:{ lent #(acc: mdf R, e: mdf E): mdf R }
 IterScanner[E,R,S]:{ lent #(state: mut Ref[mdf S], e: mdf E): mdf S }

@@ -1225,6 +1225,22 @@ public class TestInferBodies {
     B[X]:{ read .argh: recMdf X }
     """);}
 
+  @Test void shouldNotRewriteUserWrittenTypes1() { ok("""
+    {test.Break/0=Dec[name=test.Break/0,gxs=[],lambda=[-mdf-][test.Break[]]{'this
+      .callMe/2([a,b]):Sig[mdf=imm,gens=[R],ts=[mdfR,mdfR],ret=mdfR]->[-],
+      .break/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.A[]]->
+        this.callMe/2[immtest.A[]]([[-imm-][test.B[]]{'fear0$},[-imm-][test.B[],test.A[]]{'fear1$}])}],
+    test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-mdf-][test.B[],test.A[]]{'this}],
+    test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-mdf-][test.A[]]{'this}]}
+    """, """
+    package test
+    Break:{
+      .callMe[R](a: mdf R, b: mdf R): mdf R,
+      .break: A -> this.callMe[A](B, A),
+      }
+    A:{} B:A{}
+    """); }
+
   // TODO: this should eventually fail with an "inference failed" message when I add that error
   @Disabled
   @Test void callingEphemeralMethod() { fail("""

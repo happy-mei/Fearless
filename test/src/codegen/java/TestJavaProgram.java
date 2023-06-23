@@ -590,7 +590,19 @@ public class TestJavaProgram {
                       .filter{n -> n > 50}
                       .find{n -> n == 84})
                       .isSome,
-        "map", {{}})}
+        "filter", {{}})}
+      .do{ Assert#(((l1.iterMut
+                      .filter{n -> n > 50})
+                      .count) == 2u,
+        "count", {{}})}
+      .do{ Assert#(((l1.iterMut
+                      .filter{n -> n > 50})
+                      .toList).len == 2u,
+        "toList", {{}})}
+      .do{ Assert#(((l1.iterMut
+                      .filter{n -> n > 50})
+                      .toLListMut).len == 2u,
+        "toLListMut", {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }
