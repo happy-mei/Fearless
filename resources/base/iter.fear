@@ -22,9 +22,15 @@ Iter[E]:{
   // TODO
   lent .flatMap[R](f: lent IterMapper[mdf E, lent Iter[mdf R]]): lent Iter[mdf R] -> Let.hyg{
     .var -> this.map(f),
-    .in(mapIter) -> Let.hyg[lent Ref[lent Opt[lent Iter[mdf R]]], lent Iter[mdf R]]{
+    .in(mapIter) -> Let.hyg{
       lent .var: lent Ref[lent Opt[lent Iter[mdf R]]] -> Ref#[lent Opt[lent Iter[mdf R]]](mapIter.next),
-      lent .in(optCurIter: lent Ref[lent Opt[lent Iter[mdf R]]]): lent Iter[mdf R] -> (optCurIter*)!
+      lent .in(optCurIter: lent Ref[lent Opt[lent Iter[mdf R]]]): lent Iter[mdf R] -> lent Iter[mdf R]{
+        lent .next: lent Opt[mdf R] -> optCurIter*.matchHyg({
+          .some(curIter) -> {},
+          .none -> {}
+          })
+        }
+//      lent .in(optCurIter: lent Ref[lent Opt[lent Iter[mdf R]]]): lent Iter[mdf R] -> (optCurIter*)!
 //      {
 ////        .next -> ((optCurIter*)!).next,
 //          lent .next: lent Opt[mdf R] -> (optCurIter*).matchHyg({
@@ -34,6 +40,7 @@ Iter[E]:{
 //        }
       }
     },
+    lent ._flatMap[R](curIter: lent Iter[mdf R]): lent Opt[mdf R] -> {},
   lent .filter(p: lent IterPredicate[mdf E]): lent Iter[mdf E] -> { .next -> this.find(p) },
 
   lent .fold[R](initial: mdf R, f: lent IterFolderHyg[mdf E, mdf R]): mdf R -> this.next.matchHyg{

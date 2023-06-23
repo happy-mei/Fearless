@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 public interface EMethTypeSystem extends ETypeSystem {
   default Res visitMCall(E.MCall e) {
+    // TODO: breakpoint cond `e.toString().startsWith("optCurIter */0[]([]) .matchHyg")`
     var e0 = e.receiver();
     var v = this.withT(Optional.empty());
     Res rE0 = e0.accept(v);
