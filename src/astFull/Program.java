@@ -31,6 +31,10 @@ public class Program implements program.Program{
     return of(t).pos();
   }
 
+  @Override public Program cleanCopy() {
+    return new Program(ds);
+  }
+
   private final HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();
   @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
     return subTypeCache;

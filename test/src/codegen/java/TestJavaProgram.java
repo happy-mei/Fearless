@@ -603,6 +603,11 @@ public class TestJavaProgram {
                       .filter{n -> n > 50})
                       .toLListMut).len == 2u,
         "toLListMut", {{}})}
+      .do{ Assert#(((l1.iterMut
+                    .flatMap{n -> (List#(n, n, n)).iterMut}
+                    .map{n -> n * 10})
+                    .toList).len == (l1.len * 3u),
+        "flatMap", {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }

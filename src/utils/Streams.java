@@ -65,6 +65,11 @@ public class Streams {
       return IntStream.range(0, as.size())
         .allMatch(i->test.test(as.get(i),bs.get(i)));
     }
+    public boolean allMatchParallel(BiPredicate<A,B> test){
+      return IntStream.range(0, as.size())
+        .parallel()
+        .allMatch(i->test.test(as.get(i),bs.get(i)));
+    }
   }
 
   public static <T> Optional<Integer> firstPos(List<T> xs, Predicate<Integer> p) {

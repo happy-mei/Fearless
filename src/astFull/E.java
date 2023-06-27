@@ -104,7 +104,7 @@ public sealed interface E extends HasPos {
     }
   }
   record X(String name, T t, Optional<Pos> pos) implements E{
-    private static int FRESH_N = 0;
+    private static volatile int FRESH_N = 0;
     public static void reset() {
       // TODO: disable outside unit testing context
       if (FRESH_N > 300) {

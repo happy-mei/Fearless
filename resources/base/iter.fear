@@ -19,25 +19,19 @@ Iter[E]:{
       .some(x) -> Opt#(f#x),
       .none -> {}
       }},
-  // TODO
   lent .flatMap[R](f: lent IterMapper[mdf E, lent Iter[mdf R]]): lent Iter[mdf R] -> Let.hyg{
     .var -> this.map(f),
     .in(mapIter) -> Let.hyg{
-      lent .var: lent Ref[lent Opt[lent Iter[mdf R]]] -> Ref#[lent Opt[lent Iter[mdf R]]](mapIter.next),
-      lent .in(optCurIter: lent Ref[lent Opt[lent Iter[mdf R]]]): lent Iter[mdf R] -> lent Iter[mdf R]{
-        lent .next: lent Opt[mdf R] -> optCurIter*.matchHyg({
-          .some(curIter) -> {},
-          .none -> {}
+      .var -> Ref#(mapIter.next),
+      .in(optCurIter) -> lent Iter[mdf R]{ 'self
+        .next -> optCurIter*.matchHyg({
+          .some(curIter) -> curIter.next,
+          .none -> Yeet.with(optCurIter := mapIter.next, optCurIter*.matchHyg{
+            .some(nextIter) -> self.next,
+            .none -> {}
+            })
           })
         }
-//      lent .in(optCurIter: lent Ref[lent Opt[lent Iter[mdf R]]]): lent Iter[mdf R] -> (optCurIter*)!
-//      {
-////        .next -> ((optCurIter*)!).next,
-//          lent .next: lent Opt[mdf R] -> (optCurIter*).matchHyg({
-//           lent .some(curIter: lent Iter[mdf R]): lent Opt[mdf R] -> lent Opt[mdf R],
-//           lent .none: lent Opt[mdf R] -> lent Opt[mdf R]
-//           }),
-//        }
       }
     },
     lent ._flatMap[R](curIter: lent Iter[mdf R]): lent Opt[mdf R] -> {},

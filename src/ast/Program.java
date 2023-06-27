@@ -41,6 +41,10 @@ public class Program implements program.Program  {
     return of(t.name()).pos();
   }
 
+  @Override public Program cleanCopy() {
+    return new Program(ds);
+  }
+
   private final HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();
   @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
     return subTypeCache;
@@ -97,12 +101,14 @@ public class Program implements program.Program  {
 
   private CM cm(Mdf recvMdf, Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
-    var cm = CM.of(t, mi, TypeRename.coreRec(this, recvMdf).renameSig(mi.sig(), f));
-    return norm(cm);
+    var cm = norm(CM.of(t, mi, mi.sig()));
+    var normedMeth = new E.Meth(cm.sig(), cm.name(), cm.xs(), mi.body(), mi.pos());
+    return CM.of(cm.c(), normedMeth, TypeRename.coreRec(this, recvMdf).renameSig(cm.sig(), f));
   }
   private CM cmCore(Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
-    var cm = CM.of(t, mi, TypeRename.core(this).renameSig(mi.sig(), f));
-    return norm(cm);
+    var cm = norm(CM.of(t, mi, mi.sig()));
+    var normedMeth = new E.Meth(cm.sig(), cm.name(), cm.xs(), mi.body(), mi.pos());
+    return CM.of(cm.c(), normedMeth, TypeRename.core(this).renameSig(cm.sig(), f));
   }
 }
