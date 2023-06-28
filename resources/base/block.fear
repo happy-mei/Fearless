@@ -1,15 +1,19 @@
 package base
 
-Do:{ #[R]: mut Block[mdf R] -> {} }
+Do:{
+  #[R]: mut Block[mdf R] -> {},
+  .hyg[R]: lent BlockHyg[mdf R] -> {},
+  }
 Block[R]:{
   mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
   mut .do(a: mut DoRunner): mut Block[mdf R] -> this._do(a#),
     mut ._do(v: Void): mut Block[mdf R] -> {},
   mut .var[X](x: mut ReturnStmt[mdf X], cont: mut Continuation[mdf X, mdf R]): mdf R -> cont#(x#, this),
   mut .if(a: mut Condition): mut BlockIf[mdf R] -> a# ? {
-    .then -> mut BlockIfTrue[mdf R]{ this },
-    .else -> mut BlockIfFalse[mdf R]{ this }
+    .then -> mut BlockIfTrue[mdf R]{ ._outer -> this },
+    .else -> mut BlockIfFalse[mdf R]{ ._outer -> this }
     },
+  mut .hyg: lent BlockHyg[mdf R] -> {},
   }
 
 BlockIf[R]:{
@@ -17,6 +21,7 @@ BlockIf[R]:{
   mut .return(a: mut ReturnStmt[mdf R]): mut Block[mdf R],
   mut .error(a: mut ReturnStmt[Void]): mut Block[mdf R], // todo: proper errors
   mut .do(a: mut DoRunner): mut Block[mdf R],
+  mut .hyg: lent BlockIfHyg[mdf R],
   }
 BlockIfTrue[R]:BlockIf[mdf R]{
   .return(a) -> this._return(a#),
@@ -24,11 +29,15 @@ BlockIfTrue[R]:BlockIf[mdf R]{
   .error(a) -> this.error(a),
   .do(a) -> this._do(a#),
     mut ._do(v: Void): mut Block[mdf R] -> this._outer,
+  .hyg -> this._hyg(this._outer.hyg),
+    mut ._hyg(outer: lent BlockHyg[mdf R]): lent BlockIfHyg[mdf R] -> lent BlockIfTrueHyg[mdf R]{ ._outer -> outer }
   }
 BlockIfFalse[R]:BlockIf[mdf R]{
   .return(a) -> this._outer,
   .error(a) -> this._outer,
   .do(a) -> this._outer,
+  .hyg -> this._hyg(this._outer.hyg),
+    mut ._hyg(outer: lent BlockHyg[mdf R]): lent BlockIfHyg[mdf R] -> lent BlockIfFalseHyg[mdf R]{ ._outer -> outer }
   }
 DecidedBlock[R]:Block[mdf R],NoMutHyg[mdf R]{
   mut ._res: mdf R,
@@ -36,12 +45,57 @@ DecidedBlock[R]:Block[mdf R],NoMutHyg[mdf R]{
   .do(a) -> this,
   .var(_,_) -> this._res,
   .if(a) -> BlockIfFalse[mdf R]{ this },
+  .hyg -> this._hyg(this._res),
+    mut ._hyg(res: mdf R): lent DecidedBlockHyg[mdf R] -> { res },
   }
 
 ReturnStmt[R]:NoMutHyg[mdf R]{ mut #: mdf R }
 DoRunner:{ mut #: Void }
 Condition:{ mut #: Bool }
 Continuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
+
+// hyg blocks
+BlockHyg[R]:{
+  lent .return(a: lent ReturnStmtHyg[mdf R]): mdf R -> a#,
+  lent .do(a: lent DoRunnerHyg): lent BlockHyg[mdf R] -> this._do(a#),
+    lent ._do(v: Void): lent BlockHyg[mdf R] -> {},
+  lent .var[X](x: lent ReturnStmtHyg[mdf X], cont: lent ContinuationHyg[mdf X, mdf R]): mdf R -> cont#(x#, this),
+  lent .if(a: lent ConditionHyg): lent BlockIfHyg[mdf R] -> a#.ifHyg{
+    .then -> lent BlockIfTrueHyg[mdf R]{ this },
+    .else -> lent BlockIfFalseHyg[mdf R]{ this }
+    },
+  }
+
+BlockIfHyg[R]:{
+  lent ._outer: lent BlockHyg[mdf R],
+  lent .return(a: lent ReturnStmtHyg[mdf R]): lent BlockHyg[mdf R],
+  lent .error(a: lent ReturnStmtHyg[Void]): lent BlockHyg[mdf R], // todo: proper errors
+  lent .do(a: lent DoRunnerHyg): lent BlockHyg[mdf R],
+  }
+BlockIfTrueHyg[R]:BlockIfHyg[mdf R]{
+  .return(a) -> this._return(a#),
+    lent ._return(x: mdf R): lent DecidedBlockHyg[mdf R] -> { x },
+  .error(a) -> this.error(a),
+  .do(a) -> this._do(a#),
+    lent ._do(v: Void): lent BlockHyg[mdf R] -> this._outer,
+  }
+BlockIfFalseHyg[R]:BlockIfHyg[mdf R]{
+  .return(a) -> this._outer,
+  .error(a) -> this._outer,
+  .do(a) -> this._outer,
+  }
+DecidedBlockHyg[R]:BlockHyg[mdf R]{
+  lent ._res: mdf R,
+  .return(a) -> this._res,
+  .do(a) -> this,
+  .var(_,_) -> this._res,
+  .if(a) -> BlockIfFalseHyg[mdf R]{ this },
+  }
+
+ReturnStmtHyg[R]:{ lent #: mdf R }
+DoRunnerHyg:{ lent #: Void }
+ConditionHyg:{ lent #: Bool }
+ContinuationHyg[X,R]:{ lent #(x: mdf X, self: lent BlockHyg[mdf R]): mdf R }
 
 //Do:{ mut #: Void }
 //ReturnStmt[R]:{ mut #: mdf R }

@@ -6,35 +6,24 @@ Iter[E]:{
     .some(x) -> p#x.ifHyg{ .then -> Opt#x, .else -> this.find(p) },
     .none -> {}
     },
-//  mut .find(p: mut IterPredicate[mdf E]): mut Opt[mdf E] -> Do#
-//    .var[lent Opt[mdf E]] res = { this.next }
-//    // TODO: inference breaks:
-//    // .if{ mut #: Bool -> this.next.map{ e -> p#e } | False }.return{ res }
-//    .if{ res.isSome }.return{{}}
-//    .if{ mut #: Bool -> this.next.map{ e -> p#e } || {False} }.return{ res }
-//    .return{ this.find(p) },
 
   lent .map[R](f: lent IterMapper[mdf E, mdf R]): lent Iter[mdf R] -> {
     .next -> this.next.matchHyg{
       .some(x) -> Opt#(f#x),
       .none -> {}
       }},
-  lent .flatMap[R](f: lent IterMapper[mdf E, lent Iter[mdf R]]): lent Iter[mdf R] -> Let.hyg{
-    .var -> this.map(f),
-    .in(mapIter) -> Let.hyg{
-      .var -> Ref#(mapIter.next),
-      .in(optCurIter) -> lent Iter[mdf R]{ 'self
-        .next -> optCurIter*.matchHyg({
-          .some(curIter) -> curIter.next,
-          .none -> Yeet.with(optCurIter := mapIter.next, optCurIter*.matchHyg{
-            .some(nextIter) -> self.next,
-            .none -> {}
-            })
-          })
+  lent .flatMap[R](f: lent IterMapper[mdf E, lent Iter[mdf R]]): lent Iter[mdf R] -> Do.hyg
+    .var[lent Iter[lent Iter[mdf R]]] mapIter = { this.map(f) }
+    .var[lent Ref[lent Opt[lent Iter[mdf R]]]] optCurIter = { Ref#(mapIter.next) }
+    .return{ lent Iter[mdf R]{ 'self
+      .next -> optCurIter*.matchHyg{
+        .some(curIter) -> curIter.next.matchHyg{
+          .some(next) -> Opt#next,
+          .none -> Yeet.with(optCurIter := mapIter.next, self.next)
+          },
+        .none -> {}
         }
-      }
-    },
-    lent ._flatMap[R](curIter: lent Iter[mdf R]): lent Opt[mdf R] -> {},
+      }},
   lent .filter(p: lent IterPredicate[mdf E]): lent Iter[mdf E] -> { .next -> this.find(p) },
 
   lent .fold[R](initial: mdf R, f: lent IterFolderHyg[mdf E, mdf R]): mdf R -> this.next.matchHyg{

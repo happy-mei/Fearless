@@ -606,11 +606,8 @@ public class TestJavaProgram {
       .do{ Assert#(((l1.iterMut
                     .flatMap{n -> (List#(n, n, n)).iterMut}
                     .map{n -> n * 10})
-                    .toList).len == (l1.len * 3u),
-        ((l1.iterMut
-                    .flatMap{n -> (List#(n, n, n)).iterMut}
-                    .map{n -> n * 10})
-                    .str({n -> n.str}, ", ")), {{}})}
+                    .str({n -> n.str}, ";")) == "350;350;350;520;520;520;840;840;840;140;140;140",
+        "flatMap", {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }

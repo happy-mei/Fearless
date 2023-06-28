@@ -5,6 +5,7 @@ Str:Sealed{
   // Str is not Stringable due to limitations of the Java codegen target
   read .str: Str,
   read +(other: read Str): Str,
+  read ==(other: read Str): Bool,
   }
 Stringable:{
   .str: Str,
@@ -13,4 +14,5 @@ _StrInstance:Str{
   .len -> this.len,
   .str -> this.str,
   +(other) -> this + other,
+  ==(other) -> this == other,
   }

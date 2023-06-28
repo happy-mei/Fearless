@@ -133,6 +133,9 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.equals(new Id.MethName(".len", 0))) { return Optional.of(instantiate()+".length()"); }
         if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate()); }
         if (m.equals(new Id.MethName("+", 1))) { return Optional.of("("+instantiate()+"+"+args.get(0).accept(gen)+")"); }
+        if (m.equals(new Id.MethName("==", 1))) {
+          return Optional.of("("+instantiate()+".equals("+args.get(0).accept(gen)+")?new base.True_0(){}:new base.False_0(){})");
+        }
         throw Bug.unreachable();
       }
     };

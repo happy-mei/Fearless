@@ -73,7 +73,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     return p().isSubType(tst.t().mdf(), expectedT().get().mdf());
   }
   @Override default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors) {
-    return Streams.zip(es,ts).allMatchParallel((e, t)->((EMethTypeSystem)withProgram(p().cleanCopy())).ok(e, t, errors));
+    return Streams.zip(es,ts).allMatch((e, t)->ok(e, t, errors));
   }
   default boolean ok(E e, T t, ArrayList<CompileError> errors) {
     var v = this.withT(Optional.of(t));

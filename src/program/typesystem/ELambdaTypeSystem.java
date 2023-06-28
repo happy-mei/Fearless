@@ -69,7 +69,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .orElseGet(()->new T(b.mdf(), b.its().get(0)));
     T selfT = TypeRename.core(p()).fixMut(new T(b.mdf(),d.toIT()));
     var selfName=b.selfName();
-    var mRes=b.meths().stream().flatMap(mi->mOk(selfName, selfT, mi).stream()).toList();
+    var mRes=b.meths().parallelStream().flatMap(mi->((ELambdaTypeSystem) withProgram(p().cleanCopy())).mOk(selfName, selfT, mi).stream()).toList();
     if(mRes.isEmpty()){ return retT; }
     return mRes.get(0);
   }
