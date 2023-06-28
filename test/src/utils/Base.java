@@ -117,5 +117,6 @@ public interface Base {
     alias base.OptMatch as OptMatch,
     alias base.Iterable as Iterable,
     alias base.Iter as Iter,
+    alias base.Sum as Sum,
     """;
 }

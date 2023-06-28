@@ -597,17 +597,19 @@ public class TestJavaProgram {
         "count", {{}})}
       .do{ Assert#(((l1.iterMut
                       .filter{n -> n > 50})
-                      .toList).len == 2u,
+                      .list).len == 2u,
         "toList", {{}})}
       .do{ Assert#(((l1.iterMut
                       .filter{n -> n > 50})
-                      .toLListMut).len == 2u,
+                      .llistMut).len == 2u,
         "toLListMut", {{}})}
       .do{ Assert#(((l1.iterMut
                     .flatMap{n -> (List#(n, n, n)).iterMut}
                     .map{n -> n * 10})
                     .str({n -> n.str}, ";")) == "350;350;350;520;520;520;840;840;840;140;140;140",
         "flatMap", {{}})}
+      .do{ Assert#(Sum.int(l1.iterMut) == 185, "sum int", {{}})}
+      .do{ Assert#(Sum.uint(l1.iterMut.map{n -> n.uint}) == 185u, "sum uint", {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }
