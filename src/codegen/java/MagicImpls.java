@@ -130,12 +130,9 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         return isLiteral(lambdaName) ? lambdaName : "((String)"+e.accept(gen)+")";
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
-        if (m.equals(new Id.MethName(".len", 0))) {
-          return Optional.of(instantiate()+".length()");
-        }
-        if (m.equals(new Id.MethName(".str", 0))) {
-          return Optional.of(instantiate());
-        }
+        if (m.equals(new Id.MethName(".len", 0))) { return Optional.of(instantiate()+".length()"); }
+        if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate()); }
+        if (m.equals(new Id.MethName("+", 1))) { return Optional.of("("+instantiate()+"+"+args.get(0).accept(gen)+")"); }
         throw Bug.unreachable();
       }
     };

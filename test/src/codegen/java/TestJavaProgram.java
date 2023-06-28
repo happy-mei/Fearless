@@ -607,7 +607,10 @@ public class TestJavaProgram {
                     .flatMap{n -> (List#(n, n, n)).iterMut}
                     .map{n -> n * 10})
                     .toList).len == (l1.len * 3u),
-        "flatMap", {{}})}
+        ((l1.iterMut
+                    .flatMap{n -> (List#(n, n, n)).iterMut}
+                    .map{n -> n * 10})
+                    .str({n -> n.str}, ", ")), {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }

@@ -4,6 +4,7 @@ Str:Sealed{
   .len: UInt,
   // Str is not Stringable due to limitations of the Java codegen target
   .str: Str,
+  +(other: Str): Str,
   }
 Stringable:{
   .str: Str,
@@ -11,4 +12,5 @@ Stringable:{
 _StrInstance:Str{
   .len -> this.len,
   .str -> this.str,
+  +(other) -> this + other,
   }

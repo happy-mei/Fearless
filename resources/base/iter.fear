@@ -56,6 +56,8 @@ Iter[E]:{
     this.fold(iso List#[mdf E], { acc, e -> Yeet.with(acc.add(e), acc) }),
   lent .toLListMut: mut LListMut[mdf E] ->
     this.fold(iso LListMut[mdf E], { acc, e -> acc + e }),
+  lent .str(toStr: lent IterMapper[mdf E, Str], joining: Str): Str -> (this.map(toStr))
+    .fold[Str]("", IterFolderHyg[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e, .else -> acc + joining + e } })
   }
 
 IterForEacher[E]:{ lent #(e: mdf E): Void }
