@@ -151,10 +151,19 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
 //      .allMatch(t->t.match(gx->env.has(gx), it->hasUndeclaredXs(List.of(it))));
 //  }
 
+  private Optional<CompileError> noIsoParams(Id.IT<?> base, List<T> genArgs) {
+    return genArgs.stream()
+      .flatMap(T::flatten)
+      .dropWhile(t->t.mdf() != Mdf.iso)
+      .map(t_->base.toString())
+      .map(Fail::isoInTypeArgs)
+      .findFirst();
+  }
   private Optional<CompileError> noIsoParams(List<T> genArgs) {
     return genArgs.stream()
       .flatMap(T::flatten)
       .dropWhile(t->t.mdf() != Mdf.iso)
+      .map(T::toString)
       .map(Fail::isoInTypeArgs)
       .findFirst();
   }

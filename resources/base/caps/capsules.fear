@@ -1,0 +1,31 @@
+package base.caps
+
+//IsoPod[T]:{
+//  mut .consume: iso T,
+//  mut *: iso T -> this.consume,
+//  mut .set(val: iso T): Void,
+//  mut :=(val: iso T): Void -> this.set(val),
+//  // TODO: this works... but it feels like something is wrong here
+//  mut .mutate[R](f: F[mut T, R]): R -> Let#[mut T, R]{ .var -> this.consume, .in(val) -> Let#{
+//    .var -> this._mutate(val, f#val),
+//    .in(res) -> Yeet.with(this.set(res.val), res.res)
+//    }},
+//    read ._mutate[R](val: mut T, res: R): iso MutateRes[T,R] -> iso MutateRes[T,R]{ .val -> val, .res -> res }
+//  }
+//MutateRes[T,R]:{ mut .val: mut T, .res: R }
+
+// TODO The idea:
+//IsoPod[T]:{
+//  mut .consume:iso T,
+//  mut .update(val: iso T):Void,
+//  read .observe[R](obs:mut Observer[T,mdf R]):mdf R->..,
+//  mut .change[R](f:F[mut T, R]):imm R->consume, call f, update back
+//  read .spawn(f:F[read T,mdf R])->Node[??]{f=ff, self=this} + add a
+//ref to the result to a list of spawn
+//   //every time we call update OR change we do something for all the
+//spowened: lazy/now/eager
+//
+//  }
+//Observer[T,R]:{ mut #(content:read T):mdf R }
+//F[read T]
+//Node[T,R]:{ }

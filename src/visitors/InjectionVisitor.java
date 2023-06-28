@@ -20,7 +20,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     return new ast.E.MCall(
       recv,
       e.name(),
-      e.ts().orElseThrow().stream().map(this::visitT).toList(),
+      e.ts().orElseThrow().stream().map(this::visitTInGens).toList(),
       e.es().stream().map(ei->ei.accept(this)).toList(),
       e.pos()
     );
@@ -65,10 +65,21 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     return t.toAstT();
   }
 
+  public ast.T visitTInGens(astFull.T t){
+    if (t.isInfer()) {
+      // TODO: throw Fail.....
+      throw Bug.todo();
+    }
+    // TODO: this has unintended (although maybe positive) side-effects
+    // TODO: The best thing might be to just not infer iso generic params
+//    if (t.mdf().isIso()) { t = t.withMdf(Mdf.mut); }
+    return t.toAstT();
+  }
+
   public Id.IT<ast.T> visitIT(Id.IT<astFull.T> t){
     return new Id.IT<>(
       t.name(),
-      t.ts().stream().map(this::visitT).toList()
+      t.ts().stream().map(this::visitTInGens).toList()
     );
   }
 

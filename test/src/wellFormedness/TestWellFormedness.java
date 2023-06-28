@@ -183,4 +183,19 @@ public class TestWellFormedness {
     A[X]:{}
     B[Y]:A[recMdf Y]{}
     """); }
+
+  @Test void noIsoMoreThanOnce() { fail("""
+    In position [###]/Dummy0.fear:3:63
+    [E45 multipleIsoUsage]
+    The isolated reference "x1" is used more than once.
+    """, """
+    package test
+    Caps:{} Void:{}
+    A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
+    """); }
+  @Test void isoOnce() { ok("""
+    package test
+    Caps:{} Void:{}
+    A:{ .notBreak(x1: iso Caps, x2: iso Caps): Void -> this.notBreak(x1, x2) }
+    """); }
 }

@@ -1,20 +1,21 @@
 package visitors;
 
-import astFull.E;
-import astFull.T;
+import ast.E;
+import ast.T;
 import id.Id;
 import id.Mdf;
 import utils.Err;
+import utils.Mapper;
 import utils.Push;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
-public record Env(List<String> xs,List<T> ts, List<Id.GX<T>> gxs, T decT) {
-  public Env(){ this(List.of(), List.of(), List.of(), null); }
-  public Env{
+public record Env(List<String> xs, List<T> ts, List<Id.GX<T>> gxs, T decT, HashMap<String, Integer> usages) {
+  public Env(){ this(List.of(), List.of(), List.of(), null, new HashMap<>()); }
+  public Env {
     assert xs.size()==ts.size();
     assert xs.stream().distinct().count()==xs.size();
     assert gxs.stream().distinct().count()==gxs.size();
@@ -25,17 +26,24 @@ public record Env(List<String> xs,List<T> ts, List<Id.GX<T>> gxs, T decT) {
   public Env add(E.Meth m){
     return new Env(
       Push.of(xs,m.xs()),
-      Push.of(ts,m.sig().map(E.Sig::ts)
-        .orElseGet(()->Collections.nCopies(m.xs().size(), T.infer))),
-      m.sig().map(sig->Push.of(gxs,sig.gens())).orElse(gxs),
-      decT.withMdf(m.sig().map(E.Sig::mdf).orElse(decT.mdf()))
+      Push.of(ts,m.sig().ts()),
+      Push.of(gxs, m.sig().gens()),
+      decT.withMdf(m.sig().mdf()),
+      Mapper.ofMut(c->{
+        c.putAll(usages);
+        m.xs().forEach(x->c.put(x, 0));
+      })
     );
   }
-  public Env add(List<Id.GX<T>>gxs){ return new Env(xs,ts,Push.of(gxs(),gxs),decT); }
-  public Env add(E.X x,T t){ return add(x.name(),t); }
-  public Env add(String x,T t){ return new Env(Push.of(xs,x),Push.of(ts,t),gxs,decT); }
-  public Env add(Id.GX<T> gx){ return new Env(xs,ts,Push.of(gxs,gx),decT); }
-  public Env add(T.Dec dec){ return new Env(xs,ts,Push.of(gxs,dec.gxs()),new T(Mdf.read, dec.toIT())); }
+  public Env add(List<Id.GX<T>>gxs){ return new Env(xs,ts,Push.of(gxs(),gxs),decT,usages); }
+  public Env add(E.X x, T t){ return add(x.name(),t); }
+  public Env add(String x, T t){ return new Env(Push.of(xs,x),Push.of(ts,t),gxs,decT,Mapper.ofMut(c->{
+    c.putAll(usages);
+    c.put(x, 0);
+  })); }
+  public Env add(Id.GX<T> gx){ return new Env(xs,ts,Push.of(gxs,gx),decT,usages); }
+  public Env add(T.Dec dec){ return new Env(xs,ts,Push.of(gxs,dec.gxs()),new T(Mdf.read, dec.toIT()),usages); }
+  public void addUsage(String x) { usages.computeIfPresent(x, (x_,n)->n+1); }
   public T get(E.X x){ return get(x.name()); }
   public T get(String x){
     if (x.equals("this")) { return requireNonNull(decT); }

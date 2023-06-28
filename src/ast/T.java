@@ -1,6 +1,7 @@
 package ast;
 
 import failure.CompileError;
+import failure.Fail;
 import files.HasPos;
 import files.Pos;
 import id.Id;
@@ -16,7 +17,10 @@ import java.util.stream.Stream;
 public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
   public <R> R resMatch(Function<T,R> ok, Function<CompileError,R> err){ return ok.apply(this); }
   @Override public String toString(){ return ""+mdf+" "+rt; }
-  public T{ assert mdf!=null && rt!=null; }
+  public T{
+    assert mdf!=null && rt!=null;
+    assert !(rt instanceof Id.IT<T> it) || it.ts().stream().flatMap(T::flatten).noneMatch(t->t.mdf().isIso());
+  }
   public <R> R match(Function<Id.GX<T>,R>gx, Function<Id.IT<T>,R>it){ return rt.match(gx, it); }
   public Id.IT<T> itOrThrow() { return this.match(gx->{ throw Bug.unreachable(); }, it->it); }
   public Id.GX<T> gxOrThrow() {
@@ -34,6 +38,12 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
   }
   public Stream<Id.GX<T>> deepGXs() {
     return rt().match(Stream::of, it->it.ts().stream().flatMap(T::deepGXs));
+  }
+
+  public Stream<T> flatten() {
+    return this.match(gx->Stream.of(this), it->
+      Stream.concat(Stream.of(this), it.ts().stream().flatMap(T::flatten))
+    );
   }
 
   public T withMdf(Mdf mdf){ return new T(mdf,rt); }

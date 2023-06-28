@@ -6,7 +6,7 @@ import astFull.T;
 import java.util.Optional;
 
 public class FullShortCircuitVisitorWithEnv<R> implements FullShortCircuitVisitor<R> {
-  protected Env env = new Env();
+  protected FullEnv env = new FullEnv();
   public Optional<R> visitMeth(E.Meth e){
     var oldEnv=env;
     this.env=env.add(e);

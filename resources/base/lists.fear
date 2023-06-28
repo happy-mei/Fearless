@@ -14,11 +14,11 @@ LList[E]:Sealed{
     .elem(h, t) -> LList.cons(h, t ++ l1)
     },
   +(e: E): LList[E] -> this ++ (LList#e),
-  .get(i: UInt): iso Opt[E] -> this.match{
+  .get(i: UInt): iso Opt[E] -> this.match[mut Opt[E]]{
     .empty -> {},
     .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
     },
-  .head: iso Opt[E] -> this.match{
+  .head: iso Opt[E] -> this.match[mut Opt[E]]{
     .empty -> {},
     .elem(h,_) -> Opt#h,
     },
@@ -53,7 +53,7 @@ LListMut[E]:Sealed,NoMutHyg[mdf E]{
     .elem(h,t) -> (i == 0u).ifHyg{ .then -> Opt#h, .else -> t.look(i - 1u) }
     },
   lent .get(i: UInt): mut Opt[mdf E] -> {},
-  .getImm(i: UInt): iso Opt[E] -> (i == 0u).ifHyg{ .then -> this.head, .else -> this.tail.getImm(i - 1u) },
+  .getImm(i: UInt): iso Opt[E] -> (i == 0u).ifHyg[mut Opt[E]]{ .then -> this.head, .else -> this.tail.getImm(i - 1u) },
   read .iter: mut Iter[read E] -> Let.hyg{
     .var -> Ref#this,
     .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }

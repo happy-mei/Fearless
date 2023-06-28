@@ -41,7 +41,9 @@ public class TestJavaProgram {
     });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
-    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
+    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{
+      throw err;
+    });
     inferred.typeCheck();
     var mir = new MIRInjectionVisitor(inferred).visitProgram();
     var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));

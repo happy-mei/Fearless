@@ -8,15 +8,14 @@ import failure.Fail;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
-import utils.Bug;
-import visitors.FullShortCircuitVisitor;
 import visitors.ShortCircuitVisitor;
+import visitors.ShortCircuitVisitorWithEnv;
 
 import java.util.List;
 import java.util.Optional;
 
 // TODO: Sealed and _C/_m restrictions
-public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<CompileError> {
+public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEnv<CompileError> {
   private final Program p;
   private Optional<String> pkg = Optional.empty();
   public WellFormednessShortCircuitVisitor(Program p) { this.p = p; }
@@ -27,25 +26,49 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
         d.lambda().its(),
         it->noRecMdfInImpls(it).map(err->err.pos(d.lambda().pos()))
         )
-      .or(()->ShortCircuitVisitor.super.visitDec(d))
+      .or(()->super.visitDec(d))
       .map(err->err.parentPos(d.pos()));
   }
 
   @Override public Optional<CompileError> visitLambda(E.Lambda e) {
     return noSealedOutsidePkg(e)
-      .or(()->ShortCircuitVisitor.super.visitLambda(e))
+      .or(()->super.visitLambda(e))
+      .map(err->err.parentPos(e.pos()));
+  }
+
+  @Override public Optional<CompileError> visitMCall(E.MCall e) {
+    return noIsoParams(e.ts())
+      .or(()->super.visitMCall(e))
+      .map(err->err.parentPos(e.pos()));
+  }
+
+  @Override public Optional<CompileError> visitX(E.X e) {
+    return super.visitX(e)
+      .or(()->noIsoMoreThanOnce(e))
       .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitMeth(E.Meth e) {
     return noRecMdfInNonHyg(e.sig(), e.name()).map(err->err.pos(e.pos()))
-      .or(()->ShortCircuitVisitor.super.visitMeth(e))
+      .or(()->super.visitMeth(e))
       .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitT(T t) {
     assert !(t.mdf().isMdf() && t.isIt());
-    return noHygInMut(t).or(()->ShortCircuitVisitor.super.visitT(t));
+    return noHygInMut(t).or(()->super.visitT(t));
+  }
+
+  @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
+    return noIsoParams(t, t.ts())
+      .or(()->super.visitIT(t));
+  }
+
+  private Optional<CompileError> noIsoMoreThanOnce(E.X x) {
+    var t = env.get(x);
+    if (!t.mdf().isIso()) { return Optional.empty(); }
+    if (env.usages().get(x.name()) <= 1) { return Optional.empty(); }
+    return Optional.of(Fail.multipleIsoUsage(x).pos(x.pos()));
   }
 
   private Optional<CompileError> noHygInMut(T t) {
@@ -92,5 +115,22 @@ public class WellFormednessShortCircuitVisitor implements ShortCircuitVisitor<Co
       .map(Id.IT::name)
       .findFirst()
       .or(()->getSealedDec(its.stream().flatMap(it->p.itsOf(it).stream()).toList()));
+  }
+
+  private Optional<CompileError> noIsoParams(Id.IT<?> base, List<T> genArgs) {
+    return genArgs.stream()
+      .flatMap(T::flatten)
+      .dropWhile(t->t.mdf() != Mdf.iso)
+      .map(t_->base.toString())
+      .map(Fail::isoInTypeArgs)
+      .findFirst();
+  }
+  private Optional<CompileError> noIsoParams(List<T> genArgs) {
+    return genArgs.stream()
+      .flatMap(T::flatten)
+      .dropWhile(t->t.mdf() != Mdf.iso)
+      .map(T::toString)
+      .map(Fail::isoInTypeArgs)
+      .findFirst();
   }
 }

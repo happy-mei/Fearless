@@ -20,10 +20,10 @@ LetHyg[V,R]:{ lent .var: mdf V, lent .in(v: mdf V): mdf R }
 //LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
 //LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
 
-F[R]:{ #: R }
-F[A,R]:{ #(a: A): R }
-F[A,B,R]:{ #(a: A, b: B): R }
-F[A,B,C,R]:{ #(a: A, b: B, c: C): R }
+F[R]:{ #: mdf R }
+F[A,R]:{ #(a: mdf A): mdf R }
+F[A,B,R]:{ #(a: mdf A, b: mdf B): mdf R }
+F[A,B,C,R]:{ #(a: mdf A, b: mdf B, c: mdf C): mdf R }
 
 Yeet:{
   #[X](x: mdf X): Void -> this.with(x, Void),

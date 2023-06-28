@@ -70,8 +70,8 @@ public class Fail{
   public static CompileError modifierOnInferredLambda(){return of(
     "Modifiers cannot be specified on lambdas without an explicit type."
   );}
-  public static CompileError isoInTypeArgs(T badType){return of(
-    "The iso reference capability may not be used in type modifiers:\n"+badType
+  public static CompileError isoInTypeArgs(String badType){return of(
+    "The iso reference capability may not be used in generic type arguments:\n"+badType
   );}
   public static CompileError shadowingX(String x){return of(String.format("'%s' is shadowing another variable in scope.", x));}
 
@@ -195,6 +195,10 @@ public class Fail{
     return of(entry+" must implement "+main);
   }
 
+  public static CompileError multipleIsoUsage(ast.E.X x) {
+    return of("The isolated reference \""+x+"\" is used more than once.");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -246,6 +250,7 @@ enum ErrorCode {
   ioError,
   fsError,
   invalidEntryPoint,
-  ignoredIdentInExpr;
+  ignoredIdentInExpr,
+  multipleIsoUsage;
   int code() {return this.ordinal() + 1;}
 }
