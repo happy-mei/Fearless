@@ -6,6 +6,7 @@ import files.Pos;
 import id.Id;
 import id.Id.MethName;
 import id.Mdf;
+import main.Main;
 import utils.Bug;
 import visitors.FullCloneVisitor;
 import visitors.FullVisitor;
@@ -14,6 +15,7 @@ import visitors.InjectionVisitor;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public sealed interface E extends HasPos {
@@ -104,21 +106,24 @@ public sealed interface E extends HasPos {
     }
   }
   record X(String name, T t, Optional<Pos> pos) implements E{
-    private static volatile int FRESH_N = 0;
+    private static final AtomicInteger FRESH_N = new AtomicInteger(0);
     public static void reset() {
-      // TODO: disable outside unit testing context
-      if (FRESH_N > 300) {
+      if (!Main.isUserInvoked() && FRESH_N.get() > 1000) {
         throw Bug.of("FRESH_N is larger than we expected for tests.");
       }
-      FRESH_N = 0;
+      FRESH_N.set(0);
     }
     public static String freshName() {
-      if (FRESH_N + 1 == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
-      return "fear" + FRESH_N++ + "$";
+      var n = FRESH_N.getAndUpdate(n_ -> {
+        int next = n_ + 1;
+        if (next == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
+        return next;
+      });
+      return "fear" + n + "$";
     }
     public X(T t){
       this(freshName(), t, Optional.empty());
-      if (FRESH_N == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
+      if (FRESH_N.get() == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
     }
     public X withT(T t) {
       return new X(name, t, pos);

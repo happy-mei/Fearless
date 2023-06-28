@@ -8,7 +8,14 @@ import program.Program;
 import utils.Box;
 import utils.Bug;
 
+import java.util.Optional;
+
 public class Main {
+  private static CompilerFrontEnd frontEnd = null;
+  public static boolean isUserInvoked() {
+    return frontEnd != null;
+  }
+
   public static void resetAll(){
     E.X.reset();
     Id.GX.reset();
@@ -36,18 +43,18 @@ public class Main {
           res.hasOption("show-internal-stack-traces"),
           res.hasOption("print-codegen")
         ));
-        var fearc = new CompilerFrontEnd(bv, verbosity.get());
+        frontEnd = new CompilerFrontEnd(bv, verbosity.get());
 
         if (res.hasOption("new")) {
-          fearc.newPkg(res.getOptionValue("new"));
+          frontEnd.newPkg(res.getOptionValue("new"));
           return;
         }
         if (res.hasOption("run")) {
-          fearc.run(res.getOptionValue("entry-point"), res.getOptionValues("run"), res.getArgList());
+          frontEnd.run(res.getOptionValue("entry-point"), res.getOptionValues("run"), res.getArgList());
           return;
         }
         if (res.hasOption("regenerate-aliases")) {
-          System.out.println(fearc.regenerateAliases());
+          System.out.println(frontEnd.regenerateAliases());
           return;
         }
         throw Bug.unreachable();

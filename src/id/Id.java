@@ -8,6 +8,7 @@ import utils.OneOr;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -51,14 +52,14 @@ public class Id {
   public interface RT<TT>{ <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it); }
 
   public record GX<TT>(String name)implements RT<TT>{
-    private static int FRESH_N = 0;
+    private static final AtomicInteger FRESH_N = new AtomicInteger(0);
     private static HashMap<Integer, List<GX<ast.T>>> freshNames = new HashMap<>();
     public static void reset() {
       // TODO: disable outside unit testing context
-      if (FRESH_N > 50_000) {
+      if (FRESH_N.get() > 60_000) {
         throw Bug.of("FRESH_N is larger than we expected for tests.");
       }
-      FRESH_N = 0;
+      FRESH_N.set(0);
     }
     public static List<GX<ast.T>> standardNames(int n) {
       // this will never clash with the other FearN$ names because they are only used on declarations
@@ -66,8 +67,12 @@ public class Id {
       return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("FearX" + fresh + "$")).toList();
     }
     public static <TT> GX<TT> fresh() {
-      if (FRESH_N + 1 == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
-      return new GX<>("Fear" + FRESH_N++ + "$");
+      var n = FRESH_N.getAndUpdate(n_ -> {
+        int next = n_ + 1;
+        if (next == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
+        return next;
+      });
+      return new GX<>("Fear" + n + "$");
     }
 
     public GX{ assert Id.validGX(name); }
