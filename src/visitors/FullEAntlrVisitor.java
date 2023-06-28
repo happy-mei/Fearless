@@ -18,6 +18,7 @@ import utils.*;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -148,7 +149,6 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   @Override public E.X visitX(XContext ctx){
     check(ctx);
-    // TODO: ensure _ is not used outside of formal params
     var name = ctx.getText();
     name = name.equals("_") ? E.X.freshName() : name;
     return new E.X(name, T.infer, Optional.of(pos(ctx)));
@@ -156,10 +156,13 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public E visitAtomE(AtomEContext ctx){
     check(ctx);
     return OneOr.of("",Stream.of(
-        opt(ctx.x(),this::visitX),
+        opt(ctx.x(),xCtx->{
+          if (xCtx.getText().equals("_")) { throw Fail.ignoredIdentInExpr(); }
+          return this.visitX(xCtx);
+        }),
         opt(ctx.lambda(),this::visitLambda),
         opt(ctx.roundE(),(re->this.visitE(re.e()))))
-        .filter(a->a!=null));
+        .filter(Objects::nonNull));
   }
   @Override public E.Lambda visitLambda(LambdaContext ctx){
     var res=visitBlock(ctx.block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())));

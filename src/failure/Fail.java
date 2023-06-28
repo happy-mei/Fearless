@@ -130,6 +130,9 @@ public class Fail{
   public static CompileError undefinedName(String name){
     return of("The identifier \""+name+"\" is undefined or cannot be captured.");
   }
+  public static CompileError ignoredIdentInExpr(){
+    return of("\"_\" ignores the argument in that position and thus cannot be used as an identifier in an expression.");
+  }
 
   public static CompileError badCapture(String x, ast.T xT, ast.T lambdaT, Mdf methMdf) {
     return of("'"+xT.mdf()+" "+x+"' cannot be captured by "+aVsAn(methMdf)+" method in "+aVsAn(lambdaT.mdf())+" lambda.");
@@ -242,6 +245,7 @@ enum ErrorCode {
   mutCapturesHyg,
   ioError,
   fsError,
-  invalidEntryPoint;
+  invalidEntryPoint,
+  ignoredIdentInExpr;
   int code() {return this.ordinal() + 1;}
 }
