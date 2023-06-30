@@ -101,14 +101,20 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var criticalFailure = okWithSubType(gg, m, e, ret.withMdf(Mdf.read));
     if (criticalFailure.isPresent()) { return baseCase; }
 
+//    var isoPromotion1 = okWithSubType(gg, m, e, ret.withMdf(Mdf.mut));
+//    var has1OrLessMutArgs = args.stream().filter(t->t.mdf().isMut()).skip(1).findAny().isEmpty();
+//    if (m.sig().mdf().isImm() && has1OrLessMutArgs && (ret.mdf().isIso() || isoPromotion1.isEmpty())) {
+//      return isoPromotion1;
+//    }
+
     Gamma mutAsLentG = x->g().getO(x).map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t);
     g0 = mutAsLentG.captureSelf(p(), selfName, selfT, mMdf.isMut() ? Mdf.lent : mMdf);
     gg  = Streams.zip(
       m.xs(),
       args.stream().map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t).toList()
     ).fold(Gamma::add, g0);
-    var isoPromotion = okWithSubType(gg, m, e, ret.withMdf(Mdf.mut));
-    if(ret.mdf().isIso() || isoPromotion.isEmpty()){ return isoPromotion; }
+    var isoPromotion2 = okWithSubType(gg, m, e, ret.withMdf(Mdf.mut));
+    if(ret.mdf().isIso() || isoPromotion2.isEmpty()){ return isoPromotion2; }
 
     Gamma noMutyG = x->g().getO(x).flatMap(t->{
       if (t.mdf().isLikeMut() || t.mdf().isRecMdf()) { return Optional.empty(); }

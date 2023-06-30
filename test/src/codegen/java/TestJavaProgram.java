@@ -638,6 +638,39 @@ public class TestJavaProgram {
     Test:Main{ _,_ -> Assert#(0u .abs == 0u) }
     """, Base.mutBaseAliases); }
 
+  @Test void isoPod1() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _,_ -> Do#
+      .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
+      .return{ Assert#(Usage#(a*) == 0) }
+      }
+    Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
+    MutThingy:{ mut .n: mut Count[Int] }
+    MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { n }  }
+    """, Base.mutBaseAliases); }
+  @Test void isoPod2() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _,_ -> Do#
+      .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
+      .do{ a.next(MutThingy'#(Count.int(5))) }
+      .return{ Assert#(Usage#(a*) == 5) }
+      }
+    Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
+    MutThingy:{ mut .n: mut Count[Int] }
+    MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { n }  }
+    """, Base.mutBaseAliases); }
+  @Test void isoPod3() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _,_ -> Do#
+      .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
+      .do{ Yeet#(a.mutate{ mt -> Yeet#(mt.n++) }) }
+      .return{ Assert#(Usage#(a*) == 1) }
+      }
+    Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
+    MutThingy:{ mut .n: mut Count[Int] }
+    MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { n }  }
+    """, Base.mutBaseAliases); }
+
 //  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test
 //    alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,

@@ -5,6 +5,7 @@ import ast.Program;
 import ast.T;
 import id.Id;
 import id.Mdf;
+import program.TypeRename;
 import utils.Streams;
 import visitors.CollectorVisitor;
 import visitors.GammaVisitor;
@@ -51,11 +52,13 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   public MIR.MCall visitMCall(String pkg, E.MCall e, Map<String, T> gamma) {
     var recv = e.receiver().accept(this, pkg, gamma);
     var meth = p.meths(recv.t().mdf(), recv.t().itOrThrow(), e.name(), 0).orElseThrow();
+    var renamer = TypeRename.core(p);
+    var cm = renamer.renameSigOnMCall(meth.sig(), renamer.renameFun(e.ts(), meth.sig().gens()));
     return new MIR.MCall(
       recv,
       e.name(),
       e.es().stream().map(ei->ei.accept(this, pkg, gamma)).toList(),
-      meth.ret()
+      cm.ret()
     );
   }
 

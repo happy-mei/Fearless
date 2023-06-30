@@ -33,6 +33,9 @@ public interface TypeRename<T>{
     public ast.T withMdf(ast.T t, Mdf mdf) { return t.withMdf(mdf); }
     public ast.E.Sig renameSig(ast.E.Sig sig, Function<Id.GX<ast.T>,ast.T>f){
       assert sig.gens().stream().allMatch(gx->f.apply(gx)==null);
+      return renameSigOnMCall(sig, f);
+    }
+    public ast.E.Sig renameSigOnMCall(ast.E.Sig sig, Function<Id.GX<ast.T>,ast.T>f){
       return new ast.E.Sig(
         sig.mdf(),
         sig.gens(),

@@ -1,18 +1,17 @@
 package base.caps
 
-//IsoPod[T]:{
-//  mut .consume: iso T,
-//  mut *: iso T -> this.consume,
-//  mut .set(val: iso T): Void,
-//  mut :=(val: iso T): Void -> this.set(val),
-//  // TODO: this works... but it feels like something is wrong here
-//  mut .mutate[R](f: F[mut T, R]): R -> Let#[mut T, R]{ .var -> this.consume, .in(val) -> Let#{
-//    .var -> this._mutate(val, f#val),
-//    .in(res) -> Yeet.with(this.set(res.val), res.res)
-//    }},
-//    read ._mutate[R](val: mut T, res: R): iso MutateRes[T,R] -> iso MutateRes[T,R]{ .val -> val, .res -> res }
-//  }
-//MutateRes[T,R]:{ mut .val: mut T, .res: R }
+IsoPod:{ #[T](val: iso T): mut IsoPod[T] -> base.Abort! } // magic
+IsoPod[T]:{
+  read .isAlive: Bool, // magic
+  read .isDead: Bool -> this.isAlive.not,
+  mut .peek: read T, // magic
+  mut .consume: iso T, // magic
+  mut *: iso T -> this.consume,
+  mut .next(val: iso T): Void, // magic
+  mut :=(val: iso T): Void -> this.next(val),
+  mut .mutate(f: F[mut T, Void]): Void -> this.next(IsoMutator#(f, this.consume)),
+  }
+IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Yeet.with(f#val, val) }
 
 // TODO The idea:
 //IsoPod[T]:{

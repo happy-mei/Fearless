@@ -16,6 +16,7 @@ Let:{
   }
 Let[V,R]:NoMutHyg[mdf V],NoMutHyg[mdf R]{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
 LetHyg[V,R]:{ lent .var: mdf V, lent .in(v: mdf V): mdf R }
+LetIso[V,R]:{ lent .var: iso V, lent .in(v: mdf V): mdf R }
 
 //LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
 //LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }

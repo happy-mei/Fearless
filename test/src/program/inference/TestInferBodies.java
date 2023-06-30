@@ -425,13 +425,13 @@ public class TestInferBodies {
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear[###]$
             .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear[###]$},
             .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear[###]$}}])}]}
-    """, """
+    """, Stream.concat(Stream.of("""
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Test:{
       #: Int -> False.or(True)?{.then->42,.else->0}
     }
-    """, Base.load("lang.fear"), Base.load("caps/capabilities.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear"), Base.load("lists.fear"), Base.load("iter.fear"), Base.load("block.fear"), Base.load("ref.fear"), Base.load("optionals.fear")); }
+    """), Arrays.stream(Base.baseLib)).toArray(String[]::new)); }
   @Test void boolUsageExplicitGens() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[]]{'this
       #/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->
@@ -440,13 +440,13 @@ public class TestInferBodies {
           ?/1[immbase.Int[]]([[-mut-][base.ThenElse[immbase.Int[]]]{'fear[###]$
             .then/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm42[]]->[-imm-][42[]]{'fear[###]$},
             .else/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm0[]]->[-imm-][0[]]{'fear[###]$}}])}]}
-    """, """
+    """, Stream.concat(Stream.of("""
     package test
     alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
     Test:{
       #: Int -> False.or(True) ?[Int]{ .then -> 42, .else -> 0 }
     }
-    """, Base.load("lang.fear"), Base.load("caps/capabilities.fear"), Base.load("nums.fear"), Base.load("bools.fear"), Base.load("strings.fear"), Base.load("lists.fear"), Base.load("iter.fear"), Base.load("block.fear"), Base.load("ref.fear"), Base.load("optionals.fear")); }
+    """), Arrays.stream(Base.baseLib)).toArray(String[]::new)); }
   // TODO: why isn't this inferring gens?
   @Test void boolUsageExplicitGensBasicSameT() { ok("""
     {test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[],base.Main[imm42[]]]{'this
@@ -706,7 +706,7 @@ public class TestInferBodies {
         this.nm/1[]([[-imm-][test.Foo[]]{'fear[###]$}.bar/0[]([])])}],
     test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this
       .bar/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm5[]]->[-imm-][5[]]{'fear[###]$}}]}
-    """, """
+    """, Stream.concat(Stream.of("""
     package test
     alias base.Int as Int,
     Foo:{ .bar: 5 -> 5 }
@@ -714,21 +714,21 @@ public class TestInferBodies {
       .nm(n: Int): Int -> n,
       .check: Int -> this.nm(Foo.bar)
       }
-    """, Base.load("lang.fear"), Base.load("caps/capabilities.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"), Base.load("lists.fear"), Base.load("iter.fear"), Base.load("block.fear"), Base.load("ref.fear"), Base.load("optionals.fear"));}
+    """), Arrays.stream(Base.baseLib)).toArray(String[]::new));}
 
   @Test void numImpls2() { ok("""
     {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
       .nm/1([n]):Sig[mdf=imm,gens=[],ts=[immbase.Int[]],ret=immbase.Int[]]->n,
       .check/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Int[]]->
         this.nm/1[]([[-imm-][5[]]{'fear[###]$}])}]}
-    """, """
+    """, Stream.concat(Stream.of("""
     package test
     alias base.Int as Int,
     Bar:{
       .nm(n: Int): Int -> n,
       .check: Int -> this.nm(5)
       }
-    """, Base.load("lang.fear"), Base.load("caps/capabilities.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("bools.fear"), Base.load("lists.fear"), Base.load("iter.fear"), Base.load("block.fear"), Base.load("ref.fear"), Base.load("optionals.fear"));}
+    """), Arrays.stream(Base.baseLib)).toArray(String[]::new));}
 
   @Test void assertions() { ok("""
     {test.Assert/0=Dec[name=test.Assert/0,gxs=[],lambda=[-mdf-][test.Assert[]]{'this

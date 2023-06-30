@@ -15,6 +15,7 @@ public class Magic {
   public static final Id.DecId Float = new Id.DecId("base.Float", 0);
   public static final Id.DecId Str = new Id.DecId("base.Str", 0);
   public static final Id.DecId RefK = new Id.DecId("base.Ref", 0);
+  public static final Id.DecId IsoPodK = new Id.DecId("base.caps.IsoPod", 0);
   public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);
   public static final Id.DecId RootCap = new Id.DecId("base.caps._RootCap", 0);
   public static final Id.DecId Abort = new Id.DecId("base.Abort", 0);

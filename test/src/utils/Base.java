@@ -16,8 +16,22 @@ public interface Base {
     );
   }
 
-  static String load(String file) { return read(Path.of("base", file)); }
-  static String loadImm(String file) { return read(Path.of("immBase", file)); }
+  static String load(String file) {
+    try {
+      var root = Path.of(Thread.currentThread().getContextClassLoader().getResource("base").toURI());
+      return read(root.resolve(file));
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  static String loadImm(String file) {
+    try {
+      var root = Path.of(Thread.currentThread().getContextClassLoader().getResource("immBase").toURI());
+      return read(root.resolve(file));
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
   static String read(Path path) {
     try {
       return Files.readString(path, StandardCharsets.UTF_8);
@@ -60,6 +74,7 @@ public interface Base {
     alias base.caps.LentReturnStmt as LentReturnStmt,
     alias base.caps.IO as IO,
     alias base.caps.IO' as IO',
+    alias base.caps.IsoPod as IsoPod,
     alias base.Error as Error,
     alias base.Info as Info,
     alias base.BlockIfTrue as BlockIfTrue,

@@ -25,6 +25,7 @@ public interface MagicImpls<R> {
       if (isMagic(Magic.Float, l)) { return Optional.ofNullable(float_(l, e)); }
       if (isMagic(Magic.Str, l)) { return Optional.ofNullable(str(l, e)); }
       if (isMagic(Magic.RefK, l)) { return Optional.ofNullable(refK(l, e)); }
+      if (isMagic(Magic.IsoPodK, l)) { return Optional.ofNullable(isoPodK(l, e)); }
       if (isMagic(Magic.Assert, l)) { return Optional.ofNullable(assert_(l, e)); }
       if (isMagic(Magic.Abort, l)) { return Optional.ofNullable(abort(l, e)); }
       if (isMagic(Magic.RootCap, l)) { return Optional.ofNullable(rootCap(l, e)); }
@@ -54,6 +55,7 @@ public interface MagicImpls<R> {
   MagicTrait<R> float_(MIR.Lambda l, MIR e);
   MagicTrait<R> str(MIR.Lambda l, MIR e);
   MagicTrait<R> refK(MIR.Lambda l, MIR e);
+  MagicTrait<R> isoPodK(MIR.Lambda l, MIR e);
   MagicTrait<R> assert_(MIR.Lambda l, MIR e);
   default MagicTrait<R> abort(MIR.Lambda l, MIR e) { return  null; }
   MagicTrait<R> rootCap(MIR.Lambda l, MIR e);

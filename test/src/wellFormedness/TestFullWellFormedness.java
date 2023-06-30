@@ -51,7 +51,7 @@ public class TestFullWellFormedness {
   @Test void noIsoParamsLambda1() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
-    The iso reference capability may not be used in type modifiers:
+    The iso reference capability may not be used in generic type arguments:
     iso pkg1.A[]
     """, """
     package pkg1
@@ -61,7 +61,7 @@ public class TestFullWellFormedness {
   @Test void noIsoParamsLambda2() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
-    The iso reference capability may not be used in type modifiers:
+    The iso reference capability may not be used in generic type arguments:
     iso pkg1.A[]
     """, """
     package pkg1
@@ -71,7 +71,7 @@ public class TestFullWellFormedness {
   @Test void noIsoParamsLambdaNested1() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
-    The iso reference capability may not be used in type modifiers:
+    The iso reference capability may not be used in generic type arguments:
     iso pkg1.A[]
     """, """
     package pkg1
@@ -81,7 +81,7 @@ public class TestFullWellFormedness {
   @Test void noIsoParamsLambdaNested2() { fail("""
     In position [###]/Dummy0.fear:4:2
     [E5 isoInTypeArgs]
-    The iso reference capability may not be used in type modifiers:
+    The iso reference capability may not be used in generic type arguments:
     iso pkg1.A[]
     """, """
     package pkg1
@@ -99,7 +99,7 @@ public class TestFullWellFormedness {
   @Test void noIsoParamsAlias1() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E5 isoInTypeArgs]
-    The iso reference capability may not be used in type modifiers:
+    The iso reference capability may not be used in generic type arguments:
     iso pkg1.A[]
     """, """
     package pkg1
@@ -110,7 +110,7 @@ public class TestFullWellFormedness {
   @Test void noIsoParamsAliasNested1() { fail("""
     In position [###]/Dummy0.fear:2:0
     [E5 isoInTypeArgs]
-    The iso reference capability may not be used in type modifiers:
+    The iso reference capability may not be used in generic type arguments:
     iso pkg1.A[]
     """, """
     package pkg1
@@ -122,7 +122,7 @@ public class TestFullWellFormedness {
   @Test void noIsoParamsMethRet() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
-    The iso reference capability may not be used in type modifiers:
+    The iso reference capability may not be used in generic type arguments:
     iso pkg1.A[]
     """, """
     package pkg1
@@ -137,7 +137,7 @@ public class TestFullWellFormedness {
   @Test void isoParamsMethParams() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
-    The iso reference capability may not be used in type modifiers:
+    The iso reference capability may not be used in generic type arguments:
     iso pkg1.A[]
     """, """
     package pkg1
@@ -147,7 +147,7 @@ public class TestFullWellFormedness {
   @Test void isoParamsMethParamsGens() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
-    The iso reference capability may not be used in type modifiers:
+    The iso reference capability may not be used in generic type arguments:
     iso T
     """, """
     package pkg1
@@ -157,7 +157,7 @@ public class TestFullWellFormedness {
   @Test void isoParamsMethCall() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
-    The iso reference capability may not be used in type modifiers:
+    The iso reference capability may not be used in generic type arguments:
     iso pkg1.A[]
     """, """
     package pkg1

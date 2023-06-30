@@ -164,6 +164,39 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     };
   }
 
+  @Override public MagicTrait<String> isoPodK(MIR.Lambda l, MIR e) {
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        return gen.visitLambda(l, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        if (m.equals(new Id.MethName("#", 1))) {
+          var x = args.get(0);
+          return Optional.of(String.format("""
+            new base$46caps.IsoPod_1(){
+              protected Object x = %s;
+              protected boolean isAlive = true;
+              
+              public base.Bool_0 isAlive$() { return this.isAlive ? new base.True_0(){} : new base.False_0(){}; }
+              public Object peek$() { return this.consume$(); }
+              public Object consume$() {
+                if (!this.isAlive) {
+                  throw new RuntimeException("Cannot consume an empty IsoPod.");
+                }
+                this.isAlive = false;
+                return this.x;
+              }
+              public base.Void_0 next$(Object x) { this.isAlive = true; this.x = x; return new base.Void_0(){}; }
+            }
+            """, x.accept(gen)));
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
   @Override public MagicTrait<String> assert_(MIR.Lambda l, MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
