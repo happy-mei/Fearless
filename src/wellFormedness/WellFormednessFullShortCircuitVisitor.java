@@ -113,7 +113,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       .or(()->super.visitT(t));
   }
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
-    return noIsoParams(t.ts())
+    return noIsoParams(t, t.ts())
       .or(()->super.visitIT(t));
   }
 

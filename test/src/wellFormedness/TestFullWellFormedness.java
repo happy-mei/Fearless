@@ -52,7 +52,7 @@ public class TestFullWellFormedness {
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in generic type arguments:
-    iso pkg1.A[]
+    pkg1.Opt[iso pkg1.A[]]
     """, """
     package pkg1
     Opt[T]:{}
@@ -62,7 +62,7 @@ public class TestFullWellFormedness {
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in generic type arguments:
-    iso pkg1.A[]
+    pkg1.Opt[iso pkg1.A[]]
     """, """
     package pkg1
     Opt[T]:{}
@@ -72,7 +72,7 @@ public class TestFullWellFormedness {
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in generic type arguments:
-    iso pkg1.A[]
+    pkg1.Opt[mut pkg1.Opt[iso pkg1.A[]]]
     """, """
     package pkg1
     Opt[T]:{}
@@ -82,7 +82,7 @@ public class TestFullWellFormedness {
     In position [###]/Dummy0.fear:4:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in generic type arguments:
-    iso pkg1.A[]
+    pkg1.B[imm pkg1.Opt[imm pkg1.A[]], imm pkg1.Opt[imm pkg1.Opt[iso pkg1.A[]]]]
     """, """
     package pkg1
     Opt[T]:{}
@@ -100,7 +100,7 @@ public class TestFullWellFormedness {
     In position [###]/Dummy0.fear:2:0
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in generic type arguments:
-    iso pkg1.A[]
+    pkg1.Opt[iso pkg1.A[]]
     """, """
     package pkg1
     alias pkg1.Opt[iso pkg1.A] as OptA,
@@ -111,7 +111,7 @@ public class TestFullWellFormedness {
     In position [###]/Dummy0.fear:2:0
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in generic type arguments:
-    iso pkg1.A[]
+    pkg1.Opt[imm pkg1.Opt[iso pkg1.A[]]]
     """, """
     package pkg1
     alias pkg1.Opt[pkg1.Opt[iso pkg1.A]] as OptA,
@@ -123,7 +123,7 @@ public class TestFullWellFormedness {
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in generic type arguments:
-    iso pkg1.A[]
+    pkg1.Opt[iso pkg1.A[]]
     """, """
     package pkg1
     Opt[T]:{}
@@ -138,7 +138,7 @@ public class TestFullWellFormedness {
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in generic type arguments:
-    iso pkg1.A[]
+    pkg1.A[iso pkg1.A[]]
     """, """
     package pkg1
     Opt[T]:{}
@@ -148,7 +148,7 @@ public class TestFullWellFormedness {
     In position [###]/Dummy0.fear:3:2
     [E5 isoInTypeArgs]
     The iso reference capability may not be used in generic type arguments:
-    iso T
+    pkg1.A[iso T]
     """, """
     package pkg1
     Opt[T]:{}
