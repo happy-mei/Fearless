@@ -48,6 +48,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Void visitErrorNode(ErrorNode arg0){ throw Bug.unreachable(); }
   @Override public Void visitTerminal(TerminalNode arg0){ throw Bug.unreachable(); }
   @Override public Object visitRoundE(RoundEContext ctx){ throw Bug.unreachable(); }
+  @Override public Object visitMGen(MGenContext ctx) { throw Bug.unreachable(); }
+
   @Override public Object visitBblock(BblockContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitPOp(POpContext ctx){ throw Bug.unreachable(); }
   @Override public T.Dec visitTopDec(TopDecContext ctx) { throw Bug.unreachable(); }
@@ -60,7 +62,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     check(ctx);
     return new Call(
       new MethName(ctx.m().getText(),1),
-      visitMGen(ctx.mGen()),
+      visitMGen(ctx.mGen(), true),
       Optional.ofNullable(ctx.x()).map(this::visitX),
       List.of(visitPostE(ctx.postE())),
       pos(ctx)
@@ -97,7 +99,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   List<Call> fromPOp(POpContext ctx) {
     var call = new Call(
       new MethName(ctx.m().getText(),ctx.e().size()),
-      visitMGen(ctx.mGen()),
+      visitMGen(ctx.mGen(), true),
       Optional.ofNullable(ctx.x()).map(this::visitX),
       ctx.e().stream().map(this::visitE).toList(),
       pos(ctx)
@@ -130,15 +132,15 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     E res=new E.MCall(root, new MethName(m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
     return desugar(res,newTail);
   }
-  @Override public Optional<List<T>> visitMGen(MGenContext ctx){
+  public Optional<List<T>> visitMGen(MGenContext ctx, boolean canMdf){
     if(ctx.children==null){ return Optional.empty(); }//subsumes check(ctx);
     var noTs = ctx.t()==null || ctx.t().isEmpty();
     if(ctx.OS() == null){ return Optional.empty(); }
     if(noTs){ return Optional.of(List.of()); }
-    return Optional.of(ctx.t().stream().map(this::visitT).toList());
+    return Optional.of(ctx.t().stream().map(tCtx->visitT(tCtx, canMdf)).toList());
   }
   public Optional<List<Id.GX<T>>> visitMGenParams(MGenContext ctx){
-    var mGens = this.visitMGen(ctx);
+    var mGens = this.visitMGen(ctx, false);
     return mGens.map(ts->ts.stream()
       .map(t->t.match(
         gx->gx,
@@ -215,13 +217,12 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public T visitT(TContext ctx) { return visitT(ctx,true); }
   public T visitT(TContext ctx, boolean canMdf) {
     if(!canMdf && !ctx.mdf().getText().isEmpty()){
-      // todo: error message for something like A:imm B (no mdf allowed)
-      throw Bug.todo();
+      throw Fail.noMdfInFormalParams(ctx.getText()).pos(pos(ctx));
     }
     Mdf mdf = visitMdf(ctx.mdf());
     String name = visitFullCN(ctx.fullCN());
     var isFullName = name.contains(".");
-    var mGen=visitMGen(ctx.mGen());
+    var mGen=visitMGen(ctx.mGen(), true);
     Optional<Id.IT<T>> resolved = isFullName ? Optional.empty() : resolve.apply(name);
     var isIT = isFullName || resolved.isPresent();
     if(!isIT){
@@ -297,7 +298,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public T.Alias visitAlias(AliasContext ctx) {
     check(ctx);
     var in = visitFullCN(ctx.fullCN(0));
-    var _inG = opt(ctx.mGen(0),this::visitMGen);
+    var _inG = opt(ctx.mGen(0),mGenCtx->visitMGen(mGenCtx, true));
     var inG = Optional.ofNullable(_inG).flatMap(e->e).orElse(List.of());
     var inT=new Id.IT<T>(in,inG);
     var out = visitFullCN(ctx.fullCN(1));

@@ -433,4 +433,28 @@ class TestFullParser {
     A:{ .foo(a: A, b: A): A }
     B:A{ a, b -> b }
     """); }
+
+  @Test void noModifiersInFormalTypeParams1() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    [E46 noMdfInFormalParams]
+    Modifiers are not allowed in declarations or implementation lists: mutB
+    """, """
+    package test
+    A[mut B]:{}
+    """); }
+  @Test void noModifiersInFormalTypeParams2() { ok("""
+    {test.A/1=Dec[name=test.A/1,gxs=[B],lambda=[-infer-][]{}]}
+    """, """
+    package test
+    A[B]:{}
+    """); }
+  @Test void noModifiersInImpls() { fail("""
+    In position [###]/Dummy0.fear:3:2
+    [E46 noMdfInFormalParams]
+    Modifiers are not allowed in declarations or implementation lists: mutA
+    """, """
+    package test
+    A:{}
+    B:mut A{}
+    """); }
 }

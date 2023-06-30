@@ -237,7 +237,6 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
     });
   }
 
-
   private Optional<CompileError> noRecMdfInNonHyg(E.Sig s, Id.MethName name) {
     if (s.mdf().isHyg()) { return Optional.empty(); }
     return new FullShortCircuitVisitor<CompileError>(){

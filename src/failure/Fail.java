@@ -199,6 +199,10 @@ public class Fail{
     return of("The isolated reference \""+x+"\" is used more than once.");
   }
 
+  public static CompileError noMdfInFormalParams(String ty) {
+    return of("Modifiers are not allowed in declarations or implementation lists: "+ty);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -251,6 +255,7 @@ enum ErrorCode {
   fsError,
   invalidEntryPoint,
   ignoredIdentInExpr,
-  multipleIsoUsage;
+  multipleIsoUsage,
+  noMdfInFormalParams;
   int code() {return this.ordinal() + 1;}
 }
