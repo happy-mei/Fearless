@@ -67,7 +67,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   private Optional<CompileError> noIsoMoreThanOnce(E.X x) {
     var t = env.get(x);
     if (!t.mdf().isIso()) { return Optional.empty(); }
-    if (env.usages().get(x.name()) <= 1) { return Optional.empty(); }
+    if (env.usages().getOrDefault(x.name(), 0) <= 1) { return Optional.empty(); }
     return Optional.of(Fail.multipleIsoUsage(x).pos(x.pos()));
   }
 

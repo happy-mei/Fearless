@@ -35,6 +35,15 @@ public record Env(List<String> xs, List<T> ts, List<Id.GX<T>> gxs, T decT, HashM
       })
     );
   }
+  public Env add(E.Lambda l){
+    return new Env(
+      Push.of(xs,l.selfName()),
+      Push.of(ts,new T(l.mdf(), new Id.IT<>(Id.GX.fresh().name(), List.of()))),
+      gxs,
+      decT,
+      new HashMap<>()
+    );
+  }
   public Env add(List<Id.GX<T>>gxs){ return new Env(xs,ts,Push.of(gxs(),gxs),decT,usages); }
   public Env add(E.X x, T t){ return add(x.name(),t); }
   public Env add(String x, T t){ return new Env(Push.of(xs,x),Push.of(ts,t),gxs,decT,Mapper.ofMut(c->{

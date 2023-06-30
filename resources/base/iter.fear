@@ -34,10 +34,10 @@ Iter[E]:{
     .some(e) -> this.foldImm(f#(initial, e), f),
     .none -> initial
     },
-  lent .foldIso[R](initial: iso R, f: lent IterFolderIso[E, R]): R -> this.next.matchHyg{
-      .some(e) -> this.foldIso[R](f#(initial, e), f),
-      .none -> initial
-      },
+//  lent .foldIso[R](initial: iso R, f: lent IterFolderIso[E, R]): R -> this.next.matchHyg{
+//      .some(e) -> this.foldIso[R](f#(initial, e), f),
+//      .none -> initial
+//      },
   mut .foldMut[R](initial: mut R, f: mut IterFolder[mdf E, mut R]): mut R -> this.next.match{
     .some(e) -> this.foldMut(f#(initial, e), f),
     .none -> initial
@@ -45,18 +45,18 @@ Iter[E]:{
   lent .for(f: lent IterForEacher[mdf E]): Void -> this.foldImm(Void, { _, e -> f#e }),
 
   lent .count: UInt -> this.fold[UInt](0u, IterFolder[mdf E, UInt]{ acc, _ -> acc + 1u }),
-  lent .list: mut List[mdf E] ->
-    this.foldIso[List[mdf E]](iso List#[mdf E], { acc, e -> ListIsoAdd[mdf E]#(acc, e) }),
-  lent .llistMut: mut LListMut[mdf E] ->
-    this.foldIso[LListMut[mdf E]](iso LListMut[mdf E], { acc, e -> acc + e }),
+//  lent .list: mut List[mdf E] ->
+//    this.foldIso[List[mdf E]](iso List#[mdf E], { acc, e -> ListIsoAdd[mdf E]#(acc, e) }),
+//  lent .llistMut: mut LListMut[mdf E] ->
+//    this.foldIso[LListMut[mdf E]](iso LListMut[mdf E], { acc, e -> acc + e }),
   lent .str(toStr: lent IterMapper[mdf E, Str], joining: Str): Str -> (this.map(toStr))
     .fold[Str]("", IterFolder[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e, .else -> acc + joining + e } })
   }
-ListIsoAdd[E]:{
-  #(l: mut List[mdf E], e: mdf E): iso List[mdf E] -> this._helper(l, e),
-    ._helper(l: mut List[mdf E], e: mdf E): mut List[mdf E] -> this._helper(l.add(e), l),
-    .__helper(x: Void, l: mut List[mdf E]): mut List[mdf E] -> l,
-  }
+//ListIsoAdd[E]:{
+//  #(l: mut List[mdf E], e: mdf E): iso List[mdf E] -> this._helper(l, e),
+//    ._helper(l: mut List[mdf E], e: mdf E): mut List[mdf E] -> this._helper(l.add(e), l),
+//    .__helper(x: Void, l: mut List[mdf E]): mut List[mdf E] -> l,
+//  }
 
 Sum:{
   .int(ns: lent Iter[Int]): Int -> ns.fold[Int](0, IterFolder[Int, Int]{ acc, n -> acc + n }),

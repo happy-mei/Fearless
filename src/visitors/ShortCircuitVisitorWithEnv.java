@@ -25,8 +25,7 @@ public class ShortCircuitVisitorWithEnv<R> implements ShortCircuitVisitor<R> {
   }
   public Optional<R> visitLambda(E.Lambda e){
     var oldEnv = env;
-    Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
-    this.env = Optional.ofNullable(e.selfName()).map(n->env.add(n, new T(e.mdf(), new Id.IT<>(fresh, List.of())))).orElse(env);
+    this.env = env.add(e);
     try { return ShortCircuitVisitor.super.visitLambda(e); }
     finally { this.env = oldEnv; }
   }
