@@ -5,6 +5,7 @@ import ast.Program;
 import ast.T;
 import id.Id;
 import id.Mdf;
+import program.CM;
 import program.TypeRename;
 import utils.Streams;
 import visitors.CollectorVisitor;
@@ -41,11 +42,13 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       })
       .toList();
     var impls = simplifyImpls(dec.lambda().its().stream().filter(it->!it.name().equals(dec.name())).toList());
+    var canSingleton = p.meths(Mdf.mdf, dec.toIT(), 0).stream().noneMatch(CM::isAbs);
     return new MIR.Trait(
       dec.name(),
       dec.gxs(),
       impls,
-      ms
+      ms,
+      canSingleton
     );
   }
 
@@ -83,22 +86,26 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       var g = new HashMap<>(gamma);
       g.put(e.selfName(), new T(e.mdf(), it));
       List<MIR.Meth> ms = e.meths().stream().map(m->visitMeth(pkg, m, g)).toList();
+      var canSingleton = ms.isEmpty() && p.meths(e.mdf(), it, 0).stream().noneMatch(CM::isAbs);
       return new MIR.Lambda(
         e.mdf(),
         it.name(),
         e.selfName(),
         List.of(),
         captures,
-        ms
+        ms,
+        canSingleton
       );
     }
 
     var fresh = new Id.DecId(Id.GX.fresh().name(), 0);
     var freshName = new Id.DecId(pkg+"."+fresh, 0);
+    var freshDec = new T.Dec(freshName, List.of(), e, e.pos());
     impls = impls.stream().filter(it->!it.name().equals(fresh)).toList();
-    MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), impls, List.of());
+    var canSingletonTrait = p.meths(e.mdf(), freshDec.toIT(), 0).stream().noneMatch(CM::isAbs);
+    MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), impls, List.of(), canSingletonTrait);
     freshTraits.add(freshTrait);
-    p = p.withDec(new T.Dec(freshName, List.of(), e, e.pos()));
+    p = p.withDec(freshDec);
 
     var g = new HashMap<>(gamma);
     g.put(e.selfName(), new T(e.mdf(), new Id.IT<>(fresh, List.of())));
@@ -109,7 +116,8 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       e.selfName(),
       impls,
       captures,
-      ms
+      ms,
+      canSingletonTrait && ms.isEmpty()
     );
   }
 
