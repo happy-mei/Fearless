@@ -11,8 +11,8 @@ Debug:Sealed{ #[T](x: T): T -> x } // TODO: magic
 HasIdentity:{ mut .idEq(other: read HasIdentity): Bool -> this.idEq(other) } // TODO: magic
 
 Let:{
-  #[mdf V, mdf R](l: mut Let[mdf V, mdf R]): mdf R -> l.in(l.var),
-  .hyg[mdf V, mdf R](l: lent LetHyg[mdf V, mdf R]): mdf R -> l.in(l.var),
+  #[V,R](l: mut Let[mdf V, mdf R]): mdf R -> l.in(l.var),
+  .hyg[V,R](l: lent LetHyg[mdf V, mdf R]): mdf R -> l.in(l.var),
   }
 Let[V,R]:NoMutHyg[mdf V],NoMutHyg[mdf R]{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
 LetHyg[V,R]:{ lent .var: mdf V, lent .in(v: mdf V): mdf R }
