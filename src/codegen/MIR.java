@@ -1,5 +1,6 @@
 package codegen;
 
+import ast.Program;
 import ast.T;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -22,12 +23,7 @@ public interface MIR {
   T t();
 
   record Program(Map<String, List<Trait>> pkgs) {}
-  record Trait(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<Meth> meths) {
-    public boolean canSingleton() {
-      return false; // TODO
-//      return meths().values().stream().noneMatch(Meth::isAbs);
-    }
-  }
+  record Trait(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<Meth> meths, boolean canSingleton) {}
   record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<X> xs, T rt, Optional<MIR> body) {
     public boolean isAbs() { return body.isEmpty(); }
   }
@@ -47,7 +43,7 @@ public interface MIR {
       return v.visitMCall(this, checkMagic);
     }
   }
-  record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, List<X> captures, List<Meth> meths) implements MIR {
+  record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, List<X> captures, List<Meth> meths, boolean canSingleton) implements MIR {
     public <R> R accept(MIRVisitor<R> v) {
       return this.accept(v, true);
     }
@@ -58,7 +54,7 @@ public interface MIR {
       return new T(mdf, new Id.IT<>(freshName, Collections.nCopies(freshName.gen(), new T(Mdf.mdf, new Id.GX<>("FearIgnored$")))));
     }
     public Lambda withITs(List<Id.IT<T>> its) {
-      return new Lambda(mdf, freshName, selfName, its, captures, meths);
+      return new Lambda(mdf, freshName, selfName, its, captures, meths, canSingleton);
     }
   }
 //  record Share(MIR e) implements MIR {

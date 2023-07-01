@@ -57,7 +57,14 @@ public class JavaCodegen implements MIRVisitor<String> {
       .collect(Collectors.joining(","));
     var impls = its.isEmpty() ? "" : " extends "+its;
     var start = "interface "+shortName+impls+"{\n";
-    var singletonGet = trait.canSingleton() ? longName+" _$self = new "+ longName+"(){};" : "";
+//    var singletonGet = trait.canSingleton() ? longName+" _$self = new "+ longName+"(){};" : "";
+    var singletonGet = "";
+    if (trait.canSingleton()) {
+      singletonGet = """
+        %s _$self = new %s(){};
+        """.formatted(longName, longName);
+    }
+
     return start + singletonGet + trait.meths().stream()
       .map(m->visitMeth(m, "this", false))
       .collect(Collectors.joining("\n")) + "}";
@@ -102,6 +109,10 @@ public class JavaCodegen implements MIRVisitor<String> {
     var magicImpl = magic.get(l);
     if (checkMagic && magicImpl.isPresent()) {
       return magicImpl.get().instantiate();
+    }
+
+    if (l.canSingleton()) {
+      return getName(l.freshName())+"._$self";
     }
 
     var start = "new "+getName(l.freshName())+"(){\n";
