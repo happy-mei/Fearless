@@ -32,16 +32,16 @@
             <artifactId>antlr4</artifactId>
             <version>4.12.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.graalvm.truffle</groupId>
-            <artifactId>truffle-api</artifactId>
-            <version>22.3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.truffle</groupId>
-            <artifactId>truffle-dsl-processor</artifactId>
-            <version>22.3.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.graalvm.truffle</groupId>-->
+<!--            <artifactId>truffle-api</artifactId>-->
+<!--            <version>22.3.1</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.graalvm.truffle</groupId>-->
+<!--            <artifactId>truffle-dsl-processor</artifactId>-->
+<!--            <version>22.3.1</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>faux-pas</artifactId>
@@ -99,9 +99,9 @@
                     <compilerArgs>
                         <arg>--enable-preview</arg>
                     </compilerArgs>
-                    <excludes>
-                        <exclude>codegen/truffle/*.java</exclude>
-                    </excludes>
+<!--                    <excludes>-->
+<!--                        <exclude>codegen/truffle/*.java</exclude>-->
+<!--                    </excludes>-->
                 </configuration>
             </plugin>
             <plugin>

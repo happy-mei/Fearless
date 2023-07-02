@@ -28,6 +28,7 @@ public class Main {
       .withJarName("fearless")
       .withDescription("The compiler for the Fearless programming language. See https://fearlang.org for more information.")
       .withArg("new", "Create a new package")
+      .withArg("check", "c", "Check that the given fearless program is valid")
       .withArg("run", "r", "Compile and run the given fearless program")
         .withArg("entry-point", "The qualified name for the entry-trait that implements base.Main")
         .withDependencies("run", "entry-point")
@@ -35,7 +36,7 @@ public class Main {
       .withFlag("imm-base", "Use a pure version of the Fearless standard library")
       .withFlag("show-internal-stack-traces", "Show stack traces within the compiler on errors for debugging purposes")
       .withFlag("print-codegen", "pc", "Print the output of the codegen stage to standard output")
-      .withAtLeastOneRequiredOption("help", "new", "run", "regenerate-aliases")
+      .withAtLeastOneRequiredOption("help", "new", "check", "run", "regenerate-aliases")
       .withEntryPoint(res->{
         var bv = res.hasOption("imm-base") ? CompilerFrontEnd.BaseVariant.Imm : CompilerFrontEnd.BaseVariant.Std;
 
@@ -47,6 +48,10 @@ public class Main {
 
         if (res.hasOption("new")) {
           frontEnd.newPkg(res.getOptionValue("new"));
+          return;
+        }
+        if (res.hasOption("check")) {
+          frontEnd.check(res.getOptionValues("check"));
           return;
         }
         if (res.hasOption("run")) {

@@ -10,9 +10,9 @@ import program.typesystem.EMethTypeSystem;
 import utils.Bug;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.FileSystemException;
-import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +21,8 @@ import java.util.stream.Collectors;
 public class Fail{
   static {
     // Ensure that ErrorCode is consistent
-    Arrays.stream(Fail.class.getDeclaredMethods())
+    Method[] ms = Fail.class.getDeclaredMethods();
+    Arrays.stream(ms)
       .filter(m-> Modifier.isStatic(m.getModifiers()) && Modifier.isPublic(m.getModifiers()))
       .filter(m->!m.getName().equals("conflict"))
       .forEach(m->{

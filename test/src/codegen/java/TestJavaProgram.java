@@ -495,7 +495,7 @@ public class TestJavaProgram {
   @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _,_ -> Do#
-      .var[Int] closest = { Closest#((LListMut#[Int]35 + 52 + 84 + 14).toList, 49) }
+      .var[Int] closest = { Closest#((LListMut#[Int]35 + 52 + 84 + 14).list, 49) }
       .return{ Assert#(closest == 52, closest.str, {{}}) }
       }
     Closest:{
@@ -563,8 +563,8 @@ public class TestJavaProgram {
     """, Base.mutBaseAliases); }
   @Test void listIterRead() { ok(new Res("", "", 0), "test.Test", """
     package test
-    Test:Main{ _,_ -> Do#
-      .var[mut List[Int]] l1 = { (LListMut#[Int]35 + 52 + 84 + 14).toList }
+    Test:Main{ _,_ -> Do.hyg
+      .var[read List[Int]] l1 = { (LListMut#[Int]35 + 52 + 84 + 14).list }
       .do{ Assert#((l1.look(0u))! == l1.iter.next!, "sanity", {{}}) }
       .do{ Assert#((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert#((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
@@ -573,13 +573,37 @@ public class TestJavaProgram {
                       .find{n -> n == 140})
                       .isSome,
         "map", {{}})}
+      .do{ Assert#((l1.iter
+                      .filter{n -> n > 50}
+                      .find{n -> n == 84})
+                      .isSome,
+        "filter", {{}})}
+      .do{ Assert#(((l1.iter
+                      .filter{n -> n > 50})
+                      .count) == 2u,
+        "count", {{}})}
+      .do{ Assert#(((l1.iter
+                      .filter{n -> n > 50})
+                      .list).len == 2u,
+        "toList", {{}})}
+      .do{ Assert#(((l1.iter
+                      .filter{n -> n > 50})
+                      .llistMut).len == 2u,
+        "toLListMut", {{}})}
+      .do{ Assert#(((l1.iter
+                    .flatMap{n -> (List#(n, n, n)).iter}
+                    .map{n -> n * 10})
+                    .str({n -> n.str}, ";")) == "350;350;350;520;520;520;840;840;840;140;140;140",
+        "flatMap", {{}})}
+      .do{ Assert#(Sum.int(l1.iter.map{n -> n+0}) == 185, "sum int", {{}})}
+      .do{ Assert#(Sum.uint(l1.iter.map{n -> n.uint}) == 185u, "sum uint", {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }
   @Test void listIterMut() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _,_ -> Do#
-      .var[mut List[Int]] l1 = { (LListMut#[Int]35 + 52 + 84 + 14).toList }
+      .var[mut List[Int]] l1 = { (LListMut#[Int]35 + 52 + 84 + 14).list }
       .do{ Assert#((l1.get(0u))! == l1.iterMut.next!, "sanity", {{}}) }
       .do{ Assert#((l1.iterMut.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert#((l1.iterMut.find{n -> n > 100}).isNone, "find empty", {{}}) }

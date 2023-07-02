@@ -7,7 +7,7 @@ module FearlessCompiler {//TODO: can I use suppress warnings here?
   requires com.fasterxml.jackson.annotation;
   requires com.fasterxml.jackson.databind;
   requires java.compiler;
-  requires org.graalvm.truffle;
+//  requires org.graalvm.truffle;
   requires commons.cli;
   requires cmdline.app;
   requires faux.pas;

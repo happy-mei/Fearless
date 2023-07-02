@@ -83,6 +83,10 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
     System.exit(proc.exitValue());
   }
 
+  void check(String[] files) {
+    compile(files);
+  }
+
   Program compile(String[] files) {
     var base = parseBase();
     Map<String, List<Package>> ps = new HashMap<>(base);
@@ -156,7 +160,8 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
 
   static <R> R resolveResource(String root, Function<Path, R> f) throws IOException, URISyntaxException {
     var top = requireNonNull(CompilerFrontEnd.class.getResource(root)).toURI();
-    if (!top.getScheme().equals("jar")) {
+    System.out.println(top.getScheme());
+    if (!top.getScheme().equals("jar") && !top.getScheme().equals("resource")) {
       return f.apply(Path.of(top));
     }
     try(var fs = FileSystems.newFileSystem(top, Map.of())) {
