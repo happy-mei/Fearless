@@ -225,4 +225,16 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
     """, """
     a + b - c
     """); }
+
+  @Test void bracketsWork1() { ok("""
+    foo:infer#/1[-]([bar:infer]):infer.baz/0[-]([]):infer
+    """, "foo#(bar).baz"); }
+  @Test void bracketsWork2() { ok("""
+    foo:infer#/1[-]([bar:infer]):infer.baz/0[-]([]):infer
+    """, "(foo#(bar)).baz"); }
+  @Test void bracketsWork3() { ok("""
+    foo:infer#/1[-]([bar:infer]):infer.baz/0[-]([]):infer.bar/0[-]([]):infer
+    """, "foo#(bar).baz.bar"); }
+  @Test void bracketsWork4() { same("(foo#(a,b)).baz.bar", "foo#(a,b).baz.bar"); }
+  @Test void bracketsWork4a() { same("(foo#(a)).baz.bar", "foo#(a).baz.bar"); }
 }

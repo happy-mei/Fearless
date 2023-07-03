@@ -80,7 +80,16 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var calls = ctx.callOp();
     if(calls.isEmpty()){ return root; }
     var res = calls.stream()
-      .map(this::visitCallOp)
+      .flatMap(callOpCtx->{
+        var head = new Call(
+          new MethName(callOpCtx.m().getText(),1),
+          visitMGen(callOpCtx.mGen(), true),
+          Optional.ofNullable(callOpCtx.x()).map(this::visitX),
+          List.of(visitAtomE(callOpCtx.postE().atomE())),
+          pos(callOpCtx)
+        );
+        return Stream.concat(Stream.of(head), ctx.callOp(0).postE().pOp().stream().flatMap(pOp->fromPOp(pOp).stream()));
+      })
       .toList();
 
     return desugar(root, res);
