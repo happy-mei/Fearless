@@ -19,7 +19,7 @@ Iter[E]:{
       .next -> optCurIter*.matchHyg{
         .some(curIter) -> curIter.next.matchHyg{
           .some(next) -> Opt#next,
-          .none -> Yeet.with(optCurIter := mapIter.next, self.next)
+          .none -> Yeet.with(optCurIter := (mapIter.next), self.next)
           },
         .none -> {}
         }
@@ -44,7 +44,7 @@ Iter[E]:{
   lent .list: mut List[mdf E] ->
     this.fold(
       IsoPod#[List[mdf E]](iso List#[mdf E]),
-      { acc, e -> Yeet.with(acc := _ListIsoAdd[mdf E]#(acc*, e), acc) })
+      { acc, e -> Yeet.with(acc := (_ListIsoAdd[mdf E]#(acc*, e)), acc) })
     .consume,
   lent .llistMut: mut LListMut[mdf E] ->
     this.fold(

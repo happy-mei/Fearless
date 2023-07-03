@@ -88,7 +88,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
           List.of(visitAtomE(callOpCtx.postE().atomE())),
           pos(callOpCtx)
         );
-        return Stream.concat(Stream.of(head), ctx.callOp(0).postE().pOp().stream().flatMap(pOp->fromPOp(pOp).stream()));
+        return Stream.concat(Stream.of(head), callOpCtx.postE().pOp().stream().flatMap(pOp->fromPOp(pOp).stream()));
       })
       .toList();
 

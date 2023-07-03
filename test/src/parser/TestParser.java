@@ -197,7 +197,7 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
       .to base.List
     """); }
   @Test void flowPrecedence2() { ok("""
-    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}.toList/0[-]([]):infer]):infer
+    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}]):infer.toList/0[-]([]):infer
     """, """
     list.flow
       .map{}
@@ -218,6 +218,17 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
     (list.flow
       .map{}
       .filter{})
+      .toList
+    """); }
+  @Test void flowPrecedence2c() { same("""
+    (list.flow
+      .map{}
+      .filter{})
+      .toList
+    """, """
+    list.flow
+      .map{}
+      .filter{}
       .toList
     """); }
   @Test void precedence3() { same("""

@@ -93,7 +93,7 @@ List:{
     .look(i) -> s*.inner.look(i),
     .get(i) -> s*.inner.get(i),
     .getImm(i) -> s*.inner.getImm(i),
-    .add(e) -> s := _ListState#(s*.len + 1u, s*.inner + e),
+    .add(e) -> s := (_ListState#(s*.len + 1u, s*.inner + e)),
     .iter -> Let.hyg{
       .var -> Count.uint(0u),
       .in(cursor) -> { .next -> list.look(cursor++) }

@@ -11,7 +11,7 @@ Closest:{
     .do{ mut Closest'{ 'self
       h, t -> h.match{
         .none -> {},
-        .some(n) -> (target - n).abs < (target - closest*).abs ? {
+        .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
           .then -> closest := n,
           .else -> self#(t.head, t.tail)
           }

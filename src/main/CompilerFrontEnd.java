@@ -160,7 +160,6 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
 
   static <R> R resolveResource(String root, Function<Path, R> f) throws IOException, URISyntaxException {
     var top = requireNonNull(CompilerFrontEnd.class.getResource(root)).toURI();
-    System.out.println(top.getScheme());
     if (!top.getScheme().equals("jar") && !top.getScheme().equals("resource")) {
       return f.apply(Path.of(top));
     }
