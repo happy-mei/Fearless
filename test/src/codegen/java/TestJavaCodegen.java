@@ -41,12 +41,16 @@ public class TestJavaCodegen {
 
   @Test void emptyProgram() { ok("""
 interface FProgram{interface base{interface System_1 extends base.Sealed_0{
+base.System_1 _$self = new base.System_1(){};
 }
 interface Sealed_0{
+base.Sealed_0 _$self = new base.Sealed_0(){};
 }
 interface NoMutHyg_1{
+base.NoMutHyg_1 _$self = new base.NoMutHyg_1(){};
 }
 interface Void_0{
+base.Void_0 _$self = new base.Void_0(){};
 }
 interface Main_0{
 base.Void_0 $35$(Object s$);}
@@ -61,22 +65,24 @@ for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
 
   @Test void simpleProgram() { ok("""
 interface FProgram{interface test{interface Bar_0 extends test.Baz_1{
+test.Bar_0 _$self = new test.Bar_0(){};
 default test.Baz_1 loop$(){
 var f$thiz = this;
 return ((test.Baz_1)(((test.Baz_1)((test.Bar_0)(f$thiz)).loop$())));
 }
 default test.Foo_0 $35$(){
 var f$thiz = this;
-return ((test.Foo_0)(new test.Foo_0(){
-}));
+return ((test.Foo_0)(test.Foo_0._$self));
 }}
 interface Foo_0{
+test.Foo_0 _$self = new test.Foo_0(){};
 }
 interface Ok_0{
 test.Ok_0 $35$();}
 interface Baz_1{
 Object $35$();}
 interface Yo_0{
+test.Yo_0 _$self = new test.Yo_0(){};
 default test.Ok_0 lm$(){
 var f$thiz = this;
 return ((test.Ok_0)(new test.Ok_0(){
@@ -87,12 +93,16 @@ return ((test.Ok_0)(((test.Ok_0)((test.Ok_0)(ok$)).$35$())));
 }}
 }
 interface base{interface System_1 extends base.Sealed_0{
+base.System_1 _$self = new base.System_1(){};
 }
 interface Sealed_0{
+base.Sealed_0 _$self = new base.Sealed_0(){};
 }
 interface NoMutHyg_1{
+base.NoMutHyg_1 _$self = new base.NoMutHyg_1(){};
 }
 interface Void_0{
+base.Void_0 _$self = new base.Void_0(){};
 }
 interface Main_0{
 base.Void_0 $35$(Object s$);}
@@ -112,10 +122,10 @@ for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
 
   @Test void bools() {ok("""
 interface FProgram{interface test{interface True_0 extends test.Bool_0{
+test.True_0 _$self = new test.True_0(){};
 default test.Bool_0 not$(){
 var f$thiz = this;
-return ((test.Bool_0)(new test.False_0(){
-}));
+return ((test.Bool_0)(test.False_0._$self));
 }
 default Object $63$(Object f$){
 var f$thiz = this;
@@ -130,10 +140,10 @@ var f$thiz = this;
 return ((test.Bool_0)(((test.Bool_0)(b$))));
 }}
 interface False_0 extends test.Bool_0{
+test.False_0 _$self = new test.False_0(){};
 default test.Bool_0 not$(){
 var f$thiz = this;
-return ((test.Bool_0)(new test.True_0(){
-}));
+return ((test.Bool_0)(test.True_0._$self));
 }
 default Object $63$(Object f$){
 var f$thiz = this;
@@ -156,15 +166,20 @@ Object $63$(Object f$);
 test.Bool_0 or$(Object b$);
 test.Bool_0 and$(Object b$);}
 interface Sealed_0{
+test.Sealed_0 _$self = new test.Sealed_0(){};
 }
 }
 interface base{interface System_1 extends base.Sealed_0{
+base.System_1 _$self = new base.System_1(){};
 }
 interface Sealed_0{
+base.Sealed_0 _$self = new base.Sealed_0(){};
 }
 interface NoMutHyg_1{
+base.NoMutHyg_1 _$self = new base.NoMutHyg_1(){};
 }
 interface Void_0{
+base.Void_0 _$self = new base.Void_0(){};
 }
 interface Main_0{
 base.Void_0 $35$(Object s$);}
@@ -188,19 +203,23 @@ for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
     """, Base.minimalBase);}
   @Test void multiPackage() { ok("""
 interface FProgram{interface test{interface HelloWorld_0 extends base.Main_0{
+test.HelloWorld_0 _$self = new test.HelloWorld_0(){};
 default base.Void_0 $35$(Object s$){
 var f$thiz = this;
-return ((base.Void_0)(new base.Void_0(){
-}));
+return ((base.Void_0)(base.Void_0._$self));
 }}
 }
 interface base{interface System_1 extends base.Sealed_0{
+base.System_1 _$self = new base.System_1(){};
 }
 interface Sealed_0{
+base.Sealed_0 _$self = new base.Sealed_0(){};
 }
 interface NoMutHyg_1{
+base.NoMutHyg_1 _$self = new base.NoMutHyg_1(){};
 }
 interface Void_0{
+base.Void_0 _$self = new base.Void_0(){};
 }
 interface Main_0{
 base.Void_0 $35$(Object s$);}
@@ -221,35 +240,40 @@ for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
 interface FProgram{interface test{interface Foo_0{
 test.Foo_0 a$();}
 interface Test_0 extends base.Main_0{
+test.Test_0 _$self = new test.Test_0(){};
 default base.Void_0 $35$(Object fear0$$){
 var f$thiz = this;
-return ((base.Void_0)(new base.Void_0(){
-}));
+return ((base.Void_0)(base.Void_0._$self));
 }}
 interface A_0{
+test.A_0 _$self = new test.A_0(){};
 default test$46foo.Bar_0 $35$(){
 var f$thiz = this;
 return ((test$46foo.Bar_0)(new test$46foo.Bar_0(){
 public test$46foo.Bar_0 a$(){
 var fear2$$ = this;
-return ((test$46foo.Bar_0)(new test$46foo.Bar_0(){
-}));
+return ((test$46foo.Bar_0)(test$46foo.Bar_0._$self));
 }}));
 }}
 }
 interface test$46foo{interface Bar_0 extends test.Foo_0{
+test$46foo.Bar_0 _$self = new test$46foo.Bar_0(){};
 default test.Foo_0 a$(){
 var f$thiz = this;
 return ((test.Foo_0)(((test$46foo.Bar_0)(f$thiz))));
 }}
 }
 interface base{interface System_1 extends base.Sealed_0{
+base.System_1 _$self = new base.System_1(){};
 }
 interface Sealed_0{
+base.Sealed_0 _$self = new base.Sealed_0(){};
 }
 interface NoMutHyg_1{
+base.NoMutHyg_1 _$self = new base.NoMutHyg_1(){};
 }
 interface Void_0{
+base.Void_0 _$self = new base.Void_0(){};
 }
 interface Main_0{
 base.Void_0 $35$(Object s$);}

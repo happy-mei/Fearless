@@ -565,35 +565,37 @@ public class TestJavaProgram {
     package test
     Test:Main{ _,_ -> Do.hyg
       .var[read List[Int]] l1 = { (LListMut#[Int]35 + 52 + 84 + 14).list }
-      .do{ Assert#((l1.look(0u))! == l1.iter.next!, "sanity", {{}}) }
+      .do{ Assert#(l1.look(0u)! == (l1.iter.next!), "sanity", {{}}) }
       .do{ Assert#((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert#((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert#((l1.iter
+      .do{ Assert#(l1.iter
                       .map{n -> n * 10}
-                      .find{n -> n == 140})
+                      .find{n -> n == 140}
                       .isSome,
         "map", {{}})}
-      .do{ Assert#((l1.iter
+      .do{ Assert#(l1.iter
                       .filter{n -> n > 50}
-                      .find{n -> n == 84})
+                      .find{n -> n == 84}
                       .isSome,
         "filter", {{}})}
-      .do{ Assert#(((l1.iter
-                      .filter{n -> n > 50})
-                      .count) == 2u,
+      .do{ Assert#(l1.iter
+                      .filter{n -> n > 50}
+                      .count == 2u,
         "count", {{}})}
-      .do{ Assert#(((l1.iter
-                      .filter{n -> n > 50})
-                      .list).len == 2u,
+      .do{ Assert#(l1.iter
+                      .filter{n -> n > 50}
+                      .list
+                      .len == 2u,
         "toList", {{}})}
-      .do{ Assert#(((l1.iter
-                      .filter{n -> n > 50})
-                      .llistMut).len == 2u,
+      .do{ Assert#(l1.iter
+                      .filter{n -> n > 50}
+                      .llistMut
+                      .len == 2u,
         "toLListMut", {{}})}
-      .do{ Assert#(((l1.iter
+      .do{ Assert#(l1.iter
                     .flatMap{n -> (List#(n, n, n)).iter}
-                    .map{n -> n * 10})
-                    .str({n -> n.str}, ";")) == "350;350;350;520;520;520;840;840;840;140;140;140",
+                    .map{n -> n * 10}
+                    .str({n -> n.str}, ";") == "350;350;350;520;520;520;840;840;840;140;140;140",
         "flatMap", {{}})}
       .do{ Assert#(Sum.int(l1.iter.map{n -> n+0}) == 185, "sum int", {{}})}
       .do{ Assert#(Sum.uint(l1.iter.map{n -> n.uint}) == 185u, "sum uint", {{}})}
