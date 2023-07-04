@@ -354,7 +354,7 @@ public class TestJavaProgram {
       .return{ io.println(ImmMain#args) }
       }
     ImmMain:{
-      #(args: LList[Str]): Str -> args.get(1u) | (this.errMsg((args.head).isSome)) *,
+      #(args: LList[Str]): Str -> args.get(1u) | (this.errMsg(args.head.isSome)*),
       .errMsg(retCounter: Bool): mut Ref[Str] -> Do#
         .var res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
         .var counter = { Count.int(42) }
