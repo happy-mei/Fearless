@@ -12,7 +12,7 @@ LList[E]:Sealed{
     .empty -> l1,
     .elem(h, t) -> Cons#(h, t ++ l1)
     },
-  +(e: E): LList[E] -> this ++ Cons#(e, {}),
+  +(e: E): LList[E] -> this ++ (Cons#(e, {})),
   .get(i: UInt) : Opt[E] -> this.match{
     .empty -> {},
     .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }

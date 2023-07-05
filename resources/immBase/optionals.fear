@@ -15,7 +15,7 @@ OptFlatMap[T,R]:OptMatch[T,Opt[R]]{ .none -> {} }
 OptMap[T,R]:OptMatch[T,Opt[R]]{ #(t:T):R, .some(x) -> Opt#(this#x), .none -> {} }
 OptDo[T]:OptMatch[T,Opt[T]]{
   #(t:T):Void,   //#[R](t:T):R,
-  .some(x) -> Opt#this._doRes(this#x, x),
+  .some(x) -> Opt#(this._doRes(this#x, x)),
   .none->{},
   ._doRes(y:Void,x:T):T -> x
   }
