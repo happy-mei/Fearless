@@ -389,7 +389,7 @@ public class TestJavaProgram {
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .none -> {},
-            .some(n) -> (target - n).abs < (target - closest*).abs ? {
+            .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
               .else -> self#(t.head, t.tail)
               }
@@ -413,7 +413,7 @@ public class TestJavaProgram {
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .none -> {},
-            .some(n) -> (target - n).abs < (target - closest*).abs ? {
+            .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
               .else -> self#(t.head, t.tail)
               }
@@ -436,7 +436,7 @@ public class TestJavaProgram {
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .none -> {},
-            .some(n) -> (target - n).abs < (target - closest*).abs ? {
+            .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
               .else -> self#(t.head, t.tail)
               }
@@ -459,7 +459,7 @@ public class TestJavaProgram {
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .none -> {},
-            .some(n) -> (target - n).abs < (target - closest*).abs ? {
+            .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
               .else -> self#(t.head, t.tail)
               }
@@ -482,7 +482,7 @@ public class TestJavaProgram {
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .none -> {},
-            .some(n) -> (target - n).abs < (target - closest*).abs ? {
+            .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
               .else -> self#(t.head, t.tail)
               }
@@ -505,7 +505,7 @@ public class TestJavaProgram {
         .do{ mut Closest'{ 'self
           i -> ns.get(i).match{
             .none -> {},
-            .some(n) -> (target - n).abs < (target - closest*).abs ? {
+            .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
               .else -> self#(i + 1u)
               }
@@ -520,7 +520,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _,_ -> Do#
       .var[LList[Int]] l1 = { LList#[Int]35 + 52 + 84 + 14 }
-      .do{ Assert#(l1.head! == l1.iter.next!, "sanity", {{}}) }
+      .do{ Assert#(l1.head! == (l1.iter.next!), "sanity", {{}}) }
       .do{ Assert#((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert#((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
       .do{ Assert#((l1.iter
@@ -535,7 +535,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _,_ -> Do#
       .var[mut LListMut[Int]] l1 = { LListMut#[Int]35 + 52 + 84 + 14 }
-      .do{ Assert#(l1.head! == l1.iter.next!, "sanity", {{}}) }
+      .do{ Assert#(l1.head! == (l1.iter.next!), "sanity", {{}}) }
       .do{ Assert#((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert#((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
       .do{ Assert#((l1.iter
@@ -550,12 +550,12 @@ public class TestJavaProgram {
     package test
     Test:Main{ _,_ -> Do#
       .var[mut LListMut[Int]] l1 = { LListMut#[Int]35 + 52 + 84 + 14 }
-      .do{ Assert#(l1.head! == l1.iterMut.next!, "sanity", {{}}) }
+      .do{ Assert#(l1.head! == (l1.iterMut.next!), "sanity", {{}}) }
       .do{ Assert#((l1.iterMut.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert#((l1.iterMut.find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert#((l1.iterMut
+      .do{ Assert#(l1.iterMut
                       .map{n -> n * 10}
-                      .find{n -> n == 140})
+                      .find{n -> n == 140}
                       .isSome,
         "map", {{}})}
       .return{{}}
@@ -606,35 +606,35 @@ public class TestJavaProgram {
     package test
     Test:Main{ _,_ -> Do#
       .var[mut List[Int]] l1 = { (LListMut#[Int]35 + 52 + 84 + 14).list }
-      .do{ Assert#((l1.get(0u))! == l1.iterMut.next!, "sanity", {{}}) }
+      .do{ Assert#((l1.get(0u))! == (l1.iterMut.next!), "sanity", {{}}) }
       .do{ Assert#((l1.iterMut.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert#((l1.iterMut.find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert#((l1.iterMut
+      .do{ Assert#(l1.iterMut
                       .map{n -> n * 10}
-                      .find{n -> n == 140})
+                      .find{n -> n == 140}
                       .isSome,
         "map", {{}})}
-      .do{ Assert#((l1.iterMut
+      .do{ Assert#(l1.iterMut
                       .filter{n -> n > 50}
-                      .find{n -> n == 84})
+                      .find{n -> n == 84}
                       .isSome,
         "filter", {{}})}
-      .do{ Assert#(((l1.iterMut
-                      .filter{n -> n > 50})
-                      .count) == 2u,
+      .do{ Assert#(l1.iterMut
+                      .filter{n -> n > 50}
+                      .count == 2u,
         "count", {{}})}
-      .do{ Assert#(((l1.iterMut
-                      .filter{n -> n > 50})
-                      .list).len == 2u,
+      .do{ Assert#(l1.iterMut
+                      .filter{n -> n > 50}
+                      .list.len == 2u,
         "toList", {{}})}
-      .do{ Assert#(((l1.iterMut
-                      .filter{n -> n > 50})
-                      .llistMut).len == 2u,
+      .do{ Assert#(l1.iterMut
+                      .filter{n -> n > 50}
+                      .llistMut.len == 2u,
         "toLListMut", {{}})}
-      .do{ Assert#(((l1.iterMut
+      .do{ Assert#(l1.iterMut
                     .flatMap{n -> (List#(n, n, n)).iterMut}
-                    .map{n -> n * 10})
-                    .str({n -> n.str}, ";")) == "350;350;350;520;520;520;840;840;840;140;140;140",
+                    .map{n -> n * 10}
+                    .str({n -> n.str}, ";") == "350;350;350;520;520;520;840;840;840;140;140;140",
         "flatMap", {{}})}
       .do{ Assert#(Sum.int(l1.iterMut) == 185, "sum int", {{}})}
       .do{ Assert#(Sum.uint(l1.iterMut.map{n -> n.uint}) == 185u, "sum uint", {{}})}

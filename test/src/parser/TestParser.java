@@ -90,13 +90,13 @@ class TestParser {
     recv:infer.m1/2[-]([v:infer,[-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer}]):infer
     ""","recv .m1 x=v"); }
   @Test void eqSugarSame1() { same("recv .m1 v = val", "recv .m1 (v = val)"); }
-  @Test void eqSugarSame2() { same("recv .m1 v = val .m2", "recv .m1 v = (val .m2)"); }
+  @Test void eqSugarSame2() { same("recv .m1 v = val .m2", "recv .m1 v = (val) .m2"); }
   @Test void chainedMethCall() { ok("""
     recv:infer.m1/1[-]([a:infer]):infer .m2/1[-]([b:infer]):infer
     """, "(recv .m1 a) .m2 b"); }
   @Test void singleEqSugar2(){ ok(
     """
-    recv:infer.m1/2[-]([val:infer.m2/0[-]([]):infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer}]):infer
+    recv:infer.m1/2[-]([val:infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer.m2/0[-]([]):infer}]):infer
     """, "recv .m1 v = val .m2"); }
   @Test void nestedCalls1(){ ok("""
     recv:infer.m1/2[-]([v:infer,[-infer-][]{ [-]([x,fear0$]):[-]->fear0$:infer.m2/1[-]([a:infer]):infer}]):infer
@@ -131,10 +131,10 @@ class TestParser {
   @Test void sameTest1(){ same("m.a", "m.a"); }
   @Test void sameTest2(){ same("recv .m1 a .m2 b .m3 c", "((recv .m1 a) .m2 b) .m3 c"); }
   @Test void sameTest3(){ same("recv .m1 a .m2 b", "(recv .m1 a) .m2 b"); }
-  @Test void sameTest4(){ same("recv .m1 a .m2", "recv .m1 (a .m2)"); }
-  @Test void sameTest5(){ same("recv .m1 x=v .m2", "recv .m1 x=(v .m2)"); }
-  // TODO: (recv .m1 x=v) .m2 a is weird because the = method has executed first, so x is out of scope
-  @Test void sameTest6(){ same("recv .m1[A] x=v .m2[B,base.C[D]]", "recv .m1[A] x=(v .m2[B,base.C[D]])"); }
+  @Test void sameTest4(){ same("recv .m1 a .m2", "(recv .m1 a) .m2"); }
+  @Test void sameTest5(){ same("recv .m1 x=v .m2", "recv .m1 x=(v) .m2"); }
+  @Test void weirdEq(){ ok("recv:infer.m1/2[-]([v:infer,[-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer}]):infer.m2/0[-]([]):infer", "(recv .m1 x=v) .m2"); }
+  @Test void sameTest6(){ same("recv .m1[A] x=v .m2[B,base.C[D]]", "recv .m1[A] x=(v) .m2[B,base.C[D]]"); }
   @Test void sameTestVarLast(){ same("recv.m1(x=v)", "recv .m1 x=v"); }
   @Test void implicitLambdaMdf(){ ok("[-pkg1.L[]-][pkg1.L[]]{}", "pkg1.L{}"); }
   @Test void explicitMdfLambdaIso(){ ok("[-iso pkg1.L[]-][pkg1.L[]]{}", "iso pkg1.L{}"); }
@@ -248,4 +248,7 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
     """, "foo#(bar).baz.bar"); }
   @Test void bracketsWork4() { same("(foo#(a,b)).baz.bar", "foo#(a,b).baz.bar"); }
   @Test void bracketsWork4a() { same("(foo#(a)).baz.bar", "foo#(a).baz.bar"); }
+  @Test void precedenceMCall() { same("(a - b) - c", "a - b - c"); }
+  @Test void precedenceMCall2() { same("(a - b).m(c)", "a - b.m(c)"); }
+  @Test void precedenceMCall2Arg() { same("(a - b).m(c,d)", "a - b.m(c,d)"); }
 }
