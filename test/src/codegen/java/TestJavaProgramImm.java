@@ -45,7 +45,6 @@ public class TestJavaProgramImm {
     inferred.typeCheck();
     var mir = new MIRInjectionVisitor(inferred).visitProgram();
     var java = new ImmJavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
-    System.out.println(java);
     var res = RunJava.of(new JavaProgram(java).compile(), args).join();
     Assertions.assertEquals(expected, res);
   }

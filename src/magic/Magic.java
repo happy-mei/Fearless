@@ -17,8 +17,11 @@ public class Magic {
   public static final Id.DecId RefK = new Id.DecId("base.Ref", 0);
   public static final Id.DecId IsoPodK = new Id.DecId("base.caps.IsoPod", 0);
   public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);
-  public static final Id.DecId RootCap = new Id.DecId("base.caps._RootCap", 0);
   public static final Id.DecId Abort = new Id.DecId("base.Abort", 0);
+
+  // Caps
+  public static final Id.DecId RootCap = new Id.DecId("base.caps.RootCap", 0);
+  public static final Id.DecId Env = new Id.DecId("base.caps.Env", 0);
 
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
     var isLiteral  = !name.isEmpty() && MagicImpls.isLiteral(name);

@@ -74,6 +74,8 @@ public interface Base {
     alias base.caps.LentReturnStmt as LentReturnStmt,
     alias base.caps.IO as IO,
     alias base.caps.IO' as IO',
+    alias base.caps.Env as Env,
+    alias base.caps.Env' as Env',
     alias base.caps.IsoPod as IsoPod,
     alias base.Error as Error,
     alias base.Info as Info,

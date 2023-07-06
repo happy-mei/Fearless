@@ -1,0 +1,12 @@
+package base.caps
+
+IO:{
+  lent .print(msg: Str): Void,
+  lent .println(msg: Str): Void,
+  }
+IO':CapFactory[RootCap, IO]{
+  .build(auth: lent RootCap): lent IO -> {
+     .print(msg) -> auth.print(msg),
+     .println(msg) -> auth.println(msg),
+     }
+  }

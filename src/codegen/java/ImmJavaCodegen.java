@@ -17,9 +17,9 @@ public class ImmJavaCodegen extends JavaCodegen {
       throw Bug.todo();
     }
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_0 entry = new "+entryName+"(){}; System.out.println(entry.$35$(cliArgs)); }\n";
+    var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_0 entry = new "+entryName+"(){}; System.out.println(entry.$35$(FAux.LAUNCH_ARGS)); }\n";
 
-    return "interface FProgram{" + pkgs.entrySet().stream()
+    return "class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\ninterface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))
       .collect(Collectors.joining("\n"))+init+"}";
   }

@@ -81,6 +81,7 @@ public interface Program {
     return isSubType;
   }
   default boolean isSubTypeAux(T t1, T t2) {
+    if (t1.equals(t2)) { return true; }
     if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
     t1 = t1.withMdf(t1.mdf()); t2 = t2.withMdf(t1.mdf());
     if(t1.rt().equals(t2.rt())){ return true; }
@@ -197,6 +198,7 @@ public interface Program {
       .filter(pred)
       .toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
+    // TODO: error message listing all the Ms here
     assert myM_.size()==1;
 
     var cm = myM_.get(0);

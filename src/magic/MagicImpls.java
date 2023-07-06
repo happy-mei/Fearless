@@ -29,6 +29,7 @@ public interface MagicImpls<R> {
       if (isMagic(Magic.Assert, l)) { return Optional.ofNullable(assert_(l, e)); }
       if (isMagic(Magic.Abort, l)) { return Optional.ofNullable(abort(l, e)); }
       if (isMagic(Magic.RootCap, l)) { return Optional.ofNullable(rootCap(l, e)); }
+      if (isMagic(Magic.Env, l)) { return Optional.ofNullable(env(l, e)); }
       return Optional.empty();
     });
   }
@@ -59,6 +60,7 @@ public interface MagicImpls<R> {
   MagicTrait<R> assert_(MIR.Lambda l, MIR e);
   default MagicTrait<R> abort(MIR.Lambda l, MIR e) { return  null; }
   MagicTrait<R> rootCap(MIR.Lambda l, MIR e);
+  MagicTrait<R> env(MIR.Lambda l, MIR e);
   ast.Program p();
 
   record LambdaVisitor(Program p) implements MIRVisitor<Optional<MIR.Lambda>> {

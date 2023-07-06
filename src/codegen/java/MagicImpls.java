@@ -278,4 +278,19 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       }
     };
   }
+  @Override public MagicTrait<String> env(MIR.Lambda l, MIR e) {
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        return gen.visitLambda(l, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        if (m.equals(new Id.MethName(".launchArgs", 0))) {
+          return Optional.of("FAux.LAUNCH_ARGS");
+        }
+        return Optional.empty();
+      }
+    };
+  }
 }

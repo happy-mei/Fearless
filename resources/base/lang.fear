@@ -1,7 +1,7 @@
 package base
 alias base.caps.System as System,
 
-Main:{ #(args: LList[Str], s: lent System[Void]): Void }
+Main:{ #(s: lent System[Void]): Void }
 NoMutHyg[X]:{}
 Sealed:{}
 Void:{}

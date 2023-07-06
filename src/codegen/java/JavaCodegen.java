@@ -22,17 +22,17 @@ public class JavaCodegen implements MIRVisitor<String> {
 
   static String argsToLList() {
     return """
-      base.LList_1 cliArgs = new base.LList_1(){};
-      for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
+      FAux.LAUNCH_ARGS = new base.LList_1(){};
+      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
       """;
   }
 
   public String visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) {
     assert pkgs.containsKey("base");
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_0 entry = new "+entryName+"(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }\n";
+    var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_0 entry = new "+entryName+"(){}; entry.$35$(new base$46caps.System_1(){}); }\n";
 
-    return "interface FProgram{" + pkgs.entrySet().stream()
+    return "class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\ninterface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))
       .collect(Collectors.joining("\n"))+init+"}";
   }

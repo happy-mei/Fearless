@@ -4,12 +4,12 @@ IsoPod:{ #[T](val: iso T): mut IsoPod[T] -> base.Abort! } // magic
 IsoPod[T]:{
   read .isAlive: Bool, // magic
   read .isDead: Bool -> this.isAlive.not,
-  mut .peek: read T, // magic
-  mut .consume: iso T, // magic
-  mut *: iso T -> this.consume,
-  mut .next(val: iso T): Void, // magic
-  mut :=(val: iso T): Void -> this.next(val),
-  mut .mutate(f: F[mut T, Void]): Void -> this.next(IsoMutator#(f, this.consume)),
+  lent .peek: read T, // magic
+  lent .consume: iso T, // magic
+  lent *: iso T -> this.consume,
+  lent .next(val: iso T): Void, // magic
+  lent :=(val: iso T): Void -> this.next(val),
+  lent .mutate(f: F[mut T, Void]): Void -> this.next(IsoMutator#(f, this.consume)),
   }
 IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Yeet.with(f#val, val) }
 

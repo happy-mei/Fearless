@@ -1,33 +1,40 @@
 package base.caps
 
-LentReturnStmt[R]:{ lent #: mdf R }
-System[R]:Sealed{
+System[R,Auth]:Sealed{
 //  lent .use[C](c: CapFactory[lent _RootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R -> Block[mdf R]
 //    .var[lent C] cap = { c#_RootCap }
 //    .var[mdf R] res = { cont#(cap, this) }
 //    .do{ c.close(cap) }
 //    .return{ res },
-  lent .use[C](c: CapFactory[lent _RootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
-    cont#(c#_RootCap, this), // TODO: use a block here to call c.close afterwards
-  // mut .clone(): iso System[mdf R] -> {},
-  lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
+  lent ._auth: CapBox[Auth],
+  lent .use[C](c: CapFactory[Auth, C], cont: lent UseCapCont[C, mdf Auth, mdf R]): mdf R ->
+    cont#(c#(this._auth)*, this), // TODO: use a block here to call c.close afterwards
+  lent .block: lent BlockHyg[mdf R] -> {},
+  lent .return(ret: lent ReturnStmtHyg[mdf R]): mdf R -> ret#,
+  lent .share[RR](): iso System[mdf RR, Auth] -> Do.hyg[mut System[mdf RR, Auth]]
+    .var[CapBox[Auth]] auth = { this._auth }
+    .return{{ auth }},
+  lent .share[RR, C](c: CapFactory[Auth, C]): iso System[mdf RR, C] -> Do.hyg[mut System[mdf RR, C]]
+    .var[CapBox[C]] auth = { c#(this._auth) }
+    .return{{ auth }},
   }
+System[R]:System[mdf R, RootCap]{ { _RootCap } }
 
-_RootCap:Sealed,IO{
-  .print(msg) -> this.print(msg),
-  .println(msg) -> this.println(msg),
+CapBox[C]:Sealed{
+  .get: lent C,
+  *: lent C -> this.get,
   }
-UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
+UseCapCont[C,Auth,R]:{ lent #(cap: lent C, self: lent System[mdf R, mdf Auth]): mdf R }
 CapFactory[C,R]:{
-  #(auth: lent C): lent R,
-  .close(c: lent R): Void,
+  #(auth: CapBox[C]): CapBox[R] -> { this.build(auth*) },
+  .close(c: lent R): Void -> {},
+  .build(auth: lent C): lent R,
   }
-IO:{
+RootCap:{
   lent .print(msg: Str): Void,
   lent .println(msg: Str): Void,
   }
-IO':CapFactory[lent _RootCap, lent IO]{
-  #(auth: lent _RootCap): lent IO -> this.scope(auth),
-  .scope(auth: lent IO): lent IO -> auth,
-  .close(c: lent IO): Void -> {},
+_RootCap:Sealed,RootCap{
+  .print(msg) -> Abort!,
+  .println(msg) -> Abort!,
   }
