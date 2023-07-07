@@ -1,5 +1,6 @@
 package base.caps
 
+/// Capability for reading and writing to files and devices, including stdout and stderr.
 IO:{
   lent .print(msg: Str): Void,
   lent .println(msg: Str): Void,
