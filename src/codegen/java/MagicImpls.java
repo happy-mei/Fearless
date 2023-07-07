@@ -36,17 +36,17 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       }
       private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         // _NumInstance
-        if (m.name().equals(".uint")) {
+        if (m.equals(new Id.MethName(".uint", 0))) {
           return instantiate(); // only different at type level
         }
-        if (m.name().equals(".str")) {
+        if (m.equals(new Id.MethName(".str", 0))) {
           return "Long.toString("+instantiate()+")";
         }
-        if (m.name().equals("+")) { return instantiate()+"+"+args.get(0).accept(gen); }
-        if (m.name().equals("-")) { return instantiate()+"-"+args.get(0).accept(gen); }
-        if (m.name().equals("*")) { return instantiate()+"*"+args.get(0).accept(gen); }
-        if (m.name().equals("/")) { return instantiate()+"/"+args.get(0).accept(gen); }
-        if (m.name().equals("%")) { return instantiate()+"%"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+"+"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+"-"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("/", 1))) { return instantiate()+"/"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("%", 1))) { return instantiate()+"%"+args.get(0).accept(gen); }
         if (m.equals(new Id.MethName("**", 1))) { return String.format("""
           switch (1) { default -> {
               long base = %s; long exp = %s; long res = base;
@@ -56,16 +56,16 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
             }}
           """, instantiate(), args.get(0).accept(gen)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return "Math.abs("+instantiate()+")"; }
-        if (m.name().equals(">>")) { return instantiate()+">>"+args.get(0).accept(gen); }
-        if (m.name().equals("<<")) { return instantiate()+"<<"+args.get(0).accept(gen); }
-        if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
-        if (m.name().equals("&")) { return instantiate()+"&"+args.get(0).accept(gen); }
-        if (m.name().equals("|")) { return instantiate()+"|"+args.get(0).accept(gen); }
-        if (m.name().equals(">")) { return "("+instantiate()+">"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.name().equals("<")) { return "("+instantiate()+"<"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.name().equals(">=")) { return "("+instantiate()+">="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.name().equals("<=")) { return "("+instantiate()+"<="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.name().equals("==")) { return "("+instantiate()+"=="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">>", 1))) { return instantiate()+">>"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("<<", 1))) { return instantiate()+"<<"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("^", 1))) { return instantiate()+"^"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("&", 1))) { return instantiate()+"&"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("|", 1))) { return instantiate()+"|"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate()+">"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate()+"<"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate()+">="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate()+"<="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("==", 1))) { return "("+instantiate()+"=="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
         throw Bug.unreachable();
       }
     };
@@ -93,17 +93,17 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       }
       private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         // _NumInstance
-        if (m.name().equals(".int")) {
+        if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate(); // only different at type level
         }
-        if (m.name().equals(".str")) {
+        if (m.equals(new Id.MethName(".str", 0))) {
           return "Long.toUnsignedString("+instantiate()+")";
         }
-        if (m.name().equals("+")) { return instantiate()+"+"+args.get(0).accept(gen); }
-        if (m.name().equals("-")) { return instantiate()+"-"+args.get(0).accept(gen); }
-        if (m.name().equals("*")) { return instantiate()+"*"+args.get(0).accept(gen); }
-        if (m.name().equals("/")) { return "Long.divideUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
-        if (m.name().equals("%")) { return "Long.remainderUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
+        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+"+"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+"-"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("/", 1))) { return "Long.divideUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
+        if (m.equals(new Id.MethName("%", 1))) { return "Long.remainderUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
         if (m.equals(new Id.MethName("**", 1))) { return String.format("""
           switch (1) { default -> {
               long base = %s; long exp = %s; long res = base;
@@ -113,16 +113,16 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
             }}
           """, instantiate(), args.get(0).accept(gen)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return instantiate(); } // no-op for unsigned
-        if (m.name().equals(">>")) { return instantiate()+">>"+args.get(0).accept(gen); }
-        if (m.name().equals("<<")) { return instantiate()+"<<"+args.get(0).accept(gen); }
-        if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
-        if (m.name().equals("&")) { return instantiate()+"&"+args.get(0).accept(gen); }
-        if (m.name().equals("|")) { return instantiate()+"|"+args.get(0).accept(gen); }
-        if (m.name().equals(">")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.name().equals("<")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.name().equals(">=")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>=0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.name().equals("<=")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<=0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.name().equals("==")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")==0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">>", 1))) { return instantiate()+">>"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("<<", 1))) { return instantiate()+"<<"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("^", 1))) { return instantiate()+"^"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("&", 1))) { return instantiate()+"&"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("|", 1))) { return instantiate()+"|"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName(">", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">=", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>=0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<=", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<=0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("==", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")==0?base.True_0._$self:base.False_0._$self)"; }
         throw Bug.unreachable();
       }
     };
