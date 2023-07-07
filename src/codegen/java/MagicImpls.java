@@ -263,7 +263,8 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         ObjCapImpl impl = null;
-        if (target == Magic.RootCap) { impl = rootCap(); }
+        if (target == Magic.RootCap) { impl = (ctx, m1, args1, gamma1) -> null; }
+        if (target == Magic.IO) { impl = io(); }
         if (target == Magic.Env) { impl = env(); }
         assert impl != null;
 
@@ -271,7 +272,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         return Optional.ofNullable(res);
       }
 
-      private ObjCapImpl rootCap() {
+      private ObjCapImpl io() {
         return (ctx, m, args, gamma) ->{
           if (m.equals(new Id.MethName(".print", 1))) {
             return String.format("""

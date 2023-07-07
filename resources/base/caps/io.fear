@@ -5,8 +5,9 @@ IO:{
   lent .println(msg: Str): Void,
   }
 IO':CapFactory[RootCap, IO]{
-  .build(auth: lent RootCap): lent IO -> {
-     .print(msg) -> auth.print(msg),
-     .println(msg) -> auth.println(msg),
-     }
+  .build(auth: lent RootCap): lent IO -> _IO
+  }
+_IO:Sealed,IO{
+  .print(msg) -> Abort!,
+  .println(msg) -> Abort!,
   }

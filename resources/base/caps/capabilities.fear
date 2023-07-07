@@ -30,11 +30,5 @@ CapFactory[C,R]:{
   .close(c: lent R): Void -> {},
   .build(auth: lent C): lent R,
   }
-RootCap:{
-  lent .print(msg: Str): Void,
-  lent .println(msg: Str): Void,
-  }
-_RootCap:Sealed,RootCap{
-  .print(msg) -> Abort!,
-  .println(msg) -> Abort!,
-  }
+RootCap:{}
+_RootCap:Sealed,RootCap{}
