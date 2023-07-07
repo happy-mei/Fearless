@@ -40,6 +40,7 @@ public class TestJavaCodegen {
   }
 
   @Test void emptyProgram() { ok("""
+class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
 interface FProgram{interface base{interface System_1 extends base.Sealed_0{
 base.System_1 _$self = new base.System_1(){};
 }
@@ -55,15 +56,16 @@ base.Void_0 _$self = new base.Void_0(){};
 interface Main_0{
 base.Void_0 $35$(Object s$);}
 }
-static void main(String[] args){ base.LList_1 cliArgs = new base.LList_1(){};
-for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
- base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
+for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
+ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
     package test
     """, Base.minimalBase);}
 
   @Test void simpleProgram() { ok("""
+class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
 interface FProgram{interface test{interface Bar_0 extends test.Baz_1{
 test.Bar_0 _$self = new test.Bar_0(){};
 default test.Baz_1 loop$(){
@@ -107,9 +109,9 @@ base.Void_0 _$self = new base.Void_0(){};
 interface Main_0{
 base.Void_0 $35$(Object s$);}
 }
-static void main(String[] args){ base.LList_1 cliArgs = new base.LList_1(){};
-for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
- base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
+for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
+ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
     package test
@@ -121,6 +123,7 @@ for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
     """, Base.minimalBase);}
 
   @Test void bools() {ok("""
+class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
 interface FProgram{interface test{interface True_0 extends test.Bool_0{
 test.True_0 _$self = new test.True_0(){};
 default test.Bool_0 not$(){
@@ -184,9 +187,9 @@ base.Void_0 _$self = new base.Void_0(){};
 interface Main_0{
 base.Void_0 $35$(Object s$);}
 }
-static void main(String[] args){ base.LList_1 cliArgs = new base.LList_1(){};
-for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
- base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
+for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
+ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.System_1(){}); }
 }
     """, "fake.Fake", false, """
     package test
@@ -202,6 +205,7 @@ for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
     """, Base.minimalBase);}
   @Test void multiPackage() { ok("""
+class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
 interface FProgram{interface test{interface HelloWorld_0 extends base.Main_0{
 test.HelloWorld_0 _$self = new test.HelloWorld_0(){};
 default base.Void_0 $35$(Object s$){
@@ -224,9 +228,9 @@ base.Void_0 _$self = new base.Void_0(){};
 interface Main_0{
 base.Void_0 $35$(Object s$);}
 }
-static void main(String[] args){ base.LList_1 cliArgs = new base.LList_1(){};
-for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
- base.Main_0 entry = new test.HelloWorld_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
+for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
+ base.Main_0 entry = new test.HelloWorld_0(){}; entry.$35$(new base$46caps.System_1(){}); }
 }
     """, "test.HelloWorld", false, """
     package test
@@ -237,6 +241,7 @@ for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
     """, Base.minimalBase); }
 
   @Test void nestedPkgs() { ok("""
+class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
 interface FProgram{interface test{interface Foo_0{
 test.Foo_0 a$();}
 interface Test_0 extends base.Main_0{
@@ -278,9 +283,9 @@ base.Void_0 _$self = new base.Void_0(){};
 interface Main_0{
 base.Void_0 $35$(Object s$);}
 }
-static void main(String[] args){ base.LList_1 cliArgs = new base.LList_1(){};
-for (String arg : args) { cliArgs = cliArgs.$43$(arg); }
- base.Main_0 entry = new test.Test_0(){}; entry.$35$(cliArgs, new base$46caps.System_1(){}); }
+static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
+for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
+ base.Main_0 entry = new test.Test_0(){}; entry.$35$(new base$46caps.System_1(){}); }
 }
     """, "test.Test", false, """
     package test
