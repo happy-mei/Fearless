@@ -1,5 +1,6 @@
 package magic;
 
+import failure.Fail;
 import id.Id;
 
 import java.util.List;
@@ -57,7 +58,9 @@ public class Magic {
   private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
     if ((Character.isDigit(id.name().charAt(0)) || id.name().startsWith("-")) && id.gen() == 0) {
       T baseDec;
-      if (id.name().chars().anyMatch(c->c=='.')) {
+      var nDots = id.name().chars().filter(c->c=='.').limit(2).count();
+      if (nDots > 0) {
+        if (nDots > 1) { throw Fail.invalidNum(id.name(), "Float"); }
         baseDec = resolve.apply(new Id.DecId("base._FloatInstance", 0));
       } else if (id.name().endsWith("u")) {
         baseDec = resolve.apply(new Id.DecId("base._UIntInstance", 0));
