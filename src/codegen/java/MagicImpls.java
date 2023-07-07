@@ -5,13 +5,16 @@ import ast.T;
 import codegen.MIR;
 import failure.Fail;
 import id.Id;
+import magic.Magic;
 import magic.MagicTrait;
 import utils.Bug;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
+import static java.util.Objects.requireNonNull;
 import static magic.MagicImpls.isLiteral;
 
 public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls<String> {
@@ -250,7 +253,8 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     };
   }
 
-  @Override public MagicTrait<String> rootCap(MIR.Lambda l, MIR e) {
+  @Override public MagicTrait<String> objCap(Id.DecId target, MIR.Lambda l, MIR e) {
+    var _this = this;
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
       @Override public MIR.Lambda instance() { return l; }
@@ -258,38 +262,43 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         return gen.visitLambda(l, false);
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
-        if (m.equals(new Id.MethName(".print", 1))) {
-          return Optional.of(String.format("""
-            switch (1) { default -> {
-              System.out.print(%s);
-              yield new base.Void_0(){};
-            }}
-            """, args.get(0).accept(gen)));
-        }
-        if (m.equals(new Id.MethName(".println", 1))) {
-          return Optional.of(String.format("""
-            switch (1) { default -> {
-              System.out.println(%s);
-              yield new base.Void_0(){};
-            }}
-            """, args.get(0).accept(gen)));
-        }
-        return Optional.empty();
+        ObjCapImpl impl = null;
+        if (target == Magic.RootCap) { impl = rootCap(); }
+        if (target == Magic.Env) { impl = env(); }
+        assert impl != null;
+
+        var res = impl.call(_this, m, args, gamma);
+        return Optional.ofNullable(res);
       }
-    };
-  }
-  @Override public MagicTrait<String> env(MIR.Lambda l, MIR e) {
-    return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
-      @Override public MIR.Lambda instance() { return l; }
-      @Override public String instantiate() {
-        return gen.visitLambda(l, false);
+
+      private ObjCapImpl rootCap() {
+        return (ctx, m, args, gamma) ->{
+          if (m.equals(new Id.MethName(".print", 1))) {
+            return String.format("""
+              switch (1) { default -> {
+                System.out.print(%s);
+                yield new base.Void_0(){};
+              }}
+              """, args.get(0).accept(gen));
+          }
+          if (m.equals(new Id.MethName(".println", 1))) {
+            return String.format("""
+              switch (1) { default -> {
+                System.out.println(%s);
+                yield new base.Void_0(){};
+              }}
+              """, args.get(0).accept(gen));
+          }
+          return null;
+        };
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
-        if (m.equals(new Id.MethName(".launchArgs", 0))) {
-          return Optional.of("FAux.LAUNCH_ARGS");
-        }
-        return Optional.empty();
+      private ObjCapImpl env() {
+        return (ctx, m, args, gamma) ->{
+          if (m.equals(new Id.MethName(".launchArgs", 0))) {
+            return "FAux.LAUNCH_ARGS";
+          }
+          return null;
+        };
       }
     };
   }
