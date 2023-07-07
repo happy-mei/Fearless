@@ -1623,7 +1623,7 @@ A:{ read .m(par: read B) : mut L[lent B] -> mut L{.absMeth->par} }
   @Test void t4142(){ c4(read,  mdf,   read, readAll,of(recMdf,read  , recMdf,recMdf  , recMdf,mdf  , mdf,read  , mdf,recMdf)); }
   @Test void t4143(){ c4(lent,  mdf,   read, readAll,of(recMdf,read  , recMdf,recMdf  , recMdf,mdf  , mdf,read  , mdf,recMdf)); }
   @Test void t4144(){ c4(mut,   mdf,   read, of(read,lent  , read,read  , read,mdf  , recMdf,read  , recMdf,mdf  , mdf,read)); }
-  @Test void t4145(){ c4(iso,   mdf,   read, of(read,mdf  , recMdf,mdf  , imm,mdf)); }
+  @Test void t4145(){ c4(iso,   mdf,   read, of(read,mdf  , recMdf,mdf)); }
   @Test void t4146(){ c4(mdf,   mdf,   read, of()); }
   @Test void t4147(){ c4(recMdf,mdf,   read, readAll,of(recMdf,read  , recMdf,recMdf  , recMdf,mdf  , mdf,read  , mdf,recMdf)); }
   //                     lambda, captured, method, ...capturedAs
@@ -1688,7 +1688,7 @@ A:{ read .m(par: read B) : mut L[lent B] -> mut L{.absMeth->par} }
   @Test void t4252(){ c4(read,  mdf,   lent, of()); }
   @Test void t4253(){ c4(lent,  mdf,   lent, readAll,of(recMdf,read, mdf,read, mdf,mdf)); }
   @Test void t4254(){ c4(mut,   mdf,   lent, of(read,lent  , read,read  , read,mdf  , recMdf,read  , mdf,read  , mdf,mdf)); }
-  @Test void t4255(){ c4(iso,   mdf,   lent, of(read,mdf  , mdf,mdf  , imm,mdf)); }
+  @Test void t4255(){ c4(iso,   mdf,   lent, of(read,mdf  , mdf,mdf)); }
   @Test void t4256(){ c4(mdf,   mdf,   lent, of()); }
   @Test void t4257(){ c4(recMdf,mdf,   lent, readAll,of(recMdf,read  , mdf,read  , mdf,mdf)); }
   //                     lambda, captured, method, ...capturedAs
@@ -1753,7 +1753,7 @@ A:{ read .m(par: read B) : mut L[lent B] -> mut L{.absMeth->par} }
   @Test void t4352(){ c4(read,  mdf,   mut, of()); }
   @Test void t4353(){ c4(lent,  mdf,   mut, readAll,of(mdf,read, mdf,mdf)); }
   @Test void t4354(){ c4(mut,   mdf,   mut, of(read,lent  , read,read  , read,mdf  , mdf,read  , mdf,mdf)); }
-  @Test void t4355(){ c4(iso,   mdf,   mut, of(read,mdf  , mdf,mdf)); }
+  @Test void t4355(){ c4(iso,   mdf,   mut, of(read,mdf  , mdf,mdf , imm,mdf)); }
   @Test void t4356(){ c4(mdf,   mdf,   mut, of()); }
   @Test void t4357(){ c4(recMdf,mdf,   mut, readAll,of(mdf,read  , mdf,mdf)); }
   //                     lambda, captured, method, ...capturedAs
@@ -1818,9 +1818,9 @@ A:{ read .m(par: read B) : mut L[lent B] -> mut L{.absMeth->par} }
   @Test void t4452(){ c4(read,  mdf,   iso, of()); }
   @Test void t4453(){ c4(lent,  mdf,   iso, readAll,of(mdf,read  , mdf,mdf)); }
   @Test void t4454(){ c4(mut,   mdf,   iso, of(read,lent  , read,read  , read,mdf  , mdf,read  , mdf,mdf)); }
-  @Test void t4455(){ c4(iso,   mdf,   iso, of(read,mdf  , mdf,mdf)); }
+  @Test void t4455(){ c4(iso,   mdf,   iso, of(read,mdf  , mdf,mdf , imm,mdf)); }
   @Test void t4456(){ c4(mdf,   mdf,   iso, of()); }
-  @Test void t4457(){ c4(recMdf,mdf,   iso, readAll,of(mdf,read  , mdf,mdf  , imm,mdf)); }
+  @Test void t4457(){ c4(recMdf,mdf,   iso, readAll,immAll,of(mdf,read  , mdf,mdf  ,  mdf,imm)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t4461(){ c4(imm,   recMdf,   iso,  of()); }
   @Test void t4462(){ c4(read,  recMdf,   iso,  of()); }
