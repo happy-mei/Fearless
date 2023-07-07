@@ -42,8 +42,8 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.equals(new Id.MethName(".str", 0))) {
           return "Long.toString("+instantiate()+")";
         }
-        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+"+"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+"-"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+" + "+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+" - "+args.get(0).accept(gen); }
         if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.get(0).accept(gen); }
         if (m.equals(new Id.MethName("/", 1))) { return instantiate()+"/"+args.get(0).accept(gen); }
         if (m.equals(new Id.MethName("%", 1))) { return instantiate()+"%"+args.get(0).accept(gen); }
@@ -99,8 +99,8 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.equals(new Id.MethName(".str", 0))) {
           return "Long.toUnsignedString("+instantiate()+")";
         }
-        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+"+"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+"-"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+" + "+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+" - "+args.get(0).accept(gen); }
         if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.get(0).accept(gen); }
         if (m.equals(new Id.MethName("/", 1))) { return "Long.divideUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
         if (m.equals(new Id.MethName("%", 1))) { return "Long.remainderUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }

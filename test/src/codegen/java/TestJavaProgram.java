@@ -850,6 +850,19 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
+  @Test void negativeNums() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _ -> Do#
+      .do{ Assert#(-5 == -5, "id", {{}}) }
+      .do{ Assert#((-5 - -5) == 0, "subtraction 1", {{}}) }
+      .do{ Assert#((-5 - 5) == -10, "subtraction 2", {{}}) }
+      .do{ Assert#((-5 + 3) == -2, "addition 1", {{}}) }
+      .do{ Assert#((-5 + 7) == 2, "addition 2", {{}}) }
+      .do{ Assert#((5 + -7) == -2, "addition 3", {{}}) }
+      .return{{}}
+      }
+    """, Base.mutBaseAliases); }
+
 //  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test
 //    alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
