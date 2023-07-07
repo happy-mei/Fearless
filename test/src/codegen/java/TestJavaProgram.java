@@ -835,6 +835,21 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
+  @Test void intExp() { ok(new Res("3125", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> s
+      .use[IO] io = IO'
+      .return{ io.println(5 ** 5u .str) }
+      }
+    """, Base.mutBaseAliases); }
+  @Test void uintExp() { ok(new Res("3125", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> s
+      .use[IO] io = IO'
+      .return{ io.println(5u ** 5u .str) }
+      }
+    """, Base.mutBaseAliases); }
+
 //  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test
 //    alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,

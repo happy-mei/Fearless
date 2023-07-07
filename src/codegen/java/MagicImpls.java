@@ -32,7 +32,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         }
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
-        return Optional.of(_call(m, args, gamma));
+        return Optional.ofNullable(_call(m, args, gamma));
       }
       private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         // _NumInstance
@@ -47,11 +47,15 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.name().equals("*")) { return instantiate()+"*"+args.get(0).accept(gen); }
         if (m.name().equals("/")) { return instantiate()+"/"+args.get(0).accept(gen); }
         if (m.name().equals("%")) { return instantiate()+"%"+args.get(0).accept(gen); }
-        if (m.name().equals("**")) {
-          // TODO: implement this iteratively in fearless
-          throw Bug.todo();
-        }
-        if (m.name().equals(".abs")) { return "Math.abs("+instantiate()+")"; }
+        if (m.equals(new Id.MethName("**", 1))) { return String.format("""
+          switch (1) { default -> {
+              long base = %s; long exp = %s; long res = base;
+              if (exp == 0) { yield 1L; }
+              for(; exp > 1; exp--) { res *= base; }
+              yield res;
+            }}
+          """, instantiate(), args.get(0).accept(gen)); }
+        if (m.equals(new Id.MethName(".abs", 0))) { return "Math.abs("+instantiate()+")"; }
         if (m.name().equals(">>")) { return instantiate()+">>"+args.get(0).accept(gen); }
         if (m.name().equals("<<")) { return instantiate()+"<<"+args.get(0).accept(gen); }
         if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
@@ -100,11 +104,15 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.name().equals("*")) { return instantiate()+"*"+args.get(0).accept(gen); }
         if (m.name().equals("/")) { return "Long.divideUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
         if (m.name().equals("%")) { return "Long.remainderUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
-        if (m.name().equals("**")) {
-          // TODO: implement this iteratively in fearless
-          throw Bug.todo();
-        }
-        if (m.name().equals(".abs")) { return instantiate(); } // no-op for unsigned
+        if (m.equals(new Id.MethName("**", 1))) { return String.format("""
+          switch (1) { default -> {
+              long base = %s; long exp = %s; long res = base;
+              if (exp == 0) { yield 1L; }
+              for(; exp > 1; exp--) { res *= base; }
+              yield res;
+            }}
+          """, instantiate(), args.get(0).accept(gen)); }
+        if (m.equals(new Id.MethName(".abs", 0))) { return instantiate(); } // no-op for unsigned
         if (m.name().equals(">>")) { return instantiate()+">>"+args.get(0).accept(gen); }
         if (m.name().equals("<<")) { return instantiate()+"<<"+args.get(0).accept(gen); }
         if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }

@@ -15,6 +15,7 @@ UInt:Sealed,MathOps[UInt],IntOps[UInt]{
 Float:Sealed,MathOps[Float]{
   read .int: Int,
   read .uint: UInt,
+  read **(n: read Float): Float, // pow
   // not Stringable due to limitations of the Java codegen target
   read .str: Str,
   }
@@ -25,7 +26,6 @@ MathOps[T]:Sealed{
   read *(n: read T): T,
   read /(n: read T): T,
   read %(n: read T): T,
-  read **(n: read T): T, // pow
   read .abs: T,
 
   // Comparisons
@@ -42,6 +42,8 @@ IntOps[T]:Sealed{
   read ^(n: read T): T,
   read &(n: read T): T,
   read |(n: read T): T,
+
+  read **(n: read UInt): T, // pow
   }
 
 // Fake concrete type for all numbers. The real implementation is generated at code-gen.
