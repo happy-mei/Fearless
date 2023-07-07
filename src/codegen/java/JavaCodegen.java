@@ -57,7 +57,6 @@ public class JavaCodegen implements MIRVisitor<String> {
       .collect(Collectors.joining(","));
     var impls = its.isEmpty() ? "" : " extends "+its;
     var start = "interface "+shortName+impls+"{\n";
-//    var singletonGet = trait.canSingleton() ? longName+" _$self = new "+ longName+"(){};" : "";
     var singletonGet = "";
     if (trait.canSingleton()) {
       singletonGet = """

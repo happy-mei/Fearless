@@ -269,6 +269,37 @@ public class TestJavaProgram {
       .return{ io.println("Hello, World!") }
       }
     """); }
+  @Test void print() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    Test:Main{ s -> s
+      .use[IO] io = IO'
+      .block
+      .do{ io.print("Hello") }
+      .return{ io.print(", World!") }
+      }
+    """); }
+  @Test void printlnErr() { ok(new Res("", "Hello, World!", 0), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    Test:Main{ s -> s
+      .use[IO] io = IO'
+      .return{ io.printlnErr("Hello, World!") }
+      }
+    """); }
+  @Test void printErr() { ok(new Res("", "Hello, World!", 0), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    Test:Main{ s -> s
+      .use[IO] io = IO'
+      .block
+      .do{ io.printErr("Hello") }
+      .return{ io.printErr(", World!") }
+      }
+    """); }
   @Test void printlnShareLent() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,

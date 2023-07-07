@@ -57,11 +57,11 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
         if (m.name().equals("&")) { return instantiate()+"&"+args.get(0).accept(gen); }
         if (m.name().equals("|")) { return instantiate()+"|"+args.get(0).accept(gen); }
-        if (m.name().equals(">")) { return "("+instantiate()+">"+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){})"; }
-        if (m.name().equals("<")) { return "("+instantiate()+"<"+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){})"; }
-        if (m.name().equals(">=")) { return "("+instantiate()+">="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){})"; }
-        if (m.name().equals("<=")) { return "("+instantiate()+"<="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){})"; }
-        if (m.name().equals("==")) { return "("+instantiate()+"=="+args.get(0).accept(gen)+"?new base.True_0(){}:new base.False_0(){})"; }
+        if (m.name().equals(">")) { return "("+instantiate()+">"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.name().equals("<")) { return "("+instantiate()+"<"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.name().equals(">=")) { return "("+instantiate()+">="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.name().equals("<=")) { return "("+instantiate()+"<="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.name().equals("==")) { return "("+instantiate()+"=="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
         throw Bug.unreachable();
       }
     };
@@ -110,11 +110,11 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.name().equals("^")) { return instantiate()+"^"+args.get(0).accept(gen); }
         if (m.name().equals("&")) { return instantiate()+"&"+args.get(0).accept(gen); }
         if (m.name().equals("|")) { return instantiate()+"|"+args.get(0).accept(gen); }
-        if (m.name().equals(">")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>0?new base.True_0(){}:new base.False_0(){})"; }
-        if (m.name().equals("<")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<0?new base.True_0(){}:new base.False_0(){})"; }
-        if (m.name().equals(">=")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>=0?new base.True_0(){}:new base.False_0(){})"; }
-        if (m.name().equals("<=")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<=0?new base.True_0(){}:new base.False_0(){})"; }
-        if (m.name().equals("==")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")==0?new base.True_0(){}:new base.False_0(){})"; }
+        if (m.name().equals(">")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.name().equals("<")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.name().equals(">=")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>=0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.name().equals("<=")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<=0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.name().equals("==")) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")==0?base.True_0._$self:base.False_0._$self)"; }
         throw Bug.unreachable();
       }
     };
@@ -137,7 +137,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate()); }
         if (m.equals(new Id.MethName("+", 1))) { return Optional.of("("+instantiate()+"+"+args.get(0).accept(gen)+")"); }
         if (m.equals(new Id.MethName("==", 1))) {
-          return Optional.of("("+instantiate()+".equals("+args.get(0).accept(gen)+")?new base.True_0(){}:new base.False_0(){})");
+          return Optional.of("("+instantiate()+".equals("+args.get(0).accept(gen)+")?base.True_0._$self:base.False_0._$self)");
         }
         throw Bug.unreachable();
       }
@@ -182,7 +182,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
               protected Object x = %s;
               protected boolean isAlive = true;
               
-              public base.Bool_0 isAlive$() { return this.isAlive ? new base.True_0(){} : new base.False_0(){}; }
+              public base.Bool_0 isAlive$() { return this.isAlive ? base.True_0._$self : base.False_0._$self; }
               public Object peek$() { return this.consume$(); }
               public Object consume$() {
                 if (!this.isAlive) {
@@ -278,7 +278,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
             return String.format("""
               switch (1) { default -> {
                 System.out.print(%s);
-                yield new base.Void_0(){};
+                yield base.Void_0._$self;
               }}
               """, args.get(0).accept(gen));
           }
@@ -286,7 +286,23 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
             return String.format("""
               switch (1) { default -> {
                 System.out.println(%s);
-                yield new base.Void_0(){};
+                yield base.Void_0._$self;
+              }}
+              """, args.get(0).accept(gen));
+          }
+          if (m.equals(new Id.MethName(".printErr", 1))) {
+            return String.format("""
+              switch (1) { default -> {
+                System.err.print(%s);
+                yield base.Void_0._$self;
+              }}
+              """, args.get(0).accept(gen));
+          }
+          if (m.equals(new Id.MethName(".printlnErr", 1))) {
+            return String.format("""
+              switch (1) { default -> {
+                System.err.println(%s);
+                yield base.Void_0._$self;
               }}
               """, args.get(0).accept(gen));
           }

@@ -4,6 +4,8 @@ package base.caps
 IO:{
   lent .print(msg: Str): Void,
   lent .println(msg: Str): Void,
+  lent .printErr(msg: Str): Void,
+  lent .printlnErr(msg: Str): Void,
   }
 IO':CapFactory[RootCap, IO]{
   .build(auth: lent RootCap): lent IO -> _IO
@@ -11,4 +13,6 @@ IO':CapFactory[RootCap, IO]{
 _IO:Sealed,IO{
   .print(msg) -> Abort!,
   .println(msg) -> Abort!,
+  .printErr(msg) -> Abort!,
+  .printlnErr(msg) -> Abort!,
   }
