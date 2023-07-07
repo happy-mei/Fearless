@@ -863,6 +863,24 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
+  @Test void floats() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _ -> Do#
+      .do{ Assert#(-5.0 == -5.0, "id (neg)", {{}}) }
+      .do{ Assert#((-5.0 - -5.0) == 0.0, "subtraction 1", {{}}) }
+      .do{ Assert#((-5.0 - 5.0) == -10.0, "subtraction 2", {{}}) }
+      .do{ Assert#((-5.0 + 3.0) == -2.0, "addition 1", {{}}) }
+      .do{ Assert#((-5.0 + 7.0) == 2.0, "addition 2", {{}}) }
+      .do{ Assert#((5.0 + -7.0) == -2.0, "addition 3", {{}}) }
+      // pos
+      .do{ Assert#(1.0 == 1.0, "id", {{}}) }
+      .do{ Assert#(1.0 + 3.5 == 4.5, "addition 1 (pos)", {{}}) }
+      .do{ Assert#((1.0).str == "1.0", "str", {{}}) }
+      .do{ Assert#((5.0 / 2.0) == 2.5, (5.0 / 2.0).str, {{}}) }
+      .return{{}}
+      }
+    """, Base.mutBaseAliases); }
+
 //  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test
 //    alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,

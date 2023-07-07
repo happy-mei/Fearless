@@ -4,8 +4,7 @@ Main:{ #(args: LList[Str]): Str }
 Sealed:{}
 Void:{}
 
-Loop:{!: Void->this! }
-Debug:Sealed{ #[T](x: T): T -> x } // TODO: magic
+Abort:{ ![R]: mdf R -> this! } // can be optimised to just terminate (goes stuck)
 
 Let:{ #[V,R](l: Let[V, R]): R -> l.in(l.var) }
 Let[V,R]:{ .var: V, .in(v: V): R }

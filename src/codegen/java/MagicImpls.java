@@ -39,6 +39,9 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.equals(new Id.MethName(".uint", 0))) {
           return instantiate(); // only different at type level
         }
+        if (m.equals(new Id.MethName(".float", 0))) {
+          return "("+"(double)"+instantiate()+")";
+        }
         if (m.equals(new Id.MethName(".str", 0))) {
           return "Long.toString("+instantiate()+")";
         }
@@ -96,6 +99,9 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate(); // only different at type level
         }
+        if (m.equals(new Id.MethName(".float", 0))) {
+          return "("+"(double)"+instantiate()+")";
+        }
         if (m.equals(new Id.MethName(".str", 0))) {
           return "Long.toUnsignedString("+instantiate()+")";
         }
@@ -128,7 +134,57 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     };
   }
   @Override public MagicTrait<String> float_(MIR.Lambda l, MIR e) {
-    throw Bug.todo();
+    var name = new Id.IT<T>(l.freshName().name(), List.of());
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return name; }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        var lambdaName = name().name().name();
+        if (isLiteral(lambdaName)) {
+          try {
+            double l = Double.parseDouble(lambdaName);
+            return l+"d";
+          } catch (NumberFormatException err) {
+            throw Fail.invalidNum(lambdaName, "Float");
+          }
+        }
+        return "((double)"+e.accept(gen)+")";
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        return Optional.of(_call(m, args, gamma));
+      }
+      private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        if (m.equals(new Id.MethName(".int", 0)) || m.equals(new Id.MethName(".uint", 0))) {
+          return "("+"(long)"+instantiate()+")";
+        }
+        if (m.equals(new Id.MethName(".str", 0))) {
+          return "Double.toString("+instantiate()+")";
+        }
+        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+" + "+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+" - "+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("/", 1))) { return instantiate()+"/"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("%", 1))) { return instantiate()+"%"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("**", 1))) { return String.format("Math.pow(%s, %s)", instantiate(), args.get(0).accept(gen)); }
+        if (m.equals(new Id.MethName(".abs", 0))) { return "Math.abs("+instantiate()+")"; }
+        if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate()+">"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate()+"<"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate()+">="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate()+"<="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("==", 1))) {
+          return "("+instantiate()+"=="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)";
+        }
+        //Float specifics
+        if (m.equals(new Id.MethName(".round", 0))) { return "Math.round("+instantiate()+")"; }
+        if (m.equals(new Id.MethName(".ceil", 0))) { return "Math.ceil("+instantiate()+")"; }
+        if (m.equals(new Id.MethName(".floor", 0))) { return "Math.floor("+instantiate()+")"; }
+        if (m.equals(new Id.MethName(".isNaN", 0))) { return "(Double.isNaN("+instantiate()+")?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(".isInfinite", 0))) { return "(Double.isInfinite("+instantiate()+")?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(".isPosInfinity", 0))) { return "("+instantiate()+" == Double.POSITIVE_INFINITY)?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(".isNegInfinity", 0))) { return "("+instantiate()+" == Double.NEGATIVE_INFINITY)?base.True_0._$self:base.False_0._$self)"; }
+        throw Bug.unreachable();
+      }
+    };
   }
 
   @Override public MagicTrait<String> str(MIR.Lambda l, MIR e) {
