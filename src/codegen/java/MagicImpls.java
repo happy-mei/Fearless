@@ -247,7 +247,8 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
               protected boolean isAlive = true;
               
               public base.Bool_0 isAlive$() { return this.isAlive ? base.True_0._$self : base.False_0._$self; }
-              public Object peek$() { return this.consume$(); }
+              public Object peek$(Object f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$(this.x) : ((base$46caps.IsoViewer_2)f).none$(); }
+              public Object peekHyg$(Object f) { return this.isAlive ? ((base$46caps.IsoViewerHyg_2)f).some$(this.x) : ((base$46caps.IsoViewerHyg_2)f).none$(); }
               public Object consume$() {
                 if (!this.isAlive) {
                   throw new RuntimeException("Cannot consume an empty IsoPod.");

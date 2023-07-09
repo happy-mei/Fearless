@@ -881,6 +881,44 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
+  @Test void shouldPeekIntoIsoPod() { ok(new Res("""
+    peek: help, i'm alive
+    consume: help, i'm alive
+    """.strip(), "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> s
+      .use[IO] io = IO'
+      .block
+      .var s1 = { IsoPod#[Str]"help, i'm alive" }
+      .do{ PrintMsg#(s.share(IO'), s1) }
+      .return{ io.println("consume: " + (s1.consume)) }
+      }
+    PrintMsg:{
+      #(s: mut System[Void, IO], msg: read IsoPod[Str]): Void -> msg.peek{
+        .some(str) -> s
+          .use[IO] io = base.caps.IOFromIO
+          .return{ io.println("peek: " + str) },
+        .none -> Void
+        }
+      }
+    """, Base.mutBaseAliases); }
+  @Test void shouldPeekIntoIsoPodHyg() { ok(new Res("""
+    peek: help, i'm alive
+    consume: help, i'm alive
+    """.strip(), "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> s
+      .use[IO] io = IO'
+      .block
+      .var s1 = { IsoPod#[Str]"help, i'm alive" }
+      .do{ s1.peekHyg{
+        .some(str) -> io.println("peek: " + str),
+        .none -> Void
+        }}
+      .return{ io.println("consume: " + (s1.consume)) }
+      }
+    """, Base.mutBaseAliases); }
+
 //  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test
 //    alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,

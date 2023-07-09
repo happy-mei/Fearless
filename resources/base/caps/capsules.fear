@@ -4,7 +4,8 @@ IsoPod:{ #[T](val: iso T): mut IsoPod[T] -> base.Abort! } // magic
 IsoPod[T]:{
   read .isAlive: Bool, // magic
   read .isDead: Bool -> this.isAlive.not,
-  lent .peek: read T, // magic
+  read .peek[R](f: mut IsoViewer[T, mdf R]): mdf R, // magic
+  read .peekHyg[R](f: lent IsoViewer[T, mdf R]): mdf R, // magic
   lent .consume: iso T, // magic
   lent *: iso T -> this.consume,
   lent .next(val: iso T): Void, // magic
@@ -12,6 +13,14 @@ IsoPod[T]:{
   lent .mutate(f: F[mut T, Void]): Void -> this.next(IsoMutator#(f, this.consume)),
   }
 IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Yeet.with(f#val, val) }
+IsoViewer[T,R]:{
+  mut .some(x: read T): mdf R,
+  mut .none: mdf R,
+  }
+IsoViewerHyg[T,R]:{
+  lent .some(x: read T): mdf R,
+  lent .none: mdf R,
+  }
 
 // TODO The idea:
 //IsoPod[T]:{

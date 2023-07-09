@@ -77,6 +77,8 @@ public interface Base {
     alias base.caps.Env as Env,
     alias base.caps.Env' as Env',
     alias base.caps.IsoPod as IsoPod,
+    alias base.caps.IsoViewer as IsoViewer,
+    alias base.caps.IsoMutator as IsoMutator,
     alias base.Error as Error,
     alias base.Info as Info,
     alias base.BlockIfTrue as BlockIfTrue,
