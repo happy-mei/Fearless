@@ -1,0 +1,7 @@
+package base.caps
+
+// TODO:
+//Log[T]:{
+//  #(t: mdf T): Void,
+//  lent .spawn(f: F[read ])
+//  }
