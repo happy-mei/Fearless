@@ -8,8 +8,11 @@ import failure.Fail;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
+import magic.MagicImpls;
+import utils.Bug;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
+import visitors.Visitor;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +21,7 @@ import java.util.Optional;
 public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEnv<CompileError> {
   private final Program p;
   private Optional<String> pkg = Optional.empty();
+  private E.Lambda scope;
   public WellFormednessShortCircuitVisitor(Program p) { this.p = p; }
 
   @Override public Optional<CompileError> visitDec(T.Dec d) {
@@ -31,13 +35,16 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   @Override public Optional<CompileError> visitLambda(E.Lambda e) {
-    return noSealedOutsidePkg(e)
+    this.scope = e;
+    return ShortCircuitVisitor.visitAll(e.its(), it->noPrivateTraitOutsidePkg(it.name()))
+      .or(()->noSealedOutsidePkg(e))
       .or(()->super.visitLambda(e))
       .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
     return noIsoParams(e.ts())
+      .or(()->noPrivateMethCallOutsideTrait(e, scope))
       .or(()->super.visitMCall(e))
       .map(err->err.parentPos(e.pos()));
   }
@@ -99,6 +106,23 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
         return ShortCircuitVisitor.super.visitT(t);
       }
     }.visitIT(it);
+  }
+
+  private Optional<CompileError> noPrivateMethCallOutsideTrait(E.MCall e, E.Lambda callSite) {
+    if (!e.name().name().startsWith("._")) { return Optional.empty(); }
+    var tmpDec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), callSite, callSite.pos());
+    var meth = p.withDec(tmpDec).meths(Mdf.mdf, tmpDec.toIT(), e.name(), 0);
+    if (meth.isPresent()) { return Optional.empty(); }
+    // TODO: use env and handle calls to private methods on a parent scope
+    return Optional.empty();
+//    return Optional.of(Fail.privateMethCall(e.name()));
+  }
+
+  private Optional<CompileError> noPrivateTraitOutsidePkg(Id.DecId dec) {
+    if (MagicImpls.isLiteral(dec.name()) || !dec.shortName().startsWith("_")) { return Optional.empty(); }
+    var pkg = this.pkg.orElseThrow();
+    if (dec.pkg().equals(pkg)) { return Optional.empty(); }
+    return Optional.of(Fail.privateTraitImplementation(dec));
   }
 
   private Optional<CompileError> noSealedOutsidePkg(E.Lambda e) {

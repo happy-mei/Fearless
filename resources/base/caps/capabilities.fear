@@ -28,5 +28,5 @@ CapFactory[C,R]:{
   .close(c: lent R): Void -> {},
   .build(auth: lent C): lent R,
   }
-RootCap:{}
-_RootCap:Sealed,RootCap{}
+RootCap:Sealed{ .preventCreation: _RootCap }
+_RootCap:Sealed,RootCap{ _RootCap }
