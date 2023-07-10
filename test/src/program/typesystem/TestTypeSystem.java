@@ -814,7 +814,7 @@ were valid:
     A:{ .m(a: 42): 42 -> 42 }
     """, """
     package base
-    Sealed:{} Stringable:{ .str: Str } Str:{} Bool:{}
+    Sealed:{} Stringable:{ .str: Str } Str:{} Bool:{} Abort:{ ![T]: mdf T -> this! }
     """, Base.load("nums.fear")); }
 
   @Disabled // TODO: Figure out better way to load the rest of the base libs
