@@ -1,5 +1,19 @@
 package base
 
+// TODO:
+//Assert:Sealed{
+//  !(assertion: Bool): Void -> assertion ? {
+//    .then -> {},
+//    .else -> this._fail
+//    },
+//  !(assertion: Bool, msg: Str): Void -> assertion ? {
+//    .then -> {},
+//    .else -> this._fail(msg)
+//    },
+//  ._fail: Void -> this._fail,
+//  ._fail(msg: Str): Void -> this._fail(msg),
+//  }
+
 Assert:Sealed{
   #(assertion: Bool): Void -> this#(assertion, { Void }),
   #[R](assertion: Bool, cont: mut AssertCont[mdf R]): mdf R -> assertion ? {

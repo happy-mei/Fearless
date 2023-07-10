@@ -716,7 +716,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Do#
       .var[mut List[Int]] l1 = { (LListMut#[Int]35 + 52 + 84 + 14).list }
-      .do{ Assert#((l1.get(0u))! == (l1.iterMut.next!), "sanity", {{}}) }
+      .assert({ l1.get(0u)! == (l1.iterMut.next!) }, "sanity") // okay, time to use this for new tests
       .do{ Assert#((l1.iterMut.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert#((l1.iterMut.find{n -> n > 100}).isNone, "find empty", {{}}) }
       .do{ Assert#(l1.iterMut
