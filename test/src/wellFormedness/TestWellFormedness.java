@@ -202,6 +202,9 @@ public class TestWellFormedness {
   @Test void allowPrivateLambdaUsageWithinPkg() { ok("""
     package base.caps
     Good:{ .ok: mut base.caps._RootCap -> {} }
+    """, """
+    package base.caps
+    _RootCap:{}
     """); }
   @Test void noPrivateLambdaUsageOutsidePkg() { fail("""
     In position [###]/Dummy0.fear:2:41
@@ -210,6 +213,9 @@ public class TestWellFormedness {
     """, """
     package test
     Evil:{ .break: mut base.caps._RootCap -> {} }
+    """, """
+    package base.caps
+    _RootCap:{}
     """); }
   @Test void allowPrivateMethCallsWithinTrait() { ok("""
     package test
@@ -232,7 +238,7 @@ public class TestWellFormedness {
   @Test void noPrivateMethodCallsOutsideOfTrait() { fail("""
     In position [###]/Dummy0.fear:3:18
     [E47 privateMethCall]
-    The private method ._bar/0 cannot be called outside of the lambda it is defined in.
+    The private method ._bar/0 cannot be called outside of a lambda that implements it.
     """, """
     package test
     Bad:{

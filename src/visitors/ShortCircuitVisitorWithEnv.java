@@ -1,14 +1,19 @@
 package visitors;
 
 import ast.E;
+import ast.Program;
 import ast.T;
-import id.Id;
+import id.Mdf;
+import program.CM;
 
-import java.util.List;
 import java.util.Optional;
 
 public class ShortCircuitVisitorWithEnv<R> implements ShortCircuitVisitor<R> {
+  protected final Program p;
   protected Env env = new Env();
+
+  public ShortCircuitVisitorWithEnv(Program p) { this.p = p; }
+
   public Optional<R> visitMeth(E.Meth e){
     var oldEnv=env;
     this.env=env.add(e);
@@ -25,7 +30,8 @@ public class ShortCircuitVisitorWithEnv<R> implements ShortCircuitVisitor<R> {
   }
   public Optional<R> visitLambda(E.Lambda e){
     var oldEnv = env;
-    this.env = env.add(e);
+    var ms = p.meths(Mdf.mdf, e, 0).stream().map(CM::name).toList();
+    this.env = env.add(e, ms);
     try { return ShortCircuitVisitor.super.visitLambda(e); }
     finally { this.env = oldEnv; }
   }
