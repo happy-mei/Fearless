@@ -38,7 +38,10 @@ Iter[E]:{
     .some(e) -> this.foldMut(f#(acc, e), f),
     .none -> acc
     },
-  lent .for(f: lent IterForEacher[mdf E]): Void -> this.foldImm(Void, { _, e -> f#e }),
+  mut .for(f: mut IterForEacher[mdf E]): Void -> this.next.match{
+    .some(e) -> Yeet.with(f#e, this.for(f)),
+    .none -> {}
+    },
 
   lent .count: UInt -> this.fold[UInt](0u, IterFolder[mdf E, UInt]{ acc, _ -> acc + 1u }),
   lent .list: mut List[mdf E] ->
@@ -61,7 +64,7 @@ Sum:{
 //  .float(ns: lent Iter[Float]): Float -> ns.fold[Float](0.0, IterFolder[Float, Float]{ acc, n -> acc + n }),
   }
 
-IterForEacher[E]:{ lent #(e: mdf E): Void }
+IterForEacher[E]:{ mut #(e: mdf E): Void }
 IterFolder[E,R]:{ lent #(acc: mdf R, e: mdf E): mdf R }
 IterFolderMut[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
 IterScanner[E,R,S]:{ lent #(state: mut Ref[mdf S], e: mdf E): mdf S }

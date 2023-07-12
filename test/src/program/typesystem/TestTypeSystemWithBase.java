@@ -227,4 +227,42 @@ public class TestTypeSystemWithBase {
     package test
     Evil:{ .break: mut base.caps.RootCap -> { this.break } }
     """); }
+
+  @Test void mutateInPlace() { ok("""
+    package test
+    Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
+    Person':{
+      #(name: Str): mut Person -> this.new(Ref#name, List#),
+      .new(name: mut Ref[Str], friends: mut List[Person]): mut Person ->
+        { .name -> name, .friends -> friends },
+      }
+    
+    MyApp:{
+      #: Void -> Do#
+        .var ps = { List#(Person'#"Alice", Person'#"Bob", Person'#"Nick") }
+        .do{ ps.iterMut.for{ p -> p.name := "new name" } }
+        .return
+      }
+    """, Base.mutBaseAliases); }
+  @Test void mutateHyg() { fail("""
+    In position [###]/Dummy0.fear:9:36
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    p .name/0[]([])
+    were valid:
+    (lent test.Person[]) <: (mut test.Person[]): mut base.Ref[imm base.Str[]]
+    (lent test.Person[]) <: (iso test.Person[]): iso base.Ref[imm base.Str[]]
+    (lent test.Person[]) <: (iso test.Person[]): lent base.Ref[imm base.Str[]]
+    """, """
+    package test
+    Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
+    Person':{
+      #(name: Str): mut Person -> this.new(Ref#name, List#),
+      .new(name: mut Ref[Str], friends: mut List[Person]): mut Person ->
+        { .name -> name, .friends -> friends },
+      }
+    Usage:{
+      .mutate(p: lent Person): Void -> p.name := "bob",
+      }
+    """, Base.mutBaseAliases); }
 }
