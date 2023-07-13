@@ -709,6 +709,7 @@ public class TestJavaProgram {
         "flatMap", {{}})}
       .do{ Assert#(Sum.int(l1.iter.map{n -> n+0}) == 185, "sum int", {{}})}
       .do{ Assert#(Sum.uint(l1.iter.map{n -> n.uint}) == 185u, "sum uint", {{}})}
+      .do{ Assert#(Sum.float(l1.iter.map{n -> n.float}) == 185.0, "sum float", {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }
@@ -748,6 +749,7 @@ public class TestJavaProgram {
         "flatMap", {{}})}
       .do{ Assert#(Sum.int(l1.iterMut) == 185, "sum int", {{}})}
       .do{ Assert#(Sum.uint(l1.iterMut.map{n -> n.uint}) == 185u, "sum uint", {{}})}
+      .do{ Assert#(Sum.float(l1.iterMut.map{n -> n.float}) == 185.0, "sum float", {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }
