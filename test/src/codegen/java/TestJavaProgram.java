@@ -600,7 +600,7 @@ public class TestJavaProgram {
           }#(ns.tail.head, ns.tail.tail) }
         .return{ closest* }
       }
-    Closest':{ mut #(h: Opt[Int], t: LListMut[Int]): Void }
+    Closest':{ mut #(h: Opt[Int], t: mut LListMut[Int]): Void }
     """, Base.mutBaseAliases); }
   @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), "test.Test", """
     package test

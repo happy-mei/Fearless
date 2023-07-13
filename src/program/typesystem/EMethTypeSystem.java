@@ -10,6 +10,7 @@ import id.Id.GX;
 import id.Id.MethName;
 import id.Mdf;
 import program.TypeRename;
+import utils.Box;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
@@ -38,7 +39,7 @@ public interface EMethTypeSystem extends ETypeSystem {
 
     List<E> es = Push.of(e0,e.es());
     var nestedErrors = new ArrayDeque<ArrayList<CompileError>>(tst.size());
-    for (TsT(List<T> ts, T t) : tst) {
+    for (TsT(List<T> ts, T t, boolean _hasRecMdf) : tst) {
       var errors = new ArrayList<CompileError>();
       nestedErrors.add(errors);
       if (okAll(es, ts, errors)) {
@@ -90,16 +91,27 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
 
   default List<TsT> allMeth(TsT tst) {
+    TsT safeTsT = tst;
+    if (tst.hasRecMdfRet) {
+      safeTsT = new TsT(tst.ts, tst.t.withMdf(Mdf.recMdf), true);
+    }
     return Stream.concat(Stream.of(
       tst,
-      tst.renameMdfs(Map.of(Mdf.mut, Mdf.iso)),
-      tst.renameMdfs(Map.of(
+      safeTsT.renameMdfs(Map.of(Mdf.mut, Mdf.iso)),
+      safeTsT.renameMdfs(Map.of(
         Mdf.read, Mdf.imm,
         Mdf.lent, Mdf.iso,
         Mdf.mut, Mdf.iso
       ))),
-      oneLentToMut(tst).stream()
-    ).distinct().toList();
+      oneLentToMut(safeTsT).stream())
+      .map(candidate->{
+        if (!candidate.t.mdf().isRecMdf()) { return candidate; }
+        if (tst.t.mdf().isRecMdf()) { return candidate; }
+        var retT = fancyRename(candidate.t, candidate.ts.get(0).mdf(), Map.of());
+        return new TsT(candidate.ts, retT, true);
+      })
+      .distinct()
+      .toList();
   }
 
   default Optional<TsT> resolveMeth(T rec, MethName m, List<T> ts) {
@@ -114,7 +126,7 @@ public interface EMethTypeSystem extends ETypeSystem {
         cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()
       );
       var t = fancyRename(cm.ret(), mdf, xsTsMap);
-      return new TsT(params, t);
+      return new TsT(params, t, cm.ret().mdf().isRecMdf());
     });
   }
 
@@ -145,21 +157,21 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
   default T mutToIso(T t){ return t.mdf().isMut()?t.withMdf(Mdf.iso):t; }
   default T toLent(T t) { return t.mdf().isMut() ? t.withMdf(Mdf.lent) : t; }
-  default TsT transformLents(int i,List<T> ts, T t){
+  default TsT transformMuts(int i, List<T> ts, T t, boolean hasRecMdf){
     var ts0 = IntStream.range(0,ts.size()).mapToObj(j->j==i
-      ? ts.get(i).withMdf(Mdf.mut)
+      ? ts.get(i).withMdf(Mdf.lent)
       : mutToIso(ts.get(j))
     ).toList();
-    return new TsT(ts0,mutToIso(t));
+    return new TsT(ts0, mutToIso(t), hasRecMdf);
   }
   default List<TsT> oneLentToMut(TsT tst){
     var ts = tst.ts();
     var t = tst.t();
-    Stream<TsT> r = Stream.of(new TsT(mutToIso(ts),toLent(t)));
-    var lents = IntStream.range(0,ts.size())
-      .filter(i->ts.get(i).mdf().isLent()).boxed().toList();
-    Stream<TsT> ps=lents.stream()
-      .map(i->transformLents(i,ts,t));
+    Stream<TsT> r = Stream.of(new TsT(mutToIso(ts),toLent(t), tst.hasRecMdfRet));
+    var muts = IntStream.range(0,ts.size())
+      .filter(i->ts.get(i).mdf().isMut()).boxed().toList();
+    Stream<TsT> ps=muts.stream()
+      .map(i->transformMuts(i, ts, t, tst.hasRecMdfRet));
     return Stream.concat(r,ps).toList();
   }
 
@@ -170,11 +182,11 @@ public interface EMethTypeSystem extends ETypeSystem {
     );
   }
 
-  record TsT(List<T> ts, T t){
+  record TsT(List<T> ts, T t, boolean hasRecMdfRet){
     public TsT renameMdfs(Map<Mdf, Mdf> replacements) {
       List<T> ts = ts().stream().map(ti->ti.withMdf(replacements.getOrDefault(ti.mdf(), ti.mdf()))).toList();
       T t = t().withMdf(replacements.getOrDefault(t().mdf(), t().mdf()));
-      return new TsT(ts, t);
+      return new TsT(ts, t, hasRecMdfRet);
     }
     @Override public String toString() {
       return "("+ts.stream().map(T::toString).collect(Collectors.joining(", "))+"): "+t;

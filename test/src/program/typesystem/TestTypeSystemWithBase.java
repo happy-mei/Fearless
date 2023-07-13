@@ -244,16 +244,7 @@ public class TestTypeSystemWithBase {
         .return
       }
     """, Base.mutBaseAliases); }
-  @Test void mutateHyg() { fail("""
-    In position [###]/Dummy0.fear:9:36
-    [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
-    p .name/0[]([])
-    were valid:
-    (lent test.Person[]) <: (mut test.Person[]): mut base.Ref[imm base.Str[]]
-    (lent test.Person[]) <: (iso test.Person[]): iso base.Ref[imm base.Str[]]
-    (lent test.Person[]) <: (iso test.Person[]): lent base.Ref[imm base.Str[]]
-    """, """
+  @Test void mutateHyg() { ok("""
     package test
     Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
     Person':{
