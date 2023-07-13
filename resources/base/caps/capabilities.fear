@@ -8,7 +8,7 @@ System[R,Auth]:Sealed{
     .do{ c.close(cap) }
     .return{ res },
   lent .block: lent BlockHyg[mdf R] -> {},
-  lent .return(ret: lent ReturnStmtHyg[mdf R]): mdf R -> ret#,
+  lent .return(ret: lent ReturnStmt[mdf R]): mdf R -> ret#,
   lent .share[RR](): iso System[mdf RR, Auth] -> Do.hyg[mut System[mdf RR, Auth]]
     .var[CapBox[Auth]] auth = { this._auth }
     .return{{ auth }},

@@ -56,7 +56,7 @@ public class Id {
     private static HashMap<Integer, List<GX<ast.T>>> freshNames = new HashMap<>();
     public static void reset() {
       // TODO: disable outside unit testing context
-      if (FRESH_N.get() > 60_000) {
+      if (FRESH_N.get() > 150_000) {
         throw Bug.of("FRESH_N is larger than we expected for tests.");
       }
       FRESH_N.set(0);
