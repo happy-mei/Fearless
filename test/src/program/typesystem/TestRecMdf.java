@@ -1,10 +1,7 @@
 package program.typesystem;
 
-import net.jqwik.api.ForAll;
-import net.jqwik.api.Property;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import static utils.Base.load;
 
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
@@ -36,6 +33,19 @@ public class TestRecMdf {
       read .m1(): recMdf A -> this,
       mut .m2: imm A -> this.m1,
       }
+    """); }
+  @Test void shouldCollapseWhenCalled1bb() { fail("""
+    In position [###]/Dummy0.fear:5:20
+    [E28 undefinedName]
+    The identifier "this" is undefined or cannot be captured.
+    """, """
+    package test
+    A:{
+      // Broken because makes mut this -> imm!
+      read .m1(_: mut NoPromote): recMdf A -> this,
+      mut .m2: imm A -> this.m1{},
+      }
+    NoPromote:{}
     """); }
   @Test void shouldCollapseWhenCalled1c() { ok("""
     package test
