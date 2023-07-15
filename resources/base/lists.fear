@@ -123,3 +123,11 @@ _ListState:{
     .inner -> inner
     }
   }
+
+//LList2[E]:NoMutHyg[mdf E]{
+//  read .get(i: UInt): recMdf E -> Abort!,
+//  // read .push(e: mdf E): recMdf LList2[mdf E] -> { .get(i) -> e } // passes
+//  read .push(e: mdf E): recMdf LList2[mdf E] -> { .get(i) -> (i == 0u).if((lent ListGet)#[recMdf E](e, this)) }
+//  }
+//ListGet:{ lent #[E](e: mdf E, else: recMdf LList2[mdf E]): lent ThenElse[mdf E] -> { .then -> e, .else -> else.get(0u) } }
+
