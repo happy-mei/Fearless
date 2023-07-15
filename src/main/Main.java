@@ -4,11 +4,8 @@ import astFull.E;
 import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
 import failure.CompileError;
 import id.Id;
-import program.Program;
 import utils.Box;
 import utils.Bug;
-
-import java.util.Optional;
 
 public class Main {
   private static CompilerFrontEnd frontEnd = null;
