@@ -169,8 +169,6 @@ public interface EMethTypeSystem extends ETypeSystem {
     Stream<TsT> r = Stream.of(new TsT(mutToIso(ts), mutToLent(t), tst.hasRecMdfRet));
     var muts = IntStream.range(0,ts.size())
       .filter(i->ts.get(i).mdf().isMut()).boxed().toList();
-    // need at least 1 mut that's not the recv
-//    if (ts.get(0).mdf().isMut() && muts.size() < 2) { return r.toList(); }
     Stream<TsT> ps=muts.stream()
       .map(i->transformMuts(i, ts, t, tst.hasRecMdfRet));
     return Stream.concat(r,ps).toList();
