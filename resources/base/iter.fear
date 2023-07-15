@@ -65,11 +65,11 @@ Sum:{
   }
 
 IterForEacher[E]:{ mut #(e: mdf E): Void }
-IterFolder[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
+IterFolder[E,R]:{ lent #(acc: mdf R, e: mdf E): mdf R }
 IterFolderMut[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
-IterScanner[E,R,S]:{ mut #(state: mut Ref[mdf S], e: mdf E): mdf S } // TODO
-IterMapper[E,R]:{ mut #(e: mdf E): mdf R }
-IterPredicate[E]:{ mut #(e: mdf E): Bool }
+IterScanner[E,R,S]:{ lent #(state: mut Ref[mdf S], e: mdf E): mdf S }
+IterMapper[E,R]:{ lent #(e: mdf E): mdf R }
+IterPredicate[E]:{ lent #(e: mdf E): Bool }
 
 _ListIsoAdd[E]:{
   #(l: mut List[mdf E], e: mdf E): mut List[mdf E] -> Yeet.with(l.add(e), l),

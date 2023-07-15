@@ -10,7 +10,6 @@ import id.Id.GX;
 import id.Id.MethName;
 import id.Mdf;
 import program.TypeRename;
-import utils.Box;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
@@ -156,20 +155,22 @@ public interface EMethTypeSystem extends ETypeSystem {
     return ts.stream().map(this::mutToIso).toList();
   }
   default T mutToIso(T t){ return t.mdf().isMut()?t.withMdf(Mdf.iso):t; }
-  default T toLent(T t) { return t.mdf().isMut() ? t.withMdf(Mdf.lent) : t; }
+  default T mutToLent(T t) { return t.mdf().isMut() ? t.withMdf(Mdf.lent) : t; }
   default TsT transformMuts(int i, List<T> ts, T t, boolean hasRecMdf){
     var ts0 = IntStream.range(0,ts.size()).mapToObj(j->j==i
       ? ts.get(i).withMdf(Mdf.lent)
       : mutToIso(ts.get(j))
     ).toList();
-    return new TsT(ts0, mutToIso(t), hasRecMdf);
+    return new TsT(ts0, mutToLent(t), hasRecMdf);
   }
   default List<TsT> oneLentToMut(TsT tst){
     var ts = tst.ts();
     var t = tst.t();
-    Stream<TsT> r = Stream.of(new TsT(mutToIso(ts),toLent(t), tst.hasRecMdfRet));
+    Stream<TsT> r = Stream.of(new TsT(mutToIso(ts), mutToLent(t), tst.hasRecMdfRet));
     var muts = IntStream.range(0,ts.size())
       .filter(i->ts.get(i).mdf().isMut()).boxed().toList();
+    // need at least 1 mut that's not the recv
+//    if (ts.get(0).mdf().isMut() && muts.size() < 2) { return r.toList(); }
     Stream<TsT> ps=muts.stream()
       .map(i->transformMuts(i, ts, t, tst.hasRecMdfRet));
     return Stream.concat(r,ps).toList();

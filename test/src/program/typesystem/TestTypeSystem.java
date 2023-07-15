@@ -217,7 +217,7 @@ public class TestTypeSystem {
         When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
         (imm test.A[]): imm test.B[]
     
-    (imm test.B[]) <: (lent test.B[]): iso test.B[]
+    (imm test.B[]) <: (lent test.B[]): lent test.B[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:4:24
         [E32 noCandidateMeths]
@@ -265,7 +265,7 @@ public class TestTypeSystem {
         (imm test.A[]): read test.B[]
         (imm test.A[]): imm test.B[]
         
-    (read test.B[]) <: (lent test.B[]): iso test.B[]
+    (read test.B[]) <: (lent test.B[]): lent test.B[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:4:24
         [E32 noCandidateMeths]
@@ -314,7 +314,7 @@ public class TestTypeSystem {
         (read test.A[]): recMdf test.B[]
         (imm test.A[]): recMdf test.B[]
 
-    (recMdf test.B[]) <: (lent test.B[]): iso test.B[]
+    (recMdf test.B[]) <: (lent test.B[]): lent test.B[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:4:29
         [E32 noCandidateMeths]
@@ -341,7 +341,31 @@ public class TestTypeSystem {
       }
     B:{}
     """); }
-  @Test void mutFromRecMdfLent() { ok("""
+  @Test void mutFromRecMdfLent() { fail("""
+    In position [###]/Dummy0.fear:5:30
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .promote/1[]([this .b/0[]([])])
+    were valid:
+    (lent test.A[], lent test.B[]) <: (read test.A[], mut test.B[]): mut test.B[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:5:43
+        [E33 callTypeError]
+        Type error: None of the following candidates for this method call:
+        this .b/0[]([])
+        were valid:
+        (lent test.A[]) <: (iso test.A[]): mut test.B[]
+        
+    (lent test.A[], lent test.B[]) <: (read test.A[], iso test.B[]): iso test.B[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:5:43
+        [E32 noCandidateMeths]
+        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+        (lent test.A[]): lent test.B[]
+        (iso test.A[]): mut test.B[]
+        
+    (lent test.A[], lent test.B[]) <: (imm test.A[], iso test.B[]): iso test.B[]
+    """, """
     package test
     A:{
       lent .b: recMdf B -> {},

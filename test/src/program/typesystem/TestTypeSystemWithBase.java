@@ -256,4 +256,29 @@ public class TestTypeSystemWithBase {
       .mutate(p: lent Person): Void -> p.name := "bob",
       }
     """, Base.mutBaseAliases); }
+  @Test void mutateHyg2() { fail("""
+    In position [###]/Dummy0.fear:9:48
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    p .name/0[]([])
+    were valid:
+    (lent test.Person[]) <: (mut test.Person[]): mut base.Ref[imm base.Str[]]
+    (lent test.Person[]) <: (iso test.Person[]): iso base.Ref[imm base.Str[]]
+    """, """
+    package test
+    Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
+    Person':{
+      #(name: Str): mut Person -> this.new(Ref#name, List#),
+      .new(name: mut Ref[Str], friends: mut List[Person]): mut Person ->
+        { .name -> name, .friends -> friends },
+      }
+    Usage:{
+      .mutate(p: lent Person): iso Ref[Str] -> p.name,
+//      .break: Void -> Do#
+//        .var[mut Person] p = { Person'#"Alice" }
+//        .var[imm Ref[Str]] illegal = { this.mutate(p) }
+//        .do{ p.name := "Charles" }
+//        .return
+      }
+    """, Base.mutBaseAliases); }
 }
