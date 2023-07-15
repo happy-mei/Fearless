@@ -162,6 +162,13 @@ public class Fail{
     return of("The sealed trait "+sealedDec+" cannot be created in a different package ("+pkg+").");
   }
 
+  public static CompileError privateMethCall(Id.MethName meth) {
+    return of("The private method "+meth+" cannot be called outside of a lambda that implements it.");
+  }
+  public static CompileError privateTraitImplementation(Id.DecId dec) {
+    return of("The private trait "+dec+" cannot be implemented outside of its package.");
+  }
+
   public static CompileError undefinedMethod(Id.MethName name, Id.IT<T> recv){
     return of(name+" does not exist in "+recv+".");
   }
@@ -257,6 +264,8 @@ enum ErrorCode {
   invalidEntryPoint,
   ignoredIdentInExpr,
   multipleIsoUsage,
-  noMdfInFormalParams;
+  noMdfInFormalParams,
+  privateMethCall,
+  privateTraitImplementation;
   int code() {return this.ordinal() + 1;}
 }

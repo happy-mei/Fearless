@@ -216,6 +216,13 @@ public class TestTypeSystem {
         [E32 noCandidateMeths]
         When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
         (imm test.A[]): imm test.B[]
+    
+    (imm test.B[]) <: (lent test.B[]): iso test.B[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:4:24
+        [E32 noCandidateMeths]
+        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
+        (imm test.A[]): imm test.B[]
     """, """
     package test
     A:{
@@ -229,35 +236,43 @@ public class TestTypeSystem {
     Void:{}
     """); }
   @Test void noCallMutFromRead() { fail("""
-In position [###]/Dummy0.fear:4:26
-[E33 callTypeError]
-Type error: None of the following candidates for this method call:
-this .b/0[]([]) .foo/0[]([])
-were valid:
-(read test.B[]) <: (mut test.B[]): mut test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    (imm test.A[]): read test.B[]
-    (imm test.A[]): imm test.B[]
+    In position [###]/Dummy0.fear:4:26
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .b/0[]([]) .foo/0[]([])
+    were valid:
+    (read test.B[]) <: (mut test.B[]): mut test.B[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:4:24
+        [E32 noCandidateMeths]
+        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
+        (imm test.A[]): read test.B[]
+        (imm test.A[]): imm test.B[]
 
-(read test.B[]) <: (iso test.B[]): iso test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-    (imm test.A[]): read test.B[]
-    (imm test.A[]): imm test.B[]
+    (read test.B[]) <: (iso test.B[]): iso test.B[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:4:24
+        [E32 noCandidateMeths]
+        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+        (imm test.A[]): read test.B[]
+        (imm test.A[]): imm test.B[]
 
-(read test.B[]) <: (iso test.B[]): lent test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-    (imm test.A[]): read test.B[]
-    (imm test.A[]): imm test.B[]
-    """, """
+    (read test.B[]) <: (iso test.B[]): lent test.B[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:4:24
+        [E32 noCandidateMeths]
+        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+        (imm test.A[]): read test.B[]
+        (imm test.A[]): imm test.B[]
+        
+    (read test.B[]) <: (lent test.B[]): iso test.B[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:4:24
+        [E32 noCandidateMeths]
+        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
+        (imm test.A[]): read test.B[]
+        (imm test.A[]): imm test.B[]
+        """, """
     package test
     A:{
       .b: read B -> {},
@@ -298,6 +313,14 @@ were valid:
         When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
         (read test.A[]): recMdf test.B[]
         (imm test.A[]): recMdf test.B[]
+
+    (recMdf test.B[]) <: (lent test.B[]): iso test.B[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:4:29
+        [E32 noCandidateMeths]
+        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
+        (read test.A[]): recMdf test.B[]
+        (imm test.A[]): recMdf test.B[]
     """, """
     package test
     A:{
@@ -318,13 +341,11 @@ were valid:
       }
     B:{}
     """); }
-  // TODO: Do we want to expand Meth-OK to allow this?
-  @Disabled
   @Test void mutFromRecMdfLent() { ok("""
     package test
     A:{
       lent .b: recMdf B -> {},
-      read .promote(b: lent B): mut B -> b,
+      read .promote(b: mut B): mut B -> b,
       lent .doThing: mut B -> this.promote(this.b)
       }
     B:{}
@@ -814,7 +835,7 @@ were valid:
     A:{ .m(a: 42): 42 -> 42 }
     """, """
     package base
-    Sealed:{} Stringable:{ .str: Str } Str:{} Bool:{}
+    Sealed:{} Stringable:{ .str: Str } Str:{} Bool:{} Abort:{ ![T]: mdf T -> this! }
     """, Base.load("nums.fear")); }
 
   @Disabled // TODO: Figure out better way to load the rest of the base libs

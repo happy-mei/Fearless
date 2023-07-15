@@ -38,7 +38,10 @@ Iter[E]:{
     .some(e) -> this.foldMut(f#(acc, e), f),
     .none -> acc
     },
-  lent .for(f: lent IterForEacher[mdf E]): Void -> this.foldImm(Void, { _, e -> f#e }),
+  mut .for(f: mut IterForEacher[mdf E]): Void -> this.next.match{
+    .some(e) -> Yeet.with(f#e, this.for(f)),
+    .none -> {}
+    },
 
   lent .count: UInt -> this.fold[UInt](0u, IterFolder[mdf E, UInt]{ acc, _ -> acc + 1u }),
   lent .list: mut List[mdf E] ->
@@ -58,15 +61,15 @@ Iter[E]:{
 Sum:{
   .int(ns: lent Iter[Int]): Int -> ns.fold[Int](0, IterFolder[Int, Int]{ acc, n -> acc + n }),
   .uint(ns: lent Iter[UInt]): UInt -> ns.fold[UInt](0u, IterFolder[UInt, UInt]{ acc, n -> acc + n }),
-//  .float(ns: lent Iter[Float]): Float -> ns.fold[Float](0.0, IterFolder[Float, Float]{ acc, n -> acc + n }),
+  .float(ns: lent Iter[Float]): Float -> ns.fold[Float](0.0, IterFolder[Float, Float]{ acc, n -> acc + n }),
   }
 
-IterForEacher[E]:{ lent #(e: mdf E): Void }
-IterFolder[E,R]:{ lent #(acc: mdf R, e: mdf E): mdf R }
+IterForEacher[E]:{ mut #(e: mdf E): Void }
+IterFolder[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
 IterFolderMut[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
-IterScanner[E,R,S]:{ lent #(state: mut Ref[mdf S], e: mdf E): mdf S }
-IterMapper[E,R]:{ lent #(e: mdf E): mdf R }
-IterPredicate[E]:{ lent #(e: mdf E): Bool }
+IterScanner[E,R,S]:{ mut #(state: mut Ref[mdf S], e: mdf E): mdf S } // TODO
+IterMapper[E,R]:{ mut #(e: mdf E): mdf R }
+IterPredicate[E]:{ mut #(e: mdf E): Bool }
 
 _ListIsoAdd[E]:{
   #(l: mut List[mdf E], e: mdf E): mut List[mdf E] -> Yeet.with(l.add(e), l),

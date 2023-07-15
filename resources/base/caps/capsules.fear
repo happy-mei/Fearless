@@ -5,7 +5,7 @@ IsoPod[T]:{
   read .isAlive: Bool, // magic
   read .isDead: Bool -> this.isAlive.not,
   read .peek[R](f: mut IsoViewer[T, mdf R]): mdf R, // magic
-  read .peekHyg[R](f: lent IsoViewer[T, mdf R]): mdf R, // magic
+  read .peekHyg[R](f: lent IsoViewerHyg[T, mdf R]): mdf R, // magic
   lent .consume: iso T, // magic
   lent *: iso T -> this.consume,
   lent .next(val: iso T): Void, // magic

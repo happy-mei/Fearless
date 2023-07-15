@@ -48,7 +48,15 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
       var dir = Path.of(name);
       Files.createDirectory(dir);
       Files.writeString(dir.resolve("pkg.fear"), "package "+name+"\n"+regenerateAliases()+"\n");
-      Files.writeString(dir.resolve("lib.fear"), "package "+name+"\nExampleTrait:Main{ \"Hello, World!\" }\n");
+      Files.writeString(dir.resolve("lib.fear"), "package "+name+"\nGreeting:{ .get: Str -> \"Hello, World!\" }\n");
+      Files.writeString(dir.resolve("main.fear"), "package "+name+"\n"+"""
+        App:Main{ s -> s
+          .use[IO] io = IO'
+          .block
+          .var[Str] greeting = { Greeting.get }
+          .return{ io.println(greeting) }
+          }
+        """.stripIndent());
     } catch (IOException err) {
       System.err.println("Error creating package structure: "+ err);
       System.exit(1);

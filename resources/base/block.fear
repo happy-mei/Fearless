@@ -59,15 +59,16 @@ ReturnStmt[R]:NoMutHyg[mdf R]{ mut #: mdf R }
 DoRunner:{ mut #: Void }
 Condition:{ mut #: Bool }
 Continuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
+ContinuationHyg[X,R]:{ mut #(x: mdf X, self: lent BlockHyg[mdf R]): mdf R }
 
 // hyg blocks
 BlockHyg[R]:{
-  lent .return(a: lent ReturnStmtHyg[mdf R]): mdf R -> a#,
-  lent .do(a: lent DoRunnerHyg): lent BlockHyg[mdf R] -> this._do(a#),
+  lent .return(a: lent ReturnStmt[mdf R]): mdf R -> a#,
+  lent .do(a: lent DoRunner): lent BlockHyg[mdf R] -> this._do(a#),
     lent ._do(v: Void): lent BlockHyg[mdf R] -> {},
-  lent .assert(cond: lent ConditionHyg, msg: Str): lent BlockHyg[mdf R] -> Yeet.with(Assert#(cond#, msg, {Void}), this),
-  lent .var[X](x: lent ReturnStmtHyg[mdf X], cont: lent ContinuationHyg[mdf X, mdf R]): mdf R -> cont#(x#, this),
-  lent .if(a: lent ConditionHyg): lent BlockIfHyg[mdf R] -> a#.ifHyg{
+  lent .assert(cond: lent Condition, msg: Str): lent BlockHyg[mdf R] -> Yeet.with(Assert#(cond#, msg, {Void}), this),
+  lent .var[X](x: lent ReturnStmt[mdf X], cont: lent ContinuationHyg[mdf X, mdf R]): mdf R -> cont#(x#, this),
+  lent .if(a: lent Condition): lent BlockIfHyg[mdf R] -> a#.ifHyg{
     .then -> lent BlockIfTrueHyg[mdf R]{ this },
     .else -> lent BlockIfFalseHyg[mdf R]{ this }
     },
@@ -75,10 +76,10 @@ BlockHyg[R]:{
 
 BlockIfHyg[R]:{
   lent ._outer: lent BlockHyg[mdf R],
-  lent .return(a: lent ReturnStmtHyg[mdf R]): lent BlockHyg[mdf R],
-  lent .assert(cond: lent ConditionHyg, msg: Str): lent BlockHyg[mdf R],
-  lent .error(a: lent ReturnStmtHyg[Void]): lent BlockHyg[mdf R], // todo: proper errors
-  lent .do(a: lent DoRunnerHyg): lent BlockHyg[mdf R],
+  lent .return(a: lent ReturnStmt[mdf R]): lent BlockHyg[mdf R],
+  lent .assert(cond: lent Condition, msg: Str): lent BlockHyg[mdf R],
+  lent .error(a: lent ReturnStmt[Void]): lent BlockHyg[mdf R], // todo: proper errors
+  lent .do(a: lent DoRunner): lent BlockHyg[mdf R],
   }
 BlockIfTrueHyg[R]:BlockIfHyg[mdf R]{
   .return(a) -> this._return(a#),
@@ -102,11 +103,6 @@ DecidedBlockHyg[R]:BlockHyg[mdf R]{
   .var(_,_) -> this._res,
   .if(a) -> BlockIfFalseHyg[mdf R]{ this },
   }
-
-ReturnStmtHyg[R]:{ lent #: mdf R }
-DoRunnerHyg:{ lent #: Void }
-ConditionHyg:{ lent #: Bool }
-ContinuationHyg[X,R]:{ lent #(x: mdf X, self: lent BlockHyg[mdf R]): mdf R }
 
 //Do:{ mut #: Void }
 //ReturnStmt[R]:{ mut #: mdf R }

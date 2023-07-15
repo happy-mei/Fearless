@@ -198,4 +198,54 @@ public class TestWellFormedness {
     Caps:{} Void:{}
     A:{ .notBreak(x1: iso Caps, x2: iso Caps): Void -> this.notBreak(x1, x2) }
     """); }
+
+  @Test void allowPrivateLambdaUsageWithinPkg() { ok("""
+    package base.caps
+    Good:{ .ok: mut base.caps._RootCap -> {} }
+    """, """
+    package base.caps
+    _RootCap:{}
+    """); }
+  @Test void noPrivateLambdaUsageOutsidePkg() { fail("""
+    In position [###]/Dummy0.fear:2:41
+    [E48 privateTraitImplementation]
+    The private trait base.caps._RootCap/0 cannot be implemented outside of its package.
+    """, """
+    package test
+    Evil:{ .break: mut base.caps._RootCap -> {} }
+    """, """
+    package base.caps
+    _RootCap:{}
+    """); }
+  @Test void allowPrivateMethCallsWithinTrait() { ok("""
+    package test
+    Good:{
+      .foo: Bar -> this._bar,
+      ._bar: Bar -> Bar,
+      }
+    Bar:{}
+    """); }
+  @Test void allowPrivateMethCallsWithinSubTraits() { ok("""
+    package test
+    Good:{
+      ._bar: Bar -> Bar,
+      }
+    Good':Good{
+      .foo: Bar -> this._bar,
+      }
+    Bar:{}
+    """); }
+  @Test void noPrivateMethodCallsOutsideOfTrait() { fail("""
+    In position [###]/Dummy0.fear:3:18
+    [E47 privateMethCall]
+    The private method ._bar/0 cannot be called outside of a lambda that implements it.
+    """, """
+    package test
+    Bad:{
+      .foo: Bar -> Bar._bar,
+      }
+    Bar:{
+      ._bar: Bar -> Bar,
+      }
+    """); }
 }

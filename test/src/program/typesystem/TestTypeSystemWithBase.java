@@ -40,11 +40,12 @@ public class TestTypeSystemWithBase {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(baseLibs))
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
-    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
     try {
+      var p = Parser.parseAll(ps);
+      new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
+      var inferredSigs = p.inferSignaturesToCore();
+      var inferred = new InferBodies(inferredSigs).inferAll(p);
+      new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
       inferred.typeCheck();
       Assertions.fail("Did not fail!\n");
     } catch (CompileError e) {
@@ -217,4 +218,42 @@ public class TestTypeSystemWithBase {
       .toImm: List[Int] -> (LListMut#[Int]35 + 52 + 84 + 14).list
       }
     """, Base.mutBaseAliases);}
+
+  @Test void cannotCreateRootCapInCode1() { fail("""
+    In position [###]/Dummy0.fear:2:40
+    [E35 sealedCreation]
+    The sealed trait base.caps.RootCap/0 cannot be created in a different package (test).
+    """, """
+    package test
+    Evil:{ .break: mut base.caps.RootCap -> { this.break } }
+    """); }
+
+  @Test void mutateInPlace() { ok("""
+    package test
+    Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
+    Person':{
+      #(name: Str): mut Person -> this.new(Ref#name, List#),
+      .new(name: mut Ref[Str], friends: mut List[Person]): mut Person ->
+        { .name -> name, .friends -> friends },
+      }
+    
+    MyApp:{
+      #: Void -> Do#
+        .var ps = { List#(Person'#"Alice", Person'#"Bob", Person'#"Nick") }
+        .do{ ps.iterMut.for{ p -> p.name := "new name" } }
+        .return
+      }
+    """, Base.mutBaseAliases); }
+  @Test void mutateHyg() { ok("""
+    package test
+    Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
+    Person':{
+      #(name: Str): mut Person -> this.new(Ref#name, List#),
+      .new(name: mut Ref[Str], friends: mut List[Person]): mut Person ->
+        { .name -> name, .friends -> friends },
+      }
+    Usage:{
+      .mutate(p: lent Person): Void -> p.name := "bob",
+      }
+    """, Base.mutBaseAliases); }
 }

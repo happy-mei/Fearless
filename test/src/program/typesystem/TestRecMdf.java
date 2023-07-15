@@ -1,10 +1,7 @@
 package program.typesystem;
 
-import net.jqwik.api.ForAll;
-import net.jqwik.api.Property;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import static utils.Base.load;
 
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
@@ -32,7 +29,19 @@ public class TestRecMdf {
     """, """
     package test
     A:{
-      // Broken because with or without NoPromote, makes mut this -> imm!
+      // Broken because makes mut this -> imm!
+      read .m1(): recMdf A -> this,
+      mut .m2: imm A -> this.m1,
+      }
+    """); }
+  @Test void shouldCollapseWhenCalled1bb() { fail("""
+    In position [###]/Dummy0.fear:5:20
+    [E28 undefinedName]
+    The identifier "this" is undefined or cannot be captured.
+    """, """
+    package test
+    A:{
+      // Broken because makes mut this -> imm!
       read .m1(_: mut NoPromote): recMdf A -> this,
       mut .m2: imm A -> this.m1{},
       }
@@ -51,8 +60,9 @@ public class TestRecMdf {
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .m1/1[]([[-mut-][test.NoPromote[]]{'fear0$ }]), no candidates for .m1/1 returned the expected type mut test.A[]. The candidates were:
     (read test.A[], mut test.NoPromote[]): imm test.A[]
-    (read test.A[], iso test.NoPromote[]): imm test.A[]
+    (read test.A[], iso test.NoPromote[]): read test.A[]
     (imm test.A[], iso test.NoPromote[]): imm test.A[]
+    (read test.A[], lent test.NoPromote[]): read test.A[]
     """, """
     package test
     A:{
@@ -60,6 +70,20 @@ public class TestRecMdf {
       imm .m2: mut A -> this.m1{},
       }
     NoPromote:{}
+    """); }
+  @Test void shouldCollapseWhenCalled1e() { fail("""
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .m1/0[]([]), no candidates for .m1/0 returned the expected type mut test.A[]. The candidates were:
+    (read test.A[]): imm test.A[]
+    (read test.A[]): read test.A[]
+    (imm test.A[]): imm test.A[]
+    """, """
+    package test
+    A:{
+      read .m1: recMdf A,
+      imm .m2: mut A -> this.m1,
+      }
     """); }
 
   @Test void shouldCollapseWhenCalledGenMut() { ok("""
@@ -127,6 +151,7 @@ public class TestRecMdf {
     (read test.A[mdf X], mut test.NoPromote[]): mdf X
     (read test.A[mdf X], iso test.NoPromote[]): mdf X
     (imm test.A[mdf X], iso test.NoPromote[]): mdf X
+    (read test.A[mdf X], lent test.NoPromote[]): mdf X
     """, """
     package test
     A[X]:{
@@ -151,6 +176,7 @@ public class TestRecMdf {
     (read test.A[mdf X], mut test.NoPromote[]): mdf X
     (read test.A[mdf X], iso test.NoPromote[]): mdf X
     (imm test.A[mdf X], iso test.NoPromote[]): mdf X
+    (read test.A[mdf X], lent test.NoPromote[]): mdf X
     """, """
     package test
     A[X]:{
@@ -447,6 +473,7 @@ public class TestRecMdf {
     were valid:
     (mut test.A[mut test.B[recMdf Y]], recMdf test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]) <: (read test.A[mut test.B[recMdf Y]], iso test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]): iso test.B[recMdf Y]
     (mut test.A[mut test.B[recMdf Y]], recMdf test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]) <: (imm test.A[mut test.B[recMdf Y]], iso test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]): iso test.B[recMdf Y]
+    (mut test.A[mut test.B[recMdf Y]], recMdf test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]) <: (read test.A[mut test.B[recMdf Y]], lent test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]): iso test.B[recMdf Y]
     """, """
     package test
     A[X]:{

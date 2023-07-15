@@ -1,6 +1,5 @@
 package base
 
-// Cons#(1, Cons#(2, Cons#(4, {})))
 LList:{
   #[E](h: E): LList[E] -> { .match(m) -> m.elem(h, {}) },
   .cons[E](h: E, t: LList[E]): LList[E] -> { .match(m) -> m.elem(h, t) },
@@ -58,7 +57,7 @@ LListMut[E]:Sealed,NoMutHyg[mdf E]{
     .var -> Ref#this,
     .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
     },
-  mut .iterMut: mut Iter[mdf E] -> Let#{
+  lent .iterMut: mut Iter[mdf E] -> Let.hyg{
     .var -> Ref#[lent LListMut[mdf E]]this,
     .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
     },
@@ -112,7 +111,7 @@ List[E]:Sealed,NoMutHyg[mdf E]{
   mut .add(e: mdf E): Void,
   read .iter: lent Iter[read E],
   mut .iterMut: mut Iter[mdf E],
-//  mut .addAll(other: mut List[mdf E]): Void,
+  mut .addAll(other: mut List[mdf E]): Void -> other.iterMut.for{ e -> this.add(e) },
   }
 _ListState[E]:NoMutHyg[E]{
   read .len: UInt -> 0u,

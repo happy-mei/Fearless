@@ -8,6 +8,7 @@ import failure.Fail;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
+import magic.MagicImpls;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
 
@@ -16,9 +17,8 @@ import java.util.Optional;
 
 // TODO: Sealed and _C/_m restrictions
 public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEnv<CompileError> {
-  private final Program p;
   private Optional<String> pkg = Optional.empty();
-  public WellFormednessShortCircuitVisitor(Program p) { this.p = p; }
+  public WellFormednessShortCircuitVisitor(Program p) { super(p); }
 
   @Override public Optional<CompileError> visitDec(T.Dec d) {
     pkg = Optional.of(d.name().pkg());
@@ -31,13 +31,15 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   @Override public Optional<CompileError> visitLambda(E.Lambda e) {
-    return noSealedOutsidePkg(e)
+    return ShortCircuitVisitor.visitAll(e.its(), it->noPrivateTraitOutsidePkg(it.name()))
+      .or(()->noSealedOutsidePkg(e))
       .or(()->super.visitLambda(e))
       .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
     return noIsoParams(e.ts())
+      .or(()->noPrivateMethCallOutsideTrait(e))
       .or(()->super.visitMCall(e))
       .map(err->err.parentPos(e.pos()));
   }
@@ -99,6 +101,19 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
         return ShortCircuitVisitor.super.visitT(t);
       }
     }.visitIT(it);
+  }
+
+  private Optional<CompileError> noPrivateMethCallOutsideTrait(E.MCall e) {
+    if (!e.name().name().startsWith("._")) { return Optional.empty(); }
+    var isInScope = env.ms().stream().anyMatch(m->m.equals(e.name()));
+    return isInScope ? Optional.empty() : Optional.of(Fail.privateMethCall(e.name()));
+  }
+
+  private Optional<CompileError> noPrivateTraitOutsidePkg(Id.DecId dec) {
+    if (MagicImpls.isLiteral(dec.name()) || !dec.shortName().startsWith("_")) { return Optional.empty(); }
+    var pkg = this.pkg.orElseThrow();
+    if (dec.pkg().equals(pkg)) { return Optional.empty(); }
+    return Optional.of(Fail.privateTraitImplementation(dec));
   }
 
   private Optional<CompileError> noSealedOutsidePkg(E.Lambda e) {
