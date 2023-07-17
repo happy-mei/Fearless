@@ -1209,4 +1209,61 @@ public class TestTypeSystem {
       .foo(a: mut A): iso A -> a,
       }
     """); }
+
+  private static final String noMutHyg = """
+    package base
+    NoMutHyg[X]:{}
+    """;
+  private static final String recMdfGetForListsHelpers = """
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    Abort:{ ![R]: mdf R -> this! }
+    Nat:{
+      .pred: Nat,
+      .succ: S -> { .pred -> this },
+      .isZero: Bool,
+      }
+    Z:Nat{ .pred -> Abort!, .isZero -> True }
+    S:Nat{ .isZero -> False, }
+
+    Bool:{
+      .and(b: Bool): Bool,
+      &&(b: Bool): Bool -> this.and(b),
+      .or(b: Bool): Bool,
+      ||(b: Bool): Bool -> this.or(b),
+      .not: Bool,
+      .if[R](f: mut ThenElse[mdf R]): mdf R,
+      ?[R](f: mut ThenElse[mdf R]): mdf R -> this.if(f),
+      .ifHyg[R](f: lent ThenElse[mdf R]): mdf R -> this.if(f),
+      }
+    True:Bool{
+      .and(b) -> b,
+      .or(b) -> this,
+      .not -> False,
+      .if(f) -> f.then(),
+      }
+    False:Bool{
+      .and(b) -> this,
+      .or(b) -> b,
+      .not -> True,
+      .if(f) -> f.else(),
+      }
+    ThenElse[R]:NoMutHyg[mdf R]{ mut .then: mdf R, mut .else: mdf R, }
+    """;
+  @Test void recMdfGetForLists1() { ok("""
+    package test
+    LList[E]:{
+      read .get(i: Nat): recMdf E -> Abort!,
+      read .push(e: mdf E): recMdf LList[mdf E] -> { .get(i) -> e } // passes
+      }
+    """, recMdfGetForListsHelpers, noMutHyg); }
+  // TODO: known failure (see recMdf getter on lists of mdf E in the discussion doc)
+  @Test void recMdfGetForLists2() { ok("""
+    package test
+    ThisBox:{ lent #: recMdf Foo }
+    Foo:{
+      read .self: recMdf Foo -> this, // passes
+      read .test: recMdf Foo -> lent ThisBox{ this }# // fails
+      }
+    """); }
 }
