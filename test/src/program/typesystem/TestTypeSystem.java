@@ -1266,4 +1266,232 @@ public class TestTypeSystem {
       read .test: recMdf Foo -> lent ThisBox{ this }# // fails
       }
     """); }
+
+  @Test void panickingPanics() { ok("""
+    package test
+    Panic:{
+      .thoughts: Thoughts
+      }
+    Panic':{
+      #(isAfraid: Bool): Panic -> isAfraid ? {
+        .then -> { Fear },
+        .else -> { Calm },
+        }
+      }
+    Thoughts:{ .match[R](m: ThoughtMatcher[R]): R }
+    ThoughtMatcher[R]:{ .fear: R, .calm: R, }
+    Fear:Thoughts{ m -> m.fear }
+    Calm:Thoughts{ m -> m.calm }
+    
+    PanicTriage:{
+      .panickingPanics(panics: List[Panic]): List[Panic] -> this._panickingPanics({}, panics),
+      ._panickingPanics(acc: List[Panic], panics: List[Panic]): List[Panic] -> panics.head.match{
+        .some(panic) -> panic.thoughts.match{
+          .fear -> this._panickingPanics(acc + panic, panics.tail),
+          .calm -> this._panickingPanics(acc, panics.tail),
+          },
+        .none -> acc,
+        },
+      }
+    """, """
+    package test
+    alias base.Str as Str,
+    alias base.Void as Void,
+    alias base.UInt as UInt,
+    alias base.Int as Int,
+    Bool:{
+      .and(b: Bool): Bool,
+      &&(b: Bool): Bool -> this.and(b),
+      .or(b: Bool): Bool,
+      ||(b: Bool): Bool -> this.or(b),
+      .not: Bool,
+      ?[R](f: ThenElse[R]): R,
+      }
+    True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then()}
+    False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
+    ThenElse[R]:{ .then: R, .else: R, }
+    
+    Cons:{
+      #[E](h: E, t: List[E]): List[E] -> { .match(m) -> m.elem(h, t) },
+      }
+    List[E]:{
+      .match[R](m: ListMatch[E, R]): R -> m.empty,
+      .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
+      .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
+      ++(l1: List[E]): List[E] -> this.match{
+        .empty -> l1,
+        .elem(h, t) -> Cons#(h, t ++ l1)
+        },
+      +(e: E): List[E] -> this ++ (Cons#(e, {})),
+      .get(i: UInt) : Opt[E] -> this.match{
+        .empty -> {},
+        .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
+        },
+      .head: Opt[E] -> this.match{
+        .empty -> {},
+        .elem(h,_) -> Opt#h,
+        },
+      .tail: List[E] -> this.match{
+        .empty -> {},
+        .elem(_,t) -> t,
+        },
+      }
+    ListMatch[E,R]:{ .elem(head: E, tail: List[E]): R, .empty: R }
+    
+    Opt:{ #[T](x: T): Opt[T] -> { .match(m) -> m.some(x) } }
+    Opt[T]:{
+      .match[R](m: OptMatch[T, R]): R -> m.none,
+      .map[R](f: OptMap[T,R]): Opt[R] -> this.match(f),
+      .do(f: OptDo[T]): Opt[T] -> this.match(f),
+      .flatMap[R](f: OptFlatMap[T, R]): Opt[R] ->this.match(f),
+      ||(alt: T): T -> this.match{ .some(x) -> x, .none -> alt },
+      .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
+      .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
+      }
+    OptMatch[T,R]:{ .some(x:T): R, .none: R }
+    OptFlatMap[T,R]:OptMatch[T,Opt[R]]{ .none -> {} }
+    OptMap[T,R]:OptMatch[T,Opt[R]]{ #(t:T):R, .some(x) -> Opt#(this#x), .none -> {} }
+    OptDo[T]:OptMatch[T,Opt[T]]{
+      #(t:T):Void,   //#[R](t:T):R,
+      .some(x) -> Opt#(this._doRes(this#x, x)),
+      .none->{},
+      ._doRes(y:Void,x:T):T -> x
+      }
+    """, """
+    package base
+    alias test.Bool as Bool, alias test.True as True, alias test.False as False,
+    Str:{}
+    _StrInstance:Str{}
+    Void:{}
+    Abort:{ ![R]: mdf R -> this! } // can be optimised to just terminate (goes stuck)
+    """, """
+    package base
+    Sealed:{}
+    Int:Sealed,MathOps[Int],IntOps[Int]{
+      read .uint: UInt,
+      read .float: Float,
+      // not Stringable due to limitations of the Java codegen target
+      read .str: Str,
+      }
+    UInt:Sealed,MathOps[UInt],IntOps[UInt]{
+      read .int: Int,
+      read .float: Float,
+      // not Stringable due to limitations of the Java codegen target
+      read .str: Str,
+      }
+    Float:Sealed,MathOps[Float]{
+      read .int: Int,
+      read .uint: UInt,
+      read .round: Int,
+      read .ceil: Int,
+      read .floor: Int,
+      read **(n: read Float): Float, // pow
+      read .isNaN: Bool,
+      read .isInfinity: Bool,
+      read .isNegInfinity: Bool,
+      // not Stringable due to limitations of the Java codegen target
+      read .str: Str,
+      }
+        
+    MathOps[T]:Sealed{
+      read +(n: read T): T,
+      read -(n: read T): T,
+      read *(n: read T): T,
+      read /(n: read T): T,
+      read %(n: read T): T,
+      read .abs: T,
+        
+      // Comparisons
+      read >(n: read T): Bool,
+      read <(n: read T): Bool,
+      read >=(n: read T): Bool,
+      read <=(n: read T): Bool,
+      read ==(n: read T): Bool,
+      }
+    IntOps[T]:Sealed{
+      // bitwise
+      read >>(n: read T): T,
+      read <<(n: read T): T,
+      read ^(n: read T): T,
+      read &(n: read T): T,
+      read |(n: read T): T,
+        
+      read **(n: read UInt): T, // pow
+      }
+        
+    // Fake concrete type for all numbers. The real implementation is generated at code-gen.
+    _IntInstance:Int{
+      .uint -> Abort!,
+      .float -> Abort!,
+      .str -> Abort!,
+      +(n) -> Abort!,
+      -(n) -> Abort!,
+      *(n) -> Abort!,
+      /(n) -> Abort!,
+      %(n) -> Abort!,
+      **(n) -> Abort!,
+      .abs -> Abort!,
+        
+      // bitwise
+      >>(n) -> Abort!,
+      <<(n) -> Abort!,
+      ^(n) -> Abort!,
+      &(n) -> Abort!,
+      |(n) -> Abort!,
+        
+      // Comparisons
+      >n -> Abort!,
+      <n -> Abort!,
+      >=n -> Abort!,
+      <=n -> Abort!,
+      ==n -> Abort!,
+      }
+    _UIntInstance:UInt{
+      .int -> Abort!,
+      .float -> Abort!,
+      .str -> Abort!,
+      +(n) -> Abort!,
+      -(n) -> Abort!,
+      *(n) -> Abort!,
+      /(n) -> Abort!,
+      %(n) -> Abort!,
+      **(n) -> Abort!,
+      .abs -> Abort!,
+        
+      // bitwise
+      >>(n) -> Abort!,
+      <<(n) -> Abort!,
+      ^(n) -> Abort!,
+      &(n) -> Abort!,
+      |(n) -> Abort!,
+        
+      // Comparisons
+      >n -> Abort!,
+      <n -> Abort!,
+      >=n -> Abort!,
+      <=n -> Abort!,
+      ==n -> Abort!,
+      }
+    _FloatInstance:Float{
+      .int -> Abort!,
+      .uint -> Abort!,
+      .str -> Abort!,
+      .round -> Abort!,
+      .ceil -> Abort!,
+      .floor -> Abort!,
+      +(n) -> Abort!,
+      -(n) -> Abort!,
+      *(n) -> Abort!,
+      /(n) -> Abort!,
+      %(n) -> Abort!,
+      **(n) -> Abort!,
+      .abs -> Abort!,
+      // Comparisons
+      >n -> Abort!,
+      <n -> Abort!,
+      >=n -> Abort!,
+      <=n -> Abort!,
+      ==n -> Abort!,
+      }
+    """); }
 }
