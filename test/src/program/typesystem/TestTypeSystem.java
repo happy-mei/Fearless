@@ -1234,21 +1234,24 @@ public class TestTypeSystem {
       .not: Bool,
       .if[R](f: mut ThenElse[mdf R]): mdf R,
       ?[R](f: mut ThenElse[mdf R]): mdf R -> this.if(f),
-      .ifHyg[R](f: lent ThenElse[mdf R]): mdf R -> this.if(f),
+      .ifHyg[R](f: read ThenElseHyg[mdf R]): mdf R,
       }
     True:Bool{
       .and(b) -> b,
       .or(b) -> this,
       .not -> False,
       .if(f) -> f.then(),
+      .ifHyg(f) -> f.then(),
       }
     False:Bool{
       .and(b) -> this,
       .or(b) -> b,
       .not -> True,
       .if(f) -> f.else(),
+      .ifHyg(f) -> f.else(),
       }
     ThenElse[R]:NoMutHyg[mdf R]{ mut .then: mdf R, mut .else: mdf R, }
+    ThenElseHyg[R]:NoMutHyg[mdf R]{ read .then: mdf R, read .else: mdf R, }
     """;
   @Test void recMdfGetForLists1() { ok("""
     package test
@@ -1257,13 +1260,34 @@ public class TestTypeSystem {
       read .push(e: mdf E): recMdf LList[mdf E] -> { .get(i) -> e } // passes
       }
     """, recMdfGetForListsHelpers, noMutHyg); }
-  // TODO: known failure (see recMdf getter on lists of mdf E in the discussion doc)
   @Test void recMdfGetForLists2() { ok("""
     package test
-    ThisBox:{ lent #: recMdf Foo }
+    ThisBox:{ read #: recMdf Foo }
     Foo:{
       read .self: recMdf Foo -> this, // passes
-      read .test: recMdf Foo -> lent ThisBox{ this }# // fails
+      read .test: recMdf Foo -> recMdf ThisBox{ this }# // fails
       }
+    """); }
+  @Test void recMdfGetForLists3() { ok("""
+    package test
+    LList[E]:{
+      read .get(i: Nat): recMdf E -> Abort!,
+      read .push(e: mdf E): recMdf LList[mdf E] -> { .get(i) -> i.isZero.ifHyg(recMdf ListGet#(e, this)) },
+      }
+    ListGet:{ read #[E](e: recMdf E, t: recMdf LList[mdf E]): recMdf ThenElseHyg[recMdf E] -> { .then -> e, .else -> t.get(Z) } }
+    """, recMdfGetForListsHelpers, noMutHyg); }
+
+  @Test void dontFearTheLambdaEx1() { ok("""
+    package ex
+    alias base.Str as Str,
+    
+    Stringable:{ .str: Str }
+    Bool:Stringable{}
+    True:Bool{ .str: "True" -> "True" }
+    False:Bool{ .str: Str -> "False" }
+    """, """
+    package base
+    Str:{}
+    _StrInstance:Str{}
     """); }
 }
