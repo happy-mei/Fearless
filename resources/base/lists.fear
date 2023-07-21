@@ -60,7 +60,7 @@ LListMut[E]:Sealed,NoMutHyg[mdf E]{
   mut .headRaw: mut Opt[mdf E] -> {},
   mut ++(l1: mut LListMut[mdf E]): mut LListMut[mdf E] -> this.headRaw.map{ h -> LListMut.cons(h, this.tail ++ l1) } | l1,
   mut +(e: mdf E): mut LListMut[mdf E] -> this ++ (LListMut#e),
-//  mut .list: mut List[mdf E] -> List.fromLListMut(this),
+  mut .list: mut List[mdf E] -> List.fromLListMut(this),
   }
 LListMutMatch[E,TE,R]:{
   mut .elem(head: mdf E, tail: read LListMut[mdf TE]): mdf R,

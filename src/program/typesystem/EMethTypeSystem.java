@@ -117,9 +117,10 @@ public interface EMethTypeSystem extends ETypeSystem {
     if (!(rec.rt() instanceof Id.IT<T> recIT)) { return Optional.empty(); }
     return p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
       var mdf = rec.mdf();
+//      TODO: delete these two if we decide to keep using the recv mdf for T0 in the Ts->T
       var mdf0 = cm.mdf();
-      Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
       var t0 = rec.withMdf(mdf0);
+      Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
       var params = Push.of(
         t0,
         cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()

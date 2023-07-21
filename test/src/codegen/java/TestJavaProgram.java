@@ -518,7 +518,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LListMut[Int], target: Int): Int -> Do#
         .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var[Int] closest' = { (ns.look(0u))! }
+        .var[Int] closest' = { (ns.get(0u))! }
         .var[mut Ref[Int]] closest = { Ref#(closest') }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
@@ -565,7 +565,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LListMut[Int], target: Int): Int -> Do#
         .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var[mut Ref[Int]] closest = { Ref#((ns.getImm(0u))!) }
+        .var[mut Ref[Int]] closest = { Ref#((ns.get(0u))!) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .none -> {},
@@ -600,7 +600,7 @@ public class TestJavaProgram {
           }#(ns.tail.head, ns.tail.tail) }
         .return{ closest* }
       }
-    Closest':{ mut #(h: Opt[Int], t: mut LListMut[Int]): Void }
+    Closest':{ mut #(h: mut Opt[Int], t: mut LListMut[Int]): Void }
     """, Base.mutBaseAliases); }
   @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), "test.Test", """
     package test

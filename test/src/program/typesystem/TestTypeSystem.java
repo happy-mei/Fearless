@@ -138,7 +138,7 @@ public class TestTypeSystem {
       }
     B:{}
     """); }
-  // the other tests are only parsing due to iso promotion
+  // the other tests are only passing due to iso promotion
   @Test void callMutFromLent2a() { fail("""
     In position [###]/Dummy0.fear:4:30
     [E33 callTypeError]
@@ -1517,5 +1517,12 @@ public class TestTypeSystem {
       <=n -> Abort!,
       ==n -> Abort!,
       }
+    """); }
+
+  @Test void readRecvMakesMutPromotion() { ok("""
+    package test
+    A:{ read .newB: mut B -> B }
+    B:{}
+    C:{ .promote(b: iso B): B -> b }
     """); }
 }
