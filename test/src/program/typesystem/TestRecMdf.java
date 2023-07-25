@@ -59,10 +59,9 @@ public class TestRecMdf {
     In position [###]/Dummy0.fear:4:24
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .m1/1[]([[-mut-][test.NoPromote[]]{'fear0$ }]), no candidates for .m1/1 returned the expected type mut test.A[]. The candidates were:
-    (read test.A[], mut test.NoPromote[]): imm test.A[]
-    (read test.A[], iso test.NoPromote[]): read test.A[]
+    (imm test.A[], mut test.NoPromote[]): imm test.A[]
     (imm test.A[], iso test.NoPromote[]): imm test.A[]
-    (read test.A[], lent test.NoPromote[]): read test.A[]
+    (imm test.A[], lent test.NoPromote[]): imm test.A[]
     """, """
     package test
     A:{
@@ -75,8 +74,6 @@ public class TestRecMdf {
     In position [###]/Dummy0.fear:4:24
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .m1/0[]([]), no candidates for .m1/0 returned the expected type mut test.A[]. The candidates were:
-    (read test.A[]): imm test.A[]
-    (read test.A[]): read test.A[]
     (imm test.A[]): imm test.A[]
     """, """
     package test

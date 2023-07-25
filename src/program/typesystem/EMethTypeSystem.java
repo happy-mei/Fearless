@@ -90,25 +90,15 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
 
   default List<TsT> allMeth(TsT tst) {
-    TsT safeTsT = tst;
-    if (tst.hasRecMdfRet) {
-      safeTsT = new TsT(tst.ts, tst.t.withMdf(Mdf.recMdf), true);
-    }
     return Stream.concat(Stream.of(
       tst,
-      safeTsT.renameMdfs(Map.of(Mdf.mut, Mdf.iso)),
-      safeTsT.renameMdfs(Map.of(
+      tst.renameMdfs(Map.of(Mdf.mut, Mdf.iso)),
+      tst.renameMdfs(Map.of(
         Mdf.read, Mdf.imm,
         Mdf.lent, Mdf.iso,
         Mdf.mut, Mdf.iso
       ))),
-      oneLentToMut(safeTsT).stream())
-      .map(candidate->{
-        if (!candidate.t.mdf().isRecMdf()) { return candidate; }
-        if (tst.t.mdf().isRecMdf()) { return candidate; }
-        var retT = fancyRename(candidate.t, candidate.ts.get(0).mdf(), Map.of());
-        return new TsT(candidate.ts, retT, true);
-      })
+      oneLentToMut(tst).stream())
       .distinct()
       .toList();
   }
@@ -117,8 +107,8 @@ public interface EMethTypeSystem extends ETypeSystem {
     if (!(rec.rt() instanceof Id.IT<T> recIT)) { return Optional.empty(); }
     return p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
       var mdf = rec.mdf();
-//      TODO: delete these two if we decide to keep using the recv mdf for T0 in the Ts->T
-      var mdf0 = cm.mdf();
+      var mustUseRecvMdf = cm.ret().mdf().isRecMdf() && p().isSubType(rec.mdf(), cm.mdf());
+      var mdf0 = mustUseRecvMdf ? rec.mdf() : cm.mdf();
       var t0 = rec.withMdf(mdf0);
       Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
       var params = Push.of(

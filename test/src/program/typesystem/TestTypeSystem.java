@@ -285,42 +285,38 @@ public class TestTypeSystem {
     Void:{}
     """); }
   @Test void noCallMutFromRecMdfImm() { fail("""
-    In position [###]/Dummy0.fear:4:31
-    [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
-    this .b/0[]([]) .foo/0[]([])
-    were valid:
-    (recMdf test.B[]) <: (mut test.B[]): mut test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:29
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-        (read test.A[]): recMdf test.B[]
-        (imm test.A[]): recMdf test.B[]
-        
-    (recMdf test.B[]) <: (iso test.B[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:29
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (read test.A[]): recMdf test.B[]
-        (imm test.A[]): recMdf test.B[]
-        
-    (recMdf test.B[]) <: (iso test.B[]): lent test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:29
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (read test.A[]): recMdf test.B[]
-        (imm test.A[]): recMdf test.B[]
+In position [###]/Dummy0.fear:4:31
+[E33 callTypeError]
+Type error: None of the following candidates for this method call:
+this .b/0[]([]) .foo/0[]([])
+were valid:
+(recMdf test.B[]) <: (mut test.B[]): mut test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:29
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
+    (recMdf test.A[]): recMdf test.B[]
 
-    (recMdf test.B[]) <: (lent test.B[]): lent test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:29
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
-        (read test.A[]): recMdf test.B[]
-        (imm test.A[]): recMdf test.B[]
+(recMdf test.B[]) <: (iso test.B[]): iso test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:29
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+    (recMdf test.A[]): recMdf test.B[]
+
+(recMdf test.B[]) <: (iso test.B[]): lent test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:29
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+    (recMdf test.A[]): recMdf test.B[]
+
+(recMdf test.B[]) <: (lent test.B[]): lent test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:29
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
+    (recMdf test.A[]): recMdf test.B[]
     """, """
     package test
     A:{
@@ -354,15 +350,16 @@ public class TestTypeSystem {
         Type error: None of the following candidates for this method call:
         this .b/0[]([])
         were valid:
-        (lent test.A[]) <: (iso test.A[]): mut test.B[]
+        (lent test.A[]) <: (iso test.A[]): iso test.B[]
         
     (lent test.A[], lent test.B[]) <: (read test.A[], iso test.B[]): iso test.B[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:5:43
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (lent test.A[]): lent test.B[]
-        (iso test.A[]): mut test.B[]
+        [E33 callTypeError]
+        Type error: None of the following candidates for this method call:
+        this .b/0[]([])
+        were valid:
+        (lent test.A[]) <: (iso test.A[]): iso test.B[]
         
     (lent test.A[], lent test.B[]) <: (imm test.A[], iso test.B[]): iso test.B[]
     """, """
@@ -1524,5 +1521,39 @@ public class TestTypeSystem {
     A:{ read .newB: mut B -> B }
     B:{}
     C:{ .promote(b: iso B): B -> b }
+    Test:{ #: B -> C.promote(A.newB) }
+    """); }
+  @Test void readMethOnLentPromotion() { ok("""
+    package test
+    A:{ read .newB: mut B -> B }
+    B:{}
+    C:{ .promote(b: iso B): B -> b }
+    Test:{ #(a: lent A): B -> C.promote(a.newB) }
+    """); }
+  @Test void readMethOnMutPromotion() { ok("""
+    package test
+    A:{ read .newB: mut B -> B }
+    B:{}
+    C:{ .promote(b: iso B): B -> b }
+    Test:{ #(a: mut A): B -> C.promote(a.newB) }
+    """); }
+
+  @Test void shouldNotPromoteOneLentToMutToIso() { fail("""
+    In position [###]/Dummy0.fear:4:45
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    p .name/0[]([])
+    were valid:
+    (lent test.Person[]) <: (mut test.Person[]): mut test.Ref[imm test.Name[]]
+    (lent test.Person[]) <: (iso test.Person[]): iso test.Ref[imm test.Name[]]
+    """, """
+    package test
+    Person:{ mut .name: mut Ref[Name] }
+    Usage:{
+      .mutate(p: lent Person): iso Ref[Name] -> p.name,
+      }
+      
+    Ref[X]:{ read .get: recMdf X, lent .set(x: mdf X): Void }
+    Void:{} Name:{}
     """); }
 }
