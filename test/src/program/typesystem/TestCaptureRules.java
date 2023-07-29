@@ -567,7 +567,7 @@ public class TestCaptureRules {
   @Test void t624(){ c1(mut,   lent,  recMdf, of(/*not well formed method*/)); }
   @Test void t625(){ c1(iso,   lent,  recMdf, of(/*not well formed method*/)); }
   @Test void t626(){ c1(mdf,   lent,  recMdf, of(/*not well formed method*/)); }
-  @Test void t627(){ c1(recMdf,lent,  recMdf, of(read,recMdf)); }
+  @Test void t627(){ c1(recMdf,lent,  recMdf, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t631(){ c1(imm,   mut,   recMdf, of(/*not well formed method*/)); }
   @Test void t632(){ c1(read,  mut,   recMdf, of(/*not well formed method*/)); }

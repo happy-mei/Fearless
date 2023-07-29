@@ -42,12 +42,12 @@ LListMut:{
     },
   }
 LListMut[E]:Sealed,NoMutHyg[mdf E]{
-  read .match[R](m: mut LListMutMatch[recMdf E, mdf E, mdf R]): mdf R -> m.empty,
-  read .head: mut Opt[recMdf E] -> {},
-  read .tail: recMdf LListMut[mdf E] -> {},
+  recMdf .match[R](m: mut LListMutMatch[recMdf E, mdf E, mdf R]): mdf R -> m.empty,
+  recMdf .head: mut Opt[recMdf E] -> {},
+  recMdf .tail: recMdf LListMut[mdf E] -> {},
   read .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
   read .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
-  read .get(i: UInt): mut Opt[recMdf E] -> {},
+  recMdf .get(i: UInt): mut Opt[recMdf E] -> {},
   read .iter: mut Iter[read E] -> Let.hyg{
     .var -> Ref#this,
     .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
@@ -67,7 +67,7 @@ LListMutMatch[E,TE,R]:{
   mut .empty: mdf R,
   }
 _LListMutGet:{
-  read #[E](i: UInt, head: recMdf E, tail: recMdf LListMut[mdf E]): recMdf BoolView[mut Opt[recMdf E]] ->
+  recMdf #[E](i: UInt, head: recMdf E, tail: recMdf LListMut[mdf E]): recMdf BoolView[mut Opt[recMdf E]] ->
     { .then -> Opt#head, .else -> tail.get(i - 1u) }
   }
 
@@ -107,7 +107,7 @@ List[E]:Sealed,NoMutHyg[mdf E]{
   }
 _ListState[E]:NoMutHyg[E]{
   read .len: UInt -> 0u,
-  read .inner: recMdf LListMut[mdf E] -> {}
+  recMdf .inner: recMdf LListMut[mdf E] -> {}
   }
 //_GetFromListState:{
 //  read .p0[E](s: recMdf Ref[mut _ListState[mdf E]]): recMdf _ListState[mdf E] -> s*, // fails here

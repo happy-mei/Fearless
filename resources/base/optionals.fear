@@ -5,15 +5,15 @@ Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
   .matchHyg(m) -> m.some(x),
   }}
 Opt[T]:NoMutHyg[mdf T]{
-  read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-  read .matchHyg[R](m: lent OptMatchHyg[recMdf T, mdf R]): mdf R -> m.none,
-  read !: recMdf T -> this.match(_OptUnwrap[recMdf T]),
-  read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
-  read .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
-  read .do(f: mut OptMatch[recMdf T, Void]): recMdf Opt[recMdf T] ->
+  recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+  recMdf .matchHyg[R](m: lent OptMatchHyg[recMdf T, mdf R]): mdf R -> m.none,
+  recMdf !: recMdf T -> this.match(_OptUnwrap[recMdf T]),
+  recMdf .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
+  recMdf .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
+  recMdf .do(f: mut OptMatch[recMdf T, Void]): recMdf Opt[recMdf T] ->
     Yeet.with[Void, recMdf Opt[recMdf T]](this.match(f), this),
-  read |(alt: recMdf T): recMdf T -> this || (OptOr#alt),
-  read ||(alt: mut OptOr[recMdf T]): recMdf T -> this.match(alt),
+  recMdf |(alt: recMdf T): recMdf T -> this || (OptOr#alt),
+  recMdf ||(alt: mut OptOr[recMdf T]): recMdf T -> this.match(alt),
   read .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
   read .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
   }

@@ -1,9 +1,9 @@
 package base
 
 Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-Ref[X]:NoMutHyg[X],Sealed{
-  read *: recMdf X,
-  read .get: recMdf X -> this*,
+Ref[X]:NoMutHyg[mdf X],Sealed{
+  recMdf *: recMdf X,
+  recMdf .get: recMdf X -> this*,
   lent .swap(x: mdf X): mdf X,
   lent :=(x: mdf X): Void -> Yeet#(this.swap(x)),
   lent .set(x: mdf X): Void -> this := x,
