@@ -34,6 +34,7 @@ public interface Gamma {
   static T xT(String x, T t, T ti, Mdf mMdf, Program p){
     var self = t.mdf();
     var captured = ti.mdf();
+    assert !captured.isRecMdf() : "no recMdf inside gamma";
     if (t.mdf().isIso()) { return xT(x, t.withMdf(Mdf.mut), ti, mMdf, p); }
     var isoToImm = captured.isIso();
     if (isoToImm){ return xT(x, t, ti.withMdf(Mdf.imm), mMdf, p); }

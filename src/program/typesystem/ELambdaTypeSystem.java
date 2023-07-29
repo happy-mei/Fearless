@@ -151,6 +151,6 @@ interface ELambdaTypeSystem extends ETypeSystem{
   default boolean filterByMdf(Mdf mdf, Mdf mMdf) {
     assert !mdf.isMdf();
     if (mdf.is(Mdf.iso, Mdf.mut, Mdf.lent, Mdf.recMdf)) { return true; }
-    return mdf.is(Mdf.imm, Mdf.read) && mMdf.is(Mdf.imm, Mdf.read);
+    return mdf.is(Mdf.imm, Mdf.read, Mdf.recMdf) && mMdf.is(Mdf.imm, Mdf.read, Mdf.recMdf);
   }
 }

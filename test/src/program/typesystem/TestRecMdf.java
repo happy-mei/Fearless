@@ -30,7 +30,7 @@ public class TestRecMdf {
     package test
     A:{
       // Broken because makes mut this -> imm!
-      read .m1(): recMdf A -> this,
+      recMdf .m1(): recMdf A -> this,
       mut .m2: imm A -> this.m1,
       }
     """); }
@@ -65,7 +65,7 @@ public class TestRecMdf {
     """, """
     package test
     A:{
-      read .m1(_: mut NoPromote): recMdf A,
+      recMdf .m1(_: mut NoPromote): recMdf A,
       imm .m2: mut A -> this.m1{},
       }
     NoPromote:{}
@@ -78,7 +78,7 @@ public class TestRecMdf {
     """, """
     package test
     A:{
-      read .m1: recMdf A,
+      recMdf .m1: recMdf A,
       imm .m2: mut A -> this.m1,
       }
     """); }
@@ -272,7 +272,7 @@ public class TestRecMdf {
 
   @Test void shouldApplyRecMdfInTypeParams1a() { ok("""
     package test
-    Opt[T]:{ read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none, }
+    Opt[T]:{ recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none, }
     OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     """); }
   @Test void shouldApplyRecMdfInTypeParams1b() { ok("""
@@ -280,7 +280,7 @@ public class TestRecMdf {
     alias base.NoMutHyg as NoMutHyg,
     Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
     Opt[T]:NoMutHyg[mdf T]{
-      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+      recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }
     OptMatch[T,R]:NoMutHyg[mdf R]{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     """, """
@@ -389,14 +389,14 @@ public class TestRecMdf {
   @Test void shouldApplyRecMdfInTypeParams3a() { ok("""
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     """); }
   @Test void shouldApplyRecMdfInTypeParams3b() { ok("""
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B:{
@@ -406,7 +406,7 @@ public class TestRecMdf {
   @Test void shouldApplyRecMdfInTypeParams3c() { ok("""
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B:{
@@ -416,7 +416,7 @@ public class TestRecMdf {
   @Test void shouldApplyRecMdfInTypeParams3d() { ok("""
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B:{
@@ -426,7 +426,7 @@ public class TestRecMdf {
   @Test void shouldApplyRecMdfInTypeParams3e() { ok("""
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B:{
@@ -437,11 +437,11 @@ public class TestRecMdf {
   @Test void shouldApplyRecMdfInTypeParams4a() { ok("""
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] ->
+      recMdf #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] ->
         a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
       }
     C:{
@@ -451,7 +451,7 @@ public class TestRecMdf {
   @Test void shouldApplyRecMdfInTypeParams4aV2() { ok("""
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
@@ -489,11 +489,11 @@ public class TestRecMdf {
   @Test void shouldApplyRecMdfInTypeParams4c() { ok("""
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] ->
+      recMdf #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] ->
         a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
       }
     C:{

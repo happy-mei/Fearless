@@ -169,9 +169,9 @@ public interface Program {
       return Push.of(cm, filterByMdf(mdf, cms));
     }
     var sig = cm.sig();
-    var baseMdfImmOrRead = mdf.isImm() || mdf.isRead();
-    var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isRead();
-    if (baseMdfImmOrRead && methMdfImmOrRead) {
+    var baseMdfReadLike = mdf.isImm() || mdf.isRead() || mdf.isRecMdf();
+    var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isRead() || sig.mdf().isRecMdf();
+    if (baseMdfReadLike && methMdfImmOrRead) {
       return Push.of(cm, filterByMdf(mdf, cms));
     }
     return filterByMdf(mdf, cms);

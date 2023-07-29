@@ -26,7 +26,7 @@ public class TestCaptureRules {
     package test
     B:{}
     L:{ %s .absMeth: %s B }
-    A:{ read .m(par: %s B) : %s L -> %s L{.absMeth->par} }
+    A:{ recMdf .m(par: %s B) : %s L -> %s L{.absMeth->par} }
     """;
 
   void c2(Mdf lambda,Mdf captured,Mdf method, List<Mdf> capturedAs) {
@@ -545,29 +545,29 @@ public class TestCaptureRules {
   @Test void t577(){ c1(recMdf,imm,   mdf, of(/*not well formed method*/)); }
 
   //                     lambda, captured, method, ...capturedAs
-  @Test void t601(){ c1(imm,   imm,   recMdf, of(/*not well formed method*/)); }
-  @Test void t602(){ c1(read,  imm,   recMdf, of(/*not well formed method*/)); }
-  @Test void t603(){ c1(lent,  imm,   recMdf, of(/*not well formed method*/)); }
-  @Test void t604(){ c1(mut,   imm,   recMdf, of(/*not well formed method*/)); }
-  @Test void t605(){ c1(iso,   imm,   recMdf, of(/*not well formed method*/)); }
-  @Test void t606(){ c1(mdf,   imm,   recMdf, of(/*not well formed method*/)); }
-  @Test void t607(){ c1(recMdf,imm,   recMdf, of(/*not well formed method*/)); }
+  @Test void t601(){ c1(imm,   imm,   recMdf, of(read,imm)); }
+  @Test void t602(){ c1(read,  imm,   recMdf, of(read,imm)); }
+  @Test void t603(){ c1(lent,  imm,   recMdf, of(read,imm)); }
+  @Test void t604(){ c1(mut,   imm,   recMdf, of(read,imm)); }
+  @Test void t605(){ c1(iso,   imm,   recMdf, of(read,imm)); }
+  @Test void t606(){ c1(mdf,   imm,   recMdf, of(read,imm)); }
+  @Test void t607(){ c1(recMdf,imm,   recMdf, of(read,imm)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t611(){ c1(imm,   read,  recMdf, of(/*not well formed method*/)); }
-  @Test void t612(){ c1(read,  read,  recMdf, of(/*not well formed method*/)); }
-  @Test void t613(){ c1(lent,  read,  recMdf, of(/*not well formed method*/)); }
-  @Test void t614(){ c1(mut,   read,  recMdf, of(/*not well formed method*/)); }
-  @Test void t615(){ c1(iso,   read,  recMdf, of(/*not well formed method*/)); }
-  @Test void t616(){ c1(mdf,   read,  recMdf, of(/*not well formed method*/)); }
-  @Test void t617(){ c1(recMdf,read,  recMdf, of(/*not well formed method*/)); }
+  @Test void t612(){ c1(read,  read,  recMdf, of(read)); }
+  @Test void t613(){ c1(lent,  read,  recMdf, of(read)); }
+  @Test void t614(){ c1(mut,   read,  recMdf, of(read)); }
+  @Test void t615(){ c1(iso,   read,  recMdf, of(read)); }
+  @Test void t616(){ c1(mdf,   read,  recMdf, of(read)); }
+  @Test void t617(){ c1(recMdf,read,  recMdf, of(read)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t621(){ c1(imm,   lent,  recMdf, of(/*not well formed method*/)); }
-  @Test void t622(){ c1(read,  lent,  recMdf, of(/*not well formed method*/)); }
-  @Test void t623(){ c1(lent,  lent,  recMdf, of(/*not well formed method*/)); }
+  @Test void t622(){ c1(read,  lent,  recMdf, of(read,recMdf)); }
+  @Test void t623(){ c1(lent,  lent,  recMdf, of(read,recMdf)); }
   @Test void t624(){ c1(mut,   lent,  recMdf, of(/*not well formed method*/)); }
   @Test void t625(){ c1(iso,   lent,  recMdf, of(/*not well formed method*/)); }
   @Test void t626(){ c1(mdf,   lent,  recMdf, of(/*not well formed method*/)); }
-  @Test void t627(){ c1(recMdf,lent,  recMdf, of(/*not well formed method*/)); }
+  @Test void t627(){ c1(recMdf,lent,  recMdf, of(read,recMdf)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t631(){ c1(imm,   mut,   recMdf, of(/*not well formed method*/)); }
   @Test void t632(){ c1(read,  mut,   recMdf, of(/*not well formed method*/)); }

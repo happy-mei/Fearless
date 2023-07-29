@@ -378,7 +378,7 @@ public class TestFullWellFormedness {
     """); }
   @Test void noRecMdfInNonReadRet() { fail("""
     In position [###]/Dummy0.fear:2:5
-    [E26 recMdfInNonHyg]
+    [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf X.
     recMdf may only be used in read or lent methods. The method .foo/0 has the imm modifier.
     """, """
@@ -387,7 +387,7 @@ public class TestFullWellFormedness {
     """); }
   @Test void noRecMdfInNonReadRetNested() { fail("""
     In position [###]/Dummy0.fear:2:5
-    [E26 recMdfInNonHyg]
+    [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf X.
     recMdf may only be used in read or lent methods. The method .foo/0 has the imm modifier.
     """, """
@@ -396,7 +396,7 @@ public class TestFullWellFormedness {
     """); }
   @Test void noRecMdfInNonReadArgs() { fail("""
     In position [###]/Dummy0.fear:3:5
-    [E26 recMdfInNonHyg]
+    [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf base.Foo[].
     recMdf may only be used in read or lent methods. The method .foo/1 has the imm modifier.
     """, """
@@ -406,7 +406,7 @@ public class TestFullWellFormedness {
     """); }
   @Test void noRecMdfInNonReadArgsNested() { fail("""
     In position [###]/Dummy0.fear:3:5
-    [E26 recMdfInNonHyg]
+    [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf X.
     recMdf may only be used in read or lent methods. The method .foo/1 has the imm modifier.
     """, """
@@ -445,7 +445,7 @@ public class TestFullWellFormedness {
     """); }
   @Test void explicitMdfLambdaRecMdfONonHyg1(){ fail("""
     In position [###]/Dummy0.fear:3:4
-    [E26 recMdfInNonHyg]
+    [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf test.Foo[].
     recMdf may only be used in read or lent methods. The method .a/0 has the imm modifier.
     """, """
@@ -465,7 +465,7 @@ public class TestFullWellFormedness {
     """, mdf)); }
   @Property void recMdfRetOnlyOnReadOrLentSad(@ForAll("nonHygMdf") Mdf mdf) { fail(String.format("""
     In position [###]/Dummy0.fear:2:2
-    [E26 recMdfInNonHyg]
+    [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf test.Res[].
     recMdf may only be used in read or lent methods. The method .foo/0 has the %s modifier.
     """, mdf), String.format("""

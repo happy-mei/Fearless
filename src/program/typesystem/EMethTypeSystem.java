@@ -86,7 +86,18 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
 
   default Optional<List<TsT>> multiMeth(T rec, MethName m, List<T> ts) {
-    return resolveMeth(rec, m, ts).map(this::allMeth);
+    if (!(rec.rt() instanceof Id.IT<T> recIT)) { return Optional.empty(); }
+    var sig = p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
+      var mdf = rec.mdf();
+      Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
+      var params = Push.of(
+        fancyRename(rec.withMdf(cm.mdf()), mdf, xsTsMap),
+        cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()
+      );
+      var t = fancyRename(cm.ret(), mdf, xsTsMap);
+      return new TsT(params, t, cm.ret().mdf().isRecMdf());
+    });
+    return sig.map(this::allMeth);
   }
 
   default List<TsT> allMeth(TsT tst) {
