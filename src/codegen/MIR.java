@@ -9,10 +9,7 @@ import id.Id;
 import id.Mdf;
 import visitors.MIRVisitor;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "op")
 @JsonSerialize
@@ -43,7 +40,7 @@ public interface MIR {
       return v.visitMCall(this, checkMagic);
     }
   }
-  record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, List<X> captures, List<Meth> meths, boolean canSingleton) implements MIR {
+  record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, Set<X> captures, List<Meth> meths, boolean canSingleton) implements MIR {
     public <R> R accept(MIRVisitor<R> v) {
       return this.accept(v, true);
     }

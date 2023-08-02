@@ -78,7 +78,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   public MIR.Lambda visitLambda(String pkg, E.Lambda e, Map<String, T> gamma) {
     var captureCollector = new CaptureCollector();
     captureCollector.visitLambda(e);
-    List<MIR.X> captures = captureCollector.res().stream().map(x->visitX(x, gamma)).toList();
+    Set<MIR.X> captures = captureCollector.res().stream().map(x->visitX(x, gamma)).collect(Collectors.toSet());
 
     var impls = simplifyImpls(e.its());
     if (impls.size() == 1) {
@@ -148,10 +148,10 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       .toList();
   }
 
-  private static class CaptureCollector implements CollectorVisitor<List<String>> {
-    private final List<String> res = new ArrayList<>();
+  private static class CaptureCollector implements CollectorVisitor<Set<String>> {
+    private final Set<String> res = new HashSet<>();
     private Set<String> fresh = new HashSet<>();
-    public List<String> res() { return this.res; }
+    public Set<String> res() { return this.res; }
 
     public Void visitLambda(E.Lambda e) {
       var old = fresh;
