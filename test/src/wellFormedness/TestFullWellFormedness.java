@@ -458,6 +458,18 @@ public class TestFullWellFormedness {
     Foo:{}
     Bar:{ .a: Foo -> recMdf Foo }
     """); }
+
+  @Test void noShadowingSelfName(){ fail("""
+    In position [###]/Dummy0.fear:2:4
+    [E9 shadowingX]
+    'unique' is shadowing another variable in scope.
+    """, """
+    package test
+    Foo:{ 'unique
+      .m1(): Foo -> Foo { 'unique }
+      }
+    """); }
+
   @Property void recMdfRetOnlyOnReadOrLentHappy(@ForAll("hygMdf") Mdf mdf) { ok(String.format("""
     package test
     A:{ %s .foo: recMdf Res }
