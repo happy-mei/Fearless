@@ -47,7 +47,7 @@ public class MarkdownDocgen {
     if (!typeParams.isEmpty()) { typeParams = "**Type parameters**:\n" + typeParams+"\n"; }
 
     var impls = p.itsOf(dec.toIT()).stream()
-      .map(it->"[`%s`](#%s)".formatted(it.toString(), fragment(it.name())))
+      .map(it->"[`%s`](%s)".formatted(it.toString(), toURLPath(it.name().pkg(), fragment(it.name()))))
       .collect(Collectors.joining(", "));
     if (!impls.isEmpty()) { impls = "**Implements**: " + impls; }
 
@@ -74,16 +74,17 @@ public class MarkdownDocgen {
     var args = Streams.zip(m.xs(), m.sig().ts())
       .map((x, t)->t.match(
         gx->"- `%s %s`".formatted(x, gx),
-        it->"- [`%s: %s`](#%s)".formatted(x, it, fragment(it.name()))
+        it->"- [`%s: %s`](%s)".formatted(x, it, toURLPath(it.name().pkg(), fragment(it.name())))
         ))
       .collect(Collectors.joining("\n"));
     if (!args.isEmpty()) { args = "**Parameters**:\n" + args; }
 
     var name = StringEscapeUtils.escapeHtml4(m.name().toString());
     var fragment = fragment(pkg, d, m);
+    var url = toURLPath(pkg, fragment);
     var header = (m.isAbs() ? "<h3 id=\"%s\"><a href=\"#%s\"><em><code>%s</code></em></a></h3>\n\n*Abstract*\n" : "<h3 id=\"#%s\"><a href=\"#%s\"><code>%s</code></a></h3>")
-      .formatted(fragment, fragment, name);
-    var ret = m.sig().ret().match(gx->"`"+gx+"`", it->"[`"+it+"`](#"+fragment(it.name())+")");
+      .formatted(url, fragment, name);
+    var ret = m.sig().ret().match(gx->"`"+gx+"`", it->"[`"+it+"`]("+toURLPath(it.name().pkg(), fragment(it.name()))+")");
     return """
       %s
       
@@ -110,6 +111,6 @@ public class MarkdownDocgen {
     return URLEncoder.encode(d.name()+"_"+m.name(), StandardCharsets.UTF_8).replace("+", "%20");
   }
   private static String toURLPath(String pkg, String fragment) {
-    return pkg+"#"+fragment;
+    return "../"+pkg+"/#"+fragment;
   }
 }
