@@ -7,6 +7,7 @@ Sealed:{}
 Void:{}
 
 Abort:{ ![R]: mdf R -> this! } // can be optimised to just terminate (goes stuck)
+Magic:{ ![R]: mdf R -> this! } // magic'd out to tell us what we forgot to implement
 Debug:Sealed{ #[T](x: T): T -> x } // TODO: magic
 HasIdentity:{ mut .idEq(other: read HasIdentity): Bool -> this.idEq(other) } // TODO: magic
 

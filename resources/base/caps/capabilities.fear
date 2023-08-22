@@ -1,32 +1,30 @@
 package base.caps
 
 System[R,Auth]:Sealed{
-  lent ._auth: CapBox[Auth],
-  lent .use[C](c: CapFactory[Auth, C], cont: lent UseCapCont[C, mdf Auth, mdf R]): mdf R -> Do.hyg
-    .var[lent C] cap = { c#(this._auth)* }
+  lent ._auth: F[lent Auth],
+  lent .use[C](c: FCap[Auth, C], cont: lent UseCapCont[C, mdf Auth, mdf R]): mdf R -> Do.hyg
+    .var[lent C] cap = { c.lift(this._auth)# }
     .var[mdf R] res = { cont#(cap, this) }
     .do{ c.close(cap) }
     .return{ res },
   lent .block: lent BlockHyg[mdf R] -> {},
   lent .return(ret: lent ReturnStmtHyg[mdf R]): mdf R -> ret#,
   lent .share[RR](): iso System[mdf RR, Auth] -> Do.hyg[mut System[mdf RR, Auth]]
-    .var[CapBox[Auth]] auth = { this._auth }
+    .var[F[lent Auth]] auth = { this._auth }
     .return{{ auth }},
-  lent .share[RR, C](c: CapFactory[Auth, C]): iso System[mdf RR, C] -> Do.hyg[mut System[mdf RR, C]]
-    .var[CapBox[C]] auth = { c#(this._auth) }
+  lent .share[RR, C](c: FCap[Auth, C]): iso System[mdf RR, C] -> Do.hyg[mut System[mdf RR, C]]
+    .var[F[lent C]] auth = { c.lift(this._auth) }
     .return{{ auth }},
   }
-System[R]:System[mdf R, RootCap]{ { _RootCap } }
 
-CapBox[C]:Sealed{
-  .get: lent C,
-  *: lent C -> this.get,
-  }
+System[R]:System[mdf R, RootCap]{}
+_System[R]:Sealed,System[mdf R]{ { _RootCap } }
+
 UseCapCont[C,Auth,R]:{ lent #(cap: lent C, self: lent System[mdf R, mdf Auth]): mdf R }
-CapFactory[C,R]:{
-  #(auth: CapBox[C]): CapBox[R] -> { this.build(auth*) },
+FCap[C,R]:F[lent C, lent R]{
+//  #(auth: lent C): lent R,
+  .lift(auth: F[lent C]): F[lent R] -> { this#(auth#) },
   .close(c: lent R): Void -> {},
-  .build(auth: lent C): lent R,
   }
 RootCap:Sealed{ .preventCreation: _RootCap }
 _RootCap:Sealed,RootCap{ _RootCap }

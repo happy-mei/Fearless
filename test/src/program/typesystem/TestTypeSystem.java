@@ -866,10 +866,10 @@ were valid:
     Type error: None of the following candidates for this method call:
     s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.IO'[]]{'fear[###]$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear[###]$ #/2([io, fear1$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear1$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear[###]$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear[###]$ }])}])}])
     were valid:
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (iso base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (mut base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (iso base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (mut base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
@@ -884,7 +884,7 @@ were valid:
     // bad version of caps.fear
     LentReturnStmt[R]:{ lent #: mdf R }
     System[R]:{
-      lent .use[C](c: CapFactory[lent NotTheRootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+      lent .use[C](c: FCap[lent NotTheRootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
         cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
       lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
       }
@@ -892,7 +892,7 @@ were valid:
     NotTheRootCap:{}
     _RootCap:IO{ .println(msg) -> this.println(msg), }
     UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
-    CapFactory[C,R]:{
+    FCap[C,R]:{
       #(s: lent C): lent R,
       .close(c: lent R): Void,
       }
@@ -900,7 +900,7 @@ were valid:
       lent .print(msg: Str): Void,
       lent .println(msg: Str): Void,
       }
-    IO':CapFactory[lent IO, lent IO]{
+    IO':FCap[lent IO, lent IO]{
       #(auth: lent IO): lent IO -> auth,
       .close(c: lent IO): Void -> {},
       }
@@ -924,7 +924,7 @@ were valid:
     // bad version of caps.fear
     LentReturnStmt[R]:{ lent #: mdf R }
     System[R]:{
-      lent .use[C](c: CapFactory[lent C, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+      lent .use[C](c: FCap[lent C, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
         cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
       lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
       }
@@ -932,7 +932,7 @@ were valid:
     NotTheRootCap:{}
     _RootCap:IO{ .println(msg) -> this.println(msg), }
     UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
-    CapFactory[C,R]:{
+    FCap[C,R]:{
       #(s: lent C): lent R,
       .close(c: lent R): Void,
       }
@@ -940,7 +940,7 @@ were valid:
       lent .print(msg: Str): Void,
       lent .println(msg: Str): Void,
       }
-    IO':CapFactory[lent IO, lent IO]{
+    IO':FCap[lent IO, lent IO]{
       #(auth: lent IO): lent IO -> auth,
       .close(c: lent IO): Void -> {},
       }
@@ -959,9 +959,9 @@ were valid:
         Type error: None of the following candidates for this method call:
         c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])
         were valid:
-        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps._RootCap[]): lent C
-        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], iso base.caps._RootCap[]): iso C
-        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], mut base.caps._RootCap[]): lent C
+        (imm base.caps.FCap[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.FCap[lent base.caps._RootCap[], lent C], lent base.caps._RootCap[]): lent C
+        (imm base.caps.FCap[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.FCap[lent base.caps._RootCap[], lent C], iso base.caps._RootCap[]): iso C
+        (imm base.caps.FCap[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.FCap[lent base.caps._RootCap[], lent C], mut base.caps._RootCap[]): lent C
         
     (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]): mdf R
     (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], iso C, iso base.caps.System[mdf R]): mdf R
@@ -981,7 +981,7 @@ were valid:
     // bad version of caps.fear
     LentReturnStmt[R]:{ lent #: mdf R }
     System[R]:{
-      lent .use[C](c: CapFactory[lent _RootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+      lent .use[C](c: FCap[lent _RootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
         cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
       lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
       }
@@ -989,7 +989,7 @@ were valid:
     NotTheRootCap:{}
     _RootCap:IO{ .println(msg) -> this.println(msg), }
     UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
-    CapFactory[C,R]:{
+    FCap[C,R]:{
       #(s: lent C): lent R,
       .close(c: lent R): Void,
       }
@@ -997,7 +997,7 @@ were valid:
       lent .print(msg: Str): Void,
       lent .println(msg: Str): Void,
       }
-    IO':CapFactory[lent _RootCap, lent IO]{
+    IO':FCap[lent _RootCap, lent IO]{
       #(auth: lent _RootCap): lent IO -> auth,
       .close(c: lent IO): Void -> {},
       }

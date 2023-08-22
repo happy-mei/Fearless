@@ -70,7 +70,7 @@ public interface Base {
     package test
     alias base.caps.UseCapCont as UseCapCont,
     alias base.caps.System as System,
-    alias base.caps.CapFactory as CapFactory,
+    alias base.caps.FCap as FCap,
     alias base.caps.LentReturnStmt as LentReturnStmt,
     alias base.caps.IO as IO,
     alias base.caps.IO' as IO',

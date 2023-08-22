@@ -1083,7 +1083,7 @@ public class TestInferBodies {
     Str:{} Void:{}
     LentReturnStmt[R]:{ lent #: mdf R }
     System[R]:{
-      lent .use[C](c: CapFactory[lent _RootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
+      lent .use[C](c: FCap[lent _RootCap, lent C], cont: mut UseCapCont[C, mdf R]): mdf R ->
         cont#(c#_RootCap, this),
       lent .return(ret: lent LentReturnStmt[mdf R]): mdf R -> ret#
       }
@@ -1092,7 +1092,7 @@ public class TestInferBodies {
       .println(msg) -> this.println(msg),
       }
     UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[mdf R]): mdf R }
-    CapFactory[C,R]:{
+    FCap[C,R]:{
       #(auth: lent C): lent R,
       .close(c: lent R): Void,
       }
@@ -1100,7 +1100,7 @@ public class TestInferBodies {
       lent .print(msg: Str): Void,
       lent .println(msg: Str): Void,
       }
-    IO':CapFactory[lent _RootCap, lent IO]{
+    IO':FCap[lent _RootCap, lent IO]{
       #(auth: lent _RootCap): lent IO -> this.scope(auth),
       .scope(auth: lent IO): lent IO -> auth,
       .close(c: lent IO): Void -> {},

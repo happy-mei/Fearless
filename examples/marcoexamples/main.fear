@@ -1,0 +1,43 @@
+package foo
+
+MyApp:Main{ s -> s
+  .use[IO] io = FIO
+  .return{ io.println(Logic.list5.iter.str({ p -> p.str }, "\n")) }
+  }
+
+Logic:{
+  .peopleList: mut List[mut Person] -> List#(
+    FPerson#("Alice", 150u),
+    FPerson#("Bob", 30u),
+    FPerson#("The Wizard in the tower", 456u)
+    ),
+  .list2: mut List[mut Person] -> Do#
+    .var myList = { this.peopleList }
+    .do{ myList.add(FPerson#("Eve", 21u)) }
+    .return{ myList },
+  .list4: List[mut Person] -> this.list2,
+  .list5: List[Person] -> this.list4,
+  }
+
+IPerson:{ .name: Str, .age: UInt }
+IPerson':F[Str, UInt, IPerson]{ name, age -> { .name -> name, .age -> age } }
+Person:{
+  read .name: Str,
+  read .age: UInt,
+  mut .age(n: UInt): Void,
+  read .str: Str -> "Person[name="+(this.name)+", age="+(this.age.str)+"]",
+  }
+FPerson:F[Str, UInt, mut Person]{
+  name, age -> Do#
+    .var _age = { Ref#[UInt](age) }
+    .return{{
+      .name -> name,
+      .age -> _age*,
+      .age(n) -> _age := n,
+      }}
+    }
+//  .build(name: Str, age: mut Ref[UInt]): mut MPerson -> {
+//    .name -> name,
+//    .age -> age*,
+//    .setAge(n) -> age := n,
+//    }}

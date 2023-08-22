@@ -7,8 +7,8 @@ IO:{
   lent .printErr(msg: Str): Void,
   lent .printlnErr(msg: Str): Void,
   }
-IO':CapFactory[RootCap, IO]{ .build(auth: lent RootCap): lent IO -> _IO }
-IOFromIO:CapFactory[IO, IO]{ .build(auth: lent IO): lent IO -> auth }
+FIO:FCap[RootCap, IO]{ auth -> _IO }
+FIO':FCap[IO, IO]{ auth -> auth }
 _IO:Sealed,IO{
   .print(msg) -> Abort!,
   .println(msg) -> Abort!,

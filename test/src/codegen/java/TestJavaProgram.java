@@ -257,7 +257,7 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Void as Void,
     Test:Main{ s -> s
-      .use[base.caps.IO](base.caps.IO', { io, s' -> s'.return{ io.println "Hello, World!" } })
+      .use[base.caps.IO](base.caps.FIO, { io, s' -> s'.return{ io.println "Hello, World!" } })
       }
     """);}
   @Disabled
