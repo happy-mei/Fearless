@@ -25,15 +25,16 @@ public class Main {
       .withJarName("fearless")
       .withDescription("The compiler for the Fearless programming language. See https://fearlang.org for more information.")
       .withArg("new", "Create a new package")
-      .withArg("check", "c", "Check that the given fearless program is valid")
-      .withArg("run", "r", "Compile and run the given fearless program")
+      .withArg("check", "c", "Check that the given Fearless program is valid")
+      .withArg("run", "r", "Compile and run the given Fearless program")
         .withArg("entry-point", "The qualified name for the entry-trait that implements base.Main")
         .withDependencies("run", "entry-point")
       .withFlag("regenerate-aliases", "ra", "Print the default alias file for a new package to standard output")
+      .withFlag("generate-docs", "d", "Generate documentation for the given Fearless program")
       .withFlag("imm-base", "Use a pure version of the Fearless standard library")
       .withFlag("show-internal-stack-traces", "Show stack traces within the compiler on errors for debugging purposes")
       .withFlag("print-codegen", "pc", "Print the output of the codegen stage to standard output")
-      .withAtLeastOneRequiredOption("help", "new", "check", "run", "regenerate-aliases")
+      .withAtLeastOneRequiredOption("help", "new", "check", "run", "regenerate-aliases", "generate-docs")
       .withEntryPoint(res->{
         var bv = res.hasOption("imm-base") ? CompilerFrontEnd.BaseVariant.Imm : CompilerFrontEnd.BaseVariant.Std;
 
@@ -55,6 +56,10 @@ public class Main {
           frontEnd.run(res.getOptionValue("entry-point"), res.getOptionValues("run"), res.getArgList());
           return;
         }
+        if (res.hasOption("generate-docs")) {
+          frontEnd.generateDocs(res.getOptionValues("generate-docs"));
+          return;
+        }
         if (res.hasOption("regenerate-aliases")) {
           System.out.println(frontEnd.regenerateAliases());
           return;
@@ -66,8 +71,16 @@ public class Main {
     try {
       cli.build().run();
     } catch (CompileError | IllegalStateException e) {
-      if (verbosity.get().showInternalStackTraces()) { throw e; }
+      if (verbosity.get().showInternalStackTraces()) {
+        throw e;
+      }
       System.err.println(e);
+      System.exit(1);
+    } catch (RuntimeException e) {
+      if (verbosity.get().showInternalStackTraces()) {
+        throw e;
+      }
+      System.err.println(e.getMessage());
       System.exit(1);
     } catch (Exception e) {
       throw Bug.of(e);

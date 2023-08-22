@@ -6,6 +6,7 @@ import codegen.MIRInjectionVisitor;
 import codegen.java.ImmJavaCodegen;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaProgram;
+import codegen.md.MarkdownDocgen;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
@@ -21,10 +22,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystemException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -60,6 +58,18 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
     } catch (IOException err) {
       System.err.println("Error creating package structure: "+ err);
       System.exit(1);
+    }
+  }
+
+  void generateDocs(String[] files) throws IOException {
+    if (files == null) { files = new String[0]; }
+    var p = compile(files);
+    var docgen = new MarkdownDocgen(p);
+    var docs = docgen.visitProgram();
+    Path root = Path.of("docs");
+    try { Files.createDirectory(root); } catch (FileAlreadyExistsException ignored) {}
+    for (var doc : docs) {
+      Files.writeString(root.resolve(doc.fileName()), doc.markdown());
     }
   }
 
