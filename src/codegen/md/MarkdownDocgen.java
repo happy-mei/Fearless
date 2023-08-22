@@ -73,7 +73,7 @@ public class MarkdownDocgen {
     if (!typeParams.isEmpty()) { typeParams = "**Type parameters**:\n" + typeParams; }
     var args = Streams.zip(m.xs(), m.sig().ts())
       .map((x, t)->t.match(
-        gx->"- `%s %s`".formatted(x, gx),
+        gx->"- `%s: %s`".formatted(x, gx),
         it->"- [`%s: %s`](%s)".formatted(x, it, toURLPath(it.name().pkg(), fragment(it.name())))
         ))
       .collect(Collectors.joining("\n"));
