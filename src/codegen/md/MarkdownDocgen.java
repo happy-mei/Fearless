@@ -26,14 +26,16 @@ public class MarkdownDocgen {
   }
   public List<TraitDoc> visitProgram() {
     return p.ds().values().stream()
-      .filter(d->d.name().name().charAt(0) != '_')
       .collect(Collectors.groupingBy(d->d.name().pkg()))
       .entrySet().stream()
       .map(pkg->TraitDoc.fromPkg(pkg.getKey(), visitPackage(pkg.getKey(), pkg.getValue())))
       .toList();
   }
   public String visitPackage(String name, List<T.Dec> traits) {
-    var ts = traits.stream().map(this::visitTrait).collect(Collectors.joining("\n\n"));
+    var ts = traits.stream()
+      .filter(d->d.name().shortName().charAt(0) != '_')
+      .map(this::visitTrait)
+      .collect(Collectors.joining("\n\n"));
     return """
       <h1><code>%s</code></h1>
       
@@ -96,6 +98,7 @@ public class MarkdownDocgen {
       .collect(Collectors.groupingBy(m->m.name().name()))
       .values().stream()
       .flatMap(Collection::stream)
+      .filter(m->!m.name().name().startsWith("._"))
       .map(m->this.visitMeth(pkg, d, m))
       .collect(Collectors.joining("\n\n"));
   }
