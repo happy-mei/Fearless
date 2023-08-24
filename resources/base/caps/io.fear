@@ -6,11 +6,20 @@ IO:System[Void, IOCap]{
   lent .println(msg: Str): Void -> Abort!,
   lent .printErr(msg: Str): Void -> Abort!,
   lent .printlnErr(msg: Str): Void -> Abort!,
+  lent .openFileHandle(path: base.LList[Str], mode: FileHandleMode): File -> Abort!,
   }
-FIO:FCap[RootCap, IO]{ auth -> { _IOCap } }
-//FIO':FCap[IO, IO]{ auth -> auth }
-
-MockFIO:FIO{ auth -> { MyMockIOCap } }
+FIO:FCap[System[Void, RootCap], IO]{ auth -> { { _IOCap } } }
+FIO':FCap[IOCap, IO]{ auth -> { { _IOCap } } }
 
 IOCap:Sealed{ .preventCreation: _IOCap }
 _IOCap:Sealed,IOCap{ _IOCap }
+
+FFile:FCap[RootCap, IO]{ auth -> auth.}
+File:System[Void, File]{
+  .readToStr: Str
+  }
+
+FileHandleMode:Stringable,Sealed{}
+Read:FileHandleMode{ "r" }
+Write:FileHandleMode{ "r+" }
+Create:FileHandleMode{ "w+" }

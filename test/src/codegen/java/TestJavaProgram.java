@@ -277,6 +277,18 @@ public class TestJavaProgram {
       .return{ io.println("Hello, World!") }
       }
     """); }
+  @Test void printlnDeeper() { ok(new Res("IO begets IO", "", 0), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
+    Test:Main{ s -> s
+      .use[IO] io = FIO
+      .return{ io
+        .use[IO] io2 = base.caps.FIO'
+        .return{ io2.println("IO begets IO") }
+        }
+      }
+    """); }
   @Test void print() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
