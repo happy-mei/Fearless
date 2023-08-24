@@ -15,7 +15,11 @@ System[R,Auth]:Sealed{
   lent .share[RR, C](c: FCap[Auth, C]): iso System[mdf RR, C] -> Do.hyg[mut System[mdf RR, C]]
     .var[F[lent C]] auth = { c.lift(this._auth) }
     .return{{ auth }},
+//  lent .use2[RR, C](c: FCap2[Auth, NS], cont: lent UseCapCont[C, mdf Auth, mdf R]): mdf R -> Do.hyg[mut System[mdf RR, C]]
+//      .var[F[lent C]] auth = { c.lift(this._auth) }
+//      .return{{ auth }},
   }
+//SystemIO[R]:System[R,IO]{}
 
 System[R]:System[mdf R, RootCap]{}
 _System[R]:Sealed,System[mdf R]{ { _RootCap } }

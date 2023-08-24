@@ -1,0 +1,30 @@
+package foo
+
+MyApp:Main{ s -> s
+  .use[IO] io = FIO
+  .do{ B#io }
+  .return{ Void }
+  }
+
+B1:{
+  #(io: lent System[IO]): ... -> io
+    .use[File] file1 = FFile.reader("foo.txt")
+    .use[File] file2 = FFile.writer("arr.txt")
+    .return{ C.process(file1, file2) }
+  }
+
+B2:{
+  #(io: IO): ... -> Do#
+    .var file1 = { FFile.reader("foo.txt")#io }
+    .var file2 = { FFile.writer("arr.txt")#io }
+    .return { C.process(file1, file2) }
+  }
+
+// Marco's B:
+//B:{
+//  #(io: lent IO): ... -> io
+//    .use[File] file1 = FFile.reader("foo.txt")
+//    .use[File] file2 = FFile.writer("arr.txt")
+//    .return{ C.process(file1, file2) }
+//  }
+C:{}

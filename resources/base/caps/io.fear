@@ -1,17 +1,16 @@
 package base.caps
 
 /// Capability for reading and writing to files and devices, including stdout and stderr.
-IO:{
-  lent .print(msg: Str): Void,
-  lent .println(msg: Str): Void,
-  lent .printErr(msg: Str): Void,
-  lent .printlnErr(msg: Str): Void,
+IO:System[Void, IOCap]{
+  lent .print(msg: Str): Void -> Abort!,
+  lent .println(msg: Str): Void -> Abort!,
+  lent .printErr(msg: Str): Void -> Abort!,
+  lent .printlnErr(msg: Str): Void -> Abort!,
   }
-FIO:FCap[RootCap, IO]{ auth -> _IO }
-FIO':FCap[IO, IO]{ auth -> auth }
-_IO:Sealed,IO{
-  .print(msg) -> Abort!,
-  .println(msg) -> Abort!,
-  .printErr(msg) -> Abort!,
-  .printlnErr(msg) -> Abort!,
-  }
+FIO:FCap[RootCap, IO]{ auth -> { _IOCap } }
+//FIO':FCap[IO, IO]{ auth -> auth }
+
+MockFIO:FIO{ auth -> { MyMockIOCap } }
+
+IOCap:Sealed{ .preventCreation: _IOCap }
+_IOCap:Sealed,IOCap{ _IOCap }
