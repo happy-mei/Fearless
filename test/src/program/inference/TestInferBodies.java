@@ -1075,7 +1075,7 @@ public class TestInferBodies {
     package test
     Usage:{
       .foo: Void -> System[Void]
-        .use(io = IO')
+        .use(io = FIO)
         .return{ io.println(Str{}) }
       }
     """, """
@@ -1100,7 +1100,7 @@ public class TestInferBodies {
       lent .print(msg: Str): Void,
       lent .println(msg: Str): Void,
       }
-    IO':FCap[lent _RootCap, lent IO]{
+    FIO:FCap[lent _RootCap, lent IO]{
       #(auth: lent _RootCap): lent IO -> this.scope(auth),
       .scope(auth: lent IO): lent IO -> auth,
       .close(c: lent IO): Void -> {},

@@ -49,7 +49,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
       Files.writeString(dir.resolve("lib.fear"), "package "+name+"\nGreeting:{ .get: Str -> \"Hello, World!\" }\n");
       Files.writeString(dir.resolve("main.fear"), "package "+name+"\n"+"""
         App:Main{ s -> s
-          .use[IO] io = IO'
+          .use[IO] io = FIO
           .block
           .var[Str] greeting = { Greeting.get }
           .return{ io.println(greeting) }

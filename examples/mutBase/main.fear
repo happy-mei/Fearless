@@ -1,6 +1,6 @@
 package examples
 MyApp:Main{ args, s -> s
-  .use[IO] io = IO'
+  .use[IO] io = FIO
   .return{ io.println(ImmMain#args) }
   }
 ImmMain:{

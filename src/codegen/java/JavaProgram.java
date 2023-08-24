@@ -1,7 +1,9 @@
 package codegen.java;
 
+import utils.Box;
 import utils.Bug;
 
+import javax.tools.Diagnostic;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
 import java.io.FileOutputStream;
@@ -11,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class JavaProgram extends SimpleJavaFileObject {
   private final String code;
@@ -38,17 +41,22 @@ public class JavaProgram extends SimpleJavaFileObject {
       workingDir.toString()
     );
 
+    var errors = new Box<Diagnostic<?>>(null);
     boolean success = compiler.getTask(
       null,
       null,
-      null,
+      errors::set,
       options,
       null,
       Collections.singleton(this)
     ).call();
 
     if (!success) {
-      throw Bug.todo(); // java compilation failed
+      var diagnostic = errors.get();
+      if (diagnostic == null) {
+        throw Bug.of("ICE: Java compilation failed.");
+      }
+      throw Bug.of("ICE: Java compilation failed:\n"+ diagnostic);
     }
 
     return workingDir.resolve("FProgram.class");

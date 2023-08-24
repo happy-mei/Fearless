@@ -265,24 +265,24 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Void as Void,
     Test:Main{ s -> s
-      .use(base.caps.IO', { io, s' -> s'.return{ io.println "Hello, World!" } })
+      .use(base.caps.FIO, { io, s' -> s'.return{ io.println "Hello, World!" } })
       }
     """);}
   @Test void printlnSugar() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
-    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .return{ io.println("Hello, World!") }
       }
     """); }
   @Test void print() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
-    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .block
       .do{ io.print("Hello") }
       .return{ io.print(", World!") }
@@ -291,18 +291,18 @@ public class TestJavaProgram {
   @Test void printlnErr() { ok(new Res("", "Hello, World!", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
-    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .return{ io.printlnErr("Hello, World!") }
       }
     """); }
   @Test void printErr() { ok(new Res("", "Hello, World!", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
-    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .block
       .do{ io.printErr("Hello") }
       .return{ io.printErr(", World!") }
@@ -311,9 +311,9 @@ public class TestJavaProgram {
   @Test void printlnShareLent() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
-    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .return{ Usage#io }
       }
     Usage:{
@@ -323,9 +323,9 @@ public class TestJavaProgram {
   @Test void printlnShareLentCapture() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
-    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .return{ lent Usage{ io }# }
       }
     Usage:{
@@ -336,9 +336,9 @@ public class TestJavaProgram {
   @Test void printlnShareCaptureIsoPod1() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.caps.IsoPod as IsoPod,
-    alias base.caps.System as System, alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.System as System, alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> s
-      .use[IO] _ = IO' // just to have another alias
+      .use[IO] _ = FIO // just to have another alias
       .block
       .var[mut IsoPod[System[Void, base.caps.RootCap]]] s' = { IsoPod#[System[Void, base.caps.RootCap]](s.share[Void]) }
       .return{ Usage'#(s'*) # }
@@ -347,16 +347,16 @@ public class TestJavaProgram {
     Usage:{
       mut .s: mut System[Void, base.caps.RootCap],
       mut #: Void -> this.s
-        .use[IO] io = IO'
+        .use[IO] io = FIO
         .return{ io.println("Hello, World!") },
       }
     """); }
   @Test void printlnShareCaptureIsoPod2() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.caps.IsoPod as IsoPod,
-    alias base.caps.System as System, alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.System as System, alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> s
-      .use[IO] _ = IO' // just to have another alias
+      .use[IO] _ = FIO // just to have another alias
       .block
       .var[mut IsoPod[System[Void, base.caps.RootCap]]] s' = { IsoPod#[System[Void, base.caps.RootCap]](s.share[Void]) }
       .return{ Usage'#(s'*) # }
@@ -365,16 +365,16 @@ public class TestJavaProgram {
     Usage:{
       lent .s: lent System[Void, base.caps.RootCap],
       lent #: Void -> this.s
-        .use[IO] io = IO'
+        .use[IO] io = FIO
         .return{ io.println("Hello, World!") },
       }
     """); }
   @Test void printlnShareCaptureIso() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.caps.IsoPod as IsoPod,
-    alias base.caps.System as System, alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.System as System, alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> s
-      .use[IO] _ = IO' // just to have another alias
+      .use[IO] _ = FIO // just to have another alias
       .block
       .return{ Usage'#(s.share[Void]) # }
       }
@@ -382,7 +382,7 @@ public class TestJavaProgram {
     Usage:{
       mut .s: mut System[Void, base.caps.RootCap],
       mut #: Void -> this.s
-        .use[IO] io = IO'
+        .use[IO] io = FIO
         .return{ io.println("Hello, World!") },
       }
     """); }
@@ -391,9 +391,9 @@ public class TestJavaProgram {
   @Test void printlnSugarInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void,
-    alias base.caps.IO' as IO',
+    alias base.caps.FIO as FIO,
     Test:Main{ s -> s
-      .use io = IO'
+      .use io = FIO
       .return{ io.println("Hello, World!") }
       }
     """); }
@@ -438,8 +438,8 @@ public class TestJavaProgram {
   static String cliArgsOrElseGet = """
     package test
     MyApp:Main{ s -> s
-      .use[IO] io = IO'
-      .use[Env] env = Env'
+      .use[IO] io = FIO
+      .use[Env] env = FEnv
       .return{ io.println(ImmMain#(env.launchArgs)) }
       }
     ImmMain:{
@@ -467,8 +467,8 @@ public class TestJavaProgram {
   String getCliArgsOrElse = """
     package test
     MyApp:Main{ s -> s
-      .use[IO] io = IO'
-      .use[Env] env = Env'
+      .use[IO] io = FIO
+      .use[Env] env = FEnv
       .return{ io.println(ImmMain#(env.launchArgs)) }
       }
     ImmMain:{
@@ -820,26 +820,26 @@ public class TestJavaProgram {
   @Test void envFromRootAuth() { okWithArgs(new Res("hi bye", "", 0), "test.Test", List.of("hi", "bye"), """
     package test
     Test:Main{ s -> s
-      .use[base.caps.IO] io = base.caps.IO'
-      .use[base.caps.Env] env = base.caps.Env'
+      .use[base.caps.IO] io = base.caps.FIO
+      .use[base.caps.Env] env = base.caps.FEnv
       .return{ io.println(env.launchArgs.iter.str({arg -> arg.str}, " ")) }
       }
     """, Base.mutBaseAliases); }
   @Test void envFromIO() { okWithArgs(new Res("hi bye", "", 0), "test.Test", List.of("hi", "bye"), """
     package test
     Test:Main{ s -> s
-      .use[base.caps.IO] io = base.caps.IO'
-      .return{ io.println((base.caps.EnvFromIO.build(io)).launchArgs.iter.str({arg -> arg.str}, " ")) }
+      .use[base.caps.IO] io = base.caps.FIO
+      .return{ io.println((base.caps.FIOEnv#(io)).launchArgs.iter.str({arg -> arg.str}, " ")) }
       }
     """, Base.mutBaseAliases); }
   @Test void envFromBaseSys() { okWithArgs(new Res("hi bye", "", 0), "test.Test", List.of("hi", "bye"), """
     package test
     Test:Main{ s -> s
-      .use[base.caps.IO] io = base.caps.IO'
+      .use[base.caps.IO] io = base.caps.FIO
       .block
-      .var[mut System[Str, base.caps.IO]] ioSys = { s.share[Str, base.caps.IO](IO') }
+      .var[mut System[Str, base.caps.IO]] ioSys = { s.share[Str, base.caps.IO](FIO) }
       .return{ io.println(ioSys
-        .use[base.caps.Env] env = base.caps.EnvFromIO
+        .use[base.caps.Env] env = base.caps.FIOEnv
         .return{ env.launchArgs.iter.str({arg -> arg.str}, " ") }
         )}
       }
@@ -848,14 +848,14 @@ public class TestJavaProgram {
   @Test void intExp() { ok(new Res("3125", "", 0), "test.Test", """
     package test
     Test:Main{ s -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .return{ io.println(5 ** 5u .str) }
       }
     """, Base.mutBaseAliases); }
   @Test void uintExp() { ok(new Res("3125", "", 0), "test.Test", """
     package test
     Test:Main{ s -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .return{ io.println(5u ** 5u .str) }
       }
     """, Base.mutBaseAliases); }
@@ -897,16 +897,16 @@ public class TestJavaProgram {
     """.strip(), "", 0), "test.Test", """
     package test
     Test:Main{ s -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .block
       .var s1 = { IsoPod#[Str]"help, i'm alive" }
-      .do{ PrintMsg#(s.share(IO'), s1) }
+      .do{ PrintMsg#(s.share(FIO), s1) }
       .return{ io.println("consume: " + (s1.consume)) }
       }
     PrintMsg:{
       #(s: mut System[Void, IO], msg: read IsoPod[Str]): Void -> msg.peek{
         .some(str) -> s
-          .use[IO] io = base.caps.IOFromIO
+          .use[IO] io = base.caps.FIO'
           .return{ io.println("peek: " + str) },
         .none -> Void
         }
@@ -918,7 +918,7 @@ public class TestJavaProgram {
     """.strip(), "", 0), "test.Test", """
     package test
     Test:Main{ s -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .block
       .var s1 = { IsoPod#[Str]"help, i'm alive" }
       .do{ s1.peekHyg{

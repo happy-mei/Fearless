@@ -864,18 +864,18 @@ were valid:
     In position [###]/Dummy0.fear:5:2
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
-    s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.IO'[]]{'fear[###]$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear[###]$ #/2([io, fear1$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear1$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear[###]$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear[###]$ }])}])}])
+    s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.FIO[]]{'fear[###]$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear[###]$ #/2([io, fear1$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear1$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear[###]$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear[###]$ }])}])}])
     were valid:
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (iso base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (mut base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.FIO[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.FIO[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.FIO[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (iso base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.FIO[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (mut base.caps.System[imm base.Void[]], imm base.caps.FCap[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
-    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ #(_, s) -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .return{ io.println("Hello, World!") }
       }
     """, """
@@ -900,7 +900,7 @@ were valid:
       lent .print(msg: Str): Void,
       lent .println(msg: Str): Void,
       }
-    IO':FCap[lent IO, lent IO]{
+    FIO:FCap[lent IO, lent IO]{
       #(auth: lent IO): lent IO -> auth,
       .close(c: lent IO): Void -> {},
       }
@@ -913,9 +913,9 @@ were valid:
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
-    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ #(_, s) -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .return{ io.println("Hello, World!") }
       }
     """, """
@@ -940,7 +940,7 @@ were valid:
       lent .print(msg: Str): Void,
       lent .println(msg: Str): Void,
       }
-    IO':FCap[lent IO, lent IO]{
+    FIO:FCap[lent IO, lent IO]{
       #(auth: lent IO): lent IO -> auth,
       .close(c: lent IO): Void -> {},
       }
@@ -970,9 +970,9 @@ were valid:
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
-    alias base.caps.IO as IO, alias base.caps.IO' as IO',
+    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ #(_, s) -> s
-      .use[IO] io = IO'
+      .use[IO] io = FIO
       .return{ io.println("Hello, World!") }
       }
     """, """
@@ -997,7 +997,7 @@ were valid:
       lent .print(msg: Str): Void,
       lent .println(msg: Str): Void,
       }
-    IO':FCap[lent _RootCap, lent IO]{
+    FIO:FCap[lent _RootCap, lent IO]{
       #(auth: lent _RootCap): lent IO -> auth,
       .close(c: lent IO): Void -> {},
       }
