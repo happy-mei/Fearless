@@ -1,22 +1,56 @@
 package base.caps
 
 /// Capability for reading and writing to files and devices, including stdout and stderr.
-IO:System[Void, IOCap]{
+IO:System[Void, IO]{
+//  ._preventCreation: IOCap,
   lent .print(msg: Str): Void -> Abort!,
   lent .println(msg: Str): Void -> Abort!,
   lent .printErr(msg: Str): Void -> Abort!,
   lent .printlnErr(msg: Str): Void -> Abort!,
-  lent .openFileHandle(path: base.LList[Str], mode: FileHandleMode): File -> Abort!,
+  lent .openFileHandle(path: base.LList[Str], mode: FileHandleMode): lent File -> Abort!,
   }
-FIO:FCap[System[Void, RootCap], IO]{ auth -> { { _IOCap } } }
-FIO':FCap[IOCap, IO]{ auth -> { { _IOCap } } }
+FIO:FCap[System[Void], IO]{
+  #(_) -> Abort!, // unreachable
+  .lift(auth) -> {{
+//    ._preventCreation -> IOCap,
+    ._auth -> FIO.lift(auth)
+    }},
+  }
+FIO':FCap[IO, IO]{
+  #(_) -> Abort!, // unreachable
+  .lift(auth) -> {{
+    //._preventCreation -> IOCap,
+    ._auth -> FIO'.lift(auth)
+    }},
+  }
 
 IOCap:Sealed{ .preventCreation: _IOCap }
 _IOCap:Sealed,IOCap{ _IOCap }
 
-FFile:FCap[RootCap, IO]{ auth -> auth.}
+FFile:{
+  .open(path: LList[Str]): FCap[IO, File] -> {
+    #(fIO) -> Do#
+      .var fh = { fIO#.openFileHandle(path) }
+      .return {{
+        .clone -> { FFile.open(path).lift(fIO) }
+        .readLine -> fh.readLine,
+        .writeLine -> fh.writeLine,
+        .close -> fh.close,
+        }},
+    .close(file) -> file.close,
+    }
+  }
 File:System[Void, File]{
-  .readToStr: Str
+  // ... some high level methods ...
+  lent .readLine: Str,
+  lent .writeLine: Str,
+  lent .close: Void,
+  }
+FileHandle:{
+  // ... some low level methods ...
+  lent .readLine: Str,
+  lent .writeLine: Str,
+  lent .close: Void
   }
 
 FileHandleMode:Stringable,Sealed{}

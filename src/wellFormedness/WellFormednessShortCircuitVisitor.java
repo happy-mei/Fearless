@@ -9,6 +9,7 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import magic.MagicImpls;
+import program.TypeRename;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
 
@@ -74,11 +75,11 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   private Optional<CompileError> noHygInMut(T t) {
-    // TODO: re-evaluate this
-//    if (!(t.rt() instanceof Id.IT<T> it)) { return Optional.empty(); }
-//    if (t.mdf().isMut() && it.ts().stream().map(T::mdf).anyMatch(Mdf::isHyg)) {
-//      return Optional.of(Fail.mutCapturesHyg(t));
-//    }
+    var fixed = TypeRename.core(p).fixMut(t);
+    if (!fixed.equals(t)) {
+      return Optional.of(Fail.mutCapturesHyg(t));
+    }
+
     return Optional.empty();
   }
 
