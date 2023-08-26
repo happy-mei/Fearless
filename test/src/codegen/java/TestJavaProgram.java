@@ -86,6 +86,14 @@ public class TestJavaProgram {
     Test:Main{ _ -> {} }
     """);}
 
+  @Test void captureTest() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    alias base.Main as Main,
+    alias base.Void as Void,
+    Test:Main{ _ -> {} }
+    A:{ #: A -> A{ # -> A { # -> this } }# }
+    """);}
+
   @Test void assertTrue() { ok(new Res("", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,

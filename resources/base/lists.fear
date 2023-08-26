@@ -52,6 +52,7 @@ LListMut[E]:Sealed,NoMutHyg[mdf E]{
     .var -> Ref#this,
     .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
     },
+//  read .iter: lent Iter[recMdf E] -> recMdf _LListMutToIter[mdf E]#(Ref#[recMdf LListMut[mdf E]]this),
   lent .iterMut: mut Iter[mdf E] -> Let.hyg{
     .var -> Ref#[lent LListMut[mdf E]]this,
     .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
@@ -66,6 +67,9 @@ LListMutMatch[E,TE,R]:{
   mut .elem(head: mdf E, tail: read LListMut[mdf TE]): mdf R,
   mut .empty: mdf R,
   }
+//_LListMutToIter[E]:{
+//  read #(cursor: mut Ref[recMdf LListMut[mdf E]]): mut Iter[recMdf E] -> { .next -> cursor.swap(cursor*.tail).head }
+//  }
 _LListMutGet:{
   recMdf #[E](i: UInt, head: recMdf E, tail: recMdf LListMut[mdf E]): recMdf BoolView[mut Opt[recMdf E]] ->
     { .then -> Opt#head, .else -> tail.get(i - 1u) }

@@ -251,4 +251,6 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
   @Test void precedenceMCall() { same("(a - b) - c", "a - b - c"); }
   @Test void precedenceMCall2() { same("(a - b).m(c)", "a - b.m(c)"); }
   @Test void precedenceMCall2Arg() { same("(a - b).m(c,d)", "a - b.m(c,d)"); }
+  @Test void precedenceMCallPlus1() { same("a + b.foo()", "(a + b).foo"); }
+  @Test void precedenceMCallPlus2() { same("a + b.foo()", "a + b.foo"); }
 }

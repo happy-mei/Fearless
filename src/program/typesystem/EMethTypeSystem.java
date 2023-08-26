@@ -118,12 +118,21 @@ public interface EMethTypeSystem extends ETypeSystem {
     if (!(rec.rt() instanceof Id.IT<T> recIT)) { return Optional.empty(); }
     return p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
       var mdf = rec.mdf();
-      var mustUseRecvMdf = cm.ret().mdf().isRecMdf() && p().isSubType(rec.mdf(), cm.mdf());
-      var mdf0 = mustUseRecvMdf ? rec.mdf() : cm.mdf();
+
+      // TODO: temp until we use recMdf as the mdf for methods that use recMdf, just detect if it's used anywhere
+      var containsRecMdf = Streams.of(
+        ts.stream(),
+        cm.sig().ts().stream(),
+        Stream.of(cm.ret()),
+        Stream.of(rec.withMdf(cm.mdf()))
+      ).anyMatch(EMethTypeSystem::containsRecMdf);
+
+      var mdf0 = containsRecMdf ? Mdf.recMdf : cm.mdf();
       var t0 = rec.withMdf(mdf0);
+
       Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
       var params = Push.of(
-        t0,
+        fancyRename(t0, mdf, xsTsMap),
         cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()
       );
       var t = fancyRename(cm.ret(), mdf, xsTsMap);
