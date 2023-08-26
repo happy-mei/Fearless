@@ -10,7 +10,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalled1() { ok("""
     package test
     A:{
-      read .m1(_: mut NoPromote): recMdf A,
+      recMdf .m1(_: mut NoPromote): recMdf A,
       mut .m2: mut A -> this.m1{},
       }
     NoPromote:{}
@@ -18,7 +18,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalled1a() { ok("""
     package test
     A:{
-      read .m1: recMdf A -> {},
+      recMdf .m1: recMdf A -> {},
       mut .m2: read A -> this.m1,
       }
     """); }
@@ -42,7 +42,7 @@ public class TestRecMdf {
     package test
     A:{
       // Broken because makes mut this -> imm!
-      read .m1(_: mut NoPromote): recMdf A -> this,
+      recMdf .m1(_: mut NoPromote): recMdf A -> this,
       mut .m2: imm A -> this.m1{},
       }
     NoPromote:{}
@@ -50,7 +50,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalled1c() { ok("""
     package test
     A:{
-      read .m1(_: mut NoPromote): recMdf A,
+      recMdf .m1(_: mut NoPromote): recMdf A,
       imm .m2: imm A -> this.m1{},
       }
     NoPromote:{}
@@ -86,7 +86,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledGenMut() { ok("""
     package test
     A[X]:{
-      read .m1(a: recMdf X, _: mut NoPromote): recMdf X,
+      recMdf .m1(a: recMdf X, _: mut NoPromote): recMdf X,
       mut .m2(a: mdf X): mdf X -> this.m1(a, mut NoPromote{}),
       }
     NoPromote:{}
@@ -94,7 +94,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledGenMut2() { ok("""
     package test
     A[X]:{
-      read .get: recMdf X -> this.loop,
+      recMdf .get: recMdf X -> this.loop,
       read .loop[T]: mdf T -> this.loop,
       }
     B:{
@@ -120,7 +120,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledGenImm() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): recMdf X,
+      recMdf .m1(_: mut NoPromote): recMdf X,
       imm .m2: imm X -> this.m1{},
       }
     NoPromote:{}
@@ -128,7 +128,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledGenRead1() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): recMdf X,
+      recMdf .m1(_: mut NoPromote): recMdf X,
       read .m2: read X -> this.m1{},
       }
     NoPromote:{}
@@ -136,31 +136,15 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledGenRead2() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): recMdf X,
+      recMdf .m1(_: mut NoPromote): recMdf X,
       read .m2: read X -> this.m1{},
-      }
-    NoPromote:{}
-    """); }
-  @Test void shouldCollapseWhenCalledGenLent() { fail("""
-    In position [###]/Dummy0.fear:4:28
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .m1/1[]([[-mut-][test.NoPromote[]]{'fear0$ }]), no candidates for .m1/1 returned the expected type recMdf X. The candidates were:
-    (read test.A[mdf X], mut test.NoPromote[]): mdf X
-    (read test.A[mdf X], iso test.NoPromote[]): mdf X
-    (imm test.A[mdf X], iso test.NoPromote[]): mdf X
-    (read test.A[mdf X], lent test.NoPromote[]): mdf X
-    """, """
-    package test
-    A[X]:{
-      read .m1(_: mut NoPromote): recMdf X,
-      lent .m2: recMdf X -> this.m1{},
       }
     NoPromote:{}
     """); }
   @Test void shouldCollapseWhenCalledGenIso1() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): recMdf X,
+      recMdf .m1(_: mut NoPromote): recMdf X,
       iso .m2: imm X -> this.m1{},
       }
     NoPromote:{}
@@ -170,14 +154,14 @@ public class TestRecMdf {
     In position [###]/Dummy0.fear:4:24
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .m1/1[]([[-mut-][test.NoPromote[]]{'fear0$ }]), no candidates for .m1/1 returned the expected type mut X. The candidates were:
-    (read test.A[mdf X], mut test.NoPromote[]): mdf X
-    (read test.A[mdf X], iso test.NoPromote[]): mdf X
-    (imm test.A[mdf X], iso test.NoPromote[]): mdf X
-    (read test.A[mdf X], lent test.NoPromote[]): mdf X
+    (mut test.A[mdf X], mut test.NoPromote[]): mdf X
+    (iso test.A[mdf X], iso test.NoPromote[]): mdf X
+    (lent test.A[mdf X], iso test.NoPromote[]): mdf X
+    (iso test.A[mdf X], lent test.NoPromote[]): mdf X
     """, """
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): recMdf X,
+      recMdf .m1(_: mut NoPromote): recMdf X,
       iso .m2: iso X -> this.m1(mut NoPromote{}),
       }
     NoPromote:{}
@@ -186,7 +170,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledGenIso3() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): recMdf X,
+      recMdf .m1(_: mut NoPromote): recMdf X,
       iso .m2: mdf X -> this.m1(mut NoPromote{}),
       mut .m3: mdf X -> this.m1(mut NoPromote{}),
       }
@@ -210,7 +194,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledNestedGenMut1() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): Consumer[recMdf X],
+      recMdf .m1(_: mut NoPromote): Consumer[recMdf X],
       mut .m2: Consumer[mdf X] -> this.m1{},
       }
     Consumer[X]:{ #(x: mdf X): Void }
@@ -223,7 +207,7 @@ public class TestRecMdf {
     """, """
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): Consumer[recMdf X],
+      recMdf .m1(_: mut NoPromote): Consumer[recMdf X],
       mut .m2: Consumer[imm X] -> this.m1{},
       }
     Consumer[X]:{ #(x: mdf X): Void }
@@ -232,7 +216,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledNestedGenImm1() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): Consumer[recMdf X],
+      recMdf .m1(_: mut NoPromote): Consumer[recMdf X],
       imm .m2: Consumer[imm X] -> this.m1{},
       }
     Consumer[X]:{ #(x: mdf X): Void }
@@ -242,7 +226,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledNestedGenSplitImm1() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): Consumer[recMdf X],
+      recMdf .m1(_: mut NoPromote): Consumer[recMdf X],
       }
     A'[X]:A[mdf X]{ x -> this.m1(x) }
     B[X]:{ imm .m2: Consumer[imm X] -> A'[mdf X].m1{} }
@@ -252,7 +236,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledNestedGenSplitMut1() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): Consumer[recMdf X],
+      recMdf .m1(_: mut NoPromote): Consumer[recMdf X],
       }
     A'[X]:A[mdf X]{ x -> this.m1(x) }
     B[X]:{ imm .m2: Consumer[imm X] -> mut A'[imm X].m1{} }
@@ -262,7 +246,7 @@ public class TestRecMdf {
   @Test void shouldCollapseWhenCalledNestedGenSplitMut2() { ok("""
     package test
     A[X]:{
-      read .m1(_: mut NoPromote): Consumer[recMdf X],
+      recMdf .m1(_: mut NoPromote): Consumer[recMdf X],
       }
     A'[X]:A[mdf X]{ x -> this.m1(x) }
     B[X]:{ imm .m2: Consumer[mdf X] -> mut A'[mdf X].m1{} }
@@ -291,10 +275,10 @@ public class TestRecMdf {
     package test
     alias base.NoMutHyg as NoMutHyg,
     Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
-      read .match[R](m: mut OptMatch[recMdf T, recMdf R]): recMdf R -> m.some(x),
+      recMdf .match[R](m: mut OptMatch[recMdf T, recMdf R]): recMdf R -> m.some(x),
       }}
     Opt[T]:NoMutHyg[mdf T]{
-      read .match[R](m: mut OptMatch[recMdf T, recMdf R]): recMdf R -> m.none,
+      recMdf .match[R](m: mut OptMatch[recMdf T, recMdf R]): recMdf R -> m.none,
       }
     OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     """, """
@@ -343,13 +327,13 @@ public class TestRecMdf {
     package test
     alias base.NoMutHyg as NoMutHyg,
     Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
-      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x),
+      recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x),
       }}
     Opt[T]:NoMutHyg[mdf T]{
-      read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-      read .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
-//      read .map[R](f: mut OptMatch[mdf T, mut Opt[mdf R]]): mut Opt[mdf R] -> this.match(f),
-      read .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
+      recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+      recMdf .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
+//      recMdf .map[R](f: mut OptMatch[mdf T, mut Opt[mdf R]]): mut Opt[mdf R] -> this.match(f),
+      recMdf .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
       }
     OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     OptMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
@@ -371,7 +355,7 @@ public class TestRecMdf {
   @Test void inferRecMdf1() { ok("""
     package test
     Foo[T]:{
-      read .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
+      recMdf .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
       }
     F[T]:{ mut #(x: mdf T): mdf T }
     A:{}
@@ -380,7 +364,7 @@ public class TestRecMdf {
   @Test void inferRecMdf2() { ok("""
     package test
     Foo[T]:{
-      read .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
+      recMdf .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
       }
     F[T]:{ mut #(x: mdf T): mdf T }
     A:{}
@@ -455,7 +439,7 @@ public class TestRecMdf {
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> this.loop,
+      recMdf #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> this.loop,
       read .loop[R]: mdf R -> this.loop,
       }
     C:{
@@ -472,13 +456,13 @@ public class TestRecMdf {
     """, """
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     // Fails because if B[Y] is imm, we'll fail because recMdf X will be mut B[..] and recMdf B[..] in the rt here
     // will be imm B[..]
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): recMdf B[recMdf Y] ->
+      recMdf #(a: mut A[mut B[recMdf Y]]): recMdf B[recMdf Y] ->
         a.m1(recMdf B[recMdf Y], F[recMdf B[recMdf Y]]),
       }
     C:{
@@ -507,13 +491,13 @@ public class TestRecMdf {
   @Test void noCaptureImmAsRecMdf() { ok("""
     package test
     B:{}
-    L[X]:{ read .absMeth: recMdf X }
+    L[X]:{ recMdf .absMeth: recMdf X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
     """); }
   @Test void noCaptureImmAsRecMdfExample() { ok("""
     package test
     B:{}
-    L[X]:{ read .absMeth: recMdf X }
+    L[X]:{ recMdf .absMeth: recMdf X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
     C:{ #: imm B -> (A.m(B)).absMeth }
     """); }
@@ -521,20 +505,20 @@ public class TestRecMdf {
     In position [###]/Dummy0.fear:5:25
     [E32 noCandidateMeths]
     When attempting to type check the method call: [-imm-][test.A[]]{'fear1$ } .m/1[]([[-imm-][test.B[]]{'fear2$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type lent test.B[]. The candidates were:
-    (read test.L[imm test.B[]]): imm test.B[]
-    (imm test.L[imm test.B[]]): imm test.B[]
+    (lent test.L[imm test.B[]]): imm test.B[]
+    (iso test.L[imm test.B[]]): imm test.B[]
     """, """
     package test
     B:{}
-    L[X]:{ read .absMeth: recMdf X }
+    L[X]:{ recMdf .absMeth: recMdf X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
     C:{ #: lent B -> (A.m(B)).absMeth }
     """); }
   @Test void noCaptureImmAsRecMdfTopLvl1() { ok("""
     package test
     B:{}
-    L[X]:{ read .absMeth: recMdf X }
-    L'[X]:L[imm X]{ read .absMeth: imm X }
+    L[X]:{ recMdf .absMeth: recMdf X }
+    L'[X]:L[imm X]{ recMdf .absMeth: imm X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
     """); }
   @Test void noCaptureImmAsRecMdfTopLvl2() { fail("""
@@ -547,15 +531,15 @@ public class TestRecMdf {
     """, """
     package test
     B:{}
-    L[X]:{ read .absMeth: recMdf X }
-    L'[X]:L[mdf X]{ read .absMeth: imm X }
+    L[X]:{ recMdf .absMeth: recMdf X }
+    L'[X]:L[mdf X]{ recMdf .absMeth: imm X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
     """); }
 
   @Test void recMdfInheritance() { ok("""
     package test
     Foo:{}
-    A[X]:{ read .m: recMdf X -> Loop# }
+    A[X]:{ recMdf .m: recMdf X -> Loop# }
     B:A[imm Foo]
     C:B
     CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
@@ -569,13 +553,14 @@ public class TestRecMdf {
     In position [###]/Dummy0.fear:8:48
     [E32 noCandidateMeths]
     When attempting to type check the method call: par .m/0[]([]), no candidates for .m/0 returned the expected type mut test.Foo[]. The candidates were:
-    (read test.B[]): imm test.Foo[]
-    (imm test.B[]): imm test.Foo[]
+    (mut test.B[]): imm test.Foo[]
+    (iso test.B[]): imm test.Foo[]
+    (lent test.B[]): imm test.Foo[]
     """, """
     package test
     Foo:{}
     Loop:{ #[X]: mdf X -> this# }
-    A[X]:{ read .m: recMdf X -> Loop# }
+    A[X]:{ recMdf .m: recMdf X -> Loop# }
     B:A[imm Foo]{}
     CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
     CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
@@ -590,17 +575,17 @@ public class TestRecMdf {
     """, """
     package test
     A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ x } }
-    B[X]:{ read .argh: recMdf X }
+    B[X]:{ recMdf .argh: recMdf X }
     """); }
   @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGenericExplicit() { ok("""
     package test
-    A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ read .argh: recMdf X -> x } }
-    B[X]:{ read .argh: recMdf X }
+    A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ recMdf .argh: recMdf X -> x } }
+    B[X]:{ recMdf .argh: recMdf X }
     """); }
   @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeConcrete() { ok("""
     package test
     A:{ .foo(x: mut Foo): mut B -> mut B{ x } }
-    B:{ read .argh: recMdf Foo }
+    B:{ recMdf .argh: recMdf Foo }
     Foo:{}
     """); }
   @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeConcreteGeneric() { fail("""
@@ -611,7 +596,7 @@ public class TestRecMdf {
     """, """
     package test
     A:{ .foo(x: mut Foo): mut B[mut Foo] -> mut B[mut Foo]{ x } }
-    B[X]:{ read .argh: recMdf X }
+    B[X]:{ recMdf .argh: recMdf X }
     Foo:{}
     """); }
   @Test void methGensMismatch1() { fail("""
@@ -621,7 +606,7 @@ public class TestRecMdf {
     """, """
     package test
     A:{ .foo(x: mut Foo): mut B -> mut B{ x } }
-    B:{ read .argh[X]: recMdf X }
+    B:{ recMdf .argh[X]: recMdf X }
     Foo:{}
     """); }
   @Test void methGensMismatch2() { fail("""
@@ -640,8 +625,8 @@ public class TestRecMdf {
     Expected the method .argh/0 to return recMdf X', got recMdf X.
     """, """
     package test
-    A:{ .foo[X](x: mut X): mut B -> mut B{ read .argh[X']: recMdf X' -> x } }
-    B:{ read .argh[X]: recMdf X }
+    A:{ .foo[X](x: mut X): mut B -> mut B{ recMdf .argh[X']: recMdf X' -> x } }
+    B:{ recMdf .argh[X]: recMdf X }
     """); }
 
   /*

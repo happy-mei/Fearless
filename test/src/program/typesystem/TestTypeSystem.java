@@ -684,12 +684,12 @@ were valid:
     In position [###]/Dummy0.fear:5:25
     [E32 noCandidateMeths]
     When attempting to type check the method call: [-imm-][test.A[]]{'fear1$ } .m/1[]([[-imm-][test.B[]]{'fear2$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type lent test.B[]. The candidates were:
-    (read test.L[imm test.B[]]): imm test.B[]
-    (imm test.L[imm test.B[]]): imm test.B[]
+    (lent test.L[imm test.B[]]): imm test.B[]
+    (iso test.L[imm test.B[]]): imm test.B[]
     """, """
     package test
     B:{}
-    L[X]:{ read .absMeth: recMdf X }
+    L[X]:{ recMdf .absMeth: recMdf X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
     C:{ #: lent B -> (A.m(B)).absMeth }
     """); }
