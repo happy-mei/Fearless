@@ -27,7 +27,8 @@ public interface Gamma {
   }
   default Gamma captureSelf(Program p, String x, T t, Mdf mMdf) {
     Gamma g = xi->this.getO(xi).map(ti->xT(xi,t,ti,mMdf,p));
-    var selfMdf = mMdf.adapt(t.mdf(), Mdf.AdaptType.Capture);
+    var recMdfAsRead = mMdf.isRecMdf() ? Mdf.read : mMdf;
+    var selfMdf = recMdfAsRead.adapt(t.mdf(), Mdf.AdaptType.Capture);
     if(selfMdf.isMdf()){ selfMdf = mMdf; }
     return g.add(x,t.withMdf(selfMdf));
   }

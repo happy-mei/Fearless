@@ -64,8 +64,8 @@ public class TestTypeSystem {
   @Test void recMdfWeakening() { ok("""
     package test
     Person:{}
-    List[X]:{ read .get(): recMdf X }
-    Family2:List[mut Person]{ read .get(): mut Person }
+    List[X]:{ recMdf .get(): recMdf X }
+    Family2:List[mut Person]{ recMdf .get(): mut Person }
     """); }
 
   @Test void ref1() { fail("""
@@ -89,7 +89,7 @@ public class TestTypeSystem {
     Let[V,R]:{ .var:mdf V, .in(v:mdf V):mdf R }
     Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
     Ref[X]:NoMutHyg[X],Sealed{
-      read * : recMdf X,
+      recMdf * : recMdf X,
       mut .swap(x: mdf X): mdf X,
       mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
       mut <-(f: mut UpdateRef[mut X]): mdf X -> this.swap(f#(this*)),
@@ -320,7 +320,7 @@ were valid:
     """, """
     package test
     A:{
-      read .b: recMdf B -> {},
+      recMdf .b: recMdf B -> {},
       read .doThing: Void -> this.b.foo.ret
       }
     B:{
@@ -332,7 +332,7 @@ were valid:
   @Test void lentFromRecMdfLent() { ok("""
     package test
     A:{
-      lent .b: recMdf B -> {},
+      recMdf .b: recMdf B -> {},
       lent .doThing: lent B -> this.b
       }
     B:{}
@@ -365,7 +365,7 @@ were valid:
     """, """
     package test
     A:{
-      lent .b: recMdf B -> {},
+      recMdf .b: recMdf B -> {},
       read .promote(b: mut B): mut B -> b,
       lent .doThing: mut B -> this.promote(this.b)
       }
@@ -374,7 +374,7 @@ were valid:
   @Test void CallMutFromRecMdfMut() { ok("""
     package test
     A:{
-      lent .b: recMdf B -> {},
+      recMdf .b: recMdf B -> {},
       mut .doThing: Void -> this.b.foo.ret
       }
     B:{
@@ -386,7 +386,7 @@ were valid:
   @Test void recMdfToMut() { ok("""
     package test
     A:{
-      read .b(a: recMdf A): recMdf B -> {},
+      recMdf .b(a: recMdf A): recMdf B -> {},
       mut .break: mut B -> this.b(this),
       }
     B:{}
@@ -394,7 +394,7 @@ were valid:
   @Test void readThisIsRecMdf() { ok("""
     package test
     A:{
-      read .self: recMdf A -> this,
+      recMdf .self: recMdf A -> this,
       }
     """); }
   @Test void readThisIsRead() { ok("""
@@ -404,7 +404,7 @@ were valid:
       }
     """); }
   @Test void bicycle1() { fail("""
-    In position [###]/Dummy0.fear:3:49
+    In position [###]/Dummy0.fear:3:51
     [E32 noCandidateMeths]
     When attempting to type check the method call: b .wheel/0[]([]), no candidates for .wheel/0 returned the expected type recMdf test.Wheel[]. The candidates were:
     (read test.Bicycle[]): read test.Wheel[]
@@ -412,10 +412,10 @@ were valid:
     """, """
     package test
     A:{
-      read .wheel(b: read Bicycle): recMdf Wheel -> b.wheel,
+      recMdf .wheel(b: read Bicycle): recMdf Wheel -> b.wheel,
       }
     Bicycle:{
-      read .wheel: recMdf Wheel -> {}
+      recMdf .wheel: recMdf Wheel -> {}
       }
     Wheel:{}
     """); }
@@ -425,7 +425,7 @@ were valid:
       read .wheel(b: read Bicycle): read Wheel[read Bicycle] -> b.wheel,
       }
     Bicycle:{
-      read .wheel: recMdf Wheel[recMdf Bicycle] -> {}
+      recMdf .wheel: recMdf Wheel[recMdf Bicycle] -> {}
       }
     Wheel[T]:{
       .getBike: mdf T -> this.getBike,
@@ -439,8 +439,8 @@ were valid:
         b.acceptWheel(w),
       }
     Bicycle:{
-      read .wheel: recMdf Wheel[recMdf Bicycle] -> {},
-      read .acceptWheel(w: recMdf Wheel[recMdf Bicycle]): Voodo -> {},
+      recMdf .wheel: recMdf Wheel[recMdf Bicycle] -> {},
+      recMdf .acceptWheel(w: recMdf Wheel[recMdf Bicycle]): Voodo -> {},
       }
     Voodo:{}
     Wheel[T]:{
@@ -455,7 +455,7 @@ were valid:
       read .wheel3(b: read Bicycle[imm T]): read Wheel[imm T] -> b.wheel,
       }
     Bicycle[T]:{
-      read .wheel: recMdf Wheel[recMdf T] -> {},
+      recMdf .wheel: recMdf Wheel[recMdf T] -> {},
       }
     Voodo:{}
     Wheel[T]:{
@@ -468,7 +468,7 @@ were valid:
       read .wheel1(b: read Bicycle[mdf T]): read T -> b.wheel,
       }
     Bicycle[T]:{
-      read .wheel: recMdf T -> Voodo.loop,
+      recMdf .wheel: recMdf T -> Voodo.loop,
       }
     Voodo:{
       read .loop[T]: mdf T -> this.loop,
@@ -478,7 +478,7 @@ were valid:
       }
     """); }
   @Test void bicycle6() { fail("""
-    In position [###]/Dummy0.fear:3:53
+    In position [###]/Dummy0.fear:3:55
     [E32 noCandidateMeths]
     When attempting to type check the method call: b .wheel/0[]([]), no candidates for .wheel/0 returned the expected type recMdf T. The candidates were:
     (read test.Bicycle[mdf T]): read T
@@ -486,10 +486,10 @@ were valid:
     """, """
     package test
     A[T]:{
-      read .wheel1(b: read Bicycle[mdf T]): recMdf T -> b.wheel,
+      recMdf .wheel1(b: read Bicycle[mdf T]): recMdf T -> b.wheel,
       }
     Bicycle[T]:{
-      read .wheel: recMdf T -> Voodo.loop,
+      recMdf .wheel: recMdf T -> Voodo.loop,
       }
     Voodo:{
       read .loop[T]: mdf T -> this.loop,
@@ -502,7 +502,7 @@ were valid:
   @Test void box() { ok("""
     package test
     Box:{ #[R](r: mdf R): mut Box[mdf R] -> { r } }
-    Box[R]:base.NoMutHyg[mdf R]{ read #: recMdf R }
+    Box[R]:base.NoMutHyg[mdf R]{ recMdf #: recMdf R }
     """, """
     package base
     NoMutHyg[X]:{}
@@ -510,14 +510,14 @@ were valid:
   @Test void boxInnerGens() { ok("""
     package test
     Box:{ #[R](r: mdf R): mut Box[mdf R] -> { r } }
-    Box[R]:base.NoMutHyg[mdf R]{ read #: recMdf R }
-    BoxF[R]:base.NoMutHyg[mdf R]{ read #: mut F[recMdf R] }
+    Box[R]:base.NoMutHyg[mdf R]{ recMdf #: recMdf R }
+    BoxF[R]:base.NoMutHyg[mdf R]{ recMdf #: mut F[recMdf R] }
     F[A,B]:{ read #(a: mdf A): mdf B }
     F[A]:{read #:mdf A}
     Usage[A,B]:{ #(b: mut Box[mut F[read A, read B]]): mut F[read A, read B] -> b# }
     Usage2[A,B]:{ read #(b: mut Box[mut F[read A, read B]]): mut F[read A, read B] -> b# }
     // This is okay because adapterOk works in ways that are dark and mysterious
-    Usage3[A,B]:{ read #(b: recMdf Box[recMdf F[read A, read B]]): recMdf F[recMdf A, read B] -> b# }
+    Usage3[A,B]:{ recMdf #(b: recMdf Box[recMdf F[read A, read B]]): recMdf F[recMdf A, read B] -> b# }
     Usage4[A,B]:{ read #(b: mut Box[mut F[mdf A]]): mut F[mdf A] -> b# }
     Usage5[A,B]:{ read #(b: mut Box[mut F[mdf A]]): mut F[mdf A] -> b# }
     Usage6[A,B]:{ read #(b: mut BoxF[mdf A]): mut F[mdf A] -> b# }
@@ -525,19 +525,48 @@ were valid:
     package base
     NoMutHyg[X]:{}
     """); }
-  @Test void invalidIsoPromotionWithRecMdf() { ok("""
+  @Test void invalidIsoPromotionWithRecMdf1() { ok("""
     package test
     A:{
-      read .m():recMdf A->this,
+      recMdf .m():recMdf A->this,
       //mut .break1:iso A->this,//bad and fails obviusly
       //mut .break2:iso A->this.m(),//bad
-      read .noBreak:recMdf A->this.m(),//should pass
+      recMdf .noBreak:recMdf A->this.m(),//should pass
+      }
+    """); }
+  @Test void invalidIsoPromotionWithRecMdf2() { fail("""
+    In position [###]/Dummy0.fear:4:2
+    [E23 methTypeError]
+    Expected the method .break1/0 to return mut test.A[], got lent test.A[].
+    """, """
+    package test
+    A:{
+      recMdf .m():recMdf A->this,
+      mut .break1:iso A->this,//bad and fails obviusly
+      //mut .break2:iso A->this.m(),//bad
+      recMdf .noBreak:recMdf A->this.m(),//should pass
+      }
+    """); }
+  @Test void invalidIsoPromotionWithRecMdf3() { fail("""
+    In position [###]/Dummy0.fear:5:25
+    [E33 callTypeError]
+    Type error: None of the following candidates for this method call:
+    this .m/0[]([])
+    were valid:
+    (lent test.A[]) <: (iso test.A[]): iso test.A[]
+    """, """
+    package test
+    A:{
+      recMdf .m():recMdf A->this,
+      //mut .break1:iso A->this,//bad and fails obviusly
+      mut .break2:iso A->this.m(),//bad
+      recMdf .noBreak:recMdf A->this.m(),//should pass
       }
     """); }
   @Test void captureRecMdfAsMut() { ok("""
     package test
     A:{
-      read .b(a: recMdf A): recMdf B -> {'b .foo -> b },
+      recMdf .b(a: recMdf A): recMdf B -> {'b .foo -> b },
       mut .break: read B -> LetMut#[mut B, read B]{ .var -> this.b(this), .in(b) -> b.foo },
       }
     B:{
@@ -554,7 +583,7 @@ were valid:
   @Test void inferCaptureRecMdfAsMut1() { ok("""
     package test
     A:{
-      read .b(a: recMdf A): recMdf B -> {'b .foo -> b },
+      recMdf .b(a: recMdf A): recMdf B -> {'b .foo -> b },
       mut .break: read B -> LetMut#[mut B, read B]{ .var -> this.b(this), .in(b) -> b.foo },
       }
     B:{
@@ -567,7 +596,7 @@ were valid:
   @Test void inferCaptureRecMdfAsMut2() { ok("""
     package test
     A:{
-      read .b(a: mut A): recMdf B -> {'b .foo -> b },
+      recMdf .b(a: mut A): recMdf B -> {'b .foo -> b },
       mut .break: read B -> LetMut#[mut B, read B]{ .var -> this.b(this), .in(b) -> b.foo },
       }
     B:{
@@ -585,7 +614,7 @@ were valid:
     """, """
     package test
     A:{
-      read .foo(a:recMdf A, b:read A):recMdf A -> b
+      recMdf .foo(a:recMdf A, b:read A):recMdf A -> b
       }
     B:{
       .foo(mutR: mut A, readR: read A): mut A -> mutR.foo(mutR, readR)
@@ -595,17 +624,17 @@ were valid:
   @Test void recMdfCallsRecMdf() { ok("""
     package test
     A:{
-      read .inner: recMdf A -> {},
-      read .outer: recMdf A -> recMdf A.inner,
+      recMdf .inner: recMdf A -> {},
+      recMdf .outer: recMdf A -> recMdf A.inner,
       }
     """); }
   @Test void recMdfCallsRecMdfa() { ok("""
     package test
     A:{
-      read .asRecMdf: recMdf A -> recMdf A{'inner
-        read .inner: recMdf A -> inner
+      recMdf .asRecMdf: recMdf A -> recMdf A{'inner
+        recMdf .inner: recMdf A -> inner
         },
-      read .inner: recMdf A,
+      recMdf .inner: recMdf A,
       }
     B:{ #(a: mut A): mut A -> a.inner }
     """); }
@@ -670,13 +699,13 @@ were valid:
   @Test void noCaptureImmAsRecMdf() { ok("""
     package test
     B:{}
-    L[X]:{ read .absMeth: recMdf X }
+    L[X]:{ recMdf .absMeth: recMdf X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
     """); }
   @Test void noCaptureImmAsRecMdfExample() { ok("""
     package test
     B:{}
-    L[X]:{ read .absMeth: recMdf X }
+    L[X]:{ recMdf .absMeth: recMdf X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
     C:{ #: imm B -> (A.m(B)).absMeth }
     """); }
@@ -696,8 +725,8 @@ were valid:
   @Test void noCaptureImmAsRecMdfTopLvl1() { ok("""
     package test
     B:{}
-    L[X]:{ read .absMeth: recMdf X }
-    L'[X]:L[imm X]{ read .absMeth: imm X }
+    L[X]:{ recMdf .absMeth: recMdf X }
+    L'[X]:L[imm X]{ recMdf .absMeth: imm X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
     """); }
   @Test void noCaptureImmAsRecMdfTopLvl2() { fail("""
@@ -710,15 +739,15 @@ were valid:
     """, """
     package test
     B:{}
-    L[X]:{ read .absMeth: recMdf X }
-    L'[X]:L[mdf X]{ read .absMeth: imm X }
+    L[X]:{ recMdf .absMeth: recMdf X }
+    L'[X]:L[mdf X]{ recMdf .absMeth: imm X }
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
     """); }
 
   @Test void recMdfInheritance() { ok("""
     package test
     Foo:{}
-    A[X]:{ read .m: recMdf X -> this.m }
+    A[X]:{ recMdf .m: recMdf X -> this.m }
     B:A[imm Foo]
     C:B
     CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
@@ -731,12 +760,13 @@ were valid:
     In position [###]/Dummy0.fear:7:48
     [E32 noCandidateMeths]
     When attempting to type check the method call: par .m/0[]([]), no candidates for .m/0 returned the expected type mut test.Foo[]. The candidates were:
-    (read test.B[]): imm test.Foo[]
-    (imm test.B[]): imm test.Foo[]
+    (mut test.B[]): imm test.Foo[]
+    (iso test.B[]): imm test.Foo[]
+    (lent test.B[]): imm test.Foo[]
     """, """
     package test
     Foo:{}
-    A[X]:{ read .m: recMdf X -> this.m }
+    A[X]:{ recMdf .m: recMdf X -> this.m }
     B:A[imm Foo]{}
     CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
     CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
@@ -796,10 +826,10 @@ were valid:
     alias base.NoMutHyg as NoMH,
     Person:{}
     
-    Foo[X]:NoMH[mdf X]{ read .stuff: recMdf X }
+    Foo[X]:NoMH[mdf X]{ recMdf .stuff: recMdf X }
     FooP0[Y]:Foo[mdf Y]{}
-    FooP1:{ #(p: read Person): mut Foo[read Person] -> { p } }
-    FooP2:{ #(p: read Person): mut FooP0[read Person] -> { p } }
+    FooP1:{ #(p: read Person): lent Foo[read Person] -> { p } }
+    FooP2:{ #(p: read Person): lent FooP0[read Person] -> { p } }
     
     Test:{
       .t1(t: read Person): lent Foo[read Person] -> FooP1#t,
@@ -818,21 +848,18 @@ were valid:
     NoMutHyg[X]:{}
     """); }
   @Test void noMutHygRenamedGX2() { fail("""
-    In position [###]/Dummy0.fear:11:52
-    [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
-    [-imm-][test.FooP1[]]{'fear2$ } #/1[]([t])
-    were valid:
-    (imm test.FooP1[], read test.Person[]) <: (imm test.FooP1[], imm test.Person[]): iso test.Foo[read test.Person[]]
+    In position [###]/Dummy0.fear:11:2
+    [E40 mutCapturesHyg]
+    The type mut test.Foo[read test.Person[]] is not valid because a mut lambda may not capture hygienic references.
     """, """
     package test
     alias base.NoMutHyg as NoMH,
     Person:{}
     
-    Foo[X]:NoMH[mdf X]{ read .stuff: recMdf X }
+    Foo[X]:NoMH[mdf X]{ recMdf .stuff: recMdf X }
     FooP0[Y]:Foo[mdf Y]{}
-    FooP1:{ #(p: read Person): mut Foo[read Person] -> { p } }
-    FooP2:{ #(p: read Person): mut FooP0[read Person] -> { p } }
+    FooP1:{ #(p: read Person): lent Foo[read Person] -> { p } }
+    FooP2:{ #(p: read Person): lent FooP0[read Person] -> { p } }
     
     Test:{
       .t1(t: read Person): mut Foo[read Person] -> FooP1#t,
@@ -1009,7 +1036,7 @@ were valid:
     Try writing the signature for #/1 explicitly if it needs to return a recMdf type.
     """, """
     package test
-    F[A]:{ read #(a:recMdf A):mdf A->a }
+    F[A]:{ recMdf #(a:recMdf A):mdf A->a }
     M:{ mut .mutMe: mut M -> this.mutMe } // if this method can be called from M it is broken
     Break:{
       .myF: imm F[mut M] -> {},
@@ -1021,11 +1048,10 @@ were valid:
     In position [###]/Dummy0.fear:6:34
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .myF/0[]([]) #/1[]([m]), no candidates for #/1 returned the expected type mut test.M[]. The candidates were:
-    (read test.F[mut test.M[]], imm test.M[]): imm test.M[]
     (imm test.F[mut test.M[]], imm test.M[]): imm test.M[]
     """, """
     package test
-    F[A]:{ read #(a:recMdf A):recMdf A->a }
+    F[A]:{ recMdf #(a:recMdf A):recMdf A->a }
     M:{ mut .mutMe: mut M -> this.mutMe } // if this method can be called from M it is broken
     Break:{
       .myF: imm F[mut M] -> {},
@@ -1085,11 +1111,11 @@ were valid:
   @Test void nestedRecMdfExplicitMdf() { ok("""
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
+      recMdf #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
       }
     C:{
       #(b: mut B[mut C]): mut B[mut C] -> b#({}),
@@ -1097,7 +1123,25 @@ were valid:
       }
     """); }
 
-  @Test void captureReadAsRecMdf() { fail("""
+  @Test void captureReadAsRecMdfLent() { fail("""
+    In position [###]/Dummy0.fear:7:45
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: [-imm-][test.A[]]{'fear0$ } .m/1[read test.B[]]([[-read-][test.B[]]{'fear1$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type mut test.B[]. The candidates were:
+    (lent test.L[read test.B[]]): read test.B[]
+    (iso test.L[read test.B[]]): imm test.B[]
+    """, """
+    package test
+    alias base.NoMutHyg as NoMutHyg,
+    B:{}
+    L[X]:NoMutHyg[mdf X]{ recMdf .absMeth: recMdf X }
+    A:{ read .m[T](par: read T): lent L[read T] -> lent L[read T]{.absMeth->par} }
+    
+    Break:{ #(rb: read B): mut B -> (A.m(read B)).absMeth }
+    """, """
+    package base
+    NoMutHyg[X]:{}
+    """); }
+  @Test void captureReadAsRecMdfRead() { fail("""
     In position [###]/Dummy0.fear:7:45
     [E32 noCandidateMeths]
     When attempting to type check the method call: [-imm-][test.A[]]{'fear0$ } .m/1[read test.B[]]([[-read-][test.B[]]{'fear1$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type mut test.B[]. The candidates were:
@@ -1107,8 +1151,8 @@ were valid:
     package test
     alias base.NoMutHyg as NoMutHyg,
     B:{}
-    L[X]:NoMutHyg[mdf X]{ read .absMeth: recMdf X }
-    A:{ read .m[T](par: read T): mut L[read T] -> mut L[read T]{.absMeth->par} }
+    L[X]:NoMutHyg[mdf X]{ recMdf .absMeth: recMdf X }
+    A:{ read .m[T](par: read T): read L[read T] -> read L[read T]{.absMeth->par} }
     
     Break:{ #(rb: read B): mut B -> (A.m(read B)).absMeth }
     """, """
@@ -1231,47 +1275,47 @@ were valid:
       .not: Bool,
       .if[R](f: mut ThenElse[mdf R]): mdf R,
       ?[R](f: mut ThenElse[mdf R]): mdf R -> this.if(f),
-      .ifHyg[R](f: read ThenElseHyg[mdf R]): mdf R,
+      .look[R](f: read BoolView[mdf R]): mdf R,
       }
     True:Bool{
       .and(b) -> b,
       .or(b) -> this,
       .not -> False,
       .if(f) -> f.then(),
-      .ifHyg(f) -> f.then(),
+      .look(f) -> f.then(),
       }
     False:Bool{
       .and(b) -> this,
       .or(b) -> b,
       .not -> True,
       .if(f) -> f.else(),
-      .ifHyg(f) -> f.else(),
+      .look(f) -> f.else(),
       }
     ThenElse[R]:NoMutHyg[mdf R]{ mut .then: mdf R, mut .else: mdf R, }
-    ThenElseHyg[R]:NoMutHyg[mdf R]{ read .then: mdf R, read .else: mdf R, }
+    BoolView[R]:NoMutHyg[R]{ recMdf .then: mdf R, recMdf .else: mdf R, }
     """;
   @Test void recMdfGetForLists1() { ok("""
     package test
     LList[E]:{
-      read .get(i: Nat): recMdf E -> Abort!,
-      read .push(e: mdf E): recMdf LList[mdf E] -> { .get(i) -> e } // passes
+      recMdf .get(i: Nat): recMdf E -> Abort!,
+      recMdf .push(e: mdf E): recMdf LList[mdf E] -> { .get(i) -> e } // passes
       }
     """, recMdfGetForListsHelpers, noMutHyg); }
   @Test void recMdfGetForLists2() { ok("""
     package test
-    ThisBox:{ read #: recMdf Foo }
+    ThisBox:{ recMdf #: recMdf Foo }
     Foo:{
-      read .self: recMdf Foo -> this, // passes
-      read .test: recMdf Foo -> recMdf ThisBox{ this }# // fails
+      recMdf .self: recMdf Foo -> this, // passes
+      recMdf .test: recMdf Foo -> recMdf ThisBox{ this }# // fails
       }
     """); }
   @Test void recMdfGetForLists3() { ok("""
     package test
     LList[E]:{
-      read .get(i: Nat): recMdf E -> Abort!,
-      read .push(e: mdf E): recMdf LList[mdf E] -> { .get(i) -> i.isZero.ifHyg(recMdf ListGet#(e, this)) },
+      recMdf .get(i: Nat): recMdf E -> Abort!,
+      recMdf .push(e: mdf E): recMdf LList[mdf E] -> { .get(i) -> i.isZero.look(recMdf ListGet#(e, this)) },
       }
-    ListGet:{ read #[E](e: recMdf E, t: recMdf LList[mdf E]): recMdf ThenElseHyg[recMdf E] -> { .then -> e, .else -> t.get(Z) } }
+    ListGet:{ recMdf #[E](e: recMdf E, t: recMdf LList[mdf E]): recMdf BoolView[recMdf E] -> { .then -> e, .else -> t.get(Z) } }
     """, recMdfGetForListsHelpers, noMutHyg); }
 
   @Test void dontFearTheLambdaEx1() { ok("""
@@ -1553,7 +1597,7 @@ were valid:
       .mutate(p: lent Person): iso Ref[Name] -> p.name,
       }
       
-    Ref[X]:{ read .get: recMdf X, lent .set(x: mdf X): Void }
+    Ref[X]:{ recMdf .get: recMdf X, lent .set(x: mdf X): Void }
     Void:{} Name:{}
     """); }
 }
