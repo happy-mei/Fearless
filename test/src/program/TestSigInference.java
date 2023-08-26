@@ -294,14 +294,14 @@ public class TestSigInference {
     """); }
   @Test void multiGensOneConcreteMdfs() { ok("""
     {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][]{'this
-      .m/2([x,y]):Sig[mdf=read,gens=[X,Y],ts=[muta.Foo[immX],recMdfY],ret=recMdfY]->[-]}],
+      .m/2([x,y]):Sig[mdf=recMdf,gens=[X,Y],ts=[muta.Foo[immX],recMdfY],ret=recMdfY]->[-]}],
     a.Foo/1=Dec[name=a.Foo/1,gxs=[X],lambda=[-infer-][]{'this}],
     a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[]]{'this
-      .m/2([a1,a2]):Sig[mdf=read,gens=[X0/0$,X0/1$],ts=[muta.Foo[immX0/0$],recMdfX0/1$],ret=recMdfX0/1$]->a2:infer}]}
+      .m/2([a1,a2]):Sig[mdf=recMdf,gens=[X0/0$,X0/1$],ts=[muta.Foo[immX0/0$],recMdfX0/1$],ret=recMdfX0/1$]->a2:infer}]}
     """, """
     package a
     Foo[X]:{}
-    A:{ read .m[X,Y](x:mut Foo[X],y:recMdf Y): recMdf Y }
+    A:{ recMdf .m[X,Y](x:mut Foo[X],y:recMdf Y): recMdf Y }
     B:A{ .m(a1,a2) -> a2 }
     """); }
   @Test void sameGens() {
@@ -344,43 +344,39 @@ public class TestSigInference {
       .m2/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mutX]->[-],
       .m3/0([]):Sig[mdf=imm,gens=[],ts=[],ret=isoX]->[-],
       .m4/0([]):Sig[mdf=imm,gens=[],ts=[],ret=lentX]->[-],
-      .m5/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
-      .m6/0([]):Sig[mdf=lent,gens=[],ts=[],ret=recMdfX]->[-],
+      .m5/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-],
       .m7/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->[-]}],
     a.C/0=Dec[name=a.C/0,gxs=[],lambda=[-infer-][a.A[muta.B[]]]{'this
       .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=muta.B[]]->this:infer.m1/0[-]([]):infer,
       .m2/0([]):Sig[mdf=imm,gens=[],ts=[],ret=muta.B[]]->this:infer.m2/0[-]([]):infer,
       .m3/0([]):Sig[mdf=imm,gens=[],ts=[],ret=isoa.B[]]->this:infer.m3/0[-]([]):infer,
       .m4/0([]):Sig[mdf=imm,gens=[],ts=[],ret=lenta.B[]]->this:infer.m4/0[-]([]):infer,
-      .m5/0([]):Sig[mdf=read,gens=[],ts=[],ret=mut a.B[]]->this:infer.m5/0[-]([]):infer,
-      .m6/0([]):Sig[mdf=lent,gens=[],ts=[],ret=mut a.B[]]->this:infer.m6/0[-]([]):infer,
+      .m5/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=mut a.B[]]->this:infer.m5/0[-]([]):infer,
       .m7/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->this:infer.m7/0[-]([]):infer}],
     a.D/1=Dec[name=a.D/1,gxs=[X],lambda=[-infer-][a.A[mdfX]]{'this
       .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mdfX]->this:infer.m1/0[-]([]):infer,
       .m2/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mutX]->this:infer.m2/0[-]([]):infer,
       .m3/0([]):Sig[mdf=imm,gens=[],ts=[],ret=isoX]->this:infer.m3/0[-]([]):infer,
       .m4/0([]):Sig[mdf=imm,gens=[],ts=[],ret=lentX]->this:infer.m4/0[-]([]):infer,
-      .m5/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->this:infer.m5/0[-]([]):infer,
-      .m6/0([]):Sig[mdf=lent,gens=[],ts=[],ret=recMdfX]->this:infer.m6/0[-]([]):infer,
+      .m5/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->this:infer.m5/0[-]([]):infer,
       .m7/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->this:infer.m7/0[-]([]):infer}],
     a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[imma.B[]]]{'this
       .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->this:infer.m1/0[-]([]):infer,
       .m2/0([]):Sig[mdf=imm,gens=[],ts=[],ret=muta.B[]]->this:infer.m2/0[-]([]):infer,
       .m3/0([]):Sig[mdf=imm,gens=[],ts=[],ret=isoa.B[]]->this:infer.m3/0[-]([]):infer,
       .m4/0([]):Sig[mdf=imm,gens=[],ts=[],ret=lenta.B[]]->this:infer.m4/0[-]([]):infer,
-      .m5/0([]):Sig[mdf=read,gens=[],ts=[],ret=imm a.B[]]->this:infer.m5/0[-]([]):infer,
-      .m6/0([]):Sig[mdf=lent,gens=[],ts=[],ret=imm a.B[]]->this:infer.m6/0[-]([]):infer,
+      .m5/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=imm a.B[]]->this:infer.m5/0[-]([]):infer,
       .m7/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->this:infer.m7/0[-]([]):infer}]}
     """, """
     package a
     A[X]:{ .m1:mdf X,  .m2: mut X, .m3: iso X, .m4: lent X,
-            read .m5: recMdf X,  lent .m6: recMdf X, .m7: imm X
+            recMdf .m5: recMdf X, .m7: imm X
           }
     B:A[B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5,
-            .m6->this.m6,.m7->this.m7,}
-    C:A[mut B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5, .m6->this.m6, .m7->this.m7 }
+            .m7->this.m7,}
+    C:A[mut B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5, .m7->this.m7 }
     D[X]:A[mdf X]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5,
-            .m6->this.m6,.m7->this.m7,
+            .m7->this.m7,
           }
     """); }
 
@@ -390,7 +386,7 @@ public class TestSigInference {
       .in/1([v]):Sig[mdf=imm,gens=[],ts=[immV],ret=immR]->[-]}],
       
     base.Ref/1=Dec[name=base.Ref/1,gxs=[X],lambda=[-infer-][base.NoMutHyg[immX],base.Sealed[]]{'this
-      */0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
+      */0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-],
       .swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-],
       :=/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immbase.Void[]]->
         [-base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
@@ -421,7 +417,7 @@ public class TestSigInference {
     Let[V,R]:{ .var:V, .in(v:V):R }
     Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
     Ref[X]:NoMutHyg[X],Sealed{
-      read * : recMdf X,
+      recMdf * : recMdf X,
       mut .swap(x: mdf X): mdf X,
       mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
       mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
