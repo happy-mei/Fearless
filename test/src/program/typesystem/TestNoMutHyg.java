@@ -1,9 +1,7 @@
 package program.typesystem;
 
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Test;
 
-import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
 
 public class TestNoMutHyg {
@@ -11,7 +9,7 @@ public class TestNoMutHyg {
     package test
     alias base.NoMutHyg as NoMutHyg,
     Box[X]:NoMutHyg[mdf X]{
-      read .get: recMdf X
+      recMdf .get: recMdf X
       }
     Box':{
       .mut2lent[X](x: mdf X): mut Box[mdf X] -> { x }
@@ -27,7 +25,7 @@ public class TestNoMutHyg {
     package test
     alias base.NoMutHyg as NoMutHyg,
     Box[X]:NoMutHyg[mdf X]{
-      read .get: recMdf X
+      recMdf .get: recMdf X
       }
     Box':{
       .mut2lent[X](x: mdf X): mut Box[mdf X] -> mut Box[mdf X]{ x }
@@ -44,7 +42,7 @@ public class TestNoMutHyg {
     package test
     alias base.NoMutHyg as NoMutHyg,
     Box[X]:NoMutHyg[mdf X]{
-      read .get: recMdf X
+      recMdf .get: recMdf X
       }
     Box':{
       .mut2mut[X](x: mdf X): mut Box[mdf X] -> { x }
