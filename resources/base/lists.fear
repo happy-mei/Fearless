@@ -102,7 +102,7 @@ List:{
 List[E]:Sealed,NoMutHyg[mdf E]{
   read .len: UInt,
   read .isEmpty: Bool,
-  read .look(i: UInt): mut Opt[read E],
+  read .look(i: UInt): lent Opt[read E],
   lent .get(i: UInt): mut Opt[mdf E],
   mut .add(e: mdf E): Void,
   read .iter: lent Iter[read E],
