@@ -36,31 +36,37 @@ public class TestMarkdownDocgen {
   }
 
   @Test void emptyProgram() { ok("""
-    [TraitDoc[fileName=base.html, markdown=<h1><a href="base.html"><code>base</code></a></h1>
-    <h2><a href="base.html#base.System"><code>base.System/1</code></a></h2>
-    **Implements**: [`base.Sealed[]`](base.html#base.Sealed)
-    **Type parameters**:
-    - `R`
-        
-    <h2><a href="base.html#base.Sealed"><code>base.Sealed/0</code></a></h2>
-        
-    <h2><a href="base.html#base.NoMutHyg"><code>base.NoMutHyg/1</code></a></h2>
-        
-    **Type parameters**:
-    - `X`
-        
-    <h2><a href="base.html#base.Void"><code>base.Void/0</code></a></h2>
-        
-    <h2><a href="base.html#base.Main"><code>base.Main/0</code></a></h2>
-        
-        
-    <h3><em><a href="base.html#Fear14%24%2F0_%23%2F1"><code>#/1</code></em></a></h3>
-    *Abstract*
-        
-    **Returns**: [`base.Void[]`](base.html#base.Void)
-        
-    **Parameters**:
-    - [`s: base.System[imm base.Void[]]`](base.html#base.System)]]
+[TraitDoc[fileName=base.md, markdown=<h1><code>base</code></h1>
+
+<h2 id="base.System"><a href="#base.System"><code>base.System/1</code></a></h2>
+
+**Implements**: [`base.Sealed[]`](../base/#base.Sealed)
+**Type parameters**:
+- `R`
+
+<h2 id="base.Sealed"><a href="#base.Sealed"><code>base.Sealed/0</code></a></h2>
+
+<h2 id="base.NoMutHyg"><a href="#base.NoMutHyg"><code>base.NoMutHyg/1</code></a></h2>
+
+
+**Type parameters**:
+- `X`
+
+<h2 id="base.Void"><a href="#base.Void"><code>base.Void/0</code></a></h2>
+
+<h2 id="base.Main"><a href="#base.Main"><code>base.Main/0</code></a></h2>
+
+
+
+<h3 id="../base/#base.Main_%23%2F1"><a href="#base.Main_%23%2F1"><em><code>#/1</code></em></a></h3>
+
+*Abstract*
+
+
+**Returns**: [`base.Void[]`](../base/#base.Void)
+
+**Parameters**:
+- [`s: base.System[imm base.Void[]]`](../base/#base.System)]]
     """, "fake.Fake", false, """
     package test
     """, Base.minimalBase);
