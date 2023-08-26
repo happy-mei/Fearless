@@ -16,7 +16,6 @@ import static java.util.List.of;
 import static program.typesystem.RunTypeSystem.expectFail;
 import static program.typesystem.RunTypeSystem.ok;
 
-@Disabled // TODO: just disabling to reduce noise while I get everything else working
 public class TestCaptureRules {
   void c1(Mdf lambda, Mdf captured, Mdf method, List<Mdf> capturedAs) {
     capturedAs.forEach(mdf->cInnerOk(codeGen1.formatted(method, mdf, captured, lambda, lambda)));

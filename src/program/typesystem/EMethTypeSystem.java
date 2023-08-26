@@ -1,6 +1,7 @@
 package program.typesystem;
 
 import ast.E;
+import ast.Program;
 import ast.T;
 import failure.CompileError;
 import failure.Fail;
@@ -73,7 +74,12 @@ public interface EMethTypeSystem extends ETypeSystem {
     return p().isSubType(tst.t().mdf(), expectedT().get().mdf());
   }
   @Override default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors) {
-    return Streams.zip(es,ts).allMatch((e, t)->ok(e, t, errors));
+    assert es.size() == ts.size();
+    return IntStream.range(0, es.size()).parallel()
+      .allMatch(i -> {
+        var typeSystem = (EMethTypeSystem) this.withProgram(p().cleanCopy());
+        return typeSystem.ok(es.get(i), ts.get(i), errors);
+      });
   }
   default boolean ok(E e, T t, ArrayList<CompileError> errors) {
     var v = this.withT(Optional.of(t));
