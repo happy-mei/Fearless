@@ -4,20 +4,20 @@ Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
 Ref[X]:NoMutHyg[mdf X],Sealed{
   recMdf *: recMdf X,
   recMdf .get: recMdf X -> this*,
-  lent .swap(x: mdf X): mdf X,
-  lent :=(x: mdf X): Void -> Yeet#(this.swap(x)),
-  lent .set(x: mdf X): Void -> this := x,
-  lent <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
-  lent .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
+  mut .swap(x: mdf X): mdf X,
+  mut :=(x: mdf X): Void -> Yeet#(this.swap(x)),
+  mut .set(x: mdf X): Void -> this := x,
+  mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+  mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
   }
 UpdateRef[X]:NoMutHyg[mdf X]{ mut #(x: mdf X): mdf X }
 
 Count[N]:Ref[N]{
-  lent ++: N,
-  lent --: N,
-  lent +=(n: N): N,
-  lent -=(n: N): N,
-  lent *=(n: N): N,
+  mut ++: N,
+  mut --: N,
+  mut +=(n: N): N,
+  mut -=(n: N): N,
+  mut *=(n: N): N,
   }
 Count:{
   #(n: Int): mut Count[Int] -> this.int(n),

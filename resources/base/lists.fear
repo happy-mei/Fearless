@@ -48,12 +48,12 @@ LListMut[E]:Sealed,NoMutHyg[mdf E]{
   read .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
   read .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
   recMdf .get(i: UInt): mut Opt[recMdf E] -> {},
-  read .iter: mut Iter[read E] -> Let.hyg{
-    .var -> Ref#this,
+  recMdf .iter: lent Iter[read E] -> Let.hyg{
+    .var -> Ref#[read LListMut[mdf E]]this,
     .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
     },
 //  read .iter: lent Iter[recMdf E] -> recMdf _LListMutToIter[mdf E]#(Ref#[recMdf LListMut[mdf E]]this),
-  lent .iterMut: mut Iter[mdf E] -> Let.hyg{
+  lent .iterMut: lent Iter[mdf E] -> Let.hyg{
     .var -> Ref#[lent LListMut[mdf E]]this,
     .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
     },

@@ -40,7 +40,7 @@ public interface Program {
 
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1 == m2){ return true; }
-    if (m2 == Mdf.read) { return true; }
+    if (m2.is(Mdf.read)) { return true; }
     return switch(m1){
       case mut -> m2.isLikeMut();
       case lent, imm -> m2.isRead();

@@ -60,9 +60,9 @@ public enum Mdf{
     // TODO: maybe???? all new
     if (this == recMdf) {
       if (other == mdf) { return recMdf; }
+      if (other == mut) { return read; }
       if (other == imm) { return imm; }
-      return read;
-//      if (other == mut) { return mut; }
+      if (other == read) { return read; }
     }
     System.err.println("uh oh adapt is undefined for "+this+" and "+other);
     throw Bug.unreachable();

@@ -1,7 +1,8 @@
 package examples
 MyApp:Main{ s -> s
   .use[IO] io = IO'
-  .return{ io.println(ImmMain#args) }
+  .use[Env] env = Env'
+  .return{ io.println(ImmMain#(env.launchArgs)) }
   }
 ImmMain:{
   #(args: LList[Str]): Str -> args.get(1u) || { ((this.errMsg((args.head).isSome)) *) },
