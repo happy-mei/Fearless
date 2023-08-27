@@ -32,9 +32,20 @@ import static java.util.Objects.requireNonNull;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
 public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
-  record Verbosity(boolean showInternalStackTraces, boolean printCodegen){
-    Verbosity showInternalStackTraces(boolean showInternalStackTraces) { return new Verbosity(showInternalStackTraces, printCodegen); }
-    Verbosity printCodegen(boolean printCodegen) { return new Verbosity(showInternalStackTraces, printCodegen); }
+  record Verbosity(boolean showInternalStackTraces, boolean printCodegen, ProgressVerbosity progress){
+    Verbosity showInternalStackTraces(boolean showInternalStackTraces) { return new Verbosity(showInternalStackTraces, printCodegen, progress); }
+    Verbosity printCodegen(boolean printCodegen) { return new Verbosity(showInternalStackTraces, printCodegen, progress); }
+  }
+  enum ProgressVerbosity {
+    None, Tasks, Full;
+    void printTask(String msg) {
+      if (this != Tasks && this != Full) { return; }
+      System.err.println(msg);
+    }
+    void printStep(String msg) {
+      if (this != Full) { return; }
+      System.err.println(msg);
+    }
   }
   enum BaseVariant { Std, Imm }
   static Box<Map<String, List<Package>>> immBaseLib = new Box<>(null);
@@ -81,8 +92,10 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
     var isEntryValid = p.isSubType(new ast.T(Mdf.mdf, p.of(entry).toIT()), new ast.T(Mdf.mdf, main));
     if (!isEntryValid) { throw Fail.invalidEntryPoint(entry, main); }
 
+    v.progress.printTask("Running code generation \uD83C\uDFED");
     var java = toJava(entry, p);
     var classFile = java.compile();
+    v.progress.printTask("Code generated \uD83E\uDD73");
 
     var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
     String[] command = Stream.concat(
@@ -123,12 +136,24 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
           .orElse(pkg.getValue())
       ));
 
+    v.progress.printTask("Parsing \uD83D\uDC40");
     var p = Parser.parseAll(ps);
+    v.progress.printTask("Parsing complete \uD83E\uDD73");
+    v.progress.printTask("Checking that the program is well formed \uD83D\uDD0E");
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
+    v.progress.printTask("Well formedness checks complete \uD83E\uDD73");
+    v.progress.printTask("Inferring method signatures \uD83D\uDD75️");
     var inferredSigs = p.inferSignaturesToCore();
+    v.progress.printTask("Method signatures inferred \uD83E\uDD73");
+    v.progress.printTask("Inferring method bodies \uD83D\uDD75️");
     var inferred = new InferBodies(inferredSigs).inferAll(p);
+    v.progress.printTask("Method bodies inferred \uD83E\uDD73");
+    v.progress.printTask("Checking that the program is still well formed \uD83D\uDD0E");
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
+    v.progress.printTask("Well formedness checks complete \uD83E\uDD73");
+    v.progress.printTask("Checking types \uD83E\uDD14");
     inferred.typeCheck();
+    v.progress.printTask("Types look all good \uD83E\uDD73");
     return inferred;
   }
   private JavaProgram toJava(Id.DecId entry, Program p) {

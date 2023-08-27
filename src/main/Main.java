@@ -20,7 +20,7 @@ public class Main {
 
   public static void main(String[] args) {
     args = args.length > 0 ? args : new String[]{"--help"};
-    var verbosity = new Box<>(new CompilerFrontEnd.Verbosity(false, false));
+    var verbosity = new Box<>(new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None));
     var cli = new CmdLineAppBuilder(args)
       .withJarName("fearless")
       .withDescription("The compiler for the Fearless programming language. See https://fearlang.org for more information.")
@@ -34,13 +34,19 @@ public class Main {
       .withFlag("imm-base", "Use a pure version of the Fearless standard library")
       .withFlag("show-internal-stack-traces", "Show stack traces within the compiler on errors for debugging purposes")
       .withFlag("print-codegen", "pc", "Print the output of the codegen stage to standard output")
+      .withFlag("show-tasks", "sct", "Print progress messages showing the current task the compiler is performing.")
+      .withFlag("show-full-progress", "sfp", "Print progress messages showing the current task and all sub-tasks the compiler is performing.")
       .withAtLeastOneRequiredOption("help", "new", "check", "run", "regenerate-aliases", "generate-docs")
       .withEntryPoint(res->{
         var bv = res.hasOption("imm-base") ? CompilerFrontEnd.BaseVariant.Imm : CompilerFrontEnd.BaseVariant.Std;
 
+        CompilerFrontEnd.ProgressVerbosity pv = CompilerFrontEnd.ProgressVerbosity.None;
+        if (res.hasOption("show-tasks")) { pv = CompilerFrontEnd.ProgressVerbosity.Tasks; }
+        if (res.hasOption("show-full-progress")) { pv = CompilerFrontEnd.ProgressVerbosity.Full; }
         verbosity.set(new CompilerFrontEnd.Verbosity(
           res.hasOption("show-internal-stack-traces"),
-          res.hasOption("print-codegen")
+          res.hasOption("print-codegen"),
+          pv
         ));
         frontEnd = new CompilerFrontEnd(bv, verbosity.get());
 
