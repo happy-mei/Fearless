@@ -133,7 +133,9 @@ public interface EMethTypeSystem extends ETypeSystem {
         if (ti == null) { return t; }
 //        var ti = map.getOrDefault(gx,t);
         // TODO: what about capturing a function from read to read?
-        return ti.withMdf(mdf0.adapt(ti, Mdf.AdaptType.ResolveRecMdf));
+        var newMdf = mdf0.adapt(ti, Mdf.AdaptType.ResolveRecMdf);
+        TypeRename.checkGenericBounds(gx, ti.mdf());
+        return ti.withMdf(newMdf);
       },
       it->{
         var newTs = it.ts().stream().map(ti->fancyRename(ti, mdf0, map)).toList();

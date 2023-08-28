@@ -1,7 +1,9 @@
 package program;
 
+import failure.CompileError;
 import id.Id;
 import id.Mdf;
+import utils.Bug;
 
 import java.util.List;
 import java.util.function.Function;
@@ -96,10 +98,16 @@ public interface TypeRename<T>{
         var renamed = f.apply(gx);
         if(renamed==null){ return t; }
         if (isInfer(renamed)){ return renamed; }
+        checkGenericBounds(gx, mdf(t));
         return fixMut(propagateMdf(mdf(t),renamed));
       },
       it->fixMut(newT(mdf(t),renameIT(it,f)))
     );
+  }
+  static void checkGenericBounds(Id.GX<?> gx, Mdf newMdf) throws CompileError {
+    if (gx.bounds().isEmpty()) { return; }
+    if (gx.bounds().contains(newMdf)) { return; }
+    throw Bug.todo(); // TODO: error message
   }
   default T propagateMdf(Mdf mdf, T t){
     assert t!=null;
