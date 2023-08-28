@@ -92,7 +92,7 @@ public record Package(
         .flatMap(p->p.ds().stream())
         .map(d->{
           int size=0;
-          if(d.mGen()!=null && d.mGen().t()!=null){ size=d.mGen().t().size(); }
+          if(d.mGen()!=null && d.mGen().genDecl()!=null){ size=d.mGen().genDecl().size(); }
           return new Id.DecId(d.fullCN().getText(),size);
           })
         .toList();

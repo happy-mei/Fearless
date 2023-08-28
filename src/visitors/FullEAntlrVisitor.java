@@ -48,6 +48,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Void visitErrorNode(ErrorNode arg0){ throw Bug.unreachable(); }
   @Override public Void visitTerminal(TerminalNode arg0){ throw Bug.unreachable(); }
   @Override public Object visitRoundE(RoundEContext ctx){ throw Bug.unreachable(); }
+  @Override public Object visitGenDecl(GenDeclContext ctx) { throw Bug.unreachable();}
   @Override public Object visitMGen(MGenContext ctx) { throw Bug.unreachable(); }
 
   @Override public Object visitBblock(BblockContext ctx){ throw Bug.unreachable(); }
@@ -143,10 +144,17 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   public Optional<List<T>> visitMGen(MGenContext ctx, boolean canMdf){
     if(ctx.children==null){ return Optional.empty(); }//subsumes check(ctx);
-    var noTs = ctx.t()==null || ctx.t().isEmpty();
+    var noTs = ctx.genDecl()==null || ctx.genDecl().isEmpty();
     if(ctx.OS() == null){ return Optional.empty(); }
     if(noTs){ return Optional.of(List.of()); }
-    return Optional.of(ctx.t().stream().map(tCtx->visitT(tCtx, canMdf)).toList());
+    return Optional.of(ctx.genDecl().stream().map(declCtx->{
+      var t = visitT(declCtx.t(), canMdf);
+      if (declCtx.mdf() == null || declCtx.mdf().isEmpty()) { return t; }
+      var gx = t.gxOrThrow();
+      // TODO: do we want to allow "mdf" or "iso" in bounds?
+      var bounds = declCtx.mdf().stream().map(this::visitMdf).toList();
+      return new T(t.mdf(), new Id.GX<>(gx.name(), bounds));
+    }).toList());
   }
   public Optional<List<Id.GX<T>>> visitMGenParams(MGenContext ctx){
     var mGens = this.visitMGen(ctx, false);
@@ -312,7 +320,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var inT=new Id.IT<T>(in,inG);
     var out = visitFullCN(ctx.fullCN(1));
     var outG = ctx.mGen(1);
-    if(!outG.t().isEmpty()){ throw Bug.of("No gen on out Alias"); }
+    if(!outG.genDecl().isEmpty()){ throw Bug.of("No gen on out Alias"); }
     return new T.Alias(inT, out, Optional.of(pos(ctx)));
   }
   @Override

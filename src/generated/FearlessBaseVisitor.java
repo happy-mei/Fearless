@@ -53,6 +53,13 @@ public class FearlessBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitGenDecl(FearlessParser.GenDeclContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitMGen(FearlessParser.MGenContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}

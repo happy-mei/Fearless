@@ -457,4 +457,17 @@ class TestFullParser {
     A:{}
     B:mut A{}
     """); }
+
+  @Test void mdfBounds1() { ok("""
+    {test.A1/1=Dec[name=test.A1/1,gxs=[B:[imm]],lambda=[-infer-][]{}],
+    test.A2/1=Dec[name=test.A2/1,gxs=[B:[imm,mut]],lambda=[-infer-][]{}],
+    test.A3/2=Dec[name=test.A3/2,gxs=[B:[imm,mut],C],lambda=[-infer-][]{}],
+    test.A4/3=Dec[name=test.A4/3,gxs=[B:[imm,mut],C,D:[read,lent]],lambda=[-infer-][]{}]}
+    """, """
+    package test
+    A1[B: imm]:{}
+    A2[B: imm,mut]:{}
+    A3[B: imm,mut, C]:{}
+    A4[B: imm,mut, C, D: read,lent]:{}
+    """); }
 }
