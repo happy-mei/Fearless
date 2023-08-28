@@ -51,9 +51,14 @@ public class Id {
 
   public interface RT<TT>{ <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it); }
 
-  public record GX<TT>(String name)implements RT<TT>{
+  public record GX<TT>(String name, List<Mdf> bounds) implements RT<TT>{
     private static final AtomicInteger FRESH_N = new AtomicInteger(0);
     private static HashMap<Integer, List<GX<ast.T>>> freshNames = new HashMap<>();
+
+    public GX(String name) {
+      this(name, List.of());
+    }
+
     public static void reset() {
       // TODO: disable outside unit testing context
       if (FRESH_N.get() > 150_000) {
