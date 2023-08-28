@@ -1,6 +1,7 @@
 package program.typesystem;
 
 import ast.E;
+import ast.Program;
 import ast.T;
 import failure.CompileError;
 import failure.Fail;
@@ -73,7 +74,12 @@ public interface EMethTypeSystem extends ETypeSystem {
     return p().isSubType(tst.t().mdf(), expectedT().get().mdf());
   }
   @Override default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors) {
-    return Streams.zip(es,ts).allMatch((e, t)->ok(e, t, errors));
+    assert es.size() == ts.size();
+    return IntStream.range(0, es.size()).parallel()
+      .allMatch(i -> {
+        var typeSystem = (EMethTypeSystem) this.withProgram(p().cleanCopy());
+        return typeSystem.ok(es.get(i), ts.get(i), errors);
+      });
   }
   default boolean ok(E e, T t, ArrayList<CompileError> errors) {
     var v = this.withT(Optional.of(t));
@@ -86,7 +92,18 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
 
   default Optional<List<TsT>> multiMeth(T rec, MethName m, List<T> ts) {
-    return resolveMeth(rec, m, ts).map(this::allMeth);
+    if (!(rec.rt() instanceof Id.IT<T> recIT)) { return Optional.empty(); }
+    var sig = p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
+      var mdf = rec.mdf();
+      Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
+      var params = Push.of(
+        fancyRename(rec.withMdf(cm.mdf()), mdf, xsTsMap),
+        cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()
+      );
+      var t = fancyRename(cm.ret(), mdf, xsTsMap);
+      return new TsT(params, t, cm.ret().mdf().isRecMdf());
+    });
+    return sig.map(this::allMeth);
   }
 
   default List<TsT> allMeth(TsT tst) {
@@ -101,32 +118,6 @@ public interface EMethTypeSystem extends ETypeSystem {
       oneLentToMut(tst).stream())
       .distinct()
       .toList();
-  }
-
-  default Optional<TsT> resolveMeth(T rec, MethName m, List<T> ts) {
-    if (!(rec.rt() instanceof Id.IT<T> recIT)) { return Optional.empty(); }
-    return p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
-      var mdf = rec.mdf();
-
-      // TODO: temp until we use recMdf as the mdf for methods that use recMdf, just detect if it's used anywhere
-      var containsRecMdf = Streams.of(
-        ts.stream(),
-        cm.sig().ts().stream(),
-        Stream.of(cm.ret()),
-        Stream.of(rec.withMdf(cm.mdf()))
-      ).anyMatch(EMethTypeSystem::containsRecMdf);
-
-      var mdf0 = containsRecMdf ? Mdf.recMdf : cm.mdf();
-      var t0 = rec.withMdf(mdf0);
-
-      Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
-      var params = Push.of(
-        fancyRename(t0, mdf, xsTsMap),
-        cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()
-      );
-      var t = fancyRename(cm.ret(), mdf, xsTsMap);
-      return new TsT(params, t, cm.ret().mdf().isRecMdf());
-    });
   }
 
   /** This is [MDF, Xs=Ts] (recMdf rewriting for meth calls) */

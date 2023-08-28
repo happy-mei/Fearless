@@ -311,7 +311,7 @@ public class TestInferBodies {
       .var/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mdfV]->[-],
       .in/1([v]):Sig[mdf=imm,gens=[],ts=[mdfV],ret=mdfR]->[-]}],
     test.Ref/1=Dec[name=test.Ref/1,gxs=[X],lambda=[-mdf-][test.Ref[mdfX],test.NoMutHyg[immX],test.Sealed[]]{'this
-      */0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
+      */0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-],
       .swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-],
       :=/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->
         [-imm-][test.Let[]]{'fear[###]$}#/1[mdfX,immtest.Void[]]([[-imm-][test.Let[mdfX,immtest.Void[]]]{'fear[###]$
@@ -332,7 +332,7 @@ public class TestInferBodies {
     Let[V,R]:{ .var:mdf V, .in(v:mdf V):mdf R }
     Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
     Ref[X]:NoMutHyg[X],Sealed{
-      read * : recMdf X,
+      recMdf * : recMdf X,
       mut .swap(x: mdf X): mdf X,
       mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
       mut <-(f: mut UpdateRef[mut X]): mdf X -> this.swap(f#(this*)),
@@ -340,12 +340,12 @@ public class TestInferBodies {
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
   @Test void inferCallGens(){ ok("""
-    {test.NoMutHyg/1=Dec[name=test.NoMutHyg/1,gxs=[X],lambda=[-mdf-][test.NoMutHyg[mdfX]]{'this}],test.LetMut/0=Dec[name=test.LetMut/0,gxs=[],lambda=[-mdf-][test.LetMut[]]{'this#/1([l]):Sig[mdf=imm,gens=[V,R],ts=[muttest.LetMut[mdfV,mdfR]],ret=mdfR]->l.in/1[]([l.var/0[]([])])}],test.Ref/1=Dec[name=test.Ref/1,gxs=[X],lambda=[-mdf-][test.Ref[mdfX],test.NoMutHyg[immX],test.Sealed[]]{'this*/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],.swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-],.test1/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=muttest.LetMut[mdfX,immtest.Void[]]]->[-mut-][test.LetMut[mdfX,immtest.Void[]]]{'fear[###]$.var/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfX]->this.swap/1[]([x]),.in/1([fear[###]$]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear[###]$}},.test2/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.LetMut[]]{'fear[###]$}#/1[mdfX,immtest.Void[]]([this.test1/1[]([x])]),:=/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.LetMut[]]{'fear[###]$}#/1[mdfX,immtest.Void[]]([[-mut-][test.LetMut[mdfX,immtest.Void[]]]{'fear[###]$.var/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfX]->this.swap/1[]([x]),.in/1([fear[###]$]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear[###]$}}]),<-/1([f]):Sig[mdf=mut,gens=[],ts=[muttest.UpdateRef[mdfX]],ret=mdfX]->this.swap/1[]([f#/1[]([this*/0[]([])])])}],test.UpdateRef/1=Dec[name=test.UpdateRef/1,gxs=[X],lambda=[-mdf-][test.UpdateRef[mdfX]]{'this#/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-]}],test.Ref/0=Dec[name=test.Ref/0,gxs=[],lambda=[-mdf-][test.Ref[]]{'this#/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=muttest.Ref[mdfX]]->this#/1[mdfX]([x])}],test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}],test.Sealed/0=Dec[name=test.Sealed/0,gxs=[],lambda=[-mdf-][test.Sealed[]]{'this}],test.LetMut/2=Dec[name=test.LetMut/2,gxs=[V,R],lambda=[-mdf-][test.LetMut[mdfV,mdfR]]{'this.var/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfV]->[-],.in/1([v]):Sig[mdf=mut,gens=[],ts=[mdfV],ret=mdfR]->[-]}]}
+    {test.NoMutHyg/1=Dec[name=test.NoMutHyg/1,gxs=[X],lambda=[-mdf-][test.NoMutHyg[mdfX]]{'this}],test.LetMut/0=Dec[name=test.LetMut/0,gxs=[],lambda=[-mdf-][test.LetMut[]]{'this#/1([l]):Sig[mdf=imm,gens=[V,R],ts=[muttest.LetMut[mdfV,mdfR]],ret=mdfR]->l.in/1[]([l.var/0[]([])])}],test.Ref/1=Dec[name=test.Ref/1,gxs=[X],lambda=[-mdf-][test.Ref[mdfX],test.NoMutHyg[immX],test.Sealed[]]{'this*/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-],.swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-],.test1/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=muttest.LetMut[mdfX,immtest.Void[]]]->[-mut-][test.LetMut[mdfX,immtest.Void[]]]{'fear[###]$.var/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfX]->this.swap/1[]([x]),.in/1([fear[###]$]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear[###]$}},.test2/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.LetMut[]]{'fear[###]$}#/1[mdfX,immtest.Void[]]([this.test1/1[]([x])]),:=/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.LetMut[]]{'fear[###]$}#/1[mdfX,immtest.Void[]]([[-mut-][test.LetMut[mdfX,immtest.Void[]]]{'fear[###]$.var/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfX]->this.swap/1[]([x]),.in/1([fear[###]$]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear[###]$}}]),<-/1([f]):Sig[mdf=mut,gens=[],ts=[muttest.UpdateRef[mdfX]],ret=mdfX]->this.swap/1[]([f#/1[]([this*/0[]([])])])}],test.UpdateRef/1=Dec[name=test.UpdateRef/1,gxs=[X],lambda=[-mdf-][test.UpdateRef[mdfX]]{'this#/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-]}],test.Ref/0=Dec[name=test.Ref/0,gxs=[],lambda=[-mdf-][test.Ref[]]{'this#/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=muttest.Ref[mdfX]]->this#/1[mdfX]([x])}],test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}],test.Sealed/0=Dec[name=test.Sealed/0,gxs=[],lambda=[-mdf-][test.Sealed[]]{'this}],test.LetMut/2=Dec[name=test.LetMut/2,gxs=[V,R],lambda=[-mdf-][test.LetMut[mdfV,mdfR]]{'this.var/0([]):Sig[mdf=mut,gens=[],ts=[],ret=mdfV]->[-],.in/1([v]):Sig[mdf=mut,gens=[],ts=[mdfV],ret=mdfR]->[-]}]}
     """, """
     package test
     Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
     Ref[X]:NoMutHyg[X],Sealed{
-      read * : recMdf X,
+      recMdf * : recMdf X,
       mut .swap(x: mdf X): mdf X,
       mut .test1(x: mdf X): mut LetMut[mdf X,Void]->{
         .var ->this.swap(x), .in(_) -> Void },
@@ -635,50 +635,50 @@ public class TestInferBodies {
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
       .foo/1([x]):Sig[mdf=imm,gens=[],ts=[immX],ret=immX]->
         [-imm-][test.B[]]{'fear[###]$
-          .argh/0([]):Sig[mdf=read,gens=[X1/0$],ts=[],ret=recMdfX1/0$]->x
+          .argh/0([]):Sig[mdf=recMdf,gens=[X1/0$],ts=[],ret=recMdfX1/0$]->x
           }.argh/0[immX]([])}],
     test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-mdf-][test.B[]]{'this
-      .argh/0([]):Sig[mdf=read,gens=[X],ts=[],ret=recMdfX]->[-]}]}
+      .argh/0([]):Sig[mdf=recMdf,gens=[X],ts=[],ret=recMdfX]->[-]}]}
     """, """
     package test
     A[X]:{ .foo(x: X): X -> B{ x }.argh }
-    B:{ read .argh[X]: recMdf X }
+    B:{ recMdf .argh[X]: recMdf X }
     """); }
   @Test void recMdfInSubHyg() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
       .foo/1([x]):Sig[mdf=imm,gens=[],ts=[immX],ret=immX]->
         [-imm-][test.B[immX]]{'fear[###]$
-          .argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=immX]->x}.argh/0[]([])}],
+          .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=immX]->x}.argh/0[]([])}],
     test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this
-      .argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}]}
+      .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-]}]}
     """, """
     package test
     A[X]:{ .foo(x: X): X -> B[X]{ x }.argh }
-    B[X]:{ read .argh: recMdf X }
+    B[X]:{ recMdf .argh: recMdf X }
     """); }
   @Test void recMdfInSubHygMut() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
       .foo/1([x]):Sig[mdf=imm,gens=[],ts=[mutX],ret=mutX]->
         [-mut-][test.B[mutX]]{'fear[###]$
-          .argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=mut X]->x}.argh/0[]([])}],
+          .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=mut X]->x}.argh/0[]([])}],
     test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this
-      .argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}]}
+      .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-]}]}
     """, """
     package test
     A[X]:{ .foo(x: mut X): mut X -> mut B[mut X]{ x }.argh }
-    B[X]:{ read .argh: recMdf X }
+    B[X]:{ recMdf .argh: recMdf X }
     """); }
   @Test void inferRecMdf() { ok("""
     {test.FooBox/0=Dec[name=test.FooBox/0,gxs=[],lambda=[-mdf-][test.FooBox[],test.Box[immtest.Foo[]]]{'this
-      .getFoo/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdftest.Foo[]]->this.get/0[]([])}],
+      .getFoo/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdftest.Foo[]]->this.get/0[]([])}],
     test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-mdf-][test.Foo[]]{'this}],
     test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[-mdf-][test.Box[mdfT]]{'this
-      .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfT]->[-]}]}
+      .get/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfT]->[-]}]}
     """, """
     package test
     Foo:{}
-    Box[T]:{ read .get: recMdf T }
-    FooBox:Box[Foo]{ read .getFoo: recMdf Foo -> this.get }
+    Box[T]:{ recMdf .get: recMdf T }
+    FooBox:Box[Foo]{ recMdf .getFoo: recMdf Foo -> this.get }
     """); }
   @Test void doNotChangeExplicitLambdaMdf1() { ok("""
     {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[-mdf-][test.Bar[]]{'this
@@ -1109,18 +1109,18 @@ public class TestInferBodies {
 
   @Test void mdfMismatch() { ok("""
     {test.Box/1=Dec[name=test.Box/1,gxs=[X],lambda=[-mdf-][test.Box[mdfX],base.NoMutHyg[immX]]{'this
-      .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}],
+      .get/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-]}],
     test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[]]{'this
       #/1([t]):Sig[mdf=imm,gens=[],ts=[readtest.Test[]],ret=lenttest.Box[readtest.Test[]]]->
         [-imm-][test.Box'[]]{'fear[###]$}.mut2lent/1[readtest.Test[]]([t])}],
     test.Box'/0=Dec[name=test.Box'/0,gxs=[],lambda=[-mdf-][test.Box'[]]{'this
       .mut2lent/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=muttest.Box[mdfX]]->
-        [-mut-][test.Box[mdfX]]{'fear[###]$.get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->x}}]}
+        [-mut-][test.Box[mdfX]]{'fear[###]$.get/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->x}}]}
     """, """
     package test
     alias base.NoMutHyg as NoMutHyg,
     Box[X]:NoMutHyg[X]{
-      read .get: recMdf X
+      recMdf .get: recMdf X
       }
     Box':{
       .mut2lent[X](x: mdf X): mut Box[mdf X] -> { x }
@@ -1149,16 +1149,16 @@ public class TestInferBodies {
 
   @Test void dontOverrideMdf() { ok("""
     {test.Box/1=Dec[name=test.Box/1,gxs=[X],lambda=[-mdf-][test.Box[mdfX],base.NoMutHyg[mdfX]]{'this
-      .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}],
+      .get/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-]}],
     test.Box'/0=Dec[name=test.Box'/0,gxs=[],lambda=[-mdf-][test.Box'[]]{'this
       .mut2lent/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=muttest.Box[mdfX]]->
         [-mut-][test.Box[mdf X]]{'fear[###]$
-          .get/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->x}}]}
+          .get/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->x}}]}
     """, """
     package test
     alias base.NoMutHyg as NoMutHyg,
     Box[X]:NoMutHyg[mdf X]{
-      read .get: recMdf X
+      recMdf .get: recMdf X
       }
     Box':{
       .mut2lent[X](x: mdf X): mut Box[mdf X] -> mut Box[mdf X]{ x }
@@ -1171,9 +1171,9 @@ public class TestInferBodies {
   @Test void nestedRecMdfExplicitMdf() { ok("""
     {test.F/1=Dec[name=test.F/1,gxs=[X],lambda=[-mdf-][test.F[mdfX]]{'this#/1([x]):Sig[mdf=imm,gens=[],ts=[mdfX],ret=mdfX]->x}],
     test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
-      .m1/2([a,b]):Sig[mdf=read,gens=[],ts=[recMdfX,immtest.F[recMdfX]],ret=recMdfX]->b#/1[]([a])}],
+      .m1/2([a,b]):Sig[mdf=recMdf,gens=[],ts=[recMdfX,immtest.F[recMdfX]],ret=recMdfX]->b#/1[]([a])}],
     test.B/1=Dec[name=test.B/1,gxs=[Y],lambda=[-mdf-][test.B[mdfY]]{'this
-      #/1([a]):Sig[mdf=read,gens=[],ts=[muttest.A[muttest.B[recMdfY]]],ret=mut test.B[recMdfY]]->
+      #/1([a]):Sig[mdf=recMdf,gens=[],ts=[muttest.A[muttest.B[recMdfY]]],ret=mut test.B[recMdfY]]->
         a.m1/2[]([[-mut-][test.B[recMdfY]]{'fear0$},[-imm-][test.F[mut test.B[recMdfY]]]{'fear1$}])}],
     test.C/0=Dec[name=test.C/0,gxs=[],lambda=[-mdf-][test.C[]]{'this
       #/1([b]):Sig[mdf=imm,gens=[],ts=[muttest.B[muttest.C[]]],ret=muttest.B[muttest.C[]]]->
@@ -1183,11 +1183,11 @@ public class TestInferBodies {
     """, """
     package test
     A[X]:{
-      read .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
+      recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
     F[X]:{ imm #(x: mdf X): mdf X -> x, }
     B[Y]:{
-      read #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
+      recMdf #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> a.m1(mut B[recMdf Y], F[mut B[recMdf Y]]),
       }
     C:{
       #(b: mut B[mut C]): mut B[mut C] -> b#({}),
@@ -1198,7 +1198,7 @@ public class TestInferBodies {
   @Test void inferCollapsesRecMdf() { same("""
     package test
     Foo[T]:{
-      read .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
+      recMdf .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
       }
     F[T]:{ mut #(x: mdf T): mdf T }
     A:{}
@@ -1206,7 +1206,7 @@ public class TestInferBodies {
     """, """
     package test
     Foo[T]:{
-      read .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
+      recMdf .map(f: mut F[recMdf T]): recMdf Foo[recMdf T] -> this
       }
     F[T]:{ mut #(x: mdf T): mdf T }
     A:{}
@@ -1216,13 +1216,13 @@ public class TestInferBodies {
   @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGenericExplicit() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
       .foo/1([x]):Sig[mdf=imm,gens=[],ts=[mutX],ret=muttest.B[mutX]]->
-        [-mut-][test.B[mutX]]{'fear0$.argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->x}}],
+        [-mut-][test.B[mutX]]{'fear0$.argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->x}}],
     test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this
-      .argh/0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-]}]}
+      .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-]}]}
     """, """
     package test
-    A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ read .argh: recMdf X -> x } }
-    B[X]:{ read .argh: recMdf X }
+    A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ recMdf .argh: recMdf X -> x } }
+    B[X]:{ recMdf .argh: recMdf X }
     """);}
 
   @Test void shouldNotRewriteUserWrittenTypes1() { ok("""

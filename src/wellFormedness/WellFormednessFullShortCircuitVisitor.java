@@ -11,8 +11,6 @@ import failure.Fail;
 import astFull.Program;
 import visitors.FullShortCircuitVisitor;
 import visitors.FullShortCircuitVisitorWithEnv;
-import visitors.FullVisitor;
-import visitors.ShortCircuitVisitor;
 
 import java.util.*;
 import java.util.function.Function;
@@ -104,7 +102,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
         e))
       .or(()->noShadowingGX(e.sig().map(E.Sig::gens).orElse(List.of())))
       .or(()->validMethMdf(e))
-      .or(()->e.sig().flatMap(s->e.name().flatMap(name->noRecMdfInNonHyg(s, name))).map(err->err.pos(e.pos())))
+      .or(()->e.sig().flatMap(s->e.name().flatMap(name->noRecMdfInNonRecMdf(s, name))).map(err->err.pos(e.pos())))
       .map(err->err.pos(e.posOrUnknown()))
       .or(()->super.visitMeth(e));
   }
@@ -231,18 +229,17 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
 
   private Optional<CompileError> validMethMdf(E.Meth e) {
     return e.sig().flatMap(m->{
-      var ismMdfOrRecMdf = m.mdf().isMdf() || m.mdf().isRecMdf();
-      if (!ismMdfOrRecMdf) { return Optional.empty(); }
-      return Optional.of(Fail.invalidMethMdf(e.sig().get(), e.name().get()));
+      if (!m.mdf().isMdf()) { return Optional.empty(); }
+      return Optional.of(Fail.invalidMethMdf(e.sig().get(), e.name().orElseThrow()));
     });
   }
 
-  private Optional<CompileError> noRecMdfInNonHyg(E.Sig s, Id.MethName name) {
-    if (s.mdf().isHyg()) { return Optional.empty(); }
+  private Optional<CompileError> noRecMdfInNonRecMdf(E.Sig s, Id.MethName name) {
+    if (s.mdf().isRecMdf()) { return Optional.empty(); }
     return new FullShortCircuitVisitor<CompileError>(){
       @Override public Optional<CompileError> visitT(T t) {
         if (t.mdf().isRecMdf()) {
-          return Optional.of(Fail.recMdfInNonHyg(s.mdf(), name, t).pos(s.pos()));
+          return Optional.of(Fail.recMdfInNonRecMdf(s.mdf(), name, t).pos(s.pos()));
         }
         return FullShortCircuitVisitor.super.visitT(t);
       }

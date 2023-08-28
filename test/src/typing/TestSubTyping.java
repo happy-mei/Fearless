@@ -98,7 +98,7 @@ public class TestSubTyping {
   final String pointEx = """
     package a
     List[T]:{
-      read .get: recMdf T
+      recMdf .get: recMdf T
     }
     SortedList[T]:List[mdf T]
     Int:{}

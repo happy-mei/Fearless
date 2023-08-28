@@ -116,14 +116,14 @@ public class Fail{
     return of(String.format("There is a cyclical sub-typing relationship between "+t1+" and "+t2+"."));
   }
 
-  public static CompileError recMdfInNonHyg(Mdf mdf, Id.MethName name, astFull.T t){
-    return of("Invalid modifier for "+t+"."+recMdfInNonHygMsg(mdf, name));
+  public static CompileError recMdfInNonRecMdf(Mdf mdf, Id.MethName name, astFull.T t){
+    return of("Invalid modifier for "+t+"."+recMdfInNonRecMdfMsg(mdf, name));
   }
-  public static CompileError recMdfInNonHyg(Mdf mdf, Id.MethName name, ast.T t){
-    return of("Invalid modifier for "+t+"."+recMdfInNonHygMsg(mdf, name));
+  public static CompileError recMdfInNonRecMdf(Mdf mdf, Id.MethName name, ast.T t){
+    return of("Invalid modifier for "+t+"."+recMdfInNonRecMdfMsg(mdf, name));
   }
-  private static String recMdfInNonHygMsg(Mdf mdf, Id.MethName name) {
-    return "\nrecMdf may only be used in read or lent methods. The method "+name+" has the "+mdf+" modifier.";
+  private static String recMdfInNonRecMdfMsg(Mdf mdf, Id.MethName name) {
+    return "\nrecMdf may only be used in recMdf methods. The method "+name+" has the "+mdf+" modifier.";
   }
   public static CompileError recMdfInImpls(ast.T t){
     return of("Invalid modifier for "+t+".\nrecMdf may not be used in the list of implemented traits.");
@@ -244,7 +244,7 @@ enum ErrorCode {
   methTypeError,
   unimplementedInLambda,
   circularSubType,
-  recMdfInNonHyg,
+  recMdfInNonRecMdf,
   recMdfInImpls,
   undefinedName,
   noDupImpls,

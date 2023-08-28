@@ -15,6 +15,7 @@ import utils.Streams;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 interface ELambdaTypeSystem extends ETypeSystem{
   default Res visitLambda(E.Lambda b){
@@ -69,10 +70,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .orElseGet(()->new T(b.mdf(), b.its().get(0)));
     T selfT = TypeRename.core(p()).fixMut(new T(b.mdf(),d.toIT()));
     var selfName=b.selfName();
-    var mRes=b.meths().parallelStream().flatMap(mi->{
-      var typeSystem = (ELambdaTypeSystem) withProgram(p().cleanCopy());
+    List<CompileError> mRes = b.meths().stream().flatMap(mi->{
       try {
-        return typeSystem.mOk(selfName, selfT, mi).stream();
+        return mOk(selfName, selfT, mi).stream();
       } catch (CompileError err) {
         return Optional.of(err.parentPos(mi.pos())).stream();
       }
@@ -128,14 +128,6 @@ interface ELambdaTypeSystem extends ETypeSystem{
 //  Box<XTsMap> xTsMap = new Box<>(XTsMap.empty());
   default Optional<CompileError> okWithSubType(Gamma g, E.Meth m, E e, T expected) {
     var res = e.accept(ETypeSystem.of(p(), g, Optional.of(expected), depth()+1));
-    // TODO: this hack works for method gens but not class gens
-//    m.sig().gens().forEach(gx->{
-//      var t = EMethTypeSystem.unboundXs.pollFirst();
-//      if (t == null) { return; }
-//      xTsMap.set(xTsMap.get().add(gx.name(), t));
-//    });
-//    var expected2 = TypeRename.core(p()).renameT(expected, gx->xTsMap.get().getO(gx).orElse(null));
-//    var res2 = res.t().map(t_->TypeRename.coreRec(p(), Mdf.mut).renameT(t_, gx->xTsMap.get().getO(gx).orElse(null)));
     try {
       var subOk = res.t()
         .flatMap(ti->p().isSubType(ti, expected)
@@ -151,6 +143,6 @@ interface ELambdaTypeSystem extends ETypeSystem{
   default boolean filterByMdf(Mdf mdf, Mdf mMdf) {
     assert !mdf.isMdf();
     if (mdf.is(Mdf.iso, Mdf.mut, Mdf.lent, Mdf.recMdf)) { return true; }
-    return mdf.is(Mdf.imm, Mdf.read) && mMdf.is(Mdf.imm, Mdf.read);
+    return mdf.is(Mdf.imm, Mdf.read, Mdf.recMdf) && mMdf.is(Mdf.imm, Mdf.read, Mdf.recMdf);
   }
 }

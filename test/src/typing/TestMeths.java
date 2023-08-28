@@ -578,43 +578,43 @@ public class TestMeths {
     """); }
 
   @Test void adaptRecMdfImm() { ok("""
-    [test.List[imm test.Person[]],read.get/0()[][]:imm test.Person[]abs]
+    [test.List[imm test.Person[]],recMdf.get/0()[][]:imm test.Person[]abs]
     """, "test.Family", """
     package test
     Person:{}
-    List[X]:{ read .get(): recMdf X }
+    List[X]:{ recMdf .get(): recMdf X }
     Family:List[imm Person]{}
     """); }
   @Test void adaptRecMdfRead() { ok("""
-    [test.List[read test.Person[]],read.get/0()[][]:read test.Person[]abs]
+    [test.List[read test.Person[]],recMdf.get/0()[][]:read test.Person[]abs]
     """, "test.Family", """
     package test
     Person:{}
-    List[X]:{ read .get(): recMdf X }
+    List[X]:{ recMdf .get(): recMdf X }
     Family:List[read Person]{}
     """); }
   @Test void adaptRecMdfMut() { ok("""
-    [test.List[mut test.Person[]],read.get/0()[][]:mut test.Person[]abs]
+    [test.List[mut test.Person[]],recMdf.get/0()[][]:mut test.Person[]abs]
     """, "test.Family", """
     package test
     Person:{}
-    List[X]:{ read .get(): recMdf X }
+    List[X]:{ recMdf .get(): recMdf X }
     Family:List[mut Person]{}
     """); }
   @Test void adaptRecMdfLent() { ok("""
-    [test.List[lent test.Person[]],read.get/0()[][]:lent test.Person[]abs]
+    [test.List[lent test.Person[]],recMdf.get/0()[][]:lent test.Person[]abs]
     """, "test.Family", """
     package test
     Person:{}
-    List[X]:{ read .get(): recMdf X }
+    List[X]:{ recMdf .get(): recMdf X }
     Family:List[lent Person]{}
     """); }
   @Test void adaptRecMdfMdf() { ok("""
-    [test.List[mdfP],read.get/0()[][]:recMdfP abs]
+    [test.List[mdfP],recMdf.get/0()[][]:recMdfP abs]
     """, "test.Family[mdf P]", """
     package test
     Person:{}
-    List[X]:{ read .get(): recMdf X }
+    List[X]:{ recMdf .get(): recMdf X }
     Family[P]:List[mdf P]{}
     """); }
 }

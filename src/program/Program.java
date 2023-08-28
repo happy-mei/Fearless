@@ -40,16 +40,12 @@ public interface Program {
 
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1 == m2){ return true; }
-    if (m2 == Mdf.read) { return true; }
+    if (m2.is(Mdf.read)) { return true; }
     return switch(m1){
       case mut -> m2.isLikeMut();
       case lent, imm -> m2.isRead();
-      case read, mdf -> false;
+      case read, mdf, recMdf -> false;
       case iso -> true;
-      case recMdf -> {
-        System.out.println("Weird sub-type: "+m1+" < "+m2);
-        yield false;
-      }
     };
   }
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }
@@ -169,9 +165,9 @@ public interface Program {
       return Push.of(cm, filterByMdf(mdf, cms));
     }
     var sig = cm.sig();
-    var baseMdfImmOrRead = mdf.isImm() || mdf.isRead();
-    var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isRead();
-    if (baseMdfImmOrRead && methMdfImmOrRead) {
+    var baseMdfReadLike = mdf.isImm() || mdf.isRead() || mdf.isRecMdf();
+    var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isRead() || sig.mdf().isRecMdf();
+    if (baseMdfReadLike && methMdfImmOrRead) {
       return Push.of(cm, filterByMdf(mdf, cms));
     }
     return filterByMdf(mdf, cms);

@@ -50,6 +50,7 @@ public enum Mdf{
     }
     if (this == read) {
       if (other == imm) { return imm; }
+      if (other == iso) { return imm; }
       return switch (adaptType) { // TODO: new in formalism
         case Capture -> recMdf;
         case ResolveRecMdf -> read;
@@ -62,20 +63,20 @@ public enum Mdf{
       if (other == mut) { return read; }
       if (other == imm) { return imm; }
       if (other == read) { return read; }
-//      if (other == mut) { return mut; }
     }
     System.err.println("uh oh adapt is undefined for "+this+" and "+other);
     throw Bug.unreachable();
   }
 
   public Optional<Mdf> restrict(Mdf mMdf) {
+    if (mMdf.isRecMdf()) { return this.restrict(read); }
     if (mMdf.isImm() || (this.isImm() && mMdf.isRead())) { return Optional.of(imm); }
     if (isLikeMut() && mMdf.isRead() || (isRecMdf() && mMdf.isRead())) { return Optional.of(read); }
     if (isLent() && mMdf.isMut()){ return Optional.of(lent); }
     if (isLent() && mMdf.isIso()){ return Optional.of(mut); }
     if (mMdf.isLent()){ return Optional.of(lent); }
     if ((isMut() && mMdf.isIso()) || (isMut() && mMdf.isMut())) { return Optional.of(mut); }
-    if (isRecMdf() && mMdf.is(lent, mut, iso)) { return Optional.of(lent); }
+    if (isRecMdf() && mMdf.is(lent, mut, iso)) { return Optional.of(read); }
     System.err.println("uh oh restrict is undefined for "+this+" and "+mMdf);
     return Optional.empty();
   }

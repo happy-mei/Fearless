@@ -52,7 +52,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   @Override public Optional<CompileError> visitMeth(E.Meth e) {
-    return noRecMdfInNonHyg(e.sig(), e.name()).map(err->err.pos(e.pos()))
+    return norecMdfInNonRecMdf(e.sig(), e.name()).map(err->err.pos(e.pos()))
       .or(()->super.visitMeth(e))
       .map(err->err.parentPos(e.pos()));
   }
@@ -83,12 +83,12 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
     return Optional.empty();
   }
 
-  private Optional<CompileError> noRecMdfInNonHyg(E.Sig s, Id.MethName name) {
-    if (s.mdf().isHyg()) { return Optional.empty(); }
+  private Optional<CompileError> norecMdfInNonRecMdf(E.Sig s, Id.MethName name) {
+    if (s.mdf().isRecMdf()) { return Optional.empty(); }
     return new ShortCircuitVisitor<CompileError>(){
       @Override public Optional<CompileError> visitT(T t) {
         if (t.mdf().isRecMdf()) {
-          return Optional.of(Fail.recMdfInNonHyg(s.mdf(), name, t).pos(s.pos()));
+          return Optional.of(Fail.recMdfInNonRecMdf(s.mdf(), name, t).pos(s.pos()));
         }
         return ShortCircuitVisitor.super.visitT(t);
       }

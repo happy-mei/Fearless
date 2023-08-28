@@ -31,4 +31,4 @@ Yeet:{
   }
 
 Box:{ #[R](r: mdf R): mut Box[mdf R] -> { r } }
-Box[R]:NoMutHyg[mdf R]{ read #: recMdf R }
+Box[R]:NoMutHyg[mdf R]{ recMdf #: recMdf R }

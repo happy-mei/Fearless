@@ -27,13 +27,15 @@ public interface Gamma {
   }
   default Gamma captureSelf(Program p, String x, T t, Mdf mMdf) {
     Gamma g = xi->this.getO(xi).map(ti->xT(xi,t,ti,mMdf,p));
-    var selfMdf = mMdf.adapt(t.mdf(), Mdf.AdaptType.Capture);
+    var recMdfAsRead = mMdf.isRecMdf() ? Mdf.read : mMdf;
+    var selfMdf = recMdfAsRead.adapt(t.mdf(), Mdf.AdaptType.Capture);
     if(selfMdf.isMdf()){ selfMdf = mMdf; }
     return g.add(x,t.withMdf(selfMdf));
   }
   static T xT(String x, T t, T ti, Mdf mMdf, Program p){
     var self = t.mdf();
     var captured = ti.mdf();
+//    assert !captured.isRecMdf() : "no recMdf inside gamma";
     if (t.mdf().isIso()) { return xT(x, t.withMdf(Mdf.mut), ti, mMdf, p); }
     var isoToImm = captured.isIso();
     if (isoToImm){ return xT(x, t, ti.withMdf(Mdf.imm), mMdf, p); }
