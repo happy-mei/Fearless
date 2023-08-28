@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class T {
@@ -142,7 +143,7 @@ public final class T {
 
     @Override
     public String toString() {
-      return "Dec[name=" + name + ",gxs=" + gxs + ",lambda=" + lambda + "]";
+      return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toStringWithBounds).collect(Collectors.joining(",")) + "],lambda=" + lambda + "]";
     }
   }
 

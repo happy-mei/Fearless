@@ -83,6 +83,10 @@ public class Id {
     public GX{ assert Id.validGX(name); }
     public <R> R match(Function<GX<TT>,R>gx, Function<IT<TT>,R>it){ return gx.apply(this); }
     @Override public String toString(){ return name(); }
+    public String toStringWithBounds(){
+      if (bounds.isEmpty()) { return toString(); }
+      return name()+": "+bounds();
+    }
     public GX<ast.T> toAstGX() { return (GX<ast.T>) this; }
     public GX<astFull.T> toFullAstGX() { return (GX<astFull.T>) this; }
     public GX<TT> withName(String name) { return new GX<>(name); }

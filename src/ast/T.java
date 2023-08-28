@@ -12,6 +12,7 @@ import utils.Bug;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
@@ -60,7 +61,7 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
       );
     }
     @Override public String toString() {
-      return "Dec[name="+name+",gxs="+gxs+",lambda="+lambda+"]";
+      return "Dec[name="+name+",gxs=["+gxs.stream().map(Id.GX::toStringWithBounds).collect(Collectors.joining(","))+"],lambda="+lambda+"]";
     }
   }
 }
