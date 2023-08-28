@@ -362,6 +362,13 @@ were valid:
         (lent test.A[]) <: (iso test.A[]): iso test.B[]
         
     (lent test.A[], lent test.B[]) <: (imm test.A[], iso test.B[]): iso test.B[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:5:43
+        [E33 callTypeError]
+        Type error: None of the following candidates for this method call:
+        this .b/0[]([])
+        were valid:
+        (lent test.A[]) <: (iso test.A[]): iso test.B[]
     """, """
     package test
     A:{
@@ -1600,4 +1607,117 @@ were valid:
     Ref[X]:{ recMdf .get: recMdf X, lent .set(x: mdf X): Void }
     Void:{} Name:{}
     """); }
+
+  @Test void mixedLentPromo1a() {
+    fail("""
+      In position [###]/Dummy0.fear:12:2
+      [E40 mutCapturesHyg]
+      The type mut base.Ref[lent base.B[]] is not valid because a mut lambda may not capture hygienic references.
+      """, """
+      package base
+      // should also not pass with `lent Ref[lent B]`
+      A:{ lent .b: lent Ref[lent B] }
+      B:{}
+      F:{
+        .ohNo(b: lent B): imm A -> F.ohNo'(F.newA, b),
+        .ohNo'(a: mut A, b: lent B): mut A -> F.ohNo''(a, F.break(a, b)),
+        .ohNo''(a: mut A, v: Void): mut A -> a,
+        
+        .works: mut A -> { .b -> Ref#[lent B]{} },
+        .newA: mut A -> F.newA(Ref#[lent B]{}),
+        .newA(b: mut Ref[lent B]): mut A -> { .b -> b },
+        .break(a: lent A, b: lent B): Void -> a.b := b,
+        }
+      """, """
+      package base
+      Void:{} NoMutHyg[X]:{} Sealed:{}
+      Yeet:{
+        #[X](x: mdf X): Void -> this.with(x, Void),
+        .with[X,R](_: mdf X, res: mdf R): mdf R -> res,
+        }
+      Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+      Ref[X]:NoMutHyg[mdf X],Sealed{
+        recMdf *: recMdf X,
+        recMdf .get: recMdf X -> this*,
+        mut .swap(x: mdf X): mdf X -> mut _FakeCapture[mdf X]{ x }.prev,
+        mut :=(x: mdf X): Void -> Yeet#(this.swap(x)),
+        mut .set(x: mdf X): Void -> this := x,
+        mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+        mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
+        }
+      _FakeCapture[X]:NoMutHyg[mdf X]{ recMdf .self: recMdf X, mut .prev: mdf X -> Abort! }
+      UpdateRef[X]:NoMutHyg[mdf X]{ mut #(x: mdf X): mdf X }
+      Abort:{ ![R]: mdf R -> this! }
+      """);
+  }
+  @Test void mixedLentPromo1b() {
+    fail("""
+      In position [###]/Dummy0.fear:12:2
+      [E40 mutCapturesHyg]
+      The type mut base.Ref[lent base.B[]] is not valid because a mut lambda may not capture hygienic references.
+      """, """
+      package base
+      // should also not pass with `lent Ref[lent B]`
+      A:{ lent .b: lent Ref[lent B] }
+      B:{}
+      F:{
+        .ohNo(b: lent B): imm A -> F.ohNo'(F.newA, b),
+        .ohNo'(a: mut A, b: lent B): mut A -> F.ohNo''(a, F.break(a, b)),
+        .ohNo''(a: mut A, v: Void): mut A -> a,
+        
+        .works: mut A -> { .b -> Ref#[lent B]{} },
+        .newA: mut A -> F.newA(Ref#[lent B]{}),
+        .newA(b: mut Ref[lent B]): mut A -> { .b -> b },
+        .break(a: lent A, b: lent B): Void -> a.b := b,
+        }
+      """, """
+      package base
+      Void:{} NoMutHyg[X]:{} Sealed:{}
+      Yeet:{
+        #[X](x: mdf X): Void -> this.with(x, Void),
+        .with[X,R](_: mdf X, res: mdf R): mdf R -> res,
+        }
+      Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+      Ref[X]:NoMutHyg[mdf X],Sealed{
+        recMdf *: recMdf X,
+        recMdf .get: recMdf X -> this*,
+        mut .swap(x: mdf X): mdf X,
+        mut :=(x: mdf X): Void -> Yeet#(this.swap(x)),
+        mut .set(x: mdf X): Void -> this := x,
+        mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+        mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
+        }
+      UpdateRef[X]:NoMutHyg[mdf X]{ mut #(x: mdf X): mdf X }
+      Abort:{ ![R]: mdf R -> this! }
+      """);
+  }
+  @Test void mixedLentPromo2() {
+    fail("""
+      """, """
+      package base
+      A:{ lent .b: lent Ref[lent B] }
+      B:{}
+      F:{
+        .break(a: lent A, b: lent B): Void -> a.b := b,
+        }
+      """, """
+      package base
+      Void:{} NoMutHyg[X]:{} Sealed:{}
+      Yeet:{
+        #[X](x: mdf X): Void -> this.with(x, Void),
+        .with[X,R](_: mdf X, res: mdf R): mdf R -> res,
+        }
+      Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+      Ref[X]:NoMutHyg[mdf X],Sealed{
+        recMdf *: recMdf X,
+        recMdf .get: recMdf X -> this*,
+        lent .swap(x: mdf X): mdf X,
+        lent :=(x: mdf X): Void -> Yeet#(this.swap(x)),
+        lent .set(x: mdf X): Void -> this := x,
+        lent <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+        lent .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
+        }
+      UpdateRef[X]:NoMutHyg[mdf X]{ mut #(x: mdf X): mdf X }
+      """);
+  }
 }

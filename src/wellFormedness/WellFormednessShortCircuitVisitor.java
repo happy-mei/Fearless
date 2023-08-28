@@ -105,6 +105,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   private Optional<CompileError> noPrivateMethCallOutsideTrait(E.MCall e) {
+    // TODO: I can just define a method with the same name and call a """"private"""" thing
     if (!e.name().name().startsWith("._")) { return Optional.empty(); }
     var isInScope = env.ms().stream().anyMatch(m->m.equals(e.name()));
     return isInScope ? Optional.empty() : Optional.of(Fail.privateMethCall(e.name()));
