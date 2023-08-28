@@ -1720,4 +1720,17 @@ were valid:
       UpdateRef[X]:NoMutHyg[mdf X]{ mut #(x: mdf X): mdf X }
       """);
   }
+
+  @Test void invalidTraitBounds1() { fail("""
+    """, """
+    package test
+    A[X: mut]:{}
+    B:A[imm A]
+    """); }
+  @Test void invalidTraitBounds2() { fail("""
+    """, """
+    package test
+    A[X: mut]:{ .a1: mdf X }
+    B:A[imm A]
+    """); }
 }

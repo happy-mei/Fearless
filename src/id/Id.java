@@ -82,6 +82,18 @@ public class Id {
 
     public GX{ assert Id.validGX(name); }
     public <R> R match(Function<GX<TT>,R>gx, Function<IT<TT>,R>it){ return gx.apply(this); }
+
+    @Override public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      GX<?> gx = (GX<?>) o;
+      return Objects.equals(name, gx.name);
+    }
+
+    @Override public int hashCode() {
+      return Objects.hash(name);
+    }
+
     @Override public String toString(){ return name(); }
     public String toStringWithBounds(){
       if (bounds.isEmpty()) { return toString(); }

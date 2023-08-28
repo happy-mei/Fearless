@@ -10,6 +10,7 @@ import id.Mdf;
 import magic.Magic;
 import magic.MagicImpls;
 import program.TypeRename;
+import utils.Bug;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
 
@@ -65,6 +66,12 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
     return noIsoParams(t, t.ts())
       .or(()->super.visitIT(t));
+  }
+
+  private Optional<CompileError> noMdfsOutsideBounds(Id.GX<?> gx, Mdf concreteMdf) {
+    if (gx.bounds().isEmpty()) { return Optional.empty(); }
+    if (gx.bounds().contains(concreteMdf)) { return Optional.empty(); }
+    throw Bug.todo(); // TODO: error message
   }
 
   private Optional<CompileError> noIsoMoreThanOnce(E.X x) {

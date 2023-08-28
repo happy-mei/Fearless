@@ -98,7 +98,6 @@ public interface TypeRename<T>{
         var renamed = f.apply(gx);
         if(renamed==null){ return t; }
         if (isInfer(renamed)){ return renamed; }
-        checkGenericBounds(gx, mdf(t));
         return fixMut(propagateMdf(mdf(t),renamed));
       },
       it->fixMut(newT(mdf(t),renameIT(it,f)))
