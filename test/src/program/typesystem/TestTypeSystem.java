@@ -1691,7 +1691,7 @@ were valid:
       Abort:{ ![R]: mdf R -> this! }
       """);
   }
-  @Disabled
+
   @Test void mixedLentPromo2() {
     fail("""
       """, """
@@ -1722,14 +1722,12 @@ were valid:
       """);
   }
 
-  @Disabled
   @Test void invalidTraitBounds1() { fail("""
     """, """
     package test
     A[X: mut]:{}
     B:A[imm B]
     """); }
-  @Disabled
   @Test void invalidTraitBounds2() { fail("""
     """, """
     package test
