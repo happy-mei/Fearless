@@ -9,8 +9,6 @@ import failure.Fail;
 import program.CM;
 import program.TypeRename;
 import program.typesystem.TraitTypeSystem;
-import utils.Bug;
-import visitors.InjectionVisitor;
 
 import java.util.*;
 import java.util.function.Function;
@@ -65,7 +63,7 @@ public class Program implements program.Program  {
   @Override public List<Id.IT<T>> itsOf(Id.IT<T> t) {
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
-    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
+    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name(), List.of())).toList();
     Function<Id.GX<T>, T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
     return d.lambda().its().stream()
       .filter(ti->!ti.name().equals(t.name()))
@@ -76,7 +74,7 @@ public class Program implements program.Program  {
   public List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t) {
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
-    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
+    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name(), List.of())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
     return d.lambda().meths().stream()
       .map(mi->cm(recvMdf, t, mi, f))
@@ -85,7 +83,7 @@ public class Program implements program.Program  {
   public CM plainCM(CM fancyCM) {
     var d=of(fancyCM.c().name());
     assert fancyCM.c().ts().size()==d.gxs().size();
-    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
+    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name(), List.of())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(fancyCM.c().ts(), gxs);
     return d.lambda().meths().stream()
       .filter(mi->mi.name().equals(fancyCM.name()))

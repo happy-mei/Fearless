@@ -9,6 +9,7 @@ import magic.Magic;
 import failure.CompileError;
 import failure.Fail;
 import astFull.Program;
+import utils.Box;
 import visitors.FullShortCircuitVisitor;
 import visitors.FullShortCircuitVisitorWithEnv;
 
@@ -69,6 +70,8 @@ Evil:Main{
 
 // TODO: rule about iso only being used once? Do we not need it becuase we never capture iso as iso
 public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisitorWithEnv<CompileError> {
+  private Program p;
+
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
     return e.ts().flatMap(this::noIsoParams)
       .or(()->super.visitMCall(e))
@@ -123,6 +126,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   }
 
   @Override public Optional<CompileError> visitProgram(Program p){
+    this.p = p;
     return noCyclicImplRelations(p)
       .or(()->super.visitProgram(p));
   }

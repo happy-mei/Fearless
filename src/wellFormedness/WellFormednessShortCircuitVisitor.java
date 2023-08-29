@@ -64,14 +64,10 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
+    var dec = p.of(t.name());
+    System.out.println("post-infer: "+dec);
     return noIsoParams(t, t.ts())
       .or(()->super.visitIT(t));
-  }
-
-  private Optional<CompileError> noMdfsOutsideBounds(Id.GX<?> gx, Mdf concreteMdf) {
-    if (gx.bounds().isEmpty()) { return Optional.empty(); }
-    if (gx.bounds().contains(concreteMdf)) { return Optional.empty(); }
-    throw Bug.todo(); // TODO: error message
   }
 
   private Optional<CompileError> noIsoMoreThanOnce(E.X x) {

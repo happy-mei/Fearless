@@ -5,7 +5,7 @@ import utils.Bug;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class Refresher<TT> {
+public class Refresher<TT extends Id.Ty> {
   private final int depth;
   private int n = 0;
   public Refresher(int depth) { this.depth = depth; }
@@ -15,6 +15,6 @@ public class Refresher<TT> {
   }
   public Id.GX<TT> freshName() {
     if (n + 1 == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
-    return new Id.GX<>("X" + depth + "/" + n++ + "$"); // i.e. X0/2$ for top level, X1/0$ for a nested one
+    return new Id.GX<>("X" + depth + "/" + n++ + "$", List.of()); // i.e. X0/2$ for top level, X1/0$ for a nested one
   }
 }

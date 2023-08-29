@@ -58,7 +58,7 @@ public class Program implements program.Program{
   @Override public List<Id.IT<ast.T>> itsOf(Id.IT<ast.T> t){
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
-    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
+    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name(), List.of())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
     return d.lambda().its().stream().map(ti->TypeRename.core(this).renameIT(liftIT(ti),f)).toList();
   }
@@ -66,7 +66,7 @@ public class Program implements program.Program{
   @Override public List<CM> cMsOf(Mdf recvMdf, Id.IT<ast.T> t){
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
-    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
+    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name(), List.of())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
     return d.lambda().meths().stream()
       .filter(mi->mi.sig().isPresent())
@@ -76,7 +76,7 @@ public class Program implements program.Program{
   @Override public CM plainCM(CM fancyCM){
     var d=of(fancyCM.c().name());
     assert fancyCM.c().ts().size()==d.gxs().size();
-    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
+    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name(), List.of())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(fancyCM.c().ts(), gxs);
     return d.lambda().meths().stream()
       .filter(mi->mi.name().map(name->name.equals(fancyCM.name())).orElse(false))

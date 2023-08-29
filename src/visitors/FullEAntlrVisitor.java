@@ -243,7 +243,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     Optional<Id.IT<T>> resolved = isFullName ? Optional.empty() : resolve.apply(name);
     var isIT = isFullName || resolved.isPresent();
     if(!isIT){
-      var t = new T(mdf, new Id.GX<>(name));
+      var t = new T(mdf, new Id.GX<>(name, List.of()));
       if(mGen.isPresent()){ throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx)); }
       return t;
     }

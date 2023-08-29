@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public interface TypeRename<T>{
+public interface TypeRename<T extends Id.Ty>{
   record FullTTypeRename(Program p) implements TypeRename<astFull.T> {
     public <R> R matchT(astFull.T t, Function<Id.GX<astFull.T>, R> gx, Function<Id.IT<astFull.T>, R> it) { return t.match(gx, it); }
     public Mdf mdf(astFull.T t) { return t.mdf(); }
@@ -86,7 +86,9 @@ public interface TypeRename<T>{
     return gx->{
       int i = gxs.indexOf(gx);
       if(i==-1){ return null; }
-      return ts.get(i);
+      var t = ts.get(i);
+      checkGenericBounds(gx, mdf(t));
+      return t;
     };
   }
   boolean isInfer(T t);
@@ -98,6 +100,7 @@ public interface TypeRename<T>{
         var renamed = f.apply(gx);
         if(renamed==null){ return t; }
         if (isInfer(renamed)){ return renamed; }
+        checkGenericBounds(gx, mdf(renamed));
         return fixMut(propagateMdf(mdf(t),renamed));
       },
       it->fixMut(newT(mdf(t),renameIT(it,f)))

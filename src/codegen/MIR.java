@@ -1,6 +1,5 @@
 package codegen;
 
-import ast.Program;
 import ast.T;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -48,7 +47,7 @@ public interface MIR {
       return v.visitLambda(this, checkMagic);
     }
     public T t() {
-      return new T(mdf, new Id.IT<>(freshName, Collections.nCopies(freshName.gen(), new T(Mdf.mdf, new Id.GX<>("FearIgnored$")))));
+      return new T(mdf, new Id.IT<>(freshName, Collections.nCopies(freshName.gen(), new T(Mdf.mdf, new Id.GX<>("FearIgnored$", List.of())))));
     }
     public Lambda withITs(List<Id.IT<T>> its) {
       return new Lambda(mdf, freshName, selfName, its, captures, meths, canSingleton);

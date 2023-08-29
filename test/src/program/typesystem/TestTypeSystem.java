@@ -1725,12 +1725,12 @@ were valid:
     """, """
     package test
     A[X: mut]:{}
-    B:A[imm A]
+    B:A[imm B]
     """); }
   @Test void invalidTraitBounds2() { fail("""
     """, """
     package test
     A[X: mut]:{ .a1: mdf X }
-    B:A[imm A]
+    B:A[imm B]
     """); }
 }

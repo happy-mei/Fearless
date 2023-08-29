@@ -9,7 +9,6 @@ import utils.Bug;
 import visitors.FullCloneVisitor;
 import visitors.FullShortCircuitVisitor;
 
-import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -17,7 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class T {
+public final class T implements Id.Ty {
   public static final T infer = new T();
   private T(){mdf=null;rt=null;}
   private final Mdf mdf;
@@ -42,7 +41,7 @@ public final class T {
   }
   public ast.T toAstT() {
     return this.match(
-      gx->new ast.T(mdf(), new Id.GX<>(gx.name())),
+      gx->new ast.T(mdf(), new Id.GX<>(gx.name(), List.of())),
       it->{
         var ts = it.ts().stream().map(T::toAstT).toList();
         return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
@@ -52,10 +51,10 @@ public final class T {
     if (this.isInfer()) {
       int n = nFresh.get();
       nFresh.set(n+1);
-      return new ast.T(Mdf.mdf, new Id.GX<>("FearTmp"+n+"$"));
+      return new ast.T(Mdf.mdf, new Id.GX<>("FearTmp"+n+"$", List.of()));
     }
     return this.match(
-      gx->new ast.T(mdf(), new Id.GX<>(gx.name())),
+      gx->new ast.T(mdf(), new Id.GX<>(gx.name(), List.of())),
       it->{
         var ts = it.ts().stream().map(t->t.toAstTFreshenInfers(nFresh)).toList();
         return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
@@ -130,14 +129,14 @@ public final class T {
     public Id.IT<ast.T> toAstT() {
       return new Id.IT<>(//AstFull.T || Ast.T
         this.name(),
-        this.gxs().stream().map(gx->new ast.T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
+        this.gxs().stream().map(gx->new ast.T(Mdf.mdf, new Id.GX<>(gx.name(), List.of()))).toList()
       );
     }
 
     public Id.IT<T> toIT() {
       return new Id.IT<>(//AstFull.T || Ast.T
         this.name(),
-        this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
+        this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name(), List.of()))).toList()
       );
     }
 

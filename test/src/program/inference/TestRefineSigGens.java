@@ -3,7 +3,6 @@ package program.inference;
 import astFull.T;
 import id.Id;
 import main.Main;
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import utils.Err;
@@ -37,7 +36,7 @@ public class TestRefineSigGens {
     var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)));
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
-    var freshParsed = fresh.stream().map(name->new Id.GX<ast.T>(name)).collect(Collectors.toUnmodifiableSet());
+    var freshParsed = fresh.stream().map(name->new Id.GX<ast.T>(name, List.of())).collect(Collectors.toUnmodifiableSet());
 
     var refined = new RefineTypes(inferredSigs).refineSigGens(parsed, freshParsed);
     Err.strCmpFormat(expected, refined.toString());
