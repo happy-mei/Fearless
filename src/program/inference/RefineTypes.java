@@ -102,12 +102,10 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     if(iT1.rt() instanceof Id.GX<?> g1 && iT2.rt() instanceof Id.GX<?> g2){
       if(g1.equals(g2)){ return iT1; }
     }
-    if( !(iT1.rt() instanceof Id.IT<T> c1)
-     || !(iT2.rt() instanceof Id.IT<T> c2)){
+    if(!(iT1.rt() instanceof Id.IT<T> c1)  || !(iT2.rt() instanceof Id.IT<T> c2)){
       throw Bug.unreachable();
     }
 
-    // TODO should we check the subtyping between C and C' instead? Yes. Update the formalism
     var notMatch=!c1.name().equals(c2.name()); //name includes gen size
     if(notMatch){
       var t1 = new T(Mdf.mdf, c1);
@@ -125,8 +123,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     }
 
     // Keep the explicit mdf from the expression if it has one
-    var mdf = eMdf.orElse(iT1.mdf());
-    iT1 = iT1.propagateMdf(mdf);
+//    var mdf = eMdf.orElse(iT1.mdf());
+//    iT1 = iT1.propagateMdf(mdf);
 
     List<RP> refined = refineSigGens(RP.of(c1.ts(),c2.ts()), Set.of());
     if(refined.isEmpty()){ return iT1; }
@@ -138,7 +136,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 //    if(iT1.mdf()!=iT2.mdf()){
 //      throw Fail.incompatibleMdfs(iT1, iT2);
 //    }
-    return new T(mdf, c1.withTs(refinedTs));
+    return new T(iT1.mdf(), c1.withTs(refinedTs));
   }
   public record RP(T t1, T t2){
     public RP {
@@ -245,7 +243,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 
   List<RP> refineSigGens(List<RP>rps, Set<Id.GX<ast.T>> freshInfers) {
     List<Sub> subs = collect(rps);
-    Map<Id.GX<T>, T> map = toSub(subs);
+    Map<Id.GX<T>, T> map = refineSubs(subs);
     return rps.stream()
       .map(rp->renameRP(rp, map, renamer))
       .map(rp->new RP(regenerateInfers(p, freshInfers, rp.t1()), regenerateInfers(p, freshInfers, rp.t2())))
@@ -283,19 +281,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
   Sub collectXXOut(int index, ArrayList<RP> rps){
     var res = rps.remove(index);
-    //collect(RPs, MDF X = _ X', RPs') =   X=MDF X', collect(RPs[X = mdf X'], RPs'[X = mdf X'])//proposed
-    //collect(RPs, MDF X = _ X', RPs') =   X'=MDF X, collect(RPs[X' = mdf X], RPs'[X = mdf X])//proposed
-    //var target = res.t1().withMdf(Mdf.mdf);
-    //rename(rps, new Sub(res.t2().gxOrThrow(), target));
-    //var other = res.t2().withMdf(res.t1().mdf());
-    //return new Sub(res.t1().gxOrThrow(), other);
-
-    //Sub s = new Sub(res.t2().gxOrThrow(),res.t1);
-    //Sub sMdf = new Sub(res.t2().gxOrThrow(),res.t1.withMdf(Mdf.mdf));
-    // TODO: This recMdf handling is new and not in the formalism
-//    var mdf = res.t1.mdf().isRecMdf() ? res.t2.mdf() : res.t1.mdf();
     var mdf = res.t1.mdf();
-    Sub s = new Sub(res.t1().gxOrThrow(), res.t2.propagateMdf(mdf)); // TODO: change in formalism, was withMdf
+    Sub s = new Sub(res.t1().gxOrThrow(), res.t2.propagateMdf(mdf));
     Sub sMdf = new Sub(res.t1().gxOrThrow(), new T(Mdf.mdf, res.t2.rt()));
     rename(rps, sMdf);
     return s;
@@ -310,7 +297,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var e = rps.remove(index1);
     index2 -= 1;
     insertGens(rps, index2, gensOf(e), gensOf(rps.get(index2)));
-    return toSub(e).orElseThrow();
+    return refineSubs(e).orElseThrow();
   }
   List<T> gensOf(RP rp){
     if(rp.t1().rt() instanceof Id.GX<?>){ return rp.t2().itOrThrow().ts(); }
@@ -383,12 +370,12 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     // otherwise...
     assert !rps.isEmpty();
     RP head = rps.remove(0);
-    var sub=toSub(head);
+    var sub= refineSubs(head);
     if (sub.isEmpty()){ return collectRec(rps); }
     rename(rps,sub.get());
     return Push.of(sub.get(), collectRec(rps));
   }
-  private Optional<Sub> toSub(RP rp){
+  private Optional<Sub> refineSubs(RP rp){
     var t1=rp.t1();
     var t2=rp.t2();
     var leftX = (t1.rt() instanceof Id.GX<?>) && (t2.rt() instanceof Id.IT<?>);
@@ -416,7 +403,7 @@ collect(MDF C[iTs] = MDF' X, RPs) =     X=MDF C[iTs] collect(RPs)
 collect(empty) = empty
   */
 
-  Map<Id.GX<T>, T> toSub(List<Sub> subs) {
+  Map<Id.GX<T>, T> refineSubs(List<Sub> subs) {
     Map<Id.GX<T>, List<Sub>> res = subs.stream()
       .filter(si->!si.isCircular())
       .filter(si->!si.x().equals(si.t().rt()))
