@@ -35,7 +35,7 @@ public enum Mdf{
     if (this == imm) { return imm; }
     if (this == iso) { return mut.adapt(other, adaptType); }
     if (this == mut) {
-      if (other == recMdf) { return mdf; } // TODO: not in formalism
+//      if (other == recMdf) { return mdf; }
       return other;
     }
     if (this == lent) {

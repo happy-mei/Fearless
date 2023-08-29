@@ -14,7 +14,6 @@ import visitors.InjectionVisitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public record InferBodies(ast.Program p) {
   public ast.Program inferAll(astFull.Program fullProgram){
@@ -192,7 +191,7 @@ public record InferBodies(ast.Program p) {
       var refiner = new RefineTypes(p);
       var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t());
       // TODO: this doesn't consider narrowing down to gens on ITs (i.e. IO':CapFactory[...] does not help refine CapFactory[...] because this only uses IO')
-      var refined = refiner.refineSigMassive(c.mdf(), recv, List.of(baseSig), depth);
+      var refined = refiner.refineSig(c.mdf(), recv, List.of(baseSig), depth);
       var refinedSig = refined.sigs().get(0);
       var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
       var fixedRecv = refiner.fixType(e.receiver(), new T(fixedRecvT.mdf(), refined.c()), depth);

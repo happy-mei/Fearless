@@ -3,7 +3,6 @@ package program.inference;
 import ast.Program;
 import astFull.E;
 import astFull.T;
-import failure.Fail;
 import files.Pos;
 import id.Id;
 import id.Mdf;
@@ -25,33 +24,19 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
 
   E.Lambda fixLambda(E.Lambda lambda, int depth) {
-    /*
-    fixTypes(MDF ITs{'x Ms}:MDF C[iTs]) = MDF ITs{'x toMs(Ms,TSigs)}:MDF C[iTs']
-  refineSigMassive(C[iTs],tSigOf(Ms)) = C[iTs'], TSigs
-
-  tSigOf(Ms) = turns every M in Ms into a TSig, trashes the body
-  tMs(Ms,TSigs) = zips the Ms and the TSigs into better Ms; Ms is used to recover the bodies
-     */
     if (lambda.meths().stream().anyMatch(m->m.sig().isEmpty())) {
       return lambda;
     }
 
     var c = lambda.it().orElseThrow();
-//    var nFresh = new Box<>(0);
-//    var its = p().itsOf(c.toAstIT(it->it.toAstTFreshenInfers(nFresh))).stream().map(it->it.toFullAstIT(ast.T::toAstFullT)).toList();
-//    var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<ast.T>("FearTmp"+n+"$")).collect(Collectors.toSet());
-//    its = its.stream().map(it->RefineTypes.regenerateInfers(freshGXsSet, new T(Mdf.mdf, it))).map(T::itOrThrow).toList();
-//
-//    var l = lambda.withITs(Push.of(lambda.its(), its).stream().distinct().toList());
 
     List<RefinedSig> sigs = lambda.meths().stream()
       .map(this::tSigOf)
       .toList();
-    var res = refineSigMassive(lambda.mdf().orElse(Mdf.imm), c, sigs, depth);
+    var res = refineSig(lambda.mdf().orElse(Mdf.imm), c, sigs, depth);
     var ms = Streams.zip(lambda.meths(), res.sigs())
       .map(this::tM)
       .toList();
-//    Id.IT<T> lT = best(new T(Mdf.mdf, res.c()), l.t()).itOrThrow();S
     var newIT = replaceOnlyInfers(lambda.t(Mdf.mdf), new T(lambda.t(Mdf.mdf).mdf(), res.c()));
     return lambda.withMeths(ms).withIT(Optional.ofNullable(newIT.itOrThrow()));
   }
@@ -155,8 +140,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 //    }
     return new T(mdf, c1.withTs(refinedTs));
   }
-  record RP(T t1, T t2){
-    RP {
+  public record RP(T t1, T t2){
+    public RP {
       if (!t1.isInfer() && !t2.isInfer() && t1.mdf().isRecMdf()) { t1 = t1.withMdf(t2.mdf()); }
     }
 
@@ -203,7 +188,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
 
   record RefinedLambda(Id.IT<astFull.T> c, List<RefinedSig> sigs){}
-  RefinedLambda refineSigMassive(Mdf mdf, Id.IT<astFull.T> c, List<RefinedSig> sigs, int depth) {
+  RefinedLambda refineSig(Mdf mdf, Id.IT<astFull.T> c, List<RefinedSig> sigs, int depth) {
     int nGens = sigs.stream().mapToInt(s->s.gens().size()).sum();
     var freshGXs = Id.GX.standardNames(c.ts().size() + nGens);
     var freshGXsQueue = new ArrayDeque<>(freshGXs);
@@ -212,7 +197,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     List<List<Id.GX<ast.T>>> methGens = sigs.stream()
       .map(s->s.gens().stream().map(gx->freshGXsQueue.poll()).toList())
       .toList();
-    var cTs = new Id.IT<ast.T>(c.name(), ts);
+    var cTs = new Id.IT<>(c.name(), ts);
     var cT = new astFull.T(mdf, cTs.toFullAstIT(ast.T::toAstFullT));
     var cTOriginal = new T(mdf, c);
     List<List<RP>> rpsSigs = Streams.zip(sigs,methGens)

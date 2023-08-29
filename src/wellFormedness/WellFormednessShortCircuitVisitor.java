@@ -65,7 +65,8 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
 
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
     var dec = p.of(t.name());
-    System.out.println("post-infer: "+dec);
+
+//    System.out.println("post-infer: "+dec);
     return noIsoParams(t, t.ts())
       .or(()->super.visitIT(t));
   }

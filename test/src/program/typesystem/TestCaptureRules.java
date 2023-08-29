@@ -88,7 +88,7 @@ public class TestCaptureRules {
     }
 
     var validCaps = new ConcurrentLinkedQueue<Capture>();
-    var exceptions = new ConcurrentLinkedQueue<Throwable>();
+    var exceptions = new ConcurrentLinkedQueue<>();
     var templateA = noMutHyg ? codeGen3NoMutHygA : codeGen3a;
     var templateB = noMutHyg ? codeGen3NoMutHygB : codeGen3b;
     permutations.parallelStream().forEach(c->{
@@ -103,13 +103,13 @@ public class TestCaptureRules {
           cInnerOk(codeA);
           if (codeBValid) { cInnerOk(codeB); }
           validCaps.add(c);
-        } catch (AssertionError | CompileError e) { exceptions.add(e); }
+        } catch (AssertionError | CompileError e) { exceptions.add(codeA+"\n"+e); }
       }
       else {
         try {
           cInnerFail(codeA);
           if (codeBValid) { cInnerFail(codeB); }
-        } catch (AssertionError e) { validCaps.add(c); exceptions.add(e); }
+        } catch (AssertionError e) { validCaps.add(c); exceptions.add(codeA+"\n"+e); }
       }
     });
     if(!exceptions.isEmpty()){
@@ -151,7 +151,6 @@ public class TestCaptureRules {
     """;
 
   void cInnerOk(String code){
-//    System.out.println(code);
     try{ok(code, base);}
     catch(AssertionError t){ throw new AssertionError("failed on "+code+"\nwith:\n"+t); }
   }
@@ -1362,7 +1361,7 @@ public class TestCaptureRules {
   @Test void t3454(){ c3(mut, mdf, iso, of()); }
   @Test void t3455(){ c3(iso, mdf, iso, of()); }
   @Test void t3456(){ c3(mdf, mdf, iso, of()); }
-  @Test void t3457(){ c3(recMdf,mdf,   iso, readAll,immAll,of(mdf,read, mdf,imm, mdf,read)); }
+  @Test void t3457(){ c3(recMdf,mdf,   iso, of(read,lent  , mdf,read  , read,mdf  , read,recMdf  , read,imm  , read,mut  , read,read)); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3461(){ c3(imm, recMdf, iso, of()); }
   @Test void t3462(){ c3(read, recMdf, iso, of()); }

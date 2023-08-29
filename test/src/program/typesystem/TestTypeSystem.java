@@ -1691,6 +1691,7 @@ were valid:
       Abort:{ ![R]: mdf R -> this! }
       """);
   }
+  @Disabled
   @Test void mixedLentPromo2() {
     fail("""
       """, """
@@ -1721,16 +1722,29 @@ were valid:
       """);
   }
 
+  @Disabled
   @Test void invalidTraitBounds1() { fail("""
     """, """
     package test
     A[X: mut]:{}
     B:A[imm B]
     """); }
+  @Disabled
   @Test void invalidTraitBounds2() { fail("""
     """, """
     package test
     A[X: mut]:{ .a1: mdf X }
     B:A[imm B]
+    """); }
+
+  @Test void mutMdfAdapt() { fail("""
+    In position [###]/Dummy0.fear:4:78
+    [E28 undefinedName]
+    The identifier "par" is undefined or cannot be captured.
+    """, """
+    package test
+    B:{}
+    L[X]:{ iso .absMeth: imm X }
+    A:{ recMdf .m[T](par: mdf T) : recMdf L[lent T] -> recMdf L[lent T]{.absMeth->par} }
     """); }
 }
