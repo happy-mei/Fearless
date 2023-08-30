@@ -50,7 +50,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var sadlyExtra=b.meths().stream()
       .filter(m->filtered.stream().noneMatch(cm->cm.name().equals(m.name())))
       .toList();
-    assert sadlyExtra.isEmpty();//TODO: can we break this assertion?
+    assert sadlyExtra.isEmpty();//TODO: can we break this assertion? We think no.
     return withProgram(p0).bothT(d);
   }
 
@@ -143,6 +143,6 @@ interface ELambdaTypeSystem extends ETypeSystem{
   default boolean filterByMdf(Mdf mdf, Mdf mMdf) {
     assert !mdf.isMdf();
     if (mdf.is(Mdf.iso, Mdf.mut, Mdf.lent, Mdf.recMdf)) { return true; }
-    return mdf.is(Mdf.imm, Mdf.read, Mdf.recMdf) && mMdf.is(Mdf.imm, Mdf.read, Mdf.recMdf);
+    return mdf.is(Mdf.imm, Mdf.read) && mMdf.is(Mdf.imm, Mdf.read, Mdf.recMdf);
   }
 }

@@ -59,9 +59,6 @@ public record InferBodies(ast.Program p) {
 
   //TODO: this may have to become iterative if the recursion gets out of control
   E fixInferStep(Map<String, T> gamma, E e, int depth) {
-//    if (e.toString().contains("newnewlists")) {
-//      System.out.println(e+"\n----");
-//    }
     var next = inferStep(gamma, e, depth);
     assert next.map(ei->!ei.equals(e)).orElse(true);
     if (next.isEmpty()) { return e; }
@@ -86,13 +83,15 @@ public record InferBodies(ast.Program p) {
 
   Optional<E> bProp(Map<String, T> gamma, E.Lambda e, int depth) {
     if (e.it().isEmpty()) { return Optional.empty(); }
+    var fixedLambda = (E.Lambda) refineLambda(e, e, depth).orElse(e);
     boolean[] done = {false};
-    List<E.Meth> newMs = e.meths().stream().map(mi->done[0]
+    List<E.Meth> newMs = fixedLambda.meths().stream().map(mi->done[0]
       ? mi
-      : bProp(gamma,mi,e,depth).map(mj->{done[0]=true;return mj;}).orElse(mi))
+      : bProp(gamma,mi,fixedLambda,depth).map(mj->{done[0]=true;return mj;}).orElse(mi))
     .toList();
     if(!done[0]){ return Optional.empty(); }
-    var res = refineLambda(e, e.withMeths(newMs), depth);
+    var res = refineLambda(e, e.withMeths(newMs), depth); // TODO: why can't we get rid of this?
+//    var res = Optional.of(e.withMeths(newMs));
     return res.flatMap(e1->!e1.equals(e) ? res : Optional.empty());
   }
   Optional<E.Meth> bProp(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
@@ -116,10 +115,10 @@ public record InferBodies(ast.Program p) {
     var e1 = m.body().get();
     var e2 = refiner.fixType(e1,sig.ret());
     var optBody = inferStep(richGamma,e2,depth);
-    var res = optBody.map(b->m.withBody(Optional.of(b)).withSig(refiner.fixTypes(sig, b.t())));
+    var res = optBody.map(b->m.withBody(Optional.of(b)).withSig(refiner.fixSig(sig, b.t())));
     var finalRes = res.or(()->e1==e2
       ? Optional.empty()
-      : Optional.of(m.withBody(Optional.of(e2)).withSig(refiner.fixTypes(sig, e2.t()))));
+      : Optional.of(m.withBody(Optional.of(e2)).withSig(refiner.fixSig(sig, e2.t()))));
     return finalRes.map(m1->!m.equals(m1)).orElse(true) ? finalRes : Optional.empty();
 //    assert finalRes.map(m1->!m.equals(m1)).orElse(true);
 //    return finalRes;
@@ -195,7 +194,7 @@ public record InferBodies(ast.Program p) {
       var refinedSig = refined.sigs().get(0);
       var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
       var fixedRecv = refiner.fixType(e.receiver(), new T(fixedRecvT.mdf(), refined.c()), depth);
-      var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args(), depth);
+      var fixedArgs = refiner.fixSig(e.es(), refinedSig.args(), depth);
       var fixedGens = e.ts().map(userGens->replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
 
       assert refinedSig.name().equals(e.name());

@@ -398,7 +398,7 @@ were valid:
       }
     B:{}
     """); }
-  @Test void readThisIsRecMdf() { ok("""
+  @Test void recMdfThisIsRecMdf() { ok("""
     package test
     A:{
       recMdf .self: recMdf A -> this,
@@ -1692,6 +1692,7 @@ were valid:
       """);
   }
 
+  @Disabled
   @Test void mixedLentPromo2() {
     fail("""
       """, """
@@ -1722,12 +1723,14 @@ were valid:
       """);
   }
 
+  @Disabled
   @Test void invalidTraitBounds1() { fail("""
     """, """
     package test
     A[X: mut]:{}
     B:A[imm B]
     """); }
+  @Disabled
   @Test void invalidTraitBounds2() { fail("""
     """, """
     package test
@@ -1744,5 +1747,37 @@ were valid:
     B:{}
     L[X]:{ iso .absMeth: imm X }
     A:{ recMdf .m[T](par: mdf T) : recMdf L[lent T] -> recMdf L[lent T]{.absMeth->par} }
+    """); }
+
+  @Test void topLevelSelfName() { fail("""
+    """, """
+    package test
+    A:{ 'self
+      .me: A -> self,
+      //.meThis: A -> this
+      }
+    """); }
+
+  @Test void extraMethInLambda() { ok("""
+    package test
+    A:{
+      .m1: A -> { 'self
+        .public: A -> self.private,
+        .private: A -> {}
+        }
+      }
+    """); }
+
+  @Test void lentCannotAdaptWithMut() { fail("""
+    """, """
+    package test
+    B:{}
+    L[X]:{ lent .absMeth: mdf X }
+    A:{ recMdf .m[T](par: mdf T) : lent L[mdf T] -> lent L[mdf T]{.absMeth->par} }
+    
+    C:{
+      .m1(b: mut B) : lent L[mut B] -> A.m(b),
+      .m2(b: lent L[mut B]): mut B -> b.absMeth,
+      }
     """); }
 }

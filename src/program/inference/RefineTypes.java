@@ -65,9 +65,9 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var gens = sig.gens().stream().map(g->new T(Mdf.mdf,g)).toList();
     return new RefinedSig(sig.mdf(), name, gens, sig.ts(),sig.ret());
   }
-  E.Sig fixTypes(E.Sig sig, T iTi){
+  E.Sig fixSig(E.Sig sig, T iTi){
     var ret  = sig.ret();
-    var best = best(iTi, ret);
+    var best = best(ret, iTi);
     if(best==ret){ return sig; }
     var res  = sig.withRet(best);
     // TODO: poorly written programs can fail this assertion, should throw a CompileError instead.
@@ -75,14 +75,14 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
       || ret.isInfer() || ret.rt() instanceof Id.IT<?>;
     return res;
   }
-  List<E> fixTypes(List<E> ies, List<T> iTs, int depth) {
+  List<E> fixSig(List<E> ies, List<T> iTs, int depth) {
     return Streams.zip(ies, iTs).map((ie, iT)->fixType(ie, iT, depth)).toList();
   }
   E fixType(E ie, T iT, int depth) { // TODO: not in formalism yet
     var fixed = fixType(ie, iT);
-    if (fixed instanceof E.Lambda l) {
-      return fixLambda(l, depth);
-    }
+//    if (fixed instanceof E.Lambda l) {
+//      return fixLambda(l, depth);
+//    }
     return fixed;
   }
   E fixType(E ie, T iT) {
@@ -169,6 +169,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 
   RefinedSig freshXs(List<CM> ms, Id.MethName m, List<Id.GX<ast.T>> gxs) {
     // TODO: what about helper methods added on the creation of a lambda that aren't in the top dec?
+    // TODO: Hi past Nick, yes we should support that here.
     // TODO: improve error message
     var meth = OneOr.of(
       "Could not find a method (or more than one) with the name "+m,

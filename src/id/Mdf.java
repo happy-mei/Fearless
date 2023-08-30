@@ -42,9 +42,8 @@ public enum Mdf{
       if (other == imm) { return other; }
       if (other == read) { return other; }
 //      if (other == recMdf){ return read; } // TODO: Why? Turning off until I remember
-      if (other == recMdf) { return recMdf; }
-//      if (other == mdf) { return read; }
-      if (other == mdf) { return mdf; }
+      if (other == recMdf) { return recMdf; } // TODO: check that this is sound
+      if (other == mdf) { return read; }
       if (other == mut) { return lent; }
       if (other == iso) { return lent; }
     }
@@ -59,7 +58,8 @@ public enum Mdf{
     if (this == mdf) { return other; }
     // TODO: maybe???? all new
     if (this == recMdf) {
-      if (other == mdf) { return recMdf; }
+//      if (other == mdf) { return recMdf; }
+      if (other == mdf) { assert false; }
       if (other == mut) { return read; }
       if (other == imm) { return imm; }
       if (other == read) { return read; }
