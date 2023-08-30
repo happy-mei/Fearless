@@ -819,7 +819,7 @@ were valid:
   @Test void noMdfParamAsLent() { fail("""
     In position [###]/Dummy0.fear:4:59
     [E23 methTypeError]
-    Expected the method .absMeth/0 to return lent T, got mdf T.
+    Expected the method .absMeth/0 to return lent T, got read T.
     """, """
     package test
     B:{}
@@ -1769,6 +1769,9 @@ were valid:
     """); }
 
   @Test void lentCannotAdaptWithMut() { fail("""
+    In position [###]/Dummy0.fear:4:62
+    [E23 methTypeError]
+    Expected the method .absMeth/0 to return mdf T, got read T.
     """, """
     package test
     B:{}

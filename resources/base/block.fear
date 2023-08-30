@@ -28,7 +28,7 @@ BlockIf[R]:{
   }
 BlockIfTrue[R]:BlockIf[mdf R]{
   .return(a) -> this._return(a#),
-    mut ._return(x: mdf R): mut DecidedBlock[mdf R] -> { x },
+    recMdf ._return(x: recMdf R): recMdf DecidedBlock[mdf R] -> { x },
   .error(a) -> this.error(a),
   .do(a) -> this._do(a#),
     mut ._do(v: Void): mut Block[mdf R] -> this._outer,
@@ -44,8 +44,8 @@ BlockIfFalse[R]:BlockIf[mdf R]{
   .hyg -> this._hyg(this._outer.hyg),
     mut ._hyg(outer: lent BlockHyg[mdf R]): lent BlockIfHyg[mdf R] -> lent BlockIfFalseHyg[mdf R]{ ._outer -> outer }
   }
-DecidedBlock[R]:Block[mdf R],NoMutHyg[mdf R]{
-  mut ._res: mdf R,
+DecidedBlock[R]:Block[mdf R]{
+  recMdf ._res: recMdf R,
   .return(a) -> this._res,
   .do(a) -> this,
   .assert(cond, msg) -> this,
@@ -82,7 +82,7 @@ BlockIfHyg[R]:{
   }
 BlockIfTrueHyg[R]:BlockIfHyg[mdf R]{
   .return(a) -> this._return(a#),
-    lent ._return(x: mdf R): lent DecidedBlockHyg[mdf R] -> { x },
+    recMdf ._return(x: recMdf R): recMdf DecidedBlockHyg[mdf R] -> { x },
   .error(a) -> this.error(a),
   .do(a) -> this._do(a#),
     lent ._do(v: Void): lent BlockHyg[mdf R] -> this._outer,
@@ -95,7 +95,7 @@ BlockIfFalseHyg[R]:BlockIfHyg[mdf R]{
   .assert(cond, msg) -> this._outer,
   }
 DecidedBlockHyg[R]:BlockHyg[mdf R]{
-  lent ._res: mdf R,
+  recMdf ._res: recMdf R,
   .return(a) -> this._res,
   .do(a) -> this,
   .assert(cond, msg) -> this,
