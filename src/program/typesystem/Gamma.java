@@ -33,30 +33,31 @@ public interface Gamma {
   static T xT(String x, T t, T ti, Mdf mMdf, Program p){
     var self = t.mdf();
     var captured = ti.mdf();
-//    assert !captured.isRecMdf() : "no recMdf inside gamma";
     if (t.mdf().isIso()) { return xT(x, t.withMdf(Mdf.mut), ti, mMdf, p); }
     var isoToImm = captured.isIso();
     if (isoToImm){ return xT(x, t, ti.withMdf(Mdf.imm), mMdf, p); }
 
-    // TODO: why mMdf.isHyg()?
 //    var isMdfInMutHyg = captured.is(Mdf.mdf, Mdf.recMdf) && self.isMut() && mMdf.isHyg() && ti.isGX();
-    var isMdfInMutHyg = captured.is(Mdf.mdf, Mdf.recMdf) && self.isMut() && ti.isGX();
-    var isNoMutHygCapture = isMdfInMutHyg && t.match(gx->false, it->p.getNoMutHygs(it).anyMatch(t_->t_.equals(ti)));
-    if (isNoMutHygCapture) {
-      return xT(x, t.withMdf(Mdf.lent), ti, mMdf, p);
-    }
+//    var isMdfInMutHyg = captured.is(Mdf.mdf, Mdf.recMdf) && self.isMut() && ti.isGX();
+//    var isNoMutHygCapture = isMdfInMutHyg && t.match(gx->false, it->p.getNoMutHygs(it).anyMatch(t_->t_.equals(ti)));
+//    if (isNoMutHygCapture) {
+//      return xT(x, t.withMdf(Mdf.lent), ti, mMdf, p);
+//    }
 
-    // TODO: maybe explain _why_ the capture cannot be allowed in the error message
-    var mutCapturesHyg = self.isMut() && captured.is(Mdf.read, Mdf.lent, Mdf.mdf, Mdf.recMdf);
-    var immCapturesMuty = self.isImm() && (captured.isLikeMut() || captured.isRecMdf());
+    // TODO: X cases with bounds
+    var mutCapturesHyg = self.isMut() && captured.is(Mdf.read, Mdf.lent, Mdf.recMdf);
+
+    var immCapturesMuty = self.isImm() && captured.is(Mdf.read, Mdf.lent, Mdf.mut, Mdf.recMdf);
+
+    // TODO: recmdf cases
     var recMdfCapturesMuty = self.isRecMdf() && captured.isLikeMut();
+
     if (mutCapturesHyg || immCapturesMuty || recMdfCapturesMuty) {
           throw Fail.badCapture(x, ti, t, mMdf);
     }
-    var fixedCaptured = self.isRecMdf() || !captured.isRecMdf()  ? captured : Mdf.read;
     return self.restrict(mMdf).map(mdfi->{
-      assert !(mdfi.isRecMdf() && fixedCaptured.isMdf() && !ti.isGX());
-      return mdfi.adapt(fixedCaptured);
+      assert !(mdfi.isRecMdf() && captured.isMdf() && !ti.isGX());
+      return mdfi.adapt(captured);
       })
       .map(ti::withMdf)
       .orElseThrow(()->Fail.badCapture(x, ti, t, mMdf));
