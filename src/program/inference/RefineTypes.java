@@ -37,8 +37,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var ms = Streams.zip(lambda.meths(), res.sigs())
       .map(this::tM)
       .toList();
-    var newIT = replaceOnlyInfers(lambda.t(Mdf.mdf), new T(lambda.t(Mdf.mdf).mdf(), res.c()));
-    return lambda.withMeths(ms).withIT(Optional.ofNullable(newIT.itOrThrow()));
+    var newIT = replaceOnlyInfers(lambda.t(), new T(lambda.t().mdf(), res.c()));
+    return lambda.withMeths(ms).withT(Optional.ofNullable(newIT.itOrThrow()).map(it->new T(lambda.t().mdf(), it)));
   }
 
   E.Meth tM(E.Meth m, RefinedSig refined) {
@@ -79,21 +79,12 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     return Streams.zip(ies, iTs).map((ie, iT)->fixType(ie, iT, depth)).toList();
   }
   E fixType(E ie, T iT, int depth) { // TODO: not in formalism yet
-    var fixed = fixType(ie, iT);
-//    if (fixed instanceof E.Lambda l) {
-//      return fixLambda(l, depth);
-//    }
-    return fixed;
+        return fixType(ie, iT);
   }
   E fixType(E ie, T iT) {
-    T ieT = iT.isInfer() ? ie.t(Mdf.imm) : ie.t(iT.mdf());
-    return ie.withT(best(ie.mdf(), ieT, iT));
+    return ie.withT(best(ie.t(), iT));
   }
-
   T best(T iT1, T iT2) {
-    return best(Optional.empty(), iT1, iT2);
-  }
-  T best(Optional<Mdf> eMdf, T iT1, T iT2) {
     if(iT1.equals(iT2)){ return iT1; }
     if(iT1.isInfer()){ return iT2; }
     if(iT2.isInfer()){ return iT1; }

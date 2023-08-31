@@ -6,20 +6,20 @@ Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
   }}
 Opt[T]:NoMutHyg[mdf T]{
   recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-  recMdf .matchHyg[R](m: lent OptMatchHyg[recMdf T, mdf R]): mdf R -> m.none,
+  recMdf .matchHyg[R](m: recMdf OptMatchHyg[recMdf T, mdf R]): mdf R -> m.none,
   recMdf !: recMdf T -> this.match(_OptUnwrap[recMdf T]),
   recMdf .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
   recMdf .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
   recMdf .do(f: mut OptMatch[recMdf T, Void]): recMdf Opt[recMdf T] ->
     Yeet.with[Void, recMdf Opt[recMdf T]](this.match(f), this),
-//  recMdf |(alt: recMdf T): recMdf T -> this || (OptOr#alt),
-  recMdf ||(alt: mut OptOr[recMdf T]): recMdf T -> this.match(alt),
+  recMdf |(alt: recMdf T): recMdf T -> this || (OptOr#alt),
+  recMdf ||(alt: recMdf OptOr[recMdf T]): recMdf T -> this.matchHyg(alt),
   read .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
   read .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
   }
 OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-OptMatchHyg[T,R]:{ lent .some(x: mdf T): mdf R, lent .none: mdf R }
-OptMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{xk
+OptMatchHyg[T,R]:{ recMdf .some(x: mdf T): mdf R, recMdf .none: mdf R }
+OptMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
   mut #(x: mdf T): mdf R,
   .some(x) -> Opt#(this#x),
   .none -> {},
@@ -31,7 +31,9 @@ OptFlatMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
   }
 OptDo[T]:OptMap[mdf T, mdf T]{ x -> x }
 
-OptOr:{ #[T](alt: mdf T): mut OptOr[mdf T] -> { alt } }
-OptOr[T]:OptMatch[mdf T, mdf T],NoMutHyg[mdf T]{ .some(x) -> x }
+//OptOr:{ #[T](alt: mdf T): mut OptOr[mdf T] -> { alt } }
+//OptOr[T]:OptMatch[mdf T, mdf T],NoMutHyg[mdf T]{ .some(x) -> x }
+OptOr:{ recMdf #[T](alt: recMdf T): recMdf OptOr[recMdf T] -> { alt } }
+OptOr[T]:OptMatchHyg[mdf T, mdf T]{ recMdf .some(x: mdf T): mdf T -> x }
 
 _OptUnwrap[T]:OptMatch[mdf T, mdf T]{ .some(x) -> x, .none -> Abort! }

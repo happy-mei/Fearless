@@ -285,6 +285,7 @@ public class TestRecMdf {
     package base
     NoMutHyg[X]:{}
     """); }
+  // TODO: I think it makes sense for these two to fail
   @Test void boxAndMatcherWithMapMut() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
@@ -526,8 +527,8 @@ public class TestRecMdf {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:7) test.L[mdf FearX0$], .absMeth/0[](): mdf FearX0$
-    ([###]/Dummy0.fear:4:16) test.L'[mdf FearX0$], .absMeth/0[](): imm FearX0$
+    ([###]/Dummy0.fear:3:7) test.L[mdf X], .absMeth/0[](): recMdf X
+    ([###]/Dummy0.fear:4:16) test.L'[mdf X], .absMeth/0[](): imm X
     """, """
     package test
     B:{}

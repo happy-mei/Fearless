@@ -56,6 +56,7 @@ public interface TypeRename<T extends Id.Ty>{
     private final Mdf recvMdf;
     public CoreRecMdfTypeRename(Program p, Mdf recvMdf) {
       super(p);
+      assert !recvMdf.isMdf();
       this.recvMdf = recvMdf;
     }
 
@@ -66,7 +67,7 @@ public interface TypeRename<T extends Id.Ty>{
       if (recvMdf.isMdf() && t.mdf().isMdf()) {
         return t.withMdf(Mdf.recMdf);
       }
-      var resolvedMdf = recvMdf.adapt(t.mdf(), Mdf.AdaptType.ResolveRecMdf);
+      var resolvedMdf = recvMdf.adapt(t.mdf());
       return t.withMdf(resolvedMdf);
     }
   }

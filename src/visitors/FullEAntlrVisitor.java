@@ -3,6 +3,7 @@ package visitors;
 import astFull.E;
 import astFull.Package;
 import astFull.T;
+import failure.CompileError;
 import files.Pos;
 import generated.FearlessParser.*;
 import id.Id;
@@ -194,7 +195,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .map(its->its.stream().map(this::visitIT).toList());
     var rt = _its.flatMap(its->GetO.of(its,0));
     var its = _its.orElse(List.of());
-    if (rt.isEmpty()) { mdf = Optional.empty(); }
+    if (rt.isEmpty() && mdf.isPresent()) {
+      throw Fail.mustProvideImplsIfMdfProvided().pos(pos(ctx));
+    }
+    if (rt.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }
     mdf.filter(Mdf::isMdf).ifPresent(mdf1->{ throw Fail.invalidMdf(rt.get()); });
     if(ctx.bblock()==null){
       return new E.Lambda(mdf,its,null,List.of(),rt,Optional.of(pos(ctx)));
@@ -307,7 +311,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var id = new Id.DecId(cName,mGen.size());
     var body = shallow ? null : visitBlock(ctx.block(), Optional.empty());
     if (body != null) {
-      body = body.withIT(Optional.empty());
+//      assert body.it().isEmpty();
+      body = body.withT(Optional.empty());
     }
     return new T.Dec(id, mGen, body, Optional.of(pos(ctx)));
   }

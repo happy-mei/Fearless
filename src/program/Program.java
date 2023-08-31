@@ -161,10 +161,11 @@ public interface Program {
     if (cms.isEmpty()) { return List.of(); }
     var cm = cms.get(0);
     cms = Pop.left(cms);
-    if (mdf.isIso() || mdf.isMut() || mdf.isLent() || mdf.isRecMdf()) {
+    if (mdf.isIso() || mdf.isMut() || mdf.isRecMdf()) {
       return Push.of(cm, filterByMdf(mdf, cms));
     }
     var sig = cm.sig();
+    if (mdf.isLent() && !sig.mdf().isIso()) { return Push.of(cm, filterByMdf(mdf, cms)); }
     var baseMdfReadLike = mdf.isImm() || mdf.isRead();
     var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isRead() || sig.mdf().isRecMdf();
     if (baseMdfReadLike && methMdfImmOrRead) {

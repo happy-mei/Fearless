@@ -22,7 +22,6 @@ public sealed interface E extends HasPos {
   E accept(FullCloneVisitor v);
   <R> R accept(FullVisitor<R> v);
   T t();
-  default T t(Mdf altMdf) { return t(); }
   default Optional<Mdf> mdf() {
     return t().isInfer() ? Optional.empty() : Optional.of(t().mdf());
   }
@@ -34,6 +33,8 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
+
+      assert mdf.isPresent() == it.isPresent();
     }
     /** This method correctly throw assertion error if called on a top level lambda
     */
@@ -41,10 +42,6 @@ public sealed interface E extends HasPos {
       if (mdf().isEmpty() && it().isEmpty()) { return T.infer; }
       assert mdf().isPresent() && it().isPresent();
       return new T(mdf().get(), it().get());
-    }
-    @Override public T t(Mdf altMdf) {
-      if (it().isEmpty()) { return T.infer; }
-      return new T(mdf().orElse(altMdf), it().get());
     }
 
     @Override public Lambda withT(T t) {
@@ -66,8 +63,8 @@ public sealed interface E extends HasPos {
     public Lambda withSelfName(String selfName) {
       return new Lambda(mdf, its, selfName, meths, it, pos);
     }
-    public Lambda withIT(Optional<Id.IT<T>> it) {
-      return new Lambda(mdf, its, selfName, meths, it, pos);
+    public Lambda withT(Optional<T> t) {
+      return new Lambda(t.map(T::mdf), its, selfName, meths, t.map(T::itOrThrow), pos);
     }
     public Lambda withITs(List<Id.IT<T>> its) {
       return new Lambda(mdf, its, selfName, meths, it, pos);

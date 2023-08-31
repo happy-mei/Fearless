@@ -660,7 +660,7 @@ public class TestInferBodies {
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
       .foo/1([x]):Sig[mdf=imm,gens=[],ts=[mutX],ret=mutX]->
         [-mut-][test.B[mutX]]{'fear[###]$
-          .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=mut X]->x}.argh/0[]([])}],
+          .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdf X]->x}.argh/0[]([])}],
     test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this
       .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-]}]}
     """, """
@@ -1202,7 +1202,7 @@ public class TestInferBodies {
       }
     F[T]:{ mut #(x: mdf T): mdf T }
     A:{}
-    Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map(F[A]{ _->A }) }
+    Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map(mut F[A]{ _->A }) }
     """, """
     package test
     Foo[T]:{

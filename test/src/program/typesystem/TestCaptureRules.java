@@ -414,7 +414,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t401(){ c1(imm, imm, iso, of(/*impossible*/)); }
   @Test void t402(){ c1(read, imm, iso, of(/*impossible*/)); }
-  @Test void t403(){ c1(lent, imm, iso, of(imm,read)); }
+  @Test void t403(){ c1(lent, imm, iso, of()); }
   @Test void t404(){ c1(mut, imm, iso, of(imm,read)); }
   @Test void t405(){ c1(iso, imm, iso, of(imm,read)); }
   @Test void t406(){ c1(mdf, imm, iso, of(/*not well formed lambda*/)); }
@@ -422,7 +422,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t411(){ c1(imm, read, iso, of(/*impossible*/)); }
   @Test void t412(){ c1(read, read, iso, of(/*impossible*/)); }
-  @Test void t413(){ c1(lent, read, iso, of(read)); }
+  @Test void t413(){ c1(lent, read, iso, of()); }
   @Test void t414(){ c1(mut, read, iso, of(/*impossible*/)); }//NOT NoMutHyg
   @Test void t415(){ c1(iso, read, iso, of(/*impossible*/)); }
   @Test void t416(){ c1(mdf, read, iso, of(/*not well formed lambda*/)); }
@@ -430,7 +430,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t421(){ c1(imm, lent, iso, of(/*impossible*/)); }
   @Test void t422(){ c1(read, lent, iso, of(/*impossible*/)); }
-  @Test void t423(){ c1(lent, lent, iso, of(read,lent)); }
+  @Test void t423(){ c1(lent, lent, iso, of()); }
   @Test void t424(){ c1(mut, lent, iso, of(/*impossible*/)); }//NOT NoMutHyg
   @Test void t425(){ c1(iso, lent, iso, of(/*impossible*/)); }
   @Test void t426(){ c1(mdf, lent, iso, of(/*not well formed lambda*/)); }
@@ -438,7 +438,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t431(){ c1(imm, mut, iso, of(/*impossible*/)); }
   @Test void t432(){ c1(read, mut, iso, of(/*impossible*/)); }
-  @Test void t433(){ c1(lent, mut, iso, of(read,lent,mut)); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
+  @Test void t433(){ c1(lent, mut, iso, of()); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
   @Test void t434(){ c1(mut, mut, iso, of(read,lent,mut)); }
   @Test void t435(){ c1(iso, mut, iso, of(read,lent,mut)); }
   @Test void t436(){ c1(mdf, mut, iso, of(/*not well formed lambda*/)); }
@@ -446,7 +446,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t441(){ c1(imm, iso, iso, of(/*impossible*/)); }
   @Test void t442(){ c1(read, iso, iso, of(/*impossible*/)); }
-  @Test void t443(){ c1(lent, iso, iso, of(imm,read)); }
+  @Test void t443(){ c1(lent, iso, iso, of()); }
   @Test void t444(){ c1(mut, iso, iso, of(imm,read)); }
   @Test void t445(){ c1(iso, iso, iso, of(imm,read)); } // all iso is captured as imm
   @Test void t446(){ c1(mdf, iso, iso, of(/*not well formed lambda*/)); }
@@ -462,7 +462,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t461(){ c1(imm, recMdf, iso, of(/*impossible*/)); }
   @Test void t462(){ c1(read, recMdf, iso, of(/*impossible*/)); }
-  @Test void t463(){ c1(lent, recMdf, iso, of(read)); }
+  @Test void t463(){ c1(lent, recMdf, iso, of()); }
   @Test void t464(){ c1(mut, recMdf, iso, of(/*impossible*/)); }
   @Test void t465(){ c1(iso, recMdf, iso, of(/*impossible*/)); }
   @Test void t466(){ c1(mdf, recMdf, iso, of(/*not well formed lambda*/)); }
@@ -470,7 +470,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t471(){ c1(imm, imm, iso, of(/*impossible*/)); }
   @Test void t472(){ c1(read, imm, iso, of(/*impossible*/)); }
-  @Test void t473(){ c1(lent, imm, iso, of(read,imm)); }
+  @Test void t473(){ c1(lent, imm, iso, of()); }
   @Test void t474(){ c1(mut, imm, iso, of(read,imm)); }
   @Test void t475(){ c1(iso, imm, iso, of(read,imm)); }
   @Test void t476(){ c1(mdf, imm, iso, of(/*not well formed lambda*/)); }

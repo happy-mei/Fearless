@@ -30,7 +30,7 @@ public class ShortCircuitVisitorWithEnv<R> implements ShortCircuitVisitor<R> {
   }
   public Optional<R> visitLambda(E.Lambda e){
     var oldEnv = env;
-    var ms = p.meths(Mdf.mdf, e, 0).stream().map(CM::name).toList();
+    var ms = p.meths(Mdf.recMdf, e, 0).stream().map(CM::name).toList();
     this.env = env.add(e, ms);
     try { return ShortCircuitVisitor.super.visitLambda(e); }
     finally { this.env = oldEnv; }

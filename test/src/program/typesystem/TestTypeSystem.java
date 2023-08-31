@@ -404,6 +404,17 @@ were valid:
       recMdf .self: recMdf A -> this,
       }
     """); }
+  @Test void readThisIsNotRecMdf() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    [E26 recMdfInNonRecMdf]
+    Invalid modifier for recMdf test.A[].
+    recMdf may only be used in recMdf methods. The method .self/0 has the read modifier.
+    """, """
+    package test
+    A:{
+      read .self: recMdf A -> this,
+      }
+    """); }
   @Test void readThisIsRead() { ok("""
     package test
     A:{
@@ -635,7 +646,7 @@ were valid:
       recMdf .outer: recMdf A -> recMdf A.inner,
       }
     """); }
-  @Test void recMdfCallsRecMdfa() { ok("""
+  @Test void recMdfCallsRecMdfA() { ok("""
     package test
     A:{
       recMdf .asRecMdf: recMdf A -> recMdf A{'inner
@@ -670,7 +681,7 @@ were valid:
   @Test void noCaptureMdfInMut2() { fail("""
     In position [###]/Dummy0.fear:4:34
     [E30 badCapture]
-    'recMdf this' cannot be captured by a mut method in a mut lambda.
+    'read this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A[X]:{ mut .prison: mdf X }
@@ -678,8 +689,19 @@ were valid:
       read .break: mut A[read B] -> { this } // this capture was being allowed because this:mdf B was adapted with read to become this:recMdf B (which can be captured by mut)
       }
     """); }
-
   @Test void noCaptureMdfInMut3() { fail("""
+    In position [###]/Dummy0.fear:4:36
+    [E30 badCapture]
+    'recMdf this' cannot be captured by a mut method in a mut lambda.
+    """, """
+    package test
+    A[X]:{ mut .prison: mdf X }
+    B:{
+      recMdf .break: mut A[read B] -> { this } // this capture was being allowed because this:mdf B was adapted with read to become this:recMdf B (which can be captured by mut)
+      }
+    """); }
+
+  @Test void noCaptureMdfInMut4() { fail("""
     In position [###]/Dummy0.fear:4:38
     [E30 badCapture]
     'mdf x' cannot be captured by a mut method in a mut lambda.
@@ -729,7 +751,7 @@ were valid:
     A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
     C:{ #: lent B -> (A.m(B)).absMeth }
     """); }
-  @Test void noCaptureImmAsRecMdfTopLvl1() { ok("""
+  @Test void okCaptureImmAsRecMdfTopLvl1() { ok("""
     package test
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
@@ -741,8 +763,8 @@ were valid:
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:7) test.L[mdf FearX0$], .absMeth/0[](): mdf FearX0$
-    ([###]/Dummy0.fear:4:16) test.L'[mdf FearX0$], .absMeth/0[](): imm FearX0$
+    ([###]/Dummy0.fear:3:7) test.L[mdf X], .absMeth/0[](): recMdf X
+    ([###]/Dummy0.fear:4:16) test.L'[mdf X], .absMeth/0[](): imm X
     """, """
     package test
     B:{}
@@ -1782,5 +1804,28 @@ were valid:
       .m1(b: mut B) : lent L[mut B] -> A.m(b),
       .m2(b: lent L[mut B]): mut B -> b.absMeth,
       }
+    """); }
+
+  @Test void adaptRecMdfMutBreak() { fail("""
+    In position [###]/Dummy0.fear:6:33
+    [E23 methTypeError]
+    Expected the method .get/0 to return mut test.Person[], got recMdf test.Person[].
+    Try writing the signature for .get/0 explicitly if it needs to return a recMdf type.
+    """, """
+    package test
+    Person:{}
+    Box[X]:{ recMdf .get: recMdf X }
+    BoxMutP:Box[mut Person]{}
+    F:{
+      #(p:mut Person):mut BoxMutP->{ recMdf .get: recMdf Person -> p },
+      .break():imm BoxMutP->this#({}),
+      .breakMe(b:imm BoxMutP):mut Person->b.get,
+      }
+    """); }
+  @Test void adaptRecMdfMutOk() { ok("""
+    package test
+    Person:{}
+    List[X]:{ recMdf .get(): recMdf X }
+    Family:List[mut Person]{}
     """); }
 }

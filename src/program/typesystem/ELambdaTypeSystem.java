@@ -38,7 +38,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       ).pos(b.pos());
     }
 
-    var filtered=p0.meths(Mdf.mdf, d.toIT(), depth()+1).stream()
+    var filtered=p0.meths(Mdf.recMdf, d.toIT(), depth()+1).stream()
       .filter(cmi->filterByMdf(mdf,cmi.mdf()))
       .toList();
     var sadlyAbs=filtered.stream()
@@ -142,7 +142,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
 
   default boolean filterByMdf(Mdf mdf, Mdf mMdf) {
     assert !mdf.isMdf();
-    if (mdf.is(Mdf.iso, Mdf.mut, Mdf.lent, Mdf.recMdf)) { return true; }
+    if (mdf.is(Mdf.iso, Mdf.mut, Mdf.recMdf)) { return true; }
+    if (mdf.isLent() && !mMdf.isIso()) { return true; }
     return mdf.is(Mdf.imm, Mdf.read) && mMdf.is(Mdf.imm, Mdf.read, Mdf.recMdf);
   }
 }

@@ -27,11 +27,7 @@ public interface Gamma {
   }
   default Gamma captureSelf(Program p, String x, T t, Mdf mMdf) {
     Gamma g = xi->this.getO(xi).map(ti->xT(xi,t,ti,mMdf,p));
-    Mdf selfMdf = mMdf;
-    var recMdfAsRead = mMdf.isRecMdf() ? Mdf.read : mMdf;
-    if(!t.mdf().isMdf()){
-      selfMdf = recMdfAsRead.adapt(t.mdf(), Mdf.AdaptType.Capture);
-    }
+    Mdf selfMdf = t.mdf().restrict(mMdf).orElseThrow();
     return g.add(x,t.withMdf(selfMdf));
   }
   static T xT(String x, T t, T ti, Mdf mMdf, Program p){
@@ -58,7 +54,10 @@ public interface Gamma {
           throw Fail.badCapture(x, ti, t, mMdf);
     }
     var fixedCaptured = self.isRecMdf() || !captured.isRecMdf()  ? captured : Mdf.read;
-    return self.restrict(mMdf).map(mdfi->mdfi.adapt(fixedCaptured, Mdf.AdaptType.Capture))
+    return self.restrict(mMdf).map(mdfi->{
+      assert !(mdfi.isRecMdf() && fixedCaptured.isMdf() && !ti.isGX());
+      return mdfi.adapt(fixedCaptured);
+      })
       .map(ti::withMdf)
       .orElseThrow(()->Fail.badCapture(x, ti, t, mMdf));
   }

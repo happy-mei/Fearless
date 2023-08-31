@@ -1,7 +1,6 @@
 package program.typesystem;
 
 import ast.E;
-import ast.Program;
 import ast.T;
 import failure.CompileError;
 import failure.Fail;
@@ -133,7 +132,7 @@ public interface EMethTypeSystem extends ETypeSystem {
         if (ti == null) { return t; }
 //        var ti = map.getOrDefault(gx,t);
         // TODO: what about capturing a function from read to read?
-        var newMdf = mdf0.adapt(ti, Mdf.AdaptType.ResolveRecMdf);
+        var newMdf = mdf0.adapt(ti);
         TypeRename.checkGenericBounds(gx, ti.mdf());
         return ti.withMdf(newMdf);
       },

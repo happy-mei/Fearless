@@ -15,13 +15,13 @@ public class TestMeths {
   void ok(String expected, String type, String ...code){
     var it = new Parser(Parser.dummy, type).parseFullT();
     Program p= FromContent.of(code);
-    Err.strCmpFormat(expected, p.meths(Mdf.mdf, it.toAstT().itOrThrow(), 0).toString());
+    Err.strCmpFormat(expected, p.meths(Mdf.recMdf, it.toAstT().itOrThrow(), 0).toString());
   }
   void fail(String expected, String type, String ...code) {
     var it = new Parser(Parser.dummy, type).parseFullT();
     Program p = FromContent.of(code);
     try {
-      var res = p.meths(Mdf.mdf, it.toAstT().itOrThrow(), 0);
+      var res = p.meths(Mdf.recMdf, it.toAstT().itOrThrow(), 0);
       Assertions.fail("Expected failure, got\n" + res);
     } catch (CompileError e) {
       Err.strCmp(expected, e.toString());
@@ -594,7 +594,7 @@ public class TestMeths {
     Family:List[read Person]{}
     """); }
   @Test void adaptRecMdfMut() { ok("""
-    [test.List[mut test.Person[]],recMdf.get/0()[][]:mut test.Person[]abs]
+    [test.List[mut test.Person[]],recMdf.get/0()[][]:recMdf test.Person[]abs]
     """, "test.Family", """
     package test
     Person:{}
@@ -602,7 +602,7 @@ public class TestMeths {
     Family:List[mut Person]{}
     """); }
   @Test void adaptRecMdfLent() { ok("""
-    [test.List[lent test.Person[]],recMdf.get/0()[][]:lent test.Person[]abs]
+    [test.List[lent test.Person[]],recMdf.get/0()[][]:recMdf test.Person[]abs]
     """, "test.Family", """
     package test
     Person:{}

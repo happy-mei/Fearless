@@ -211,6 +211,11 @@ public class Fail{
     return of("Modifiers are not allowed in declarations or implementation lists: "+ty);
   }
 
+  public static CompileError mustProvideImplsIfMdfProvided() {
+    // TODO wording of this message
+    return of("At least one trait must be listed for a lambda to implement if a modifier for the lambda is provided.");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -266,6 +271,7 @@ enum ErrorCode {
   multipleIsoUsage,
   noMdfInFormalParams,
   privateMethCall,
-  privateTraitImplementation;
+  privateTraitImplementation,
+  mustProvideImplsIfMdfProvided;
   int code() {return this.ordinal() + 1;}
 }

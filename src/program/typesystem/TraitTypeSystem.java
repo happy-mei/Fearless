@@ -27,7 +27,7 @@ public interface TraitTypeSystem {
     //TODO: is this ok, by reusing the other meth?
     //if so, should we remove the other meth from the formalism?
     var cT=new IT<>(c,xs.stream().map(x->new T(Mdf.mdf,x)).toList());
-    try{ p().meths(Mdf.mdf, cT,0); }
+    try{ p().meths(Mdf.recMdf, cT,0); }
     catch(CompileError ce){ return Optional.of(ce); }
     assert d.lambda().mdf()==Mdf.mdf;
     return ETypeSystem.of(p(),Gamma.empty(),Optional.empty(),0).bothT(d).err();

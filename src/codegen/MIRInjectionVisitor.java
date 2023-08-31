@@ -29,7 +29,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     return new MIR.Program(ds);
   }
   public MIR.Trait visitDec(String pkg, T.Dec dec) {
-    var ms = p.meths(Mdf.mdf, dec.toIT(), 0).stream()
+    var ms = p.meths(Mdf.recMdf, dec.toIT(), 0).stream()
       .map(cm->{
         var m = p.ds().get(cm.c().name())
           .lambda()
@@ -42,7 +42,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       })
       .toList();
     var impls = simplifyImpls(dec.lambda().its().stream().filter(it->!it.name().equals(dec.name())).toList());
-    var canSingleton = p.meths(Mdf.mdf, dec.toIT(), 0).stream().noneMatch(CM::isAbs);
+    var canSingleton = p.meths(Mdf.recMdf, dec.toIT(), 0).stream().noneMatch(CM::isAbs);
     return new MIR.Trait(
       dec.name(),
       dec.gxs(),
@@ -54,7 +54,9 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
 
   public MIR.MCall visitMCall(String pkg, E.MCall e, Map<String, T> gamma) {
     var recv = e.receiver().accept(this, pkg, gamma);
-    var meth = p.meths(recv.t().mdf(), recv.t().itOrThrow(), e.name(), 0).orElseThrow();
+    var recvMdf = recv.t().mdf();
+    if (recvMdf.isMdf()) { recvMdf = Mdf.recMdf; }
+    var meth = p.meths(recvMdf, recv.t().itOrThrow(), e.name(), 0).orElseThrow();
     var renamer = TypeRename.core(p);
     var cm = renamer.renameSigOnMCall(meth.sig(), renamer.renameFun(e.ts(), meth.sig().gens()));
     return new MIR.MCall(
