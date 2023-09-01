@@ -60,7 +60,7 @@ public interface TypeRename<T extends Id.Ty>{
       this.recvMdf = recvMdf;
     }
 
-    /** This is adaptRecMDF(MDF) ITX with t = MDF ITX */
+    /** This is part of MDF ITX[[MDF0; Ts=Xs]] */
     public ast.T propagateMdf(Mdf mdf, ast.T t){
       if(!mdf.isRecMdf()){ return super.propagateMdf(mdf,t); }
       assert t!=null;
@@ -88,7 +88,6 @@ public interface TypeRename<T extends Id.Ty>{
       int i = gxs.indexOf(gx);
       if(i==-1){ return null; }
       var t = ts.get(i);
-      checkGenericBounds(gx, mdf(t));
       return t;
     };
   }
@@ -101,16 +100,10 @@ public interface TypeRename<T extends Id.Ty>{
         var renamed = f.apply(gx);
         if(renamed==null){ return t; }
         if (isInfer(renamed)){ return renamed; }
-        checkGenericBounds(gx, mdf(renamed));
         return fixMut(propagateMdf(mdf(t),renamed));
       },
       it->fixMut(newT(mdf(t),renameIT(it,f)))
     );
-  }
-  static void checkGenericBounds(Id.GX<?> gx, Mdf newMdf) throws CompileError {
-    if (gx.bounds().isEmpty()) { return; }
-    if (gx.bounds().contains(newMdf)) { return; }
-    throw Bug.todo(); // TODO: error message
   }
   default T propagateMdf(Mdf mdf, T t){
     assert t!=null;
