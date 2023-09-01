@@ -1828,4 +1828,22 @@ were valid:
     List[X]:{ recMdf .get(): recMdf X }
     Family:List[mut Person]{}
     """); }
+
+  @Test void badIsoCapture() { fail("""
+    """, """
+    package test
+    B:{}
+    L:{ iso .absMeth: mut B }
+    A:{ recMdf .m(par: mut B) : iso L -> iso L{.absMeth->par} }
+    """); }
+  @Test void badImmCapture() { fail("""
+    In position [###]/Dummy0.fear:4:54
+    [E30 badCapture]
+    'read par' cannot be captured by an imm method in an imm lambda.
+    """, """
+    package test
+    B:{}
+    L:{ imm .absMeth: read B }
+    A:{ recMdf .m(par: read B) : imm L -> imm L{.absMeth->par} }
+    """); }
 }

@@ -439,8 +439,8 @@ public class TestCaptureRules {
   @Test void t431(){ c1(imm, mut, iso, of(/*impossible*/)); }
   @Test void t432(){ c1(read, mut, iso, of(/*impossible*/)); }
   @Test void t433(){ c1(lent, mut, iso, of()); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
-  @Test void t434(){ c1(mut, mut, iso, of(read,lent,mut)); }
-  @Test void t435(){ c1(iso, mut, iso, of(read,lent,mut)); }
+  @Test void t434(){ c1(mut, mut, iso, of(read,lent,mut)); } // TODO: maybe no could be unsound
+  @Test void t435(){ c1(iso, mut, iso, of()); }
   @Test void t436(){ c1(mdf, mut, iso, of(/*not well formed lambda*/)); }
   @Test void t437(){ c1(recMdf, mut, iso, of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
