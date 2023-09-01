@@ -133,16 +133,6 @@ public interface Program {
       });
   }
 
-  default Stream<T> getNoMutHygs(Id.IT<ast.T> t) {
-    var its = itsOf(t);
-    return Stream.concat(
-      its.stream()
-        .filter(it->it.name().equals(Magic.NoMutHyg))
-        .map(it->it.ts().get(0)),
-      its.stream().flatMap(this::getNoMutHygs)
-    );
-  }
-
   default failure.Res typeOf(List<String>xs,List<ast.T>ts, ast.E e) {
     var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
     var v = ETypeSystem.of(this,g, Optional.empty(),0);

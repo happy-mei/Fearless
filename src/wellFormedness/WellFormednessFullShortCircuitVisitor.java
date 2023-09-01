@@ -120,8 +120,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
 
   @Override
   public Optional<CompileError> visitDec(T.Dec d) {
-    return noMutHygValid(d).map(err->err.pos(d.posOrUnknown()))
-      .or(()->hasNonDisjointXs(d.gxs().stream().map(Id.GX::name).toList(), d))
+    return hasNonDisjointXs(d.gxs().stream().map(Id.GX::name).toList(), d)
       .or(()->super.visitDec(d));
   }
 
@@ -216,19 +215,6 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       if(ks.contains(key)){ return Optional.of(Fail.cyclicImplRelation(key).pos(entry.getValue().pos())); }
     }
     return Optional.empty();
-  }
-
-  private Optional<CompileError> noMutHygValid(T.Dec dec) {
-    return dec.lambda().its().stream()
-      .filter(it->it.name().equals(Magic.NoMutHyg))
-      .flatMap(it->it.ts().stream())
-      .<Optional<CompileError>>map(t->t.match(
-          gx->dec.gxs().contains(gx) ? Optional.empty() : Optional.of(Fail.invalidNoMutHyg(t)),
-          it->Optional.of(Fail.concreteInNoMutHyg(t))
-      ))
-      .dropWhile(Optional::isEmpty)
-      .findFirst()
-      .flatMap(o->o);
   }
 
   private Optional<CompileError> validMethMdf(E.Meth e) {

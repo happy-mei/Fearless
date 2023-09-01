@@ -9,7 +9,6 @@ import java.util.function.Function;
 
 public class Magic {
   public static final Id.DecId Main = new Id.DecId("base.Main", 0);
-  public static final Id.DecId NoMutHyg = new Id.DecId("base.NoMutHyg", 1);
   public static final Id.DecId Sealed = new Id.DecId("base.Sealed", 0);
   public static final Id.DecId UInt = new Id.DecId("base.UInt", 0);
   public static final Id.DecId Int = new Id.DecId("base.Int", 0);

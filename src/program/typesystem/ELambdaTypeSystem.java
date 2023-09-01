@@ -68,7 +68,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     T retT = expectedT //TOP LEVEL = declared type
       .map(t->t.withMdf(b.mdf()))
       .orElseGet(()->new T(b.mdf(), b.its().get(0)));
-    T selfT = TypeRename.core(p()).fixMut(new T(b.mdf(),d.toIT()));
+    T selfT = new T(b.mdf(), d.toIT());
     var selfName=b.selfName();
     List<CompileError> mRes = b.meths().stream().flatMap(mi->{
       try {

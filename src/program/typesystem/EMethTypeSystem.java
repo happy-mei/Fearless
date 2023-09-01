@@ -130,8 +130,7 @@ public interface EMethTypeSystem extends ETypeSystem {
         }
         var ti = map.get(gx);
         if (ti == null) { return t; }
-//        var ti = map.getOrDefault(gx,t);
-        // TODO: what about capturing a function from read to read?
+        // TODO: what about capturing a function from read to read?  02/09/23: Not sure what this TODO means
         var newMdf = mdf0.adapt(ti);
         return ti.withMdf(newMdf);
       },

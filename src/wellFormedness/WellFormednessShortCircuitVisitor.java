@@ -79,12 +79,14 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   private Optional<CompileError> noHygInMut(T t) {
-    var fixed = TypeRename.core(p).fixMut(t);
-    if (!fixed.equals(t)) {
-      return Optional.of(Fail.mutCapturesHyg(t));
-    }
-
+    // TODO: not sure how to implement this without NoMutHyg because how do we distinguish captures from functions at the type level
     return Optional.empty();
+//    var fixed = TypeRename.core(p).fixMut(t);
+//    if (!fixed.equals(t)) {
+//      return Optional.of(Fail.mutCapturesHyg(t));
+//    }
+//
+//    return Optional.empty();
   }
 
   private Optional<CompileError> norecMdfInNonRecMdf(E.Sig s, Id.MethName name) {

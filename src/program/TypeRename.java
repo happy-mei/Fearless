@@ -1,9 +1,7 @@
 package program;
 
-import failure.CompileError;
 import id.Id;
 import id.Mdf;
-import utils.Bug;
 
 import java.util.List;
 import java.util.function.Function;
@@ -18,13 +16,6 @@ public interface TypeRename<T extends Id.Ty>{
     }
     public astFull.T withMdf(astFull.T t, Mdf mdf) { return t.withMdf(mdf); }
     public boolean isInfer(astFull.T t) { return t.isInfer(); }
-    public Stream<Mdf> getNoMutHygMdfs(astFull.T t) {
-      if (t.isInfer()) { return Stream.empty(); }
-      if (!(t.rt() instanceof Id.IT<astFull.T> it)) { return Stream.empty(); }
-      Id.IT<ast.T> coreIT; try { coreIT = it.toAstIT(astFull.T::toAstT); }
-        catch (astFull.T.MatchOnInfer e) { return Stream.empty(); }
-      return p.getNoMutHygs(coreIT).map(ast.T::mdf);
-    }
   }
   class CoreTTypeRename implements TypeRename<ast.T> {
     private final Program p;
@@ -47,10 +38,6 @@ public interface TypeRename<T extends Id.Ty>{
       );
     }
     public boolean isInfer(ast.T t) { return false; }
-    public Stream<Mdf> getNoMutHygMdfs(ast.T t) {
-      if (!(t.rt() instanceof Id.IT<ast.T> it)) { return Stream.empty(); }
-      return p.getNoMutHygs(it).map(ast.T::mdf);
-    }
   }
   class CoreRecMdfTypeRename extends CoreTTypeRename {
     private final Mdf recvMdf;
@@ -92,7 +79,6 @@ public interface TypeRename<T extends Id.Ty>{
     };
   }
   boolean isInfer(T t);
-  Stream<Mdf> getNoMutHygMdfs(T t);
   default T renameT(T t, Function<Id.GX<T>,T> f){
     if(isInfer(t)){ return t; }
     return matchT(t,
@@ -100,20 +86,14 @@ public interface TypeRename<T extends Id.Ty>{
         var renamed = f.apply(gx);
         if(renamed==null){ return t; }
         if (isInfer(renamed)){ return renamed; }
-        return fixMut(propagateMdf(mdf(t),renamed));
+        return propagateMdf(mdf(t),renamed);
       },
-      it->fixMut(newT(mdf(t),renameIT(it,f)))
+      it->newT(mdf(t),renameIT(it,f))
     );
   }
   default T propagateMdf(Mdf mdf, T t){
     assert t!=null;
     if(mdf.isMdf()){ return t; }
     return withMdf(t,mdf);
-  }
-  default T fixMut(T t) {
-    if (!mdf(t).isMut()) { return t; }
-    var shouldFix = getNoMutHygMdfs(t).anyMatch(Mdf::isHyg);
-    if (!shouldFix) { return t; }
-    return propagateMdf(Mdf.lent, t);
   }
 }
