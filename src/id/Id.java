@@ -51,7 +51,7 @@ public class Id {
   public interface RT<TT extends Ty>{ <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it); }
   public sealed interface Ty permits ast.T, astFull.T {}
 
-  public record GX<TT extends Ty>(String name, List<Mdf> bounds) implements RT<TT>{
+  public record GX<TT extends Ty>(String name) implements RT<TT>{
     private static final AtomicInteger FRESH_N = new AtomicInteger(0);
     private static HashMap<Integer, List<GX<ast.T>>> freshNames = new HashMap<>();
 
@@ -65,7 +65,7 @@ public class Id {
     public static List<GX<ast.T>> standardNames(int n) {
       // this will never clash with the other FearN$ names because they are only used on declarations
       // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).
-      return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("FearX" + fresh + "$", List.of())).toList();
+      return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("FearX" + fresh + "$")).toList();
     }
     public static <TT extends Ty> GX<TT> fresh() {
       var n = FRESH_N.getAndUpdate(n_ -> {
@@ -73,7 +73,7 @@ public class Id {
         if (next == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
         return next;
       });
-      return new GX<>("Fear" + n + "$", List.of());
+      return new GX<>("Fear" + n + "$");
     }
 
     public GX{ assert Id.validGX(name); }
@@ -91,13 +91,9 @@ public class Id {
     }
 
     @Override public String toString(){ return name(); }
-    public String toStringWithBounds(){
-      if (bounds.isEmpty()) { return toString(); }
-      return name()+": "+bounds();
-    }
     public GX<ast.T> toAstGX() { return (GX<ast.T>) this; }
     public GX<astFull.T> toFullAstGX() { return (GX<astFull.T>) this; }
-    public GX<TT> withName(String name) { return new GX<>(name, List.of()); }
+    public GX<TT> withName(String name) { return new GX<>(name); }
   }
   public record IT<TT extends Ty>(Id.DecId name, List<TT> ts)implements RT<TT>{
     public IT{

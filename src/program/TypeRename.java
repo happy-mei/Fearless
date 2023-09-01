@@ -1,7 +1,11 @@
 package program;
 
+import ast.T;
+import failure.CompileError;
 import id.Id;
 import id.Mdf;
+import program.typesystem.Gamma;
+import program.typesystem.XBs;
 
 import java.util.List;
 import java.util.function.Function;
@@ -26,7 +30,11 @@ public interface TypeRename<T extends Id.Ty>{
     public ast.T withMdf(ast.T t, Mdf mdf) { return t.withMdf(mdf); }
     public ast.E.Sig renameSig(ast.E.Sig sig, Function<Id.GX<ast.T>,ast.T>f){
       assert sig.gens().stream().allMatch(gx->f.apply(gx)==null);
-      return renameSigOnMCall(sig, f);
+      try {
+        return renameSigOnMCall(sig, f);
+      } catch (CompileError err) {
+        throw err.parentPos(sig.pos());
+      }
     }
     public ast.E.Sig renameSigOnMCall(ast.E.Sig sig, Function<Id.GX<ast.T>,ast.T>f){
       return new ast.E.Sig(
@@ -48,14 +56,15 @@ public interface TypeRename<T extends Id.Ty>{
     }
 
     /** This is part of MDF ITX[[MDF0; Ts=Xs]] */
-    public ast.T propagateMdf(Mdf mdf, ast.T t){
-      if(!mdf.isRecMdf()){ return super.propagateMdf(mdf,t); }
+    @Override public ast.T propagateMdf(Mdf mdf, XBs xbs, ast.T t){
+      if(!mdf.isRecMdf()){ return super.propagateMdf(mdf, xbs, t); }
       assert t!=null;
       if (recvMdf.isMdf() && t.mdf().isMdf()) {
         return t.withMdf(Mdf.recMdf);
       }
-      var resolvedMdf = recvMdf.adapt(t.mdf());
-      return t.withMdf(resolvedMdf);
+//      var resolvedMdf = recvMdf.adapt(t.mdf());
+      var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, new ast.T(recvMdf, new Id.IT<>("$fake$", List.of())), t, Mdf.recMdf);
+      return t.withMdf(resolvedMdf.mdf());
     }
   }
   static FullTTypeRename full(Program p) { return new FullTTypeRename(p); }
@@ -86,12 +95,13 @@ public interface TypeRename<T extends Id.Ty>{
         var renamed = f.apply(gx);
         if(renamed==null){ return t; }
         if (isInfer(renamed)){ return renamed; }
-        return propagateMdf(mdf(t),renamed);
+        // TODO: put real bounds in
+        return propagateMdf(mdf(t), XBs.empty(), renamed);
       },
       it->newT(mdf(t),renameIT(it,f))
     );
   }
-  default T propagateMdf(Mdf mdf, T t){
+  default T propagateMdf(Mdf mdf, XBs xbs, T t){
     assert t!=null;
     if(mdf.isMdf()){ return t; }
     return withMdf(t,mdf);

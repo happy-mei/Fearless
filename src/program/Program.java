@@ -8,7 +8,6 @@ import files.Pos;
 import id.Id;
 import id.Mdf;
 import id.Refresher;
-import magic.Magic;
 import program.inference.RefineTypes;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
@@ -190,7 +189,7 @@ public interface Program {
 
     var cm = myM_.get(0);
     var sig = cm.sig().toAstFullSig();
-    var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$", List.of())).collect(Collectors.toSet());
+    var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
     var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(this, freshGXsSet, t)).toList();
     var restoredRt = RefineTypes.regenerateInfers(this, freshGXsSet, sig.ret());
     var restoredSig = new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos());

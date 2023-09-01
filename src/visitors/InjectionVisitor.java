@@ -51,7 +51,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   public ast.T.Dec visitDec(astFull.T.Dec d){
     return new ast.T.Dec(
       d.name(),
-      d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name(), gx.bounds())).toList(),
+      d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList(),
       this.visitLambda(d.lambda().withITs(Push.of(d.toIT(), d.lambda().its()))),
       d.pos()
     );
@@ -111,6 +111,6 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   private Id.GX<ast.T> visitGX(Id.GX<astFull.T> gx){
-    return new Id.GX<>(gx.name(), gx.bounds());
+    return new Id.GX<>(gx.name());
   }
 }

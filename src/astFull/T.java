@@ -41,7 +41,7 @@ public final class T implements Id.Ty {
   }
   public ast.T toAstT() {
     return this.match(
-      gx->new ast.T(mdf(), new Id.GX<>(gx.name(), List.of())),
+      gx->new ast.T(mdf(), new Id.GX<>(gx.name())),
       it->{
         var ts = it.ts().stream().map(T::toAstT).toList();
         return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
@@ -51,10 +51,10 @@ public final class T implements Id.Ty {
     if (this.isInfer()) {
       int n = nFresh.get();
       nFresh.set(n+1);
-      return new ast.T(Mdf.mdf, new Id.GX<>("FearTmp"+n+"$", List.of()));
+      return new ast.T(Mdf.mdf, new Id.GX<>("FearTmp"+n+"$"));
     }
     return this.match(
-      gx->new ast.T(mdf(), new Id.GX<>(gx.name(), List.of())),
+      gx->new ast.T(mdf(), new Id.GX<>(gx.name())),
       it->{
         var ts = it.ts().stream().map(t->t.toAstTFreshenInfers(nFresh)).toList();
         return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
@@ -129,20 +129,20 @@ public final class T implements Id.Ty {
     public Id.IT<ast.T> toAstT() {
       return new Id.IT<>(//AstFull.T || Ast.T
         this.name(),
-        this.gxs().stream().map(gx->new ast.T(Mdf.mdf, new Id.GX<>(gx.name(), List.of()))).toList()
+        this.gxs().stream().map(gx->new ast.T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
       );
     }
 
     public Id.IT<T> toIT() {
       return new Id.IT<>(//AstFull.T || Ast.T
         this.name(),
-        this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name(), List.of()))).toList()
+        this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
       );
     }
 
     @Override
     public String toString() {
-      return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toStringWithBounds).collect(Collectors.joining(",")) + "],lambda=" + lambda + "]";
+      return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],lambda=" + lambda + "]";
     }
   }
 

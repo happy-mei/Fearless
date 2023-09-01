@@ -15,6 +15,6 @@ public class Refresher<TT extends Id.Ty> {
   }
   public Id.GX<TT> freshName() {
     if (n + 1 == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
-    return new Id.GX<>("X" + depth + "/" + n++ + "$", List.of()); // i.e. X0/2$ for top level, X1/0$ for a nested one
+    return new Id.GX<>("X" + depth + "/" + n++ + "$"); // i.e. X0/2$ for top level, X1/0$ for a nested one
   }
 }

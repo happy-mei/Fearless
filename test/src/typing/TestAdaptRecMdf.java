@@ -4,6 +4,7 @@ import failure.CompileError;
 import id.Mdf;
 import net.jqwik.api.*;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
 import utils.Err;
@@ -27,6 +28,39 @@ public class TestAdaptRecMdf {
     } catch (CompileError e) {
       Err.strCmp(expected, e.toString());
     }
+  }
+
+  @Test void adaptMutRecMdfMutImm() {
+    ok("""
+    [test.List[imm test.Person[]],recMdf.get/0()[][]:imm test.Person[]abs]
+    """, "test.Family", Mdf.mut, """
+    package test
+    Person:{}
+    List[X]:{ recMdf .get(): recMdf X }
+    Family:List[imm Person]{}
+    """);
+  }
+  @Test void adaptMutRecMdfMutMut() {
+    ok("""
+    [test.List[mut test.Person[]],recMdf.get/0()[][]:recMdf test.Person[]abs]
+    """, "test.Family", Mdf.mut, """
+    package test
+    Person:{}
+    List[X]:{ recMdf .get(): recMdf X }
+    Family:List[mut Person]{}
+    """);
+  }
+  @Test void adaptMutRecMdfMutRead() {
+    fail("""
+      In position [###]/Dummy0.fear:3:10
+      [E30 badCapture]
+      'read test.Person[]' cannot be captured by a recMdf method in a mut lambda.
+      """, "test.Family", Mdf.mut, """
+      package test
+      Person:{}
+      List[X]:{ recMdf .get(): recMdf X }
+      Family:List[read Person]{}
+      """);
   }
 
   @Provide Arbitrary<Mdf> genericMdfOnConcrete() {

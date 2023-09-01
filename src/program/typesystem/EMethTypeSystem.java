@@ -126,7 +126,8 @@ public interface EMethTypeSystem extends ETypeSystem {
       gx->{
         if(!mdf.isRecMdf()){
           var renamed = map.getOrDefault(gx, t);
-          return TypeRename.core(p()).propagateMdf(mdf, renamed);
+          // TODO: put real bounds in
+          return TypeRename.core(p()).propagateMdf(mdf, XBs.empty(), renamed);
         }
         var ti = map.get(gx);
         if (ti == null) { return t; }

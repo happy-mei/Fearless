@@ -69,7 +69,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     var selfVar = "var "+name(selfName)+" = this;\n";
 //    var gens = meth.gens().isEmpty() ? "" : "<"+String.join(",", meth.gens())+"> ";
     var args = meth.xs().stream()
-      .map(x->new MIR.X(x.name(), new T(x.t().mdf(), new Id.GX<>("Object", List.of())))) // required for overriding meths with generic args
+      .map(x->new MIR.X(x.name(), new T(x.t().mdf(), new Id.GX<>("Object")))) // required for overriding meths with generic args
       .map(this::typePair)
       .collect(Collectors.joining(","));
     var visibility = concrete ? "public " : "default ";

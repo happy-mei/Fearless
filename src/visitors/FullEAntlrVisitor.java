@@ -3,7 +3,6 @@ package visitors;
 import astFull.E;
 import astFull.Package;
 import astFull.T;
-import failure.CompileError;
 import files.Pos;
 import generated.FearlessParser.*;
 import id.Id;
@@ -154,7 +153,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       var gx = t.gxOrThrow();
       // TODO: do we want to allow "mdf" or "iso" in bounds?
       var bounds = declCtx.mdf().stream().map(this::visitMdf).toList();
-      return new T(t.mdf(), new Id.GX<>(gx.name(), bounds));
+      return new T(t.mdf(), new Id.GX<>(gx.name()));
     }).toList());
   }
   public Optional<List<Id.GX<T>>> visitMGenParams(MGenContext ctx){
@@ -247,7 +246,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     Optional<Id.IT<T>> resolved = isFullName ? Optional.empty() : resolve.apply(name);
     var isIT = isFullName || resolved.isPresent();
     if(!isIT){
-      var t = new T(mdf, new Id.GX<>(name, List.of()));
+      var t = new T(mdf, new Id.GX<>(name));
       if(mGen.isPresent()){ throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx)); }
       return t;
     }

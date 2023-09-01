@@ -7,6 +7,10 @@ import ast.T;
 import id.Mdf;
 
 import java.util.Optional;
+import java.util.Set;
+
+import static id.Mdf.*;
+import static java.util.Set.of;
 
 public interface Gamma {
   default T get(ast.E.X x) {
@@ -30,10 +34,36 @@ public interface Gamma {
     Mdf selfMdf = t.mdf().restrict(mMdf).orElseThrow();
     return g.add(x,t.withMdf(selfMdf));
   }
+  static T xT(String x, XBs xbs, T self, T captured, Mdf mMdf){
+    var bounds = captured.isMdfX() ? xbs.get(captured.gxOrThrow()) : null;
+    if (captured.isMdfX() && of(imm, iso).containsAll(bounds)) { return captured.withMdf(imm); }
+    if (captured.mdf().is(imm, iso)) { return captured.withMdf(imm); }
+    if (mMdf.isIso()) { return xT(x, xbs, self, captured, mut); }
+
+    if (self.mdf().isMut()) {
+      if (captured.isMdfX()) {
+        if (mMdf.isMut() && of(imm, mut).containsAll(bounds)) { return captured; }
+        if (mMdf.isImm() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(imm); }
+        if (mMdf.isLent() && of(imm, mut).containsAll(bounds)) { return captured.withMdf(lent); }
+        if (mMdf.isLent() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(read); }
+        if (mMdf.isRead() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(read); }
+        if (mMdf.isRecMdf() && of(imm, mut).containsAll(bounds)) { return captured.withMdf(recMdf); }
+      }
+      if (mMdf.isMut() && captured.mdf().is(mut, imm)) { return captured; }
+      if (mMdf.isIso() && captured.mdf().is(mut, imm, iso)) { return captured.withMdf(imm); }
+      if (mMdf.isLent() && captured.mdf().is(mut, imm)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
+      if (mMdf.isRead() && captured.mdf().isMut()) { return captured.withMdf(read); }
+      if (mMdf.isRecMdf() && captured.mdf().isMut()) { return captured.withMdf(recMdf); }
+    }
+
+    // TODO: other cases
+
+    throw Fail.badCapture(x, captured, self, mMdf);
+  }
   static T xT(String x, T t, T ti, Mdf mMdf, Program p){
     var self = t.mdf();
     var captured = ti.mdf();
-    if (t.mdf().isIso()) { return xT(x, t.withMdf(Mdf.mut), ti, mMdf, p); }
+    if (t.mdf().isIso()) { return xT(x, t.withMdf(mut), ti, mMdf, p); }
     var isoToImm = captured.isIso();
     if (isoToImm){ return xT(x, t, ti.withMdf(Mdf.imm), mMdf, p); }
 
@@ -47,7 +77,7 @@ public interface Gamma {
     // TODO: X cases with bounds
     var mutCapturesHyg = self.isMut() && captured.is(Mdf.read, Mdf.lent, Mdf.recMdf);
 
-    var immCapturesMuty = self.isImm() && captured.is(Mdf.read, Mdf.lent, Mdf.mut, Mdf.recMdf);
+    var immCapturesMuty = self.isImm() && captured.is(Mdf.read, Mdf.lent, mut, Mdf.recMdf);
 
     // TODO: recmdf cases
     var recMdfCapturesMuty = self.isRecMdf() && captured.isLikeMut();

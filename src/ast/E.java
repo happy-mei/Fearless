@@ -90,7 +90,7 @@ public interface E extends HasPos {
     public astFull.E.Sig toAstFullSig() {
       return new astFull.E.Sig(
         mdf,
-        gens.stream().map(gx->new Id.GX<astFull.T>(gx.name(), List.of())).toList(),
+        gens.stream().map(gx->new Id.GX<astFull.T>(gx.name())).toList(),
         ts.stream().map(T::toAstFullT).toList(),
         ret.toAstFullT(),
         pos

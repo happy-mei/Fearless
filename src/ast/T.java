@@ -28,9 +28,10 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res, Id.Ty {
   }
   public boolean isIt() { return this.match(gx->false, it->true); }
   public boolean isGX() { return this.match(gx->true, it->false); }
+  public boolean isMdfX() { return this.match(gx->this.mdf().isMdf(), it->false); }
   public astFull.T toAstFullT() {
     return this.match(
-      gx->new astFull.T(mdf(), new Id.GX<>(gx.name(), List.of())),
+      gx->new astFull.T(mdf(), new Id.GX<>(gx.name())),
       it->{
         var ts = it.ts().stream().map(T::toAstFullT).toList();
         return new astFull.T(mdf(), new Id.IT<>(it.name(), ts));
@@ -56,11 +57,11 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res, Id.Ty {
     public Id.IT<T> toIT(){
       return new Id.IT<>(//AstFull.T || Ast.T
         this.name(),
-        this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name(), List.of()))).toList()
+        this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
       );
     }
     @Override public String toString() {
-      return "Dec[name="+name+",gxs=["+gxs.stream().map(Id.GX::toStringWithBounds).collect(Collectors.joining(","))+"],lambda="+lambda+"]";
+      return "Dec[name="+name+",gxs=["+gxs.stream().map(Id.GX::toString).collect(Collectors.joining(","))+"],lambda="+lambda+"]";
     }
   }
 }
