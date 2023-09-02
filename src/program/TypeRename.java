@@ -63,7 +63,7 @@ public interface TypeRename<T extends Id.Ty>{
         return t.withMdf(Mdf.recMdf);
       }
 //      var resolvedMdf = recvMdf.adapt(t.mdf());
-      var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, new ast.T(recvMdf, new Id.IT<>("$fake$", List.of())), t, Mdf.recMdf);
+      var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, recvMdf, t, Mdf.recMdf);
       return t.withMdf(resolvedMdf.mdf());
     }
   }

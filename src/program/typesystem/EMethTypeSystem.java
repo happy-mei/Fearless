@@ -132,8 +132,10 @@ public interface EMethTypeSystem extends ETypeSystem {
         var ti = map.get(gx);
         if (ti == null) { return t; }
         // TODO: what about capturing a function from read to read?  02/09/23: Not sure what this TODO means
-        var newMdf = mdf0.adapt(ti);
-        return ti.withMdf(newMdf);
+//        var newMdf = mdf0.adapt(ti);
+//        var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, new ast.T(recvMdf, new Id.IT<>("$fake$", List.of())), t, Mdf.recMdf);
+        return Gamma.xT(ti.rt().toString(), xbs(), mdf0, ti, mdf0);
+//        return ti.withMdf(newMdf);
       },
       it->{
         var newTs = it.ts().stream().map(ti->fancyRename(ti, mdf0, map)).toList();

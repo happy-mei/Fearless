@@ -11,6 +11,7 @@ import id.Refresher;
 import program.inference.RefineTypes;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
+import program.typesystem.XBs;
 import utils.*;
 import visitors.CloneVisitor;
 
@@ -128,19 +129,21 @@ public interface Program {
 
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
-        return isType(xs, ts, e, m2.sig().ret());
+        // TODO: compute XBs
+        return isType(xs, ts, XBs.empty(), e, m2.sig().ret());
       });
   }
 
-  default failure.Res typeOf(List<String>xs,List<ast.T>ts, ast.E e) {
-    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
-    var v = ETypeSystem.of(this,g, Optional.empty(),0);
-    return e.accept(v);
-  }
+  // TODO: delete if unused
+//  default failure.Res typeOf(List<String>xs,List<ast.T>ts, ast.E e) {
+//    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
+//    var v = ETypeSystem.of(this, g Optional.empty(),0);
+//    return e.accept(v);
+//  }
 
-  default boolean isType(List<String>xs,List<ast.T>ts, ast.E e, ast.T expected) {
+  default boolean isType(List<String>xs, List<ast.T>ts, XBs xbs, ast.E e, ast.T expected) {
     var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
-    var v = ETypeSystem.of(this,g, Optional.of(expected),0);
+    var v = ETypeSystem.of(this, g, xbs, Optional.of(expected),0);
     var res = e.accept(v);
     return res.resMatch(t->isSubType(t,expected),err->false);
   }

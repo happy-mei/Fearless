@@ -135,8 +135,8 @@ public class Fail{
     return of("\"_\" ignores the argument in that position and thus cannot be used as an identifier in an expression.");
   }
 
-  public static CompileError badCapture(String x, ast.T xT, ast.T lambdaT, Mdf methMdf) {
-    return of("'"+xT.mdf()+" "+x+"' cannot be captured by "+aVsAn(methMdf)+" method in "+aVsAn(lambdaT.mdf())+" lambda.");
+  public static CompileError badCapture(String x, ast.T xT, Mdf lambdaMdf, Mdf methMdf) {
+    return of("'"+xT.mdf()+" "+x+"' cannot be captured by "+aVsAn(methMdf)+" method in "+aVsAn(lambdaMdf)+" lambda.");
   }
 
   public static CompileError invalidNum(String n, String kind) {
