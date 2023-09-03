@@ -83,7 +83,8 @@ public interface Gamma {
     }
 
     if (self.isRecMdf()) {
-      if (mMdf.isRecMdf() && captured.mdf().is(mdf, recMdf)) { return captured.withMdf(recMdf); }
+      if (captured.isMdfX() && of(mut, imm, lent, read).containsAll(bounds)) { return captured.withMdf(recMdf); }
+      if (mMdf.isRecMdf() && captured.mdf().isMdf()) { return captured; }
     }
 
     if (self.isIso()) {
