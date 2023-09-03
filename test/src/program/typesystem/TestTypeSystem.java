@@ -1830,6 +1830,9 @@ were valid:
     """); }
 
   @Test void badIsoCapture() { fail("""
+    In position [###]/Dummy0.fear:4:53
+    [E30 badCapture]
+    'mut par' cannot be captured by a mut method in a iso lambda.
     """, """
     package test
     B:{}
