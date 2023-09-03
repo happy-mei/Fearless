@@ -5,8 +5,11 @@ import astFull.T;
 import id.Id;
 import id.Id.MethName;
 import id.Mdf;
+import utils.Mapper;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public interface FullCloneVisitor {
   default E.Meth visitMeth(E.Meth e){ return new E.Meth(
@@ -56,6 +59,10 @@ public interface FullCloneVisitor {
   default T.Dec visitDec(T.Dec d) { return new T.Dec(
     d.name(),
     d.gxs().stream().map(this::visitGX).toList(),
+    Mapper.of(acc->d.bounds().entrySet().stream().forEach(kv->{
+      var res = kv.getValue().stream().map(this::visitMdf).collect(Collectors.toSet());
+      acc.put(kv.getKey(), res);
+    })),
     visitLLambda(d.lambda()),
     d.pos()
   );}

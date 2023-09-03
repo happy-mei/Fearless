@@ -17,10 +17,9 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import utils.*;
 
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class ParserFailed extends RuntimeException{}
@@ -142,29 +141,38 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     E res=new E.MCall(root, new MethName(m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
     return desugar(res,newTail);
   }
-  public Optional<List<T>> visitMGen(MGenContext ctx, boolean canMdf){
+  public Optional<List<T>> visitMGen(MGenContext ctx, boolean isDecl){
     if(ctx.children==null){ return Optional.empty(); }//subsumes check(ctx);
     var noTs = ctx.genDecl()==null || ctx.genDecl().isEmpty();
     if(ctx.OS() == null){ return Optional.empty(); }
     if(noTs){ return Optional.of(List.of()); }
     return Optional.of(ctx.genDecl().stream().map(declCtx->{
-      var t = visitT(declCtx.t(), canMdf);
+      var t = visitT(declCtx.t(), isDecl);
       if (declCtx.mdf() == null || declCtx.mdf().isEmpty()) { return t; }
       var gx = t.gxOrThrow();
-      // TODO: do we want to allow "mdf" or "iso" in bounds?
-      var bounds = declCtx.mdf().stream().map(this::visitMdf).toList();
       return new T(t.mdf(), new Id.GX<>(gx.name()));
     }).toList());
   }
-  public Optional<List<Id.GX<T>>> visitMGenParams(MGenContext ctx){
+  public record GenericParams(List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds) {}
+  public Optional<GenericParams> visitMGenParams(MGenContext ctx){
     var mGens = this.visitMGen(ctx, false);
-    return mGens.map(ts->ts.stream()
-      .map(t->t.match(
-        gx->gx,
-        it->{throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx));}
-      ))
-      .toList()
-    );
+    return mGens
+      .map(ts->ts.stream()
+        .map(t->t.match(
+          gx->gx,
+          it->{throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx));}
+        ))
+        .toList())
+      .map(gxs -> {
+        Map<Id.GX<T>, Set<Mdf>> boundsMap = Mapper.of(acc->Streams.zip(ctx.genDecl(), gxs)
+          .filter((declCtx, gx)->declCtx.mdf() != null && !declCtx.mdf().isEmpty())
+          .forEach((declCtx, gx) -> {
+            var bounds = declCtx.mdf().stream().map(this::visitMdf).collect(Collectors.toSet());
+            acc.put(gx, bounds);
+          }));
+
+        return new GenericParams(gxs, boundsMap);
+      });
   }
   @Override public E.X visitX(XContext ctx){
     check(ctx);
@@ -279,16 +287,16 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), xs.stream().map(E.X::t).toList(), h.ret(), Optional.of(pos(ctx))));
     return new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body, Optional.of(pos(ctx)));
   }
-  private record MethHeader(Mdf mdf, MethName name, List<Id.GX<T>> gens, List<E.X> xs, T ret){}
+  public record MethHeader(Mdf mdf, MethName name, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds, List<E.X> xs, T ret){}
   @Override
   public MethHeader visitSig(SigContext ctx) {
     check(ctx);
     var mdf = this.visitMdf(ctx.mdf());
-    var gens = this.visitMGenParams(ctx.mGen()).orElse(List.of());
+    var gens = this.visitMGenParams(ctx.mGen()).orElse(new GenericParams(List.of(), Map.of()));
     var xs = Optional.ofNullable(ctx.gamma()).map(this::visitGamma).orElse(List.of());
     var name = new MethName(ctx.m().getText(),xs.size());
     var ret = this.visitT(ctx.t());
-    return new MethHeader(mdf, name, gens, xs, ret);
+    return new MethHeader(mdf, name, gens.gxs, gens.bounds, xs, ret);
   }
   @Override
   public List<E.X> visitGamma(GammaContext ctx) {
@@ -306,14 +314,14 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
 
     var mGen = Optional.ofNullable(ctx.mGen())
       .flatMap(this::visitMGenParams)
-      .orElse(List.of());
-    var id = new Id.DecId(cName,mGen.size());
+      .orElse(new GenericParams(List.of(), Map.of()));
+    var id = new Id.DecId(cName,mGen.gxs.size());
     var body = shallow ? null : visitBlock(ctx.block(), Optional.empty());
     if (body != null) {
 //      assert body.it().isEmpty();
       body = body.withT(Optional.empty());
     }
-    return new T.Dec(id, mGen, body, Optional.of(pos(ctx)));
+    return new T.Dec(id, mGen.gxs(), mGen.bounds(), body, Optional.of(pos(ctx)));
   }
   @Override
   public T.Alias visitAlias(AliasContext ctx) {

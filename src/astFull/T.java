@@ -9,9 +9,7 @@ import utils.Bug;
 import visitors.FullCloneVisitor;
 import visitors.FullShortCircuitVisitor;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -108,7 +106,7 @@ public final class T implements Id.Ty {
     }
   }
 
-  public record Dec(Id.DecId name, List<Id.GX<T>> gxs, E.Lambda lambda, Optional<Pos> pos) implements HasPos {
+  public record Dec(Id.DecId name, List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos {
     public Dec {
       assert name.gen() == gxs.size();
     }
@@ -121,9 +119,9 @@ public final class T implements Id.Ty {
       return v.visitDec(this);
     }
 
-    public T.Dec withName(Id.DecId name) { return new T.Dec(name, gxs, lambda, pos); }
+    public T.Dec withName(Id.DecId name) { return new T.Dec(name, gxs, bounds, lambda, pos); }
     public Dec withLambda(E.Lambda lambda) {
-      return new Dec(name, gxs, lambda, pos);
+      return new Dec(name, gxs, bounds, lambda, pos);
     }
 
     public Id.IT<ast.T> toAstT() {
@@ -142,7 +140,10 @@ public final class T implements Id.Ty {
 
     @Override
     public String toString() {
-      return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],lambda=" + lambda + "]";
+      if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
+        return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],lambda=" + lambda + "]";
+      }
+      return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],bounds="+bounds+",lambda=" + lambda + "]";
     }
   }
 
