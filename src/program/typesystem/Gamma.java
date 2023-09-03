@@ -50,7 +50,7 @@ public interface Gamma {
         if (mMdf.isRecMdf() && of(imm, mut).containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
       if (mMdf.isMut() && captured.mdf().is(mut, imm)) { return captured; }
-      if (mMdf.isIso() && captured.mdf().is(mut, imm, iso)) { return captured.withMdf(imm); }
+      if (mMdf.isImm() && captured.mdf().is(mut, imm, iso)) { return captured.withMdf(imm); }
       if (mMdf.isLent() && captured.mdf().is(mut, imm)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
       if (mMdf.isRead() && captured.mdf().isMut()) { return captured.withMdf(read); }
       if (mMdf.isRecMdf() && captured.mdf().isMut()) { return captured.withMdf(recMdf); }
@@ -84,6 +84,13 @@ public interface Gamma {
 
     if (self.isRecMdf()) {
       if (mMdf.isRecMdf() && captured.mdf().isRecMdf()) { return captured; }
+    }
+
+    if (self.isIso()) {
+      if (captured.isMdfX()) {
+        if (of(imm, iso).containsAll(bounds)) { return captured.withMdf(imm); }
+      }
+      if (captured.mdf().is(imm, iso)) { return captured.withMdf(imm); }
     }
 
     throw Fail.badCapture(x, captured, self, mMdf);
