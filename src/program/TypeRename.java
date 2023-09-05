@@ -1,15 +1,12 @@
 package program;
 
-import ast.T;
 import failure.CompileError;
 import id.Id;
 import id.Mdf;
-import program.typesystem.Gamma;
 import program.typesystem.XBs;
 
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 public interface TypeRename<T extends Id.Ty>{
   record FullTTypeRename(Program p) implements TypeRename<astFull.T> {
@@ -59,12 +56,16 @@ public interface TypeRename<T extends Id.Ty>{
     @Override public ast.T propagateMdf(Mdf mdf, XBs xbs, ast.T t){
       if(!mdf.isRecMdf()){ return super.propagateMdf(mdf, xbs, t); }
       assert t!=null;
-      if (recvMdf.isMdf() && t.mdf().isMdf()) {
+      if (t.mdf().isMdf()) {
         return t.withMdf(Mdf.recMdf);
       }
-//      var resolvedMdf = recvMdf.adapt(t.mdf());
-      var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, recvMdf, t, Mdf.recMdf);
-      return t.withMdf(resolvedMdf.mdf());
+      // TODO: or maybe this (see commented tests in TestTypeSystem)
+//      if (recvMdf.isMdf() && t.mdf().isMdf()) {
+//        return t.withMdf(Mdf.recMdf);
+//      }
+      var resolvedMdf = recvMdf.adapt(t.mdf());
+//      var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, recvMdf, t, Mdf.recMdf);
+      return t.withMdf(resolvedMdf);
     }
   }
   static FullTTypeRename full(Program p) { return new FullTTypeRename(p); }

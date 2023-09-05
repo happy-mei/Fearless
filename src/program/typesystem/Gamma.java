@@ -59,18 +59,18 @@ public interface Gamma {
     var validHygCaptures = of(mut, imm, iso, lent, read);
     if (self.isLent()) {
       if (captured.isMdfX()) {
-        if (mMdf.isMut() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(read); } // TODO: new (imm methods on lent)
+        if (mMdf.isMut() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(read); }
         if (mMdf.isImm() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(imm); }
         if (mMdf.isLent() && of(mut,iso).containsAll(bounds)) { return captured.withMdf(lent); }
         if (mMdf.isLent() && of(mut, imm, read, iso).containsAll(bounds)) { return captured.withMdf(read); }
         if (mMdf.isRead() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(read); }
-        if (mMdf.isRecMdf() && of(mut, imm, lent).containsAll(bounds)) { return captured.withMdf(recMdf); } // TODO: why not read?
+        if (mMdf.isRecMdf() && of(mut, imm, lent).containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
-      if (mMdf.is(mut, lent) && captured.mdf().is(mut, lent, read)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
-      if (mMdf.isImm() && captured.mdf().is(mut, lent, read)) { return captured.withMdf(imm); } // TODO: new (imm methods on lent)
+      if (mMdf.is(mut, lent) && captured.mdf().is(mut, lent)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
+      if (mMdf.isImm() && captured.mdf().is(mut, lent, read, recMdf)) { return captured.withMdf(imm); }
       if (mMdf.isRead() && captured.mdf().is(mut, lent, read)) { return captured.withMdf(read); }
-      if (mMdf.isRecMdf() && captured.mdf().is(mut, lent, recMdf)) { return captured.withMdf(recMdf); }
-      if (mMdf.isRecMdf() && captured.mdf().isRead()) { return captured.withMdf(read); }
+      if (mMdf.isRecMdf() && captured.mdf().is(mut, lent)) { return captured.withMdf(recMdf); }
+      if (captured.mdf().is(read, recMdf)) { return captured.withMdf(read); }
     }
 
     if (self.isRead()) {
@@ -80,23 +80,30 @@ public interface Gamma {
         if (mMdf.isRead() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(read); }
         if (mMdf.isRecMdf() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
-      if (mMdf.isImm() && captured.mdf().is(mut, lent, read)) { return captured.withMdf(imm); }
-      if (mMdf.isRead() && captured.mdf().is(mut, lent, read)) { return captured.withMdf(read); }
+      if (mMdf.isImm() && captured.mdf().is(mut, lent, read, recMdf)) { return captured.withMdf(imm); }
+      if (mMdf.isRead() && captured.mdf().is(mut, lent, read, recMdf)) { return captured.withMdf(read); }
       if (mMdf.isRecMdf() && captured.mdf().is(mut, lent, read)) { return captured.withMdf(recMdf); }
+      if (mMdf.isRecMdf() && captured.mdf().is(mut, lent, read)) { return captured.withMdf(recMdf); }
+      if (mMdf.isRecMdf() && captured.mdf().isRecMdf()) { return captured.withMdf(read); }
     }
 
     if (self.isRecMdf()) {
+      if (captured.isMdfX()) {
+        if (mMdf.isMut() && of(imm, mut, iso).containsAll(bounds)) { return captured; }
+      }
+//      if (mMdf.isImm() && captured.mdf().is(mut, lent, read, recMdf)) { return captured.withMdf(imm); }
+      if (mMdf.isMut() && captured.mdf().isMut()) { return captured; }
       if (mMdf.isRecMdf() && captured.mdf().isRecMdf()) { return captured; }
 //      if (captured.isMdfX() && of(mut, imm, lent, read).containsAll(bounds)) { return captured.withMdf(recMdf); }
 //      if (mMdf.isRecMdf() && captured.mdf().isMdf()) { return captured; }
     }
 
-    if (self.isIso()) {
-      if (captured.isMdfX()) {
-        if (of(imm, iso).containsAll(bounds)) { return captured.withMdf(imm); }
-      }
-      if (captured.mdf().is(imm, iso)) { return captured.withMdf(imm); }
-    }
+//    if (self.isIso()) {
+//      if (captured.isMdfX()) {
+//        if (of(imm, iso).containsAll(bounds)) { return captured.withMdf(imm); }
+//      }
+//      if (captured.mdf().is(imm, iso)) { return captured.withMdf(imm); }
+//    }
 
     throw Fail.badCapture(x, captured, self, mMdf);
   }

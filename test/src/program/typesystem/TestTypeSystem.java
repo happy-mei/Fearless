@@ -1849,4 +1849,63 @@ were valid:
     L:{ imm .absMeth: read B }
     A:{ recMdf .m(par: read B) : imm L -> imm L{.absMeth->par} }
     """); }
+
+  // TODO: interesting tests that look into what should stay as recMdf in propagateMdf
+  @Disabled
+  @Test void recMdfRenameOnITReturnType() { fail("""
+    In position [###]/Dummy0.fear:6:2
+    [E23 methTypeError]
+    Expected the method .first/0 to return recMdf test.Person[], got imm test.Person[].
+    """, """
+    package test
+    Person:{}
+    //List[X]:{ recMdf .first: recMdf X }
+    Foo:{ recMdf .first: recMdf Person }
+    Bar:{ .bar(bob: imm Person): imm Foo -> imm Foo{
+      recMdf .first: recMdf Person -> bob,
+      }}
+    """); }
+  @Disabled
+  @Test void recMdfRenameOnITReturnType2() { fail("""
+    In position [###]/Dummy0.fear:6:2
+    [E23 methTypeError]
+    Expected the method .first/0 to return recMdf test.Person[], got imm test.Person[].
+    """, """
+    package test
+    Person:{}
+    //List[X]:{ recMdf .first: recMdf X }
+    Foo:{ recMdf .first: recMdf Person }
+    Bar:{ .bar(bob: imm Person): imm Foo -> { bob } }
+    """); }
+  @Disabled
+  @Test void recMdfRenameOnITReturnTypeMGens() { fail("""
+    In position [###]/Dummy0.fear:6:2
+    [E23 methTypeError]
+    Expected the method .first/0 to return recMdf Y, got imm test.Person[].
+    """, """
+    package test
+    Person:{}
+    //List[X]:{ recMdf .first: recMdf X }
+    Foo[X]:{ recMdf .first: recMdf X }
+    Bar:{ .bar[Y](bob: imm Person): imm Foo[mdf Y] -> imm Foo[mdf Y]{
+      recMdf .first: recMdf Y -> bob,
+      }}
+    """); }
+  @Disabled
+  @Test void recMdfRenameOnGXReturnType() { ok("""
+    package test
+    Person:{}
+    List[X]:{ recMdf .first: recMdf X }
+    //Foo:{ recMdf .first: recMdf Person }
+    Bar:{ .bar(bob: imm Person): imm List[Person] -> imm List[imm Person]{
+      recMdf .first: imm Person -> bob,
+      }}
+    """); }
+  @Disabled
+  @Test void recMdfRenameOnGXReturnTypeInfer() { ok("""
+    package test
+    Person:{}
+    List[X]:{ recMdf .first: recMdf X }
+    Bar:{ .bar[Y](bob: mdf Y): imm List[mdf Y] -> { bob } }
+    """); }
 }

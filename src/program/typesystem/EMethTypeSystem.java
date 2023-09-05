@@ -95,11 +95,23 @@ public interface EMethTypeSystem extends ETypeSystem {
     var sig = p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
       var mdf = rec.mdf();
       Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
+
       var params = Push.of(
         fancyRename(rec.withMdf(cm.mdf()), mdf, xsTsMap),
         cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()
       );
       var t = fancyRename(cm.ret(), mdf, xsTsMap);
+//
+//      var renamer = TypeRename.coreRec(p(), mdf);
+//      var renamedRecv = renamer.renameT(rec.withMdf(cm.mdf()), xsTsMap::get);
+//      var renamedArgs = cm.sig().ts().stream().map(ti->renamer.renameT(ti, xsTsMap::get)).toList();
+//      var renamedT = renamer.renameT(cm.ret(), xsTsMap::get);
+//
+//      assert params.equals(Push.of(
+//        renamedRecv,
+//        renamedArgs
+//      )) && t.equals(renamedT);
+
       return new TsT(params, t, cm.ret().mdf().isRecMdf());
     });
     return sig.map(this::allMeth);
@@ -121,6 +133,7 @@ public interface EMethTypeSystem extends ETypeSystem {
 
   /** This is [MDF, Xs=Ts] (recMdf rewriting for meth calls) */
   default T fancyRename(T t, Mdf mdf0, Map<GX<T>,T> map) {
+    assert !mdf0.isMdf();
     Mdf mdf=t.mdf();
     return t.match(
       gx->{
@@ -132,15 +145,16 @@ public interface EMethTypeSystem extends ETypeSystem {
         var ti = map.get(gx);
         if (ti == null) { return t; }
         // TODO: what about capturing a function from read to read?  02/09/23: Not sure what this TODO means
-//        var newMdf = mdf0.adapt(ti);
+        var newMdf = mdf0.adapt(ti);
 //        var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, new ast.T(recvMdf, new Id.IT<>("$fake$", List.of())), t, Mdf.recMdf);
-        return Gamma.xT(ti.rt().toString(), xbs(), mdf0, ti, mdf0);
-//        return ti.withMdf(newMdf);
+//        return Gamma.xT(ti.rt().toString(), xbs(), mdf0, ti, mdf0);
+        return ti.withMdf(newMdf);
       },
       it->{
         var newTs = it.ts().stream().map(ti->fancyRename(ti, mdf0, map)).toList();
         if(!mdf.isRecMdf() && !mdf.isMdf()){ return new T(mdf, it.withTs(newTs)); }
-        if(mdf0.isIso()){ return new T(Mdf.mut, it.withTs(newTs)); }
+        assert !mdf0.isIso();
+//        if(mdf0.isIso()){ return new T(Mdf.mut, it.withTs(newTs)); }
         return new T(mdf0, it.withTs(newTs));
       });
   }
