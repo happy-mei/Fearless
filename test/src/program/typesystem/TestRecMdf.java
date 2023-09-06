@@ -141,7 +141,7 @@ public class TestRecMdf {
       }
     NoPromote:{}
     """); }
-  @Test void shouldCollapseWhenCalledGenIso1() { ok("""
+  @Test void shouldCollapseWhenCalledGenIso1ImmPromotion() { ok("""
     package test
     A[X]:{
       recMdf .m1(_: mut NoPromote): recMdf X,
@@ -259,9 +259,36 @@ public class TestRecMdf {
     Opt[T]:{ recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none, }
     OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     """); }
-  @Test void shouldApplyRecMdfInTypeParams1b() { ok("""
+  @Test void shouldApplyRecMdfInTypeParams1bLent() { ok("""
     package test
     Opt:{ #[T](x: mdf T): lent Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt[T]:{
+      recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+      }
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    """); }
+  @Test void shouldApplyRecMdfInTypeParams1bRecMdf1() { ok("""
+    package test
+    Opt:{ recMdf #[T](x: recMdf T): recMdf Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt[T]:{
+      recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+      }
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    
+    Foo:{}
+    Usage:{
+      .immOpt(x: imm Foo): imm Opt[imm Foo] -> Opt#x,
+      .mutOpt(x: mut Foo): mut Opt[mut Foo] -> mut Opt#x,
+      .readOpt(x: read Foo): read Opt[read Foo] -> read Opt#x,
+      .lentOpt(x: lent Foo): lent Opt[lent Foo] -> lent Opt#x,
+      //.isoOpt(x: iso Foo): iso Opt[iso Foo] -> iso Opt#x,
+      recMdf .recMdfOpt(x: recMdf Foo): recMdf Opt[recMdf Foo] -> recMdf Opt#x,
+      .mdfOptMut[X](x: mut X): mut Opt[mut X] -> mut Opt#x,
+      }
+    """); }
+  @Test void shouldApplyRecMdfInTypeParams1bRecMdf2() { ok("""
+    package test
+    Opt:{ recMdf #[T](x: recMdf T): recMdf Opt[mdf T] -> { .match(m) -> m.some(x) } }
     Opt[T]:{
       recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }
@@ -277,64 +304,20 @@ public class TestRecMdf {
     """); }
   @Test void boxAndMatcher() { ok("""
     package test
-    alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+    Opt:{ recMdf #[T](x: recMdf T): recMdf Opt[mdf T] -> {
       recMdf .match[R](m: mut OptMatch[recMdf T, recMdf R]): recMdf R -> m.some(x),
       }}
-    Opt[T]:NoMutHyg[mdf T]{
+    Opt[T]:{
       recMdf .match[R](m: mut OptMatch[recMdf T, recMdf R]): recMdf R -> m.none,
       }
     OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    """, """
-    package base
-    NoMutHyg[X]:{}
-    """); }
-  // TODO: I think it makes sense for these two to fail
-  @Test void boxAndMatcherWithMapMut() { ok("""
-    package test
-    alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
-      mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
-      }}
-    Opt[T]:NoMutHyg[mdf T]{
-      mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.none,
-      mut .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match({
-        .some(x) -> Opt#(f#x),
-        .none -> {}
-        })
-      }
-    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
-    """, """
-    package base
-    NoMutHyg[X]:{}
-    """); }
-  @Test void boxAndMatcherWithMapLent() { ok("""
-    package test
-    alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
-      lent .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
-      }}
-    Opt[T]:NoMutHyg[mdf T]{
-      lent .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.none,
-      lent .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match({
-        .some(x) -> Opt#(f#x),
-        .none -> {}
-        })
-      }
-    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
-    """, """
-    package base
-    NoMutHyg[X]:{}
     """); }
   @Test void boxAndMatcherDedicated() { ok("""
     package test
-    alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+    Opt:{ recMdf #[T](x: recMdf T): recMdf Opt[mdf T] -> {
       recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.some(x),
       }}
-    Opt[T]:NoMutHyg[mdf T]{
+    Opt[T]:{
       recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       recMdf .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
 //      recMdf .map[R](f: mut OptMatch[mdf T, mut Opt[mdf R]]): mut Opt[mdf R] -> this.match(f),
@@ -343,7 +326,7 @@ public class TestRecMdf {
     OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     OptMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
       mut #(x: mdf T): mdf R,
-      .some(x) -> Opt#(this#x),
+      .some(x) -> mut Opt#(this#x),
       .none -> {},
       }
     OptFlatMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
@@ -353,9 +336,6 @@ public class TestRecMdf {
       }
     Usage:{ #(a: Opt[Foo]): Opt[Bar] -> a.map{_ -> Bar} }
     Foo:{} Bar:{}
-    """, """
-    package base
-    NoMutHyg[X]:{}
     """); }
   @Test void inferRecMdf1() { ok("""
     package test
@@ -572,12 +552,7 @@ public class TestRecMdf {
     NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
     """); }
 
-  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGeneric() { fail("""
-    In position [###]/Dummy0.fear:2:53
-    [E23 methTypeError]
-    Expected the method .argh/0 to return mut X, got recMdf X.
-    Try writing the signature for .argh/0 explicitly if it needs to return a recMdf type.
-    """, """
+  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGeneric() { ok("""
     package test
     A[X]:{ .foo(x: mut X): mut B[mut X] -> mut B[mut X]{ x } }
     B[X]:{ recMdf .argh: recMdf X }
@@ -593,12 +568,7 @@ public class TestRecMdf {
     B:{ recMdf .argh: recMdf Foo }
     Foo:{}
     """); }
-  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeConcreteGeneric() { fail("""
-    In position [###]/Dummy0.fear:2:56
-    [E23 methTypeError]
-    Expected the method .argh/0 to return mut test.Foo[], got recMdf test.Foo[].
-    Try writing the signature for .argh/0 explicitly if it needs to return a recMdf type.
-    """, """
+  @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeConcreteGeneric() { ok("""
     package test
     A:{ .foo(x: mut Foo): mut B[mut Foo] -> mut B[mut Foo]{ x } }
     B[X]:{ recMdf .argh: recMdf X }

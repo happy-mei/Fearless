@@ -73,8 +73,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   private Program p;
 
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
-    return e.ts().flatMap(this::noIsoParams)
-      .or(()->super.visitMCall(e))
+    return super.visitMCall(e)
       .map(err->err.pos(e.posOrUnknown()));
   }
 
@@ -114,8 +113,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       .or(()->super.visitT(t));
   }
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
-    return noIsoParams(t, t.ts())
-      .or(()->super.visitIT(t));
+    return super.visitIT(t);
   }
 
   @Override
@@ -152,22 +150,6 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
 //      .allMatch(t->t.match(gx->env.has(gx), it->hasUndeclaredXs(List.of(it))));
 //  }
 
-  private Optional<CompileError> noIsoParams(Id.IT<?> base, List<T> genArgs) {
-    return genArgs.stream()
-      .flatMap(T::flatten)
-      .dropWhile(t->t.mdf() != Mdf.iso)
-      .map(t_->base.toString())
-      .map(Fail::isoInTypeArgs)
-      .findFirst();
-  }
-  private Optional<CompileError> noIsoParams(List<T> genArgs) {
-    return genArgs.stream()
-      .flatMap(T::flatten)
-      .dropWhile(t->t.mdf() != Mdf.iso)
-      .map(T::toString)
-      .map(Fail::isoInTypeArgs)
-      .findFirst();
-  }
   private Optional<CompileError> mdfOnlyOnGX(T t) {
     if(t.isInfer() || !t.mdf().isMdf()){ return Optional.empty(); }
     return t.match(gx->Optional.empty(), it->Optional.of(Fail.invalidMdf(t)));

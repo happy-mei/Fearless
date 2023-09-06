@@ -19,7 +19,6 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res, Id.Ty {
   @Override public String toString(){ return ""+mdf+" "+rt; }
   public T{
     assert mdf!=null && rt!=null;
-    assert !(rt instanceof Id.IT<T> it) || it.ts().stream().flatMap(T::flatten).noneMatch(t->t.mdf().isIso()) : rt;
   }
   public <R> R match(Function<Id.GX<T>,R>gx, Function<Id.IT<T>,R>it){ return rt.match(gx, it); }
   public Id.IT<T> itOrThrow() { return this.match(gx->{ throw Bug.unreachable(); }, it->it); }

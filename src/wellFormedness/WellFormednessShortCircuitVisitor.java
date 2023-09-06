@@ -40,8 +40,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
-    return noIsoParams(e.ts())
-      .or(()->noPrivateMethCallOutsideTrait(e))
+    return noPrivateMethCallOutsideTrait(e)
       .or(()->super.visitMCall(e))
       .map(err->err.parentPos(e.pos()));
   }
@@ -64,11 +63,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
-    var dec = p.of(t.name());
-
-//    System.out.println("post-infer: "+dec);
-    return noIsoParams(t, t.ts())
-      .or(()->super.visitIT(t));
+    return super.visitIT(t);
   }
 
   private Optional<CompileError> noIsoMoreThanOnce(E.X x) {
@@ -138,22 +133,5 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
       .map(Id.IT::name)
       .findFirst()
       .or(()->getSealedDec(its.stream().flatMap(it->p.itsOf(it).stream()).toList()));
-  }
-
-  private Optional<CompileError> noIsoParams(Id.IT<?> base, List<T> genArgs) {
-    return genArgs.stream()
-      .flatMap(T::flatten)
-      .dropWhile(t->t.mdf() != Mdf.iso)
-      .map(t_->base.toString())
-      .map(Fail::isoInTypeArgs)
-      .findFirst();
-  }
-  private Optional<CompileError> noIsoParams(List<T> genArgs) {
-    return genArgs.stream()
-      .flatMap(T::flatten)
-      .dropWhile(t->t.mdf() != Mdf.iso)
-      .map(T::toString)
-      .map(Fail::isoInTypeArgs)
-      .findFirst();
   }
 }
