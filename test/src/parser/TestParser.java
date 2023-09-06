@@ -44,7 +44,7 @@ class TestParser {
     "x.m"); }
   @Test void testTrue(){ ok(
     """
-    [-base.True[]-][base.True[]]{}
+    [-immbase.True[]-][base.True[]]{}
     """, "base.True"); }
   @Test void testLamNoGens(){ ok(
       """
@@ -136,7 +136,7 @@ class TestParser {
   @Test void weirdEq(){ ok("recv:infer.m1/2[-]([v:infer,[-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer}]):infer.m2/0[-]([]):infer", "(recv .m1 x=v) .m2"); }
   @Test void sameTest6(){ same("recv .m1[A] x=v .m2[B,base.C[D]]", "recv .m1[A] x=(v) .m2[B,base.C[D]]"); }
   @Test void sameTestVarLast(){ same("recv.m1(x=v)", "recv .m1 x=v"); }
-  @Test void implicitLambdaMdf(){ ok("[-pkg1.L[]-][pkg1.L[]]{}", "pkg1.L{}"); }
+  @Test void implicitLambdaImm(){ ok("[-immpkg1.L[]-][pkg1.L[]]{}", "pkg1.L{}"); }
   @Test void explicitMdfLambdaIso(){ ok("[-iso pkg1.L[]-][pkg1.L[]]{}", "iso pkg1.L{}"); }
   @Test void explicitMdfLambdaImm(){ ok("[-imm pkg1.L[]-][pkg1.L[]]{}", "imm pkg1.L{}"); }
   @Test void explicitMdfLambdaMut(){ ok("[-mut pkg1.L[]-][pkg1.L[]]{}", "mut pkg1.L{}"); }
@@ -189,7 +189,7 @@ But... maybe it was a mistake?
 Would  the interpretation (a .and b) .not  become more natural going forward?
    */
   @Test void flowPrecedence1() { ok("""
-    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}]):infer.to/1[-]([[-base.List[]-][base.List[]]{}]):infer
+    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}]):infer.to/1[-]([[-immbase.List[]-][base.List[]]{}]):infer
     """, """
     list.flow
       .map{}
