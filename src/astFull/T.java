@@ -143,7 +143,11 @@ public final class T implements Id.Ty {
       if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
         return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],lambda=" + lambda + "]";
       }
-      return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],bounds="+bounds+",lambda=" + lambda + "]";
+      var boundsStr = bounds.entrySet().stream()
+        .sorted(Comparator.comparing(a->a.getKey().name()))
+        .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
+        .collect(Collectors.joining(","));
+      return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],bounds={"+boundsStr+"},lambda=" + lambda + "]";
     }
   }
 
