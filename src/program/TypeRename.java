@@ -56,13 +56,13 @@ public interface TypeRename<T extends Id.Ty>{
     @Override public ast.T propagateMdf(Mdf mdf, XBs xbs, ast.T t){
       if(!mdf.isRecMdf()){ return super.propagateMdf(mdf, xbs, t); }
       assert t!=null;
-      if (t.mdf().isMdf()) {
-        return t.withMdf(Mdf.recMdf);
-      }
-      // TODO: or maybe this (see commented tests in TestTypeSystem)
-//      if (recvMdf.isMdf() && t.mdf().isMdf()) {
+//      if (t.mdf().isMdf()) {
 //        return t.withMdf(Mdf.recMdf);
 //      }
+      // TODO: or maybe this (see commented tests in TestTypeSystem)
+      if (recvMdf.isMdf() && t.mdf().isMdf()) {
+        return t.withMdf(Mdf.recMdf);
+      }
       var resolvedMdf = recvMdf.adapt(t.mdf());
 //      var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, recvMdf, t, Mdf.recMdf);
       return t.withMdf(resolvedMdf);
