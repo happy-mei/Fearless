@@ -64,7 +64,7 @@ public interface Gamma {
         if (mMdf.isLent() && of(mut,iso).containsAll(bounds)) { return captured.withMdf(lent); }
         if (mMdf.isLent() && of(mut, imm, read, iso).containsAll(bounds)) { return captured.withMdf(read); }
         if (mMdf.isRead() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(read); }
-        if (mMdf.isRecMdf() && of(mut, imm, lent).containsAll(bounds)) { return captured.withMdf(recMdf); }
+        if (mMdf.isRecMdf() && of(mut, imm, lent, read).containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
       if (mMdf.is(mut, lent) && captured.mdf().is(mut, lent)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
       if (mMdf.isImm() && captured.mdf().is(mut, lent, read, recMdf)) { return captured.withMdf(imm); }
