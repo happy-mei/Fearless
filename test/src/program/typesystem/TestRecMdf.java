@@ -261,15 +261,19 @@ public class TestRecMdf {
     """); }
   @Test void shouldApplyRecMdfInTypeParams1b() { ok("""
     package test
-    alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
-    Opt[T]:NoMutHyg[mdf T]{
+    Opt:{ #[T](x: mdf T): lent Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt[T]:{
       recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }
-    OptMatch[T,R]:NoMutHyg[mdf R]{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    """, """
-    package base
-    NoMutHyg[X]:{}
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    """); }
+  @Test void shouldApplyRecMdfInTypeParams1bBounds() { ok("""
+    package test
+    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt[T:imm,mut]:{
+      recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+      }
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     """); }
   @Test void boxAndMatcher() { ok("""
     package test
@@ -360,7 +364,7 @@ public class TestRecMdf {
       }
     F[T]:{ mut #(x: mdf T): mdf T }
     A:{}
-    Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map(F[A]{ _->A }) }
+    Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map(mut F[A]{ _->A }) }
     """); }
   @Test void inferRecMdf2() { ok("""
     package test
