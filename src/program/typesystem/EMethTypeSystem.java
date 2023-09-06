@@ -153,10 +153,10 @@ public interface EMethTypeSystem extends ETypeSystem {
       it->{
         var newTs = it.ts().stream().map(ti->fancyRename(ti, mdf0, map)).toList();
         if(!mdf.isRecMdf() && !mdf.isMdf()){ return new T(mdf, it.withTs(newTs)); }
-//        assert !mdf0.isIso(); // TODO: what breaks if we keep iso here?
+//        assert !mdf0.isIso(); // TODO: what breaks if we keep iso here? I think we could put the recMdf in two places and break it that way
         if(mdf0.isIso()) {
           System.out.println("turning recMdf into iso to see what happens");
-//          return new T(Mdf.mut, it.withTs(newTs));
+          return new T(Mdf.mut, it.withTs(newTs));
         }
         return new T(mdf0, it.withTs(newTs));
       });

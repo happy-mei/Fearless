@@ -519,11 +519,13 @@ were valid:
     """); }
   @Test void box() { ok("""
     package test
-    Box:{ #[R](r: mdf R): mut Box[mdf R] -> { r } }
-    Box[R]:base.NoMutHyg[mdf R]{ recMdf #: recMdf R }
-    """, """
-    package base
-    NoMutHyg[X]:{}
+    Box:{ recMdf #[R](r: recMdf R): recMdf Box[mdf R] -> { r } }
+    Box[R]:{ recMdf #: recMdf R }
+    """); }
+  @Test void boxMutBounds() { ok("""
+    package test
+    Box:{ #[R: imm, mut](r: mdf R): mut Box[mdf R] -> { r } }
+    Box[R]:{ recMdf #: recMdf R }
     """); }
   @Test void boxInnerGens() { ok("""
     package test
@@ -1598,7 +1600,7 @@ were valid:
     """); }
   @Test void readMethOnLentPromotion() { ok("""
     package test
-    A:{ read .newB: mut B -> B }
+    A:{ read .newB: mut B -> mut B }
     B:{}
     C:{ .promote(b: iso B): B -> b }
     Test:{ #(a: lent A): B -> C.promote(a.newB) }
@@ -1652,13 +1654,13 @@ were valid:
         }
       """, """
       package base
-      Void:{} NoMutHyg[X]:{} Sealed:{}
+      Void:{} Sealed:{}
       Yeet:{
         #[X](x: mdf X): Void -> this.with(x, Void),
         .with[X,R](_: mdf X, res: mdf R): mdf R -> res,
         }
       Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-      Ref[X]:NoMutHyg[mdf X],Sealed{
+      Ref[X]:Sealed{
         recMdf *: recMdf X,
         recMdf .get: recMdf X -> this*,
         mut .swap(x: mdf X): mdf X -> mut _FakeCapture[mdf X]{ x }.prev,
@@ -1667,8 +1669,8 @@ were valid:
         mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
         mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
         }
-      _FakeCapture[X]:NoMutHyg[mdf X]{ recMdf .self: recMdf X, mut .prev: mdf X -> Abort! }
-      UpdateRef[X]:NoMutHyg[mdf X]{ mut #(x: mdf X): mdf X }
+      _FakeCapture[X]:{ recMdf .self: recMdf X, mut .prev: mdf X -> Abort! }
+      UpdateRef[X]:{ mut #(x: mdf X): mdf X }
       Abort:{ ![R]: mdf R -> this! }
       """);
   }
@@ -1762,8 +1764,8 @@ were valid:
 
   @Test void mutMdfAdapt() { fail("""
     In position [###]/Dummy0.fear:4:78
-    [E28 undefinedName]
-    The identifier "par" is undefined or cannot be captured.
+    [E30 badCapture]
+    'mdf par' cannot be captured by a mut method in a recMdf lambda.
     """, """
     package test
     B:{}
@@ -1807,17 +1809,17 @@ were valid:
     """); }
 
   @Test void adaptRecMdfMutBreak() { fail("""
-    In position [###]/Dummy0.fear:6:33
-    [E23 methTypeError]
-    Expected the method .get/0 to return mut test.Person[], got recMdf test.Person[].
-    Try writing the signature for .get/0 explicitly if it needs to return a recMdf type.
+    In position [###]/Dummy0.fear:8:39
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: b .get/0[]([]), no candidates for .get/0 returned the expected type mut test.Person[]. The candidates were:
+    (imm test.BoxMutP[]): imm test.Person[]
     """, """
     package test
     Person:{}
     Box[X]:{ recMdf .get: recMdf X }
     BoxMutP:Box[mut Person]{}
     F:{
-      #(p:mut Person):mut BoxMutP->{ recMdf .get: recMdf Person -> p },
+      #(p:mut Person):mut BoxMutP->mut BoxMutP{ recMdf .get: recMdf Person -> p },
       .break():imm BoxMutP->this#({}),
       .breakMe(b:imm BoxMutP):mut Person->b.get,
       }
