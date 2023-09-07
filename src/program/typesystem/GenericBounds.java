@@ -8,13 +8,18 @@ import failure.Fail;
 import id.Id;
 import id.Mdf;
 import utils.Bug;
+import utils.Streams;
 
 import java.util.Optional;
 import java.util.Set;
 
 public interface GenericBounds {
   static Optional<CompileError> validGenericLambda(Program p, XBs xbs, E.Lambda l) {
-    throw Bug.todo();
+    return l.its().stream()
+      .map(it->validGenericIT(p, xbs, it))
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .findAny();
   }
 
   static Optional<CompileError> validGenericMeth(Program p, XBs xbs, E.Meth m) {
@@ -22,7 +27,22 @@ public interface GenericBounds {
   }
 
   static Optional<CompileError> validGenericIT(Program p, XBs xbs, Id.IT<T> it) {
-    throw Bug.todo();
+    var innerInvalid = it.ts().stream()
+      .map(t->validGenericT(p, xbs, t))
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .findAny();
+    if (innerInvalid.isPresent()) { return innerInvalid; }
+
+    var dec = p.of(it.name());
+    return Streams.zip(it.ts(), dec.gxs())
+      .map((t, gx) -> {
+        var bounds = dec.bounds().get(gx);
+        return validGenericMdf(p, xbs, bounds.isEmpty() ? XBs.defaultBounds : bounds, t);
+      })
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .findAny();
   }
 
   static Optional<CompileError> validGenericT(Program p, XBs xbs, T t) {

@@ -60,6 +60,14 @@ interface ELambdaTypeSystem extends ETypeSystem{
     if (expectedT().map(t->t.rt() instanceof Id.GX<T>).orElse(false)) {
       throw Fail.bothTExpectedGens(expectedT().orElseThrow(), d.name()).pos(b.pos());
     }
+    var xbs = XBs.empty();
+    for (var gx : d.gxs()) {
+      var bounds = d.bounds().get(gx);
+      if (bounds.isEmpty()) { continue; }
+      xbs.add(gx, bounds);
+    }
+    var invalidGens = GenericBounds.validGenericLambda((ast.Program) p(), xbs, b);
+    if (invalidGens.isPresent()) { return invalidGens.get(); }
     //var errMdf = expectedT.map(ti->!p().isSubType(ti.mdf(),b.mdf())).orElse(false);
     //after discussion, line above not needed
     var its = p().itsOf(d.toIT());
