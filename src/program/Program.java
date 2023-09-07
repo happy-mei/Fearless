@@ -175,7 +175,7 @@ public interface Program {
   default Optional<FullMethSig> fullSig(Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
-    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), new ast.E.Lambda(
+    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), Map.of(), new ast.E.Lambda(
       Mdf.mdf,
       coreIts,
       "fearTmp$",
@@ -207,7 +207,7 @@ public interface Program {
   }
 
   default List<CM> meths(Mdf recvMdf, ast.E.Lambda l, int depth) {
-    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), l, l.pos());
+    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), Map.of(), l, l.pos());
     var p_ = this.withDec(dec);
     return p_.methsAux(recvMdf, dec.toIT()).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }

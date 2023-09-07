@@ -14,6 +14,7 @@ import program.TypeRename;
 import utils.Streams;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,7 +27,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
 //    Dec d=new Dec(fresh,parentGxs,b,b.pos());
 //    var gxs = b.its().stream().flatMap(it->it.ts().stream().flatMap(T::deepGXs)).distinct().toList();
     Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
-    Dec d=new Dec(fresh,List.of(),b,b.pos());
+    Dec d=new Dec(fresh,List.of(),Map.of(),b,b.pos());
     Program p0=p().withDec(d);
     var validMethods = b.meths().stream()
       .filter(m->filterByMdf(mdf,m.sig().mdf()))

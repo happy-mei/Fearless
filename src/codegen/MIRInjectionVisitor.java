@@ -102,7 +102,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
 
     var fresh = new Id.DecId(Id.GX.fresh().name(), 0);
     var freshName = new Id.DecId(pkg+"."+fresh, 0);
-    var freshDec = new T.Dec(freshName, List.of(), e, e.pos());
+    var freshDec = new T.Dec(freshName, List.of(), Map.of(), e, e.pos());
     impls = impls.stream().filter(it->!it.name().equals(fresh)).toList();
     var canSingletonTrait = p.meths(e.mdf(), freshDec.toIT(), 0).stream().noneMatch(CM::isAbs);
     MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), impls, List.of(), canSingletonTrait);

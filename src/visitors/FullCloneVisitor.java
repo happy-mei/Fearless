@@ -59,9 +59,9 @@ public interface FullCloneVisitor {
   default T.Dec visitDec(T.Dec d) { return new T.Dec(
     d.name(),
     d.gxs().stream().map(this::visitGX).toList(),
-    Mapper.of(acc->d.bounds().entrySet().stream().forEach(kv->{
-      var res = kv.getValue().stream().map(this::visitMdf).collect(Collectors.toSet());
-      acc.put(kv.getKey(), res);
+    Mapper.of(acc->d.bounds().forEach((key, value)->{
+      var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());
+      acc.put(key, res);
     })),
     visitLLambda(d.lambda()),
     d.pos()

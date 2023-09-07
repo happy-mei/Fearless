@@ -6,6 +6,9 @@ import id.Id;
 import id.Id.DecId;
 import id.Id.MethName;
 import id.Mdf;
+import utils.Mapper;
+
+import java.util.stream.Collectors;
 
 public interface CloneVisitor{
   default E.Meth visitMeth(E.Meth e){ return new E.Meth(
@@ -51,6 +54,10 @@ public interface CloneVisitor{
   default T.Dec visitDec(T.Dec d) { return new T.Dec(
     visitDecId(d.name()),
     d.gxs().stream().map(this::visitGX).toList(),
+    Mapper.of(acc->d.bounds().forEach((key, value)->{
+      var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());
+      acc.put(key, res);
+    })),
     visitLambda(d.lambda()),
     d.pos()
   );}

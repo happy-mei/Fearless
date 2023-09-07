@@ -71,8 +71,8 @@ public class Fail{
   public static CompileError modifierOnInferredLambda(){return of(
     "Modifiers cannot be specified on lambdas without an explicit type."
   );}
-  public static CompileError isoInTypeArgs(String badType){return of(
-    "The iso reference capability may not be used in generic type arguments:\n"+badType
+  public static CompileError invalidMdfBound(ast.T badType, List<Mdf> bounds){return of(
+    "The type "+badType+" is not valid because it's modifier is not in the required bounds. The allowed modifiers are: "+bounds.stream().map(Enum::toString).collect(Collectors.joining(", "))+"."
   );}
   public static CompileError shadowingX(String x){return of(String.format("'%s' is shadowing another variable in scope.", x));}
 
@@ -228,7 +228,7 @@ enum ErrorCode {
   conflictingDecl,
   concreteTypeInFormalParams,
   modifierOnInferredLambda,
-  isoInTypeArgs,
+  invalidMdfBound,
   explicitThis,
   conflictingMethParams,
   cyclicImplRelation,
