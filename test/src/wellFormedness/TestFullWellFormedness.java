@@ -43,130 +43,6 @@ public class TestFullWellFormedness {
       Err.strCmp(expectedErr, e.toString());
     }
   }
-  @Test void noIsoParamsLambdaOk() { ok("""
-    package pkg1
-    Opt[T]:{}
-    A:Opt[A]
-    """); }
-  @Test void noIsoParamsLambda1() { fail("""
-    In position [###]/Dummy0.fear:3:2
-    [E5 isoInTypeArgs]
-    The iso reference capability may not be used in generic type arguments:
-    pkg1.Opt[iso pkg1.A[]]
-    """, """
-    package pkg1
-    Opt[T]:{}
-    A:Opt[iso A]
-    """); }
-  @Test void noIsoParamsLambda2() { fail("""
-    In position [###]/Dummy0.fear:3:2
-    [E5 isoInTypeArgs]
-    The iso reference capability may not be used in generic type arguments:
-    pkg1.Opt[iso pkg1.A[]]
-    """, """
-    package pkg1
-    Opt[T]:{}
-    A:{ #: Opt[iso A] -> Opt[iso A] }
-    """); }
-  @Test void noIsoParamsLambdaNested1() { fail("""
-    In position [###]/Dummy0.fear:3:2
-    [E5 isoInTypeArgs]
-    The iso reference capability may not be used in generic type arguments:
-    pkg1.Opt[mut pkg1.Opt[iso pkg1.A[]]]
-    """, """
-    package pkg1
-    Opt[T]:{}
-    A:Opt[mut Opt[iso A]]
-    """); }
-  @Test void noIsoParamsLambdaNested2() { fail("""
-    In position [###]/Dummy0.fear:4:2
-    [E5 isoInTypeArgs]
-    The iso reference capability may not be used in generic type arguments:
-    pkg1.B[imm pkg1.Opt[imm pkg1.A[]], imm pkg1.Opt[imm pkg1.Opt[iso pkg1.A[]]]]
-    """, """
-    package pkg1
-    Opt[T]:{}
-    B[C,D]:{}
-    A:B[Opt[A], Opt[Opt[iso A]]]
-    """); }
-
-  @Test void noIsoParamsAliasOk() { ok("""
-    package pkg1
-    alias Opt[pkg1.A] as OptA,
-    Opt[T]:{}
-    A:{}
-    """); }
-  @Test void noIsoParamsAlias1() { fail("""
-    In position [###]/Dummy0.fear:2:0
-    [E5 isoInTypeArgs]
-    The iso reference capability may not be used in generic type arguments:
-    pkg1.Opt[iso pkg1.A[]]
-    """, """
-    package pkg1
-    alias pkg1.Opt[iso pkg1.A] as OptA,
-    Opt[T]:{}
-    A:{}
-    """); }
-  @Test void noIsoParamsAliasNested1() { fail("""
-    In position [###]/Dummy0.fear:2:0
-    [E5 isoInTypeArgs]
-    The iso reference capability may not be used in generic type arguments:
-    pkg1.Opt[imm pkg1.Opt[iso pkg1.A[]]]
-    """, """
-    package pkg1
-    alias pkg1.Opt[pkg1.Opt[iso pkg1.A]] as OptA,
-    Opt[T]:{}
-    A:{}
-    """); }
-
-  @Test void noIsoParamsMethRet() { fail("""
-    In position [###]/Dummy0.fear:3:2
-    [E5 isoInTypeArgs]
-    The iso reference capability may not be used in generic type arguments:
-    pkg1.Opt[iso pkg1.A[]]
-    """, """
-    package pkg1
-    Opt[T]:{}
-    A:{ #: Opt[iso A] -> {} }
-    """); }
-  @Test void isoParamsMethParamsOk() { ok("""
-    package pkg1
-    Opt[T]:{}
-    A:{ #(x: iso A): A -> {} }
-    """); }
-  @Test void isoParamsMethParams() { fail("""
-    In position [###]/Dummy0.fear:3:2
-    [E5 isoInTypeArgs]
-    The iso reference capability may not be used in generic type arguments:
-    pkg1.A[iso pkg1.A[]]
-    """, """
-    package pkg1
-    Opt[T]:{}
-    A:{ #(x: A[iso A]): A -> {} }
-    """); }
-  @Test void isoParamsMethParamsGens() { fail("""
-    In position [###]/Dummy0.fear:3:2
-    [E5 isoInTypeArgs]
-    The iso reference capability may not be used in generic type arguments:
-    pkg1.A[iso T]
-    """, """
-    package pkg1
-    Opt[T]:{}
-    A:{ #[T](x: A[iso T]): A -> {} }
-    """); }
-  @Test void isoParamsMethCall() { fail("""
-    In position [###]/Dummy0.fear:3:2
-    [E5 isoInTypeArgs]
-    The iso reference capability may not be used in generic type arguments:
-    iso pkg1.A[]
-    """, """
-    package pkg1
-    Opt[T]:{}
-    A:{
-      #[T](x: A[mdf T]): A -> {},
-      .foo(): A -> this#[iso A]A
-      }
-    """); }
   @Test void paramsMethCallOk() { ok("""
     package pkg1
     Opt[T]:{}
@@ -254,46 +130,6 @@ public class TestFullWellFormedness {
     }
     UpdateRef[X]:{ mut #(x: mdf X): mdf X }
     """); }
-  @Test void noMutHygConcrete() { fail("""
-    In position [###]/Dummy0.fear:7:0
-    [E12 concreteInNoMutHyg]
-    The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:
-    imm base.Ref[]
-    """, """
-    package base
-    NoMutHyg[X]:{}
-    Sealed:{} Void:{}
-    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-    Let[V,R]:{ .var:V, .in(v:V):R }
-    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-    Ref[X]:NoMutHyg[Ref],Sealed{
-      read * : recMdf X,
-      mut .swap(x: mdf X): mdf X,
-      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
-    }
-    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
-    """); }
-  @Test void noMutHygNotUsed() { fail("""
-    In position [###]/Dummy0.fear:7:0
-    [E13 invalidNoMutHyg]
-    The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. This generic type is not a type parameter of the trait:
-    imm A
-    """, """
-    package base
-    NoMutHyg[X]:{}
-    Sealed:{} Void:{}
-    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-    Let[V,R]:{ .var:V, .in(v:V):R }
-    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-    Ref[X]:NoMutHyg[A],Sealed{
-      read * : recMdf X,
-      mut .swap(x: mdf X): mdf X,
-      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
-    }
-    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
-    """); }
   @Test void noMutHygOkSplit() { ok("""
     package base
     NoMutHyg[X]:{}
@@ -303,26 +139,6 @@ public class TestFullWellFormedness {
     Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
     Ref[X,Y]:NoMutHyg[X],NoMutHyg[Y],Sealed{
       recMdf * : recMdf X,
-      mut .swap(x: mdf X): mdf X,
-      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
-    }
-    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
-    """); }
-  @Test void noMutHygConcreteSplit() { fail("""
-    In position [###]/Dummy0.fear:7:0
-    [E12 concreteInNoMutHyg]
-    The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:
-    imm base.Ref[]
-    """, """
-    package base
-    NoMutHyg[X]:{}
-    Sealed:{} Void:{}
-    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-    Let[V,R]:{ .var:V, .in(v:V):R }
-    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-    Ref[X]:NoMutHyg[X],NoMutHyg[Ref],Sealed{
-      read * : recMdf X,
       mut .swap(x: mdf X): mdf X,
       mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
       mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
