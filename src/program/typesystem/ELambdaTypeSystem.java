@@ -25,17 +25,9 @@ import java.util.stream.Stream;
 interface ELambdaTypeSystem extends ETypeSystem{
   default Res visitLambda(E.Lambda b){
     Mdf mdf=b.mdf();
-//    var parent = b.its().get(0);
-//    var parentGxs = p().gxsOf(parent).stream().toList(); // TODO: why parentGXs here?
-//    Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), parentGxs.size());
-//    Dec d=new Dec(fresh,parentGxs,b,b.pos());
-//    var gxs = b.its().stream().flatMap(it->it.ts().stream().flatMap(T::deepGXs)).distinct().toList();
     Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
     Dec d=new Dec(fresh,List.of(),Map.of(),b,b.pos());
     Program p0=p().withDec(d);
-
-//    var invalidBounds = GenericBounds.validGenericLambda((ast.Program) p0, xbs(), b).map(err->err.pos(b.pos()));
-//    if (invalidBounds.isPresent()) { return invalidBounds.get(); }
 
     var validMethods = b.meths().stream()
       .filter(m->filterByMdf(mdf,m.sig().mdf()))

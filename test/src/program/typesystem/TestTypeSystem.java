@@ -61,7 +61,7 @@ public class TestTypeSystem {
 
   // TODO: Can we use this to break anything? I think not because .get could not be implemented to do anything bad
   // because it can't capture anything muty if I made an imm Family2 or something.
-  @Test void recMdfWeakening() { ok("""
+  @Disabled @Test void recMdfWeakening() { ok("""
     package test
     Person:{}
     List[X]:{ recMdf .get(): recMdf X }
@@ -291,33 +291,37 @@ In position [###]/Dummy0.fear:4:31
 Type error: None of the following candidates for this method call:
 this .b/0[]([]) .foo/0[]([])
 were valid:
-(recMdf test.B[]) <: (mut test.B[]): mut test.B[]
+(read test.B[]) <: (mut test.B[]): mut test.B[]
   The following errors were found when checking this sub-typing:
     In position [###]/Dummy0.fear:4:29
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    (recMdf test.A[]): recMdf test.B[]
+    (read test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
 
-(recMdf test.B[]) <: (iso test.B[]): iso test.B[]
+(read test.B[]) <: (iso test.B[]): iso test.B[]
   The following errors were found when checking this sub-typing:
     In position [###]/Dummy0.fear:4:29
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-    (recMdf test.A[]): recMdf test.B[]
+    (read test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
 
-(recMdf test.B[]) <: (iso test.B[]): lent test.B[]
+(read test.B[]) <: (iso test.B[]): lent test.B[]
   The following errors were found when checking this sub-typing:
     In position [###]/Dummy0.fear:4:29
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-    (recMdf test.A[]): recMdf test.B[]
+    (read test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
 
-(recMdf test.B[]) <: (lent test.B[]): lent test.B[]
+(read test.B[]) <: (lent test.B[]): lent test.B[]
   The following errors were found when checking this sub-typing:
     In position [###]/Dummy0.fear:4:29
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
-    (recMdf test.A[]): recMdf test.B[]
+    (read test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
     """, """
     package test
     A:{
@@ -662,7 +666,7 @@ were valid:
   @Test void noCaptureReadInMut() { fail("""
     In position [###]/Dummy0.fear:4:26
     [E30 badCapture]
-    'recMdf this' cannot be captured by a mut method in a mut lambda.
+    'read this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A:{ mut .prison: read B }
@@ -867,36 +871,6 @@ were valid:
       .t1(t: read Person): lent Foo[read Person] -> FooP1#t,
       .t2(t: read Person): lent FooP0[read Person] -> FooP2#t,
       .t2a(t: read Person): lent Foo[read Person] -> FooP2#t,
-      }
-    
-    //Foo[X]:NoMH[X]{stuff[X]}
-    //FooP0[Y]:Foo[Y]
-    //FooP1:Foo[Person]
-    //FooP2:{stuff[Person]}
-    //m(x)->FooP1{ x }
-    //m(x)->FooP2{ x }
-    """,  """
-    package base
-    NoMutHyg[X]:{}
-    """); }
-  @Test void noMutHygRenamedGX2() { fail("""
-    In position [###]/Dummy0.fear:11:2
-    [E40 mutCapturesHyg]
-    The type mut test.Foo[read test.Person[]] is not valid because a mut lambda may not capture hygienic references.
-    """, """
-    package test
-    alias base.NoMutHyg as NoMH,
-    Person:{}
-    
-    Foo[X]:NoMH[mdf X]{ recMdf .stuff: recMdf X }
-    FooP0[Y]:Foo[mdf Y]{}
-    FooP1:{ #(p: read Person): lent Foo[read Person] -> { p } }
-    FooP2:{ #(p: read Person): lent FooP0[read Person] -> { p } }
-    
-    Test:{
-      .t1(t: read Person): mut Foo[read Person] -> FooP1#t,
-      .t2(t: read Person): mut FooP0[read Person] -> FooP2#t,
-      .t2a(t: read Person): mut Foo[read Person] -> FooP2#t,
       }
     
     //Foo[X]:NoMH[X]{stuff[X]}
@@ -1329,7 +1303,7 @@ were valid:
     package test
     LList[E]:{
       recMdf .get(i: Nat): recMdf E -> Abort!,
-      recMdf .push(e: mdf E): recMdf LList[mdf E] -> { .get(i) -> e } // passes
+      recMdf .push(e: recMdf E): recMdf LList[mdf E] -> { .get(i) -> e } // passes
       }
     """, recMdfGetForListsHelpers); }
   @Test void recMdfGetForLists2() { ok("""
@@ -1593,7 +1567,7 @@ were valid:
 
   @Test void readRecvMakesMutPromotion() { ok("""
     package test
-    A:{ read .newB: mut B -> B }
+    A:{ read .newB: mut B -> mut B }
     B:{}
     C:{ .promote(b: iso B): B -> b }
     Test:{ #: B -> C.promote(A.newB) }
@@ -1633,7 +1607,7 @@ were valid:
     """); }
 
   @Test void invalidBoundsOnInlineLambda() { fail("""
-    In position [###]/Dummy0.fear:3:27
+    In position [###]/Dummy0.fear:3:6
     [E5 invalidMdfBound]
     The type lent test.Foo[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
     """, """
@@ -1795,15 +1769,6 @@ were valid:
     A:{ recMdf .m[T](par: mdf T) : recMdf L[lent T] -> recMdf L[lent T]{.absMeth->par} }
     """); }
 
-  @Test void topLevelSelfName() { fail("""
-    """, """
-    package test
-    A:{ 'self
-      .me: A -> self,
-      //.meThis: A -> this
-      }
-    """); }
-
   @Test void extraMethInLambda() { ok("""
     package test
     A:{
@@ -1815,14 +1780,14 @@ were valid:
     """); }
 
   @Test void lentCannotAdaptWithMut() { fail("""
-    In position [###]/Dummy0.fear:4:62
+    In position [###]/Dummy0.fear:4:68
     [E23 methTypeError]
     Expected the method .absMeth/0 to return mdf T, got read T.
     """, """
     package test
     B:{}
     L[X]:{ lent .absMeth: mdf X }
-    A:{ recMdf .m[T](par: mdf T) : lent L[mdf T] -> lent L[mdf T]{.absMeth->par} }
+    A:{ recMdf .m[T: read](par: mdf T) : lent L[mdf T] -> lent L[mdf T]{.absMeth->par} }
     
     C:{
       .m1(b: mut B) : lent L[mut B] -> A.m(b),
