@@ -16,7 +16,7 @@ System[R,Auth]:Sealed{
     .var[CapBox[C]] auth = { c#(this._auth) }
     .return{{ auth }},
   }
-System[R]:System[mdf R, RootCap]{ { _RootCap } }
+System[R]:System[mdf R, RootCap]{ { lent _RootCap } }
 
 CapBox[C]:Sealed{
   .get: lent C,
