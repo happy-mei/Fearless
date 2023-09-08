@@ -31,6 +31,6 @@ False:Bool{
   .look(f) -> f.else(),
   .str -> "False"
   }
-ThenElse[R]:NoMutHyg[R]{ mut .then: mdf R, mut .else: mdf R, }
-BoolView[R]:NoMutHyg[R]{ recMdf .then: mdf R, recMdf .else: mdf R, }
+ThenElse[R]:{ mut .then: mdf R, mut .else: mdf R, }
+BoolView[R]:{ recMdf .then: mdf R, recMdf .else: mdf R, }
 

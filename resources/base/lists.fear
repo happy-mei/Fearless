@@ -41,19 +41,19 @@ LListMut:{
     .get(i) -> (i == 0u).look(recMdf _LListMutGet#(i, head, tail))
     },
   }
-LListMut[E]:Sealed,NoMutHyg[mdf E]{
+LListMut[E]:Sealed{
   recMdf .match[R](m: mut LListMutMatch[recMdf E, mdf E, mdf R]): mdf R -> m.empty,
   recMdf .head: mut Opt[recMdf E] -> {},
   recMdf .tail: recMdf LListMut[mdf E] -> {},
   read .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
   read .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
   recMdf .get(i: UInt): mut Opt[recMdf E] -> {},
-  recMdf .iter: lent Iter[read E] -> Let.hyg{
+  recMdf .iter: lent Iter[read E] -> Let#{
     .var -> Ref#[read LListMut[mdf E]]this,
     .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
     },
 //  read .iter: lent Iter[recMdf E] -> recMdf _LListMutToIter[mdf E]#(Ref#[recMdf LListMut[mdf E]]this),
-  lent .iterMut: lent Iter[mdf E] -> Let.hyg{
+  lent .iterMut: lent Iter[mdf E] -> Let#{
     .var -> Ref#[lent LListMut[mdf E]]this,
     .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
     },
@@ -90,7 +90,7 @@ List:{
     .look(i) -> s*.inner.get(i),
     .get(i) -> s*.inner.get(i),
     .add(e) -> s := (_ListState#(s*.len + 1u, s*.inner + e)),
-    .iter -> Let.hyg{
+    .iter -> Let#{
       .var -> Count.uint(0u),
       .in(cursor) -> { .next -> list.look(cursor++) }
       },
@@ -99,7 +99,7 @@ List:{
       .in(cursor) -> { .next -> list.get(cursor++) }
       },
     }}
-List[E]:Sealed,NoMutHyg[mdf E]{
+List[E]:Sealed{
   read .len: UInt,
   read .isEmpty: Bool,
   read .look(i: UInt): lent Opt[read E],
@@ -109,7 +109,7 @@ List[E]:Sealed,NoMutHyg[mdf E]{
   mut .iterMut: mut Iter[mdf E],
   mut .addAll(other: mut List[mdf E]): Void -> other.iterMut.for{ e -> this.add(e) },
   }
-_ListState[E]:NoMutHyg[E]{
+_ListState[E]:{
   read .len: UInt -> 0u,
   recMdf .inner: recMdf LListMut[mdf E] -> {}
   }

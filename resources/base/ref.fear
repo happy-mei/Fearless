@@ -1,7 +1,7 @@
 package base
 
-Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-Ref[X]:NoMutHyg[mdf X],Sealed{
+Ref:{ #[X:imm,mut](x: mdf X): mut Ref[mdf X] -> this#(x) }
+Ref[X:imm,mut]:Sealed{
   recMdf *: recMdf X,
   recMdf .get: recMdf X -> this*,
   mut .swap(x: mdf X): mdf X,
@@ -10,9 +10,9 @@ Ref[X]:NoMutHyg[mdf X],Sealed{
   mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
   mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
   }
-UpdateRef[X]:NoMutHyg[mdf X]{ mut #(x: mdf X): mdf X }
+UpdateRef[X:imm,mut]:{ mut #(x: mdf X): mdf X }
 
-Count[N]:Ref[N]{
+Count[N:imm]:Ref[N]{
   mut ++: N,
   mut --: N,
   mut +=(n: N): N,

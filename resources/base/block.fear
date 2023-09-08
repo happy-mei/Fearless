@@ -55,7 +55,7 @@ DecidedBlock[R]:Block[mdf R]{
     mut ._hyg(res: mdf R): lent DecidedBlockHyg[mdf R] -> { res },
   }
 
-ReturnStmt[R]:NoMutHyg[mdf R]{ mut #: mdf R }
+ReturnStmt[R]:{ mut #: mdf R }
 DoRunner:{ mut #: Void }
 Condition:{ mut #: Bool }
 Continuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
