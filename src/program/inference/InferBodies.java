@@ -188,7 +188,7 @@ public record InferBodies(ast.Program p) {
 
     try {
       var refiner = new RefineTypes(p);
-      var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t());
+      var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, Map.of(), iTs, e.t());
       // TODO: this doesn't consider narrowing down to gens on ITs (i.e. IO':CapFactory[...] does not help refine CapFactory[...] because this only uses IO')
       var refined = refiner.refineSig(c.mdf(), recv, List.of(baseSig), depth);
       var refinedSig = refined.sigs().get(0);

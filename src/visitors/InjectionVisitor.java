@@ -99,6 +99,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     return new ast.E.Sig(
       s.mdf(),
       s.gens().stream().map(this::visitGX).toList(),
+      s.bounds(),
       s.ts().stream().map(this::visitT).toList(),
       this.visitT(s.ret()),
       s.pos()

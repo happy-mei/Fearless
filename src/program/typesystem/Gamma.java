@@ -1,13 +1,13 @@
 package program.typesystem;
 
+import ast.T;
 import failure.CompileError;
 import failure.Fail;
-import program.Program;
-import ast.T;
 import id.Mdf;
+import utils.Push;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static id.Mdf.*;
 import static java.util.Set.of;
@@ -25,12 +25,36 @@ public interface Gamma {
   }
   default Optional<T> getO(ast.E.X x){ return getO(x.name()); }
   Optional<T> getO(String s);
-  static Gamma empty(){ return x->Optional.empty(); }
+  List<String> dom();
+  static Gamma empty(){ return new Gamma() {
+    @Override public Optional<T> getO(String x) {
+      return Optional.empty();
+    }
+    @Override public List<String> dom() {
+      return List.of();
+    }
+  }; }
   default Gamma add(String s, T t) {
-    return x->x.equals(s)?Optional.of(t):this.getO(x);
+    var outer = this;
+    return new Gamma() {
+      @Override public Optional<T> getO(String x) {
+        return x.equals(s)?Optional.of(t):outer.getO(x);
+      }
+      @Override public List<String> dom() {
+        return Push.of(outer.dom(), s);
+      }
+    };
   }
   default Gamma captureSelf(XBs xbs, String x, T t, Mdf mMdf) {
-    Gamma g = xi->this.getO(xi).map(ti->xT(xi,xbs,t.mdf(),ti,mMdf));
+    var outer = this;
+    var g = new Gamma() {
+      @Override public Optional<T> getO(String xi) {
+        return outer.getO(xi).map(ti->xT(xi,xbs,t.mdf(),ti,mMdf));
+      }
+      @Override public List<String> dom() {
+        return outer.dom();
+      }
+    };
     Mdf selfMdf = t.mdf().restrict(mMdf).orElseThrow();
     return g.add(x,t.withMdf(selfMdf));
   }

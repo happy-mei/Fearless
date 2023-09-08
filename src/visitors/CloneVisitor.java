@@ -38,6 +38,10 @@ public interface CloneVisitor{
   default E.Sig visitSig(E.Sig e){return new E.Sig(
     visitMdf(e.mdf()),
     e.gens().stream().map(this::visitGX).toList(),
+    Mapper.of(acc->e.bounds().forEach((key, value)->{
+      var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());
+      acc.put(key, res);
+    })),
     e.ts().stream().map(this::visitT).toList(),
     visitT(e.ret()),
     e.pos()

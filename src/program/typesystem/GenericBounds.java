@@ -7,9 +7,11 @@ import failure.CompileError;
 import failure.Fail;
 import id.Id;
 import id.Mdf;
+import program.CM;
 import utils.Bug;
 import utils.Streams;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -23,8 +25,22 @@ public interface GenericBounds {
       .findAny();
   }
 
-  static Optional<CompileError> validGenericMeth(Program p, XBs xbs, E.Meth m) {
-    throw Bug.todo();
+  static Optional<CompileError> validGenericMeth(Program p, XBs xbs, Mdf recvMdf, Id.IT<T> recvIT, int depth, Id.MethName name, List<T> typeArgs) {
+    var gensValid = typeArgs.stream()
+      .map(t->validGenericT(p, xbs, t))
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .findAny();
+    if (gensValid.isPresent()) { return gensValid; }
+    CM cm = p.meths(recvMdf, recvIT, name, depth).orElseThrow();
+    return Streams.zip(typeArgs, cm.sig().gens())
+      .map((t, gx)->{
+        var bounds = cm.bounds().getOrDefault(gx, XBs.defaultBounds);
+        return validGenericMdf(xbs, bounds.isEmpty() ? XBs.defaultBounds : bounds, t);
+      })
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .findAny();
   }
 
   static Optional<CompileError> validGenericIT(Program p, XBs xbs, Id.IT<T> it) {

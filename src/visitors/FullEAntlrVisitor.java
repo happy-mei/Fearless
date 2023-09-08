@@ -284,7 +284,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var name = mh.map(MethHeader::name)
         .orElseGet(()->new MethName(ctx.m().getText(),xs.size()));
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
-    var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), xs.stream().map(E.X::t).toList(), h.ret(), Optional.of(pos(ctx))));
+    var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), h.bounds(), xs.stream().map(E.X::t).toList(), h.ret(), Optional.of(pos(ctx))));
     return new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body, Optional.of(pos(ctx)));
   }
   public record MethHeader(Mdf mdf, MethName name, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds, List<E.X> xs, T ret){}

@@ -63,7 +63,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var sig = m.sig().orElseThrow();
     var name = m.name().orElseThrow();
     var gens = sig.gens().stream().map(g->new T(Mdf.mdf,g)).toList();
-    return new RefinedSig(sig.mdf(), name, gens, sig.ts(),sig.ret());
+    return new RefinedSig(sig.mdf(), name, gens, sig.bounds(), sig.ts(),sig.ret());
   }
   E.Sig fixSig(E.Sig sig, T iTi){
     var ret  = sig.ret();
@@ -142,9 +142,9 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     }
   }
 
-  public record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, List<T> args, T rt){
+  public record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, Map<Id.GX<T>, Set<Mdf>> bounds, List<T> args, T rt){
     E.Sig toSig(Optional<Pos> pos) {
-      return new astFull.E.Sig(mdf, gens.stream().map(T::gxOrThrow).toList(), args, rt, pos);
+      return new astFull.E.Sig(mdf, gens.stream().map(T::gxOrThrow).toList(), bounds, args, rt, pos);
     }
   }
 
@@ -172,6 +172,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
       sig.mdf(),
       meth.name(),
       tgxs,
+      sig.bounds(),
       sig.ts().stream().map(t->renamer.renameT(t, f)).toList(),
       renamer.renameT(sig.ret(),f)
     );
@@ -224,7 +225,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   RefinedSig toTSig(RefinedSig sig, ArrayDeque<RP> q) {
     var gens = sig.gens().stream().map(unused->q.poll().t1()).toList();
     var args = sig.args().stream().map(unused->q.poll().t1()).toList();
-    return new RefinedSig(sig.mdf(), sig.name(),gens,args,q.poll().t1());
+    return new RefinedSig(sig.mdf(), sig.name(), gens, sig.bounds(), args, q.poll().t1());
   }
 
   RP easyInfer(RP rp){

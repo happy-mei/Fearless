@@ -296,7 +296,7 @@ public class TestRecMdf {
     """); }
   @Test void shouldApplyRecMdfInTypeParams1bBounds() { ok("""
     package test
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt:{ #[T:imm,mut](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
     Opt[T:imm,mut]:{
       recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }
@@ -304,7 +304,7 @@ public class TestRecMdf {
     """); }
   @Test void shouldApplyRecMdfInTypeParams1bBoundsTraitGens() { ok("""
     package test
-    OptK[T:imm,mut]:{ #(x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    FOpt[T:imm,mut]:{ #(x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
     Opt[T:imm,mut]:{
       recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }

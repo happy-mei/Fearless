@@ -47,7 +47,6 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
 
   @Override public Optional<CompileError> visitX(E.X e) {
     return super.visitX(e)
-      .or(()->noIsoMoreThanOnce(e))
       .map(err->err.parentPos(e.pos()));
   }
 
@@ -64,13 +63,6 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
 
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
     return super.visitIT(t);
-  }
-
-  private Optional<CompileError> noIsoMoreThanOnce(E.X x) {
-    var t = env.get(x);
-    if (!t.mdf().isIso()) { return Optional.empty(); }
-    if (env.usages().getOrDefault(x.name(), 0) <= 1) { return Optional.empty(); }
-    return Optional.of(Fail.multipleIsoUsage(x).pos(x.pos()));
   }
 
   private Optional<CompileError> noHygInMut(T t) {

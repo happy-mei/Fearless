@@ -26,6 +26,9 @@ public interface EMethTypeSystem extends ETypeSystem {
     Res rE0 = e0.accept(v);
     if(rE0.err().isPresent()){ return rE0; }
     T t_=rE0.tOrThrow();
+    var invalidBounds = GenericBounds.validGenericMeth((ast.Program) p(), xbs(), t_.mdf(), t_.itOrThrow(), depth(), e.name(), e.ts());
+    if (invalidBounds.isPresent()) { return invalidBounds.get().pos(e.pos()); }
+
     var optTst=multiMeth(t_,e.name(),e.ts());
     if(optTst.isEmpty()){ return new CompileError(); } //TODO: list the available methods
     List<TsT> tst = optTst.get().stream()
@@ -146,8 +149,6 @@ public interface EMethTypeSystem extends ETypeSystem {
         if (ti == null) { return t; }
         // TODO: what about capturing a function from read to read?  02/09/23: Not sure what this TODO means
         var newMdf = mdf0.adapt(ti);
-//        var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, new ast.T(recvMdf, new Id.IT<>("$fake$", List.of())), t, Mdf.recMdf);
-//        return Gamma.xT(ti.rt().toString(), xbs(), mdf0, ti, mdf0);
         return ti.withMdf(newMdf);
       },
       it->{

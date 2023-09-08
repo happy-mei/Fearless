@@ -37,6 +37,7 @@ public interface TypeRename<T extends Id.Ty>{
       return new ast.E.Sig(
         sig.mdf(),
         sig.gens(),
+        sig.bounds(),
         sig.ts().stream().map(t->renameT(t,f)).toList(),
         renameT(sig.ret(),f),
         sig.pos()

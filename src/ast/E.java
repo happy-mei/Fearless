@@ -10,9 +10,7 @@ import visitors.CloneVisitor;
 import visitors.GammaVisitor;
 import visitors.Visitor;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public interface E extends HasPos {
@@ -85,19 +83,27 @@ public interface E extends HasPos {
       return String.format("%s(%s): %s -> %s", name, xs, sig, body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<Id.GX<T>> gens, List<T> ts, T ret, Optional<Pos> pos){
+  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<astFull.T>, Set<Mdf>> bounds,  List<T> ts, T ret, Optional<Pos> pos){
     public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
     public astFull.E.Sig toAstFullSig() {
       return new astFull.E.Sig(
         mdf,
         gens.stream().map(gx->new Id.GX<astFull.T>(gx.name())).toList(),
+        bounds,
         ts.stream().map(T::toAstFullT).toList(),
         ret.toAstFullT(),
         pos
       );
     }
     @Override public String toString() {
-      return "Sig[mdf="+mdf+",gens="+gens+",ts="+ts+",ret="+ret+"]";
+      if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
+        return "Sig[mdf="+mdf+",gens="+gens+",ts="+ts+",ret="+ret+"]";
+      }
+      var boundsStr = bounds.entrySet().stream()
+        .sorted(Comparator.comparing(a->a.getKey().name()))
+        .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
+        .collect(Collectors.joining(","));
+      return "Sig[mdf="+mdf+",gens="+gens+",bounds={"+boundsStr+"},ts="+ts+",ret="+ret+"]";
     }
   }
 }

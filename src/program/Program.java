@@ -195,7 +195,7 @@ public interface Program {
     var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
     var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(this, freshGXsSet, t)).toList();
     var restoredRt = RefineTypes.regenerateInfers(this, freshGXsSet, sig.ret());
-    var restoredSig = new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos());
+    var restoredSig = new E.Sig(sig.mdf(), sig.gens(), sig.bounds(), restoredArgs, restoredRt, sig.pos());
     return Optional.of(new FullMethSig(cm.name(), restoredSig));
   }
 

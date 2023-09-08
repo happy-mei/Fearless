@@ -146,7 +146,7 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     this .b/0[]([])
     were valid:
-    (recMdf test.A[]) <: (imm test.A[]): iso test.B[]
+    (read test.A[]) <: (imm test.A[]): iso test.B[]
     """, """
     package test
     A:{
@@ -530,9 +530,9 @@ were valid:
     """); }
   @Test void boxInnerGens() { ok("""
     package test
-    Box:{ #[R](r: mdf R): mut Box[mdf R] -> { r } }
-    Box[R]:base.NoMutHyg[mdf R]{ recMdf #: recMdf R }
-    BoxF[R]:base.NoMutHyg[mdf R]{ recMdf #: mut F[recMdf R] }
+    Box:{ recMdf #[R](r: recMdf R): recMdf Box[mdf R] -> { r } }
+    Box[R]:{ recMdf #: recMdf R }
+    BoxF[R]:{ recMdf #: mut F[recMdf R] }
     F[A,B]:{ read #(a: mdf A): mdf B }
     F[A]:{read #:mdf A}
     Usage[A,B]:{ #(b: mut Box[mut F[read A, read B]]): mut F[read A, read B] -> b# }
@@ -673,7 +673,7 @@ were valid:
   @Test void noCaptureMdfInMut() { fail("""
     In position [###]/Dummy0.fear:4:29
     [E30 badCapture]
-    'recMdf this' cannot be captured by a mut method in a mut lambda.
+    'read this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     A[X]:{ mut .prison: mdf X }
@@ -1289,7 +1289,6 @@ were valid:
     """;
   private static final String recMdfGetForListsHelpers = """
     package test
-    alias base.NoMutHyg as NoMutHyg,
     Abort:{ ![R]: mdf R -> this! }
     Nat:{
       .pred: Nat,
@@ -1323,8 +1322,8 @@ were valid:
       .if(f) -> f.else(),
       .look(f) -> f.else(),
       }
-    ThenElse[R]:NoMutHyg[mdf R]{ mut .then: mdf R, mut .else: mdf R, }
-    BoolView[R]:NoMutHyg[R]{ recMdf .then: mdf R, recMdf .else: mdf R, }
+    ThenElse[R]:{ mut .then: mdf R, mut .else: mdf R, }
+    BoolView[R]:{ recMdf .then: mdf R, recMdf .else: mdf R, }
     """;
   @Test void recMdfGetForLists1() { ok("""
     package test
@@ -1332,7 +1331,7 @@ were valid:
       recMdf .get(i: Nat): recMdf E -> Abort!,
       recMdf .push(e: mdf E): recMdf LList[mdf E] -> { .get(i) -> e } // passes
       }
-    """, recMdfGetForListsHelpers, noMutHyg); }
+    """, recMdfGetForListsHelpers); }
   @Test void recMdfGetForLists2() { ok("""
     package test
     ThisBox:{ recMdf #: recMdf Foo }
@@ -1345,10 +1344,10 @@ were valid:
     package test
     LList[E]:{
       recMdf .get(i: Nat): recMdf E -> Abort!,
-      recMdf .push(e: mdf E): recMdf LList[mdf E] -> { .get(i) -> i.isZero.look(recMdf ListGet#(e, this)) },
+      recMdf .push(e: recMdf E): recMdf LList[recMdf E] -> { .get(i) -> i.isZero.look(recMdf ListGet#(e, this)) },
       }
     ListGet:{ recMdf #[E](e: recMdf E, t: recMdf LList[mdf E]): recMdf BoolView[recMdf E] -> { .then -> e, .else -> t.get(Z) } }
-    """, recMdfGetForListsHelpers, noMutHyg); }
+    """, recMdfGetForListsHelpers); }
 
   @Test void dontFearTheLambdaEx1() { ok("""
     package ex
@@ -1608,7 +1607,7 @@ were valid:
     """); }
   @Test void readMethOnMutPromotion() { ok("""
     package test
-    A:{ read .newB: mut B -> B }
+    A:{ read .newB: mut B -> mut B }
     B:{}
     C:{ .promote(b: iso B): B -> b }
     Test:{ #(a: mut A): B -> C.promote(a.newB) }
@@ -1633,11 +1632,25 @@ were valid:
     Void:{} Name:{}
     """); }
 
+  @Test void invalidBoundsOnInlineLambda() { fail("""
+    In position [###]/Dummy0.fear:3:27
+    [E5 invalidMdfBound]
+    The type lent test.Foo[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
+    """, """
+    package test
+    A[X: imm, mut]:{}
+    Foo:{ .bar: A[lent Foo] -> A[lent Foo] }
+    """); }
+
   @Test void mixedLentPromo1a() {
     fail("""
-      In position [###]/Dummy0.fear:12:2
-      [E40 mutCapturesHyg]
-      The type mut base.Ref[lent base.B[]] is not valid because a mut lambda may not capture hygienic references.
+      In position [###]/Dummy0.fear:3:4
+      [E5 invalidMdfBound]
+      The type lent base.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
+            
+      In position [###]/Dummy0.fear:10:21
+      [E5 invalidMdfBound]
+      The type lent base.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
       """, """
       package base
       // should also not pass with `lent Ref[lent B]`
@@ -1660,8 +1673,8 @@ were valid:
         #[X](x: mdf X): Void -> this.with(x, Void),
         .with[X,R](_: mdf X, res: mdf R): mdf R -> res,
         }
-      Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-      Ref[X]:Sealed{
+      Ref:{ #[X:imm,mut](x: mdf X): mut Ref[mdf X] -> this#(x) }
+      Ref[X:imm,mut]:Sealed{
         recMdf *: recMdf X,
         recMdf .get: recMdf X -> this*,
         mut .swap(x: mdf X): mdf X -> mut _FakeCapture[mdf X]{ x }.prev,
@@ -1677,9 +1690,13 @@ were valid:
   }
   @Test void mixedLentPromo1b() {
     fail("""
-      In position [###]/Dummy0.fear:12:2
-      [E40 mutCapturesHyg]
-      The type mut base.Ref[lent base.B[]] is not valid because a mut lambda may not capture hygienic references.
+      In position [###]/Dummy0.fear:3:4
+      [E5 invalidMdfBound]
+      The type lent base.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
+            
+      In position [###]/Dummy0.fear:10:21
+      [E5 invalidMdfBound]
+      The type lent base.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
       """, """
       package base
       // should also not pass with `lent Ref[lent B]`
@@ -1697,13 +1714,13 @@ were valid:
         }
       """, """
       package base
-      Void:{} NoMutHyg[X]:{} Sealed:{}
+      Void:{} Sealed:{}
       Yeet:{
         #[X](x: mdf X): Void -> this.with(x, Void),
         .with[X,R](_: mdf X, res: mdf R): mdf R -> res,
         }
-      Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-      Ref[X]:NoMutHyg[mdf X],Sealed{
+      Ref:{ #[X:imm,mut](x: mdf X): mut Ref[mdf X] -> this#(x) }
+      Ref[X:imm,mut]:Sealed{
         recMdf *: recMdf X,
         recMdf .get: recMdf X -> this*,
         mut .swap(x: mdf X): mdf X,
@@ -1712,7 +1729,7 @@ were valid:
         mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
         mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
         }
-      UpdateRef[X]:NoMutHyg[mdf X]{ mut #(x: mdf X): mdf X }
+      UpdateRef[X]:{ mut #(x: mdf X): mdf X }
       Abort:{ ![R]: mdf R -> this! }
       """);
   }
@@ -1748,15 +1765,19 @@ were valid:
       """);
   }
 
-  @Disabled
   @Test void invalidTraitBounds1() { fail("""
+    [###]/Dummy0.fear:3:2
+    [E5 invalidMdfBound]
+    The type imm test.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut.
     """, """
     package test
     A[X: mut]:{}
     B:A[imm B]
     """); }
-  @Disabled
   @Test void invalidTraitBounds2() { fail("""
+    [###]/Dummy0.fear:3:2
+    [E5 invalidMdfBound]
+    The type imm test.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut.
     """, """
     package test
     A[X: mut]:{ .a1: mdf X }
@@ -1910,5 +1931,42 @@ were valid:
     Person:{}
     List[X]:{ recMdf .first: recMdf X }
     Bar:{ .bar[Y](bob: mdf Y): imm List[mdf Y] -> { bob } }
+    """); }
+
+  @Test void noIsoMoreThanOnce() { fail("""
+    In position [###]/Dummy0.fear:3:63
+    [E45 multipleIsoUsage]
+    The isolated reference "x1" is used more than once.
+    """, """
+    package test
+    Caps:{} Void:{}
+    A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
+    """); }
+  @Test void isoOnce() { ok("""
+    package test
+    Caps:{} Void:{}
+    A:{ .notBreak(x1: iso Caps, x2: iso Caps): Void -> this.notBreak(x1, x2) }
+    """); }
+  @Test void noIsoMoreThanOnceCCaptured() { fail("""
+    In position [###]/Dummy0.fear:4:65
+    [E45 multipleIsoUsage]
+    The isolated reference "x1" is used more than once.
+    """, """
+    package test
+    Caps:{} Void:{}
+    A:{
+      .break(x1: iso Caps, x2: iso Caps): Void -> this.break'(x1, B{ x1 }),
+      .break'(x1: iso Caps, b: B): Void -> {},
+      }
+    B:{ .x: Caps }
+    """); }
+  @Test void noIsoMoreThanOnceCCapturedOk() { ok("""
+    package test
+    Caps:{} Void:{}
+    A:{
+      .break(x1: iso Caps, x2: iso Caps): Void -> this.break'(x1, B{ x2 }),
+      .break'(x1: iso Caps, b: B): Void -> {},
+      }
+    B:{ .x: Caps }
     """); }
 }
