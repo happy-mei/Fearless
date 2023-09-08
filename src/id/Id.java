@@ -1,18 +1,20 @@
 package id;
 
+import astFull.T;
 import parser.Parser;
 import utils.Bug;
 import utils.OneOr;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Id {
+  public sealed interface Dec permits astFull.T.Dec, ast.T.Dec {
+    Map<GX<T>, Set<Mdf>> bounds();
+  }
   public static boolean validM(String m){
     assert m!=null && !m.isEmpty();
     return new parser.Parser(Parser.dummy,m).parseM();      

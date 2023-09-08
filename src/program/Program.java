@@ -22,6 +22,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface Program {
+  Id.Dec of(Id.DecId dec);
   List<Id.IT<T>> itsOf(Id.IT<T> t);
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t);

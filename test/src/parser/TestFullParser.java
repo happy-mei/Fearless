@@ -461,8 +461,8 @@ class TestFullParser {
   @Test void mdfBounds1() { ok("""
     {test.A1/1=Dec[name=test.A1/1,gxs=[B],bounds={B=[imm]},lambda=[-infer-][]{}],
     test.A2/1=Dec[name=test.A2/1,gxs=[B],bounds={B=[imm,mut]},lambda=[-infer-][]{}],
-    test.A3/2=Dec[name=test.A3/2,gxs=[B,C],bounds={B=[imm,mut],C=[]},lambda=[-infer-][]{}],
-    test.A4/3=Dec[name=test.A4/3,gxs=[B,C,D],bounds={B=[imm,mut],C=[],D=[lent,read]},lambda=[-infer-][]{}]}
+    test.A3/2=Dec[name=test.A3/2,gxs=[B,C],bounds={B=[imm,mut]},lambda=[-infer-][]{}],
+    test.A4/3=Dec[name=test.A4/3,gxs=[B,C,D],bounds={B=[imm,mut],D=[lent,read]},lambda=[-infer-][]{}]}
     """, """
     package test
     A1[B: imm]:{}

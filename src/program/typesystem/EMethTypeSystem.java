@@ -26,7 +26,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     Res rE0 = e0.accept(v);
     if(rE0.err().isPresent()){ return rE0; }
     T t_=rE0.tOrThrow();
-    var invalidBounds = GenericBounds.validGenericMeth((ast.Program) p(), xbs(), t_.mdf(), t_.itOrThrow(), depth(), e.name(), e.ts());
+    var invalidBounds = GenericBounds.validGenericMeth(p(), xbs(), t_.mdf(), t_.itOrThrow(), depth(), e.name(), e.ts());
     if (invalidBounds.isPresent()) { return invalidBounds.get().pos(e.pos()); }
 
     var optTst=multiMeth(t_,e.name(),e.ts());

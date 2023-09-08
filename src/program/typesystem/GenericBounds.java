@@ -1,7 +1,7 @@
 package program.typesystem;
 
 import ast.E;
-import ast.Program;
+import program.Program;
 import ast.T;
 import failure.CompileError;
 import failure.Fail;
@@ -53,7 +53,11 @@ public interface GenericBounds {
     if (innerInvalid.isPresent()) { return innerInvalid; }
 
     var dec = p.of(it.name());
-    return Streams.zip(it.ts(), dec.gxs())
+    var gxs = switch (dec) {
+      case T.Dec d -> d.gxs();
+      case astFull.T.Dec d -> d.gxs();
+    };
+    return Streams.zip(it.ts(), gxs)
       .map((t, gx) -> {
         var bounds = dec.bounds().get(gx);
         return validGenericMdf(xbs, bounds == null || bounds.isEmpty() ? XBs.defaultBounds : bounds, t);
