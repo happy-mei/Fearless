@@ -216,6 +216,10 @@ public class Fail{
     return of("At least one trait must be listed for a lambda to implement if a modifier for the lambda is provided.");
   }
 
+  public static CompileError namedTopLevelLambda() {
+    return of("Trait declarations may not have a self-name other than \"this\".");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -272,6 +276,7 @@ enum ErrorCode {
   noMdfInFormalParams,
   privateMethCall,
   privateTraitImplementation,
-  mustProvideImplsIfMdfProvided;
+  mustProvideImplsIfMdfProvided,
+  namedTopLevelLambda;
   int code() {return this.ordinal() + 1;}
 }

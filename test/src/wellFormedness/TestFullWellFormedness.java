@@ -58,7 +58,7 @@ public class TestFullWellFormedness {
     Local variables may not be named 'this'.
     """, """
     package base
-    A:{'this}
+    A:{ .m1: A -> {'this} }
     """); }
 
   @Test void noExplicitThisMethArg() { fail("""
@@ -104,15 +104,6 @@ public class TestFullWellFormedness {
     """, """
     package base
     A:{ .a: A, .a: A }
-    """); }
-
-  @Test void noShadowingLambda() { fail("""
-    In position [###]/Dummy0.fear:2:2
-    [E9 shadowingX]
-    'hi' is shadowing another variable in scope.
-    """, """
-    package base
-    A:{'hi .a: A -> A{'hi .a() -> {} } }
     """); }
 
   @Test void noMutHygOk() { ok("""
@@ -267,8 +258,29 @@ public class TestFullWellFormedness {
     'unique' is shadowing another variable in scope.
     """, """
     package test
-    Foo:{ 'unique
-      .m1(): Foo -> Foo { 'unique }
+    Foo:{
+      .m1(): Foo -> Foo { 'unique
+        .m1 -> {'unique}
+        }
+      }
+    """); }
+
+
+  @Test void noTopLevelSelfName() { fail("""
+    In position [###]/Dummy0.fear:2:2
+    [E50 namedTopLevelLambda]
+    Trait declarations may not have a self-name other than "this".
+    """, """
+    package test
+    A:{ 'self
+      .me: A -> self,
+      //.meThis: A -> this
+      }
+    """); }
+  @Test void lambdaSelfNameOk() { ok("""
+    package test
+    A:{
+      .me: A -> {'self },
       }
     """); }
 

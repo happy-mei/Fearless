@@ -68,7 +68,6 @@ Evil:Main{
     ...
  */
 
-// TODO: rule about iso only being used once? Do we not need it becuase we never capture iso as iso
 public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisitorWithEnv<CompileError> {
   private Program p;
 
@@ -119,6 +118,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   @Override
   public Optional<CompileError> visitDec(T.Dec d) {
     return hasNonDisjointXs(d.gxs().stream().map(Id.GX::name).toList(), d)
+      .or(()->noSelfNameOnTopLevelDec(d.lambda()))
       .or(()->super.visitDec(d));
   }
 
@@ -216,6 +216,11 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
         return FullShortCircuitVisitor.super.visitT(t);
       }
     }.visitSig(s);
+  }
+
+  private Optional<CompileError> noSelfNameOnTopLevelDec(E.Lambda e) {
+    if (e.selfName() == null) { return Optional.empty(); }
+    return Optional.of(Fail.namedTopLevelLambda().pos(e.pos()));
   }
 }
 
