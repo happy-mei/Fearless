@@ -300,7 +300,15 @@ public class TestRecMdf {
     Opt[T:imm,mut]:{
       recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }
-    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    OptMatch[T:imm,mut, R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    """); }
+  @Test void shouldApplyRecMdfInTypeParams1bBoundsTraitGens() { ok("""
+    package test
+    OptK[T:imm,mut]:{ #(x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt[T:imm,mut]:{
+      recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+      }
+    OptMatch[T:imm,mut, R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     """); }
   @Test void boxAndMatcher() { ok("""
     package test

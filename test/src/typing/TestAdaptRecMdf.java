@@ -42,7 +42,7 @@ public class TestAdaptRecMdf {
   }
   @Test void adaptMutRecMdfMutMut() {
     ok("""
-    [test.List[mut test.Person[]],recMdf.get/0()[][]:recMdf test.Person[]abs]
+    [test.List[muttest.Person[]],recMdf.get/0()[][]:muttest.Person[]abs]
     """, "test.Family", Mdf.mut, """
     package test
     Person:{}
@@ -51,10 +51,8 @@ public class TestAdaptRecMdf {
     """);
   }
   @Test void adaptMutRecMdfMutRead() {
-    fail("""
-      In position [###]/Dummy0.fear:3:10
-      [E30 badCapture]
-      'read test.Person[]' cannot be captured by a recMdf method in a mut lambda.
+    ok("""
+      [test.List[read test.Person[]],recMdf .get/0()[][]:read test.Person[]abs]
       """, "test.Family", Mdf.mut, """
       package test
       Person:{}
@@ -88,7 +86,7 @@ public class TestAdaptRecMdf {
     var expected = lambdaMdf.adapt(genericMdf);
     if (genericMdf.isMdf()) { expected = Mdf.recMdf; }
     ok("""
-    [test.List[%s Z],recMdf.get/0()[][]:%s Zabs
+    [test.List[%s Z],recMdf.get/0()[][]:%s Zabs,
     test.List[%s Z],read.asRead/0()[][]:read Zabs]
     """.formatted(genericMdf, expected, genericMdf), "test.Family[mdf Z]",  lambdaMdf, """
     package test

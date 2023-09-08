@@ -66,6 +66,7 @@ public class TestTypeSystem {
     Person:{}
     List[X]:{ recMdf .get(): recMdf X }
     Family2:List[mut Person]{ recMdf .get(): mut Person }
+    // Family2:List[mut Person]{ recMdf .get(): recMdf Person } // works
     """); }
 
   @Test void ref1() { fail("""

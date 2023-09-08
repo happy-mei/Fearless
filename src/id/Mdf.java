@@ -56,9 +56,10 @@ public enum Mdf{
     if (this == recMdf) {
       if (other == mdf) { return recMdf; }
       if (other == mut) { return recMdf; }
-      if (other == lent) { return recMdf; }
       if (other == imm) { return imm; }
       if (other == read) { return read; }
+      if (other == lent) { return recMdf; }
+      if (other == iso) { return imm; }
     }
     System.err.println("uh oh adapt is undefined for "+this+" and "+other);
     throw Bug.unreachable();

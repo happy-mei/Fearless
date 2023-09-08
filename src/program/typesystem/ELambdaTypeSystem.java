@@ -29,6 +29,10 @@ interface ELambdaTypeSystem extends ETypeSystem{
     Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
     Dec d=new Dec(fresh,List.of(),Map.of(),b,b.pos());
     Program p0=p().withDec(d);
+
+    var invalidBounds = GenericBounds.validGenericLambda((ast.Program) p0, xbs(), b).map(err->err.pos(b.pos()));
+    if (invalidBounds.isPresent()) { return invalidBounds.get(); }
+
     var validMethods = b.meths().stream()
       .filter(m->filterByMdf(mdf,m.sig().mdf()))
       .toList();
@@ -60,14 +64,16 @@ interface ELambdaTypeSystem extends ETypeSystem{
     if (expectedT().map(t->t.rt() instanceof Id.GX<T>).orElse(false)) {
       throw Fail.bothTExpectedGens(expectedT().orElseThrow(), d.name()).pos(b.pos());
     }
-    var xbs = XBs.empty();
+//    var xbs = XBs.empty(); // TODO: should this extend the XBs on the context?
+    var xbs = xbs(); // TODO: should this extend the XBs on the context?
     for (var gx : d.gxs()) {
       var bounds = d.bounds().get(gx);
       if (bounds.isEmpty()) { continue; }
-      xbs.add(gx, bounds);
+      xbs = xbs.add(gx, bounds);
     }
     var invalidGens = GenericBounds.validGenericLambda((ast.Program) p(), xbs, b);
-    if (invalidGens.isPresent()) { return invalidGens.get(); }
+    ELambdaTypeSystem boundedTypeSys = (ELambdaTypeSystem) withXBs(xbs);
+    if (invalidGens.isPresent()) { return invalidGens.get().pos(b.pos()); }
     //var errMdf = expectedT.map(ti->!p().isSubType(ti.mdf(),b.mdf())).orElse(false);
     //after discussion, line above not needed
     var its = p().itsOf(d.toIT());
@@ -81,7 +87,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var selfName=b.selfName();
     List<CompileError> mRes = b.meths().stream().flatMap(mi->{
       try {
-        return mOk(selfName, selfT, mi).stream();
+        return boundedTypeSys.mOk(selfName, selfT, mi).stream();
       } catch (CompileError err) {
         return Optional.of(err.parentPos(mi.pos())).stream();
       }
@@ -90,7 +96,14 @@ interface ELambdaTypeSystem extends ETypeSystem{
     return mRes.get(0);
   }
   default Optional<CompileError> mOk(String selfName, T selfT, E.Meth m){
-    if(m.isAbs()){ return Optional.empty(); }
+    if(m.isAbs()){
+      return m.sig().ts().stream()
+        .map(t->GenericBounds.validGenericT((ast.Program) p(), xbs(), t))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .map(err->err.pos(m.pos()))
+        .findAny();
+    }
     var e   = m.body().orElseThrow();
     var mMdf = m.sig().mdf();
 

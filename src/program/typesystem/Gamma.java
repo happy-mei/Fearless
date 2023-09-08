@@ -56,7 +56,7 @@ public interface Gamma {
       if (mMdf.isRecMdf() && captured.mdf().isMut()) { return captured.withMdf(recMdf); }
     }
 
-    var validHygCaptures = of(mut, imm, iso, lent, read);
+    var validHygCaptures = of(mut, imm, iso, lent, read, recMdf); // TODO: maybe recMdf?
     if (self.isLent()) {
       if (captured.isMdfX()) {
         if (mMdf.isMut() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(read); }
