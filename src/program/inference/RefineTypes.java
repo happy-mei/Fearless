@@ -3,6 +3,7 @@ package program.inference;
 import ast.Program;
 import astFull.E;
 import astFull.T;
+import failure.CompileError;
 import files.Pos;
 import id.Id;
 import id.Mdf;
@@ -30,13 +31,25 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 
     var c = lambda.it().orElseThrow();
 
-    List<RefinedSig> sigs = lambda.meths().stream()
+    List<E.Meth> lambdaOnlyMeths = lambda.meths().stream()
+      .filter(m->{
+        try {
+          return m.name().isPresent() && p().meths(lambda.mdf().orElse(Mdf.imm), c.toAstIT(T::toAstT), m.name().get(), depth).isEmpty();
+        } catch (T.MatchOnInfer err) {
+          return false;
+        }
+      }).toList();
+    List<E.Meth> traitMeths = lambda.meths().stream()
+      .filter(m->!lambdaOnlyMeths.contains(m))
+      .toList();
+    List<RefinedSig> sigs = traitMeths.stream()
       .map(this::tSigOf)
       .toList();
     var res = refineSig(lambda.mdf().orElse(Mdf.imm), c, sigs, depth);
-    var ms = Streams.zip(lambda.meths(), res.sigs())
-      .map(this::tM)
-      .toList();
+    var ms = Stream.concat(
+      Streams.zip(traitMeths, res.sigs()).map(this::tM),
+      lambdaOnlyMeths.stream()
+    ).toList();
     var newIT = replaceOnlyInfers(lambda.t(), new T(lambda.t().mdf(), res.c()));
     return lambda.withMeths(ms).withT(Optional.ofNullable(newIT.itOrThrow()).map(it->new T(lambda.t().mdf(), it)));
   }
@@ -156,21 +169,14 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     });
   }
 
-  RefinedSig freshXs(List<CM> ms, Id.MethName m, List<Id.GX<ast.T>> gxs) {
-    // TODO: what about helper methods added on the creation of a lambda that aren't in the top dec?
-    // TODO: Hi past Nick, yes we should support that here.
-    // TODO: improve error message
-    var meth = OneOr.of(
-      "Could not find a method (or more than one) with the name "+m,
-      ms.stream().filter(mi->mi.name().equals(m))
-    );
-    var sig = meth.sig().toAstFullSig();
-    assert meth.sig().gens().size() == gxs.size();
+  RefinedSig freshXs(Optional<CM> cm, Id.MethName name, List<Id.GX<ast.T>> gxs) {
+    var sig = cm.map(cmi->cmi.sig().toAstFullSig()).orElseThrow();
+    assert sig.gens().size() == gxs.size();
     var tgxs = gxs.stream().map(gx->new T(Mdf.mdf, gx.toFullAstGX())).toList();
     var f = renamer.renameFun(tgxs,sig.gens());
     return new RefinedSig(
       sig.mdf(),
-      meth.name(),
+      name,
       tgxs,
       sig.bounds(),
       sig.ts().stream().map(t->renamer.renameT(t, f)).toList(),
@@ -212,7 +218,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
 
   List<RP> pairUp(Mdf lambdaMdf, List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
-    var ms = p.meths(lambdaMdf, c, depth);
+    var ms = p.meths(lambdaMdf, c, sig.name(), depth);
     var freshSig = freshXs(ms, sig.name(), gxs);
     var freshGens = freshSig.gens();
     return Streams.of(

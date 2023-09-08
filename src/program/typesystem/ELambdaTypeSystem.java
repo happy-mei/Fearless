@@ -63,7 +63,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var xbs = xbs();
     for (var gx : d.gxs()) {
       var bounds = d.bounds().get(gx);
-      if (bounds.isEmpty()) { continue; }
+      if (bounds == null || bounds.isEmpty()) { continue; }
       xbs = xbs.add(gx, bounds);
     }
     var invalidGens = GenericBounds.validGenericLambda((ast.Program) p(), xbs, b);

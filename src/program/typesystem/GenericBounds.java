@@ -33,6 +33,7 @@ public interface GenericBounds {
       .findAny();
     if (gensValid.isPresent()) { return gensValid; }
     CM cm = p.meths(recvMdf, recvIT, name, depth).orElseThrow();
+    // TODO: throw error if type args.len != cm.sig.len (user code is wrong)
     return Streams.zip(typeArgs, cm.sig().gens())
       .map((t, gx)->{
         var bounds = cm.bounds().getOrDefault(gx, XBs.defaultBounds);
@@ -55,7 +56,7 @@ public interface GenericBounds {
     return Streams.zip(it.ts(), dec.gxs())
       .map((t, gx) -> {
         var bounds = dec.bounds().get(gx);
-        return validGenericMdf(xbs, bounds.isEmpty() ? XBs.defaultBounds : bounds, t);
+        return validGenericMdf(xbs, bounds == null || bounds.isEmpty() ? XBs.defaultBounds : bounds, t);
       })
       .filter(Optional::isPresent)
       .map(Optional::get)

@@ -185,6 +185,7 @@ public record InferBodies(ast.Program p) {
     var c = e.receiver().t();
     var iTs = typesOf(e.es());
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
+    if (p().meths(c.mdf(), recv.toAstIT(T::toAstT), e.name(), depth).isEmpty()) { return Optional.empty(); }
 
     try {
       var refiner = new RefineTypes(p);

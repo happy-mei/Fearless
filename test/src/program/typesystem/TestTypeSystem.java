@@ -1773,8 +1773,17 @@ were valid:
     package test
     A:{
       .m1: A -> { 'self
-        .public: A -> self.private,
+        .m1: A -> self.private[], // must provide full signature for private methods
         .private: A -> {}
+        }
+      }
+    """); }
+  @Test void extraMethInLambdaGens() { ok("""
+    package test
+    A:{
+      .m1: A -> { 'self
+        .m1: A -> self.private[A], // must provide full signature for private methods
+        .private[X]: A -> {}
         }
       }
     """); }

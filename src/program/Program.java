@@ -296,7 +296,7 @@ public interface Program {
       n > 0
       CMs.size < n //else error
      */
-    assert cms.size() >= 1;
+    assert !cms.isEmpty();
     var first=cms.get(0);
     if (cms.size() == 1) { return first; }
     var nextCms=cms.stream().skip(1)
