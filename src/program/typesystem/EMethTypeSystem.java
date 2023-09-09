@@ -79,7 +79,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     assert es.size() == ts.size();
     return IntStream.range(0, es.size()).parallel()
       .allMatch(i -> {
-        var typeSystem = (EMethTypeSystem) this.withProgram(p().cleanCopy());
+        var typeSystem = (EMethTypeSystem) this.withProgram(p().shallowClone());
         return typeSystem.ok(es.get(i), ts.get(i), errors);
       });
   }

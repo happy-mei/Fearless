@@ -15,11 +15,11 @@ LList[E]:Sealed{
   +(e: E): LList[E] -> this ++ (LList#e),
   .get(i: UInt): iso Opt[E] -> this.match[mut Opt[E]]{
     .empty -> {},
-    .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
+    .elem(h, t) -> (i == 0u) ? { .then -> mut Opt#h, .else -> t.get(i - 1u) }
     },
   .head: iso Opt[E] -> this.match[mut Opt[E]]{
     .empty -> {},
-    .elem(h,_) -> Opt#h,
+    .elem(h,_) -> mut Opt#h,
     },
   .tail: LList[E] -> this.match{
     .empty -> {},
@@ -32,36 +32,36 @@ LList[E]:Sealed{
 LListMatch[E,R]:{ mut .elem(head: E, tail: LList[E]): mdf R, mut .empty: mdf R }
 
 LListMut:{
-  #[E](head: mdf E): mut LListMut[mdf E] -> this.cons(head, {}),
-  .cons[E](head: mdf E, tail: mut LListMut[mdf E]): mut LListMut[mdf E] -> {
+  recMdf #[E](head: recMdf E): recMdf LListMut[recMdf E] -> this.cons(head, {}),
+  recMdf .cons[E](head: recMdf E, tail: recMdf LListMut[mdf E]): recMdf LListMut[mdf E] -> {
     .match(m) -> m.elem(head, tail),
-    .head -> Opt#[recMdf E](head),
-    .headRaw -> Opt#[mdf E](head),
+    .head -> recMdf Opt#[recMdf E](head),
+    //.headRaw -> Opt#[mdf E](head),
     .tail -> tail,
-    .get(i) -> (i == 0u).look(recMdf _LListMutGet#(i, head, tail))
+    //.get(i) -> (i == 0u).look(recMdf _LListMutGet#(i, head, tail))
     },
   }
 LListMut[E]:Sealed{
   recMdf .match[R](m: mut LListMutMatch[recMdf E, mdf E, mdf R]): mdf R -> m.empty,
-  recMdf .head: mut Opt[recMdf E] -> {},
+  recMdf .head: recMdf Opt[recMdf E] -> {},
   recMdf .tail: recMdf LListMut[mdf E] -> {},
   read .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
   read .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
   recMdf .get(i: UInt): mut Opt[recMdf E] -> {},
-  recMdf .iter: lent Iter[read E] -> Let#{
-    .var -> Ref#[read LListMut[mdf E]]this,
-    .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
-    },
+//  recMdf .iter: lent Iter[read E] -> Let#{
+//    .var -> Ref#[read LListMut[mdf E]]this,
+//    .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
+//    },
 //  read .iter: lent Iter[recMdf E] -> recMdf _LListMutToIter[mdf E]#(Ref#[recMdf LListMut[mdf E]]this),
-  lent .iterMut: lent Iter[mdf E] -> Let#{
-    .var -> Ref#[lent LListMut[mdf E]]this,
-    .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
-    },
+//  lent .iterMut: lent Iter[mdf E] -> Let#{
+//    .var -> Ref#[lent LListMut[mdf E]]this,
+//    .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
+//    },
 
-  mut .headRaw: mut Opt[mdf E] -> {},
-  mut ++(l1: mut LListMut[mdf E]): mut LListMut[mdf E] -> this.headRaw.map{ h -> LListMut.cons(h, this.tail ++ l1) } | l1,
-  mut +(e: mdf E): mut LListMut[mdf E] -> this ++ (LListMut#e),
-  mut .list: mut List[mdf E] -> List.fromLListMut(this),
+  //mut .headRaw: mut Opt[mdf E] -> {},
+  recMdf ++(l1: recMdf LListMut[recMdf E]): recMdf LListMut[recMdf E] -> this.head.map{ h -> recMdf LListMut.cons(h, this.tail ++ l1) } | l1,
+  recMdf +(e: recMdf E): recMdf LListMut[recMdf E] -> this ++ (recMdf LListMut#e),
+//  mut .list: mut List[mdf E] -> List.fromLListMut(this),
   }
 LListMutMatch[E,TE,R]:{
   mut .elem(head: mdf E, tail: read LListMut[mdf TE]): mdf R,
@@ -71,56 +71,56 @@ LListMutMatch[E,TE,R]:{
 //  read #(cursor: mut Ref[recMdf LListMut[mdf E]]): mut Iter[recMdf E] -> { .next -> cursor.swap(cursor*.tail).head }
 //  }
 _LListMutGet:{
-  recMdf #[E](i: UInt, head: recMdf E, tail: recMdf LListMut[mdf E]): recMdf BoolView[mut Opt[recMdf E]] ->
-    { .then -> Opt#head, .else -> tail.get(i - 1u) }
+  recMdf #[E](i: UInt, head: recMdf E, tail: recMdf LListMut[mdf E]): recMdf BoolView[recMdf Opt[recMdf E]] ->
+    { .then -> recMdf Opt#head, .else -> tail.get(i - 1u) }
   }
 
-List:{
-  #[E]: mut List[mdf E] -> this._new(Ref#mut _ListState[mdf E]),
-  #[E](e: mdf E): mut List[mdf E] -> this.fromLListMut(LListMut#e),
-  // TODO: this up to 10 or something
-  #[E](e1: mdf E, e2: mdf E, e3: mdf E): mut List[mdf E] -> this.fromLListMut(LListMut.cons(e1, LListMut.cons(e2, LListMut#e3))),
-  .fromLListMut[E](list: mut LListMut[mdf E]): mut List[mdf E] -> this._new(Ref#(_ListState#(list.len, list))),
-
-  /// Note: This fearless implementation of a list may be replaced with a conventional expandable array list
-  /// as magic for performance reasons.
-  ._new[E](s: mut Ref[mut _ListState[mdf E]]): mut List[mdf E] -> { 'list
-    .len -> s*.len,
-    .isEmpty -> s*.inner.isEmpty,
-    .look(i) -> s*.inner.get(i),
-    .get(i) -> s*.inner.get(i),
-    .add(e) -> s := (_ListState#(s*.len + 1u, s*.inner + e)),
-    .iter -> Let#{
-      .var -> Count.uint(0u),
-      .in(cursor) -> { .next -> list.look(cursor++) }
-      },
-    .iterMut -> Let#{
-      .var -> Count.uint(0u),
-      .in(cursor) -> { .next -> list.get(cursor++) }
-      },
-    }}
-List[E]:Sealed{
-  read .len: UInt,
-  read .isEmpty: Bool,
-  read .look(i: UInt): lent Opt[read E],
-  lent .get(i: UInt): mut Opt[mdf E],
-  mut .add(e: mdf E): Void,
-  read .iter: lent Iter[read E],
-  mut .iterMut: mut Iter[mdf E],
-  mut .addAll(other: mut List[mdf E]): Void -> other.iterMut.for{ e -> this.add(e) },
-  }
-_ListState[E]:{
-  read .len: UInt -> 0u,
-  recMdf .inner: recMdf LListMut[mdf E] -> {}
-  }
-//_GetFromListState:{
-//  read .p0[E](s: recMdf Ref[mut _ListState[mdf E]]): recMdf _ListState[mdf E] -> s*, // fails here
-//  read .p1[E](s: recMdf _ListState[mdf E]): recMdf LListMut[mdf E] -> s.inner, // ok
-//  read .p2[E](inner: recMdf LListMut[mdf E], i: UInt): recMdf Opt[recMdf E] -> inner.get(i), // ok
+//List:{
+//  #[E]: mut List[mdf E] -> this._new(Ref#mut _ListState[mdf E]),
+//  #[E](e: mdf E): mut List[mdf E] -> this.fromLListMut(LListMut#e),
+//  // TODO: this up to 10 or something
+//  #[E](e1: mdf E, e2: mdf E, e3: mdf E): mut List[mdf E] -> this.fromLListMut(LListMut.cons(e1, LListMut.cons(e2, LListMut#e3))),
+//  .fromLListMut[E](list: mut LListMut[mdf E]): mut List[mdf E] -> this._new(Ref#(_ListState#(list.len, list))),
+//
+//  /// Note: This fearless implementation of a list may be replaced with a conventional expandable array list
+//  /// as magic for performance reasons.
+//  ._new[E](s: mut Ref[mut _ListState[mdf E]]): mut List[mdf E] -> { 'list
+//    .len -> s*.len,
+//    .isEmpty -> s*.inner.isEmpty,
+//    .look(i) -> s*.inner.get(i),
+//    .get(i) -> s*.inner.get(i),
+//    .add(e) -> s := (_ListState#(s*.len + 1u, s*.inner + e)),
+//    .iter -> Let#{
+//      .var -> Count.uint(0u),
+//      .in(cursor) -> { .next -> list.look(cursor++) }
+//      },
+//    .iterMut -> Let#{
+//      .var -> Count.uint(0u),
+//      .in(cursor) -> { .next -> list.get(cursor++) }
+//      },
+//    }}
+//List[E]:Sealed{
+//  read .len: UInt,
+//  read .isEmpty: Bool,
+//  read .look(i: UInt): lent Opt[read E],
+//  lent .get(i: UInt): mut Opt[mdf E],
+//  mut .add(e: mdf E): Void,
+//  read .iter: lent Iter[read E],
+//  mut .iterMut: mut Iter[mdf E],
+//  mut .addAll(other: mut List[mdf E]): Void -> other.iterMut.for{ e -> this.add(e) },
 //  }
-_ListState:{
-  #[E](len: UInt, inner: mut LListMut[mdf E]): mut _ListState[mdf E] -> {
-    .len -> len,
-    .inner -> inner
-    }
-  }
+//_ListState[E]:{
+//  read .len: UInt -> 0u,
+//  recMdf .inner: recMdf LListMut[mdf E] -> {}
+//  }
+////_GetFromListState:{
+////  read .p0[E](s: recMdf Ref[mut _ListState[mdf E]]): recMdf _ListState[mdf E] -> s*, // fails here
+////  read .p1[E](s: recMdf _ListState[mdf E]): recMdf LListMut[mdf E] -> s.inner, // ok
+////  read .p2[E](inner: recMdf LListMut[mdf E], i: UInt): recMdf Opt[recMdf E] -> inner.get(i), // ok
+////  }
+//_ListState:{
+//  #[E](len: UInt, inner: mut LListMut[mdf E]): mut _ListState[mdf E] -> {
+//    .len -> len,
+//    .inner -> inner
+//    }
+//  }

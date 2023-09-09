@@ -32,7 +32,7 @@ public interface Program {
   List<ast.E.Lambda> lambdas();
   Optional<Pos> posOf(Id.IT<ast.T> t);
   /** Produce a clone of Program without any cached data */
-  Program cleanCopy();
+  Program shallowClone();
 
   default void reset() {
     this.methsCache().clear();
@@ -56,8 +56,8 @@ public interface Program {
   default boolean tryIsSubType(T t1, T t2) {
     try {
       return isSubType(t1, t2);
-    } catch (CompileError ce) {
-      System.out.println("sub-typing ignoring"+ce);
+    } catch (CompileError | StackOverflowError ce) { // due to the parallelism in okAll we can no longer easily prevent us getting stuck here
+      System.out.println("sub-typing ignoring "+ce);
       return false;
     }
   }
