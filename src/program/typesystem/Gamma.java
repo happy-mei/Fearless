@@ -85,6 +85,7 @@ public interface Gamma {
       if (captured.isMdfX()) {
         if (mMdf.isMut() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(read); }
         if (mMdf.isImm() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(imm); }
+        // TODO: are we really wanting to say lent cannot capture lent?
         if (mMdf.isLent() && of(mut,iso).containsAll(bounds)) { return captured.withMdf(lent); }
         // TODO: why not capture lent as read here? I can always turn a lent into read and mix the ROGs manually. See lentCannotAdaptWithMut
         if (mMdf.isLent() && of(mut, imm, read, iso).containsAll(bounds)) { return captured.withMdf(read); }

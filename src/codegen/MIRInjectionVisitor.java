@@ -20,6 +20,10 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   private Program p;
   public MIRInjectionVisitor(Program p) { this.p = p; }
 
+  public Program getProgram() {
+    return this.p.shallowClone();
+  }
+
   public MIR.Program visitProgram() {
     var traits = p.ds().values().stream().map(d->visitDec(d.name().pkg(), d)).toList();
     Map<String, List<MIR.Trait>> ds = Stream.concat(
@@ -83,7 +87,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     Set<MIR.X> captures = captureCollector.res().stream().map(x->visitX(x, gamma)).collect(Collectors.toSet());
 
     var impls = simplifyImpls(e.its());
-    if (impls.size() == 1) {
+    if (impls.size() == 1 && p.meths(Mdf.recMdf, impls.get(0), 0).size() >= e.meths().size()) {
       var it = impls.get(0);
       var g = new HashMap<>(gamma);
       g.put(e.selfName(), new T(e.mdf(), it));
@@ -100,18 +104,31 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       );
     }
 
-    var fresh = new Id.DecId(Id.GX.fresh().name(), 0);
+    var fresh = Id.GX.fresh().name();
     var freshName = new Id.DecId(pkg+"."+fresh, 0);
     var freshDec = new T.Dec(freshName, List.of(), Map.of(), e, e.pos());
-    impls = impls.stream().filter(it->!it.name().equals(fresh)).toList();
-    var canSingletonTrait = p.meths(e.mdf(), freshDec.toIT(), 0).stream().noneMatch(CM::isAbs);
-    MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), impls, List.of(), canSingletonTrait);
-    freshTraits.add(freshTrait);
-    p = p.withDec(freshDec);
+    var freshDecImplsOnly = new T.Dec(freshName, List.of(), Map.of(), new E.Lambda(
+      e.mdf(),
+      e.its(),
+      e.selfName(),
+      List.of(),
+      e.pos()
+    ), e.pos());
+    impls = impls.stream().filter(it->!it.name().equals(freshName)).toList();
+    var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
+    var noExtraMeths = this.p.withDec(freshDecImplsOnly).meths(recvMdf, freshDec.toIT(), 0).size() >= e.meths().size();
+    this.p = p.withDec(freshDec);
+    var noAbsMeths = this.p.meths(recvMdf, freshDec.toIT(), 0).stream().noneMatch(CM::isAbs);
+    var canSingletonTrait = noAbsMeths && noExtraMeths;
 
     var g = new HashMap<>(gamma);
-    g.put(e.selfName(), new T(e.mdf(), new Id.IT<>(fresh, List.of())));
+    g.put(e.selfName(), new T(e.mdf(), new Id.IT<>(freshName.name(), List.of())));
+
+    List<MIR.Meth> msTrait = e.meths().stream().map(m->visitMeth(pkg, m.withBody(Optional.empty()), g)).toList();
     List<MIR.Meth> ms = e.meths().stream().map(m->visitMeth(pkg, m, g)).toList();
+    MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), impls, msTrait, canSingletonTrait);
+    freshTraits.add(freshTrait);
+
     return new MIR.Lambda(
       e.mdf(),
       freshName,

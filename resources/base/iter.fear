@@ -1,76 +1,73 @@
 package base
 
 Iter[E]:{
-  lent .next: lent Opt[mdf E],
-  lent .find(p: lent IterPredicate[mdf E]): lent Opt[mdf E] -> this.next.matchHyg{
-    .some(x) -> p#x.ifHyg{ .then -> Opt#x, .else -> this.find(p) },
-    .none -> {}
-    },
-
-  lent .map[R](f: lent IterMapper[mdf E, mdf R]): lent Iter[mdf R] -> {
-    .next -> this.next.matchHyg{
-      .some(x) -> Opt#(f#x),
-      .none -> {}
-      }},
-  lent .flatMap[R](f: lent IterMapper[mdf E, lent Iter[mdf R]]): lent Iter[mdf R] -> Do#
-    .var[lent Iter[lent Iter[mdf R]]] mapIter = { this.map(f) }
-    .var[lent Ref[lent Opt[lent Iter[mdf R]]]] optCurIter = { Ref#(mapIter.next) }
-    .return(mut ReturnStmt[lent Iter[mdf R]]{ lent Iter[mdf R]{ 'self
-      .next -> optCurIter*.matchHyg{
-        .some(curIter) -> curIter.next.matchHyg{
-          .some(next) -> Opt#next,
-          .none -> Yeet.with(optCurIter := (mapIter.next), self.next)
-          },
-        .none -> {}
-        }
-      }}),
-  lent .filter(p: lent IterPredicate[mdf E]): lent Iter[mdf E] -> { .next -> this.find(p) },
-
-  lent .fold[R](acc: mdf R, f: lent IterFolder[mdf E, mdf R]): mdf R -> this.next.matchHyg{
-    .some(e) -> this.fold(f#(acc, e), f),
-    .none -> acc
-    },
-  lent .foldImm[R](acc: R, f: lent IterFolder[mdf E, R]): R -> this.next.matchHyg{
-    .some(e) -> this.foldImm(f#(acc, e), f),
-    .none -> acc
-    },
-  mut .foldMut[R](acc: mut R, f: mut IterFolder[mdf E, mut R]): mut R -> this.next.match{
-    .some(e) -> this.foldMut(f#(acc, e), f),
-    .none -> acc
-    },
-  mut .for(f: mut IterForEacher[mdf E]): Void -> this.next.match{
-    .some(e) -> Yeet.with(f#e, this.for(f)),
-    .none -> {}
-    },
-
-  lent .count: UInt -> this.fold[UInt](0u, IterFolder[mdf E, UInt]{ acc, _ -> acc + 1u }),
-//  lent .list: mut List[mdf E] ->
+  mut .next: lent Opt[mdf E],
+//  mut .find(p: read IterPredicate[mdf E]): lent Opt[mdf E] -> this.next.matchHyg{
+//    .some(x) -> p#x.ifHyg{ .then -> Opt#x, .else -> this.find(p) },
+//    .none -> {}
+//    },
+//
+//  lent .map[R](f: lent IterMapper[mdf E, mdf R]): lent Iter[mdf R] -> {
+//    .next -> this.next.matchHyg{
+//      .some(x) -> Opt#(f#x),
+//      .none -> {}
+//      }},
+//  lent .flatMap[R](f: lent IterMapper[mdf E, lent Iter[mdf R]]): lent Iter[mdf R] -> Do#
+//    .var[lent Iter[lent Iter[mdf R]]] mapIter = { this.map(f) }
+//    .var[lent Ref[lent Opt[lent Iter[mdf R]]]] optCurIter = { Ref#(mapIter.next) }
+//    .return(mut ReturnStmt[lent Iter[mdf R]]{ lent Iter[mdf R]{ 'self
+//      .next -> optCurIter*.matchHyg{
+//        .some(curIter) -> curIter.next.matchHyg{
+//          .some(next) -> Opt#next,
+//          .none -> Yeet.with(optCurIter := (mapIter.next), self.next)
+//          },
+//        .none -> {}
+//        }
+//      }}),
+//  lent .filter(p: lent IterPredicate[mdf E]): lent Iter[mdf E] -> { .next -> this.find(p) },
+//
+//  lent .fold[R](acc: mdf R, f: lent IterFolder[mdf E, mdf R]): mdf R -> this.next.matchHyg{
+//    .some(e) -> this.fold(f#(acc, e), f),
+//    .none -> acc
+//    },
+//  lent .foldImm[R](acc: R, f: lent IterFolder[mdf E, R]): R -> this.next.matchHyg{
+//    .some(e) -> this.foldImm(f#(acc, e), f),
+//    .none -> acc
+//    },
+//  mut .foldMut[R](acc: mut R, f: mut IterFolder[mdf E, mut R]): mut R -> this.next.match{
+//    .some(e) -> this.foldMut(f#(acc, e), f),
+//    .none -> acc
+//    },
+//  mut .for(f: mut IterForEacher[mdf E]): Void -> this.next.match{
+//    .some(e) -> Yeet.with(f#e, this.for(f)),
+//    .none -> {}
+//    },
+//
+//  lent .count: UInt -> this.fold[UInt](0u, IterFolder[mdf E, UInt]{ acc, _ -> acc + 1u }),
+////  lent .list: mut List[mdf E] ->
+////    this.fold(
+////      IsoPod#[List[mdf E]](iso List#[mdf E]),
+////      { acc, e -> Yeet.with(acc := (_ListIsoAdd[mdf E]#(acc*, e)), acc) })
+////    .consume,
+//  lent .llistMut: mut LListMut[mdf E] ->
 //    this.fold(
-//      IsoPod#[List[mdf E]](iso List#[mdf E]),
-//      { acc, e -> Yeet.with(acc := (_ListIsoAdd[mdf E]#(acc*, e)), acc) })
+//      IsoPod#[LListMut[mdf E]](LListMut[mdf E]),
+//      { acc, e -> Yeet.with(acc := (acc* + e), acc) })
 //    .consume,
-  lent .llistMut: mut LListMut[mdf E] ->
-    this.fold(
-      IsoPod#[LListMut[mdf E]](LListMut[mdf E]),
-      { acc, e -> Yeet.with(acc := (acc* + e), acc) })
-    .consume,
-  lent .str(toStr: lent IterMapper[mdf E, Str], joining: Str): Str -> (this.map(toStr))
-    .fold[Str]("", IterFolder[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e, .else -> acc + joining + e } })
+//  lent .str(toStr: lent IterMapper[mdf E, Str], joining: Str): Str -> (this.map(toStr))
+//    .fold[Str]("", IterFolder[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e, .else -> acc + joining + e } })
   }
 
-Sum:{
-  .int(ns: lent Iter[Int]): Int -> ns.fold[Int](0, lent IterFolder[Int, Int]{ acc, n -> acc + n }),
-  .uint(ns: lent Iter[UInt]): UInt -> ns.fold[UInt](0u, IterFolder[UInt, UInt]{ acc, n -> acc + n }),
-  .float(ns: lent Iter[Float]): Float -> ns.fold[Float](0.0, IterFolder[Float, Float]{ acc, n -> acc + n }),
-  }
-
-IterForEacher[E]:{ mut #(e: mdf E): Void }
-IterFolder[E,R]:{ lent #(acc: mdf R, e: mdf E): mdf R }
-IterFolderMut[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
-IterScanner[E, R, S: mut,lent]:{ lent #(state: mut Ref[mdf S], e: mdf E): mdf S }
-IterMapper[E,R]:{ lent #(e: mdf E): mdf R }
-IterPredicate[E]:{ lent #(e: mdf E): Bool }
-
-//_ListIsoAdd[E]:{
-//  #(l: mut List[mdf E], e: mdf E): mut List[mdf E] -> Yeet.with(l.add(e), l),
+//Sum:{
+//  .int(ns: lent Iter[Int]): Int -> ns.fold[Int](0, lent IterFolder[Int, Int]{ acc, n -> acc + n }),
+//  .uint(ns: lent Iter[UInt]): UInt -> ns.fold[UInt](0u, IterFolder[UInt, UInt]{ acc, n -> acc + n }),
+//  .float(ns: lent Iter[Float]): Float -> ns.fold[Float](0.0, IterFolder[Float, Float]{ acc, n -> acc + n }),
 //  }
+//
+//IterForEacher[E]:{ mut #(e: mdf E): Void }
+//IterFolder[E,R]:{ lent #(acc: mdf R, e: mdf E): mdf R }
+//IterFolderMut[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
+//IterScanner[E, R, S: mut,imm]:{ lent #(state: mut Ref[mdf S], e: mdf E): mdf S }
+//IterMapper[E,R]:{ lent #(e: mdf E): mdf R }
+//IterPredicate[E]:{ read #(e: mdf E): Bool }
+

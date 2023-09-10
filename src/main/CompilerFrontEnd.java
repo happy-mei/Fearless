@@ -157,10 +157,11 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
     return inferred;
   }
   private JavaProgram toJava(Id.DecId entry, Program p) {
-    var mir = new MIRInjectionVisitor(p).visitProgram();
+    var mirVisitor = new MIRInjectionVisitor(p);
+    var mir = mirVisitor.visitProgram();
     var codegen = switch (bv) {
-      case Std -> new JavaCodegen(p);
-      case Imm -> new ImmJavaCodegen(p);
+      case Std -> new JavaCodegen(mirVisitor.getProgram());
+      case Imm -> new ImmJavaCodegen(mirVisitor.getProgram());
     };
     var src = codegen.visitProgram(mir.pkgs(), entry);
     if (v.printCodegen) {
