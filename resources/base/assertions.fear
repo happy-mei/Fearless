@@ -16,14 +16,14 @@ package base
 
 Assert:Sealed{
   recMdf #(assertion: Bool): Void -> this#(assertion, { Void }),
-  recMdf #[R](assertion: Bool, cont: recMdf AssertCont[mdf R]): recMdf R -> assertion.look{
+  recMdf #[R](assertion: Bool, cont: recMdf AssertCont[mdf R]): recMdf R -> assertion.look(recMdf BoolView[recMdf R]{
     .then -> cont#,
-    .else -> this._fail[mdf R]()
-    },
-  recMdf #[R](assertion: Bool, msg: Str, cont: mut AssertCont[mdf R]): mdf R -> assertion.look{
+    .else -> Assert._fail[recMdf R]()
+    }),
+  recMdf #[R](assertion: Bool, msg: Str, cont: recMdf AssertCont[mdf R]): recMdf R -> assertion.look(recMdf BoolView[recMdf R]{
     .then -> cont#,
-    .else -> this._fail[mdf R](msg)
-    },
+    .else -> Assert._fail[recMdf R](msg)
+    }),
   ._fail[R]: mdf R -> this._fail,
   ._fail[R](msg: Str): mdf R -> this._fail(msg),
   }

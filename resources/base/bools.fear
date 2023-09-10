@@ -11,7 +11,7 @@ Bool:Sealed,Stringable{
   .if[R](f: mut ThenElse[mdf R]): mdf R,
   ?[R](f: mut ThenElse[mdf R]): mdf R -> this.if(f),
   .ifHyg[R](f: lent ThenElse[mdf R]): mdf R -> this.if(f),
-  recMdf .look[R](f: recMdf BoolView[mdf R]): mdf R,
+  recMdf .look[R](f: read BoolView[mdf R]): mdf R,
   }
 True:Bool{
   .and(b) -> b,

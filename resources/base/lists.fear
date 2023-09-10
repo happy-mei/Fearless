@@ -27,18 +27,20 @@ LList[E]:Sealed{
     },
   .iter: mut Iter[E] -> Do#
     .var[mut Ref[LList[E]]] cursor = { Ref#this }
-    .return{{ .next -> (cursor.swap(cursor*.tail)).head }},
+    .return(mut ReturnStmt[mut Iter[E]]{ mut #: mut Iter[E] -> { .next -> (cursor.swap(cursor*.tail)).head } }),
   }
 LListMatch[E,R]:{ mut .elem(head: E, tail: LList[E]): mdf R, mut .empty: mdf R }
 
 LListMut:{
   recMdf #[E](head: recMdf E): recMdf LListMut[recMdf E] -> this.cons(head, {}),
-  recMdf .cons[E](head: recMdf E, tail: recMdf LListMut[mdf E]): recMdf LListMut[mdf E] -> {
+  recMdf .cons[E](head: recMdf E, tail: recMdf LListMut[recMdf E]): recMdf LListMut[recMdf E] -> {
     .match(m) -> m.elem(head, tail),
     .head -> recMdf Opt#[recMdf E](head),
-    //.headRaw -> Opt#[mdf E](head),
     .tail -> tail,
-    //.get(i) -> (i == 0u).look(recMdf _LListMutGet#(i, head, tail))
+    .get(i) -> (i == 0u).look(recMdf BoolView[recMdf Opt[recMdf E]]{
+      .then -> recMdf Opt#head,
+      .else -> tail.get(i - 1u)
+      })
     },
   }
 LListMut[E]:Sealed{
@@ -47,7 +49,7 @@ LListMut[E]:Sealed{
   recMdf .tail: recMdf LListMut[mdf E] -> {},
   read .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
   read .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
-  recMdf .get(i: UInt): mut Opt[recMdf E] -> {},
+  recMdf .get(i: UInt): recMdf Opt[recMdf E] -> {},
 //  recMdf .iter: lent Iter[read E] -> Let#{
 //    .var -> Ref#[read LListMut[mdf E]]this,
 //    .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
@@ -66,13 +68,6 @@ LListMut[E]:Sealed{
 LListMutMatch[E,TE,R]:{
   mut .elem(head: mdf E, tail: read LListMut[mdf TE]): mdf R,
   mut .empty: mdf R,
-  }
-//_LListMutToIter[E]:{
-//  read #(cursor: mut Ref[recMdf LListMut[mdf E]]): mut Iter[recMdf E] -> { .next -> cursor.swap(cursor*.tail).head }
-//  }
-_LListMutGet:{
-  recMdf #[E](i: UInt, head: recMdf E, tail: recMdf LListMut[mdf E]): recMdf BoolView[recMdf Opt[recMdf E]] ->
-    { .then -> recMdf Opt#head, .else -> tail.get(i - 1u) }
   }
 
 //List:{

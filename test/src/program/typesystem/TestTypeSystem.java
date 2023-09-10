@@ -1943,4 +1943,145 @@ were valid:
       }
     B:{ .x: Caps }
     """); }
+
+  final String blockSrc = """
+    package test
+    ReturnStmt[R]:{ mut #: mdf R }
+    Condition:{ mut #: Bool }
+    VarContinuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
+    Do:{
+      #[R]: mut Block[mdf R] -> {},
+//      .hyg[R]: mut BlockHyg[mdf R] -> {},
+      }
+    Block[R]:{
+      mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+      mut .do(r: mut ReturnStmt[Void]): mut Block[mdf R] -> this._do(r#),
+        mut ._do(v: Void): mut Block[mdf R] -> this,
+      mut .var[X](x: mut ReturnStmt[mdf X], cont: mut VarContinuation[mdf X, mdf R]): mdf R -> cont#(x#, this),
+      mut .if(p: mut Condition): mut BlockIf[mdf R] -> p# ? { 'cond
+        .then -> { 't
+          .return(a) -> _DecidedBlock#(a#),
+          .do(r) -> t._do[](r#),
+            mut ._do(v: Void): mut Block[mdf R] -> this,
+          },
+        .else -> { 'f
+          .return(_) -> this,
+          .do(_) -> this,
+          },
+        },
+      }
+    BlockIf[R]:{
+      mut .return(a: mut ReturnStmt[mdf R]): mut Block[mdf R],
+      mut .do(r: mut ReturnStmt[Void]): mut Block[mdf R],
+      }
+    _DecidedBlock:{
+      #[R: imm, mut](res: mdf R): mut Block[mdf R] -> { 'self
+        .return(_) -> res,
+        .do(_) -> self,
+        .var(_, _) -> res,
+        }
+      }
+    
+//    ReturnStmtHyg[R]:{ lent #: mdf R }
+//    ConditionHyg:{ lent #: Bool }
+//    VarContinuationHyg[X,R]:{ lent #(x: mdf X, self: lent BlockHyg[mdf R]): mdf R }
+//    BlockHyg[R]:{
+//      lent .return(a: mut ReturnStmtHyg[mdf R]): mdf R -> a#,
+//      lent .do(r: lent ReturnStmtHyg[Void]): lent BlockHyg[mdf R] -> this._do(r#),
+//        lent ._do(v: Void): lent BlockHyg[mdf R] -> this,
+//      lent .var[X](x: lent ReturnStmtHyg[mdf X], cont: lent VarContinuationHyg[mdf X, mdf R]): mdf R -> cont#(x#, this),
+//      lent .if(p: lent ConditionHyg): lent BlockIfHyg[mdf R] -> p#.look(lent BoolView[lent BlockIfHyg[mdf R]]{ 'cond
+//        .then -> { 't
+//          .return(a) -> _DecidedBlockHyg#(a#),
+//          .do(r) -> t._do[](r#),
+//            lent ._do(v: Void): lent BlockHyg[mdf R] -> this,
+//          },
+//        .else -> { 'f
+//          .return(_) -> this,
+//          .do(_) -> this,
+//          },
+//        }),
+//      }
+//    BlockIfHyg[R]:{
+//      lent .return(a: lent ReturnStmtHyg[mdf R]): lent BlockHyg[mdf R],
+//      lent .do(r: lent ReturnStmtHyg[Void]): lent BlockHyg[mdf R],
+//      }
+//    _DecidedBlockHyg:{
+//      #[R](res: mdf R): lent BlockHyg[mdf R] -> { 'self
+//        .return(_) -> res,
+//        .do(_) -> self,
+//        .var(_, _) -> res,
+//        }
+//      }
+    
+    Void:{} Abort:{ ![R]: mdf R -> this! }
+    Bool:{
+      .and(b: Bool): Bool,
+      &&(b: Bool): Bool -> this.and(b),
+      .or(b: Bool): Bool,
+      ||(b: Bool): Bool -> this.or(b),
+      .xor(b: Bool): Bool,
+      ^(b: Bool): Bool -> this.xor(b),
+      .not: Bool,
+      .if[R](f: mut ThenElse[mdf R]): mdf R,
+      ?[R](f: mut ThenElse[mdf R]): mdf R -> this.if(f),
+      .ifHyg[R](f: lent ThenElse[mdf R]): mdf R -> this.if(f),
+      recMdf .look[R](f: read BoolView[mdf R]): mdf R,
+      }
+    True:Bool{
+      .and(b) -> b,
+      .or(b) -> this,
+      .xor(b) -> b.not,
+      .not -> False,
+      .if(f) -> f.then(),
+      .look(f) -> f.then(),
+      }
+    False:Bool{
+      .and(b) -> this,
+      .or(b) -> b,
+      .xor(b) -> b,
+      .not -> True,
+      .if(f) -> f.else(),
+      .look(f) -> f.else(),
+      }
+    ThenElse[R]:{ mut .then: mdf R, mut .else: mdf R, }
+    BoolView[R]:{ recMdf .then: mdf R, recMdf .else: mdf R, }
+    """;
+  @Test void recMdfBlock() { ok("""
+    package test
+    A:AorB{} B:AorB{} AorB:{}
+    Usage:{
+      .m1: Void -> Do#.return{Void},
+      .m2: mut Void -> Do#.return{mut Void},
+      .m3: mut AorB -> Do#[mut AorB]
+        .if{True}.return{mut A}
+        .return{mut B},
+      .m4: lent AorB -> Do#[lent AorB]
+        .if{True}.return{mut A}
+        .return{mut B},
+      .m5: lent AorB -> Do#[lent AorB]
+        .if{True}.return{lent A}
+        .return{lent B},
+      .m6: mut AorB -> Do#[mut AorB]
+        .if{True}.return{Do#
+          .var[mut A] a = { mut A }
+          .return{ a }
+          }
+        .return{mut B},
+      }
+    """, blockSrc); }
+  @Test void recMdfBlockLent() { fail("""
+    
+    """, """
+    package test
+    A:AorB{} B:AorB{} AorB:{}
+    Usage:{
+      .m1: lent AorB -> Do#[lent AorB]
+        .if{True}.return{Do#
+          .var[lent A] a = lent ReturnStmt[lent A]{ lent A }
+          .return lent ReturnStmt[lent A]{ a }
+          }
+        .return{lent B},
+      }
+    """, blockSrc); }
 }

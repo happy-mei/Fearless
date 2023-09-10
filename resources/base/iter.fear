@@ -12,10 +12,10 @@ Iter[E]:{
       .some(x) -> Opt#(f#x),
       .none -> {}
       }},
-  lent .flatMap[R](f: lent IterMapper[mdf E, lent Iter[mdf R]]): lent Iter[mdf R] -> Do.hyg
+  lent .flatMap[R](f: lent IterMapper[mdf E, lent Iter[mdf R]]): lent Iter[mdf R] -> Do#
     .var[lent Iter[lent Iter[mdf R]]] mapIter = { this.map(f) }
     .var[lent Ref[lent Opt[lent Iter[mdf R]]]] optCurIter = { Ref#(mapIter.next) }
-    .return{ lent Iter[mdf R]{ 'self
+    .return(mut ReturnStmt[lent Iter[mdf R]]{ lent Iter[mdf R]{ 'self
       .next -> optCurIter*.matchHyg{
         .some(curIter) -> curIter.next.matchHyg{
           .some(next) -> Opt#next,
@@ -23,7 +23,7 @@ Iter[E]:{
           },
         .none -> {}
         }
-      }},
+      }}),
   lent .filter(p: lent IterPredicate[mdf E]): lent Iter[mdf E] -> { .next -> this.find(p) },
 
   lent .fold[R](acc: mdf R, f: lent IterFolder[mdf E, mdf R]): mdf R -> this.next.matchHyg{

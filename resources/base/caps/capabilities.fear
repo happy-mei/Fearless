@@ -2,19 +2,19 @@ package base.caps
 
 System[R,Auth]:Sealed{
   lent ._auth: CapBox[Auth],
-  lent .use[C](c: CapFactory[Auth, C], cont: lent UseCapCont[C, mdf Auth, mdf R]): mdf R -> Do.hyg
-    .var[lent C] cap = { c#(this._auth)* }
-    .var[mdf R] res = { cont#(cap, this) }
-    .do{ c.close(cap) }
-    .return{ res },
-  lent .block: lent BlockHyg[mdf R] -> {},
-  lent .return(ret: lent ReturnStmtHyg[mdf R]): mdf R -> ret#,
-  lent .share[RR](): iso System[mdf RR, Auth] -> Do.hyg[mut System[mdf RR, Auth]]
-    .var[CapBox[Auth]] auth = { this._auth }
-    .return{{ auth }},
-  lent .share[RR, C](c: CapFactory[Auth, C]): iso System[mdf RR, C] -> Do.hyg[mut System[mdf RR, C]]
-    .var[CapBox[C]] auth = { c#(this._auth) }
-    .return{{ auth }},
+//  lent .use[C](c: CapFactory[Auth, C], cont: lent UseCapCont[C, mdf Auth, mdf R]): mdf R -> Do.hyg
+//    .var[lent C] cap = { c#(this._auth)* }
+//    .var[mdf R] res = { cont#(cap, this) }
+//    .do{ c.close(cap) }
+//    .return{ res },
+//  lent .block: lent BlockHyg[mdf R] -> {},
+//  lent .return(ret: lent ReturnStmtHyg[mdf R]): mdf R -> ret#,
+//  lent .share[RR](): iso System[mdf RR, Auth] -> Do.hyg[mut System[mdf RR, Auth]]
+//    .var[CapBox[Auth]] auth = { this._auth }
+//    .return{{ auth }},
+//  lent .share[RR, C](c: CapFactory[Auth, C]): iso System[mdf RR, C] -> Do.hyg[mut System[mdf RR, C]]
+//    .var[CapBox[C]] auth = { c#(this._auth) }
+//    .return{{ auth }},
   }
 System[R]:System[mdf R, RootCap]{ { lent _RootCap } }
 

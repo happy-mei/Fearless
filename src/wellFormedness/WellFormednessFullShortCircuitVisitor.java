@@ -89,7 +89,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       )
       .or(()->hasNonDisjointMs(e))
       .or(()->super.visitLambda(e))
-      .map(err->err.pos(e.posOrUnknown()));
+      .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitMeth(E.Meth e) {
