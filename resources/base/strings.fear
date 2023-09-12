@@ -8,7 +8,7 @@ Str:Sealed{
   read ==(other: read Str): Bool,
   }
 Stringable:{
-  .str: Str,
+  read .str: Str,
   }
 _StrInstance:Str{
   .len -> this.len,

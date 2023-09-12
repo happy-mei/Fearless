@@ -92,7 +92,8 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       var g = new HashMap<>(gamma);
       g.put(e.selfName(), new T(e.mdf(), it));
       List<MIR.Meth> ms = e.meths().stream().map(m->visitMeth(pkg, m, g)).toList();
-      var canSingleton = ms.isEmpty() && p.meths(e.mdf(), it, 0).stream().noneMatch(CM::isAbs);
+      var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
+      var canSingleton = ms.isEmpty() && p.meths(recvMdf, it, 0).stream().noneMatch(CM::isAbs);
       return new MIR.Lambda(
         e.mdf(),
         it.name(),

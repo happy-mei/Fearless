@@ -45,8 +45,9 @@ public class TestJavaProgram {
       throw err;
     });
     inferred.typeCheck();
-    var mir = new MIRInjectionVisitor(inferred).visitProgram();
-    var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
+    var mirInjectionVisitor = new MIRInjectionVisitor(inferred);
+    var mir = mirInjectionVisitor.visitProgram();
+    var java = new JavaCodegen(mirInjectionVisitor.getProgram()).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
     var res = RunJava.of(new JavaProgram(java).compile(), args).join();
     Assertions.assertEquals(expected, res);
   }
@@ -928,6 +929,72 @@ public class TestJavaProgram {
       .return{ io.println("consume: " + (s1.consume)) }
       }
     """, Base.mutBaseAliases); }
+
+  @Test void automatonPure() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[Op[FB, FB]] pB = { Auto.pure(F[FB,FB]{ _ -> Bar }) }
+        .var[Op[FB, FB]] pId = { Auto.pure(F[FB,FB]{ a -> a }) }
+        .do{ Assert#(pB.step(Foo).result.str == "Bar") }
+        .do{ Assert#(pB.step(Foo).next.step(Foo).result.str == "Bar") }
+        .do{ Assert#(pId.step(Foo).result.str == "Foo") }
+        .do{ Assert#(pId.step(Foo).next.step(Bar).result.str == "Bar") }
+        .return{{}}
+        }
+      
+      FB:Stringable{}
+      Foo:FB{ .str -> "Foo" }
+      Bar:FB{ .str -> "Bar" }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonConst() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[mut Auto[FB, mut FB]] pB = { mut Auto.const[FB, mut FB](mut Bar) }
+        .do{ Assert#(pB.step(Foo).result.str == "Bar") }
+        .do{ Assert#(pB.step(Foo).next.step(Foo).result.str == "Bar") }
+        .return{{}}
+        }
+      FB:Stringable{}
+      Foo:FB{ .str -> "Foo" }
+      Bar:FB{ .str -> "Bar" }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonConstMutCapture() {
+    ok(new Res("", "", 0), "test.Test", """
+    package test
+    alias base.iter.Automaton as Auto,
+    Test:Main{ _ -> Do#
+      .var[mut Bar] bar = { mut Bar }
+      .var[mut Auto[FB, mut FB]] pB = { mut Auto.const[FB, mut FB](bar) }
+      .do{ Assert#(pB.step(Foo).result.str == "Bar") }
+      .do{ Assert#(pB.step(Foo).next.step(Foo).result.str == "Bar") }
+      .return{{}}
+      }
+    FB:Stringable{}
+    Foo:FB{ .str -> "Foo" }
+    Bar:FB{ .str -> "Bar" }
+    """, Base.mutBaseAliases);
+  }
+  @Test void automatonId() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[mut Auto[mut FB, mut FB]] pB = { mut Auto.id[mut FB] }
+        .do{ Assert#(pB.step(mut Foo).result.str == "Foo") }
+        .do{ Assert#(pB.step(mut Foo).next.step(mut Bar).result.str == "Bar") }
+        .return{{}}
+        }
+      FB:Stringable{}
+      Foo:FB{ .str -> "Foo" }
+      Bar:FB{ .str -> "Bar" }
+      """, Base.mutBaseAliases);
+  }
 
 //  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test
