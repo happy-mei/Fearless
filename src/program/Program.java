@@ -56,7 +56,7 @@ public interface Program {
   default boolean tryIsSubType(T t1, T t2) {
     try {
       return isSubType(t1, t2);
-    } catch (CompileError | StackOverflowError ce) { // due to the parallelism in okAll we can no longer easily prevent us getting stuck here
+    } catch (CompileError ce) { // due to the parallelism in okAll we can no longer easily prevent us getting stuck here
       System.out.println("sub-typing ignoring "+ce);
       return false;
     }

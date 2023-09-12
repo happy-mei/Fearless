@@ -1241,6 +1241,39 @@ public class TestInferBodies {
     A:{} B:A{}
     """); }
 
+  @Test void shouldNotRandomlyInferRecMdfGens1() { ok("""
+    {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this}],
+    test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-mdf-][test.B[]]{'this
+      .m1/0([]):Sig[mdf=imm,gens=[Y],ts=[],ret=muttest.B[mdfY]]->this.m2/0[mdfY]([]),
+      .m2/0([]):Sig[mdf=imm,gens=[Y],ts=[],ret=muttest.B[mdfY]]->[-mut-][test.B[mdfY]]{'fear0$}}],
+    test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this}]}
+    """, """
+    package test
+    A[X]:{}
+    B:{
+      .m1[Y]: mut B[mdf Y] -> this.m2,
+      .m2[Y]: mut B[mdf Y] -> {}
+      }
+    B[X]:{}
+    """); }
+  @Test void shouldNotRandomlyInferRecMdfGens2() { ok("""
+    """, """
+    package test
+    B:{
+      .m1[Y]: mut B[mdf Y] -> this.m2,
+      .m2[Y](_ListState[mdf Y]): mut B[mdf Y] -> {}
+      }
+    A[X]:{}
+    _ListState[E]:{
+      recMdf .inner: recMdf A[mdf E] -> {}
+      }
+    _ListState:{
+      #[E](inner: mut A[mdf E]): mut _ListState[mdf E] -> {
+        .inner -> inner
+        }
+      }
+    """); }
+
   // TODO: this should eventually fail with an "inference failed" message when I add that error
   @Disabled
   @Test void callingEphemeralMethod() { fail("""

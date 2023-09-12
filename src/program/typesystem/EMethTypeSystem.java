@@ -77,10 +77,10 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
   @Override default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors) {
     assert es.size() == ts.size();
-    return IntStream.range(0, es.size()).parallel()
+    return IntStream.range(0, es.size())
       .allMatch(i -> {
-        var typeSystem = (EMethTypeSystem) this.withProgram(p().shallowClone());
-        return typeSystem.ok(es.get(i), ts.get(i), errors);
+//        var typeSystem = (EMethTypeSystem) this.withProgram(p().shallowClone());
+        return ok(es.get(i), ts.get(i), errors);
       });
   }
   default boolean ok(E e, T t, ArrayList<CompileError> errors) {
