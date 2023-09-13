@@ -3,7 +3,7 @@ Output[R]:Output[Void, mdf R]{ recMdf .next: recMdf Automaton[mdf R], recMdf .re
 Output[A,R]:{ recMdf .next: recMdf Automaton[mdf A, mdf R], recMdf .result: mdf R }
 
 Automaton:{
-  recMdf .pure[A,R](f: F[recMdf A, recMdf R]): recMdf Automaton[recMdf A, mdf R] -> {'self
+  recMdf .pure[A,R](f: F[recMdf A, recMdf R]): recMdf Automaton[mdf A, recMdf R] -> {'self
     a -> { .next -> self, .result -> f#a } },
   recMdf .id[A]: recMdf Automaton[mdf A, recMdf A] -> {'self
     a -> { .next -> self, .result -> a } },
@@ -23,7 +23,7 @@ Automaton[A,R]:{
     .step(a) -> self.compose[](this.step(a)),
     recMdf .compose(left: recMdf Output[recMdf A, recMdf R]): recMdf Output[recMdf A, recMdf RR] -> self.compose'[](left, other.step(left.result)),
     recMdf .compose'(left: recMdf Output[recMdf A, recMdf R], right: recMdf Output[recMdf R, recMdf RR]): recMdf Output[recMdf A, recMdf RR] -> {
-      .next -> left.next |>[recMdf RR] (right.next),
+      .next -> left.next |> (right.next),
       .result -> right.result
       },
     },

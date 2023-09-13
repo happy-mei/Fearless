@@ -61,7 +61,10 @@ LListMut[E]:Sealed{
 //    },
 
   //mut .headRaw: mut Opt[mdf E] -> {},
-  recMdf ++(l1: recMdf LListMut[recMdf E]): recMdf LListMut[recMdf E] -> this.head.map{ h -> recMdf LListMut.cons(h, this.tail ++ l1) } | l1,
+  recMdf ++(l1: recMdf LListMut[recMdf E]): recMdf LListMut[recMdf E] -> this.head.matchHyg{
+    .some(h) -> recMdf LListMut.cons(h, this.tail ++ l1),
+    .none -> l1
+    },
   recMdf +(e: recMdf E): recMdf LListMut[recMdf E] -> this ++ (recMdf LListMut#e),
   mut .list: mut List[mdf E] -> List.fromLListMut(this),
   }

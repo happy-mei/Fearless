@@ -70,9 +70,10 @@ public class TestJavaProgram {
     var inferred = new InferBodies(inferredSigs).inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     inferred.typeCheck();
-    var mir = new MIRInjectionVisitor(inferred).visitProgram();
+    var mirInjectionVisitor = new MIRInjectionVisitor(inferred);
+    var mir = mirInjectionVisitor.visitProgram();
     try {
-      var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
+      var java = new JavaCodegen(mirInjectionVisitor.getProgram()).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
       var res = RunJava.of(new JavaProgram(java).compile(), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
@@ -1031,13 +1032,24 @@ public class TestJavaProgram {
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
         .var[LListMut[Int]] l = { LListMut#[Int]12 + 3 + 6 + 7 }
-        .var[Auto[Opt[Int]]] a = { Auto.llist[Int](l) }
-        .var[Auto[Opt[Int],Opt[Int]]] x10 = { Auto.pure(F[Opt[Int],Opt[Int]]{ n -> n.map(base.OptMap[Int,Int]{n' -> n' * 10}) }) }
+        .var[Auto[Opt[Int]]] a = { Auto.llist(l) }
+        .var[Auto[Opt[Int],Opt[Int]]] x10 = { Auto.pure(F[Opt[Int],Opt[Int]]{ n -> n.map{n' -> n' * 10} }) }
         .var[Auto[Void, Opt[Int]]] ax10 = { a |> x10 }
         .do{ Assert#(a.step(Void).result! == 12) }
         .do{ Assert#(a.step.result! == 12) }
         .do{ Assert#(a.step.next.step.result! == 3) }
         .do{ Assert#(ax10.step(Void).result! == 120) }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+
+  @Test void optionalMapImm() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      Test:Main{ _ -> Do#
+        .var[Opt[Int]] i = { Opt#[Int]16 }
+        .var[Opt[Int]] ix10 = { i.map2{n -> n * 10} }
         .return{{}}
         }
       """, Base.mutBaseAliases);
