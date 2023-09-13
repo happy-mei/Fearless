@@ -935,8 +935,8 @@ public class TestJavaProgram {
       package test
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
-        .var[Op[FB, FB]] pB = { Auto.pure(F[FB,FB]{ _ -> Bar }) }
-        .var[Op[FB, FB]] pId = { Auto.pure(F[FB,FB]{ a -> a }) }
+        .var[Auto[FB, FB]] pB = { Auto.pure(F[FB,FB]{ _ -> Bar }) }
+        .var[Auto[FB, FB]] pId = { Auto.pure(F[FB,FB]{ a -> a }) }
         .do{ Assert#(pB.step(Foo).result.str == "Bar") }
         .do{ Assert#(pB.step(Foo).next.step(Foo).result.str == "Bar") }
         .do{ Assert#(pId.step(Foo).result.str == "Foo") }
