@@ -131,6 +131,7 @@ public sealed interface E extends HasPos {
   }
   record Meth(Optional<Sig> sig,Optional<MethName> name, List<String>xs, Optional<E> body, Optional<Pos> pos) implements HasPos {
     public Meth {
+      // TODO: throw a Fail error (can be caused by implementing a method of a lambda with the wrong number of gens)
       name.ifPresent(n->{ assert n.num() == xs.size(); });
     }
     public boolean isAbs(){ return body().isEmpty(); }

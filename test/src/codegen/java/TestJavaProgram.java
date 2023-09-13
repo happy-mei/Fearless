@@ -995,6 +995,53 @@ public class TestJavaProgram {
       Bar:FB{ .str -> "Bar" }
       """, Base.mutBaseAliases);
   }
+  @Test void automatonComposition() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[Auto[Int,Int]] a = { Auto.const[Int,Int] 5 }
+        .var[Auto[Int,Int]] b = { Auto.pure(F[Int,Int]{n -> n * 10}) }
+        .do{ Assert#(a.step(0).result == 5) }
+        .do{ Assert#(b.step(6).result == 60) }
+        .var[Auto[Int,Int]] c = { a |> b }
+        .do{ Assert#(c.step(0).result == 50) }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonCompositionBackwards() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[Auto[Int,Int]] a = { Auto.const[Int,Int] 5 }
+        .var[Auto[Int,Int]] b = { Auto.pure(F[Int,Int]{n -> n * 10}) }
+        .do{ Assert#(a.step(0).result == 5) }
+        .do{ Assert#(b.step(6).result == 60) }
+        .var[Auto[Int,Int]] c = { b <| a }
+        .do{ Assert#(c.step(0).result == 50) }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonList1() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[LListMut[Int]] l = { LListMut#[Int]12 + 3 + 6 + 7 }
+        .var[Auto[Opt[Int]]] a = { Auto.llist[Int](l) }
+        .var[Auto[Opt[Int],Opt[Int]]] x10 = { Auto.pure(F[Opt[Int],Opt[Int]]{ n -> n.map(base.OptMap[Int,Int]{n' -> n' * 10}) }) }
+        .var[Auto[Void, Opt[Int]]] ax10 = { a |> x10 }
+        .do{ Assert#(a.step(Void).result! == 12) }
+        .do{ Assert#(a.step.result! == 12) }
+        .do{ Assert#(a.step.next.step.result! == 3) }
+        .do{ Assert#(ax10.step(Void).result! == 120) }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
 
 //  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test
