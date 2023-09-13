@@ -1,17 +1,13 @@
 package base
 
-Iter[E]:{
-  mut .next: lent Opt[mdf E],
-//  mut .find(p: read IterPredicate[mdf E]): lent Opt[mdf E] -> this.next.matchHyg{
-//    .some(x) -> p#x.ifHyg{ .then -> Opt#x, .else -> this.find(p) },
-//    .none -> {}
-//    },
-//
-//  lent .map[R](f: lent IterMapper[mdf E, mdf R]): lent Iter[mdf R] -> {
-//    .next -> this.next.matchHyg{
-//      .some(x) -> Opt#(f#x),
-//      .none -> {}
-//      }},
+Iter[E:imm,mut]:{
+  mut .next: mut Opt[mdf E],
+  mut .find(p: mut IterPredicate[mdf E]): mut Opt[mdf E] -> this.next.match{
+    .some(x) -> p#x ? { .then -> mut Opt#x, .else -> this.find(p) },
+    .none -> {}
+    },
+
+  mut .map[R:imm,mut](f: mut OptMap[mdf E, mdf R]): mut Iter[mdf R] -> { this.next.map(f) },
 //  lent .flatMap[R](f: lent IterMapper[mdf E, lent Iter[mdf R]]): lent Iter[mdf R] -> Do#
 //    .var[lent Iter[lent Iter[mdf R]]] mapIter = { this.map(f) }
 //    .var[lent Ref[lent Opt[lent Iter[mdf R]]]] optCurIter = { Ref#(mapIter.next) }
@@ -24,7 +20,7 @@ Iter[E]:{
 //        .none -> {}
 //        }
 //      }}),
-//  lent .filter(p: lent IterPredicate[mdf E]): lent Iter[mdf E] -> { .next -> this.find(p) },
+  mut .filter(p: mut IterPredicate[mdf E]): mut Iter[mdf E] -> { .next -> this.find(p) },
 //
 //  lent .fold[R](acc: mdf R, f: lent IterFolder[mdf E, mdf R]): mdf R -> this.next.matchHyg{
 //    .some(e) -> this.fold(f#(acc, e), f),
@@ -69,5 +65,5 @@ Iter[E]:{
 //IterFolderMut[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
 //IterScanner[E, R, S: mut,imm]:{ lent #(state: mut Ref[mdf S], e: mdf E): mdf S }
 //IterMapper[E,R]:{ lent #(e: mdf E): mdf R }
-//IterPredicate[E]:{ read #(e: mdf E): Bool }
+IterPredicate[E]:{ mut #(e: mdf E): Bool }
 

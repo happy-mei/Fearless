@@ -10,6 +10,9 @@ Opt[T]:{
   recMdf !: recMdf T -> this.match(mut _OptUnwrap[recMdf T]),
   recMdf .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
   recMdf .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match(f),
+  recMdf .filter(f: mut OptMap[recMdf T, Bool]): recMdf Opt[recMdf T] -> this._filter(this.map(f) | False),
+    recMdf ._filter(res: Bool): recMdf Opt[recMdf T] ->
+      res.look(recMdf BoolView[recMdf Opt[recMdf T]]{ .then -> this, .else -> {} }),
   recMdf .do(f: mut OptMatch[recMdf T, Void]): recMdf Opt[recMdf T] ->
     Yeet.with[Void, recMdf Opt[recMdf T]](this.match(f), this),
   recMdf |(alt: recMdf T): recMdf T -> this || (recMdf OptOr#alt),
@@ -29,7 +32,11 @@ OptFlatMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
   .some(x) -> this#x,
   .none -> {},
   }
-OptDo[T]:OptMap[mdf T, mdf T]{ x -> x }
+OptFilter[T]:{
+  mut .predicate(x: mdf T): Bool,
+//  #(x) -> this.predicate(x) ? { .then -> mut Opt#x, .else -> {} },
+  }
+OptDo[T,R]:OptMap[mdf T, mdf T]{ x -> x }
 
 //OptOr:{ #[T](alt: mdf T): mut OptOr[mdf T] -> { alt } }
 //OptOr[T]:OptMatch[mdf T, mdf T],NoMutHyg[mdf T]{ .some(x) -> x }

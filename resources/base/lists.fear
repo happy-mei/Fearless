@@ -94,10 +94,10 @@ List:{
 //      .var -> Count.uint(0u),
 //      .in(cursor) -> { .next -> list.look(cursor++) }
 //      },
-    .iterMut -> Let#(mut Let[mut Count[UInt], mut Iter[mdf E]]{
-      .var -> Count.uint(0u),
-      .in(cursor) -> { .next -> list.get(cursor++) }
-      }),
+//    .iterMut -> Let#(mut Let[mut Count[UInt], mut Iter[mdf E]]{
+//      .var -> Count.uint(0u),
+//      .in(cursor) -> { .next -> list.get(cursor++) }
+//      }),
     }}
 List[E]:Sealed{
   read .len: UInt,
@@ -106,8 +106,12 @@ List[E]:Sealed{
   recMdf .get(i: UInt): recMdf Opt[mdf E],
   mut .add(e: mdf E): Void,
 //  read .iter: lent Iter[read E],
-  mut .iterMut: mut Iter[mdf E],
+//  mut .iterMut: mut Iter[mdf E],
   //mut .addAll(other: mut List[mdf E]): Void -> other.iterMut.for{ e -> this.add(e) },
+  }
+ListIter:{
+  recMdf #[E:imm,mut](list: recMdf List[mdf E]): mut Iter[recMdf E] -> this._impl(list, Count.uint(0u)),
+  recMdf ._impl[E:imm,mut](list: recMdf List[mdf E], cursor: mut Count[UInt]): mut Iter[recMdf E] -> { list.get(cursor++) },
   }
 _ListState[E]:{
   read .len: UInt -> 0u,
