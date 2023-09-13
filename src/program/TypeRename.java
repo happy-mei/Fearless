@@ -54,14 +54,14 @@ public interface TypeRename<T extends Id.Ty>{
     }
 
     /** This is part of MDF ITX[[MDF0; Ts=Xs]] */
-    @Override public ast.T propagateMdf(Mdf mdf, XBs xbs, ast.T t){
-      if(!mdf.isRecMdf()){ return super.propagateMdf(mdf, xbs, t); }
+    @Override public ast.T propagateMdf(Mdf mdf, ast.T t){
+      if(!mdf.isRecMdf()){ return super.propagateMdf(mdf, t); }
       assert t!=null;
 //      if (t.mdf().isMdf()) {
 //        return t.withMdf(Mdf.recMdf);
 //      }
       // TODO: or maybe this (see commented tests in TestTypeSystem)
-      if (recvMdf.isMdf() && t.mdf().isMdf()) {
+      if (t.mdf().isMdf()) {
         return t.withMdf(Mdf.recMdf);
       }
       var resolvedMdf = recvMdf.adapt(t.mdf());
@@ -97,13 +97,13 @@ public interface TypeRename<T extends Id.Ty>{
         var renamed = f.apply(gx);
         if(renamed==null){ return t; }
         if (isInfer(renamed)){ return renamed; }
-        // TODO: put real bounds in
-        return propagateMdf(mdf(t), XBs.empty(), renamed);
+        return propagateMdf(mdf(t), renamed);
       },
-      it->newT(mdf(t),renameIT(it,f))
+      // TODO: this is new (was not going via propagateMdf before, what breaks?
+      it->propagateMdf(mdf(t), newT(mdf(t), renameIT(it,f)))
     );
   }
-  default T propagateMdf(Mdf mdf, XBs xbs, T t){
+  default T propagateMdf(Mdf mdf, T t){
     assert t!=null;
     if(mdf.isMdf()){ return t; }
     return withMdf(t,mdf);

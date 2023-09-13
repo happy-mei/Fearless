@@ -2,15 +2,12 @@ package program.inference;
 
 import failure.CompileError;
 import main.Main;
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
-import program.Program;
 import utils.Base;
 import utils.Err;
-import utils.Streams;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 
 import java.nio.file.Path;
@@ -1256,22 +1253,26 @@ public class TestInferBodies {
       }
     B[X]:{}
     """); }
-  @Test void shouldNotRandomlyInferRecMdfGens2() { ok("""
+  @Test void collapseRecMdfInInference() { ok("""
+    {test.Cont/1=Dec[name=test.Cont/1,gxs=[X],lambda=[-mdf-][test.Cont[mdfX]]{'this#/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-]}],
+    test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[]]{'this
+      .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
+        [-imm-][test.Supply[]]{'fear0$}#/1[immtest.Void[]]([[-imm-][test.Cont[immtest.Void[]]]{'fear1$
+          #/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear2$}}])}],
+    test.Supply/0=Dec[name=test.Supply/0,gxs=[],lambda=[-mdf-][test.Supply[]]{'this
+      #/1([cont]):Sig[mdf=recMdf,gens=[X],ts=[recMdftest.Cont[immX]],ret=recMdfX]->cont#/0[]([])}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
     """, """
     package test
-    B:{
-      .m1[Y]: mut B[mdf Y] -> this.m2,
-      .m2[Y](_ListState[mdf Y]): mut B[mdf Y] -> {}
+    Test:{
+      // .m1: Void -> Supply#(imm Cont[Void]{ Void }) // should infer to this
+      .m1: Void -> Supply#({ Void })
       }
-    A[X]:{}
-    _ListState[E]:{
-      recMdf .inner: recMdf A[mdf E] -> {}
+    Supply:{
+      recMdf #[X](cont: recMdf Cont[X]): recMdf X -> cont#
       }
-    _ListState:{
-      #[E](inner: mut A[mdf E]): mut _ListState[mdf E] -> {
-        .inner -> inner
-        }
-      }
+    Cont[X]:{ recMdf #: recMdf X }
+    Void:{}
     """); }
 
   // TODO: this should eventually fail with an "inference failed" message when I add that error

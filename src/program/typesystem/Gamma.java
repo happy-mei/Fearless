@@ -94,6 +94,7 @@ public interface Gamma {
       }
       if (mMdf.is(mut, lent) && captured.mdf().is(mut, lent)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
       if (mMdf.isImm() && captured.mdf().is(mut, lent, read, recMdf)) { return captured.withMdf(imm); }
+      if (mMdf.isLent() && captured.mdf().isRead()) { return captured; }
       if (mMdf.isRead() && captured.mdf().is(mut, lent, read)) { return captured.withMdf(read); }
       if (mMdf.isRecMdf() && captured.mdf().is(mut, lent)) { return captured.withMdf(recMdf); }
       if (captured.mdf().is(read, recMdf)) { return captured.withMdf(read); }

@@ -367,13 +367,6 @@ were valid:
         (lent test.A[]) <: (iso test.A[]): iso test.B[]
         
     (lent test.A[], lent test.B[]) <: (imm test.A[], iso test.B[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:5:43
-        [E33 callTypeError]
-        Type error: None of the following candidates for this method call:
-        this .b/0[]([])
-        were valid:
-        (lent test.A[]) <: (iso test.A[]): iso test.B[]
     """, """
     package test
     A:{
@@ -410,7 +403,7 @@ were valid:
       }
     """); }
   @Test void readThisIsNotRecMdf() { fail("""
-    In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:3:2
     [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf test.A[].
     recMdf may only be used in recMdf methods. The method .self/0 has the read modifier.
