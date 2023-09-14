@@ -110,8 +110,8 @@ List[E]:Sealed{
   //mut .addAll(other: mut List[mdf E]): Void -> other.iterMut.for{ e -> this.add(e) },
   }
 ListIter:{
-  recMdf #[E:imm,mut](list: recMdf List[mdf E]): mut Iter[recMdf E] -> this._impl(list, Count.uint(0u)),
-  recMdf ._impl[E:imm,mut](list: recMdf List[mdf E], cursor: mut Count[UInt]): mut Iter[recMdf E] -> { list.get(cursor++) },
+  #[E:imm,mut](list: mut List[mdf E]): mut Iter[mdf E] -> this._impl(list, Count.uint(0u)),
+  ._impl[E:imm,mut](list: mut List[mdf E], cursor: mut Count[UInt]): mut Iter[mdf E] -> { list.get(cursor++) },
   }
 _ListState[E]:{
   read .len: UInt -> 0u,
