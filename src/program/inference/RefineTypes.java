@@ -3,7 +3,7 @@ package program.inference;
 import ast.Program;
 import astFull.E;
 import astFull.T;
-import failure.Fail;
+import failure.CompileError;
 import files.Pos;
 import id.Id;
 import id.Mdf;
@@ -25,35 +25,33 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
 
   E.Lambda fixLambda(E.Lambda lambda, int depth) {
-    /*
-    fixTypes(MDF ITs{'x Ms}:MDF C[iTs]) = MDF ITs{'x toMs(Ms,TSigs)}:MDF C[iTs']
-  refineSigMassive(C[iTs],tSigOf(Ms)) = C[iTs'], TSigs
-
-  tSigOf(Ms) = turns every M in Ms into a TSig, trashes the body
-  tMs(Ms,TSigs) = zips the Ms and the TSigs into better Ms; Ms is used to recover the bodies
-     */
     if (lambda.meths().stream().anyMatch(m->m.sig().isEmpty())) {
       return lambda;
     }
 
     var c = lambda.it().orElseThrow();
-//    var nFresh = new Box<>(0);
-//    var its = p().itsOf(c.toAstIT(it->it.toAstTFreshenInfers(nFresh))).stream().map(it->it.toFullAstIT(ast.T::toAstFullT)).toList();
-//    var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<ast.T>("FearTmp"+n+"$")).collect(Collectors.toSet());
-//    its = its.stream().map(it->RefineTypes.regenerateInfers(freshGXsSet, new T(Mdf.mdf, it))).map(T::itOrThrow).toList();
-//
-//    var l = lambda.withITs(Push.of(lambda.its(), its).stream().distinct().toList());
 
-    List<RefinedSig> sigs = lambda.meths().stream()
+    List<E.Meth> lambdaOnlyMeths = lambda.meths().stream()
+      .filter(m->{
+        try {
+          return m.name().isPresent() && p().meths(lambda.mdf().orElse(Mdf.imm), c.toAstIT(T::toAstT), m.name().get(), depth).isEmpty();
+        } catch (T.MatchOnInfer err) {
+          return false;
+        }
+      }).toList();
+    List<E.Meth> traitMeths = lambda.meths().stream()
+      .filter(m->!lambdaOnlyMeths.contains(m))
+      .toList();
+    List<RefinedSig> sigs = traitMeths.stream()
       .map(this::tSigOf)
       .toList();
-    var res = refineSigMassive(lambda.mdf().orElse(Mdf.imm), c, sigs, depth);
-    var ms = Streams.zip(lambda.meths(), res.sigs())
-      .map(this::tM)
-      .toList();
-//    Id.IT<T> lT = best(new T(Mdf.mdf, res.c()), l.t()).itOrThrow();S
-    var newIT = replaceOnlyInfers(lambda.t(Mdf.mdf), new T(lambda.t(Mdf.mdf).mdf(), res.c()));
-    return lambda.withMeths(ms).withIT(Optional.ofNullable(newIT.itOrThrow()));
+    var res = refineSig(lambda.mdf().orElse(Mdf.imm), c, sigs, depth);
+    var ms = Stream.concat(
+      Streams.zip(traitMeths, res.sigs()).map(this::tM),
+      lambdaOnlyMeths.stream()
+    ).toList();
+    var newIT = replaceOnlyInfers(lambda.t(), new T(lambda.t().mdf(), res.c()));
+    return lambda.withMeths(ms).withT(Optional.ofNullable(newIT.itOrThrow()).map(it->new T(lambda.t().mdf(), it)));
   }
 
   E.Meth tM(E.Meth m, RefinedSig refined) {
@@ -78,11 +76,11 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var sig = m.sig().orElseThrow();
     var name = m.name().orElseThrow();
     var gens = sig.gens().stream().map(g->new T(Mdf.mdf,g)).toList();
-    return new RefinedSig(sig.mdf(), name, gens, sig.ts(),sig.ret());
+    return new RefinedSig(sig.mdf(), name, gens, sig.bounds(), sig.ts(),sig.ret());
   }
-  E.Sig fixTypes(E.Sig sig, T iTi){
+  E.Sig fixSig(E.Sig sig, T iTi){
     var ret  = sig.ret();
-    var best = best(iTi, ret);
+    var best = best(ret, iTi);
     if(best==ret){ return sig; }
     var res  = sig.withRet(best);
     // TODO: poorly written programs can fail this assertion, should throw a CompileError instead.
@@ -90,25 +88,16 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
       || ret.isInfer() || ret.rt() instanceof Id.IT<?>;
     return res;
   }
-  List<E> fixTypes(List<E> ies, List<T> iTs, int depth) {
+  List<E> fixSig(List<E> ies, List<T> iTs, int depth) {
     return Streams.zip(ies, iTs).map((ie, iT)->fixType(ie, iT, depth)).toList();
   }
   E fixType(E ie, T iT, int depth) { // TODO: not in formalism yet
-    var fixed = fixType(ie, iT);
-    if (fixed instanceof E.Lambda l) {
-      return fixLambda(l, depth);
-    }
-    return fixed;
+        return fixType(ie, iT);
   }
   E fixType(E ie, T iT) {
-    T ieT = iT.isInfer() ? ie.t(Mdf.imm) : ie.t(iT.mdf());
-    return ie.withT(best(ie.mdf(), ieT, iT));
+    return ie.withT(best(ie.t(), iT));
   }
-
   T best(T iT1, T iT2) {
-    return best(Optional.empty(), iT1, iT2);
-  }
-  T best(Optional<Mdf> eMdf, T iT1, T iT2) {
     if(iT1.equals(iT2)){ return iT1; }
     if(iT1.isInfer()){ return iT2; }
     if(iT2.isInfer()){ return iT1; }
@@ -117,12 +106,10 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     if(iT1.rt() instanceof Id.GX<?> g1 && iT2.rt() instanceof Id.GX<?> g2){
       if(g1.equals(g2)){ return iT1; }
     }
-    if( !(iT1.rt() instanceof Id.IT<T> c1)
-     || !(iT2.rt() instanceof Id.IT<T> c2)){
+    if(!(iT1.rt() instanceof Id.IT<T> c1)  || !(iT2.rt() instanceof Id.IT<T> c2)){
       throw Bug.unreachable();
     }
 
-    // TODO should we check the subtyping between C and C' instead? Yes. Update the formalism
     var notMatch=!c1.name().equals(c2.name()); //name includes gen size
     if(notMatch){
       var t1 = new T(Mdf.mdf, c1);
@@ -140,8 +127,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     }
 
     // Keep the explicit mdf from the expression if it has one
-    var mdf = eMdf.orElse(iT1.mdf());
-    iT1 = iT1.propagateMdf(mdf);
+//    var mdf = eMdf.orElse(iT1.mdf());
+//    iT1 = iT1.propagateMdf(mdf);
 
     List<RP> refined = refineSigGens(RP.of(c1.ts(),c2.ts()), Set.of());
     if(refined.isEmpty()){ return iT1; }
@@ -153,10 +140,10 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 //    if(iT1.mdf()!=iT2.mdf()){
 //      throw Fail.incompatibleMdfs(iT1, iT2);
 //    }
-    return new T(mdf, c1.withTs(refinedTs));
+    return new T(iT1.mdf(), c1.withTs(refinedTs));
   }
-  record RP(T t1, T t2){
-    RP {
+  public record RP(T t1, T t2){
+    public RP {
       if (!t1.isInfer() && !t2.isInfer() && t1.mdf().isRecMdf()) { t1 = t1.withMdf(t2.mdf()); }
     }
 
@@ -168,9 +155,9 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     }
   }
 
-  public record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, List<T> args, T rt){
+  public record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, Map<Id.GX<T>, Set<Mdf>> bounds, List<T> args, T rt){
     E.Sig toSig(Optional<Pos> pos) {
-      return new astFull.E.Sig(mdf, gens.stream().map(T::gxOrThrow).toList(), args, rt, pos);
+      return new astFull.E.Sig(mdf, gens.stream().map(T::gxOrThrow).toList(), bounds, args, rt, pos);
     }
   }
 
@@ -182,28 +169,23 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     });
   }
 
-  RefinedSig freshXs(List<CM> ms, Id.MethName m, List<Id.GX<ast.T>> gxs) {
-    // TODO: what about helper methods added on the creation of a lambda that aren't in the top dec?
-    // TODO: improve error message
-    var meth = OneOr.of(
-      "Could not find a method (or more than one) with the name "+m,
-      ms.stream().filter(mi->mi.name().equals(m))
-    );
-    var sig = meth.sig().toAstFullSig();
-    assert meth.sig().gens().size() == gxs.size();
+  RefinedSig freshXs(Optional<CM> cm, Id.MethName name, List<Id.GX<ast.T>> gxs) {
+    var sig = cm.map(cmi->cmi.sig().toAstFullSig()).orElseThrow();
+    assert sig.gens().size() == gxs.size();
     var tgxs = gxs.stream().map(gx->new T(Mdf.mdf, gx.toFullAstGX())).toList();
     var f = renamer.renameFun(tgxs,sig.gens());
     return new RefinedSig(
       sig.mdf(),
-      meth.name(),
+      name,
       tgxs,
+      sig.bounds(),
       sig.ts().stream().map(t->renamer.renameT(t, f)).toList(),
       renamer.renameT(sig.ret(),f)
     );
   }
 
   record RefinedLambda(Id.IT<astFull.T> c, List<RefinedSig> sigs){}
-  RefinedLambda refineSigMassive(Mdf mdf, Id.IT<astFull.T> c, List<RefinedSig> sigs, int depth) {
+  RefinedLambda refineSig(Mdf mdf, Id.IT<astFull.T> c, List<RefinedSig> sigs, int depth) {
     int nGens = sigs.stream().mapToInt(s->s.gens().size()).sum();
     var freshGXs = Id.GX.standardNames(c.ts().size() + nGens);
     var freshGXsQueue = new ArrayDeque<>(freshGXs);
@@ -212,7 +194,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     List<List<Id.GX<ast.T>>> methGens = sigs.stream()
       .map(s->s.gens().stream().map(gx->freshGXsQueue.poll()).toList())
       .toList();
-    var cTs = new Id.IT<ast.T>(c.name(), ts);
+    var cTs = new Id.IT<>(c.name(), ts);
     var cT = new astFull.T(mdf, cTs.toFullAstIT(ast.T::toAstFullT));
     var cTOriginal = new T(mdf, c);
     List<List<RP>> rpsSigs = Streams.zip(sigs,methGens)
@@ -236,7 +218,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
 
   List<RP> pairUp(Mdf lambdaMdf, List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
-    var ms = p.meths(lambdaMdf, c, depth);
+    var ms = p.meths(lambdaMdf, c, sig.name(), depth);
     var freshSig = freshXs(ms, sig.name(), gxs);
     var freshGens = freshSig.gens();
     return Streams.of(
@@ -249,7 +231,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   RefinedSig toTSig(RefinedSig sig, ArrayDeque<RP> q) {
     var gens = sig.gens().stream().map(unused->q.poll().t1()).toList();
     var args = sig.args().stream().map(unused->q.poll().t1()).toList();
-    return new RefinedSig(sig.mdf(), sig.name(),gens,args,q.poll().t1());
+    return new RefinedSig(sig.mdf(), sig.name(), gens, sig.bounds(), args, q.poll().t1());
   }
 
   RP easyInfer(RP rp){
@@ -260,7 +242,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 
   List<RP> refineSigGens(List<RP>rps, Set<Id.GX<ast.T>> freshInfers) {
     List<Sub> subs = collect(rps);
-    Map<Id.GX<T>, T> map = toSub(subs);
+    Map<Id.GX<T>, T> map = refineSubs(subs);
     return rps.stream()
       .map(rp->renameRP(rp, map, renamer))
       .map(rp->new RP(regenerateInfers(p, freshInfers, rp.t1()), regenerateInfers(p, freshInfers, rp.t2())))
@@ -298,19 +280,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
   Sub collectXXOut(int index, ArrayList<RP> rps){
     var res = rps.remove(index);
-    //collect(RPs, MDF X = _ X', RPs') =   X=MDF X', collect(RPs[X = mdf X'], RPs'[X = mdf X'])//proposed
-    //collect(RPs, MDF X = _ X', RPs') =   X'=MDF X, collect(RPs[X' = mdf X], RPs'[X = mdf X])//proposed
-    //var target = res.t1().withMdf(Mdf.mdf);
-    //rename(rps, new Sub(res.t2().gxOrThrow(), target));
-    //var other = res.t2().withMdf(res.t1().mdf());
-    //return new Sub(res.t1().gxOrThrow(), other);
-
-    //Sub s = new Sub(res.t2().gxOrThrow(),res.t1);
-    //Sub sMdf = new Sub(res.t2().gxOrThrow(),res.t1.withMdf(Mdf.mdf));
-    // TODO: This recMdf handling is new and not in the formalism
-//    var mdf = res.t1.mdf().isRecMdf() ? res.t2.mdf() : res.t1.mdf();
     var mdf = res.t1.mdf();
-    Sub s = new Sub(res.t1().gxOrThrow(), res.t2.propagateMdf(mdf)); // TODO: change in formalism, was withMdf
+    Sub s = new Sub(res.t1().gxOrThrow(), res.t2.propagateMdf(mdf));
     Sub sMdf = new Sub(res.t1().gxOrThrow(), new T(Mdf.mdf, res.t2.rt()));
     rename(rps, sMdf);
     return s;
@@ -325,7 +296,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var e = rps.remove(index1);
     index2 -= 1;
     insertGens(rps, index2, gensOf(e), gensOf(rps.get(index2)));
-    return toSub(e).orElseThrow();
+    return refineSubs(e).orElseThrow();
   }
   List<T> gensOf(RP rp){
     if(rp.t1().rt() instanceof Id.GX<?>){ return rp.t2().itOrThrow().ts(); }
@@ -398,12 +369,12 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     // otherwise...
     assert !rps.isEmpty();
     RP head = rps.remove(0);
-    var sub=toSub(head);
+    var sub= refineSubs(head);
     if (sub.isEmpty()){ return collectRec(rps); }
     rename(rps,sub.get());
     return Push.of(sub.get(), collectRec(rps));
   }
-  private Optional<Sub> toSub(RP rp){
+  private Optional<Sub> refineSubs(RP rp){
     var t1=rp.t1();
     var t2=rp.t2();
     var leftX = (t1.rt() instanceof Id.GX<?>) && (t2.rt() instanceof Id.IT<?>);
@@ -431,7 +402,7 @@ collect(MDF C[iTs] = MDF' X, RPs) =     X=MDF C[iTs] collect(RPs)
 collect(empty) = empty
   */
 
-  Map<Id.GX<T>, T> toSub(List<Sub> subs) {
+  Map<Id.GX<T>, T> refineSubs(List<Sub> subs) {
     Map<Id.GX<T>, List<Sub>> res = subs.stream()
       .filter(si->!si.isCircular())
       .filter(si->!si.x().equals(si.t().rt()))

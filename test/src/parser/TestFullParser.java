@@ -282,8 +282,8 @@ class TestFullParser {
       {base.B/0=Dec[
         name=base.B/0,
         gxs=[],
-        lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm 5[]]->[-base.A[]-][base.A[]]{}.foo/2[-]([
-          [-5[]-][5[]]{},[-infer-][]{[-]([lol,fear0$]):[-]->fear0$:infer}
+        lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm 5[]]->[-imm base.A[]-][base.A[]]{}.foo/2[-]([
+          [-imm 5[]-][5[]]{},[-infer-][]{[-]([lol,fear0$]):[-]->fear0$:infer}
         ]):infer}
       ],base.Cont/2=Dec[
         name=base.Cont/2,
@@ -311,8 +311,8 @@ class TestFullParser {
       .return/1([a]):Sig[mdf=mut,gens=[],ts=[muttest.ReturnStmt[mdfR]],ret=mdfR]->a:infer#/0[-]([]):infer}],
     test.Usage/0=Dec[name=test.Usage/0,gxs=[],lambda=[-infer-][]{
       .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
-        [-test.Candy[immtest.Void[]]-][test.Candy[immtest.Void[]]]{}
-          .sugar/2[immtest.Foo[]]([[-test.Foo[]-][test.Foo[]]{},[-infer-][]{[-]([f,fear0$]):[-]->
+        [-imm test.Candy[immtest.Void[]]-][test.Candy[immtest.Void[]]]{}
+          .sugar/2[immtest.Foo[]]([[-imm test.Foo[]-][test.Foo[]]{},[-infer-][]{[-]([f,fear0$]):[-]->
             fear0$:infer.return/1[-]([[-infer-][]{[-]([]):[-]->f:infer.v/0[-]([]):infer}]):infer}]):infer}],
     test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-infer-][]{.v/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-infer-][]{}}],
     test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-infer-][]{}]}
@@ -340,8 +340,8 @@ class TestFullParser {
       .return/1([a]):Sig[mdf=mut,gens=[],ts=[muttest.ReturnStmt[mdfR]],ret=mdfR]->a:infer#/0[-]([]):infer}],
     test.Usage/0=Dec[name=test.Usage/0,gxs=[],lambda=[-infer-][]{
       .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
-        [-test.Candy[immtest.Void[]]-][test.Candy[immtest.Void[]]]{}
-          .sugar/2[immtest.Foo[]]([[-test.Foo[]-][test.Foo[]]{},[-infer-][]{[-]([f,fear0$]):[-]->
+        [-imm test.Candy[immtest.Void[]]-][test.Candy[immtest.Void[]]]{}
+          .sugar/2[immtest.Foo[]]([[-imm test.Foo[]-][test.Foo[]]{},[-infer-][]{[-]([f,fear0$]):[-]->
             fear0$:infer.return/1[-]([[-infer-][]{[-]([]):[-]->f:infer.v/0[-]([]):infer}]):infer}]):infer}],
     test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-infer-][]{.v/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-infer-][]{}}],
     test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-infer-][]{}]}
@@ -377,9 +377,9 @@ class TestFullParser {
         */0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
         .swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdf X],ret=mdfX]->[-],
         :=/1([x]):Sig[mdf=mut,gens=[],ts=[mdf X],ret=imm base.Void[]]->
-          [-base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
+          [-imm base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
             .var/0([]):[-]->this:infer.swap/1[-]([x:infer]):infer,
-            .in/1([fear0$]):[-]->[-base.Void[]-][base.Void[]]{}
+            .in/1([fear0$]):[-]->[-imm base.Void[]-][base.Void[]]{}
           }]):infer,
           <-/1([f]):Sig[mdf=mut,gens=[],ts=[imm base.UpdateRef[mdfX]], ret=mdfX]->
             this:infer.swap/1[-]([f:infer#/1[-]([this:infer*/0[-]([]):infer]):infer]):infer
@@ -407,7 +407,7 @@ class TestFullParser {
     """);}
 
   @Test void magicIntbers() { ok("""
-    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{.foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm5[]]->[-5[]-][5[]]{}}]}
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{.foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm5[]]->[-imm 5[]-][5[]]{}}]}
     """, """
     package test
     A:{ .foo: 5 -> 5 }
@@ -456,5 +456,18 @@ class TestFullParser {
     package test
     A:{}
     B:mut A{}
+    """); }
+
+  @Test void mdfBounds1() { ok("""
+    {test.A1/1=Dec[name=test.A1/1,gxs=[B],bounds={B=[imm]},lambda=[-infer-][]{}],
+    test.A2/1=Dec[name=test.A2/1,gxs=[B],bounds={B=[imm,mut]},lambda=[-infer-][]{}],
+    test.A3/2=Dec[name=test.A3/2,gxs=[B,C],bounds={B=[imm,mut]},lambda=[-infer-][]{}],
+    test.A4/3=Dec[name=test.A4/3,gxs=[B,C,D],bounds={B=[imm,mut],D=[lent,read]},lambda=[-infer-][]{}]}
+    """, """
+    package test
+    A1[B: imm]:{}
+    A2[B: imm,mut]:{}
+    A3[B: imm,mut, C]:{}
+    A4[B: imm,mut, C, D: read,lent]:{}
     """); }
 }

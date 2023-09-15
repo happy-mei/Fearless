@@ -71,8 +71,8 @@ public class Fail{
   public static CompileError modifierOnInferredLambda(){return of(
     "Modifiers cannot be specified on lambdas without an explicit type."
   );}
-  public static CompileError isoInTypeArgs(String badType){return of(
-    "The iso reference capability may not be used in generic type arguments:\n"+badType
+  public static CompileError invalidMdfBound(ast.T badType, List<Mdf> bounds){return of(
+    "The type "+badType+" is not valid because it's modifier is not in the required bounds. The allowed modifiers are: "+bounds.stream().map(Enum::toString).collect(Collectors.joining(", "))+"."
   );}
   public static CompileError shadowingX(String x){return of(String.format("'%s' is shadowing another variable in scope.", x));}
 
@@ -135,8 +135,8 @@ public class Fail{
     return of("\"_\" ignores the argument in that position and thus cannot be used as an identifier in an expression.");
   }
 
-  public static CompileError badCapture(String x, ast.T xT, ast.T lambdaT, Mdf methMdf) {
-    return of("'"+xT.mdf()+" "+x+"' cannot be captured by "+aVsAn(methMdf)+" method in "+aVsAn(lambdaT.mdf())+" lambda.");
+  public static CompileError badCapture(String x, ast.T xT, Mdf lambdaMdf, Mdf methMdf) {
+    return of("'"+xT.mdf()+" "+x+"' cannot be captured by "+aVsAn(methMdf)+" method in "+aVsAn(lambdaMdf)+" lambda.");
   }
 
   public static CompileError invalidNum(String n, String kind) {
@@ -211,6 +211,15 @@ public class Fail{
     return of("Modifiers are not allowed in declarations or implementation lists: "+ty);
   }
 
+  public static CompileError mustProvideImplsIfMdfProvided() {
+    // TODO wording of this message
+    return of("At least one trait must be listed for a lambda to implement if a modifier for the lambda is provided.");
+  }
+
+  public static CompileError namedTopLevelLambda() {
+    return of("Trait declarations may not have a self-name other than \"this\".");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -223,7 +232,7 @@ enum ErrorCode {
   conflictingDecl,
   concreteTypeInFormalParams,
   modifierOnInferredLambda,
-  isoInTypeArgs,
+  invalidMdfBound,
   explicitThis,
   conflictingMethParams,
   cyclicImplRelation,
@@ -266,6 +275,8 @@ enum ErrorCode {
   multipleIsoUsage,
   noMdfInFormalParams,
   privateMethCall,
-  privateTraitImplementation;
+  privateTraitImplementation,
+  mustProvideImplsIfMdfProvided,
+  namedTopLevelLambda;
   int code() {return this.ordinal() + 1;}
 }

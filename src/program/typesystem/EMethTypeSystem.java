@@ -1,7 +1,6 @@
 package program.typesystem;
 
 import ast.E;
-import ast.Program;
 import ast.T;
 import failure.CompileError;
 import failure.Fail;
@@ -27,6 +26,9 @@ public interface EMethTypeSystem extends ETypeSystem {
     Res rE0 = e0.accept(v);
     if(rE0.err().isPresent()){ return rE0; }
     T t_=rE0.tOrThrow();
+    var invalidBounds = GenericBounds.validGenericMeth(p(), xbs(), t_.mdf(), t_.itOrThrow(), depth(), e.name(), e.ts());
+    if (invalidBounds.isPresent()) { return invalidBounds.get().pos(e.pos()); }
+
     var optTst=multiMeth(t_,e.name(),e.ts());
     if(optTst.isEmpty()){ return new CompileError(); } //TODO: list the available methods
     List<TsT> tst = optTst.get().stream()
@@ -75,10 +77,10 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
   @Override default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors) {
     assert es.size() == ts.size();
-    return IntStream.range(0, es.size()).parallel()
+    return IntStream.range(0, es.size())
       .allMatch(i -> {
-        var typeSystem = (EMethTypeSystem) this.withProgram(p().cleanCopy());
-        return typeSystem.ok(es.get(i), ts.get(i), errors);
+//        var typeSystem = (EMethTypeSystem) this.withProgram(p().shallowClone());
+        return ok(es.get(i), ts.get(i), errors);
       });
   }
   default boolean ok(E e, T t, ArrayList<CompileError> errors) {
@@ -96,11 +98,23 @@ public interface EMethTypeSystem extends ETypeSystem {
     var sig = p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
       var mdf = rec.mdf();
       Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
+
       var params = Push.of(
         fancyRename(rec.withMdf(cm.mdf()), mdf, xsTsMap),
         cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()
       );
       var t = fancyRename(cm.ret(), mdf, xsTsMap);
+//
+//      var renamer = TypeRename.coreRec(p(), mdf);
+//      var renamedRecv = renamer.renameT(rec.withMdf(cm.mdf()), xsTsMap::get);
+//      var renamedArgs = cm.sig().ts().stream().map(ti->renamer.renameT(ti, xsTsMap::get)).toList();
+//      var renamedT = renamer.renameT(cm.ret(), xsTsMap::get);
+//
+//      assert params.equals(Push.of(
+//        renamedRecv,
+//        renamedArgs
+//      )) && t.equals(renamedT);
+
       return new TsT(params, t, cm.ret().mdf().isRecMdf());
     });
     return sig.map(this::allMeth);
@@ -122,6 +136,7 @@ public interface EMethTypeSystem extends ETypeSystem {
 
   /** This is [MDF, Xs=Ts] (recMdf rewriting for meth calls) */
   default T fancyRename(T t, Mdf mdf0, Map<GX<T>,T> map) {
+    assert !mdf0.isMdf();
     Mdf mdf=t.mdf();
     return t.match(
       gx->{
@@ -131,14 +146,14 @@ public interface EMethTypeSystem extends ETypeSystem {
         }
         var ti = map.get(gx);
         if (ti == null) { return t; }
-//        var ti = map.getOrDefault(gx,t);
-        // TODO: what about capturing a function from read to read?
-        return ti.withMdf(mdf0.adapt(ti, Mdf.AdaptType.ResolveRecMdf));
+        // TODO: what about capturing a function from read to read?  02/09/23: Not sure what this TODO means
+        var newMdf = mdf0.adapt(ti);
+        return ti.withMdf(newMdf);
       },
       it->{
         var newTs = it.ts().stream().map(ti->fancyRename(ti, mdf0, map)).toList();
         if(!mdf.isRecMdf() && !mdf.isMdf()){ return new T(mdf, it.withTs(newTs)); }
-        if(mdf0.isIso()){ return new T(Mdf.mut, it.withTs(newTs)); }
+        if(mdf0.isIso()) { return new T(Mdf.mut, it.withTs(newTs)); }
         return new T(mdf0, it.withTs(newTs));
       });
   }

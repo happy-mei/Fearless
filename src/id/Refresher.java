@@ -5,7 +5,7 @@ import utils.Bug;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class Refresher<TT> {
+public class Refresher<TT extends Id.Ty> {
   private final int depth;
   private int n = 0;
   public Refresher(int depth) { this.depth = depth; }

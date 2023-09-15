@@ -1,7 +1,6 @@
 package ast;
 
 import failure.CompileError;
-import failure.Fail;
 import files.HasPos;
 import files.Pos;
 import id.Id;
@@ -9,17 +8,16 @@ import id.Id.DecId;
 import id.Mdf;
 import utils.Bug;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
+public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res, Id.Ty {
   public <R> R resMatch(Function<T,R> ok, Function<CompileError,R> err){ return ok.apply(this); }
   @Override public String toString(){ return ""+mdf+" "+rt; }
   public T{
     assert mdf!=null && rt!=null;
-    assert !(rt instanceof Id.IT<T> it) || it.ts().stream().flatMap(T::flatten).noneMatch(t->t.mdf().isIso()) : rt;
   }
   public <R> R match(Function<Id.GX<T>,R>gx, Function<Id.IT<T>,R>it){ return rt.match(gx, it); }
   public Id.IT<T> itOrThrow() { return this.match(gx->{ throw Bug.unreachable(); }, it->it); }
@@ -28,6 +26,7 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
   }
   public boolean isIt() { return this.match(gx->false, it->true); }
   public boolean isGX() { return this.match(gx->true, it->false); }
+  public boolean isMdfX() { return this.match(gx->this.mdf().isMdf(), it->false); }
   public astFull.T toAstFullT() {
     return this.match(
       gx->new astFull.T(mdf(), new Id.GX<>(gx.name())),
@@ -48,10 +47,10 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
 
   public T withMdf(Mdf mdf){ return new T(mdf,rt); }
 
-  public record Dec(DecId name, List<Id.GX<T>> gxs, E.Lambda lambda, Optional<Pos> pos) implements HasPos {
+  public record Dec(DecId name, List<Id.GX<T>> gxs, Map<Id.GX<astFull.T>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos, Id.Dec {
     public Dec{ assert gxs.size()==name.gen() && lambda!=null; }
-    public ast.T.Dec withName(Id.DecId name) { return new ast.T.Dec(name,gxs,lambda,pos); }
-    public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(name,gxs,lambda,pos); }
+    public ast.T.Dec withName(Id.DecId name) { return new ast.T.Dec(name,gxs,bounds,lambda,pos); }
+    public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(name,gxs,bounds,lambda,pos); }
 
     public Id.IT<T> toIT(){
       return new Id.IT<>(//AstFull.T || Ast.T
@@ -60,7 +59,14 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res{
       );
     }
     @Override public String toString() {
-      return "Dec[name="+name+",gxs="+gxs+",lambda="+lambda+"]";
+      if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
+        return "Dec[name="+name+",gxs=["+gxs.stream().map(Id.GX::toString).collect(Collectors.joining(","))+"],lambda="+lambda+"]";
+      }
+      var boundsStr = bounds.entrySet().stream()
+        .sorted(Comparator.comparing(a->a.getKey().name()))
+        .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
+        .collect(Collectors.joining(","));
+      return "Dec[name="+name+",gxs=["+gxs.stream().map(Id.GX::toString).collect(Collectors.joining(","))+"],bounds={"+boundsStr+"},lambda="+lambda+"]";
     }
   }
 }

@@ -31,8 +31,17 @@ public class Program implements program.Program{
     return of(t).pos();
   }
 
-  @Override public Program cleanCopy() {
-    return new Program(ds);
+  @Override public Program shallowClone() {
+    var subTypeCache = new HashMap<>(this.subTypeCache);
+    var methsCache = new HashMap<>(this.methsCache);
+    return new Program(ds){
+      @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
+        return subTypeCache;
+      }
+      @Override public HashMap<MethsCacheKey, List<CM>> methsCache() {
+        return methsCache;
+      }
+    };
   }
 
   private final HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();
@@ -194,7 +203,7 @@ public class Program implements program.Program{
     }
     Id.MethName onlyAbs(T.Dec dec){
       // depth doesn't matter here because we just extract the name
-      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), p.meths(Mdf.mdf, dec.toAstT(), -1).stream().filter(CM::isAbs));
+      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), p.meths(Mdf.recMdf, dec.toAstT(), -1).stream().filter(CM::isAbs));
       return m.name();
     }
     E.Meth inferSignature(T.Dec dec, E.Meth m) {
@@ -204,7 +213,7 @@ public class Program implements program.Program{
         if (m.xs().size() != name.num()) { throw Fail.cannotInferSig(dec.name(), name); }
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();
-        var inferred = p.meths(Mdf.mdf, dec.toAstT(), name, 0)
+        var inferred = p.meths(Mdf.recMdf, dec.toAstT(), name, 0)
           .orElseThrow(()->Fail.cannotInferSig(dec.name(), name));
         return namedMeth.withSig(inferred.sig().toAstFullSig());
       } catch (CompileError e) {

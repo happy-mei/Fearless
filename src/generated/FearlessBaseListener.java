@@ -77,6 +77,18 @@ public class FearlessBaseListener implements FearlessListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterGenDecl(FearlessParser.GenDeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitGenDecl(FearlessParser.GenDeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterMGen(FearlessParser.MGenContext ctx) { }
 	/**
 	 * {@inheritDoc}

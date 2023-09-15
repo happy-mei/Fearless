@@ -5,17 +5,15 @@ import ast.T;
 import codegen.MIR;
 import id.Id;
 import magic.Magic;
-import magic.MagicTrait;
-import utils.Bug;
 import visitors.MIRVisitor;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class JavaCodegen implements MIRVisitor<String> {
   private final MagicImpls magic;
+  private Program p;
   public JavaCodegen(Program p) {
     this.magic = new MagicImpls(this, p);
   }

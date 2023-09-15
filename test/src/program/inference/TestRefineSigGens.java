@@ -3,7 +3,6 @@ package program.inference;
 import astFull.T;
 import id.Id;
 import main.Main;
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import utils.Err;

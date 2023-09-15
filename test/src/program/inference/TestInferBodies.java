@@ -2,15 +2,12 @@ package program.inference;
 
 import failure.CompileError;
 import main.Main;
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
-import program.Program;
 import utils.Base;
 import utils.Err;
-import utils.Streams;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 
 import java.nio.file.Path;
@@ -660,7 +657,7 @@ public class TestInferBodies {
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this
       .foo/1([x]):Sig[mdf=imm,gens=[],ts=[mutX],ret=mutX]->
         [-mut-][test.B[mutX]]{'fear[###]$
-          .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=mut X]->x}.argh/0[]([])}],
+          .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdf X]->x}.argh/0[]([])}],
     test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this
       .argh/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-]}]}
     """, """
@@ -1202,7 +1199,7 @@ public class TestInferBodies {
       }
     F[T]:{ mut #(x: mdf T): mdf T }
     A:{}
-    Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map(F[A]{ _->A }) }
+    Usage:{ .break(foo: Foo[A]): Foo[A] -> foo.map(mut F[A]{ _->A }) }
     """, """
     package test
     Foo[T]:{
@@ -1239,6 +1236,43 @@ public class TestInferBodies {
       .break: A -> this.callMe[A](B, A),
       }
     A:{} B:A{}
+    """); }
+
+  @Test void shouldNotRandomlyInferRecMdfGens1() { ok("""
+    {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-mdf-][test.A[mdfX]]{'this}],
+    test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-mdf-][test.B[]]{'this
+      .m1/0([]):Sig[mdf=imm,gens=[Y],ts=[],ret=muttest.B[mdfY]]->this.m2/0[mdfY]([]),
+      .m2/0([]):Sig[mdf=imm,gens=[Y],ts=[],ret=muttest.B[mdfY]]->[-mut-][test.B[mdfY]]{'fear0$}}],
+    test.B/1=Dec[name=test.B/1,gxs=[X],lambda=[-mdf-][test.B[mdfX]]{'this}]}
+    """, """
+    package test
+    A[X]:{}
+    B:{
+      .m1[Y]: mut B[mdf Y] -> this.m2,
+      .m2[Y]: mut B[mdf Y] -> {}
+      }
+    B[X]:{}
+    """); }
+  @Test void collapseRecMdfInInference() { ok("""
+    {test.Cont/1=Dec[name=test.Cont/1,gxs=[X],lambda=[-mdf-][test.Cont[mdfX]]{'this#/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=recMdfX]->[-]}],
+    test.Test/0=Dec[name=test.Test/0,gxs=[],lambda=[-mdf-][test.Test[]]{'this
+      .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
+        [-imm-][test.Supply[]]{'fear0$}#/1[immtest.Void[]]([[-imm-][test.Cont[immtest.Void[]]]{'fear1$
+          #/0([]):Sig[mdf=recMdf,gens=[],ts=[],ret=immtest.Void[]]->[-imm-][test.Void[]]{'fear2$}}])}],
+    test.Supply/0=Dec[name=test.Supply/0,gxs=[],lambda=[-mdf-][test.Supply[]]{'this
+      #/1([cont]):Sig[mdf=recMdf,gens=[X],ts=[recMdftest.Cont[immX]],ret=recMdfX]->cont#/0[]([])}],
+    test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-mdf-][test.Void[]]{'this}]}
+    """, """
+    package test
+    Test:{
+      // .m1: Void -> Supply#(imm Cont[Void]{ Void }) // should infer to this
+      .m1: Void -> Supply#({ Void })
+      }
+    Supply:{
+      recMdf #[X](cont: recMdf Cont[X]): recMdf X -> cont#
+      }
+    Cont[X]:{ recMdf #: recMdf X }
+    Void:{}
     """); }
 
   // TODO: this should eventually fail with an "inference failed" message when I add that error

@@ -2,7 +2,6 @@ package base
 alias base.caps.System as System,
 
 Main:{ #(s: lent System[Void]): Void }
-NoMutHyg[X]:{}
 Sealed:{}
 Void:{}
 
@@ -12,10 +11,11 @@ Debug:Sealed{ #[T](x: T): T -> x } // TODO: magic
 HasIdentity:{ mut .idEq(other: read HasIdentity): Bool -> this.idEq(other) } // TODO: magic
 
 Let:{
-  #[V,R](l: mut Let[mdf V, mdf R]): mdf R -> l.in(l.var),
-  .hyg[V,R](l: lent Let[mdf V, mdf R]): mdf R -> this#l,
+  recMdf #[V,R](l: mut Let[mdf V, mdf R]): mdf R -> l.in(l.var),
+  recMdf .hyg[V,R](l: recMdf LetHyg[mdf V, mdf R]): mdf R -> l.in(l.var),
   }
-Let[V,R]:NoMutHyg[mdf V],NoMutHyg[mdf R]{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+Let[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+LetHyg[V,R]:{ recMdf .var: mdf V, recMdf .in(v: mdf V): mdf R }
 
 //LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
 //LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
@@ -30,5 +30,3 @@ Yeet:{
   .with[X,R](_: mdf X, res: mdf R): mdf R -> res,
   }
 
-Box:{ #[R](r: mdf R): mut Box[mdf R] -> { r } }
-Box[R]:NoMutHyg[mdf R]{ recMdf #: recMdf R }

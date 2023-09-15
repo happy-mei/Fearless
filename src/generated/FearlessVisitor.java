@@ -41,6 +41,12 @@ public interface FearlessVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitRoundE(FearlessParser.RoundEContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link FearlessParser#genDecl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGenDecl(FearlessParser.GenDeclContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link FearlessParser#mGen}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

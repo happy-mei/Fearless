@@ -10,6 +10,7 @@ import id.Mdf;
 import magic.Magic;
 import magic.MagicImpls;
 import program.TypeRename;
+import utils.Bug;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
 
@@ -39,15 +40,13 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
-    return noIsoParams(e.ts())
-      .or(()->noPrivateMethCallOutsideTrait(e))
+    return noPrivateMethCallOutsideTrait(e)
       .or(()->super.visitMCall(e))
       .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitX(E.X e) {
     return super.visitX(e)
-      .or(()->noIsoMoreThanOnce(e))
       .map(err->err.parentPos(e.pos()));
   }
 
@@ -63,24 +62,18 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
-    return noIsoParams(t, t.ts())
-      .or(()->super.visitIT(t));
-  }
-
-  private Optional<CompileError> noIsoMoreThanOnce(E.X x) {
-    var t = env.get(x);
-    if (!t.mdf().isIso()) { return Optional.empty(); }
-    if (env.usages().getOrDefault(x.name(), 0) <= 1) { return Optional.empty(); }
-    return Optional.of(Fail.multipleIsoUsage(x).pos(x.pos()));
+    return super.visitIT(t);
   }
 
   private Optional<CompileError> noHygInMut(T t) {
-    var fixed = TypeRename.core(p).fixMut(t);
-    if (!fixed.equals(t)) {
-      return Optional.of(Fail.mutCapturesHyg(t));
-    }
-
+    // TODO: not sure how to implement this without NoMutHyg because how do we distinguish captures from functions at the type level
     return Optional.empty();
+//    var fixed = TypeRename.core(p).fixMut(t);
+//    if (!fixed.equals(t)) {
+//      return Optional.of(Fail.mutCapturesHyg(t));
+//    }
+//
+//    return Optional.empty();
   }
 
   private Optional<CompileError> norecMdfInNonRecMdf(E.Sig s, Id.MethName name) {
@@ -132,22 +125,5 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
       .map(Id.IT::name)
       .findFirst()
       .or(()->getSealedDec(its.stream().flatMap(it->p.itsOf(it).stream()).toList()));
-  }
-
-  private Optional<CompileError> noIsoParams(Id.IT<?> base, List<T> genArgs) {
-    return genArgs.stream()
-      .flatMap(T::flatten)
-      .dropWhile(t->t.mdf() != Mdf.iso)
-      .map(t_->base.toString())
-      .map(Fail::isoInTypeArgs)
-      .findFirst();
-  }
-  private Optional<CompileError> noIsoParams(List<T> genArgs) {
-    return genArgs.stream()
-      .flatMap(T::flatten)
-      .dropWhile(t->t.mdf() != Mdf.iso)
-      .map(T::toString)
-      .map(Fail::isoInTypeArgs)
-      .findFirst();
   }
 }

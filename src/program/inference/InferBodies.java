@@ -14,7 +14,6 @@ import visitors.InjectionVisitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public record InferBodies(ast.Program p) {
   public ast.Program inferAll(astFull.Program fullProgram){
@@ -60,9 +59,6 @@ public record InferBodies(ast.Program p) {
 
   //TODO: this may have to become iterative if the recursion gets out of control
   E fixInferStep(Map<String, T> gamma, E e, int depth) {
-//    if (e.toString().contains("newnewlists")) {
-//      System.out.println(e+"\n----");
-//    }
     var next = inferStep(gamma, e, depth);
     assert next.map(ei->!ei.equals(e)).orElse(true);
     if (next.isEmpty()) { return e; }
@@ -87,13 +83,15 @@ public record InferBodies(ast.Program p) {
 
   Optional<E> bProp(Map<String, T> gamma, E.Lambda e, int depth) {
     if (e.it().isEmpty()) { return Optional.empty(); }
+    var fixedLambda = (E.Lambda) refineLambda(e, e, depth).orElse(e);
     boolean[] done = {false};
-    List<E.Meth> newMs = e.meths().stream().map(mi->done[0]
+    List<E.Meth> newMs = fixedLambda.meths().stream().map(mi->done[0]
       ? mi
-      : bProp(gamma,mi,e,depth).map(mj->{done[0]=true;return mj;}).orElse(mi))
+      : bProp(gamma,mi,fixedLambda,depth).map(mj->{done[0]=true;return mj;}).orElse(mi))
     .toList();
     if(!done[0]){ return Optional.empty(); }
-    var res = refineLambda(e, e.withMeths(newMs), depth);
+    var res = refineLambda(e, e.withMeths(newMs), depth); // TODO: why can't we get rid of this?
+//    var res = Optional.of(e.withMeths(newMs));
     return res.flatMap(e1->!e1.equals(e) ? res : Optional.empty());
   }
   Optional<E.Meth> bProp(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
@@ -117,10 +115,10 @@ public record InferBodies(ast.Program p) {
     var e1 = m.body().get();
     var e2 = refiner.fixType(e1,sig.ret());
     var optBody = inferStep(richGamma,e2,depth);
-    var res = optBody.map(b->m.withBody(Optional.of(b)).withSig(refiner.fixTypes(sig, b.t())));
+    var res = optBody.map(b->m.withBody(Optional.of(b)).withSig(refiner.fixSig(sig, b.t())));
     var finalRes = res.or(()->e1==e2
       ? Optional.empty()
-      : Optional.of(m.withBody(Optional.of(e2)).withSig(refiner.fixTypes(sig, e2.t()))));
+      : Optional.of(m.withBody(Optional.of(e2)).withSig(refiner.fixSig(sig, e2.t()))));
     return finalRes.map(m1->!m.equals(m1)).orElse(true) ? finalRes : Optional.empty();
 //    assert finalRes.map(m1->!m.equals(m1)).orElse(true);
 //    return finalRes;
@@ -148,11 +146,11 @@ public record InferBodies(ast.Program p) {
 
   Optional<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(Mdf.mdf, its, depth, CM::isAbs);
+    return p.fullSig(Mdf.recMdf, its, depth, CM::isAbs);
   }
   Optional<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(Mdf.mdf, its, depth, cm->cm.name().equals(name));
+    return p.fullSig(Mdf.recMdf, its, depth, cm->cm.name().equals(name));
   }
 
   Optional<E> methCall(Map<String, T> gamma, E.MCall e, int depth) {
@@ -184,19 +182,24 @@ public record InferBodies(ast.Program p) {
   Optional<E> methCallHasGens(Map<String, T> gamma, E.MCall e, int depth) {
     if (e.ts().isEmpty()) { return Optional.empty(); }
     var gens = e.ts().get();
-    var c = e.receiver().t(Mdf.mdf);
+    var c = e.receiver().t();
     var iTs = typesOf(e.es());
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
+    try {
+      if (p().meths(c.mdf(), recv.toAstIT(T::toAstT), e.name(), depth).isEmpty()) {
+        return Optional.empty();
+      }
+    } catch (T.MatchOnInfer ignored) {}
 
     try {
       var refiner = new RefineTypes(p);
-      var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, iTs, e.t());
+      var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, Map.of(), iTs, e.t());
       // TODO: this doesn't consider narrowing down to gens on ITs (i.e. FIO:FCap[...] does not help refine FCap[...] because this only uses FIO)
-      var refined = refiner.refineSigMassive(c.mdf(), recv, List.of(baseSig), depth);
+      var refined = refiner.refineSig(c.mdf(), recv, List.of(baseSig), depth);
       var refinedSig = refined.sigs().get(0);
-      var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
-      var fixedRecv = refiner.fixType(e.receiver(), new T(fixedRecvT.mdf(), refined.c()), depth);
-      var fixedArgs = refiner.fixTypes(e.es(), refinedSig.args(), depth);
+//      var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
+      var fixedRecv = refiner.fixType(e.receiver(), new T(c.mdf(), refined.c()), depth);
+      var fixedArgs = refiner.fixSig(e.es(), refinedSig.args(), depth);
       var fixedGens = e.ts().map(userGens->replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
 
       assert refinedSig.name().equals(e.name());
@@ -227,10 +230,11 @@ public record InferBodies(ast.Program p) {
   }
   Optional<E> methCallNoGens(Map<String, T> gamma, E.MCall e, int depth) {
     if (e.ts().isPresent()) { return Optional.empty(); }
-    var c = e.receiver().t(Mdf.mdf); // safe because this T's MDF is never used
+    var c = e.receiver().t();
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
-    var cm = p.fullSig(c.mdf(), List.of(recv), depth, cm1->cm1.name().equals(e.name()));
+    Optional<Program.FullMethSig> cm; try { cm = p.fullSig(c.mdf(), List.of(recv), depth, cm1->cm1.name().equals(e.name())); }
+    catch (CompileError err) { throw err.parentPos(e.pos()); }
     if (cm.isEmpty()) { throw Fail.undefinedMethod(e.name(), recv).pos(e.pos()); }
     var sig = cm.get().sig();
     var k = sig.gens().size();
@@ -252,7 +256,7 @@ public record InferBodies(ast.Program p) {
 
   /** extracts the annotated types for all the ie in ies */
   List<T> typesOf(List<E> ies) {
-    return ies.stream().map(e->e.t(Mdf.imm)).toList();
+    return ies.stream().map(E::t).toList();
   }
 }
 

@@ -58,6 +58,16 @@ public interface FearlessListener extends ParseTreeListener {
 	 */
 	void exitRoundE(FearlessParser.RoundEContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link FearlessParser#genDecl}.
+	 * @param ctx the parse tree
+	 */
+	void enterGenDecl(FearlessParser.GenDeclContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FearlessParser#genDecl}.
+	 * @param ctx the parse tree
+	 */
+	void exitGenDecl(FearlessParser.GenDeclContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link FearlessParser#mGen}.
 	 * @param ctx the parse tree
 	 */

@@ -40,7 +40,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     // TODO: throw if no ITs (i.e. cannot infer type of lambda)
 
     return new ast.E.Lambda(
-      e.mdf().orElseThrow(),
+      e.mdf().orElse(Mdf.mdf),
       its.stream().map(this::visitIT).toList(),
       Optional.ofNullable(e.selfName()).orElseGet(E.X::freshName),
       e.meths().stream().map(this::visitMeth).toList(),
@@ -52,7 +52,8 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     return new ast.T.Dec(
       d.name(),
       d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList(),
-      this.visitLambda(d.lambda().withMdf(Mdf.mdf).withITs(Push.of(d.toIT(), d.lambda().its()))),
+      d.bounds(),
+      this.visitLambda(d.lambda().withITs(Push.of(d.toIT(), d.lambda().its()))),
       d.pos()
     );
   }
@@ -98,6 +99,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     return new ast.E.Sig(
       s.mdf(),
       s.gens().stream().map(this::visitGX).toList(),
+      s.bounds(),
       s.ts().stream().map(this::visitT).toList(),
       this.visitT(s.ret()),
       s.pos()

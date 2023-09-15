@@ -70,7 +70,8 @@ mdf: Mut | Lent | Read | Iso | RecMdf | Mdf | Imm | ;
 
 
 roundE : OR e CR;
-mGen   : | OS (t (Comma t)*)? CS;
+genDecl : t Colon (mdf (Comma mdf)*) | t;
+mGen   : | OS (genDecl (Comma genDecl)*)? CS;
 lambda : mdf block;
 block  : (t (Comma t)*)? OC bblock CC | t;
 bblock : | SelfX? singleM  | SelfX? (meth (Comma meth)*)? Comma?;

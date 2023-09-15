@@ -12,9 +12,7 @@ import visitors.FullCloneVisitor;
 import visitors.FullVisitor;
 import visitors.InjectionVisitor;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -22,7 +20,6 @@ public sealed interface E extends HasPos {
   E accept(FullCloneVisitor v);
   <R> R accept(FullVisitor<R> v);
   T t();
-  default T t(Mdf altMdf) { return t(); }
   default Optional<Mdf> mdf() {
     return t().isInfer() ? Optional.empty() : Optional.of(t().mdf());
   }
@@ -34,6 +31,8 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
+
+      assert mdf.isPresent() == it.isPresent();
     }
     /** This method correctly throw assertion error if called on a top level lambda
     */
@@ -41,10 +40,6 @@ public sealed interface E extends HasPos {
       if (mdf().isEmpty() && it().isEmpty()) { return T.infer; }
       assert mdf().isPresent() && it().isPresent();
       return new T(mdf().get(), it().get());
-    }
-    @Override public T t(Mdf altMdf) {
-      if (it().isEmpty()) { return T.infer; }
-      return new T(mdf().orElse(altMdf), it().get());
     }
 
     @Override public Lambda withT(T t) {
@@ -66,8 +61,8 @@ public sealed interface E extends HasPos {
     public Lambda withSelfName(String selfName) {
       return new Lambda(mdf, its, selfName, meths, it, pos);
     }
-    public Lambda withIT(Optional<Id.IT<T>> it) {
-      return new Lambda(mdf, its, selfName, meths, it, pos);
+    public Lambda withT(Optional<T> t) {
+      return new Lambda(t.map(T::mdf), its, selfName, meths, t.map(T::itOrThrow), pos);
     }
     public Lambda withITs(List<Id.IT<T>> its) {
       return new Lambda(mdf, its, selfName, meths, it, pos);
@@ -134,8 +129,9 @@ public sealed interface E extends HasPos {
     @Override public <R> R accept(FullVisitor<R> v){return v.visitX(this);}
     @Override public String toString(){ return name+":"+t; }
   }
-  record Meth(Optional<Sig> sig,Optional<MethName> name, List<String>xs,Optional<E> body, Optional<Pos> pos) implements HasPos {
+  record Meth(Optional<Sig> sig,Optional<MethName> name, List<String>xs, Optional<E> body, Optional<Pos> pos) implements HasPos {
     public Meth {
+      // TODO: throw a Fail error (can be caused by implementing a method of a lambda with the wrong number of gens)
       name.ifPresent(n->{ assert n.num() == xs.size(); });
     }
     public boolean isAbs(){ return body().isEmpty(); }
@@ -152,22 +148,29 @@ public sealed interface E extends HasPos {
       return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<Id.GX<T>> gens, List<T> ts, T ret, Optional<Pos> pos){
+  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds, List<T> ts, T ret, Optional<Pos> pos){
     public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
     public Sig withGens(List<Id.GX<T>> gens){
-      return new Sig(mdf, gens, ts, ret, pos);
+      return new Sig(mdf, gens, bounds, ts, ret, pos);
     }
     public Sig withRet(T ret){
-      return new Sig(mdf, gens, ts, ret, pos);
+      return new Sig(mdf, gens, bounds, ts, ret, pos);
     }
     public Sig withTs(List<T> ts){
-      return new Sig(mdf, gens, ts, ret, pos);
+      return new Sig(mdf, gens, bounds, ts, ret, pos);
     }
     public ast.E.Sig accept(InjectionVisitor visitor) {
       return visitor.visitSig(this);
     }
     @Override public String toString() {
-      return "Sig[mdf="+mdf+",gens="+gens+",ts="+ts+",ret="+ret+"]";
+      if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
+        return "Sig[mdf="+mdf+",gens="+gens+",ts="+ts+",ret="+ret+"]";
+      }
+      var boundsStr = bounds.entrySet().stream()
+        .sorted(Comparator.comparing(a->a.getKey().name()))
+        .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
+        .collect(Collectors.joining(","));
+      return "Sig[mdf="+mdf+",gens="+gens+",bounds={"+boundsStr+"},ts="+ts+",ret="+ret+"]";
     }
   }
 }

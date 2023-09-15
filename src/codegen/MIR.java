@@ -1,6 +1,5 @@
 package codegen;
 
-import ast.Program;
 import ast.T;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

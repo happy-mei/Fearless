@@ -1,13 +1,14 @@
 package program;
 
+import failure.CompileError;
 import id.Id;
 import id.Mdf;
+import program.typesystem.XBs;
 
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
-public interface TypeRename<T>{
+public interface TypeRename<T extends Id.Ty>{
   record FullTTypeRename(Program p) implements TypeRename<astFull.T> {
     public <R> R matchT(astFull.T t, Function<Id.GX<astFull.T>, R> gx, Function<Id.IT<astFull.T>, R> it) { return t.match(gx, it); }
     public Mdf mdf(astFull.T t) { return t.mdf(); }
@@ -16,13 +17,6 @@ public interface TypeRename<T>{
     }
     public astFull.T withMdf(astFull.T t, Mdf mdf) { return t.withMdf(mdf); }
     public boolean isInfer(astFull.T t) { return t.isInfer(); }
-    public Stream<Mdf> getNoMutHygMdfs(astFull.T t) {
-      if (t.isInfer()) { return Stream.empty(); }
-      if (!(t.rt() instanceof Id.IT<astFull.T> it)) { return Stream.empty(); }
-      Id.IT<ast.T> coreIT; try { coreIT = it.toAstIT(astFull.T::toAstT); }
-        catch (astFull.T.MatchOnInfer e) { return Stream.empty(); }
-      return p.getNoMutHygs(coreIT).map(ast.T::mdf);
-    }
   }
   class CoreTTypeRename implements TypeRename<ast.T> {
     private final Program p;
@@ -33,38 +27,45 @@ public interface TypeRename<T>{
     public ast.T withMdf(ast.T t, Mdf mdf) { return t.withMdf(mdf); }
     public ast.E.Sig renameSig(ast.E.Sig sig, Function<Id.GX<ast.T>,ast.T>f){
       assert sig.gens().stream().allMatch(gx->f.apply(gx)==null);
-      return renameSigOnMCall(sig, f);
+      try {
+        return renameSigOnMCall(sig, f);
+      } catch (CompileError err) {
+        throw err.parentPos(sig.pos());
+      }
     }
     public ast.E.Sig renameSigOnMCall(ast.E.Sig sig, Function<Id.GX<ast.T>,ast.T>f){
       return new ast.E.Sig(
         sig.mdf(),
         sig.gens(),
+        sig.bounds(),
         sig.ts().stream().map(t->renameT(t,f)).toList(),
         renameT(sig.ret(),f),
         sig.pos()
       );
     }
     public boolean isInfer(ast.T t) { return false; }
-    public Stream<Mdf> getNoMutHygMdfs(ast.T t) {
-      if (!(t.rt() instanceof Id.IT<ast.T> it)) { return Stream.empty(); }
-      return p.getNoMutHygs(it).map(ast.T::mdf);
-    }
   }
   class CoreRecMdfTypeRename extends CoreTTypeRename {
     private final Mdf recvMdf;
     public CoreRecMdfTypeRename(Program p, Mdf recvMdf) {
       super(p);
+      assert !recvMdf.isMdf();
       this.recvMdf = recvMdf;
     }
 
-    /** This is adaptRecMDF(MDF) ITX with t = MDF ITX */
-    public ast.T propagateMdf(Mdf mdf, ast.T t){
-      if(!mdf.isRecMdf()){ return super.propagateMdf(mdf,t); }
+    /** This is part of MDF ITX[[MDF0; Ts=Xs]] */
+    @Override public ast.T propagateMdf(Mdf mdf, ast.T t){
+      if(!mdf.isRecMdf()){ return super.propagateMdf(mdf, t); }
       assert t!=null;
-      if (recvMdf.isMdf() && t.mdf().isMdf()) {
+      if (recvMdf.isRecMdf() && t.mdf().isMdf()) {
         return t.withMdf(Mdf.recMdf);
       }
-      var resolvedMdf = recvMdf.adapt(t.mdf(), Mdf.AdaptType.ResolveRecMdf);
+      // TODO: or maybe this (see commented tests in TestTypeSystem)
+//      if (t.mdf().isMdf()) {
+//        return t.withMdf(Mdf.recMdf);
+//      }
+      var resolvedMdf = recvMdf.adapt(t.mdf());
+//      var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, recvMdf, t, Mdf.recMdf);
       return t.withMdf(resolvedMdf);
     }
   }
@@ -84,11 +85,11 @@ public interface TypeRename<T>{
     return gx->{
       int i = gxs.indexOf(gx);
       if(i==-1){ return null; }
-      return ts.get(i);
+      var t = ts.get(i);
+      return t;
     };
   }
   boolean isInfer(T t);
-  Stream<Mdf> getNoMutHygMdfs(T t);
   default T renameT(T t, Function<Id.GX<T>,T> f){
     if(isInfer(t)){ return t; }
     return matchT(t,
@@ -96,20 +97,16 @@ public interface TypeRename<T>{
         var renamed = f.apply(gx);
         if(renamed==null){ return t; }
         if (isInfer(renamed)){ return renamed; }
-        return fixMut(propagateMdf(mdf(t),renamed));
+        return propagateMdf(mdf(t), renamed);
       },
-      it->fixMut(newT(mdf(t),renameIT(it,f)))
+      // TODO: this is new (was not going via propagateMdf before, what breaks?
+      it->propagateMdf(mdf(t), newT(mdf(t), renameIT(it,f)))
+//      it->newT(mdf(t), renameIT(it,f))
     );
   }
   default T propagateMdf(Mdf mdf, T t){
     assert t!=null;
     if(mdf.isMdf()){ return t; }
     return withMdf(t,mdf);
-  }
-  default T fixMut(T t) {
-    if (!mdf(t).isMut()) { return t; }
-    var shouldFix = getNoMutHygMdfs(t).anyMatch(Mdf::isHyg);
-    if (!shouldFix) { return t; }
-    return propagateMdf(Mdf.lent, t);
   }
 }

@@ -8,10 +8,10 @@ import files.Pos;
 import id.Id;
 import id.Mdf;
 import id.Refresher;
-import magic.Magic;
 import program.inference.RefineTypes;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
+import program.typesystem.XBs;
 import utils.*;
 import visitors.CloneVisitor;
 
@@ -22,6 +22,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface Program {
+  Id.Dec of(Id.DecId dec);
   List<Id.IT<T>> itsOf(Id.IT<T> t);
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t);
@@ -31,7 +32,7 @@ public interface Program {
   List<ast.E.Lambda> lambdas();
   Optional<Pos> posOf(Id.IT<ast.T> t);
   /** Produce a clone of Program without any cached data */
-  Program cleanCopy();
+  Program shallowClone();
 
   default void reset() {
     this.methsCache().clear();
@@ -55,8 +56,8 @@ public interface Program {
   default boolean tryIsSubType(T t1, T t2) {
     try {
       return isSubType(t1, t2);
-    } catch (CompileError ce) {
-      System.out.println("sub-typing ignoring"+ce);
+    } catch (CompileError ce) { // due to the parallelism in okAll we can no longer easily prevent us getting stuck here
+      System.out.println("sub-typing ignoring "+ce);
       return false;
     }
   }
@@ -129,29 +130,21 @@ public interface Program {
 
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
-        return isType(xs, ts, e, m2.sig().ret());
+        // TODO: compute XBs
+        return isType(xs, ts, XBs.empty(), e, m2.sig().ret());
       });
   }
 
-  default Stream<T> getNoMutHygs(Id.IT<ast.T> t) {
-    var its = itsOf(t);
-    return Stream.concat(
-      its.stream()
-        .filter(it->it.name().equals(Magic.NoMutHyg))
-        .map(it->it.ts().get(0)),
-      its.stream().flatMap(this::getNoMutHygs)
-    );
-  }
+  // TODO: delete if unused
+//  default failure.Res typeOf(List<String>xs,List<ast.T>ts, ast.E e) {
+//    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
+//    var v = ETypeSystem.of(this, g Optional.empty(),0);
+//    return e.accept(v);
+//  }
 
-  default failure.Res typeOf(List<String>xs,List<ast.T>ts, ast.E e) {
+  default boolean isType(List<String>xs, List<ast.T>ts, XBs xbs, ast.E e, ast.T expected) {
     var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
-    var v = ETypeSystem.of(this,g, Optional.empty(),0);
-    return e.accept(v);
-  }
-
-  default boolean isType(List<String>xs,List<ast.T>ts, ast.E e, ast.T expected) {
-    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
-    var v = ETypeSystem.of(this,g, Optional.of(expected),0);
+    var v = ETypeSystem.of(this, g, xbs, Optional.of(expected),0);
     var res = e.accept(v);
     return res.resMatch(t->isSubType(t,expected),err->false);
   }
@@ -161,11 +154,12 @@ public interface Program {
     if (cms.isEmpty()) { return List.of(); }
     var cm = cms.get(0);
     cms = Pop.left(cms);
-    if (mdf.isIso() || mdf.isMut() || mdf.isLent() || mdf.isRecMdf()) {
+    if (mdf.isIso() || mdf.isMut() || mdf.isRecMdf()) {
       return Push.of(cm, filterByMdf(mdf, cms));
     }
     var sig = cm.sig();
-    var baseMdfReadLike = mdf.isImm() || mdf.isRead() || mdf.isRecMdf();
+    if (mdf.isLent() && !sig.mdf().isIso()) { return Push.of(cm, filterByMdf(mdf, cms)); }
+    var baseMdfReadLike = mdf.isImm() || mdf.isRead();
     var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isRead() || sig.mdf().isRecMdf();
     if (baseMdfReadLike && methMdfImmOrRead) {
       return Push.of(cm, filterByMdf(mdf, cms));
@@ -182,7 +176,7 @@ public interface Program {
   default Optional<FullMethSig> fullSig(Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
-    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), new ast.E.Lambda(
+    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), Map.of(), new ast.E.Lambda(
       Mdf.mdf,
       coreIts,
       "fearTmp$",
@@ -202,7 +196,7 @@ public interface Program {
     var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
     var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(this, freshGXsSet, t)).toList();
     var restoredRt = RefineTypes.regenerateInfers(this, freshGXsSet, sig.ret());
-    var restoredSig = new E.Sig(sig.mdf(), sig.gens(), restoredArgs, restoredRt, sig.pos());
+    var restoredSig = new E.Sig(sig.mdf(), sig.gens(), sig.bounds(), restoredArgs, restoredRt, sig.pos());
     return Optional.of(new FullMethSig(cm.name(), restoredSig));
   }
 
@@ -214,7 +208,7 @@ public interface Program {
   }
 
   default List<CM> meths(Mdf recvMdf, ast.E.Lambda l, int depth) {
-    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), l, l.pos());
+    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), Map.of(), l, l.pos());
     var p_ = this.withDec(dec);
     return p_.methsAux(recvMdf, dec.toIT()).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
@@ -303,7 +297,7 @@ public interface Program {
       n > 0
       CMs.size < n //else error
      */
-    assert cms.size() >= 1;
+    assert !cms.isEmpty();
     var first=cms.get(0);
     if (cms.size() == 1) { return first; }
     var nextCms=cms.stream().skip(1)

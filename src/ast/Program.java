@@ -9,8 +9,6 @@ import failure.Fail;
 import program.CM;
 import program.TypeRename;
 import program.typesystem.TraitTypeSystem;
-import utils.Bug;
-import visitors.InjectionVisitor;
 
 import java.util.*;
 import java.util.function.Function;
@@ -41,8 +39,17 @@ public class Program implements program.Program  {
     return of(t.name()).pos();
   }
 
-  @Override public Program cleanCopy() {
-    return new Program(ds);
+  @Override public Program shallowClone() {
+    var subTypeCache = new HashMap<>(this.subTypeCache);
+    var methsCache = new HashMap<>(this.methsCache);
+    return new Program(ds){
+      @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
+        return subTypeCache;
+      }
+      @Override public HashMap<MethsCacheKey, List<CM>> methsCache() {
+        return methsCache;
+      }
+    };
   }
 
   private final HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();

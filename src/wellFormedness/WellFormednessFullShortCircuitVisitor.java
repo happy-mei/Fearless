@@ -9,6 +9,7 @@ import magic.Magic;
 import failure.CompileError;
 import failure.Fail;
 import astFull.Program;
+import utils.Box;
 import visitors.FullShortCircuitVisitor;
 import visitors.FullShortCircuitVisitorWithEnv;
 
@@ -67,11 +68,11 @@ Evil:Main{
     ...
  */
 
-// TODO: rule about iso only being used once? Do we not need it becuase we never capture iso as iso
 public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisitorWithEnv<CompileError> {
+  private Program p;
+
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
-    return e.ts().flatMap(this::noIsoParams)
-      .or(()->super.visitMCall(e))
+    return super.visitMCall(e)
       .map(err->err.pos(e.posOrUnknown()));
   }
 
@@ -88,7 +89,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       )
       .or(()->hasNonDisjointMs(e))
       .or(()->super.visitLambda(e))
-      .map(err->err.pos(e.posOrUnknown()));
+      .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitMeth(E.Meth e) {
@@ -111,18 +112,18 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       .or(()->super.visitT(t));
   }
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
-    return noIsoParams(t, t.ts())
-      .or(()->super.visitIT(t));
+    return super.visitIT(t);
   }
 
   @Override
   public Optional<CompileError> visitDec(T.Dec d) {
-    return noMutHygValid(d).map(err->err.pos(d.posOrUnknown()))
-      .or(()->hasNonDisjointXs(d.gxs().stream().map(Id.GX::name).toList(), d))
+    return hasNonDisjointXs(d.gxs().stream().map(Id.GX::name).toList(), d)
+      .or(()->noSelfNameOnTopLevelDec(d.lambda()))
       .or(()->super.visitDec(d));
   }
 
   @Override public Optional<CompileError> visitProgram(Program p){
+    this.p = p;
     return noCyclicImplRelations(p)
       .or(()->super.visitProgram(p));
   }
@@ -149,22 +150,6 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
 //      .allMatch(t->t.match(gx->env.has(gx), it->hasUndeclaredXs(List.of(it))));
 //  }
 
-  private Optional<CompileError> noIsoParams(Id.IT<?> base, List<T> genArgs) {
-    return genArgs.stream()
-      .flatMap(T::flatten)
-      .dropWhile(t->t.mdf() != Mdf.iso)
-      .map(t_->base.toString())
-      .map(Fail::isoInTypeArgs)
-      .findFirst();
-  }
-  private Optional<CompileError> noIsoParams(List<T> genArgs) {
-    return genArgs.stream()
-      .flatMap(T::flatten)
-      .dropWhile(t->t.mdf() != Mdf.iso)
-      .map(T::toString)
-      .map(Fail::isoInTypeArgs)
-      .findFirst();
-  }
   private Optional<CompileError> mdfOnlyOnGX(T t) {
     if(t.isInfer() || !t.mdf().isMdf()){ return Optional.empty(); }
     return t.match(gx->Optional.empty(), it->Optional.of(Fail.invalidMdf(t)));
@@ -214,19 +199,6 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
     return Optional.empty();
   }
 
-  private Optional<CompileError> noMutHygValid(T.Dec dec) {
-    return dec.lambda().its().stream()
-      .filter(it->it.name().equals(Magic.NoMutHyg))
-      .flatMap(it->it.ts().stream())
-      .<Optional<CompileError>>map(t->t.match(
-          gx->dec.gxs().contains(gx) ? Optional.empty() : Optional.of(Fail.invalidNoMutHyg(t)),
-          it->Optional.of(Fail.concreteInNoMutHyg(t))
-      ))
-      .dropWhile(Optional::isEmpty)
-      .findFirst()
-      .flatMap(o->o);
-  }
-
   private Optional<CompileError> validMethMdf(E.Meth e) {
     return e.sig().flatMap(m->{
       if (!m.mdf().isMdf()) { return Optional.empty(); }
@@ -244,6 +216,11 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
         return FullShortCircuitVisitor.super.visitT(t);
       }
     }.visitSig(s);
+  }
+
+  private Optional<CompileError> noSelfNameOnTopLevelDec(E.Lambda e) {
+    if (e.selfName() == null) { return Optional.empty(); }
+    return Optional.of(Fail.namedTopLevelLambda().pos(e.pos()));
   }
 }
 

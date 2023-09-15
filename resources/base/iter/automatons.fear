@@ -1,0 +1,39 @@
+package base.iter
+Output[R]:Output[Void, mdf R]{ recMdf .next: recMdf Automaton[mdf R], recMdf .result: mdf R }
+Output[A,R]:{ recMdf .next: recMdf Automaton[mdf A, mdf R], recMdf .result: mdf R }
+
+Automaton:{
+  recMdf .pure[A,R](f: F[recMdf A, recMdf R]): recMdf Automaton[mdf A, recMdf R] -> {'self
+    a -> { .next -> self, .result -> f#a } },
+  recMdf .id[A]: recMdf Automaton[mdf A, recMdf A] -> {'self
+    a -> { .next -> self, .result -> a } },
+  recMdf .const[A,R](x: recMdf R): recMdf Automaton[mdf A, recMdf R] -> {'self
+    _ -> { .next -> self, .result -> x } },
+  recMdf .llist[E](list: recMdf LList[recMdf E]): recMdf Automaton[recMdf Opt[recMdf E]] -> {'self
+    { .next -> this.llist(list.tail), .result -> list.head }
+    },
+  }
+Automaton[R]:Automaton[Void, mdf R]{
+  recMdf .step: recMdf Output[recMdf R],
+  recMdf .step(a: Void): recMdf Output[recMdf R] -> this.step,
+  }
+Automaton[A,R]:{
+  recMdf .step(a: recMdf A): recMdf Output[recMdf A, recMdf R],
+  recMdf |>[RR](other: recMdf Automaton[recMdf R, recMdf RR]): recMdf Automaton[recMdf A, recMdf RR] -> {'self
+    .step(a) -> self.compose[](this.step(a)),
+    recMdf .compose(left: recMdf Output[recMdf A, recMdf R]): recMdf Output[recMdf A, recMdf RR] -> self.compose'[](left, other.step(left.result)),
+    recMdf .compose'(left: recMdf Output[recMdf A, recMdf R], right: recMdf Output[recMdf R, recMdf RR]): recMdf Output[recMdf A, recMdf RR] -> {
+      .next -> left.next |> (right.next),
+      .result -> right.result
+      },
+    },
+  recMdf <|[AA](other: recMdf Automaton[recMdf AA, recMdf A]): recMdf Automaton[recMdf AA, recMdf R] -> other |> this,
+  }
+
+//PureF[A,B]:{ #(a: recMdf A): recMdf B }
+//_RunLList[E]:{
+//  recMdf #(head: recMdf Opt[recMdf E], tail: recMdf E): recMdf Automaton[recMdf E, recMdf E] -> { t ->
+//
+//    }
+//  }
+

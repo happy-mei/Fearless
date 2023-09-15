@@ -58,14 +58,6 @@ public class TestCaptureRules {
 
   @SafeVarargs
   final void c3(Mdf lambda, Mdf captured, Mdf method, List<Mdf>... _capturePairs) {
-    c3(lambda, captured, method, false, _capturePairs);
-  }
-  @SafeVarargs
-  final void c4(Mdf lambda, Mdf captured, Mdf method, List<Mdf>... _capturePairs) {
-    c3(lambda, captured, method, true, _capturePairs);
-  }
-  @SafeVarargs
-  final void c3(Mdf lambda, Mdf captured, Mdf method, boolean noMutHyg, List<Mdf>... _capturePairs) {
     assert _capturePairs.length>0;
     assert Stream.of(_capturePairs).allMatch(l->l.size()%2==0);
     List<Mdf> capturePairs = Stream.of(_capturePairs).flatMap(Collection::stream).toList();
@@ -88,9 +80,9 @@ public class TestCaptureRules {
     }
 
     var validCaps = new ConcurrentLinkedQueue<Capture>();
-    var exceptions = new ConcurrentLinkedQueue<Throwable>();
-    var templateA = noMutHyg ? codeGen3NoMutHygA : codeGen3a;
-    var templateB = noMutHyg ? codeGen3NoMutHygB : codeGen3b;
+    var exceptions = new ConcurrentLinkedQueue<>();
+    var templateA = codeGen3a;
+    var templateB = codeGen3b;
     permutations.parallelStream().forEach(c->{
       var codeA = templateA.formatted(method, c.capAs, captured, lambda, c.capAsG, lambda, c.capAsG);
 //      System.out.println(codeA);
@@ -103,13 +95,13 @@ public class TestCaptureRules {
           cInnerOk(codeA);
           if (codeBValid) { cInnerOk(codeB); }
           validCaps.add(c);
-        } catch (AssertionError | CompileError e) { exceptions.add(e); }
+        } catch (AssertionError | CompileError e) { exceptions.add(codeA+"\n"+e); }
       }
       else {
         try {
           cInnerFail(codeA);
           if (codeBValid) { cInnerFail(codeB); }
-        } catch (AssertionError e) { validCaps.add(c); exceptions.add(e); }
+        } catch (AssertionError e) { validCaps.add(c); exceptions.add(codeA+"\n"+e); }
       }
     });
     if(!exceptions.isEmpty()){
@@ -129,29 +121,12 @@ public class TestCaptureRules {
     L:L[%s B]
     A:{ recMdf .m(par: %s B) : %s L -> %s L{.absMeth->par} }
     """;
-  String codeGen3NoMutHygA = """
-    package test
-    alias base.NoMutHyg as NoMutHyg,
-    B:{}
-    L[X]:NoMutHyg[mdf X]{ %s .absMeth: %s X }
-    A:{ recMdf .m[T](par: %s T) : %s L[%s T] -> %s L[%s T]{.absMeth->par} }
-    """;
-  //codeGen3NoMutHygB is not run when %s is mdf/recMdf
-  String codeGen3NoMutHygB = """
-    package test
-    alias base.NoMutHyg as NoMutHyg,
-    B:{}
-    L[X]:NoMutHyg[mdf X]{ %s .absMeth: %s X }
-    L:L[%s B]
-    A:{ recMdf .m(par: %s B) : %s L -> %s L{.absMeth->par} }
-    """;
   String base = """
     package base
     NoMutHyg[X]:{}
     """;
 
   void cInnerOk(String code){
-//    System.out.println(code);
     try{ok(code, base);}
     catch(AssertionError t){ throw new AssertionError("failed on "+code+"\nwith:\n"+t); }
   }
@@ -189,7 +164,7 @@ public class TestCaptureRules {
   @Test void t032(){ c1(read, mut, imm, of(imm,read)); }
   @Test void t033(){ c1(lent, mut, imm, of(imm,read)); }
   @Test void t034(){ c1(mut, mut, imm, of(imm,read)); }
-  @Test void t035(){ c1(iso, mut, imm, of(imm,read)); }
+  @Test void t035(){ c1(iso, mut, imm, of()); }
   @Test void t036(){ c1(mdf, mut, imm, of(/*not well formed lambda*/)); }
   @Test void t037(){ c1(recMdf, mut, imm, of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
@@ -215,7 +190,7 @@ public class TestCaptureRules {
   @Test void t064(){ c1(mut, recMdf, imm, of(/*impossible*/)); }
   @Test void t065(){ c1(iso, recMdf, imm, of(/*impossible*/)); }
   @Test void t066(){ c1(mdf, recMdf, imm, of(/*not well formed lambda*/)); }
-  @Test void t067(){ c1(recMdf, recMdf, imm, of(imm,read)); }
+  @Test void t067(){ c1(recMdf, recMdf, imm, of()); }
 
   //                     lambda, captured, method, ...capturedAs
   @Test void t181(){ c1(imm, imm, read, of(imm,read)); }
@@ -246,7 +221,7 @@ public class TestCaptureRules {
   @Test void t122(){ c1(read, mut, read, of(read)); }
   @Test void t123(){ c1(lent, mut, read, of(read)); }
   @Test void t124(){ c1(mut, mut, read, of(read)); }
-  @Test void t125(){ c1(iso, mut, read, of(read)); }
+  @Test void t125(){ c1(iso, mut, read, of()); }
   @Test void t126(){ c1(mdf, mut, read, of(/*not well formed lambda*/)); }
   @Test void t127(){ c1(recMdf, mut, read, of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
@@ -272,7 +247,7 @@ public class TestCaptureRules {
   @Test void t154(){ c1(mut, recMdf, read, of(/*impossible*/)); }
   @Test void t155(){ c1(iso, recMdf, read, of(/*impossible*/)); }
   @Test void t156(){ c1(mdf, recMdf, read, of(/*not well formed lambda*/)); }
-  @Test void t157(){ c1(recMdf, recMdf, read, of(read)); }
+  @Test void t157(){ c1(recMdf, recMdf, read, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t161(){ c1(imm, imm, read, of(read,imm)); }
   @Test void t162(){ c1(read, imm, read, of(read,imm)); }
@@ -311,7 +286,7 @@ public class TestCaptureRules {
   @Test void t232(){ c1(read, mut, lent, of(/*impossible*/)); }
   @Test void t233(){ c1(lent, mut, lent, of(read,lent)); }
   @Test void t234(){ c1(mut, mut, lent, of(read,lent)); }
-  @Test void t235(){ c1(iso, mut, lent, of(read,lent)); }
+  @Test void t235(){ c1(iso, mut, lent, of()); }
   @Test void t236(){ c1(mdf, mut, lent, of(/*not well formed lambda*/)); }
   @Test void t237(){ c1(recMdf, mut, lent, of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
@@ -337,7 +312,7 @@ public class TestCaptureRules {
   @Test void t264(){ c1(mut, recMdf, lent, of(/*impossible*/)); }
   @Test void t265(){ c1(iso, recMdf, lent, of(/*impossible*/)); }
   @Test void t266(){ c1(mdf, recMdf, lent, of(/*not well formed lambda*/)); }
-  @Test void t267(){ c1(recMdf, recMdf, lent, of(read)); }
+  @Test void t267(){ c1(recMdf, recMdf, lent, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t271(){ c1(imm, imm, lent, of(/*impossible*/)); }
   @Test void t272(){ c1(read, imm, lent, of(/*impossible*/)); }
@@ -376,9 +351,9 @@ public class TestCaptureRules {
   @Test void t332(){ c1(read, mut, mut, of(/*impossible*/)); }
   @Test void t333(){ c1(lent, mut, mut, of(read,lent)); }
   @Test void t334(){ c1(mut, mut, mut, of(read,lent,mut)); }
-  @Test void t335(){ c1(iso, mut, mut, of(read,lent,mut)); }
+  @Test void t335(){ c1(iso, mut, mut, of()); }
   @Test void t336(){ c1(mdf, mut, mut, of(/*not well formed lambda*/)); }
-  @Test void t337(){ c1(recMdf, mut, mut, of(/*impossible*/)); }
+  @Test void t337(){ c1(recMdf, mut, mut, of(mut,read,lent)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t341(){ c1(imm, iso, mut, of(/*impossible*/)); }
   @Test void t342(){ c1(read, iso, mut, of(/*impossible*/)); }
@@ -402,7 +377,7 @@ public class TestCaptureRules {
   @Test void t364(){ c1(mut, recMdf, mut, of(/*impossible*/)); }
   @Test void t365(){ c1(iso, recMdf, mut, of(/*impossible*/)); }
   @Test void t366(){ c1(mdf, recMdf, mut, of(/*not well formed lambda*/)); }
-  @Test void t367(){ c1(recMdf, recMdf, mut, of(read)); }
+  @Test void t367(){ c1(recMdf, recMdf, mut, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t371(){ c1(imm, imm, mut, of(/*impossible*/)); }
   @Test void t372(){ c1(read, imm, mut, of(/*impossible*/)); }
@@ -415,7 +390,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t401(){ c1(imm, imm, iso, of(/*impossible*/)); }
   @Test void t402(){ c1(read, imm, iso, of(/*impossible*/)); }
-  @Test void t403(){ c1(lent, imm, iso, of(imm,read)); }
+  @Test void t403(){ c1(lent, imm, iso, of()); }
   @Test void t404(){ c1(mut, imm, iso, of(imm,read)); }
   @Test void t405(){ c1(iso, imm, iso, of(imm,read)); }
   @Test void t406(){ c1(mdf, imm, iso, of(/*not well formed lambda*/)); }
@@ -423,7 +398,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t411(){ c1(imm, read, iso, of(/*impossible*/)); }
   @Test void t412(){ c1(read, read, iso, of(/*impossible*/)); }
-  @Test void t413(){ c1(lent, read, iso, of(read)); }
+  @Test void t413(){ c1(lent, read, iso, of()); }
   @Test void t414(){ c1(mut, read, iso, of(/*impossible*/)); }//NOT NoMutHyg
   @Test void t415(){ c1(iso, read, iso, of(/*impossible*/)); }
   @Test void t416(){ c1(mdf, read, iso, of(/*not well formed lambda*/)); }
@@ -431,7 +406,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t421(){ c1(imm, lent, iso, of(/*impossible*/)); }
   @Test void t422(){ c1(read, lent, iso, of(/*impossible*/)); }
-  @Test void t423(){ c1(lent, lent, iso, of(read,lent)); }
+  @Test void t423(){ c1(lent, lent, iso, of()); }
   @Test void t424(){ c1(mut, lent, iso, of(/*impossible*/)); }//NOT NoMutHyg
   @Test void t425(){ c1(iso, lent, iso, of(/*impossible*/)); }
   @Test void t426(){ c1(mdf, lent, iso, of(/*not well formed lambda*/)); }
@@ -439,15 +414,15 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t431(){ c1(imm, mut, iso, of(/*impossible*/)); }
   @Test void t432(){ c1(read, mut, iso, of(/*impossible*/)); }
-  @Test void t433(){ c1(lent, mut, iso, of(read,lent,mut)); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
-  @Test void t434(){ c1(mut, mut, iso, of(read,lent,mut)); }
-  @Test void t435(){ c1(iso, mut, iso, of(read,lent,mut)); }
+  @Test void t433(){ c1(lent, mut, iso, of()); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
+  @Test void t434(){ c1(mut, mut, iso, of(read,lent,mut)); } // TODO: maybe no could be unsound
+  @Test void t435(){ c1(iso, mut, iso, of()); }
   @Test void t436(){ c1(mdf, mut, iso, of(/*not well formed lambda*/)); }
-  @Test void t437(){ c1(recMdf, mut, iso, of(/*impossible*/)); }
+  @Test void t437(){ c1(recMdf, mut, iso, of(mut,read,lent)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t441(){ c1(imm, iso, iso, of(/*impossible*/)); }
   @Test void t442(){ c1(read, iso, iso, of(/*impossible*/)); }
-  @Test void t443(){ c1(lent, iso, iso, of(imm,read)); }
+  @Test void t443(){ c1(lent, iso, iso, of()); }
   @Test void t444(){ c1(mut, iso, iso, of(imm,read)); }
   @Test void t445(){ c1(iso, iso, iso, of(imm,read)); } // all iso is captured as imm
   @Test void t446(){ c1(mdf, iso, iso, of(/*not well formed lambda*/)); }
@@ -463,15 +438,15 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t461(){ c1(imm, recMdf, iso, of(/*impossible*/)); }
   @Test void t462(){ c1(read, recMdf, iso, of(/*impossible*/)); }
-  @Test void t463(){ c1(lent, recMdf, iso, of(read)); }
+  @Test void t463(){ c1(lent, recMdf, iso, of()); }
   @Test void t464(){ c1(mut, recMdf, iso, of(/*impossible*/)); }
   @Test void t465(){ c1(iso, recMdf, iso, of(/*impossible*/)); }
   @Test void t466(){ c1(mdf, recMdf, iso, of(/*not well formed lambda*/)); }
-  @Test void t467(){ c1(recMdf, recMdf, iso, of(read)); }
+  @Test void t467(){ c1(recMdf, recMdf, iso, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t471(){ c1(imm, imm, iso, of(/*impossible*/)); }
   @Test void t472(){ c1(read, imm, iso, of(/*impossible*/)); }
-  @Test void t473(){ c1(lent, imm, iso, of(read,imm)); }
+  @Test void t473(){ c1(lent, imm, iso, of()); }
   @Test void t474(){ c1(mut, imm, iso, of(read,imm)); }
   @Test void t475(){ c1(iso, imm, iso, of(read,imm)); }
   @Test void t476(){ c1(mdf, imm, iso, of(/*not well formed lambda*/)); }
@@ -552,7 +527,7 @@ public class TestCaptureRules {
   @Test void t607(){ c1(recMdf, imm, recMdf, of(read,imm)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t611(){ c1(imm, read, recMdf, of(/*not well formed method*/)); }
-  @Test void t612(){ c1(read, read, recMdf, of(read)); }
+  @Test void t612(){ c1(read, read, recMdf, of(read, recMdf)); }
   @Test void t613(){ c1(lent, read, recMdf, of(read)); }
   @Test void t614(){ c1(mut, read, recMdf, of()); }
   @Test void t615(){ c1(iso, read, recMdf, of()); }
@@ -571,7 +546,7 @@ public class TestCaptureRules {
   @Test void t632(){ c1(read, mut, recMdf, of(read, recMdf)); }
   @Test void t633(){ c1(lent, mut, recMdf, of(read, recMdf)); }
   @Test void t634(){ c1(mut, mut, recMdf, of(read, recMdf)); }
-  @Test void t635(){ c1(iso, mut, recMdf, of(read, recMdf)); }
+  @Test void t635(){ c1(iso, mut, recMdf, of()); }
   @Test void t636(){ c1(mdf, mut, recMdf, of(/* not well formed */)); }
   @Test void t637(){ c1(recMdf, mut, recMdf, of(/* impossible */)); } // same as with a read method
   //                     lambda, captured, method, ...capturedAs
@@ -637,7 +612,7 @@ public class TestCaptureRules {
   @Test void t2032(){ c2(read, mut, imm, of(imm,read)); }
   @Test void t2033(){ c2(lent, mut, imm, of(imm,read)); }
   @Test void t2034(){ c2(mut, mut, imm, of(imm,read)); }
-  @Test void t2035(){ c2(iso, mut, imm, of(imm,read)); }
+  @Test void t2035(){ c2(iso, mut, imm, of()); }
   @Test void t2036(){ c2(mdf, mut, imm, of(/*not well formed lambda*/)); }
   @Test void t2037(){ c2(recMdf, mut, imm, of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
@@ -663,7 +638,7 @@ public class TestCaptureRules {
   @Test void t2064(){ c2(mut, recMdf, imm, of(/*impossible*/)); }
   @Test void t2065(){ c2(iso, recMdf, imm, of(/*impossible*/)); }
   @Test void t2066(){ c2(mdf, recMdf, imm, of(/*not well formed lambda*/)); }
-  @Test void t2067(){ c2(recMdf, recMdf, imm, of(imm,read)); }
+  @Test void t2067(){ c2(recMdf, recMdf, imm, of()); }
 
   //                     lambda, captured, method, ...capturedAs
   @Test void t2181(){ c2(imm, imm, read, of(imm,read,mdf)); }
@@ -694,7 +669,7 @@ public class TestCaptureRules {
   @Test void t2122(){ c2(read, mut, read, of(read)); }
   @Test void t2123(){ c2(lent, mut, read, of(read)); }
   @Test void t2124(){ c2(mut, mut, read, of(read)); }
-  @Test void t2125(){ c2(iso, mut, read, of(read)); }
+  @Test void t2125(){ c2(iso, mut, read, of()); }
   @Test void t2126(){ c2(mdf, mut, read, of(/*not well formed lambda*/)); }
   @Test void t2127(){ c2(recMdf, mut, read, of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
@@ -720,7 +695,7 @@ public class TestCaptureRules {
   @Test void t2154(){ c2(mut, recMdf, read, of(/*impossible*/)); }
   @Test void t2155(){ c2(iso, recMdf, read, of(/*impossible*/)); }
   @Test void t2156(){ c2(mdf, recMdf, read, of(/*not well formed lambda*/)); }
-  @Test void t2157(){ c2(recMdf, recMdf, read, of(read)); }
+  @Test void t2157(){ c2(recMdf, recMdf, read, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2161(){ c2(imm, imm, read, of(read,imm,mdf)); }
   @Test void t2162(){ c2(read, imm, read, of(read,imm,mdf)); }
@@ -759,7 +734,7 @@ public class TestCaptureRules {
   @Test void t2232(){ c2(read, mut, lent, of(/*impossible*/)); }
   @Test void t2233(){ c2(lent, mut, lent, of(read,lent)); }
   @Test void t2234(){ c2(mut, mut, lent, of(read,lent)); }
-  @Test void t2235(){ c2(iso, mut, lent, of(read,lent)); }
+  @Test void t2235(){ c2(iso, mut, lent, of()); }
   @Test void t2236(){ c2(mdf, mut, lent, of(/*not well formed lambda*/)); }
   @Test void t2237(){ c2(recMdf, mut, lent, of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
@@ -785,7 +760,7 @@ public class TestCaptureRules {
   @Test void t2264(){ c2(mut, recMdf, lent, of(/*impossible*/)); }
   @Test void t2265(){ c2(iso, recMdf, lent, of(/*impossible*/)); }
   @Test void t2266(){ c2(mdf, recMdf, lent, of(/*not well formed lambda*/)); }
-  @Test void t2267(){ c2(recMdf, recMdf, lent, of(read)); }
+  @Test void t2267(){ c2(recMdf, recMdf, lent, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2271(){ c2(imm, imm, lent, of(/*impossible*/)); }
   @Test void t2272(){ c2(read, imm, lent, of(/*impossible*/)); }
@@ -824,9 +799,9 @@ public class TestCaptureRules {
   @Test void t2332(){ c2(read, mut, mut, of(/*impossible*/)); }
   @Test void t2333(){ c2(lent, mut, mut, of(read,lent)); }
   @Test void t2334(){ c2(mut, mut, mut, of(read,lent,mut,mdf)); }
-  @Test void t2335(){ c2(iso, mut, mut, of(read,lent,mut,mdf)); }
+  @Test void t2335(){ c2(iso, mut, mut, of()); }
   @Test void t2336(){ c2(mdf, mut, mut, of(/*not well formed lambda*/)); }
-  @Test void t2337(){ c2(recMdf, mut, mut, of(/*impossible*/)); }
+  @Test void t2337(){ c2(recMdf, mut, mut, of(mut, lent, read, mdf)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2341(){ c2(imm, iso, mut, of(/*impossible*/)); }
   @Test void t2342(){ c2(read, iso, mut, of(/*impossible*/)); }
@@ -850,7 +825,7 @@ public class TestCaptureRules {
   @Test void t2364(){ c2(mut, recMdf, mut, of(/*impossible*/)); }
   @Test void t2365(){ c2(iso, recMdf, mut, of(/*impossible*/)); }
   @Test void t2366(){ c2(mdf, recMdf, mut, of(/*not well formed lambda*/)); }
-  @Test void t2367(){ c2(recMdf, recMdf, mut, of(read)); }
+  @Test void t2367(){ c2(recMdf, recMdf, mut, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2371(){ c2(imm, imm, mut, of(/*impossible*/)); }
   @Test void t2372(){ c2(read, imm, mut, of(/*impossible*/)); }
@@ -863,7 +838,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t2401(){ c2(imm, imm, iso, of(/*impossible*/)); }
   @Test void t2402(){ c2(read, imm, iso, of(/*impossible*/)); }
-  @Test void t2403(){ c2(lent, imm, iso, of(imm,read,mdf)); }
+  @Test void t2403(){ c2(lent, imm, iso, of(/*impossible*/)); }
   @Test void t2404(){ c2(mut, imm, iso, of(imm,read,mdf)); }
   @Test void t2405(){ c2(iso, imm, iso, of(imm,read,mdf)); }
   @Test void t2406(){ c2(mdf, imm, iso, of(/*not well formed lambda*/)); }
@@ -871,7 +846,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t2411(){ c2(imm, read, iso, of(/*impossible*/)); }
   @Test void t2412(){ c2(read, read, iso, of(/*impossible*/)); }
-  @Test void t2413(){ c2(lent, read, iso, of(read,mdf)); }
+  @Test void t2413(){ c2(lent, read, iso, of(/*impossible*/)); }
   @Test void t2414(){ c2(mut, read, iso, of(/*impossible*/)); }//NOT NoMutHyg
   @Test void t2415(){ c2(iso, read, iso, of(/*impossible*/)); }
   @Test void t2416(){ c2(mdf, read, iso, of(/*not well formed lambda*/)); }
@@ -879,7 +854,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t2421(){ c2(imm, lent, iso, of(/*impossible*/)); }
   @Test void t2422(){ c2(read, lent, iso, of(/*impossible*/)); }
-  @Test void t2423(){ c2(lent, lent, iso, of(read,lent,mdf)); }
+  @Test void t2423(){ c2(lent, lent, iso, of(/*impossible*/)); }
   @Test void t2424(){ c2(mut, lent, iso, of(/*impossible*/)); }//NOT NoMutHyg
   @Test void t2425(){ c2(iso, lent, iso, of(/*impossible*/)); }
   @Test void t2426(){ c2(mdf, lent, iso, of(/*not well formed lambda*/)); }
@@ -887,11 +862,11 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t2431(){ c2(imm, mut, iso, of(/*impossible*/)); }
   @Test void t2432(){ c2(read, mut, iso, of(/*impossible*/)); }
-  @Test void t2433(){ c2(lent, mut, iso, of(read,lent,mut,mdf)); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
+  @Test void t2433(){ c2(lent, mut, iso, of(/*impossible*/)); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
   @Test void t2434(){ c2(mut, mut, iso, of(read,lent,mut,mdf)); }
-  @Test void t2435(){ c2(iso, mut, iso, of(read,lent,mut,mdf)); }
+  @Test void t2435(){ c2(iso, mut, iso, of()); }
   @Test void t2436(){ c2(mdf, mut, iso, of(/*not well formed lambda*/)); }
-  @Test void t2437(){ c2(recMdf, mut, iso, of(/*impossible*/)); }
+  @Test void t2437(){ c2(recMdf, mut, iso, of(mut, lent, read, mdf)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2441(){ c2(imm, iso, iso, of(/*impossible*/)); }
   @Test void t2442(){ c2(read, iso, iso, of(/*impossible*/)); }
@@ -911,15 +886,15 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ...capturedAs
   @Test void t2461(){ c2(imm, recMdf, iso, of(/*impossible*/)); }
   @Test void t2462(){ c2(read, recMdf, iso, of(/*impossible*/)); }
-  @Test void t2463(){ c2(lent, recMdf, iso, of(read)); }
+  @Test void t2463(){ c2(lent, recMdf, iso, of()); }
   @Test void t2464(){ c2(mut, recMdf, iso, of(/*impossible*/)); }
   @Test void t2465(){ c2(iso, recMdf, iso, of(/*impossible*/)); }
   @Test void t2466(){ c2(mdf, recMdf, iso, of(/*not well formed lambda*/)); }
-  @Test void t2467(){ c2(recMdf, recMdf, iso, of(read)); }
+  @Test void t2467(){ c2(recMdf, recMdf, iso, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2471(){ c2(imm, imm, iso, of(/*impossible*/)); }
   @Test void t2472(){ c2(read, imm, iso, of(/*impossible*/)); }
-  @Test void t2473(){ c2(lent, imm, iso, of(read,imm,mdf)); }
+  @Test void t2473(){ c2(lent, imm, iso, of()); }
   @Test void t2474(){ c2(mut, imm, iso, of(read,imm,mdf)); }
   @Test void t2475(){ c2(iso, imm, iso, of(read,imm,mdf)); }
   @Test void t2476(){ c2(mdf, imm, iso, of(/*not well formed lambda*/)); }
@@ -1008,18 +983,18 @@ public class TestCaptureRules {
   @Test void t2617(){ c2(recMdf, read, recMdf, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2621(){ c2(imm, lent, recMdf, of()); }
-  @Test void t2622(){ c2(read, lent, recMdf, of(read)); }
-  @Test void t2623(){ c2(lent, lent, recMdf, of(read)); }
+  @Test void t2622(){ c2(read, lent, recMdf, of(recMdf, read)); } // captures as recMdf, read through subtyping
+  @Test void t2623(){ c2(lent, lent, recMdf, of(recMdf, read)); } // captures as recMdf, read through subtyping
   @Test void t2624(){ c2(mut, lent, recMdf, of()); }
   @Test void t2625(){ c2(iso, lent, recMdf, of()); }
   @Test void t2626(){ c2(mdf, lent, recMdf, of()); }
   @Test void t2627(){ c2(recMdf, lent, recMdf, of()); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2631(){ c2(imm, mut, recMdf, of()); }
-  @Test void t2632(){ c2(read, mut, recMdf, of(read)); }
-  @Test void t2633(){ c2(lent, mut, recMdf, of(read)); }
-  @Test void t2634(){ c2(mut, mut, recMdf, of(read)); }
-  @Test void t2635(){ c2(iso, mut, recMdf, of(read)); }
+  @Test void t2632(){ c2(read, mut, recMdf, of(read, recMdf)); }
+  @Test void t2633(){ c2(lent, mut, recMdf, of(read, recMdf)); }
+  @Test void t2634(){ c2(mut, mut, recMdf, of(read, recMdf)); }
+  @Test void t2635(){ c2(iso, mut, recMdf, of()); }
   @Test void t2636(){ c2(mdf, mut, recMdf, of()); }
   @Test void t2637(){ c2(recMdf, mut, recMdf, of()); }
   //                     lambda, captured, method, ...capturedAs
@@ -1092,7 +1067,7 @@ public class TestCaptureRules {
   @Test void t3034(){ c3(mut, mut, imm, readAll,immAll,mdfImm); }
   //two rules: imm,imm implies read,imm
   //           imm,imm on imm methods should imply imm,mut using adapt
-  @Test void t3035(){ c3(iso, mut, imm, readAll,immAll,mdfImm); }
+  @Test void t3035(){ c3(iso, mut, imm, of()); }
   @Test void t3036(){ c3(mdf, mut, imm, of()); }
   @Test void t3037(){ c3(recMdf,mut,   imm,  of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
@@ -1104,13 +1079,13 @@ public class TestCaptureRules {
   @Test void t3046(){ c3(mdf, iso, imm, of()); }
   @Test void t3047(){ c3(recMdf,iso,   imm,   readAll,immAll,mdfImm); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
-  @Test void t3051(){ c3(imm, mdf, imm, readAll,immAll,mdfImm); }
+  @Test void t3051(){ c3(imm, mdf, imm, of()); }
   @Test void t3052(){ c3(read, mdf, imm, readAll,immAll,mdfImm); }
   @Test void t3053(){ c3(lent, mdf, imm, readAll,immAll,mdfImm); }
   @Test void t3054(){ c3(mut, mdf, imm, of()); }
   @Test void t3055(){ c3(iso, mdf, imm, of()); }
   @Test void t3056(){ c3(mdf, mdf, imm, of()); }
-  @Test void t3057(){ c3(recMdf,mdf,   imm, readAll,immAll,mdfImm); }
+  @Test void t3057(){ c3(recMdf,mdf,   imm, of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3061(){ c3(imm, recMdf, imm, of()); }
   @Test void t3062(){ c3(read, recMdf, imm, readAll,immAll,mdfImm); }
@@ -1118,7 +1093,7 @@ public class TestCaptureRules {
   @Test void t3064(){ c3(mut, recMdf, imm, of()); }
   @Test void t3065(){ c3(iso, recMdf, imm, of()); }
   @Test void t3066(){ c3(mdf, recMdf, imm, of()); }
-  @Test void t3067(){ c3(recMdf,recMdf,   imm,   readAll,immAll,mdfImm); }
+  @Test void t3067(){ c3(recMdf,recMdf,   imm,   of()); }
 
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3181(){ c3(imm,   imm, read, readAll,immAll,mdfImm,of()); }
@@ -1149,7 +1124,7 @@ public class TestCaptureRules {
   @Test void t3122(){ c3(read,  mut,   read,   readAll,of(mdf,read)); }
   @Test void t3123(){ c3(lent,  mut,   read,   readAll,of(mdf,read)); }
   @Test void t3124(){ c3(mut,   mut,   read,   readAll,of(mdf,read)); }
-  @Test void t3125(){ c3(iso,   mut,   read,   readAll,of(mdf,read)); }
+  @Test void t3125(){ c3(iso,   mut,   read,   of()); }
   @Test void t3126(){ c3(mdf, mut, read, of()); }
   @Test void t3127(){ c3(recMdf,mut,   read,  of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
@@ -1161,13 +1136,13 @@ public class TestCaptureRules {
   @Test void t3136(){ c3(mdf, iso, read, of()); }
   @Test void t3137(){ c3(recMdf,iso, read, readAll,immAll,mdfImm,of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
-  @Test void t3141(){ c3(imm,   mdf, read, readAll,immAll,mdfImm,of()); }
+  @Test void t3141(){ c3(imm,   mdf, read, of()); }
   @Test void t3142(){ c3(read,  mdf,   read, readAll,of(mdf,read)); }
   @Test void t3143(){ c3(lent,  mdf,   read, readAll,of(mdf,read)); }
   @Test void t3144(){ c3(mut, mdf, read, of()); }
   @Test void t3145(){ c3(iso, mdf, read, of()); }
   @Test void t3146(){ c3(mdf, mdf, read, of()); }
-  @Test void t3147(){ c3(recMdf,mdf,   read, readAll,of(mdf,read)); }
+  @Test void t3147(){ c3(recMdf,mdf,   read, of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3151(){ c3(imm, recMdf, read, of()); }
   @Test void t3152(){ c3(read,  recMdf, read, readAll,of(mdf,read)); }
@@ -1175,7 +1150,7 @@ public class TestCaptureRules {
   @Test void t3154(){ c3(mut, recMdf, read, of()); }
   @Test void t3155(){ c3(iso, recMdf, read, of()); }
   @Test void t3156(){ c3(mdf, recMdf, read, of()); }
-  @Test void t3157(){ c3(recMdf,recMdf,   read,   readAll,of(mdf,read)); }
+  @Test void t3157(){ c3(recMdf,recMdf,   read,   of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3161(){ c3(imm,   imm, read, readAll,immAll,mdfImm,of()); }
   @Test void t3162(){ c3(read,  imm, read, readAll,immAll,mdfImm,of()); }
@@ -1214,7 +1189,7 @@ public class TestCaptureRules {
   @Test void t3232(){ c3(read, mut, lent, of()); }
   @Test void t3233(){ c3(lent,  mut,   lent,   readAll,lentAll,of(mdf,read, mdf,lent)); }
   @Test void t3234(){ c3(mut,   mut,   lent,   readAll,lentAll,of(mdf,read, mdf,lent)); }
-  @Test void t3235(){ c3(iso,   mut,   lent,   readAll,lentAll,of(mdf,read, mdf,lent)); }
+  @Test void t3235(){ c3(iso,   mut,   lent,   of()); }
   @Test void t3236(){ c3(mdf, mut, lent, of()); }
   @Test void t3237(){ c3(recMdf,mut,   lent,  of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
@@ -1228,11 +1203,11 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3251(){ c3(imm, mdf, lent, of()); }
   @Test void t3252(){ c3(read, mdf, lent, of()); }
-  @Test void t3253(){ c3(lent,  mdf,   lent, readAll,of(mdf,read, mdf,mdf)); }
+  @Test void t3253(){ c3(lent,  mdf,   lent, of()); }
   @Test void t3254(){ c3(mut, mdf, lent, of()); }
   @Test void t3255(){ c3(iso, mdf, lent, of()); }
   @Test void t3256(){ c3(mdf, mdf, lent, of()); }
-  @Test void t3257(){ c3(recMdf,mdf,   lent, readAll,of(mdf,read, mdf,mdf)); }
+  @Test void t3257(){ c3(recMdf,mdf,   lent, of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3261(){ c3(imm, recMdf, lent, of()); }
   @Test void t3262(){ c3(read, recMdf, lent, of()); }
@@ -1240,7 +1215,7 @@ public class TestCaptureRules {
   @Test void t3264(){ c3(mut, recMdf, lent, of()); }
   @Test void t3265(){ c3(iso, recMdf, lent, of()); }
   @Test void t3266(){ c3(mdf, recMdf, lent, of()); }
-  @Test void t3267(){ c3(recMdf,recMdf,   lent,   readAll,of(mdf,read)); }
+  @Test void t3267(){ c3(recMdf,recMdf,   lent,   of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3271(){ c3(imm, imm, lent, of()); }
   @Test void t3272(){ c3(read, imm, lent, of()); }
@@ -1279,9 +1254,9 @@ public class TestCaptureRules {
   @Test void t3332(){ c3(read, mut, mut, of()); }
   @Test void t3333(){ c3(lent,  mut, mut, readAll,lentAll,of(mdf,read, mdf,lent)); }
   @Test void t3334(){ c3(mut,   mut,   mut,   readAll,lentAll,of(mdf,read, mdf,lent, mdf,mut, mut,mut  , mut,lent  , mut,read  , mut,mdf  , mut,imm, mut,recMdf)); }
-  @Test void t3335(){ c3(iso,   mut,   mut,   readAll,lentAll,of(mdf,read, mdf,lent, mdf,mut, mut,mut  , mut,lent  , mut,read  , mut,mdf  , mut,imm, mut,recMdf)); }
+  @Test void t3335(){ c3(iso,   mut,   mut,   of()); }
   @Test void t3336(){ c3(mdf, mut, mut, of()); }
-  @Test void t3337(){ c3(recMdf,mut,   mut,  of()); }
+  @Test void t3337(){ c3(recMdf,mut,   mut,  readAll,lentAll,mutAll,of(mdf,lent, mdf,read, mdf,mut)); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3341(){ c3(imm, iso, mut, of()); }
   @Test void t3342(){ c3(read, iso, mut, of()); }
@@ -1293,11 +1268,11 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3351(){ c3(imm, mdf, mut, of()); }
   @Test void t3352(){ c3(read, mdf, mut, of()); }
-  @Test void t3353(){ c3(lent,  mdf, mut, readAll,of(mdf,read, mdf,mdf)); }
+  @Test void t3353(){ c3(lent,  mdf, mut, readAll,of(mdf,read)); }
   @Test void t3354(){ c3(mut, mdf, mut, of()); }
   @Test void t3355(){ c3(iso, mdf, mut, of()); }
   @Test void t3356(){ c3(mdf, mdf, mut, of()); }
-  @Test void t3357(){ c3(recMdf,mdf, mut, readAll,of(mdf,read)); }
+  @Test void t3357(){ c3(recMdf,mdf, mut, of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3361(){ c3(imm, recMdf, mut, of()); }
   @Test void t3362(){ c3(read, recMdf, mut, of()); }
@@ -1305,7 +1280,7 @@ public class TestCaptureRules {
   @Test void t3364(){ c3(mut, recMdf, mut, of()); }
   @Test void t3365(){ c3(iso, recMdf, mut, of()); }
   @Test void t3366(){ c3(mdf, recMdf, mut, of()); }
-  @Test void t3367(){ c3(recMdf,recMdf,   mut,   readAll,of(mdf,read)); }
+  @Test void t3367(){ c3(recMdf,recMdf,   mut,   of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3371(){ c3(imm, imm, mut, of()); }
   @Test void t3372(){ c3(read, imm, mut, of()); }
@@ -1318,7 +1293,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3401(){ c3(imm, imm, iso, of()); }
   @Test void t3402(){ c3(read, imm, iso, of()); }
-  @Test void t3403(){ c3(lent, imm, iso, readAll,immAll,mdfImm,of()); }
+  @Test void t3403(){ c3(lent, imm, iso, of()); }
   @Test void t3404(){ c3(mut, imm, iso, readAll,immAll,mdfImm,of()); }
   @Test void t3405(){ c3(iso, imm, iso, readAll,immAll,mdfImm,of()); }
   @Test void t3406(){ c3(mdf, imm, iso, of()); }
@@ -1326,7 +1301,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3411(){ c3(imm, read, iso, of()); }
   @Test void t3412(){ c3(read, read, iso, of()); }
-  @Test void t3413(){ c3(lent, read, iso, readAll,of(mdf,read)); }
+  @Test void t3413(){ c3(lent, read, iso, of()); }
   @Test void t3414(){ c3(mut, read, iso, of()); }//NOT NoMutHyg
   @Test void t3415(){ c3(iso, read, iso, of()); }
   @Test void t3416(){ c3(mdf, read, iso, of()); }
@@ -1334,7 +1309,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3421(){ c3(imm, lent, iso, of()); }
   @Test void t3422(){ c3(read, lent, iso, of()); }
-  @Test void t3423(){ c3(lent,  lent, iso, readAll,lentAll,of(mdf,read, mdf,lent)); }
+  @Test void t3423(){ c3(lent,  lent, iso, of()); }
   @Test void t3424(){ c3(mut, lent, iso, of()); }//NOT NoMutHyg
   @Test void t3425(){ c3(iso, lent, iso, of()); }
   @Test void t3426(){ c3(mdf, lent, iso, of()); }
@@ -1342,15 +1317,15 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3431(){ c3(imm, mut, iso, of()); }
   @Test void t3432(){ c3(read, mut, iso, of()); }
-  @Test void t3433(){ c3(lent,  mut,   iso, readAll,mutAll,lentAll,of(mdf,read, mdf,lent, mdf,mut)); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
+  @Test void t3433(){ c3(lent,  mut,   iso, of()); }
   @Test void t3434(){ c3(mut,   mut,   iso, readAll,mutAll,lentAll,of(mdf,read, mdf,lent, mdf,mut)); }
-  @Test void t3435(){ c3(iso,   mut,   iso, readAll,mutAll,lentAll,of(mdf,read, mdf,lent, mdf,mut)); }
+  @Test void t3435(){ c3(iso,   mut,   iso, of()); }
   @Test void t3436(){ c3(mdf, mut, iso, of()); }
-  @Test void t3437(){ c3(recMdf,mut,   iso,  of()); }
+  @Test void t3437(){ c3(recMdf,mut,   iso,  of(mdf,mut  , lent,recMdf  , lent,mut  , read,lent  , mut,imm  , read,mdf  , mdf,read  , mut,mdf  , lent,imm  , read,imm  , lent,lent  , read,read  , read,mut  , mdf,lent  , read,recMdf  , lent,mdf  , mut,lent  , lent,read  , mut,mut  , mut,read  , mut,recMdf)); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3441(){ c3(imm, iso, iso, of()); }
   @Test void t3442(){ c3(read, iso, iso, of()); }
-  @Test void t3443(){ c3(lent,  iso, iso, readAll,immAll,of(mdf,read, mdf,imm)); }
+  @Test void t3443(){ c3(lent,  iso, iso, of()); }
   @Test void t3444(){ c3(mut,   iso, iso, readAll,immAll,of(mdf,read, mdf,imm)); }
   @Test void t3445(){ c3(iso,   iso, iso, readAll,immAll,of(mdf,read, mdf,imm)); } // all iso is captured as imm
   @Test void t3446(){ c3(mdf, iso, iso, of()); }
@@ -1358,23 +1333,23 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3451(){ c3(imm, mdf, iso, of()); }
   @Test void t3452(){ c3(read, mdf, iso, of()); }
-  @Test void t3453(){ c3(lent,  mdf, iso, readAll,of(mdf,read, mdf,mdf)); }
+  @Test void t3453(){ c3(lent,  mdf, iso, of()); }
   @Test void t3454(){ c3(mut, mdf, iso, of()); }
   @Test void t3455(){ c3(iso, mdf, iso, of()); }
   @Test void t3456(){ c3(mdf, mdf, iso, of()); }
-  @Test void t3457(){ c3(recMdf,mdf,   iso, readAll,immAll,of(mdf,read, mdf,imm, mdf,read)); }
+  @Test void t3457(){ c3(recMdf, mdf, iso, of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3461(){ c3(imm, recMdf, iso, of()); }
   @Test void t3462(){ c3(read, recMdf, iso, of()); }
-  @Test void t3463(){ c3(lent, recMdf, iso, readAll,of(mdf,read)); }
+  @Test void t3463(){ c3(lent, recMdf, iso, of()); }
   @Test void t3464(){ c3(mut, recMdf, iso, of()); }
   @Test void t3465(){ c3(iso, recMdf, iso, of()); }
   @Test void t3466(){ c3(mdf, recMdf, iso, of()); }
-  @Test void t3467(){ c3(recMdf,recMdf,   iso,   readAll,of(mdf,read)); }
+  @Test void t3467(){ c3(recMdf,recMdf,   iso,   of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3471(){ c3(imm, imm, iso, of()); }
   @Test void t3472(){ c3(read, imm, iso, of()); }
-  @Test void t3473(){ c3(lent, imm, iso, readAll,immAll,mdfImm); }
+  @Test void t3473(){ c3(lent, imm, iso, of()); }
   @Test void t3474(){ c3(mut, imm, iso, readAll,immAll,mdfImm); }
   @Test void t3475(){ c3(iso, imm, iso, readAll,immAll,mdfImm); }
   @Test void t3476(){ c3(mdf, imm, iso, of()); }
@@ -1455,7 +1430,7 @@ public class TestCaptureRules {
   @Test void t3607(){ c3(recMdf,imm,   recMdf, of(imm,lent  , read,mut  , read,lent  , read,imm  , imm,read  , recMdf,imm  , imm,mdf  , mdf,imm  , recMdf,read  , imm,mut  , imm,recMdf  , imm,imm  , read,read  , read,recMdf  , read,mdf  , mdf,read)); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3611(){ c3(imm, read, recMdf, of()); }
-  @Test void t3612(){ c3(read, read, recMdf, readAll,of(recMdf,read, mdf,read)); }
+  @Test void t3612(){ c3(read, read, recMdf, of(read,mdf  , recMdf,recMdf  , read,recMdf  , read,read  , read,mut  , mdf,recMdf  , mdf,read  , recMdf,lent  , read,imm  , recMdf,mdf  , recMdf,mut  , read,lent  , recMdf,read)); }
   @Test void t3613(){ c3(lent, read, recMdf, readAll,of(recMdf,read, mdf,read)); }
   @Test void t3614(){ c3(mut, read, recMdf, of()); }
   @Test void t3615(){ c3(iso, read, recMdf, of()); }
@@ -1463,18 +1438,18 @@ public class TestCaptureRules {
   @Test void t3617(){ c3(recMdf,read,  recMdf, of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3621(){ c3(imm, lent, recMdf, of()); }
-  @Test void t3622(){ c3(read, lent, recMdf, of(mdf,recMdf  , recMdf,recMdf  , read,lent  , mdf,read  , read,read  , recMdf,read  , read,mut  , recMdf,mdf  , read,mdf  , read,recMdf  , read,imm)); }
-  @Test void t3623(){ c3(lent, lent, recMdf, of(mdf,recMdf  , recMdf,recMdf  , read,lent  , mdf,read  , read,read  , recMdf,read  , read,mut  , recMdf,mdf  , read,mdf  , read,recMdf  , read,imm)); }
+  @Test void t3622(){ c3(read, lent, recMdf, of(recMdf,recMdf  , read,lent  , recMdf,read  , recMdf,mdf  , read,read  , recMdf,lent  , recMdf,mut  , mdf,recMdf  , mdf,read  , read,mdf  , read,recMdf  , read,mut  , read,imm)); }
+  @Test void t3623(){ c3(lent, lent, recMdf, of(mdf,recMdf  , recMdf,recMdf  , read,lent  , mdf,read  , read,read  , recMdf,lent  , recMdf,read  , recMdf,mut  , read,mdf  , read,recMdf  , recMdf,mdf  , read,mut  , read,imm)); }
   @Test void t3624(){ c3(mut, lent, recMdf, of()); }
   @Test void t3625(){ c3(iso, lent, recMdf, of()); }
   @Test void t3626(){ c3(mdf, lent, recMdf, of()); }
   @Test void t3627(){ c3(recMdf,lent,  recMdf, of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3631(){ c3(imm, mut, recMdf, of()); }
-  @Test void t3632(){ c3(read, mut, recMdf, of(mdf,recMdf  , read,lent  , recMdf,recMdf  , read,mdf  , recMdf,read  , read,mut  , read,imm  , read,read  , recMdf,mdf  , read,recMdf  , mdf,read)); }
-  @Test void t3633(){ c3(lent, mut, recMdf, of(mdf,recMdf  , read,lent  , recMdf,recMdf  , read,mdf  , recMdf,read  , read,mut  , read,imm  , read,read  , recMdf,mdf  , read,recMdf  , mdf,read)); }
-  @Test void t3634(){ c3(mut, mut, recMdf, of(mdf,recMdf  , read,lent  , recMdf,recMdf  , read,mdf  , recMdf,read  , read,mut  , read,imm  , read,read  , recMdf,mdf  , read,recMdf  , mdf,read)); }
-  @Test void t3635(){ c3(iso, mut, recMdf, of(mdf,recMdf  , read,lent  , recMdf,recMdf  , read,mdf  , recMdf,read  , read,mut  , read,imm  , read,read  , recMdf,mdf  , read,recMdf  , mdf,read)); }
+  @Test void t3632(){ c3(read, mut, recMdf, of(read,lent  , recMdf,recMdf  , recMdf,read  , read,mdf  , read,read  , mdf,recMdf  , read,recMdf  , read,mut  , mdf,read  , recMdf,mdf  , recMdf,lent  , read,imm  , recMdf,mut)); }
+  @Test void t3633(){ c3(lent, mut, recMdf, of(read,lent  , recMdf,recMdf  , recMdf,read  , read,mdf  , read,read  , mdf,recMdf  , read,recMdf  , read,mut  , mdf,read  , recMdf,mdf  , recMdf,lent  , read,imm  , recMdf,mut)); }
+  @Test void t3634(){ c3(mut, mut, recMdf, of(read,lent  , recMdf,recMdf  , recMdf,read  , read,mdf  , read,read  , mdf,recMdf  , read,recMdf  , read,mut  , mdf,read  , recMdf,mdf  , recMdf,lent  , read,imm  , recMdf,mut)); }
+  @Test void t3635(){ c3(iso, mut, recMdf, of()); }
   @Test void t3636(){ c3(mdf, mut, recMdf, of()); }
   @Test void t3637(){ c3(recMdf,mut,   recMdf, of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
@@ -1486,13 +1461,13 @@ public class TestCaptureRules {
   @Test void t3646(){ c3(mdf, iso, recMdf, of()); }
   @Test void t3647(){ c3(recMdf,iso,   recMdf, of(imm,mdf  , imm,lent  , imm,imm  , imm,read  , imm,recMdf  , read,mdf  , read,lent  , imm,mut  , recMdf,imm  , read,read  , recMdf,read  , mdf,imm  , read,imm  , read,recMdf  , mdf,read  , read,mut)); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
-  @Test void t3651(){ c3(imm, mdf, recMdf, of(mdf,imm  , read,mdf  , imm,lent  , imm,recMdf  , read,imm  , read,mut  , imm,read  , mdf,read  , imm,imm  , read,read  , imm,mut  , read,recMdf  , recMdf,imm  , read,lent  , imm,mdf  , recMdf,read)); }
-  @Test void t3652(){ c3(read, mdf, recMdf, of(mdf,recMdf  , read,mdf  , read,lent  , recMdf,recMdf  , read,mut  , read,imm  , read,read  , recMdf,read  , read,recMdf  , recMdf,mdf  , mdf,read)); }
-  @Test void t3653(){ c3(lent, mdf, recMdf, of(read,mdf  , read,imm  , recMdf,recMdf  , read,mut  , read,recMdf  , read,read  , mdf,recMdf  , recMdf,read  , recMdf,mdf  , mdf,read  , read,lent)); }
+  @Test void t3651(){ c3(imm, mdf, recMdf, of()); }
+  @Test void t3652(){ c3(read, mdf, recMdf, readAll,of(recMdf,recMdf, recMdf,mdf, recMdf,read, mdf,recMdf, mdf,read, recMdf,lent, recMdf,mut)); }
+  @Test void t3653(){ c3(lent, mdf, recMdf, of(read,lent  , read,recMdf  , mdf,recMdf  , recMdf,recMdf  , read,mdf  , read,imm  , read,read  , read,mut  , recMdf,read  , recMdf,lent  , mdf,read  , recMdf,mdf  , recMdf,mut)); }
   @Test void t3654(){ c3(mut, mdf, recMdf, of()); }
   @Test void t3655(){ c3(iso, mdf, recMdf, of()); }
   @Test void t3656(){ c3(mdf, mdf, recMdf, of()); }
-  @Test void t3657(){ c3(recMdf,mdf,   recMdf, of(read,lent  , recMdf,read  , mdf,recMdf  , read,recMdf  , read,read  , recMdf,mdf  , recMdf,recMdf  , read,mdf  , mdf,read  , read,mut  , read,imm)); }
+  @Test void t3657(){ c3(recMdf,mdf,   recMdf, of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3661(){ c3(imm, recMdf, recMdf, of()); }
   @Test void t3662(){ c3(read, recMdf, recMdf, of(read,lent  , read,mdf  , read,mut  , read,imm  , read,read  , recMdf,read  , read,recMdf  , mdf,read)); }
@@ -1500,7 +1475,7 @@ public class TestCaptureRules {
   @Test void t3664(){ c3(mut, recMdf, recMdf, of()); }
   @Test void t3665(){ c3(iso, recMdf, recMdf, of()); }
   @Test void t3666(){ c3(mdf, recMdf, recMdf, of()); }
-  @Test void t3667(){ c3(recMdf,recMdf,   recMdf, of(read,lent  , recMdf,recMdf  , recMdf,read  , read,read  , mdf,recMdf  , read,mdf  , recMdf,mdf  , read,imm  , mdf,read  , read,recMdf  , read,mut)); }
+  @Test void t3667(){ c3(recMdf,recMdf,   recMdf, of(read,mdf  , read,read  , recMdf,recMdf  , read,lent  , read,imm  , read,mut  , recMdf,lent  , recMdf,read  , read,recMdf  , recMdf,mdf  , recMdf,mut  , mdf,recMdf  , mdf,read)); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3671(){ c3(imm, imm, recMdf, of(read,lent  , imm,lent  , read,mdf  , read,recMdf  , read,read  , imm,read  , read,imm  , imm,mut  , mdf,imm  , imm,mdf  , recMdf,imm  , imm,recMdf  , imm,imm  , mdf,read  , read,mut  , recMdf,read)); }
   @Test void t3672(){ c3(read, imm, recMdf, of(read,lent  , imm,lent  , read,mdf  , read,recMdf  , read,read  , imm,read  , read,imm  , imm,mut  , mdf,imm  , imm,mdf  , recMdf,imm  , imm,recMdf  , imm,imm  , mdf,read  , read,mut  , recMdf,read)); }
@@ -1509,462 +1484,6 @@ public class TestCaptureRules {
   @Test void t3675(){ c3(iso, imm, recMdf, of(read,lent  , imm,lent  , read,mdf  , read,recMdf  , read,read  , imm,read  , read,imm  , imm,mut  , mdf,imm  , imm,mdf  , recMdf,imm  , imm,recMdf  , imm,imm  , mdf,read  , read,mut  , recMdf,read)); }
   @Test void t3676(){ c3(mdf, imm, recMdf, of()); }
   @Test void t3677(){ c3(recMdf,imm,   recMdf, of(read,lent  , imm,lent  , read,mdf  , read,recMdf  , read,read  , imm,read  , read,imm  , imm,mut  , mdf,imm  , imm,mdf  , recMdf,imm  , imm,recMdf  , imm,imm  , mdf,read  , read,mut  , recMdf,read)); }
-
-  //-------------------c4------------------
-  @Disabled @Test void t4001(){ c4(imm, imm, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4002(){ c4(read, imm, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4003(){ c4(lent, imm, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4004(){ c4(mut, imm, imm, of(read,mdf  , mdf,imm  , read,recMdf  , read,imm  , imm,mut  , read,mut  , imm,mdf  , imm,recMdf  , imm,imm)); }
-  @Disabled @Test void t4005(){ c4(iso, imm, imm, mdfImm,immAll,readAll); }
-  @Disabled @Test void t4006(){ c4(mdf, imm, imm, of()); }
-  @Disabled @Test void t4007(){ c4(recMdf,imm,   imm,   readAll,immAll,mdfImm); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4011(){ c4(imm, read, imm, of()); }
-  @Disabled @Test void t4012(){ c4(read, read, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4013(){ c4(lent, read, imm, readAll,immAll,mdfImm); }
-  // [read,lent  , read,read  , mdf,read  , imm,lent  , imm,read  ]
-  /*
-B:{}
-L[X]:NoMutHyg[mdf X]{ imm .absMeth: read X }
-L:L[lent B]
-A:{ read .m(par: read B) : mut L[lent B] -> mut L{.absMeth->par} }
-   */
-  @Disabled @Test void t4014(){ c4(mut,   read,  imm,   of()); }
-  @Disabled @Test void t4015(){ c4(iso, read, imm, of()); }
-  @Disabled @Test void t4016(){ c4(mdf, read, imm, of()); }
-  @Disabled @Test void t4017(){ c4(recMdf,read,  imm,   of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4021(){ c4(imm, lent, imm, of()); }
-  @Disabled @Test void t4022(){ c4(read, lent, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4023(){ c4(lent, lent, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4024(){ c4(mut,   lent,  imm,   of()); }
-  @Disabled @Test void t4025(){ c4(iso, lent, imm, of()); }
-  @Disabled @Test void t4026(){ c4(mdf, lent, imm, of()); }
-  @Disabled @Test void t4027(){ c4(recMdf,lent,  imm,   of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4031(){ c4(imm, mut, imm, of()); }
-  @Disabled @Test void t4032(){ c4(read, mut, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4033(){ c4(lent, mut, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4034(){ c4(mut, mut, imm, of(mdf,imm  , imm,mut  , imm,mdf  , read,mdf  , read,recMdf  , imm,recMdf  , read,imm  , imm,imm  , read,mut)); }
-  //two rules: imm,imm implies read,imm
-  //           imm,imm on imm methods should imply imm,mut using adapt
-  @Disabled @Test void t4035(){ c4(iso, mut, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4036(){ c4(mdf, mut, imm, of()); }
-  @Disabled @Test void t4037(){ c4(recMdf,mut,   imm,  of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4041(){ c4(imm, iso, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4042(){ c4(read, iso, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4043(){ c4(lent, iso, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4044(){ c4(mut, iso, imm, of(mdf,imm  , imm,mdf  , imm,recMdf  , read,mdf  , imm,imm  , read,recMdf  , imm,mut  , read,imm  , read,mut)); }
-  @Disabled @Test void t4045(){ c4(iso, iso, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4046(){ c4(mdf, iso, imm, of()); }
-  @Disabled @Test void t4047(){ c4(recMdf,iso,   imm,   readAll,immAll,mdfImm); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4051(){ c4(imm, mdf, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4052(){ c4(read, mdf, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4053(){ c4(lent, mdf, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4054(){ c4(mut,   mdf,   imm, of(read,mdf, imm,mdf)); }
-  @Disabled @Test void t4055(){ c4(iso,   mdf, imm, of(read,mdf, imm,mdf)); }
-  @Disabled @Test void t4056(){ c4(mdf, mdf, imm, of()); }
-  @Disabled @Test void t4057(){ c4(recMdf,mdf,   imm, readAll,immAll,mdfImm); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4061(){ c4(imm, recMdf, imm, of()); }
-  @Disabled @Test void t4062(){ c4(read, recMdf, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4063(){ c4(lent, recMdf, imm, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4064(){ c4(mut,   recMdf,   imm,  of(read,recMdf  , imm,recMdf)); }
-  @Disabled @Test void t4065(){ c4(iso,   recMdf, imm, of(read,recMdf  , imm,recMdf)); }
-  @Disabled @Test void t4066(){ c4(mdf, recMdf, imm, of()); }
-  @Disabled @Test void t4067(){ c4(recMdf,recMdf,   imm,   readAll,immAll,mdfImm); }
-
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4181(){ c4(imm,   imm, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4182(){ c4(read,  imm, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4183(){ c4(lent,  imm, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4184(){ c4(mut,   imm, read, of(read,mdf  , read,imm  , read,recMdf  , mdf,imm  , imm,mut  , imm,recMdf  , imm,mdf  , read,mut  , imm,imm)); }
-  @Disabled @Test void t4185(){ c4(iso,   imm, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4186(){ c4(mdf, imm, read, of()); }
-  @Disabled @Test void t4187(){ c4(recMdf,imm, read, readAll,immAll,mdfImm,of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4101(){ c4(imm, read, read, of()); }
-  @Disabled @Test void t4102(){ c4(read,  read, read, of(read,mdf  , read,lent  , read,recMdf  , mdf,read  , read,imm  , read,mut  , read,read)); }
-  @Disabled @Test void t4103(){ c4(lent,  read, read, of(read,mdf  , read,lent  , read,imm  , read,read  , read,recMdf  , read,mut  , mdf,read)); }
-  @Disabled @Test void t4104(){ c4(mut,   read,  read,   of()); }
-  @Disabled @Test void t4105(){ c4(iso, read, read, of()); }
-  @Disabled @Test void t4106(){ c4(mdf, read, read, of()); }
-  @Disabled @Test void t4107(){ c4(recMdf,read,  read,   of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4111(){ c4(imm, lent, read, of()); }
-  @Disabled @Test void t4112(){ c4(read,  lent,  read,   readAll,of(mdf,read)); }
-  @Disabled @Test void t4113(){ c4(lent,  lent,  read,   readAll,of(mdf,read)); }
-  @Disabled @Test void t4114(){ c4(mut,   lent,  read,   of()); }
-  @Disabled @Test void t4115(){ c4(iso, lent, read, of()); }
-  @Disabled @Test void t4116(){ c4(mdf, lent, read, of()); }
-  @Disabled @Test void t4117(){ c4(recMdf,lent,  read,   of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4121(){ c4(imm, mut, read, of()); }
-  @Disabled @Test void t4122(){ c4(read,  mut,   read,   of(read,recMdf  , read,mdf  , read,lent  , mdf,read  , read,imm  , read,read  , read,mut)); }
-  @Disabled @Test void t4123(){ c4(lent,  mut,   read,   of(read,recMdf  , read,mdf  , read,lent  , mdf,read  , read,imm  , read,read  , read,mut)); }
-  @Disabled @Test void t4124(){ c4(mut,   mut,   read,   of(read,mdf  , read,mut  , read,imm  , read,recMdf)); }
-  @Disabled @Test void t4125(){ c4(iso,   mut,   read,   of(read,recMdf  , read,mdf  , read,mut  , read,lent  , read,imm  , read,read  , mdf,read)); }
-  @Disabled @Test void t4126(){ c4(mdf, mut, read, of()); }
-  @Disabled @Test void t4127(){ c4(recMdf,mut,   read,  of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4131(){ c4(imm,   iso, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4132(){ c4(read,  iso, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4133(){ c4(lent,  iso, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4134(){ c4(mut,   iso, read, of(read,mdf  , imm,mdf  , mdf,imm  , imm,imm  , read,imm  , imm,mut  , imm,recMdf  , read,mut  , read,recMdf)); }
-  @Disabled @Test void t4135(){ c4(iso,   iso, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4136(){ c4(mdf, iso, read, of()); }
-  @Disabled @Test void t4137(){ c4(recMdf,iso, read, readAll,immAll,mdfImm,of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4141(){ c4(imm,   mdf, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4142(){ c4(read,  mdf,   read, readAll,of(mdf,read)); }
-  @Disabled @Test void t4143(){ c4(lent,  mdf,   read, readAll,of(mdf,read)); }
-  @Disabled @Test void t4144(){ c4(mut,   mdf,   read, of(read,mdf)); }
-  @Disabled @Test void t4145(){ c4(iso,   mdf, read, of(read,mdf  , imm,mdf)); }
-  @Disabled @Test void t4146(){ c4(mdf, mdf, read, of()); }
-  @Disabled @Test void t4147(){ c4(recMdf,mdf,   read, readAll,of(mdf,read)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4151(){ c4(imm, recMdf, read, of()); }
-  @Disabled @Test void t4152(){ c4(read,  recMdf, read, readAll,of(mdf,read)); }
-  @Disabled @Test void t4153(){ c4(lent,  recMdf, read, readAll,of(mdf,read)); }
-  @Disabled @Test void t4154(){ c4(mut,   recMdf,   read,  of(read,recMdf)); }
-  @Disabled @Test void t4155(){ c4(iso, recMdf, read, of(read,recMdf)); }
-  @Disabled @Test void t4156(){ c4(mdf, recMdf, read, of()); }
-  @Disabled @Test void t4157(){ c4(recMdf,recMdf,   read,   readAll,of(mdf,read)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4161(){ c4(imm,   imm, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4162(){ c4(read,  imm, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4163(){ c4(lent,  imm, read, readAll,immAll,mdfImm,of()); } // this is fine because the recMdf is treated as imm
-  @Disabled @Test void t4164(){ c4(mut,   imm, read, of(mdf,imm  , imm,mdf  , imm,imm  , imm,mut  , read,mut  , read,mdf  , read,recMdf  , read,imm  , imm,recMdf)); }
-  @Disabled @Test void t4165(){ c4(iso,   imm, read, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4166(){ c4(mdf, imm, read, of()); }
-  @Disabled @Test void t4167(){ c4(recMdf,imm, read, readAll,immAll,mdfImm,of()); }
-
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4201(){ c4(imm, imm, lent, of()); }
-  @Disabled @Test void t4202(){ c4(read, imm, lent, of()); }
-  @Disabled @Test void t4203(){ c4(lent,  imm, lent, of(read,recMdf  , imm,lent  , read,lent  , read,mut  , read,mdf  , read,read  , mdf,imm  , imm,mdf  , imm,recMdf  , read,imm  , mdf,read  , imm,read  , imm,mut  , imm,imm)); }
-  @Disabled @Test void t4204(){ c4(mut,   imm, lent, of(imm,mdf  , mdf,imm  , imm,recMdf  , imm,imm  , read,recMdf  , read,mdf  , read,mut  , imm,mut  , read,imm)); }
-  @Disabled @Test void t4205(){ c4(iso,   imm, lent, of(read,recMdf  , imm,lent  , read,lent  , read,mut  , read,mdf  , read,read  , mdf,imm  , imm,mdf  , imm,recMdf  , read,imm  , mdf,read  , imm,read  , imm,mut  , imm,imm)); }
-  @Disabled @Test void t4206(){ c4(mdf, imm, lent, of()); }
-  @Disabled @Test void t4207(){ c4(recMdf,imm, lent, of(read,recMdf  , imm,lent  , read,lent  , read,mut  , read,mdf  , read,read  , mdf,imm  , imm,mdf  , imm,recMdf  , read,imm  , mdf,read  , imm,read  , imm,mut  , imm,imm)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4211(){ c4(imm, read, lent, of()); }
-  @Disabled @Test void t4212(){ c4(read, read, lent, of()); }
-  @Disabled @Test void t4213(){ c4(lent,  read, lent, readAll,of(mdf,read)); }
-  @Disabled @Test void t4214(){ c4(mut,   read,  lent,   of()); }
-  @Disabled @Test void t4215(){ c4(iso, read, lent, of()); }
-  @Disabled @Test void t4216(){ c4(mdf, read, lent, of()); }
-  @Disabled @Test void t4217(){ c4(recMdf,read,  lent,   of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4221(){ c4(imm, lent, lent, of()); }
-  @Disabled @Test void t4222(){ c4(read, lent, lent, of()); }
-  @Disabled @Test void t4223(){ c4(lent,  lent,  lent,   readAll,lentAll,of(mdf,lent  , mdf,read)); }
-  @Disabled @Test void t4224(){ c4(mut,   lent,  lent,   of()); }
-  @Disabled @Test void t4225(){ c4(iso, lent, lent, of()); }
-  @Disabled @Test void t4226(){ c4(mdf, lent, lent, of()); }
-  @Disabled @Test void t4227(){ c4(recMdf,lent,  lent,   of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4231(){ c4(imm, mut, lent, of()); }
-  @Disabled @Test void t4232(){ c4(read, mut, lent, of()); }
-  @Disabled @Test void t4233(){ c4(lent,  mut,   lent,   readAll,lentAll,of(mdf,lent  , mdf,read)); }
-  @Disabled @Test void t4234(){ c4(mut,   mut,   lent,   of(read,mdf  , read,recMdf  , lent,recMdf  , lent,mut  , read,imm  , lent,imm  , lent,mdf  , read,mut)); }
-  @Disabled @Test void t4235(){ c4(iso,   mut,   lent,   of(lent,mut  , mdf,read  , lent,recMdf  , mdf,lent  , read,mdf  , lent,lent  , lent,read  , read,recMdf  , read,lent  , read,imm  , lent,mdf  , lent,imm  , read,read  , read,mut)); }
-  @Disabled @Test void t4236(){ c4(mdf, mut, lent, of()); }
-  @Disabled @Test void t4237(){ c4(recMdf,mut,   lent,  of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4241(){ c4(imm, iso, lent, of()); }
-  @Disabled @Test void t4242(){ c4(read, iso, lent, of()); }
-  @Disabled @Test void t4243(){ c4(lent,  iso, lent, readAll,mdfImm,immAll,of()); }
-  @Disabled @Test void t4244(){ c4(mut,   iso, lent, of(mdf,imm  , imm,mdf  , imm,imm  , imm,recMdf  , read,recMdf  , read,mut  , read,mdf  , read,imm  , imm,mut)); }
-  @Disabled @Test void t4245(){ c4(iso,   iso, lent, readAll,mdfImm,immAll,of()); }
-  @Disabled @Test void t4246(){ c4(mdf, iso, lent, of()); }
-  @Disabled @Test void t4247(){ c4(recMdf,iso, lent, readAll,mdfImm,immAll,of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4251(){ c4(imm, mdf, lent, of()); }
-  @Disabled @Test void t4252(){ c4(read, mdf, lent, of()); }
-  @Disabled @Test void t4253(){ c4(lent,  mdf,   lent, readAll,of(mdf,read, mdf,mdf)); }
-  @Disabled @Test void t4254(){ c4(mut,   mdf,   lent, of(mdf,mdf  , read,mdf)); }
-  @Disabled @Test void t4255(){ c4(iso,   mdf, lent, of(read,mdf  , mdf,mdf)); }
-  @Disabled @Test void t4256(){ c4(mdf, mdf, lent, of()); }
-  @Disabled @Test void t4257(){ c4(recMdf,mdf,   lent, readAll,of(mdf,read  , mdf,mdf)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4261(){ c4(imm, recMdf, lent, of()); }
-  @Disabled @Test void t4262(){ c4(read, recMdf, lent, of()); }
-  @Disabled @Test void t4263(){ c4(lent,  recMdf, lent, readAll,of(mdf,read)); }
-  @Disabled @Test void t4264(){ c4(mut,   recMdf,   lent,  of(read,recMdf)); }
-  @Disabled @Test void t4265(){ c4(iso, recMdf, lent, of(read,recMdf)); }
-  @Disabled @Test void t4266(){ c4(mdf, recMdf, lent, of()); }
-  @Disabled @Test void t4267(){ c4(recMdf,recMdf,   lent,   readAll,of(mdf,read)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4271(){ c4(imm, imm, lent, of()); }
-  @Disabled @Test void t4272(){ c4(read, imm, lent, of()); }
-  @Disabled @Test void t4273(){ c4(lent,  imm, lent, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4274(){ c4(mut,   imm, lent, of(mdf,imm  , imm,recMdf  , imm,imm  , read,mdf  , imm,mdf  , read,recMdf  , read,imm  , read,mut  , imm,mut)); }
-  @Disabled @Test void t4275(){ c4(iso,   imm, lent, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4276(){ c4(mdf, imm, lent, of()); }
-  @Disabled @Test void t4277(){ c4(recMdf,imm, lent, readAll,immAll,mdfImm,of()); }
-
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4301(){ c4(imm, imm, mut, of()); }
-  @Disabled @Test void t4302(){ c4(read, imm, mut, of()); }
-  @Disabled @Test void t4303(){ c4(lent, imm, mut, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4304(){ c4(mut, imm, mut, of(mdf,imm  , imm,mdf  , imm,recMdf  , imm,imm  , read,mdf  , imm,mut  , read,recMdf  , read,mut  , read,imm)); }
-  @Disabled @Test void t4305(){ c4(iso, imm, mut, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4306(){ c4(mdf, imm, mut, of()); }
-  @Disabled @Test void t4307(){ c4(recMdf,imm,   mut,   readAll,immAll,mdfImm); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4311(){ c4(imm, read, mut, of()); }
-  @Disabled @Test void t4312(){ c4(read, read, mut, of()); }
-  @Disabled @Test void t4313(){ c4(lent, read, mut, readAll,of(mdf,read)); }
-  @Disabled @Test void t4314(){ c4(mut,   read,  mut, of()); }
-  @Disabled @Test void t4315(){ c4(iso, read, mut, of()); }
-  @Disabled @Test void t4316(){ c4(mdf, read, mut, of()); }
-  @Disabled @Test void t4317(){ c4(recMdf,read,  mut,   of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4321(){ c4(imm, lent, mut, of()); }
-  @Disabled @Test void t4322(){ c4(read, lent, mut, of()); } // this capture is fine because the method cannot ever be called
-  @Disabled @Test void t4323(){ c4(lent,  lent, mut, readAll,lentAll,of(mdf,lent  , mdf,read)); }
-  @Disabled @Test void t4324(){ c4(mut,   lent,  mut,   of()); }
-  @Disabled @Test void t4325(){ c4(iso, lent, mut, of()); }
-  @Disabled @Test void t4326(){ c4(mdf, lent, mut, of()); }
-  @Disabled @Test void t4327(){ c4(recMdf,lent,  mut,   of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4331(){ c4(imm, mut, mut, of()); }
-  @Disabled @Test void t4332(){ c4(read, mut, mut, of()); }
-  @Disabled @Test void t4333(){ c4(lent,  mut, mut, readAll,lentAll,of(mdf,read, mdf,lent)); }
-  @Disabled @Test void t4334(){ c4(mut,   mut,   mut,   of(mut,mdf  , mdf,mut  , lent,mut  , mut,recMdf  , read,mdf  , mut,imm  , mut,mut  , lent,imm  , lent,recMdf  , lent,mdf  , read,imm  , read,recMdf  , read,mut)); }
-  @Disabled @Test void t4335(){ c4(iso,   mut,   mut,   readAll,lentAll,of(mut,mut  , mut,lent  , mut,read  , mut,recMdf  , mut,mdf  , mut,imm , mdf,mut  , mdf,lent  , mdf,read)); }
-  @Disabled @Test void t4336(){ c4(mdf, mut, mut, of()); }
-  @Disabled @Test void t4337(){ c4(recMdf,mut,   mut,  of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4341(){ c4(imm, iso, mut, of()); }
-  @Disabled @Test void t4342(){ c4(read, iso, mut, of()); }
-  @Disabled @Test void t4343(){ c4(lent, iso, mut, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4344(){ c4(mut, iso, mut, of(read,mdf  , mdf,imm  , imm,mdf  , imm,recMdf  , imm,mut  , read,imm  , imm,imm  , read,recMdf  , read,mut)); }
-  @Disabled @Test void t4345(){ c4(iso, iso, mut, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4346(){ c4(mdf, iso, mut, of()); }
-  @Disabled @Test void t4347(){ c4(recMdf,iso,   mut,   readAll,immAll,mdfImm); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4351(){ c4(imm, mdf, mut, of()); }
-  @Disabled @Test void t4352(){ c4(read, mdf, mut, of()); }
-  @Disabled @Test void t4353(){ c4(lent,  mdf, mut, readAll,of(mdf,read, mdf,mdf)); }
-  @Disabled @Test void t4354(){ c4(mut,   mdf,   mut, of(mdf,mdf  , read,mdf)); }
-  @Disabled @Test void t4355(){ c4(iso,   mdf,   mut, of(read,mdf  , mdf,mdf , imm,mdf)); }
-  @Disabled @Test void t4356(){ c4(mdf, mdf, mut, of()); }
-  @Disabled @Test void t4357(){ c4(recMdf,mdf, mut, of(mdf,read  , read,lent  , read,mdf  , read,recMdf  , read,imm  , read,read  , read,mut)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4361(){ c4(imm, recMdf, mut, of()); }
-  @Disabled @Test void t4362(){ c4(read, recMdf, mut, of()); }
-  @Disabled @Test void t4363(){ c4(lent, recMdf, mut, readAll,of(mdf,read)); }
-  @Disabled @Test void t4364(){ c4(mut,   recMdf,   mut,  of(read,lent  , read,read  , read,recMdf  , mdf,read)); } // TODO: Should I be able to use recMdf in the type sig here???
-  @Disabled @Test void t4365(){ c4(iso, recMdf, mut, of(read)); }
-  @Disabled @Test void t4366(){ c4(mdf, recMdf, mut, of()); }
-  @Disabled @Test void t4367(){ c4(recMdf,recMdf,   mut,   readAll,of(mdf,read)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4371(){ c4(imm, imm, mut, of()); }
-  @Disabled @Test void t4372(){ c4(read, imm, mut, of()); }
-  @Disabled @Test void t4373(){ c4(lent, imm, mut, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4374(){ c4(mut, imm, mut, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4375(){ c4(iso, imm, mut, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4376(){ c4(mdf, imm, mut, of()); }
-  @Disabled @Test void t4377(){ c4(recMdf,imm,   mut,   readAll,immAll,mdfImm,of()); }
-
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4401(){ c4(imm, imm, iso, of()); }
-  @Disabled @Test void t4402(){ c4(read, imm, iso, of()); }
-  @Disabled @Test void t4403(){ c4(lent, imm, iso, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4404(){ c4(mut, imm, iso, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4405(){ c4(iso, imm, iso, readAll,immAll,mdfImm,of()); }
-  @Disabled @Test void t4406(){ c4(mdf, imm, iso, of()); }
-  @Disabled @Test void t4407(){ c4(recMdf,imm,   iso,   readAll,immAll,mdfImm,of()); } // yes, recMdf could be iso
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4411(){ c4(imm, read, iso, of()); }
-  @Disabled @Test void t4412(){ c4(read, read, iso, of()); }
-  @Disabled @Test void t4413(){ c4(lent, read, iso, readAll,of(mdf,read)); }
-  @Disabled @Test void t4414(){ c4(mut,   read,  iso, of(read,lent  , read,read  , mdf,read)); }
-  @Disabled @Test void t4415(){ c4(iso, read, iso, of()); }
-  @Disabled @Test void t4416(){ c4(mdf, read, iso, of()); }
-  @Disabled @Test void t4417(){ c4(recMdf,read,  iso,   of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4421(){ c4(imm, lent, iso, of()); }
-  @Disabled @Test void t4422(){ c4(read, lent, iso, of()); }
-  @Disabled @Test void t4423(){ c4(lent,  lent, iso, readAll,lentAll,of(mdf,read, mdf,lent)); }
-  @Disabled @Test void t4424(){ c4(mut,   lent,  iso,   of(lent,lent  , lent,read  , read,lent  , read,read  , mdf,lent  , mdf,read)); } // ok because promotion before call
-  @Disabled @Test void t4425(){ c4(iso, lent, iso, of()); }
-  @Disabled @Test void t4426(){ c4(mdf, lent, iso, of()); }
-  @Disabled @Test void t4427(){ c4(recMdf,lent,  iso,   of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4431(){ c4(imm, mut, iso, of()); }
-  @Disabled @Test void t4432(){ c4(read, mut, iso, of()); }
-  @Disabled @Test void t4433(){ c4(lent,  mut,   iso, readAll,mutAll,lentAll,of(mdf,read, mdf,lent, mdf,mut)); } // These 3 look odd, but it's correct because iso lambdas are treated like mut
-  @Disabled @Test void t4434(){ c4(mut,   mut,   iso, readAll,mutAll,lentAll,of(mdf,read, mdf,lent, mdf,mut)); }
-  @Disabled @Test void t4435(){ c4(iso,   mut,   iso, readAll,mutAll,lentAll,of(mdf,read, mdf,lent, mdf,mut)); }
-  @Disabled @Test void t4436(){ c4(mdf, mut, iso, of()); }
-  @Disabled @Test void t4437(){ c4(recMdf,mut,   iso,  of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4441(){ c4(imm, iso, iso, of()); }
-  @Disabled @Test void t4442(){ c4(read, iso, iso, of()); }
-  @Disabled @Test void t4443(){ c4(lent,  iso, iso, readAll,immAll,of(mdf,read, mdf,imm)); }
-  @Disabled @Test void t4444(){ c4(mut,   iso, iso, readAll,immAll,of(mdf,read, mdf,imm)); }
-  @Disabled @Test void t4445(){ c4(iso,   iso, iso, readAll,immAll,of(mdf,read, mdf,imm)); } // all iso is captured as imm
-  @Disabled @Test void t4446(){ c4(mdf, iso, iso, of()); }
-  @Disabled @Test void t4447(){ c4(recMdf,iso, iso, readAll,immAll,of(mdf,read, mdf,imm)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4451(){ c4(imm, mdf, iso, of()); }
-  @Disabled @Test void t4452(){ c4(read, mdf, iso, of()); }
-  @Disabled @Test void t4453(){ c4(lent,  mdf, iso, readAll,of(mdf,read  , mdf,mdf)); }
-  @Disabled @Test void t4454(){ c4(mut,   mdf,   iso, of(read,lent  , read,read  , read,mdf  , mdf,read  , mdf,mdf)); }
-  @Disabled @Test void t4455(){ c4(iso,   mdf,   iso, of(read,mdf  , mdf,mdf , imm,mdf)); }
-  @Disabled @Test void t4456(){ c4(mdf, mdf, iso, of()); }
-  @Disabled @Test void t4457(){ c4(recMdf,mdf,   iso, readAll,immAll,of(mdf,read  , mdf,mdf  , mdf,imm)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4461(){ c4(imm, recMdf, iso, of()); }
-  @Disabled @Test void t4462(){ c4(read, recMdf, iso, of()); }
-  @Disabled @Test void t4463(){ c4(lent, recMdf, iso, readAll,of(mdf,read)); }
-  @Disabled @Test void t4464(){ c4(mut,   recMdf,   iso,  of(read,lent  , read,read  , read,recMdf  , mdf,read)); }
-  @Disabled @Test void t4465(){ c4(iso, recMdf, iso, of(read)); }
-  @Disabled @Test void t4466(){ c4(mdf, recMdf, iso, of()); }
-  @Disabled @Test void t4467(){ c4(recMdf,recMdf,   iso,   readAll,of(mdf,read)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4471(){ c4(imm, imm, iso, of()); }
-  @Disabled @Test void t4472(){ c4(read, imm, iso, of()); }
-  @Disabled @Test void t4473(){ c4(lent, imm, iso, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4474(){ c4(mut, imm, iso, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4475(){ c4(iso, imm, iso, readAll,immAll,mdfImm); }
-  @Disabled @Test void t4476(){ c4(mdf, imm, iso, of()); }
-  @Disabled @Test void t4477(){ c4(recMdf,imm,   iso,   readAll,immAll,mdfImm); }
-
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4501(){ c4(imm, imm, mdf, of()); }
-  @Disabled @Test void t4502(){ c4(read, imm, mdf, of()); }
-  @Disabled @Test void t4503(){ c4(lent, imm, mdf, of()); }
-  @Disabled @Test void t4504(){ c4(mut, imm, mdf, of()); }
-  @Disabled @Test void t4505(){ c4(iso, imm, mdf, of()); }
-  @Disabled @Test void t4506(){ c4(mdf, imm, mdf, of()); }
-  @Disabled @Test void t4507(){ c4(recMdf,imm,   mdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4511(){ c4(imm, read, mdf, of()); }
-  @Disabled @Test void t4512(){ c4(read, read, mdf, of()); }
-  @Disabled @Test void t4513(){ c4(lent, read, mdf, of()); }
-  @Disabled @Test void t4514(){ c4(mut, read, mdf, of()); }
-  @Disabled @Test void t4515(){ c4(iso, read, mdf, of()); }
-  @Disabled @Test void t4516(){ c4(mdf, read, mdf, of()); }
-  @Disabled @Test void t4517(){ c4(recMdf,read,  mdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4521(){ c4(imm, lent, mdf, of()); }
-  @Disabled @Test void t4522(){ c4(read, lent, mdf, of()); }
-  @Disabled @Test void t4523(){ c4(lent, lent, mdf, of()); }
-  @Disabled @Test void t4524(){ c4(mut, lent, mdf, of()); }
-  @Disabled @Test void t4525(){ c4(iso, lent, mdf, of()); }
-  @Disabled @Test void t4526(){ c4(mdf, lent, mdf, of()); }
-  @Disabled @Test void t4527(){ c4(recMdf,lent,  mdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4531(){ c4(imm, mut, mdf, of()); }
-  @Disabled @Test void t4532(){ c4(read, mut, mdf, of()); }
-  @Disabled @Test void t4533(){ c4(lent, mut, mdf, of()); }
-  @Disabled @Test void t4534(){ c4(mut, mut, mdf, of()); }
-  @Disabled @Test void t4535(){ c4(iso, mut, mdf, of()); }
-  @Disabled @Test void t4536(){ c4(mdf, mut, mdf, of()); }
-  @Disabled @Test void t4537(){ c4(recMdf,mut,   mdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4541(){ c4(imm, iso, mdf, of()); }
-  @Disabled @Test void t4542(){ c4(read, iso, mdf, of()); }
-  @Disabled @Test void t4543(){ c4(lent, iso, mdf, of()); }
-  @Disabled @Test void t4544(){ c4(mut, iso, mdf, of()); }
-  @Disabled @Test void t4545(){ c4(iso, iso, mdf, of()); }
-  @Disabled @Test void t4546(){ c4(mdf, iso, mdf, of()); }
-  @Disabled @Test void t4547(){ c4(recMdf,iso,   mdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4551(){ c4(imm, mdf, mdf, of()); }
-  @Disabled @Test void t4552(){ c4(read, mdf, mdf, of()); }
-  @Disabled @Test void t4553(){ c4(lent, mdf, mdf, of()); }
-  @Disabled @Test void t4554(){ c4(mut, mdf, mdf, of()); }
-  @Disabled @Test void t4555(){ c4(iso, mdf, mdf, of()); }
-  @Disabled @Test void t4556(){ c4(mdf, mdf, mdf, of()); }
-  @Disabled @Test void t4557(){ c4(recMdf,mdf,   mdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4561(){ c4(imm, recMdf, mdf, of()); }
-  @Disabled @Test void t4562(){ c4(read, recMdf, mdf, of()); }
-  @Disabled @Test void t4563(){ c4(lent, recMdf, mdf, of()); }
-  @Disabled @Test void t4564(){ c4(mut, recMdf, mdf, of()); }
-  @Disabled @Test void t4565(){ c4(iso, recMdf, mdf, of()); }
-  @Disabled @Test void t4566(){ c4(mdf, recMdf, mdf, of()); }
-  @Disabled @Test void t4567(){ c4(recMdf,recMdf,   mdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4571(){ c4(imm, imm, mdf, of()); }
-  @Disabled @Test void t4572(){ c4(read, imm, mdf, of()); }
-  @Disabled @Test void t4573(){ c4(lent, imm, mdf, of()); }
-  @Disabled @Test void t4574(){ c4(mut, imm, mdf, of()); }
-  @Disabled @Test void t4575(){ c4(iso, imm, mdf, of()); }
-  @Disabled @Test void t4576(){ c4(mdf, imm, mdf, of()); }
-  @Disabled @Test void t4577(){ c4(recMdf,imm,   mdf, of()); }
-
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4601(){ c4(imm, imm, recMdf, of()); }
-  @Disabled @Test void t4602(){ c4(read, imm, recMdf, of()); }
-  @Disabled @Test void t4603(){ c4(lent, imm, recMdf, of()); }
-  @Disabled @Test void t4604(){ c4(mut, imm, recMdf, of()); }
-  @Disabled @Test void t4605(){ c4(iso, imm, recMdf, of()); }
-  @Disabled @Test void t4606(){ c4(mdf, imm, recMdf, of()); }
-  @Disabled @Test void t4607(){ c4(recMdf,imm,   recMdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4611(){ c4(imm, read, recMdf, of()); }
-  @Disabled @Test void t4612(){ c4(read, read, recMdf, of()); }
-  @Disabled @Test void t4613(){ c4(lent, read, recMdf, of()); }
-  @Disabled @Test void t4614(){ c4(mut, read, recMdf, of()); }
-  @Disabled @Test void t4615(){ c4(iso, read, recMdf, of()); }
-  @Disabled @Test void t4616(){ c4(mdf, read, recMdf, of()); }
-  @Disabled @Test void t4617(){ c4(recMdf,read,  recMdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4621(){ c4(imm, lent, recMdf, of()); }
-  @Disabled @Test void t4622(){ c4(read, lent, recMdf, of()); }
-  @Disabled @Test void t4623(){ c4(lent, lent, recMdf, of()); }
-  @Disabled @Test void t4624(){ c4(mut, lent, recMdf, of()); }
-  @Disabled @Test void t4625(){ c4(iso, lent, recMdf, of()); }
-  @Disabled @Test void t4626(){ c4(mdf, lent, recMdf, of()); }
-  @Disabled @Test void t4627(){ c4(recMdf,lent,  recMdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4631(){ c4(imm, mut, recMdf, of()); }
-  @Disabled @Test void t4632(){ c4(read, mut, recMdf, of()); }
-  @Disabled @Test void t4633(){ c4(lent, mut, recMdf, of()); }
-  @Disabled @Test void t4634(){ c4(mut, mut, recMdf, of()); }
-  @Disabled @Test void t4635(){ c4(iso, mut, recMdf, of()); }
-  @Disabled @Test void t4636(){ c4(mdf, mut, recMdf, of()); }
-  @Disabled @Test void t4637(){ c4(recMdf,mut,   recMdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4641(){ c4(imm, iso, recMdf, of()); }
-  @Disabled @Test void t4642(){ c4(read, iso, recMdf, of()); }
-  @Disabled @Test void t4643(){ c4(lent, iso, recMdf, of()); }
-  @Disabled @Test void t4644(){ c4(mut, iso, recMdf, of()); }
-  @Disabled @Test void t4645(){ c4(iso, iso, recMdf, of()); }
-  @Disabled @Test void t4646(){ c4(mdf, iso, recMdf, of()); }
-  @Disabled @Test void t4647(){ c4(recMdf,iso,   recMdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4651(){ c4(imm, mdf, recMdf, of()); }
-  @Disabled @Test void t4652(){ c4(read, mdf, recMdf, of()); }
-  @Disabled @Test void t4653(){ c4(lent, mdf, recMdf, of()); }
-  @Disabled @Test void t4654(){ c4(mut, mdf, recMdf, of()); }
-  @Disabled @Test void t4655(){ c4(iso, mdf, recMdf, of()); }
-  @Disabled @Test void t4656(){ c4(mdf, mdf, recMdf, of()); }
-  @Disabled @Test void t4657(){ c4(recMdf,mdf,   recMdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4661(){ c4(imm, recMdf, recMdf, of()); }
-  @Disabled @Test void t4662(){ c4(read, recMdf, recMdf, of()); }
-  @Disabled @Test void t4663(){ c4(lent, recMdf, recMdf, of()); }
-  @Disabled @Test void t4664(){ c4(mut, recMdf, recMdf, of()); }
-  @Disabled @Test void t4665(){ c4(iso, recMdf, recMdf, of()); }
-  @Disabled @Test void t4666(){ c4(mdf, recMdf, recMdf, of()); }
-  @Disabled @Test void t4667(){ c4(recMdf,recMdf,   recMdf, of()); }
-  //                     lambda, captured, method, ...capturedAs
-  @Disabled @Test void t4671(){ c4(imm, imm, recMdf, of()); }
-  @Disabled @Test void t4672(){ c4(read, imm, recMdf, of()); }
-  @Disabled @Test void t4673(){ c4(lent, imm, recMdf, of()); }
-  @Disabled @Test void t4674(){ c4(mut, imm, recMdf, of()); }
-  @Disabled @Test void t4675(){ c4(iso, imm, recMdf, of()); }
-  @Disabled @Test void t4676(){ c4(mdf, imm, recMdf, of()); }
-  @Disabled @Test void t4677(){ c4(recMdf,imm,   recMdf, of()); }
 }
 //a mut lambda could capture a mut as iso inside an iso method?
 

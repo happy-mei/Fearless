@@ -40,15 +40,15 @@ public class Streams {
     }
 
     public Zipper<A,B> filter(BiPredicate<A,B>f){
-      var asi = new ArrayList<>();
-      var bsi = new ArrayList<>();
+      var asi = new ArrayList<A>();
+      var bsi = new ArrayList<B>();
       IntStream.range(0, as.size())
         .filter(i->f.test(as.get(i),bs.get(i)))
         .forEachOrdered(i->{
           asi.add(as.get(i));
           bsi.add(bs.get(i));
         });
-      return new Zipper<>(as, bs);
+      return new Zipper<>(asi, bsi);
     }
 
     public <R> R fold(Acc<R, A, B> folder, R initial) {

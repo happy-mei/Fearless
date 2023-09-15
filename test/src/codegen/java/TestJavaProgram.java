@@ -45,8 +45,9 @@ public class TestJavaProgram {
       throw err;
     });
     inferred.typeCheck();
-    var mir = new MIRInjectionVisitor(inferred).visitProgram();
-    var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
+    var mirInjectionVisitor = new MIRInjectionVisitor(inferred);
+    var mir = mirInjectionVisitor.visitProgram();
+    var java = new JavaCodegen(mirInjectionVisitor.getProgram()).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
     var res = RunJava.of(new JavaProgram(java).compile(), args).join();
     Assertions.assertEquals(expected, res);
   }
@@ -69,9 +70,10 @@ public class TestJavaProgram {
     var inferred = new InferBodies(inferredSigs).inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     inferred.typeCheck();
-    var mir = new MIRInjectionVisitor(inferred).visitProgram();
+    var mirInjectionVisitor = new MIRInjectionVisitor(inferred);
+    var mir = mirInjectionVisitor.visitProgram();
     try {
-      var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
+      var java = new JavaCodegen(mirInjectionVisitor.getProgram()).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
       var res = RunJava.of(new JavaProgram(java).compile(), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
@@ -532,14 +534,14 @@ public class TestJavaProgram {
   @Test void findClosestIntMut1() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(LListMut#[Int]35 + 52 + 84 + 14, 49) }
+      .var[Int] closest = { Closest#(LList#[Int]35 + 52 + 84 + 14, 49) }
       .return{ Assert#(closest == 52, closest.str, {{}}) }
       }
     Closest:{
-      #(ns: LListMut[Int], target: Int): Int -> Do#
+      #(ns: LList[Int], target: Int): Int -> Do#
         .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var[Int] closest' = { (ns.get(0u))! }
-        .var[mut Ref[Int]] closest = { Ref#(closest') }
+        .var[Int] closest' = { ns.get(0u)! }
+        .var closest = { Ref#[Int](closest') }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .none -> {},
@@ -551,18 +553,18 @@ public class TestJavaProgram {
           }#(ns.head, ns.tail) }
         .return{ closest* }
       }
-    Closest':{ mut #(h: Opt[Int], t: LListMut[Int]): Void }
+    Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }
   @Test void findClosestIntMut2() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(LListMut#[Int]35 + 52 + 84 + 14, 49) }
+      .var[Int] closest = { Closest#(LList#[Int]35 + 52 + 84 + 14, 49) }
       .return{ Assert#(closest == 52, closest.str, {{}}) }
       }
     Closest:{
-      #(ns: LListMut[Int], target: Int): Int -> Do#
+      #(ns: LList[Int], target: Int): Int -> Do#
         .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var[mut Ref[Int]] closest = { Ref#(ns.head!) }
+        .var[mut Ref[Int]] closest = { Ref#[Int](ns.head!) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .none -> {},
@@ -574,18 +576,18 @@ public class TestJavaProgram {
           }#(ns.head, ns.tail) }
         .return{ closest* }
       }
-    Closest':{ mut #(h: Opt[Int], t: LListMut[Int]): Void }
+    Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }
   @Test void findClosestIntMut3() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(LListMut#[Int]35 + 52 + 84 + 14, 49) }
+      .var[Int] closest = { Closest#(LList#[Int]35 + 52 + 84 + 14, 49) }
       .return{ Assert#(closest == 52, closest.str, {{}}) }
       }
     Closest:{
-      #(ns: LListMut[Int], target: Int): Int -> Do#
+      #(ns: LList[Int], target: Int): Int -> Do#
         .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var[mut Ref[Int]] closest = { Ref#((ns.get(0u))!) }
+        .var[mut Ref[Int]] closest = { Ref#[Int]((ns.get(0u))!) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .none -> {},
@@ -597,18 +599,18 @@ public class TestJavaProgram {
           }#(ns.head, ns.tail) }
         .return{ closest* }
       }
-    Closest':{ mut #(h: Opt[Int], t: LListMut[Int]): Void }
+    Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }
   @Test void findClosestIntMutWithMutLList() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(LListMut#[Int]35 + 52 + 84 + 14, 49) }
+      .var[Int] closest = { Closest#(mut LList#[Int]35 + 52 + 84 + 14, 49) }
       .return{ Assert#(closest == 52, closest.str, {{}}) }
       }
     Closest:{
-      #(ns: mut LListMut[Int], target: Int): Int -> Do#
+      #(ns: mut LList[Int], target: Int): Int -> Do#
         .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var[mut Ref[Int]] closest = { Ref#((ns.get(0u))!) }
+        .var closest = { Ref#[Int](ns.get(0u)!) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .none -> {},
@@ -620,40 +622,40 @@ public class TestJavaProgram {
           }#(ns.tail.head, ns.tail.tail) }
         .return{ closest* }
       }
-    Closest':{ mut #(h: mut Opt[Int], t: mut LListMut[Int]): Void }
+    Closest':{ mut #(h: mut Opt[Int], t: mut LList[Int]): Void }
     """, Base.mutBaseAliases); }
   @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#((LListMut#[Int]35 + 52 + 84 + 14).list, 49) }
+      .var[Int] closest = { Closest#(mut LList#[Int]35 + 52 + 84 + 14 .list, 49) }
       .return{ Assert#(closest == 52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: mut List[Int], target: Int): Int -> Do#
         .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var[mut Ref[Int]] closest = { Ref#((ns.get(0u))!) }
+        .var closest = { Ref#[Int](ns.get(0u)!) }
         .do{ mut Closest'{ 'self
-          i -> ns.get(i).match{
+          i -> ns.get(i).match(mut OptMatch[Int, Void]{
             .none -> {},
             .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
               .else -> self#(i + 1u)
               }
-            }
+            })
           }#(1u) }
         .return{ closest* }
       }
     Closest':{ mut #(i: UInt): Void }
     """, Base.mutBaseAliases); }
-
-  @Test void llistIters() { ok(new Res("", "", 0), "test.Test", """
+  
+  @Test void LListItersIterImm() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
       .var[LList[Int]] l1 = { LList#[Int]35 + 52 + 84 + 14 }
-      .do{ Assert#(l1.head! == (l1.iter.next!), "sanity", {{}}) }
-      .do{ Assert#((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert#((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert#((l1.iter
+      .do{ Assert#(l1.head! == (LListIter.im(l1).next!), "sanity", {{}}) }
+      .do{ Assert#((LListIter.im(l1).find{n -> n > 60})! == 84, "find some", {{}}) }
+      .do{ Assert#((LListIter.im(l1).find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert#((LListIter.im(l1)
                       .map{n -> n * 10}
                       .find{n -> n == 140})
                       .isSome,
@@ -661,115 +663,59 @@ public class TestJavaProgram {
       .return{{}}
       }
     """, Base.mutBaseAliases); }
-  @Test void llistMutItersIterRead() { ok(new Res("", "", 0), "test.Test", """
+  @Test void LListItersIterMut() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[mut LListMut[Int]] l1 = { LListMut#[Int]35 + 52 + 84 + 14 }
-      .do{ Assert#(l1.head! == (l1.iter.next!), "sanity", {{}}) }
-      .do{ Assert#((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert#((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert#((l1.iter
-                      .map{n -> n * 10}
-                      .find{n -> n == 140})
-                      .isSome,
-        "map", {{}})}
-      .return{{}}
-      }
-    """, Base.mutBaseAliases); }
-  @Test void llistMutItersIterMut() { ok(new Res("", "", 0), "test.Test", """
-    package test
-    Test:Main{ _ -> Do#
-      .var[mut LListMut[Int]] l1 = { LListMut#[Int]35 + 52 + 84 + 14 }
-      .do{ Assert#(l1.head! == (l1.iterMut.next!), "sanity", {{}}) }
-      .do{ Assert#((l1.iterMut.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert#((l1.iterMut.find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert#(l1.iterMut
+      .var[mut LList[Int]] l1 = { mut LList#[Int]35 + 52 + 84 + 14 }
+      .do{ Assert#(l1.head! == (LListIter#l1.next!), "sanity", {{}}) }
+      .do{ Assert#((LListIter#l1.find{n -> n > 60})! == 84, "find some", {{}}) }
+      .do{ Assert#((LListIter#l1.find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert#(LListIter#l1
                       .map{n -> n * 10}
                       .find{n -> n == 140}
                       .isSome,
         "map", {{}})}
-      .return{{}}
-      }
-    """, Base.mutBaseAliases); }
-  @Test void listIterRead() { ok(new Res("", "", 0), "test.Test", """
-    package test
-    Test:Main{ _ -> Do.hyg
-      .var[read List[Int]] l1 = { (LListMut#[Int]35 + 52 + 84 + 14).list }
-      .do{ Assert#(l1.look(0u)! == (l1.iter.next!), "sanity", {{}}) }
-      .do{ Assert#((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert#((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert#(l1.iter
-                      .map{n -> n * 10}
-                      .find{n -> n == 140}
-                      .isSome,
-        "map", {{}})}
-      .do{ Assert#(l1.iter
-                      .filter{n -> n > 50}
-                      .find{n -> n == 84}
-                      .isSome,
-        "filter", {{}})}
-      .do{ Assert#(l1.iter
-                      .filter{n -> n > 50}
-                      .count == 2u,
-        "count", {{}})}
-      .do{ Assert#(l1.iter
-                      .filter{n -> n > 50}
-                      .list
-                      .len == 2u,
-        "toList", {{}})}
-      .do{ Assert#(l1.iter
-                      .filter{n -> n > 50}
-                      .llistMut
-                      .len == 2u,
-        "toLListMut", {{}})}
-      .do{ Assert#(l1.iter
-                    .flatMap{n -> (List#(n, n, n)).iter}
-                    .map{n -> n * 10}
-                    .str({n -> n.str}, ";") == "350;350;350;520;520;520;840;840;840;140;140;140",
-        "flatMap", {{}})}
-      .do{ Assert#(Sum.int(l1.iter.map{n -> n+0}) == 185, "sum int", {{}})}
-      .do{ Assert#(Sum.uint(l1.iter.map{n -> n.uint}) == 185u, "sum uint", {{}})}
-      .do{ Assert#(Sum.float(l1.iter.map{n -> n.float}) == 185.0, "sum float", {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }
   @Test void listIterMut() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[mut List[Int]] l1 = { (LListMut#[Int]35 + 52 + 84 + 14).list }
-      .assert({ l1.get(0u)! == (l1.iterMut.next!) }, "sanity") // okay, time to use this for new tests
-      .do{ Assert#((l1.iterMut.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert#((l1.iterMut.find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert#(l1.iterMut
+      .var[mut List[Int]] l1 = { (mut LList#[Int]35 + 52 + 84 + 14).list }
+      .assert({ l1.get(0u)! == (ListIter#l1.next!) }, "sanity") // okay, time to use this for new tests
+      .do{ Assert#((ListIter#l1.find{n -> n > 60})! == 84, "find some", {{}}) }
+      .do{ Assert#((ListIter#l1.find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert#(ListIter#l1
                       .map{n -> n * 10}
                       .find{n -> n == 140}
                       .isSome,
         "map", {{}})}
-      .do{ Assert#(l1.iterMut
+      .do{ Assert#(ListIter#l1
                       .filter{n -> n > 50}
                       .find{n -> n == 84}
                       .isSome,
         "filter", {{}})}
-      .do{ Assert#(l1.iterMut
+      .do{ Assert#(ListIter#l1
                       .filter{n -> n > 50}
                       .count == 2u,
         "count", {{}})}
-      .do{ Assert#(l1.iterMut
+      .do{ Assert#(ListIter#l1
                       .filter{n -> n > 50}
                       .list.len == 2u,
         "toList", {{}})}
-      .do{ Assert#(l1.iterMut
+      .do{ Assert#(ListIter#l1
                       .filter{n -> n > 50}
-                      .llistMut.len == 2u,
-        "toLListMut", {{}})}
-      .do{ Assert#(l1.iterMut
-                    .flatMap{n -> (List#(n, n, n)).iterMut}
+                      .llist
+                      .len == 2u,
+        "to mut LList", {{}})}
+      .do{ Assert#(ListIter#l1
+                    .flatMap{n -> ListIter#(List#(n, n, n))}
                     .map{n -> n * 10}
                     .str({n -> n.str}, ";") == "350;350;350;520;520;520;840;840;840;140;140;140",
         "flatMap", {{}})}
-      .do{ Assert#(Sum.int(l1.iterMut) == 185, "sum int", {{}})}
-      .do{ Assert#(Sum.uint(l1.iterMut.map{n -> n.uint}) == 185u, "sum uint", {{}})}
-      .do{ Assert#(Sum.float(l1.iterMut.map{n -> n.float}) == 185.0, "sum float", {{}})}
+      .do{ Assert#(Sum.int(ListIter#l1) == 185, "sum int", {{}})}
+      .do{ Assert#(Sum.uint(ListIter#l1.map{n -> n.uint}) == 185u, "sum uint", {{}})}
+      .do{ Assert#(Sum.float(ListIter#l1.map{n -> n.float}) == 185.0, "sum float", {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }
@@ -940,6 +886,147 @@ public class TestJavaProgram {
       .return{ io.println("consume: " + (s1.consume)) }
       }
     """, Base.mutBaseAliases); }
+
+  @Test void automatonPure() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[Auto[FB, FB]] pB = { Auto.pure(F[FB,FB]{ _ -> Bar }) }
+        .var[Auto[FB, FB]] pId = { Auto.pure(F[FB,FB]{ a -> a }) }
+        .do{ Assert#(pB.step(Foo).result.str == "Bar") }
+        .do{ Assert#(pB.step(Foo).next.step(Foo).result.str == "Bar") }
+        .do{ Assert#(pId.step(Foo).result.str == "Foo") }
+        .do{ Assert#(pId.step(Foo).next.step(Bar).result.str == "Bar") }
+        .return{{}}
+        }
+      
+      FB:Stringable{}
+      Foo:FB{ .str -> "Foo" }
+      Bar:FB{ .str -> "Bar" }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonConst() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[mut Auto[FB, mut FB]] pB = { mut Auto.const[FB, mut FB](mut Bar) }
+        .do{ Assert#(pB.step(Foo).result.str == "Bar") }
+        .do{ Assert#(pB.step(Foo).next.step(Foo).result.str == "Bar") }
+        .return{{}}
+        }
+      FB:Stringable{}
+      Foo:FB{ .str -> "Foo" }
+      Bar:FB{ .str -> "Bar" }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonConstMutCapture() {
+    ok(new Res("", "", 0), "test.Test", """
+    package test
+    alias base.iter.Automaton as Auto,
+    Test:Main{ _ -> Do#
+      .var[mut Bar] bar = { mut Bar }
+      .var[mut Auto[FB, mut FB]] pB = { mut Auto.const[FB, mut FB](bar) }
+      .do{ Assert#(pB.step(Foo).result.str == "Bar") }
+      .do{ Assert#(pB.step(Foo).next.step(Foo).result.str == "Bar") }
+      .return{{}}
+      }
+    FB:Stringable{}
+    Foo:FB{ .str -> "Foo" }
+    Bar:FB{ .str -> "Bar" }
+    """, Base.mutBaseAliases);
+  }
+  @Test void automatonId() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[mut Auto[mut FB, mut FB]] pB = { mut Auto.id[mut FB] }
+        .do{ Assert#(pB.step(mut Foo).result.str == "Foo") }
+        .do{ Assert#(pB.step(mut Foo).next.step(mut Bar).result.str == "Bar") }
+        .return{{}}
+        }
+      FB:Stringable{}
+      Foo:FB{ .str -> "Foo" }
+      Bar:FB{ .str -> "Bar" }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonComposition() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[Auto[Int,Int]] a = { Auto.const[Int,Int] 5 }
+        .var[Auto[Int,Int]] b = { Auto.pure(F[Int,Int]{n -> n * 10}) }
+        .do{ Assert#(a.step(0).result == 5) }
+        .do{ Assert#(b.step(6).result == 60) }
+        .var[Auto[Int,Int]] c = { a |> b }
+        .do{ Assert#(c.step(0).result == 50) }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonCompositionBackwards() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[Auto[Int,Int]] a = { Auto.const[Int,Int] 5 }
+        .var[Auto[Int,Int]] b = { Auto.pure(F[Int,Int]{n -> n * 10}) }
+        .do{ Assert#(a.step(0).result == 5) }
+        .do{ Assert#(b.step(6).result == 60) }
+        .var[Auto[Int,Int]] c = { b <| a }
+        .do{ Assert#(c.step(0).result == 50) }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonList1() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[mut LList[Int]] l = { mut LList#[Int]12 + 3 + 6 + 7 }
+        .var[mut Auto[mut Opt[Int]]] a = { mut Auto.llist(l) }
+        .var[mut Auto[mut Opt[Int],mut Opt[Int]]] x10 = { mut Auto.pure(F[mut Opt[Int],mut Opt[Int]]{ n -> n.map{n' -> n' * 10} }) }
+        .var[mut Auto[Void, mut Opt[Int]]] ax10 = { a |> x10 }
+        .do{ Assert#(a.step(Void).result! == 12) }
+        .do{ Assert#(a.step.result! == 12) }
+        .do{ Assert#(a.step.next.step.result! == 3) }
+        .do{ Assert#(ax10.step(Void).result! == 120) }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonList2() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[LList[Int]] l = { LList#[Int]12 + 3 + 6 + 7 }
+        .var[Auto[Opt[Int]]] a = { Auto.llist(l) }
+        .var[Auto[Opt[Int],Opt[Int]]] x10 = { Auto.pure(F[Opt[Int],Opt[Int]]{ n -> n.map{n' -> n' * 10} }) }
+        .var[Auto[Void, Opt[Int]]] ax10 = { a |> x10 }
+        .do{ Assert#(a.step(Void).result! == 12) }
+        .do{ Assert#(a.step.result! == 12) }
+        .do{ Assert#(a.step.next.step.result! == 3) }
+        .do{ Assert#(ax10.step(Void).result! == 120) }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+
+  @Test void optionalMapImm() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      Test:Main{ _ -> Do#
+        .var[Opt[Int]] i = { Opt#[Int]16 }
+        .var[Opt[Int]] ix10 = { i.map2{n -> n * 10} }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
 
 //  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
 //    package test

@@ -1,19 +1,20 @@
 package id;
 
-import files.Pos;
+import astFull.T;
 import parser.Parser;
 import utils.Bug;
 import utils.OneOr;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Id {
+  public sealed interface Dec permits astFull.T.Dec, ast.T.Dec {
+    Map<GX<T>, Set<Mdf>> bounds();
+  }
   public static boolean validM(String m){
     assert m!=null && !m.isEmpty();
     return new parser.Parser(Parser.dummy,m).parseM();      
@@ -32,7 +33,7 @@ public class Id {
   public record DecId(String name,int gen){
     public DecId{ assert validDecName(name) && gen>=0; }
 
-    static Pattern pkgRegex = Pattern.compile("(.+\\.)+([A-Za-z0-9_']+)$");
+    static Pattern pkgRegex = Pattern.compile("(.+\\.)+([A-Za-z0-9_']+)\\$?$");
     public String pkg() {
       var pkg = OneOr.of("Malformed package: "+name, pkgRegex.matcher(name).results()).group(1);
       return pkg.substring(0, pkg.length() - 1);
@@ -49,15 +50,18 @@ public class Id {
     @Override public String toString(){ return name+"/"+num; }
   }
 
-  public interface RT<TT>{ <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it); }
+  public interface RT<TT extends Ty>{ <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it); }
+  public sealed interface Ty permits ast.T, astFull.T {}
 
-  public record GX<TT>(String name)implements RT<TT>{
+  public record GX<TT extends Ty>(String name) implements RT<TT>{
     private static final AtomicInteger FRESH_N = new AtomicInteger(0);
     private static HashMap<Integer, List<GX<ast.T>>> freshNames = new HashMap<>();
+
     public static void reset() {
       // TODO: disable outside unit testing context
-      if (FRESH_N.get() > 150_000) {
+      if (FRESH_N.get() > 200_000) {
         throw Bug.of("FRESH_N is larger than we expected for tests.");
+//        System.out.println(FRESH_N);
       }
       FRESH_N.set(0);
     }
@@ -66,7 +70,7 @@ public class Id {
       // whereas this applies to method type params after the decl gens have been applied (i.e. C[Ts]).
       return IntStream.range(0, n).mapToObj(fresh->new Id.GX<ast.T>("FearX" + fresh + "$")).toList();
     }
-    public static <TT> GX<TT> fresh() {
+    public static <TT extends Ty> GX<TT> fresh() {
       var n = FRESH_N.getAndUpdate(n_ -> {
         int next = n_ + 1;
         if (next == Integer.MAX_VALUE) { throw Bug.of("Maximum fresh identifier size reached"); }
@@ -77,13 +81,27 @@ public class Id {
 
     public GX{ assert Id.validGX(name); }
     public <R> R match(Function<GX<TT>,R>gx, Function<IT<TT>,R>it){ return gx.apply(this); }
+
+    @Override public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      GX<?> gx = (GX<?>) o;
+      return Objects.equals(name, gx.name);
+    }
+
+    @Override public int hashCode() {
+      return Objects.hash(name);
+    }
+
     @Override public String toString(){ return name(); }
     public GX<ast.T> toAstGX() { return (GX<ast.T>) this; }
     public GX<astFull.T> toFullAstGX() { return (GX<astFull.T>) this; }
     public GX<TT> withName(String name) { return new GX<>(name); }
   }
-  public record IT<TT>(Id.DecId name, List<TT> ts)implements RT<TT>{
-    public IT{ assert ts.size()==name.gen(); }
+  public record IT<TT extends Ty>(Id.DecId name, List<TT> ts)implements RT<TT>{
+    public IT{
+      assert ts.size()==name.gen();
+    }
     public IT(String name,List<TT> ts){ this(new Id.DecId(name,ts.size()),ts); }
     public <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it){ return it.apply(this); }
     public IT<TT> withTs(List<TT>ts){ return new IT<>(new DecId(name.name,ts.size()), ts); }

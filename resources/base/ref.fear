@@ -1,7 +1,7 @@
 package base
 
-Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-Ref[X]:NoMutHyg[mdf X],Sealed{
+Ref:{ #[X:imm,mut](x: mdf X): mut Ref[mdf X] -> this#(x) }
+Ref[X:imm,mut]:Sealed{
   recMdf *: recMdf X,
   recMdf .get: recMdf X -> this*,
   mut .swap(x: mdf X): mdf X,
@@ -10,9 +10,9 @@ Ref[X]:NoMutHyg[mdf X],Sealed{
   mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
   mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
   }
-UpdateRef[X]:NoMutHyg[mdf X]{ mut #(x: mdf X): mdf X }
+UpdateRef[X:imm,mut]:{ mut #(x: mdf X): mdf X }
 
-Count[N]:Ref[N]{
+Count[N:imm]:Ref[N]{
   mut ++: N,
   mut --: N,
   mut +=(n: N): N,
@@ -21,7 +21,7 @@ Count[N]:Ref[N]{
   }
 Count:{
   #(n: Int): mut Count[Int] -> this.int(n),
-  .int(n: Int): mut Count[Int] -> Let#{
+  .int(n: Int): mut Count[Int] -> mut Let#(mut Let[mut Ref[Int], mut Count[Int]]{
     .var -> Ref#n,
     .in(c) -> {
       * -> c*,
@@ -32,8 +32,8 @@ Count:{
       -=(n2) -> c <- { c' -> c' - n2 },
       *=(n2) -> c <- { c' -> c' * n2 },
       }
-    },
-  .uint(n: UInt): mut Count[UInt] -> Let#{
+    }),
+  .uint(n: UInt): mut Count[UInt] -> mut Let#(mut Let[mut Ref[UInt], mut Count[UInt]]{
     .var -> Ref#n,
     .in(c) -> {
       * -> c*,
@@ -44,5 +44,5 @@ Count:{
       -=(n2) -> c <- { c' -> c' - n2 },
       *=(n2) -> c <- { c' -> c' * n2 },
       }
-    }
+    })
   }
