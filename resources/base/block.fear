@@ -14,6 +14,8 @@ Block[R]:{
   mut .assert(p: mut Condition, failMsg: Str): mut Block[mdf R] ->
     mut Assert#(p#, failMsg, mut AssertCont[mut Block[mdf R]]{this}),
   mut .var[X](x: mut ReturnStmt[mdf X], cont: mut VarContinuation[mdf X, mdf R]): mdf R -> cont#(x#, this),
+  mut .ref[X:imm,mut](x: mut ReturnStmt[mdf X], cont: mut VarContinuation[mut Ref[mdf X], mdf R]): mdf R -> cont#(Ref#(x#), this),
+//  mut .isoPod[X:iso](x: mut ReturnStmt[mdf X], cont: mut VarContinuation[mut IsoPod[mdf X], mdf R]): mdf R -> cont#(IsoPod#(x#), this),
   mut .if(p: mut Condition): mut BlockIf[mdf R] -> p# ? { 'cond
     .then -> { 't
       .return(a) -> _DecidedBlock#(a#),

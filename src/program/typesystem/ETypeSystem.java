@@ -20,7 +20,6 @@ public interface ETypeSystem extends Visitor<Res> {
   Optional<T> expectedT();
   int depth();
   Res bothT(T.Dec d);
-  default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors) { throw Bug.unreachable(); }
   default Res visitX(E.X e){
     return g().get(e);
   }

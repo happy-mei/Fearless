@@ -66,7 +66,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       if (bounds == null || bounds.isEmpty()) { continue; }
       xbs = xbs.add(gx, bounds);
     }
-    var invalidGens = GenericBounds.validGenericLambda((ast.Program) p(), xbs, b);
+    var invalidGens = GenericBounds.validGenericLambda(p(), xbs, b);
     ELambdaTypeSystem boundedTypeSys = (ELambdaTypeSystem) withXBs(xbs);
     if (invalidGens.isPresent()) { return invalidGens.get().pos(b.pos()); }
     //var errMdf = expectedT.map(ti->!p().isSubType(ti.mdf(),b.mdf())).orElse(false);

@@ -18,6 +18,9 @@ public interface E extends HasPos {
   <R>  R accept(Visitor<R> v);
   <R>  R accept(GammaVisitor<R> v, String pkg, Map<String, T> gamma);
 
+  // TODO: we could cache lambda's type checking like so:
+  // - map from a pair (or a composed string of the two) of a string of gamma AND an expected T to a Res
+  // could use newline as a delimiter. Could filter gamma to only include what is actually captured in the lambda
   record Lambda(Mdf mdf, List<Id.IT<T>> its, String selfName, List<Meth> meths, Optional<Pos> pos) implements E {
     public Lambda {
       assert mdf != null;

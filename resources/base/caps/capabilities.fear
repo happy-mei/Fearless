@@ -8,7 +8,6 @@ package base.caps
 System:Sealed{ .preventCreation: _System }
 _System:Sealed,System{ _System }
 
-// TODO: make this uncreatable
 //System[R]:{
 ////  mut .use[C](c: FCap[Auth, C], cont: lent UseCapCont[C, mdf Auth, R]): R -> Do.hyg
 ////    .var[mut C] cap = { c.lift(this._auth)# }

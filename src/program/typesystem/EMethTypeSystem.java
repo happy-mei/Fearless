@@ -41,10 +41,11 @@ public interface EMethTypeSystem extends ETypeSystem {
 
     List<E> es = Push.of(e0,e.es());
     var nestedErrors = new ArrayDeque<ArrayList<CompileError>>(tst.size());
-    for (TsT(List<T> ts, T t, boolean _hasRecMdf) : tst) {
+    var methArgCache = IntStream.range(0, es.size()).mapToObj(i_->new HashMap<T, Res>()).toList();
+    for (TsT(List<T> ts, T t) : tst) {
       var errors = new ArrayList<CompileError>();
       nestedErrors.add(errors);
-      if (okAll(es, ts, errors)) {
+      if (okAll(es, ts, errors, methArgCache)) {
         return t;
       }
     }
@@ -75,17 +76,21 @@ public interface EMethTypeSystem extends ETypeSystem {
     if(expectedT().isEmpty()){ return true; }
     return p().isSubType(tst.t().mdf(), expectedT().get().mdf());
   }
-  @Override default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors) {
-    assert es.size() == ts.size();
+  default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors, List<HashMap<T, Res>> caches) {
+    assert es.size() == ts.size() && caches.size() == es.size();
     return IntStream.range(0, es.size())
-      .allMatch(i -> {
-//        var typeSystem = (EMethTypeSystem) this.withProgram(p().shallowClone());
-        return ok(es.get(i), ts.get(i), errors);
-      });
+      .allMatch(i->ok(es.get(i), ts.get(i), errors, caches.get(i)));
   }
-  default boolean ok(E e, T t, ArrayList<CompileError> errors) {
-    var v = this.withT(Optional.of(t));
-    var res = e.accept(v);
+  default boolean ok(E e, T t, ArrayList<CompileError> errors, HashMap<T, Res> cache) {
+    var res = cache.computeIfAbsent(t, t_->e.accept(this.withT(Optional.of(t_))));
+    // TODO: cache res based on the same visitor hashcode
+    /*
+     v has program (will stay the same)
+     v has the T
+     v has a gamma (should stay the same)
+     v has a XBs (should stay the same)
+     v has a depth (should stay the same)
+     */
     if (res.t().isEmpty()){
       res.err().ifPresent(errors::add);
       return false;
@@ -115,7 +120,7 @@ public interface EMethTypeSystem extends ETypeSystem {
 //        renamedArgs
 //      )) && t.equals(renamedT);
 
-      return new TsT(params, t, cm.ret().mdf().isRecMdf());
+      return new TsT(params, t);
     });
     return sig.map(this::allMeth);
   }
@@ -162,21 +167,21 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
   default T mutToIso(T t){ return t.mdf().isMut()?t.withMdf(Mdf.iso):t; }
   default T mutToLent(T t) { return t.mdf().isMut() ? t.withMdf(Mdf.lent) : t; }
-  default TsT transformMuts(int i, List<T> ts, T t, boolean hasRecMdf){
+  default TsT transformMuts(int i, List<T> ts, T t){
     var ts0 = IntStream.range(0,ts.size()).mapToObj(j->j==i
       ? ts.get(i).withMdf(Mdf.lent)
       : mutToIso(ts.get(j))
     ).toList();
-    return new TsT(ts0, mutToLent(t), hasRecMdf);
+    return new TsT(ts0, mutToLent(t));
   }
   default List<TsT> oneLentToMut(TsT tst){
     var ts = tst.ts();
     var t = tst.t();
-    Stream<TsT> r = Stream.of(new TsT(mutToIso(ts), mutToLent(t), tst.hasRecMdfRet));
+    Stream<TsT> r = Stream.of(new TsT(mutToIso(ts), mutToLent(t)));
     var muts = IntStream.range(0,ts.size())
       .filter(i->ts.get(i).mdf().isMut()).boxed().toList();
     Stream<TsT> ps=muts.stream()
-      .map(i->transformMuts(i, ts, t, tst.hasRecMdfRet));
+      .map(i->transformMuts(i, ts, t));
     return Stream.concat(r,ps).toList();
   }
 
@@ -187,11 +192,11 @@ public interface EMethTypeSystem extends ETypeSystem {
     );
   }
 
-  record TsT(List<T> ts, T t, boolean hasRecMdfRet){
+  record TsT(List<T> ts, T t){
     public TsT renameMdfs(Map<Mdf, Mdf> replacements) {
       List<T> ts = ts().stream().map(ti->ti.withMdf(replacements.getOrDefault(ti.mdf(), ti.mdf()))).toList();
       T t = t().withMdf(replacements.getOrDefault(t().mdf(), t().mdf()));
-      return new TsT(ts, t, hasRecMdfRet);
+      return new TsT(ts, t);
     }
     @Override public String toString() {
       return "("+ts.stream().map(T::toString).collect(Collectors.joining(", "))+"): "+t;
