@@ -11,7 +11,6 @@ import utils.Bug;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -330,7 +329,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
         ObjCapImpl impl = null;
         if (target == Magic.RootCap) { impl = (ctx, m1, args1, gamma1) -> null; }
         if (target == Magic.IO) { impl = io(); }
-        if (target == Magic.Env) { impl = env(); }
+        if (target == Magic.FEnv) { impl = env(); }
         assert impl != null;
 
         var res = impl.call(_this, m, args, gamma);
@@ -376,8 +375,12 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       }
       private ObjCapImpl env() {
         return (ctx, m, args, gamma) ->{
-          if (m.equals(new Id.MethName(".launchArgs", 0))) {
-            return "FAux.LAUNCH_ARGS";
+          if (m.equals(new Id.MethName("#", 1))) {
+            return """
+              new base$46caps.Env_0(){
+                public base.LList_1 launchArgs$() { return FAux.LAUNCH_ARGS; }
+              }
+              """;
           }
           return null;
         };

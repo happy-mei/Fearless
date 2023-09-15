@@ -1,0 +1,8 @@
+package simple
+alias base.Do as Do,
+alias base.caps.FEnv as FEnv,
+
+Nothing:base.Main{ s -> Do#
+  .assert({ FEnv#s.launchArgs.head! == "hello" }, FEnv#s.launchArgs.head!)
+  .return{{}}
+}

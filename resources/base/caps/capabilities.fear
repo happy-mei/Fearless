@@ -5,14 +5,15 @@ package base.caps
 //  }
 
 
-System[R,Auth]:{
+// TODO: make this uncreatable
+System[R]:{
 //  mut .use[C](c: FCap[Auth, C], cont: lent UseCapCont[C, mdf Auth, R]): R -> Do.hyg
 //    .var[mut C] cap = { c.lift(this._auth)# }
 //    .var[mdf R] res = { cont#(cap, this) }
 //    .do{ c.close(cap) }
 //    .return{ res },
-  mut .block: mut BlockHyg[mdf R] -> {},
-  mut .return(ret: mut ReturnStmtHyg[mdf R]): mdf R -> ret#,
+  mut .block: mut Block[mdf R] -> {},
+  mut .return(ret: mut ReturnStmt[mdf R]): mdf R -> ret#,
 //  lent .share[RR](): iso System[mdf RR, Auth] -> Do.hyg[mut System[mdf RR, Auth]]
 //    .var[F[lent Auth]] auth = { this.auth }
 //    .return{{ auth }},
@@ -25,9 +26,6 @@ System[R,Auth]:{
   }
 //SystemIO[R]:System[R,IO]{}
 
-System[R]:Sealed,System[mdf R, System[mdf R]]{
-  //._preventCreation: _RootCap
-  }
 _System[R]:System[mdf R]{
   //._preventCreation -> _RootCap,
 //  .auth -> {{
