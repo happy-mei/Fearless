@@ -1,39 +1,39 @@
 package base
 
-LList:{
-  #[E](h: E): LList[E] -> { .match(m) -> m.elem(h, {}) },
-  .cons[E](h: E, t: LList[E]): LList[E] -> { .match(m) -> m.elem(h, t) },
-  }
-LList[E]:Sealed{
-  .match[R](m: mut LListMatch[E, mdf R]): mdf R -> m.empty,
-  .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
-  .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
-  ++(l1: LList[E]): LList[E] -> this.match{
-    .empty -> l1,
-    .elem(h, t) -> LList.cons(h, t ++ l1)
-    },
-  +(e: E): LList[E] -> this ++ (LList#e),
-  .get(i: UInt): iso Opt[E] -> this.match[mut Opt[E]]{
-    .empty -> {},
-    .elem(h, t) -> (i == 0u) ? { .then -> mut Opt#h, .else -> t.get(i - 1u) }
-    },
-  .head: iso Opt[E] -> this.match[mut Opt[E]]{
-    .empty -> {},
-    .elem(h,_) -> mut Opt#h,
-    },
-  .tail: LList[E] -> this.match{
-    .empty -> {},
-    .elem(_,t) -> t,
-    },
-  .iter: mut Iter[E] -> Do#
-    .var[mut Ref[LList[E]]] cursor = { Ref#this }
-    .return(mut ReturnStmt[mut Iter[E]]{ mut #: mut Iter[E] -> { .next -> (cursor.swap(cursor*.tail)).head } }),
-  }
-LListMatch[E,R]:{ mut .elem(head: E, tail: LList[E]): mdf R, mut .empty: mdf R }
+//LList:{
+//  #[E](h: E): LList[E] -> { .match(m) -> m.elem(h, {}) },
+//  .cons[E](h: E, t: LList[E]): LList[E] -> { .match(m) -> m.elem(h, t) },
+//  }
+//LList[E]:Sealed{
+//  .match[R](m: mut LListMatch[E, mdf R]): mdf R -> m.empty,
+//  .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
+//  .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
+//  ++(l1: LList[E]): LList[E] -> this.match{
+//    .empty -> l1,
+//    .elem(h, t) -> LList.cons(h, t ++ l1)
+//    },
+//  +(e: E): LList[E] -> this ++ (LList#e),
+//  .get(i: UInt): iso Opt[E] -> this.match[mut Opt[E]]{
+//    .empty -> {},
+//    .elem(h, t) -> (i == 0u) ? { .then -> mut Opt#h, .else -> t.get(i - 1u) }
+//    },
+//  .head: iso Opt[E] -> this.match[mut Opt[E]]{
+//    .empty -> {},
+//    .elem(h,_) -> mut Opt#h,
+//    },
+//  .tail: LList[E] -> this.match{
+//    .empty -> {},
+//    .elem(_,t) -> t,
+//    },
+//  .iter: mut Iter[E] -> Do#
+//    .var[mut Ref[LList[E]]] cursor = { Ref#this }
+//    .return{ mut #: mut Iter[E] -> { .next -> (cursor.swap(cursor*.tail)).head } },
+//  }
+//LListMatch[E,R]:{ mut .elem(head: E, tail: LList[E]): mdf R, mut .empty: mdf R }
 
-LListMut:{
-  recMdf #[E](head: recMdf E): recMdf LListMut[recMdf E] -> this.cons(head, {}),
-  recMdf .cons[E](head: recMdf E, tail: recMdf LListMut[recMdf E]): recMdf LListMut[recMdf E] -> {
+LList:{
+  recMdf #[E](head: recMdf E): recMdf LList[recMdf E] -> this.cons(head, {}),
+  recMdf .cons[E](head: recMdf E, tail: recMdf LList[recMdf E]): recMdf LList[recMdf E] -> {
     .match(m) -> m.elem(head, tail),
     .head -> recMdf Opt#[recMdf E](head),
     .tail -> tail,
@@ -43,44 +43,41 @@ LListMut:{
       })
     },
   }
-LListMut[E]:Sealed{
-  recMdf .match[R](m: mut LListMutMatch[recMdf E, mdf E, mdf R]): mdf R -> m.empty,
+LList[E]:Sealed{
+  recMdf .match[R](m: mut LListMatch[recMdf E, mdf E, mdf R]): mdf R -> m.empty,
   recMdf .head: recMdf Opt[recMdf E] -> {},
-  recMdf .tail: recMdf LListMut[mdf E] -> {},
+  recMdf .tail: recMdf LList[mdf E] -> {},
   read .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
   read .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
   recMdf .get(i: UInt): recMdf Opt[recMdf E] -> {},
-//  recMdf .iter: lent Iter[read E] -> Let#{
-//    .var -> Ref#[read LListMut[mdf E]]this,
-//    .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
-//    },
-//  read .iter: lent Iter[recMdf E] -> recMdf _LListMutToIter[mdf E]#(Ref#[recMdf LListMut[mdf E]]this),
-//  lent .iterMut: lent Iter[mdf E] -> Let#{
-//    .var -> Ref#[lent LListMut[mdf E]]this,
-//    .in(cursor) -> { .next -> (cursor.swap(cursor*.tail)).head }
-//    },
-
-  //mut .headRaw: mut Opt[mdf E] -> {},
-  recMdf ++(l1: recMdf LListMut[recMdf E]): recMdf LListMut[recMdf E] -> this.head.matchHyg{
-    .some(h) -> recMdf LListMut.cons(h, this.tail ++ l1),
+  recMdf ++(l1: recMdf LList[recMdf E]): recMdf LList[recMdf E] -> this.head.matchHyg{
+    .some(h) -> recMdf LList.cons(h, this.tail ++ l1),
     .none -> l1
     },
-  recMdf +(e: recMdf E): recMdf LListMut[recMdf E] -> this ++ (recMdf LListMut#e),
-  mut .list: mut List[mdf E] -> List.fromLListMut(this),
+  recMdf +(e: recMdf E): recMdf LList[recMdf E] -> this ++ (recMdf LList#e),
+  mut .list: mut List[mdf E] -> List.fromLList(this),
   }
-LListMutMatch[E,TE,R]:{
-  mut .elem(head: mdf E, tail: read LListMut[mdf TE]): mdf R,
+LListMatch[E,TE,R]:{
+  mut .elem(head: mdf E, tail: read LList[mdf TE]): mdf R,
   mut .empty: mdf R,
+  }
+LListIter:{
+  #[E:imm,mut](list: mut LList[mdf E]): mut Iter[mdf E] -> Do#
+    .var[mut Ref[mut LList[mdf E]]] cursor = { Ref#list }
+    .return{ mut #: mut Iter[mdf E] -> { .next -> (cursor.swap(cursor*.tail)).head } },
+  .im[E:imm,mut](list: LList[E]): mut Iter[E] -> Do#
+    .var[mut Ref[LList[E]]] cursor = { Ref#list }
+    .return{ mut #: mut Iter[E] -> { .next -> (cursor.swap(cursor*.tail)).head.map{x->x} } }
   }
 
 List:{
   // TODO: something weird is happening in inference that is inferring [recMdf E] on these method calls
   #[E]: mut List[mdf E] -> this._new(Ref#mut _ListState[mdf E]),
-  #[E](e: mdf E): mut List[mdf E] -> this.fromLListMut[mdf E](mut LListMut#e),
-  #[E](e1: mdf E, e2: mdf E): mut List[mdf E] -> this.fromLListMut[mdf E](mut LListMut.cons(e1, mut LListMut#e2)),
+  #[E](e: mdf E): mut List[mdf E] -> this.fromLList[mdf E](mut LList#e),
+  #[E](e1: mdf E, e2: mdf E): mut List[mdf E] -> this.fromLList[mdf E](mut LList.cons(e1, mut LList#e2)),
   // TODO: this up to 12 or something
-  #[E](e1: mdf E, e2: mdf E, e3: mdf E): mut List[mdf E] -> this.fromLListMut[mdf E](mut LListMut.cons(e1, mut LListMut.cons(e2, mut LListMut#e3))),
-  .fromLListMut[E](list: mut LListMut[mdf E]): mut List[mdf E] -> this._new(Ref#(_ListState#[mdf E](list.len, list))),
+  #[E](e1: mdf E, e2: mdf E, e3: mdf E): mut List[mdf E] -> this.fromLList[mdf E](mut LList.cons(e1, mut LList.cons(e2, mut LList#e3))),
+  .fromLList[E](list: mut LList[mdf E]): mut List[mdf E] -> this._new(Ref#(_ListState#[mdf E](list.len, list))),
 
   /// Note: This fearless implementation of a list may be replaced with a conventional expandable array list
   /// as magic for performance reasons.
@@ -111,14 +108,16 @@ List[E]:Sealed{
   }
 ListIter:{
   #[E:imm,mut](list: mut List[mdf E]): mut Iter[mdf E] -> this._impl(list, Count.uint(0u)),
-  ._impl[E:imm,mut](list: mut List[mdf E], cursor: mut Count[UInt]): mut Iter[mdf E] -> { list.get(cursor++) },
+    ._impl[E:imm,mut](list: mut List[mdf E], cursor: mut Count[UInt]): mut Iter[mdf E] -> { list.get(cursor++) },
+  .immList[E:imm,mut](list: List[E]): mut Iter[E] -> this._immImpl(list, Count.uint(0u)),
+    ._immImpl[E:imm,mut](list: List[mdf E], cursor: mut Count[UInt]): mut Iter[E] -> { list.get(cursor++).map{x->x} },
   }
 _ListState[E]:{
   read .len: UInt -> 0u,
-  recMdf .inner: recMdf LListMut[mdf E] -> {}
+  recMdf .inner: recMdf LList[mdf E] -> {}
   }
 _ListState:{
-  #[E](len: UInt, inner: mut LListMut[mdf E]): mut _ListState[mdf E] -> {
+  #[E](len: UInt, inner: mut LList[mdf E]): mut _ListState[mdf E] -> {
     .len -> len,
     .inner -> inner
     }

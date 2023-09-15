@@ -233,7 +233,8 @@ public record InferBodies(ast.Program p) {
     var c = e.receiver().t();
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
-    var cm = p.fullSig(c.mdf(), List.of(recv), depth, cm1->cm1.name().equals(e.name()));
+    Optional<Program.FullMethSig> cm; try { cm = p.fullSig(c.mdf(), List.of(recv), depth, cm1->cm1.name().equals(e.name())); }
+    catch (CompileError err) { throw err.parentPos(e.pos()); }
     if (cm.isEmpty()) { throw Fail.undefinedMethod(e.name(), recv).pos(e.pos()); }
     var sig = cm.get().sig();
     var k = sig.gens().size();

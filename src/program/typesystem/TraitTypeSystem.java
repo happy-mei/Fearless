@@ -4,20 +4,23 @@ import ast.Program;
 import ast.T;
 import ast.T.Dec;
 import failure.CompileError;
+import id.Id;
 import id.Id.IT;
 import id.Mdf;
 import utils.Mapper;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public interface TraitTypeSystem {
   Program p();
   static List<CompileError> dsOk(Collection<Dec> ds){
-    Program p = new Program(Mapper.of(c->ds.forEach(e->c.put(e.name(),e))));
-    TraitTypeSystem ttt=()->p;
-    return ds.stream().flatMap(di->ttt.dOk(di).stream()).toList();
+    Map<Id.DecId, Dec> pDs = Mapper.of(c->ds.forEach(e->c.put(e.name(),e)));
+    TraitTypeSystem ttt = ()->new Program(pDs);
+    return ds.parallelStream().flatMap(di->ttt.dOk(di).stream()).toList();
   }
   default Optional<CompileError> dOk(Dec d){
     var c=d.name();

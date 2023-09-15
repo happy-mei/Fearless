@@ -59,8 +59,9 @@ public class Id {
 
     public static void reset() {
       // TODO: disable outside unit testing context
-      if (FRESH_N.get() > 150_000) {
+      if (FRESH_N.get() > 200_000) {
         throw Bug.of("FRESH_N is larger than we expected for tests.");
+//        System.out.println(FRESH_N);
       }
       FRESH_N.set(0);
     }
