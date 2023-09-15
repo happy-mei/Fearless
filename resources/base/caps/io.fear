@@ -7,53 +7,53 @@ IO:System[Void, IO]{
   lent .println(msg: Str): Void -> Abort!,
   lent .printErr(msg: Str): Void -> Abort!,
   lent .printlnErr(msg: Str): Void -> Abort!,
-  lent .openFileHandle(path: base.LList[Str], mode: FileHandleMode): lent File -> Abort!,
+//  lent .openFileHandle(path: base.LList[Str], mode: FileHandleMode): lent File -> Abort!,
   }
-FIO:FCap[System[Void], IO]{
-  #(_) -> Abort!, // unreachable
-  .lift(auth) -> {{
-//    ._preventCreation -> IOCap,
-    ._auth -> FIO.lift(auth)
-    }},
-  }
-FIO':FCap[IO, IO]{
-  #(_) -> Abort!, // unreachable
-  .lift(auth) -> {{
-    //._preventCreation -> IOCap,
-    ._auth -> FIO'.lift(auth)
-    }},
-  }
+//FIO:FCap[System[Void], IO]{
+//  #(_) -> Abort!, // unreachable
+//  .lift(auth) -> {{
+////    ._preventCreation -> IOCap,
+//    ._auth -> FIO.lift(auth)
+//    }},
+//  }
+//FIO':FCap[IO, IO]{
+//  #(_) -> Abort!, // unreachable
+//  .lift(auth) -> {{
+//    //._preventCreation -> IOCap,
+//    ._auth -> FIO'.lift(auth)
+//    }},
+//  }
 
 IOCap:Sealed{ .preventCreation: _IOCap }
 _IOCap:Sealed,IOCap{ _IOCap }
 
-FFile:{
-  .open(path: LList[Str]): FCap[IO, File] -> {
-    #(fIO) -> Do#
-      .var fh = { fIO#.openFileHandle(path) }
-      .return {{
-        .clone -> { FFile.open(path).lift(fIO) }
-        .readLine -> fh.readLine,
-        .writeLine -> fh.writeLine,
-        .close -> fh.close,
-        }},
-    .close(file) -> file.close,
-    }
-  }
-File:System[Void, File]{
-  // ... some high level methods ...
-  lent .readLine: Str,
-  lent .writeLine: Str,
-  lent .close: Void,
-  }
-FileHandle:{
-  // ... some low level methods ...
-  lent .readLine: Str,
-  lent .writeLine: Str,
-  lent .close: Void
-  }
-
-FileHandleMode:Stringable,Sealed{}
-Read:FileHandleMode{ "r" }
-Write:FileHandleMode{ "r+" }
-Create:FileHandleMode{ "w+" }
+//FFile:{
+//  .open(path: LList[Str]): FCap[IO, File] -> {
+//    #(fIO) -> Do#
+//      .var fh = { fIO#.openFileHandle(path) }
+//      .return {{
+//        .clone -> { FFile.open(path).lift(fIO) }
+//        .readLine -> fh.readLine,
+//        .writeLine -> fh.writeLine,
+//        .close -> fh.close,
+//        }},
+//    .close(file) -> file.close,
+//    }
+//  }
+//File:System[Void, File]{
+//  // ... some high level methods ...
+//  lent .readLine: Str,
+//  lent .writeLine: Str,
+//  lent .close: Void,
+//  }
+//FileHandle:{
+//  // ... some low level methods ...
+//  lent .readLine: Str,
+//  lent .writeLine: Str,
+//  lent .close: Void
+//  }
+//
+//FileHandleMode:Stringable,Sealed{}
+//Read:FileHandleMode{ "r" }
+//Write:FileHandleMode{ "r+" }
+//Create:FileHandleMode{ "w+" }

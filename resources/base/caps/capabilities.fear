@@ -1,19 +1,16 @@
 package base.caps
 
-
-
-MyApp:Main{ s -> Do#
-  .var io = s.use[]
-  }
+//MyApp:Main{ s -> Do#
+//  .var io = s.use[]
+//  }
 
 
 System[R,Auth]:{
-  mut .clone: F[mut Auth],
-  mut .use[C](c: FCap[Auth, C], cont: lent UseCapCont[C, mdf Auth, R]): R -> Do.hyg
-    .var[mut C] cap = { c.lift(this._auth)# }
-    .var[mdf R] res = { cont#(cap, this) }
-    .do{ c.close(cap) }
-    .return{ res },
+//  mut .use[C](c: FCap[Auth, C], cont: lent UseCapCont[C, mdf Auth, R]): R -> Do.hyg
+//    .var[mut C] cap = { c.lift(this._auth)# }
+//    .var[mdf R] res = { cont#(cap, this) }
+//    .do{ c.close(cap) }
+//    .return{ res },
   mut .block: mut BlockHyg[mdf R] -> {},
   mut .return(ret: mut ReturnStmtHyg[mdf R]): mdf R -> ret#,
 //  lent .share[RR](): iso System[mdf RR, Auth] -> Do.hyg[mut System[mdf RR, Auth]]
@@ -33,10 +30,10 @@ System[R]:Sealed,System[mdf R, System[mdf R]]{
   }
 _System[R]:System[mdf R]{
   //._preventCreation -> _RootCap,
-  .auth -> {{
-    //._preventCreation -> _RootCap,
-    .auth -> _System[mdf R]._auth,
-    }}
+//  .auth -> {{
+//    //._preventCreation -> _RootCap,
+//    .auth -> _System[mdf R]._auth,
+//    }}
   }
 //_BuildSystem[R]:Sealed{
 //  #: F[lent System[mdf R]] -> {{
@@ -45,11 +42,11 @@ _System[R]:System[mdf R]{
 //    }}
 //  }
 
-UseCapCont[C,Auth,R]:{ lent #(cap: lent C, self: lent System[mdf R, mdf Auth]): mdf R }
-FCap[C,R]:F[F[lent C], lent R]{
-  #(auth: F[lent C]): lent R,
-  .lift(auth: F[lent C]): F[lent R] -> { this#(auth) },
-  .close(c: lent R): Void -> {},
-  }
+//UseCapCont[C,Auth,R]:{ lent #(cap: lent C, self: lent System[mdf R, mdf Auth]): mdf R }
+//FCap[C,R]:F[F[lent C], lent R]{
+//  #(auth: F[lent C]): lent R,
+//  .lift(auth: F[lent C]): F[lent R] -> { this#(auth) },
+//  .close(c: lent R): Void -> {},
+//  }
 RootCap:Sealed{ .preventCreation: _RootCap }
 _RootCap:Sealed,RootCap{ _RootCap }
