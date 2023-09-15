@@ -28,7 +28,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   public String visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) {
     assert pkgs.containsKey("base");
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_0 entry = new "+entryName+"(){}; entry.$35$(new base$46caps.$95System_1(){}); }\n";
+    var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_0 entry = new "+entryName+"(){}; entry.$35$(new base$46caps.$95System_0(){}); }\n";
 
     return "class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\ninterface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))
