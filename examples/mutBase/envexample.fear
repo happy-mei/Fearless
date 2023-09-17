@@ -1,12 +1,6 @@
-package simple
+package capstesting
 alias base.Do as Do,
 alias base.caps.FEnv as FEnv,
-
-
-A:{
-  #(a: mut List[Void]) -> a.flow
-
-  }
 
 Nothing:base.Main{ s -> Do#
   .assert({ FEnv#s
