@@ -1,6 +1,21 @@
 package base.caps
 
 /// Capability for reading and writing to files and devices, including stdout and stderr.
+IO:{
+  mut .print(msg: Str): Void,
+  mut .println(msg: Str): Void,
+  mut .printErr(msg: Str): Void,
+  mut .printlnErr(msg: Str): Void,
+  }
+FIO:F[mut System, mut IO],Sealed{
+  s -> {
+    .print(msg) -> Magic!,
+    .println(msg) -> Magic!,
+    .printErr(msg) -> Magic!,
+    .printlnErr(msg) -> Magic!,
+    }
+  }
+
 //IO:System[Void, IO]{
 ////  ._preventCreation: IOCap,
 //  lent .print(msg: Str): Void -> Abort!,

@@ -1,10 +1,12 @@
 package capstesting
 alias base.Do as Do,
 alias base.caps.FEnv as FEnv,
+alias base.caps.FIO as FIO,
 
 Nothing:base.Main{ s -> Do#
   .assert({ FEnv#s
-    .launchArgs.head! == "hello"
+    .launchArgs.head! == "hi"
     }, FEnv#s.launchArgs.head!)
+  .do{ FIO#s.println("Hello, World!") }
   .return{{}}
 }
