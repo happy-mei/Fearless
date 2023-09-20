@@ -2,6 +2,7 @@ package visitors;
 
 import ast.T;
 import astFull.E;
+import failure.Fail;
 import id.Id;
 import id.Mdf;
 import utils.Bug;
@@ -62,7 +63,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   public ast.T visitT(astFull.T t){
     if (t.isInfer()) {
       // TODO: throw Fail.....
-      throw Bug.todo();
+      throw new astFull.T.MatchOnInfer();
     }
     return t.toAstT();
   }
@@ -97,14 +98,18 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   public ast.E.Sig visitSig(E.Sig s){
-    return new ast.E.Sig(
-      s.mdf(),
-      s.gens().stream().map(this::visitGX).toList(),
-      Mapper.of(bounds->s.bounds().forEach((gx,bs)->bounds.put(visitGX(gx), bs))),
-      s.ts().stream().map(this::visitT).toList(),
-      this.visitT(s.ret()),
-      s.pos()
-    );
+    try {
+      return new ast.E.Sig(
+        s.mdf(),
+        s.gens().stream().map(this::visitGX).toList(),
+        Mapper.of(bounds->s.bounds().forEach((gx,bs)->bounds.put(visitGX(gx), bs))),
+        s.ts().stream().map(this::visitT).toList(),
+        this.visitT(s.ret()),
+        s.pos()
+      );
+    } catch (astFull.T.MatchOnInfer err) {
+      throw Fail.inferFailed(s.toString()).pos(s.pos());
+    }
   }
 
   public ast.Program visitProgram(astFull.Program p){

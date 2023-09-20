@@ -1790,6 +1790,10 @@ were valid:
     In position [###]/Dummy0.fear:4:68
     [E23 methTypeError]
     Expected the method .absMeth/0 to return mdf T, got read T.
+        
+    In position [###]/Dummy0.fear:7:36
+    [E5 invalidMdfBound]
+    The type mut test.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: read.
     """, """
     package test
     B:{}
@@ -1946,12 +1950,12 @@ were valid:
     package test
     ReturnStmt[R]:{ mut #: mdf R }
     Condition:{ mut #: Bool }
-    VarContinuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
+    VarContinuation[X,R:mut,imm]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
     Do:{
-      #[R]: mut Block[mdf R] -> {},
+      #[R:mut,imm]: mut Block[mdf R] -> {},
 //      .hyg[R]: mut BlockHyg[mdf R] -> {},
       }
-    Block[R]:{
+    Block[R:mut,imm]:{
       mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
       mut .do(r: mut ReturnStmt[Void]): mut Block[mdf R] -> this._do(r#),
         mut ._do(v: Void): mut Block[mdf R] -> this,
@@ -1968,7 +1972,7 @@ were valid:
           },
         },
       }
-    BlockIf[R]:{
+    BlockIf[R:mut,imm]:{
       mut .return(a: mut ReturnStmt[mdf R]): mut Block[mdf R],
       mut .do(r: mut ReturnStmt[Void]): mut Block[mdf R],
       }
@@ -2054,12 +2058,6 @@ were valid:
       .m3: mut AorB -> Do#[mut AorB]
         .if{True}.return{mut A}
         .return{mut B},
-      .m4: lent AorB -> Do#[lent AorB]
-        .if{True}.return{mut A}
-        .return{mut B},
-      .m5: lent AorB -> Do#[lent AorB]
-        .if{True}.return{lent A}
-        .return{lent B},
       .m6: mut AorB -> Do#[mut AorB]
         .if{True}.return{Do#
           .var[mut A] a = { mut A }
@@ -2069,7 +2067,9 @@ were valid:
       }
     """, blockSrc); }
   @Test void recMdfBlockLent() { fail("""
-    
+    In position [###]/Dummy0.fear:4:22
+    [E5 invalidMdfBound]
+    The type lent test.AorB[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
     """, """
     package test
     A:AorB{} B:AorB{} AorB:{}

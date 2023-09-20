@@ -96,7 +96,7 @@ public class Fail{
   public static CompileError cannotInferSig(Id.DecId d, Id.MethName m){ return of(String.format("Could not infer the signature for %s in %s.", m, d)); }
   public static CompileError cannotInferAbsSig(Id.DecId d){ return of(String.format("Could not infer the signature for the abstract lambda in %s. There must be one abstract lambda in the trait.", d)); }
   public static CompileError traitNotFound(Id.DecId d){ return of(String.format("The trait %s could not be found.", d)); }
-  public static CompileError inferFailed(astFull.E e){ return of(String.format("Could not infer the type for the following expression:\n%s", e)); }
+  public static CompileError inferFailed(String e){ return of(String.format("Could not infer the type for the following expression:\n%s", e)); }
 
   public static CompileError methTypeError(ast.T expected, ast.T actual, Id.MethName m){
     var msg = "Expected the method "+m+" to return "+expected+", got "+actual+".";

@@ -58,7 +58,7 @@ base.Void_0 $35$(Object s$);}
 }
 static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
 for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
- base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.System_1(){}); }
+ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.$95System_0(){}); }
 }
     """, "fake.Fake", false, """
     package test
@@ -111,7 +111,7 @@ base.Void_0 $35$(Object s$);}
 }
 static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
 for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
- base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.System_1(){}); }
+ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.$95System_0(){}); }
 }
     """, "fake.Fake", false, """
     package test
@@ -189,7 +189,7 @@ base.Void_0 $35$(Object s$);}
 }
 static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
 for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
- base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.System_1(){}); }
+ base.Main_0 entry = new fake.Fake_0(){}; entry.$35$(new base$46caps.$95System_0(){}); }
 }
     """, "fake.Fake", false, """
     package test
@@ -230,7 +230,7 @@ base.Void_0 $35$(Object s$);}
 }
 static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
 for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
- base.Main_0 entry = new test.HelloWorld_0(){}; entry.$35$(new base$46caps.System_1(){}); }
+ base.Main_0 entry = new test.HelloWorld_0(){}; entry.$35$(new base$46caps.$95System_0(){}); }
 }
     """, "test.HelloWorld", false, """
     package test
@@ -285,7 +285,7 @@ base.Void_0 $35$(Object s$);}
 }
 static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
 for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
- base.Main_0 entry = new test.Test_0(){}; entry.$35$(new base$46caps.System_1(){}); }
+ base.Main_0 entry = new test.Test_0(){}; entry.$35$(new base$46caps.$95System_0(){}); }
 }
     """, "test.Test", false, """
     package test

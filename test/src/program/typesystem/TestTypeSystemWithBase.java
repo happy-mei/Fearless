@@ -213,19 +213,19 @@ public class TestTypeSystemWithBase {
   @Test void shouldPromoteList() { ok("""
     package test
     Foo:{
-      .toMut: mut List[Int] -> (LListMut#[Int]35 + 52 + 84 + 14).list,
-      .toIso: iso List[Int] -> (LListMut#[Int]35 + 52 + 84 + 14).list,
-      .toImm: List[Int] -> (LListMut#[Int]35 + 52 + 84 + 14).list
+      .toMut: mut List[Int] -> (mut LList#[Int]35 + 52 + 84 + 14).list,
+      .toIso: iso List[Int] -> (mut LList#[Int]35 + 52 + 84 + 14).list,
+      .toImm: List[Int] -> (mut LList#[Int]35 + 52 + 84 + 14).list
       }
     """, Base.mutBaseAliases);}
 
   @Test void cannotCreateRootCapInCode1() { fail("""
-    In position [###]/Dummy0.fear:2:40
+    In position [###]/Dummy0.fear:2:39
     [E35 sealedCreation]
-    The sealed trait base.caps.RootCap/0 cannot be created in a different package (test).
+    The sealed trait base.caps.System/0 cannot be created in a different package (test).
     """, """
     package test
-    Evil:{ .break: mut base.caps.RootCap -> { this.break } }
+    Evil:{ .break: mut base.caps.System -> { this.break } }
     """); }
 
   @Test void mutateInPlace() { ok("""
@@ -239,9 +239,9 @@ public class TestTypeSystemWithBase {
     
     MyApp:{
       #: Void -> Do#
-        .var ps = { List#(Person'#"Alice", Person'#"Bob", Person'#"Nick") }
-        .do{ ps.iterMut.for{ p -> p.name := "new name" } }
-        .return
+        .var[mut List[mut Person]] ps = { List#(Person'#"Alice", Person'#"Bob", Person'#"Nick") }
+        .do{ ListIter#ps.for{ p -> p.name := "new name" } }
+        .return{{}}
       }
     """, Base.mutBaseAliases); }
   @Test void mutateHyg() { ok("""

@@ -53,7 +53,7 @@ public class TestFullWellFormedness {
     """); }
 
   @Test void noExplicitThisBlockId() { fail("""
-    In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:2:14
     [E6 explicitThis]
     Local variables may not be named 'this'.
     """, """
@@ -62,7 +62,7 @@ public class TestFullWellFormedness {
     """); }
 
   @Test void noExplicitThisMethArg() { fail("""
-    In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:2:4
     [E6 explicitThis]
     Local variables may not be named 'this'.
     """, """
@@ -71,7 +71,7 @@ public class TestFullWellFormedness {
     """); }
 
   @Test void disjointArgList() { fail("""
-    In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:2:4
     [E7 conflictingMethParams]
     Parameters on methods must have different names. The following parameters were conflicting: a
     """, """
@@ -80,7 +80,7 @@ public class TestFullWellFormedness {
     """); }
 
   @Test void disjointMethGens() { fail("""
-    In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:2:4
     [E7 conflictingMethParams]
     Parameters on methods must have different names. The following parameters were conflicting: T
     """, """
@@ -138,7 +138,7 @@ public class TestFullWellFormedness {
     """); }
 
   @Test void mdfAsMethMdf() { fail("""
-    In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:2:4
     [E16 invalidMethMdf]
     mdf is not a valid modifier for a method (on the method .foo/0).
     """, """
@@ -156,7 +156,7 @@ public class TestFullWellFormedness {
     B:{ recMdf .argh: recMdf X } // should fail because X is not defined here
     """); }
   @Test void useUndefinedIdent() { fail("""
-    In position [###]/Dummy0.fear:2:5
+    In position [###]/Dummy0.fear:2:28
     [E28 undefinedName]
     The identifier "b" is undefined or cannot be captured.
     """, """
@@ -175,7 +175,7 @@ public class TestFullWellFormedness {
     B[X]:{ recMdf .argh: recMdf X }
     """); }
   @Test void noRecMdfInNonReadRet() { fail("""
-    In position [###]/Dummy0.fear:2:5
+    In position [###]/Dummy0.fear:2:7
     [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf X.
     recMdf may only be used in recMdf methods. The method .foo/0 has the imm modifier.
@@ -184,7 +184,7 @@ public class TestFullWellFormedness {
     A[X]:{ .foo(): recMdf X }
     """); }
   @Test void noRecMdfInNonReadRetNested() { fail("""
-    In position [###]/Dummy0.fear:2:5
+    In position [###]/Dummy0.fear:2:7
     [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf X.
     recMdf may only be used in recMdf methods. The method .foo/0 has the imm modifier.
@@ -193,7 +193,7 @@ public class TestFullWellFormedness {
     A[X]:{ .foo(): A[recMdf X] }
     """); }
   @Test void noRecMdfInNonRecMdfArgs() { fail("""
-    In position [###]/Dummy0.fear:3:5
+    In position [###]/Dummy0.fear:3:7
     [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf base.Foo[].
     recMdf may only be used in recMdf methods. The method .foo/1 has the imm modifier.
@@ -203,7 +203,7 @@ public class TestFullWellFormedness {
     A[X]:{ .foo(f: recMdf Foo): Foo -> f }
     """); }
   @Test void noRecMdfInNonReadArgsNested() { fail("""
-    In position [###]/Dummy0.fear:3:5
+    In position [###]/Dummy0.fear:3:7
     [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf X.
     recMdf may only be used in recMdf methods. The method .foo/1 has the imm modifier.
@@ -237,7 +237,7 @@ public class TestFullWellFormedness {
     Bar:{ recMdf .a: recMdf Foo -> recMdf Foo }
     """); }
   @Test void explicitMdfLambdaRecMdfONonHyg1(){ fail("""
-    In position [###]/Dummy0.fear:3:4
+    In position [###]/Dummy0.fear:3:6
     [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf test.Foo[].
     recMdf may only be used in recMdf methods. The method .a/0 has the imm modifier.
@@ -253,7 +253,7 @@ public class TestFullWellFormedness {
     """); }
 
   @Test void noShadowingSelfName(){ fail("""
-    In position [###]/Dummy0.fear:2:4
+    In position [###]/Dummy0.fear:4:11
     [E9 shadowingX]
     'unique' is shadowing another variable in scope.
     """, """
@@ -297,7 +297,7 @@ public class TestFullWellFormedness {
     }
 
     fail(String.format("""
-    In position [###]/Dummy0.fear:2:2
+    In position [###]/Dummy0.fear:2:4
     [E26 recMdfInNonRecMdf]
     Invalid modifier for recMdf test.Res[].
     recMdf may only be used in recMdf methods. The method .foo/0 has the %s modifier.

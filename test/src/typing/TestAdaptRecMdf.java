@@ -98,7 +98,7 @@ public class TestAdaptRecMdf {
 
   @Property void adaptRecMdfGenCurrent(@ForAll("lambdaMdf") Mdf lambdaMdf, @ForAll("genericMdf") Mdf genericMdf) {
     var expected = lambdaMdf.adapt(genericMdf);
-    if (genericMdf.isMdf() && lambdaMdf.isMdf()) { expected = Mdf.recMdf; }
+    if (genericMdf.isMdf() && lambdaMdf.isRecMdf()) { expected = Mdf.recMdf; }
     ok("""
     [test.List[%s Z],recMdf.get/0()[][]:%s Zabs,
     test.List[%s Z],read.asRead/0()[][]:read Zabs]
