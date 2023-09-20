@@ -257,22 +257,14 @@ public class TestJavaProgram {
 
   @Test void println() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
-    alias base.Main as Main, alias base.Void as Void,
+    alias base.Main as Main, alias base.Void as Void, alias base.Do as Do,
     Test:Main{ s -> Do#
-      .use[base.caps.IO](base.caps.FIO, { io, s' -> s'.return{ io.println "Hello, World!" } })
-      }
-    """);}
-  @Disabled
-  @Test void printlnInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
-    package test
-    alias base.Main as Main, alias base.Void as Void,
-    Test:Main{ s -> Do#
-      .use(base.caps.FIO, { io, s' -> s'.return{ io.println "Hello, World!" } })
+      .var({ base.caps.FIO#s }, { io, s' -> s'.return{ io.println "Hello, World!" } })
       }
     """);}
   @Test void printlnSugar() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
-    alias base.Main as Main, alias base.Void as Void,
+    alias base.Main as Main, alias base.Void as Void, alias base.Do as Do,
     alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> Do#
       .var[mut IO] io = { FIO#s }
@@ -281,23 +273,23 @@ public class TestJavaProgram {
     """); }
   @Test void printlnDeeper() { ok(new Res("IO begets IO", "", 0), "test.Test", """
     package test
-    alias base.Main as Main, alias base.Void as Void,
+    alias base.Main as Main, alias base.Void as Void, alias base.Do as Do,
     alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> Do#
       .var[mut IO] io = { FIO#s }
-      .return{ io
-        .use[IO] io2 = base.caps.FIO'
+      .return{ Do#
+        .var io2 = { base.caps.FIO#s }
         .return{ io2.println("IO begets IO") }
         }
       }
     """); }
   @Test void print() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
-    alias base.Main as Main, alias base.Void as Void,
+    alias base.Main as Main, alias base.Void as Void, alias base.Do as Do,
     alias base.caps.IO as IO, alias base.caps.FIO as FIO,
     Test:Main{ s -> Do#
       .var[mut IO] io = { FIO#s }
-            .do{ io.print("Hello") }
+      .do{ io.print("Hello") }
       .return{ io.print(", World!") }
       }
     """); }
@@ -346,13 +338,12 @@ public class TestJavaProgram {
       }
     """); }
 
-  @Disabled
   @Test void printlnSugarInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Do as Do,
     alias base.caps.FIO as FIO,
     Test:Main{ s -> Do#
-      .use io = FIO
+      .var io = { FIO#s }
       .return{ io.println("Hello, World!") }
       }
     """); }
@@ -807,7 +798,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Do#
       .var[mut IO] io = { FIO#s }
-            .var s1 = { IsoPod#[Str]"help, i'm alive" }
+      .var s1 = { IsoPod#[Str]iso "help, i'm alive" }
       .do{ s1.peekHyg{
         .some(str) -> io.println("peek: " + str),
         .none -> Void
@@ -951,16 +942,9 @@ public class TestJavaProgram {
       package test
       Test:Main{ _ -> Do#
         .var[Opt[Int]] i = { Opt#[Int]16 }
-        .var[Opt[Int]] ix10 = { i.map2{n -> n * 10} }
+        .var[Opt[Int]] ix10 = { i.map{n -> n * 10} }
         .return{{}}
         }
       """, Base.mutBaseAliases);
   }
-
-//  @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
-//    package test
-//    alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
-//    alias base.Ref as Ref, alias base.Int as Int,
-//    Test:Main{ _ -> Assert#((Ref#[Int]5)* == 5, { Void }) }
-//    """); }
 }
