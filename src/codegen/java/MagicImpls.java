@@ -317,6 +317,28 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     };
   }
 
+  @Override public MagicTrait<String> magicAbort(MIR.Lambda l, MIR e) {
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        return gen.visitLambda(l, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        if (m.equals(new Id.MethName("!", 0))) {
+          return Optional.of("""
+            switch (1) { default -> {
+              System.err.println("No magic code was found at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
+              System.exit(1);
+              yield null;
+            }}
+            """);
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
   @Override public MagicTrait<String> objCap(Id.DecId target, MIR.Lambda l, MIR e) {
     var _this = this;
     return new MagicTrait<>() {
@@ -375,7 +397,7 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
       }
       private ObjCapImpl env() {
         return (ctx, m, args, gamma) ->{
-          if (m.equals(new Id.MethName("#", 1))) {
+          if (m.equals(new Id.MethName("#", 1)) || m.equals(new Id.MethName(".io", 1))) {
             return """
               new base$46caps.Env_0(){
                 public base.LList_1 launchArgs$() { return FAux.LAUNCH_ARGS; }

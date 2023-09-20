@@ -34,7 +34,7 @@ public interface CM {
     public boolean isAbs(){ return m.isAbs(); }
     public CM withSig(ast.E.Sig sig){ return new CoreCM(c, m, sig); }
     public Pos pos() { return this.m.posOrUnknown(); }
-    @Override public Map<Id.GX<astFull.T>, Set<Mdf>> bounds() {
+    @Override public Map<Id.GX<T>, Set<Mdf>> bounds() {
       return sig.bounds();
     }
 
@@ -49,7 +49,7 @@ public interface CM {
     public Id.MethName name(){ return m.name().orElseThrow(); }
     public List<String> xs(){ return m.xs(); }
     public boolean isAbs(){ return m.isAbs(); }
-    @Override public Map<Id.GX<astFull.T>, Set<Mdf>> bounds() {
+    @Override public Map<Id.GX<T>, Set<Mdf>> bounds() {
       return sig.bounds();
     }
     public CM withSig(ast.E.Sig sig){ return new FullCM(c, m, sig); }

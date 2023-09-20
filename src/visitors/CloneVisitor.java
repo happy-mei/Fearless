@@ -11,13 +11,15 @@ import utils.Mapper;
 import java.util.stream.Collectors;
 
 public interface CloneVisitor{
-  default E.Meth visitMeth(E.Meth e){ return new E.Meth(
-    visitSig(e.sig()),
-    visitMethName(e.name()),
-    e.xs(),
-    e.body().map(b->b.accept(this)),
-    e.pos()
-  );}
+  default E.Meth visitMeth(E.Meth e){
+    return new E.Meth(
+      visitSig(e.sig()),
+      visitMethName(e.name()),
+      e.xs(),
+      e.body().map(b->b.accept(this)),
+      e.pos()
+    );
+  }
   default E visitMCall(E.MCall e){ return new E.MCall(
     e.receiver().accept(this),
     visitMethName(e.name()),
@@ -35,17 +37,19 @@ public interface CloneVisitor{
   ); }
   default Mdf visitMdf(Mdf mdf){return mdf;}
   default MethName visitMethName(MethName e){ return e; }
-  default E.Sig visitSig(E.Sig e){return new E.Sig(
-    visitMdf(e.mdf()),
-    e.gens().stream().map(this::visitGX).toList(),
-    Mapper.of(acc->e.bounds().forEach((key, value)->{
-      var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());
-      acc.put(key, res);
-    })),
-    e.ts().stream().map(this::visitT).toList(),
-    visitT(e.ret()),
-    e.pos()
-  );}
+  default E.Sig visitSig(E.Sig e){
+    return new E.Sig(
+      visitMdf(e.mdf()),
+      e.gens().stream().map(this::visitGX).toList(),
+      Mapper.of(acc->e.bounds().forEach((key, value)->{
+        var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());
+        acc.put(key, res);
+      })),
+      e.ts().stream().map(this::visitT).toList(),
+      visitT(e.ret()),
+      e.pos()
+    );
+  }
   default T visitT(T t){ return new T(
     visitMdf(t.mdf()),
     t.rt().match(this::visitGX,this::visitIT)

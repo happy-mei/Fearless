@@ -6,6 +6,7 @@ import id.Id;
 import id.Id.MethName;
 import id.Mdf;
 import parser.Parser;
+import utils.Mapper;
 import visitors.CloneVisitor;
 import visitors.GammaVisitor;
 import visitors.Visitor;
@@ -86,13 +87,13 @@ public interface E extends HasPos {
       return String.format("%s(%s): %s -> %s", name, xs, sig, body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<astFull.T>, Set<Mdf>> bounds,  List<T> ts, T ret, Optional<Pos> pos){
+  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds,  List<T> ts, T ret, Optional<Pos> pos){
     public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
     public astFull.E.Sig toAstFullSig() {
       return new astFull.E.Sig(
         mdf,
         gens.stream().map(gx->new Id.GX<astFull.T>(gx.name())).toList(),
-        bounds,
+        Mapper.of(xbs->bounds.forEach((k,v)->xbs.put(k.toFullAstGX(), v))),
         ts.stream().map(T::toAstFullT).toList(),
         ret.toAstFullT(),
         pos

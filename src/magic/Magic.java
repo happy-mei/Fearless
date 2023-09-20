@@ -18,6 +18,7 @@ public class Magic {
   public static final Id.DecId IsoPodK = new Id.DecId("base.caps.IsoPod", 0);
   public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);
   public static final Id.DecId Abort = new Id.DecId("base.Abort", 0);
+  public static final Id.DecId MagicAbort = new Id.DecId("base.Magic", 0);
 
   // object capabilities
   public static final Id.DecId RootCap = new Id.DecId("base.caps.RootCap", 0);

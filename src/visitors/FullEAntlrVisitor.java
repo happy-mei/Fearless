@@ -153,7 +153,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       return new T(t.mdf(), new Id.GX<>(gx.name()));
     }).toList());
   }
-  public record GenericParams(List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds) {}
+  public record GenericParams(List<Id.GX<T>> gxs, Map<Id.GX<? extends Id.Ty>, Set<Mdf>> bounds) {}
   public Optional<GenericParams> visitMGenParams(MGenContext ctx){
     var mGens = this.visitMGen(ctx, false);
     return mGens
@@ -164,7 +164,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         ))
         .toList())
       .map(gxs -> {
-        Map<Id.GX<T>, Set<Mdf>> boundsMap = Mapper.of(acc->Streams.zip(ctx.genDecl(), gxs)
+        Map<Id.GX<? extends Id.Ty>, Set<Mdf>> boundsMap = Mapper.of(acc->Streams.zip(ctx.genDecl(), gxs)
           .filter((declCtx, gx)->declCtx.mdf() != null && !declCtx.mdf().isEmpty())
           .forEach((declCtx, gx) -> {
             var bounds = declCtx.mdf().stream().map(this::visitMdf).collect(Collectors.toSet());
@@ -287,7 +287,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), h.bounds(), xs.stream().map(E.X::t).toList(), h.ret(), Optional.of(pos(ctx))));
     return new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body, Optional.of(pos(ctx)));
   }
-  public record MethHeader(Mdf mdf, MethName name, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds, List<E.X> xs, T ret){}
+  public record MethHeader(Mdf mdf, MethName name, List<Id.GX<T>> gens, Map<Id.GX<? extends Id.Ty>, Set<Mdf>> bounds, List<E.X> xs, T ret){}
   @Override
   public MethHeader visitSig(SigContext ctx) {
     check(ctx);

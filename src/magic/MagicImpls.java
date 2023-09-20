@@ -29,6 +29,7 @@ public interface MagicImpls<R> {
       if (isMagic(Magic.IsoPodK, l)) { return Optional.ofNullable(isoPodK(l, e)); }
       if (isMagic(Magic.Assert, l)) { return Optional.ofNullable(assert_(l, e)); }
       if (isMagic(Magic.Abort, l)) { return Optional.ofNullable(abort(l, e)); }
+      if (isMagic(Magic.MagicAbort, l)) { return Optional.ofNullable(abort(l, e)); }
       return Magic.ObjectCaps.stream()
         .filter(target->isMagic(target, l))
         .map(target->Optional.ofNullable(objCap(target, l, e)))
@@ -61,7 +62,8 @@ public interface MagicImpls<R> {
   MagicTrait<R> refK(MIR.Lambda l, MIR e);
   MagicTrait<R> isoPodK(MIR.Lambda l, MIR e);
   MagicTrait<R> assert_(MIR.Lambda l, MIR e);
-  default MagicTrait<R> abort(MIR.Lambda l, MIR e) { return  null; }
+  default MagicTrait<R> abort(MIR.Lambda l, MIR e) { return null; }
+  default MagicTrait<R> magicAbort(MIR.Lambda l, MIR e) { return null; }
   MagicTrait<R> objCap(Id.DecId magicTrait, MIR.Lambda l, MIR e);
   ast.Program p();
 

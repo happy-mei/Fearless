@@ -238,6 +238,42 @@ public interface Program {
       if (thisSubst != null) { return thisSubst; }
       return t;
     }
+
+    @Override public T.Dec visitDec(T.Dec d) {
+      var xbs = d.bounds().entrySet().stream().collect(Collectors.toMap(
+        kv->{
+          var thisSubst = subst.get(kv.getKey());
+          if (thisSubst != null) { return thisSubst; }
+          return kv.getKey();
+        },
+        Map.Entry::getValue
+      ));
+      return new T.Dec(
+        visitDecId(d.name()),
+        d.gxs().stream().map(this::visitGX).toList(),
+        xbs,
+        visitLambda(d.lambda()),
+        d.pos()
+      );
+    }
+    @Override public ast.E.Sig visitSig(ast.E.Sig e) {
+      var xbs = e.bounds().entrySet().stream().collect(Collectors.toMap(
+        kv->{
+          var thisSubst = subst.get(kv.getKey());
+          if (thisSubst != null) { return thisSubst; }
+          return kv.getKey();
+        },
+        Map.Entry::getValue
+      ));
+      return new ast.E.Sig(
+        visitMdf(e.mdf()),
+        e.gens().stream().map(this::visitGX).toList(),
+        xbs,
+        e.ts().stream().map(this::visitT).toList(),
+        visitT(e.ret()),
+        e.pos()
+      );
+    }
   }
   default CM norm(CM cm) {
     /*

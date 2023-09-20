@@ -148,7 +148,7 @@ public sealed interface E extends HasPos {
       return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds, List<T> ts, T ret, Optional<Pos> pos){
+  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<? extends Id.Ty>, Set<Mdf>> bounds, List<T> ts, T ret, Optional<Pos> pos){
     public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
     public Sig withGens(List<Id.GX<T>> gens){
       return new Sig(mdf, gens, bounds, ts, ret, pos);

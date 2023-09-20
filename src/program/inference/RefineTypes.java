@@ -155,7 +155,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     }
   }
 
-  public record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, Map<Id.GX<T>, Set<Mdf>> bounds, List<T> args, T rt){
+  public record RefinedSig(Mdf mdf, Id.MethName name, List<T> gens, Map<Id.GX<? extends Id.Ty>, Set<Mdf>> bounds, List<T> args, T rt){
     E.Sig toSig(Optional<Pos> pos) {
       return new astFull.E.Sig(mdf, gens.stream().map(T::gxOrThrow).toList(), bounds, args, rt, pos);
     }

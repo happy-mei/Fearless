@@ -1,9 +1,14 @@
 package program.typesystem;
 
+import id.Mdf;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
 
+import java.util.Optional;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
 
@@ -2077,4 +2082,25 @@ were valid:
         .return{lent B},
       }
     """, blockSrc); }
+
+  @Test void xbsMappingWorks() {
+    var expected = Set.of(Mdf.imm, Mdf.mut);
+    var xbs = XBs.empty();
+    xbs = xbs.add("X", expected);
+    assertEquals(Optional.of(expected), xbs.getO("X"));
+  }
+  @Test void xbsMappingMultipleWorks() {
+    var expected = Set.of(Mdf.imm, Mdf.mut);
+    var xbs = XBs.empty();
+    xbs = xbs.add("X", Set.of(Mdf.mut));
+    xbs = xbs.add("Y", expected);
+    assertEquals(Optional.of(expected), xbs.getO("Y"));
+  }
+  @Test void xbsMappingHistoryWorks() {
+    var expected = Set.of(Mdf.mut);
+    var xbs = XBs.empty();
+    xbs = xbs.add("X", expected);
+    xbs = xbs.add("Y", Set.of(Mdf.imm, Mdf.mut));
+    assertEquals(Optional.of(expected), xbs.getO("X"));
+  }
 }

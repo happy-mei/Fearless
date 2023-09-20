@@ -64,7 +64,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     for (var gx : d.gxs()) {
       var bounds = d.bounds().get(gx);
       if (bounds == null || bounds.isEmpty()) { continue; }
-      xbs = xbs.add(gx, bounds);
+      xbs = xbs.add(gx.name(), bounds);
     }
     var invalidGens = GenericBounds.validGenericLambda(p(), xbs, b);
     ELambdaTypeSystem boundedTypeSys = (ELambdaTypeSystem) withXBs(xbs);
@@ -95,13 +95,13 @@ interface ELambdaTypeSystem extends ETypeSystem{
     for (var gx : m.sig().gens()) {
       var bounds = m.sig().bounds().get(gx);
       if (bounds == null || bounds.isEmpty()) { continue; }
-      xbs_ = xbs_.add(gx, bounds);
+      xbs_ = xbs_.add(gx.name(), bounds);
     }
     final var xbs = xbs_;
     var typeSysBounded = (ELambdaTypeSystem) withXBs(xbs);
 
     var sigInvalid = Stream.concat(m.sig().ts().stream(), Stream.of(m.sig().ret()))
-      .map(t->GenericBounds.validGenericT((ast.Program) p(), xbs, t))
+      .map(t->GenericBounds.validGenericT(p(), xbs, t))
       .filter(Optional::isPresent)
       .map(Optional::get)
       .map(err->err.pos(m.pos()))

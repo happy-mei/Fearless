@@ -2,11 +2,11 @@ package base
 
 ReturnStmt[R]:{ mut #: mdf R }
 Condition:{ mut #: Bool }
-VarContinuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
+VarContinuation[X, R: imm,mut]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
 Do:{
-  #[R]: mut Block[mdf R] -> {},
+  #[R: imm,mut]: mut Block[mdf R] -> {},
   }
-Block[R]:{
+Block[R: imm,mut]:{
   mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
   mut .do(r: mut ReturnStmt[Void]): mut Block[mdf R] -> this._do(r#),
     mut ._do(v: Void): mut Block[mdf R] -> this,
@@ -28,12 +28,12 @@ Block[R]:{
       },
     },
   }
-BlockIf[R]:{
+BlockIf[R: imm,mut]:{
   mut .return(a: mut ReturnStmt[mdf R]): mut Block[mdf R],
   mut .do(r: mut ReturnStmt[Void]): mut Block[mdf R],
   }
 _DecidedBlock:{
-  #[R: imm, mut](res: mdf R): mut Block[mdf R] -> { 'self
+  #[R: imm,mut](res: mdf R): mut Block[mdf R] -> { 'self
     .return(_) -> res,
     .do(_) -> self,
     .var(_, _) -> res,

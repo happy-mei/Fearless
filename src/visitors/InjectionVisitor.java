@@ -5,6 +5,7 @@ import astFull.E;
 import id.Id;
 import id.Mdf;
 import utils.Bug;
+import utils.Mapper;
 import utils.Push;
 
 import java.util.List;
@@ -99,7 +100,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     return new ast.E.Sig(
       s.mdf(),
       s.gens().stream().map(this::visitGX).toList(),
-      s.bounds(),
+      Mapper.of(bounds->s.bounds().forEach((gx,bs)->bounds.put(visitGX(gx), bs))),
       s.ts().stream().map(this::visitT).toList(),
       this.visitT(s.ret()),
       s.pos()
@@ -108,11 +109,11 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
 
   public ast.Program visitProgram(astFull.Program p){
     Map<Id.DecId, T.Dec> coreDs = p.ds().entrySet().stream()
-      .collect(Collectors.toMap(kv->kv.getKey(), kv->visitDec(kv.getValue())));
+      .collect(Collectors.toMap(Map.Entry::getKey, kv->visitDec(kv.getValue())));
     return new ast.Program(coreDs);
   }
 
-  private Id.GX<ast.T> visitGX(Id.GX<astFull.T> gx){
+  private Id.GX<ast.T> visitGX(Id.GX<? extends Id.Ty> gx){
     return new Id.GX<>(gx.name());
   }
 }

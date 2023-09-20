@@ -1,6 +1,5 @@
 package id;
 
-import astFull.T;
 import parser.Parser;
 import utils.Bug;
 import utils.OneOr;
@@ -13,7 +12,7 @@ import java.util.stream.IntStream;
 
 public class Id {
   public sealed interface Dec permits astFull.T.Dec, ast.T.Dec {
-    Map<GX<T>, Set<Mdf>> bounds();
+    Map<GX<? extends Ty>, Set<Mdf>> bounds();
   }
   public static boolean validM(String m){
     assert m!=null && !m.isEmpty();
@@ -107,10 +106,10 @@ public class Id {
     public IT<TT> withTs(List<TT>ts){ return new IT<>(new DecId(name.name,ts.size()), ts); }
     @Override public String toString(){ return name.name()+ts; }
     public IT<ast.T> toAstIT(Function<TT, ast.T> transform) {
-      return new IT<ast.T>(name, ts.stream().map(transform).toList());
+      return new IT<>(name, ts.stream().map(transform).toList());
     }
     public IT<astFull.T> toFullAstIT(Function<TT, astFull.T> transform) {
-      return new IT<astFull.T>(name, ts.stream().map(transform).toList());
+      return new IT<>(name, ts.stream().map(transform).toList());
     }
   }
 }

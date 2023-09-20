@@ -12,10 +12,13 @@ public interface XBs {
   default Set<Mdf> get(Id.GX<?> x) {
     return getO(x).orElse(defaultBounds);
   }
-  Optional<Set<Mdf>> getO(Id.GX<?> s);
+  default Optional<Set<Mdf>> getO(Id.GX<?> x) {
+    return getO(x.name());
+  }
+  Optional<Set<Mdf>> getO(String s);
   static XBs empty(){ return x->Optional.empty(); }
-  default XBs add(Id.GX<?> x, Set<Mdf> bounds) {
+  default XBs add(String x, Set<Mdf> bounds) {
     assert !bounds.contains(Mdf.mdf) && !bounds.contains(Mdf.recMdf);
-    return xi->xi.equals(x) ? Optional.of(bounds) : this.getO(x);
+    return xi->xi.equals(x) ? Optional.of(bounds) : this.getO(xi);
   }
 }
