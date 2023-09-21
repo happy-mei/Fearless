@@ -55,12 +55,15 @@ LList[E]:Sealed{
     .none -> l1
     },
   recMdf +(e: recMdf E): recMdf LList[recMdf E] -> this ++ (recMdf LList#e),
+//  recMdf ==(isEq: recMdf LListEq[recMdf E], other: recMdf LList[mdf E]): Bool -> recMdf base.iter.Automaton{
+//    },
   mut .list: mut List[mdf E] -> List.fromLList(this),
   }
 LListMatch[E,TE,R]:{
   mut .elem(head: mdf E, tail: read LList[mdf TE]): mdf R,
   mut .empty: mdf R,
   }
+//LListEq[E]:{ mut #(self: mdf E, other: mdf E): Bool }
 LListIter:{
   #[E:imm,mut](list: mut LList[mdf E]): mut Iter[mdf E] -> Do#
     .var[mut Ref[mut LList[mdf E]]] cursor = { Ref#list }

@@ -4,9 +4,7 @@ import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import id.Id;
 import main.Main;
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.inference.InferBodies;
@@ -944,6 +942,50 @@ public class TestJavaProgram {
         .var[Opt[Int]] i = { Opt#[Int]16 }
         .var[Opt[Int]] ix10 = { i.map{n -> n * 10} }
         .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+
+  @Test void equality() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      Test:Main{ _ -> Do#
+        .var[Shape] s1 = {{ .x -> 5, .y -> 6 }}
+        .var[Shape] s1' = {{ .x -> 5, .y -> 6 }}
+        .assert({ s1 == s1 }, "shape eq same id")
+        .assert({ s1 == s1' }, "shape same structure")
+        .var[Shape] s2 = {{ .x -> 7, .y -> 6 }}
+        .assert({ s1 != s2 }, "shape neq")
+        .return{{}}
+        }
+      
+      Shape:{
+        .x: Int, .y: Int,
+        ==(other: Shape): Bool -> (this.x == (other.x)) && (this.y == (other.y)),
+        !=(other: Shape): Bool -> this == other .not,
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void equalitySubtyping() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      Test:Main{ _ -> Do#
+        .var[Shape] s1 = {{ .x -> 5, .y -> 6 }}
+        .var[Square] sq1 = {{ .x -> 5, .y -> 6, .size -> 12 }}
+        .var[Square] sq1' = {{ .x -> 5, .y -> 6, .size -> 12 }}
+        .assert({ sq1 == sq1' }, "square eq same structure")
+        .assert({ s1 == sq1 }, "shape eq")
+        .return{{}}
+        }
+      
+      Shape:{
+        .x: Int, .y: Int,
+        ==(other: Shape): Bool -> (this.x == (other.x)) && (this.y == (other.y)),
+        !=(other: Shape): Bool -> this == other .not,
+        }
+      Square:Shape{
+        read .size: Int,
+        .eqSq(other: Square): Bool -> this == other && (this.size == (other.size)),
         }
       """, Base.mutBaseAliases);
   }

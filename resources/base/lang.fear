@@ -29,4 +29,3 @@ Yeet:{
   #[X](x: mdf X): Void -> this.with(x, Void),
   .with[X,R](_: mdf X, res: mdf R): mdf R -> res,
   }
-
