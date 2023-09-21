@@ -5,6 +5,7 @@ import astFull.Package;
 import astFull.Program;
 import astFull.T;
 import astFull.T.Alias;
+import failure.Fail;
 import files.Pos;
 import generated.FearlessLexer;
 import generated.FearlessParser;
@@ -131,9 +132,12 @@ public record Parser(Path fileName,String content){
     return orElse.apply(errorsp.toString());
   }
   Package parseNudeProgram(NudeProgramContext res){
-    return new FullEAntlrVisitor(fileName,
-      s->{throw Bug.unreachable();})
-      .visitNudeProgram(res); 
+    return new FullEAntlrVisitor(
+      fileName,
+      s->{
+        throw Fail.undefinedName(s).pos(FullEAntlrVisitor.pos(fileName, res));
+      }
+    ).visitNudeProgram(res);
   }
 }
 class FailConsole extends ConsoleErrorListener{

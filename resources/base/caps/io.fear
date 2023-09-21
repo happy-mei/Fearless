@@ -1,4 +1,5 @@
 package base.caps
+alias base.LList[base.Str] as Path,
 
 /// Capability for reading and writing to files and devices, including stdout and stderr.
 IO:{
@@ -6,6 +7,9 @@ IO:{
   mut .println(msg: Str): Void,
   mut .printErr(msg: Str): Void,
   mut .printlnErr(msg: Str): Void,
+  // Low level file operations, see the FS capability for a higher-level interface
+  mut .path(path: Path): mut base.caps.fs.FS,
+  mut .fopen(path: Path, mode: FileHandleMode): mut base.caps.fs.RawFileHandle,
   }
 FIO:F[mut System, mut IO],Sealed{
   s -> {
@@ -13,6 +17,8 @@ FIO:F[mut System, mut IO],Sealed{
     .println(msg) -> Magic!,
     .printErr(msg) -> Magic!,
     .printlnErr(msg) -> Magic!,
+    .path(path) -> Magic!,
+    .fopen(path, mode) -> Magic!,
     }
   }
 
@@ -68,7 +74,8 @@ FIO:F[mut System, mut IO],Sealed{
 //  lent .close: Void
 //  }
 //
-//FileHandleMode:Stringable,Sealed{}
-//Read:FileHandleMode{ "r" }
-//Write:FileHandleMode{ "r+" }
-//Create:FileHandleMode{ "w+" }
+
+FileHandleMode:Stringable,Sealed{}
+Read:FileHandleMode{ "r" }
+Write:FileHandleMode{ "r+" }
+Create:FileHandleMode{ "w+" }

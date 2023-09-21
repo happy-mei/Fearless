@@ -104,8 +104,8 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       .or(()->noShadowingGX(e.sig().map(E.Sig::gens).orElse(List.of())))
       .or(()->validMethMdf(e))
       .or(()->e.sig().flatMap(s->e.name().flatMap(name->noRecMdfInNonRecMdf(s, name))).map(err->err.pos(e.pos())))
-      .map(err->err.pos(e.posOrUnknown()))
-      .or(()->super.visitMeth(e));
+      .or(()->super.visitMeth(e))
+      .map(err->err.parentPos(e.pos()));
   }
   @Override public Optional<CompileError> visitT(T t){
     return mdfOnlyOnGX(t)
@@ -119,7 +119,8 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   public Optional<CompileError> visitDec(T.Dec d) {
     return hasNonDisjointXs(d.gxs().stream().map(Id.GX::name).toList(), d)
       .or(()->noSelfNameOnTopLevelDec(d.lambda()))
-      .or(()->super.visitDec(d));
+      .or(()->super.visitDec(d))
+      .map(err->err.parentPos(d.pos()));
   }
 
   @Override public Optional<CompileError> visitProgram(Program p){

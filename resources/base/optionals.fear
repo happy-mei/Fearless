@@ -32,14 +32,7 @@ OptFlatMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
   .some(x) -> this#x,
   .none -> {},
   }
-OptFilter[T]:{
-  mut .predicate(x: mdf T): Bool,
-//  #(x) -> this.predicate(x) ? { .then -> mut Opt#x, .else -> {} },
-  }
-OptDo[T,R]:OptMap[mdf T, mdf T]{ x -> x }
 
-//OptOr:{ #[T](alt: mdf T): mut OptOr[mdf T] -> { alt } }
-//OptOr[T]:OptMatch[mdf T, mdf T],NoMutHyg[mdf T]{ .some(x) -> x }
 OptOr:{ recMdf #[T](alt: recMdf T): recMdf OptOr[recMdf T] -> { alt } }
 OptOr[T]:OptMatchHyg[mdf T, mdf T]{ recMdf .some(x: mdf T): mdf T -> x }
 

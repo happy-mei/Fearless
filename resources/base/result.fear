@@ -1,0 +1,43 @@
+package base
+
+Res:{
+  recMdf #[T](x: recMdf T): recMdf Res[mdf T] -> {
+    .match(m) -> m.ok(x),
+    .matchHyg(m) -> m.ok(x),
+    },
+  recMdf .ok[T,E](x: recMdf T): recMdf Res[mdf T, mdf E] -> {
+    .match(m) -> m.ok(x),
+    .matchHyg(m) -> m.ok(x),
+    },
+  recMdf .err[T,E](x: recMdf E): recMdf Res[mdf T, mdf E] -> {
+    .match(m) -> m.err(x),
+    .matchHyg(m) -> m.err(x),
+    }
+  }
+Res[T]:Res[mdf T, Info]
+Res[T,E]:{
+  recMdf .match[R](m: mut ResMatch[recMdf T, recMdf E, mdf R]): mdf R,
+  recMdf .matchHyg[R](m: recMdf ResMatchHyg[recMdf T, recMdf E, mdf R]): mdf R,
+  recMdf !: recMdf T -> this.match(mut _ResUnwrap[recMdf T, recMdf E]),
+  recMdf .map[R](f: mut ResMap[recMdf T, recMdf E, recMdf R]): mut Res[recMdf R, recMdf E] -> this.match(f),
+  recMdf .flatMap[R](f: mut ResFlatMap[recMdf T, recMdf E, recMdf R]): mut Res[recMdf R, recMdf E] -> this.match(f),
+  recMdf .do(f: mut ResMatch[recMdf T, recMdf E, Void]): recMdf Res[recMdf T, recMdf E] ->
+    Yeet.with[Void, recMdf Res[recMdf T, recMdf E]](this.match(f), this),
+  read .isErr: Bool -> this.match{ .err(_) -> True, .ok(_) -> False },
+  read .isOk: Bool -> this.match{ .err(_) -> False, .ok(_) -> True },
+  }
+ResMatch[T,E,R]:{ mut .ok(x: mdf T): mdf R, mut .err(x: mdf E): mdf R }
+ResMatchHyg[T,E,R]:{ recMdf .ok(x: mdf T): mdf R, recMdf .err(x: mdf E): mdf R }
+ResMap[T,E,R]:ResMatch[mdf T, mdf E, mut Res[mdf R, mdf E]]{
+  mut #(x: mdf T): mdf R,
+  .ok(x) -> mut Res.ok[mdf R, mdf E](this#x),
+  .err(x) -> mut Res.err[mdf R, mdf E](x),
+  }
+ResFlatMap[T,E,R]:ResMatch[mdf T, mdf E, mut Res[mdf R, mdf E]]{
+  mut #(x: mdf T): mut Res[mdf R, mdf E],
+  .ok(x) -> this#x,
+  .err(x) -> mut Res.err[mdf R, mdf E](x),
+  }
+
+_ResUnwrap[T,E]:ResMatch[mdf T, mdf E, mdf T]{ .ok(x) -> x, .err(_) -> Abort! }
+
