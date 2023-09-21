@@ -147,7 +147,7 @@ public class TestFullWellFormedness {
     """); }
 
   @Test void useUndefinedX() { fail("""
-    In position [###]/Dummy0.fear:3:2
+    In position [###]/Dummy0.fear:3:4
     [E28 undefinedName]
     The identifier "X" is undefined or cannot be captured.
     """, """
