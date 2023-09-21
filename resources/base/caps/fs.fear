@@ -1,12 +1,16 @@
 package base.caps.fs
 alias base.UInt as UInt, alias base.Str as Str,
-alias base.caps.IO as IO,
+alias base.Res as Res,
+alias base.LList as LList,
 alias base.LList[base.Str] as Path,
+alias base.caps.IO as IO,
 
 FS:{
-//  .readBytes(start: UInt, end: UInt):
   }
-File:{}
+File:{
+  .readBytes(start: UInt, end: UInt): Res[LList[UInt]],
+  .readBytesUTF8(start: UInt, end: UInt): Res[Str],
+  }
 FileRW:File{}
 
 RawFileHandle:{}
