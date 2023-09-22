@@ -33,22 +33,32 @@ package base
 
 LList:{
   recMdf #[E](head: recMdf E): recMdf LList[recMdf E] -> this.cons(head, {}),
-  recMdf .cons[E](head: recMdf E, tail: recMdf LList[recMdf E]): recMdf LList[recMdf E] -> {
+  recMdf .cons[E](head: recMdf E, tail: recMdf LList[recMdf E]): recMdf LList[recMdf E] -> {'l
     .match(m) -> m.elem(head, tail),
     .head -> recMdf Opt#[recMdf E](head),
     .tail -> tail,
+    .isEmpty -> False,
+    .len -> tail.len + 1u,
     .get(i) -> (i == 0u).look(recMdf BoolView[recMdf Opt[recMdf E]]{
       .then -> recMdf Opt#head,
       .else -> tail.get(i - 1u)
-      })
-    },
+      }),
+    recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): mut Opt[recMdf R] -> l._run[mdf R](automaton.step(head)),
+      recMdf ._run[R](out: recMdf base.iter.Output[recMdf E, recMdf R]): mut Opt[recMdf R] -> out.next.matchHyg{
+        .some(next) -> tail.isEmpty.look(recMdf BoolView[mut Opt[recMdf R]]{
+          .then -> mut Opt#(out.result),
+          .else -> tail.run(next)
+          }),
+        .none -> mut Opt#(out.result)
+        },
+      },
   }
 LList[E]:Sealed{
   recMdf .match[R](m: mut LListMatch[recMdf E, mdf E, mdf R]): mdf R -> m.empty,
   recMdf .head: recMdf Opt[recMdf E] -> {},
   recMdf .tail: recMdf LList[mdf E] -> {},
-  read .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
-  read .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
+  read .isEmpty: Bool -> True,
+  recMdf .len: UInt -> 0u,
   recMdf .get(i: UInt): recMdf Opt[recMdf E] -> {},
   recMdf ++(l1: recMdf LList[recMdf E]): recMdf LList[recMdf E] -> this.head.matchHyg{
     .some(h) -> recMdf LList.cons(h, this.tail ++ l1),
@@ -58,6 +68,8 @@ LList[E]:Sealed{
 //  recMdf ==(isEq: recMdf LListEq[recMdf E], other: recMdf LList[mdf E]): Bool -> recMdf base.iter.Automaton{
 //    },
   mut .list: mut List[mdf E] -> List.fromLList(this),
+  recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): mut Opt[recMdf R] -> {},
+  recMdf .allMatch(predicate: recMdf base.iter.Predicate[recMdf E]): Opt[Bool] -> this.run(recMdf Automaton.allMatch(predicate)),
   }
 LListMatch[E,TE,R]:{
   mut .elem(head: mdf E, tail: read LList[mdf TE]): mdf R,
@@ -72,6 +84,9 @@ LListIter:{
     .var[mut Ref[LList[E]]] cursor = { Ref#list }
     .return{ mut #: mut Iter[E] -> { .next -> (cursor.swap(cursor*.tail)).head.map{x->x} } }
   }
+//_RunAutomaton[E,R]:{
+//  recMdf .
+//  }
 
 List:{
   // TODO: something weird is happening in inference that is inferring [recMdf E] on these method calls

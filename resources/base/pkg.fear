@@ -1,2 +1,3 @@
 package base
 alias base.caps.IsoPod as IsoPod,
+alias base.iter.Automaton as Automaton,

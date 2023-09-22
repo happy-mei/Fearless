@@ -46,6 +46,7 @@ public class TestJavaProgram {
     var mirInjectionVisitor = new MIRInjectionVisitor(inferred);
     var mir = mirInjectionVisitor.visitProgram();
     var java = new JavaCodegen(mirInjectionVisitor.getProgram()).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
+    System.out.println("Running...");
     var res = RunJava.of(new JavaProgram(java).compile(), args).join();
     Assertions.assertEquals(expected, res);
   }
@@ -813,9 +814,9 @@ public class TestJavaProgram {
         .var[Auto[FB, FB]] pB = { Auto.pure(F[FB,FB]{ _ -> Bar }) }
         .var[Auto[FB, FB]] pId = { Auto.pure(F[FB,FB]{ a -> a }) }
         .do{ Assert#(pB.step(Foo).result.str == "Bar") }
-        .do{ Assert#(pB.step(Foo).next.step(Foo).result.str == "Bar") }
+        .do{ Assert#(pB.step(Foo).next!.step(Foo).result.str == "Bar") }
         .do{ Assert#(pId.step(Foo).result.str == "Foo") }
-        .do{ Assert#(pId.step(Foo).next.step(Bar).result.str == "Bar") }
+        .do{ Assert#(pId.step(Foo).next!.step(Bar).result.str == "Bar") }
         .return{{}}
         }
       
@@ -831,7 +832,7 @@ public class TestJavaProgram {
       Test:Main{ _ -> Do#
         .var[mut Auto[FB, mut FB]] pB = { mut Auto.const[FB, mut FB](mut Bar) }
         .do{ Assert#(pB.step(Foo).result.str == "Bar") }
-        .do{ Assert#(pB.step(Foo).next.step(Foo).result.str == "Bar") }
+        .do{ Assert#(pB.step(Foo).next!.step(Foo).result.str == "Bar") }
         .return{{}}
         }
       FB:Stringable{}
@@ -847,7 +848,7 @@ public class TestJavaProgram {
       .var[mut Bar] bar = { mut Bar }
       .var[mut Auto[FB, mut FB]] pB = { mut Auto.const[FB, mut FB](bar) }
       .do{ Assert#(pB.step(Foo).result.str == "Bar") }
-      .do{ Assert#(pB.step(Foo).next.step(Foo).result.str == "Bar") }
+      .do{ Assert#(pB.step(Foo).next!.step(Foo).result.str == "Bar") }
       .return{{}}
       }
     FB:Stringable{}
@@ -862,7 +863,7 @@ public class TestJavaProgram {
       Test:Main{ _ -> Do#
         .var[mut Auto[mut FB, mut FB]] pB = { mut Auto.id[mut FB] }
         .do{ Assert#(pB.step(mut Foo).result.str == "Foo") }
-        .do{ Assert#(pB.step(mut Foo).next.step(mut Bar).result.str == "Bar") }
+        .do{ Assert#(pB.step(mut Foo).next!.step(mut Bar).result.str == "Bar") }
         .return{{}}
         }
       FB:Stringable{}
@@ -906,13 +907,13 @@ public class TestJavaProgram {
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
         .var[mut LList[Int]] l = { mut LList#[Int]12 + 3 + 6 + 7 }
-        .var[mut Auto[mut Opt[Int]]] a = { mut Auto.llist(l) }
-        .var[mut Auto[mut Opt[Int],mut Opt[Int]]] x10 = { mut Auto.pure(F[mut Opt[Int],mut Opt[Int]]{ n -> n.map{n' -> n' * 10} }) }
-        .var[mut Auto[Void, mut Opt[Int]]] ax10 = { a |> x10 }
-        .do{ Assert#(a.step(Void).result! == 12) }
-        .do{ Assert#(a.step.result! == 12) }
-        .do{ Assert#(a.step.next.step.result! == 3) }
-        .do{ Assert#(ax10.step(Void).result! == 120) }
+        .var[mut Auto[Void, Int]] a = { mut Auto.llist(l)! }
+        .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
+        .var[mut Auto[Void, Int]] ax10 = { a |> x10 }
+        .do{ Assert#(a.step{}.result == 12) }
+        .do{ Assert#(a.step{}.result == 12) }
+        .do{ Assert#(a.step{}.next!.step(Void).result == 3) }
+        .do{ Assert#(ax10.step{}.result == 120) }
         .return{{}}
         }
       """, Base.mutBaseAliases);
@@ -923,13 +924,54 @@ public class TestJavaProgram {
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
         .var[LList[Int]] l = { LList#[Int]12 + 3 + 6 + 7 }
-        .var[Auto[Opt[Int]]] a = { Auto.llist(l) }
-        .var[Auto[Opt[Int],Opt[Int]]] x10 = { Auto.pure(F[Opt[Int],Opt[Int]]{ n -> n.map{n' -> n' * 10} }) }
-        .var[Auto[Void, Opt[Int]]] ax10 = { a |> x10 }
-        .do{ Assert#(a.step(Void).result! == 12) }
-        .do{ Assert#(a.step.result! == 12) }
-        .do{ Assert#(a.step.next.step.result! == 3) }
-        .do{ Assert#(ax10.step(Void).result! == 120) }
+        .var[Auto[Void,Int]] a = { Auto.llist(l)! }
+        .var[Auto[Int,Int]] x10 = { Auto.pure(F[Int,Int]{ n -> n * 10 }) }
+        .var[Auto[Void, Int]] ax10 = { a |> x10 }
+        .do{ Assert#(a.step(Void).result == 12) }
+        .do{ Assert#(a.step(Void).result == 12) }
+        .do{ Assert#(a.step(Void).next!.step(Void).result == 3) }
+        .do{ Assert#(ax10.step(Void).result == 120) }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonListRunnerMut() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[mut LList[Int]] l = { mut LList#[Int]12 + 3 + 6 + 7 }
+        .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
+        .var[Int] lx10 = { l.run(x10)! }
+        .assert{ lx10 == 70 }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonListRunner() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      Test:Main{ _ -> Do#
+        .var[LList[Int]] l = { LList#[Int]12 + 3 + 6 + 7 }
+        .var[Auto[Int,Int]] x10 = { Auto.pure(F[Int,Int]{ n -> n * 10 }) }
+        .var[Int] lx10 = { l.run(x10)! }
+        .assert{ lx10 == 70 }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonAllMatch1() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      alias base.iter.Predicate as P,
+      Test:Main{ _ -> Do#
+        .var[LList[Int]] l = { LList#[Int]12 + 3 + 6 + 7 }
+        .assert{ l.run(Auto.allMatch P[Int]{n -> n > 1 })! }
+        .assert{ l.run(Auto.allMatch P[Int]{n -> n > 4 })!.not }
+        .assert{ l.run[Bool]((Auto.allMatch P[Int]{n -> n > 4 }) |> (Auto.pure F[Bool,Bool]{b -> b.not}))! }
+        .assert{ l.run[Bool]((Auto.pure F[Bool,Bool]{b -> b.not}) <| (Auto.allMatch P[Int]{n -> n > 4 }))! }
         .return{{}}
         }
       """, Base.mutBaseAliases);

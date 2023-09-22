@@ -1,5 +1,4 @@
 package base.iter
-Output[R]:Output[Void, mdf R]{}
 Output[A,R]:{ recMdf .next: recMdf Opt[recMdf Automaton[mdf A, mdf R]], recMdf .result: mdf R }
 
 Automaton:{
@@ -16,11 +15,12 @@ Automaton:{
       }},
     .none -> {}
     },
-//  recMdf .run[E](auto: recMdf Automaton[Void, recMdf E]): recMdf E ->
-  }
-Automaton[R]:Automaton[Void, mdf R]{
-  recMdf .step: recMdf Output[recMdf R],
-  recMdf .step(a: Void): recMdf Output[recMdf R] -> this.step,
+  recMdf .allMatch[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, Bool] -> {'self
+    a -> p#a.look(recMdf BoolView[recMdf Output[recMdf A, Bool]]{
+      .then -> { .next -> recMdf Opt#self, .result -> True },
+      .else -> { .next -> {}, .result -> False },
+      })
+    },
   }
 Automaton[A,R]:{
   recMdf .step(a: recMdf A): recMdf Output[recMdf A, recMdf R],
@@ -40,12 +40,6 @@ Automaton[A,R]:{
       },
     },
   recMdf <|[AA](other: recMdf Automaton[recMdf AA, recMdf A]): recMdf Automaton[recMdf AA, recMdf R] -> other |> this,
-//  recMdf .allMatch(p: recMdf Predicate[recMdf A]): Bool -> recMdf Automaton[recMdf A, recMdf R]{'self
-//    a -> p#a.look{
-//      .then ->
-//      .else -> False
-//      }
-//    }
   }
 Predicate[A]:{ recMdf #(a: mdf A): Bool }
 
