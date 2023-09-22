@@ -21,6 +21,8 @@ Automaton:{
       .else -> { .next -> {}, .result -> False },
       })
     },
+  recMdf .map[A,R](f: recMdf MapFn[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'self
+    a -> { .next -> recMdf Opt#self, .result -> f#a }},
   }
 Automaton[A,R]:{
   recMdf .step(a: recMdf A): recMdf Output[recMdf A, recMdf R],
@@ -40,8 +42,13 @@ Automaton[A,R]:{
       },
     },
   recMdf <|[AA](other: recMdf Automaton[recMdf AA, recMdf A]): recMdf Automaton[recMdf AA, recMdf R] -> other |> this,
+  recMdf .map[RR](f: recMdf MapFn[recMdf R, recMdf RR]): recMdf Automaton[recMdf A, recMdf RR] -> this |> (recMdf Automaton.map f),
+  recMdf .allMatch(p: recMdf Predicate[recMdf R]): recMdf Automaton[recMdf A, Bool] -> this |> (recMdf Automaton.allMatch p),
+  recMdf .run[RR](runner: recMdf RunAutomaton[recMdf A, recMdf R, mdf RR]): mdf RR -> runner#this,
   }
 Predicate[A]:{ recMdf #(a: mdf A): Bool }
+MapFn[A,R]:{ recMdf #(a: mdf A): mdf R }
+RunAutomaton[A,R,RR]:{ recMdf #(auto: recMdf Automaton[recMdf A, recMdf R]): mdf RR }
 
 //PureF[A,B]:{ #(a: recMdf A): recMdf B }
 //_RunLList[E]:{

@@ -6,6 +6,14 @@ Iter[E:imm,mut]:{
     .some(x) -> p#x ? { .then -> mut Opt#x, .else -> this.find(p) },
     .none -> {}
     },
+  mut .allMatch(p: mut IterPredicate[mdf E]): Bool -> this.find{x -> p#x .not}.match{
+    .some(_) -> False,
+    .none -> True
+    },
+  mut .anyMatch(p: mut IterPredicate[mdf E]): Bool -> this.find(p).match{
+    .some(_) -> True,
+    .none -> False
+    },
 
   mut .map[R:imm,mut](f: mut IterMapper[mdf E, mdf R]): mut Iter[mdf R] -> { this.next.map(f) },
   mut .flatMap[R:imm,mut](f: mut IterMapper[mdf E, mut Iter[mdf R]]): mut Iter[mdf R] -> Do#

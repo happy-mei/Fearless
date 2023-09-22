@@ -976,6 +976,26 @@ public class TestJavaProgram {
         }
       """, Base.mutBaseAliases);
   }
+  @Test void automatonAllMatch2() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      alias base.iter.Predicate as P,
+      alias base.iter.MapFn as MF,
+      Test:Main{ _ -> Do#
+        .var[LList[Int]] l = { LList#[Int]12 + 3 + 6 + 7 }
+        .assert{ l.run(Auto.map(MF[Int,Int]{n -> n * 10})
+                           .map(MF[Int,Int]{n -> n * 1000})
+                           .allMatch(P[Int]{n -> n >= 30000}))! }
+//        .assert{ Auto.map(MF[Int,Int]{n -> n * 10})
+//                     .map(MF[Int,Int]{n -> n * 1000})
+//                     .allMatch(P[Int]{n -> n >= 30000})
+//                     .run(base.iter.RunAutomaton[Int,Bool,Opt[Bool]]{auto -> l.run(auto)})
+//          }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
 
   @Test void optionalMapImm() {
     ok(new Res("", "", 0), "test.Test", """
