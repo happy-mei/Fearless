@@ -37,7 +37,6 @@ Automaton[A,R]:{
           .some(r) -> recMdf Opt#(l |>[recMdf RR] r)
           }
         },
-//      .next -> left.next |> (right.next),
       .result -> right.result
       },
     },
