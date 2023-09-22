@@ -23,6 +23,14 @@ Automaton:{
     },
   recMdf .map[A,R](f: recMdf MapFn[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'self
     a -> { .next -> recMdf Opt#self, .result -> f#a }},
+//  recMdf .filter[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, recMdf A] -> {'self
+//      a -> {
+//        .next -> p#a.look(recMdf BoolView[recMdf Automaton[mdf A, recMdf A]]{
+//          .then -> recMdf Opt#self,
+//          .else ->
+//          }),
+//        .result -> a
+//        }},
   }
 Automaton[A,R]:{
   recMdf .step(a: recMdf A): recMdf Output[recMdf A, recMdf R],
