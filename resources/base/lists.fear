@@ -43,14 +43,15 @@ LList:{
       .then -> recMdf Opt#head,
       .else -> tail.get(i - 1u)
       }),
-    recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): mut Opt[recMdf R] -> l._run[mdf R](automaton.step(head)),
-      recMdf ._run[R](out: recMdf base.iter.Output[recMdf E, recMdf R]): mut Opt[recMdf R] -> out.next.matchHyg{
-        .some(next) -> tail.isEmpty.look(recMdf BoolView[mut Opt[recMdf R]]{
-          .then -> mut Opt#(out.result),
-          .else -> tail.run(next)
-          }),
-        .none -> mut Opt#(out.result)
-        },
+    recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): recMdf Opt[recMdf R] -> l._run[mdf R](automaton.step(head)),
+      recMdf ._run[R](out: recMdf Opt[recMdf base.iter.Output[recMdf E, recMdf R]]): recMdf Opt[recMdf R] ->
+        out.matchHyg{
+          .some(res) -> tail.isEmpty.look(recMdf BoolView[recMdf Opt[recMdf R]]{
+            .then -> recMdf Opt#(res.result),
+            .else -> tail.run(res.next).matchHyg{ .some(finalResult) -> recMdf Opt#finalResult, .none -> recMdf Opt#(res.result) }
+            }),
+          .none -> {}
+          },
       },
   }
 LList[E]:Sealed{
@@ -68,9 +69,9 @@ LList[E]:Sealed{
 //  recMdf ==(isEq: recMdf LListEq[recMdf E], other: recMdf LList[mdf E]): Bool -> recMdf base.iter.Automaton{
 //    },
   mut .list: mut List[mdf E] -> List.fromLList(this),
-  recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): mut Opt[recMdf R] -> {},
+  recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): recMdf Opt[recMdf R] -> {},
   // TODO: probably delete this unless we want automaton methods on containers
-  recMdf .allMatch(predicate: recMdf base.iter.Predicate[recMdf E]): Opt[Bool] -> this.run(recMdf Automaton.allMatch(predicate)),
+  recMdf .allMatch(predicate: recMdf base.iter.Predicate[recMdf E]): recMdf Opt[Bool] -> this.run(recMdf Automaton.allMatch(predicate)),
 //  recMdf ==(other: recMdf LList[mdf E]): Bool -> this.run(recMdf Automaton.allMatch(base.iter.Predicate[recMdf E]))
   }
 LListMatch[E,TE,R]:{

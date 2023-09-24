@@ -813,10 +813,10 @@ public class TestJavaProgram {
       Test:Main{ _ -> Do#
         .var[Auto[FB, FB]] pB = { Auto.pure(F[FB,FB]{ _ -> Bar }) }
         .var[Auto[FB, FB]] pId = { Auto.pure(F[FB,FB]{ a -> a }) }
-        .do{ Assert#(pB.step(Foo).result.str == "Bar") }
-        .do{ Assert#(pB.step(Foo).next!.step(Foo).result.str == "Bar") }
-        .do{ Assert#(pId.step(Foo).result.str == "Foo") }
-        .do{ Assert#(pId.step(Foo).next!.step(Bar).result.str == "Bar") }
+        .do{ Assert#(pB.step(Foo)!.result.str == "Bar") }
+        .do{ Assert#(pB.step(Foo)!.next.step(Foo)!.result.str == "Bar") }
+        .do{ Assert#(pId.step(Foo)!.result.str == "Foo") }
+        .do{ Assert#(pId.step(Foo)!.next.step(Bar)!.result.str == "Bar") }
         .return{{}}
         }
       
@@ -831,8 +831,8 @@ public class TestJavaProgram {
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
         .var[mut Auto[FB, mut FB]] pB = { mut Auto.const[FB, mut FB](mut Bar) }
-        .do{ Assert#(pB.step(Foo).result.str == "Bar") }
-        .do{ Assert#(pB.step(Foo).next!.step(Foo).result.str == "Bar") }
+        .do{ Assert#(pB.step(Foo)!.result.str == "Bar") }
+        .do{ Assert#(pB.step(Foo)!.next.step(Foo)!.result.str == "Bar") }
         .return{{}}
         }
       FB:Stringable{}
@@ -847,8 +847,8 @@ public class TestJavaProgram {
     Test:Main{ _ -> Do#
       .var[mut Bar] bar = { mut Bar }
       .var[mut Auto[FB, mut FB]] pB = { mut Auto.const[FB, mut FB](bar) }
-      .do{ Assert#(pB.step(Foo).result.str == "Bar") }
-      .do{ Assert#(pB.step(Foo).next!.step(Foo).result.str == "Bar") }
+      .do{ Assert#(pB.step(Foo)!.result.str == "Bar") }
+      .do{ Assert#(pB.step(Foo)!.next.step(Foo)!.result.str == "Bar") }
       .return{{}}
       }
     FB:Stringable{}
@@ -862,8 +862,8 @@ public class TestJavaProgram {
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
         .var[mut Auto[mut FB, mut FB]] pB = { mut Auto.id[mut FB] }
-        .do{ Assert#(pB.step(mut Foo).result.str == "Foo") }
-        .do{ Assert#(pB.step(mut Foo).next!.step(mut Bar).result.str == "Bar") }
+        .do{ Assert#(pB.step(mut Foo)!.result.str == "Foo") }
+        .do{ Assert#(pB.step(mut Foo)!.next.step(mut Bar)!.result.str == "Bar") }
         .return{{}}
         }
       FB:Stringable{}
@@ -878,10 +878,10 @@ public class TestJavaProgram {
       Test:Main{ _ -> Do#
         .var[Auto[Int,Int]] a = { Auto.const[Int,Int] 5 }
         .var[Auto[Int,Int]] b = { Auto.pure(F[Int,Int]{n -> n * 10}) }
-        .do{ Assert#(a.step(0).result == 5) }
-        .do{ Assert#(b.step(6).result == 60) }
+        .do{ Assert#(a.step(0)!.result == 5) }
+        .do{ Assert#(b.step(6)!.result == 60) }
         .var[Auto[Int,Int]] c = { a |> b }
-        .do{ Assert#(c.step(0).result == 50) }
+        .do{ Assert#(c.step(0)!.result == 50) }
         .return{{}}
         }
       """, Base.mutBaseAliases);
@@ -893,10 +893,10 @@ public class TestJavaProgram {
       Test:Main{ _ -> Do#
         .var[Auto[Int,Int]] a = { Auto.const[Int,Int] 5 }
         .var[Auto[Int,Int]] b = { Auto.pure(F[Int,Int]{n -> n * 10}) }
-        .do{ Assert#(a.step(0).result == 5) }
-        .do{ Assert#(b.step(6).result == 60) }
+        .do{ Assert#(a.step(0)!.result == 5) }
+        .do{ Assert#(b.step(6)!.result == 60) }
         .var[Auto[Int,Int]] c = { b <| a }
-        .do{ Assert#(c.step(0).result == 50) }
+        .do{ Assert#(c.step(0)!.result == 50) }
         .return{{}}
         }
       """, Base.mutBaseAliases);
@@ -907,13 +907,13 @@ public class TestJavaProgram {
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
         .var[mut LList[Int]] l = { mut LList#[Int]12 + 3 + 6 + 7 }
-        .var[mut Auto[Void, Int]] a = { mut Auto.llist(l)! }
+        .var[mut Auto[Void, Int]] a = { mut Auto.llist(l) }
         .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
         .var[mut Auto[Void, Int]] ax10 = { a |> x10 }
-        .do{ Assert#(a.step{}.result == 12) }
-        .do{ Assert#(a.step{}.result == 12) }
-        .do{ Assert#(a.step{}.next!.step(Void).result == 3) }
-        .do{ Assert#(ax10.step{}.result == 120) }
+        .do{ Assert#(a.step{}!.result == 12) }
+        .do{ Assert#(a.step{}!.result == 12) }
+        .do{ Assert#(a.step{}!.next.step(Void)!.result == 3) }
+        .do{ Assert#(ax10.step{}!.result == 120) }
         .return{{}}
         }
       """, Base.mutBaseAliases);
@@ -924,13 +924,13 @@ public class TestJavaProgram {
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
         .var[LList[Int]] l = { LList#[Int]12 + 3 + 6 + 7 }
-        .var[Auto[Void,Int]] a = { Auto.llist(l)! }
+        .var[Auto[Void,Int]] a = { Auto.llist(l) }
         .var[Auto[Int,Int]] x10 = { Auto.pure(F[Int,Int]{ n -> n * 10 }) }
         .var[Auto[Void, Int]] ax10 = { a |> x10 }
-        .do{ Assert#(a.step(Void).result == 12) }
-        .do{ Assert#(a.step(Void).result == 12) }
-        .do{ Assert#(a.step(Void).next!.step(Void).result == 3) }
-        .do{ Assert#(ax10.step(Void).result == 120) }
+        .do{ Assert#(a.step(Void)!.result == 12) }
+        .do{ Assert#(a.step(Void)!.result == 12) }
+        .do{ Assert#(a.step(Void)!.next.step(Void)!.result == 3) }
+        .do{ Assert#(ax10.step(Void)!.result == 120) }
         .return{{}}
         }
       """, Base.mutBaseAliases);

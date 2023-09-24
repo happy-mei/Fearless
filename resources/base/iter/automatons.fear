@@ -1,28 +1,28 @@
 package base.iter
-Output[A,R]:{ recMdf .next: recMdf Opt[recMdf Automaton[mdf A, mdf R]], recMdf .result: mdf R }
+Output[A,R]:{ recMdf .next: recMdf Automaton[mdf A, mdf R], recMdf .result: mdf R }
 
 Automaton:{
   recMdf .pure[A,R](f: F[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'self
-    a -> { .next -> recMdf Opt#self, .result -> f#a } },
+    a -> recMdf Opt#{ .next -> self, .result -> f#a } },
   recMdf .id[A]: recMdf Automaton[recMdf A, recMdf A] -> {'self
-    a -> { .next -> recMdf Opt#self, .result -> a } },
+    a -> recMdf Opt#{ .next -> self, .result -> a } },
   recMdf .const[A,R](x: recMdf R): recMdf Automaton[recMdf A, recMdf R] -> {'self
-    _ -> { .next -> recMdf Opt#self, .result -> x } },
-  recMdf .llist[E](list: recMdf LList[recMdf E]): recMdf Opt[recMdf Automaton[Void, recMdf E]] -> list.head.matchHyg[recMdf Opt[recMdf Automaton[Void, recMdf E]]]{
-    .some(h) -> recMdf Opt#{ _ -> {
-      .next -> this.llist(list.tail),
-      .result -> h
-      }},
-    .none -> {}
+    _ -> recMdf Opt#{ .next -> self, .result -> x } },
+  read .empty[A,R]: iso Automaton[mdf A, mdf R] -> { _ -> {} },
+  recMdf .llist[E](list: recMdf LList[recMdf E]): recMdf Automaton[Void, recMdf E] -> {'self
+    _ -> list.head.matchHyg{
+      .some(h) -> recMdf Opt#{ .next -> this.llist(list.tail), .result -> h },
+      .none -> {}
+      }
     },
   recMdf .allMatch[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, Bool] -> {'self
-    a -> p#a.look(recMdf BoolView[recMdf Output[recMdf A, Bool]]{
-      .then -> { .next -> recMdf Opt#self, .result -> True },
-      .else -> { .next -> {}, .result -> False },
+    a -> p#a.look(recMdf BoolView[recMdf Opt[recMdf Output[recMdf A, Bool]]]{
+      .then -> recMdf Opt#{ .next -> self, .result -> True },
+      .else -> recMdf Opt#{ .next -> { _ -> {} }, .result -> False },
       })
     },
   recMdf .map[A,R](f: recMdf MapFn[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'self
-    a -> { .next -> recMdf Opt#self, .result -> f#a }},
+    a -> recMdf Opt#{ .next -> self, .result -> f#a }},
 //  recMdf .filter[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, recMdf A] -> {'self
 //      a -> {
 //        .next -> p#a.look(recMdf BoolView[recMdf Automaton[mdf A, recMdf A]]{
@@ -33,20 +33,23 @@ Automaton:{
 //        }},
   }
 Automaton[A,R]:{
-  recMdf .step(a: recMdf A): recMdf Output[recMdf A, recMdf R],
+  recMdf .step(a: recMdf A): recMdf Opt[recMdf Output[recMdf A, recMdf R]],
   recMdf |>[RR](other: recMdf Automaton[recMdf R, recMdf RR]): recMdf Automaton[recMdf A, recMdf RR] -> {'self
-    .step(a) -> self.compose[](this.step(a)),
-    recMdf .compose(left: recMdf Output[recMdf A, recMdf R]): recMdf Output[recMdf A, recMdf RR] -> self.compose'[](left, other.step(left.result)),
-    recMdf .compose'(left: recMdf Output[recMdf A, recMdf R], right: recMdf Output[recMdf R, recMdf RR]): recMdf Output[recMdf A, recMdf RR] -> {
-      .next -> left.next.matchHyg{
-        .none -> recMdf Opt[recMdf Automaton[recMdf A, recMdf RR]],
-        .some(l) -> right.next.matchHyg{
-          .none -> recMdf Opt[recMdf Automaton[recMdf A, recMdf RR]],
-          .some(r) -> recMdf Opt#(l |>[recMdf RR] r)
-          }
-        },
-      .result -> right.result
+    .step(a) -> this.step(a).matchHyg{
+      .some(left) -> self.compose[](left),
+      .none -> {}
       },
+    recMdf .compose[](left: recMdf Output[recMdf A, recMdf R]): recMdf Opt[recMdf Output[recMdf A, recMdf RR]] ->
+      other.step(left.result).matchHyg{
+        .some(right) -> recMdf Opt#(self.compose'[](left, right)),
+        .none -> {}
+        },
+    recMdf .compose'[](
+      left: recMdf Output[recMdf A, recMdf R],
+      right: recMdf Output[recMdf R, recMdf RR]): recMdf Output[recMdf A, recMdf RR] -> {
+        .next -> left.next |> (right.next),
+        .result -> right.result
+        },
     },
   recMdf <|[AA](other: recMdf Automaton[recMdf AA, recMdf A]): recMdf Automaton[recMdf AA, recMdf R] -> other |> this,
   recMdf .map[RR](f: recMdf MapFn[recMdf R, recMdf RR]): recMdf Automaton[recMdf A, recMdf RR] -> this |> (recMdf Automaton.map f),
