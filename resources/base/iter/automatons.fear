@@ -23,14 +23,17 @@ Automaton:{
     },
   recMdf .map[A,R](f: recMdf MapFn[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'self
     a -> recMdf Opt#{ .next -> self, .result -> f#a }},
-//  recMdf .filter[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, recMdf A] -> {'self
-//      a -> {
-//        .next -> p#a.look(recMdf BoolView[recMdf Automaton[mdf A, recMdf A]]{
-//          .then -> recMdf Opt#self,
-//          .else ->
-//          }),
-//        .result -> a
-//        }},
+  // TODO: filtering
+  recMdf .filter[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, recMdf A] -> {'self
+    // filtering adjusts how composition works, rather than any computation in step
+    .step(a) -> recMdf Opt#{ .next -> self, .result -> a },
+    recMdf |>[R](other: recMdf Automaton[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'filtered
+      .step(a) -> p#a.look(recMdf BoolView[recMdf Opt[recMdf Output[recMdf A, recMdf R]]]{
+        .then -> base.Abort!,
+        .else -> base.Abort!,
+        })
+      },
+    }
   }
 Automaton[A,R]:{
   recMdf .step(a: recMdf A): recMdf Opt[recMdf Output[recMdf A, recMdf R]],
