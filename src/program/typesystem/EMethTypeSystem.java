@@ -64,7 +64,7 @@ public interface EMethTypeSystem extends ETypeSystem {
           .map(CompileError::toString)
           .collect(Collectors.joining("\n"))
           .indent(4);
-        var dependentErrors = dependentErrorMsgs.length() > 0
+        var dependentErrors = !dependentErrorMsgs.isEmpty()
           ? "\n"+"The following errors were found when checking this sub-typing:\n".indent(2)+dependentErrorMsgs
           : "";
         return "("+ String.join(", ", call) +") <: "+tst1+dependentErrors;

@@ -1,5 +1,9 @@
 package base.iter
-Output[A,R]:{ recMdf .next: recMdf Automaton[mdf A, mdf R], recMdf .result: mdf R }
+Output[A,R]:{
+  recMdf .next: recMdf Automaton[mdf A, mdf R],
+  recMdf .result: mdf R,
+  recMdf .completed: Bool -> False,
+  }
 
 Automaton:{
   recMdf .pure[A,R](f: F[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'self
@@ -18,21 +22,21 @@ Automaton:{
   recMdf .allMatch[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, Bool] -> {'self
     a -> p#a.look(recMdf BoolView[recMdf Opt[recMdf Output[recMdf A, Bool]]]{
       .then -> recMdf Opt#{ .next -> self, .result -> True },
-      .else -> recMdf Opt#{ .next -> { _ -> {} }, .result -> False },
+      .else -> recMdf Opt#{ .next -> { _ -> {} }, .result -> False, .completed -> True },
       })
     },
   recMdf .map[A,R](f: recMdf MapFn[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'self
-    a -> recMdf Opt#{ .next -> self, .result -> f#a }},
+    a -> recMdf Opt#{ .next -> self, .result -> f#a }
+    },
+//  recMdf .do[A](f: mut DoFn[recMdf A]): mut Automaton[recMdf A, recMdf A] -> {'self
+//      a -> Yeet.with(f#a, recMdf Opt#{ .next -> self, .result -> a })
+//      },
   // TODO: filtering
   recMdf .filter[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, recMdf A] -> {'self
-    // filtering adjusts how composition works, rather than any computation in step
-    .step(a) -> recMdf Opt#{ .next -> self, .result -> a },
-    recMdf |>[R](other: recMdf Automaton[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'filtered
-      .step(a) -> p#a.look(recMdf BoolView[recMdf Opt[recMdf Output[recMdf A, recMdf R]]]{
-        .then -> base.Abort!,
-        .else -> base.Abort!,
-        })
-      },
+    a -> p#a.look(recMdf BoolView[recMdf Opt[recMdf Output[recMdf A, recMdf A]]]{
+      .then -> recMdf Opt#{ .next -> self, .result -> a },
+      .else -> {}
+      })
     }
   }
 Automaton[A,R]:{
@@ -51,16 +55,20 @@ Automaton[A,R]:{
       left: recMdf Output[recMdf A, recMdf R],
       right: recMdf Output[recMdf R, recMdf RR]): recMdf Output[recMdf A, recMdf RR] -> {
         .next -> left.next |> (right.next),
-        .result -> right.result
+        .result -> right.result,
+        .completed -> left.completed || (right.completed)
         },
     },
   recMdf <|[AA](other: recMdf Automaton[recMdf AA, recMdf A]): recMdf Automaton[recMdf AA, recMdf R] -> other |> this,
   recMdf .map[RR](f: recMdf MapFn[recMdf R, recMdf RR]): recMdf Automaton[recMdf A, recMdf RR] -> this |> (recMdf Automaton.map f),
+  recMdf .filter(p: recMdf Predicate[recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> this |> (recMdf Automaton.filter p),
+//  recMdf .do(f: mut DoFn[recMdf R]): mut Automaton[recMdf A, recMdf R] -> this |> (recMdf Automaton.do f),
   recMdf .allMatch(p: recMdf Predicate[recMdf R]): recMdf Automaton[recMdf A, Bool] -> this |> (recMdf Automaton.allMatch p),
   recMdf .run[RR](runner: recMdf RunAutomaton[recMdf A, recMdf R, mdf RR]): mdf RR -> runner#this,
   }
 Predicate[A]:{ recMdf #(a: mdf A): Bool }
 MapFn[A,R]:{ recMdf #(a: mdf A): mdf R }
+DoFn[A]:{ mut #(a: mdf A): Void }
 RunAutomaton[A,R,RR]:{ recMdf #(auto: recMdf Automaton[recMdf A, recMdf R]): mdf RR }
 
 //PureF[A,B]:{ #(a: recMdf A): recMdf B }

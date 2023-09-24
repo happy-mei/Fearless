@@ -43,16 +43,19 @@ LList:{
       .then -> recMdf Opt#head,
       .else -> tail.get(i - 1u)
       }),
-    recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): recMdf Opt[recMdf R] -> l._run[mdf R](automaton.step(head)),
-      recMdf ._run[R](out: recMdf Opt[recMdf base.iter.Output[recMdf E, recMdf R]]): recMdf Opt[recMdf R] ->
+    recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): recMdf Opt[recMdf R] ->
+      l._run[mdf R](automaton, automaton.step(head)),
+    recMdf ._run[R](
+      automaton: recMdf Automaton[recMdf E, mdf R],
+      out: recMdf Opt[recMdf base.iter.Output[recMdf E, recMdf R]]): recMdf Opt[recMdf R] ->
         out.matchHyg{
-          .some(res) -> tail.isEmpty.look(recMdf BoolView[recMdf Opt[recMdf R]]{
+          .some(res) -> (tail.isEmpty || (res.completed)).look(recMdf BoolView[recMdf Opt[recMdf R]]{
             .then -> recMdf Opt#(res.result),
             .else -> tail.run(res.next).matchHyg{ .some(finalResult) -> recMdf Opt#finalResult, .none -> recMdf Opt#(res.result) }
             }),
-          .none -> {}
+          .none -> tail.run(automaton),
           },
-      },
+    },
   }
 LList[E]:Sealed{
   recMdf .match[R](m: mut LListMatch[recMdf E, mdf E, mdf R]): mdf R -> m.empty,

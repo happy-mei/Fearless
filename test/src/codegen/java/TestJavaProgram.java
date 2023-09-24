@@ -976,6 +976,36 @@ public class TestJavaProgram {
         }
       """, Base.mutBaseAliases);
   }
+  @Test void automatonEarlyExit() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      alias base.iter.MapFn as MF, alias base.iter.Predicate as P, alias base.iter.DoFn as DF,
+      Test:Main{ s -> Do#
+        .var[mut LList[Int]] l = { mut LList#[Int]5 + 3 + 6 + 7 }
+        .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
+        .assert{ l.run(mut Auto.map(mut MF[Int,Int]{n -> n * 10})
+                               .map(mut MF[Int,Int]{n -> Assert#(n < 70, "not early exiting", {n})})
+                               .allMatch(mut P[Int]{n -> n >= 50}))!.not }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonEarlyExitFilter() {
+    ok(new Res("", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      alias base.iter.MapFn as MF, alias base.iter.Predicate as P, alias base.iter.DoFn as DF,
+      Test:Main{ s -> Do#
+        .var[mut LList[Int]] l = { mut LList#[Int]1 + 2 + 3 }
+        .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
+        .assert{ l.run(mut Auto.map(mut MF[Int,Int]{n -> n * 10})
+                               .filter(mut P[Int]{n -> (n == 20).not})
+                               .allMatch(mut P[Int]{n -> (n == 20).not}))! }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
   @Test void automatonAllMatch2() {
     ok(new Res("", "", 0), "test.Test", """
       package test
