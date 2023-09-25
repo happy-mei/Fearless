@@ -1018,7 +1018,7 @@ public class TestJavaProgram {
         }
       ReadAuto:{
         #(l: read LList[mut Person]): Str -> l.run[Str](read Auto.map(read MF[read Person,Str]{p -> p.name})
-                                                                 .filter(mut P[Str]{name -> (name == "Charles").not }))!,
+                                                                 .filter({name -> (name == "Charles").not }))!,
         }
       """, Base.mutBaseAliases);
   }
