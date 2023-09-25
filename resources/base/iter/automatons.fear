@@ -31,7 +31,6 @@ Automaton:{
 //  recMdf .do[A](f: mut DoFn[recMdf A]): mut Automaton[recMdf A, recMdf A] -> {'self
 //      a -> Yeet.with(f#a, recMdf Opt#{ .next -> self, .result -> a })
 //      },
-  // TODO: filtering
   recMdf .filter[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, recMdf A] -> {'self
     a -> p#a.look(recMdf BoolView[recMdf Opt[recMdf Output[recMdf A, recMdf A]]]{
       .then -> recMdf Opt#{ .next -> self, .result -> a },

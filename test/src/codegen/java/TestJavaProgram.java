@@ -998,11 +998,27 @@ public class TestJavaProgram {
       alias base.iter.MapFn as MF, alias base.iter.Predicate as P, alias base.iter.DoFn as DF,
       Test:Main{ s -> Do#
         .var[mut LList[Int]] l = { mut LList#[Int]1 + 2 + 3 }
-        .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
         .assert{ l.run(mut Auto.map(mut MF[Int,Int]{n -> n * 10})
                                .filter(mut P[Int]{n -> (n == 20).not})
                                .allMatch(mut P[Int]{n -> (n == 20).not}))! }
         .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void automatonRead() {
+    ok(new Res("Bob", "", 0), "test.Test", """
+      package test
+      alias base.iter.Automaton as Auto,
+      alias base.iter.MapFn as MF, alias base.iter.Predicate as P, alias base.iter.DoFn as DF,
+      Person:{ read .name: Str } FPerson:F[Str,mut Person]{ name -> { name } }
+      Test:Main{ s -> Do#
+        .var[mut LList[mut Person]] l = { mut LList#[mut Person] (FPerson#"Alice") + (FPerson#"Bob") + (FPerson#"Charles") }
+        .do{ FIO#s.println(ReadAuto#l) }
+        .return{{}}
+        }
+      ReadAuto:{
+        #(l: read LList[mut Person]): Str -> l.run[Str](read Auto.map(read MF[read Person,Str]{p -> p.name})
+                                                                 .filter(mut P[Str]{name -> (name == "Charles").not }))!,
         }
       """, Base.mutBaseAliases);
   }
