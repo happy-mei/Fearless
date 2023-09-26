@@ -36,7 +36,10 @@ Automaton:{
       .then -> recMdf Opt#{ .next -> self, .result -> a },
       .else -> {}
       })
-    }
+    },
+  recMdf .merge[A,B,MR](f: recMdf MapFn[recMdf A, recMdf B, recMdf MR]): recMdf Automaton[recMdf AutomatonPair[recMdf A, recMdf B], recMdf MR] -> {'self
+    ab -> recMdf Opt#{ .next -> self, .result -> f#(ab.left, ab.right) }
+    },
   }
 Automaton[A,R]:{
   recMdf .step(a: recMdf A): recMdf Opt[recMdf Output[recMdf A, recMdf R]],
@@ -59,6 +62,25 @@ Automaton[A,R]:{
         },
     },
   recMdf <|[AA](other: recMdf Automaton[recMdf AA, recMdf A]): recMdf Automaton[recMdf AA, recMdf R] -> other |> this,
+  recMdf .branch[RR](other: recMdf Automaton[recMdf A, recMdf RR]): recMdf Automaton[recMdf A, recMdf AutomatonPair[recMdf R, recMdf RR]] -> {'self
+    .step(a) -> this.step(a).matchHyg{
+      .some(a') -> other.step(a).matchHyg{
+        .some(b) -> recMdf Opt#{ .next -> a'.next.branch(b.next), .result -> { .left -> a'.result, .right -> b.result } },
+        .none -> {},
+        },
+      .none -> {},
+      }
+    },
+  recMdf .pair[AA,RR](other: recMdf Automaton[recMdf AA, recMdf RR]):
+    recMdf Automaton[recMdf AutomatonPair[recMdf A, recMdf AA], recMdf AutomatonPair[recMdf R, recMdf RR]] -> {'self
+      .step(ab) -> this.step(ab.left).matchHyg{
+        .some(a') -> other.step(ab.right).matchHyg{
+          .some(b) -> recMdf Opt#{ .next -> a'.next.pair(b.next), .result -> { .left -> a'.result, .right -> b.result } },
+          .none -> {},
+          },
+        .none -> {},
+        }
+      },
   recMdf .map[RR](f: recMdf MapFn[recMdf R, recMdf RR]): recMdf Automaton[recMdf A, recMdf RR] -> this |> (recMdf Automaton.map f),
   recMdf .filter(p: recMdf Predicate[recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> this |> (recMdf Automaton.filter p),
 //  recMdf .do(f: mut DoFn[recMdf R]): mut Automaton[recMdf A, recMdf R] -> this |> (recMdf Automaton.do f),
@@ -67,8 +89,13 @@ Automaton[A,R]:{
   }
 Predicate[A]:{ recMdf #(a: mdf A): Bool }
 MapFn[A,R]:{ recMdf #(a: mdf A): mdf R }
+MapFn[A,B,R]:{ recMdf #(a: mdf A, b: mdf B): mdf R }
 DoFn[A]:{ mut #(a: mdf A): Void }
 RunAutomaton[A,R,RR]:{ recMdf #(auto: recMdf Automaton[recMdf A, recMdf R]): mdf RR }
+AutomatonPair[A,B]:{
+  recMdf .left: mdf A,
+  recMdf .right: mdf B,
+  }
 
 //PureF[A,B]:{ #(a: recMdf A): recMdf B }
 //_RunLList[E]:{
