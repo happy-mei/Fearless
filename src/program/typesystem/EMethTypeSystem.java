@@ -9,10 +9,12 @@ import id.Id;
 import id.Id.GX;
 import id.Id.MethName;
 import id.Mdf;
+import program.CM;
 import program.TypeRename;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
+import visitors.CloneVisitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,6 +48,23 @@ public interface EMethTypeSystem extends ETypeSystem {
       var errors = new ArrayList<CompileError>();
       nestedErrors.add(errors);
       if (okAll(es, ts, errors, methArgCache)) {
+        var recvT = ts.get(0);
+        var cm = p().meths(recvT.mdf(), recvT.itOrThrow(), e.name(), depth()).orElseThrow();
+        var meth = ((CM.CoreCM) cm).m().withSig(new E.Sig(recvT.mdf(), cm.sig().gens(), cm.sig().bounds(), ts, t, Optional.of(cm.pos())));
+        var selfName = ((T.Dec) p().of(recvT.itOrThrow().name())).lambda().selfName();
+        Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), e.ts()).forEach(c::put));
+
+        var body = meth.body().map(b->b.accept(new CloneVisitor(){
+
+          @Override public T visitT(T t) {
+            return fancyRename(t, recvT.mdf(), xsTsMap);
+          }
+          @Override public Mdf visitMdf(Mdf mdf) {
+            return recvT.mdf();
+          }
+        }));
+
+//        this.mOk(selfName, recvT, meth);
         return t;
       }
     }

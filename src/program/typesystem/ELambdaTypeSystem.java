@@ -12,6 +12,7 @@ import program.CM;
 import program.Program;
 import program.TypeRename;
 import utils.Box;
+import utils.Bug;
 import utils.Streams;
 import visitors.ShortCircuitVisitor;
 import visitors.Visitor;

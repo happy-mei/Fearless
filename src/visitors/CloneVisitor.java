@@ -8,7 +8,9 @@ import id.Id.MethName;
 import id.Mdf;
 import utils.Mapper;
 
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface CloneVisitor{
   default E.Meth visitMeth(E.Meth e){
@@ -28,13 +30,16 @@ public interface CloneVisitor{
     e.pos()
   );}
   default E.X visitX(E.X e){return e;}
-  default E.Lambda visitLambda(E.Lambda e){ return new E.Lambda(
-    visitMdf(e.mdf()),
-    e.its().stream().map(this::visitIT).toList(),
-    e.selfName(),
-    e.meths().stream().map(this::visitMeth).toList(),
-    e.pos()
-  ); }
+  default E.Lambda visitLambda(E.Lambda e){
+    Supplier<Stream<T>> its = ()->e.its().stream().map(it->new T(e.mdf(), it)).map(this::visitT);
+    return new E.Lambda(
+      its.get().map(T::mdf).findFirst().orElseThrow(),
+      its.get().map(T::itOrThrow).toList(),
+      e.selfName(),
+      e.meths().stream().map(this::visitMeth).toList(),
+      e.pos()
+    );
+  }
   default Mdf visitMdf(Mdf mdf){return mdf;}
   default MethName visitMethName(MethName e){ return e; }
   default E.Sig visitSig(E.Sig e){
