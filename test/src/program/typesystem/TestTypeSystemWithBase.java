@@ -2,14 +2,12 @@ package program.typesystem;
 
 import failure.CompileError;
 import main.Main;
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.inference.InferBodies;
 import utils.Base;
 import utils.Err;
-import utils.RunJava;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -17,6 +15,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+
+import static program.typesystem.RunTypeSystem.fail;
 
 public class TestTypeSystemWithBase {
   void ok(String... content){
@@ -181,7 +181,7 @@ public class TestTypeSystemWithBase {
   @Test void numImpls3() { fail("""
     In position [###]/Dummy0.fear:5:21
     [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
+    Type error: None of the following candidates (returning the expected type "imm base.Int[]") for this method call:
     this .nm/1[]([[-imm-][5[]]{'fear[###]$ }])
     were valid:
     (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm base.Float[]): imm base.Int[]
@@ -197,7 +197,7 @@ public class TestTypeSystemWithBase {
   @Test void numImpl4() { fail("""
     In position [###]/Dummy0.fear:5:21
     [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
+    Type error: None of the following candidates (returning the expected type "imm base.Int[]") for this method call:
     this .nm/1[]([[-imm-][5[]]{'fear[###]$ }])
     were valid:
     (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm 6[]): imm base.Int[]
@@ -259,7 +259,7 @@ public class TestTypeSystemWithBase {
   @Test void mutateHyg2() { fail("""
     In position [###]/Dummy0.fear:9:48
     [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
+    Type error: None of the following candidates (returning the expected type "mut base.Ref[imm base.Str[]]") for this method call:
     p .name/0[]([])
     were valid:
     (lent test.Person[]) <: (mut test.Person[]): mut base.Ref[imm base.Str[]]
@@ -279,6 +279,74 @@ public class TestTypeSystemWithBase {
 //        .var[imm Ref[Str]] illegal = { this.mutate(p) }
 //        .do{ p.name := "Charles" }
 //        .return
+      }
+    """, Base.mutBaseAliases); }
+  @Test void unsoundHygienicList() { fail("""
+    [###]'lent p' cannot be captured by a lent method in a mut lambda.[###]
+    """, """
+    package test
+    Person:{ read .age: UInt, mut .age(n: UInt): Void }
+    FPerson:F[UInt,mut Person]{ age -> Do#
+      .var[mut Count[UInt]] age' = { Count.uint(age) }
+      .return{{ .age -> age'*, .age(n) -> age' := n }}
+      }
+    Test:Main{ s -> Do#
+      .var[mut Person] p = { FPerson#24u }
+      .var[imm List[read Person]] unsound = { A#(iso List#[read Person], p) }
+      .var[imm Person] uhOh = { unsound.get(0u)! }
+      .do{ p.age(25u) }
+      .assert({ uhOh.age == 24u }, uhOh.age.str)
+      .return{{}}
+      }
+    A:{
+      #(l: mut List[read Person], p: read Person): mut List[read Person] -> Yeet.with(l.add(p), l),
+      }
+    """, Base.mutBaseAliases); }
+  @Test void unsoundHygienicLList() { fail("""
+    [###]'lent p' cannot be captured by a lent method in a mut lambda.[###]
+    """, """
+    package test
+    Person:{ read .age: UInt, mut .age(n: UInt): Void }
+    FPerson:F[UInt,mut Person]{ age -> Do#
+      .var[mut Count[UInt]] age' = { Count.uint(age) }
+      .return{{ .age -> age'*, .age(n) -> age' := n }}
+      }
+    Test:Main{ s -> Do#
+      .var[mut Person] p = { FPerson#24u }
+      .var[imm LList[read Person]] unsound = { A#(iso LList[read Person]{}, p) }
+      .var[imm Person] uhOh = { unsound.get(0u)! }
+      .do{ p.age(25u) }
+      .assert({ uhOh.age == 24u }, uhOh.age.str)
+      .return{{}}
+      }
+    A:{
+      #(l: mut LList[read Person], p: read Person): mut LList[read Person] -> l + p,
+      }
+    """, Base.mutBaseAliases); }
+  @Test void unsoundHygienicLListMethOkPromotion() { fail("""
+    In position [###]/Dummy0.fear:16:76
+    [E33 callTypeError]
+    Type error: None of the following candidates (returning the expected type "mut base.LList[read test.Person[]]") for this method call:
+    l +/1[]([p])
+    were valid:
+    (lent base.LList[read test.Person[]], read test.Person[]) <: (iso base.LList[read test.Person[]], imm test.Person[]): iso base.LList[read test.Person[]]
+    """, """
+    package test
+    Person:{ read .age: UInt, mut .age(n: UInt): Void }
+    FPerson:F[UInt,mut Person]{ age -> Do#
+      .var[mut Count[UInt]] age' = { Count.uint(age) }
+      .return{{ .age -> age'*, .age(n) -> age' := n }}
+      }
+    Test:Main{ s -> Do#
+      .var[mut Person] p = { FPerson#24u }
+      .var[imm LList[read Person]] unsound = { A#(iso LList[read Person]{}, p) }
+      .var[imm Person] uhOh = { unsound.get(0u)! }
+      .do{ p.age(25u) }
+      .assert({ uhOh.age == 24u }, uhOh.age.str)
+      .return{{}}
+      }
+    A:{
+      #(l: mut LList[read Person], p: read Person): iso LList[read Person] -> l + p,
       }
     """, Base.mutBaseAliases); }
 }

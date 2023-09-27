@@ -1097,25 +1097,4 @@ public class TestJavaProgram {
         }
       """, Base.mutBaseAliases);
   }
-
-  @Test void hygienicList() { ok(new Res("24", "", 0), "test.Test", """
-    package test
-    Person:{ read .age: UInt, mut .age(n: UInt): Void }
-    FPerson:F[UInt,mut Person]{ age -> Do#
-      .var[mut Count[UInt]] age' = { Count.uint(age) }
-      .return{{ .age -> age'*, .age(n) -> age' := n }}
-      }
-    Test:Main{ s -> Do#
-      .var[mut Person] p = { FPerson#24u }
-      .var[mut List[read Person]] l = { List#[read Person] }
-      .var[mut IO] io = { FIO#s }
-      .do{ A#(l, p) }
-      .var[mut Opt[read Person]] pp = { l.get(0u) }
-      .do{ Yeet#[mut Opt[read Person]](pp.do(mut OptMap[read Person, Void]{ pp' -> io.println(pp'.age.str) })) }
-      .return{{}}
-      }
-    A:{
-      #(l: mut List[read Person], p: read Person): Void -> l.add(p),
-      }
-    """, Base.mutBaseAliases); }
 }

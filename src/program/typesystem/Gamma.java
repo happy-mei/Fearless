@@ -7,6 +7,7 @@ import id.Mdf;
 import utils.Push;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static id.Mdf.*;
@@ -60,6 +61,7 @@ public interface Gamma {
   }
   static T xT(String x, XBs xbs, Mdf self, T captured, Mdf mMdf){
     var bounds = captured.isMdfX() ? xbs.get(captured.gxOrThrow()) : null;
+    assert !captured.isMdfX() || Objects.nonNull(bounds);
     if (captured.isMdfX() && of(imm, iso).containsAll(bounds)) { return captured.withMdf(imm); }
     if (captured.mdf().is(imm, iso)) { return captured.withMdf(imm); }
     if (mMdf.isIso()) { return xT(x, xbs, self, captured, mut); }

@@ -75,18 +75,18 @@ public class TestTypeSystem {
     """); }
 
   @Test void ref1() { fail("""
-    In position [###]/Dummy0.fear:10:31
-    [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
-    [-imm-][base.Let[]]{'fear1$ } #/1[mdf X, imm base.Void[]]([[-imm-][base.Let[mdf X, imm base.Void[]]]{'fear2$ .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] -> this .swap/1[]([x]),
-    .in/1([fear0$]): Sig[mdf=imm,gens=[],ts=[mdf X],ret=imm base.Void[]] -> [-imm-][base.Void[]]{'fear3$ }}])
-    were valid:
-    (imm base.Let[], ?[-imm-][base.Let[mdf X, imm base.Void[]]]{'fear2$ .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] -> this .swap/1[]([x]),
-    .in/1([fear0$]): Sig[mdf=imm,gens=[],ts=[mdf X],ret=imm base.Void[]] -> [-imm-][base.Void[]]{'fear3$ }}?) <: (imm base.Let[], imm base.Let[mdf X, imm base.Void[]]): imm base.Void[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:10:42
-        [E30 badCapture]
-        'mut this' cannot be captured by an imm method in an imm lambda.
+In position [###]/Dummy0.fear:10:31
+[E33 callTypeError]
+Type error: None of the following candidates (returning the expected type "imm base.Void[]") for this method call:
+[-imm-][base.Let[]]{'fear1$ } #/1[mdf X, imm base.Void[]]([[-imm-][base.Let[mdf X, imm base.Void[]]]{'fear2$ .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] -> this .swap/1[]([x]),
+.in/1([fear0$]): Sig[mdf=imm,gens=[],ts=[mdf X],ret=imm base.Void[]] -> [-imm-][base.Void[]]{'fear3$ }}])
+were valid:
+(imm base.Let[], ?[-imm-][base.Let[mdf X, imm base.Void[]]]{'fear2$ .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] -> this .swap/1[]([x]),
+.in/1([fear0$]): Sig[mdf=imm,gens=[],ts=[mdf X],ret=imm base.Void[]] -> [-imm-][base.Void[]]{'fear3$ }}?) <: (imm base.Let[], imm base.Let[mdf X, imm base.Void[]]): imm base.Void[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:10:42
+    [E30 badCapture]
+    'mut this' cannot be captured by an imm method in an imm lambda.
     """, """
     package base
     NoMutHyg[X]:{}
@@ -148,7 +148,7 @@ public class TestTypeSystem {
   @Test void callMutFromLent2a() { fail("""
     In position [###]/Dummy0.fear:4:30
     [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
+    Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
     this .b/0[]([])
     were valid:
     (read test.A[]) <: (imm test.A[]): iso test.B[]
@@ -171,7 +171,7 @@ public class TestTypeSystem {
   @Test void callMutFromLentFail1() { fail("""
     In position [###]/Dummy0.fear:4:25
     [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
+    Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
     this .b/1[]([[-mut-][test.A[]]{'fear1$ }])
     were valid:
     (imm test.A[], mut test.A[]) <: (imm test.A[], iso test.A[]): iso test.B[]
@@ -197,38 +197,38 @@ public class TestTypeSystem {
     Void:{}
     """); }
   @Test void noCallMutFromImm() { fail("""
-    In position [###]/Dummy0.fear:4:26
-    [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
-    this .b/0[]([]) .foo/0[]([])
-    were valid:
-    (imm test.B[]) <: (mut test.B[]): mut test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-        (imm test.A[]): imm test.B[]
-        
-    (imm test.B[]) <: (iso test.B[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (imm test.A[]): imm test.B[]
-        
-    (imm test.B[]) <: (iso test.B[]): lent test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (imm test.A[]): imm test.B[]
-    
-    (imm test.B[]) <: (lent test.B[]): lent test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
-        (imm test.A[]): imm test.B[]
+In position [###]/Dummy0.fear:4:26
+[E33 callTypeError]
+Type error: None of the following candidates (returning the expected type "?") for this method call:
+this .b/0[]([]) .foo/0[]([])
+were valid:
+(imm test.B[]) <: (mut test.B[]): mut test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
+    (imm test.A[]): imm test.B[]
+
+(imm test.B[]) <: (iso test.B[]): iso test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+    (imm test.A[]): imm test.B[]
+
+(imm test.B[]) <: (iso test.B[]): lent test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+    (imm test.A[]): imm test.B[]
+
+(imm test.B[]) <: (lent test.B[]): lent test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
+    (imm test.A[]): imm test.B[]
     """, """
     package test
     A:{
@@ -242,42 +242,42 @@ public class TestTypeSystem {
     Void:{}
     """); }
   @Test void noCallMutFromRead() { fail("""
-    In position [###]/Dummy0.fear:4:26
-    [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
-    this .b/0[]([]) .foo/0[]([])
-    were valid:
-    (read test.B[]) <: (mut test.B[]): mut test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
+In position [###]/Dummy0.fear:4:26
+[E33 callTypeError]
+Type error: None of the following candidates (returning the expected type "?") for this method call:
+this .b/0[]([]) .foo/0[]([])
+were valid:
+(read test.B[]) <: (mut test.B[]): mut test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
+    (imm test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
 
-    (read test.B[]) <: (iso test.B[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
+(read test.B[]) <: (iso test.B[]): iso test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+    (imm test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
 
-    (read test.B[]) <: (iso test.B[]): lent test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
-        
-    (read test.B[]) <: (lent test.B[]): lent test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:24
-        [E32 noCandidateMeths]
-        When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
-        (imm test.A[]): read test.B[]
-        (imm test.A[]): imm test.B[]
+(read test.B[]) <: (iso test.B[]): lent test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
+    (imm test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
+
+(read test.B[]) <: (lent test.B[]): lent test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:4:24
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
+    (imm test.A[]): read test.B[]
+    (imm test.A[]): imm test.B[]
         """, """
     package test
     A:{
@@ -293,7 +293,7 @@ public class TestTypeSystem {
   @Test void noCallMutFromRecMdfImm() { fail("""
 In position [###]/Dummy0.fear:4:31
 [E33 callTypeError]
-Type error: None of the following candidates for this method call:
+Type error: None of the following candidates (returning the expected type "?") for this method call:
 this .b/0[]([]) .foo/0[]([])
 were valid:
 (read test.B[]) <: (mut test.B[]): mut test.B[]
@@ -348,30 +348,21 @@ were valid:
     B:{}
     """); }
   @Test void mutFromRecMdfLent() { fail("""
-    In position [###]/Dummy0.fear:5:30
+In position [###]/Dummy0.fear:5:30
+[E33 callTypeError]
+Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
+this .promote/1[]([this .b/0[]([])])
+were valid:
+(lent test.A[], lent test.B[]) <: (read test.A[], mut test.B[]): mut test.B[]
+  The following errors were found when checking this sub-typing:
+    In position [###]/Dummy0.fear:5:43
     [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
-    this .promote/1[]([this .b/0[]([])])
+    Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
+    this .b/0[]([])
     were valid:
-    (lent test.A[], lent test.B[]) <: (read test.A[], mut test.B[]): mut test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:5:43
-        [E33 callTypeError]
-        Type error: None of the following candidates for this method call:
-        this .b/0[]([])
-        were valid:
-        (lent test.A[]) <: (iso test.A[]): iso test.B[]
-        
-    (lent test.A[], lent test.B[]) <: (read test.A[], iso test.B[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:5:43
-        [E33 callTypeError]
-        Type error: None of the following candidates for this method call:
-        this .b/0[]([])
-        were valid:
-        (lent test.A[]) <: (iso test.A[]): iso test.B[]
-        
-    (lent test.A[], lent test.B[]) <: (imm test.A[], iso test.B[]): iso test.B[]
+    (lent test.A[]) <: (iso test.A[]): iso test.B[]
+
+(lent test.A[], lent test.B[]) <: (imm test.A[], iso test.B[]): iso test.B[]
     """, """
     package test
     A:{
@@ -573,7 +564,7 @@ were valid:
   @Test void invalidIsoPromotionWithRecMdf3() { fail("""
     In position [###]/Dummy0.fear:5:25
     [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
+    Type error: None of the following candidates (returning the expected type "mut test.A[]") for this method call:
     this .m/0[]([])
     were valid:
     (lent test.A[]) <: (iso test.A[]): iso test.A[]
@@ -1588,7 +1579,7 @@ were valid:
   @Test void shouldNotPromoteOneLentToMutToIso() { fail("""
     In position [###]/Dummy0.fear:4:45
     [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
+    Type error: None of the following candidates (returning the expected type "mut test.Ref[imm test.Name[]]") for this method call:
     p .name/0[]([])
     were valid:
     (lent test.Person[]) <: (mut test.Person[]): mut test.Ref[imm test.Name[]]
@@ -2103,4 +2094,13 @@ were valid:
     xbs = xbs.add("Y", Set.of(Mdf.imm, Mdf.mut));
     assertEquals(Optional.of(expected), xbs.getO("X"));
   }
+
+  @Test void unsoundHygRecMdf() { fail("""
+    """, """
+    package test
+    Foo:{}
+    Box:{ recMdf #[T](x: recMdf T): recMdf Box[recMdf T] -> {x} }
+    Box[T]:{ recMdf .get: recMdf T }
+    Break:{ #(foo: read Foo): mut Box[read Foo] -> mut Box#foo }
+    """); }
 }

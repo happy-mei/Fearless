@@ -171,7 +171,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
           var xT = g.get(x);
           return xT.mdf().isIso() || (xT.isMdfX() && xbs().get(xT.gxOrThrow()).contains(Mdf.iso));
         } catch (CompileError err) {
-          // if we cannot capture something it's not in our domain, so skip it
+          // we cannot capture something it's not in our domain, so skip it
           return false;
         }
       })

@@ -442,7 +442,7 @@ public class TestRecMdf {
   @Test void shouldApplyRecMdfInTypeParams4b() { fail("""
     In position [###]/Dummy0.fear:10:5
     [E33 callTypeError]
-    Type error: None of the following candidates for this method call:
+    Type error: None of the following candidates (returning the expected type "recMdf test.B[recMdf Y]") for this method call:
     a .m1/2[]([[-recMdf-][test.B[recMdf Y]]{'fear0$ }, [-imm-][test.F[mut test.B[recMdf Y]]]{'fear1$ }])
     were valid:
     (mut test.A[mut test.B[recMdf Y]], recMdf test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]) <: (iso test.A[mut test.B[recMdf Y]], iso test.B[recMdf Y], imm test.F[mut test.B[recMdf Y]]): iso test.B[recMdf Y]

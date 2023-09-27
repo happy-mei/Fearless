@@ -26,6 +26,6 @@ F[A,B,R]:{ #(a: mdf A, b: mdf B): mdf R }
 F[A,B,C,R]:{ #(a: mdf A, b: mdf B, c: mdf C): mdf R }
 
 Yeet:{
-  #[X](x: mdf X): Void -> this.with(x, Void),
-  .with[X,R](_: mdf X, res: mdf R): mdf R -> res,
+  #[X:mut,lent,read,imm,iso](x: mdf X): Void -> this.with(x, Void),
+  .with[X:mut,lent,read,imm,iso, R:mut,lent,read,imm,iso](_: mdf X, res: mdf R): mdf R -> res,
   }

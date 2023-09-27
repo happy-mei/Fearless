@@ -70,7 +70,7 @@ public interface EMethTypeSystem extends ETypeSystem {
         return "("+ String.join(", ", call) +") <: "+tst1+dependentErrors;
       }).toList();
     var calls= String.join("\n", calls1);
-    return Fail.callTypeError(e, calls).pos(e.pos());
+    return Fail.callTypeError(e, expectedT(), calls).pos(e.pos());
   }
   default boolean filterOnRes(TsT tst){
     if(expectedT().isEmpty()){ return true; }
@@ -128,7 +128,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   default List<TsT> allMeth(TsT tst) {
     return Stream.concat(Stream.of(
       tst,
-      tst.renameMdfs(Map.of(Mdf.mut, Mdf.iso)),
+      tst.renameMdfs(Map.of(Mdf.mut, Mdf.iso)), // TODO: this is incompatible with recMdf lambdas
       tst.renameMdfs(Map.of(
         Mdf.read, Mdf.imm,
         Mdf.lent, Mdf.iso,

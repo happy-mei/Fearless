@@ -150,8 +150,9 @@ public class Fail{
     return of("When attempting to type check the method call: "+e+", no candidates for "+e.name()+" returned the expected type "+expected+". The candidates were:\n"+tsts);
   }
 
-  public static CompileError callTypeError(ast.E.MCall e, String calls) {
-    return of("Type error: None of the following candidates for this method call:\n"+e+"\nwere valid:\n"+calls);
+  public static CompileError callTypeError(ast.E.MCall e, Optional<ast.T> expected, String calls) {
+    var expected_ = expected.map(ast.T::toString).orElse("?");
+    return of("Type error: None of the following candidates (returning the expected type \""+expected_+"\") for this method call:\n"+e+"\nwere valid:\n"+calls);
   }
 
   public static CompileError bothTExpectedGens(ast.T expected, Id.DecId dec) {
