@@ -61,7 +61,7 @@ Automaton[A,R]:{
         .completed -> left.completed || (right.completed)
         },
     },
-  recMdf <|[AA](other: recMdf Automaton[recMdf AA, recMdf A]): recMdf Automaton[recMdf AA, recMdf R] -> other |> this,
+  recMdf <|[AA](other: recMdf Automaton[recMdf AA, recMdf A]): recMdf Automaton[recMdf AA, recMdf R] -> other |>[recMdf R] this,
   recMdf .branch[RR](other: recMdf Automaton[recMdf A, recMdf RR]): recMdf Automaton[recMdf A, recMdf AutomatonPair[recMdf R, recMdf RR]] -> {'self
     .step(a) -> this.step(a).matchHyg{
       .some(a') -> other.step(a).matchHyg{
@@ -85,7 +85,7 @@ Automaton[A,R]:{
   recMdf .filter(p: recMdf Predicate[recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> this |> (recMdf Automaton.filter p),
 //  recMdf .do(f: mut DoFn[recMdf R]): mut Automaton[recMdf A, recMdf R] -> this |> (recMdf Automaton.do f),
   recMdf .allMatch(p: recMdf Predicate[recMdf R]): recMdf Automaton[recMdf A, Bool] -> this |> (recMdf Automaton.allMatch p),
-  recMdf .run[RR](runner: recMdf RunAutomaton[recMdf A, recMdf R, mdf RR]): mdf RR -> runner#this,
+//  recMdf .run[RR](runner: recMdf RunAutomaton[recMdf A, recMdf R, mdf RR]): mdf RR -> runner#this,
   }
 Predicate[A]:{ recMdf #(a: mdf A): Bool }
 MapFn[A,R]:{ recMdf #(a: mdf A): mdf R }

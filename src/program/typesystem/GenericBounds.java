@@ -57,9 +57,13 @@ public interface GenericBounds {
       case T.Dec d -> d.gxs();
       case astFull.T.Dec d -> d.gxs();
     };
+    var boundMap = switch (dec) {
+      case T.Dec d -> d.bounds();
+      case astFull.T.Dec d -> d.bounds();
+    };
     return Streams.zip(it.ts(), gxs)
       .map((t, gx) -> {
-        var bounds = dec.bounds().get(gx);
+        var bounds = boundMap.get(gx);
         return validGenericMdf(xbs, bounds == null || bounds.isEmpty() ? XBs.defaultBounds : bounds, t);
       })
       .filter(Optional::isPresent)

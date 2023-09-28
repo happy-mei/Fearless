@@ -8,7 +8,9 @@ import failure.CompileError;
 import failure.Fail;
 import program.CM;
 import program.TypeRename;
+import program.typesystem.XBs;
 import utils.Bug;
+import utils.Mapper;
 import utils.OneOr;
 import utils.Range;
 import visitors.InjectionVisitor;
@@ -77,9 +79,10 @@ public class Program implements program.Program{
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
+    var bounds = XBs.empty().addBounds(gxs, Mapper.of(xbs->d.bounds().forEach((gx,bs)->xbs.put(new Id.GX<>(gx.name()), bs))));
     return d.lambda().meths().stream()
       .filter(mi->mi.sig().isPresent())
-      .map(mi->cm(recvMdf, t, mi, f))
+      .map(mi->cm(recvMdf, t, mi, bounds, f))
       .toList();
   }
   @Override public CM plainCM(CM fancyCM){
@@ -89,7 +92,7 @@ public class Program implements program.Program{
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(fancyCM.c().ts(), gxs);
     return d.lambda().meths().stream()
       .filter(mi->mi.name().map(name->name.equals(fancyCM.name())).orElse(false))
-      .map(mi->cmCore(fancyCM.c(), mi, f))
+      .map(mi->cmCore(fancyCM.c(), mi, XBs.empty(), f))
       .findFirst()
       .orElseThrow();
   }
@@ -98,16 +101,16 @@ public class Program implements program.Program{
     return of(t).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
   }
 
-  private CM cm(Mdf recvMdf, Id.IT<ast.T> t, astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
+  private CM cm(Mdf recvMdf, Id.IT<ast.T> t, astFull.E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
-    var cm = CM.of(t, mi, TypeRename.coreRec(this, recvMdf).renameSig(new InjectionVisitor().visitSig(sig), f));
+    var cm = CM.of(t, mi, TypeRename.coreRec(this, recvMdf).renameSig(new InjectionVisitor().visitSig(sig), xbs, f));
     return norm(cm);
   }
-  private CM cmCore(Id.IT<ast.T> t, astFull.E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
+  private CM cmCore(Id.IT<ast.T> t, astFull.E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
-    var cm = CM.of(t, mi, TypeRename.core(this).renameSig(new InjectionVisitor().visitSig(sig), f));
+    var cm = CM.of(t, mi, TypeRename.core(this).renameSig(new InjectionVisitor().visitSig(sig), xbs, f));
     return norm(cm);
   }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }

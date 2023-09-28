@@ -2096,11 +2096,54 @@ were valid:
   }
 
   @Test void unsoundHygRecMdf() { fail("""
+    In position [###]/Dummy0.fear:5:8
+    [E30 badCapture]
+    'read x: X1/0$' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
     Foo:{}
     Box:{ recMdf #[T](x: recMdf T): recMdf Box[recMdf T] -> {x} }
     Box[T]:{ recMdf .get: recMdf T }
     Break:{ #(foo: read Foo): mut Box[read Foo] -> mut Box#foo }
+    """); }
+  @Test void unsoundHygRecMdfIndirect() { fail("""
+    In position [###]/Dummy0.fear:8:14
+    [E30 badCapture]
+    'mdf x: X1/0$' cannot be captured by a mut method in a mut lambda.
+    """, """
+    package test
+    Foo:{}
+    Box:{ recMdf #[T](x: recMdf T): recMdf Box[recMdf T] -> {x} }
+    Box[T]:{
+      recMdf .get: recMdf T,
+      recMdf .clone(c: mut BoxClone[recMdf T]): mut Box[recMdf T] -> c.task(this.get),
+      }
+    BoxClone[T]:{ mut .task(x: mdf T): mut Box[mdf T] -> mut Box#x }
+    Break:{ #(foo: read Foo): mut Box[read Foo] -> (read Box#foo).clone(mut BoxClone[read Foo]) }
+    """); }
+  @Test void soundHygRecMdf() { ok("""
+    package test
+    Foo:{}
+    Box:{ recMdf #[T](x: recMdf T): recMdf Box[recMdf T] -> {x} }
+    Box[T]:{ recMdf .get: recMdf T }
+    Break:{ #(foo: read Foo): read Box[read Foo] -> read Box#foo }
+    """); }
+  @Test void unsoundHygRecMdfCapture() { fail("""
+    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:10
+    [E30 badCapture]
+    'read test.Foo[]' cannot be captured by a mut method in a mut lambda.
+    """, """
+    package test
+    Foo:{}
+    FBox[T]:{ recMdf #(x: recMdf T): recMdf Box[recMdf T] -> {x} }
+    Box[T]:{ recMdf .get: recMdf T }
+    Break:{ #(foo: read Foo): mut Box[read Foo] -> mut FBox[read Foo]#foo }
+    """); }
+  @Test void soundHygRecMdfCapture() { ok("""
+    package test
+    Foo:{}
+    FBox[T]:{ recMdf #(x: recMdf T): recMdf Box[recMdf T] -> {x} }
+    Box[T]:{ recMdf .get: recMdf T }
+    Break:{ #(foo: read Foo): read Box[read Foo] -> read FBox[read Foo]#foo }
     """); }
 }

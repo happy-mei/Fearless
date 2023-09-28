@@ -1,6 +1,7 @@
 package program.typesystem;
 
 import ast.E;
+import ast.Program;
 import ast.T;
 import failure.CompileError;
 import failure.Fail;
@@ -11,6 +12,7 @@ import id.Id.MethName;
 import id.Mdf;
 import program.CM;
 import program.TypeRename;
+import utils.Bug;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
@@ -48,22 +50,21 @@ public interface EMethTypeSystem extends ETypeSystem {
       var errors = new ArrayList<CompileError>();
       nestedErrors.add(errors);
       if (okAll(es, ts, errors, methArgCache)) {
-        var recvT = ts.get(0);
-        var cm = p().meths(recvT.mdf(), recvT.itOrThrow(), e.name(), depth()).orElseThrow();
-        var meth = ((CM.CoreCM) cm).m().withSig(new E.Sig(recvT.mdf(), cm.sig().gens(), cm.sig().bounds(), ts, t, Optional.of(cm.pos())));
-        var selfName = ((T.Dec) p().of(recvT.itOrThrow().name())).lambda().selfName();
-        Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), e.ts()).forEach(c::put));
-
-        var body = meth.body().map(b->b.accept(new CloneVisitor(){
-
-          @Override public T visitT(T t) {
-            return fancyRename(t, recvT.mdf(), xsTsMap);
-          }
-          @Override public Mdf visitMdf(Mdf mdf) {
-            return recvT.mdf();
-          }
-        }));
-
+//        var recvT = ts.get(0);
+//        var cm = p().meths(recvT.mdf(), recvT.itOrThrow(), e.name(), depth()).orElseThrow();
+//        var meth = ((CM.CoreCM) cm).m().withSig(new E.Sig(recvT.mdf(), cm.sig().gens(), cm.sig().bounds(), ts, t, Optional.of(cm.pos())));
+//        var selfName = ((T.Dec) p().of(recvT.itOrThrow().name())).lambda().selfName();
+//        Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), e.ts()).forEach(c::put));
+//
+//        var body = meth.body().map(b->b.accept(new CloneVisitor(){
+//
+//          @Override public T visitT(T t) {
+//            return fancyRename(t, recvT.mdf(), xsTsMap);
+//          }
+//          @Override public Mdf visitMdf(Mdf mdf) {
+//            return recvT.mdf();
+//          }
+//        }));
 //        this.mOk(selfName, recvT, meth);
         return t;
       }
@@ -122,12 +123,15 @@ public interface EMethTypeSystem extends ETypeSystem {
     var sig = p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
       var mdf = rec.mdf();
       Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
+      var xbs = xbs().addBounds(cm.sig().gens(), cm.sig().bounds());
 
       var params = Push.of(
-        fancyRename(rec.withMdf(cm.mdf()), mdf, xsTsMap),
-        cm.sig().ts().stream().map(ti->fancyRename(ti, mdf, xsTsMap)).toList()
+        fancyRename(rec.rt().toString(), rec.withMdf(cm.mdf()), mdf, xsTsMap, TypeRename.RenameKind.Arg, xbs),
+        Streams.zip(cm.xs(), cm.sig().ts())
+          .map((xi, ti)->fancyRename(xi+": "+ti.rt().toString(), ti, mdf, xsTsMap, TypeRename.RenameKind.Arg, xbs))
+          .toList()
       );
-      var t = fancyRename(cm.ret(), mdf, xsTsMap);
+      var t = fancyRename(cm.ret().rt().toString(), cm.ret(), mdf, xsTsMap, TypeRename.RenameKind.Return, xbs);
 //
 //      var renamer = TypeRename.coreRec(p(), mdf);
 //      var renamedRecv = renamer.renameT(rec.withMdf(cm.mdf()), xsTsMap::get);
@@ -159,7 +163,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
 
   /** This is [MDF, Xs=Ts] (recMdf rewriting for meth calls) */
-  default T fancyRename(T t, Mdf mdf0, Map<GX<T>,T> map) {
+  default T fancyRename(String x, T t, Mdf mdf0, Map<GX<T>,T> map, TypeRename.RenameKind kind, XBs xbs) {
     assert !mdf0.isMdf();
     Mdf mdf=t.mdf();
     return t.match(
@@ -170,12 +174,18 @@ public interface EMethTypeSystem extends ETypeSystem {
         }
         var ti = map.get(gx);
         if (ti == null) { return t; }
-        // TODO: what about capturing a function from read to read?  02/09/23: Not sure what this TODO means
-        var newMdf = mdf0.adapt(ti);
-        return ti.withMdf(newMdf);
+
+        return switch (kind) {
+          case Return -> ti.withMdf(mdf0.adapt(ti));
+          case Arg -> {
+//            if (ti.mdf().isMdf()) { yield ti.withMdf(mdf0.adapt(ti)); } // TODO: this is probably unsound
+            var newMdf = Gamma.xT(x, xbs, mdf0, ti, mdf0).mdf();
+            yield ti.withMdf(newMdf);
+          }
+        };
       },
       it->{
-        var newTs = it.ts().stream().map(ti->fancyRename(ti, mdf0, map)).toList();
+        var newTs = it.ts().stream().map(ti->fancyRename(x, ti, mdf0, map, kind, xbs)).toList();
         if(!mdf.isRecMdf() && !mdf.isMdf()){ return new T(mdf, it.withTs(newTs)); }
         if(mdf0.isIso()) { return new T(Mdf.mut, it.withTs(newTs)); }
         return new T(mdf0, it.withTs(newTs));

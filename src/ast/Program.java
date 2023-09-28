@@ -9,6 +9,7 @@ import failure.Fail;
 import program.CM;
 import program.TypeRename;
 import program.typesystem.TraitTypeSystem;
+import program.typesystem.XBs;
 
 import java.util.*;
 import java.util.function.Function;
@@ -83,10 +84,9 @@ public class Program implements program.Program  {
   public List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t) {
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
-    var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
-    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
+    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), d.gxs());
     return d.lambda().meths().stream()
-      .map(mi->cm(recvMdf, t, mi, f))
+      .map(mi->cm(recvMdf, t, mi, XBs.empty().addBounds(d.gxs(), d.bounds()), f))
       .toList();
   }
   public CM plainCM(CM fancyCM) {
@@ -106,16 +106,16 @@ public class Program implements program.Program  {
 
   @Override public String toString() { return this.ds.toString(); }
 
-  private CM cm(Mdf recvMdf, Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
+  private CM cm(Mdf recvMdf, Id.IT<ast.T> t, E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var cm = norm(CM.of(t, mi, mi.sig()));
     var normedMeth = new E.Meth(cm.sig(), cm.name(), cm.xs(), mi.body(), mi.pos());
-    return CM.of(cm.c(), normedMeth, TypeRename.coreRec(this, recvMdf).renameSig(cm.sig(), f));
+    return CM.of(cm.c(), normedMeth, TypeRename.coreRec(this, recvMdf).renameSig(cm.sig(), xbs, f));
   }
   private CM cmCore(Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var cm = norm(CM.of(t, mi, mi.sig()));
     var normedMeth = new E.Meth(cm.sig(), cm.name(), cm.xs(), mi.body(), mi.pos());
-    return CM.of(cm.c(), normedMeth, TypeRename.core(this).renameSig(cm.sig(), f));
+    return CM.of(cm.c(), normedMeth, TypeRename.core(this).renameSig(cm.sig(), XBs.empty(), f));
   }
 }

@@ -7,6 +7,7 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import program.TypeRename;
+import program.typesystem.XBs;
 import utils.Streams;
 import visitors.CollectorVisitor;
 import visitors.GammaVisitor;
@@ -62,7 +63,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     if (recvMdf.isMdf()) { recvMdf = Mdf.recMdf; }
     var meth = p.meths(recvMdf, recv.t().itOrThrow(), e.name(), 0).orElseThrow();
     var renamer = TypeRename.core(p);
-    var cm = renamer.renameSigOnMCall(meth.sig(), renamer.renameFun(e.ts(), meth.sig().gens()));
+    var cm = renamer.renameSigOnMCall(meth.sig(), XBs.empty(), renamer.renameFun(e.ts(), meth.sig().gens()));
     return new MIR.MCall(
       recv,
       e.name(),

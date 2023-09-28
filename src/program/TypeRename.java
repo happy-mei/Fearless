@@ -3,6 +3,7 @@ package program;
 import failure.CompileError;
 import id.Id;
 import id.Mdf;
+import program.typesystem.Gamma;
 import program.typesystem.XBs;
 
 import java.util.List;
@@ -25,20 +26,21 @@ public interface TypeRename<T extends Id.Ty>{
     public Mdf mdf(ast.T t) { return t.mdf(); }
     public ast.T newT(Mdf mdf, Id.IT<ast.T> t) { return new ast.T(mdf, t); }
     public ast.T withMdf(ast.T t, Mdf mdf) { return t.withMdf(mdf); }
-    public ast.E.Sig renameSig(ast.E.Sig sig, Function<Id.GX<ast.T>,ast.T>f){
+    public ast.E.Sig renameSig(ast.E.Sig sig, XBs bounds, Function<Id.GX<ast.T>,ast.T>f){
       assert sig.gens().stream().allMatch(gx->f.apply(gx)==null);
       try {
-        return renameSigOnMCall(sig, f);
+        return renameSigOnMCall(sig, bounds, f);
       } catch (CompileError err) {
         throw err.parentPos(sig.pos());
       }
     }
-    public ast.E.Sig renameSigOnMCall(ast.E.Sig sig, Function<Id.GX<ast.T>,ast.T>f){
+    public ast.E.Sig renameSigOnMCall(ast.E.Sig sig, XBs bounds, Function<Id.GX<ast.T>,ast.T>f){
+      var allBounds = bounds.addBounds(sig.gens(), sig.bounds());
       return new ast.E.Sig(
         sig.mdf(),
         sig.gens(),
         sig.bounds(),
-        sig.ts().stream().map(t->renameT(t,f)).toList(),
+        sig.ts().stream().map(t->renameArgT(t, allBounds, f)).toList(),
         renameT(sig.ret(),f),
         sig.pos()
       );
@@ -64,9 +66,19 @@ public interface TypeRename<T extends Id.Ty>{
 //      if (t.mdf().isMdf()) {
 //        return t.withMdf(Mdf.recMdf);
 //      }
-      var resolvedMdf = recvMdf.adapt(t.mdf());
-//      var resolvedMdf = Gamma.xT(t.rt().toString(), xbs, recvMdf, t, Mdf.recMdf);
-      return t.withMdf(resolvedMdf);
+      var returnMdf = recvMdf.adapt(t.mdf());
+      return t.withMdf(returnMdf);
+    }
+    @Override public ast.T propagateArgMdf(XBs xbs, Mdf mdf, ast.T t){
+      if(!mdf.isRecMdf()){ return super.propagateMdf(mdf, t); }
+      assert t!=null;
+      if (t.mdf().isMdf() || recvMdf.isRecMdf() || t.mdf().isRecMdf()) {
+        // not sure about if this is sound
+        // we enter this from inference where we replace all the gens with mdf FearN$
+        return propagateMdf(mdf, t);
+      }
+      var argMdf = Gamma.xT(t.rt().toString(), xbs, recvMdf, t, recvMdf).mdf();
+      return t.withMdf(argMdf);
     }
   }
   static FullTTypeRename full(Program p) { return new FullTTypeRename(p); }
@@ -81,15 +93,18 @@ public interface TypeRename<T extends Id.Ty>{
   default Id.IT<T> renameIT(Id.IT<T> it, Function<Id.GX<T>, T> f){
     return it.withTs(it.ts().stream().map(t->renameT(t,f)).toList());
   }
+  default Id.IT<T> renameArgIT(Id.IT<T> it, XBs xbs, Function<Id.GX<T>, T> f){
+    return it.withTs(it.ts().stream().map(t->renameArgT(t,xbs,f)).toList());
+  }
   default Function<Id.GX<T>, T> renameFun(List<T> ts, List<Id.GX<T>> gxs) {
     return gx->{
       int i = gxs.indexOf(gx);
       if(i==-1){ return null; }
-      var t = ts.get(i);
-      return t;
+      return ts.get(i);
     };
   }
   boolean isInfer(T t);
+  enum RenameKind { Arg, Return }
   default T renameT(T t, Function<Id.GX<T>,T> f){
     if(isInfer(t)){ return t; }
     return matchT(t,
@@ -104,9 +119,26 @@ public interface TypeRename<T extends Id.Ty>{
 //      it->newT(mdf(t), renameIT(it,f))
     );
   }
+  default T renameArgT(T t, XBs xbs, Function<Id.GX<T>,T> f){
+    if(isInfer(t)){ return t; }
+    return matchT(t,
+      gx->{
+        var renamed = f.apply(gx);
+        if(renamed==null){ return t; }
+        if (isInfer(renamed)){ return renamed; }
+        return propagateArgMdf(xbs, mdf(t), renamed);
+      },
+      // TODO: this is new (was not going via propagateMdf before, what breaks?
+      it->propagateArgMdf(xbs, mdf(t), newT(mdf(t), renameArgIT(it, xbs, f)))
+//      it->newT(mdf(t), renameIT(it,f))
+    );
+  }
   default T propagateMdf(Mdf mdf, T t){
     assert t!=null;
     if(mdf.isMdf()){ return t; }
     return withMdf(t,mdf);
+  }
+  default T propagateArgMdf(XBs xbs, Mdf mdf, T t){
+    return propagateMdf(mdf, t);
   }
 }

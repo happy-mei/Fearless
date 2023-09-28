@@ -11,9 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Id {
-  public sealed interface Dec permits astFull.T.Dec, ast.T.Dec {
-    Map<GX<? extends Ty>, Set<Mdf>> bounds();
-  }
+  public sealed interface Dec permits astFull.T.Dec, ast.T.Dec {}
   public static boolean validM(String m){
     assert m!=null && !m.isEmpty();
     return new parser.Parser(Parser.dummy,m).parseM();      

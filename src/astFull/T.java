@@ -108,7 +108,7 @@ public final class T implements Id.Ty {
     }
   }
 
-  public record Dec(Id.DecId name, List<Id.GX<T>> gxs, Map<Id.GX<? extends Id.Ty>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos, Id.Dec {
+  public record Dec(Id.DecId name, List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos, Id.Dec {
     public Dec {
       assert name.gen() == gxs.size();
     }
