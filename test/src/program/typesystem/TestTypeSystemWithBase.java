@@ -408,4 +408,6 @@ public class TestTypeSystemWithBase {
           }}
       }
     """, Base.mutBaseAliases); }
+
+  //TODO: test that makes sure we can turn a mut List[mut Person into a read List[read Person] via adaptorOk
 }
