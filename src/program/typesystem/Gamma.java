@@ -71,49 +71,45 @@ public interface Gamma {
         if (mMdf.isMut() && of(imm, mut).containsAll(bounds)) { return captured; }
         if (mMdf.isImm() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(imm); }
         if (mMdf.isLent() && of(imm, mut).containsAll(bounds)) { return captured.withMdf(lent); }
-        if (mMdf.isLent() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(read); }
-        if (mMdf.isRead() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(read); }
+        if (mMdf.isLent() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
+        if (mMdf.isReadOnly() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
         if (mMdf.isRecMdf() && of(imm, mut).containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
       if (mMdf.isMut() && captured.mdf().is(mut, imm)) { return captured; }
       if (mMdf.isImm() && captured.mdf().is(mut, imm, iso)) { return captured.withMdf(imm); }
       if (mMdf.isLent() && captured.mdf().is(mut, imm)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
-      if (mMdf.isRead() && captured.mdf().isMut()) { return captured.withMdf(read); }
+      if (mMdf.isReadOnly() && captured.mdf().isMut()) { return captured.withMdf(readOnly); }
       if (mMdf.isRecMdf() && captured.mdf().isMut()) { return captured.withMdf(recMdf); }
     }
 
-    var validHygCaptures = of(mut, imm, iso, lent, read, recMdf); // TODO: maybe recMdf?
+    var validHygCaptures = of(mut, imm, iso, lent, readOnly, recMdf); // TODO: maybe recMdf?
     if (self.isLent()) {
       if (captured.isMdfX()) {
-        if (mMdf.isMut() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(read); }
+        if (mMdf.isMut() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(readOnly); }
         if (mMdf.isImm() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(imm); }
-        // TODO: are we really wanting to say lent cannot capture lent?
-        if (mMdf.isLent() && of(mut,iso).containsAll(bounds)) { return captured.withMdf(lent); }
-        // TODO: why not capture lent as read here? I can always turn a lent into read and mix the ROGs manually. See lentCannotAdaptWithMut
-        if (mMdf.isLent() && of(mut, imm, read, iso).containsAll(bounds)) { return captured.withMdf(read); }
-        if (mMdf.isRead() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(read); }
-        if (mMdf.isRecMdf() && of(mut, imm, lent, read).containsAll(bounds)) { return captured.withMdf(recMdf); }
+        if (mMdf.isLent() && of(mut,lent,iso).containsAll(bounds)) { return captured.withMdf(lent); }
+        if (mMdf.isLent() && of(mut, imm, lent, readOnly, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
+        if (mMdf.isReadOnly() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(readOnly); }
+        if (mMdf.isRecMdf() && of(mut, imm, lent, readOnly).containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
       if (mMdf.is(mut, lent) && captured.mdf().is(mut, lent)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
-      if (mMdf.isImm() && captured.mdf().is(mut, lent, read, recMdf)) { return captured.withMdf(imm); }
-      if (mMdf.isLent() && captured.mdf().isRead()) { return captured; }
-      if (mMdf.isRead() && captured.mdf().is(mut, lent, read)) { return captured.withMdf(read); }
+      if (mMdf.isImm() && captured.mdf().is(mut, lent, readOnly, recMdf)) { return captured.withMdf(imm); }
+      if (mMdf.isLent() && captured.mdf().isReadOnly()) { return captured; }
+      if (mMdf.isReadOnly() && captured.mdf().is(mut, lent, readOnly)) { return captured.withMdf(readOnly); }
       if (mMdf.isRecMdf() && captured.mdf().is(mut, lent)) { return captured.withMdf(recMdf); }
-      if (captured.mdf().is(read, recMdf)) { return captured.withMdf(read); }
+      if (captured.mdf().is(readOnly, recMdf)) { return captured.withMdf(readOnly); }
     }
 
-    if (self.isRead()) {
+    if (self.isReadOnly()) {
       if (captured.isMdfX()) {
 //        var validReadCaptures = of(mut, imm, iso, lent, read);
         if (mMdf.isImm() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(imm); }
-        if (mMdf.isRead() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(read); }
+        if (mMdf.isReadOnly() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(readOnly); }
         if (mMdf.isRecMdf() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
-      if (mMdf.isImm() && captured.mdf().is(mut, lent, read, recMdf)) { return captured.withMdf(imm); }
-      if (mMdf.isRead() && captured.mdf().is(mut, lent, read, recMdf)) { return captured.withMdf(read); }
-      if (mMdf.isRecMdf() && captured.mdf().is(mut, lent, read)) { return captured.withMdf(recMdf); }
-      if (mMdf.isRecMdf() && captured.mdf().is(mut, lent, read)) { return captured.withMdf(recMdf); }
-      if (mMdf.isRecMdf() && captured.mdf().isRecMdf()) { return captured.withMdf(read); }
+      if (mMdf.isImm() && captured.mdf().is(mut, lent, readOnly, recMdf)) { return captured.withMdf(imm); }
+      if (mMdf.isReadOnly() && captured.mdf().is(mut, lent, readOnly, recMdf)) { return captured.withMdf(readOnly); }
+      if (mMdf.isRecMdf()) { return captured.withMdf(recMdf); }
     }
 
     if (self.isRecMdf()) {

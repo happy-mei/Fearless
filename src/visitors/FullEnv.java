@@ -35,7 +35,7 @@ public record FullEnv(List<String> xs, List<T> ts, List<Id.GX<T>> gxs, T decT) {
   public FullEnv add(E.X x, T t){ return add(x.name(),t); }
   public FullEnv add(String x, T t){ return new FullEnv(Push.of(xs,x),Push.of(ts,t),gxs,decT); }
   public FullEnv add(Id.GX<T> gx){ return new FullEnv(xs,ts,Push.of(gxs,gx),decT); }
-  public FullEnv add(T.Dec dec){ return new FullEnv(xs,ts,Push.of(gxs,dec.gxs()),new T(Mdf.read, dec.toIT())); }
+  public FullEnv add(T.Dec dec){ return new FullEnv(xs,ts,Push.of(gxs,dec.gxs()),new T(Mdf.readOnly, dec.toIT())); }
   public T get(E.X x){ return get(x.name()); }
   public T get(String x){
     if (x.equals("this")) { return requireNonNull(decT); }

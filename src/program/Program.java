@@ -41,11 +41,11 @@ public interface Program {
 
   default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1 == m2){ return true; }
-    if (m2.is(Mdf.read)) { return true; }
+    if (m2.is(Mdf.readOnly)) { return true; }
     return switch(m1){
       case mut -> m2.isLikeMut();
-      case lent, imm -> m2.isRead();
-      case read, mdf, recMdf -> false;
+      case lent, imm -> m2.isReadOnly();
+      case readOnly, mdf, recMdf -> false;
       case iso -> true;
     };
   }
@@ -159,8 +159,8 @@ public interface Program {
     }
     var sig = cm.sig();
     if (mdf.isLent() && !sig.mdf().isIso()) { return Push.of(cm, filterByMdf(mdf, cms)); }
-    var baseMdfReadLike = mdf.isImm() || mdf.isRead();
-    var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isRead() || sig.mdf().isRecMdf();
+    var baseMdfReadLike = mdf.isImm() || mdf.isReadOnly();
+    var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isReadOnly() || sig.mdf().isRecMdf();
     if (baseMdfReadLike && methMdfImmOrRead) {
       return Push.of(cm, filterByMdf(mdf, cms));
     }

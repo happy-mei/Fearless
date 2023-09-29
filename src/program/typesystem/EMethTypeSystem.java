@@ -1,7 +1,6 @@
 package program.typesystem;
 
 import ast.E;
-import ast.Program;
 import ast.T;
 import failure.CompileError;
 import failure.Fail;
@@ -10,13 +9,10 @@ import id.Id;
 import id.Id.GX;
 import id.Id.MethName;
 import id.Mdf;
-import program.CM;
 import program.TypeRename;
-import utils.Bug;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
-import visitors.CloneVisitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -153,7 +149,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       tst,
       tst.renameMdfs(Map.of(Mdf.mut, Mdf.iso)), // TODO: this is incompatible with recMdf lambdas
       tst.renameMdfs(Map.of(
-        Mdf.read, Mdf.imm,
+        Mdf.readOnly, Mdf.imm,
         Mdf.lent, Mdf.iso,
         Mdf.mut, Mdf.iso
       ))),
@@ -178,14 +174,14 @@ public interface EMethTypeSystem extends ETypeSystem {
         return switch (kind) {
           case Return -> ti.withMdf(mdf0.adapt(ti));
           case Arg -> {
-//            if (ti.mdf().isMdf()) { yield ti.withMdf(mdf0.adapt(ti)); } // TODO: this is probably unsound
+//            if (ti.mdf().isMdf()) { yield ti.withMdf(mdf0.adapt(ti)); } // this is probably unsound
             var newMdf = Gamma.xT(x, xbs, mdf0, ti, mdf0).mdf();
             yield ti.withMdf(newMdf);
           }
         };
       },
       it->{
-        var newTs = it.ts().stream().map(ti->fancyRename(x, ti, mdf0, map, kind, xbs)).toList();
+        var newTs = it.ts().stream().map(ti->fancyRename(x, ti, mdf0, map, TypeRename.RenameKind.Arg, xbs)).toList();
         if(!mdf.isRecMdf() && !mdf.isMdf()){ return new T(mdf, it.withTs(newTs)); }
         if(mdf0.isIso()) { return new T(Mdf.mut, it.withTs(newTs)); }
         return new T(mdf0, it.withTs(newTs));

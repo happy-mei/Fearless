@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface XBs {
-  Set<Mdf> defaultBounds = Set.of(Mdf.read, Mdf.lent, Mdf.mut, Mdf.imm);
+  Set<Mdf> defaultBounds = Set.of(Mdf.readOnly, Mdf.lent, Mdf.mut, Mdf.imm);
 
   default Set<Mdf> get(Id.GX<?> x) {
     return getO(x).orElse(defaultBounds);

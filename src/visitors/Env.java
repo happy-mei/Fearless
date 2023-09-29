@@ -53,7 +53,7 @@ public record Env(List<String> xs, List<T> ts, List<Id.GX<T>> gxs, T decT, List<
     c.put(x, 0);
   })); }
   public Env add(Id.GX<T> gx){ return new Env(xs,ts,Push.of(gxs,gx),decT,ms,usages); }
-  public Env add(T.Dec dec){ return new Env(xs,ts,Push.of(gxs,dec.gxs()),new T(Mdf.read, dec.toIT()),ms,usages); }
+  public Env add(T.Dec dec){ return new Env(xs,ts,Push.of(gxs,dec.gxs()),new T(Mdf.readOnly, dec.toIT()),ms,usages); }
   public void addUsage(String x) { usages.computeIfPresent(x, (x_,n)->n+1); }
   public T get(E.X x){ return get(x.name()); }
   public T get(String x){

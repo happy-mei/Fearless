@@ -97,10 +97,10 @@ public interface GenericBounds {
             return bounds.containsAll(XBs.defaultBounds);
           }
           if (!bs.contains(Mdf.mut) && !bs.contains(Mdf.iso) && bs.contains(Mdf.lent)) {
-            return bounds.containsAll(Set.of(Mdf.imm, Mdf.read, Mdf.lent));
+            return bounds.containsAll(Set.of(Mdf.imm, Mdf.readOnly, Mdf.lent));
           }
-          if (!bs.contains(Mdf.mut) && !bs.contains(Mdf.iso) && !bs.contains(Mdf.lent) && bs.contains(Mdf.read)) {
-            return bounds.containsAll(Set.of(Mdf.imm, Mdf.read));
+          if (!bs.contains(Mdf.mut) && !bs.contains(Mdf.iso) && !bs.contains(Mdf.lent) && bs.contains(Mdf.readOnly)) {
+            return bounds.containsAll(Set.of(Mdf.imm, Mdf.readOnly));
           }
           if (bs.size() == 1 && bs.contains(Mdf.imm)) { return bounds.contains(Mdf.imm); }
           throw Bug.unreachable();

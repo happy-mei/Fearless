@@ -10,17 +10,13 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import program.Program;
-import program.TypeRename;
 import utils.Box;
-import utils.Bug;
 import utils.Streams;
 import visitors.ShortCircuitVisitor;
-import visitors.Visitor;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 interface ELambdaTypeSystem extends ETypeSystem{
@@ -127,7 +123,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     if(baseDestiny){ return baseCase; }
     //res is iso or imm, thus is promotable
 
-    var criticalFailure = typeSysBounded.isoAwareJudgment(gg, m, e, ret.withMdf(Mdf.read));
+    var criticalFailure = typeSysBounded.isoAwareJudgment(gg, m, e, ret.withMdf(Mdf.readOnly));
     if (criticalFailure.isPresent()) { return baseCase; }
 
 //    var isoPromotion1 = typeSysBounded.isoAwareJudgment()(gg, m, e, ret.withMdf(Mdf.mut));
@@ -161,7 +157,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     };
     g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(xbs(), selfName, selfT, mMdf);
     gg = Streams.zip(m.xs(), args).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
-    return typeSysBounded.isoAwareJudgment(gg, m, e, ret.withMdf(Mdf.read)).flatMap(ignored->baseCase);
+    return typeSysBounded.isoAwareJudgment(gg, m, e, ret.withMdf(Mdf.readOnly)).flatMap(ignored->baseCase);
   }
 
   /** G;XBs |= e : T */
@@ -227,6 +223,6 @@ interface ELambdaTypeSystem extends ETypeSystem{
     assert !mdf.isMdf();
     if (mdf.is(Mdf.iso, Mdf.mut, Mdf.recMdf)) { return true; }
     if (mdf.isLent() && !mMdf.isIso()) { return true; }
-    return mdf.is(Mdf.imm, Mdf.read) && mMdf.is(Mdf.imm, Mdf.read, Mdf.recMdf);
+    return mdf.is(Mdf.imm, Mdf.readOnly) && mMdf.is(Mdf.imm, Mdf.readOnly, Mdf.recMdf);
   }
 }
