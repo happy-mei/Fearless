@@ -349,4 +349,65 @@ public class TestTypeSystemWithBase {
       #(l: mut LList[read Person], p: read Person): iso LList[read Person] -> l + p,
       }
     """, Base.mutBaseAliases); }
+
+  @Test void adaptFails() { fail("""
+    """, """
+    package test
+    Foo:{}
+    Box:{ recMdf #[T](x: recMdf T): recMdf Box[recMdf T] -> {x}, }
+    No:{ #(f: mut Box[mut Foo]): read Box[read Foo] -> f, }
+    No2:{
+      #(f: mut Box[mut Foo]): mut Box[read Foo] -> f,
+      .break(f: mut Box[read Foo]): Void -> f.update(imm Foo),
+      }
+    Box[T]:{
+      recMdf .get: recMdf T,
+      mut .update(x: mdf T): Void -> {},
+      }
+    Void:{}
+    Break:{ #(foo: read Foo): read Box[read Foo] -> read Box#foo }
+    """); }
+
+  /*
+  ReadBox[T]:{ ==~ having read vs readOnly
+  read .get:read T,
+  mut .setImm(imm T):Void,
+  mut .setMut(mut T):Void,
+  }
+  ImmBox[T]:ReadBox[T]{ set goes loop }
+  MutBox[T]:ReadBox[T]{ set goes loop }
+  FReadBox:{#[T](t:mut T):mut ReadBox[T]->
+    Ref[ReadBox[T]] state=MutBox[T]{t}
+    return { get->state*, setImm->state*.. setMut->state*}
+    }
+   */
+  @Test void readOnlyAsLib() { ok("""
+    package test
+    alias base.Abort as Abort,
+    
+    ReadBox[T]:{
+      read .get: read T,
+      mut .setImm(x: imm T): Void,
+      mut .setMut(x: mut T): Void,
+      }
+    _ImmBox[T]:ReadBox[T]{
+      .setImm(x) -> Abort!,
+      .setMut(x) -> Abort!,
+      }
+    _MutBox[T]:ReadBox[T]{
+      .setImm(x) -> Abort!,
+      .setMut(x) -> Abort!,
+      }
+    FReadBox:{
+      #[T](t: mut T): mut ReadBox[T] -> Do#
+        .var[mut Ref[mut ReadBox[T]]] state = { Ref#[mut ReadBox[T]](mut _MutBox[T]{ t }) }
+        .return{{
+          .get -> state*.get,
+          .setImm(x) -> state := mut _ImmBox[T]{ x },
+          .setMut(x) -> state := mut _MutBox[T]{ x },
+          }}
+      }
+    """, Base.mutBaseAliases); }
+
+  //TODO: test that makes sure we can turn a mut List[mut Person into a read List[read Person] via adaptorOk
 }
