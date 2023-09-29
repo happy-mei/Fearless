@@ -12,7 +12,7 @@ Automaton:{
     a -> recMdf Opt#{ .next -> self, .result -> a } },
   recMdf .const[A,R](x: recMdf R): recMdf Automaton[recMdf A, recMdf R] -> {'self
     _ -> recMdf Opt#{ .next -> self, .result -> x } },
-  read .empty[A,R]: iso Automaton[mdf A, mdf R] -> { _ -> {} },
+  readOnly .empty[A,R]: iso Automaton[mdf A, mdf R] -> { _ -> {} },
   recMdf .llist[E](list: recMdf LList[recMdf E]): recMdf Automaton[Void, recMdf E] -> {'self
     _ -> list.head.matchHyg{
       .some(h) -> recMdf Opt#{ .next -> this.llist(list.tail), .result -> h },

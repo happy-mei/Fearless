@@ -1,7 +1,7 @@
 Complexity
           |   mdf                                | generics       | circularity       | metaprogramming    |
-42        |caps read mut lent imm class fwd fwd% |  NOPE          |fwd and semantic   | tons - slows       |
-Fearless  |caps read mut lent imm mdf recMdf     | simple but mdf |only self name     | maybe macroish top |
+42        |caps readOnly mut lent imm class fwd fwd% |  NOPE          |fwd and semantic   | tons - slows       |
+Fearless  |caps readOnly mut lent imm mdf recMdf     | simple but mdf |only self name     | maybe macroish top |
 
 
 
@@ -339,11 +339,11 @@ APeson:{#(age:Num,name:Str):Person->{.age->Var#(age),.name->name} } //BROKEN
 
 Var[T]:{ !:T,  :=(t:T):Void }
 
-read .getDog: recMdf Dog ->..
+readOnly .getDog: recMdf Dog ->..
 
 mbob:mut Person = APerson#(ADog("fido"))
 ibob:imm Person = APerson#(ADog("fido"))
-rbob:read Person = mbob //ibob
+rbob:readOnly Person = mbob //ibob
 mdog=mbob.getDog
 idog=ibob.getDog
 rdog=rbob.getDog 

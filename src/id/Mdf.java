@@ -6,15 +6,16 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum Mdf{
-  mut,lent, readOnly,iso,recMdf,mdf,imm;
+  read,mut,lent,readOnly,iso,recMdf,mdf,imm;
   public boolean is(Mdf... valid){ return Arrays.stream(valid).anyMatch(v->this==v); }
-  public boolean isMut(){return this==mut;}
-  public boolean isLent(){return this==lent;}
-  public boolean isReadOnly(){return this== readOnly;}
-  public boolean isIso(){return this==iso;}
-  public boolean isRecMdf(){return this==recMdf;}
-  public boolean isMdf(){return this==mdf;}
-  public boolean isImm(){return this==imm;}
+  public boolean isMut(){return this == mut;}
+  public boolean isLent(){return this == lent;}
+  public boolean isReadOnly(){return this == readOnly;}
+  public boolean isRead(){return this == read;}
+  public boolean isIso(){return this == iso;}
+  public boolean isRecMdf(){return this == recMdf;}
+  public boolean isMdf(){return this == mdf;}
+  public boolean isImm(){return this == imm;}
   public boolean isHyg(){return isReadOnly() || isLent();}
   public boolean couldBeHyg(){
     return isHyg() || isMdf() || isRecMdf();

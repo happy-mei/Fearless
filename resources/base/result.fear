@@ -23,8 +23,8 @@ Res[T,E]:{
   recMdf .flatMap[R](f: mut ResFlatMap[recMdf T, recMdf E, recMdf R]): mut Res[recMdf R, recMdf E] -> this.match(f),
   recMdf .do(f: mut ResMatch[recMdf T, recMdf E, Void]): recMdf Res[recMdf T, recMdf E] ->
     Yeet.with[Void, recMdf Res[recMdf T, recMdf E]](this.match(f), this),
-  read .isErr: Bool -> this.match{ .err(_) -> True, .ok(_) -> False },
-  read .isOk: Bool -> this.match{ .err(_) -> False, .ok(_) -> True },
+  readOnly .isErr: Bool -> this.match{ .err(_) -> True, .ok(_) -> False },
+  readOnly .isOk: Bool -> this.match{ .err(_) -> False, .ok(_) -> True },
   }
 ResMatch[T,E,R]:{ mut .ok(x: mdf T): mdf R, mut .err(x: mdf E): mdf R }
 ResMatchHyg[T,E,R]:{ recMdf .ok(x: mdf T): mdf R, recMdf .err(x: mdf E): mdf R }

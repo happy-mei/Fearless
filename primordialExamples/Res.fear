@@ -10,7 +10,7 @@ Block
     }
 
 Res[T, E]:NoMutHyg[T],NoMutHyg[E]{
-  read .match[R](m: mut ResMatch[recMdf T, recMdf E]),
+  readOnly .match[R](m: mut ResMatch[recMdf T, recMdf E]),
   }
 ResMatch[T, E, R]{ mut .ok(x: mdf T): mdf R, mut .err(x: mdf E): mdf R }
 
@@ -25,11 +25,11 @@ Res:{
   }
 }
 Res[T,E]:NoMutRead[T],NoMutRead[E]{
-  read .map[R](f: F[this::T, R]): Res[R,E],
-  read .flatMap[R,RE](f: F[this::T, Res[R, RE]]): Res[R, RE],
-  read .mapErr[R](f: F[this::E, R]): Res[T, R],
-  read .flatMapErr[R](f: F[this::E, Res[R, E]]): Res[R, E],
-  read .match[R](m: mut ResMatch[this::T, this::E, R]): R
+  readOnly .map[R](f: F[this::T, R]): Res[R,E],
+  readOnly .flatMap[R,RE](f: F[this::T, Res[R, RE]]): Res[R, RE],
+  readOnly .mapErr[R](f: F[this::E, R]): Res[T, R],
+  readOnly .flatMapErr[R](f: F[this::E, Res[R, E]]): Res[R, E],
+  readOnly .match[R](m: mut ResMatch[this::T, this::E, R]): R
 }
 ResMatch[T,R]{ mut .some(x:T): R, mut .none: R }
 

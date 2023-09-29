@@ -1,9 +1,9 @@
-//the type mut UBox[read E] not well formed, it is thus demoted to read UBox[read E]
+//the type mut UBox[readOnly E] not well formed, it is thus demoted to readOnly UBox[readOnly E]
 //calling a method on a mdf Store[E] that returns a mut::E
 //returns a E!mdf::E, for mdf=mut E!mut::E == mut::E
 
 UBox[E]:NoMutHyg[mdf E]{
-  read * : recMdf E, //Ref[mut::E]*() : recMdf E ==E!mut::E == mut::E
+  readOnly * : recMdf E, //Ref[mut::E]*() : recMdf E ==E!mut::E == mut::E
   mut .swap(e: E): E
 }
 
@@ -23,17 +23,17 @@ UBox:{
 //It can be imm or mut
 
 1 imm imm      UBox#(5) : mut UBox[imm Num] -promote-> imm UBox[imm Num]
-2 read imm     UBox#(5) : read UBox[imm Num]
+2 readOnly imm     UBox#(5) : readOnly UBox[imm Num]
 3 mut imm      UBox#(5) : mut UBox[imm Num]
 
-//NO imm read == imm imm c1 
-//  UBox#[read UBox[imm Num]](UBox#(5)) : imm UBox[read UBox[imm Num]]
-4 read read    UBox#(myReadUBox) : read UBox[read UBox[imm Num]]
+//NO imm readOnly == imm imm c1
+//  UBox#[readOnly UBox[imm Num]](UBox#(5)) : imm UBox[readOnly UBox[imm Num]]
+4 readOnly readOnly    UBox#(myReadUBox) : readOnly UBox[readOnly UBox[imm Num]]
 //NO mut read
-//  UBox#[read UBox[imm Num]](UBox#(5)) : mut UBox[read UBox[imm Num]] //ill typed
+//  UBox#[readOnly UBox[imm Num]](UBox#(5)) : mut UBox[readOnly UBox[imm Num]] //ill typed
 
 //NO imm mut ==imm imm c2
 //  UBox#[mut UBox[imm Num]](UBox#(5)) : imm UBox[mut UBox[imm Num]]
-//NO read mut == read read c3
-//  UBox#[mut UBox[imm Num]](UBox#(5)) : read UBox[mut UBox[imm Num]]
+//NO readOnly mut == readOnly readOnly c3
+//  UBox#[mut UBox[imm Num]](UBox#(5)) : readOnly UBox[mut UBox[imm Num]]
 5 mut mut    UBox#(UBox#(5)) : mut UBox[mut UBox[imm Num]]

@@ -5,7 +5,7 @@ Str:Sealed{
   // Str is not Stringable due to limitations of the Java codegen target
   .str: Str,
   +(other: Str): Str,
-  ==(other: read Str): Bool,
+  ==(other: readOnly Str): Bool,
   }
 Stringable:{
   .str: Str,

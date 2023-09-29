@@ -10,7 +10,7 @@ LListMut:{
   }
 LListMut[E]:Sealed{
   mut .match[R](m: mut LListMutMatch[mdf E, mdf R]): mdf R -> m.empty,
-  read .head: mut Opt[recMdf E] -> {},
+  readOnly .head: mut Opt[recMdf E] -> {},
   }
 LListMutMatch[E,R]:{
   mut .elem(head: mut E, tail: mut LListMut[mdf E]): mdf R,

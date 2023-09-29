@@ -1,15 +1,15 @@
 Opt[T]:NoMutHyg[T]{
-  read .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R ->m.none,
-  read .map[R](f: mut OptMap[recMdf T,mdf R]): recMdf Opt[mdf R]->this.match(f),
-  read .do(f: mut OptDo[recMdf T])->this.match(f),
-  read .rMap[R](f: mut OptMap[read T,mdf R]): recMdf Opt[mdf R]->this.match(f),
-  read .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): recMdf Opt[mdf R]->this.match(f),
+  readOnly .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R ->m.none,
+  readOnly .map[R](f: mut OptMap[recMdf T,mdf R]): recMdf Opt[mdf R]->this.match(f),
+  readOnly .do(f: mut OptDo[recMdf T])->this.match(f),
+  readOnly .rMap[R](f: mut OptMap[readOnly T,mdf R]): recMdf Opt[mdf R]->this.match(f),
+  readOnly .flatMap[R](f: mut OptFlatMap[recMdf T, mdf R]): recMdf Opt[mdf R]->this.match(f),
   .iMap[R](f: F[T,R]): Opt[R]->Cast(this).as[Opt[T]]({x->x}).match{
     .some(x)->f#x,
     .none->{}
     },
-  read isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
-  read isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
+  readOnly isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
+  readOnly isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
   }
 OptMatch[T,R]:{ mut .some(x:mdf T): mdf R, mut .none: mdf R }
 OptFlatMap[T,R]:OptMatch[mdf T,recMdf Opt[mdf R]]{ .none->{} }
@@ -39,15 +39,15 @@ mut Person bob = omp.[mut Person]match(mut OptMatch[imm Person,mut Person]{
   })
 ----------
 //test all 3 Convertible conversions
-//imm mut and imm read -> imm imm
-//read mut -> read read 
+//imm mut and imm readOnly -> imm imm
+//readOnly mut -> readOnly readOnly
 Opt[Person] iomp = omp//Ok because convertible
 
-Opt[read Person] romp =Opt![read Person] //mut Option[read Person] 
+Opt[readOnly Person] romp =Opt![readOnly Person] //mut Option[readOnly Person]
 Opt[Person] iomp =romp //Ok
 
-read Opt[mut Person] momp =Opt![mut Person] //mut Option[read Person] 
-read Opt[read Person] rromp =momp //Ok
+readOnly Opt[mut Person] momp =Opt![mut Person] //mut Option[readOnly Person]
+readOnly Opt[readOnly Person] rromp =momp //Ok
 
 mut Opt[mut Person] moBob->
   mutBob=Persons#("Bob")
@@ -83,5 +83,5 @@ opN2=opN.map{n->acc++}
 
 mut Opt[mut Acc] opA=Opt#(Accs#(0))
 
-AsRead#(opA).map{a->a} :read Option[mut Acc]
+AsRead#(opA).map{a->a} :readOnly Option[mut Acc]
 opA.rMap{a->a} :mut Option[mut Acc]

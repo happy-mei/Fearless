@@ -43,10 +43,10 @@ public interface Program {
     if(m1 == m2){ return true; }
     if (m2.is(Mdf.readOnly)) { return true; }
     return switch(m1){
-      case mut -> m2.isLikeMut();
-      case lent, imm -> m2.isReadOnly();
-      case readOnly, mdf, recMdf -> false;
+      case mut -> m2.isLikeMut() || m2.isRead();
+      case imm -> m2.is(Mdf.read);
       case iso -> true;
+      case readOnly, mdf, recMdf, read, lent -> false;
     };
   }
   default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }

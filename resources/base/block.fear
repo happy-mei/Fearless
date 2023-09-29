@@ -154,12 +154,12 @@ _DecidedBlock:{
 //Continuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
 ////LoopBody[T]:{ mut #: ControlFlow[mdf T] }
 ////ControlFlow:{
-////  read .continue: mut ControlFlow[Void] -> {},
-////  read .break: mut ControlFlow[Void] -> { m -> m.break },
-////  read .return[T](rv: mdf T): mut ControlFlow[mdf T] -> { m -> m.return(rv) }
+////  readOnly .continue: mut ControlFlow[Void] -> {},
+////  readOnly .break: mut ControlFlow[Void] -> { m -> m.break },
+////  readOnly .return[T](rv: mdf T): mut ControlFlow[mdf T] -> { m -> m.return(rv) }
 ////  }
 ////ControlFlow[T]:Sealed{
-////  read .match[R](m: mut ControlFlowMatch[mdf T, mdf R]): mdf R -> m.continue,
+////  readOnly .match[R](m: mut ControlFlowMatch[mdf T, mdf R]): mdf R -> m.continue,
 ////  }
 ////ControlFlowMatch[T,R]:{
 ////  mut .continue: mdf R,

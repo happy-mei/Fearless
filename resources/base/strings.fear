@@ -1,14 +1,14 @@
 package base
 
 Str:Sealed{
-  read .len: UInt,
+  readOnly .len: UInt,
   // Str is not Stringable due to limitations of the Java codegen target
-  read .str: Str,
-  read +(other: read Str): Str,
-  read ==(other: read Str): Bool,
+  readOnly .str: Str,
+  readOnly +(other: readOnly Str): Str,
+  readOnly ==(other: readOnly Str): Bool,
   }
 Stringable:{
-  read .str: Str,
+  readOnly .str: Str,
   }
 _StrInstance:Str{
   .len -> this.len,

@@ -23,7 +23,7 @@ BoxIso[T]:{
   mut .look[R](obs:F[mut T, R]):R->boring/magic
   mut .look[R](obs:F[mut T, B, R],b:B):R->boring/magic
   mut .get:iso T
-  //NO  read .readGet:read T
+  //NO  readOnly .readGet:readOnly T
   mut .set:iso T
   }
 BoxIso:{ #[T](e:iso T):mut BoxIso[T]->magic }

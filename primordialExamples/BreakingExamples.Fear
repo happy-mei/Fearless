@@ -8,9 +8,9 @@ Self.foo(acc1).foo(acc2)
 
 
 // Example showing that an imm method of a mut object 
-// can not capture a read (as imm or otherwise)
+// can not capture a readOnly (as imm or otherwise)
 OhNo{
-  break(read MutSomewhere m)-> mut Box[MutSomewhere]{imm get->m}
+  break(readOnly MutSomewhere m)-> mut Box[MutSomewhere]{imm get->m}
   }
 imm MutSomewhere nope=OhNo{}.break(myMut).get
 
@@ -18,8 +18,8 @@ imm MutSomewhere nope=OhNo{}.break(myMut).get
 // Examples showing mdf and recMdf
 Foo:{}
 Box[E]:{
-  read .getRM(): recMdf E,
-  read .getM(): mdf E,
+  readOnly .getRM(): recMdf E,
+  readOnly .getM(): mdf E,
 }
 Main:{
   _ -> Block
@@ -45,7 +45,7 @@ Main:{
 
   XIT not in G
 -----------------------(recMdf-decls)
-G |- recMdf XIT : read XIT
+G |- recMdf XIT : readOnly XIT
 
 MDF0 notin {recMdf, iso}
 --------------------------------(recMdf-IT)
@@ -56,7 +56,7 @@ Ds;G;iso IT0 |- recMdf IT : mut IT
 
 // This case isn't possible because recMdf ITs will not exist
 // --------------------------------(recMdf-recMdf-IT)
-// Ds;G;recMdf IT0 |- recMdf IT : read IT
+// Ds;G;recMdf IT0 |- recMdf IT : readOnly IT
 
 MDF0 in {mut, iso, lent}
 -----------------------(recMdf-id-X)
@@ -71,7 +71,7 @@ Ds;G;MDF0 C[Ts] |- recMdf X : imm X
 
 
 G |- XIT : MDF _
-MDF = read if MDF is recMdf
+MDF = readOnly if MDF is recMdf
 MDF' = 
 ----------------------------(recMdf-usage)
 G |- recMdf XIT : MDF XIT
@@ -88,20 +88,20 @@ iso _ = mut
 mut = mdf
 MDF recMdf = MDF, otherwise // or maybe read?
 
-read lent = read
-read mut = read
-read imm = imm // maybe read
-read iso = read
-read recMdf = read
-read read = read
-lent read = read
+readOnly lent = read
+readOnly mut = read
+readOnly imm = imm // maybe read
+readOnly iso = read
+readOnly recMdf = read
+readOnly readOnly = read
+lent readOnly = read
 lent mut = lent
 lent imm = imm
-mut read = read
+mut readOnly = read
 mut lent = lent
 mut imm = imm
 mut iso = iso
-iso read = read
+iso readOnly = read
 iso lent = lent
 iso mut = mut
 iso imm = imm

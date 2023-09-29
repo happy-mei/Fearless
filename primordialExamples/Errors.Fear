@@ -1,7 +1,7 @@
 Info:Sealed{
   .info: Str,
-  .map: read Map[Str, read Info],
-  .list: read List[read Info],
+  .map: readOnly Map[Str, readOnly Info],
+  .list: readOnly List[readOnly Info],
   }
 
 Try:{ #[R](tc: mut TryCatch[mdf R]): mdf R }

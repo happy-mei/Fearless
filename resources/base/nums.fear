@@ -1,56 +1,56 @@
 package base
 
 Int:Sealed,MathOps[Int],IntOps[Int]{
-  read .uint: UInt,
-  read .float: Float,
+  readOnly .uint: UInt,
+  readOnly .float: Float,
   // not Stringable due to limitations of the Java codegen target
-  read .str: Str,
+  readOnly .str: Str,
   }
 UInt:Sealed,MathOps[UInt],IntOps[UInt]{
-  read .int: Int,
-  read .float: Float,
+  readOnly .int: Int,
+  readOnly .float: Float,
   // not Stringable due to limitations of the Java codegen target
-  read .str: Str,
+  readOnly .str: Str,
   }
 Float:Sealed,MathOps[Float]{
-  read .int: Int,
-  read .uint: UInt,
-  read .round: Int,
-  read .ceil: Int,
-  read .floor: Int,
-  read **(n: read Float): Float, // pow
-  read .isNaN: Bool,
-  read .isInfinite: Bool,
-  read .isPosInfinity: Bool,
-  read .isNegInfinity: Bool,
+  readOnly .int: Int,
+  readOnly .uint: UInt,
+  readOnly .round: Int,
+  readOnly .ceil: Int,
+  readOnly .floor: Int,
+  readOnly **(n: readOnly Float): Float, // pow
+  readOnly .isNaN: Bool,
+  readOnly .isInfinite: Bool,
+  readOnly .isPosInfinity: Bool,
+  readOnly .isNegInfinity: Bool,
   // not Stringable due to limitations of the Java codegen target
-  read .str: Str,
+  readOnly .str: Str,
   }
 
 MathOps[T]:Sealed{
-  read +(n: read T): T,
-  read -(n: read T): T,
-  read *(n: read T): T,
-  read /(n: read T): T,
-  read %(n: read T): T,
-  read .abs: T,
+  readOnly +(n: readOnly T): T,
+  readOnly -(n: readOnly T): T,
+  readOnly *(n: readOnly T): T,
+  readOnly /(n: readOnly T): T,
+  readOnly %(n: readOnly T): T,
+  readOnly .abs: T,
 
   // Comparisons
-  read >(n: read T): Bool,
-  read <(n: read T): Bool,
-  read >=(n: read T): Bool,
-  read <=(n: read T): Bool,
-  read ==(n: read T): Bool,
+  readOnly >(n: readOnly T): Bool,
+  readOnly <(n: readOnly T): Bool,
+  readOnly >=(n: readOnly T): Bool,
+  readOnly <=(n: readOnly T): Bool,
+  readOnly ==(n: readOnly T): Bool,
   }
 IntOps[T]:Sealed{
   // bitwise
-  read >>(n: read T): T,
-  read <<(n: read T): T,
-  read ^(n: read T): T,
-  read &(n: read T): T,
-  read |(n: read T): T,
+  readOnly >>(n: readOnly T): T,
+  readOnly <<(n: readOnly T): T,
+  readOnly ^(n: readOnly T): T,
+  readOnly &(n: readOnly T): T,
+  readOnly |(n: readOnly T): T,
 
-  read **(n: read UInt): T, // pow
+  readOnly **(n: readOnly UInt): T, // pow
   }
 
 // Fake concrete type for all numbers. The real implementation is generated at code-gen.

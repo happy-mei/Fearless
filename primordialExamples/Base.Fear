@@ -6,7 +6,7 @@ Void:Sealed{}
 
 Loop:{!: Void->this! }
 
-HasIdentity:{ mut identityEq(other : read HasIdentity):Bool }//magic
+HasIdentity:{ mut identityEq(other : readOnly HasIdentity):Bool }//magic
 
 Debug:Sealed{ #[T](x:T): T } // magic
 
@@ -26,8 +26,8 @@ Let[V,R]:{
   }
 Cast:Sealed{ #[A](a:mdf A):mut Cast[mdf A]->{a} }
 Cast[A]:NoMutHyg[A],Sealed{
-  read .self: recMdf A
-  read .as[R](c:CastId[recMdf A,mdf R]):mdf R->c.id(this.self)
+  readOnly .self: recMdf A
+  readOnly .as[R](c:CastId[recMdf A,mdf R]):mdf R->c.id(this.self)
   }
 CastId[A,R]{ .id(a:mdf A):mdf R }
 

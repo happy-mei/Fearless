@@ -6,26 +6,26 @@
 All of those need to work with mut/imm and read.
 Collections stuff need to work with
 1 imm imm
-2 read imm
+2 readOnly imm
 3 mut imm
 
-//NO imm read == imm imm c1
-4 read read
+//NO imm readOnly == imm imm c1
+4 readOnly read
 //NO mut read
 
 //NO imm mut ==imm imm c2
-//NO read mut == read read c3
+//NO readOnly mut == readOnly readOnly c3
 5 mut mut
 
 ?????
-List[mut Person]:imm List[imm Person], read List[read Person]{
+List[mut Person]:imm List[imm Person], readOnly List[readOnly Person]{
   
   }
 
 Node[S]:NoMutHyg[S]{
-  read next: S
+  readOnly next: S
 }
-ReadNode:Node[read ReadNode]:{}
+ReadNode:Node[readOnly ReadNode]:{}
 ImmNode:Node[imm ImmNode],ReadNode{}
 MutNode:Node[mut MutNode],ReadNode{}
 

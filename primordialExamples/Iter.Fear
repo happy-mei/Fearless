@@ -1,4 +1,4 @@
-Iterable[E]:{ read .iter: lent Iter[mdf E] }
+Iterable[E]:{ readOnly .iter: lent Iter[mdf E] }
 
 // The key here is all terminal operators go via fold.
 Iter[E]:{

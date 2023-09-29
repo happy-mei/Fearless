@@ -2,8 +2,8 @@
 // We can make list similar to optional with a Cons/Nil case for a better UX)
 
 List[E]:NoMutHyg[E]{
-  read .get: mut Opt[recMdf E] -> {},
-  read .cons: mut Opt[mut List[redMdf E]] -> {},   //tail
+  readOnly .get: mut Opt[recMdf E] -> {},
+  readOnly .cons: mut Opt[mut List[redMdf E]] -> {},   //tail
   }
 
 User:{

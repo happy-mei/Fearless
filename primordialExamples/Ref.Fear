@@ -1,6 +1,6 @@
 Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
 Ref[X]:NoMutHyg[X],Sealed{
-  read * : recMdf X,
+  readOnly * : recMdf X,
   mut .swap(x: mdf X): mdf X,
   mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
   mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
@@ -46,7 +46,7 @@ Ref:{//fully inferred below
   imm #[X](x:mdf X): mut Ref[mdf X] -> this#(x) //magic
   }
 Ref[X]:NoMutHyg[X],Sealed{
-  read * : recMdf X,  // get (magic)
+  readOnly * : recMdf X,  // get (magic)
   mut .swap(x: mdf X): mdf X, // swap (magic)
   mut :=(x: mdf X): imm Void ->Let#{ .var -> this.swap(x), .in(_)->Void }
 }
