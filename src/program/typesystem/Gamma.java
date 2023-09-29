@@ -68,31 +68,35 @@ public interface Gamma {
 
     if (self.isMut()) {
       if (captured.isMdfX()) {
-        if (mMdf.isMut() && of(imm, mut).containsAll(bounds)) { return captured; }
-        if (mMdf.isImm() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(imm); }
-        if (mMdf.isLent() && of(imm, mut).containsAll(bounds)) { return captured.withMdf(lent); }
-        if (mMdf.isLent() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
-        if (mMdf.isReadOnly() && of(imm, mut, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
-        if (mMdf.isRecMdf() && of(imm, mut).containsAll(bounds)) { return captured.withMdf(recMdf); }
+        if (mMdf.isMut() && of(imm, mut, read).containsAll(bounds)) { return captured; }
+        if (mMdf.isImm() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(imm); }
+        if (mMdf.isRead() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(read); }
+        if (mMdf.isLent() && of(imm, mut, read).containsAll(bounds)) { return captured.withMdf(lent); }
+        if (mMdf.isLent() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
+        if (mMdf.isReadOnly() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
+        if (mMdf.isRecMdf() && of(imm, mut, read).containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
-      if (mMdf.isMut() && captured.mdf().is(mut, imm)) { return captured; }
-      if (mMdf.isImm() && captured.mdf().is(mut, imm, iso)) { return captured.withMdf(imm); }
-      if (mMdf.isLent() && captured.mdf().is(mut, imm)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
+      if (mMdf.isMut() && captured.mdf().is(mut, read)) { return captured; }
+      if (mMdf.isImm() && captured.mdf().is(mut, read)) { return captured.withMdf(imm); }
+      if (mMdf.isRead() && captured.mdf().is(mut, read)) { return captured.withMdf(imm); }
+      if (mMdf.isLent() && captured.mdf().is(mut, read)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
       if (mMdf.isReadOnly() && captured.mdf().isMut()) { return captured.withMdf(readOnly); }
       if (mMdf.isRecMdf() && captured.mdf().isMut()) { return captured.withMdf(recMdf); }
     }
 
-    var validHygCaptures = of(mut, imm, iso, lent, readOnly, recMdf); // TODO: maybe recMdf?
     if (self.isLent()) {
       if (captured.isMdfX()) {
-        if (mMdf.isMut() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(readOnly); }
-        if (mMdf.isImm() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(imm); }
+        if (mMdf.isMut()) { return captured.withMdf(readOnly); }
+        if (mMdf.isImm()) { return captured.withMdf(imm); }
+        if (mMdf.isRead()) { return captured.withMdf(readOnly); }
         if (mMdf.isLent() && of(mut,lent,iso).containsAll(bounds)) { return captured.withMdf(lent); }
-        if (mMdf.isLent() && of(mut, imm, lent, readOnly, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
-        if (mMdf.isReadOnly() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(readOnly); }
+        if (mMdf.isLent()) { return captured.withMdf(readOnly); }
+        if (mMdf.isReadOnly()) { return captured.withMdf(readOnly); }
         if (mMdf.isRecMdf() && of(mut, imm, lent, readOnly).containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
       if (mMdf.is(mut, lent) && captured.mdf().is(mut, lent)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
+      // TODO: here
+      if (mMdf.isMut() && captured.mdf().is()) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
       if (mMdf.isImm() && captured.mdf().is(mut, lent, readOnly, recMdf)) { return captured.withMdf(imm); }
       if (mMdf.isLent() && captured.mdf().isReadOnly()) { return captured; }
       if (mMdf.isReadOnly() && captured.mdf().is(mut, lent, readOnly)) { return captured.withMdf(readOnly); }
@@ -103,9 +107,9 @@ public interface Gamma {
     if (self.isReadOnly()) {
       if (captured.isMdfX()) {
 //        var validReadCaptures = of(mut, imm, iso, lent, read);
-        if (mMdf.isImm() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(imm); }
-        if (mMdf.isReadOnly() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(readOnly); }
-        if (mMdf.isRecMdf() && validHygCaptures.containsAll(bounds)) { return captured.withMdf(recMdf); }
+        if (mMdf.isImm()) { return captured.withMdf(imm); }
+        if (mMdf.isReadOnly()) { return captured.withMdf(readOnly); }
+        if (mMdf.isRecMdf()) { return captured.withMdf(recMdf); }
       }
       if (mMdf.isImm() && captured.mdf().is(mut, lent, readOnly, recMdf)) { return captured.withMdf(imm); }
       if (mMdf.isReadOnly() && captured.mdf().is(mut, lent, readOnly, recMdf)) { return captured.withMdf(readOnly); }

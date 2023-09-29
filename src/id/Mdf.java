@@ -20,7 +20,7 @@ public enum Mdf{
   public boolean couldBeHyg(){
     return isHyg() || isMdf() || isRecMdf();
   }
-  public boolean isLikeMut(){return isReadOnly() || isLent() || isMut();}
+  public boolean isLikeMut(){return isReadOnly() || isLent() || isMut() || isRead();}
   public boolean isStrong(){return isImm() || isReadOnly();}
   public Mdf adapt(ast.T t) {
     assert !(this.isRecMdf() && t.mdf().isMdf() && !t.isGX());
@@ -36,14 +36,19 @@ public enum Mdf{
     if (this == imm) { return imm; }
     if (this == iso) { return mut.adapt(other); }
     if (this == mut) {
-//      if (other == recMdf) { return mdf; }
       return other;
     }
+    if (this == read) {
+      if (other == imm) { return imm; }
+      if (other == readOnly) { return readOnly; }
+      if (other == lent) { return readOnly; }
+      return read;
+    }
     if (this == lent) {
-      if (other == imm) { return other; }
-      if (other == readOnly) { return other; }
-//      if (other == recMdf){ return read; } // TODO: Why? Turning off until I remember
-      if (other == recMdf) { return recMdf; } // TODO: check that this is sound
+      if (other == imm) { return imm; }
+      if (other == readOnly) { return readOnly; }
+      if (other == read) { return readOnly; }
+      if (other == recMdf) { return recMdf; }
       if (other == mdf) { return readOnly; }
       if (other == mut) { return lent; }
       if (other == iso) { return lent; }
@@ -59,6 +64,7 @@ public enum Mdf{
       if (other == mut) { return recMdf; }
       if (other == imm) { return imm; }
       if (other == readOnly) { return readOnly; }
+      if (other == read) { return readOnly; }
       if (other == lent) { return recMdf; }
       if (other == iso) { return imm; }
     }
@@ -68,10 +74,10 @@ public enum Mdf{
 
   public Optional<Mdf> restrict(Mdf mMdf) {
     if (this == mdf) { return Optional.of(mMdf); }
-    if (mMdf.isImm() || (this.isImm() && mMdf.isReadOnly())) { return Optional.of(imm); }
+    if (mMdf.isImm() || (this.isImm() && mMdf.isReadOnly()) || (this.isImm() && mMdf.isRecMdf()) || (this.isImm() && mMdf.isRead())) { return Optional.of(imm); }
     if (mMdf.isRecMdf()) { return Optional.of(recMdf); }
-    if (isLikeMut() && mMdf.isReadOnly() || (isRecMdf() && mMdf.isReadOnly())) { return Optional.of(readOnly); }
-    if (isIso() && mMdf.isReadOnly()) { return Optional.of(imm); }
+    if ((isLikeMut() && mMdf.isReadOnly()) || (isRecMdf() && mMdf.isReadOnly())) { return Optional.of(readOnly); }
+    if ((isIso() && mMdf.isReadOnly()) || (isIso() && mMdf.isRead())) { return Optional.of(imm); }
     if (isIso() && mMdf.is(mut, lent, iso)) { return Optional.of(mMdf); }
     if (isLent() && mMdf.isMut()){ return Optional.of(lent); }
     if (mMdf.isLent()){ return Optional.of(lent); }
