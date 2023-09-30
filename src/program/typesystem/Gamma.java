@@ -78,10 +78,14 @@ public interface Gamma {
       }
       if (mMdf.isMut() && captured.mdf().is(mut, read)) { return captured; }
       if (mMdf.isImm() && captured.mdf().is(mut, read)) { return captured.withMdf(imm); }
-      if (mMdf.isRead() && captured.mdf().is(mut, read)) { return captured.withMdf(imm); }
+      if (mMdf.isRead() && captured.mdf().is(mut, read)) { return captured.withMdf(read); }
       if (mMdf.isLent() && captured.mdf().is(mut, read)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
       if (mMdf.isReadOnly() && captured.mdf().isMut()) { return captured.withMdf(readOnly); }
       if (mMdf.isRecMdf() && captured.mdf().isMut()) { return captured.withMdf(recMdf); }
+    }
+
+    if (self.isRead()) {
+      return xT(x, xbs, mut, captured, mMdf);
     }
 
     if (self.isLent()) {
@@ -94,11 +98,11 @@ public interface Gamma {
         if (mMdf.isReadOnly()) { return captured.withMdf(readOnly); }
         if (mMdf.isRecMdf() && of(mut, imm, lent, readOnly).containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
-      if (mMdf.is(mut, lent) && captured.mdf().is(mut, lent)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
-      // TODO: here
-      if (mMdf.isMut() && captured.mdf().is()) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
-      if (mMdf.isImm() && captured.mdf().is(mut, lent, readOnly, recMdf)) { return captured.withMdf(imm); }
-      if (mMdf.isLent() && captured.mdf().isReadOnly()) { return captured; }
+      if (mMdf.isMut() && captured.mdf().is(mut, lent)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
+      if (mMdf.isMut() && captured.mdf().isRead()) { return captured.withMdf(readOnly); }
+      if (mMdf.isImm() && captured.mdf().is(mut, lent, read, readOnly, recMdf)) { return captured.withMdf(imm); }
+      if (mMdf.isRead()) { return captured.withMdf(readOnly); }
+      if (mMdf.isLent() && captured.mdf().is(mut, lent, readOnly)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
       if (mMdf.isReadOnly() && captured.mdf().is(mut, lent, readOnly)) { return captured.withMdf(readOnly); }
       if (mMdf.isRecMdf() && captured.mdf().is(mut, lent)) { return captured.withMdf(recMdf); }
       if (captured.mdf().is(readOnly, recMdf)) { return captured.withMdf(readOnly); }
@@ -106,13 +110,13 @@ public interface Gamma {
 
     if (self.isReadOnly()) {
       if (captured.isMdfX()) {
-//        var validReadCaptures = of(mut, imm, iso, lent, read);
         if (mMdf.isImm()) { return captured.withMdf(imm); }
+        if (mMdf.isRead()) { return captured.withMdf(readOnly); }
         if (mMdf.isReadOnly()) { return captured.withMdf(readOnly); }
         if (mMdf.isRecMdf()) { return captured.withMdf(recMdf); }
       }
-      if (mMdf.isImm() && captured.mdf().is(mut, lent, readOnly, recMdf)) { return captured.withMdf(imm); }
-      if (mMdf.isReadOnly() && captured.mdf().is(mut, lent, readOnly, recMdf)) { return captured.withMdf(readOnly); }
+      if (mMdf.isImm()) { return captured.withMdf(imm); }
+      if (mMdf.isReadOnly()) { return captured.withMdf(readOnly); }
       if (mMdf.isRecMdf()) { return captured.withMdf(recMdf); }
     }
 
@@ -120,52 +124,10 @@ public interface Gamma {
       if (captured.isMdfX()) {
         if (mMdf.isMut() && of(imm, mut, iso).containsAll(bounds)) { return captured; }
       }
-//      if (mMdf.isImm() && captured.mdf().is(mut, lent, read, recMdf)) { return captured.withMdf(imm); }
       if (mMdf.isMut() && captured.mdf().isMut()) { return captured; }
       if (mMdf.isRecMdf() && captured.mdf().isRecMdf()) { return captured; }
-//      if (captured.isMdfX() && of(mut, imm, lent, read).containsAll(bounds)) { return captured.withMdf(recMdf); }
-//      if (mMdf.isRecMdf() && captured.mdf().isMdf()) { return captured; }
     }
-
-//    if (self.isIso()) {
-//      if (captured.isMdfX()) {
-//        if (of(imm, iso).containsAll(bounds)) { return captured.withMdf(imm); }
-//      }
-//      if (captured.mdf().is(imm, iso)) { return captured.withMdf(imm); }
-//    }
 
     throw Fail.badCapture(x, captured, self, mMdf);
   }
-//  static T xT(String x, T t, T ti, Mdf mMdf, Program p){
-//    var self = t.mdf();
-//    var captured = ti.mdf();
-//    if (t.mdf().isIso()) { return xT(x, t.withMdf(mut), ti, mMdf, p); }
-//    var isoToImm = captured.isIso();
-//    if (isoToImm){ return xT(x, t, ti.withMdf(Mdf.imm), mMdf, p); }
-//
-////    var isMdfInMutHyg = captured.is(Mdf.mdf, Mdf.recMdf) && self.isMut() && mMdf.isHyg() && ti.isGX();
-////    var isMdfInMutHyg = captured.is(Mdf.mdf, Mdf.recMdf) && self.isMut() && ti.isGX();
-////    var isNoMutHygCapture = isMdfInMutHyg && t.match(gx->false, it->p.getNoMutHygs(it).anyMatch(t_->t_.equals(ti)));
-////    if (isNoMutHygCapture) {
-////      return xT(x, t.withMdf(Mdf.lent), ti, mMdf, p);
-////    }
-//
-//    // TODO: X cases with bounds
-//    var mutCapturesHyg = self.isMut() && captured.is(Mdf.read, Mdf.lent, Mdf.recMdf);
-//
-//    var immCapturesMuty = self.isImm() && captured.is(Mdf.read, Mdf.lent, mut, Mdf.recMdf);
-//
-//    // TODO: recmdf cases
-//    var recMdfCapturesMuty = self.isRecMdf() && captured.isLikeMut();
-//
-//    if (mutCapturesHyg || immCapturesMuty || recMdfCapturesMuty) {
-//          throw Fail.badCapture(x, ti, t, mMdf);
-//    }
-//    return self.restrict(mMdf).map(mdfi->{
-//      assert !(mdfi.isRecMdf() && captured.isMdf() && !ti.isGX());
-//      return mdfi.adapt(captured);
-//      })
-//      .map(ti::withMdf)
-//      .orElseThrow(()->Fail.badCapture(x, ti, t, mMdf));
-//  }
 }
