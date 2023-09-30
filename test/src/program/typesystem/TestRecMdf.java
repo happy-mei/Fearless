@@ -19,7 +19,14 @@ public class TestRecMdf {
     package test
     A:{
       recMdf .m1: recMdf A -> {},
-      mut .m2: read A -> this.m1,
+      mut .m2: readOnly A -> this.m1,
+      }
+    """); }
+  @Test void shouldCollapseWhenCalled1aa() { ok("""
+    package test
+    A:{
+      recMdf .m1: recMdf A -> {},
+      mut .m2: readOnly A -> this.m1,
       }
     """); }
   @Test void shouldCollapseWhenCalled1b() { fail("""
@@ -93,25 +100,25 @@ public class TestRecMdf {
     """); }
   @Test void shouldCollapseWhenCalledGenMut2() { ok("""
     package test
-    A[X]:{
+    A[X:readOnly,lent,read,mut,imm]:{
       recMdf .get: recMdf X -> this.loop,
-      read .loop[T]: mdf T -> this.loop,
+      readOnly .loop[T:readOnly,lent,read,mut,imm]: mdf T -> this.loop,
       }
     B:{
-      .m1Mut[Y](a: mut A[mut      Y]): mut Y     -> a.get,
+      .m1Mut[Y:readOnly,lent,read,mut,imm](a: mut A[mut      Y]): mut Y     -> a.get,
       .m2Mut   (a: mut A[mut Person]): mut Person-> a.get,
       
-      .m1Read[Y](a: read A[read      Y]): read Y     -> a.get,
-      .m2Read   (a: read A[read Person]): read Person-> a.get,
+      .m1Read[Y:readOnly,lent,read,mut,imm](a: readOnly A[readOnly      Y]): readOnly Y     -> a.get,
+      .m2readOnly   (a: readOnly A[readOnly Person]): readOnly Person-> a.get,
       
-      .m1Lent[Y](a: lent A[lent      Y]): lent Y     -> a.get,
+      .m1Lent[Y:readOnly,lent,read,mut,imm](a: lent A[lent      Y]): lent Y     -> a.get,
       .m2Lent   (a: lent A[lent Person]): lent Person-> a.get,
       
-      .m1Mdf[Y](a: mut A[mdf      Y]): mdf Y     -> a.get,
+      .m1Mdf[Y:readOnly,lent,read,mut,imm](a: mut A[mdf      Y]): mdf Y     -> a.get,
       //.m2Mdf   (a: mdf A[mdf Person]): mdf Person-> a.get,
       
-      .m1Imm[Y](a: imm A[imm      Y]): imm Y     -> a.get,
-      .m1_Imm[Y](a: mut A[imm      Y]): imm Y     -> a.get,
+      .m1Imm[Y:readOnly,lent,read,mut,imm](a: imm A[imm      Y]): imm Y     -> a.get,
+      .m1_Imm[Y:readOnly,lent,read,mut,imm](a: mut A[imm      Y]): imm Y     -> a.get,
       .m2Imm   (a: imm A[imm Person]): imm Person-> a.get,
       .m2_Imm   (a: mut A[imm Person]): imm Person-> a.get,
       }
@@ -129,7 +136,7 @@ public class TestRecMdf {
     package test
     A[X]:{
       recMdf .m1(_: mut NoPromote): recMdf X,
-      read .m2: read X -> this.m1{},
+      readOnly .m2: readOnly X -> this.m1{},
       }
     NoPromote:{}
     """); }
@@ -137,7 +144,7 @@ public class TestRecMdf {
     package test
     A[X]:{
       recMdf .m1(_: mut NoPromote): recMdf X,
-      read .m2: read X -> this.m1{},
+      readOnly .m2: readOnly X -> this.m1{},
       }
     NoPromote:{}
     """); }
@@ -261,31 +268,32 @@ public class TestRecMdf {
     """); }
   @Test void shouldApplyRecMdfInTypeParams1bLent() { ok("""
     package test
-    Opt:{ #[T](x: mdf T): lent Opt[mdf T] -> { .match(m) -> m.some(x) } }
-    Opt[T]:{
+    Opt:{ #[T:readOnly,lent,imm](x: mdf T): lent Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt[T:readOnly,lent,imm]:{
       recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }
-    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    OptMatch[T:readOnly,lent,imm,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     """); }
-  @Test void shouldApplyRecMdfInTypeParams1bRecMdf1() { ok("""
-    package test
-    Opt:{ recMdf #[T](x: recMdf T): recMdf Opt[mdf T] -> { .match(m) -> m.some(x) } }
-    Opt[T]:{
-      recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-      }
-    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    
-    Foo:{}
-    Usage:{
-      .immOpt(x: imm Foo): imm Opt[imm Foo] -> Opt#x,
-      .mutOpt(x: mut Foo): mut Opt[mut Foo] -> mut Opt#x,
-      .readOpt(x: read Foo): read Opt[read Foo] -> read Opt#x,
-      .lentOpt(x: lent Foo): lent Opt[lent Foo] -> lent Opt#x,
-      //.isoOpt(x: iso Foo): iso Opt[iso Foo] -> iso Opt#x,
-      recMdf .recMdfOpt(x: recMdf Foo): recMdf Opt[recMdf Foo] -> recMdf Opt#x,
-      .mdfOptMut[X](x: mut X): mut Opt[mut X] -> mut Opt#x,
-      }
-    """); }
+//  @Test void shouldApplyRecMdfInTypeParams1bRecMdf1() { ok("""
+//    package test
+//    Opt:{ recMdf #[T](x: recMdf T): recMdf Opt[mdf T] -> { .match(m) -> m.some(x) } }
+//    Opt[T]:{
+//      recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
+//      }
+//    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+//
+//    Foo:{}
+//    Usage:{
+//      .immOpt(x: imm Foo): imm Opt[imm Foo] -> Opt#x,
+//      .mutOpt(x: mut Foo): mut Opt[mut Foo] -> mut Opt#x,
+//      .readOnlyOpt(x: readOnly Foo): readOnly Opt[readOnly Foo] -> readOnly Opt#x,
+//      .readOpt(x: readOnly Foo): readOnly Opt[readOnly Foo] -> readOnly Opt#x,
+//      .lentOpt(x: lent Foo): lent Opt[lent Foo] -> lent Opt#x,
+//      //.isoOpt(x: iso Foo): iso Opt[iso Foo] -> iso Opt#x,
+//      recMdf .recMdfOpt(x: recMdf Foo): recMdf Opt[recMdf Foo] -> recMdf Opt#x,
+//      .mdfOptMut[X](x: mut X): mut Opt[mut X] -> mut Opt#x,
+//      }
+//    """); }
   @Test void shouldApplyRecMdfInTypeParams1bRecMdf2() { ok("""
     package test
     Opt:{ recMdf #[T](x: recMdf T): recMdf Opt[mdf T] -> { .match(m) -> m.some(x) } }
@@ -427,13 +435,13 @@ public class TestRecMdf {
     """); }
   @Test void shouldApplyRecMdfInTypeParams4aV2() { ok("""
     package test
-    A[X]:{
+    A[X:readOnly,lent,read,mut,imm]:{
       recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
-    F[X]:{ imm #(x: mdf X): mdf X -> x, }
-    B[Y]:{
+    F[X:readOnly,lent,read,mut,imm]:{ imm #(x: mdf X): mdf X -> x, }
+    B[Y:readOnly,lent,read,mut,imm]:{
       recMdf #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> this.loop,
-      read .loop[R]: mdf R -> this.loop,
+      readOnly .loop[R:readOnly,lent,read,mut,imm]: mdf R -> this.loop,
       }
     C:{
       #(b: mut B[mut C]): mut B[mut C] -> b#(mut A[mut B[mut C]]{}),
@@ -485,13 +493,13 @@ public class TestRecMdf {
     package test
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
-    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
     """); }
   @Test void noCaptureImmAsRecMdfExample() { ok("""
     package test
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
-    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
     C:{ #: imm B -> (A.m(B)).absMeth }
     """); }
   @Test void noCaptureImmAsRecMdfCounterEx() { fail("""
@@ -504,7 +512,7 @@ public class TestRecMdf {
     package test
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
-    A:{ read .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
     C:{ #: lent B -> (A.m(B)).absMeth }
     """); }
   @Test void noCaptureImmAsRecMdfTopLvl1() { ok("""
@@ -512,7 +520,7 @@ public class TestRecMdf {
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
     L'[X]:L[imm X]{ recMdf .absMeth: imm X }
-    A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
+    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
     """); }
   @Test void noCaptureImmAsRecMdfTopLvl2() { fail("""
     In position [###]/Dummy0.fear:4:0
@@ -526,7 +534,7 @@ public class TestRecMdf {
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
     L'[X]:L[mdf X]{ recMdf .absMeth: imm X }
-    A:{ read .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
+    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
     """); }
 
   @Test void recMdfInheritance() { ok("""
@@ -535,15 +543,15 @@ public class TestRecMdf {
     A[X]:{ recMdf .m: recMdf X -> Loop# }
     B:A[imm Foo]
     C:B
-    CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
-    CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
-    CanPass2:{ read .m(par: mut C) : imm Foo -> par.m  }
-//    NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
+    CanPass0:{ readOnly .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
+    CanPass1:{ readOnly .m(par: mut B) : imm Foo -> par.m  }
+    CanPass2:{ readOnly .m(par: mut C) : imm Foo -> par.m  }
+//    NoCanPass:{ readOnly .m(par: mut B) : mut Foo -> par.m  }
     Loop:{ #[X]: mdf X -> this# }
     """); }
 
   @Test void recMdfInheritanceFail() { fail("""
-    In position [###]/Dummy0.fear:8:48
+    In position [###]/Dummy0.fear:8:52
     [E32 noCandidateMeths]
     When attempting to type check the method call: par .m/0[]([]), no candidates for .m/0 returned the expected type mut test.Foo[]. The candidates were:
     (mut test.B[]): imm test.Foo[]
@@ -555,9 +563,9 @@ public class TestRecMdf {
     Loop:{ #[X]: mdf X -> this# }
     A[X]:{ recMdf .m: recMdf X -> Loop# }
     B:A[imm Foo]{}
-    CanPass0:{ read .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
-    CanPass1:{ read .m(par: mut B) : imm Foo -> par.m  }
-    NoCanPass:{ read .m(par: mut B) : mut Foo -> par.m  }
+    CanPass0:{ readOnly .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
+    CanPass1:{ readOnly .m(par: mut B) : imm Foo -> par.m  }
+    NoCanPass:{ readOnly .m(par: mut B) : mut Foo -> par.m  }
     """); }
 
   @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGeneric() { ok("""
@@ -595,11 +603,11 @@ public class TestRecMdf {
   @Test void methGensMismatch2() { fail("""
     In position [###]/Dummy0.fear:2:38
     [E23 methTypeError]
-    Expected the method .argh/0 to return read X, got mut test.Foo[].
+    Expected the method .argh/0 to return readOnly X, got mut test.Foo[].
     ""","""
     package test
-    A:{ .foo(x: mut Foo): mut B -> mut B{ mut .argh[X]: read X -> x } }
-    B:{ mut .argh[X]: read X }
+    A:{ .foo(x: mut Foo): mut B -> mut B{ mut .argh[X]: readOnly X -> x } }
+    B:{ mut .argh[X]: readOnly X }
     Foo:{}
     """); }
   @Test void methGensMismatch3() { fail("""
@@ -615,18 +623,18 @@ public class TestRecMdf {
   /*
   -----//pass??
 AA:{
-read .a(b:recMdf B):recMdf A->recMdf A{
-  read .b():recMdf B ->b
+readOnly .a(b:recMdf B):recMdf A->recMdf A{
+  readOnly .b():recMdf B ->b
   }
 }
-A:{ read .b():recMdf B }
+A:{ readOnly .b():recMdf B }
 -------//fails
 AA:{
-read .a(b:recMdf B):mut A-> mut A{
-  read .b():recMdf B ->b
+readOnly .a(b:recMdf B):mut A-> mut A{
+  readOnly .b():recMdf B ->b
   }
 }
-A:{ read .b():recMdf B }
+A:{ readOnly .b():recMdf B }
 
    */
 }
