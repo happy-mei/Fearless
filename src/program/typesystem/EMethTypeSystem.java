@@ -121,12 +121,21 @@ public interface EMethTypeSystem extends ETypeSystem {
   default List<TsT> allMeth(TsT tst) {
     return Stream.concat(Stream.of(
       tst,
-      tst.renameMdfs(Map.of(Mdf.mut, Mdf.iso)), // TODO: this is incompatible with recMdf lambdas
+      tst.renameMdfs(Map.of(
+        Mdf.mut, Mdf.iso,
+        Mdf.read, Mdf.readOnly
+      )),
       tst.renameMdfs(Map.of(
         Mdf.readOnly, Mdf.imm,
+        Mdf.read, Mdf.imm,
         Mdf.lent, Mdf.iso,
         Mdf.mut, Mdf.iso
-      ))),
+      )),
+      tst.renameTsMdfs(Map.of(
+        Mdf.read, Mdf.readOnly,
+        Mdf.lent, Mdf.iso,
+        Mdf.mut, Mdf.iso
+      )).renameTMdfs(Map.of(Mdf.mut,Mdf.lent,    Mdf.read,Mdf.readOnly))),
       oneLentToMut(tst).stream())
       .distinct()
       .toList();
@@ -193,7 +202,15 @@ public interface EMethTypeSystem extends ETypeSystem {
 
   record TsT(List<T> ts, T t){
     public TsT renameMdfs(Map<Mdf, Mdf> replacements) {
+      var ts = renameTsMdfs(replacements).ts();
+      var t = renameTMdfs(replacements).t();
+      return new TsT(ts, t);
+    }
+    public TsT renameTsMdfs(Map<Mdf, Mdf> replacements) {
       List<T> ts = ts().stream().map(ti->ti.withMdf(replacements.getOrDefault(ti.mdf(), ti.mdf()))).toList();
+      return new TsT(ts, t);
+    }
+    public TsT renameTMdfs(Map<Mdf, Mdf> replacements) {
       T t = t().withMdf(replacements.getOrDefault(t().mdf(), t().mdf()));
       return new TsT(ts, t);
     }
