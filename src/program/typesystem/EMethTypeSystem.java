@@ -123,7 +123,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       tst,
       tst.renameMdfs(Map.of(
         Mdf.mut, Mdf.iso,
-        Mdf.read, Mdf.readOnly
+        Mdf.read, Mdf.imm
       )),
       tst.renameMdfs(Map.of(
         Mdf.readOnly, Mdf.imm,
