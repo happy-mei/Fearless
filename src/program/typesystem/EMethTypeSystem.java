@@ -46,22 +46,6 @@ public interface EMethTypeSystem extends ETypeSystem {
       var errors = new ArrayList<CompileError>();
       nestedErrors.add(errors);
       if (okAll(es, ts, errors, methArgCache)) {
-//        var recvT = ts.get(0);
-//        var cm = p().meths(recvT.mdf(), recvT.itOrThrow(), e.name(), depth()).orElseThrow();
-//        var meth = ((CM.CoreCM) cm).m().withSig(new E.Sig(recvT.mdf(), cm.sig().gens(), cm.sig().bounds(), ts, t, Optional.of(cm.pos())));
-//        var selfName = ((T.Dec) p().of(recvT.itOrThrow().name())).lambda().selfName();
-//        Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), e.ts()).forEach(c::put));
-//
-//        var body = meth.body().map(b->b.accept(new CloneVisitor(){
-//
-//          @Override public T visitT(T t) {
-//            return fancyRename(t, recvT.mdf(), xsTsMap);
-//          }
-//          @Override public Mdf visitMdf(Mdf mdf) {
-//            return recvT.mdf();
-//          }
-//        }));
-//        this.mOk(selfName, recvT, meth);
         return t;
       }
     }
@@ -128,16 +112,6 @@ public interface EMethTypeSystem extends ETypeSystem {
           .toList()
       );
       var t = fancyRename(cm.ret().rt().toString(), cm.ret(), mdf, xsTsMap, TypeRename.RenameKind.Return, xbs);
-//
-//      var renamer = TypeRename.coreRec(p(), mdf);
-//      var renamedRecv = renamer.renameT(rec.withMdf(cm.mdf()), xsTsMap::get);
-//      var renamedArgs = cm.sig().ts().stream().map(ti->renamer.renameT(ti, xsTsMap::get)).toList();
-//      var renamedT = renamer.renameT(cm.ret(), xsTsMap::get);
-//
-//      assert params.equals(Push.of(
-//        renamedRecv,
-//        renamedArgs
-//      )) && t.equals(renamedT);
 
       return new TsT(params, t);
     });
