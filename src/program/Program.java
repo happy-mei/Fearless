@@ -150,6 +150,7 @@ public interface Program {
   }
 
   default List<CM> filterByMdf(Mdf mdf, List<CM> cms) {
+    // Keep in sync with filterByMdf in typesystem.ELambdaTypeSystem
     assert !mdf.isMdf();
     if (cms.isEmpty()) { return List.of(); }
     var cm = cms.get(0);
@@ -159,8 +160,8 @@ public interface Program {
     }
     var sig = cm.sig();
     if (mdf.isLent() && !sig.mdf().isIso()) { return Push.of(cm, filterByMdf(mdf, cms)); }
-    var baseMdfReadLike = mdf.isImm() || mdf.isReadOnly();
-    var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isReadOnly() || sig.mdf().isRecMdf();
+    var baseMdfReadLike = mdf.isImm() || mdf.isRead() || mdf.isReadOnly();
+    var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isReadOnly() || sig.mdf().isRead() || sig.mdf().isRecMdf();
     if (baseMdfReadLike && methMdfImmOrRead) {
       return Push.of(cm, filterByMdf(mdf, cms));
     }

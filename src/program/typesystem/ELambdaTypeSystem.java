@@ -220,9 +220,10 @@ interface ELambdaTypeSystem extends ETypeSystem{
   }
 
   default boolean filterByMdf(Mdf mdf, Mdf mMdf) {
+    // Keep in sync with filterByMdf in program.Program
     assert !mdf.isMdf();
     if (mdf.is(Mdf.iso, Mdf.mut, Mdf.recMdf)) { return true; }
     if (mdf.isLent() && !mMdf.isIso()) { return true; }
-    return mdf.is(Mdf.imm, Mdf.readOnly) && mMdf.is(Mdf.imm, Mdf.readOnly, Mdf.recMdf);
+    return mdf.is(Mdf.imm, Mdf.read, Mdf.readOnly) && mMdf.is(Mdf.imm, Mdf.read, Mdf.readOnly, Mdf.recMdf);
   }
 }
