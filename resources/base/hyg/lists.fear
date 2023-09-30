@@ -1,0 +1,52 @@
+package base.hyg
+
+LList:{
+  recMdf #[E](head: recMdf E): recMdf LList[recMdf E] -> this.cons(head, {}),
+  recMdf .cons[E](head: recMdf E, tail: recMdf LList[recMdf E]): recMdf LList[recMdf E] -> {'l
+    .match(m) -> m.elem(head, tail),
+    .head -> recMdf Opt#[recMdf E](head),
+    .tail -> tail,
+    .isEmpty -> False,
+    .len -> tail.len + 1u,
+    .get(i) -> (i == 0u).look(recMdf BoolView[recMdf Opt[recMdf E]]{
+      .then -> recMdf Opt#head,
+      .else -> tail.get(i - 1u)
+      }),
+    recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): recMdf Opt[recMdf R] ->
+      l._run[mdf R](automaton, automaton.step(head)),
+    recMdf ._run[R](
+      automaton: recMdf Automaton[recMdf E, mdf R],
+      out: recMdf Opt[recMdf base.hyg.iter.Output[recMdf E, recMdf R]]): recMdf Opt[recMdf R] ->
+        out.match{
+          .some(res) -> (tail.isEmpty || (res.completed)).look(recMdf BoolView[recMdf Opt[recMdf R]]{
+            .then -> recMdf Opt#(res.result),
+            .else -> tail.run(res.next).match{ .some(finalResult) -> recMdf Opt#finalResult, .none -> recMdf Opt#(res.result) }
+            }),
+          .none -> tail.run(automaton),
+          },
+    },
+  }
+LList[E]:Sealed{
+  recMdf .match[R](m: mut LListMatch[recMdf E, mdf E, mdf R]): mdf R -> m.empty,
+  recMdf .head: recMdf Opt[recMdf E] -> {},
+  recMdf .tail: recMdf LList[mdf E] -> {},
+  readOnly .isEmpty: Bool -> True,
+  recMdf .len: UInt -> 0u,
+  recMdf .get(i: UInt): recMdf Opt[recMdf E] -> {},
+  recMdf ++(l1: recMdf LList[recMdf E]): recMdf LList[recMdf E] -> this.head.match{
+    .some(h) -> recMdf LList.cons(h, this.tail ++ l1),
+    .none -> l1
+    },
+  recMdf +(e: recMdf E): recMdf LList[recMdf E] -> this ++ (recMdf LList#e),
+//  recMdf ==(isEq: recMdf LListEq[recMdf E], other: recMdf LList[mdf E]): Bool -> recMdf base.hyg.iter.Automaton{
+//    },
+  mut .list: mut List[mdf E] -> List.fromLList(this),
+  recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): recMdf Opt[recMdf R] -> {},
+  // TODO: probably delete this unless we want automaton methods on containers
+  recMdf .allMatch(predicate: recMdf base.hyg.iter.Predicate[recMdf E]): recMdf Opt[Bool] -> this.run(recMdf Automaton.allMatch(predicate)),
+//  recMdf ==(other: recMdf LList[mdf E]): Bool -> this.run(recMdf Automaton.allMatch(base.hyg.iter.Predicate[recMdf E]))
+  }
+LListMatch[E,TE,R]:{
+  mut .elem(head: mdf E, tail: readOnly LList[mdf TE]): mdf R,
+  mut .empty: mdf R,
+  }

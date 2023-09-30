@@ -17,8 +17,8 @@ Opt[T]:{
     Yeet.with[mut Opt[Void], recMdf Opt[recMdf T]](this.map(f), this),
   recMdf |(alt: recMdf T): recMdf T -> this || (recMdf OptOr#alt),
   recMdf ||(alt: recMdf OptOr[recMdf T]): recMdf T -> this.matchHyg(alt),
-  readOnly .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
-  readOnly .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
+  read .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
+  read .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
   }
 OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
 OptMatchHyg[T,R]:{ recMdf .some(x: mdf T): mdf R, recMdf .none: mdf R }
