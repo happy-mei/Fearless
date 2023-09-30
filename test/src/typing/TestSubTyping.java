@@ -37,7 +37,7 @@ public class TestSubTyping {
   }
 
   @Property public void mdfIsCommonSupertype(@ForAll Mdf mdf) {
-    ok(mdf+" a.A", "read a.A", true, "package a\nA:{}");
+    ok(mdf+" a.A", "readOnly a.A", true, "package a\nA:{}");
   }
 
   @Property public void isoIsCommonSubtype(@ForAll Mdf mdf) {
