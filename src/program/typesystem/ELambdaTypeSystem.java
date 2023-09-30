@@ -119,33 +119,55 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
     var baseCase=typeSysBounded.isoAwareJudgment(gg, m, e, ret);
-    var baseDestiny=baseCase.isEmpty() || !ret.mdf().is(Mdf.iso, Mdf.imm);
+    var baseDestiny=baseCase.isEmpty() || ret.mdf().is(Mdf.mut, Mdf.read);
     if(baseDestiny){ return baseCase; }
     //res is iso or imm, thus is promotable
 
     var criticalFailure = typeSysBounded.isoAwareJudgment(gg, m, e, ret.withMdf(Mdf.readOnly));
     if (criticalFailure.isPresent()) { return baseCase; }
 
-//    var isoPromotion1 = typeSysBounded.isoAwareJudgment()(gg, m, e, ret.withMdf(Mdf.mut));
-//    var has1OrLessMutArgs = args.stream().filter(t->t.mdf().isMut()).skip(1).findAny().isEmpty();
-//    if (m.sig().mdf().isImm() && has1OrLessMutArgs && (ret.mdf().isIso() || isoPromotion1.isEmpty())) {
-//      return isoPromotion1;
-//    }
+    var readPromotion = typeSysBounded.mOkReadPromotion(selfName, selfT, m, mMdf);
+    if (readPromotion.isEmpty() || !ret.mdf().is(Mdf.imm, Mdf.iso)) {
+      return readPromotion.flatMap(ignored->baseCase);
+    }
 
+    var isoPromotion = typeSysBounded.mOkIsoPromotion(selfName, selfT, m, mMdf);
+    if(ret.mdf().isIso() || isoPromotion.isEmpty()){ return isoPromotion; }
+
+    return typeSysBounded.mOkImmPromotion(selfName, selfT, m, mMdf,  selfTMdf).flatMap(ignored->baseCase);
+  }
+
+  default Optional<CompileError> mOkReadPromotion(String selfName, T selfT, E.Meth m, Mdf mMdf) {
+    var readOnlyAsReadG = new Gamma() {
+      @Override public Optional<T> getO(String x) {
+        return g().getO(x).map(t->t.mdf().isReadOnly() ? t.withMdf(Mdf.read) : t);
+      }
+      @Override public List<String> dom() { return g().dom(); }
+    };
+    var g0 = readOnlyAsReadG.captureSelf(xbs(), selfName, selfT, mMdf.isReadOnly() ? Mdf.read : mMdf);
+    var gg  = Streams.zip(
+      m.xs(),
+      m.sig().ts().stream().map(t->t.mdf().isReadOnly() ? t.withMdf(Mdf.read) : t).toList()
+    ).fold(Gamma::add, g0);
+    return isoAwareJudgment(gg, m, m.body().orElseThrow(), m.sig().ret());
+  }
+
+  default Optional<CompileError> mOkIsoPromotion(String selfName, T selfT, E.Meth m, Mdf mMdf) {
     var mutAsLentG = new Gamma() {
       @Override public Optional<T> getO(String x) {
         return g().getO(x).map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t);
       }
       @Override public List<String> dom() { return g().dom(); }
     };
-    g0 = mutAsLentG.captureSelf(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.lent : mMdf);
-    gg  = Streams.zip(
+    var g0 = mutAsLentG.captureSelf(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.lent : mMdf);
+    var gg  = Streams.zip(
       m.xs(),
-      args.stream().map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t).toList()
+      m.sig().ts().stream().map(t->t.mdf().isMut() ? t.withMdf(Mdf.lent) : t).toList()
     ).fold(Gamma::add, g0);
-    var isoPromotion2 = typeSysBounded.isoAwareJudgment(gg, m, e, ret.withMdf(Mdf.mut));
-    if(ret.mdf().isIso() || isoPromotion2.isEmpty()){ return isoPromotion2; }
+    return isoAwareJudgment(gg, m, m.body().orElseThrow(), m.sig().ret().withMdf(Mdf.mut));
+  }
 
+  default Optional<CompileError> mOkImmPromotion(String selfName, T selfT, E.Meth m, Mdf mMdf, Mdf selfTMdf) {
     var noMutyG = new Gamma() {
       @Override public Optional<T> getO(String x) {
         return g().getO(x).flatMap(t->{
@@ -155,9 +177,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
       }
       @Override public List<String> dom() { return g().dom(); }
     };
-    g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(xbs(), selfName, selfT, mMdf);
-    gg = Streams.zip(m.xs(), args).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
-    return typeSysBounded.isoAwareJudgment(gg, m, e, ret.withMdf(Mdf.readOnly)).flatMap(ignored->baseCase);
+    var g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(xbs(), selfName, selfT, mMdf);
+    var gg = Streams.zip(m.xs(), m.sig().ts()).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
+    return isoAwareJudgment(gg, m, m.body().orElseThrow(), m.sig().ret().withMdf(Mdf.readOnly));
   }
 
   /** G;XBs |= e : T */
