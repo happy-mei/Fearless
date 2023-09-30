@@ -5,35 +5,10 @@ Bool:Sealed,Stringable{
   &&(b: Bool): Bool -> this.and(b),
   .or(b: Bool): Bool,
   ||(b: Bool): Bool -> this.or(b),
-  .xor(b: Bool): Bool,
-  ^(b: Bool): Bool -> this.xor(b),
   .not: Bool,
-  .if[R](f: mut ThenElse[mdf R]): mdf R,
-  ?[R](f: mut ThenElse[mdf R]): mdf R -> this.if(f),
-  .ifHyg[R](f: lent ThenElse[mdf R]): mdf R -> this.if(f),
-  recMdf .look[R](f: readOnly BoolView[mdf R]): mdf R,
-  readOnly .clone: Bool,
+  ?[R](f: ThenElse[R]): R,
   }
-True:Bool{
-  .and(b) -> b,
-  .or(b) -> this,
-  .xor(b) -> b.not,
-  .not -> False,
-  .if(f) -> f.then(),
-  .look(f) -> f.then(),
-  .str -> "True",
-  .clone -> True,
-  }
-False:Bool{
-  .and(b) -> this,
-  .or(b) -> b,
-  .xor(b) -> b,
-  .not -> True,
-  .if(f) -> f.else(),
-  .look(f) -> f.else(),
-  .str -> "False",
-  .clone -> False,
-  }
-ThenElse[R]:{ mut .then: mdf R, mut .else: mdf R, }
-BoolView[R]:{ recMdf .then: mdf R, recMdf .else: mdf R, }
+True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then(), .str -> "True" }
+False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else(), .str -> "False" }
+ThenElse[R]:{ .then: R, .else: R, }
 

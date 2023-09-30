@@ -1,0 +1,106 @@
+package base.hyg.iter
+//Output[A,R]:{
+//  recMdf .next: recMdf Automaton[mdf A, mdf R],
+//  recMdf .result: mdf R,
+//  recMdf .completed: Bool -> False,
+//  }
+//
+//Automaton:{
+//  recMdf .pure[A,R](f: F[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'self
+//    a -> recMdf Opt#{ .next -> self, .result -> f#a } },
+//  recMdf .id[A]: recMdf Automaton[recMdf A, recMdf A] -> {'self
+//    a -> recMdf Opt#{ .next -> self, .result -> a } },
+//  recMdf .const[A,R](x: recMdf R): recMdf Automaton[recMdf A, recMdf R] -> {'self
+//    _ -> recMdf Opt#{ .next -> self, .result -> x } },
+//  readOnly .empty[A,R]: iso Automaton[mdf A, mdf R] -> { _ -> {} },
+//  recMdf .llist[E](list: recMdf LList[recMdf E]): recMdf Automaton[Void, recMdf E] -> {'self
+//    _ -> list.head.match{
+//      .some(h) -> recMdf Opt#{ .next -> this.llist(list.tail), .result -> h },
+//      .none -> {}
+//      }
+//    },
+//  recMdf .allMatch[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, Bool] -> {'self
+//    a -> p#a.look(recMdf BoolView[recMdf Opt[recMdf Output[recMdf A, Bool]]]{
+//      .then -> recMdf Opt#{ .next -> self, .result -> True },
+//      .else -> recMdf Opt#{ .next -> { _ -> {} }, .result -> False, .completed -> True },
+//      })
+//    },
+//  recMdf .map[A,R](f: recMdf MapFn[recMdf A, recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> {'self
+//    a -> recMdf Opt#{ .next -> self, .result -> f#a }
+//    },
+////  recMdf .do[A](f: mut DoFn[recMdf A]): mut Automaton[recMdf A, recMdf A] -> {'self
+////      a -> Yeet.with(f#a, recMdf Opt#{ .next -> self, .result -> a })
+////      },
+//  recMdf .filter[A](p: recMdf Predicate[recMdf A]): recMdf Automaton[recMdf A, recMdf A] -> {'self
+//    a -> p#a.look(recMdf BoolView[recMdf Opt[recMdf Output[recMdf A, recMdf A]]]{
+//      .then -> recMdf Opt#{ .next -> self, .result -> a },
+//      .else -> {}
+//      })
+//    },
+//  recMdf .merge[A,B,MR](f: recMdf MapFn[recMdf A, recMdf B, recMdf MR]): recMdf Automaton[recMdf AutomatonPair[recMdf A, recMdf B], recMdf MR] -> {'self
+//    ab -> recMdf Opt#{ .next -> self, .result -> f#(ab.left, ab.right) }
+//    },
+//  }
+//Automaton[A,R]:{
+//  recMdf .step(a: recMdf A): recMdf Opt[recMdf Output[recMdf A, recMdf R]],
+//  recMdf |>[RR](other: recMdf Automaton[recMdf R, recMdf RR]): recMdf Automaton[recMdf A, recMdf RR] -> {'self
+//    .step(a) -> this.step(a).match{
+//      .some(left) -> self.compose[](left),
+//      .none -> {}
+//      },
+//    recMdf .compose[](left: recMdf Output[recMdf A, recMdf R]): recMdf Opt[recMdf Output[recMdf A, recMdf RR]] ->
+//      other.step(left.result).match{
+//        .some(right) -> recMdf Opt#(self.compose'[](left, right)),
+//        .none -> {}
+//        },
+//    recMdf .compose'[](
+//      left: recMdf Output[recMdf A, recMdf R],
+//      right: recMdf Output[recMdf R, recMdf RR]): recMdf Output[recMdf A, recMdf RR] -> {
+//        .next -> left.next |> (right.next),
+//        .result -> right.result,
+//        .completed -> left.completed || (right.completed)
+//        },
+//    },
+//  recMdf <|[AA](other: recMdf Automaton[recMdf AA, recMdf A]): recMdf Automaton[recMdf AA, recMdf R] -> other |>[recMdf R] this,
+//  recMdf .branch[RR](other: recMdf Automaton[recMdf A, recMdf RR]): recMdf Automaton[recMdf A, recMdf AutomatonPair[recMdf R, recMdf RR]] -> {'self
+//    .step(a) -> this.step(a).match{
+//      .some(a') -> other.step(a).match{
+//        .some(b) -> recMdf Opt#{ .next -> a'.next.branch(b.next), .result -> { .left -> a'.result, .right -> b.result } },
+//        .none -> {},
+//        },
+//      .none -> {},
+//      }
+//    },
+//  recMdf .pair[AA,RR](other: recMdf Automaton[recMdf AA, recMdf RR]):
+//    recMdf Automaton[recMdf AutomatonPair[recMdf A, recMdf AA], recMdf AutomatonPair[recMdf R, recMdf RR]] -> {'self
+//      .step(ab) -> this.step(ab.left).match{
+//        .some(a') -> other.step(ab.right).match{
+//          .some(b) -> recMdf Opt#{ .next -> a'.next.pair(b.next), .result -> { .left -> a'.result, .right -> b.result } },
+//          .none -> {},
+//          },
+//        .none -> {},
+//        }
+//      },
+//  recMdf .map[RR](f: recMdf MapFn[recMdf R, recMdf RR]): recMdf Automaton[recMdf A, recMdf RR] -> this |> (recMdf Automaton.map f),
+//  recMdf .filter(p: recMdf Predicate[recMdf R]): recMdf Automaton[recMdf A, recMdf R] -> this |> (recMdf Automaton.filter p),
+////  recMdf .do(f: mut DoFn[recMdf R]): mut Automaton[recMdf A, recMdf R] -> this |> (recMdf Automaton.do f),
+//  recMdf .allMatch(p: recMdf Predicate[recMdf R]): recMdf Automaton[recMdf A, Bool] -> this |> (recMdf Automaton.allMatch p),
+////  recMdf .run[RR](runner: recMdf RunAutomaton[recMdf A, recMdf R, mdf RR]): mdf RR -> runner#this,
+//  }
+//Predicate[A]:{ recMdf #(a: mdf A): Bool }
+//MapFn[A,R]:{ recMdf #(a: mdf A): mdf R }
+//MapFn[A,B,R]:{ recMdf #(a: mdf A, b: mdf B): mdf R }
+//DoFn[A]:{ mut #(a: mdf A): Void }
+//RunAutomaton[A,R,RR]:{ recMdf #(auto: recMdf Automaton[recMdf A, recMdf R]): mdf RR }
+//AutomatonPair[A,B]:{
+//  recMdf .left: mdf A,
+//  recMdf .right: mdf B,
+//  }
+
+//PureF[A,B]:{ #(a: recMdf A): recMdf B }
+//_RunLList[E]:{
+//  recMdf #(head: recMdf Opt[recMdf E], tail: recMdf E): recMdf Automaton[recMdf E, recMdf E] -> { t ->
+//
+//    }
+//  }
+

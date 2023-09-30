@@ -1,0 +1,31 @@
+package base
+alias base.caps.System as System,
+
+Main:{ #(s: mut System): Void }
+Sealed:{}
+Void:{}
+
+Abort:{ ![R:mut,lent,read,readOnly,imm,iso]: mdf R -> this! } // can be optimised to just terminate (goes stuck)
+Magic:{ ![R:mut,lent,read,readOnly,imm,iso]: mdf R -> this! } // magic'd out to tell us what we forgot to implement
+Debug:Sealed{ #[T](x: T): T -> x } // TODO: magic
+HasIdentity:{ mut .idEq(other: readOnly HasIdentity): Bool -> this.idEq(other) } // TODO: magic
+
+Let:{
+  recMdf #[V,R](l: mut Let[mdf V, mdf R]): mdf R -> l.in(l.var),
+  recMdf .hyg[V:mut,lent,read,readOnly,imm,iso,R:mut,lent,read,readOnly,imm,iso](l: recMdf LetHyg[mdf V, mdf R]): mdf R -> l.in(l.var),
+  }
+Let[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+LetHyg[V:mut,lent,read,readOnly,imm,iso,R:mut,lent,read,readOnly,imm,iso]:{ recMdf .var: mdf V, recMdf .in(v: mdf V): mdf R }
+
+//LetMut:{ #[V,R](l:mut LetMut[mdf V, mdf R]): mdf R -> l.in(l.var) }
+//LetMut[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+
+F[R:mut,lent,read,readOnly,imm,iso]:{ #: mdf R }
+F[A:mut,lent,read,readOnly,imm,iso,R:mut,lent,read,readOnly,imm,iso]:{ #(a: mdf A): mdf R }
+F[A:mut,lent,read,readOnly,imm,iso, B:mut,lent,read,readOnly,imm,iso, R:mut,lent,read,readOnly,imm,iso]:{ #(a: mdf A, b: mdf B): mdf R }
+F[A:mut,lent,read,readOnly,imm,iso, B:mut,lent,read,readOnly,imm,iso, C:mut,lent,read,readOnly,imm,iso, R:mut,lent,read,readOnly,imm,iso]:{ #(a: mdf A, b: mdf B, c: mdf C): mdf R }
+
+Yeet:{
+  #[X:mut,lent,read,readOnly,imm,iso](x: mdf X): Void -> this.with(x, Void),
+  .with[X:mut,lent,read,readOnly,imm,iso, R:mut,lent,read,readOnly,imm,iso](_: mdf X, res: mdf R): mdf R -> res,
+  }
