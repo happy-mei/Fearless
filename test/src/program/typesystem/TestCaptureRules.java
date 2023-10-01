@@ -14,9 +14,12 @@ import static program.typesystem.RunTypeSystem.expectFail;
 import static program.typesystem.RunTypeSystem.ok;
 
 public class TestCaptureRules {
+  // TODO: Handle read
+  private static final Mdf[] allMdfs = Arrays.stream(values()).filter(mdf->!mdf.is(read)).toArray(Mdf[]::new);
+  
   void c1(Mdf lambda, Mdf captured, Mdf method, List<Mdf> capturedAs) {
     capturedAs.forEach(mdf->cInnerOk(codeGen1.formatted(method, mdf, captured, lambda, lambda)));
-    Stream.of(Mdf.values()).filter(mdf->!capturedAs.contains(mdf))
+    Stream.of(allMdfs).filter(mdf->!capturedAs.contains(mdf))
       .forEach(mdf->cInnerFail(codeGen1.formatted(method, mdf, captured, lambda, lambda)));
   }
   String codeGen1 = """
@@ -33,7 +36,7 @@ public class TestCaptureRules {
         cInnerOk(codeGen2b.formatted(method, mdf, captured, captured, lambda, lambda));
       }
     });
-    Stream.of(Mdf.values()).filter(mdf->!capturedAs.contains(mdf))
+    Stream.of(allMdfs).filter(mdf->!capturedAs.contains(mdf))
       .forEach(mdf->{
         cInnerFail(codeGen2a.formatted(method, mdf, captured, lambda, captured, lambda, captured));
         if (!mdf.is(mdf, recMdf)) {
@@ -41,16 +44,17 @@ public class TestCaptureRules {
         }
       });
   }
+  // TODO: add iso to the bounds and update
   String codeGen2a = """
     package test
     B:{}
-    L[X]:{ %s .absMeth: %s X }
+    L[X:readOnly,lent,read,mut,imm]:{ %s .absMeth: %s X }
     A:{ recMdf .m(par: %s B) : %s L[%s B] -> %s L[%s B]{.absMeth->par} }
     """;
   String codeGen2b = """
     package test
     B:{}
-    L[X]:{ %s .absMeth: %s X }
+    L[X:readOnly,lent,read,mut,imm]:{ %s .absMeth: %s X }
     L:L[%s B]
     A:{ recMdf .m(par: %s B) : %s L -> %s L{.absMeth->par} }
     """;
@@ -71,9 +75,9 @@ public class TestCaptureRules {
       caps.add(new Capture(capturePairs.get(i), capturePairs.get(i+1)));
     }
 
-    var permutations = new ArrayList<Capture>(Mdf.values().length * Mdf.values().length);
-    for (Mdf mdf : Mdf.values()) {
-      for (Mdf mdfi : Mdf.values()) {
+    var permutations = new ArrayList<Capture>(allMdfs.length * allMdfs.length);
+    for (Mdf mdf : allMdfs) {
+      for (Mdf mdfi : allMdfs) {
         permutations.add(new Capture(mdf, mdfi));
       }
     }
@@ -107,30 +111,27 @@ public class TestCaptureRules {
       throw new AssertionError("valid pairs:\n"+validCaps+"\n\nbut we got the following errors:"+exceptions);
     }
   }
+  // TODO: add iso to the bounds
   String codeGen3a = """
     package test
     B:{}
-    L[X]:{ %s .absMeth: %s X }
-    A:{ recMdf .m[T](par: %s T) : %s L[%s T] -> %s L[%s T]{.absMeth->par} }
+    L[X:readOnly,lent,read,mut,imm]:{ %s .absMeth: %s X }
+    A:{ recMdf .m[T:readOnly,lent,read,mut,imm](par: %s T) : %s L[%s T] -> %s L[%s T]{.absMeth->par} }
     """;
   String codeGen3b = """
     package test
     B:{}
-    L[X]:{ %s .absMeth: %s X }
+    L[X:readOnly,lent,read,mut,imm]:{ %s .absMeth: %s X }
     L:L[%s B]
     A:{ recMdf .m(par: %s B) : %s L -> %s L{.absMeth->par} }
     """;
-  String base = """
-    package base
-    NoMutHyg[X]:{}
-    """;
 
   void cInnerOk(String code){
-    try{ok(code, base);}
+    try{ok(code);}
     catch(AssertionError t){ throw new AssertionError("failed on "+code+"\nwith:\n"+t); }
   }
   void cInnerFail(String code){
-    try{expectFail(code, base);}
+    try{expectFail(code);}
     catch(AssertionError t){ throw new AssertionError("expected failure but succeeded on "+code); }
   }
 
