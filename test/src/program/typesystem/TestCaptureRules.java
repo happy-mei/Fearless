@@ -567,7 +567,7 @@ public class TestCaptureRules {
   @Test void t657(){ c1(recMdf, mdf, recMdf, of(/*not well formed value to capture*/)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t661(){ c1(imm, recMdf, recMdf, of()); }
-  @Test void t662(){ c1(readOnly, recMdf, recMdf, of(readOnly)); }
+  @Test void t662(){ c1(readOnly, recMdf, recMdf, of(readOnly,recMdf,mdf)); }
   @Test void t663(){ c1(lent, recMdf, recMdf, of(readOnly)); }
   @Test void t664(){ c1(mut, recMdf, recMdf, of(/*not well formed method*/)); }
   @Test void t665(){ c1(iso, recMdf, recMdf, of(/*not well formed method*/)); }
@@ -1015,7 +1015,7 @@ public class TestCaptureRules {
   @Test void t2657(){ c2(recMdf, mdf, recMdf, of(/*not well formed method*/)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2661(){ c2(imm, recMdf, recMdf, of()); }
-  @Test void t2662(){ c2(readOnly, recMdf, recMdf, of(readOnly)); }
+  @Test void t2662(){ c2(readOnly, recMdf, recMdf, of(readOnly,recMdf,mdf)); }
   @Test void t2663(){ c2(lent, recMdf, recMdf, of(readOnly)); }
   @Test void t2664(){ c2(mut, recMdf, recMdf, of()); }
   @Test void t2665(){ c2(iso, recMdf, recMdf, of()); }
@@ -1203,7 +1203,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3251(){ c3(imm, mdf, lent, of()); }
   @Test void t3252(){ c3(readOnly, mdf, lent, of()); }
-  @Test void t3253(){ c3(lent,  mdf,   lent, of()); }
+  @Test void t3253(){ c3(lent,  mdf,   lent, of(readOnly,lent  , mdf,readOnly  , readOnly,mdf  , readOnly,readOnly  , readOnly,recMdf  , readOnly,imm  , readOnly,mut)); }
   @Test void t3254(){ c3(mut, mdf, lent, of()); }
   @Test void t3255(){ c3(iso, mdf, lent, of()); }
   @Test void t3256(){ c3(mdf, mdf, lent, of()); }
@@ -1431,7 +1431,7 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3611(){ c3(imm, readOnly, recMdf, of()); }
   @Test void t3612(){ c3(readOnly, readOnly, recMdf, of(readOnly,mdf  , recMdf,recMdf  , readOnly,recMdf  , readOnly, readOnly, readOnly,mut  , mdf,recMdf  , mdf, readOnly, recMdf,lent  , readOnly,imm  , recMdf,mdf  , recMdf,mut  , readOnly,lent  , recMdf, readOnly)); }
-  @Test void t3613(){ c3(lent, readOnly, recMdf, readAll,of(recMdf, readOnly, mdf, readOnly)); }
+  @Test void t3613(){ c3(lent, readOnly, recMdf, readAll,of(mdf,readOnly  , recMdf,readOnly)); }
   @Test void t3614(){ c3(mut, readOnly, recMdf, of()); }
   @Test void t3615(){ c3(iso, readOnly, recMdf, of()); }
   @Test void t3616(){ c3(mdf, readOnly, recMdf, of()); }
@@ -1463,14 +1463,14 @@ public class TestCaptureRules {
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3651(){ c3(imm, mdf, recMdf, of()); }
   @Test void t3652(){ c3(readOnly, mdf, recMdf, readAll,of(recMdf,recMdf, recMdf,mdf, recMdf, readOnly, mdf,recMdf, mdf, readOnly, recMdf,lent, recMdf,mut)); }
-  @Test void t3653(){ c3(lent, mdf, recMdf, of(readOnly,lent  , readOnly,recMdf  , mdf,recMdf  , recMdf,recMdf  , readOnly,mdf  , readOnly,imm  , readOnly, readOnly, readOnly,mut  , recMdf, readOnly, recMdf,lent  , mdf, readOnly, recMdf,mdf  , recMdf,mut)); }
+  @Test void t3653(){ c3(lent, mdf, recMdf, of()); }
   @Test void t3654(){ c3(mut, mdf, recMdf, of()); }
   @Test void t3655(){ c3(iso, mdf, recMdf, of()); }
   @Test void t3656(){ c3(mdf, mdf, recMdf, of()); }
   @Test void t3657(){ c3(recMdf,mdf,   recMdf, of()); }
   //                     lambda, captured, method, ..(returnedAs, capturedAsGen)
   @Test void t3661(){ c3(imm, recMdf, recMdf, of()); }
-  @Test void t3662(){ c3(readOnly, recMdf, recMdf, of(readOnly,lent  , readOnly,mdf  , readOnly,mut  , readOnly,imm  , readOnly, readOnly, recMdf, readOnly, readOnly,recMdf  , mdf, readOnly)); }
+  @Test void t3662(){ c3(readOnly, recMdf, recMdf, of(readOnly,lent  , readOnly,mdf  , readOnly,mut  , readOnly,imm  , readOnly,readOnly  , recMdf,recMdf  , mdf,recMdf  , readOnly,recMdf  , recMdf,lent  , recMdf,mut  , recMdf,readOnly  , mdf,readOnly  , recMdf,mdf)); }
   @Test void t3663(){ c3(lent, recMdf, recMdf, of(readOnly,lent  , readOnly,mdf  , readOnly,mut  , readOnly,imm  , readOnly, readOnly, recMdf, readOnly, readOnly,recMdf  , mdf, readOnly)); }
   @Test void t3664(){ c3(mut, recMdf, recMdf, of()); }
   @Test void t3665(){ c3(iso, recMdf, recMdf, of()); }
