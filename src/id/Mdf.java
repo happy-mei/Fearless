@@ -83,6 +83,7 @@ public enum Mdf{
     if (mMdf.isLent()){ return Optional.of(lent); }
     if ((isMut() && mMdf.isIso()) || (isMut() && mMdf.isMut())) { return Optional.of(mut); }
     if (isRecMdf() && mMdf.is(lent, mut, iso)) { return Optional.of(readOnly); }
+    if (mMdf.isRead()) { return Optional.of(read); }
     System.err.println("uh oh restrict is undefined for "+this+" and "+mMdf);
     return Optional.empty();
   }
