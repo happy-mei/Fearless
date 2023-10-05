@@ -49,20 +49,20 @@ public interface Program {
       case readOnly, mdf, recMdf, read, lent -> false;
     };
   }
-  default boolean isSubType(astFull.T t1, astFull.T t2) { return isSubType(t1.toAstT(), t2.toAstT()); }
-  record SubTypeQuery(T t1, T t2){}
+  default boolean isSubType(XBs xbs, astFull.T t1, astFull.T t2) { return isSubType(xbs, t1.toAstT(), t2.toAstT()); }
+  record SubTypeQuery(XBs xbs, T t1, T t2){}
   enum SubTypeResult { Yes, No, Unknown }
   HashMap<SubTypeQuery, SubTypeResult> subTypeCache();
-  default boolean tryIsSubType(T t1, T t2) {
+  default boolean tryIsSubType(XBs xbs, T t1, T t2) {
     try {
-      return isSubType(t1, t2);
+      return isSubType(xbs, t1, t2);
     } catch (CompileError ce) { // due to the parallelism in okAll we can no longer easily prevent us getting stuck here
       System.out.println("sub-typing ignoring "+ce);
       return false;
     }
   }
-  default boolean isSubType(T t1, T t2) {
-    var q = new SubTypeQuery(t1, t2);
+  default boolean isSubType(XBs xbs, T t1, T t2) {
+    var q = new SubTypeQuery(xbs, t1, t2);
     var subTypeCache = this.subTypeCache();
     if (subTypeCache.containsKey(q)) {
       var res = subTypeCache.get(q);
@@ -72,28 +72,38 @@ public interface Program {
       return subTypeCache.get(q) == SubTypeResult.Yes;
     }
     subTypeCache.put(q, SubTypeResult.Unknown);
-    var isSubType = isSubTypeAux(t1, t2);
+    var isSubType = isSubTypeAux(xbs, t1, t2);
     var result = isSubType ? SubTypeResult.Yes : SubTypeResult.No;
     subTypeCache.put(q, result);
     return isSubType;
   }
-  default boolean isSubTypeAux(T t1, T t2) {
+  default boolean isSubTypeAux(XBs xbs, T t1, T t2) {
     if (t1.equals(t2)) { return true; }
+    if (t1.isMdfX()) {
+      var bounds = xbs.get(t1.gxOrThrow());
+      var mdf = t2.mdf();
+      return bounds.stream().allMatch(mdfi->isSubType(mdfi, mdf));
+    }
+    if (t2.isMdfX()) {
+      var bounds = xbs.get(t2.gxOrThrow());
+      var mdf = t1.mdf();
+      return bounds.stream().allMatch(mdfi->isSubType(mdf, mdfi));
+    }
     if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
     t1 = t1.withMdf(t1.mdf()); t2 = t2.withMdf(t1.mdf());
     if(t1.rt().equals(t2.rt())){ return true; }
     if(!t1.isIt() || !t2.isIt()){ return false; }
 
-    if (isTransitiveSubType(t1, t2)) { return true; }
+    if (isTransitiveSubType(xbs, t1, t2)) { return true; }
 
     if (t1.mdf() != t2.mdf()) { return false; }
     if (t1.itOrThrow().name().equals(t2.itOrThrow().name())) {
-      return isAdaptSubType(t1, t2);
+      return isAdaptSubType(xbs, t1, t2);
     }
     return false;
   }
 
-  default boolean isAdaptSubType(T t1, T t2) {
+  default boolean isAdaptSubType(XBs xbs, T t1, T t2) {
   /*MDF C[T1..Tn]< MDF C[T1'..Tn']
     where
       adapterOk(MDF,C,T1..Tn,T1'..Tn')
@@ -113,8 +123,12 @@ public interface Program {
     var it1 = t1.itOrThrow();
     var it2 = t2.itOrThrow();
     assert it1.name().equals(it2.name());
-    List<CM> cms1 = filterByMdf(mdf, meths(mdf, it1, 0));
-    List<CM> cms2 = filterByMdf(mdf, meths(mdf, it2, 0));
+    List<CM> cms1 = meths(xbs, mdf, it1, 0).stream()
+      .filter(cm->filterByMdf(mdf, cm.sig().mdf()))
+      .toList();
+    List<CM> cms2 = meths(xbs, mdf, it2, 0).stream()
+      .filter(cm->filterByMdf(mdf, cm.sig().mdf()))
+      .toList();
 
     var methsByName = Stream.concat(cms1.stream(), cms2.stream())
       .collect(Collectors.groupingBy(CM::name))
@@ -146,35 +160,18 @@ public interface Program {
     var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
     var v = ETypeSystem.of(this, g, xbs, Optional.of(expected),0);
     var res = e.accept(v);
-    return res.resMatch(t->isSubType(t,expected),err->false);
+    return res.resMatch(t->isSubType(xbs,t,expected),err->false);
   }
 
-  default List<CM> filterByMdf(Mdf mdf, List<CM> cms) {
-    // Keep in sync with filterByMdf in typesystem.ELambdaTypeSystem
+  static boolean filterByMdf(Mdf mdf, Mdf mMdf) {
     assert !mdf.isMdf();
-    if (cms.isEmpty()) { return List.of(); }
-    var cm = cms.get(0);
-    cms = Pop.left(cms);
-    if (mdf.isIso() || mdf.isMut() || mdf.isRecMdf()) {
-      return Push.of(cm, filterByMdf(mdf, cms));
-    }
-    var sig = cm.sig();
-    if (mdf.isLent() && !sig.mdf().isIso()) { return Push.of(cm, filterByMdf(mdf, cms)); }
-    var baseMdfReadLike = mdf.isImm() || mdf.isRead() || mdf.isReadOnly();
-    var methMdfImmOrRead = sig.mdf().isImm() || sig.mdf().isReadOnly() || sig.mdf().isRead() || sig.mdf().isRecMdf();
-    if (baseMdfReadLike && methMdfImmOrRead) {
-      return Push.of(cm, filterByMdf(mdf, cms));
-    }
-    return filterByMdf(mdf, cms);
-  }
-
-  record MWisePair(E.Meth a, E.Meth b){}
-  default List<MWisePair> mWisePairs(){
-    throw Bug.todo();
+    if (mdf.is(Mdf.iso, Mdf.mut, Mdf.recMdf, Mdf.mdf)) { return true; }
+    if (mdf.isLent() && !mMdf.isIso()) { return true; }
+    return mdf.is(Mdf.imm, Mdf.read, Mdf.readOnly) && mMdf.is(Mdf.imm, Mdf.read, Mdf.readOnly, Mdf.recMdf);
   }
 
   record FullMethSig(Id.MethName name, E.Sig sig){}
-  default Optional<FullMethSig> fullSig(Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
+  default Optional<FullMethSig> fullSig(XBs xbs, Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
     var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), Map.of(), new ast.E.Lambda(
@@ -185,7 +182,7 @@ public interface Program {
       Optional.empty()
     ), Optional.empty());
     var p = this.withDec(dec);
-    var myM_ = p.meths(recvMdf, dec.toIT(), depth).stream()
+    var myM_ = p.meths(xbs, recvMdf, dec.toIT(), depth).stream()
       .filter(pred)
       .toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
@@ -201,34 +198,34 @@ public interface Program {
     return Optional.of(new FullMethSig(cm.name(), restoredSig));
   }
 
-  default Optional<CM> meths(Mdf recvMdf, Id.IT<T> it, Id.MethName name, int depth){
-    var myM_ = meths(recvMdf, it, depth).stream().filter(mi->mi.name().equals(name)).toList();
+  default Optional<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, Id.MethName name, int depth){
+    var myM_ = meths(xbs, recvMdf, it, depth).stream().filter(mi->mi.name().equals(name)).toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
     assert myM_.size()==1;
     return Optional.of(myM_.get(0));
   }
 
-  default List<CM> meths(Mdf recvMdf, ast.E.Lambda l, int depth) {
+  default List<CM> meths(XBs xbs, Mdf recvMdf, ast.E.Lambda l, int depth) {
     var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), Map.of(), l, l.pos());
     var p_ = this.withDec(dec);
-    return p_.methsAux(recvMdf, dec.toIT()).stream().map(cm->freshenMethGens(cm, depth)).toList();
+    return p_.methsAux(xbs, recvMdf, dec.toIT()).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
 
-  default List<CM> meths(Mdf recvMdf, Id.IT<T> it, int depth) {
-    return methsAux(recvMdf, it).stream().map(cm->freshenMethGens(cm, depth)).toList();
+  default List<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, int depth) {
+    return methsAux(xbs, recvMdf, it).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
-  record MethsCacheKey(Mdf recvMdf, Id.IT<T> it){}
+  record MethsCacheKey(XBs xbs, Mdf recvMdf, Id.IT<T> it){}
   HashMap<MethsCacheKey, List<CM>> methsCache();
-  default List<CM> methsAux(Mdf recvMdf, Id.IT<T> it) {
+  default List<CM> methsAux(XBs xbs, Mdf recvMdf, Id.IT<T> it) {
     var methsCache = this.methsCache();
-    var cacheKey = new MethsCacheKey(recvMdf, it);
+    var cacheKey = new MethsCacheKey(xbs, recvMdf, it);
     // Can't use computeIfAbsent here because concurrent modification thanks to mutual recursion :-(
     if (methsCache.containsKey(cacheKey)) { return methsCache.get(cacheKey); }
     List<CM> cms = Stream.concat(
       cMsOf(recvMdf, it).stream(),
-      itsOf(it).stream().flatMap(iti->methsAux(recvMdf, iti).stream())
+      itsOf(it).stream().flatMap(iti->methsAux(xbs, recvMdf, iti).stream())
     ).toList();
-    var res = prune(cms, posOf(it));
+    var res = prune(xbs, cms, posOf(it));
     methsCache.put(cacheKey, res);
     return res;
   }
@@ -307,7 +304,7 @@ public interface Program {
     return cm.withSig(newSig);
   }
 
-  default List<CM> prune(List<CM> cms, Optional<Pos> lambdaPos) {
+  default List<CM> prune(XBs xbs, List<CM> cms, Optional<Pos> lambdaPos) {
     /*
     prune(CMs) = pruneAux(CMs1)..pruneAux(CMsn)
       where CMs1..CMsn = groupByM(norm(CMs)) //groupByM(CMs)=CMss groups for the same m,n
@@ -316,11 +313,11 @@ public interface Program {
       .distinct()
       .collect(Collectors.groupingBy(CM::name));
     return cmsMap.values().stream()
-      .map(cmsi->pruneAux(cmsi, lambdaPos, cmsi.size()+1))
+      .map(cmsi->pruneAux(xbs, cmsi, lambdaPos, cmsi.size()+1))
       .toList();
   }
 
-  default CM pruneAux(List<CM> cms, Optional<Pos> lambdaPos, int limit) {
+  default CM pruneAux(XBs xbs, List<CM> cms, Optional<Pos> lambdaPos, int limit) {
     if(limit==0){
       throw Fail.uncomposableMethods(cms.stream()
         .map(cm->Fail.conflict(cm.pos(), cm.toStringSimplified()))
@@ -338,10 +335,10 @@ public interface Program {
     var first=cms.get(0);
     if (cms.size() == 1) { return first; }
     var nextCms=cms.stream().skip(1)
-      .filter(cmi->!firstIsMoreSpecific(first, cmi) && !firstIsMoreSpecific(plainCM(first), plainCM(cmi)))
+      .filter(cmi->!firstIsMoreSpecific(xbs, first, cmi) && !firstIsMoreSpecific(xbs, plainCM(first), plainCM(cmi)))
       .toList();
 
-    return pruneAux(Push.of(nextCms,first), lambdaPos, limit - 1);
+    return pruneAux(xbs, Push.of(nextCms,first), lambdaPos, limit - 1);
   }
 
   /*default List<CM> allCases(List<CM> cms) {
@@ -366,7 +363,7 @@ public interface Program {
       .or(()->selectMoreSpecificAux(b,a))
       .orElseThrow(()->Fail.uncomposableMethods(a.c(), b.c()));
   }*/
-  default boolean firstIsMoreSpecific(CM a, CM b) {
+  default boolean firstIsMoreSpecific(XBs xbs, CM a, CM b) {
       /*
       selectMoreSpecific(CM1,CM2) = CMi
         where
@@ -379,29 +376,32 @@ public interface Program {
            - e?j is empty, Ds|- Ti<=Tj and not Ds|- Tj<=Ti
        */
     assert a.name().equals(b.name());
+    assert a.sig().gens().equals(b.sig().gens());
+    assert a.sig().bounds().equals(b.sig().bounds());
+    var xbs_ = xbs.addBounds(a.sig().gens(), a.sig().bounds());
     var ta = new T(Mdf.mut, a.c());
     var tb = new T(Mdf.mut, b.c());
-    if(tryIsSubType(tb, ta)){ return false; }
+    if(tryIsSubType(xbs, tb, ta)){ return false; }
     var ok=a.sig().gens().equals(b.sig().gens())
       && a.sig().ts().equals(b.sig().ts())
       && a.mdf()==b.mdf();
     if(!ok){ return false; }
 
-    var isSubType = tryIsSubType(ta, tb) && tryIsSubType(a.ret(), b.ret());
+    var isSubType = tryIsSubType(xbs, ta, tb) && tryIsSubType(xbs_, a.ret(), b.ret());
     if(isSubType){ return true; }
 
     var is1AbsAndRetEq = b.isAbs() && a.ret().equals(b.ret());
     if(is1AbsAndRetEq){ return true; }
 
     var is1AbsAndRetSubtype = b.isAbs()
-      && tryIsSubType(a.ret(), b.ret())
-      && !tryIsSubType(b.ret(), a.ret());
+      && tryIsSubType(xbs_, a.ret(), b.ret())
+      && !tryIsSubType(xbs_, b.ret(), a.ret());
     if(is1AbsAndRetSubtype){ return true; }
 
     return false;
   }
 
-  default boolean isTransitiveSubType(T t1, T t3) {
+  default boolean isTransitiveSubType(XBs xbs, T t1, T t3) {
   /*
   MDF IT1 < MDF IT3
   where
@@ -411,7 +411,7 @@ public interface Program {
     var mdf = t1.mdf();
     if (mdf != t3.mdf()) { return false; }
     return itsOf(t1.itOrThrow()).stream()
-      .anyMatch(t2->isSubType(new T(mdf, t2), t3));
+      .anyMatch(t2->isSubType(xbs, new T(mdf, t2), t3));
   }
 
   default Id.IT<ast.T> liftIT(Id.IT<astFull.T>it){

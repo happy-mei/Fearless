@@ -95,12 +95,12 @@ public interface EMethTypeSystem extends ETypeSystem {
       res.err().ifPresent(errors::add);
       return false;
     }
-    return p().tryIsSubType(res.tOrThrow(), t);
+    return p().tryIsSubType(xbs(), res.tOrThrow(), t);
   }
 
   default Optional<List<TsT>> multiMeth(T rec, MethName m, List<T> ts) {
     if (!(rec.rt() instanceof Id.IT<T> recIT)) { return Optional.empty(); }
-    var sig = p().meths(rec.mdf(), recIT, m, depth()).map(cm -> {
+    var sig = p().meths(xbs(), rec.mdf(), recIT, m, depth()).map(cm -> {
       var mdf = rec.mdf();
       Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
       var xbs = xbs().addBounds(cm.sig().gens(), cm.sig().bounds());

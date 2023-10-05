@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
 import program.TypeRename;
+import program.typesystem.XBs;
 import utils.Err;
 import utils.FromContent;
 
@@ -21,7 +22,7 @@ public class TestSubTyping {
     var ty1 = new Parser(Parser.dummy, t1).parseFullT();
     var ty2 = new Parser(Parser.dummy, t2).parseFullT();
     Program p = FromContent.of(code);
-    Assertions.assertEquals(res,p.isSubType(ty1, ty2), String.format("t1: %s\nt2: %s", ty1, ty2));
+    Assertions.assertEquals(res,p.isSubType(XBs.empty(), ty1, ty2), String.format("t1: %s\nt2: %s", ty1, ty2));
   }
 
   void fail(String expected, String t1, String t2, String ...code){
@@ -29,7 +30,7 @@ public class TestSubTyping {
     var ty2 = new Parser(Parser.dummy, t2).parseFullT();
     Program p = FromContent.of(code);
     try {
-      p.isSubType(ty1, ty2);
+      p.isSubType(XBs.empty(), ty1, ty2);
       Assertions.fail("Expected failure");
     } catch (CompileError e) {
       Err.strCmp(expected, e.toString());

@@ -27,13 +27,11 @@ public interface TraitTypeSystem {
     var xs=d.gxs();
     var b=d.lambda();
     assert b.selfName().equals("this");
-    //TODO: is this ok, by reusing the other meth?
-    //if so, should we remove the other meth from the formalism?
     var cT=new IT<>(c,xs.stream().map(x->new T(Mdf.mdf,x)).toList());
-    try{ p().meths(Mdf.recMdf, cT,0); }
+    var xbs = XBs.empty().addBounds(d.gxs(), d.bounds());
+    try{ p().meths(xbs, Mdf.recMdf, cT,0); }
     catch(CompileError ce){ return Optional.of(ce); }
     assert d.lambda().mdf()==Mdf.mdf;
-    // TODO: get XBs
-    return ETypeSystem.of(p(),Gamma.empty(), XBs.empty(), Optional.empty(),0).bothT(d).err();
+    return ETypeSystem.of(p(), Gamma.empty(), xbs, Optional.empty(),0).bothT(d).err();
   }
 }
