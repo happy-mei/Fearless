@@ -47,8 +47,19 @@ public class Id {
     public MethName(String name, int num) { this(Optional.empty(), name, num); }
     @Override public String toString(){
       var base = name+"/"+num;
-      if (mdf.isEmpty()) { return base; }
-      return mdf+" "+base;
+      return mdf.map(mdf_->mdf_+" "+base).orElse(base);
+    }
+
+    @Override public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      MethName methName = (MethName) o;
+      var baseEq = num == methName.num && Objects.equals(name, methName.name);
+      if (mdf.isEmpty() || methName.mdf.isEmpty()) { return baseEq; }
+      return baseEq && Objects.equals(mdf, methName.mdf);
+    }
+    @Override public int hashCode() {
+      return Objects.hash(name, num);
     }
   }
 
