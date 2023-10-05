@@ -17,6 +17,9 @@ public class TestMdfDispatch {
       }
     """); }
   @Test void inferringShouldFailWhenMultipleCandidates() { fail("""
+    In position [###]/Dummy0.fear:8:2
+    [E51 ambiguousMethodName]
+    Unable to lookup the signature of the method: .m1/0. Multiple candidates exist with the same name and number of arguments.
     """, """
     package test
     A:{

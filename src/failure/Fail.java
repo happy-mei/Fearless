@@ -221,6 +221,10 @@ public class Fail{
     return of("Trait declarations may not have a self-name other than \"this\".");
   }
 
+  public static CompileError ambiguousMethodName(Id.MethName name) {
+    return of("Unable to lookup the signature of the method: "+name+". Multiple candidates exist with the same name and number of arguments.");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -278,6 +282,7 @@ enum ErrorCode {
   privateMethCall,
   privateTraitImplementation,
   mustProvideImplsIfMdfProvided,
-  namedTopLevelLambda;
+  namedTopLevelLambda,
+  ambiguousMethodName;
   int code() {return this.ordinal() + 1;}
 }

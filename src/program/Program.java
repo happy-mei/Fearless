@@ -201,7 +201,7 @@ public interface Program {
   default Optional<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, Id.MethName name, int depth){
     var myM_ = meths(xbs, recvMdf, it, depth).stream().filter(mi->mi.name().equals(name)).toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
-    assert myM_.size()==1;
+    if (myM_.size() > 1) { throw Fail.ambiguousMethodName(name); }
     return Optional.of(myM_.get(0));
   }
 
