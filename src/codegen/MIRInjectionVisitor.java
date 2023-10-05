@@ -68,7 +68,8 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       recv,
       e.name(),
       e.es().stream().map(ei->ei.accept(this, pkg, gamma)).toList(),
-      cm.ret()
+      cm.ret(),
+      meth.mdf() // TODO: this needs to use multimeths instead of meths to select the correct method oof
     );
   }
 

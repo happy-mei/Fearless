@@ -4,6 +4,7 @@ import ast.Program;
 import ast.T;
 import codegen.MIR;
 import id.Id;
+import id.Mdf;
 import magic.Magic;
 import visitors.MIRVisitor;
 
@@ -21,14 +22,14 @@ public class JavaCodegen implements MIRVisitor<String> {
   static String argsToLList() {
     return """
       FAux.LAUNCH_ARGS = new base.LList_1(){};
-      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$(arg); }
+      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
       """;
   }
 
   public String visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) {
     assert pkgs.containsKey("base");
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_0 entry = new "+entryName+"(){}; entry.$35$(new base$46caps.$95System_0(){}); }\n";
+    var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_0 entry = new "+entryName+"(){}; entry.$35$imm$(new base$46caps.$95System_0(){}); }\n";
 
     return "class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\ninterface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))
@@ -75,7 +76,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       .collect(Collectors.joining(","));
     var visibility = concrete ? "public " : "default ";
     if (meth.isAbs()) { visibility = ""; }
-    var start = visibility+getRetName(meth.rt())+" "+name(getName(meth.name()))+"("+args+")";
+    var start = visibility+getRetName(meth.rt())+" "+name(getName(meth.mdf(), meth.name()))+"("+args+")";
     if (meth.body().isEmpty()) { return start + ";"; }
     return start + "{\n"+selfVar+"return (("+getName(meth.rt())+")("+meth.body().get().accept(this)+"));\n}";
   }
@@ -92,7 +93,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     }
 
     var magicRecv = !(mCall.recv() instanceof MIR.Lambda);
-    var start = "(("+getRetName(mCall.t())+")"+mCall.recv().accept(this, magicRecv)+"."+name(getName(mCall.name()))+"(";
+    var start = "(("+getRetName(mCall.t())+")"+mCall.recv().accept(this, magicRecv)+"."+name(getName(mCall.mdf(), mCall.name()))+"(";
     var args = mCall.args().stream()
       .map(a->a.accept(this))
       .collect(Collectors.joining(","));
@@ -172,7 +173,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     var pkg = getPkgName(d.pkg());
     return pkg+"."+getBase(d.shortName())+"_"+d.gen();
   }
-  private static String getName(Id.MethName m) { return getBase(m.name()); }
+  private static String getName(Mdf mdf, Id.MethName m) { return getBase(m.name())+"$"+mdf; }
   private static String getBase(String name) {
     if (name.startsWith(".")) { name = name.substring(1); }
     return name.chars().mapToObj(c->{
