@@ -61,7 +61,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     var recv = e.receiver().accept(this, pkg, gamma);
     var recvMdf = recv.t().mdf();
     if (recvMdf.isMdf()) { recvMdf = Mdf.recMdf; }
-    var meth = p.meths(XBs.empty(), recvMdf, recv.t().itOrThrow(), e.name(), 0).orElseThrow();
+    var meth = p.meths(XBs.empty(), recvMdf, recv.t().itOrThrow(), e.name(), 0).get(0);
     var renamer = TypeRename.core(p);
     var cm = renamer.renameSigOnMCall(meth.sig(), XBs.empty(), renamer.renameFun(e.ts(), meth.sig().gens()));
     return new MIR.MCall(

@@ -187,7 +187,8 @@ public record InferBodies(ast.Program p) {
     var iTs = typesOf(e.es());
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
     try {
-      if (p().meths(XBs.empty(), c.mdf(), recv.toAstIT(T::toAstT), e.name(), depth).isEmpty()) {
+      var ms = p().meths(XBs.empty(), c.mdf(), recv.toAstIT(T::toAstT), e.name(), depth);
+      if (ms.size() != 1) {
         return Optional.empty();
       }
     } catch (T.MatchOnInfer ignored) {}

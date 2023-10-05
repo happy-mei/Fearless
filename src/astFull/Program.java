@@ -220,9 +220,11 @@ public class Program implements program.Program{
         if (m.xs().size() != name.num()) { throw Fail.cannotInferSig(dec.name(), name); }
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();
-        var inferred = p.meths(xbs, Mdf.recMdf, dec.toAstT(), name, 0)
-          .orElseThrow(()->Fail.cannotInferSig(dec.name(), name));
-        return namedMeth.withSig(inferred.sig().toAstFullSig());
+        var inferred = p.meths(xbs, Mdf.recMdf, dec.toAstT(), name, 0);
+        if (inferred.size() != 1) {
+          throw Fail.cannotInferSig(dec.name(), name);
+        }
+        return namedMeth.withSig(inferred.get(0).sig().toAstFullSig());
       } catch (CompileError e) {
         throw e.pos(m.pos());
       }

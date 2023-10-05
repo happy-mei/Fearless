@@ -47,7 +47,8 @@ public class Id {
     public MethName(String name, int num) { this(Optional.empty(), name, num); }
     @Override public String toString(){
       var base = name+"/"+num;
-      return mdf.map(mdf_->mdf_+" "+base).orElse(base);
+      return base;
+//      return mdf.map(mdf_->mdf_+" "+base).orElse(base);
     }
 
     @Override public boolean equals(Object o) {
@@ -55,8 +56,15 @@ public class Id {
       if (o == null || getClass() != o.getClass()) return false;
       MethName methName = (MethName) o;
       var baseEq = num == methName.num && Objects.equals(name, methName.name);
+//      return baseEq;
       if (mdf.isEmpty() || methName.mdf.isEmpty()) { return baseEq; }
       return baseEq && Objects.equals(mdf, methName.mdf);
+    }
+    public boolean nameArityEq(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      MethName methName = (MethName) o;
+      return num == methName.num && Objects.equals(name, methName.name);
     }
     @Override public int hashCode() {
       return Objects.hash(name, num);

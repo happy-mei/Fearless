@@ -224,6 +224,9 @@ public class Fail{
   public static CompileError ambiguousMethodName(Id.MethName name) {
     return of("Unable to lookup the signature of the method: "+name+". Multiple candidates exist with the same name and number of arguments.");
   }
+  public static CompileError ambiguousMethod() {
+    return of("Unable to figure out which method is being referenced here, please write the full signature.");
+  }
 
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
@@ -283,6 +286,7 @@ enum ErrorCode {
   privateTraitImplementation,
   mustProvideImplsIfMdfProvided,
   namedTopLevelLambda,
-  ambiguousMethodName;
+  ambiguousMethodName,
+  ambiguousMethod;
   int code() {return this.ordinal() + 1;}
 }

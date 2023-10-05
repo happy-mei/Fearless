@@ -4,6 +4,7 @@ import ast.Program;
 import astFull.E;
 import astFull.T;
 import failure.CompileError;
+import failure.Fail;
 import files.Pos;
 import id.Id;
 import id.Mdf;
@@ -170,8 +171,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     });
   }
 
-  RefinedSig freshXs(Optional<CM> cm, Id.MethName name, List<Id.GX<ast.T>> gxs) {
-    var sig = cm.map(cmi->cmi.sig().toAstFullSig()).orElseThrow();
+  RefinedSig freshXs(CM cm, Id.MethName name, List<Id.GX<ast.T>> gxs) {
+    var sig = cm.sig().toAstFullSig();
     assert sig.gens().size() == gxs.size();
     var tgxs = gxs.stream().map(gx->new T(Mdf.mdf, gx.toFullAstGX())).toList();
     var f = renamer.renameFun(tgxs,sig.gens());
@@ -220,7 +221,10 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 
   List<RP> pairUp(Mdf lambdaMdf, List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
     var ms = p.meths(XBs.empty(), lambdaMdf, c, sig.name(), depth);
-    var freshSig = freshXs(ms, sig.name(), gxs);
+    if (ms.size() != 1) {
+      throw Fail.ambiguousMethodName(sig.name());
+    }
+    var freshSig = freshXs(ms.get(0), sig.name(), gxs);
     var freshGens = freshSig.gens();
     return Streams.of(
       RP.of(freshGens, sig.gens()).stream(),

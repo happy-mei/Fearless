@@ -25,14 +25,14 @@ public interface GenericBounds {
       .findAny();
   }
 
-  static Optional<CompileError> validGenericMeth(Program p, XBs xbs, Mdf recvMdf, Id.IT<T> recvIT, int depth, Id.MethName name, List<T> typeArgs) {
+  static Optional<CompileError> validGenericMeth(Program p, XBs xbs, Mdf recvMdf, Id.IT<T> recvIT, int depth, CM cm, List<T> typeArgs) {
     var gensValid = typeArgs.stream()
       .map(t->validGenericT(p, xbs, t))
       .filter(Optional::isPresent)
       .map(Optional::get)
       .findAny();
     if (gensValid.isPresent()) { return gensValid; }
-    CM cm = p.meths(XBs.empty(), recvMdf, recvIT, name, depth).orElseThrow();
+
     // TODO: throw error if type args.len != cm.sig.len (user code is wrong)
     return Streams.zip(typeArgs, cm.sig().gens())
       .map((t, gx)->{

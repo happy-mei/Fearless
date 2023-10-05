@@ -186,8 +186,9 @@ public interface Program {
       .filter(pred)
       .toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
-    // TODO: error message listing all the Ms here
-    assert myM_.size()==1;
+    if (myM_.size() > 1) {
+      throw Fail.ambiguousMethod();
+    }
 
     var cm = myM_.get(0);
     var sig = cm.sig().toAstFullSig();
@@ -198,11 +199,11 @@ public interface Program {
     return Optional.of(new FullMethSig(cm.name(), restoredSig));
   }
 
-  default Optional<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, Id.MethName name, int depth){
-    var myM_ = meths(xbs, recvMdf, it, depth).stream().filter(mi->mi.name().equals(name)).toList();
-    if(myM_.isEmpty()){ return Optional.empty(); }
-    if (myM_.size() > 1) { throw Fail.ambiguousMethodName(name); }
-    return Optional.of(myM_.get(0));
+  default List<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, Id.MethName name, int depth){
+    return meths(xbs, recvMdf, it, depth).stream().filter(mi->mi.name().equals(name)).toList();
+//    if(myM_.isEmpty()){ return Optional.empty(); }
+//    if (myM_.size() > 1) { throw Fail.ambiguousMethodName(name); }
+//    return Optional.of(myM_.get(0));
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, ast.E.Lambda l, int depth) {

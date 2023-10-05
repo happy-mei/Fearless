@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+import static program.typesystem.RunTypeSystem.ok;
 import static utils.RunJava.Res;
 
 public class TestJavaProgram {
@@ -1097,4 +1098,17 @@ public class TestJavaProgram {
         }
       """, Base.mutBaseAliases);
   }
+
+  @Test void callingMultiSigAmbiguousDiffRet() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    A:{
+      read .m1: read B -> {},
+      mut .m1: mut A -> this,
+      }
+    B:{}
+    Test:base.Main{
+      #(s) -> {},
+      read .aRead(a: mut A): read B -> a.m1[](),
+      }
+    """); }
 }
