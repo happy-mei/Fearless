@@ -216,7 +216,7 @@ public class Program implements program.Program{
           dec.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList(),
           Mapper.of(xbs_->dec.bounds().forEach((gx,bs)->xbs_.put(new Id.GX<>(gx.name()), bs)))
         );
-        var name=m.name().orElseGet(() -> onlyAbs(xbs, dec));
+        var name=m.name().orElseGet(()->onlyAbs(xbs, dec));
         if (m.xs().size() != name.num()) { throw Fail.cannotInferSig(dec.name(), name); }
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();

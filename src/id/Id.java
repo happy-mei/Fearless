@@ -42,9 +42,14 @@ public class Id {
       return String.format("%s/%d", name, gen);
     }
   }
-  public record MethName(String name, int num){
+  public record MethName(Optional<Mdf> mdf, String name, int num){
     public MethName{ assert validM(name) && num>=0; }
-    @Override public String toString(){ return name+"/"+num; }
+    public MethName(String name, int num) { this(Optional.empty(), name, num); }
+    @Override public String toString(){
+      var base = name+"/"+num;
+      if (mdf.isEmpty()) { return base; }
+      return mdf+" "+base;
+    }
   }
 
   public interface RT<TT extends Ty>{ <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it); }

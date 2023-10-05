@@ -61,7 +61,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Call visitCallOp(CallOpContext ctx) {
     check(ctx);
     return new Call(
-      new MethName(ctx.m().getText(),1),
+      new MethName(Optional.empty(), ctx.m().getText(),1),
       visitMGen(ctx.mGen(), true),
       Optional.ofNullable(ctx.x()).map(this::visitX),
       List.of(visitPostE(ctx.postE())),
@@ -82,7 +82,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var res = calls.stream()
       .flatMap(callOpCtx->{
         var head = new Call(
-          new MethName(callOpCtx.m().getText(),1),
+          new MethName(Optional.empty(), callOpCtx.m().getText(),1),
           visitMGen(callOpCtx.mGen(), true),
           Optional.ofNullable(callOpCtx.x()).map(this::visitX),
           List.of(visitAtomE(callOpCtx.postE().atomE())),
@@ -107,7 +107,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   record Call(MethName m, Optional<List<T>> mGen, Optional<E.X> x, List<E> es, Pos pos){}
   List<Call> fromPOp(POpContext ctx) {
     var call = new Call(
-      new MethName(ctx.m().getText(),ctx.e().size()),
+      new MethName(Optional.empty(), ctx.m().getText(),ctx.e().size()),
       visitMGen(ctx.mGen(), true),
       Optional.ofNullable(ctx.x()).map(this::visitX),
       ctx.e().stream().map(this::visitE).toList(),
@@ -135,10 +135,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         Optional.empty(),
         Optional.of(head.pos())
       );
-      return new E.MCall(root, new MethName(m.name(), 2), ts, List.of(e, cont), T.infer, Optional.of(head.pos()));
+      return new E.MCall(root, new MethName(Optional.empty(), m.name(), 2), ts, List.of(e, cont), T.infer, Optional.of(head.pos()));
     }
     var es=head.es();
-    E res=new E.MCall(root, new MethName(m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
+    E res=new E.MCall(root, new MethName(Optional.empty(), m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
     return desugar(res,newTail);
   }
   public Optional<List<T>> visitMGen(MGenContext ctx, boolean isDecl){
@@ -282,7 +282,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       return _xs==null?List.of():_xs;
     });
     var name = mh.map(MethHeader::name)
-        .orElseGet(()->new MethName(ctx.m().getText(),xs.size()));
+        .orElseGet(()->new MethName(mh.map(MethHeader::mdf), ctx.m().getText(),xs.size()));
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
     var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), h.bounds(), xs.stream().map(E.X::t).toList(), h.ret(), Optional.of(pos(ctx))));
     return new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body, Optional.of(pos(ctx)));
@@ -294,7 +294,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var mdf = this.visitMdf(ctx.mdf());
     var gens = this.visitMGenParams(ctx.mGen()).orElse(new GenericParams(List.of(), Map.of()));
     var xs = Optional.ofNullable(ctx.gamma()).map(this::visitGamma).orElse(List.of());
-    var name = new MethName(ctx.m().getText(),xs.size());
+    var name = new MethName(Optional.of(mdf), ctx.m().getText(), xs.size());
     var ret = this.visitT(ctx.t());
     return new MethHeader(mdf, name, gens.gxs, gens.bounds, xs, ret);
   }
