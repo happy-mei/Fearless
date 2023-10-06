@@ -7,6 +7,7 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import program.TypeRename;
+import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Streams;
 import visitors.CollectorVisitor;
@@ -19,7 +20,11 @@ import java.util.stream.Stream;
 public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   private final List<MIR.Trait> freshTraits = new ArrayList<>();
   private Program p;
-  public MIRInjectionVisitor(Program p) { this.p = p; }
+  private final IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls;
+  public MIRInjectionVisitor(Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+    this.p = p;
+    this.resolvedCalls = resolvedCalls;
+  }
 
   public Program getProgram() {
     return this.p.shallowClone();
@@ -59,17 +64,13 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
 
   public MIR.MCall visitMCall(String pkg, E.MCall e, Map<String, T> gamma) {
     var recv = e.receiver().accept(this, pkg, gamma);
-    var recvMdf = recv.t().mdf();
-    if (recvMdf.isMdf()) { recvMdf = Mdf.recMdf; }
-    var meth = p.meths(XBs.empty(), recvMdf, recv.t().itOrThrow(), e.name(), 0).get(0);
-    var renamer = TypeRename.core(p);
-    var cm = renamer.renameSigOnMCall(meth.sig(), XBs.empty(), renamer.renameFun(e.ts(), meth.sig().gens()));
+    var tst = this.resolvedCalls.get(e);
     return new MIR.MCall(
       recv,
       e.name(),
       e.es().stream().map(ei->ei.accept(this, pkg, gamma)).toList(),
-      cm.ret(),
-      meth.mdf() // TODO: this needs to use multimeths instead of meths to select the correct method oof
+      tst.t(),
+      tst.original().mdf()
     );
   }
 

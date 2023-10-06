@@ -1,12 +1,12 @@
 package base
 
 Assert:Sealed{
-  #(assertion: Bool): Void -> this#(assertion, { Void }),
-  #[R](assertion: Bool, cont: AssertCont[R]): R -> assertion ? {
+  !(assertion: Bool): Void -> this!(assertion, { Void }),
+  ![R](assertion: Bool, cont: AssertCont[R]): R -> assertion ? {
     .then -> cont#,
     .else -> this._fail[R]()
     },
-  #[R](assertion: Bool, msg: Str, cont: AssertCont[R]): R -> assertion ? {
+  ![R](assertion: Bool, msg: Str, cont: AssertCont[R]): R -> assertion ? {
     .then -> cont#,
     .else -> this._fail[R](msg)
     },

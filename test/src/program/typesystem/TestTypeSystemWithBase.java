@@ -13,6 +13,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -31,7 +32,7 @@ public class TestTypeSystemWithBase {
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-    inferred.typeCheck();
+    inferred.typeCheck(new IdentityHashMap<>());
   }
   void fail(String expectedErr, String... content){
     Main.resetAll();
@@ -46,7 +47,7 @@ public class TestTypeSystemWithBase {
       var inferredSigs = p.inferSignaturesToCore();
       var inferred = new InferBodies(inferredSigs).inferAll(p);
       new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-      inferred.typeCheck();
+      inferred.typeCheck(new IdentityHashMap<>());
       Assertions.fail("Did not fail!\n");
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

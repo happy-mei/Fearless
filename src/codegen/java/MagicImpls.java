@@ -1,5 +1,6 @@
 package codegen.java;
 
+import ast.E;
 import ast.Program;
 import ast.T;
 import codegen.MIR;
@@ -7,8 +8,10 @@ import failure.Fail;
 import id.Id;
 import magic.Magic;
 import magic.MagicTrait;
+import program.typesystem.EMethTypeSystem;
 import utils.Bug;
 
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,7 +19,7 @@ import java.util.Optional;
 import static java.util.Objects.requireNonNull;
 import static magic.MagicImpls.isLiteral;
 
-public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls<String> {
+public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) implements magic.MagicImpls<String> {
   @Override public MagicTrait<String> int_(MIR.Lambda l, MIR e) {
     var name = new Id.IT<T>(l.freshName().name(), List.of());
     return new MagicTrait<>() {
@@ -207,6 +210,51 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
     };
   }
 
+  @Override public MagicTrait<String> debug(MIR.Lambda l, MIR e) {
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        return gen.visitLambda(l, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+//        java.util.Arrays.stream(m.getClass().getDeclaredMethods())
+//          .filter(meth->
+//            meth.getName().equals("str$")
+//              && meth.getReturnType().equals(String.class)
+//              && meth.getParameterCount() == 0)
+//          .findAny().ifPresent(msf -> msf.invoke());
+        if (m.equals(new Id.MethName("#", 1))) {
+          var x = args.get(0);
+          return Optional.of(String.format("""
+            switch (1) { default -> {
+              var x = %s;
+              Object xObj = x;
+              var strMethod = java.util.Arrays.stream(xObj.getClass().getDeclaredMethods())
+                .peek(meth->{System.out.println(meth);})
+                .filter(meth->
+                  meth.getName().equals("str$")
+                  && meth.getReturnType().equals(String.class)
+                  && meth.getParameterCount() == 0)
+                .findAny();
+              if (strMethod.isPresent()) {
+                try {
+                  System.out.println(strMethod.get().invoke(x));
+                } catch(java.lang.IllegalAccessException | java.lang.reflect.InvocationTargetException err) {
+                  System.out.println(x);
+                }
+              } else {
+                System.out.println(x);
+              }
+              yield x;
+            }}
+            """, x.accept(gen)));
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
   @Override public MagicTrait<String> refK(MIR.Lambda l, MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
@@ -220,8 +268,9 @@ public record MagicImpls(JavaCodegen gen, Program p) implements magic.MagicImpls
           return Optional.of(String.format("""
             new base.Ref_1(){
               protected Object x = %s;
-              public Object $42$() { return this.x; }
-              public Object swap$(Object x$) { var x1 = this.x; this.x = x$; return x1; }
+              public Object get$mut$() { return this.x; }
+              public Object get$read$() { return this.x; }
+              public Object swap$mut$(Object x$) { var x1 = this.x; this.x = x$; return x1; }
             }
             """, x.accept(gen)));
         }

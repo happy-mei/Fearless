@@ -1,5 +1,67 @@
 package base
 
+LList:{ #[E]: mut LList[mdf E] -> mut LList[mdf E] }
 LList[E]:{
-  mut +(e: mdf E): mut LList[mdf E] -> base.Abort!,
+  mut  .match[R](m: mut LListMatch[mdf E, mdf R]): mdf R -> m.empty,
+  read .match[R](m: mut LListMatchRead[read E, mdf R]): mdf R -> m.empty,
+
+  mut  .get(i: UInt): mut Opt[mdf E] -> {},
+  read .get(i: UInt): read Opt[read E] -> {}, // TODO: broken because of adapt
+
+  mut  .head: mut Opt[mdf E] -> {},
+  read .head: read Opt[read E] -> {},
+
+  mut  .tail: mut LList[mdf E] -> this,
+  read .tail: read LList[read E] -> this,
+
+  mut  ++(l1: mut LList[mdf E]): mut LList[mdf E] -> l1,
+  read ++(l1: read LList[read E]): read LList[read E] -> l1,
+
+  mut  +(e: mdf E): mut LList[mdf E] -> this.pushFront[](e),
+  read +(e: read E): read LList[read E] -> this.pushFront[](e),
+
+  read .isEmpty: Bool -> True,
+  read .len: UInt -> 0u,
+
+  mut .pushFront(e: mdf E): mut LList[mdf E] -> Let#{
+    .var -> this.len + 1u,
+    .in(len) -> {'l
+      mut  .match[R](m: mut LListMatch[mdf E, mdf R]): mdf R -> m.elem(e, this),
+      read .match[R](m: mut LListMatchRead[read E, mdf R]): mdf R -> m.elem(e, this),
+      mut  .get(i: UInt): mut Opt[mdf E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
+      // TODO: fix adapterOk, the explicit gens should not be needed
+      read .get(i: UInt): read Opt[read E] -> (i == 0u) ? { .then -> Opt#[read E]e, .else -> this.get[](i - 1u) },
+      mut  .head: mut Opt[mdf E] -> Opt#e,
+      read .head: mut Opt[read E] -> Opt#[read E]e, // TODO: fix adapterOk, the explicit gens should not be needed
+      mut  .tail: mut LList[mdf E] -> this,
+      read .tail: read LList[read E] -> this,
+      mut  ++(l1: mut LList[mdf E]): mut LList[mdf E] -> (this ++[] l1).pushFront[](e),
+      read ++(l1: read LList[read E]): read LList[read E] -> (this ++[] l1).pushFront[](e),
+      mut  +(next: mdf E): mut LList[mdf E] -> l ++[] (this.pushFront[](next)),
+      read +(next: read E): read LList[read E] -> l ++[] (this.pushFront[](next)),
+      .isEmpty -> False,
+      .len -> len,
+      }
+    },
+  read .pushFront(e: read E): read LList[read E] -> Let#{
+    .var -> this.len + 1u,
+    .in(len) -> {'l
+      read .match[R](m: mut LListMatchRead[read E, mdf R]): mdf R -> m.elem(e, this),
+      read .get(i: UInt): read Opt[read E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
+      read .head: read Opt[read E] -> Opt#e,
+      read .tail: read LList[read E] -> this,
+      read ++(l1: read LList[read E]): read LList[read E] -> (this ++[] l1).pushFront[](e),
+      read +(next: read E): read LList[read E] -> l ++[] (this.pushFront[](next)),
+      .isEmpty -> False,
+      .len -> len,
+      }
+    },
+  }
+LListMatch[E,R]:{
+  mut .elem(head: mdf E, tail: mut LList[mdf E]): mdf R,
+  mut .empty: mdf R,
+  }
+LListMatchRead[E,R]:{
+  mut .elem(head: read E, tail: read LList[read E]): mdf R,
+  mut .empty: mdf R,
   }

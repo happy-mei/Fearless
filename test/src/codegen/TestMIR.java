@@ -1,5 +1,6 @@
 package codegen;
 
+import ast.E;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -11,12 +12,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.inference.InferBodies;
+import program.typesystem.EMethTypeSystem;
 import utils.Err;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestMIR {
@@ -32,8 +35,9 @@ public class TestMIR {
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    inferred.typeCheck();
-    var mir = new MIRInjectionVisitor(inferred).visitProgram();
+    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    inferred.typeCheck(resolvedCalls);
+    var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var toJson = new ObjectMapper().registerModule(new Jdk8Module().configureAbsentsAsNulls(true));
     try {
       Err.strCmpFormat(expected, toJson.writeValueAsString(mir));
@@ -52,10 +56,11 @@ public class TestMIR {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
-    inferred.typeCheck();
+    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    inferred.typeCheck(resolvedCalls);
     var toJson = new ObjectMapper();
     try {
-      var mir = toJson.writeValueAsString(new MIRInjectionVisitor(inferred).visitProgram());
+      var mir = toJson.writeValueAsString(new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram());
       Assertions.fail("Did not fail, got:\n" + mir);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

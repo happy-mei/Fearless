@@ -1,13 +1,16 @@
 package codegen.java;
 
+import ast.E;
 import ast.Program;
 import ast.T;
 import codegen.MIR;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
+import program.typesystem.EMethTypeSystem;
 import visitors.MIRVisitor;
 
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,21 +18,22 @@ import java.util.stream.Collectors;
 public class JavaCodegen implements MIRVisitor<String> {
   private final MagicImpls magic;
   private Program p;
-  public JavaCodegen(Program p) {
-    this.magic = new MagicImpls(this, p);
+  public JavaCodegen(Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+    this.magic = new MagicImpls(this, p, resolvedCalls);
+
   }
 
-  static String argsToLList() {
+  static String argsToLList(Mdf addMdf) {
     return """
       FAux.LAUNCH_ARGS = new base.LList_1(){};
-      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
-      """;
+      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$%s$(arg); }
+      """.formatted(addMdf);
   }
 
   public String visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) {
     assert pkgs.containsKey("base");
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ "+argsToLList()+" base.Main_0 entry = new "+entryName+"(){}; entry.$35$imm$(new base$46caps.$95System_0(){}); }\n";
+    var init = "\nstatic void main(String[] args){ "+argsToLList(Mdf.mut)+" base.Main_0 entry = new "+entryName+"(){}; entry.$35$imm$(new base$46caps.$95System_0(){}); }\n";
 
     return "class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\ninterface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))

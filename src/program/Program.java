@@ -145,7 +145,7 @@ public interface Program {
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
         // TODO: compute XBs
-        return isType(xs, ts, XBs.empty(), e, m2.sig().ret());
+        return isType(xs, ts, xbs.addBounds(m1.sig().gens(), m1.bounds()), e, m2.sig().ret());
       });
   }
 
@@ -158,7 +158,7 @@ public interface Program {
 
   default boolean isType(List<String>xs, List<ast.T>ts, XBs xbs, ast.E e, ast.T expected) {
     var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
-    var v = ETypeSystem.of(this, g, xbs, Optional.of(expected),0);
+    var v = ETypeSystem.of(this, g, xbs, Optional.of(expected), new IdentityHashMap<>(), 0);
     var res = e.accept(v);
     return res.resMatch(t->isSubType(xbs,t,expected),err->false);
   }

@@ -138,7 +138,8 @@ public record InferBodies(ast.Program p) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isEmpty()){ return Optional.empty(); }
-    var sig = onlyMName(e, m.name().get(), depth);
+    Optional<Program.FullMethSig> sig; try { sig = onlyMName(e, m.name().get(), depth); }
+    catch (CompileError err) { throw err.parentPos(m.pos()); }
     if(sig.isEmpty()){ return Optional.empty(); }
     var res = sig.map(s->m.withSig(s.sig()));
     assert res.map(m1->!m.equals(m1)).orElse(true);

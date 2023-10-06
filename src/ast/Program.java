@@ -8,6 +8,7 @@ import magic.Magic;
 import failure.Fail;
 import program.CM;
 import program.TypeRename;
+import program.typesystem.EMethTypeSystem;
 import program.typesystem.TraitTypeSystem;
 import program.typesystem.XBs;
 
@@ -22,9 +23,9 @@ public class Program implements program.Program  {
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
   public List<ast.E.Lambda> lambdas() { return this.ds().values().stream().map(T.Dec::lambda).toList(); }
 
-  public void typeCheck() {
+  public void typeCheck(IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
     var errors = new StringBuilder();
-    TraitTypeSystem.dsOk(this.ds.values())
+    TraitTypeSystem.dsOk(this.ds.values(), resolvedCalls)
       .forEach(err->errors.append(err.toString()).append("\n\n"));
     if (!errors.isEmpty()) { throw new CompileError(errors.toString()); }
   }

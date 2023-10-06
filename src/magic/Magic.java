@@ -14,6 +14,7 @@ public class Magic {
   public static final Id.DecId Int = new Id.DecId("base.Int", 0);
   public static final Id.DecId Float = new Id.DecId("base.Float", 0);
   public static final Id.DecId Str = new Id.DecId("base.Str", 0);
+  public static final Id.DecId Debug = new Id.DecId("base.Debug", 0);
   public static final Id.DecId RefK = new Id.DecId("base.Ref", 0);
   public static final Id.DecId IsoPodK = new Id.DecId("base.caps.IsoPod", 0);
   public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);
@@ -27,7 +28,8 @@ public class Magic {
   public static final List<Id.DecId> ObjectCaps = List.of(
     RootCap,
     IO,
-    FEnv
+    FEnv,
+    Debug
   );
 
   public static Optional<Id.IT<astFull.T>> resolve(String name) {

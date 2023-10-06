@@ -1,5 +1,6 @@
 package codegen.java;
 
+import ast.E;
 import codegen.MIRInjectionVisitor;
 import id.Id;
 import main.Main;
@@ -7,6 +8,7 @@ import net.jqwik.api.Example;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.inference.InferBodies;
+import program.typesystem.EMethTypeSystem;
 import utils.Base;
 import utils.Err;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
@@ -14,6 +16,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -33,9 +36,10 @@ public class TestJavaCodegen {
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    inferred.typeCheck();
-    var mir = new MIRInjectionVisitor(inferred).visitProgram();
-    var java = new JavaCodegen(inferred).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
+    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    inferred.typeCheck(resolvedCalls);
+    var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
+    var java = new JavaCodegen(inferred, resolvedCalls).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
     Err.strCmp(expected, java);
   }
 

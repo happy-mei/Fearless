@@ -145,7 +145,7 @@ public class Fail{
 
   public static CompileError noCandidateMeths(ast.E.MCall e, ast.T expected, List<EMethTypeSystem.TsT> candidates) {
     String tsts = candidates.stream()
-      .map(tst->tst.toString())
+      .map(EMethTypeSystem.TsT::toString)
       .collect(Collectors.joining("\n"));
     return of("When attempting to type check the method call: "+e+", no candidates for "+e.name()+" returned the expected type "+expected+". The candidates were:\n"+tsts);
   }

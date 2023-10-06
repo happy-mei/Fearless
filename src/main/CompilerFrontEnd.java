@@ -1,5 +1,6 @@
 package main;
 
+import ast.E;
 import ast.Program;
 import astFull.Package;
 import codegen.MIRInjectionVisitor;
@@ -14,6 +15,7 @@ import id.Mdf;
 import magic.Magic;
 import parser.Parser;
 import program.inference.InferBodies;
+import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Box;
 import utils.Bug;
@@ -75,7 +77,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
 
   void generateDocs(String[] files) throws IOException {
     if (files == null) { files = new String[0]; }
-    var p = compile(files);
+    var p = compile(files, new IdentityHashMap<>());
     var docgen = new MarkdownDocgen(p);
     var docs = docgen.visitProgram();
     Path root = Path.of("docs");
@@ -87,14 +89,15 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
 
   void run(String entryPoint, String[] files, List<String> cliArgs) {
     var entry = new Id.DecId(entryPoint, 0);
-    var p = compile(files);
+    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    var p = compile(files, resolvedCalls);
 
     var main = p.of(Magic.Main).toIT();
     var isEntryValid = p.isSubType(XBs.empty(), new ast.T(Mdf.mdf, p.of(entry).toIT()), new ast.T(Mdf.mdf, main));
     if (!isEntryValid) { throw Fail.invalidEntryPoint(entry, main); }
 
     v.progress.printTask("Running code generation \uD83C\uDFED");
-    var java = toJava(entry, p);
+    var java = toJava(entry, p, resolvedCalls);
     var classFile = java.compile();
     v.progress.printTask("Code generated \uD83E\uDD73");
 
@@ -116,10 +119,10 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
   }
 
   void check(String[] files) {
-    compile(files);
+    compile(files, new IdentityHashMap<>());
   }
 
-  Program compile(String[] files) {
+  Program compile(String[] files, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
     var base = parseBase();
     Map<String, List<Package>> ps = new HashMap<>(base);
     Arrays.stream(files)
@@ -153,16 +156,16 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
     v.progress.printTask("Well formedness checks complete \uD83E\uDD73");
     v.progress.printTask("Checking types \uD83E\uDD14");
-    inferred.typeCheck();
+    inferred.typeCheck(resolvedCalls);
     v.progress.printTask("Types look all good \uD83E\uDD73");
     return inferred;
   }
-  private JavaProgram toJava(Id.DecId entry, Program p) {
-    var mirVisitor = new MIRInjectionVisitor(p);
+  private JavaProgram toJava(Id.DecId entry, Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+    var mirVisitor = new MIRInjectionVisitor(p, resolvedCalls);
     var mir = mirVisitor.visitProgram();
     var codegen = switch (bv) {
-      case Std -> new JavaCodegen(mirVisitor.getProgram());
-      case Imm -> new ImmJavaCodegen(mirVisitor.getProgram());
+      case Std -> new JavaCodegen(mirVisitor.getProgram(), resolvedCalls);
+      case Imm -> new ImmJavaCodegen(mirVisitor.getProgram(), resolvedCalls);
     };
     var src = codegen.visitProgram(mir.pkgs(), entry);
     if (v.printCodegen) {

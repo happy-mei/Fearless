@@ -11,6 +11,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public interface RunTypeSystem {
@@ -26,7 +27,7 @@ public interface RunTypeSystem {
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-    inferred.typeCheck();
+    inferred.typeCheck(new IdentityHashMap<>());
   }
   static void fail(String expectedErr, String... content){
     assert content.length > 0;
@@ -41,7 +42,7 @@ public interface RunTypeSystem {
       var inferredSigs = p.inferSignaturesToCore();
       var inferred = new InferBodies(inferredSigs).inferAll(p);
       new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-      inferred.typeCheck();
+      inferred.typeCheck(new IdentityHashMap<>());
       Assertions.fail("Did not fail!\n");
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
@@ -61,7 +62,7 @@ public interface RunTypeSystem {
       var inferredSigs = p.inferSignaturesToCore();
       var inferred = new InferBodies(inferredSigs).inferAll(p);
       new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-      inferred.typeCheck();
+      inferred.typeCheck(new IdentityHashMap<>());
       Assertions.fail("Did not fail!\n");
     } catch (CompileError ignored) { }
   }

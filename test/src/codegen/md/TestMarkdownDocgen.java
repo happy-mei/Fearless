@@ -11,6 +11,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -30,7 +31,7 @@ public class TestMarkdownDocgen {
     var inferredSigs = p.inferSignaturesToCore();
     var inferred = new InferBodies(inferredSigs).inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    inferred.typeCheck();
+    inferred.typeCheck(new IdentityHashMap<>());
     var md = new MarkdownDocgen(inferred).visitProgram();
     Err.strCmp(expected, md.toString());
   }

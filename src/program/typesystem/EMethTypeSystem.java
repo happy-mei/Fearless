@@ -11,6 +11,7 @@ import id.Id.MethName;
 import id.Mdf;
 import program.CM;
 import program.TypeRename;
+import utils.Bug;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
@@ -21,6 +22,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface EMethTypeSystem extends ETypeSystem {
+  List<Mdf> recvPriority = List.of(Mdf.readOnly, Mdf.imm, Mdf.read, Mdf.recMdf, Mdf.iso, Mdf.lent, Mdf.mut);
+
   default Res visitMCall(E.MCall e) {
     var e0 = e.receiver();
     var v = this.withT(Optional.empty());
@@ -31,30 +34,32 @@ public interface EMethTypeSystem extends ETypeSystem {
     var optTst=multiMeth(t_,e.name(),e.ts());
     if (optTst.isEmpty()) {
       //TODO: list the available methods
-      return new CompileError();
+      throw Bug.todo();
+//      return new CompileError();
     }
-    List<TsT> tst = optTst.stream()
+    List<TsT> tsts = optTst.stream()
       .filter(this::filterOnRes)
       .toList();
 
-    if (tst.isEmpty()) {
+    if (tsts.isEmpty()) {
       return Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.stream().distinct().toList()).pos(e.pos());
     }
 
     List<E> es = Push.of(e0,e.es());
-    var nestedErrors = new ArrayDeque<ArrayList<CompileError>>(tst.size());
+    var nestedErrors = new ArrayDeque<ArrayList<CompileError>>(tsts.size());
     var methArgCache = IntStream.range(0, es.size()).mapToObj(i_->new HashMap<T, Res>()).toList();
-    for (TsT(List<T> ts, T t, CM original) : tst) {
+    for (var tst : tsts) {
       var errors = new ArrayList<CompileError>();
       nestedErrors.add(errors);
-      if (okAll(es, ts, errors, methArgCache)) {
-        var invalidBounds = GenericBounds.validGenericMeth(p(), xbs(), t_.mdf(), t_.itOrThrow(), depth(), original, e.ts());
+      if (okAll(es, tst.ts(), errors, methArgCache)) {
+        var invalidBounds = GenericBounds.validGenericMeth(p(), xbs(), t_.mdf(), t_.itOrThrow(), depth(), tst.original(), e.ts());
         if (invalidBounds.isPresent()) { return invalidBounds.get().pos(e.pos()); }
-        return t;
+        resolvedCalls().put(e, tst);
+        return tst.t();
       }
     }
 
-    var calls1 = tst.stream()
+    var calls1 = tsts.stream()
       .map(tst1->{
         var call = Streams.zip(es, tst1.ts())
           .map((e1,t1)->{
@@ -108,6 +113,7 @@ public interface EMethTypeSystem extends ETypeSystem {
 
     return p().meths(xbs(), rec.mdf(), recIT, depth()).stream()
       .filter(cm->cm.name().nameArityEq(m) && p().isSubType(rec.mdf(), cm.mdf()))
+      .sorted(Comparator.comparingInt(cm->recvPriority.indexOf(cm.mdf())))
       .map(cm->{
         var mdf = rec.mdf();
         Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));

@@ -1,0 +1,41 @@
+package base
+
+ReturnStmt[R]:{ mut #: mdf R }
+Condition:{ mut #: Bool }
+VarContinuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
+Do:{
+  #[R]: mut Block[mdf R] -> {},
+  }
+Block[R]:{
+  mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+  mut .do(r: mut ReturnStmt[Void]): mut Block[mdf R] -> this._do(r#),
+    mut ._do(v: Void): mut Block[mdf R] -> this,
+  mut .assert(p: mut Condition): mut Block[mdf R] -> Assert!(p#, mut AssertCont[mut Block[mdf R]]{this}),
+  mut .assert(p: mut Condition, failMsg: Str): mut Block[mdf R] ->
+    Assert!(p#, failMsg, mut AssertCont[mut Block[mdf R]]{this}),
+  mut .var[X](x: mut ReturnStmt[mdf X], cont: mut VarContinuation[mdf X, mdf R]): mdf R -> cont#(x#, this),
+//  mut .ref[X:imm,mut](x: mut ReturnStmt[mdf X], cont: mut VarContinuation[mut Ref[mdf X], mdf R]): mdf R -> cont#(Ref#(x#), this),
+//  mut .isoPod[X:iso](x: mut ReturnStmt[mdf X], cont: mut VarContinuation[mut IsoPod[mdf X], mdf R]): mdf R -> cont#(IsoPod#(x#), this),
+  mut .if(p: mut Condition): mut BlockIf[mdf R] -> p# ? { 'cond
+    .then -> { 't
+      .return(a) -> _DecidedBlock#(a#),
+      .do(r) -> t._do[](r#),
+        mut ._do(v: Void): mut Block[mdf R] -> this,
+      },
+    .else -> { 'f
+      .return(_) -> this,
+      .do(_) -> this,
+      },
+    },
+  }
+BlockIf[R]:{
+  mut .return(a: mut ReturnStmt[mdf R]): mut Block[mdf R],
+  mut .do(r: mut ReturnStmt[Void]): mut Block[mdf R],
+  }
+_DecidedBlock:{
+  #[R](res: mdf R): mut Block[mdf R] -> { 'self
+    .return(_) -> res,
+    .do(_) -> self,
+    .var(_, _) -> res,
+    }
+  }

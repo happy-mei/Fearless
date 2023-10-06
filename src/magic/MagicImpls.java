@@ -1,19 +1,18 @@
 package magic;
 
+import ast.E;
 import ast.Program;
 import ast.T;
 import codegen.MIR;
 import codegen.MIRInjectionVisitor;
 import id.Id;
 import id.Mdf;
+import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Bug;
 import visitors.MIRVisitor;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public interface MagicImpls<R> {
   static boolean isLiteral(String name) {
@@ -21,11 +20,12 @@ public interface MagicImpls<R> {
   }
 
   default Optional<MagicTrait<R>> get(MIR e) {
-    return e.accept(new LambdaVisitor(p())).flatMap(l->{
+    return e.accept(new LambdaVisitor(p(), resolvedCalls())).flatMap(l->{
       if (isMagic(Magic.Int, l)) { return Optional.ofNullable(int_(l, e)); }
       if (isMagic(Magic.UInt, l)) { return Optional.ofNullable(uint(l, e)); }
       if (isMagic(Magic.Float, l)) { return Optional.ofNullable(float_(l, e)); }
       if (isMagic(Magic.Str, l)) { return Optional.ofNullable(str(l, e)); }
+      if (isMagic(Magic.Debug, l)) { return Optional.ofNullable(debug(l, e)); }
       if (isMagic(Magic.RefK, l)) { return Optional.ofNullable(refK(l, e)); }
       if (isMagic(Magic.IsoPodK, l)) { return Optional.ofNullable(isoPodK(l, e)); }
       if (isMagic(Magic.Assert, l)) { return Optional.ofNullable(assert_(l, e)); }
@@ -60,6 +60,7 @@ public interface MagicImpls<R> {
   MagicTrait<R> uint(MIR.Lambda l, MIR e);
   MagicTrait<R> float_(MIR.Lambda l, MIR e);
   MagicTrait<R> str(MIR.Lambda l, MIR e);
+  MagicTrait<R> debug(MIR.Lambda l, MIR e);
   MagicTrait<R> refK(MIR.Lambda l, MIR e);
   MagicTrait<R> isoPodK(MIR.Lambda l, MIR e);
   MagicTrait<R> assert_(MIR.Lambda l, MIR e);
@@ -67,15 +68,16 @@ public interface MagicImpls<R> {
   default MagicTrait<R> magicAbort(MIR.Lambda l, MIR e) { return null; }
   MagicTrait<R> objCap(Id.DecId magicTrait, MIR.Lambda l, MIR e);
   ast.Program p();
+  IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls();
 
-  record LambdaVisitor(Program p) implements MIRVisitor<Optional<MIR.Lambda>> {
+  record LambdaVisitor(Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) implements MIRVisitor<Optional<MIR.Lambda>> {
     public Optional<MIR.Lambda> visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) { throw Bug.unreachable(); }
     public Optional<MIR.Lambda> visitTrait(String pkg, MIR.Trait trait) { throw Bug.unreachable(); }
     public Optional<MIR.Lambda> visitMeth(MIR.Meth meth, String selfName, boolean concrete) { throw Bug.unreachable(); }
     public Optional<MIR.Lambda> visitX(MIR.X x, boolean _ignored) {
       var ret = p().of(x.t().itOrThrow().name());
       try {
-        return Optional.of(new MIRInjectionVisitor(p()).visitLambda("base", ret.lambda(), Map.of()));
+        return Optional.of(new MIRInjectionVisitor(p(), resolvedCalls()).visitLambda("base", ret.lambda(), Map.of()));
       } catch (MIRInjectionVisitor.NotInGammaException e) {
         return Optional.empty();
       }
@@ -83,7 +85,7 @@ public interface MagicImpls<R> {
     public Optional<MIR.Lambda> visitMCall(MIR.MCall mCall, boolean _ignored) {
       var ret = p().of(mCall.t().itOrThrow().name());
       try {
-        return Optional.of(new MIRInjectionVisitor(p()).visitLambda("base", ret.lambda(), Map.of()));
+        return Optional.of(new MIRInjectionVisitor(p(), resolvedCalls()).visitLambda("base", ret.lambda(), Map.of()));
       } catch (MIRInjectionVisitor.NotInGammaException e) {
         return Optional.empty();
       }

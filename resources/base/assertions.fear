@@ -1,0 +1,16 @@
+package base
+
+Assert:Sealed{
+  !(assertion: Bool): Void -> this!(assertion, { Void }),
+  ![R](assertion: Bool, cont: mut AssertCont[mdf R]): mdf R -> assertion ? {
+    .then -> cont#,
+    .else -> this._fail
+    },
+  ![R](assertion: Bool, msg: Str, cont: mut AssertCont[mdf R]): mdf R -> assertion ? {
+      .then -> cont#,
+      .else -> this._fail(msg)
+      },
+  ._fail[R]: mdf R -> Magic!,
+  ._fail[R](msg: Str): mdf R -> Magic!,
+  }
+AssertCont[R]:{ mut #: mdf R }
