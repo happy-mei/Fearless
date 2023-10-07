@@ -86,7 +86,7 @@ public class TestSubTyping {
     A:{} B:A C:B D:C E:D
     """); }
   @Test void loopingAdapt() { fail("""
-    [E25 circularSubType]
+    [E25 cyclicSubType]
     There is a cyclical sub-typing relationship between imm a.Break[imm A] and imm a.Break[imm B].
     """, "a.Break[A]", "a.Break[B]", """
     package a

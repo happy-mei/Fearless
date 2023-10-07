@@ -1154,7 +1154,7 @@ public class TestJavaProgram {
       #(s) -> (base.Opt#Void).match[base.Void](mut base.OptMatch[Void,Void]{ .some(x) -> x, .empty -> {} }),
       }
     """); }
-  @Test void findClosestIntMultiSig() { ok(new Res("", "", 0), "test.Test", """
+  @Test void findClosestIntMultiMdf() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
       .var[Int] closest = { Closest#(LList[Int] +[] 35 +[] 52 +[] 84 +[] 14, 49) }

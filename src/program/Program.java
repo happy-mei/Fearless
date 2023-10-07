@@ -66,9 +66,9 @@ public interface Program {
     var subTypeCache = this.subTypeCache();
     if (subTypeCache.containsKey(q)) {
       var res = subTypeCache.get(q);
-      if (res == SubTypeResult.Unknown) {
-        throw Fail.circularSubType(t1, t2);
-      }
+//      if (res == SubTypeResult.Unknown) {
+//        throw Fail.cyclicSubType(t1, t2);
+//      }
       return subTypeCache.get(q) == SubTypeResult.Yes;
     }
     subTypeCache.put(q, SubTypeResult.Unknown);

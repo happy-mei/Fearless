@@ -112,7 +112,7 @@ public class Fail{
     return of(String.format("The lambda must implement the following methods:\n%s", unimplemented));
   }
 
-  public static CompileError circularSubType(ast.T t1, ast.T t2){
+  public static CompileError cyclicSubType(ast.T t1, ast.T t2){
     return of(String.format("There is a cyclical sub-typing relationship between "+t1+" and "+t2+"."));
   }
 
@@ -260,7 +260,7 @@ enum ErrorCode {
   cannotInferAbsSig,
   methTypeError,
   unimplementedInLambda,
-  circularSubType,
+  cyclicSubType,
   recMdfInNonRecMdf,
   recMdfInImpls,
   undefinedName,

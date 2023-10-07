@@ -12,10 +12,13 @@ Opt[T]:{
   mut  .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.empty,
   read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.empty,
 //  imm  .match[R](m: mut OptMatch[T, mdf R]): mdf R -> m.empty,
+
   mut !: mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{ .some(x) -> x, .empty -> Abort! }),
   read !: read T -> this.match[read T](mut OptMatch[read T, read T]{ .some(x) -> x, .empty -> Abort! }),
+
   mut .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
   read .map[R](f: mut OptMap[read T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
+
   mut |(alt: mdf T): mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{
     .some(x) -> x,
     .empty -> alt
@@ -24,7 +27,8 @@ Opt[T]:{
     .some(x) -> x,
     .empty -> alt
     }),
-  mut ||(alt: mut OptOrElse[mdf T]): mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{
+
+  mut  ||(alt: mut OptOrElse[mdf T]): mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{
     .some(x) -> x,
     .empty -> alt#
     }),
@@ -32,18 +36,25 @@ Opt[T]:{
     .some(x) -> x,
     .empty -> alt#
     }),
+//  imm ||(alt: mut OptOrElse[T]): T -> this.match[T](mut OptMatch[T, T]{
+//    .some(x) -> x,
+//    .empty -> alt#
+//    }),
+
   mut .or(f: mut OptOrElse[mut Opt[mdf T]]): mut Opt[mdf T] -> this.match[mut Opt[mdf T]](mut OptMatch[mdf T, mut Opt[mdf T]]{
     .some(x) -> this,
     .empty -> f#
     }),
-  read .or(f: mut OptOrElse[read Opt[read T]]): read Opt[read T] -> this.match[read Opt[read T]](mut OptMatch[read T, read Opt[read T]]{
-    .some(x) -> this,
-    .empty -> f#
-    }),
-//  imm .or(f: mut OptOrElse[Opt[T]]): Opt[T] -> this.match[Opt[T]](mut OptMatch[T, Opt[T]]{
+  // TODO: this is the method that breaks the adapter ok check for imm Opt[read T] < imm Opt[imm T]
+//  read .or(f: mut OptOrElse[read Opt[mdf T]]): read Opt[mdf T] -> this.match[read Opt[mdf T]](mut OptMatch[read T, read Opt[mdf T]]{
+//    .some(x) -> this,
+//    .empty -> f#
+//    }),
+//  imm .or(f: mut OptOrElse[Opt[mdf T]]): Opt[mdf T] -> this.match[Opt[mdf T]](mut OptMatch[T, Opt[mdf T]]{
 //      .some(x) -> this,
 //      .empty -> f#
 //      }),
+
   read .isNone: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .empty -> True, .some(_) -> False }),
   read .isSome: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .empty -> False, .some(_) -> True }),
   }

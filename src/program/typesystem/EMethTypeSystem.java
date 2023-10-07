@@ -17,6 +17,8 @@ import utils.Push;
 import utils.Streams;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -61,14 +63,13 @@ public interface EMethTypeSystem extends ETypeSystem {
 
     var calls1 = tsts.stream()
       .map(tst1->{
-        var call = Streams.zip(es, tst1.ts())
-          .map((e1,t1)->{
-            var getT = this.withT(Optional.empty());
-            return e1.accept(getT).t()
-              .map(T::toString)
-              .orElseGet(()->"?"+e1+"?");
-          })
-          .toList();
+        var call = CompletableFuture.supplyAsync(()->Streams.zip(es, tst1.ts())
+          .map((e1,t1)->e1.accept(this.withT(Optional.empty())).t()
+            .map(T::toString)
+            .orElse("?"+e1+"?"))
+          .collect(Collectors.joining(", ")))
+          .completeOnTimeout("<timed out>", 100, TimeUnit.MILLISECONDS)
+          .join();
         var dependentErrorMsgs = nestedErrors.removeFirst().stream()
           .map(CompileError::toString)
           .collect(Collectors.joining("\n"))
@@ -78,7 +79,7 @@ public interface EMethTypeSystem extends ETypeSystem {
           : "";
         return "("+ String.join(", ", call) +") <: "+tst1+dependentErrors;
       }).toList();
-    var calls= String.join("\n", calls1);
+    var calls = String.join("\n", calls1);
     return Fail.callTypeError(e, expectedT(), calls).pos(e.pos());
   }
   default boolean filterOnRes(TsT tst){
