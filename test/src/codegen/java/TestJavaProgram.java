@@ -1158,7 +1158,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Do#
       .var[Int] closest = { Closest#(LList[Int] +[] 35 +[] 52 +[] 84 +[] 14, 49) }
-      .return{ Assert!(Debug#(closest == 52), closest.str, {{}}) }
+      .return{ Assert!(closest == 52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Do#
@@ -1168,7 +1168,7 @@ public class TestJavaProgram {
           h, t -> h.match[Void] mut OptMatch[Int,Void]{
             .empty -> {},
             .some(n) -> (target - n).abs < ((target - (closest*[])).abs) ? {
-              .then -> closest := (Debug#n),
+              .then -> closest := n,
               .else -> self#(t.head[], t.tail[])
               }
             }

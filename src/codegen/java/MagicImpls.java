@@ -230,10 +230,9 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
             switch (1) { default -> {
               var x = %s;
               Object xObj = x;
-              var strMethod = java.util.Arrays.stream(xObj.getClass().getDeclaredMethods())
-                .peek(meth->{System.out.println(meth);})
+              var strMethod = java.util.Arrays.stream(xObj.getClass().getMethods())
                 .filter(meth->
-                  meth.getName().equals("str$")
+                  meth.getName().equals("str$read$")
                   && meth.getReturnType().equals(String.class)
                   && meth.getParameterCount() == 0)
                 .findAny();
