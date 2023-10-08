@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import parser.Parser;
 import utils.Bug;
 import utils.Err;
+import visitors.ShallowInjectionVisitor;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 
 import java.nio.file.Path;
@@ -27,7 +28,7 @@ public class TestRefineTypes {
     var pT2 = addInfers(new Parser(Parser.dummy, t2).parseFullT());
     var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)));
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
+    var inferredSigs = new ShallowInjectionVisitor().visitProgram(p.inferSignatures());
 
     var e1 = new RefineTypes(inferredSigs).fixType(e, pT1);
     var e2 = new RefineTypes(inferredSigs).fixType(e1, pT2);

@@ -41,8 +41,7 @@ public class TestJavaProgram {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
+    var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{
       throw err;
     });
@@ -70,8 +69,7 @@ public class TestJavaProgram {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
+    var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
@@ -1157,23 +1155,23 @@ public class TestJavaProgram {
   @Test void findClosestIntMultiMdf() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(LList[Int] +[] 35 +[] 52 +[] 84 +[] 14, 49) }
+      .var[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
       .return{ Assert!(closest == 52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Do#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var[mut Ref[Int]] closest = { Ref#(ns.head[]![]) }
+        .var[mut Ref[Int]] closest = { Ref#(ns.head!) }
         .do{ mut Closest'{ 'self
           h, t -> h.match[Void] mut OptMatch[Int,Void]{
             .empty -> {},
-            .some(n) -> (target - n).abs < ((target - (closest*[])).abs) ? {
+            .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
-              .else -> self#(t.head[], t.tail[])
+              .else -> self#(t.head, t.tail)
               }
             }
-          }#(ns.head[], ns.tail[]) }
-        .return{ closest*[] }
+          }#(ns.head, ns.tail) }
+        .return{ closest* }
       }
     Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }

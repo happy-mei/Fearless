@@ -33,8 +33,7 @@ public class TestJavaCodegen {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
+    var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);

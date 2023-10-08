@@ -225,7 +225,7 @@ public class Fail{
     return of("Unable to lookup the signature of the method: "+name+". Multiple candidates exist with the same name and number of arguments.");
   }
   public static CompileError ambiguousMethod() {
-    return of("Unable to figure out which method is being referenced here, please write the full signature.");
+    return of("Unable to figure out which method is being referenced here, please write the full signature (including generic type parameters).");
   }
 
   private static String aVsAn(Mdf mdf) {

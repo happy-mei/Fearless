@@ -28,8 +28,7 @@ public class TestWellFormedness {
       .toList();
     var p = Parser.parseAll(ps);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
+    var inferred = InferBodies.inferAll(p);
     var res = new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     var isWellFormed = res.isEmpty();
     assertTrue(isWellFormed, res.map(Object::toString).orElse(""));
@@ -42,8 +41,7 @@ public class TestWellFormedness {
       .toList();
     var p = Parser.parseAll(ps);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
+    var inferred = InferBodies.inferAll(p);
 
     try {
       var error = new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);

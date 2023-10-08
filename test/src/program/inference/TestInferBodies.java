@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import parser.Parser;
 import utils.Base;
 import utils.Err;
+import visitors.ShallowInjectionVisitor;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 
 import java.nio.file.Path;
@@ -52,7 +53,7 @@ public class TestInferBodies {
       .toList();
     var p = Parser.parseAll(ps);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    return new ParsedProgram(p, p.inferSignaturesToCore());
+    return new ParsedProgram(p, new ShallowInjectionVisitor().visitProgram(p.inferSignatures()));
   }
 
   @Test void baseLib() {ok("""

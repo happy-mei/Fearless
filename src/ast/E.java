@@ -87,7 +87,7 @@ public interface E extends HasPos {
       return String.format("%s(%s): %s -> %s", name, xs, sig, body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds,  List<T> ts, T ret, Optional<Pos> pos){
+  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds,  List<T> ts, T ret, Optional<Pos> pos) implements HasPos {
     public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
     public astFull.E.Sig toAstFullSig() {
       return new astFull.E.Sig(
@@ -98,6 +98,11 @@ public interface E extends HasPos {
         ret.toAstFullT(),
         pos
       );
+    }
+    public E.Sig withPos(Optional<Pos> pos) { return new Sig(mdf, gens, bounds, ts, ret, pos); }
+    public boolean sigEqualIgnoringMdf(ast.E.Sig s2) {
+      var sameMdfS1 = new E.Sig(s2.mdf(), this.gens(), this.bounds(), this.ts(), this.ret(), Optional.empty());
+      return sameMdfS1.equals(s2.withPos(Optional.empty()));
     }
     @Override public String toString() {
       if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {

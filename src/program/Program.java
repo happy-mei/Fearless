@@ -9,6 +9,7 @@ import id.Id;
 import id.Mdf;
 import id.Refresher;
 import program.inference.RefineTypes;
+import program.typesystem.EMethTypeSystem;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
 import program.typesystem.XBs;
@@ -183,27 +184,28 @@ public interface Program {
     ), Optional.empty());
     var p = this.withDec(dec);
     var myM_ = p.meths(xbs, recvMdf, dec.toIT(), depth).stream()
+      .filter(cm->filterByMdf(recvMdf, cm.mdf()))
       .filter(pred)
+      .sorted(Comparator.comparingInt(cm->EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
       .toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
-    if (myM_.size() > 1) {
+    var firstMs = myM_.get(0);
+    var differentMs = myM_.stream().anyMatch(cm->!cm.sig().sigEqualIgnoringMdf(firstMs.sig()));
+    assert !differentMs || myM_.size() > 1;
+    if (differentMs) {
       throw Fail.ambiguousMethod();
     }
 
-    var cm = myM_.get(0);
-    var sig = cm.sig().toAstFullSig();
+    var sig = firstMs.sig().toAstFullSig();
     var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
     var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(this, freshGXsSet, t)).toList();
     var restoredRt = RefineTypes.regenerateInfers(this, freshGXsSet, sig.ret());
     var restoredSig = new E.Sig(sig.mdf(), sig.gens(), sig.bounds(), restoredArgs, restoredRt, sig.pos());
-    return Optional.of(new FullMethSig(cm.name(), restoredSig));
+    return Optional.of(new FullMethSig(firstMs.name(), restoredSig));
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, Id.MethName name, int depth){
     return meths(xbs, recvMdf, it, depth).stream().filter(mi->mi.name().equals(name)).toList();
-//    if(myM_.isEmpty()){ return Optional.empty(); }
-//    if (myM_.size() > 1) { throw Fail.ambiguousMethodName(name); }
-//    return Optional.of(myM_.get(0));
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, ast.E.Lambda l, int depth) {

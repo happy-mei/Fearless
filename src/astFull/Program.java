@@ -155,9 +155,6 @@ public class Program implements program.Program{
     this.reset();
     return is.p;
   }
-  public ast.Program inferSignaturesToCore(){
-    return new ShallowInjectionVisitor().visitProgram(inferSignatures());
-  }
   public List<E.Meth> dom(Id.DecId id){ return this.of(id).lambda().meths(); }
 
   public static class InferSignatures {
@@ -201,7 +198,7 @@ public class Program implements program.Program{
       if (l.selfName() == null) {
         l = l.withSelfName(new E.X(T.infer).name());
       }
-      var ms = l.meths().stream().map(m->inferSignature(dec,m)).toList();
+      var ms = l.meths().stream().flatMap(m->inferSignature(dec,m).stream()).toList();
       return l.withMeths(ms);
     }
     Id.MethName onlyAbs(XBs xbs, T.Dec dec){
@@ -209,9 +206,9 @@ public class Program implements program.Program{
       var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), p.meths(xbs, Mdf.recMdf, dec.toAstT(), -1).stream().filter(CM::isAbs));
       return m.name();
     }
-    E.Meth inferSignature(T.Dec dec, E.Meth m) {
+    List<E.Meth> inferSignature(T.Dec dec, E.Meth m) {
       try {
-        if(m.sig().isPresent()){ return m; }
+        if(m.sig().isPresent()){ return List.of(m); }
         var xbs = XBs.empty().addBounds(
           dec.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList(),
           Mapper.of(xbs_->dec.bounds().forEach((gx,bs)->xbs_.put(new Id.GX<>(gx.name()), bs)))
@@ -220,11 +217,9 @@ public class Program implements program.Program{
         if (m.xs().size() != name.num()) { throw Fail.cannotInferSig(dec.name(), name); }
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();
-        var inferred = p.meths(xbs, Mdf.recMdf, dec.toAstT(), name, 0);
-        if (inferred.size() != 1) {
-          throw Fail.cannotInferSig(dec.name(), name);
-        }
-        return namedMeth.withSig(inferred.get(0).sig().toAstFullSig());
+        return p.meths(xbs, Mdf.recMdf, dec.toAstT(), name, 0).stream()
+          .map(inferred->namedMeth.withSig(inferred.sig().toAstFullSig()).withName(name.withMdf(Optional.of(inferred.mdf()))))
+          .toList();
       } catch (CompileError e) {
         throw e.pos(m.pos());
       }

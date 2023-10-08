@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static program.Program.filterByMdf;
 import static program.inference.InferBodies.replaceOnlyInfers;
 
 public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
@@ -220,7 +221,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
 
   List<RP> pairUp(Mdf lambdaMdf, List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
-    var ms = p.meths(XBs.empty(), lambdaMdf, c, sig.name(), depth);
+    var ms = p.meths(XBs.empty(), lambdaMdf, c, sig.name(), depth).stream().filter(cm->filterByMdf(lambdaMdf, cm.mdf())).toList();
     if (ms.size() != 1) {
       throw Fail.ambiguousMethodName(sig.name());
     }

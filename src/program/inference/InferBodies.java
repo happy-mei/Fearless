@@ -12,13 +12,18 @@ import program.typesystem.XBs;
 import utils.Push;
 import utils.Streams;
 import visitors.InjectionVisitor;
+import visitors.ShallowInjectionVisitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static program.Program.filterByMdf;
+
 public record InferBodies(ast.Program p) {
-  public ast.Program inferAll(astFull.Program fullProgram){
-    return new ast.Program(inferDecs(fullProgram));
+  public static ast.Program inferAll(astFull.Program fullProgram){
+    var inferredSigs = fullProgram.inferSignatures();
+    var inferBodies = new InferBodies(new ShallowInjectionVisitor().visitProgram(inferredSigs));
+    return new ast.Program(inferBodies.inferDecs(inferredSigs));
   }
 
   Map<Id.DecId, ast.T.Dec> inferDecs(astFull.Program fullProgram){
@@ -188,7 +193,9 @@ public record InferBodies(ast.Program p) {
     var iTs = typesOf(e.es());
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
     try {
-      var ms = p().meths(XBs.empty(), c.mdf(), recv.toAstIT(T::toAstT), e.name(), depth);
+      var ms = p().meths(XBs.empty(), c.mdf(), recv.toAstIT(T::toAstT), e.name(), depth).stream()
+        .filter(cm->filterByMdf(c.mdf(), cm.mdf()) && gens.size() == cm.sig().gens().size())
+        .toList();
       if (ms.size() != 1) {
         return Optional.empty();
       }

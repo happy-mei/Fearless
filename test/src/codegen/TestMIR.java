@@ -32,8 +32,7 @@ public class TestMIR {
       .toList();
     var p = Parser.parseAll(ps);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
+    var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
@@ -54,8 +53,7 @@ public class TestMIR {
       .toList();
     var p = Parser.parseAll(ps);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
+    var inferred = InferBodies.inferAll(p);
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var toJson = new ObjectMapper();

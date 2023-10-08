@@ -24,8 +24,7 @@ public interface RunTypeSystem {
       .toList();
     var p = Parser.parseAll(ps);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
+    var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
     inferred.typeCheck(new IdentityHashMap<>());
   }
@@ -39,8 +38,7 @@ public interface RunTypeSystem {
     try {
       var p = Parser.parseAll(ps);
       new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-      var inferredSigs = p.inferSignaturesToCore();
-      var inferred = new InferBodies(inferredSigs).inferAll(p);
+      var inferred = InferBodies.inferAll(p);
       new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
       inferred.typeCheck(new IdentityHashMap<>());
       Assertions.fail("Did not fail!\n");
@@ -59,8 +57,7 @@ public interface RunTypeSystem {
         .toList();
     var p = Parser.parseAll(ps);
       new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-      var inferredSigs = p.inferSignaturesToCore();
-      var inferred = new InferBodies(inferredSigs).inferAll(p);
+      var inferred = InferBodies.inferAll(p);
       new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
       inferred.typeCheck(new IdentityHashMap<>());
       Assertions.fail("Did not fail!\n");

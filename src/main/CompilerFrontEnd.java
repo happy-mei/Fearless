@@ -146,12 +146,9 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
     v.progress.printTask("Checking that the program is well formed \uD83D\uDD0E");
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     v.progress.printTask("Well formedness checks complete \uD83E\uDD73");
-    v.progress.printTask("Inferring method signatures \uD83D\uDD75️");
-    var inferredSigs = p.inferSignaturesToCore();
-    v.progress.printTask("Method signatures inferred \uD83E\uDD73");
-    v.progress.printTask("Inferring method bodies \uD83D\uDD75️");
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
-    v.progress.printTask("Method bodies inferred \uD83E\uDD73");
+    v.progress.printTask("Inferring types \uD83D\uDD75️");
+    var inferred = InferBodies.inferAll(p);
+    v.progress.printTask("Types inferred \uD83E\uDD73");
     v.progress.printTask("Checking that the program is still well formed \uD83D\uDD0E");
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
     v.progress.printTask("Well formedness checks complete \uD83E\uDD73");

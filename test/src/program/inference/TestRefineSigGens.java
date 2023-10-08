@@ -6,6 +6,7 @@ import main.Main;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import utils.Err;
+import visitors.ShallowInjectionVisitor;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 
 import java.nio.file.Path;
@@ -35,7 +36,7 @@ public class TestRefineSigGens {
       .toList();
     var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)));
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = p.inferSignaturesToCore();
+    var inferredSigs = new ShallowInjectionVisitor().visitProgram(p.inferSignatures());
     var freshParsed = fresh.stream().map(name->new Id.GX<ast.T>(name)).collect(Collectors.toUnmodifiableSet());
 
     var refined = new RefineTypes(inferredSigs).refineSigGens(parsed, freshParsed);

@@ -28,8 +28,7 @@ public class TestMarkdownDocgen {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
-    var inferredSigs = p.inferSignaturesToCore();
-    var inferred = new InferBodies(inferredSigs).inferAll(p);
+    var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     inferred.typeCheck(new IdentityHashMap<>());
     var md = new MarkdownDocgen(inferred).visitProgram();
