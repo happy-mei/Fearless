@@ -591,10 +591,10 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Do#
       .var[LList[Int]] l1 = { LList[Int] + 35 + 52 + 84 + 14 }
-      .do{ Assert!(l1.head! == (LListIter.im(l1).next!), "sanity", {{}}) }
-      .do{ Assert!((LListIter.im(l1).find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((LListIter.im(l1).find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert!((LListIter.im(l1)
+      .do{ Assert!(l1.head! == (l1.iter.next!), "sanity", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert!((l1.iter
                       .map{n -> n * 10}
                       .find{n -> n == 140})
                       .isSome,
@@ -605,11 +605,11 @@ public class TestJavaProgram {
   @Test void LListItersIterMut() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[mut LList[Int]] l1 = { LList[Int] + 35 + 52 + 84 + 14 }
-      .do{ Assert!(l1.head! == (LListIter#l1.next!), "sanity", {{}}) }
-      .do{ Assert!((LListIter#l1.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((LListIter#l1.find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert!(LListIter#l1
+      .var[mut LList[Int]] l1 = { mut LList[Int] +[] 35 +[] 52 +[] 84 +[] 14 }
+      .do{ Assert!(l1.head! == (l1.iter.next!), "sanity", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert!(l1.iter
                       .map{n -> n * 10}
                       .find{n -> n == 140}
                       .isSome,

@@ -1,0 +1,64 @@
+package base.iter
+
+Iter[E]:{
+  mut .next: mut Opt[mdf E],
+  mut .find(p: mut IterPredicate[mdf E]): mut Opt[mdf E] -> this.next.match[mut Opt[mdf E]]{
+    .some(x) -> p#x ? { .then -> Opt#x, .else -> this.find(p) },
+    .empty -> {}
+    },
+  mut .allMatch(p: mut IterPredicate[mdf E]): Bool -> this.find{x -> p#x .not}.match[Bool]{
+    .some(_) -> False,
+    .empty -> True
+    },
+  mut .anyMatch(p: mut IterPredicate[mdf E]): Bool -> this.find(p).match[Bool]{
+    .some(_) -> True,
+    .empty -> False
+    },
+
+  mut .map[R](f: mut IterMapper[mdf E, mdf R]): mut Iter[mdf R] -> { this.next.map[mdf R](f) },
+  mut .flatMap[R](f: mut IterMapper[mdf E, mut Iter[mdf R]]): mut Iter[mdf R] -> Do#
+    .var[mut Iter[mut Iter[mdf R]]] mapIter = { this.map(f) }
+    .var[mut Ref[mut Opt[mut Iter[mdf R]]]] optCurIter = { Ref#(mapIter.next) }
+    .return(mut ReturnStmt[mut Iter[mdf R]]{ mut Iter[mdf R]{ 'self
+      .next -> optCurIter*[].match[mut Opt[mdf R]]{
+        .some(curIter) -> curIter.next.match[mut Opt[mdf R]]{
+          .some(next) -> Opt#next,
+          .empty -> Yeet.with(optCurIter := (mapIter.next), self.next)
+          },
+        .empty -> {}
+        }
+      }}),
+  mut .filter(p: mut IterPredicate[mdf E]): mut Iter[mdf E] -> { .next -> this.find(p) },
+
+  mut .fold[R](acc: mdf R, f: mut IterFolder[mdf E, mdf R]): mdf R -> this.next.match[mdf R]{
+    .some(e) -> this.fold(f#(acc, e), f),
+    .empty -> acc
+    },
+  mut .for(f: mut IterForEacher[mdf E]): Void -> this.next.match[Void]{
+    .some(e) -> Yeet.with(f#e, this.for(f)),
+    .empty -> {}
+    },
+
+  mut .count: UInt -> this.fold[UInt](0u, mut IterFolder[mdf E, UInt]{ acc, _ -> acc + 1u }),
+//  mut .list: mut List[mdf E] -> this.fold(List#[mdf E], { acc, e -> Yeet.with(acc.add(e), acc) }),
+  mut .llist: mut LList[mdf E] -> this.fold(mut LList[mdf E], { acc, e -> acc +[] e }),
+  mut .str(toStr: mut IterMapper[mdf E, Str], joining: Str): Str -> this.map(toStr)
+    .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e,
+                                                                         .else -> acc + joining + e }})
+  }
+
+Sum:{
+  .int(ns: mut Iter[Int]): Int -> ns.fold[Int](0, mut IterFolder[Int, Int]{ acc, n -> acc + n }),
+  .uint(ns: mut Iter[UInt]): UInt -> ns.fold[UInt](0u, mut IterFolder[UInt, UInt]{ acc, n -> acc + n }),
+  .float(ns: mut Iter[Float]): Float -> ns.fold[Float](0.0, mut IterFolder[Float, Float]{ acc, n -> acc + n }),
+  }
+
+IterForEacher[E]:{ mut #(e: mdf E): Void }
+IterFolder[E,R]:{ mut #(acc: mdf R, e: mdf E): mdf R }
+IterScanner[E, R, S]:{ lent #(state: mut Ref[mdf S], e: mdf E): mdf S }
+IterMapper[E,R]:OptMap[mdf E, mdf R]
+IterPredicate[E]:{ mut #(e: mdf E): Bool }
+
+//_ListIsoAdd[E]:{
+//  #(l: mut List[mdf E], e: mdf E): mut List[mdf E] -> Yeet.with(l.add(e), l),
+//  }
