@@ -8,6 +8,7 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import program.Program;
+import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Push;
 import utils.Streams;
@@ -193,10 +194,9 @@ public record InferBodies(ast.Program p) {
     var iTs = typesOf(e.es());
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
     try {
-      var ms = p().meths(XBs.empty(), c.mdf(), recv.toAstIT(T::toAstT), e.name(), depth).stream()
-        .filter(cm->filterByMdf(c.mdf(), cm.mdf()) && gens.size() == cm.sig().gens().size())
-        .toList();
-      if (ms.size() != 1) {
+      var ms = p().meths(XBs.empty(), c.mdf(), recv.toAstIT(T::toAstT), e.name(), depth);
+//        .filter(cm->filterByMdf(c.mdf(), cm.mdf()) && gens.size() == cm.sig().gens().size())
+      if (ms.isEmpty()) { // TODO: might need to be ms.size != 1
         return Optional.empty();
       }
     } catch (T.MatchOnInfer ignored) {}

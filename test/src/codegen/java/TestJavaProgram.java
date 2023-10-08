@@ -473,7 +473,7 @@ public class TestJavaProgram {
   @Test void findClosestIntMut1() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(LList#[Int]35 + 52 + 84 + 14, 49) }
+      .var[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
       .return{ Assert!(closest == 52, closest.str, {{}}) }
       }
     Closest:{
@@ -497,7 +497,7 @@ public class TestJavaProgram {
   @Test void findClosestIntMut2() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(LList#[Int]35 + 52 + 84 + 14, 49) }
+      .var[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
       .return{ Assert!(closest == 52, closest.str, {{}}) }
       }
     Closest:{
@@ -520,7 +520,7 @@ public class TestJavaProgram {
   @Test void findClosestIntMut3() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(LList#[Int]35 + 52 + 84 + 14, 49) }
+      .var[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
       .return{ Assert!(closest == 52, closest.str, {{}}) }
       }
     Closest:{
@@ -543,22 +543,22 @@ public class TestJavaProgram {
   @Test void findClosestIntMutWithMutLList() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(mut LList#[Int]35 + 52 + 84 + 14, 49) }
+      .var[Int] closest = { Closest#(mut LList[Int] + 35 + 52 + 84 + 14, 49) }
       .return{ Assert!(closest == 52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: mut LList[Int], target: Int): Int -> Do#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var closest = { Ref#[Int](ns.get(0u)!) }
+        .var closest = { Ref#[Int](ns.get[](0u)!) }
         .do{ mut Closest'{ 'self
-          h, t -> h.match{
+          h, t -> h.match mut OptMatch[Int,Void]{
             .empty -> {},
-            .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
+            .some(n) -> (target - n).abs < ((target - (closest*[])).abs) ? {
               .then -> closest := n,
               .else -> self#(t.head, t.tail)
               }
             }
-          }#(ns.tail.head, ns.tail.tail) }
+          }#(ns.tail[].head[], ns.tail[].tail[]) }
         .return{ closest* }
       }
     Closest':{ mut #(h: mut Opt[Int], t: mut LList[Int]): Void }
@@ -566,7 +566,7 @@ public class TestJavaProgram {
   @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(mut LList#[Int]35 + 52 + 84 + 14 .list, 49) }
+      .var[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14 .list, 49) }
       .return{ Assert!(closest == 52, closest.str, {{}}) }
       }
     Closest:{
@@ -590,7 +590,7 @@ public class TestJavaProgram {
   @Test void LListItersIterImm() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[LList[Int]] l1 = { LList#[Int]35 + 52 + 84 + 14 }
+      .var[LList[Int]] l1 = { LList[Int] + 35 + 52 + 84 + 14 }
       .do{ Assert!(l1.head! == (LListIter.im(l1).next!), "sanity", {{}}) }
       .do{ Assert!((LListIter.im(l1).find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert!((LListIter.im(l1).find{n -> n > 100}).isNone, "find empty", {{}}) }
@@ -605,7 +605,7 @@ public class TestJavaProgram {
   @Test void LListItersIterMut() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[mut LList[Int]] l1 = { mut LList#[Int]35 + 52 + 84 + 14 }
+      .var[mut LList[Int]] l1 = { LList[Int] + 35 + 52 + 84 + 14 }
       .do{ Assert!(l1.head! == (LListIter#l1.next!), "sanity", {{}}) }
       .do{ Assert!((LListIter#l1.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert!((LListIter#l1.find{n -> n > 100}).isNone, "find empty", {{}}) }
@@ -620,7 +620,7 @@ public class TestJavaProgram {
   @Test void listIterMut() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[mut List[Int]] l1 = { (mut LList#[Int]35 + 52 + 84 + 14).list }
+      .var[mut List[Int]] l1 = { (LList[Int] + 35 + 52 + 84 + 14).list }
       .assert({ l1.get(0u)! == (ListIter#l1.next!) }, "sanity") // okay, time to use this for new tests
       .do{ Assert!((ListIter#l1.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert!((ListIter#l1.find{n -> n > 100}).isNone, "find empty", {{}}) }
@@ -910,7 +910,7 @@ public class TestJavaProgram {
       package test
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
-        .var[mut LList[Int]] l = { mut LList#[Int]12 + 3 + 6 + 7 }
+        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
         .var[mut Auto[Void, Int]] a = { mut Auto.llist(l) }
         .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
         .var[mut Auto[Void, Int]] ax10 = { a |> x10 }
@@ -927,7 +927,7 @@ public class TestJavaProgram {
       package test
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
-        .var[LList[Int]] l = { LList#[Int]12 + 3 + 6 + 7 }
+        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
         .var[Auto[Void,Int]] a = { Auto.llist(l) }
         .var[Auto[Int,Int]] x10 = { Auto.pure(F[Int,Int]{ n -> n * 10 }) }
         .var[Auto[Void, Int]] ax10 = { a |> x10 }
@@ -944,7 +944,7 @@ public class TestJavaProgram {
       package test
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
-        .var[mut LList[Int]] l = { mut LList#[Int]12 + 3 + 6 + 7 }
+        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
         .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
         .var[Int] lx10 = { l.run(x10)! }
         .assert{ lx10 == 70 }
@@ -957,7 +957,7 @@ public class TestJavaProgram {
       package test
       alias base.iter.Automaton as Auto,
       Test:Main{ _ -> Do#
-        .var[LList[Int]] l = { LList#[Int]12 + 3 + 6 + 7 }
+        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
         .var[Auto[Int,Int]] x10 = { Auto.pure(F[Int,Int]{ n -> n * 10 }) }
         .var[Int] lx10 = { l.run(x10)! }
         .assert{ lx10 == 70 }
@@ -971,7 +971,7 @@ public class TestJavaProgram {
       alias base.iter.Automaton as Auto,
       alias base.iter.Predicate as P,
       Test:Main{ _ -> Do#
-        .var[LList[Int]] l = { LList#[Int]12 + 3 + 6 + 7 }
+        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
         .assert{ l.run(Auto.allMatch P[Int]{n -> n > 1 })! }
         .assert{ l.run(Auto.allMatch P[Int]{n -> n > 4 })!.not }
         .assert{ l.run[Bool]((Auto.allMatch P[Int]{n -> n > 4 }) |> (Auto.pure F[Bool,Bool]{b -> b.not}))! }
@@ -986,7 +986,7 @@ public class TestJavaProgram {
       alias base.iter.Automaton as Auto,
       alias base.iter.MapFn as MF, alias base.iter.Predicate as P, alias base.iter.DoFn as DF,
       Test:Main{ s -> Do#
-        .var[mut LList[Int]] l = { mut LList#[Int]5 + 3 + 6 + 7 }
+        .var[LList[Int]] l = { LList[Int] + 5 + 3 + 6 + 7 }
         .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
         .assert{ l.run(mut Auto.map(mut MF[Int,Int]{n -> n * 10})
                                .map(mut MF[Int,Int]{n -> Assert!(n < 70, "not early exiting", {n})})
@@ -1001,7 +1001,7 @@ public class TestJavaProgram {
       alias base.iter.Automaton as Auto,
       alias base.iter.MapFn as MF, alias base.iter.Predicate as P, alias base.iter.DoFn as DF,
       Test:Main{ s -> Do#
-        .var[mut LList[Int]] l = { mut LList#[Int]1 + 2 + 3 }
+        .var[LList[Int]] l = { LList[Int] + 1 + 2 + 3 }
         .assert{ l.run(mut Auto.map(mut MF[Int,Int]{n -> n * 10})
                                .filter(mut P[Int]{n -> (n == 20).not})
                                .allMatch(mut P[Int]{n -> (n == 20).not}))! }
@@ -1033,7 +1033,7 @@ public class TestJavaProgram {
       alias base.iter.Predicate as P,
       alias base.iter.MapFn as MF,
       Test:Main{ _ -> Do#
-        .var[LList[Int]] l = { LList#[Int]12 + 3 + 6 + 7 }
+        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
         .assert{ l.run(Auto.map(MF[Int,Int]{n -> n * 10})
                            .map(MF[Int,Int]{n -> n * 1000})
                            .allMatch(P[Int]{n -> n >= 30000}))! }
@@ -1134,8 +1134,8 @@ public class TestJavaProgram {
     package test
     alias base.Void as Void, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     A:{
-      read .m1: mut A -> {},
-      mut .m1: mut A -> Assert!(False, { mut A }),
+      read .m1: mut A -> Assert!(False, { mut A }),
+      mut .m1: mut A -> {},
       }
     B:{}
     Test:base.Main{
@@ -1175,4 +1175,9 @@ public class TestJavaProgram {
       }
     Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }
+  @Test void canCreateMutLList() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:base.Main{ _ -> {} }
+    MutLList:{ #: mut base.LList[base.Int] -> mut base.LList[base.Int] +[] 35 +[] 52 +[] 84 +[] 14 }
+    """); }
 }

@@ -10,6 +10,7 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import program.TypeRename;
+import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.*;
 import visitors.FullShortCircuitVisitor;
@@ -221,10 +222,14 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
 
   List<RP> pairUp(Mdf lambdaMdf, List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
-    var ms = p.meths(XBs.empty(), lambdaMdf, c, sig.name(), depth).stream().filter(cm->filterByMdf(lambdaMdf, cm.mdf())).toList();
-    if (ms.size() != 1) {
-      throw Fail.ambiguousMethodName(sig.name());
-    }
+    var ms = p.meths(XBs.empty(), lambdaMdf, c, sig.name(), depth).stream()
+      .filter(cm->filterByMdf(lambdaMdf, cm.mdf()))
+      .sorted(Comparator.comparingInt(cm->EMethTypeSystem.inferPriority.indexOf(cm.mdf())))
+      .toList();
+//    TODO: do we need this:
+//    if (ms.size() != 1) {
+//      throw Fail.ambiguousMethodName(sig.name());
+//    }
     var freshSig = freshXs(ms.get(0), sig.name(), gxs);
     var freshGens = freshSig.gens();
     return Streams.of(

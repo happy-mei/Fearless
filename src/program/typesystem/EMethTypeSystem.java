@@ -24,7 +24,11 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface EMethTypeSystem extends ETypeSystem {
-  List<Mdf> recvPriority = List.of(Mdf.readOnly, Mdf.imm, Mdf.read, Mdf.recMdf, Mdf.iso, Mdf.lent, Mdf.mut);
+  // TODO: we have to be more permissive first (i.e. mut before read/imm) because e0.accept(v) will work until the final step and then fail, at which point we cannot backtrack.
+  List<Mdf> inferPriority = List.of(Mdf.iso, Mdf.mut, Mdf.imm, Mdf.recMdf, Mdf.read, Mdf.lent, Mdf.readOnly);
+  List<Mdf> recvPriority = inferPriority;
+//  List<Mdf> recvPriority = List.of(Mdf.readOnly, Mdf.imm, Mdf.read, Mdf.recMdf, Mdf.iso, Mdf.lent, Mdf.mut);
+//  List<Mdf> inferPriority = recvPriority;
 
   default Res visitMCall(E.MCall e) {
     var e0 = e.receiver();

@@ -186,7 +186,7 @@ public interface Program {
     var myM_ = p.meths(xbs, recvMdf, dec.toIT(), depth).stream()
       .filter(cm->filterByMdf(recvMdf, cm.mdf()))
       .filter(pred)
-      .sorted(Comparator.comparingInt(cm->EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
+      .sorted(Comparator.comparingInt(cm->EMethTypeSystem.inferPriority.indexOf(cm.mdf())))
       .toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
     var firstMs = myM_.get(0);
