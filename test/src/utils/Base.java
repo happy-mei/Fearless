@@ -68,6 +68,7 @@ public interface Base {
 
   String mutBaseAliases = """
     package test
+    alias base.As as As,
     alias base.caps.UseCapCont as UseCapCont,
     alias base.caps.System as System,
     alias base.caps.FCap as FCap,

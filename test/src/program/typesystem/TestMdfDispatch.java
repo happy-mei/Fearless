@@ -157,26 +157,26 @@ public class TestMdfDispatch {
     """); }
 
   @Test void optWithImmMatcher() { ok("""
-      package base
-      Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
-  //      mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
-  //      read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.some(x),
-        }}
-      Opt[T]:{
-  //      mut  .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.empty,
-        read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.empty,
-        imm  .match[R](m: mut OptMatch[T, mdf R]): mdf R -> m.empty,
-        read .or(f: mut OptOrElse[read Opt[mdf T]]): read Opt[mdf T] -> this.match[read Opt[mdf T]](mut OptMatch[read T, read Opt[mdf T]]{
-          .some(x) -> this,
-          .empty -> f#
-          }),
-        imm .or(f: mut OptOrElse[Opt[mdf T]]): Opt[mdf T] -> this.match[Opt[mdf T]](mut OptMatch[T, Opt[mdf T]]{
-            .some(x) -> this,
-            .empty -> f#
-            }),
-          }
-        OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .empty: mdf R }
-        OptOrElse[R]:{ mut #: mdf R }
+  package base
+  Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+    mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
+    read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.some(x),
+    }}
+  Opt[T]:{
+    mut  .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.empty,
+    read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.empty,
+    imm  .match[R](m: mut OptMatch[T, mdf R]): mdf R -> m.empty,
+    read .or(f: mut OptOrElse[read Opt[mdf T]]): read Opt[mdf T] -> this.match[read Opt[mdf T]](mut OptMatch[read T, read Opt[mdf T]]{
+      .some(x) -> this,
+      .empty -> f#
+      }),
+    imm .or(f: mut OptOrElse[Opt[mdf T]]): Opt[mdf T] -> this.match[Opt[mdf T]](mut OptMatch[T, Opt[mdf T]]{
+        .some(x) -> this,
+        .empty -> f#
+        }),
+      }
+    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .empty: mdf R }
+    OptOrElse[R]:{ mut #: mdf R }
         """); }
   @Test void newBase() { ok("""
     package base
