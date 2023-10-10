@@ -10,7 +10,7 @@ Magic:Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: mdf R -> this! } // magic'd o
 Debug:Sealed{ #[T](x: T): T -> x }
 HasIdentity:{ mut .idEq(other: readOnly HasIdentity): Bool -> Magic! } // TODO: magic
 
-As[X]:Sealed{ #(x: mdf X): mdf X -> x }
+As[X:imm,mut,read,iso]:Sealed{ #(x: mdf X): mdf X -> x }
 
 Let:{
   #[V,R](l: mut Let[mdf V, mdf R]): mdf R -> l.in(l.var),

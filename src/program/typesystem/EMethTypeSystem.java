@@ -40,7 +40,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     var optTst=multiMeth(t_,e.name(),e.ts());
     if (optTst.isEmpty()) {
       //TODO: list the available methods
-      throw Bug.todo();
+      throw Fail.undefinedMethod(e.name(), t_, p().meths(xbs(), t_.mdf(), t_.itOrThrow(), depth()).stream());
 //      return new CompileError();
     }
     List<TsT> tsts = optTst.stream()

@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Fail{
   static {
@@ -172,6 +173,12 @@ public class Fail{
 
   public static CompileError undefinedMethod(Id.MethName name, Id.IT<T> recv){
     return of(name+" does not exist in "+recv+".");
+  }
+
+  public static CompileError undefinedMethod(Id.MethName name, ast.T recv, Stream<CM> callableMethods){
+    var callableMs = callableMethods.map(cm->cm.mdf()+" "+cm.name()).collect(Collectors.joining(", "));
+    if (callableMs.isEmpty()) { callableMs = "N/A"; }
+    return of(name+" does not exist in "+recv+". The following methods exist on that type: "+callableMs);
   }
 
   public static CompileError noSubTypingRelationship(Id.IT<T> it1, Id.IT<T> it2){

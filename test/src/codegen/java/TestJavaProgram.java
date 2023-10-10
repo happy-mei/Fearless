@@ -1152,7 +1152,7 @@ public class TestJavaProgram {
       #(s) -> (base.Opt#Void).match[base.Void](mut base.OptMatch[Void,Void]{ .some(x) -> x, .empty -> {} }),
       }
     """); }
-  @Test void canGetImmListOfImm() { ok(new Res("", "", 0), "test.Test", """
+  @Test void canGetImmIntFromImmListOfImmInt() { ok(new Res("", "", 0), "test.Test", """
     package test
     MakeList:{ #: LList[Int] -> LList[Int] + 12 + 34 + 56 }
     Test:Main{ _ -> Do#
@@ -1161,6 +1161,17 @@ public class TestJavaProgram {
       .assert({ As[Int]#(myList.tail.head!) == 34 }, "can get 2nd tail el")
       .assert({ myList.head! == 12 }, "can get head el without cast")
       .assert({ myList.tail.head! == 34 }, "can get 2nd tail el without cast")
+      .return{Void}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void canGetImmOptFromImmListOfImmInt() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    MakeList:{ #: LList[Int] -> LList[Int] + 12 + 34 + 56 }
+    Test:Main{ _ -> Do#
+      .var myList = { MakeList# }
+      .var[Opt[read Int]] opt = { myList.head }
+      .var[Int] i1 = { opt! }
+      .var[Int] i2 = { myList.head! }
       .return{Void}
       }
     """, Base.mutBaseAliases); }
