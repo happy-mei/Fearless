@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static program.typesystem.RunTypeSystem.fail;
+import static program.typesystem.RunTypeSystem.ok;
 
 public class TestTypeSystemWithBase {
   void ok(String... content){
@@ -408,5 +409,11 @@ public class TestTypeSystemWithBase {
       }
     """, Base.mutBaseAliases); }
 
-  //TODO: test that makes sure we can turn a mut List[mut Person into a read List[read Person] via adaptorOk
+  @Test void canGetImmIntFromImmListOfImmInt() { ok("""
+    package test
+    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
+    Test:{ #: Bool -> (MakeList#).head! == 12 }
+    """, Base.mutBaseAliases); }
+
+  //TODO: test that makes sure we can turn a mut List[mut Person] into a read List[read Person] via adaptorOk
 }

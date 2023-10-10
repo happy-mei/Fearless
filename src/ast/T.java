@@ -51,6 +51,16 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res, Id.Ty {
     public Dec{ assert gxs.size()==name.gen() && lambda!=null; }
     public ast.T.Dec withName(Id.DecId name) { return new ast.T.Dec(name,gxs,bounds,lambda,pos); }
     public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(name,gxs,bounds,lambda,pos); }
+    public static T.Dec ofComposite(List<Id.IT<T>> its) {
+      var freshName = new Id.DecId(Id.GX.fresh().name(), 0);
+      return new T.Dec(freshName, List.of(), Map.of(), new E.Lambda(
+        Mdf.mdf,
+        its,
+        astFull.E.X.freshName(),
+        List.of(),
+        Optional.empty()
+      ), Optional.empty());
+    }
 
     public Id.IT<T> toIT(){
       return new Id.IT<>(//AstFull.T || Ast.T

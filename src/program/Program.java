@@ -205,7 +205,7 @@ public interface Program {
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, Id.MethName name, int depth){
-    return meths(xbs, recvMdf, it, depth).stream().filter(mi->mi.name().equals(name)).toList();
+    return meths(xbs, recvMdf, it, depth).stream().filter(mi->mi.name().nameArityEq(name)).toList();
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, ast.E.Lambda l, int depth) {

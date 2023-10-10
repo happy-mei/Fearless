@@ -54,7 +54,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .filter(m->filtered.stream().noneMatch(cm->cm.name().equals(m.name())))
       .toList();
     assert sadlyExtra.isEmpty();//TODO: can we break this assertion? We think no.
-    return withProgram(p0).bothT(d);
+    return ((ELambdaTypeSystem) withProgram(p0)).bothT(d);
   }
 
   default Res bothT(Dec d) {

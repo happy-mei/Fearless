@@ -2160,4 +2160,13 @@ were valid:
     BoxClone[T:imm,mut]:{ mut .task(x: mdf T): mut Box[mdf T] -> mut Box#x }
 //    Break:{ #(foo: readOnly Foo): mut Box[readOnly Foo] -> (readOnly Box#foo).clone(mut BoxClone[mut Foo]) }
     """); }
+
+  @Test void methodOnInlineLambda() { ok("""
+    package test
+    Foo:{} Bar:{}
+    A:{ .foo: Foo -> {} }
+    B:{ .bar: Bar -> {} }
+    Test2:{ #: Foo -> A,B{}.foo }
+    Test1:{ #: Foo -> (B,A{}).foo }
+    """); }
 }

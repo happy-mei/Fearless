@@ -11,7 +11,6 @@ import id.Id.MethName;
 import id.Mdf;
 import program.CM;
 import program.TypeRename;
-import utils.Bug;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
@@ -32,15 +31,20 @@ public interface EMethTypeSystem extends ETypeSystem {
 
   default Res visitMCall(E.MCall e) {
     var e0 = e.receiver();
-    var v = this.withT(Optional.empty());
+//    var expectedRecv = this.guessType().guessRecvType(e).t();
+    Optional<T> expectedRecv = Optional.empty();
+    var v = this.withT(expectedRecv);
     Res rE0 = e0.accept(v);
     if(rE0.err().isPresent()){ return rE0; }
     T t_=rE0.tOrThrow();
 
-    var optTst=multiMeth(t_,e.name(),e.ts());
+    return visitMCall(e, t_);
+  }
+  default Res visitMCall(E.MCall e, T recvT) {
+    var optTst=multiMeth(recvT,e.name(),e.ts());
     if (optTst.isEmpty()) {
       //TODO: list the available methods
-      throw Fail.undefinedMethod(e.name(), t_, p().meths(xbs(), t_.mdf(), t_.itOrThrow(), depth()).stream());
+      throw Fail.undefinedMethod(e.name(), recvT, p().meths(xbs(), recvT.mdf(), recvT.itOrThrow(), depth()).stream());
 //      return new CompileError();
     }
     List<TsT> tsts = optTst.stream()
@@ -51,14 +55,14 @@ public interface EMethTypeSystem extends ETypeSystem {
       return Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.stream().distinct().toList()).pos(e.pos());
     }
 
-    List<E> es = Push.of(e0,e.es());
+    List<E> es = Push.of(e.receiver(),e.es());
     var nestedErrors = new ArrayDeque<ArrayList<CompileError>>(tsts.size());
     var methArgCache = IntStream.range(0, es.size()).mapToObj(i_->new HashMap<T, Res>()).toList();
     for (var tst : tsts) {
       var errors = new ArrayList<CompileError>();
       nestedErrors.add(errors);
       if (okAll(es, tst.ts(), errors, methArgCache)) {
-        var invalidBounds = GenericBounds.validGenericMeth(p(), xbs(), t_.mdf(), t_.itOrThrow(), depth(), tst.original(), e.ts());
+        var invalidBounds = GenericBounds.validGenericMeth(p(), xbs(), recvT.mdf(), recvT.itOrThrow(), depth(), tst.original(), e.ts());
         if (invalidBounds.isPresent()) { return invalidBounds.get().pos(e.pos()); }
         resolvedCalls().put(e, tst);
         return tst.t();

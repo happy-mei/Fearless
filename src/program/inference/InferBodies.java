@@ -240,12 +240,19 @@ public record InferBodies(ast.Program p) {
   }
   Optional<E> methCallNoGens(Map<String, T> gamma, E.MCall e, int depth) {
     if (e.ts().isPresent()) { return Optional.empty(); }
-    var c = e.receiver().t();
-    if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
 
-    Optional<Program.FullMethSig> cm; try { cm = p.fullSig(XBs.empty(), c.mdf(), List.of(recv), depth, cm1->cm1.name().equals(e.name())); }
+    var c = e.receiver().t();
+    if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recvIT))) { return Optional.empty(); }
+    var its = List.of(recvIT);
+    if (e.receiver() instanceof E.Lambda recv) {
+      its = recv.its();
+    }
+
+    Optional<Program.FullMethSig> cm; try { cm = p.fullSig(XBs.empty(), c.mdf(), its, depth, cm1->cm1.name().equals(e.name())); }
     catch (CompileError err) { throw err.parentPos(e.pos()); }
-    if (cm.isEmpty()) { throw Fail.undefinedMethod(e.name(), recv).pos(e.pos()); }
+    if (cm.isEmpty()) {
+      throw Fail.undefinedMethod(e.name(), recvIT).pos(e.pos());
+    }
     var sig = cm.get().sig();
     var k = sig.gens().size();
     var infers = Collections.nCopies(k, T.infer);

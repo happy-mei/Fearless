@@ -30,6 +30,6 @@ public interface TraitTypeSystem {
     try{ p().meths(xbs, Mdf.recMdf, cT,0); }
     catch(CompileError ce){ return Optional.of(ce); }
     assert d.lambda().mdf()==Mdf.mdf;
-    return ETypeSystem.of(p(), Gamma.empty(), xbs, Optional.empty(), resolvedCalls, 0).bothT(d).err();
+    return ((ELambdaTypeSystem) ETypeSystem.of(p(), Gamma.empty(), xbs, Optional.empty(), resolvedCalls, 0)).bothT(d).err();
   }
 }

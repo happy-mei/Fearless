@@ -21,7 +21,6 @@ public interface ETypeSystem extends Visitor<Res> {
   IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls();
   Optional<T> expectedT();
   int depth();
-  Res bothT(T.Dec d);
   default Res visitX(E.X e){
     return g().get(e);
   }
@@ -34,4 +33,8 @@ public interface ETypeSystem extends Visitor<Res> {
   default ETypeSystem withGamma(Gamma g){ return of(p(), g, xbs(), expectedT(), resolvedCalls(), depth()); }
   default ETypeSystem withXBs(XBs xbs){ return of(p(), g(), xbs, expectedT(), resolvedCalls(), depth()); }
   default ETypeSystem withProgram(Program p){ return of(p, g(), xbs(), expectedT(), resolvedCalls(), depth()); }
+  record Gt(Program p, Gamma g, XBs xbs, Optional<T> expectedT, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls, int depth) implements GuessType {}
+  default GuessType guessType() {
+    return new Gt(p(), g(), xbs(), expectedT(), resolvedCalls(), depth());
+  }
 }
