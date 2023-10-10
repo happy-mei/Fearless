@@ -190,11 +190,11 @@ public interface Program {
       .toList();
     if(myM_.isEmpty()){ return Optional.empty(); }
     var firstMs = myM_.get(0);
-    var differentMs = myM_.stream().anyMatch(cm->!cm.sig().sigEqualIgnoringMdf(firstMs.sig()));
-    assert !differentMs || myM_.size() > 1;
-    if (differentMs) {
-      throw Fail.ambiguousMethod();
-    }
+//    var differentMs = myM_.stream().anyMatch(cm->!cm.sig().sigEqualIgnoringMdf(firstMs.sig()));
+//    assert !differentMs || myM_.size() > 1;
+//    if (differentMs) {
+//      throw Fail.ambiguousMethod();
+//    }
 
     var sig = firstMs.sig().toAstFullSig();
     var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
