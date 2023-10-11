@@ -31,9 +31,10 @@ public interface EMethTypeSystem extends ETypeSystem {
 
   default Res visitMCall(E.MCall e) {
     var e0 = e.receiver();
-//    var expectedRecv = this.guessType().guessRecvType(e).t();
-    Optional<T> expectedRecv = Optional.empty();
-    var v = this.withT(expectedRecv);
+    Res expectedRecv = this.guessType().guessRecvType(e);
+//    Res expectedRecv = new CompileError();
+//    expectedRecv.err().ifPresent(System.err::println);
+    var v = this.withT(expectedRecv.t());
     Res rE0 = e0.accept(v);
     if(rE0.err().isPresent()){ return rE0; }
     T t_=rE0.tOrThrow();
@@ -43,7 +44,6 @@ public interface EMethTypeSystem extends ETypeSystem {
   default Res visitMCall(E.MCall e, T recvT) {
     var optTst=multiMeth(recvT,e.name(),e.ts());
     if (optTst.isEmpty()) {
-      //TODO: list the available methods
       throw Fail.undefinedMethod(e.name(), recvT, p().meths(xbs(), recvT.mdf(), recvT.itOrThrow(), depth()).stream());
 //      return new CompileError();
     }

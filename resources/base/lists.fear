@@ -6,7 +6,7 @@ LList[E]:{
   read .match[R](m: mut LListMatchRead[read E, mdf R]): mdf R -> m.empty,
 
   mut  .get(i: UInt): mut Opt[mdf E] -> {},
-  read .get(i: UInt): mut Opt[read E] -> {}, // TODO: broken because of adapt
+  read .get(i: UInt): mut Opt[read E] -> {},
 
   mut  .head: mut Opt[mdf E] -> {},
   read .head: mut Opt[read E] -> {},

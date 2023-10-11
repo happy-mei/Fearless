@@ -67,9 +67,10 @@ public interface Program {
     var subTypeCache = this.subTypeCache();
     if (subTypeCache.containsKey(q)) {
       var res = subTypeCache.get(q);
-//      if (res == SubTypeResult.Unknown) {
+      if (res == SubTypeResult.Unknown) {
+        return true; // TODO: very likely unsound, just testing a thing
 //        throw Fail.cyclicSubType(t1, t2);
-//      }
+      }
       return subTypeCache.get(q) == SubTypeResult.Yes;
     }
     subTypeCache.put(q, SubTypeResult.Unknown);
@@ -91,17 +92,21 @@ public interface Program {
       return bounds.stream().allMatch(mdfi->isSubType(mdf, mdfi));
     }
     if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
-    t1 = t1.withMdf(t1.mdf()); t2 = t2.withMdf(t1.mdf());
-    if(t1.rt().equals(t2.rt())){ return true; }
-    if(!t1.isIt() || !t2.isIt()){ return false; }
+//    t1 = t1.withMdf(t1.mdf()); t2 = t2.withMdf(t1.mdf());
+    // There is a subtyping relationship with the MDFs so use either
+    return Stream.of(t1.mdf(), t2.mdf()).anyMatch(mdf->{
+      T t1_ = t1.withMdf(mdf); T t2_ = t2.withMdf(mdf);
+      if(t1_.rt().equals(t2_.rt())){ return true; }
+      if(!t1_.isIt() || !t2_.isIt()){ return false; }
 
-    if (isTransitiveSubType(xbs, t1, t2)) { return true; }
+      if (isTransitiveSubType(xbs, t1_, t2_)) { return true; }
 
-    if (t1.mdf() != t2.mdf()) { return false; }
-    if (t1.itOrThrow().name().equals(t2.itOrThrow().name())) {
-      return isAdaptSubType(xbs, t1, t2);
-    }
-    return false;
+      if (t1_.mdf() != t2_.mdf()) { return false; }
+      if (t1_.itOrThrow().name().equals(t2_.itOrThrow().name())) {
+        return isAdaptSubType(xbs, t1_, t2_);
+      }
+      return false;
+    });
   }
 
   default boolean isAdaptSubType(XBs xbs, T t1, T t2) {

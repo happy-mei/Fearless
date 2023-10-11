@@ -126,9 +126,10 @@ public class TestTypeSystemWithBase {
     B:A[42]{ .count -> 42, .sum -> 43 }
     """); }
   @Test void numbersSubTyping5a(){ fail("""
-    In position [###]/Dummy0.fear:6:5
-    [E23 methTypeError]
-    Expected the method .b/0 to return imm 42[], got imm base.Int[].
+    In position [###]/Dummy0.fear:6:19
+    [E32 noCandidateMeths]
+    When attempting to type check the method call: this .a/0[]([]), no candidates for .a/0 returned the expected type imm 42[]. The candidates were:
+    (imm test.D[]): imm base.Int[]
     """, """
     package test
     alias base.Int as Int,
@@ -413,6 +414,36 @@ public class TestTypeSystemWithBase {
     package test
     MakeList:{ #: LList[Int] -> LList[Int] + 12 }
     Test:{ #: Bool -> (MakeList#).head! == 12 }
+    """, Base.mutBaseAliases); }
+  @Test void canGetImmIntFromImmListOfImmIntCast() { ok("""
+    package test
+    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
+    Test:{ #: Bool -> As[Int]#((MakeList#).head!) == 12 }
+    """, Base.mutBaseAliases); }
+
+  @Test void canGetImmIntFromImmListOfImmIntMatchInferFail() { ok("""
+    package test
+    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
+    Test:{ #: Bool -> (MakeList#).head.match { .some(x) -> x, .empty -> 0 } == 12  }
+    """, Base.mutBaseAliases); }
+  @Test void canGetImmIntFromImmListOfImmIntMatch() { ok("""
+    package test
+    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
+    Test:{ #: Bool -> (MakeList#).head.match mut OptMatch[Int,Int]{ .some(x) -> x, .empty -> 0 } == 12  }
+    """, Base.mutBaseAliases); }
+  @Test void canGetImmIntFromImmListOfImmIntMatchExplicitGens() { ok("""
+    package test
+    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
+    Test:{ #: Bool -> (MakeList#).head.match[Int]{ .some(x) -> x, .empty -> 0 } == 12  }
+    """, Base.mutBaseAliases); }
+  @Test void canGetImmIntFromImmListOfImmIntMatchCast() { ok("""
+    package test
+    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
+    Test1:{ #: Bool -> As[Opt[Int]]#((MakeList#).head).match{ .some(x) -> x, .empty -> 0 } == 12  } // works
+    // imm Opt[read Int] fails to become imm Opt[imm Int] because of adapterOk
+//    Test2:{ #: Bool -> As[Opt[Int]]#(
+//       As[Opt[read Int]]#((MakeList#).head))
+//        .match{ .some(x) -> x, .empty -> 0 } == 12  }
     """, Base.mutBaseAliases); }
 
   //TODO: test that makes sure we can turn a mut List[mut Person] into a read List[read Person] via adaptorOk

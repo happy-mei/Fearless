@@ -6,6 +6,7 @@ import failure.CompileError;
 import failure.Res;
 import id.Mdf;
 import program.CM;
+import program.TypeRename;
 import utils.Bug;
 
 import java.util.Comparator;
@@ -43,9 +44,11 @@ public interface GuessType extends ETypeSystem {
       cms = p().meths(xbs(), Mdf.recMdf, recv.get().itOrThrow(), e.name(), depth());
     }
 
-    var cm = cms.stream()
-      .min(Comparator.comparingInt(cm_->recvPriority.indexOf(cm_.mdf())))
-      .orElseThrow();
+//    var cm = cms.stream()
+//      .min(Comparator.comparingInt(cm_->recvPriority.indexOf(cm_.mdf())))
+//      .orElseThrow();
+    if (cms.size() != 1) { return new CompileError("Failed to guess type of: "+e); }
+    var cm = cms.get(0);
     return new T(cm.mdf(), cm.c());
   }
 
@@ -68,6 +71,10 @@ public interface GuessType extends ETypeSystem {
     var cm = cms.stream()
       .min(Comparator.comparingInt(cm_->recvPriority.indexOf(cm_.mdf())))
       .orElseThrow();
-    return cm.ret().withMdf(Mdf.mdf);
+//    if (cms.size() != 1) { return new CompileError("Failed to guess type of: "+e); }
+//    var cm = cms.get(0);
+    var renamer = TypeRename.core(p());
+    var sig = renamer.renameSigOnMCall(cm.sig(), xbs().addBounds(cm.sig().gens(), cm.bounds()), renamer.renameFun(e.ts(), cm.sig().gens()));
+    return sig.ret().withMdf(Mdf.mdf);
   }
 }

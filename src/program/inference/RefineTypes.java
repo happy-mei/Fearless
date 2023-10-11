@@ -230,6 +230,9 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 //    if (ms.size() != 1) {
 //      throw Fail.ambiguousMethodName(sig.name());
 //    }
+    if (ms.isEmpty()) {
+      throw Fail.undefinedMethod(sig.name(), new ast.T(lambdaMdf, c), p.meths(XBs.empty(), lambdaMdf, c, depth).stream());
+    }
     var freshSig = freshXs(ms.get(0), sig.name(), gxs);
     var freshGens = freshSig.gens();
     return Streams.of(

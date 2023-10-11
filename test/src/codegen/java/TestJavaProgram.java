@@ -1177,7 +1177,6 @@ public class TestJavaProgram {
     """, Base.mutBaseAliases); }
   @Test void findClosestIntMultiMdf() { ok(new Res("", "", 0), "test.Test", """
     package test
-    alias base.As as As,
     Test:Main{ _ -> Do#
       .var[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
       .return{ Assert!(closest == 52, closest.str, {{}}) }
@@ -1185,9 +1184,9 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Do#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var[mut Ref[Int]] closest = { Ref#(As[Int]#(ns.head!)) }
+        .var[mut Ref[Int]] closest = { Ref#[Int](ns.head!) }
         .do{ mut Closest'{ 'self
-          h, t -> As[Opt[Int]]#(h).match[Void] mut OptMatch[Int,Void]{
+          h, t -> h.match[Void] mut OptMatch[Int,Void]{
             .empty -> {},
             .some(n) -> (target - n).abs < ((target - (closest*[])).abs) ? {
               .then -> closest := n,

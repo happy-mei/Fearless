@@ -51,7 +51,7 @@ Opt[T]:{
     .some(x) -> this,
     .empty -> f#
     }),
-  imm .or(f: mut OptOrElse[Opt[mdf T]]): Opt[mdf T] -> this.match[Opt[mdf T]](mut OptMatch[T, Opt[mdf T]]{
+  imm .or(f: mut OptOrElse[Opt[T]]): Opt[T] -> this.match[Opt[T]](mut OptMatch[T, Opt[T]]{
       .some(x) -> this,
       .empty -> f#
       }),
