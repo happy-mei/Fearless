@@ -11,9 +11,11 @@ import id.Id.MethName;
 import id.Mdf;
 import program.CM;
 import program.TypeRename;
+import utils.Bug;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
+import visitors.Visitor;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -31,10 +33,55 @@ public interface EMethTypeSystem extends ETypeSystem {
 
   default Res visitMCall(E.MCall e) {
     var e0 = e.receiver();
-    Res expectedRecv = this.guessType().guessRecvType(e);
-//    Res expectedRecv = new CompileError();
+
+    var guessType = new Visitor<Set<T>>(){
+      public Set<T> guessRecvType(E.MCall e) {
+        Stream<CM> cms;
+        if (e.receiver() instanceof E.Lambda l) {
+          var tmpDec = T.Dec.ofComposite(l.its());
+          cms = p().withDec(tmpDec).meths(xbs(), Mdf.recMdf, tmpDec.toIT(), e.name(), depth()).stream();
+        } else {
+          var recv = e.receiver().accept(this);
+          cms = recv.stream()
+            .flatMap(recvT->p().meths(xbs(), Mdf.recMdf, recvT.itOrThrow(), e.name(), depth()).stream());
+        }
+        return cms.map(cm->new T(Mdf.recMdf, cm.c())).collect(Collectors.toSet());
+      }
+      @Override public Set<T> visitMCall(E.MCall e) {
+        Stream<CM> cms;
+        if (e.receiver() instanceof E.Lambda l) {
+          var tmpDec = T.Dec.ofComposite(l.its());
+          cms = p().withDec(tmpDec).meths(xbs(), Mdf.recMdf, tmpDec.toIT(), e.name(), depth()).stream();
+        } else {
+          var recv = e.receiver().accept(this);
+          cms = recv.stream()
+            .flatMap(recvT->p().meths(xbs(), Mdf.recMdf, recvT.itOrThrow(), e.name(), depth()).stream());
+        }
+        var renamer = TypeRename.core(p());
+        return cms.map(cm->{
+          var sig = renamer.renameSigOnMCall(cm.sig(), xbs().addBounds(cm.sig().gens(), cm.bounds()), renamer.renameFun(e.ts(), cm.sig().gens()));
+          return sig.ret().withMdf(Mdf.recMdf);
+        }).collect(Collectors.toSet());
+      }
+
+      @Override public Set<T> visitX(E.X e) {
+        return Set.of(g().get(e).withMdf(Mdf.recMdf));
+      }
+
+      @Override public Set<T> visitLambda(E.Lambda e) {
+        throw Bug.unreachable();
+      }
+    };
+
+    var test = guessType.guessRecvType(e)
+      .stream()
+      .map(expected->visitMCall(e, expected))
+      .toList();
+
+//    Res expectedRecv = this.guessType().guessRecvType(e);
+    Res expectedRecv = new CompileError();
 //    expectedRecv.err().ifPresent(System.err::println);
-    var v = this.withT(expectedRecv.t());
+    var v = this.withT(Optional.empty());
     Res rE0 = e0.accept(v);
     if(rE0.err().isPresent()){ return rE0; }
     T t_=rE0.tOrThrow();
@@ -121,7 +168,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     if (!(rec.rt() instanceof Id.IT<T> recIT)) { return List.of(); }
 
     return p().meths(xbs(), rec.mdf(), recIT, depth()).stream()
-      .filter(cm->cm.name().nameArityEq(m) && p().isSubType(rec.mdf(), cm.mdf()))
+      .filter(cm->cm.name().nameArityEq(m))
       .sorted(Comparator.comparingInt(cm->recvPriority.indexOf(cm.mdf())))
       .map(cm->{
         var mdf = rec.mdf();

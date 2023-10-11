@@ -144,9 +144,10 @@ public interface Program {
         assert ms.size() == 2;
         var m1 = ms.get(0);
         var m2 = ms.get(1);
+        var mdf_ = mdf.restrict(m1.mdf()).orElseThrow();
         var recv = new ast.E.X("this", Optional.empty());
         var xs=Push.of(m1.xs(),"this");
-        List<T> ts=Push.of(m2.sig().ts(),t1);
+        List<T> ts=Push.of(m2.sig().ts(),t1.withMdf(mdf_));
 
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());

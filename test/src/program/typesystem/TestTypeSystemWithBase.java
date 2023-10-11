@@ -446,5 +446,36 @@ public class TestTypeSystemWithBase {
 //        .match{ .some(x) -> x, .empty -> 0 } == 12  }
     """, Base.mutBaseAliases); }
 
+  @Test void breaksEvenWithCast() { ok("""
+    package test
+    Red[T]:{
+      .blue: Blue[mdf T],
+      }
+    Blue[T]:{
+      .red: Red[mdf T],
+      }
+    Foo:{}
+    DoIt:{
+      .m1(red: mut Red[read Foo]): mut Red[Foo] -> red,
+      .m2(red: mut Red[Foo]): mut Red[read Foo] -> red,
+      }
+    """, Base.mutBaseAliases); }
+  @Test void breaksEvenWithCastWithGetter() { ok("""
+    package test
+    Red[T]:{
+      .blue: Blue[mdf T],
+      .get: mdf T,
+      }
+    Blue[T]:{
+      .red: Red[mdf T],
+      .get: mdf T,
+      }
+    Foo:{}
+    DoIt:{
+      .m1(red: Red[read Foo]): Red[Foo] -> red,
+      .m2(red: Red[Foo]): Red[read Foo] -> red,
+      }
+    """, Base.mutBaseAliases); }
+
   //TODO: test that makes sure we can turn a mut List[mut Person] into a read List[read Person] via adaptorOk
 }

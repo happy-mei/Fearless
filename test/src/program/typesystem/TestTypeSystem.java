@@ -2169,4 +2169,17 @@ were valid:
     Test2:{ #: Foo -> A,B{}.foo }
     Test1:{ #: Foo -> (B,A{}).foo }
     """); }
+
+  @Test void breaksEvenWithCast() { ok("""
+    package test
+    Void:{}
+    Red[T]:{
+      .foo: Void,
+      }
+    Foo:{}
+    DoIt:{
+      .m1(red: mut Red[read Foo]): mut Red[Foo] -> red,
+      .m2(red: mut Red[Foo]): mut Red[read Foo] -> red,
+      }
+    """); }
 }
