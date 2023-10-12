@@ -421,6 +421,16 @@ public class TestTypeSystemWithBase {
     Test:{ #: Bool -> As[Int]#((MakeList#).head!) == 12 }
     """, Base.mutBaseAliases); }
 
+  @Test void canGetImmIntFromImmListOfImmIntTail() { ok("""
+    package test
+    MakeList:{ #: LList[Int] -> LList[Int] + 12 + 24 }
+    Test:{ #: Bool -> (MakeList#).tail.head! == 24 }
+    """, Base.mutBaseAliases); }
+  @Test void canGetImmIntFromImmListOfImmIntTailArg() { ok("""
+    package test
+    Test:{ #(l: LList[Int]): Bool -> l.tail.head! == 24 }
+    """, Base.mutBaseAliases); }
+
   @Test void canGetImmIntFromImmListOfImmIntMatchInferFail() { fail("""
     In position [###]/Dummy0.fear:3:7
     [E33 callTypeError]
