@@ -167,7 +167,8 @@ public interface Program {
     var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
     var v = ETypeSystem.of(this, g, xbs, Optional.of(expected), new IdentityHashMap<>(), 0);
     var res = e.accept(v);
-    return res.resMatch(t->isSubType(xbs,t,expected),err->false);
+    return res.isEmpty();
+//    return res.resMatch(t->isSubType(xbs,t,expected),err->false);
   }
 
   static boolean filterByMdf(Mdf mdf, Mdf mMdf) {

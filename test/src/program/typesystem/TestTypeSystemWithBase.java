@@ -478,7 +478,7 @@ public class TestTypeSystemWithBase {
 //        .match{ .some(x) -> x, .empty -> 0 } == 12  }
     """, Base.mutBaseAliases); }
 
-  @Test void breaksEvenWithCast() { ok("""
+  @Test void worksWithCast() { ok("""
     package test
     Red[T]:{
       .blue: Blue[mdf T],
@@ -492,7 +492,7 @@ public class TestTypeSystemWithBase {
       .m2(red: mut Red[Foo]): mut Red[read Foo] -> red,
       }
     """, Base.mutBaseAliases); }
-  @Test void breaksEvenWithCastWithGetter() { ok("""
+  @Test void worksWithCastWithGetter() { ok("""
     package test
     Red[T]:{
       .blue: Blue[mdf T],

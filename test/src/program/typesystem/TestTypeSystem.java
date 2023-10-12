@@ -63,6 +63,18 @@ public class TestTypeSystem {
     A[N]:{ .count: N, .sum: N }
     B:A[FortyTwo]{ .count -> FortyTwo, .sum -> FortyThree }
     """); }
+  @Test void mdfSubTypingFailure(){ fail("""
+    In position [###]/Dummy0.fear:6:46
+    [E53 xTypeError]
+    Expected n to be imm test.FortyTwo[], got mut test.FortyTwo[].
+    """, """
+    package test
+    Res1:{} Res2:{}
+    FortyTwo:{ .get: Res1 -> Res1 }
+    FortyThree:{ .get: Res2 -> Res2 }
+    A[N]:{ mut .count: N, mut .sum(n: mut FortyTwo): N }
+    B:A[FortyTwo]{ .count -> FortyTwo, .sum(n) -> n }
+    """); }
 
   // TODO: Can we use this to break anything? I think not because .get could not be implemented to do anything bad
   // because it can't capture anything muty if I made an imm Family2 or something.
@@ -146,12 +158,16 @@ were valid:
     """); }
   // the other tests are only passing due to iso promotion
   @Test void callMutFromLent2a() { fail("""
-    In position [###]/Dummy0.fear:4:30
+    In position [###]/Dummy0.fear:4:34
     [E33 callTypeError]
     Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
     this .b/0[]([])
     were valid:
     (readOnly test.A[]) <: (imm test.A[]): iso test.B[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:4:30
+        [E53 xTypeError]
+        Expected this to be imm test.A[], got readOnly test.A[].
     """, """
     package test
     A:{
@@ -197,38 +213,9 @@ were valid:
     Void:{}
     """); }
   @Test void noCallMutFromImm() { fail("""
-In position [###]/Dummy0.fear:4:26
-[E33 callTypeError]
-Type error: None of the following candidates (returning the expected type "?") for this method call:
-this .b/0[]([]) .foo/0[]([])
-were valid:
-(imm test.B[]) <: (mut test.B[]): mut test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    (imm test.A[]): imm test.B[]
-
-(imm test.B[]) <: (iso test.B[]): iso test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-    (imm test.A[]): imm test.B[]
-
-(imm test.B[]) <: (iso test.B[]): lent test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-    (imm test.A[]): imm test.B[]
-
-(imm test.B[]) <: (lent test.B[]): lent test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
-    (imm test.A[]): imm test.B[]
+    In position [###]/Dummy0.fear:4:26
+    [E36 undefinedMethod]
+    .foo/0 does not exist in imm test.B[].
     """, """
     package test
     A:{
@@ -241,44 +228,11 @@ were valid:
       }
     Void:{}
     """); }
-  @Test void noCallMutFromRead() { fail("""
-In position [###]/Dummy0.fear:4:26
-[E33 callTypeError]
-Type error: None of the following candidates (returning the expected type "?") for this method call:
-this .b/0[]([]) .foo/0[]([])
-were valid:
-(readOnly test.B[]) <: (mut test.B[]): mut test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    (imm test.A[]): readOnly test.B[]
-    (imm test.A[]): imm test.B[]
-
-(readOnly test.B[]) <: (iso test.B[]): iso test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-    (imm test.A[]): readOnly test.B[]
-    (imm test.A[]): imm test.B[]
-
-(readOnly test.B[]) <: (iso test.B[]): lent test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-    (imm test.A[]): readOnly test.B[]
-    (imm test.A[]): imm test.B[]
-
-(readOnly test.B[]) <: (lent test.B[]): lent test.B[]
-  The following errors were found when checking this sub-typing:
-    In position [###]/Dummy0.fear:4:24
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
-    (imm test.A[]): readOnly test.B[]
-    (imm test.A[]): imm test.B[]
-        """, """
+  @Test void noCallMutFromReadOnly() { fail("""
+    In position [###]/Dummy0.fear:4:26
+    [E36 undefinedMethod]
+    .foo/0 does not exist in readOnly test.B[].
+    """, """
     package test
     A:{
       .b: readOnly B -> {},
@@ -290,47 +244,26 @@ were valid:
       }
     Void:{}
     """); }
+  @Test void noCallMutFromRead() { fail("""
+    In position [###]/Dummy0.fear:4:26
+    [E36 undefinedMethod]
+    .foo/0 does not exist in read test.B[].
+    """, """
+    package test
+    A:{
+      .b: read B -> {},
+      .doThing: Void -> this.b.foo.ret
+      }
+    B:{
+      mut .foo(): mut B -> this,
+      mut .ret(): Void -> {},
+      }
+    Void:{}
+    """); }
   @Test void noCallMutFromRecMdfImm() { fail("""
-In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:4:31
-[E33 callTypeError]
-Type error: None of the following candidates (returning the expected type "?") for this method call:
-this .b/0[]([]) .foo/0[]([])
-were valid:
-(readOnly test.B[]) <: (mut test.B[]): mut test.B[]
-  The following errors were found when checking this sub-typing:
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:4:29
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type mut test.B[]. The candidates were:
-    (readOnly test.A[]): readOnly test.B[]
-    (imm test.A[]): imm test.B[]
-    (readOnly test.A[]): readOnly test.B[]
-
-(readOnly test.B[]) <: (iso test.B[]): iso test.B[]
-  The following errors were found when checking this sub-typing:
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:4:29
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-    (readOnly test.A[]): readOnly test.B[]
-    (imm test.A[]): imm test.B[]
-    (readOnly test.A[]): readOnly test.B[]
-
-(readOnly test.B[]) <: (iso test.B[]): lent test.B[]
-  The following errors were found when checking this sub-typing:
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:4:29
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type iso test.B[]. The candidates were:
-    (readOnly test.A[]): readOnly test.B[]
-    (imm test.A[]): imm test.B[]
-    (readOnly test.A[]): readOnly test.B[]
-
-(readOnly test.B[]) <: (lent test.B[]): lent test.B[]
-  The following errors were found when checking this sub-typing:
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:4:29
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: this .b/0[]([]), no candidates for .b/0 returned the expected type lent test.B[]. The candidates were:
-    (readOnly test.A[]): readOnly test.B[]
-    (imm test.A[]): imm test.B[]
-    (readOnly test.A[]): readOnly test.B[]
+    In position [###]/Dummy0.fear:4:35
+    [E36 undefinedMethod]
+    .foo/0 does not exist in readOnly test.B[].
     """, """
     package test
     A:{

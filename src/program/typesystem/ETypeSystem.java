@@ -3,6 +3,7 @@ package program.typesystem;
 import ast.E;
 import ast.T;
 import failure.CompileError;
+import failure.Fail;
 import failure.Res;
 import id.Mdf;
 import program.Program;
@@ -14,15 +15,30 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
 
-public interface ETypeSystem extends Visitor<Res> {
+public interface ETypeSystem extends Visitor<Optional<CompileError>> {
   Program p();
   Gamma g();
   XBs xbs();
   IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls();
   Optional<T> expectedT();
   int depth();
-  default Res visitX(E.X e){
-    return g().get(e);
+  default Optional<CompileError> visitX(E.X e){
+//    return g().get(e);
+//    var expected = expectedT().orElseThrow();
+//    var res = g().get(e);
+//    var isOk = p().isSubType(xbs(), res, expected);
+//    if (!isOk) { return Optional.of(Fail.xTypeError(expected, res, e)); }\
+    var expected = expectedT().orElseThrow();
+    T res; try { res = g().get(e);
+    } catch (CompileError err) {
+      return Optional.of(err.pos(e.pos()));
+    }
+
+    var isOk = p().isSubType(xbs(), res, expected);
+    if (!isOk) {
+      return Optional.of(Fail.xTypeError(expected, res, e).pos(e.pos()));
+    }
+    return Optional.empty();
   }
 
   static ETypeSystem of(Program p, Gamma g, XBs xbs, Optional<T> expectedT, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls, int depth){

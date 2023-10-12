@@ -16,6 +16,7 @@ import java.nio.file.FileSystemException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -106,6 +107,14 @@ public class Fail{
     }
     return of(msg);
   }
+  public static CompileError xTypeError(ast.T expected, ast.T actual, ast.E.X x){
+    var msg = "Expected "+x+" to be "+expected+", got "+actual+".";
+    return of(msg);
+  }
+  public static CompileError lambdaTypeError(ast.T expected){
+    var msg = "Expected the lambda here to implement "+expected+".";
+    return of(msg);
+  }
   public static CompileError unimplementedInLambda(List<CM> ms){
     var unimplemented = ms.stream()
       .map(m->"("+m.pos()+") "+m.name())
@@ -171,11 +180,11 @@ public class Fail{
     return of("The private trait "+dec+" cannot be implemented outside of its package.");
   }
 
-  public static CompileError undefinedMethod(Id.MethName name, Id.IT<T> recv){
+  public static CompileError undefinedMethod(Id.MethName name, astFull.T recv){
     return of(name+" does not exist in "+recv+".");
   }
 
-  public static CompileError undefinedMethod(Id.MethName name, Id.IT<ast.T> recv, Stream<CM> callableMethods){
+  public static CompileError undefinedMethod(Id.MethName name, ast.T recv, Stream<CM> callableMethods){
     var callableMs = callableMethods.map(cm->cm.mdf()+" "+cm.name()).collect(Collectors.joining(", "));
     if (callableMs.isEmpty()) { callableMs = "N/A"; }
     return of(name+" does not exist in "+recv+". The following methods exist on that type: "+callableMs);
@@ -294,6 +303,8 @@ enum ErrorCode {
   mustProvideImplsIfMdfProvided,
   namedTopLevelLambda,
   ambiguousMethodName,
-  ambiguousMethod;
+  ambiguousMethod,
+  xTypeError,
+  lambdaTypeError;
   int code() {return this.ordinal() + 1;}
 }

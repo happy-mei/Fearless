@@ -248,10 +248,10 @@ public record InferBodies(ast.Program p) {
       its = recv.its();
     }
 
-    Optional<Program.FullMethSig> cm; try { cm = p.fullSig(XBs.empty(), c.mdf(), its, depth, cm1->cm1.name().equals(e.name())); }
+    Optional<Program.FullMethSig> cm; try { cm = p.fullSig(XBs.empty(), c.mdf(), its, depth, cm1->cm1.name().nameArityEq(e.name())); }
     catch (CompileError err) { throw err.parentPos(e.pos()); }
     if (cm.isEmpty()) {
-      throw Fail.undefinedMethod(e.name(), recvIT).pos(e.pos());
+      throw Fail.undefinedMethod(e.name(), c).pos(e.pos());
     }
     var sig = cm.get().sig();
     var k = sig.gens().size();

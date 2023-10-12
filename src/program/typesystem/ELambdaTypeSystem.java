@@ -24,11 +24,16 @@ import java.util.stream.Stream;
 import static program.Program.filterByMdf;
 
 interface ELambdaTypeSystem extends ETypeSystem{
-  default Res visitLambda(E.Lambda b){
+  default Optional<CompileError> visitLambda(E.Lambda b){
     Mdf mdf=b.mdf();
     Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
     Dec d=new Dec(fresh,List.of(),Map.of(),b,b.pos());
     Program p0=p().withDec(d);
+
+    var expected = expectedT().orElseThrow();
+    if (!p0.isSubType(xbs(), new T(b.mdf(), d.toIT()), expected)) {
+      return Optional.of(Fail.lambdaTypeError(expected).pos(b.pos()));
+    }
 
     var validMethods = b.meths().stream()
       .filter(m->filterByMdf(mdf, m.sig().mdf()))
@@ -48,7 +53,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .filter(CM::isAbs)
       .toList();
     if (!sadlyAbs.isEmpty()) {
-      return Fail.unimplementedInLambda(sadlyAbs).pos(b.pos());
+      return Optional.of(Fail.unimplementedInLambda(sadlyAbs).pos(b.pos()));
     }
     var sadlyExtra=b.meths().stream()
       .filter(m->filtered.stream().noneMatch(cm->cm.name().equals(m.name())))
@@ -57,7 +62,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     return ((ELambdaTypeSystem) withProgram(p0)).bothT(d);
   }
 
-  default Res bothT(Dec d) {
+  default Optional<CompileError> bothT(Dec d) {
     var b = d.lambda();
     if (expectedT().map(t->t.rt() instanceof Id.GX<T>).orElse(false)) {
       throw Fail.bothTExpectedGens(expectedT().orElseThrow(), d.name()).pos(b.pos());
@@ -70,7 +75,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     }
     var invalidGens = GenericBounds.validGenericLambda(p(), xbs, b);
     ELambdaTypeSystem boundedTypeSys = (ELambdaTypeSystem) withXBs(xbs);
-    if (invalidGens.isPresent()) { return invalidGens.get().pos(b.pos()); }
+    if (invalidGens.isPresent()) { return Optional.of(invalidGens.get().pos(b.pos())); }
     //var errMdf = expectedT.map(ti->!p().isSubType(ti.mdf(),b.mdf())).orElse(false);
     //after discussion, line above not needed
     var its = p().itsOf(d.toIT());
@@ -89,8 +94,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
         return Optional.of(err.parentPos(mi.pos())).stream();
       }
     }).toList();
-    if(mRes.isEmpty()){ return retT; }
-    return mRes.get(0);
+//    if(mRes.isEmpty()){ return retT; }
+    if(mRes.isEmpty()){ return Optional.empty(); }
+    return Optional.of(mRes.get(0));
   }
   default Optional<CompileError> mOk(String selfName, T selfT, E.Meth m){
     var xbs_ = xbs();
@@ -270,6 +276,6 @@ interface ELambdaTypeSystem extends ETypeSystem{
 
   default Optional<CompileError> okWithSubType(Gamma g, E.Meth m, E e, T expected) {
     var res = e.accept(ETypeSystem.of(p(), g, xbs(), Optional.of(expected), resolvedCalls(), depth()+1));
-    return res.err().map(err->err.pos(m.pos()));
+    return res.map(err->err.parentPos(m.pos()));
   }
 }
