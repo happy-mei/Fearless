@@ -97,6 +97,7 @@ public interface TypeRename<T extends Id.Ty>{
     return it.withTs(it.ts().stream().map(t->renameArgT(t,xbs,f)).toList());
   }
   default Function<Id.GX<T>, T> renameFun(List<T> ts, List<Id.GX<T>> gxs) {
+    assert ts.size() == gxs.size();
     return gx->{
       int i = gxs.indexOf(gx);
       if(i==-1){ return null; }

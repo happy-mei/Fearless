@@ -11,7 +11,6 @@ import id.Id.MethName;
 import id.Mdf;
 import program.CM;
 import program.TypeRename;
-import utils.Bug;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
@@ -34,65 +33,37 @@ public interface EMethTypeSystem extends ETypeSystem {
   default Res visitMCall(E.MCall e) {
     var e0 = e.receiver();
 
-    var guessType = new Visitor<Set<T>>(){
-      public Set<T> guessRecvType(E.MCall e) {
-        Stream<CM> cms;
-        if (e.receiver() instanceof E.Lambda l) {
-          var tmpDec = T.Dec.ofComposite(l.its());
-          cms = p().withDec(tmpDec).meths(xbs(), Mdf.recMdf, tmpDec.toIT(), e.name(), depth()).stream();
-        } else {
-          var recv = e.receiver().accept(this);
-          cms = recv.stream()
-            .flatMap(recvT->p().meths(xbs(), Mdf.recMdf, recvT.itOrThrow(), e.name(), depth()).stream());
-        }
-        return cms.map(cm->new T(Mdf.recMdf, cm.c())).collect(Collectors.toSet());
+    var guessType = new Visitor<Set<Id.IT<T>>>(){
+      @Override public Set<Id.IT<T>> visitX(E.X e) {
+        return g().get(e).match(gx->Set.of(), Set::of);
       }
-      @Override public Set<T> visitMCall(E.MCall e) {
-        Stream<CM> cms;
-        if (e.receiver() instanceof E.Lambda l) {
-          var tmpDec = T.Dec.ofComposite(l.its());
-          cms = p().withDec(tmpDec).meths(xbs(), Mdf.recMdf, tmpDec.toIT(), e.name(), depth()).stream();
-        } else {
-          var recv = e.receiver().accept(this);
-          cms = recv.stream()
-            .flatMap(recvT->p().meths(xbs(), Mdf.recMdf, recvT.itOrThrow(), e.name(), depth()).stream());
-        }
+      @Override public Set<Id.IT<T>> visitLambda(E.Lambda e) {
+        return Set.copyOf(e.its());
+      }
+      @Override public Set<Id.IT<T>> visitMCall(E.MCall e) {
         var renamer = TypeRename.core(p());
-        return cms.map(cm->{
-          var sig = renamer.renameSigOnMCall(cm.sig(), xbs().addBounds(cm.sig().gens(), cm.bounds()), renamer.renameFun(e.ts(), cm.sig().gens()));
-          return sig.ret().withMdf(Mdf.recMdf);
-        }).collect(Collectors.toSet());
-      }
-
-      @Override public Set<T> visitX(E.X e) {
-        return Set.of(g().get(e).withMdf(Mdf.recMdf));
-      }
-
-      @Override public Set<T> visitLambda(E.Lambda e) {
-        throw Bug.unreachable();
+        return e.receiver().accept(this).stream()
+          .flatMap(recv->p().meths(xbs(), Mdf.recMdf, recv, depth()).stream())
+          .filter(cm->cm.name().nameArityEq(e.name()))
+          .map(cm->renamer.renameSigOnMCall(cm.sig(), xbs().addBounds(cm.sig().gens(), cm.bounds()), renamer.renameFun(e.ts(), cm.sig().gens())))
+          .filter(sig->sig.ret().isIt())
+          .map(sig->sig.ret().itOrThrow())
+          .collect(Collectors.toSet());
       }
     };
 
-    var test = guessType.guessRecvType(e)
-      .stream()
-      .map(expected->visitMCall(e, expected))
-      .toList();
-
-//    Res expectedRecv = this.guessType().guessRecvType(e);
-    Res expectedRecv = new CompileError();
-//    expectedRecv.err().ifPresent(System.err::println);
-    var v = this.withT(Optional.empty());
-    Res rE0 = e0.accept(v);
-    if(rE0.err().isPresent()){ return rE0; }
-    T t_=rE0.tOrThrow();
-
-    return visitMCall(e, t_);
+    Res error = null;
+    for (var expectedRecv : e.receiver().accept(guessType)) {
+      Res res = visitMCall(e, expectedRecv);
+      if (res.t().isPresent()) { return res; }
+      if (error == null) { error = res; }
+    }
+    return error;
   }
-  default Res visitMCall(E.MCall e, T recvT) {
-    var optTst=multiMeth(recvT,e.name(),e.ts());
+  default Res visitMCall(E.MCall e, Id.IT<T> recvIT) {
+    var optTst=multiMeth(recvIT, e.name(), e.ts());
     if (optTst.isEmpty()) {
-      throw Fail.undefinedMethod(e.name(), recvT, p().meths(xbs(), recvT.mdf(), recvT.itOrThrow(), depth()).stream());
-//      return new CompileError();
+      return Fail.undefinedMethod(e.name(), recvIT, p().meths(xbs(), Mdf.recMdf, recvIT, depth()).stream());
     }
     List<TsT> tsts = optTst.stream()
       .filter(this::filterOnRes)
@@ -109,8 +80,14 @@ public interface EMethTypeSystem extends ETypeSystem {
       var errors = new ArrayList<CompileError>();
       nestedErrors.add(errors);
       if (okAll(es, tst.ts(), errors, methArgCache)) {
+        var recvT = tst.ts().get(0);
         var invalidBounds = GenericBounds.validGenericMeth(p(), xbs(), recvT.mdf(), recvT.itOrThrow(), depth(), tst.original(), e.ts());
         if (invalidBounds.isPresent()) { return invalidBounds.get().pos(e.pos()); }
+
+        var expected = expectedT().orElseThrow();
+        if (!p().isSubType(xbs(), tst.t(), expected)) {
+          return Fail.methTypeError(expected, tst.t(), e.name()).pos(e.pos());
+        }
         resolvedCalls().put(e, tst);
         return tst.t();
       }
@@ -119,7 +96,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     var calls1 = tsts.stream()
       .map(tst1->{
         var call = CompletableFuture.supplyAsync(()->Streams.zip(es, tst1.ts())
-          .map((e1,t1)->e1.accept(this.withT(Optional.empty())).t()
+          .map((e1,t1)->e1.accept(this.withT(Optional.of(t1))).t()
             .map(T::toString)
             .orElse("?"+e1+"?"))
           .collect(Collectors.joining(", ")))
@@ -163,20 +140,19 @@ public interface EMethTypeSystem extends ETypeSystem {
     return p().tryIsSubType(xbs(), res.tOrThrow(), t);
   }
 
-  default List<TsT> multiMeth(T rec, MethName m, List<T> ts) {
+  default List<TsT> multiMeth(Id.IT<T> recIT, MethName m, List<T> ts) {
     // TODO: throw error (no invoking methods on GXs)
-    if (!(rec.rt() instanceof Id.IT<T> recIT)) { return List.of(); }
-
-    return p().meths(xbs(), rec.mdf(), recIT, depth()).stream()
+    return p().meths(xbs(), Mdf.recMdf, recIT, depth()).stream()
       .filter(cm->cm.name().nameArityEq(m))
       .sorted(Comparator.comparingInt(cm->recvPriority.indexOf(cm.mdf())))
       .map(cm->{
-        var mdf = rec.mdf();
+//        var mdf = rec.mdf();
+        var mdf = Mdf.recMdf;
         Map<GX<T>,T> xsTsMap = Mapper.of(c->Streams.zip(cm.sig().gens(), ts).forEach(c::put));
         var xbs = xbs().addBounds(cm.sig().gens(), cm.sig().bounds());
 
         var params = Push.of(
-          fancyRename(rec.rt().toString(), rec.withMdf(cm.mdf()), mdf, xsTsMap, TypeRename.RenameKind.Arg, xbs),
+          fancyRename(recIT.toString(), new T(cm.mdf(), recIT), mdf, xsTsMap, TypeRename.RenameKind.Arg, xbs),
           Streams.zip(cm.xs(), cm.sig().ts())
             .map((xi, ti)->fancyRename(xi+": "+ti.rt().toString(), ti, mdf, xsTsMap, TypeRename.RenameKind.Arg, xbs))
             .toList()

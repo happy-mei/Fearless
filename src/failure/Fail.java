@@ -175,7 +175,7 @@ public class Fail{
     return of(name+" does not exist in "+recv+".");
   }
 
-  public static CompileError undefinedMethod(Id.MethName name, ast.T recv, Stream<CM> callableMethods){
+  public static CompileError undefinedMethod(Id.MethName name, Id.IT<ast.T> recv, Stream<CM> callableMethods){
     var callableMs = callableMethods.map(cm->cm.mdf()+" "+cm.name()).collect(Collectors.joining(", "));
     if (callableMs.isEmpty()) { callableMs = "N/A"; }
     return of(name+" does not exist in "+recv+". The following methods exist on that type: "+callableMs);

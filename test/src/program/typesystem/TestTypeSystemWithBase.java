@@ -421,7 +421,39 @@ public class TestTypeSystemWithBase {
     Test:{ #: Bool -> As[Int]#((MakeList#).head!) == 12 }
     """, Base.mutBaseAliases); }
 
-  @Test void canGetImmIntFromImmListOfImmIntMatchInferFail() { ok("""
+  @Test void canGetImmIntFromImmListOfImmIntMatchInferFail() { fail("""
+    In position [###]/Dummy0.fear:3:7
+    [E33 callTypeError]
+    Type error: None of the following candidates (returning the expected type "imm base.Bool[]") for this method call:
+    [-imm-][test.MakeList[]]{'fear96$ } #/0[]([]) .head/0[]([]) .match/1[read base.Int[]]([[-mut-][base.OptMatch[read base.Int[], read base.Int[]]]{'fear97$ .some/1([x]): Sig[mdf=mut,gens=[],ts=[read base.Int[]],ret=read base.Int[]] -> x,
+    .empty/0([]): Sig[mdf=mut,gens=[],ts=[],ret=imm 0[]] -> [-imm-][0[]]{'fear98$ }}]) ==/1[]([[-imm-][12[]]{'fear99$ }])
+    were valid:
+    (?[-imm-][test.MakeList[]]{'fear96$ } #/0[]([]) .head/0[]([]) .match/1[read base.Int[]]([[-mut-][base.OptMatch[read base.Int[], read base.Int[]]]{'fear97$ .some/1([x]): Sig[mdf=mut,gens=[],ts=[read base.Int[]],ret=read base.Int[]] -> x,
+    .empty/0([]): Sig[mdf=mut,gens=[],ts=[],ret=imm 0[]] -> [-imm-][0[]]{'fear98$ }}])?, imm 12[]) <: (imm base.Int[], imm base.Int[]): imm base.Bool[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:3:34
+        [E33 callTypeError]
+        Type error: None of the following candidates (returning the expected type "imm base.Int[]") for this method call:
+        [-imm-][test.MakeList[]]{'fear96$ } #/0[]([]) .head/0[]([]) .match/1[read base.Int[]]([[-mut-][base.OptMatch[read base.Int[], read base.Int[]]]{'fear97$ .some/1([x]): Sig[mdf=mut,gens=[],ts=[read base.Int[]],ret=read base.Int[]] -> x,
+        .empty/0([]): Sig[mdf=mut,gens=[],ts=[],ret=imm 0[]] -> [-imm-][0[]]{'fear98$ }}])
+        were valid:
+        (?[-imm-][test.MakeList[]]{'fear96$ } #/0[]([]) .head/0[]([])?, mut base.OptMatch[read base.Int[], read base.Int[]]) <: (iso base.Opt[imm base.Int[]], iso base.OptMatch[imm base.Int[], read base.Int[]]): imm base.Int[]
+          The following errors were found when checking this sub-typing:
+            In position [###]/Dummy0.fear:3:29
+            [E33 callTypeError]
+            Type error: None of the following candidates (returning the expected type "iso base.Opt[imm base.Int[]]") for this method call:
+            [-imm-][test.MakeList[]]{'fear96$ } #/0[]([]) .head/0[]([])
+            were valid:
+            (?[-imm-][test.MakeList[]]{'fear96$ } #/0[]([])?) <: (iso base.LList[imm base.Int[]]): iso base.Opt[imm base.Int[]]
+              The following errors were found when checking this sub-typing:
+                In position [###]/Dummy0.fear:3:27
+                [E32 noCandidateMeths]
+                When attempting to type check the method call: [-imm-][test.MakeList[]]{'fear96$ } #/0[]([]), no candidates for #/0 returned the expected type iso base.LList[imm base.Int[]]. The candidates were:
+                (imm test.MakeList[]): imm base.LList[imm base.Int[]]
+       \s
+        (iso base.Opt[read base.Int[]], mut base.OptMatch[read base.Int[], read base.Int[]]) <: (imm base.Opt[imm base.Int[]], iso base.OptMatch[imm base.Int[], read base.Int[]]): imm base.Int[]
+        (iso base.Opt[read base.Int[]], mut base.OptMatch[read base.Int[], read base.Int[]]) <: (imm base.Opt[imm base.Int[]], iso base.OptMatch[read base.Int[], read base.Int[]]): imm base.Int[]
+    """, """
     package test
     MakeList:{ #: LList[Int] -> LList[Int] + 12 }
     Test:{ #: Bool -> (MakeList#).head.match { .some(x) -> x, .empty -> 0 } == 12  }

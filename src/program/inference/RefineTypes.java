@@ -231,7 +231,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 //      throw Fail.ambiguousMethodName(sig.name());
 //    }
     if (ms.isEmpty()) {
-      throw Fail.undefinedMethod(sig.name(), new ast.T(lambdaMdf, c), p.meths(XBs.empty(), lambdaMdf, c, depth).stream());
+      throw Fail.undefinedMethod(sig.name(), c, p.meths(XBs.empty(), lambdaMdf, c, depth).stream());
     }
     var freshSig = freshXs(ms.get(0), sig.name(), gxs);
     var freshGens = freshSig.gens();
