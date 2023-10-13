@@ -719,14 +719,14 @@ public class TestJavaProgram {
     Test:Main{ s -> Do#
       .var io = { FIO#s }
       .var env = { FEnv#s }
-      .return{ io.println(LListIter.im(env.launchArgs).str({arg -> arg.str}, " ")) }
+      .return{ io.println(env.launchArgs.iter.str({arg -> arg.str}, " ")) }
       }
     """, Base.mutBaseAliases); }
   @Test void envFromIO() { okWithArgs(new Res("hi bye", "", 0), "test.Test", List.of("hi", "bye"), """
     package test
     Test:Main{ s -> Do#
       .var io = { FIO#s }
-      .return{ io.println(LListIter.im(base.caps.FEnv.io(io).launchArgs).str({arg -> arg.str}, " ")) }
+      .return{ io.println(base.caps.FEnv.io(io).launchArgs.iter.str({arg -> arg.str}, " ")) }
       }
     """, Base.mutBaseAliases); }
 
