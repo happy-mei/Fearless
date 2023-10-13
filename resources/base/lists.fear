@@ -1,5 +1,7 @@
 package base
 
+// Done in the traditional order where adding to the end concatenates an empty list on.
+// Doing the linked list in stack ordering would make getting elements much slower
 LList:{ #[E]: mut LList[mdf E] -> mut LList[mdf E] }
 LList[E]:{
   mut  .match[R](m: mut LListMatch[mdf E, mdf R]): mdf R -> m.empty,
@@ -106,5 +108,3 @@ LListMatchRead[E,R]:{
   mut .elem(head: read E, tail: read LList[read E]): mdf R,
   mut .empty: mdf R,
   }
-
-//_ReadOnlyList[E]:{ #:}
