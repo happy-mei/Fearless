@@ -448,7 +448,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
           if (m.equals(new Id.MethName("#", 1)) || m.equals(new Id.MethName(".io", 1))) {
             return """
               new base$46caps.Env_0(){
-                public base.LList_1 launchArgs$() { return FAux.LAUNCH_ARGS; }
+                public base.LList_1 launchArgs$mut$() { return FAux.LAUNCH_ARGS; }
               }
               """;
           }
