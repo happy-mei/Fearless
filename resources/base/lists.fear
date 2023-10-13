@@ -1,19 +1,26 @@
 package base
 
+Collection:{
+  read .len: UInt,
+  read .isEmpty: Bool,
+  // I might make this generic and have a .iter method on this
+  // just need to think more about string representations first.
+  }
+
 // Done in the traditional order where adding to the end concatenates an empty list on.
 // Doing the linked list in stack ordering would make getting elements much slower
 LList:{ #[E]: mut LList[mdf E] -> mut LList[mdf E] }
-LList[E]:{
+LList[E]:Collection{
   mut  .match[R](m: mut LListMatch[mdf E, mdf R]): mdf R -> m.empty,
   read .match[R](m: mut LListMatchRead[read E, mdf R]): mdf R -> m.empty,
 
   mut  .get(i: UInt): mut Opt[mdf E] -> {},
   read .get(i: UInt): mut Opt[read E] -> {},
-  imm  .get(i: UInt): mut Opt[E] -> {},
+  imm  .get(i: UInt): iso Opt[E] -> {},
 
   mut  .head: mut Opt[mdf E] -> {},
   read .head: mut Opt[read E] -> {},
-  imm  .head: mut Opt[E] -> {},
+  imm  .head: iso Opt[E] -> {},
 
   mut  .tail: mut LList[mdf E] -> this,
   read .tail: read LList[read E] -> this,
@@ -43,6 +50,8 @@ LList[E]:{
   read .isEmpty: Bool -> True,
   read .len: UInt -> 0u,
 
+  mut .list: mut List[mdf E] -> List.fromLList[mdf E](this),
+
   mut .pushFront(e: mdf E): mut LList[mdf E] -> Let#{
     .var -> this.len + 1u,
     .in(len) -> {'l
@@ -52,11 +61,11 @@ LList[E]:{
 
       mut  .get(i: UInt): mut Opt[mdf E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
       read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#[read E]e, .else -> this.get[](i - 1u) },
-      imm  .get(i: UInt): mut Opt[E] -> (i  == 0u) ? { .then -> Opt#[E]e, .else -> this.get[](i - 1u) },
+      imm  .get(i: UInt): iso Opt[E] -> (i  == 0u) ? { .then -> Opt#[E]e, .else -> this.get[](i - 1u) },
 
       mut  .head: mut Opt[mdf E] -> Opt#e,
       read .head: mut Opt[read E] -> Opt#[read E]e,
-      imm  .head: mut Opt[E] -> Opt#[E]e,
+      imm  .head: iso Opt[E] -> Opt#[E]e,
 
       .tail -> this,
       ++(l1) -> (this ++ l1).pushFront[](e),
@@ -71,10 +80,10 @@ LList[E]:{
       imm  .match[R](m: mut LListMatchRead[E, mdf R]): mdf R -> m.elem(e, this),
 
       read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
-      imm  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opt#[E]e, .else -> this.get[](i - 1u) },
+      imm  .get(i: UInt): iso Opt[E] -> (i == 0u) ? { .then -> Opt#[E]e, .else -> this.get[](i - 1u) },
 
       read .head: mut Opt[read E] -> Opt#e,
-      imm  .head: mut Opt[E] -> Opt#[E]e,
+      imm  .head: iso Opt[E] -> Opt#[E]e,
       .tail -> this,
       ++(l1) -> (this ++ l1).pushFront[](e),
       .isEmpty -> False,
@@ -107,4 +116,47 @@ LListMatch[E,R]:{
 LListMatchRead[E,R]:{
   mut .elem(head: read E, tail: read LList[read E]): mdf R,
   mut .empty: mdf R,
+  }
+
+List:{
+  #[E]: mut List[mdf E] -> _List.new(Ref#(_ListState#[mdf E](0u, {}))),
+  #[E](e1: mdf E): mut List[mdf E] -> this.fromLList[mdf E](mut LList[mdf E].pushFront(e1)),
+  #[E](e1: mdf E, e2: mdf E): mut List[mdf E] -> this.fromLList[mdf E](mut LList[mdf E].pushFront(e2).pushFront(e1)),
+  // TODO: this up to 12 or something
+  #[E](e1: mdf E, e2: mdf E, e3: mdf E): mut List[mdf E] -> this.fromLList[mdf E](mut LList[mdf E].pushFront(e3).pushFront(e2).pushFront(e1)),
+  .fromLList[E](list: mut LList[mdf E]): mut List[mdf E] -> _List.new(Ref#(_ListState#[mdf E](list.len, list))),
+  }
+_List:{
+  .new[E](s: mut Ref[mut _ListState[mdf E]]): mut List[mdf E] -> {'l
+    .len -> s*.len,
+    .isEmpty -> s*.inner.isEmpty,
+    .get(i) -> s*.inner.get(i),
+    .add(e) -> s := (_ListState#[mdf E](s*.len + 1u, s*.inner + e)),
+    }
+  }
+List[E]:Collection{
+  mut  .get(i: UInt): mut Opt[mdf E],
+  read .get(i: UInt): mut Opt[read E],
+  imm  .get(i: UInt): iso Opt[E],
+  mut .add(e: mdf E): Void,
+  mut .addAll(other: mut List[mdf E]): Void -> other.iter.for{ e -> this.add(e) },
+  mut .iter: mut Iter[mdf E] -> Let#{
+    .var -> Count.uint(0u),
+    .in(cursor) -> { .next -> this.get(cursor++) }
+    },
+  read .iter: mut Iter[read E] -> Let#{
+    .var -> Count.uint(0u),
+    .in(cursor) -> { .next -> this.get(cursor++) }
+    },
+  }
+_ListState[E]:{
+  read .len: UInt,
+  mut .inner: mut LList[mdf E],
+  read .inner: read LList[read E],
+  }
+_ListState:{
+  #[E](len: UInt, inner: mut LList[mdf E]): mut _ListState[mdf E] -> {
+    .len -> len,
+    .inner -> inner
+    }
   }

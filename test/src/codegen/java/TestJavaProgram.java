@@ -620,41 +620,41 @@ public class TestJavaProgram {
   @Test void listIterMut() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[mut List[Int]] l1 = { (LList[Int] + 35 + 52 + 84 + 14).list }
-      .assert({ l1.get(0u)! == (ListIter#l1.next!) }, "sanity") // okay, time to use this for new tests
-      .do{ Assert!((ListIter#l1.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((ListIter#l1.find{n -> n > 100}).isNone, "find empty", {{}}) }
-      .do{ Assert!(ListIter#l1
+      .var[mut List[Int]] l1 = { (mut LList[Int] + 35 + 52 + 84 + 14).list }
+      .assert({ l1.get(0u)! == (l1.iter.next!) }, "sanity") // okay, time to use this for new tests
+      .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert!(l1.iter
                       .map{n -> n * 10}
                       .find{n -> n == 140}
                       .isSome,
         "map", {{}})}
-      .do{ Assert!(ListIter#l1
+      .do{ Assert!(l1.iter
                       .filter{n -> n > 50}
                       .find{n -> n == 84}
                       .isSome,
         "filter", {{}})}
-      .do{ Assert!(ListIter#l1
+      .do{ Assert!(l1.iter
                       .filter{n -> n > 50}
                       .count == 2u,
         "count", {{}})}
-      .do{ Assert!(ListIter#l1
+      .do{ Assert!(l1.iter
                       .filter{n -> n > 50}
                       .list.len == 2u,
         "toList", {{}})}
-      .do{ Assert!(ListIter#l1
+      .do{ Assert!(l1.iter
                       .filter{n -> n > 50}
                       .llist
                       .len == 2u,
         "to mut LList", {{}})}
-      .do{ Assert!(ListIter#l1
-                    .flatMap{n -> ListIter#(List#(n, n, n))}
+      .do{ Assert!(l1.iter
+                    .flatMap{n -> List#(n, n, n).iter}
                     .map{n -> n * 10}
                     .str({n -> n.str}, ";") == "350;350;350;520;520;520;840;840;840;140;140;140",
         "flatMap", {{}})}
-      .do{ Assert!(Sum.int(ListIter#l1) == 185, "sum int", {{}})}
-      .do{ Assert!(Sum.uint(ListIter#l1.map{n -> n.uint}) == 185u, "sum uint", {{}})}
-      .do{ Assert!(Sum.float(ListIter#l1.map{n -> n.float}) == 185.0, "sum float", {{}})}
+      .do{ Assert!(Sum.int(l1.iter) == 185, "sum int", {{}})}
+      .do{ Assert!(Sum.uint(l1.iter.map{n -> n.uint}) == 185u, "sum uint", {{}})}
+      .do{ Assert!(Sum.float(l1.iter.map{n -> n.float}) == 185.0, "sum float", {{}})}
       .return{{}}
       }
     """, Base.mutBaseAliases); }

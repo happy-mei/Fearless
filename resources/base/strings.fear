@@ -1,6 +1,5 @@
 package base
-Str:Sealed{
-  .len: UInt,
+Str:Sealed,Collection{
   // Str is not Stringable due to limitations of the Java codegen target
   .str: Str,
   +(other: Str): Str,
@@ -11,6 +10,7 @@ Stringable:{
   }
 _StrInstance:Str{
   .len -> Magic!,
+  .isEmpty -> Magic!,
   .str -> Magic!,
   +(other) -> Magic!,
   ==(other) -> Magic!,

@@ -130,8 +130,7 @@ public interface Base {
     alias base.OptMap as OptMap,
     alias base.OptMatchHyg as OptMatchHyg,
     alias base.OptMatch as OptMatch,
-    alias base.Iterable as Iterable,
-    alias base.Iter as Iter,
-    alias base.Sum as Sum,
+    alias base.iter.Iter as Iter,
+    alias base.iter.Sum as Sum,
     """;
 }
