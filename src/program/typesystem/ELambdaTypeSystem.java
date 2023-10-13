@@ -94,7 +94,6 @@ interface ELambdaTypeSystem extends ETypeSystem{
         return Optional.of(err.parentPos(mi.pos())).stream();
       }
     }).toList();
-//    if(mRes.isEmpty()){ return retT; }
     if(mRes.isEmpty()){ return Optional.empty(); }
     return Optional.of(mRes.get(0));
   }
