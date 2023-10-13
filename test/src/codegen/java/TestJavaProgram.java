@@ -549,7 +549,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: mut LList[Int], target: Int): Int -> Do#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .var closest = { Ref#[Int](ns.get[](0u)!) }
+        .var closest = { Ref#[Int](ns.get(0u)!) }
         .do{ mut Closest'{ 'self
           h, t -> h.match mut OptMatch[Int,Void]{
             .empty -> {},
@@ -558,7 +558,7 @@ public class TestJavaProgram {
               .else -> self#(t.head, t.tail)
               }
             }
-          }#(ns.tail[].head[], ns.tail[].tail[]) }
+          }#(ns.tail.head, ns.tail.tail) }
         .return{ closest* }
       }
     Closest':{ mut #(h: mut Opt[Int], t: mut LList[Int]): Void }
@@ -1157,7 +1157,7 @@ public class TestJavaProgram {
     MakeList:{ #: LList[Int] -> LList[Int] + 12 + 34 + 56 }
     Test:Main{ _ -> Do#
       .var myList = { MakeList# }
-      .assert({ As[Int]#(myList.head!) == 12 }, "can get head el")
+      .assert({ As[Int]#(myList.head!) == 12 }, myList.head!.str)
       .assert({ As[Int]#(myList.tail.head!) == 34 }, "can get 2nd tail el")
       .assert({ myList.head! == 12 }, "can get head el without cast")
       .assert({ myList.tail.head! == 34 }, "can get 2nd tail el without cast")

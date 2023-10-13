@@ -1,12 +1,11 @@
 package base
 
 Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
-  // .match(m) -> m.some(x),
-  mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
-  read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.some(x),
-  // imm case is needed because the read one will return read E even if E is imm
-  // TODO: should see if we can avoid this
-  imm  .match[R](m: mut OptMatch[T, mdf R]): mdf R -> m.some(x),
+   .match(m) -> m.some(x),
+//  mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
+//  read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.some(x),
+//  // imm case is needed because the read one will return read E even if E is imm
+//  imm  .match[R](m: mut OptMatch[T, mdf R]): mdf R -> m.some(x),
   }}
 Opt[T]:{
   mut  .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.empty,
@@ -15,10 +14,11 @@ Opt[T]:{
 
   mut  !: mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{ .some(x) -> x, .empty -> Abort! }),
   read !: read T -> this.match[read T](mut OptMatch[read T, read T]{ .some(x) -> x, .empty -> Abort! }),
-//  imm  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Abort! }),
+  imm  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Abort! }),
 
   mut .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
   read .map[R](f: mut OptMap[read T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
+  imm  .map[R](f: mut OptMap[T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
 
   mut |(alt: mdf T): mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{
     .some(x) -> x,
@@ -28,6 +28,10 @@ Opt[T]:{
     .some(x) -> x,
     .empty -> alt
     }),
+  imm  |(alt: T): T -> this.match[T](mut OptMatch[T, T]{
+      .some(x) -> x,
+      .empty -> alt
+      }),
 
   mut  ||(alt: mut OptOrElse[mdf T]): mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{
     .some(x) -> x,
