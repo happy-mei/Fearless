@@ -158,11 +158,11 @@ public record InferBodies(ast.Program p) {
 
   List<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(XBs.empty(), Mdf.recMdf, its, depth, CM::isAbs);
+    return p.fullSig(XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
   }
   List<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(XBs.empty(), Mdf.recMdf, its, depth, cm->cm.name().equals(name));
+    return p.fullSig(XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, cm->cm.name().equals(name));
   }
 
   Optional<E> methCall(Map<String, T> gamma, E.MCall e, int depth) {

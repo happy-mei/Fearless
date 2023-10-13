@@ -51,11 +51,8 @@ LList[E]:{
       mut  .head: mut Opt[mdf E] -> Opt#e,
       read .head: mut Opt[read E] -> Opt#[read E]e, // TODO: fix adapterOk, the explicit gens should not be needed
       imm .head: mut Opt[E] -> Opt#[E]e,
-      mut  .tail: mut LList[mdf E] -> this,
-      read .tail: read LList[read E] -> this,
-      imm  .tail: imm LList[E] -> this,
+      .tail -> this,
       ++(l1) -> (this ++ l1).pushFront[](e),
-//      read ++(l1: read LList[read E]): read LList[read E] -> (this ++[] l1).pushFront[](e),
       .isEmpty -> False,
       .len -> len,
       }
@@ -66,8 +63,8 @@ LList[E]:{
       read .match[R](m: mut LListMatchRead[read E, mdf R]): mdf R -> m.elem(e, this),
       read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
       read .head: mut Opt[read E] -> Opt#e,
-      read .tail: read LList[read E] -> this,
-      read ++(l1: read LList[read E]): read LList[read E] -> (this ++[] l1).pushFront[](e),
+      .tail -> this,
+      ++(l1) -> (this ++ l1).pushFront[](e),
       .isEmpty -> False,
       .len -> len,
       }
@@ -79,9 +76,8 @@ LList[E]:{
         read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#[read E]e, .else -> this.get[](i - 1u) },
         imm  .head: mut Opt[E] -> Opt#e,
         read .head: mut Opt[read E] -> Opt#[read E]e,
-        imm  .tail: LList[E] -> this,
-        read .tail: read LList[E] -> this,
-        read ++(l1: read LList[read E]): read LList[read E] -> (this ++[] l1).pushFront[](e),
+        .tail -> this,
+        ++(l1) -> (this ++ l1).pushFront[](e),
         .isEmpty -> False,
         .len -> len,
         }
