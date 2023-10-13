@@ -17,6 +17,7 @@ import visitors.ShallowInjectionVisitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static program.Program.filterByMdf;
 
@@ -92,20 +93,20 @@ public record InferBodies(ast.Program p) {
     if (e.it().isEmpty()) { return Optional.empty(); }
     var fixedLambda = (E.Lambda) refineLambda(e, e, depth).orElse(e);
     boolean[] done = {false};
-    List<E.Meth> newMs = fixedLambda.meths().stream().map(mi->done[0]
-      ? mi
-      : bProp(gamma,mi,fixedLambda,depth).map(mj->{done[0]=true;return mj;}).orElse(mi))
+    List<E.Meth> newMs = fixedLambda.meths().stream().flatMap(mi->done[0]
+      ? Stream.of(mi)
+      : bProp(gamma,mi,fixedLambda,depth).map(mj->{done[0]=true;return mj.stream();}).orElseGet(()->Stream.of(mi)))
     .toList();
     if(!done[0]){ return Optional.empty(); }
     var res = refineLambda(e, e.withMeths(newMs), depth); // TODO: why can't we get rid of this?
 //    var res = Optional.of(e.withMeths(newMs));
     return res.flatMap(e1->!e1.equals(e) ? res : Optional.empty());
   }
-  Optional<E.Meth> bProp(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
-    var res = bPropWithSig(gamma,m,e,depth)
+  Optional<List<E.Meth>> bProp(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
+    var res = bPropWithSig(gamma,m,e,depth).map(List::of)
       .or(()->bPropGetSigM(gamma,m,e,depth))
       .or(()->bPropGetSig(gamma,m,e,depth));
-    assert res.map(m1->!m.equals(m1)).orElse(true);
+    assert res.stream().flatMap(List::stream).noneMatch(m::equals);
     return res;
   }
   Optional<E.Meth> bPropWithSig(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
@@ -130,33 +131,36 @@ public record InferBodies(ast.Program p) {
 //    assert finalRes.map(m1->!m.equals(m1)).orElse(true);
 //    return finalRes;
   }
-  Optional<E.Meth> bPropGetSigM(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
+  Optional<List<E.Meth>> bPropGetSigM(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isPresent()){ return Optional.empty(); }
-    // TODO: make sure the number of params matches the returned method before calling withName
-    var res = onlyAbs(e, depth).map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()));
-    assert res.map(m1->!m.equals(m1)).orElse(true);
-    return res;
+    var res = onlyAbs(e, depth).stream()
+      .filter(fullSig->fullSig.sig().ts().size() == m.xs().size())
+      .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()))
+      .toList();
+    assert res.stream().noneMatch(m::equals);
+    return Optional.of(res);
   }
 
-  Optional<E.Meth> bPropGetSig(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
+  Optional<List<E.Meth>> bPropGetSig(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isEmpty()){ return Optional.empty(); }
-    Optional<Program.FullMethSig> sig; try { sig = onlyMName(e, m.name().get(), depth); }
+    List<Program.FullMethSig> sigs; try { sigs = onlyMName(e, m.name().get(), depth); }
     catch (CompileError err) { throw err.parentPos(m.pos()); }
-    if(sig.isEmpty()){ return Optional.empty(); }
-    var res = sig.map(s->m.withSig(s.sig()));
-    assert res.map(m1->!m.equals(m1)).orElse(true);
-    return res;
+    // e.pos().isPresent() && e.pos().get().fileName.toString().endsWith("lists.fear") && m.name().get().name().equals("++")
+    if(sigs.isEmpty()){ return Optional.empty(); }
+    var res = sigs.stream().map(s->m.withName(s.name()).withSig(s.sig())).toList();
+    assert res.stream().noneMatch(m::equals);
+    return Optional.of(res);
   }
 
-  Optional<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
+  List<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
     return p.fullSig(XBs.empty(), Mdf.recMdf, its, depth, CM::isAbs);
   }
-  Optional<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
+  List<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
     return p.fullSig(XBs.empty(), Mdf.recMdf, its, depth, cm->cm.name().equals(name));
   }
@@ -248,8 +252,11 @@ public record InferBodies(ast.Program p) {
       its = recv.its();
     }
 
-    Optional<Program.FullMethSig> cm; try { cm = p.fullSig(XBs.empty(), c.mdf(), its, depth, cm1->cm1.name().nameArityEq(e.name())); }
-    catch (CompileError err) { throw err.parentPos(e.pos()); }
+    Optional<Program.FullMethSig> cm;
+    try {
+      var res = p.fullSig(XBs.empty(), c.mdf(), its, depth, cm1->cm1.name().nameArityEq(e.name()));
+      cm = !res.isEmpty() ? Optional.of(res.get(0)) : Optional.empty();
+    } catch (CompileError err) { throw err.parentPos(e.pos()); }
     if (cm.isEmpty()) {
       throw Fail.undefinedMethod(e.name(), c).pos(e.pos());
     }

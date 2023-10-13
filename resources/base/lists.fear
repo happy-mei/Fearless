@@ -20,12 +20,21 @@ LList[E]:{
   mut  ++(l1: mut LList[mdf E]): mut LList[mdf E] -> l1,
   read ++(l1: read LList[read E]): read LList[read E] -> l1,
 
-  mut  +(e: mdf E): mut LList[mdf E] -> this.pushFront[](e),
-  read +(e: read E): read LList[read E] -> this.pushFront[](e),
+  mut  +(e: mdf E): mut LList[mdf E] -> this ++ this.pushFront[](e),
+  read +(e: read E): read LList[read E] -> this ++ this.pushFront[](e),
 
-  mut .iter: mut Iter[mdf E] -> { .next -> {} },
-//  imm .iter: mut Iter[E] -> { .next -> {} },
-  read .iter: mut Iter[read E] -> { .next -> {} },
+  mut .iter: mut Iter[mdf E] -> Let#{
+    .var -> Ref#this,
+    .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
+    },
+  imm .iter: mut Iter[E] -> Let#{
+    .var -> Ref#this,
+    .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
+    },
+  read .iter: mut Iter[read E] -> Let#{
+    .var -> Ref#this,
+    .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
+    },
 
   read .isEmpty: Bool -> True,
   read .len: UInt -> 0u,
@@ -45,22 +54,8 @@ LList[E]:{
       mut  .tail: mut LList[mdf E] -> this,
       read .tail: read LList[read E] -> this,
       imm  .tail: imm LList[E] -> this,
-      mut  ++(l1: mut LList[mdf E]): mut LList[mdf E] -> (this ++[] l1).pushFront[](e),
-      read ++(l1: read LList[read E]): read LList[read E] -> (this ++[] l1).pushFront[](e),
-      mut  +(next: mdf E): mut LList[mdf E] -> l ++[] (this.pushFront[](next)),
-      read +(next: read E): read LList[read E] -> l ++[] (this.pushFront[](next)),
-      mut .iter: mut Iter[mdf E] -> Let#{
-        .var -> Ref#l,
-        .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
-        },
-//      imm .iter: mut Iter[E] -> Let#[mut Ref[LList[E]], mut Iter[imm E]]{
-//        .var -> Ref#[LList[E]]l,
-//        .in(cursor) -> { .next -> cursor*.head.match[mut Opt[E]]{ .some(x) -> Opt#[read E]x, .empty -> {} } }
-//        },
-      read .iter: mut Iter[read E] -> Let#{
-        .var -> Ref#[read LList[read E]]l,
-        .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
-        },
+      ++(l1) -> (this ++ l1).pushFront[](e),
+//      read ++(l1: read LList[read E]): read LList[read E] -> (this ++[] l1).pushFront[](e),
       .isEmpty -> False,
       .len -> len,
       }
@@ -73,15 +68,6 @@ LList[E]:{
       read .head: mut Opt[read E] -> Opt#e,
       read .tail: read LList[read E] -> this,
       read ++(l1: read LList[read E]): read LList[read E] -> (this ++[] l1).pushFront[](e),
-      read +(next: read E): read LList[read E] -> l ++[] (this.pushFront[](next)),
-//      imm .iter: mut Iter[E] -> Let#{
-//        .var -> Ref#l,
-//        .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
-//        },
-      read .iter: mut Iter[read E] -> Let#{
-        .var -> Ref#l,
-        .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
-        },
       .isEmpty -> False,
       .len -> len,
       }
@@ -96,11 +82,6 @@ LList[E]:{
         imm  .tail: LList[E] -> this,
         read .tail: read LList[E] -> this,
         read ++(l1: read LList[read E]): read LList[read E] -> (this ++[] l1).pushFront[](e),
-        read +(next: read E): read LList[read E] -> l ++[] (this.pushFront[](next)),
-        read .iter: mut Iter[read E] -> Let#{
-          .var -> Ref#l,
-          .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
-          },
         .isEmpty -> False,
         .len -> len,
         }

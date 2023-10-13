@@ -179,7 +179,7 @@ public interface Program {
   }
 
   record FullMethSig(Id.MethName name, E.Sig sig){}
-  default Optional<FullMethSig> fullSig(XBs xbs, Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
+  default List<FullMethSig> fullSig(XBs xbs, Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
     var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), Map.of(), new ast.E.Lambda(
@@ -190,25 +190,20 @@ public interface Program {
       Optional.empty()
     ), Optional.empty());
     var p = this.withDec(dec);
-    var myM_ = p.meths(xbs, recvMdf, dec.toIT(), depth).stream()
+    return p.meths(xbs, recvMdf, dec.toIT(), depth).stream()
       .filter(cm->filterByMdf(recvMdf, cm.mdf()))
       .filter(pred)
       .sorted(Comparator.comparingInt(cm->EMethTypeSystem.inferPriority.indexOf(cm.mdf())))
+      .map(m->{
+        var sig = m.sig().toAstFullSig();
+        var name = m.name().withMdf(Optional.of(sig.mdf()));
+        var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
+        var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(this, freshGXsSet, t)).toList();
+        var restoredRt = RefineTypes.regenerateInfers(this, freshGXsSet, sig.ret());
+        var restoredSig = new E.Sig(sig.mdf(), sig.gens(), sig.bounds(), restoredArgs, restoredRt, sig.pos());
+        return new FullMethSig(name, restoredSig);
+      })
       .toList();
-    if(myM_.isEmpty()){ return Optional.empty(); }
-    var firstMs = myM_.get(0);
-//    var differentMs = myM_.stream().anyMatch(cm->!cm.sig().sigEqualIgnoringMdf(firstMs.sig()));
-//    assert !differentMs || myM_.size() > 1;
-//    if (differentMs) {
-//      throw Fail.ambiguousMethod();
-//    }
-
-    var sig = firstMs.sig().toAstFullSig();
-    var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
-    var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(this, freshGXsSet, t)).toList();
-    var restoredRt = RefineTypes.regenerateInfers(this, freshGXsSet, sig.ret());
-    var restoredSig = new E.Sig(sig.mdf(), sig.gens(), sig.bounds(), restoredArgs, restoredRt, sig.pos());
-    return Optional.of(new FullMethSig(firstMs.name(), restoredSig));
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, Id.MethName name, int depth){
