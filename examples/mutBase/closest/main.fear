@@ -1,16 +1,17 @@
 package closest
 Test:Main{ _ -> Do#
-  .var[Int] closest = { Closest#(LList#[Int]35 + 52 + 84 + 14, 49) }
-  .return{ Assert#(closest == 52, closest.str, {{}}) }
+  .var[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
+  .assert({closest == 52}, closest.str)
+  .return{{}}
   }
 Closest:{
   #(ns: LList[Int], target: Int): Int -> Do#
-    .do{ Assert#(ns.isEmpty.not, "empty list :-(", {{}}) }
+    .assert({ns.isEmpty.not}, "empty list :-(")
     .var[Int] closest' = { (ns.get(0u))! }
     .var[mut Ref[Int]] closest = { Ref#closest' }
     .do{ mut Closest'{ 'self
       h, t -> h.match{
-        .none -> {},
+        .empty -> {},
         .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
           .then -> closest := n,
           .else -> self#(t.head, t.tail)

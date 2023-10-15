@@ -1,7 +1,7 @@
 package examples
-MyApp:Main{ args, s -> s
-  .use[IO] io = FIO
-  .use[Env] env = FEnv
+MyApp:Main{ s -> Do#
+  .var io = { FIO#s }
+  .var args = { FEnv#s.launchArgs }
   .return{ io.println(ImmMain#args) }
   }
 ImmMain:{

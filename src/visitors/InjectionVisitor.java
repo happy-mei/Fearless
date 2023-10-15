@@ -18,13 +18,14 @@ import java.util.stream.Collectors;
 
 public class InjectionVisitor implements FullVisitor<ast.E>{
   public ast.E.MCall visitMCall(E.MCall e) {
-    // TODO: WHYYYYYY
     var recv = e.receiver().accept(this);
-    assert e.ts().isPresent();
+    if (e.ts().isEmpty()) {
+      throw Fail.couldNotInferCallGenerics(e.name()).pos(e.pos());
+    }
     return new ast.E.MCall(
       recv,
       e.name(),
-      e.ts().orElseThrow().stream().map(this::visitTInGens).toList(),
+      e.ts().get().stream().map(this::visitTInGens).toList(),
       e.es().stream().map(ei->ei.accept(this)).toList(),
       e.pos()
     );
@@ -87,7 +88,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
 
   public ast.E.Meth visitMeth(E.Meth m){
     if (m.sig().isEmpty() || m.name().isEmpty()) {
-      throw Fail.inferFailed(m.toString());
+      throw Fail.inferFailed(m.toString()).pos(m.pos());
     }
     return new ast.E.Meth(
       visitSig(m.sig().orElseThrow()),

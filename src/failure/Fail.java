@@ -237,6 +237,10 @@ public class Fail{
     return of("Trait declarations may not have a self-name other than \"this\".");
   }
 
+  public static CompileError couldNotInferCallGenerics(Id.MethName name) {
+    return of("Could not infer the generic type arguments for the method call to "+name);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -295,7 +299,7 @@ enum ErrorCode {
   privateTraitImplementation,
   mustProvideImplsIfMdfProvided,
   namedTopLevelLambda,
-  UNUSED1,
+  couldNotInferCallGenerics,
   UNUSED2,
   xTypeError,
   lambdaTypeError;
