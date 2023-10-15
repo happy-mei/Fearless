@@ -162,7 +162,7 @@ public record InferBodies(ast.Program p) {
   }
   List<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, cm->cm.name().equals(name));
+    return p.fullSig(XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, cm->cm.name().nameArityEq(name));
   }
 
   Optional<E> methCall(Map<String, T> gamma, E.MCall e, int depth) {

@@ -2,6 +2,7 @@ package visitors;
 
 import ast.T;
 import astFull.E;
+import failure.CompileError;
 import failure.Fail;
 import id.Id;
 import id.Mdf;
@@ -74,9 +75,6 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
       // TODO: throw Fail.....
       throw Bug.todo();
     }
-    // TODO: this has unintended (although maybe positive) side-effects
-    // TODO: The best thing might be to just not infer iso generic params
-//    if (t.mdf().isIso()) { t = t.withMdf(Mdf.mut); }
     return t.toAstT();
   }
 
@@ -88,7 +86,9 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   public ast.E.Meth visitMeth(E.Meth m){
-    // TODO: throw CompileError (i.e. no single abstract method)
+    if (m.sig().isEmpty() || m.name().isEmpty()) {
+      throw Fail.inferFailed(m.toString());
+    }
     return new ast.E.Meth(
       visitSig(m.sig().orElseThrow()),
       m.name().orElseThrow(),
