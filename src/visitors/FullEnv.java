@@ -24,7 +24,7 @@ public record FullEnv(List<String> xs, List<T> ts, List<Id.GX<T>> gxs, T decT) {
   }
   public FullEnv add(E.Meth m){
     return new FullEnv(
-      Push.of(xs,m.xs()),
+      Push.of(xs, m.xs().stream().map(x->x.equals("_") ? E.X.freshName() : x).toList()),
       Push.of(ts,m.sig().map(E.Sig::ts)
         .orElseGet(()->Collections.nCopies(m.xs().size(), T.infer))),
       m.sig().map(sig->Push.of(gxs,sig.gens())).orElse(gxs),

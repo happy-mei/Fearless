@@ -401,9 +401,9 @@ public class TestJavaProgram {
         .var res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
         .var counter = { Count.int(42) }
         .do{ res* := "mutability!" }
-        .do{ Yeet#(counter++) }
+        .do{ Do#(counter++) }
         .if{ False }.return{ Ref#[Str]"Short cut" }
-        .if{ True }.do{ Yeet#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
+        .if{ True }.do{ Do#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
         .if{ True }.do{ res* := "moar mutability" }
         .if{ retCounter.not }.return{ res* }
         .return{ Ref#(counter*.str) }
@@ -430,9 +430,9 @@ public class TestJavaProgram {
         .var res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
         .var counter = { Count.int(42) }
         .do{ res* := "mutability!" }
-        .do{ Yeet#(counter++) }
+        .do{ Do#(counter++) }
         .if{ False }.return{ Ref#[Str]"Short cut" }
-        .if{ True }.do{ Yeet#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
+        .if{ True }.do{ Do#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
         .if{ True }.do{ res* := "moar mutability" }
         .if{ retCounter.not }.return{ res* }
         .return{ Ref#(counter*.str) }
@@ -716,7 +716,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Do#
       .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
-      .do{ Yeet#(a.mutate{ mt -> Yeet#(mt.n++) }) }
+      .do{ Do#(a.mutate{ mt -> Do#(mt.n++) }) }
       .return{ Assert!(Usage#(a!) == 1) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }

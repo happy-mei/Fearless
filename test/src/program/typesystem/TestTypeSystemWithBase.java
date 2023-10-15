@@ -300,7 +300,7 @@ public class TestTypeSystemWithBase {
       .return{{}}
       }
     A:{
-      #(l: mut List[read Person], p: read Person): mut List[read Person] -> Yeet.with(l.add(p), l),
+      #(l: mut List[read Person], p: read Person): mut List[read Person] -> Do#(l.add(p), l),
       }
     """, Base.mutBaseAliases); }
   @Test void unsoundHygienicLList() { fail("""

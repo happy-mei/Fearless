@@ -8,7 +8,7 @@ Ref[X:imm,mut,read]:Sealed{
   read *: read X -> this.get[],
 
   mut .swap(x: mdf X): mdf X,
-  mut :=(x: mdf X): Void -> Yeet#(this.swap(x)),
+  mut :=(x: mdf X): Void -> Do#(this.swap(x)),
   mut .set(x: mdf X): Void -> this := x,
   mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*[])),
   mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,

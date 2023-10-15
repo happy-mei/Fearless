@@ -25,7 +25,7 @@ public record Env(List<String> xs, List<T> ts, List<Id.GX<T>> gxs, T decT, List<
   }
   public Env add(E.Meth m){
     return new Env(
-      Push.of(xs,m.xs()),
+      Push.of(xs, m.xs().stream().map(x->x.equals("_") ? astFull.E.X.freshName() : x).toList()),
       Push.of(ts,m.sig().ts()),
       Push.of(gxs, m.sig().gens()),
       decT.withMdf(m.sig().mdf()),

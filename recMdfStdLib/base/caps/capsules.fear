@@ -13,7 +13,7 @@ IsoPod[T: imm,iso]:{
   lent :=(val: iso T): Void -> this.next(val),
   lent .mutate(f: F[mut T, Void]): Void -> this.next(IsoMutator#(f, this.consume)),
   }
-IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Yeet.with(f#val, val) }
+IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Do#(f#val, val) }
 IsoViewer[T,R]:{
   mut .some(x: readOnly T): mdf R,
   mut .none: mdf R,

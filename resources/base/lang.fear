@@ -21,9 +21,3 @@ F[R:read,mut,imm,iso]:{ read #: mdf R }
 F[A:read,mut,imm,iso,R:read,mut,imm,iso]:{ read #(a: mdf A): mdf R }
 F[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: mdf A, b: mdf B): mdf R }
 F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: mdf A, b: mdf B, c: mdf C): mdf R }
-
-// TODO: could be overloads on Do
-Yeet:{
-  #[X:read,mut,imm,iso](x: mdf X): Void -> this.with(x, Void),
-  .with[X:read,mut,imm,iso, R:read,mut,imm,iso](_: mdf X, res: mdf R): mdf R -> res,
-  }

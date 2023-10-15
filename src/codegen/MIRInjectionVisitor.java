@@ -151,6 +151,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     var g = new HashMap<>(gamma);
     List<MIR.X> xs = Streams.zip(m.xs(), m.sig().ts())
       .map((x,t)->{
+        if (x.equals("_")) { x = astFull.E.X.freshName(); }
         g.put(x, t);
         return new MIR.X(x, t);
       })

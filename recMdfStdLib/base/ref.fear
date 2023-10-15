@@ -5,7 +5,7 @@ Ref[X:imm,mut]:Sealed{
   recMdf *: recMdf X,
   recMdf .get: recMdf X -> this*,
   mut .swap(x: mdf X): mdf X,
-  mut :=(x: mdf X): Void -> Yeet#(this.swap(x)),
+  mut :=(x: mdf X): Void -> Do#(this.swap(x)),
   mut .set(x: mdf X): Void -> this := x,
   mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
   mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,

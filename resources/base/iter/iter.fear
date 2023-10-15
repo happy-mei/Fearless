@@ -23,7 +23,7 @@ Iter[E]:{
       .next -> optCurIter*[].match[mut Opt[mdf R]]{
         .some(curIter) -> curIter.next.match[mut Opt[mdf R]]{
           .some(next) -> Opt#next,
-          .empty -> Yeet.with(optCurIter := (mapIter.next), self.next)
+          .empty -> Do#(optCurIter := (mapIter.next), self.next)
           },
         .empty -> {}
         }
@@ -35,12 +35,12 @@ Iter[E]:{
     .empty -> acc
     },
   mut .for(f: mut IterForEacher[mdf E]): Void -> this.next.match[Void]{
-    .some(e) -> Yeet.with(f#e, this.for(f)),
+    .some(e) -> Do#(f#e, this.for(f)),
     .empty -> {}
     },
 
   mut .count: UInt -> this.fold[UInt](0u, mut IterFolder[mdf E, UInt]{ acc, _ -> acc + 1u }),
-  mut .list: mut List[mdf E] -> this.fold(List#[mdf E], { acc, e -> Yeet.with(acc.add(e), acc) }),
+  mut .list: mut List[mdf E] -> this.fold(List#[mdf E], { acc, e -> Do#(acc.add(e), acc) }),
   mut .llist: mut LList[mdf E] -> this.fold(mut LList[mdf E], { acc, e -> acc +[] e }),
   mut .str(toStr: mut IterMapper[mdf E, Str], joining: Str): Str -> this.map(toStr)
     .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e,
@@ -60,5 +60,5 @@ IterMapper[E,R]:OptMap[mdf E, mdf R]
 IterPredicate[E]:{ mut #(e: mdf E): Bool }
 
 //_ListIsoAdd[E]:{
-//  #(l: mut List[mdf E], e: mdf E): mut List[mdf E] -> Yeet.with(l.add(e), l),
+//  #(l: mut List[mdf E], e: mdf E): mut List[mdf E] -> Do#(l.add(e), l),
 //  }

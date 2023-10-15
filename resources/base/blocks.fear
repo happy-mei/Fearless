@@ -5,6 +5,11 @@ Condition:{ mut #: Bool }
 VarContinuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
 Do:{
   #[R]: mut Block[mdf R] -> {},
+  #[X:read,mut,imm,iso](x: mdf X): Void -> this#(x, Void),
+  #[X:read,mut,imm,iso, R:read,mut,imm,iso](_: mdf X, res: mdf R): mdf R -> res,
+  #[X1:read,mut,imm,iso, X2:read,mut,imm,iso, R:read,mut,imm,iso](_: mdf X1, _: mdf X2, res: mdf R): mdf R -> res,
+  #[X1:read,mut,imm,iso, X2:read,mut,imm,iso, X3:read,mut,imm,iso, R:read,mut,imm,iso](_: mdf X1, _: mdf X2, _: mdf X3, res: mdf R): mdf R -> res,
+  #[X1:read,mut,imm,iso, X2:read,mut,imm,iso, X3:read,mut,imm,iso, X4:read,mut,imm,iso, R:read,mut,imm,iso](_: mdf X1, _: mdf X2, _: mdf X3, _: mdf X4, res: mdf R): mdf R -> res,
   }
 Block[R]:{
   mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
