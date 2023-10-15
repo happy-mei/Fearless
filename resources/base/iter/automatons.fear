@@ -1,10 +1,24 @@
 package base.iter.automatons
 alias base.F as F,
-alias base.LList as LList,
 alias base.Opt as Opt,
 alias base.Void as Void,
 alias base.Bool as Bool, alias base.True as True, alias base.False as False,
 alias base.Let as Let,
 alias base.Do as Do,
+//alias base.LList as LList,
 
 
+Output[A,R]:{
+  mut .next: mut Auto[mdf A, mdf R],
+  imm  .next: mut Auto[A, mdf R],
+  read .next: mut Auto[read A, mdf R],
+
+  mut  .result: mdf R,
+  imm  .result: R,
+  read .result: read R,
+
+  read .completed: Bool -> False,
+  }
+
+Auto:{}
+Auto[A,R]:{}
