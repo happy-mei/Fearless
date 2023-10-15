@@ -41,6 +41,9 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName(".uint", 0))) {
           return instantiate(); // only different at type level
         }
+        if (m.equals(new Id.MethName(".clone", 0))) {
+          return instantiate();
+        }
         if (m.equals(new Id.MethName(".float", 0))) {
           return "("+"(double)"+instantiate()+")";
         }
@@ -101,6 +104,9 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate(); // only different at type level
         }
+        if (m.equals(new Id.MethName(".clone", 0))) {
+          return instantiate();
+        }
         if (m.equals(new Id.MethName(".float", 0))) {
           return "("+"(double)"+instantiate()+")";
         }
@@ -158,6 +164,9 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName(".int", 0)) || m.equals(new Id.MethName(".uint", 0))) {
           return "("+"(long)"+instantiate()+")";
+        }
+        if (m.equals(new Id.MethName(".clone", 0))) {
+          return instantiate();
         }
         if (m.equals(new Id.MethName(".str", 0))) {
           return "Double.toString("+instantiate()+")";
@@ -294,17 +303,16 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
               protected Object x = %s;
               protected boolean isAlive = true;
               
-              public base.Bool_0 isAlive$() { return this.isAlive ? base.True_0._$self : base.False_0._$self; }
-              public Object peek$(Object f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$(this.x) : ((base$46caps.IsoViewer_2)f).none$(); }
-              public Object peekHyg$(Object f) { return this.isAlive ? ((base$46caps.IsoViewerHyg_2)f).some$(this.x) : ((base$46caps.IsoViewerHyg_2)f).none$(); }
-              public Object consume$() {
+              public base.Bool_0 isAlive$readOnly$() { return this.isAlive ? base.True_0._$self : base.False_0._$self; }
+              public Object peek$readOnly$(Object f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$mut$(this.x) : ((base$46caps.IsoViewer_2)f).empty$mut$(); }
+              public Object $33$mut$() {
                 if (!this.isAlive) {
                   throw new RuntimeException("Cannot consume an empty IsoPod.");
                 }
                 this.isAlive = false;
                 return this.x;
               }
-              public base.Void_0 next$(Object x) { this.isAlive = true; this.x = x; return new base.Void_0(){}; }
+              public base.Void_0 next$mut$(Object x) { this.isAlive = true; this.x = x; return new base.Void_0(){}; }
             }
             """, x.accept(gen)));
         }
@@ -357,7 +365,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
             switch (1) { default -> {
               System.err.println("Program aborted at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
               System.exit(1);
-              yield null;
+              yield (Object)null;
             }}
             """);
         }
@@ -379,7 +387,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
             switch (1) { default -> {
               System.err.println("No magic code was found at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
               System.exit(1);
-              yield null;
+              yield (Object)null;
             }}
             """);
         }

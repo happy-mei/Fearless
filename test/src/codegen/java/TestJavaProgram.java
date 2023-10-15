@@ -685,7 +685,17 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Do#
       .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
-      .return{ Assert!(Usage#(a*) == 0) }
+      .return{ Assert!(Usage#(a!) == 0) }
+      }
+    Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
+    MutThingy:{ mut .n: mut Count[Int] }
+    MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { n }  }
+    """, Base.mutBaseAliases); }
+  @Test void isoPod1Consume() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _ -> Do#
+      .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
+      .return{ Assert!(a.consume{.some(n) -> Usage#n, .empty -> 500} == 0) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
     MutThingy:{ mut .n: mut Count[Int] }
@@ -696,7 +706,7 @@ public class TestJavaProgram {
     Test:Main{ _ -> Do#
       .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
       .do{ a.next(MutThingy'#(Count.int(5))) }
-      .return{ Assert!(Usage#(a*) == 5) }
+      .return{ Assert!(Usage#(a!) == 5) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
     MutThingy:{ mut .n: mut Count[Int] }
@@ -707,11 +717,21 @@ public class TestJavaProgram {
     Test:Main{ _ -> Do#
       .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
       .do{ Yeet#(a.mutate{ mt -> Yeet#(mt.n++) }) }
-      .return{ Assert!(Usage#(a*) == 1) }
+      .return{ Assert!(Usage#(a!) == 1) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
     MutThingy:{ mut .n: mut Count[Int] }
     MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { n }  }
+    """, Base.mutBaseAliases); }
+  @Test void isoPodNoImmFromPeekOk() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _ -> Do#
+      .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
+      .var[Int] ok = { a.peek[Int]{ .some(m) -> m.rn*.clone + 0, .empty -> base.Abort! } }
+      .return{Void}
+      }
+    MutThingy:{ mut .n: mut Count[Int], read .rn: read Count[Int] }
+    MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { .n -> n, .rn -> n }  }
     """, Base.mutBaseAliases); }
 
   @Test void envFromRootAuth() { okWithArgs(new Res("hi bye", "", 0), "test.Test", List.of("hi", "bye"), """

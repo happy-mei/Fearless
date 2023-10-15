@@ -1,0 +1,42 @@
+package base.caps
+
+// Allowing imm in the bounds for the convenience of being able to write IsoPod[Str] instead of IsoPod[iso Str]
+IsoPod:{ #[T:imm,iso](val: iso T): mut IsoPod[iso T] -> base.Magic! }
+IsoPod[T:imm,iso]:{
+  readOnly .isAlive: Bool -> Magic!,
+  readOnly .isDead: Bool -> this.isAlive.not,
+  readOnly .peek[R](f: mut IsoViewer[T, mdf R]): mdf R -> Magic!,
+  mut !: iso T -> Magic!,
+  mut .consume[R](f: mut IsoConsumer[T, mdf R]): mdf R -> this.isAlive ? { .then -> f.some(this!), .else -> f.empty },
+  mut .next(val: iso T): Void -> Magic!,
+  mut :=(val: iso T): Void -> this.next(val),
+  mut .mutate(f: F[mut T, Void]): Bool -> this.consume{
+    .some(x) -> Yeet.with(this.next(_IsoMutator#(f, x)), True),
+    .empty -> False,
+    }
+  }
+IsoConsumer[T,R]:{
+  mut .some(x: iso T): mdf R,
+  mut .empty: mdf R,
+  }
+IsoViewer[T,R]:{
+  mut .some(x: readOnly T): mdf R,
+  mut .empty: mdf R,
+  }
+_IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Yeet.with(f#val, val) }
+
+// TODO The idea:
+//IsoPod[T]:{
+//  mut .consume:iso T,
+//  mut .update(val: iso T):Void,
+//  readOnly .observe[R](obs:mut Observer[T,mdf R]):mdf R->..,
+//  mut .change[R](f:F[mut T, R]):imm R->consume, call f, update back
+//  readOnly .spawn(f:F[readOnly T,mdf R])->Node[??]{f=ff, self=this} + add a
+//ref to the result to a list of spawn
+//   //every time we call update OR change we do something for all the
+//spowened: lazy/now/eager
+//
+//  }
+//Observer[T,R]:{ mut #(content:readOnly T):mdf R }
+//F[readOnly T]
+//Node[T,R]:{ }

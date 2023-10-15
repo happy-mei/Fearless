@@ -977,7 +977,7 @@ were valid:
       }
     """); }
   @Test void recMdfCannotBeSubtypeOfMdf2() { fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:2:7
+    In position [###]/Dummy0.fear:2:7
     [E30 badCapture]
     'mut test.M[]' cannot be captured by an imm method in an imm lambda.
     """, """
@@ -2050,7 +2050,7 @@ were valid:
     Break:{ #(foo: readOnly Foo): readOnly Box[readOnly Foo] -> readOnly Box#foo }
     """); }
   @Test void unsoundHygRecMdfCapture() { fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:3:10
+    In position [###]/Dummy0.fear:3:10
     [E30 badCapture]
     'readOnly test.Foo[]' cannot be captured by a mut method in a mut lambda.
     """, """
@@ -2113,6 +2113,133 @@ were valid:
     DoIt:{
       .m1(red: mut Red[read Foo]): mut Red[Foo] -> red,
       .m2(red: mut Red[Foo]): mut Red[read Foo] -> red,
+      }
+    """); }
+
+  @Test void readToReadOnlyPromotion1() { ok("""
+    package test
+    Test:{ #(r: readOnly Box[Foo]): readOnly Foo -> r.get }
+    """, """
+    package test
+    Foo:{}
+    Box[X]:{
+      mut  .get: mdf X,
+      read .get: read X,
+      }
+    """); }
+  @Test void readToReadOnlyPromotion1ImmRet() { fail("""
+    In position [###]/Dummy0.fear:2:39
+    [E28 undefinedName]
+    The identifier "r" is undefined or cannot be captured.
+    """, """
+    package test
+    Test:{ #(r: readOnly Box[Foo]): Foo -> r.get }
+    """, """
+    package test
+    Foo:{}
+    Box[X]:{
+      mut  .get: mdf X,
+      read .get: read X,
+      }
+    """); }
+  @Test void readToReadOnlyPromotion2() { ok("""
+    package test
+    Test:{ #(r: read Box[Foo]): readOnly Foo -> r.get }
+    """, """
+    package test
+    Foo:{}
+    Box[X]:{
+      mut  .get: mdf X,
+      read .get: read X,
+      }
+    """); }
+  @Test void readToReadOnlyPromotion3() { ok("""
+    package test
+    Test1:{ #(r: readOnly MutyBox): readOnly Foo -> r.rb.get }
+    Test2:{ #(r: read MutyBox): read Foo -> r.rb.get }
+    MutyBox:{ mut .mb: mut Box[Foo], read .rb: read Box[Foo] }
+    """, """
+    package test
+    Foo:{}
+    Box[X]:{
+      mut  .get: mdf X,
+      read .get: read X,
+      }
+    """); }
+  @Test void readToReadOnlyPromotion3Fail() { fail("""
+    In position [###]/Dummy0.fear:2:48
+    [E33 callTypeError]
+    Type error: None of the following candidates (returning the expected type "read test.Foo[]") for this method call:
+    r .rb/0[]([]) .get/0[]([])
+    were valid:
+    (read test.Box[imm test.Foo[]]) <: (mut test.Box[imm test.Foo[]]): imm test.Foo[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:2:45
+        [E32 noCandidateMeths]
+        When attempting to type check the method call: r .rb/0[]([]), no candidates for .rb/0 returned the expected type mut test.Box[imm test.Foo[]]. The candidates were:
+        (read test.MutyBox[]): read test.Box[imm test.Foo[]]
+        (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
+        (readOnly test.MutyBox[]): readOnly test.Box[imm test.Foo[]]
+        
+    (read test.Box[imm test.Foo[]]) <: (iso test.Box[imm test.Foo[]]): imm test.Foo[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:2:45
+        [E32 noCandidateMeths]
+        When attempting to type check the method call: r .rb/0[]([]), no candidates for .rb/0 returned the expected type iso test.Box[imm test.Foo[]]. The candidates were:
+        (read test.MutyBox[]): read test.Box[imm test.Foo[]]
+        (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
+        (readOnly test.MutyBox[]): readOnly test.Box[imm test.Foo[]]
+        
+    (read test.Box[imm test.Foo[]]) <: (lent test.Box[imm test.Foo[]]): imm test.Foo[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:2:45
+        [E32 noCandidateMeths]
+        When attempting to type check the method call: r .rb/0[]([]), no candidates for .rb/0 returned the expected type lent test.Box[imm test.Foo[]]. The candidates were:
+        (read test.MutyBox[]): read test.Box[imm test.Foo[]]
+        (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
+        (readOnly test.MutyBox[]): readOnly test.Box[imm test.Foo[]]
+        
+    (read test.Box[imm test.Foo[]]) <: (read test.Box[imm test.Foo[]]): read test.Foo[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:2:45
+        [E33 callTypeError]
+        Type error: None of the following candidates (returning the expected type "read test.Box[imm test.Foo[]]") for this method call:
+        r .rb/0[]([])
+        were valid:
+        (readOnly test.MutyBox[]) <: (read test.MutyBox[]): read test.Box[imm test.Foo[]]
+          The following errors were found when checking this sub-typing:
+            In position [###]/Dummy0.fear:2:44
+            [E53 xTypeError]
+            Expected r to be read test.MutyBox[], got readOnly test.MutyBox[].
+       \s
+        (readOnly test.MutyBox[]) <: (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
+          The following errors were found when checking this sub-typing:
+            In position [###]/Dummy0.fear:2:44
+            [E53 xTypeError]
+            Expected r to be imm test.MutyBox[], got readOnly test.MutyBox[].
+        
+    (read test.Box[imm test.Foo[]]) <: (imm test.Box[imm test.Foo[]]): imm test.Foo[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:2:45
+        [E33 callTypeError]
+        Type error: None of the following candidates (returning the expected type "imm test.Box[imm test.Foo[]]") for this method call:
+        r .rb/0[]([])
+        were valid:
+        (readOnly test.MutyBox[]) <: (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
+          The following errors were found when checking this sub-typing:
+            In position [###]/Dummy0.fear:2:44
+            [E53 xTypeError]
+            Expected r to be imm test.MutyBox[], got readOnly test.MutyBox[].
+    """, """
+    package test
+    Test1:{ #(r: readOnly MutyBox): read Foo -> r.rb.get }
+    MutyBox:{ mut .mb: mut Box[Foo], read .rb: read Box[Foo] }
+    """, """
+    package test
+    Foo:{}
+    Box[X]:{
+      mut  .get: mdf X,
+      read .get: read X,
       }
     """); }
 }

@@ -519,5 +519,18 @@ public class TestTypeSystemWithBase {
       }
     """, Base.mutBaseAliases); }
 
+  @Test void isoPodNoImmFromPeek() { fail("""
+    [###]
+    """, """
+    package test
+    Test:Main{ _ -> Do#
+      .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
+      .var[imm Count[Int]] ok = { a.peek[Count[Int]]{ .some(m) -> m.rn, .empty -> base.Abort! } }
+      .return{Void}
+      }
+    MutThingy:{ mut .n: mut Count[Int], read .rn: read Count[Int] }
+    MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { .n -> n, .rn -> n }  }
+    """, Base.mutBaseAliases); }
+
   //TODO: test that makes sure we can turn a mut List[mut Person] into a read List[read Person] via adaptorOk
 }

@@ -34,6 +34,7 @@ _MathOps[T]:Sealed{
   /(n: T): T,
   %(n: T): T,
   .abs: T,
+  readOnly .clone: T,
 
   // Comparisons
   >(n: T): Bool,
@@ -65,6 +66,7 @@ _IntInstance:Int{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .clone -> Magic!,
 
   // bitwise
   >>(n) -> Magic!,
@@ -91,6 +93,7 @@ _UIntInstance:UInt{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .clone -> Magic!,
 
   // bitwise
   >>(n) -> Magic!,
@@ -124,6 +127,7 @@ _FloatInstance:Float{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .clone -> Magic!,
   // Comparisons
   >n -> Magic!,
   <n -> Magic!,
