@@ -212,8 +212,8 @@ public record InferBodies(ast.Program p) {
       var refined = refiner.refineSig(c.mdf(), recv, List.of(baseSig), depth);
       var refinedSig = refined.sigs().get(0);
 //      var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
-      var fixedRecv = refiner.fixType(e.receiver(), new T(c.mdf(), refined.c()), depth);
-      var fixedArgs = refiner.fixSig(e.es(), refinedSig.args(), depth);
+      var fixedRecv = refiner.fixType(e.receiver(), new T(c.mdf(), refined.c()));
+      var fixedArgs = refiner.fixSig(e.es(), refinedSig.args());
       var fixedGens = e.ts().map(userGens->replaceOnlyInfers(userGens, refinedSig.gens())).orElse(refinedSig.gens());
 
       assert refinedSig.name().equals(e.name());

@@ -9,16 +9,20 @@ alias base.Do as Do,
 
 
 Output[A,R]:{
-  mut .next: mut Auto[mdf A, mdf R],
   imm  .next: mut Auto[A, mdf R],
+  mut  .next: mut Auto[mdf A, mdf R],
   read .next: mut Auto[read A, mdf R],
 
-  mut  .result: mdf R,
   imm  .result: R,
+  mut  .result: mdf R,
   read .result: read R,
 
   read .completed: Bool -> False,
   }
 
-Auto:{}
-Auto[A,R]:{}
+Auto:{
+
+  }
+Auto[A,R]:{
+  imm .step(a: A): mut Opt[mut Output[A,R]],
+  }

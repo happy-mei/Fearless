@@ -2254,4 +2254,10 @@ were valid:
       read .get: read X,
       }
     """); }
+
+  @Test void inferMultipleTraits1() { ok("""
+    package a
+    A:{ .foo: A } B:{ .bar: B -> this }
+    Test:{ #: B -> A,B{'self .foo -> self } }
+    """); }
 }

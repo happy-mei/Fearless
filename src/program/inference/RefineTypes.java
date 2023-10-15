@@ -92,13 +92,21 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
       || ret.isInfer() || ret.rt() instanceof Id.IT<?>;
     return res;
   }
-  List<E> fixSig(List<E> ies, List<T> iTs, int depth) {
-    return Streams.zip(ies, iTs).map((ie, iT)->fixType(ie, iT, depth)).toList();
+  List<E> fixSig(List<E> ies, List<T> iTs) {
+    return Streams.zip(ies, iTs).map(this::fixType).toList();
   }
-  E fixType(E ie, T iT, int depth) { // TODO: not in formalism yet
-        return fixType(ie, iT);
-  }
+
   E fixType(E ie, T iT) {
+    // TODO: this if-statement enables multiple IT inference if we want it.
+    if (ie instanceof E.Lambda l && l.it().isPresent()) {
+      var best = best(ie.t(), iT);
+      var its = Stream.concat(l.its().stream(), Stream.of(l.it().get(), iT.itOrThrow()))
+        .filter(it->!it.equals(best.itOrThrow()))
+        .distinct()
+        .toList();
+      l = l.withITs(its);
+      return l.withT(best);
+    }
     return ie.withT(best(ie.t(), iT));
   }
   T best(T iT1, T iT2) {

@@ -128,6 +128,30 @@ public class TestInferBodies {
     Id:{ mut .id[X](x: mut X): mut X -> this.id[mut X](x) }
     """); }
 
+  @Test void inferMultipleTraits1() { ok("""
+    {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-mdf-][a.A[]]{'this.foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.A[]]->[-]}],
+    a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-mdf-][a.B[]]{'this.bar/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->this}],
+    a.Test/0=Dec[name=a.Test/0,gxs=[],lambda=[-mdf-][a.Test[]]{'this
+      #/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->
+        [-imm-][a.A[],a.B[]]{'self.foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.A[]]->self}}]}
+    """, """
+    package a
+    A:{ .foo: A } B:{ .bar: B -> this }
+    Test:{ #: B -> A,B{'self .foo -> self } }
+    """); }
+  // TODO: an if-statement in fixType will make this pass if we want it
+  @Test void inferMultipleTraits2() { ok("""
+    {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-mdf-][a.A[]]{'this.foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.A[]]->this}],
+    a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-mdf-][a.B[]]{'this.bar/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->this}],
+    a.Test/0=Dec[name=a.Test/0,gxs=[],lambda=[-mdf-][a.Test[]]{'this
+      #/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.B[]]->
+        [-imm-][a.A[],a.B[]]{'fear0$}}]}
+    """, """
+    package a
+    A:{ .foo: A -> this } B:{ .bar: B -> this }
+    Test:{ #: B -> A }
+    """); }
+
   @Test void immOpt() { ok("""
     {test.OptDo/1=Dec[name=test.OptDo/1,gxs=[T],lambda=[-mdf-][test.OptDo[mdfT],test.OptMatch[immT,immtest.Void[]]]{'this
       #/1([t]):Sig[mdf=imm,gens=[],ts=[immT],ret=immtest.Void[]]->[-],
