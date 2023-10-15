@@ -11,10 +11,10 @@ import id.Id.MethName;
 import id.Mdf;
 import program.CM;
 import program.TypeRename;
+import utils.Bug;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
-import visitors.Visitor;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -81,6 +81,10 @@ public interface EMethTypeSystem extends ETypeSystem {
         var call = CompletableFuture.supplyAsync(()->Streams.zip(es, tst1.ts()).map((e1,t1)->guessToStr(e1.accept(guessFullType)))
           .collect(Collectors.joining(", ")))
           .completeOnTimeout("<timed out>", 100, TimeUnit.MILLISECONDS)
+          .exceptionally(err->switch (err.getCause()) {
+            case CompileError ce -> ce.header();
+            default -> throw Bug.of(err);
+          })
           .join();
         var dependentErrorMsgs = nestedErrors.removeFirst().stream()
           .map(CompileError::toString)

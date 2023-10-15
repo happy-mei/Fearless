@@ -49,7 +49,7 @@ public class Fail{
     var arr=Thread.currentThread().getStackTrace();
     var kind=arr[2].getMethodName();
     int code=ErrorCode.valueOf(kind).code();
-    return new CompileError("[E"+code+" "+kind+"]\n"+msg);
+    return new CompileError(code, kind, msg);
   }
 
   //ALL OUR ERRORS

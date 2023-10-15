@@ -2142,6 +2142,18 @@ were valid:
       read .get: read X,
       }
     """); }
+  @Test void readToReadOnlyPromotion1ImmRetRecMdf() { ok("""
+    package test
+    Test:{ #(r: readOnly Box[Foo]): Foo -> r.get }
+    """, """
+    package test
+    Foo:{}
+    Box[X]:{
+      mut  .get: mdf X,
+      read .get: read X,
+      recMdf .get: recMdf X,
+      }
+    """); }
   @Test void readToReadOnlyPromotion2() { ok("""
     package test
     Test:{ #(r: read Box[Foo]): readOnly Foo -> r.get }
