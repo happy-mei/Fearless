@@ -272,10 +272,21 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         return gen.visitLambda(l, false);
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
-        if (m.equals(new Id.MethName("#", 1)) || m.equals(new Id.MethName(".im", 1))) {
+        if (m.equals(new Id.MethName("#", 1))) {
           var x = args.get(0);
           return Optional.of(String.format("""
             new base.Ref_1(){
+              protected Object x = %s;
+              public Object get$mut$() { return this.x; }
+              public Object get$read$() { return this.x; }
+              public Object swap$mut$(Object x$) { var x1 = this.x; this.x = x$; return x1; }
+            }
+            """, x.accept(gen)));
+        }
+        if (m.equals(new Id.MethName(".im", 1))) {
+          var x = args.get(0);
+          return Optional.of(String.format("""
+            new base.RefImm_1(){
               protected Object x = %s;
               public Object get$mut$() { return this.x; }
               public Object get$read$() { return this.x; }

@@ -2,7 +2,7 @@ package base
 
 Ref:{
   #[X](x: mdf X): mut Ref[mdf X] -> Magic!,
-  readOnly #[X:imm](x: X): mut RefImm[mdf X] -> Magic!,
+  readOnly #[X](x: X): mut RefImm[X] -> Magic!,
   }
 Ref[X:imm,mut,read]:Sealed{
   mut  .get: mdf X,
@@ -15,12 +15,15 @@ Ref[X:imm,mut,read]:Sealed{
   mut .set(x: mdf X): Void -> this := x,
   mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*[])),
   mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
+  mut  .im: mut Opt[mut RefImm[X]] -> {},
+  read .im: mut Opt[read RefImm[X]] -> {},
   }
 UpdateRef[X]:{ mut #(x: mdf X): mdf X }
 
 RefImm[X:imm]:Ref[X]{
   read .get: X,
   read *: X -> this.get[],
+  .im -> Opt#this,
   }
 
 Count[N:imm]:Ref[N]{
