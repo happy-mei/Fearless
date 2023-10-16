@@ -116,6 +116,7 @@ public interface Base {
     alias base.AssertCont as AssertCont,
     alias base.Assert as Assert,
     alias base.Ref as Ref,
+    alias base.RefImm as RefImm,
     alias base.Count as Count,
     alias base.UpdateRef as UpdateRef,
     alias base.Str as Str,

@@ -1,6 +1,9 @@
 package base
 
-Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+Ref:{
+  #[X](x: mdf X): mut Ref[mdf X] -> Magic!,
+  readOnly #[X:imm](x: X): mut RefImm[mdf X] -> Magic!,
+  }
 Ref[X:imm,mut,read]:Sealed{
   mut  .get: mdf X,
   read .get: read X,
@@ -14,6 +17,11 @@ Ref[X:imm,mut,read]:Sealed{
   mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
   }
 UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+
+RefImm[X:imm]:Ref[X]{
+  read .get: X,
+  read *: X -> this.get[],
+  }
 
 Count[N:imm]:Ref[N]{
   mut ++: N,

@@ -500,5 +500,24 @@ public class TestTypeSystemWithBase {
     MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { .n -> n, .rn -> n }  }
     """, Base.mutBaseAliases); }
 
+  @Test void noImmFromRef() { fail("""
+    In position [###]/Dummy0.fear:2:37
+    [E28 undefinedName]
+    The identifier "r" is undefined or cannot be captured.
+    """, """
+    package test
+    Test:{
+      .m1(r: read Ref[Int]): Int -> r*,
+      .m2: Int -> this.m1(Ref#5),
+      }
+    """, Base.mutBaseAliases); }
+  @Test void immFromRefImm() { ok("""
+    package test
+    Test:{
+      .m1(r: read RefImm[Int]): Int -> r*,
+      .m2: Int -> this.m1(Ref#5),
+      }
+    """, Base.mutBaseAliases); }
+
   //TODO: test that makes sure we can turn a mut List[mut Person] into a read List[read Person] via adaptorOk
 }
