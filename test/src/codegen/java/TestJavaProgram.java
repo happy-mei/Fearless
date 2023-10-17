@@ -1229,4 +1229,43 @@ public class TestJavaProgram {
     Test:base.Main{ _ -> {} }
     MutLList:{ #: mut base.LList[base.Int] -> mut base.LList[base.Int] +[] 35 +[] 52 +[] 84 +[] 14 }
     """); }
+
+  @Test void immFromRefImm() { ok(new Res("5", "", 0), "test.Test", """
+    package test
+    Test:Main{
+      #(s) -> FIO#s.println(this.m2.str),
+      .m1(r: read RefImm[Int]): Int -> r.get,
+      .m2: Int -> this.m1(Ref#[Int]5),
+      }
+    """, Base.mutBaseAliases); }
+  @Test void immFromRefImmRecover() { ok(new Res("5", "", 0), "test.Test", """
+    package test
+    Test:Main{
+      #(s) -> FIO#s.println(this.m2.str),
+      .m1(r: read Ref[Int]): Int -> r.toImm!.get,
+      .m2: Int -> this.m1(Ref.ofImm[Int]5),
+      }
+    """, Base.mutBaseAliases); }
+  @Test void updateRefImm() { ok(new Res("12", "", 0), "test.Test", """
+    package test
+    Test:Main{
+      #(s) -> FIO#s.println(this.m2.str),
+      .m1(r: mut RefImm[Int]): Int -> Do#
+        .do{ r := 12 }
+        .var[read RefImm[Int]] rr = { r }
+        .return{ rr.get },
+      .m2: Int -> this.m1(Ref#[Int]5),
+      }
+    """, Base.mutBaseAliases); }
+  @Test void updateRefImmRecover() { ok(new Res("12", "", 0), "test.Test", """
+    package test
+    Test:Main{
+      #(s) -> FIO#s.println(this.m2.str),
+      .m1(r: mut Ref[Int]): Int -> Do#
+        .do{ r := 12 }
+        .var[read Ref[Int]] rr = { r }
+        .return{ rr.toImm!.get },
+      .m2: Int -> this.m1(Ref.ofImm[Int]5),
+      }
+    """, Base.mutBaseAliases); }
 }

@@ -67,7 +67,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     var tst = this.resolvedCalls.get(e);
     return new MIR.MCall(
       recv,
-      e.name(),
+      e.name().withMdf(Optional.of(tst.original().mdf())),
       e.es().stream().map(ei->ei.accept(this, pkg, gamma)).toList(),
       tst.t(),
       tst.original().mdf()

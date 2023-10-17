@@ -28,7 +28,7 @@ public class Id {
     return new parser.Parser(Parser.dummy,name).parseGX();      
   }
   public record DecId(String name,int gen){
-    public DecId{ assert validDecName(name) && gen>=0; }
+    public DecId{ assert validDecName(name) && gen>=0 : name; }
 
     static Pattern pkgRegex = Pattern.compile("(.+\\.)+([A-Za-z0-9_']+)\\$?$");
     public String pkg() {

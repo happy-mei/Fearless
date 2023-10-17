@@ -501,7 +501,7 @@ public class TestTypeSystemWithBase {
     """, Base.mutBaseAliases); }
 
   @Test void noImmFromRef() { fail("""
-    In position [###]/Dummy0.fear:2:37
+    In position [###]/Dummy0.fear:3:32
     [E28 undefinedName]
     The identifier "r" is undefined or cannot be captured.
     """, """
@@ -521,8 +521,21 @@ public class TestTypeSystemWithBase {
   @Test void immFromRefImmRecover() { ok("""
     package test
     Test:{
-      .m1(r: read Ref[Int]): Int -> r.im!.get,
-      .m2: Int -> this.m1(Ref#[Int]5),
+      .m1(r: read Ref[Int]): Int -> r.toImm!.get,
+      .m2: Int -> this.m1(Ref.ofImm[Int]5),
+      }
+    """, Base.mutBaseAliases); }
+  @Test void updateRefImmRecoverFail() { fail("""
+    [###]
+    """, """
+    package test
+    Test:Main{
+      #(s) -> FIO#s.println(this.m2.str),
+      .m1(r: mut Ref[Int]): Int -> Do#
+        .do{ r := 12 }
+        .var[read Ref[Int]] rr = { r }
+        .return{ rr.get },
+      .m2: Int -> this.m1(Ref.ofImm[Int]5),
       }
     """, Base.mutBaseAliases); }
 

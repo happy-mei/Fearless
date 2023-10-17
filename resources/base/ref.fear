@@ -2,7 +2,15 @@ package base
 
 Ref:{
   #[X](x: mdf X): mut Ref[mdf X] -> Magic!,
-  readOnly #[X](x: X): mut RefImm[X] -> Magic!,
+  readOnly #[X](x: X): mut RefImm[X] -> Ref.ofImm x,
+  .ofImm[X](x: X): mut RefImm[X] -> Let#{
+    .var -> Ref#(_BoxImm[X]{x}),
+      .in(ref) -> {
+         mut  .get: X -> ref.get.get,
+         read .get: X -> ref.get.get,
+         .swap(newX) -> ref.swap(_BoxImm[X]{newX}).get,
+         }
+      }
   }
 Ref[X:imm,mut,read]:Sealed{
   mut  .get: mdf X,
@@ -15,18 +23,18 @@ Ref[X:imm,mut,read]:Sealed{
   mut .set(x: mdf X): Void -> this := x,
   mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*[])),
   mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
-  mut  .im: mut Opt[mut RefImm[X]] -> {},
-  read .im: mut Opt[read RefImm[X]] -> {},
+  mut  .toImm: mut Opt[mut RefImm[X]] -> {},
+  read .toImm: mut Opt[read RefImm[X]] -> {},
   }
 UpdateRef[X]:{ mut #(x: mdf X): mdf X }
-
 RefImm[X:imm]:Ref[X]{
   read .get: X,
   read *: X -> this.get[],
-  .im -> Opt#this,
+  .toImm -> Opt#this,
   }
+_BoxImm[X]:{ read .get: X }
 
-Count[N:imm]:Ref[N]{
+Count[N:imm]:RefImm[N]{
   mut ++: N,
   mut --: N,
   mut +=(n: N): N,
@@ -36,7 +44,7 @@ Count[N:imm]:Ref[N]{
 Count:{
   #(n: Int): mut Count[Int] -> this.int(n),
   .int(n: Int): mut Count[Int] -> Let#({
-    .var -> Ref#n,
+    .var -> Ref.ofImm n,
     .in(c) -> {
       .get -> c.get,
       .swap(x) -> c.swap(x),
@@ -48,7 +56,7 @@ Count:{
       }
     }),
   .uint(n: UInt): mut Count[UInt] -> Let#({
-    .var -> Ref#n,
+    .var -> Ref.ofImm n,
     .in(c) -> {
       .get -> c.get,
       .swap(x) -> c.swap(x),
