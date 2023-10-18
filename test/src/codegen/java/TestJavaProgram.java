@@ -1242,8 +1242,16 @@ public class TestJavaProgram {
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: read Ref[Int]): Int -> r.toImm!.get,
+      .m1(r: read Ref[Int]): Int -> r.getImm!,
       .m2: Int -> this.m1(Ref.ofImm[Int]5),
+      }
+    """, Base.mutBaseAliases); }
+  @Test void immFromRefImmPrimitive() { ok(new Res("5", "", 0), "test.Test", """
+    package test
+    Test:Main{
+      #(s) -> FIO#s.println(this.m2.str),
+      .m1(r: read Ref[Int]): Int -> r.get.toImm,
+      .m2: Int -> this.m1(Ref#[Int]5),
       }
     """, Base.mutBaseAliases); }
   @Test void updateRefImm() { ok(new Res("12", "", 0), "test.Test", """
@@ -1264,7 +1272,7 @@ public class TestJavaProgram {
       .m1(r: mut Ref[Int]): Int -> Do#
         .do{ r := 12 }
         .var[read Ref[Int]] rr = { r }
-        .return{ rr.toImm!.get },
+        .return{ rr.getImm! },
       .m2: Int -> this.m1(Ref.ofImm[Int]5),
       }
     """, Base.mutBaseAliases); }
