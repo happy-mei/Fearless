@@ -214,7 +214,9 @@ public class Program implements program.Program{
           Mapper.of(xbs_->dec.bounds().forEach((gx,bs)->xbs_.put(new Id.GX<>(gx.name()), bs)))
         );
         var name=m.name().orElseGet(()->onlyAbs(xbs, dec));
-        if (m.xs().size() != name.num()) { throw Fail.cannotInferSig(dec.name(), name); }
+        if (m.xs().size() != name.num()) {
+          throw Fail.cannotInferSig(dec.name(), name);
+        }
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();
         return p.meths(xbs, Mdf.recMdf, dec.toAstT(), name, 0).stream()

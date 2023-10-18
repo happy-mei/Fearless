@@ -42,7 +42,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName(".uint", 0))) {
           return instantiate(); // only different at type level
         }
-        if (m.equals(new Id.MethName(".clone", 0))) {
+        if (m.equals(new Id.MethName(".toImm", 0))) {
           return instantiate();
         }
         if (m.equals(new Id.MethName(".float", 0))) {
@@ -105,7 +105,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate(); // only different at type level
         }
-        if (m.equals(new Id.MethName(".clone", 0))) {
+        if (m.equals(new Id.MethName(".toImm", 0))) {
           return instantiate();
         }
         if (m.equals(new Id.MethName(".float", 0))) {
@@ -166,7 +166,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName(".int", 0)) || m.equals(new Id.MethName(".uint", 0))) {
           return "("+"(long)"+instantiate()+")";
         }
-        if (m.equals(new Id.MethName(".clone", 0))) {
+        if (m.equals(new Id.MethName(".toImm", 0))) {
           return instantiate();
         }
         if (m.equals(new Id.MethName(".str", 0))) {
@@ -212,6 +212,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName(".len", 0))) { return Optional.of(instantiate()+".length()"); }
         if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of("("+instantiate()+".isEmpty()?base.True_0._$self:base.False_0._$self)"); }
         if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate()); }
+        if (m.equals(new Id.MethName(".toImm", 0))) { return Optional.of(instantiate()); }
         if (m.equals(new Id.MethName("+", 1))) { return Optional.of("("+instantiate()+"+"+args.get(0).accept(gen)+")"); }
         if (m.equals(new Id.MethName("==", 1))) {
           return Optional.of("("+instantiate()+".equals("+args.get(0).accept(gen)+")?base.True_0._$self:base.False_0._$self)");

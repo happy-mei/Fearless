@@ -521,7 +521,14 @@ public class TestTypeSystemWithBase {
   @Test void immFromRefImmRecover() { ok("""
     package test
     Test:{
-      .m1(r: read Ref[Int]): Int -> r.toImm!.get,
+      .m1(r: read Ref[Int]): Int -> r.getImm!,
+      .m2: Int -> this.m1(Ref.ofImm[Int]5),
+      }
+    """, Base.mutBaseAliases); }
+  @Test void immFromRefImmRecoverFreezer() { ok("""
+    package test
+    Test:{
+      .m1(r: read Ref[Int]): Int -> r.getImm{ _ -> Abort! },
       .m2: Int -> this.m1(Ref.ofImm[Int]5),
       }
     """, Base.mutBaseAliases); }

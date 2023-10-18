@@ -15,22 +15,23 @@ Ref:{
 Ref[X:imm,mut,read]:Sealed{
   mut  .get: mdf X,
   read .get: read X,
-  mut  *: mdf X -> this.get[],
-  read *: read X -> this.get[],
+  read .getImm(f: mut Freezer[read X, X]): X -> f#(this.get),
+  read .getImm: Opt[X] -> {},
+  mut  *: mdf X -> this.get,
+  read *: read X -> this.get,
 
   mut .swap(x: mdf X): mdf X,
   mut :=(x: mdf X): Void -> Do#(this.swap(x)),
   mut .set(x: mdf X): Void -> this := x,
-  mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*[])),
+  mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
   mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
-  mut  .toImm: mut Opt[mut RefImm[X]] -> {},
-  read .toImm: mut Opt[read RefImm[X]] -> {},
   }
 UpdateRef[X]:{ mut #(x: mdf X): mdf X }
 RefImm[X:imm]:Ref[X]{
   read .get: X,
-  read *: X -> this.get[],
-  .toImm -> Opt#this,
+  read *: X -> this.get,
+  .getImm(f) -> this.get,
+  .getImm -> Opt#(this.get),
   }
 _BoxImm[X]:{ read .get: X }
 

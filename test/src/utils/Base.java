@@ -133,5 +133,6 @@ public interface Base {
     alias base.OptMatch as OptMatch,
     alias base.iter.Iter as Iter,
     alias base.iter.Sum as Sum,
+    alias base.Abort as Abort,
     """;
 }

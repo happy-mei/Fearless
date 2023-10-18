@@ -1,9 +1,12 @@
 package base
-Str:Sealed,Collection{
+Str:Sealed{
   // Str is not Stringable due to limitations of the Java codegen target
   .str: Str,
+  .len: UInt,
+  .isEmpty: Bool,
   +(other: Str): Str,
   ==(other: Str): Bool,
+  readOnly .toImm: Str,
   }
 Stringable:{
   read .str: Str,
@@ -14,4 +17,5 @@ _StrInstance:Str{
   .str -> Magic!,
   +(other) -> Magic!,
   ==(other) -> Magic!,
+  .toImm -> Magic!,
   }

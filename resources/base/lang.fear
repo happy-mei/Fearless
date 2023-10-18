@@ -21,3 +21,6 @@ F[R:read,mut,imm,iso]:{ read #: mdf R }
 F[A:read,mut,imm,iso,R:read,mut,imm,iso]:{ read #(a: mdf A): mdf R }
 F[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: mdf A, b: mdf B): mdf R }
 F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: mdf A, b: mdf B, c: mdf C): mdf R }
+
+ToImm[R]:{ readOnly .toImm: R, }
+Freezer[T,R]:{ mut #(self: mdf T): R }
