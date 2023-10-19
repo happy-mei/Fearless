@@ -602,6 +602,27 @@ public class TestJavaProgram {
       .return{{}}
       }
     """, Base.mutBaseAliases); }
+  @Test void LListItersIterPar() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main{ _ -> Do#
+      .var[LList[Int]] l1 = { LList[Int] + 35 + 52 + 84 + 14 }
+      .do{ Assert!(l1.head! == (l1.iter2.cur!), "sanity", {{}}) }
+      .do{ Assert!((l1.iter2.find{n -> n > 60})! == 84, "find some", {{}}) }
+      .do{ Assert!((l1.iter2.find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert!((l1.iter2
+                      .map{n -> n * 10}
+                      .find{n -> n == 140})
+                      .isSome,
+        "map", {{}})}
+      .do{ Assert!(l1.iter2
+                    .filter{n -> n == 52 .not }
+                    .flatMap{n -> (LList[Int] + n + n + n).iter2}
+                    .map{n -> n * 10}
+                    .str({n -> n.str}, ";") == "350;350;350;840;840;840;140;140;140",
+        "flatMap", {{}})}
+      .return{{}}
+      }
+    """, Base.mutBaseAliases); }
   @Test void LListItersIterMut() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
@@ -1276,4 +1297,106 @@ public class TestJavaProgram {
       .m2: Int -> this.m1(Ref.ofImm[Int]5),
       }
     """, Base.mutBaseAliases); }
+
+  @Test void llistFilterMultiMdf() { ok(new Res("13, 14", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var io = { FIO#s }
+      .var[LList[Int]] l = { LList#[Int] + 12 + 13 + 14 }
+      .do { io.println(A.m1(l)) }
+      .return {{}}
+      }
+    A:{
+      .m1(l: LList[Int]): Str -> l.iter
+                                 .filter{n -> n >= (12.5 .round)}
+                                 .str({n->n.str}, ", ")
+      }
+    """, Base.mutBaseAliases);}
+  @Test void listFilterMultiMdf() { ok(new Res("13, 14", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var io = { FIO#s }
+      .var[List[Int]] l = { List#[Int](12, 13, 14) }
+      .do { io.println(A.m1(l)) }
+      .return {{}}
+      }
+    A:{
+      .m1(l: List[Int]): Str -> l.iter
+                                 .filter{n -> n >= (12.5 .round)}
+                                 .str({n->n.str}, ", ")
+      }
+    """, Base.mutBaseAliases);}
+
+  @Test void llistFilterMultiMdfMut() { ok(new Res("13, 14", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var io = { FIO#s }
+      .var[mut LList[Int]] l = { LList#[Int] + 12 + 13 + 14 }
+      .do { io.println(A.m1(l)) }
+      .return {{}}
+      }
+    A:{
+      .m1(l: mut LList[Int]): Str -> l.iter
+                                      .filter{n -> n >= (12.5 .round)}
+                                      .str({n->n.str}, ", ")
+      }
+    """, Base.mutBaseAliases);}
+  @Test void listFilterMultiMdfMut() { ok(new Res("13, 14", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var io = { FIO#s }
+      .var[mut List[Int]] l = { List#[Int](12, 13, 14) }
+      .do { io.println(A.m1(l)) }
+      .return {{}}
+      }
+    A:{
+      .m1(l: mut List[Int]): Str -> l.iter
+                                     .filter{n -> n >= (12.5 .round)}
+                                     .str({n->n.str}, ", ")
+      }
+    """, Base.mutBaseAliases);}
+
+  @Test void llistFilterMultiMdfRead() { ok(new Res("13, 14", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var io = { FIO#s }
+      .var[mut LList[Int]] l = { LList#[Int] + 12 + 13 + 14 }
+      .do { io.println(A.m1(l)) }
+      .return {{}}
+      }
+    A:{
+      .m1(l: read LList[Int]): Str -> l.iter
+                                      .filter{n -> n.toImm >= (12.5 .round)}
+                                      .str({n -> n.toImm.str}, ", ")
+      }
+    """, Base.mutBaseAliases);}
+  @Test void listFilterMultiMdfRead() { ok(new Res("13, 14", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var io = { FIO#s }
+      .var[mut List[Int]] l = { List#[Int](12, 13, 14) }
+      .do { io.println(A.m1(l)) }
+      .return {{}}
+      }
+    A:{
+      .m1(l: read List[Int]): Str -> l.iter
+                                      .filter{n -> n.toImm >= (12.5 .round)}
+                                      .str({n -> n.toImm.str}, ", ")
+      }
+    """, Base.mutBaseAliases);}
+
+  @Test void listFilterParIter() { ok(new Res("13, 14", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var io = { FIO#s }
+      .var[List[Int]] l = { List#[Int](12, 13, 14) }
+      .do { io.println(A.m1(l)) }
+      .return {{}}
+      }
+    A:{
+      .m1(l: List[Int]): Str -> l.iter2
+                                 .filter{n -> n >= (12.5 .round)}
+                                 .str({n->n.str}, ", ")
+      }
+    """, Base.mutBaseAliases);}
 }

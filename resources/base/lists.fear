@@ -42,6 +42,7 @@ LList[E]:Collection{
     .var -> Ref#this,
     .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
     },
+  imm .iter2: base.iter.par.Iter[E] -> _LListParIter#(this),
   read .iter: mut Iter[read E] -> Let#{
     .var -> Ref#this,
     .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
@@ -117,6 +118,12 @@ LListMatchRead[E,R]:{
   mut .elem(head: read E, tail: read LList[read E]): mdf R,
   mut .empty: mdf R,
   }
+_LListParIter:{
+  #[E](l: LList[E]): base.iter.par.Iter[E] -> {
+    .cur -> l.head,
+    .next -> this#(l.tail),
+    }
+  }
 
 List:{
   #[E]: mut List[mdf E] -> _List.new(Ref#(_ListState#[mdf E](0u, {}))),
@@ -148,6 +155,18 @@ List[E]:Collection{
     .var -> Count.uint(0u),
     .in(cursor) -> { .next -> this.get(cursor++) }
     },
+  imm .iter: mut Iter[E] -> Let#{
+    .var -> Count.uint(0u),
+    .in(cursor) -> { .next -> this.get(cursor++) }
+    },
+  // TODO: only for testing this, pls ignore this method
+  imm .iter2: base.iter.par.Iter[E] -> _ListParIter#(this, 0u),
+  }
+_ListParIter:{
+  #[E](l: List[E], i: UInt): base.iter.par.Iter[E] -> {
+    .cur -> l.get(i),
+    .next -> this#(l, i + 1u),
+    }
   }
 _ListState[E]:{
   read .len: UInt,

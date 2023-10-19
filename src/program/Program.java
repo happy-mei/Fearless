@@ -151,7 +151,6 @@ public interface Program {
 
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
-        // TODO: compute XBs
         return isType(xs, ts, xbs.addBounds(m1.sig().gens(), m1.bounds()), e, m2.sig().ret());
       });
   }
@@ -193,7 +192,7 @@ public interface Program {
     return p.meths(xbs, recvMdf, dec.toIT(), depth).stream()
       .filter(cm->filterByMdf(recvMdf, cm.mdf()))
       .filter(pred)
-      .sorted(Comparator.comparingInt(cm->EMethTypeSystem.inferPriority.indexOf(cm.mdf())))
+      .sorted(Comparator.comparingInt(cm->EMethTypeSystem.inferPriority(recvMdf).indexOf(cm.mdf())))
       .map(m->{
         var sig = m.sig().toAstFullSig();
         var name = m.name().withMdf(Optional.of(sig.mdf()));

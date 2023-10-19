@@ -3,7 +3,6 @@ package program.inference;
 import ast.Program;
 import astFull.E;
 import astFull.T;
-import failure.CompileError;
 import failure.Fail;
 import files.Pos;
 import id.Id;
@@ -12,7 +11,10 @@ import program.CM;
 import program.TypeRename;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
-import utils.*;
+import utils.Bug;
+import utils.Push;
+import utils.Range;
+import utils.Streams;
 import visitors.FullShortCircuitVisitor;
 
 import java.util.*;
@@ -98,15 +100,15 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 
   E fixType(E ie, T iT) {
     // TODO: this if-statement enables multiple IT inference if we want it.
-    if (ie instanceof E.Lambda l && l.it().isPresent()) {
-      var best = best(ie.t(), iT);
-      var its = Stream.concat(l.its().stream(), Stream.of(l.it().get(), iT.itOrThrow()))
-        .filter(it->!it.equals(best.itOrThrow()))
-        .distinct()
-        .toList();
-      l = l.withITs(its);
-      return l.withT(best);
-    }
+//    if (ie instanceof E.Lambda l && l.it().isPresent()) {
+//      var best = best(ie.t(), iT);
+//      var its = Stream.concat(l.its().stream(), Stream.of(l.it().get(), iT.itOrThrow()))
+//        .filter(it->!it.equals(best.itOrThrow()))
+//        .distinct()
+//        .toList();
+//      l = l.withITs(its);
+//      return l.withT(best);
+//    }
     return ie.withT(best(ie.t(), iT));
   }
   T best(T iT1, T iT2) {
@@ -232,7 +234,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   List<RP> pairUp(Mdf lambdaMdf, List<Id.GX<ast.T>> gxs, Id.IT<ast.T> c, RefinedSig sig, int depth) {
     var ms = p.meths(XBs.empty(), lambdaMdf, c, sig.name(), depth).stream()
       .filter(cm->filterByMdf(lambdaMdf, cm.mdf()))
-      .sorted(Comparator.comparingInt(cm->EMethTypeSystem.inferPriority.indexOf(cm.mdf())))
+      .sorted(Comparator.comparingInt(cm->EMethTypeSystem.inferPriority(lambdaMdf).indexOf(cm.mdf())))
       .toList();
 //    TODO: do we need this:
 //    if (ms.size() != 1) {

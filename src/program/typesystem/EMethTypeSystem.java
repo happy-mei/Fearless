@@ -25,10 +25,13 @@ import java.util.stream.Stream;
 
 public interface EMethTypeSystem extends ETypeSystem {
   // TODO: we have to be more permissive first (i.e. mut before read/imm) because e0.accept(v) will work until the final step and then fail, at which point we cannot backtrack.
-  List<Mdf> inferPriority = List.of(Mdf.iso, Mdf.mut, Mdf.imm, Mdf.recMdf, Mdf.read, Mdf.lent, Mdf.readOnly);
-  List<Mdf> recvPriority = inferPriority;
+  List<Mdf> recvPriority = List.of(Mdf.iso, Mdf.mut, Mdf.imm, Mdf.recMdf, Mdf.read, Mdf.lent, Mdf.readOnly);
 //  List<Mdf> recvPriority = List.of(Mdf.readOnly, Mdf.imm, Mdf.read, Mdf.recMdf, Mdf.iso, Mdf.lent, Mdf.mut);
 //  List<Mdf> inferPriority = recvPriority;
+  static List<Mdf> inferPriority(Mdf recvMdf) {
+    var base = recvPriority.stream().filter(mdf->mdf != recvMdf).collect(Collectors.toCollection(ArrayList::new));
+    return Push.of(recvMdf, base);
+  }
 
   default Optional<CompileError> visitMCall(E.MCall e) {
     var guessType = new GuessIT(p(), g(), xbs(), depth());

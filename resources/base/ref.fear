@@ -4,11 +4,11 @@ Ref:{
   #[X](x: mdf X): mut Ref[mdf X] -> Magic!,
   readOnly #[X](x: X): mut RefImm[X] -> Ref.ofImm x,
   .ofImm[X](x: X): mut RefImm[X] -> Let#{
-    .var -> Ref#(_BoxImm[X]{x}),
+    .var -> Ref#(Ice[X]{x}),
       .in(ref) -> {
          mut  .get: X -> ref.get.get,
          read .get: X -> ref.get.get,
-         .swap(newX) -> ref.swap(_BoxImm[X]{newX}).get,
+         .swap(newX) -> ref.swap(Ice[X]{newX}).get,
          }
       }
   }
@@ -33,7 +33,6 @@ RefImm[X:imm]:Ref[X]{
   .getImm(f) -> this.get,
   .getImm -> Opt#(this.get),
   }
-_BoxImm[X]:{ read .get: X }
 
 Count[N:imm]:RefImm[N]{
   mut ++: N,

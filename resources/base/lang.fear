@@ -24,3 +24,10 @@ F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso
 
 ToImm[R]:{ readOnly .toImm: R, }
 Freezer[T,R]:{ mut #(self: mdf T): R }
+Ice[T]:{ readOnly .get: T }
+
+Box[T]:{
+  mut  .get: mdf T,
+  read .get: read T,
+  imm  .get: T,
+  }

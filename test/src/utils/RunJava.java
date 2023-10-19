@@ -8,7 +8,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface RunJava {
-  record Res(String stdOut, String stdErr, int exitCode){}
+  record Res(String stdOut, String stdErr, int exitCode){
+    public Res() { this("", "", 0); }
+  }
   static CompletableFuture<Res> of(Path classFile, List<String> cliArgs) {
     var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
     String[] command = Stream.concat(
