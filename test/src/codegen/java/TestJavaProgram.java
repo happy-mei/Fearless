@@ -593,7 +593,7 @@ public class TestJavaProgram {
       .var[LList[Int]] l1 = { LList[Int] + 35 + 52 + 84 + 14 }
       .do{ Assert!(l1.head! == (l1.iter.next!), "sanity", {{}}) }
       .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > 100}).isEmpty, "find empty", {{}}) }
       .do{ Assert!((l1.iter
                       .map{n -> n * 10}
                       .find{n -> n == 140})
@@ -608,7 +608,7 @@ public class TestJavaProgram {
       .var[LList[Int]] l1 = { LList[Int] + 35 + 52 + 84 + 14 }
       .do{ Assert!(l1.head! == (l1.iter2.cur!), "sanity", {{}}) }
       .do{ Assert!((l1.iter2.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((l1.iter2.find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert!((l1.iter2.find{n -> n > 100}).isEmpty, "find empty", {{}}) }
       .do{ Assert!((l1.iter2
                       .map{n -> n * 10}
                       .find{n -> n == 140})
@@ -629,7 +629,7 @@ public class TestJavaProgram {
       .var[mut LList[Int]] l1 = { mut LList[Int] +[] 35 +[] 52 +[] 84 +[] 14 }
       .do{ Assert!(l1.head! == (l1.iter.next!), "sanity", {{}}) }
       .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > 100}).isEmpty, "find empty", {{}}) }
       .do{ Assert!(l1.iter
                       .map{n -> n * 10}
                       .find{n -> n == 140}
@@ -644,7 +644,7 @@ public class TestJavaProgram {
       .var[mut List[Int]] l1 = { (mut LList[Int] + 35 + 52 + 84 + 14).list }
       .assert({ l1.get(0u)! == (l1.iter.next!) }, "sanity") // okay, time to use this for new tests
       .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((l1.iter.find{n -> n > 100}).isNone, "find empty", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > 100}).isEmpty, "find empty", {{}}) }
       .do{ Assert!(l1.iter
                       .map{n -> n * 10}
                       .find{n -> n == 140}
@@ -1397,6 +1397,24 @@ public class TestJavaProgram {
       .m1(l: List[Int]): Str -> l.iter2
                                  .filter{n -> n >= (12.5 .round)}
                                  .str({n->n.str}, ", ")
+      }
+    """, Base.mutBaseAliases);}
+
+  @Test void strMap() { ok(new Res("23\n32\n230\n240", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var[mut IO] io = { FIO#s }
+      .var[mut Ref[mut LensMap[Str, Int]]] m = { Ref#[mut LensMap[Str, Int]](mut StrMap[Int]) }
+      .do{ m := (m*.put("Nick", 23)) }
+      .do{ m := (m*.put("Bob", 32)) }
+      .do{ io.println(m*.get("Nick")!.str) }
+      .do{ io.println(m*.get("Bob")!.str) }
+      .assert{ m*.get("nobody").isEmpty }
+      .var[mut Ref[mut LensMap[Str, Int]]] tm = { Ref#[mut LensMap[Str, Int]](m*.map{k, v -> v.toImm * 10 }) }
+      .do{ io.println(tm*.get("Nick")!.str) }
+      .do{ tm := (tm*.put("Nick", 24)) }
+      .do{ io.println(tm*.get("Nick")!.str) }
+      .return{Void}
       }
     """, Base.mutBaseAliases);}
 }

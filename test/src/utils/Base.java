@@ -134,5 +134,8 @@ public interface Base {
     alias base.iter.Iter as Iter,
     alias base.iter.Sum as Sum,
     alias base.Abort as Abort,
+    alias base.StrMap as StrMap,
+    alias base.Map as Map,
+    alias base.LensMap as LensMap,
     """;
 }

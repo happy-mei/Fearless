@@ -17,7 +17,7 @@ Opt[T]:{
     Do#[mut Opt[Void], recMdf Opt[recMdf T]](this.map(f), this),
   recMdf |(alt: recMdf T): recMdf T -> this || (recMdf OptOr#alt),
   recMdf ||(alt: recMdf OptOr[recMdf T]): recMdf T -> this.matchHyg(alt),
-  read .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
+  read .isEmpty: Bool -> this.match{ .none -> True, .some(_) -> False },
   read .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
   }
 OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }

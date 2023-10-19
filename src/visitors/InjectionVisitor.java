@@ -90,8 +90,12 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     if (m.sig().isEmpty() || m.name().isEmpty()) {
       throw Fail.inferFailed(m.toString()).pos(m.pos());
     }
+    ast.E.Sig sig; try { sig = visitSig(m.sig().orElseThrow()); }
+    catch (astFull.T.MatchOnInfer err) {
+      throw Fail.inferFailed(m.toString()).pos(m.pos());
+    }
     return new ast.E.Meth(
-      visitSig(m.sig().orElseThrow()),
+      sig,
       m.name().orElseThrow(),
       m.xs(),
       m.body().map(b->b.accept(this)),
@@ -100,18 +104,14 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   public ast.E.Sig visitSig(E.Sig s){
-    try {
-      return new ast.E.Sig(
-        s.mdf(),
-        s.gens().stream().map(this::visitGX).toList(),
-        Mapper.of(bounds->s.bounds().forEach((gx,bs)->bounds.put(visitGX(gx), bs))),
-        s.ts().stream().map(this::visitT).toList(),
-        this.visitT(s.ret()),
-        s.pos()
-      );
-    } catch (astFull.T.MatchOnInfer err) {
-      throw Fail.inferFailed(s.toString()).pos(s.pos());
-    }
+    return new ast.E.Sig(
+      s.mdf(),
+      s.gens().stream().map(this::visitGX).toList(),
+      Mapper.of(bounds->s.bounds().forEach((gx,bs)->bounds.put(visitGX(gx), bs))),
+      s.ts().stream().map(this::visitT).toList(),
+      this.visitT(s.ret()),
+      s.pos()
+    );
   }
 
   public ast.Program visitProgram(astFull.Program p){

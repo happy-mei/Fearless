@@ -60,7 +60,7 @@ Opt[T]:{
       .empty -> f#
       }),
 
-  read .isNone: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .empty -> True, .some(_) -> False }),
+  read .isEmpty: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .empty -> True, .some(_) -> False }),
   read .isSome: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .empty -> False, .some(_) -> True }),
   }
 

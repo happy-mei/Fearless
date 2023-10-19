@@ -1340,7 +1340,7 @@ were valid:
       .do(f: OptDo[T]): Opt[T] -> this.match(f),
       .flatMap[R](f: OptFlatMap[T, R]): Opt[R] ->this.match(f),
       ||(alt: T): T -> this.match{ .some(x) -> x, .none -> alt },
-      .isNone: Bool -> this.match{ .none -> True, .some(_) -> False },
+      .isEmpty: Bool -> this.match{ .none -> True, .some(_) -> False },
       .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
       }
     OptMatch[T,R]:{ .some(x:T): R, .none: R }

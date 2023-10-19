@@ -22,7 +22,7 @@ Iter[E]:{
         },
         mut .unwrapNext: mut Opt[mdf R] -> Block
           .do{ optCurIter := mapIter.next }
-          .if { optCurIter*.isNone } .return { {} }
+          .if { optCurIter*.isEmpty } .return { {} }
           .return self.next
       },
   mut .filter(p: mut Predicate[mdf E]): mut Iter[E] -> {
@@ -58,7 +58,7 @@ Iter[E]:{
 //     .next -> this.optCurIter*.match{
 //       .none -> Block
 //         .do{ this.optCurIter := this.mapIter.next }
-//         .if { this.optCurIter*.isNone } .return { {} }
+//         .if { this.optCurIter*.isEmpty } .return { {} }
 //         .return this.next,
 //       .some(curIter) -> curIter.next
 //       }

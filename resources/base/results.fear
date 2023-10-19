@@ -1,0 +1,39 @@
+package base
+
+Res:{
+  #[T](x: mdf T): mut Res[mdf T] -> { .match(m) -> m.ok(x), },
+  .ok[T,E](x: mdf T): mut Res[mdf T, mdf E] -> { .match(m) -> m.ok(x), },
+  .err[T,E](x: mdf E): mut Res[mdf T, mdf E] -> { .match(m) -> m.err(x), },
+  }
+Res[T]:Res[mdf T, Info]
+Res[T,E]:{
+  mut  .match[R](m: mut ResMatch[mdf T, mdf E, mdf R]): mdf R,
+  read .match[R](m: mut ResMatch[read T, read E, mdf R]): mdf R,
+  imm  .match[R](m: mut ResMatch[T, E, mdf R]): mdf R,
+
+  mut  !: mdf T -> this.match[mdf T]{ .ok(x) -> x, .err(_) -> Abort! },
+  read !: read T -> this.match[read T]{ .ok(x) -> x, .err(_) -> Abort! },
+  imm  !: T -> this.match[T]{ .ok(x) -> x, .err(_) -> Abort! },
+
+  mut  .map[R](f: mut ResMap[mdf T, mdf E, mdf R]): mut Res[mdf R, mdf E] -> this.match(f),
+  read .map[R](f: mut ResMap[read T, read E, mdf R]): mut Res[mdf R, read E] -> this.match(f),
+  imm  .map[R](f: mut ResMap[T, E, mdf R]): mut Res[mdf R, E] -> this.match(f),
+
+  mut  .ok: mut Opt[mdf T] -> this.match{ .ok(x) -> Opt#x, .err(_) -> {} },
+  read .ok: mut Opt[read T] -> this.match{ .ok(x) -> Opt#x, .err(_) -> {} },
+  imm  .ok: iso Opt[T] -> this.match[mut Opt[T]]{ .ok(x) -> Opt#x, .err(_) -> {} },
+
+  mut  .err: mut Opt[mdf E] -> this.match{ .ok(_) -> {}, .err(e) -> Opt#e },
+  read .err: mut Opt[read E] -> this.match{ .ok(_) -> {}, .err(e) -> Opt#e },
+  imm  .err: iso Opt[E] -> this.match[mut Opt[E]]{ .ok(_) -> {}, .err(e) -> Opt#e },
+
+  read .isErr: Bool -> this.match{ .err(_) -> True, .ok(_) -> False },
+  read .isOk: Bool -> this.match{ .err(_) -> False, .ok(_) -> True },
+  }
+
+ResMatch[T,E,R]:{ mut .ok(x: mdf T): mdf R, mut .err(x: mdf E): mdf R }
+ResMap[T,E,R]:ResMatch[mdf T, mdf E, mut Res[mdf R, mdf E]]{
+  mut #(x: mdf T): mdf R,
+  .ok(x) -> Res.ok[mdf R, mdf E](this#x),
+  .err(x) -> Res.err[mdf R, mdf E](x),
+  }

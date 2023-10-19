@@ -408,7 +408,7 @@ public class TestMdfDispatch {
         .some(x) -> this,
         .none -> f#
         }),
-      read .isNone: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .none -> True, .some(_) -> False }),
+      read .isEmpty: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .none -> True, .some(_) -> False }),
       read .isSome: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .none -> False, .some(_) -> True }),
       }
     
