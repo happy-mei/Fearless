@@ -57,12 +57,12 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName("/", 1))) { return instantiate()+"/"+args.get(0).accept(gen); }
         if (m.equals(new Id.MethName("%", 1))) { return instantiate()+"%"+args.get(0).accept(gen); }
         if (m.equals(new Id.MethName("**", 1))) { return String.format("""
-          switch (1) { default -> {
+          (switch (1) { default -> {
               long base = %s; long exp = %s; long res = base;
               if (exp == 0) { yield 1L; }
               for(; exp > 1; exp--) { res *= base; }
               yield res;
-            }}
+            }})
           """, instantiate(), args.get(0).accept(gen)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return "Math.abs("+instantiate()+")"; }
         if (m.equals(new Id.MethName(">>", 1))) { return instantiate()+">>"+args.get(0).accept(gen); }
@@ -120,12 +120,12 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName("/", 1))) { return "Long.divideUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
         if (m.equals(new Id.MethName("%", 1))) { return "Long.remainderUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
         if (m.equals(new Id.MethName("**", 1))) { return String.format("""
-          switch (1) { default -> {
+          (switch (1) { default -> {
               long base = %s; long exp = %s; long res = base;
               if (exp == 0) { yield 1L; }
               for(; exp > 1; exp--) { res *= base; }
               yield res;
-            }}
+            }})
           """, instantiate(), args.get(0).accept(gen)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return instantiate(); } // no-op for unsigned
         if (m.equals(new Id.MethName(">>", 1))) { return instantiate()+">>"+args.get(0).accept(gen); }
@@ -239,7 +239,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName("#", 1))) {
           var x = args.get(0);
           return Optional.of(String.format("""
-            switch (1) { default -> {
+            (switch (1) { default -> {
               var x = %s;
               Object xObj = x;
               var strMethod = java.util.Arrays.stream(xObj.getClass().getMethods())
@@ -258,7 +258,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
                 System.out.println(x);
               }
               yield x;
-            }}
+            }})
             """, x.accept(gen)));
         }
         return Optional.empty();
@@ -333,20 +333,20 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName("._fail", 0))) {
           return Optional.of("""
-            switch (1) { default -> {
+            (switch (1) { default -> {
               System.err.println("Assertion failed :(");
               System.exit(1);
               yield null;
-            }}
+            }})
             """);
         }
         if (m.equals(new Id.MethName("._fail", 1))) {
           return Optional.of(String.format("""
-            switch (1) { default -> {
+            (switch (1) { default -> {
               System.err.println(%s);
               System.exit(1);
               yield null;
-            }}
+            }})
             """, args.get(0).accept(gen)));
         }
         return Optional.empty();
@@ -364,11 +364,11 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName("!", 0))) {
           return Optional.of("""
-            switch (1) { default -> {
+            (switch (1) { default -> {
               System.err.println("Program aborted at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
               System.exit(1);
               yield (Object)null;
-            }}
+            }})
             """);
         }
         return Optional.empty();
@@ -386,12 +386,62 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName("!", 0))) {
           return Optional.of("""
-            switch (1) { default -> {
+            (switch (1) { default -> {
               System.err.println("No magic code was found at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
               System.exit(1);
               yield (Object)null;
-            }}
+            }})
             """);
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<String> errorK(MIR.Lambda l, MIR e) {
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        return gen.visitLambda(l, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        if (m.equals(new Id.MethName("!", 1))) {
+          return Optional.of("""
+            (switch (1) {
+              default -> throw new FearlessError(%s);
+              case 2 -> 0;
+            })
+            """.formatted(args.get(0).accept(gen)));
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<String> tryCatch(MIR.Lambda l, MIR e) {
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        return gen.visitLambda(l, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+//        if (m.equals(new Id.MethName("#", 1))) {
+//          return Optional.of("""
+//            (switch (1) { default -> {
+//              try { yield base.Res_0._$self.ok$imm$(%s.$35$mut$()); }
+//              catch(FearlessError _$err) { yield base.Res_0._$self.err$imm$(_$err.info); }
+//            }})
+//            """.formatted(args.get(0).accept(gen)));
+//        }
+        if (m.equals(new Id.MethName("#", 2))) {
+          return Optional.of("""
+            (switch (1) { default -> {
+              try { yield %s.$35$mut$(); }
+              catch(FearlessError _$err) { yield %s.$35$imm$(_$err.info); }
+            }})
+            """.formatted(args.get(0).accept(gen), args.get(1).accept(gen)));
         }
         return Optional.empty();
       }
@@ -421,34 +471,34 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         return (ctx, m, args, gamma) ->{
           if (m.equals(new Id.MethName(".print", 1))) {
             return String.format("""
-              switch (1) { default -> {
+              (switch (1) { default -> {
                 System.out.print(%s);
                 yield base.Void_0._$self;
-              }}
+              }})
               """, args.get(0).accept(gen));
           }
           if (m.equals(new Id.MethName(".println", 1))) {
             return String.format("""
-              switch (1) { default -> {
+              (switch (1) { default -> {
                 System.out.println(%s);
                 yield base.Void_0._$self;
-              }}
+              }})
               """, args.get(0).accept(gen));
           }
           if (m.equals(new Id.MethName(".printErr", 1))) {
             return String.format("""
-              switch (1) { default -> {
+              (switch (1) { default -> {
                 System.err.print(%s);
                 yield base.Void_0._$self;
-              }}
+              }})
               """, args.get(0).accept(gen));
           }
           if (m.equals(new Id.MethName(".printlnErr", 1))) {
             return String.format("""
-              switch (1) { default -> {
+              (switch (1) { default -> {
                 System.err.println(%s);
                 yield base.Void_0._$self;
-              }}
+              }})
               """, args.get(0).accept(gen));
           }
           return null;

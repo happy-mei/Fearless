@@ -5,6 +5,10 @@ Map[K,V]:{
   imm  .get(k: K): mut Opt[V] -> {},
   }
 
+EmptyMap[K,V]:Map[mdf K, mdf V]{
+  .keyEq(k1, k2) -> False,
+  .get(k) -> {},
+  }
 
 /// A linked map that upholds the lens laws:
 /// 1. set l (view l s) s = s

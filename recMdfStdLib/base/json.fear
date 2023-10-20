@@ -1,0 +1,15 @@
+Json:Sealed{
+  .match[R](m: JsonMatch[mdf R]): mdf R -> m.null,
+  .null: Json -> {m -> m.null},
+  .str(x: Str): Json -> {m -> m.str(x)},
+  .num(x: Float): Json -> {m -> m.num(x)},
+  .array(x: List[Json]): Json -> {m -> m.array(x)},
+  .object(x: Map[Str, Json]): Json -> {m -> m.object(x)},
+  }
+JsonMatch[R]:{
+  .null: mdf R,
+  .str(s: Str): mdf R,
+  .num(n: Float): mdf R,
+  .array(l: List[Json]): mdf R,
+  .object(m: Map[Str, Json]): mdf R,
+  }

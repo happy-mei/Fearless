@@ -586,7 +586,7 @@ public class TestJavaProgram {
       }
     Closest':{ mut #(i: UInt): Void }
     """, Base.mutBaseAliases); }
-  
+
   @Test void LListItersIterImm() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
@@ -1478,5 +1478,32 @@ public class TestJavaProgram {
       .do{ io.println(tm*.get("Nick")!) }
       .return{Void}
       }
+    """, Base.mutBaseAliases);}
+
+  @Test void tryCatch1() { ok(new Res("Hello\nHappy", "", 0), "test.Test", """
+    package test
+    Test:Main{s ->
+      FIO#s.println(Try#[Str](
+        {Do#(FIO#s.println("Hello"), "Happy")},
+        {err->err.str}
+        ))
+      }
+    """, Base.mutBaseAliases);}
+  @Test void tryCatch2() { ok(new Res("oof", "", 0), "test.Test", """
+    package test
+    Test:Main{s ->
+      FIO#s.println(Try#[Str](
+        {Error.str("oof")},
+        {err->err.str}
+        ))
+      }
+    """, Base.mutBaseAliases);}
+  @Test void error1() { ok(new Res("", """
+    Exception in thread "main" FearlessError
+    	at FProgram$base$Error_0.str$imm$(FProgram.java:1683)
+    	at FProgram$test$Test_0.$35$imm$(FProgram.java:256)
+    	at FProgram.main(FProgram.java:3295)""", 1), "test.Test", """
+    package test
+    Test:Main{s -> Error.str("yolo") }
     """, Base.mutBaseAliases);}
 }

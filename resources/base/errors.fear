@@ -1,5 +1,26 @@
 package base
 
-Info:{}
-Error:{}
+Error:{
+  ![R](info: Info): mdf R -> Magic!,
+  .str[R](s: Str): mdf R -> this!{
+    .str -> s,
+    .list -> List#,
+    .map -> EmptyMap[Str, Info]
+    }
+  }
 
+/// Strong exception safety is upheld:
+/// The operation has either completed successfully or thrown an exception,
+// leaving the program state exactly as it was before the operation started.
+Try:{
+  #[R](try: mut Try[mdf R], catch: Catch[mdf R]): mdf R -> Magic!,
+  }
+
+Try[R]:{ mut #: mdf R, }
+Catch[R]:{ #(info: Info): mdf R }
+
+Info:Sealed{
+  .str: Str,
+  .map: Map[Str, Info],
+  .list: List[Info],
+  }

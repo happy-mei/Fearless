@@ -138,5 +138,6 @@ public interface Base {
     alias base.Map as Map,
     alias base.LensMap as LensMap,
     alias base.LinkedMap as LinkedMap,
+    alias base.Try as Try,
     """;
 }

@@ -20,6 +20,8 @@ public class Magic {
   public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);
   public static final Id.DecId Abort = new Id.DecId("base.Abort", 0);
   public static final Id.DecId MagicAbort = new Id.DecId("base.Magic", 0);
+  public static final Id.DecId ErrorK = new Id.DecId("base.Error", 0);
+  public static final Id.DecId Try = new Id.DecId("base.Try", 0);
 
   // object capabilities
   public static final Id.DecId RootCap = new Id.DecId("base.caps.RootCap", 0);

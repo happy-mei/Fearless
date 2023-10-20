@@ -2,7 +2,6 @@ package failure;
 
 import ast.T;
 import files.Pos;
-import utils.Bug;
 
 import java.io.Serial;
 import java.util.Optional;

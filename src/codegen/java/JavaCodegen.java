@@ -35,7 +35,17 @@ public class JavaCodegen implements MIRVisitor<String> {
     var entryName = getName(entry);
     var init = "\nstatic void main(String[] args){ "+argsToLList(Mdf.mut)+" base.Main_0 entry = new "+entryName+"(){}; entry.$35$imm$(new base$46caps.$95System_0(){}); }\n";
 
-    return "class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\ninterface FProgram{" + pkgs.entrySet().stream()
+    final String fearlessError = """
+      class FearlessError extends RuntimeException {
+        public FProgram.base.Info_0 info;
+        public FearlessError(FProgram.base.Info_0 info) {
+          super();
+          this.info = info;
+        }
+      }
+      """;
+
+    return fearlessError +"\nclass FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\ninterface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))
       .collect(Collectors.joining("\n"))+init+"}";
   }
