@@ -2,51 +2,61 @@ package base
 
 Map[K,V]:{
   read .keyEq(k1: K, k2: K): Bool,
-
   imm  .get(k: K): mut Opt[V] -> {},
-  mut  .get(k: K): mut Opt[mdf V] -> {},
-  read .get(k: K): mut Opt[read V] -> {},
-
-  mut  .put(k: K, v: mdf V): mut Map[K, mdf V],
-  read .put(k: K, v: read V): read Map[K, read V],
   }
+
 
 /// A linked map that upholds the lens laws:
 /// 1. set l (view l s) s = s
 /// 2. view l (set l s a) = a
 /// 3. set l (set l s a) b = set l s b
-LensMap[K,V]:Map[K, mdf V]{
-  read .keyEq(k1: K, k2: K): Bool,
+LensMap[K,V]:Map[K,V]{
+  .put(k: K, v: V): mut LensMap[K, mdf V] -> {'next
+    .keyEq(k1, k2) -> this.keyEq(k1, k2),
+    .get(k') -> next.keyEq(k, k') ? {.then -> Opt#v, .else -> this.get(k')}
+    },
+  .map[R](f: MapMapImm[K, V, R]): LensMap[K, R] -> {
+    .keyEq(k1, k2) -> this.keyEq(k1, k2),
+    .get(k) -> this.get(k).map{res -> f#(k, res)},
+    },
+  }
+
+/// A LensMap that supports mutable and readable data
+LinkedMap[K,V]:Map[K, mdf V]{
   imm  .get(k: K): mut Opt[V] -> {},
   mut  .get(k: K): mut Opt[mdf V] -> {},
   read .get(k: K): mut Opt[read V] -> {},
 
-//  imm  .put(k: K, v: V): iso LensMap[K,V] -> {'next
-//    .keyEq(k1, k2) -> this.keyEq(k1, k2),
-//    .get(k') -> next.keyEq(k, k') ? {.then -> Opt#v, .else -> this.get(k')}
-//    },
-  mut  .put(k: K, v: mdf V): mut LensMap[K, mdf V] -> {'next
+  mut  .put(k: K, v: mdf V): mut LinkedMap[K, mdf V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[V] -> next.keyEq(k, k') ? {.then -> Opt#[V]v, .else -> this.get(k')},
     mut  .get(k': K): mut Opt[mdf V] -> next.keyEq(k, k') ? {.then -> Opt#v, .else -> this.get(k')},
     read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opt#[read V]v, .else -> this.get(k')},
     },
-  read .put(k: K, v: read V): read LensMap[K, read V] -> {'next
+  read .put(k: K, v: read V): read LinkedMap[K, read V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[V] -> next.keyEq(k, k') ? {.then -> Opt#[V]v, .else -> this.get(k')},
     read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opt#[read V]v, .else -> this.get(k')},
     },
 
-  mut .map[R](f: mut MapMap[K, mdf V, mdf R]): mut LensMap[K, mdf R] -> {
+  imm .map[R](fImm: MapMapImm[K, V, R], fRead: MapMapRead[K, mdf V, mdf R]): LinkedMap[K, mdf R] -> {
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
-//    imm  .get(k: K): mut Opt[R] -> this.get(k).map mut OptMap[V, R]{res -> f#(k, res)},
-    imm  .get(k: K): mut Opt[R] -> base.Abort!,
-    mut  .get(k: K): mut Opt[mdf R] -> this.get(k).map{res -> f#(k, res)},
-    read .get(k: K): mut Opt[read R] -> base.Abort!,
-//    read .get(k: K): mut Opt[read R] -> As[read LensMap[K, mdf V]]#(this).get(k).map{res -> f#(k, res)},
-//    read .get(k: K): mut Opt[read R] -> this.get(k).map{res -> f#(k, res)},
-//    .get(k) -> this.get(k).map{ res -> f#(k, res) },
-    }
+    imm  .get(k: K): mut Opt[R] ->      As[mut Opt[V]]#(this.get(k)).map{res -> fImm#(k, res)},
+    read .get(k: K): mut Opt[read R] -> this.get(k).map{res -> fRead#(k, res)},
+    },
+  mut .map[R](fImm: MapMapImm[K, V, R], fMut: mut MapMapMut[K, mdf V, mdf R], fRead: read MapMapRead[K, mdf V, mdf R]): mut LinkedMap[K, mdf R] -> {
+    .keyEq(k1, k2) -> this.keyEq(k1, k2),
+    imm  .get(k: K): mut Opt[R] ->      As[mut Opt[V]]#(this.get(k)).map{res -> fImm#(k, res)},
+    mut  .get(k: K): mut Opt[mdf R] ->  this.get(k).map{res -> fMut#(k, res)},
+    read .get(k: K): mut Opt[read R] -> this.get(k).map{res -> fRead#(k, res)},
+    },
+  read .map[R](fImm: MapMapImm[K, V, R], fRead: read MapMapRead[K, mdf V, mdf R]): read LinkedMap[K, mdf R] -> {
+    .keyEq(k1, k2) -> this.keyEq(k1, k2),
+    imm  .get(k: K): mut Opt[R] ->      As[mut Opt[V]]#(this.get(k)).map{res -> fImm#(k, res)},
+    read .get(k: K): mut Opt[read R] -> this.get(k).map{res -> fRead#(k, res)},
+    },
   }
 
-MapMap[K,V,R]:{ mut #(k: K, v: read V): mdf R }
+MapMapImm[K,V,R]:{ #(k: K, v: V): R }
+MapMapMut[K,V,R]:{ mut #(k: K, v: mdf V): mdf R }
+MapMapRead[K,V,R]:{ read #(k: K, v: read V): read R }

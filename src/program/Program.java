@@ -94,7 +94,7 @@ public interface Program {
     if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
 //    t1 = t1.withMdf(t1.mdf()); t2 = t2.withMdf(t1.mdf());
     // There is a subtyping relationship with the MDFs so use either
-    return Stream.of(t1.mdf(), t2.mdf()).anyMatch(mdf->{
+    return Stream.of(t1.mdf(), t2.mdf()).distinct().anyMatch(mdf->{
       T t1_ = t1.withMdf(mdf); T t2_ = t2.withMdf(mdf);
       if(t1_.rt().equals(t2_.rt())){ return true; }
       if(!t1_.isIt() || !t2_.isIt()){ return false; }
@@ -147,7 +147,7 @@ public interface Program {
         var mdf_ = mdf.restrict(m1.mdf()).orElseThrow();
         var recv = new ast.E.X("this", Optional.empty());
         var xs=Push.of(m1.xs(),"this");
-        List<T> ts=Push.of(m2.sig().ts(),t1.withMdf(mdf_));
+        List<T> ts=Push.of(m1.sig().ts(),t1.withMdf(mdf_));
 
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());

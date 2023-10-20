@@ -1400,20 +1400,82 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void strMap() { ok(new Res("23\n32\n230\n240", "", 0), "test.Test", """
+  @Test void strMap() { ok(new Res("23\n32\n230\nhi", "", 0), "test.Test", """
     package test
     Test:Main{ s -> Do#
       .var[mut IO] io = { FIO#s }
-      .var[mut Ref[mut LensMap[Str, Int]]] m = { Ref#[mut LensMap[Str, Int]](mut StrMap[Int]) }
+      .var[mut Ref[mut LinkedMap[Str, Int]]] m = { Ref#[mut LinkedMap[Str, Int]](mut StrMap[Int]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
       .do{ io.println(m*.get("Bob")!.str) }
       .assert{ m*.get("nobody").isEmpty }
-      .var[mut Ref[mut LensMap[Str, Int]]] tm = { Ref#[mut LensMap[Str, Int]](m*.map{k, v -> v.toImm * 10 }) }
-      .do{ io.println(tm*.get("Nick")!.str) }
-      .do{ tm := (tm*.put("Nick", 24)) }
-      .do{ io.println(tm*.get("Nick")!.str) }
+      .var[mut Ref[mut LinkedMap[Str, Str]]] tm = { Ref#[mut LinkedMap[Str, Str]](m*.map(
+        {k, v -> (v * 10).str },
+        {k, v -> (v * 10).str },
+        {k, v -> (v.toImm * 10).str }
+        )) }
+      .do{ io.println(tm*.get("Nick")!) }
+      .do{ tm := (tm*.put("Nick", "hi")) }
+      .do{ io.println(tm*.get("Nick")!) }
+      .return{Void}
+      }
+    """, Base.mutBaseAliases);}
+  @Test void strMapImm() { ok(new Res("23\n32\n230\nhi", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var[mut IO] io = { FIO#s }
+      .var[mut Ref[LinkedMap[Str, Int]]] m = { Ref#[LinkedMap[Str, Int]](StrMap[Int]) }
+      .do{ m := (m*.put("Nick", 23)) }
+      .do{ m := (m*.put("Bob", 32)) }
+      .do{ io.println(m*.get("Nick")!.str) }
+      .do{ io.println(m*.get("Bob")!.str) }
+      .assert{ m*.get("nobody").isEmpty }
+      .var[mut Ref[LinkedMap[Str, Str]]] tm = { Ref#[LinkedMap[Str, Str]](m*.map(
+        {k, v -> (v * 10).str },
+        {k, v -> (v.toImm * 10).str }
+        )) }
+      .do{ io.println(tm*.get("Nick")!) }
+      .do{ tm := (tm*.put("Nick", "hi")) }
+      .do{ io.println(tm*.get("Nick")!) }
+      .return{Void}
+      }
+    """, Base.mutBaseAliases);}
+  @Test void strMapRead() { ok(new Res("23\n32\n230\nhi", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var[mut IO] io = { FIO#s }
+      .var[mut Ref[read LinkedMap[Str, Int]]] m = { Ref#[read LinkedMap[Str, Int]]({k1,k2 -> k1 == k2}) }
+      .do{ m := (m*.put("Nick", 23)) }
+      .do{ m := (m*.put("Bob", 32)) }
+      .do{ io.println(m*.get("Nick")!.toImm.str) }
+      .do{ io.println(m*.get("Bob")!.toImm.str) }
+      .assert{ m*.get("nobody").isEmpty }
+      .var[mut Ref[read LinkedMap[Str, Str]]] tm = { Ref#[read LinkedMap[Str, Str]](m*.map(
+        {k, v -> (v * 10).str },
+        {k, v -> (v.toImm * 10).str }
+        )) }
+      .do{ io.println(tm*.get("Nick")!.toImm) }
+      .do{ tm := (tm*.put("Nick", "hi")) }
+      .do{ io.println(tm*.get("Nick")!.toImm) }
+      .return{Void}
+      }
+    """, Base.mutBaseAliases);}
+
+  @Test void lensMap() { ok(new Res("23\n32\n230\nhi", "", 0), "test.Test", """
+    package test
+    Test:Main{ s -> Do#
+      .var[mut IO] io = { FIO#s }
+      .var[mut Ref[LensMap[Str, Int]]] m = { Ref#[LensMap[Str, Int]]({k1,k2 -> k1 == k2}) }
+      .do{ m := (m*.put("Nick", 23)) }
+      .do{ m := (m*.put("Bob", 32)) }
+      .do{ io.println(m*.get("Nick")!.str) }
+      .do{ io.println(m*.get("Bob")!.str) }
+      .assert{ m*.get("nobody").isEmpty }
+      .var[mut Ref[LensMap[Str, Str]]] tm = { Ref#[LensMap[Str, Str]](m*.map{k, v -> (v * 10).str }) }
+      .do{ io.println(tm*.get("Nick")!) }
+      .do{ tm := (tm*.put("Nick", "hi")) }
+      .do{ io.println(tm*.get("Nick")!) }
       .return{Void}
       }
     """, Base.mutBaseAliases);}

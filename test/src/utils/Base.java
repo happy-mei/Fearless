@@ -137,5 +137,6 @@ public interface Base {
     alias base.StrMap as StrMap,
     alias base.Map as Map,
     alias base.LensMap as LensMap,
+    alias base.LinkedMap as LinkedMap,
     """;
 }
