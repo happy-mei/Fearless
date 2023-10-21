@@ -1480,11 +1480,11 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void tryCatch1() { ok(new Res("Hello\nHappy", "", 0), "test.Test", """
+  @Test void tryCatch1() { ok(new Res("Happy", "", 0), "test.Test", """
     package test
     Test:Main{s ->
       FIO#s.println(Try#[Str](
-        {Do#(FIO#s.println("Hello"), "Happy")},
+        {"Happy"},
         {err->err.str}
         ))
       }

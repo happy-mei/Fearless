@@ -438,8 +438,8 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName("#", 2))) {
           return Optional.of("""
             (switch (1) { default -> {
-              try { yield %s.$35$mut$(); }
-              catch(FearlessError _$err) { yield %s.$35$imm$(_$err.info); }
+              try { yield %s.$35$read$(); }
+              catch(FearlessError _$err) { yield %s.$35$mut$(_$err.info); }
             }})
             """.formatted(args.get(0).accept(gen), args.get(1).accept(gen)));
         }
