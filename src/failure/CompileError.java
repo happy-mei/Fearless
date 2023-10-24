@@ -42,7 +42,8 @@ public class CompileError extends RuntimeException implements Res{
   }
 
   @Override public String toString(){
-    if (this.pos == null) { return this.getMessage(); }
-    return "In position "+pos+"\n"+header()+"\n"+this.getMessage();
+    var msg = header()+"\n"+this.getMessage();
+    if (this.pos == null) { return msg; }
+    return "In position "+pos+"\n"+msg;
   }
 }

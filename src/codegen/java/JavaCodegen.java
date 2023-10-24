@@ -4,6 +4,7 @@ import ast.E;
 import ast.Program;
 import ast.T;
 import codegen.MIR;
+import failure.CompileError;
 import id.Id;
 import id.Mdf;
 import magic.Magic;

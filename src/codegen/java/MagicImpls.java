@@ -309,7 +309,8 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
               public Object peek$readOnly$(Object f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$mut$(this.x) : ((base$46caps.IsoViewer_2)f).empty$mut$(); }
               public Object $33$mut$() {
                 if (!this.isAlive) {
-                  throw new RuntimeException("Cannot consume an empty IsoPod.");
+                  base.Error_0._$self.str$imm$("Cannot consume an empty IsoPod.");
+                  return null;
                 }
                 this.isAlive = false;
                 return this.x;
@@ -427,22 +428,22 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         return gen.visitLambda(l, false);
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
-//        if (m.equals(new Id.MethName("#", 1))) {
-//          return Optional.of("""
-//            (switch (1) { default -> {
-//              try { yield base.Res_0._$self.ok$imm$(%s.$35$mut$()); }
-//              catch(FearlessError _$err) { yield base.Res_0._$self.err$imm$(_$err.info); }
-//            }})
-//            """.formatted(args.get(0).accept(gen)));
-//        }
-        if (m.equals(new Id.MethName("#", 2))) {
+        if (m.equals(new Id.MethName("#", 1))) {
           return Optional.of("""
             (switch (1) { default -> {
-              try { yield %s.$35$read$(); }
-              catch(FearlessError _$err) { yield %s.$35$mut$(_$err.info); }
+              try { yield base.Res_0._$self.ok$imm$(%s.$35$read$()); }
+              catch(FearlessError _$err) { yield base.Res_0._$self.err$imm$(_$err.info); }
             }})
-            """.formatted(args.get(0).accept(gen), args.get(1).accept(gen)));
+            """.formatted(args.get(0).accept(gen)));
         }
+//        if (m.equals(new Id.MethName("#", 2))) {
+//          return Optional.of("""
+//            (switch (1) { default -> {
+//              try { yield %s.$35$read$(); }
+//              catch(FearlessError _$err) { yield %s.$35$mut$(_$err.info); }
+//            }})
+//            """.formatted(args.get(0).accept(gen), args.get(1).accept(gen)));
+//        }
         return Optional.empty();
       }
     };

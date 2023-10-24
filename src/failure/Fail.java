@@ -241,6 +241,10 @@ public class Fail{
     return of("Could not infer the generic type arguments for the method call to "+name);
   }
 
+  public static CompileError incompatibleGenerics(Id.GX<T> gx1, Id.GX<T> gx2) {
+    return of("The generic type argument "+gx1+" is not compatible with the generic type argument "+gx2+".");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -300,7 +304,7 @@ enum ErrorCode {
   mustProvideImplsIfMdfProvided,
   namedTopLevelLambda,
   couldNotInferCallGenerics,
-  UNUSED2,
+  incompatibleGenerics,
   xTypeError,
   lambdaTypeError;
   int code() {return this.ordinal() + 1;}

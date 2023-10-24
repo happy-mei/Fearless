@@ -12,9 +12,9 @@ Opt[T]:{
   read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.empty,
   imm  .match[R](m: mut OptMatch[T, mdf R]): mdf R -> m.empty,
 
-  mut  !: mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{ .some(x) -> x, .empty -> Abort! }),
-  read !: read T -> this.match[read T](mut OptMatch[read T, read T]{ .some(x) -> x, .empty -> Abort! }),
-  imm  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Abort! }),
+  mut  !: mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
+  read !: read T -> this.match[read T](mut OptMatch[read T, read T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
+  imm  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
 
   mut .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
   read .map[R](f: mut OptMap[read T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),

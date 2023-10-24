@@ -1,0 +1,12 @@
+package base
+
+//Either:{}
+Either[A,B]:{
+  mut  .match[R](m: mut EitherMatch[mdf A, mdf B, mdf R]): mdf R,
+  read .match[R](m: mut EitherMatch[read A, read B, mdf R]): mdf R,
+  imm  .match[R](m: mut EitherMatch[A, B, mdf R]): mdf R,
+  }
+EitherMatch[A,B,R]:{
+  mut .a(x: mdf A): mdf R,
+  mut .b(x: mdf B): mdf R,
+  }

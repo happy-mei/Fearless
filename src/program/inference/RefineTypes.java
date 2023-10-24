@@ -121,7 +121,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
       if(g1.equals(g2)){ return iT1; }
     }
     if(!(iT1.rt() instanceof Id.IT<T> c1)  || !(iT2.rt() instanceof Id.IT<T> c2)){
-      throw Bug.unreachable();
+      throw Fail.incompatibleGenerics(iT1.gxOrThrow(), iT2.gxOrThrow());
     }
 
     var notMatch=!c1.name().equals(c2.name()); //name includes gen size

@@ -1,8 +1,8 @@
 package base
 
 Error:{
-  ![R](info: Info): mdf R -> Magic!,
-  .str[R](s: Str): mdf R -> this!{
+  ![R:read,mut,imm,iso,lent,readOnly](info: Info): mdf R -> Magic!,
+  .str[R:read,mut,imm,iso,lent,readOnly](s: Str): mdf R -> this!{
     .str -> s,
     .list -> List#,
     .map -> EmptyMap[Str, Info]
@@ -13,11 +13,10 @@ Error:{
 /// The operation has either completed successfully or thrown an exception,
 // leaving the program state exactly as it was before the operation started.
 Try:{
-  #[R](try: read Try[mdf R], catch: mut Catch[mdf R]): mdf R -> Magic!,
+  #[R](try: read Try[mdf R]): mut Res[mdf R] -> Magic!,
   }
 
 Try[R]:{ read #: mdf R, }
-Catch[R]:{ mut #(info: Info): mdf R }
 
 Info:Sealed{
   .str: Str,

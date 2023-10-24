@@ -166,10 +166,14 @@ public record InferBodies(ast.Program p) {
   }
 
   Optional<E> methCall(Map<String, T> gamma, E.MCall e, int depth) {
-    var res = methCallProp(gamma, e, depth)
-      .or(()->methArgProp(gamma,e, depth))
-      .or(()->methCallHasGens(gamma, e, depth))
-      .or(()->methCallNoGens(gamma, e, depth));
+    Optional<E> res; try { res =
+      methCallProp(gamma, e, depth)
+        .or(()->methArgProp(gamma,e, depth))
+        .or(()->methCallHasGens(gamma, e, depth))
+        .or(()->methCallNoGens(gamma, e, depth));
+    } catch (CompileError err) {
+      throw err.parentPos(e.pos());
+    }
     assert res.map(e1->!e.equals(e1)).orElse(true);
     return res;
   }

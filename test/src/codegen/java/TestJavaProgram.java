@@ -6,6 +6,7 @@ import failure.CompileError;
 import id.Id;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.inference.InferBodies;
@@ -566,7 +567,7 @@ public class TestJavaProgram {
   @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Do#
-      .var[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14 .list, 49) }
+      .var[Int] closest = { Closest#(mut LList[Int] + 35 + 52 + 84 + 14 .list, 49) }
       .return{ Assert!(closest == 52, closest.str, {{}}) }
       }
     Closest:{
@@ -748,7 +749,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Do#
       .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
-      .var[Int] ok = { a.peek[Int]{ .some(m) -> m.rn*.clone + 0, .empty -> base.Abort! } }
+      .var[Int] ok = { a.peek[Int]{ .some(m) -> m.rn*.toImm + 0, .empty -> base.Abort! } }
       .return{Void}
       }
     MutThingy:{ mut .n: mut Count[Int], read .rn: read Count[Int] }
@@ -826,7 +827,7 @@ public class TestJavaProgram {
       .var io = { FIO#s }
       .var s1 = { IsoPod#[iso Str](iso "help, i'm alive") }
       .do{ PrintMsg#(io, s1) }
-      .return{ io.println("consume: " + (s1.consume)) }
+      .return{ io.println("consume: " + (s1!)) }
       }
     PrintMsg:{
       #(io: mut IO, msg: read IsoPod[iso Str]): Void -> msg.peek{
@@ -835,19 +836,30 @@ public class TestJavaProgram {
         }
       }
     """, Base.mutBaseAliases); }
-  @Test void shouldPeekIntoIsoPodHyg() { ok(new Res("""
-    peek: help, i'm alive
-    consume: help, i'm alive
-    """.strip(), "", 0), "test.Test", """
+
+  @Test void shouldReadFullIsoPod() { ok(new Res("hi", "", 0), "test.Test", """
     package test
-    Test:Main{ s -> Do#
-      .var[mut IO] io = { FIO#s }
-      .var s1 = { IsoPod#[Str]iso "help, i'm alive" }
-      .do{ s1.peekHyg{
-        .some(str) -> io.println("peek: " + str),
-        .empty -> Void
-        }}
-      .return{ io.println("consume: " + (s1.consume)) }
+    Test:Main{ s ->
+      Try#[Str]{ Do#
+        .var[mut IsoPod[Str]] pod = { IsoPod#[Str] iso "hi" }
+        .return{pod!}
+        }.resMatch{
+          .ok(msg) -> FIO#s.println(msg),
+          .err(info) -> FIO#s.printlnErr(info.str),
+        }
+      }
+    """, Base.mutBaseAliases); }
+  @Test void shouldFailOnEmptyIsoPod() { ok(new Res("", "Cannot consume an empty IsoPod.", 0), "test.Test", """
+    package test
+    Test:Main{ s ->
+      Try#[Str]{ Do#
+        .var[mut IsoPod[Str]] pod = { IsoPod#[Str] iso "hi" }
+        .do{ Do#(pod!) }
+        .return{pod!}
+        }.resMatch{
+          .ok(msg) -> FIO#s.println(msg),
+          .err(info) -> FIO#s.printlnErr(info.str),
+        }
       }
     """, Base.mutBaseAliases); }
 
@@ -1482,28 +1494,76 @@ public class TestJavaProgram {
 
   @Test void tryCatch1() { ok(new Res("Happy", "", 0), "test.Test", """
     package test
+//    Test:Main{s ->
+//      FIO#s.println(Try#[Str](
+//        {"Happy"},
+//        {err->err.str}
+//        ))
+//      }
     Test:Main{s ->
-      FIO#s.println(Try#[Str](
-        {"Happy"},
-        {err->err.str}
-        ))
+      FIO#s.println(Try#[Str]{"Happy"}.resMatch{
+        .ok(res) -> res,
+        .err(err) -> err.str,
+        })
       }
     """, Base.mutBaseAliases);}
   @Test void tryCatch2() { ok(new Res("oof", "", 0), "test.Test", """
     package test
+//    Test:Main{s ->
+//      FIO#s.println(Try#[Str](
+//        {Error.str("oof")},
+//        {err->err.str}
+//        ))
+//      }
     Test:Main{s ->
-      FIO#s.println(Try#[Str](
-        {Error.str("oof")},
-        {err->err.str}
-        ))
+      FIO#s.println(Try#[Str]{Error.str("oof")}.match{ .a(a) -> a, .b(err) -> err.str })
       }
     """, Base.mutBaseAliases);}
   @Test void error1() { ok(new Res("", """
     Exception in thread "main" FearlessError
-    	at FProgram$base$Error_0.str$imm$(FProgram.java:1683)
-    	at FProgram$test$Test_0.$35$imm$(FProgram.java:256)
-    	at FProgram.main(FProgram.java:3295)""", 1), "test.Test", """
+    	at FProgram$base$Error_0.str$imm$(FProgram.java:[###])
+    	at FProgram$test$Test_0.$35$imm$(FProgram.java:[###])
+    	at FProgram.main(FProgram.java:[###])""", 1), "test.Test", """
     package test
     Test:Main{s -> Error.str("yolo") }
+    """, Base.mutBaseAliases);}
+  @Test void emptyOptErr1() { ok(new Res("", """
+    Exception in thread "main" FearlessError
+    	at FProgram$base$Error_0.str$imm$(FProgram.java:1688)
+    	at FProgram$base$Opt_1$2.empty$mut$(FProgram.java:1083)
+    	at FProgram$base$Opt_1.match$imm$(FProgram.java:1220)
+    	at FProgram$base$Opt_1.$33$imm$(FProgram.java:1076)
+    	at FProgram$test$Test_0.$35$imm$(FProgram.java:256)
+    	at FProgram.main(FProgram.java:3337)""", 1), "test.Test", """
+    package test
+    Test:Main{s -> Do#(Opt[Str]!) }
+    """, Base.mutBaseAliases);}
+  @Test void emptyOptErr2() { ok(new Res("", "Opt was empty", 0), "test.Test", """
+    package test
+    Test:Main{s ->
+      Try#{Opt[Str]!}.match{
+        .a(_) -> {},
+        .b(info) -> FIO#s.printlnErr(info.str),
+        }
+      }
+    """, Base.mutBaseAliases);}
+  @Disabled // TODO: cannot wrap this because try can't capture System right now
+  @Test void emptyOptErrWrapped() { ok(new Res("", """
+    Exception in thread "main" FearlessError
+    	at FProgram$base$Error_0.str$imm$(FProgram.java:1688)
+    	at FProgram$base$Opt_1$2.empty$mut$(FProgram.java:1083)
+    	at FProgram$base$Opt_1.match$imm$(FProgram.java:1220)
+    	at FProgram$base$Opt_1.$33$imm$(FProgram.java:1076)
+    	at FProgram$test$Test_0.$35$imm$(FProgram.java:256)
+    	at FProgram.main(FProgram.java:3337)""", 1), "test.Test", """
+    package test
+    SMain:Main{
+      #(s) -> Try#[Void]{this.realMain(s)}.resMatch{
+        .ok(void) -> void,
+        .err(info) -> FIO#s.printlnErr(info.str)
+        },
+      .realMain(s: mut System): Void,
+      }
+    Test:SMain{s -> Do#(Opt[Str]!) }
     """, Base.mutBaseAliases);}
 }
