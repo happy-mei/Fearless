@@ -219,9 +219,13 @@ public class Program implements program.Program{
         }
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();
-        return p.meths(xbs, Mdf.recMdf, dec.toAstT(), name, 0).stream()
+        var res = p.meths(xbs, Mdf.recMdf, dec.toAstT(), name, 0).stream()
           .map(inferred->namedMeth.withSig(inferred.sig().toAstFullSig()).withName(name.withMdf(Optional.of(inferred.mdf()))))
           .toList();
+        if (res.isEmpty()) {
+          throw Fail.cannotInferSig(dec.name(), name);
+        }
+        return res;
       } catch (CompileError e) {
         throw e.pos(m.pos());
       }

@@ -214,9 +214,9 @@ public class TestTypeSystemWithBase {
   @Test void shouldPromoteList() { ok("""
     package test
     Foo:{
-      .toMut: mut List[Int] -> (mut LList#[Int]35 + 52 + 84 + 14).list,
-      .toIso: iso List[Int] -> (mut LList#[Int]35 + 52 + 84 + 14).list,
-      .toImm: List[Int] -> (mut LList#[Int]35 + 52 + 84 + 14).list
+      .toMut: mut List[Int] -> (mut LList[Int] + 35 + 52 + 84 + 14).list,
+      .toIso: iso List[Int] -> (mut LList[Int] + 35 + 52 + 84 + 14).list,
+      .toImm: List[Int] -> (mut LList[Int] + 35 + 52 + 84 + 14).list
       }
     """, Base.mutBaseAliases);}
 
@@ -239,9 +239,9 @@ public class TestTypeSystemWithBase {
       }
     
     MyApp:{
-      #: Void -> Do#
+      #: Void -> Block#
         .var[mut List[mut Person]] ps = { List#(Person'#"Alice", Person'#"Bob", Person'#"Nick") }
-        .do{ ListIter#ps.for{ p -> p.name := "new name" } }
+        .do{ ps.iter.for{ p -> p.name := "new name" } }
         .return{{}}
       }
     """, Base.mutBaseAliases); }
@@ -275,7 +275,7 @@ public class TestTypeSystemWithBase {
       }
     Usage:{
       .mutate(p: lent Person): iso Ref[Str] -> p.name,
-//      .break: Void -> Do#
+//      .break: Void -> Block#
 //        .var[mut Person] p = { Person'#"Alice" }
 //        .var[imm Ref[Str]] illegal = { this.mutate(p) }
 //        .do{ p.name := "Charles" }
@@ -287,11 +287,11 @@ public class TestTypeSystemWithBase {
     """, """
     package test
     Person:{ read .age: UInt, mut .age(n: UInt): Void }
-    FPerson:F[UInt,mut Person]{ age -> Do#
+    FPerson:F[UInt,mut Person]{ age -> Block#
       .var[mut Count[UInt]] age' = { Count.uint(age) }
       .return{{ .age -> age'*, .age(n) -> age' := n }}
       }
-    Test:Main{ s -> Do#
+    Test:Main{ s -> Block#
       .var[mut Person] p = { FPerson#24u }
       .var[imm List[read Person]] unsound = { A#(iso List#[read Person], p) }
       .var[imm Person] uhOh = { unsound.get(0u)! }
@@ -300,7 +300,7 @@ public class TestTypeSystemWithBase {
       .return{{}}
       }
     A:{
-      #(l: mut List[read Person], p: read Person): mut List[read Person] -> Do#(l.add(p), l),
+      #(l: mut List[read Person], p: read Person): mut List[read Person] -> Block#(l.add(p), l),
       }
     """, Base.mutBaseAliases); }
   @Test void unsoundHygienicLList() { fail("""
@@ -308,11 +308,11 @@ public class TestTypeSystemWithBase {
     """, """
     package test
     Person:{ readOnly .age: UInt, mut .age(n: UInt): Void }
-    FPerson:F[UInt,mut Person]{ age -> Do#
+    FPerson:F[UInt,mut Person]{ age -> Block#
       .var[mut Count[UInt]] age' = { Count.uint(age) }
       .return{{ .age -> age'*, .age(n) -> age' := n }}
       }
-    Test:Main{ s -> Do#
+    Test:Main{ s -> Block#
       .var[mut Person] p = { FPerson#24u }
       .var[imm LList[read Person]] unsound = { A#(iso LList[read Person]{}, p) }
       .var[imm Person] uhOh = { unsound.get(0u)! }
@@ -334,11 +334,11 @@ public class TestTypeSystemWithBase {
     """, """
     package test
     Person:{ read .age: UInt, mut .age(n: UInt): Void }
-    FPerson:F[UInt,mut Person]{ age -> Do#
+    FPerson:F[UInt,mut Person]{ age -> Block#
       .var[mut Count[UInt]] age' = { Count.uint(age) }
       .return{{ .age -> age'*, .age(n) -> age' := n }}
       }
-    Test:Main{ s -> Do#
+    Test:Main{ s -> Block#
       .var[mut Person] p = { FPerson#24u }
       .var[imm LList[read Person]] unsound = { A#(iso LList[read Person]{}, p) }
       .var[imm Person] uhOh = { unsound.get(0u)! }
@@ -384,7 +384,6 @@ public class TestTypeSystemWithBase {
    */
   @Test void readOnlyAsLib() { ok("""
     package test
-    alias base.Abort as Abort,
     
     ReadBox[T]:{
       read .get: read T,
@@ -400,7 +399,7 @@ public class TestTypeSystemWithBase {
       .setMut(x) -> Abort!,
       }
     FReadBox:{
-      #[T](t: mut T): mut ReadBox[T] -> Do#
+      #[T](t: mut T): mut ReadBox[T] -> Block#
         .var[mut Ref[mut ReadBox[T]]] state = { Ref#[mut ReadBox[T]](mut _MutBox[T]{ t }) }
         .return{{
           .get -> state*.get,
@@ -491,7 +490,7 @@ public class TestTypeSystemWithBase {
     [###]
     """, """
     package test
-    Test:Main{ _ -> Do#
+    Test:Main{ _ -> Block#
       .var[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
       .var[imm Count[Int]] ok = { a.peek[Count[Int]]{ .some(m) -> m.rn, .empty -> base.Abort! } }
       .return{Void}
@@ -538,7 +537,7 @@ public class TestTypeSystemWithBase {
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: mut Ref[Int]): Int -> Do#
+      .m1(r: mut Ref[Int]): Int -> Block#
         .do{ r := 12 }
         .var[read Ref[Int]] rr = { r }
         .return{ rr.get },

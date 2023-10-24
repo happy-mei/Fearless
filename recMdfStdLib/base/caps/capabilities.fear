@@ -1,6 +1,6 @@
 package base.caps
 
-//MyApp:Main{ s -> Do#
+//MyApp:Main{ s -> Block#
 //  .var io = s.use[]
 //  }
 

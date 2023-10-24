@@ -4,7 +4,7 @@ alias base.Opt as Opt,
 alias base.Void as Void,
 alias base.Bool as Bool, alias base.True as True, alias base.False as False,
 alias base.Let as Let,
-alias base.Do as Do,
+alias base.Block as Block,
 //alias base.LList as LList,
 
 

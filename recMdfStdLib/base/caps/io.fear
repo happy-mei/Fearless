@@ -51,7 +51,7 @@ FIO:F[mut System, mut IO],Sealed{
 
 //FFile:{
 //  .open(path: LList[Str]): FCap[IO, File] -> {
-//    #(fIO) -> Do#
+//    #(fIO) -> Block#
 //      .var fh = { fIO#.openFileHandle(path) }
 //      .return {{
 //        .clone -> { FFile.open(path).lift(fIO) }

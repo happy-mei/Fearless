@@ -6,16 +6,22 @@ import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
+import program.CM;
 import program.Program;
 import program.typesystem.XBs;
 import utils.Err;
 import utils.FromContent;
 
+import java.util.Comparator;
+
 public class TestMethsPost5a {
   void ok(String expected, String type, String ...code){
     var it = new Parser(Parser.dummy, type).parseFullT();
     var p = FromContent.of(code).inferSignatures();
-    Err.strCmpFormat(expected, p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0).toString());
+    var res = p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0).stream()
+      .sorted(Comparator.comparing(CM::toString))
+      .toList();
+    Err.strCmpFormat(expected, res.toString());
   }
   void fail(String expected, String type, String ...code) {
     var it = new Parser(Parser.dummy, type).parseFullT();

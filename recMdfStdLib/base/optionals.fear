@@ -14,7 +14,7 @@ Opt[T]:{
     recMdf ._filter(res: Bool): recMdf Opt[recMdf T] ->
       res.look(recMdf BoolView[recMdf Opt[recMdf T]]{ .then -> this, .else -> {} }),
   recMdf .do(f: mut OptMap[recMdf T, Void]): recMdf Opt[recMdf T] ->
-    Do#[mut Opt[Void], recMdf Opt[recMdf T]](this.map(f), this),
+    Block#[mut Opt[Void], recMdf Opt[recMdf T]](this.map(f), this),
   recMdf |(alt: recMdf T): recMdf T -> this || (recMdf OptOr#alt),
   recMdf ||(alt: recMdf OptOr[recMdf T]): recMdf T -> this.matchHyg(alt),
   read .isEmpty: Bool -> this.match{ .none -> True, .some(_) -> False },

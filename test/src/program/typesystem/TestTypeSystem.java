@@ -1577,7 +1577,7 @@ were valid:
         recMdf *: recMdf X,
         recMdf .get: recMdf X -> this*,
         mut .swap(x: mdf X): mdf X -> mut _FakeCapture[mdf X]{ x }.prev,
-        mut :=(x: mdf X): Void -> Do#(this.swap(x)),
+        mut :=(x: mdf X): Void -> Block#(this.swap(x)),
         mut .set(x: mdf X): Void -> this := x,
         mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
         mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
@@ -1623,7 +1623,7 @@ were valid:
         recMdf *: recMdf X,
         recMdf .get: recMdf X -> this*,
         mut .swap(x: mdf X): mdf X,
-        mut :=(x: mdf X): Void -> Do#(this.swap(x)),
+        mut :=(x: mdf X): Void -> Block#(this.swap(x)),
         mut .set(x: mdf X): Void -> this := x,
         mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
         mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
@@ -1655,7 +1655,7 @@ were valid:
         recMdf *: recMdf X,
         recMdf .get: recMdf X -> this*,
         lent .swap(x: mdf X): mdf X,
-        lent :=(x: mdf X): Void -> Do#(this.swap(x)),
+        lent :=(x: mdf X): Void -> Block#(this.swap(x)),
         lent .set(x: mdf X): Void -> this := x,
         lent <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
         lent .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
@@ -1980,13 +1980,13 @@ were valid:
     package test
     A:AorB{} B:AorB{} AorB:{}
     Usage:{
-      .m1: Void -> Do#.return{Void},
-      .m2: mut Void -> Do#.return{mut Void},
-      .m3: mut AorB -> Do#[mut AorB]
+      .m1: Void -> Block#.return{Void},
+      .m2: mut Void -> Block#.return{mut Void},
+      .m3: mut AorB -> Block#[mut AorB]
         .if{True}.return{mut A}
         .return{mut B},
-      .m6: mut AorB -> Do#[mut AorB]
-        .if{True}.return{Do#
+      .m6: mut AorB -> Block#[mut AorB]
+        .if{True}.return{Block#
           .var[mut A] a = { mut A }
           .return{ a }
           }
@@ -2001,8 +2001,8 @@ were valid:
     package test
     A:AorB{} B:AorB{} AorB:{}
     Usage:{
-      .m1: lent AorB -> Do#[lent AorB]
-        .if{True}.return{Do#
+      .m1: lent AorB -> Block#[lent AorB]
+        .if{True}.return{Block#
           .var[lent A] a = lent ReturnStmt[lent A]{ lent A }
           .return lent ReturnStmt[lent A]{ a }
           }

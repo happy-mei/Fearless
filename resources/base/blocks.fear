@@ -3,7 +3,7 @@ package base
 ReturnStmt[R]:{ mut #: mdf R }
 Condition:{ mut #: Bool }
 VarContinuation[X,R]:{ mut #(x: mdf X, self: mut Block[mdf R]): mdf R }
-Do:{
+Block:{
   #[R]: mut Block[mdf R] -> {},
   #[X:read,mut,imm,iso](x: mdf X): Void -> this#(x, Void),
   #[X:read,mut,imm,iso, R:read,mut,imm,iso](_: mdf X, res: mdf R): mdf R -> res,

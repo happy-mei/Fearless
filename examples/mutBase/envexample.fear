@@ -3,7 +3,7 @@ alias base.Do as Do,
 alias base.caps.FEnv as FEnv,
 alias base.caps.FIO as FIO,
 
-Nothing:base.Main{ s -> Do#
+Nothing:base.Main{ s -> Block#
   .assert({ FEnv#s
     .launchArgs.head! == "hi"
     }, FEnv#s.launchArgs.head!)

@@ -339,6 +339,16 @@ public interface Program {
     var first=cms.get(0);
     if (cms.size() == 1) { return first; }
     var nextCms=cms.stream().skip(1)
+      .peek(cmi->{
+        var sameGens = first.sig().gens().equals(cmi.sig().gens());
+        var sameBounds = first.sig().bounds().equals(cmi.sig().bounds());
+        if (!sameGens || !sameBounds) {
+          throw Fail.uncomposableMethods(List.of(
+            Fail.conflict(first.pos(), first.toStringSimplified()),
+            Fail.conflict(cmi.pos(), cmi.toStringSimplified())
+          ));
+        }
+      })
       .filter(cmi->!firstIsMoreSpecific(xbs, first, cmi) && !firstIsMoreSpecific(xbs, plainCM(first), plainCM(cmi)))
       .toList();
 

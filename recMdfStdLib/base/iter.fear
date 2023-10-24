@@ -16,14 +16,14 @@ Iter[E:imm,mut]:{
     },
 
   mut .map[R:imm,mut](f: mut IterMapper[mdf E, mdf R]): mut Iter[mdf R] -> { this.next.map(f) },
-  mut .flatMap[R:imm,mut](f: mut IterMapper[mdf E, mut Iter[mdf R]]): mut Iter[mdf R] -> Do#
+  mut .flatMap[R:imm,mut](f: mut IterMapper[mdf E, mut Iter[mdf R]]): mut Iter[mdf R] -> Block#
     .var[mut Iter[mut Iter[mdf R]]] mapIter = { this.map(f) }
     .var[mut Ref[mut Opt[mut Iter[mdf R]]]] optCurIter = { Ref#(mapIter.next) }
     .return(mut ReturnStmt[mut Iter[mdf R]]{ mut Iter[mdf R]{ 'self
       .next -> optCurIter*.match{
         .some(curIter) -> curIter.next.match{
           .some(next) -> mut Opt#next,
-          .none -> Do#(optCurIter := (mapIter.next), self.next)
+          .none -> Block#(optCurIter := (mapIter.next), self.next)
           },
         .none -> {}
         }
@@ -35,12 +35,12 @@ Iter[E:imm,mut]:{
     .none -> acc
     },
   mut .for(f: mut IterForEacher[mdf E]): Void -> this.next.match{
-    .some(e) -> Do#(f#e, this.for(f)),
+    .some(e) -> Block#(f#e, this.for(f)),
     .none -> {}
     },
 
   mut .count: UInt -> this.fold[UInt](0u, mut IterFolder[mdf E, UInt]{ acc, _ -> acc + 1u }),
-  mut .list: mut List[mdf E] -> this.fold(List#[mdf E], { acc, e -> Do#(acc.add(e), acc) }),
+  mut .list: mut List[mdf E] -> this.fold(List#[mdf E], { acc, e -> Block#(acc.add(e), acc) }),
   mut .llist: mut LList[mdf E] -> this.fold(mut LList[mdf E], { acc, e -> mut LList.cons(e, acc) }),
   mut .str(toStr: mut IterMapper[mdf E, Str], joining: Str): Str -> this.map(toStr)
     .fold[Str]("", mut IterFolder[Str, Str]{ acc, e ->
@@ -60,5 +60,5 @@ IterMapper[E,R]:OptMap[mdf E, mdf R]
 IterPredicate[E]:{ mut #(e: mdf E): Bool }
 
 _ListIsoAdd[E]:{
-  #(l: mut List[mdf E], e: mdf E): mut List[mdf E] -> Do#(l.add(e), l),
+  #(l: mut List[mdf E], e: mdf E): mut List[mdf E] -> Block#(l.add(e), l),
   }

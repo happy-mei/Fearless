@@ -1,5 +1,5 @@
 package examples
-MyApp:Main{ s -> Do#
+MyApp:Main{ s -> Block#
   .var io = { FIO#s }
   .var args = { FEnv#s.launchArgs }
   .return{ io.println(ImmMain#args) }
@@ -15,13 +15,13 @@ ImmMain:{
   // TODO: this promotion should work:
 //  #(args: LList[Str]): Str -> args.get 0u || (Box#"Sad"),
 
-  .errMsg(retCounter: Bool): mut Ref[Str] -> Do#
+  .errMsg(retCounter: Bool): mut Ref[Str] -> Block#
     .var res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
     .var counter = { Count.int(42) }
     .do{ res* := "mutability!" }
-    .do{ Do#(counter++) }
+    .do{ Block#(counter++) }
     .if{ False }.return{ Ref#[Str]"Short cut" }
-    .if{ True }.do{ Do#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
+    .if{ True }.do{ Block#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
     .if{ True }.do{ res* := "moar mutability" }
     .if{ retCounter.not }.return{ res* }
     .return{ Ref#(counter*.str) }

@@ -34,12 +34,12 @@ Iter[E]:{
     .empty -> acc
     },
   .for(f: mut IterForEacher[E]): Void -> this.cur.match[Void]{
-    .some(e) -> Do#(f#e, this.next.for(f)),
+    .some(e) -> Block#(f#e, this.next.for(f)),
     .empty -> {}
     },
 
   .count: UInt -> this.fold[UInt](0u, IterFolder[E, UInt]{ acc, _ -> acc + 1u }),
-  .list: mut List[E] -> this.fold(List#[E], { acc, e -> Do#(acc.add(e), acc) }),
+  .list: mut List[E] -> this.fold(List#[E], { acc, e -> Block#(acc.add(e), acc) }),
   .llist: mut LList[E] -> this.fold(mut LList[E], { acc, e -> acc +[] e }),
   .str(toStr: IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
     .fold[Str]("", IterFolder[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e,

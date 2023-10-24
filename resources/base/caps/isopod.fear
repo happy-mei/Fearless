@@ -11,7 +11,7 @@ IsoPod[T:imm,iso]:{
   mut .next(val: iso T): Void -> Magic!,
   mut :=(val: iso T): Void -> this.next(val),
   mut .mutate(f: F[mut T, Void]): Bool -> this.consume{
-    .some(x) -> Do#(this.next(_IsoMutator#(f, x)), True),
+    .some(x) -> Block#(this.next(_IsoMutator#(f, x)), True),
     .empty -> False,
     }
   }
@@ -23,7 +23,7 @@ IsoViewer[T,R]:{
   mut .some(x: readOnly T): mdf R,
   mut .empty: mdf R,
   }
-_IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Do#(f#val, val) }
+_IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Block#(f#val, val) }
 
 // TODO The idea:
 //IsoPod[T]:{

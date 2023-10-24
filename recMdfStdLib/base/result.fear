@@ -22,7 +22,7 @@ Res[T,E]:{
   recMdf .map[R](f: mut ResMap[recMdf T, recMdf E, recMdf R]): mut Res[recMdf R, recMdf E] -> this.match(f),
   recMdf .flatMap[R](f: mut ResFlatMap[recMdf T, recMdf E, recMdf R]): mut Res[recMdf R, recMdf E] -> this.match(f),
   recMdf .do(f: mut ResMatch[recMdf T, recMdf E, Void]): recMdf Res[recMdf T, recMdf E] ->
-    Do#[Void, recMdf Res[recMdf T, recMdf E]](this.match(f), this),
+    Block#[Void, recMdf Res[recMdf T, recMdf E]](this.match(f), this),
   readOnly .isErr: Bool -> this.match{ .err(_) -> True, .ok(_) -> False },
   readOnly .isOk: Bool -> this.match{ .err(_) -> False, .ok(_) -> True },
   }

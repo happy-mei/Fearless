@@ -47,7 +47,7 @@ _DecidedBlock:{
 //Block[R]:{
 //  recMdf .return: Void -> {},
 //  recMdf .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
-//  recMdf .assert(cond: mut Condition, msg: Str): recMdf Block[recMdf R] -> Do#(Assert#(cond#, msg, {Void}), this),
+//  recMdf .assert(cond: mut Condition, msg: Str): recMdf Block[recMdf R] -> Block#(Assert#(cond#, msg, {Void}), this),
 //  mut .do(a: mut DoRunner): mut Block[mdf R] -> this._do(a#),
 //    mut ._do(v: Void): mut Block[mdf R] -> this,
 //  mut .var[X](x: mut ReturnStmt[mdf X], cont: mut Continuation[mdf X, mdf R]): mdf R -> cont#(x#, this),
@@ -72,7 +72,7 @@ _DecidedBlock:{
 //  .error(a) -> this.error(a),
 //  .do(a) -> this._do(a#),
 //    mut ._do(v: Void): mut Block[mdf R] -> this._outer,
-//  .assert(cond, msg) -> Do#(Assert#(cond#, msg, {Void}), this._outer),
+//  .assert(cond, msg) -> Block#(Assert#(cond#, msg, {Void}), this._outer),
 //  .hyg -> this._hyg(this._outer.hyg),
 //    mut ._hyg(outer: lent BlockHyg[mdf R]): lent BlockIfHyg[mdf R] -> lent BlockIfTrueHyg[mdf R]{ ._outer -> outer }
 //  }
@@ -105,7 +105,7 @@ _DecidedBlock:{
 //  lent .return(a: lent ReturnStmtHyg[mdf R]): mdf R -> a#,
 //  lent .do(a: lent DoRunnerHyg): lent BlockHyg[mdf R] -> this._do(a#),
 //    lent ._do(v: Void): lent BlockHyg[mdf R] -> {},
-//  lent .assert(cond: lent ConditionHyg, msg: Str): lent BlockHyg[mdf R] -> Do#(Assert#(cond#, msg, {Void}), this),
+//  lent .assert(cond: lent ConditionHyg, msg: Str): lent BlockHyg[mdf R] -> Block#(Assert#(cond#, msg, {Void}), this),
 //  lent .var[X](x: lent ReturnStmtHyg[mdf X], cont: lent ContinuationHyg[mdf X, mdf R]): mdf R -> cont#(x#, this),
 //  lent .if(a: lent ConditionHyg): lent BlockIfHyg[mdf R] -> a#.ifHyg{
 //    .then -> lent BlockIfTrueHyg[mdf R]{ this },
@@ -126,7 +126,7 @@ _DecidedBlock:{
 //  .error(a) -> this.error(a),
 //  .do(a) -> this._do(a#),
 //    lent ._do(v: Void): lent BlockHyg[mdf R] -> this._outer,
-//  .assert(cond, msg) -> Do#(Assert#(cond#, msg, {Void}), this._outer),
+//  .assert(cond, msg) -> Block#(Assert#(cond#, msg, {Void}), this._outer),
 //  }
 //BlockIfFalseHyg[R]:BlockIfHyg[mdf R]{
 //  .return(a) -> this._outer,
