@@ -240,6 +240,24 @@ public class TestJavaProgram {
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5 + 2) .str, { Void }) }
     """);}
+  @Test void addWithUnderscoreInt() { ok(new Res("", "500002", 1), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, (5_00_000 + 2) .str, { Void }) }
+    """);}
+  @Test void addWithUnderscoreUInt() { ok(new Res("", "500002", 1), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, (5_00_000u + 2u) .str, { Void }) }
+    """);}
+  @Test void addWithUnderscoreFloat() { ok(new Res("", "500002.6", 1), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, (5_00_000.5 + 2.1) .str, { Void }) }
+    """);}
   @Test void subtraction() { ok(new Res("", "3", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,

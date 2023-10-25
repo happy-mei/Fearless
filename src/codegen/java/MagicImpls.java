@@ -29,7 +29,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         var lambdaName = name().name().name();
         try {
-          return isLiteral(lambdaName) ? Long.parseLong(lambdaName)+"L" : "((long)"+e.accept(gen)+")";
+          return isLiteral(lambdaName) ? Long.parseLong(lambdaName.replace("_", ""))+"L" : "((long)"+e.accept(gen)+")";
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lambdaName, "Int");
         }
@@ -89,7 +89,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         var lambdaName = name().name().name();
         if (isLiteral(lambdaName)) {
           try {
-            long l = Long.parseUnsignedLong(lambdaName.substring(0, lambdaName.length()-1));
+            long l = Long.parseUnsignedLong(lambdaName.substring(0, lambdaName.length()-1).replace("_", ""));
             return l+"L";
           } catch (NumberFormatException err) {
             throw Fail.invalidNum(lambdaName, "UInt");
@@ -151,7 +151,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         var lambdaName = name().name().name();
         if (isLiteral(lambdaName)) {
           try {
-            double l = Double.parseDouble(lambdaName);
+            double l = Double.parseDouble(lambdaName.replace("_", ""));
             return l+"d";
           } catch (NumberFormatException err) {
             throw Fail.invalidNum(lambdaName, "Float");
