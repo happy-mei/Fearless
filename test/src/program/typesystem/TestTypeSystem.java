@@ -1130,9 +1130,9 @@ were valid:
       }
     """); }
   @Test void immMethodOneMutIsoPromotion_MultiArg1() { fail("""
-    In [###]/Dummy0.fear:6:2
-    [E23 methTypeError]
-    Expected the method .foo/2 to return mut test.A[], got lent test.A[].
+    In [###]/Dummy0.fear:6:39
+    [E53 xTypeError]
+    Expected a to be mut test.A[], got lent test.A[].
     """, """
     package test
     A:{
@@ -2259,5 +2259,13 @@ were valid:
     package a
     A:{ .foo: A } B:{ .bar: B -> this }
     Test:{ #: B -> A,B{'self .foo -> self } }
+    """); }
+
+  @Test void loopingAdaptOk() {ok("""
+    package a
+    A:B{ .m: Break[A], .me: A, }
+    B:{ .m: Break[B], .me: B, }
+    C:{}
+    Break[X]:{ .b: Break[X] }
     """); }
 }

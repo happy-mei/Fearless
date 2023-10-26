@@ -68,7 +68,7 @@ public interface Program {
     if (subTypeCache.containsKey(q)) {
       var res = subTypeCache.get(q);
       if (res == SubTypeResult.Unknown) {
-        return true; // TODO: very likely unsound, just testing a thing
+        return true; // TODO: unsound?
 //        throw Fail.cyclicSubType(t1, t2);
       }
       return subTypeCache.get(q) == SubTypeResult.Yes;
@@ -144,14 +144,15 @@ public interface Program {
         assert ms.size() == 2;
         var m1 = ms.get(0);
         var m2 = ms.get(1);
-        var mdf_ = mdf.restrict(m1.mdf()).orElseThrow();
+//        var mdf_ = mdf.restrict(m1.mdf()).orElseThrow();
+        var bounds = xbs.addBounds(m2.sig().gens(), m2.bounds());
+        var g = Gamma.empty().captureSelf(bounds, "this", new T(mdf, it1), m1.mdf());
         var recv = new ast.E.X("this", Optional.empty());
-        var xs=Push.of(m1.xs(),"this");
-        List<T> ts=Push.of(m1.sig().ts(),t1.withMdf(mdf_));
+        g = Streams.zip(m2.xs(), m2.sig().ts()).fold(Gamma::add, g);
 
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
-        var e=new ast.E.MCall(recv, m1.name(), gxs, m1.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
-        return isType(xs, ts, xbs.addBounds(m1.sig().gens(), m1.bounds()), e, m2.sig().ret());
+        var e=new ast.E.MCall(recv, m2.name(), gxs, m2.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
+        return isType(g, bounds, e, m2.sig().ret());
       });
   }
 
@@ -162,8 +163,8 @@ public interface Program {
 //    return e.accept(v);
 //  }
 
-  default boolean isType(List<String>xs, List<ast.T>ts, XBs xbs, ast.E e, ast.T expected) {
-    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
+  default boolean isType(Gamma g, XBs xbs, ast.E e, ast.T expected) {
+//    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
     var v = ETypeSystem.of(this, g, xbs, Optional.of(expected), new IdentityHashMap<>(), 0);
     var res = e.accept(v);
     return res.isEmpty();

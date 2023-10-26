@@ -27,7 +27,7 @@ public class Program implements program.Program  {
     var errors = new StringBuilder();
     TraitTypeSystem.dsOk(this.ds.values(), resolvedCalls)
       .forEach(err->errors.append(err.toString()).append("\n\n"));
-    if (!errors.isEmpty()) { throw new CompileError(errors.toString()); }
+    if (!errors.isEmpty()) { throw Fail.typeError(errors.toString()); }
   }
 
   public Program withDec(T.Dec d) {

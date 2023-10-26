@@ -88,8 +88,6 @@ public class Fail{
   public static CompileError invalidMdf(T t){return of("The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type "+t);}
   public static CompileError invalidMdf(Id.IT<T> it){return of("The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type "+it);}
 
-  public static CompileError concreteInNoMutHyg(T t){return of("The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. A concrete type was found:\n" + t);}
-  public static CompileError invalidNoMutHyg(T t){return of("The type parameters to NoMutHyg must be generic and present in the type parameters of the trait implementing it. This generic type is not a type parameter of the trait:\n" + t);}
   public static CompileError expectedConcreteType(T t){ return of("A concrete type was expected but the following generic type was given:\n" + t); }
 
   public static CompileError missingDecl(Id.DecId d){ return of("The following trait cannot be aliased because it does not exist:\n"+d); }
@@ -200,8 +198,7 @@ public class Fail{
   }
 
   public static CompileError incompatibleMdfs(T t1, T t2){
-    return of("The modifiers for "+t1+" and "+t2+" are not compatible.\n" +
-      "This could be a case of NoMutHyg applying a more restrictive modifier than written.");
+    return of("The modifiers for "+t1+" and "+t2+" are not compatible.");
   }
 
   public static CompileError mutCapturesHyg(ast.T t1){
@@ -245,6 +242,10 @@ public class Fail{
     return of("The generic type argument "+gx1+" is not compatible with the generic type argument "+gx2+".");
   }
 
+  public static CompileError typeError(String subErrors) {
+    return of(subErrors);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -264,8 +265,8 @@ enum ErrorCode {
   shadowingX,
   shadowingGX,
   invalidMdf,
-  concreteInNoMutHyg,
-  invalidNoMutHyg,
+  typeError,
+  UNUSED2,
   expectedConcreteType,
   missingDecl,
   invalidMethMdf,

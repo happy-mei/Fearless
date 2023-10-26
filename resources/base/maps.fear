@@ -52,7 +52,7 @@ LinkedMap[K,V]:Map[K, mdf V]{
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k: K): mut Opt[R] ->      As[mut Opt[V]]#(this.get(k)).map{res -> fImm#(k, res)},
     mut  .get(k: K): mut Opt[mdf R] ->  this.get(k).map{res -> fMut#(k, res)},
-    read .get(k: K): mut Opt[read R] -> this.get(k).map{res -> fRead#(k, res)},
+    read .get(k: K): mut Opt[read R] -> this.get(k).map mut OptMap[read V, read R]{res -> fRead#(k, res)},
     },
   read .map[R](fImm: MapMapImm[K, V, R], fRead: read MapMapRead[K, mdf V, mdf R]): read LinkedMap[K, mdf R] -> {
     .keyEq(k1, k2) -> this.keyEq(k1, k2),

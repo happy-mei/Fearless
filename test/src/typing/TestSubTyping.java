@@ -1,21 +1,16 @@
 package typing;
 
-import ast.T;
 import failure.CompileError;
-import id.Id;
 import id.Mdf;
-import net.jqwik.api.*;
+import net.jqwik.api.ForAll;
+import net.jqwik.api.Property;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
-import program.TypeRename;
 import program.typesystem.XBs;
 import utils.Err;
 import utils.FromContent;
-
-import java.util.Arrays;
-import java.util.Map;
 
 public class TestSubTyping {
   void ok(String t1, String t2, boolean res, String ...code){
@@ -85,15 +80,25 @@ public class TestSubTyping {
     package a
     A:{} B:A C:B D:C E:D
     """); }
-  @Test void loopingAdapt() { fail("""
-    [E25 cyclicSubType]
-    There is a cyclical sub-typing relationship between imm a.Break[imm A] and imm a.Break[imm B].
-    """, "a.Break[A]", "a.Break[B]", """
+
+  // This would fail, but now works because adapt will assume true for a sub-typing relationship if it's part of the
+  // relationship it is currently evaluating.
+  @Test void loopingAdapt() { ok("a.Break[A]", "a.Break[B]", true, """
     package a
     A:B{ .m: Break[A] }
     B:{ .m: Break[B] }
     Break[X]:{ .b: Break[X] }
-    // Break[A]:{ .self: Break[B], .b: Break[A] -> this.self.b } // loop
+//     Break[X]:{ .self: Break[B], .b: Break[A] -> this.self.b } // loop
+    """); }
+
+  // TODO: hmm, maybe this was not sound lol
+  @Test void loopingAdapt2() { ok("a.Break[B]", "a.Break[A]", true, """
+    package a
+    A:B{ .m: Break[A], .me: A, }
+    B:{ .m: Break[B], .me: C, }
+    C:{}
+    Break[X]:{ .b: Break[X] }
+//     Break[X]:{ .self: Break[B], .b: Break[A] -> this.self.b } // loop
     """); }
 
   final String pointEx = """

@@ -38,6 +38,7 @@ public class CompileError extends RuntimeException implements Res{
   }
 
   public String header() {
+    if (code == ErrorCode.typeError.code()) { return ""; }
     return "[E"+code+" "+name+"]";
   }
 
