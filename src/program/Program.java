@@ -52,7 +52,7 @@ public interface Program {
   }
   default boolean isSubType(XBs xbs, astFull.T t1, astFull.T t2) { return isSubType(xbs, t1.toAstT(), t2.toAstT()); }
   record SubTypeQuery(XBs xbs, T t1, T t2){}
-  enum SubTypeResult { Yes, No, Unknown }
+  enum SubTypeResult { Yes, No, Adapting, Unknown }
   HashMap<SubTypeQuery, SubTypeResult> subTypeCache();
   default boolean tryIsSubType(XBs xbs, T t1, T t2) {
     try {
@@ -67,8 +67,11 @@ public interface Program {
     var subTypeCache = this.subTypeCache();
     if (subTypeCache.containsKey(q)) {
       var res = subTypeCache.get(q);
+//      if (res == SubTypeResult.Adapting) {
+//        return true;
+//      }
       if (res == SubTypeResult.Unknown) {
-        return true; // TODO: unsound?
+        return true;
 //        throw Fail.cyclicSubType(t1, t2);
       }
       return subTypeCache.get(q) == SubTypeResult.Yes;
@@ -149,10 +152,12 @@ public interface Program {
         var g = Gamma.empty().captureSelf(bounds, "this", new T(mdf, it1), m1.mdf());
         var recv = new ast.E.X("this", Optional.empty());
         g = Streams.zip(m2.xs(), m2.sig().ts()).fold(Gamma::add, g);
+//        subTypeCache().put(new SubTypeQuery(bounds, t1, t2), SubTypeResult.Adapting);
 
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m2.name(), gxs, m2.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
-        return isType(g, bounds, e, m2.sig().ret());
+        var res = isType(g, bounds, e, m2.sig().ret());
+        return res.isEmpty();
       });
   }
 
@@ -163,11 +168,11 @@ public interface Program {
 //    return e.accept(v);
 //  }
 
-  default boolean isType(Gamma g, XBs xbs, ast.E e, ast.T expected) {
+  default Optional<CompileError> isType(Gamma g, XBs xbs, ast.E e, ast.T expected) {
 //    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
     var v = ETypeSystem.of(this, g, xbs, Optional.of(expected), new IdentityHashMap<>(), 0);
     var res = e.accept(v);
-    return res.isEmpty();
+    return res;
 //    return res.resMatch(t->isSubType(xbs,t,expected),err->false);
   }
 

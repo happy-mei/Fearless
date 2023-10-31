@@ -2282,6 +2282,8 @@ were valid:
     
     Ex:{
       .nums(o: Box[Student]): Box[Person] -> o,
+      .simple(rs: read Student): read Person -> rs,
+      .simpleMdf(rs: imm Student): read Person -> rs,
       }
     """); }
   @Test void contravarianceBoxMatcher() { ok("""
@@ -2289,15 +2291,36 @@ were valid:
     UInt:{} Str:{}
     Person:{ read .name: Str, read .age: UInt, }
     Student:Person{ read .grades: Box[UInt] }
-    OrElse[R]:{ mut #: mdf R }
+    BoxMatcher[T,R]:{ mut #: mdf R }
     Box[T]:{
-      mut .getOr[R](m: mut OrElse[mdf R]): mdf R -> m#,
-      read .getOr[R](m: mut OrElse[read R]): read R -> m#,
-      imm .getOr[R](m: mut OrElse[R]): R -> m#,
+      .match[R](m: mut BoxMatcher[T, mdf R]): mdf R -> m#,
+      .break(x: T): T -> this.match[T]{ x },
     }
     
     Ex:{
       .nums(o: Box[Student]): Box[Person] -> o,
+      }
+    """); }
+  @Test void contravarianceBoxMatcherNoAdapt() { ok("""
+    package test
+    UInt:{} Str:{}
+    Person:{ read .name: Str, read .age: UInt, }
+    Student:Person{ read .grades: UInt }
+    BoxMatcher[T,R]:{ mut #: mdf R }
+    BoxPerson:{
+      .match[R](m: mut BoxMatcher[Person, mdf R]): mdf R -> m#,
+      .break(x: Person): Person -> this.match[Person]{ x },
+    }
+    BoxStudent:{
+      .match[R](m: mut BoxMatcher[Student, mdf R]): mdf R -> m#,
+      .break(x: Student): Student -> this.match[Student]{ x },
+    }
+    
+    Ex:{
+      .nums(o: BoxStudent): BoxPerson -> {'adapted
+        .match(m) -> o.match(m),
+        .break(x) -> o.break(x),
+        },
       }
     """); }
 }

@@ -46,19 +46,19 @@ Opt[T]:{
     .empty -> alt#
     }),
 
-  mut .or(f: mut OptOrElse[mut Opt[mdf T]]): mut Opt[mdf T] -> this.match[mut Opt[mdf T]](mut OptMatch[mdf T, mut Opt[mdf T]]{
-    .some(x) -> this,
-    .empty -> f#
-    }),
+//  mut .or(f: mut OptOrElse[mut Opt[mdf T]]): mut Opt[mdf T] -> this.match[mut Opt[mdf T]](mut OptMatch[mdf T, mut Opt[mdf T]]{
+//    .some(x) -> this,
+//    .empty -> f#
+//    }),
   // TODO: this is the method that breaks the adapter ok check for imm Opt[read T] < imm Opt[imm T]
-  read .or(f: mut OptOrElse[read Opt[mdf T]]): read Opt[mdf T] -> this.match[read Opt[mdf T]](mut OptMatch[read T, read Opt[mdf T]]{
-    .some(x) -> this,
-    .empty -> f#
-    }),
-  imm .or(f: mut OptOrElse[Opt[T]]): Opt[T] -> this.match[Opt[T]](mut OptMatch[T, Opt[T]]{
-      .some(x) -> this,
-      .empty -> f#
-      }),
+//  read .or(f: mut OptOrElse[read Opt[mdf T]]): read Opt[mdf T] -> this.match[read Opt[mdf T]](mut OptMatch[read T, read Opt[mdf T]]{
+//    .some(x) -> this,
+//    .empty -> f#
+//    }),
+//  imm .or(f: mut OptOrElse[Opt[T]]): Opt[T] -> this.match[Opt[T]](mut OptMatch[T, Opt[T]]{
+//      .some(x) -> this,
+//      .empty -> f#
+//      }),
 
   read .isEmpty: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .empty -> True, .some(_) -> False }),
   read .isSome: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .empty -> False, .some(_) -> True }),

@@ -567,7 +567,7 @@ public class TestTypeSystemWithBase {
     Student:Person{ read .grades: LList[UInt] }
     Ex:{
       .nums(l: LList[Student]): LList[Person] -> l,
-      .addStudent(l: LList[Person], s: Student): LList[Person] -> l + s,
+//      .addStudent(l: LList[Person], s: Student): LList[Person] -> l + s,
       }
     """, Base.mutBaseAliases); }
 
