@@ -2323,4 +2323,26 @@ were valid:
         },
       }
     """); }
+  @Test void contravarianceBoxMatcherNoAdaptMdf() { ok("""
+    package test
+    UInt:{} Str:{}
+    Person:{ read .name: Str, read .age: UInt, }
+    BoxMatcher[T,R]:{ mut #: mdf R }
+    BoxImmPerson:{
+      .match[R](m: mut BoxMatcher[Person, mdf R]): mdf R -> m#,
+      .break(x: Person): Person -> this.match[Person]{ x },
+    }
+    BoxReadPerson:{
+      .match[R](m: mut BoxMatcher[read Person, mdf R]): mdf R -> m#,
+      .break(x: read Person): read Person -> this.match[read Person]{ x },
+    }
+    
+    
+    Ex:{
+      .nums(o: BoxImmPerson): BoxReadPerson -> {'adapted
+        .match(m) -> o.match(m),
+        .break(x) -> o.break(x),
+        },
+      }
+    """); }
 }
