@@ -2268,4 +2268,36 @@ were valid:
     C:{}
     Break[X]:{ .b: Break[X] }
     """); }
+
+  @Test void contravarianceBox() { ok("""
+    package test
+    UInt:{} Str:{}
+    Person:{ read .name: Str, read .age: UInt, }
+    Student:Person{ read .grades: Box[UInt] }
+    Box[T]:{
+      mut .get: mdf T,
+      read .get: read T,
+      imm .get: T,
+    }
+    
+    Ex:{
+      .nums(o: Box[Student]): Box[Person] -> o,
+      }
+    """); }
+  @Test void contravarianceBoxMatcher() { ok("""
+    package test
+    UInt:{} Str:{}
+    Person:{ read .name: Str, read .age: UInt, }
+    Student:Person{ read .grades: Box[UInt] }
+    OrElse[R]:{ mut #: mdf R }
+    Box[T]:{
+      mut .getOr[R](m: mut OrElse[mdf R]): mdf R -> m#,
+      read .getOr[R](m: mut OrElse[read R]): read R -> m#,
+      imm .getOr[R](m: mut OrElse[R]): R -> m#,
+    }
+    
+    Ex:{
+      .nums(o: Box[Student]): Box[Person] -> o,
+      }
+    """); }
 }

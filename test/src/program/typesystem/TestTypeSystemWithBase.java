@@ -545,5 +545,31 @@ public class TestTypeSystemWithBase {
       }
     """, Base.mutBaseAliases); }
 
+  @Test void contravarianceBox() { ok("""
+    package test
+    Person:{ read .name: Str, read .age: UInt, }
+    Student:Person{ read .grades: LList[UInt] }
+    Ex:{
+      .nums(o: Box[Student]): Box[Person] -> o,
+      }
+    """, Base.mutBaseAliases); }
+  @Test void contravarianceOpt() { ok("""
+    package test
+    Person:{ read .name: Str, read .age: UInt, }
+    Student:Person{ read .grades: LList[UInt] }
+    Ex:{
+      .nums(o: Opt[Student]): Opt[Person] -> o,
+      }
+    """, Base.mutBaseAliases); }
+  @Test void covarianceContravariance() { ok("""
+    package test
+    Person:{ read .name: Str, read .age: UInt, }
+    Student:Person{ read .grades: LList[UInt] }
+    Ex:{
+      .nums(l: LList[Student]): LList[Person] -> l,
+      .addStudent(l: LList[Person], s: Student): LList[Person] -> l + s,
+      }
+    """, Base.mutBaseAliases); }
+
   //TODO: test that makes sure we can turn a mut List[mut Person] into a read List[read Person] via adaptorOk
 }
