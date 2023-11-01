@@ -2345,4 +2345,44 @@ were valid:
         },
       }
     """); }
+  @Test void contravarianceBoxMatcherNoAdaptExtensionMethod() { ok("""
+    package test
+    UInt:{} Str:{}
+    Person:{ read .name: Str, read .age: UInt, }
+    Student:Person{ read .grades: UInt }
+    BoxMatcher[T,R]:{ mut #: mdf R }
+    BoxExtension[T,R]:{ mut #(self: mdf T): mdf R }
+    
+    BoxPerson:{
+//      .match[R](m: mut BoxMatcher[Person, mdf R]): mdf R -> m#,
+      .extend[R](ext: mut BoxExtension[BoxPerson, mdf R]): mdf R -> ext#this,
+    }
+    BoxStudent:{
+//      .match[R](m: mut BoxMatcher[Student, mdf R]): mdf R -> m#,
+      .extend[R](ext: mut BoxExtension[BoxStudent, mdf R]): mdf R -> ext#this,
+    }
+    
+    Ex:{
+      .nums(o: BoxStudent): BoxPerson -> {'adapted
+//        .match(m) -> o.match(m),
+        .extend(ext) -> o.extend(ext),
+        },
+      }
+    """); }
+  @Test void contravarianceBoxMatcherExtensionMethod() { ok("""
+    package test
+    UInt:{} Str:{}
+    Person:{ read .name: Str, read .age: UInt, }
+    Student:Person{ read .grades: Box[UInt] }
+    BoxMatcher[T,R]:{ mut #: mdf R }
+    BoxExtension[T,R]:{ mut #(self: mdf T): mdf R }
+    Box[T]:{
+      .match[R](m: mut BoxMatcher[T, mdf R]): mdf R -> m#,
+      .extend[R](ext: mut BoxExtension[Box[T], mdf R]): mdf R -> ext#this,
+    }
+    
+    Ex:{
+      .nums(o: Box[Student]): Box[Person] -> o,
+      }
+    """); }
 }

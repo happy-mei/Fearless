@@ -1584,4 +1584,32 @@ public class TestJavaProgram {
       }
     Test:SMain{s -> Block#(Opt[Str]!) }
     """, Base.mutBaseAliases);}
+
+  @Test void optWithExtensionMethodOrElse() { ok(new Res(), "test.Test", """
+    package test
+    Test:Main{ s -> Block#
+      .var[Int] res = {Opt[Int]
+                       |> {opt -> opt.match{.some(x) -> x, .empty -> 9001}}}
+      .assert{res == 9001}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+  @Test void optWithExtensionMethodOrElseLib() { ok(new Res(), "test.Test", """
+    package test
+    Test:Main{ s -> Block#
+      .var[Int] res = {mut Opt[Int]
+                       |> mut base.OptOrElseExt[Int]{9001}}
+      .assert{res == 9001}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+  @Test void optWithExtensionMethodOr() { ok(new Res(), "test.Test", """
+    package test
+    Test:Main{ s -> Block#
+      .var[Opt[Int]] res = { Opt[Int]
+                             |> {opt -> opt.match{.some(_) -> opt, .empty -> Opt#9001 }} }
+      .assert{res! == 9001}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
 }
