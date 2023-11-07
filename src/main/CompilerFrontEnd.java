@@ -19,6 +19,7 @@ import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Box;
 import utils.Bug;
+import utils.OneOr;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -55,20 +56,26 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
   static Box<Map<String, List<Package>>> baseLib = new Box<>(null);
 
   void newPkg(String name) {
-    // TODO: check valid package name
+    if (!Id.validDecName(name+".Check")) {
+      System.err.println("Error creating package structure: Invalid package name.");
+      System.exit(1);
+    }
+
     try {
       var dir = Path.of(name);
       Files.createDirectory(dir);
-      Files.writeString(dir.resolve("pkg.fear"), "package "+name+"\n"+regenerateAliases()+"\n");
-      Files.writeString(dir.resolve("lib.fear"), "package "+name+"\nGreeting:{ .get: Str -> \"Hello, World!\" }\n");
-      Files.writeString(dir.resolve("main.fear"), "package "+name+"\n"+"""
-        App:Main{ s -> s
-          .use[IO] io = FIO
-          .block
-          .var[Str] greeting = { Greeting.get }
-          .return{ io.println(greeting) }
+      Files.writeString(dir.resolve("pkg.fear"), "package " + name + "\n" + regenerateAliases() + "\n");
+      Files.writeString(dir.resolve("lib.fear"), "package " + name + "\nGreeting:{ .get: Str -> \"Hello, World!\" }\n");
+      Files.writeString(dir.resolve("main.fear"), "package " + name + "\n"+"""
+        App:Main{ sys -> Block#
+          .var io = {FIO#sys}
+          .var[Str] greeting = {Greeting.get}
+          .return {io.println(greeting)}
           }
         """.stripIndent());
+    } catch (FileAlreadyExistsException err) {
+      System.err.println("Error creating package structure: Files already exist at that path.");
+      System.exit(1);
     } catch (IOException err) {
       System.err.println("Error creating package structure: "+ err);
       System.exit(1);
@@ -172,14 +179,15 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
   }
 
   String regenerateAliases() {
-    return parseBase().values().stream()
-      .flatMap(Collection::stream)
-      .flatMap(pkg->pkg.shallowParse().stream())
-      .map(astFull.T.Dec::name)
-      .filter(dec->!dec.shortName().startsWith("_"))
-      .map(dec->"alias "+dec.name()+" as "+dec.shortName()+",")
-      .distinct()
-      .collect(Collectors.joining("\n"));
+    var path = switch (bv) {
+      case Std -> "/default-aliases.fear";
+      case Imm -> "/default-imm-aliases.fear";
+    };
+    try {
+      return resolveResource(path, throwingFunction(CompilerFrontEnd::read));
+    } catch (URISyntaxException | IOException e) {
+      throw Bug.of(e);
+    }
   }
 
   Map<String, List<Package>> parseBase() {
