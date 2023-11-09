@@ -2385,4 +2385,23 @@ were valid:
       .nums(o: Box[Student]): Box[Person] -> o,
       }
     """); }
+
+  @Test void marcoGenericPromotion() { fail("""
+    """, """
+    package test
+    Foo:{ .m[X](x: mdf X): mut Beer[mdf X] -> {x} }
+    Bar:{ .k[Y](y: mdf Y): iso Beer[mdf Y] -> Foo.m[mdf Y](y) }
+    Break:{
+      .m1(y: mut Baz): Beer[mut Baz] -> Bar.k(y),
+      .ohNo(y: mut Baz): imm Baz -> this.m1(y).x,
+      }
+    """, """
+    package test
+    Baz:{}
+    Beer[X]:{ mut .x: mdf X, read .x: read X }
+    Block:{
+      #[X:read,mut,imm,iso, R:read,mut,imm,iso](_: mdf X, res: mdf R): mdf R -> res,
+      }
+    Abort:{ ![R:readOnly,lent,read,mut,imm,iso]: mdf R -> this! }
+    """); }
 }
