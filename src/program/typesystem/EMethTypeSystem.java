@@ -157,25 +157,28 @@ public interface EMethTypeSystem extends ETypeSystem {
       .toList();
   }
 
+  // TODO: We can also replace mdf X in the return type with imm X if we want to, right now we keep it as mdf X
   default Stream<TsT> allMeth(TsT tst) {
     return Stream.concat(Stream.of(
       tst,
       tst.renameMdfs(Map.of(
         Mdf.mut, Mdf.iso,
-        Mdf.read, Mdf.imm
-      )),
+        Mdf.read, Mdf.imm,
+        Mdf.mdf, Mdf.iso
+      )).renameTsMdfs(Map.of(Mdf.mdf, Mdf.iso)).renameTsMdfs(Map.of(Mdf.mdf,Mdf.iso)),
       tst.renameMdfs(Map.of(
         Mdf.readOnly, Mdf.imm,
         Mdf.read, Mdf.imm,
         Mdf.lent, Mdf.iso,
         Mdf.mut, Mdf.iso
-      )),
+      )).renameTsMdfs(Map.of(Mdf.mdf, Mdf.iso)).renameTsMdfs(Map.of(Mdf.mdf,Mdf.iso)),
       tst.renameTsMdfs(Map.of(
         Mdf.read, Mdf.readOnly,
         Mdf.lent, Mdf.iso,
-        Mdf.mut, Mdf.iso
+        Mdf.mut, Mdf.iso,
+        Mdf.mdf, Mdf.iso
       )).renameTMdfs(Map.of(Mdf.mut,Mdf.lent,    Mdf.read,Mdf.readOnly))),
-      oneLentToMut(tst).stream())
+      oneLentToMut(tst.renameTMdfs(Map.of(Mdf.mdf,Mdf.iso))).stream())
       .distinct();
   }
 
@@ -211,7 +214,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   default List<T> mutToIso(List<T> ts){
     return ts.stream().map(this::mutToIso).toList();
   }
-  default T mutToIso(T t){ return t.mdf().isMut()?t.withMdf(Mdf.iso):t; }
+  default T mutToIso(T t){ return t.mdf().is(Mdf.mut, Mdf.mdf)?t.withMdf(Mdf.iso):t; }
   default T mutToLent(T t) { return t.mdf().isMut() ? t.withMdf(Mdf.lent) : t; }
   default TsT transformMuts(int i, List<T> ts, T t, CM original){
     var ts0 = IntStream.range(0,ts.size()).mapToObj(j->j==i

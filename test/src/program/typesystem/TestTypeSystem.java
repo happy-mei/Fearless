@@ -2386,7 +2386,23 @@ were valid:
       }
     """); }
 
-  @Test void marcoGenericPromotion() { fail("""
+  @Test void badGenericPromotionIso() { fail("""
+    In position [###]/Dummy0.fear:3:45
+    [E33 callTypeError]
+    Type error: None of the following candidates (returning the expected type "mut test.Beer[mdf Y]") for this method call:
+    [-imm-][test.Foo[]]{'fear1$ } .m/1[mdf Y]([y])
+    were valid:
+    ([E28 undefinedName]) <: (imm test.Foo[], mdf Y): mut test.Beer[mdf Y]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:3:55
+        [E28 undefinedName]
+        The identifier "y" is undefined or cannot be captured.
+        
+    ([E28 undefinedName]) <: (imm test.Foo[], iso Y): iso test.Beer[mdf Y]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:3:55
+        [E28 undefinedName]
+        The identifier "y" is undefined or cannot be captured.
     """, """
     package test
     Foo:{ .m[X](x: mdf X): mut Beer[mdf X] -> {x} }
@@ -2394,6 +2410,51 @@ were valid:
     Break:{
       .m1(y: mut Baz): Beer[mut Baz] -> Bar.k(y),
       .ohNo(y: mut Baz): imm Baz -> this.m1(y).x,
+      }
+    """, """
+    package test
+    Baz:{}
+    Beer[X]:{ mut .x: mdf X, read .x: read X }
+    Block:{
+      #[X:read,mut,imm,iso, R:read,mut,imm,iso](_: mdf X, res: mdf R): mdf R -> res,
+      }
+    Abort:{ ![R:readOnly,lent,read,mut,imm,iso]: mdf R -> this! }
+    """); }
+  @Test void badGenericPromotionImm() { fail("""
+    In position [###]/Dummy0.fear:3:45
+    [E33 callTypeError]
+    Type error: None of the following candidates (returning the expected type "imm test.Beer[mdf Y]") for this method call:
+    [-imm-][test.Foo[]]{'fear1$ } .m/1[mdf Y]([y])
+    were valid:
+    (imm test.Foo[], mdf Y) <: (imm test.Foo[], iso Y): iso test.Beer[mdf Y]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:3:55
+        [E53 xTypeError]
+        Expected y to be iso Y, got mdf Y.
+    """, """
+    package test
+    Foo:{ .m[X](x: mdf X): mut Beer[mdf X] -> {x} }
+    Bar:{ .k[Y](y: mdf Y): imm Beer[mdf Y] -> Foo.m[mdf Y](y) }
+    Break:{
+      .m1(y: mut Baz): Beer[mut Baz] -> Bar.k(y),
+      .ohNo(y: mut Baz): imm Baz -> this.m1(y).x,
+      }
+    """, """
+    package test
+    Baz:{}
+    Beer[X]:{ mut .x: mdf X, read .x: read X }
+    Block:{
+      #[X:read,mut,imm,iso, R:read,mut,imm,iso](_: mdf X, res: mdf R): mdf R -> res,
+      }
+    Abort:{ ![R:readOnly,lent,read,mut,imm,iso]: mdf R -> this! }
+    """); }
+  @Test void okGenericPromotion() { ok("""
+    package test
+    Foo:{ .m[X](x: mdf X): mut Beer[mdf X] -> {x} }
+    Bar:{ .k[Y](y: iso Y): iso Beer[mdf Y] -> Foo.m[mdf Y](y) }
+    Break:{
+      .m1(y: iso Baz): Beer[mut Baz] -> Bar.k[mut Baz](y),
+      .ohNo(y: iso Baz): imm Baz -> this.m1(y).x,
       }
     """, """
     package test

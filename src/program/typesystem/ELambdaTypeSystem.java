@@ -154,7 +154,10 @@ interface ELambdaTypeSystem extends ETypeSystem{
   default Optional<CompileError> mOkReadPromotion(String selfName, T selfT, E.Meth m, E.Sig sig) {
     var readOnlyAsReadG = new Gamma() {
       @Override public Optional<T> getO(String x) {
-        return g().getO(x).map(t->t.mdf().isReadOnly() ? t.withMdf(Mdf.read) : t);
+        return g().getO(x).map(t->{
+          if (t.mdf().isMdf()) { return t.withMdf(Mdf.iso); }
+          return t.mdf().isReadOnly() ? t.withMdf(Mdf.read) : t;
+        });
       }
       @Override public List<String> dom() { return g().dom(); }
     };
@@ -175,7 +178,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     };
     var mutAsLentG = new Gamma() {
       @Override public Optional<T> getO(String x) {
-        return g().getO(x).map(mdfTransform);
+        return g().getO(x).filter(t->!t.mdf().isMdf()).map(mdfTransform);
       }
       @Override public List<String> dom() { return g().dom(); }
     };
@@ -184,23 +187,20 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var gg  = Streams.zip(
       m.xs(),
       sig.ts().stream().map(mdfTransform).toList()
-    ).fold(Gamma::add, g0);
+    ).filter((x,t)->!t.mdf().isMdf()).fold(Gamma::add, g0);
     return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.mut));
   }
 
   default Optional<CompileError> mOkImmPromotion(String selfName, T selfT, E.Meth m, E.Sig sig, Mdf selfTMdf) {
     var noMutyG = new Gamma() {
       @Override public Optional<T> getO(String x) {
-        return g().getO(x).flatMap(t->{
-          if (t.mdf().isLikeMut() || t.mdf().isRecMdf()) { return Optional.empty(); }
-          return Optional.of(t);
-        });
+        return g().getO(x).filter(t->!(t.mdf().isLikeMut() || t.mdf().isRecMdf() || t.mdf().isMdf()));
       }
       @Override public List<String> dom() { return g().dom(); }
     };
     var mMdf = sig.mdf();
     var g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(xbs(), selfName, selfT, mMdf);
-    var gg = Streams.zip(m.xs(), sig.ts()).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
+    var gg = Streams.zip(m.xs(), sig.ts()).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isMdf() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
     return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.readOnly));
   }
 
