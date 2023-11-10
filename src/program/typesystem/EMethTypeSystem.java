@@ -214,7 +214,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   default List<T> mutToIso(List<T> ts){
     return ts.stream().map(this::mutToIso).toList();
   }
-  default T mutToIso(T t){ return t.mdf().is(Mdf.mut, Mdf.mdf)?t.withMdf(Mdf.iso):t; }
+  default T mutToIso(T t){ return t.mdf().isMut() ? t.withMdf(Mdf.iso) : t; }
   default T mutToLent(T t) { return t.mdf().isMut() ? t.withMdf(Mdf.lent) : t; }
   default TsT transformMuts(int i, List<T> ts, T t, CM original){
     var ts0 = IntStream.range(0,ts.size()).mapToObj(j->j==i
