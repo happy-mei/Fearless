@@ -2465,4 +2465,11 @@ were valid:
       }
     Abort:{ ![R:readOnly,lent,read,mut,imm,iso]: mdf R -> this! }
     """); }
+
+  @Test void superSimple() { ok("""
+    package test
+    Test:{
+    	.foo[Y](x: Y): Test -> Test{ .foo(hello) -> Test },
+    }
+    """); }
 }

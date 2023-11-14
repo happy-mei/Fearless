@@ -61,7 +61,7 @@ SysInM: SyInMExtra* SyInM;
 fragment PX: IdLow IdChar*;
 FullCN: (PX '.')* FIdUp | FStringMulti | FStringSingle | FNumber;
 
-Whitespace: ( ' ' | '\n' )-> channel(HIDDEN);
+Whitespace: ('\t' | ' ' | '\n' )-> channel(HIDDEN);
 
 //GRAMMAR
 fullCN:FullCN;

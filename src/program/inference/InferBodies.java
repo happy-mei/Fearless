@@ -38,7 +38,7 @@ public record InferBodies(ast.Program p) {
     var l = coreDecl.lambda();
     return coreDecl.withLambda(l.withMeths(
       Streams.zip(d.lambda().meths(),l.meths())
-        .map((fullMeth, coreMeth)->fullMeth.body().map(b->inferMethBody(coreDecl,b, coreMeth)).orElse(coreMeth))
+        .map((fullMeth, coreMeth)->fullMeth.body().map(b->inferMethBody(coreDecl,b, coreMeth)).orElse(coreMeth.withBody(Optional.empty())))
         .toList()
     ));
   }
