@@ -157,7 +157,6 @@ public interface EMethTypeSystem extends ETypeSystem {
       .toList();
   }
 
-  // TODO: We can also replace mdf X in the return type with imm X if we want to, right now we keep it as mdf X
   default Stream<TsT> allMeth(TsT tst) {
     return Stream.concat(Stream.of(
       tst,
@@ -165,20 +164,20 @@ public interface EMethTypeSystem extends ETypeSystem {
         Mdf.mut, Mdf.iso,
         Mdf.read, Mdf.imm,
         Mdf.mdf, Mdf.iso
-      )).renameTsMdfs(Map.of(Mdf.mdf, Mdf.iso)).renameTsMdfs(Map.of(Mdf.mdf,Mdf.iso)),
+      )).renameTsMdfs(Map.of(Mdf.mdf, Mdf.iso)).renameTMdfs(Map.of(Mdf.mdf,Mdf.imm)),
       tst.renameMdfs(Map.of(
         Mdf.readOnly, Mdf.imm,
         Mdf.read, Mdf.imm,
         Mdf.lent, Mdf.iso,
         Mdf.mut, Mdf.iso
-      )).renameTsMdfs(Map.of(Mdf.mdf, Mdf.iso)).renameTsMdfs(Map.of(Mdf.mdf,Mdf.iso)),
+      )).renameTsMdfs(Map.of(Mdf.mdf, Mdf.iso)).renameTMdfs(Map.of(Mdf.mdf,Mdf.imm)),
       tst.renameTsMdfs(Map.of(
         Mdf.read, Mdf.readOnly,
         Mdf.lent, Mdf.iso,
         Mdf.mut, Mdf.iso,
         Mdf.mdf, Mdf.iso
-      )).renameTMdfs(Map.of(Mdf.mut,Mdf.lent,    Mdf.read,Mdf.readOnly))),
-      oneLentToMut(tst.renameTMdfs(Map.of(Mdf.mdf,Mdf.iso))).stream())
+      )).renameTMdfs(Map.of(Mdf.mut,Mdf.lent,    Mdf.read,Mdf.readOnly,  Mdf.mdf,Mdf.imm))),
+      oneLentToMut(tst.renameTsMdfs(Map.of(Mdf.mdf,Mdf.iso)).renameTMdfs(Map.of(Mdf.mdf,Mdf.imm))).stream())
       .distinct();
   }
 
