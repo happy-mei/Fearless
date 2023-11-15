@@ -7,7 +7,7 @@
          L)
   (M ::= (sig \,)
          (sig -> e \,))
-  (L ::= ((D Xs) : (IT ... {\' x M ...})))
+  (L ::= (DXs : (IT ... {\' x M ...})))
   (Ls ::= (L ...))
   (arg ::= (x_!_ T))
   (sig ::= (m Xs Γ : T))
@@ -16,6 +16,7 @@
   (IT ::= (D Ts))
   (m ::= (\. Lid) symbols)
   (D ::= Uid)
+  (DXs ::= (D Xs))
   (X ::= (side-condition variable-not-otherwise-mentioned_1
                            (regexp-match? #rx"^[A-Z][A-Za-z0-9]*$" (~a (term variable-not-otherwise-mentioned_1)))))
   (Xs ::= (X ...))
@@ -40,10 +41,9 @@
   (maybeCM CM #f)
   (MetaBool #t #f) ; not for use in code, just useful for predicate meta-functions
   [Γ ((x_!_ T) ...)]
-  (DM ::= (D M))
+  (DM ::= (IT M))
   (DMs ::= (DM ...))
-  (MId ::= (m number))
-  (DId ::= (C number)))
+  (mtype ::= (m Xs Ts -> T)))
 
 (define Ctx? (redex-match? F ctxL))
 (module+ test
@@ -102,17 +102,6 @@
   [(lit-domain ((D Xs) : (IT ... {\' x M_n ... })) m) #f])
 
 (define-metafunction F
-  domain-subset-eq : (M ...) (M ...) -> MetaBool
-
-  [(domain-subset-eq (M_i M_n ...) (M_1 ... M_j M_m ...)) #t
-                                                          (where MId_i (MId-of (sig-of M_i)))
-                                                          (where MId_j (MId-of (sig-of M_j)))
-                                                          (where MId_j MId_i)
-                                                          (where #t (domain-subset-eq (M_n ...) (M_1 ... M_j M_m ...)))]
-  [(domain-subset-eq (M_0 M_n ...) (M_m ...)) #f]
-  [(domain-subset-eq () (M_n ...)) #t])
-
-(define-metafunction F
   subst : [(x any) ...] any -> any
 
   [(subst [(x_1 any_1) ... (x any_x) (x_2 any_2) ...] x) any_x]
@@ -161,6 +150,60 @@
               (term ((B ()) : ((B ()) {\' bSelf })))))
 
 (define-metafunction F
+  subst-Xs : [(X any) ...] any -> any
+
+  [(subst-Xs [(X_1 any_1) ... (X any_x) (X_2 any_2) ...] X) any_x]
+  [(subst-Xs [(X any) ...] (any_0 m_0 Ts_0 (e_n ...))) (any_0res m_0 Ts_1 (any_n ...))
+                                                       (where any_0res (subst-Xs [(X any) ...] any_0))
+                                                       (where (any_n ...) (subst-Xs-many [(X any) ...] (e_n ...)))
+                                                       (where Ts_1 (subst-Xs-many [(X any) ...] Ts_0))]
+  [(subst-Xs [(X any) ...] ((D Ts_0) : (IT_0 ... {\' x_self M_0 ...}))) (IT_self : (IT_1 ... {\' x_self M_1 ...}))
+                                                                        (where IT_self (subst [(X any) ...] (D Ts_0)))
+                                                                        (where (IT_1 ...) (subst-Xs-many [(X any) ...] (IT_0 ...)))
+                                                                        (where (M_1 ...) (subst-Xs-many [(X any) ...] (M_0 ...)))]
+  [(subst-Xs [(X any) ...] (sig_1 -> e_0 \,)) (sig_2 -> e_1 \,)
+                                              (where e_1 (subst-Xs [(X any) ...] e_0))
+                                              (where sig_2 (subst-Xs [(X any) ...] sig_1))]
+  [(subst-Xs [(X any) ...] (sig_1 \,)) (sig_2 \,)
+                                       (where sig_2 (subst-Xs [(X any) ...] sig_1))]
+  [(subst-Xs [(X any) ...] (m Ts Γ_1 : T_2)) (m Ts Γ_2 : T_2)
+                                             (where Γ_2 (subst-Xs-many [(X any) ...] Γ_1))
+                                             (where T_2 (subst-Xs [(X any) ...] T_1))]
+  [(subst-Xs [(X_1 any) ...] (D Ts_1)) (D Ts_2)
+                                       (where Ts_2 (subst-Xs-many [(X_1 any) ...] Ts_1))]
+  [(subst-Xs [(X_1 any_1) ...] any_2) any_2])
+(define-metafunction F
+  subst-Xs-many : [(X any) ...] (any ...) -> (any ...)
+
+  [(subst-Xs-many [(X any) ...] (any_0 any_1 ...)) (any_i any_n ...)
+                                                   (where any_i (subst-Xs [(X any) ...] any_0))
+                                                   (where (any_n ...) (subst-Xs-many [(X any) ...] (any_1 ...)))]
+  [(subst-Xs-many [(X any) ...] ()) ()])
+(module+ test
+  (test-equal (term (subst-Xs [] X))
+              (term X))
+  (test-equal (term (subst-Xs [(Y Y)] X))
+              (term X))
+  (test-equal (term (subst-Xs [(X Y)] X))
+              (term Y))
+  (test-equal (term (subst-Xs [(X Y)] (Foo [X])))
+              (term (Foo [Y])))
+  (test-equal (term (subst-Xs [(X (Bar [(Baz [])]))] (Foo [X])))
+              (term (Foo [(Bar [(Baz [])])])))
+
+  ; (e m Ts (e ...))
+  ; no shadowing, this is deep substitution
+  (test-equal (term (subst-Xs [(X Y)] (recv + (X) ())))
+              (term (recv +(Y)())))
+
+  ; (Foo[X] {'this .foo[Y](a: X, b: Y): Y -> this.foo[Foo[X]] })
+  (test-equal (term (subst-Xs [(X A) (Y B)] ((Foo (X)) : ((Foo (X)) {\' this (((\. foo) (Y) ((a X) (b Y)) : Y) -> (this (\. foo) ((Foo (X))) ()) \,)}))))
+              (term ((Foo (A)) : ((Foo (A)) {\' this (((\. foo) (B) ((a A) (b B)) : B) -> (this (\. foo) ((Foo (A))) ()) \,)}))))
+;  (test-equal (term (subst-Xs ((this bSelf)) ((B ()) : ((B ()) {\' this }))))
+;              (term ((B ()) : ((B ()) {\' bSelf }))))
+  )
+
+(define-metafunction F
   tst-of : T M -> (Ts -> T)
 
   [(tst-of T_0 M) ((T_0 T_n ...) -> T_ret)
@@ -188,10 +231,11 @@
 
 (define-metafunction F
   collect-all-L : any -> Ls
-; collectAllL(e)
+  ; collectAllL(e)
   [(collect-all-L ((D_0 Xs_0) : (IT_0 ... {\' x_0 M_0 ...}))) (((D_0 Xs_0) : (IT_0 ... {\' x_0 M_0 ...})) L_meths ...)
                                                               (where (L_meths ...) (collect-all-L (M_0 ...)))]
   [(collect-all-L ((D_0 Xs_0) : (IT_0 ... {\' x_0 }))) (((D_0 Xs_0) : (IT_0 ... {\' x_0 })))]
+  ; Technically part of collectAllL(L) but split out for clarity. Just collecting all the Ls within methods in an L.
   [(collect-all-L (M_0 M_n ...)) (L_m0 ... L_rest ...)
                                  (where (L_m0 ...) (collect-all-L M_0))
                                  (where (L_rest ...) (collect-all-L (M_n ...)))]
@@ -214,6 +258,25 @@
   (test-equal (term (collect-all-L ((B ()) : ((B ()) (A ()) {\' this ((+ () ((a (A ()))) : (A ())) -> ((Fear1 ()) : ((A ()) {\' fear0N })) \,)}))))
               (term [((B ()) : ((B ()) (A ()) {\' this ((+ () ((a (A ()))) : (A ())) -> ((Fear1 ()) : ((A ()) {\' fear0N })) \,)}))
                      ((Fear1 ()) : ((A ()) {\' fear0N }))])))
+
+(define-metafunction F
+  dmeths : Ls any -> DMs
+  [(dmeths Ls (D Ts)) (DM_ms ... DM_trn ...)
+                      (where (L_0 ... ((D Xs) : (IT ... {\' x M ...})) L_n ...) Ls)
+                      (where (DM_ms ...) (dmeths-m D Xs Ts (M ...)))
+                      (where (DM_trn ...) (dmeths (IT ...)))]
+  [(dmeths Ls (IT_1 IT_n ...)) (DM_1 ... DM_n ...)
+                               (where (DM_1 ...) (dmeths Ls IT_1))
+                               (where (DM_n ...) (dmeths Ls (IT_n ...)))]
+
+  [(dmeths Ls ()) ()])
+(define-metafunction F
+  dmeths-m : D Xs Ts (M ...) -> DMs
+  [(dmeths-m D Xs Ts (M_1 M_n ...)) (((D Ts) M_subst) DM_n ...)
+                                    (where M_subst (subst-Xs [] M_1))
+                                    (where (DM_n ...) (dmeths-M D Xs Ts (M_n ...)))]
+  
+  [(dmeths-m D Xs Ts ()) ()])
 
 (module+ test
   (test-results))
