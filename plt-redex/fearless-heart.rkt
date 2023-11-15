@@ -31,8 +31,8 @@
 
   ; reduction
   (ctxL ::= hole
-            (ctxV m(e ...))
-            (L m(L ... ctxL e ...)))
+            (ctxL m Ts (e ...))
+            (L m Ts (L ... ctxL e ...)))
 
   ; type system
   (maybeD D #f)
@@ -45,8 +45,13 @@
   (MId ::= (m number))
   (DId ::= (C number)))
 
+(define Ctx? (redex-match? F ctxL))
+(module+ test
+  (test-equal (Ctx? (term (hole +()()))) #t)
+  (test-equal (term (in-hole (hole +()()) ((A ()) : ((A ()) {\' this })))) (term (((A ()) : ((A ()) {\' this })) +()()))))
+
 ;; Reduction
-(define (-->raw Ds)
+(define (-->raw Ls)
   (reduction-relation
    F
    ; If the method is explicitly on the lit, bind B_0 to selfName.
@@ -54,10 +59,11 @@
    [--> (L_0 m Ts (L_1 ...))
         (subst ((x L) ...) e_res)
         "Call-Lit"
-        (where ((D Xs) : (IT ... { \' x_0 M ... })) L_0)
-        (where #t (in-lit-domain L_0 m))
-        (where ((x_1 ...) ((T_0 T_1 ...) -> T_res) e_res) (tst-of (D Xs) M))
-        (where ((x L) ...) ,(apply map list (list (term (x_0 x_1 ...)) (term (L_0 L_1 ...)))))]
+        (where ((D Xs_0) : (IT ... { \' x_0 M ... })) L_0)
+        (where M_0 (lit-domain L_0 m))
+        (where ((m Xs_1 ((x_1 T_1) ...) : T_res) -> e_res \,) M_0)
+        (where ((x L) ...) ,(apply map list (list (term (x_0 x_1 ...)) (term (L_0 L_1 ...)))))
+        ]
 ;   [--> (B_0 m(v_1 ...))
 ;        (subst ((x v) ...) e_res)
 ;        "Call-Top"
@@ -65,11 +71,18 @@
 ;        (where number_0 ,(length (term (v_1 ...))))
 ;        (where (IT ... { \' x_0 M ... }) B_0)
 ;        (where #f (in-lit-domain B_0 (m number_0)))
-;        (where ((x_1 ...) ((T_0 T_1 ...) -> T_res) e_res) (lookup-meth ,Ds (c : B_0) m number_0))
+;        (where ((x_1 ...) ((T_0 T_1 ...) -> T_res) e_res) (lookup-meth ,Ls (c : B_0) m number_0))
 ;        (where ((x v) ...) ,(apply map list (list (term (this x_1 ...)) (term (B_0 v_1 ...)))))]
    ))
-(define (-->ctx Ds)
-  (context-closure (-->raw Ds) F ctxV))
+(define (-->ctx Ls)
+  (context-closure (-->raw Ls) F ctxL))
+(module+ test
+  (test-equal (apply-reduction-relation (-->ctx (term []))
+                                        (term (((Fear1 ()) : ((S ()) {\' fear0N ((+ () ((s (S ()))) : (S ())) -> s \,)})) + () (((S ()) : ((S ()) {\' fear1N ((+ () ((s (S ()))) : (S ())) -> s \,)}))))))
+                                        (term [((S ()) : ((S ()) {\' fear1N ((+ () ((s (S ()))) : (S ())) -> s \,)}))]))
+  (test-equal (apply-reduction-relation* (-->ctx (term []))
+                                        (term (((Fear1 ()) : ((S ()) {\' fear0N ((+ () ((s (S ()))) : (S ())) -> s \,)})) + () (((S ()) : ((S ()) {\' fear1N ((+ () ((s (S ()))) : (S ())) -> s \,)}))))))
+                                        (term [((S ()) : ((S ()) {\' fear1N ((+ () ((s (S ()))) : (S ())) -> s \,)}))])))
 
 ;; Utility notations
 (define-metafunction F
@@ -83,10 +96,10 @@
   [(m-of M) m (where (m Xs Γ : T) (sig-of M))])
 
 (define-metafunction F
-  in-lit-domain : L m -> MetaBool
-  [(in-lit-domain ((D Xs) : (IT ... {\' x M_0 ... M M_n ... })) MId) #t
-                                                          (where m (m-of M))]
-  [(in-lit-domain ((D Xs) : (IT ... {\' x M_n ... })) MId) #f])
+  lit-domain : L m -> M
+  [(lit-domain ((D Xs) : (IT ... {\' x M_0 ... M M_n ... })) m) M
+                                                                   (where m (m-of M))]
+  [(lit-domain ((D Xs) : (IT ... {\' x M_n ... })) m) #f])
 
 (define-metafunction F
   domain-subset-eq : (M ...) (M ...) -> MetaBool
@@ -168,3 +181,39 @@
               (term (A A)))
   (test-equal (term (sig-types (+ () ((a A) (b B)) : A)))
               (term (A B))))
+
+(define-metafunction F
+  trait-lookup : Ls D -> L
+  [(trait-lookup (L_0 ... ((D Xs) : (IT ... {\' x M ...})) L_n ...) D) ((D Xs) : (IT ... {\' x M ...}))])
+
+(define-metafunction F
+  collect-all-L : any -> Ls
+; collectAllL(e)
+  [(collect-all-L ((D_0 Xs_0) : (IT_0 ... {\' x_0 M_0 ...}))) (((D_0 Xs_0) : (IT_0 ... {\' x_0 M_0 ...})) L_meths ...)
+                                                              (where (L_meths ...) (collect-all-L (M_0 ...)))]
+  [(collect-all-L ((D_0 Xs_0) : (IT_0 ... {\' x_0 }))) (((D_0 Xs_0) : (IT_0 ... {\' x_0 })))]
+  [(collect-all-L (M_0 M_n ...)) (L_m0 ... L_rest ...)
+                                 (where (L_m0 ...) (collect-all-L M_0))
+                                 (where (L_rest ...) (collect-all-L (M_n ...)))]
+  
+  [(collect-all-L x) ()]
+  [(collect-all-L (e_0 m Ts (e_1 e_n ...))) (L_e1 ... L_rest ...)
+                                            (where (L_e1 ...) (collect-all-L e_1))
+                                            (where (L_rest ...) (collect-all-L (e_0 m Ts (e_n ...))))]
+  [(collect-all-L (e_0 m Ts ())) (collect-all-L e_0)]
+  
+  ; collectAllL(M)
+  [(collect-all-L (sig \,)) ()]
+  [(collect-all-L (sig -> e \,)) (collect-all-L e)]
+
+  [(collect-all-L ()) ()]
+  )
+(module+ test
+  (test-equal (term (collect-all-L ((A ()) : ((A ()) {\' this ((+ () ((a (A ()))) : (A ())) \,)}))))
+              (term [((A ()) : ((A ()) {\' this ((+ () ((a (A ()))) : (A ())) \,)}))]))
+  (test-equal (term (collect-all-L ((B ()) : ((B ()) (A ()) {\' this ((+ () ((a (A ()))) : (A ())) -> ((Fear1 ()) : ((A ()) {\' fear0N })) \,)}))))
+              (term [((B ()) : ((B ()) (A ()) {\' this ((+ () ((a (A ()))) : (A ())) -> ((Fear1 ()) : ((A ()) {\' fear0N })) \,)}))
+                     ((Fear1 ()) : ((A ()) {\' fear0N }))])))
+
+(module+ test
+  (test-results))
