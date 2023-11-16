@@ -3,6 +3,7 @@ package utils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -10,6 +11,13 @@ import java.util.stream.Stream;
 public interface RunJava {
   record Res(String stdOut, String stdErr, int exitCode){
     public Res() { this("", "", 0); }
+
+    @Override public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Res res = (Res) o;
+      return exitCode == res.exitCode && Err.strCmpFormat(stdOut, res.stdOut) && Err.strCmpFormat(stdErr, res.stdErr);
+    }
   }
   static CompletableFuture<Res> of(Path classFile, List<String> cliArgs) {
     var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
