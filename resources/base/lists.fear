@@ -131,6 +131,7 @@ List:{
   #[E](e1: mdf E, e2: mdf E): mut List[mdf E] -> this.fromLList[mdf E](mut LList[mdf E].pushFront(e2).pushFront(e1)),
   // TODO: this up to 12 or something
   #[E](e1: mdf E, e2: mdf E, e3: mdf E): mut List[mdf E] -> this.fromLList[mdf E](mut LList[mdf E].pushFront(e3).pushFront(e2).pushFront(e1)),
+  #[E](e1: mdf E, e2: mdf E, e3: mdf E, e4: mdf E): mut List[mdf E] -> this.fromLList[mdf E](mut LList[mdf E].pushFront(e4).pushFront(e3).pushFront(e2).pushFront(e1)),
   .fromLList[E](list: mut LList[mdf E]): mut List[mdf E] -> _List.new(Ref#(_ListState#[mdf E](list.len, list))),
   }
 _List:{

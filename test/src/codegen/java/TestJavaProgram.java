@@ -699,6 +699,29 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
+  @Test void paperExamplePrintIter() { ok(new Res("350,350,350,140,140,140", "", 0), "test.IterFind", """
+    package test
+    alias base.Int as Int, alias base.Str as Str,
+    alias base.List as List, alias base.Block as Block,
+    alias base.caps.FIO as FIO,
+        
+    IterFind:base.Main{ sys -> Block#
+        .var l1 = { List#(35, 52, 84, 14) }
+        .assert{l1.iter
+                  .map{n -> n * 10}
+                  .find{n -> n == 140}
+                  .isSome}
+        .var msg = {l1.iter
+                      .filter{n -> n < 40}
+                      .flatMap{n -> List#(n, n, n).iter}
+                      .map{n -> n * 10}
+                      .str({n -> n.str}, ",")}
+        .var io = {FIO#sys}
+        .return {io.println(msg)}
+        // prints 350,350,350,140,140,140
+    }
+    """);}
+
   @Test void absIntPos() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Assert!(5 .abs == 5) }
