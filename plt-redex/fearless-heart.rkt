@@ -158,7 +158,7 @@
                                                        (where (any_n ...) (subst-Xs-many [(X any) ...] (e_n ...)))
                                                        (where Ts_1 (subst-Xs-many [(X any) ...] Ts_0))]
   [(subst-Xs [(X any) ...] ((D Ts_0) : (IT_0 ... {\' x_self M_0 ...}))) (IT_self : (IT_1 ... {\' x_self M_1 ...}))
-                                                                        (where IT_self (subst [(X any) ...] (D Ts_0)))
+                                                                        (where IT_self (subst-Xs [(X any) ...] (D Ts_0)))
                                                                         (where (IT_1 ...) (subst-Xs-many [(X any) ...] (IT_0 ...)))
                                                                         (where (M_1 ...) (subst-Xs-many [(X any) ...] (M_0 ...)))]
   [(subst-Xs [(X any) ...] (sig_1 -> e_0 \,)) (sig_2 -> e_1 \,)
@@ -166,9 +166,9 @@
                                               (where sig_2 (subst-Xs [(X any) ...] sig_1))]
   [(subst-Xs [(X any) ...] (sig_1 \,)) (sig_2 \,)
                                        (where sig_2 (subst-Xs [(X any) ...] sig_1))]
-  [(subst-Xs [(X any) ...] (m Ts Γ_1 : T_2)) (m Ts Γ_2 : T_2)
-                                             (where Γ_2 (subst-Xs-many [(X any) ...] Γ_1))
-                                             (where T_2 (subst-Xs [(X any) ...] T_1))]
+  [(subst-Xs [(X any) ...] (m Ts ((x_p T_p) ...) : T_1)) (m Ts ((x_p T_p2) ...) : T_2)
+                                                         (where (T_p2 ...) (subst-Xs-many [(X any) ...] (T_p ...)))
+                                                         (where T_2 (subst-Xs [(X any) ...] T_1))]
   [(subst-Xs [(X_1 any) ...] (D Ts_1)) (D Ts_2)
                                        (where Ts_2 (subst-Xs-many [(X_1 any) ...] Ts_1))]
   [(subst-Xs [(X_1 any_1) ...] any_2) any_2])
@@ -196,9 +196,24 @@
   (test-equal (term (subst-Xs [(X Y)] (recv + (X) ())))
               (term (recv +(Y)())))
 
+  ; subst D[Xs]
+  (test-equal (term (subst-Xs [(X A)] (Foo (X))))
+              (term (Foo (A))))
+  
   ; (Foo[X] {'this .foo[Y](a: X, b: Y): Y -> this.foo[Foo[X]] })
-  (test-equal (term (subst-Xs [(X A) (Y B)] ((Foo (X)) : ((Foo (X)) {\' this (((\. foo) (Y) ((a X) (b Y)) : Y) -> (this (\. foo) ((Foo (X))) ()) \,)}))))
-              (term ((Foo (A)) : ((Foo (A)) {\' this (((\. foo) (B) ((a A) (b B)) : B) -> (this (\. foo) ((Foo (A))) ()) \,)}))))
+  (test-equal (term (subst-Xs [(X A)] ((Foo (X)) : ({\' this }))))
+              (term ((Foo (A)) : ({\' this }))))
+
+  ; sig
+  (test-equal (term (subst-Xs [(X A) (Y B)] ((\. foo) (Y) ((a X) (b Y)) : Y)))
+              (term ((|.| foo) (Y) ((a A) (b B)) : B)))
+  
+  ; abs M
+  (test-equal (term (subst-Xs [(X A) (Y B)] (((\. foo) (Y) ((a X) (b Y)) : Y) \,)))
+              (term (((|.| foo) (Y) ((a A) (b B)) : B) |,|)))
+  
+  (test-equal (term (subst-Xs [(X A) (Y B)] ((Foo (X)) : ((Bar (X)) {\' this (((\. foo) (Y) ((a X) (b Y)) : Y) -> (this (\. foo) ((Foo (X))) ()) \,)}))))
+              (term ((Foo (A)) : ((Bar (A)) {\' this (((\. foo) (Y) ((a A) (b B)) : B) -> (this (\. foo) ((Foo (A))) ()) \,)}))))
 ;  (test-equal (term (subst-Xs ((this bSelf)) ((B ()) : ((B ()) {\' this }))))
 ;              (term ((B ()) : ((B ()) {\' bSelf }))))
   )
