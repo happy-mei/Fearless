@@ -290,7 +290,7 @@ public class TestCaptureRules {
   @Test void t236(){ c1(mdf, mut, lent, of(/*not well formed lambda*/)); }
   @Test void t237(){ c1(recMdf, mut, lent, of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
-  @Test void t241(){ c1(imm, iso, lent, of(/*impossible*/)); } //TODO: Marco up to here
+  @Test void t241(){ c1(imm, iso, lent, of(/*impossible*/)); }
   @Test void t242(){ c1(readOnly, iso, lent, of(/*impossible*/)); }
   @Test void t243(){ c1(lent, iso, lent, of(imm, readOnly)); }
   @Test void t244(){ c1(mut, iso, lent, of(imm, readOnly)); }
