@@ -112,6 +112,15 @@
                                                         ((Run ()) : ( {\' this ((\# () () : (Foo ())) -> (((Fear4 ()) : ((Capture ()) {\' fear1N })) + () (((Fear5 ()) : ((Foo ()) {\' fear2N })))) \,)}))]))
                                                  (term (((Fear4 ()) : ((Capture ()) {\' fear1N })) + () (((Fear5 ()) : ((Foo ()) {\' fear2N }))))))
               (term [((Fear5 ()) : ((Foo ()) (|'| fear2N)))]))
+
+  (traces (-->ctx (term [((Foo ()) : ( {\' this }))
+                                                        ((Box (T)) : ( {\' this (((\. get) () () : T) \,)}))
+                                                        ((Fear3 ()) : ((Box ((Foo ()))) {\' fear0N (((\. get) () () : (Foo ())) -> foo \,)}))
+                                                        ((Capture ()) : ( {\' this ((+ () ((foo (Foo ()))) : (Foo ())) -> (((Fear3 ()) : ((Box ((Foo ()))) {\' fear0N (((\. get) () () : (Foo ())) -> foo \,)})) (\. get) () ()) \,)}))
+                                                        ((Fear4 ()) : ((Capture ()) {\' fear1N }))
+                                                        ((Fear5 ()) : ((Foo ()) {\' fear2N }))
+                                                        ((Run ()) : ( {\' this ((\# () () : (Foo ())) -> (((Fear4 ()) : ((Capture ()) {\' fear1N })) + () (((Fear5 ()) : ((Foo ()) {\' fear2N })))) \,)}))]))
+                                                 (term (((Fear4 ()) : ((Capture ()) {\' fear1N })) + () (((Fear5 ()) : ((Foo ()) {\' fear2N }))))))
   
 ;  (traces (-->ctx (term []))
 ;          (term (((Fear1 ()) : ((S ()) {\' fear0N ((+ (R) ((s R)) : R) -> s \,)})) + ((Res ())) (((Res ()) : ({\' fear1N }))))))
@@ -813,20 +822,20 @@
                                 ((Ex ()) : ( {\' this (((\. test) () () : (Foo ())) -> ((((Fear8 ()) : ((FOpt ()) {\' fear0N })) (\. make) ((Foo ())) (((Fear9 ()) : ((Foo ()) {\' fear1N })))) (\. m) ((Foo ())) (((Fear10 ()) : ((OptMatch ((Foo ()) (Foo ()))) {\' fear2N (((\. some) () ((f (Foo ()))) : (Foo ())) -> f \,) (((\. empty) () () : (Foo ())) -> (this (\. test) () ()) \,)})))) \,)}))
                                 ((FOpt ()) : ( {\' this (((\. make) (T) ((t T)) : (Opt (T))) -> ((Fear11 (T)) : ((Opt (T)) {\' fear3N (((\. m) (X1Dth0N) ((m (OptMatch (T X1Dth0N)))) : X1Dth0N) -> (m (\. some) () (t)) \,)})) \,)}))
                                 ((Run ()) : ( {\' this (((\. run) () () : (Foo ())) -> (((Fear12 ()) : ((Ex ()) {\' fear4N })) (\. test) () ()) \,)}))]))
-  
-;  (parameterize ([current-traced-metafunctions '()])
-;  (test-judgment-holds (all-ok [((Foo ()) : ( {\' this }))
-;                                ((Box (T)) : ( {\' this (((\. get) () () : T) \,)}))
-;                                ((Fear2 ()) : ((Box ((Foo ()))) {\' fear0N (((\. get) () () : (Foo ())) -> foo \,)}))
-;                                ((Capture ()) : ( {\' this ((+ () ((foo (Foo ()))) : (Foo ())) -> (((Fear2 ()) : ((Box ((Foo ()))) {\' fear0N (((\. get) () () : (Foo ())) -> foo \,)})) (\. get) () ()) \,)}))]
-;                             )))
+
+;  (show-derivations (build-derivations (all-ok [((Opt (T)) : ( {\' this (((\. m) (R) ((m (OptMatch (T R)))) : R) -> (m (\. empty) () ()) \,)}))
+;                                ((Foo ()) : ( {\' this }))
+;                                ((OptMatch (T R)) : ( {\' this (((\. empty) () () : R) \,) (((\. some) () ((t T)) : R) \,)}))
+;                                ((Ex ()) : ( {\' this (((\. test) () () : (Foo ())) -> ((((Fear8 ()) : ((FOpt ()) {\' fear0N })) (\. make) ((Foo ())) (((Fear9 ()) : ((Foo ()) {\' fear1N })))) (\. m) ((Foo ())) (((Fear10 ()) : ((OptMatch ((Foo ()) (Foo ()))) {\' fear2N (((\. some) () ((f (Foo ()))) : (Foo ())) -> f \,) (((\. empty) () () : (Foo ())) -> (this (\. test) () ()) \,)})))) \,)}))
+;                                ((FOpt ()) : ( {\' this (((\. make) (T) ((t T)) : (Opt (T))) -> ((Fear11 (T)) : ((Opt (T)) {\' fear3N (((\. m) (X1Dth0N) ((m (OptMatch (T X1Dth0N)))) : X1Dth0N) -> (m (\. some) () (t)) \,)})) \,)}))
+;                                ((Run ()) : ( {\' this (((\. run) () () : (Foo ())) -> (((Fear12 ()) : ((Ex ()) {\' fear4N })) (\. test) () ()) \,)}))])))
   
 ;  (parameterize ([current-traced-metafunctions '(istype)])
 ;    
 ;  )
-;  (show-derivations (build-derivations (all-ok [((B ()) : ((A ()) {\' this }))
-;                               ((A ()) : ( {\' this }))
-;                               ((C ()) : ((B ()) {\' this }))])))
+  (show-derivations (build-derivations (all-ok [((B ()) : ((A ()) {\' this }))
+                                                ((A ()) : ( {\' this ((+[](): (A ())) \,) }))
+                                                ((C ()) : ((B ()) {\' this }))])))
   )
 
 (module+ test
