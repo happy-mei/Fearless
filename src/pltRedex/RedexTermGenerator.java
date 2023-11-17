@@ -26,7 +26,7 @@ public record RedexTermGenerator(ArrayList<String> tops, List<Id.GX<T>> inScopeG
     var inferred = InferBodies.inferAll(p);
     var tops = new ArrayList<String>();
     var visitor = new RedexTermGenerator(tops, List.of());
-    inferred.ds().values().forEach(visitor::visitDec);
+    inferred.ds().values().forEach(dec -> visitor.visitDec(dec, true));
     var res = "(term ["+ String.join("\n", tops) +"])";
     System.out.println(res);
   }
@@ -45,16 +45,18 @@ public record RedexTermGenerator(ArrayList<String> tops, List<Id.GX<T>> inScopeG
     // rather than just the ones in use.
     Id.DecId fresh = new Id.DecId("fakepkg."+Id.GX.fresh().name(), inScopeGXs.size());
     var top = new T.Dec(fresh, inScopeGXs.stream().distinct().toList(), Map.of(), e, e.pos());
-    return visitDec(top);
+    return visitDec(top, false);
   }
 
-  public String visitDec(T.Dec top) {
+  public String visitDec(T.Dec top, boolean isTop) {
     var e = top.lambda();
     var visitor = new RedexTermGenerator(tops, Push.of(inScopeGXs, top.gxs()));
     var its = e.its().stream().filter(it->!it.name().equals(top.name())).map(visitor::visitIT).collect(Collectors.joining(" "));
     var meths = e.meths().stream().map(visitor::visitMeth).collect(Collectors.joining(" "));
     var res = "("+visitor.visitIT(top.toIT())+" : ("+its+" {\\' "+e.selfName().replace("$", "N")+" "+meths+"}))";
-    tops.add(res);
+    if (isTop) {
+      tops.add(res);
+    }
     return res;
   }
   public String visitMeth(E.Meth m) {

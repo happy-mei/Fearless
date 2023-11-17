@@ -112,19 +112,6 @@
                                                         ((Run ()) : ( {\' this ((\# () () : (Foo ())) -> (((Fear4 ()) : ((Capture ()) {\' fear1N })) + () (((Fear5 ()) : ((Foo ()) {\' fear2N })))) \,)}))]))
                                                  (term (((Fear4 ()) : ((Capture ()) {\' fear1N })) + () (((Fear5 ()) : ((Foo ()) {\' fear2N }))))))
               (term [((Fear5 ()) : ((Foo ()) (|'| fear2N)))]))
-
-;  (test-equal (apply-reduction-relation* (-->ctx (term [((Fear6 ()) : ((FOpt ()) {\' fear0N }))
-;                                                        ((Fear7 ()) : ((Foo ()) {\' fear1N }))
-;                                                        ((Fear8 ()) : ((OptMatch ((Foo ()) (Foo ()))) {\' fear2N (((\. some) () ((f (Foo ()))) : (Foo ())) -> f \,) (((\. empty) () () : (Foo ())) -> (this (\. test) () ()) \,)}))
-;                                                        ((Ex ()) : ( {\' this (((\. test) () () : (Foo ())) -> ((((Fear6 ()) : ((FOpt ()) {\' fear0N })) (\. make) ((Foo ())) (((Fear7 ()) : ((Foo ()) {\' fear1N })))) (\. m) ((Foo ())) (((Fear8 ()) : ((OptMatch ((Foo ()) (Foo ()))) {\' fear2N (((\. some) () ((f (Foo ()))) : (Foo ())) -> f \,) (((\. empty) () () : (Foo ())) -> (this (\. test) () ()) \,)})))) \,)}))
-;                                                        ((Fear9 (T)) : ((Opt (T)) {\' fear3N }))
-;                                                        ((Fear10 ()) : ((Ex ()) {\' fear3N }))
-;                                                        ((FOpt ()) : ( {\' this (((\. make) (T) ((t T)) : (Opt (T))) -> ((Fear9 (T)) : ((Opt (T)) {\' fear3N })) \,)}))
-;                                                        ((Foo ()) : ( {\' this }))
-;                                                        ((OptMatch (T R)) : ( {\' this (((\. empty) () () : R) \,) (((\. some) () ((t T)) : R) \,)}))
-;                                                        ((Opt (T)) : ( {\' this (((\. m) (R) ((m (OptMatch (T R)))) : R) -> (m (\. empty) () ()) \,)}))]))
-;                                         (term (((Fear10 ()) : ((Ex ()) {\' fear3N })) (\. test) () ())))
-;                                         (term []))
   
 ;  (traces (-->ctx (term []))
 ;          (term (((Fear1 ()) : ((S ()) {\' fear0N ((+ (R) ((s R)) : R) -> s \,)})) + ((Res ())) (((Res ()) : ({\' fear1N }))))))
@@ -327,6 +314,11 @@
 
 (define-metafunction F
   all-Ls : any -> Ls
+  ; all-Ls(Ls)
+  [(all-Ls (L_1 L_n ...)) (L_fst ... L_rst ...)
+                          (where (L_fst ...) (all-Ls L_1))
+                          (where (L_rst ...) (all-Ls (L_n ...)))]
+  
   ; all-Ls(e)
   [(all-Ls ((D_0 Xs_0) : (IT_0 ... {\' x_0 M_0 ...}))) (((D_0 Xs_0) : (IT_0 ... {\' x_0 M_0 ...})) L_meths ...)
                                                        (where (L_meths ...) (all-Ls (M_0 ...)))]
@@ -716,7 +708,7 @@
   
   [(where (Ls ...) ((all-Ls L) ...))
    (where (L_all ...) (flatten-Ls ((all-Ls L) ...)))
-   (lit-ok (L_all ...) () L_all) ...
+   (lit-ok (L_all ...) () L) ...
    ---------------------------------------- "all-ok"
    (all-ok (L ...))])
 (define-judgment-form F
@@ -799,6 +791,13 @@
 ;                                                        ((OptMatch (T R)) : ( {\' this (((\. empty) () () : R) \,) (((\. some) () ((t T)) : R) \,)}))
 ;                                                        ((Opt (T)) : ( {\' this (((\. m) (R) ((m (OptMatch (T R)))) : R) -> (m (\. empty) () ()) \,)}))]))
 
+  (test-judgment-holds (all-ok [((Opt (T)) : ( {\' this (((\. m) (R) ((m (OptMatch (T R)))) : R) -> (m (\. empty) () ()) \,)}))
+                                ((Foo ()) : ( {\' this }))
+                                ((OptMatch (T R)) : ( {\' this (((\. empty) () () : R) \,) (((\. some) () ((t T)) : R) \,)}))
+                                ((Ex ()) : ( {\' this (((\. test) () () : (Foo ())) -> ((((Fear7 ()) : ((FOpt ()) {\' fear0N })) (\. make) ((Foo ())) (((Fear8 ()) : ((Foo ()) {\' fear1N })))) (\. m) ((Foo ())) (((Fear9 ()) : ((OptMatch ((Foo ()) (Foo ()))) {\' fear2N (((\. some) () ((f (Foo ()))) : (Foo ())) -> f \,) (((\. empty) () () : (Foo ())) -> (this (\. test) () ()) \,)})))) \,)}))
+                                ((FOpt ()) : ( {\' this (((\. make) (T) ((t T)) : (Opt (T))) -> ((Fear10 (T)) : ((Opt (T)) {\' fear3N })) \,)}))
+                                ((Run ()) : ( {\' this (((\. run) () () : (Foo ())) -> (((Fear11 ()) : ((Ex ()) {\' fear4N })) (\. test) () ()) \,)}))]))
+  
   (test-judgment-holds (m-ok [((Foo ()) : ( {\' this }))
                                 ((Box (T)) : ( {\' this (((\. get) () () : T) \,)}))
                                 ((Fear2 ()) : ((Box ((Foo ()))) {\' fear0N (((\. get) () () : (Foo ())) -> foo \,)}))
@@ -807,6 +806,13 @@
                              ()
                              ((+ () ((foo (Foo ()))) : (Foo ())) -> (((Fear2 ()) : ((Box ((Foo ()))) {\' fear0N (((\. get) () () : (Foo ())) -> foo \,)})) (\. get) () ()) \,)
                              ))
+
+  (test-judgment-holds (all-ok [((Opt (T)) : ( {\' this (((\. m) (R) ((m (OptMatch (T R)))) : R) -> (m (\. empty) () ()) \,)}))
+                                ((Foo ()) : ( {\' this }))
+                                ((OptMatch (T R)) : ( {\' this (((\. empty) () () : R) \,) (((\. some) () ((t T)) : R) \,)}))
+                                ((Ex ()) : ( {\' this (((\. test) () () : (Foo ())) -> ((((Fear8 ()) : ((FOpt ()) {\' fear0N })) (\. make) ((Foo ())) (((Fear9 ()) : ((Foo ()) {\' fear1N })))) (\. m) ((Foo ())) (((Fear10 ()) : ((OptMatch ((Foo ()) (Foo ()))) {\' fear2N (((\. some) () ((f (Foo ()))) : (Foo ())) -> f \,) (((\. empty) () () : (Foo ())) -> (this (\. test) () ()) \,)})))) \,)}))
+                                ((FOpt ()) : ( {\' this (((\. make) (T) ((t T)) : (Opt (T))) -> ((Fear11 (T)) : ((Opt (T)) {\' fear3N (((\. m) (X1Dth0N) ((m (OptMatch (T X1Dth0N)))) : X1Dth0N) -> (m (\. some) () (t)) \,)})) \,)}))
+                                ((Run ()) : ( {\' this (((\. run) () () : (Foo ())) -> (((Fear12 ()) : ((Ex ()) {\' fear4N })) (\. test) () ()) \,)}))]))
   
 ;  (parameterize ([current-traced-metafunctions '()])
 ;  (test-judgment-holds (all-ok [((Foo ()) : ( {\' this }))
