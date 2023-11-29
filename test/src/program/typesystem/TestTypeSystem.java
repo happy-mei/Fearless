@@ -2472,4 +2472,69 @@ were valid:
     	.foo[Y](x: Y): Test -> Test{ .foo(hello) -> Test },
     }
     """); }
+
+  @Test void pointColourPoint() { ok("""
+    package test
+    FPoint:{ #(x: Num, y: Num): Point -> { .x -> x, .y -> y } }
+    Point:{
+      .x : Num,
+      .y: Num,
+      .withX(x: Num): Point -> FPoint#(x, this.y),
+      .withY(y: Num): Point -> FPoint#(this.x, y),
+      }
+    ColourPoint:Point{
+      .colour: Colour,
+      .withX(x: Num): ColourPoint -> FColourPoint#(x, this.y, this.colour),
+      .withY(y: Num): ColourPoint -> FColourPoint#(this.x, y, this.colour),
+      }
+    FColourPoint:{ #(x: Num, y: Num, colour: Colour): ColourPoint -> {
+      .x -> x, .y -> y, .colour -> colour,
+      }}
+    Usage:{ #(cp: ColourPoint): ColourPoint -> cp.withX(Five) }
+    """, """
+    package test
+    Colour:{}
+    Num:{}
+    Five:Num{}
+    """); }
+  @Disabled
+  @Test void pointColourPointGen() { ok("""
+    package test
+    FPoint:{ #(x: Num, y: Num): Point -> { 'p
+      .x -> x,
+      .y -> y,
+      .self(s) -> s,
+      .withX(x) -> FPoint#(x, p.y),
+      .withY(y) -> FPoint#(p.x, y),
+      } }
+    Point'[Self]:{
+      .self(s: Self): Point'[Self],
+      .x : Num,
+      .y: Num,
+      .withX(x: Num): Self,
+      .withY(y: Num): Self,
+      .withXY(x: Num, y: Num): Self -> this.self(this.withX(x)).withY(y),
+      }
+    Point:Point'[Point]{}
+    ColourPoint'[Self]:Point'[Self]{
+      .colour: Colour,
+      .withColour(c: Colour): Self,
+//      .withPoint(p: p): ColourPoint -> ...
+//      .mapPoint(f: F[Point,Point]): ColourPoint
+      }
+    ColourPoint:ColourPoint'[ColourPoint]{}
+    FColourPoint:{ #(x: Num, y: Num, colour: Colour): ColourPoint -> { 'p
+      .x -> x, .y -> y, .colour -> colour,
+      .self(s) -> s,
+      .withX(x) -> FColourPoint#(x, p.y, p.colour),
+      .withY(y) -> FColourPoint#(p.x, y, p.colour),
+      .withColour(c) -> FColourPoint#(p.x, p.y, c),
+      }}
+    Usage:{ #(cp: ColourPoint): ColourPoint -> cp.withX(Five) }
+    """, """
+    package test
+    Colour:{}
+    Num:{}
+    Five:Num{}
+    """); }
 }
