@@ -4,6 +4,7 @@ import failure.CompileError;
 import main.Main;
 import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Err;
 
@@ -469,5 +470,12 @@ class TestFullParser {
     A2[B: imm,mut]:{}
     A3[B: imm,mut, C]:{}
     A4[B: imm,mut, C, D: readOnly,lent]:{}
+    """); }
+
+  @Disabled // TODO
+  @Test void namedInline() { ok("""
+    """, """
+    package test
+    A:{ #: B -> B:{} }
     """); }
 }

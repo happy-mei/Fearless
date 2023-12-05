@@ -148,20 +148,24 @@ List[E]:Collection{
   imm  .get(i: UInt): iso Opt[E],
   mut .add(e: mdf E): Void,
   mut .addAll(other: mut List[mdf E]): Void -> other.iter.for{ e -> this.add(e) },
-  mut .iter: mut Iter[mdf E] -> Let#{
-    .var -> Count.uint(0u),
-    .in(cursor) -> { .next -> this.get(cursor++) }
-    },
-  read .iter: mut Iter[read E] -> Let#{
-    .var -> Count.uint(0u),
-    .in(cursor) -> { .next -> this.get(cursor++) }
-    },
-  imm .iter: mut Iter[E] -> Let#{
-    .var -> Count.uint(0u),
-    .in(cursor) -> { .next -> this.get(cursor++) }
-    },
-  // TODO: only for testing this, pls ignore this method
-  imm .iter2: base.iter.par.Iter[E] -> _ListParIter#(this, 0u),
+//  mut .iter: mut Iter[mdf E] -> Let#{
+//    .var -> Count.uint(0u),
+//    .in(cursor) -> { .next -> this.get(cursor++) }
+//    },
+//  read .iter: mut Iter[read E] -> Let#{
+//    .var -> Count.uint(0u),
+//    .in(cursor) -> { .next -> this.get(cursor++) }
+//    },
+//  imm .iter: mut Iter[E] -> Let#{
+//    .var -> Count.uint(0u),
+//    .in(cursor) -> { .next -> this.get(cursor++) }
+//    },
+//  // TODO: only for testing this, pls ignore this method
+//  imm .iter2: base.iter.par.Iter[E] -> _ListParIter#(this, 0u),
+  mut .iter: mut Iter[mdf E] -> Todo!,
+  read .iter: mut Iter[read E] -> Todo!,
+  imm .iter: mut Iter[E] -> Todo!,
+  imm .iter2: base.iter.par.Iter[E] -> Todo!,
   }
 _ListParIter:{
   #[E](l: List[E], i: UInt): base.iter.par.Iter[E] -> {

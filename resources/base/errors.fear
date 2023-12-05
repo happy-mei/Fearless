@@ -9,6 +9,11 @@ Error:{
     }
   }
 
+Todo:{
+  ![R:read,mut,imm,iso,lent,readOnly]: mdf R -> Error.str[mdf R] "TODO: Implement this code",
+  ![R:read,mut,imm,iso,lent,readOnly](msg: Str): mdf R -> Error.str[mdf R]("TODO: "+msg),
+}
+
 /// Strong exception safety is upheld:
 /// The operation has either completed successfully or thrown an exception,
 // leaving the program state exactly as it was before the operation started.

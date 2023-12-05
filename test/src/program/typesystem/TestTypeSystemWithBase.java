@@ -579,6 +579,11 @@ public class TestTypeSystemWithBase {
 //      .addStudent(l: LList[Person], s: Student): LList[Person] -> l + s,
       }
     """, Base.mutBaseAliases); }
-
-  //TODO: test that makes sure we can turn a mut List[mut Person] into a read List[read Person] via adaptorOk
+  @Test void covarianceContravarianceListMdf() { ok("""
+    package test
+    Person:{ read .name: Str, read .age: UInt, }
+    Ex:{
+      .nums(l: mut List[mut Person]): read List[read Person] -> l,
+      }
+    """, Base.mutBaseAliases); }
 }

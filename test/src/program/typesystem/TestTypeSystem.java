@@ -2537,4 +2537,41 @@ were valid:
     Num:{}
     Five:Num{}
     """); }
+
+  @Test void pointColourPointWrapper() { ok("""
+    package test
+    FPoint:{ #(x: Num, y: Num): Point -> { .x -> x, .y -> y } }
+    Point:{
+      .x : Num,
+      .y: Num,
+      .withX(x: Num): Point -> FPoint#(x, this.y),
+      .withY(y: Num): Point -> FPoint#(this.x, y),
+      .withXY(x: Num, y: Num): Point -> FPoint#(this.x, this.y),
+      }
+    ColourPoint:{
+      .x : Num,
+      .y: Num,
+      .colour: Colour,
+      .withX(x: Num): ColourPoint -> FColourPoint#(x, this.y, this.colour),
+      .withY(y: Num): ColourPoint -> FColourPoint#(this.x, y, this.colour),
+      .point: Point -> {
+        .x -> this.x,
+        .y -> this.y,
+        .withX(x) -> this.withX(x).point,
+        .withY(y) -> this.withY(y).point,
+        },
+      .withPoint(p: Point): ColourPoint -> this.withX(p.x).withY(p.y),
+      .withXY(x: Num, y: Num): Point -> this.point.withXY(x, y),
+      .withXYCP(x: Num, y: Num): ColourPoint -> this.withPoint(this.withXY(x, y)),
+      }
+    FColourPoint:{ #(x: Num, y: Num, colour: Colour): ColourPoint -> {
+      .x -> x, .y -> y, .colour -> colour,
+      }}
+    Usage:{ #(cp: ColourPoint): Point -> cp.point.withX(Five) }
+    """, """
+    package test
+    Colour:{}
+    Num:{}
+    Five:Num{}
+    """); }
 }
