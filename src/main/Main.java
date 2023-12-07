@@ -48,7 +48,7 @@ public class Main {
           res.hasOption("print-codegen"),
           pv
         ));
-        frontEnd = new CompilerFrontEnd(bv, verbosity.get());
+        frontEnd = new CompilerFrontEnd(bv, verbosity.get(), new CompilerFrontEnd.TypeSystemFeatures());
 
         if (res.hasOption("new")) {
           frontEnd.newPkg(res.getOptionValue("new"));

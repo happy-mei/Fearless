@@ -19,7 +19,6 @@ import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Box;
 import utils.Bug;
-import utils.OneOr;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -35,7 +34,7 @@ import java.util.stream.Stream;
 import static java.util.Objects.requireNonNull;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
-public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
+public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures tsf) {
   record Verbosity(boolean showInternalStackTraces, boolean printCodegen, ProgressVerbosity progress){
     Verbosity showInternalStackTraces(boolean showInternalStackTraces) { return new Verbosity(showInternalStackTraces, printCodegen, progress); }
     Verbosity printCodegen(boolean printCodegen) { return new Verbosity(showInternalStackTraces, printCodegen, progress); }
@@ -52,6 +51,9 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v) {
     }
   }
   enum BaseVariant { Std, Imm }
+  record TypeSystemFeatures(boolean recMdf, boolean adapterSubtyping, boolean hygienics) {
+    TypeSystemFeatures() { this(true, true, true); }
+  }
   static Box<Map<String, List<Package>>> immBaseLib = new Box<>(null);
   static Box<Map<String, List<Package>>> baseLib = new Box<>(null);
 
