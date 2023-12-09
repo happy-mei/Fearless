@@ -31,6 +31,14 @@ public interface FullCloneVisitor {
   default E.X visitXX(E.X e){return e;}
   default E visitLambda(E.Lambda e){ return visitLLambda(e); }
   default E.Lambda visitLLambda(E.Lambda e){ return new E.Lambda(
+    new E.Lambda.LambdaId(
+      e.name().name(),
+      e.name().gens().stream().map(this::visitGX).toList(),
+      Mapper.of(acc->e.name().bounds().forEach((key, value)->{
+        var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());
+        acc.put(key, res);
+      }))
+    ),
     e.mdf().map(this::visitMdf),
     e.its().stream().map(this::visitIT).toList(),
     e.selfName(),//visitXX is not ok since this is just a String

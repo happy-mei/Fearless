@@ -472,10 +472,18 @@ class TestFullParser {
     A4[B: imm,mut, C, D: readOnly,lent]:{}
     """); }
 
-  @Disabled // TODO
   @Test void namedInline() { ok("""
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immB]->
+      LambdaId[name=test.B/0,gens=[],bounds={}]:[-infer-][]{}}]}
     """, """
     package test
     A:{ #: B -> B:{} }
+    """); }
+  @Test void namedInlineGens() { ok("""
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immB]->
+      LambdaId[name=test.B/0,gens=[],bounds={}]:[-infer-][]{}}]}
+    """, """
+    package test
+    A[X]:{ #(x: X): B[X] -> B[X]:{ .m1: X -> x } }
     """); }
 }

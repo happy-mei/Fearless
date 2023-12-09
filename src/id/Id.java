@@ -29,6 +29,11 @@ public class Id {
   }
   public record DecId(String name,int gen){
     public DecId{ assert validDecName(name) && gen>=0 : name; }
+    public DecId(int gens) { this(Id.GX.fresh().name(), gens); }
+
+    public boolean isFresh() {
+      return this.name.endsWith("$");
+    }
 
     static Pattern pkgRegex = Pattern.compile("(.+\\.)+([A-Za-z0-9_']+)\\$?$");
     public String pkg() {

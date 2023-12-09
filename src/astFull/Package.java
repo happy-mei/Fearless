@@ -97,9 +97,7 @@ public record Package(
           })
         .toList();
     var fns=ps.stream()
-      .flatMap(p->Streams
-        .zip(p.ds(),p.ps()).map((di,pi)->FullEAntlrVisitor.pos(pi, di))
-         )
+      .flatMap(p->Streams.zip(p.ds(),p.ps()).map((di,pi)->FullEAntlrVisitor.pos(pi, di)))
       .toList();
     assert ds.size()==fns.size();
     var uds=ds.stream().distinct().toList();

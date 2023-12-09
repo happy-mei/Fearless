@@ -1,6 +1,5 @@
 package astFull;
 
-import failure.Fail;
 import files.HasPos;
 import files.Pos;
 import id.Id;
@@ -8,6 +7,8 @@ import id.Id.MethName;
 import id.Mdf;
 import main.Main;
 import utils.Bug;
+import utils.Mapper;
+import visitors.FreeGensFullVisitor;
 import visitors.FullCloneVisitor;
 import visitors.FullVisitor;
 import visitors.InjectionVisitor;
@@ -26,7 +27,7 @@ public sealed interface E extends HasPos {
   E withPos(Optional<Pos> pos);
   E withT(T t);
 
-  record Lambda(Optional<Mdf> mdf, List<Id.IT<T>>its, String selfName, List<Meth>meths, Optional<Id.IT<T>> it, Optional<Pos> pos) implements E{
+  record Lambda(LambdaId name, Optional<Mdf> mdf, List<Id.IT<T>>its, String selfName, List<Meth>meths, Optional<Id.IT<T>> it, Optional<Pos> pos) implements E {
     public Lambda {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
@@ -34,6 +35,16 @@ public sealed interface E extends HasPos {
 
       assert mdf.isPresent() == it.isPresent();
     }
+
+    public record LambdaId(Id.DecId name, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {}
+    public static LambdaId nameFromMs(Map<Id.GX<T>, Set<Mdf>> bounds, List<Meth> meths) {
+      var visitor = new FreeGensFullVisitor();
+      meths.forEach(visitor::visitMeth);
+      var gens = visitor.freeGens.stream().sorted(Comparator.comparing(Id.GX::name)).toList();
+      Map<Id.GX<T>, Set<Mdf>> xbs = Mapper.of(xbs_->gens.stream().filter(bounds::containsKey).forEach(gx->xbs_.put(gx, bounds.get(gx))));
+      return new LambdaId(new Id.DecId(gens.size()), gens, xbs);
+    }
+
     /** This method correctly throw assertion error if called on a top level lambda
     */
     @Override public T t() {
@@ -45,12 +56,20 @@ public sealed interface E extends HasPos {
     @Override public Lambda withT(T t) {
       var mdf = Optional.ofNullable(t.isInfer() ? null:t.mdf());
       Optional<Id.IT<T>> it = Optional.ofNullable(t.isInfer() ? null : t.match(gx->null, iti->iti));
-      return new Lambda(mdf, its, selfName, meths, it, pos);
+      return new Lambda(name, mdf, its, selfName, meths, it, pos);
     }
 
     @Override public E accept(FullCloneVisitor v){return v.visitLambda(this);}
     @Override public <R> R accept(FullVisitor<R> v){return v.visitLambda(this);}
     @Override public String toString() {
+      var mdf = this.mdf().map(Mdf::toString).orElse("");
+      var name = this.name.name.isFresh() ? "" : this.name+":";
+      var type = mdf().isEmpty() && it().isEmpty() ? "infer" : it().map(Id.IT::toString).orElse("infer");
+      var meths = meths().stream().map(Meth::toString).collect(Collectors.joining(",\n"));
+      var selfName = Optional.ofNullable(selfName()).map(sn->"'"+sn).orElse("");
+      return String.format("%s[-%s %s-]%s{%s %s}", name, mdf, type, its(), selfName, meths);
+    }
+    public String toStringNoName() {
       var mdf = this.mdf().map(Mdf::toString).orElse("");
       var type = mdf().isEmpty() && it().isEmpty() ? "infer" : it().map(Id.IT::toString).orElse("infer");
       var meths = meths().stream().map(Meth::toString).collect(Collectors.joining(",\n"));
@@ -59,22 +78,22 @@ public sealed interface E extends HasPos {
     }
 
     public Lambda withSelfName(String selfName) {
-      return new Lambda(mdf, its, selfName, meths, it, pos);
+      return new Lambda(name, mdf, its, selfName, meths, it, pos);
     }
     public Lambda withT(Optional<T> t) {
-      return new Lambda(t.map(T::mdf), its, selfName, meths, t.map(T::itOrThrow), pos);
+      return new Lambda(name, t.map(T::mdf), its, selfName, meths, t.map(T::itOrThrow), pos);
     }
     public Lambda withITs(List<Id.IT<T>> its) {
-      return new Lambda(mdf, its, selfName, meths, it, pos);
+      return new Lambda(name, mdf, its, selfName, meths, it, pos);
     }
     public Lambda withMdf(Mdf mdf) {
-      return new Lambda(Optional.of(mdf), its, selfName, meths, it, pos);
+      return new Lambda(name, Optional.of(mdf), its, selfName, meths, it, pos);
     }
     public Lambda withMeths(List<Meth> meths) {
-      return new Lambda(mdf, its, selfName, meths, it, pos);
+      return new Lambda(name, mdf, its, selfName, meths, it, pos);
     }
     public Lambda withPos(Optional<Pos> pos) {
-      return new Lambda(mdf, its, selfName, meths, it, pos);
+      return new Lambda(name, mdf, its, selfName, meths, it, pos);
     }
   }
   record MCall(E receiver,MethName name,Optional<List<T>>ts,List<E>es, T t, Optional<Pos> pos) implements E{

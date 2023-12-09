@@ -19,6 +19,7 @@ import utils.*;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,18 +29,20 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public final Path fileName;
   public final Function<String,Optional<Id.IT<T>>> resolve;
   public StringBuilder errors = new StringBuilder();
+  private String pkg;
+  private Map<Id.GX<T>, Set<Mdf>> xbs = Map.of();
   public FullEAntlrVisitor(Path fileName,Function<String,Optional<Id.IT<T>>> resolve){
-    this.fileName=fileName; 
+    this.fileName=fileName;
     this.resolve=resolve;
   }
   Pos pos(ParserRuleContext prc){
     return pos(fileName,prc);
     }
   public static Pos pos(Path fileName,ParserRuleContext prc){
-    return Pos.of(fileName.toUri(),prc.getStart().getLine(),prc.getStart().getCharPositionInLine()); 
+    return Pos.of(fileName.toUri(),prc.getStart().getLine(),prc.getStart().getCharPositionInLine());
     }
 
-  void check(ParserRuleContext ctx){  
+  void check(ParserRuleContext ctx){
     if(ctx.children==null){ throw new ParserFailed(); }
     }
   @Override public Void visit(ParseTree arg0){ throw Bug.unreachable(); }
@@ -127,11 +130,14 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       var e = head.es().get(0);
       var freshRoot = new E.X(T.infer);
       var rest = desugar(freshRoot, newTail);
+
+      var contMs = List.of(new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest), Optional.of(head.pos())));
       var cont = new E.Lambda(
+        E.Lambda.nameFromMs(this.xbs, contMs),
         Optional.empty(),
         List.of(),
         null,
-        List.of(new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest), Optional.of(head.pos()))),
+        contMs,
         Optional.empty(),
         Optional.of(head.pos())
       );
@@ -192,14 +198,32 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         .filter(Objects::nonNull));
   }
   @Override public E.Lambda visitLambda(LambdaContext ctx){
+
+    var oldXbs = this.xbs;
+    E.Lambda res;
     if (ctx.topDec() != null) {
-      throw Bug.todo();
+      String cName = visitFullCN(ctx.topDec().fullCN());
+      if (cName.contains(".")) {
+        throw Bug.of("You may not declare a trait in a different package than the package the declaration is in.");
+      }
+      assert this.pkg != null;
+      cName = this.pkg + "." + cName;
+
+      var mGen = Optional.ofNullable(ctx.topDec().mGen())
+        .flatMap(this::visitMGenParams)
+        .orElse(new GenericParams(List.of(), Map.of()));
+      this.xbs = mGen.bounds;
+      var name = Optional.of(new E.Lambda.LambdaId(new Id.DecId(cName, mGen.gxs.size()), mGen.gxs, mGen.bounds));
+      res = visitBlock(ctx.topDec().block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), name);
+    } else {
+      res = visitBlock(ctx.block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), Optional.empty());
     }
-    var res=visitBlock(ctx.block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())));
+
     if (res.its().isEmpty() && !ctx.mdf().getText().isEmpty()) { throw Fail.modifierOnInferredLambda().pos(pos(ctx)); }
+    this.xbs = oldXbs;
     return res;
-    }
-  public E.Lambda visitBlock(BlockContext ctx, Optional<Mdf> mdf){
+  }
+  public E.Lambda visitBlock(BlockContext ctx, Optional<Mdf> mdf, Optional<E.Lambda.LambdaId> name){
     check(ctx);
     var _its = Optional.ofNullable(ctx.t())
       .map(its->its.stream().map(this::visitIT).toList());
@@ -210,12 +234,19 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     }
     if (rt.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }
     mdf.filter(Mdf::isMdf).ifPresent(mdf1->{ throw Fail.invalidMdf(rt.get()); });
+
+//    assert name.isEmpty() || name.get().gen() == usedGens.size();
+//    var topName = name
+//      .map(id->new Id.IT<>(id, usedGens.stream().map(gx->new T(Mdf.mdf, gx)).toList()));
+//      .orElseGet(()->new Id.IT<>(new Id.DecId(usedGens.size()), usedGens.stream().map(gx->new T(Mdf.mdf, gx)).toList()));
+
+    Supplier<E.Lambda.LambdaId> emptyTopName = ()->new E.Lambda.LambdaId(new Id.DecId(0), List.of(), Map.of());
     if(ctx.bblock()==null){
-      return new E.Lambda(mdf,its,null,List.of(),rt,Optional.of(pos(ctx)));
+      return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, null, List.of(), rt, Optional.of(pos(ctx)));
     }
     var bb = ctx.bblock();
     if(bb.children==null){
-      return new E.Lambda(mdf, its, null, List.of(), rt, Optional.of(pos(ctx)));
+      return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, null, List.of(), rt, Optional.of(pos(ctx)));
     }
     var _x=bb.SelfX();
     var _n=_x==null?null:_x.getText().substring(1);
@@ -223,8 +254,11 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var _singleM=opt(bb.singleM(),this::visitSingleM);
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
-    return new E.Lambda(mdf,its,_n,mms,rt,Optional.of(pos(ctx)));
-    }
+    var meths = mms;
+
+    var topName = name.orElseGet(()->E.Lambda.nameFromMs(Map.copyOf(this.xbs), meths));
+    return new E.Lambda(topName, mdf, its, _n, meths, rt, Optional.of(pos(ctx)));
+  }
   @Override
   public String visitFullCN(FullCNContext ctx) {
     return ctx.getText();
@@ -279,7 +313,14 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override
   public E.Meth visitMeth(MethContext ctx) {
     check(ctx);
+    var oldXbs = this.xbs;
     var mh = Optional.ofNullable(ctx.sig()).map(this::visitSig);
+    mh.ifPresent(header->{
+      this.xbs = Mapper.of(xbs_->{
+        xbs_.putAll(oldXbs);
+        xbs_.putAll(header.bounds);
+      });
+    });
     var xs = mh.map(MethHeader::xs).orElseGet(()->{
       var _xs = opt(ctx.x(), xs1->xs1.stream().map(this::visitX).toList());
       return _xs==null?List.of():_xs;
@@ -288,7 +329,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         .orElseGet(()->new MethName(mh.map(MethHeader::mdf), ctx.m().getText(),xs.size()));
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
     var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), h.bounds(), xs.stream().map(E.X::t).toList(), h.ret(), Optional.of(pos(ctx))));
-    return new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body, Optional.of(pos(ctx)));
+    var res = new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body, Optional.of(pos(ctx)));
+    this.xbs = oldXbs;
+    return res;
   }
   public record MethHeader(Mdf mdf, MethName name, List<Id.GX<T>> gens, Map<Id.GX<astFull.T>, Set<Mdf>> bounds, List<E.X> xs, T ret){}
   @Override
@@ -314,16 +357,21 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       throw Bug.of("You may not declare a trait in a different package than the package the declaration is in.");
     }
     cName = pkg + "." + cName;
+    this.pkg = pkg;
 
     var mGen = Optional.ofNullable(ctx.mGen())
       .flatMap(this::visitMGenParams)
       .orElse(new GenericParams(List.of(), Map.of()));
     var id = new Id.DecId(cName,mGen.gxs.size());
-    var body = shallow ? null : visitBlock(ctx.block(), Optional.empty());
+
+    var oldXbs = this.xbs;
+    this.xbs = Map.copyOf(mGen.bounds);
+    var body = shallow ? null : visitBlock(ctx.block(), Optional.empty(), Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds)));
     if (body != null) {
 //      assert body.it().isEmpty();
       body = body.withT(Optional.empty());
     }
+    this.xbs = oldXbs;
     return new T.Dec(id, mGen.gxs(), mGen.bounds(), body, Optional.of(pos(ctx)));
   }
   @Override
@@ -332,7 +380,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var in = visitFullCN(ctx.fullCN(0));
     var _inG = opt(ctx.mGen(0),mGenCtx->visitMGen(mGenCtx, true));
     var inG = Optional.ofNullable(_inG).flatMap(e->e).orElse(List.of());
-    var inT=new Id.IT<T>(in,inG);
+    var inT=new Id.IT<>(in,inG);
     var out = visitFullCN(ctx.fullCN(1));
     var outG = ctx.mGen(1);
     if(!outG.genDecl().isEmpty()){ throw Bug.of("No gen on out Alias"); }
@@ -345,7 +393,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     assert name.endsWith("\n");
     name=name.substring("package ".length(),name.length()-1);
     var as=ctx.alias().stream().map(this::visitAlias).toList();
-    var decs=List.copyOf(ctx.topDec());
+    var decs=List.copyOf(ctx.topDec()); // TODO: save all inline dec names as aliases
     return new Package(name,as,decs,decs.stream().map(e->fileName).toList());
-  } 
+  }
 }
