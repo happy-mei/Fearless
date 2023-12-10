@@ -472,6 +472,26 @@ class TestFullParser {
     A4[B: imm,mut, C, D: readOnly,lent]:{}
     """); }
 
+  @Test void concreteGensImm() { ok("""
+    {test.G/1=Dec[name=test.G/1,gxs=[X],lambda=[-infer-][]{}],
+    test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-infer-][]{}],
+    test.A/1=Dec[name=test.A/1,gxs=[Z],lambda=[-infer-][test.G[imm test.B[]],test.G[mdf Z]]{}]}
+    """, """
+    package test
+    A[Z]:G[B],G[Z]{}
+    B:{}
+    G[X]:{}
+    """); }
+  @Test void mdfForGensRet() { ok("""
+    {test.G/1=Dec[name=test.G/1,gxs=[X],lambda=[-infer-][]{}],
+    test.B/1=Dec[name=test.B/1,gxs=[Y],lambda=[-infer-][]{
+      .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mdfY]->[-]}]}
+    """, """
+    package test
+    B[Y]:{ .m1: Y }
+    G[X]:{}
+    """); }
+
   @Disabled // TODO
   @Test void namedInline() { ok("""
     """, """

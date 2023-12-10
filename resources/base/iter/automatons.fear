@@ -8,21 +8,21 @@ alias base.Block as Block,
 //alias base.LList as LList,
 
 
-Output[A,R]:{
-  imm  .next: mut Auto[A, mdf R],
-  mut  .next: mut Auto[mdf A, mdf R],
-  read .next: mut Auto[read A, mdf R],
-
-  imm  .result: R,
-  mut  .result: mdf R,
-  read .result: read R,
-
-  read .completed: Bool -> False,
-  }
-
-Auto:{
-
-  }
-Auto[A,R]:{
-  imm .step(a: A): mut Opt[mut Output[A,R]],
-  }
+//Output[A,R]:{
+//  imm  .next: mut Auto[A, R],
+//  mut  .next: mut Auto[A, R],
+//  read .next: mut Auto[read A, R],
+//
+//  imm  .result: R,
+//  mut  .result: R,
+//  read .result: read R,
+//
+//  read .completed: Bool -> False,
+//  }
+//
+//Auto:{
+//
+//  }
+//Auto[A,R]:{
+//  imm .step(a: A): mut Opt[mut Output[A,R]],
+//  }

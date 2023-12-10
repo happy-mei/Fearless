@@ -1,32 +1,32 @@
 package base
 
 Ref:{
-  #[X](x: mdf X): mut Ref[mdf X] -> Magic!,
-  readOnly #[X](x: X): mut RefImm[X] -> Ref.ofImm x,
-  .ofImm[X](x: X): mut RefImm[X] -> Let#{
-    .var -> Ref#(Ice[X]{x}),
+  #[X](x: X): mut Ref[X] -> Magic!,
+  readOnly #[X](x: imm X): mut RefImm[imm X] -> Ref.ofImm x,
+  .ofImm[X](x: imm X): mut RefImm[imm X] -> Let#{
+    .var -> Ref#(Ice[imm X]{x}),
       .in(ref) -> {
-         mut  .get: X -> ref.get.get,
-         read .get: X -> ref.get.get,
-         .swap(newX) -> ref.swap(Ice[X]{newX}).get,
+         mut  .get: imm X -> ref.get.get,
+         read .get: imm X -> ref.get.get,
+         .swap(newX) -> ref.swap(Ice[imm X]{newX}).get,
          }
       }
   }
 Ref[X:imm,mut,read]:Sealed{
-  mut  .get: mdf X,
+  mut  .get: X,
   read .get: read X,
-  read .getImm(f: mut Freezer[read X, X]): X -> f#(this.get),
-  read .getImm: Opt[X] -> {},
-  mut  *: mdf X -> this.get,
+  read .getImm(f: mut Freezer[read X, imm X]): imm X -> f#(this.get),
+  read .getImm: Opt[imm X] -> {},
+  mut  *: X -> this.get,
   read *: read X -> this.get,
 
-  mut .swap(x: mdf X): mdf X,
-  mut :=(x: mdf X): Void -> Block#(this.swap(x)),
-  mut .set(x: mdf X): Void -> this := x,
-  mut <-(f: mut UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
-  mut .update(f: mut UpdateRef[mdf X]): mdf X -> this <- f,
+  mut .swap(x: X): X,
+  mut :=(x: X): Void -> Block#(this.swap(x)),
+  mut .set(x: X): Void -> this := x,
+  mut <-(f: mut UpdateRef[X]): X -> this.swap(f#(this*)),
+  mut .update(f: mut UpdateRef[X]): X -> this <- f,
   }
-UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+UpdateRef[X]:{ mut #(x: X): X }
 RefImm[X:imm]:Ref[X]{
   read .get: X,
   read *: X -> this.get,
@@ -34,7 +34,7 @@ RefImm[X:imm]:Ref[X]{
   .getImm -> Opt#(this.get),
   }
 
-Count[N:imm]:RefImm[N]{
+Count[N:imm]:RefImm[imm N]{
   mut ++: N,
   mut --: N,
   mut +=(n: N): N,

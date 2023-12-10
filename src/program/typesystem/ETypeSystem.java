@@ -4,15 +4,10 @@ import ast.E;
 import ast.T;
 import failure.CompileError;
 import failure.Fail;
-import failure.Res;
-import id.Mdf;
 import program.Program;
-import utils.Bug;
 import visitors.Visitor;
 
-import java.util.ArrayList;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Optional;
 
 public interface ETypeSystem extends Visitor<Optional<CompileError>> {

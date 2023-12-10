@@ -157,6 +157,10 @@ public interface Program {
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m2.name(), gxs, m2.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
         var res = isType(g, bounds, e, m2.sig().ret());
+        // TODO: automate this into some error logging for when adapt fails and it is the ultimate cause of a failed compilation
+//        if (t1.toString().equals("read base.LList[mdf E]") && t2.toString().equals("read base.LList[read E]") && res.isPresent()) {
+//          System.out.println("hdfgh");
+//        }
         return res.isEmpty();
       });
   }

@@ -1,8 +1,8 @@
 package base
 
 Error:{
-  ![R:read,mut,imm,iso,lent,readOnly](info: Info): mdf R -> Magic!,
-  .str[R:read,mut,imm,iso,lent,readOnly](s: Str): mdf R -> this!{
+  ![R:read,mut,imm,iso,lent,readOnly](info: Info): R -> Magic!,
+  .str[R:read,mut,imm,iso,lent,readOnly](s: Str): R -> this!{
     .str -> s,
     .list -> List#,
     .map -> EmptyMap[Str, Info]
@@ -10,18 +10,18 @@ Error:{
   }
 
 Todo:{
-  ![R:read,mut,imm,iso,lent,readOnly]: mdf R -> Error.str[mdf R] "TODO: Implement this code",
-  ![R:read,mut,imm,iso,lent,readOnly](msg: Str): mdf R -> Error.str[mdf R]("TODO: "+msg),
+  ![R:read,mut,imm,iso,lent,readOnly]: R -> Error.str[R] "TODO: Implement this code",
+  ![R:read,mut,imm,iso,lent,readOnly](msg: Str): R -> Error.str[R]("TODO: "+msg),
 }
 
 /// Strong exception safety is upheld:
 /// The operation has either completed successfully or thrown an exception,
 // leaving the program state exactly as it was before the operation started.
 Try:{
-  #[R](try: read Try[mdf R]): mut Res[mdf R] -> Magic!,
+  #[R](try: read Try[R]): mut Res[R] -> Magic!,
   }
 
-Try[R]:{ read #: mdf R, }
+Try[R]:{ read #: R, }
 
 Info:Sealed{
   .str: Str,
