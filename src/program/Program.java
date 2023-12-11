@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 
 public interface Program {
   Id.Dec of(Id.DecId dec);
-
+  boolean isInlineDec(Id.DecId d);
   List<Id.IT<T>> itsOf(Id.IT<T> t);
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t);

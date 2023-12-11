@@ -18,4 +18,7 @@ public class AllLsFullVisitor implements FullCollectorVisitor<List<T.Dec>> {
     }
     return FullCollectorVisitor.super.visitLambda(e);
   }
+  public Void visitTrait(E.Lambda e) {
+    return FullCollectorVisitor.super.visitLambda(e);
+  }
 }

@@ -57,6 +57,8 @@ public class Fail{
       "This alias is in conflict with other aliases in the same package: "+conflictingMsg(aliased, conflicts));}
   public static CompileError conflictingDecl(Id.DecId decl, List<Conflict> conflicts){return of(
       "This trait declaration is in conflict with other trait declarations in the same package: "+conflictingMsg(decl.toString(), conflicts));}
+  public static CompileError conflictingDecls(List<Conflict> conflicts){return of(
+    conflictingMsg("Trait names must be unique.", conflicts));}
 
   public static CompileError uncomposableMethods(List<Conflict> conflicts) { return of(conflictingMsg("These methods could not be composed.", conflicts)); }
 
@@ -246,6 +248,11 @@ public class Fail{
     return of(subErrors);
   }
 
+  public static CompileError implInlineDec(List<Id.DecId> invalidImpls) {
+    var msg = invalidImpls.stream().map(Id.DecId::toString).collect(Collectors.joining(", "));
+    return of("Traits declared within expressions cannot be implemented. This lambda has the following invalid implementations: "+msg);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -266,7 +273,7 @@ enum ErrorCode {
   shadowingGX,
   invalidMdf,
   typeError,
-  UNUSED2,
+  implInlineDec,
   expectedConcreteType,
   missingDecl,
   invalidMethMdf,
@@ -307,6 +314,7 @@ enum ErrorCode {
   couldNotInferCallGenerics,
   incompatibleGenerics,
   xTypeError,
-  lambdaTypeError;
+  lambdaTypeError,
+  conflictingDecls;
   int code() {return this.ordinal() + 1;}
 }

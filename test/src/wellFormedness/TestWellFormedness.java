@@ -232,4 +232,42 @@ public class TestWellFormedness {
       ._bar: Bar -> Bar,
       }
     """); }
+
+  @Test void allowTopLevelDecl() { ok("""
+    package test
+    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+      .name: Str -> name,
+      .age: UInt -> age,
+      }}
+    Ex:{
+      .create: Person -> FPerson#(Bob, TwentyFour),
+      .name(p: Person): Str -> p.name,
+      }
+    """, """
+    package test
+    Str:{} Bob:Str{}
+    UInt:{} TwentyFour:UInt{}
+    """); }
+  @Test void failTopLevelDeclImplInfer() { fail("""
+    In position [###]/Dummy0.fear:7:15
+    [E13 implInlineDec]
+    Traits declared within expressions cannot be implemented. This lambda has the following invalid implementations: test.Person/0
+    """, """
+    package test
+    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+      .name: Str -> name,
+      .age: UInt -> age,
+      }}
+    Bad:{
+      #: Person -> {}
+      }
+    Ex:{
+      .create: Person -> FPerson#(Bob, TwentyFour),
+      .name(p: Person): Str -> p.name,
+      }
+    """, """
+    package test
+    Str:{} Bob:Str{}
+    UInt:{} TwentyFour:UInt{}
+    """); }
 }

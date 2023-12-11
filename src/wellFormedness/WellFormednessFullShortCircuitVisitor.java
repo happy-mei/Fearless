@@ -87,6 +87,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
         noExplicitThis(List.of(x))
         .or(()->noShadowingVar(List.of(x)))
       )
+      .or(()->noImplInlineDec(e))
       .or(()->hasNonDisjointMs(e))
       .or(()->super.visitLambda(e))
       .map(err->err.parentPos(e.pos()));
@@ -126,6 +127,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   @Override public Optional<CompileError> visitProgram(Program p){
     this.p = p;
     return noCyclicImplRelations(p)
+      .or(()->disjointDecls(p))
       .or(()->super.visitProgram(p));
   }
 
@@ -222,6 +224,32 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   private Optional<CompileError> noSelfNameOnTopLevelDec(E.Lambda e) {
     if (e.selfName() == null) { return Optional.empty(); }
     return Optional.of(Fail.namedTopLevelLambda().pos(e.pos()));
+  }
+
+  private Optional<CompileError> noImplInlineDec(E.Lambda e) {
+    if (e.its().stream().noneMatch(it->p.isInlineDec(it.name()) && !e.name().name().equals(it.name()))) {
+      return Optional.empty();
+    }
+    return Optional.of(Fail.implInlineDec(
+      e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.name().name().equals(d)).toList()
+    ));
+  }
+
+  private Optional<CompileError> disjointDecls(Program p) {
+    var inline = p.inlineDs().keySet();
+    var topLevel = p.ds().keySet();
+
+    if (Collections.disjoint(inline, topLevel)) {
+      return Optional.empty();
+    }
+
+    var allConflicts = new HashSet<>(inline);
+    allConflicts.retainAll(topLevel);
+    var conflicts = allConflicts.stream()
+      .map(p::of)
+      .map(d->new Fail.Conflict(d.posOrUnknown(), d.name().toString()))
+      .toList();
+    return Optional.of(Fail.conflictingDecls(conflicts));
   }
 }
 

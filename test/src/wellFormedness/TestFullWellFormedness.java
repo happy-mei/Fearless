@@ -47,7 +47,7 @@ public class TestFullWellFormedness {
     package pkg1
     Opt[T]:{}
     A:{
-      #[T](x: A[mdf T]): A -> {},
+      #[T](x: A[T]): A -> {},
       .foo(): A -> this#[read A]A
       }
     """); }
@@ -104,46 +104,6 @@ public class TestFullWellFormedness {
     """, """
     package base
     A:{ .a: A, .a: A }
-    """); }
-
-  @Test void noMutHygOk() { ok("""
-    package base
-    NoMutHyg[X]:{}
-    Sealed:{} Void:{}
-    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-    Let[V,R]:{ .var:V, .in(v:V):R }
-    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-    Ref[X]:NoMutHyg[X],Sealed{
-      recMdf * : recMdf X,
-      mut .swap(x: mdf X): mdf X,
-      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
-    }
-    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
-    """); }
-  @Test void noMutHygOkSplit() { ok("""
-    package base
-    NoMutHyg[X]:{}
-    Sealed:{} Void:{}
-    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-    Let[V,R]:{ .var:V, .in(v:V):R }
-    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
-    Ref[X,Y]:NoMutHyg[X],NoMutHyg[Y],Sealed{
-      recMdf * : recMdf X,
-      mut .swap(x: mdf X): mdf X,
-      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
-    }
-    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
-    """); }
-
-  @Test void mdfAsMethMdf() { fail("""
-    In position [###]/Dummy0.fear:2:4
-    [E16 invalidMethMdf]
-    mdf is not a valid modifier for a method (on the method .foo/0).
-    """, """
-    package base
-    A:{ mdf .foo: A }
     """); }
 
   @Test void useUndefinedX() { fail("""
@@ -215,17 +175,17 @@ public class TestFullWellFormedness {
   @Test void complexValidRecMdf() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> { .match(m) -> m.some(x) } }
-    Opt[T]:NoMutHyg[mdf T]{
-      recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
-      recMdf .map[R](f: mut OptMap[recMdf T, mdf R]): mut Opt[mdf R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
-      recMdf .flatMap[R](f: mut OptMap[recMdf T, recMdf Opt[mdf R]]): mut Opt[mdf R] -> this.match{
+    Opt:{ #[T](x: T): mut Opt[T] -> { .match(m) -> m.some(x) } }
+    Opt[T]:NoMutHyg[T]{
+      recMdf .match[R](m: mut OptMatch[recMdf T, R]): R -> m.none,
+      recMdf .map[R](f: mut OptMap[recMdf T, R]): mut Opt[R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
+      recMdf .flatMap[R](f: mut OptMap[recMdf T, recMdf Opt[R]]): mut Opt[R] -> this.match{
         .some(x) -> f#x,
         .none -> {}
         },
       }
-    OptMatch[T,R]:NoMutHyg[mdf R]{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    OptMap[T,R]:{ mut #(x: mdf T): mdf R }
+    OptMatch[T,R]:NoMutHyg[R]{ mut .some(x: T): R, mut .none: R }
+    OptMap[T,R]:{ mut #(x: T): R }
     """, """
     package base
     NoMutHyg[X]:{}
@@ -282,6 +242,63 @@ public class TestFullWellFormedness {
     A:{
       .me: A -> {'self },
       }
+    """); }
+
+  @Test void allowTopLevelDecl() { ok("""
+    package test
+    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+      .name: Str -> name,
+      .age: UInt -> age,
+      }}
+    Ex:{
+      .create: Person -> FPerson#(Bob, TwentyFour),
+      .name(p: Person): Str -> p.name,
+      }
+    """, """
+    package test
+    Str:{} Bob:Str{}
+    UInt:{} TwentyFour:UInt{}
+    """); }
+  @Test void failTopLevelDeclImpl() { fail("""
+    In position [###]/Dummy0.fear:6:4
+    [E13 implInlineDec]
+    Traits declared within expressions cannot be implemented. This lambda has the following invalid implementations: test.Person/0
+    """, """
+    package test
+    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+      .name: Str -> name,
+      .age: UInt -> age,
+      }}
+    Bad:Person{}
+    Ex:{
+      .create: Person -> FPerson#(Bob, TwentyFour),
+      .name(p: Person): Str -> p.name,
+      }
+    """, """
+    package test
+    Str:{} Bob:Str{}
+    UInt:{} TwentyFour:UInt{}
+    """); }
+
+  @Test void disjointDecsInline1() { fail("""
+    [E55 conflictingDecls]
+    Trait names must be unique.
+    conflicts:
+    ([###]/Dummy0.fear:2:0) test.A/0
+    """, """
+    package test
+    A:{}
+    B:{ #: A -> A:{} }
+    """); }
+  @Test void disjointDecsInline2() { fail("""
+    [E55 conflictingDecls]
+    Trait names must be unique.
+    conflicts:
+    ([###]/Dummy0.fear:2:0) test.A/0
+    """, """
+    package test
+    B:{ #: A -> A:{} }
+    C:{ #: A -> A:{} }
     """); }
 
   @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {

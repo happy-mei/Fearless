@@ -87,4 +87,10 @@ public enum Mdf{
     System.err.println("uh oh restrict is undefined for "+this+" and "+mMdf);
     return Optional.empty();
   }
+
+
+  @Override public String toString() {
+    if (this == mdf) { return ""; }
+    return super.toString();
+  }
 }

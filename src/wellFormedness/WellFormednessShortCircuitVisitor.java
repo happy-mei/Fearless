@@ -6,11 +6,8 @@ import ast.T;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
-import id.Mdf;
 import magic.Magic;
 import magic.MagicImpls;
-import program.TypeRename;
-import utils.Bug;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
 
@@ -35,6 +32,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   @Override public Optional<CompileError> visitLambda(E.Lambda e) {
     return ShortCircuitVisitor.visitAll(e.its(), it->noPrivateTraitOutsidePkg(it.name()))
       .or(()->noSealedOutsidePkg(e))
+      .or(()->noImplInlineDec(e))
       .or(()->super.visitLambda(e))
       .map(err->err.parentPos(e.pos()));
   }
@@ -125,5 +123,14 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
       .map(Id.IT::name)
       .findFirst()
       .or(()->getSealedDec(its.stream().flatMap(it->p.itsOf(it).stream()).toList()));
+  }
+
+  private Optional<CompileError> noImplInlineDec(E.Lambda e) {
+    if (e.its().stream().noneMatch(it->p.isInlineDec(it.name()) && !e.name().name().equals(it.name()))) {
+      return Optional.empty();
+    }
+    return Optional.of(Fail.implInlineDec(
+      e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.name().name().equals(d)).toList()
+    ));
   }
 }

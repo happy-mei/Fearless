@@ -24,7 +24,7 @@ public class Program implements program.Program  {
     this.inlineDs = Mapper.of(ds_->{
       ds_.putAll(inlineDs);
       var visitor = new AllLsVisitor();
-      ds.values().forEach(dec->visitor.visitLambda(dec.lambda()));
+      ds.values().forEach(dec->visitor.visitTrait(dec.lambda()));
       visitor.res().forEach(dec->ds_.put(dec.name(), dec));
     });
   }
@@ -79,6 +79,10 @@ public class Program implements program.Program  {
     if (res == null) { res = Magic.getDec(this::of, d); }
     if (res == null) { throw Fail.traitNotFound(d); }
     return res;
+  }
+
+  public boolean isInlineDec(Id.DecId d) {
+    return this.inlineDs.containsKey(d);
   }
 
   @Override public List<Id.IT<T>> itsOf(Id.IT<T> t) {

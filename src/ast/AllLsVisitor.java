@@ -1,6 +1,7 @@
 package ast;
 
 import visitors.CollectorVisitor;
+import visitors.FullCollectorVisitor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +17,9 @@ public class AllLsVisitor implements CollectorVisitor<List<T.Dec>> {
     if (!e.name().name().isFresh()) {
       ds.add(new T.Dec(e.name().name(), e.name().gens(), e.name().bounds(), e, e.pos()));
     }
+    return CollectorVisitor.super.visitLambda(e);
+  }
+  public Void visitTrait(E.Lambda e) {
     return CollectorVisitor.super.visitLambda(e);
   }
 }
