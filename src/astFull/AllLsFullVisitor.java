@@ -1,5 +1,6 @@
 package astFull;
 
+import failure.Fail;
 import visitors.FullCollectorVisitor;
 
 import java.util.ArrayList;
@@ -14,7 +15,13 @@ public class AllLsFullVisitor implements FullCollectorVisitor<List<T.Dec>> {
 
   @Override public Void visitLambda(E.Lambda e) {
     if (!e.name().name().isFresh()) {
-      ds.add(new T.Dec(e.name().name(), e.name().gens(), e.name().bounds(), e, e.pos()));
+      var dec = new T.Dec(e.name().name(), e.name().gens(), e.name().bounds(), e, e.pos());
+      var idx = ds.indexOf(dec);
+      if (idx != -1) {
+        var conflict = ds.get(idx);
+        throw Fail.conflictingDecl(dec.name(), List.of(new Fail.Conflict(conflict.posOrUnknown(), conflict.name().toString()))).pos(e.pos());
+      }
+      ds.add(dec);
     }
     return FullCollectorVisitor.super.visitLambda(e);
   }
