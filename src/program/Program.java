@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 public interface Program {
   Id.Dec of(Id.DecId dec);
+
   List<Id.IT<T>> itsOf(Id.IT<T> t);
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t);
@@ -191,7 +192,9 @@ public interface Program {
   default List<FullMethSig> fullSig(XBs xbs, Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
-    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), Map.of(), new ast.E.Lambda(
+    var freshName = new Id.DecId(Id.GX.fresh().name(), 0);
+    var dec = new T.Dec(freshName, List.of(), Map.of(), new ast.E.Lambda(
+      new ast.E.Lambda.LambdaId(freshName, List.of(), Map.of()),
       Mdf.mdf,
       coreIts,
       "fearTmp$",

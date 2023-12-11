@@ -14,7 +14,6 @@ import utils.Mapper;
 import utils.OneOr;
 import utils.Range;
 import visitors.InjectionVisitor;
-import visitors.ShallowInjectionVisitor;
 
 import java.util.*;
 import java.util.function.Function;
@@ -22,7 +21,15 @@ import java.util.stream.Collectors;
 
 public class Program implements program.Program{
   private final Map<Id.DecId, T.Dec> ds;
-  public Program(Map<Id.DecId, T.Dec> ds) { this.ds = ds; }
+  private final Map<Id.DecId, T.Dec> inlineDs;
+  public Program(Map<Id.DecId, T.Dec> ds) {
+    this.ds = ds;
+    this.inlineDs = Mapper.of(ds_->{
+      var visitor = new AllLsFullVisitor();
+      ds.values().forEach(dec->visitor.visitLambda(dec.lambda()));
+      visitor.res().forEach(dec->ds_.put(dec.name(), dec));
+    });
+  }
 
   public List<ast.E.Lambda> lambdas() { throw Bug.unreachable(); }
   public program.Program withDec(ast.T.Dec d) {
@@ -58,6 +65,7 @@ public class Program implements program.Program{
 
   public T.Dec of(Id.DecId d) {
     var res = ds.get(d);
+    if (res == null) { res = inlineDs.get(d); }
     if (res == null) { res = Magic.getFullDec(this::of, d); }
     if (res == null) { throw Fail.traitNotFound(d); }
     return res;
@@ -114,6 +122,7 @@ public class Program implements program.Program{
     return norm(cm);
   }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
+  public Map<Id.DecId, T.Dec> inlineDs() { return this.inlineDs; }
 
   private final HashMap<Id.DecId, Set<Id.DecId>> superDecIdsCache = new HashMap<>();
   public Set<Id.DecId> superDecIds(Id.DecId start) {

@@ -27,7 +27,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
   default Optional<CompileError> visitLambda(E.Lambda b){
     Mdf mdf=b.mdf();
     Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
-    Dec d=new Dec(fresh,List.of(),Map.of(),b,b.pos());
+    Dec d=new Dec(fresh, List.of(),Map.of(),b,b.pos());
     Program p0=p().withDec(d);
 
     var expected = expectedT().orElseThrow();

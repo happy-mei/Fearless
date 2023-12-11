@@ -45,6 +45,11 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     // TODO: throw if no ITs (i.e. cannot infer type of lambda)
 
     return new ast.E.Lambda(
+      new ast.E.Lambda.LambdaId(
+        e.name().name(),
+        e.name().gens().stream().map(this::visitGX).toList(),
+        Mapper.of(xbs->e.name().bounds().forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs)))
+      ),
       e.mdf().orElse(Mdf.mdf),
       its.stream().map(this::visitIT).toList(),
       Optional.ofNullable(e.selfName()).orElseGet(E.X::freshName),
@@ -117,7 +122,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   public ast.Program visitProgram(astFull.Program p){
     Map<Id.DecId, T.Dec> coreDs = p.ds().entrySet().stream()
       .collect(Collectors.toMap(Map.Entry::getKey, kv->visitDec(kv.getValue())));
-    return new ast.Program(coreDs);
+    return new ast.Program(coreDs, Map.of());
   }
 
   private Id.GX<ast.T> visitGX(Id.GX<? extends Id.Ty> gx){

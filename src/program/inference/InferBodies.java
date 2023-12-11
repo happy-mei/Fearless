@@ -25,7 +25,7 @@ public record InferBodies(ast.Program p) {
   public static ast.Program inferAll(astFull.Program fullProgram){
     var inferredSigs = fullProgram.inferSignatures();
     var inferBodies = new InferBodies(new ShallowInjectionVisitor().visitProgram(inferredSigs));
-    return new ast.Program(inferBodies.inferDecs(inferredSigs));
+    return new ast.Program(inferBodies.inferDecs(inferredSigs), Map.of());
   }
 
   Map<Id.DecId, ast.T.Dec> inferDecs(astFull.Program fullProgram){

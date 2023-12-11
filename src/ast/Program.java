@@ -1,16 +1,16 @@
 package ast;
 
-import failure.CompileError;
+import failure.Fail;
 import files.Pos;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
-import failure.Fail;
 import program.CM;
 import program.TypeRename;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.TraitTypeSystem;
 import program.typesystem.XBs;
+import utils.Mapper;
 
 import java.util.*;
 import java.util.function.Function;
@@ -18,7 +18,16 @@ import java.util.stream.Collectors;
 
 public class Program implements program.Program  {
   private final Map<Id.DecId, T.Dec> ds;
-  public Program(Map<Id.DecId, T.Dec> ds) { this.ds = ds; }
+  private final Map<Id.DecId, T.Dec> inlineDs;
+  public Program(Map<Id.DecId, T.Dec> ds, Map<Id.DecId, T.Dec> inlineDs) {
+    this.ds = ds;
+    this.inlineDs = Mapper.of(ds_->{
+      ds_.putAll(inlineDs);
+      var visitor = new AllLsVisitor();
+      ds.values().forEach(dec->visitor.visitLambda(dec.lambda()));
+      visitor.res().forEach(dec->ds_.put(dec.name(), dec));
+    });
+  }
 
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
   public List<ast.E.Lambda> lambdas() { return this.ds().values().stream().map(T.Dec::lambda).toList(); }
@@ -34,7 +43,7 @@ public class Program implements program.Program  {
     var ds = new HashMap<>(ds());
     assert !ds.containsKey(d.name());
     ds.put(d.name(), d);
-    return new Program(Collections.unmodifiableMap(ds));
+    return new Program(Collections.unmodifiableMap(ds), inlineDs);
   }
 
   public Optional<Pos> posOf(Id.IT<ast.T> t) {
@@ -44,7 +53,7 @@ public class Program implements program.Program  {
   @Override public Program shallowClone() {
     var subTypeCache = new HashMap<>(this.subTypeCache);
     var methsCache = new HashMap<>(this.methsCache);
-    return new Program(ds){
+    return new Program(ds, inlineDs){
       @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
         return subTypeCache;
       }
@@ -66,6 +75,7 @@ public class Program implements program.Program  {
 
   public T.Dec of(Id.DecId d) {
     var res = ds.get(d);
+    if (res == null) { res = inlineDs.get(d); }
     if (res == null) { res = Magic.getDec(this::of, d); }
     if (res == null) { throw Fail.traitNotFound(d); }
     return res;

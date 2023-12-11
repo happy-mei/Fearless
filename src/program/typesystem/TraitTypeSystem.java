@@ -17,7 +17,7 @@ public interface TraitTypeSystem {
   Program p();
   static List<CompileError> dsOk(Collection<Dec> ds, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls){
     Map<Id.DecId, Dec> pDs = Mapper.of(c->ds.forEach(e->c.put(e.name(),e)));
-    TraitTypeSystem ttt = ()->new Program(pDs);
+    TraitTypeSystem ttt = ()->new Program(pDs, Map.of());
     return ds.stream().flatMap(di->ttt.dOk(di, resolvedCalls).stream()).toList();
   }
   default Optional<CompileError> dOk(Dec d, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls){

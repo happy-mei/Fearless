@@ -33,6 +33,7 @@ public interface CloneVisitor{
   default E.Lambda visitLambda(E.Lambda e){
     Supplier<Stream<T>> its = ()->e.its().stream().map(it->new T(e.mdf(), it)).map(this::visitT);
     return new E.Lambda(
+      e.name(),
       its.get().map(T::mdf).findFirst().orElseThrow(),
       its.get().map(T::itOrThrow).toList(),
       e.selfName(),

@@ -1,5 +1,6 @@
 package codegen;
 
+import ast.AllLsVisitor;
 import ast.E;
 import ast.Program;
 import ast.T;
@@ -32,12 +33,15 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
 
   public MIR.Program visitProgram() {
     var traits = p.ds().values().stream().map(d->visitDec(d.name().pkg(), d)).toList();
-    Map<String, List<MIR.Trait>> ds = Stream.concat(
-        traits.stream(),
-        freshTraits.stream()
-      ).collect(Collectors.groupingBy(t->t.name().pkg()));
+
+    Map<String, List<MIR.Trait>> ds = Streams.of(
+      traits.stream(),
+      freshTraits.stream(),
+      this.collectInlineTopDecs(p)
+    ).collect(Collectors.groupingBy(t->t.name().pkg()));
     return new MIR.Program(ds);
   }
+
   public MIR.Trait visitDec(String pkg, T.Dec dec) {
     var ms = p.meths(XBs.empty(), Mdf.recMdf, dec.toIT(), 0).stream()
       .map(cm->{
@@ -94,6 +98,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     var freshName = new Id.DecId(pkg+"."+fresh, 0);
     var freshDec = new T.Dec(freshName, List.of(), Map.of(), e, e.pos());
     var freshDecImplsOnly = new T.Dec(freshName, List.of(), Map.of(), new E.Lambda(
+      new E.Lambda.LambdaId(freshName, List.of(), Map.of()),
       e.mdf(),
       e.its(),
       e.selfName(),
@@ -173,6 +178,21 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       .filter(it->its.stream()
         .noneMatch(it1->it != it1 && p.isSubType(XBs.empty(), new T(Mdf.mdf, it1), new T(Mdf.mdf, it))))
       .toList();
+  }
+
+  private Stream<MIR.Trait> collectInlineTopDecs(Program p) {
+    var visitor = new AllLsVisitor();
+    var ds = p.ds();
+    ds.values().forEach(d->visitor.visitLambda(d.lambda()));
+    return visitor.res().stream()
+      .filter(dec->!ds.containsKey(dec.name()))
+      .map(dec->new MIR.Trait(
+        dec.name(),
+        dec.gxs(),
+        List.of(),
+        dec.lambda().meths().stream().map(m->visitMeth(dec.name().pkg(), m.withBody(Optional.empty()), Map.of())).toList(),
+        false
+      ));
   }
 
   private static class CaptureCollector implements CollectorVisitor<Set<String>> {

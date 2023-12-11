@@ -1631,4 +1631,18 @@ public class TestJavaProgram {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+
+  @Test void personFactory() { ok(new Res("Bob", "", 0), "test.Ex", """
+    package test
+    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+      .name: Str -> name,
+      .age: UInt -> age,
+      }}
+    Ex:Main{
+      #(sys) -> FIO#sys.println(this.name(this.create)),
+    
+      .create: Person -> FPerson#("Bob", 24u),
+      .name(p: Person): Str -> p.name,
+      }
+    """, Base.mutBaseAliases);}
 }
