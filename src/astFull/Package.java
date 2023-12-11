@@ -12,6 +12,7 @@ import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public record Package(
     String name,
@@ -21,19 +22,34 @@ public record Package(
     ){
   public Map<Id.DecId,T.Dec> parse(){
     var res = new HashMap<Id.DecId,T.Dec>();
-    IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, i, false));
+    IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, new ArrayList<>(), i, false));
     return Collections.unmodifiableMap(res);
   }
-  public Collection<T.Dec> shallowParse(){
+  public Stream<T.Alias> shallowParse(){
     var res = new HashMap<Id.DecId,T.Dec>();
-    IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, i, true));
-    return res.values();
+    var extraAliases = new ArrayList<T.Alias>();
+    IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, extraAliases, i, true));
+    var resTopLevel = res.values().stream()
+      .map(T.Dec::name)
+      .map(n->{
+        assert n.name().startsWith(this.name());
+        var shortName = n.name().substring(this.name().length()+1);
+        assert !shortName.contains(".");
+        return new T.Alias(new Id.IT<>(new Id.DecId(n.name(), 0), List.of()), shortName, Optional.empty());
+      });
+
+    return Stream.concat(
+      resTopLevel,
+      extraAliases.stream()
+    );
   }
-  private void acc(Map<Id.DecId,T.Dec> acc, int i, boolean shallow){
+  private void acc(Map<Id.DecId,T.Dec> acc, List<T.Alias> extraAliases, int i, boolean shallow){
     Path pi = this.ps().get(i);
     TopDecContext di=this.ds().get(i);
-    T.Dec dec=new FullEAntlrVisitor(pi,this::resolve).visitTopDec(di, this.name(), shallow);
+    var visitor = new FullEAntlrVisitor(pi,this::resolve);
+    T.Dec dec = visitor.visitTopDec(di, this.name(), shallow);
     acc.put(dec.name(), dec);
+    extraAliases.addAll(visitor.inlineNames);
   }
   Optional<Id.IT<T>> resolve(String base){
     return Magic.resolve(base)
@@ -63,16 +79,7 @@ public record Package(
     return Streams.of(
       global.stream(),
       ps.stream().flatMap(p->p.as().stream()),
-      ps.stream().flatMap(p->p.shallowParse().stream()
-        .map(d->d.name())
-        .map(n->{
-          assert n.name().startsWith(p.name());
-          var shortName = n.name().substring(p.name().length()+1);
-          assert !shortName.contains(".");
-          return new T.Alias(new Id.IT<>(new Id.DecId(n.name(), 0), List.of()), shortName, Optional.empty());
-        })
-        .distinct()
-      )
+      ps.stream().flatMap(p->p.shallowParse().distinct())
     ).toList();
   }
   static void aliasDisj(List<T.Alias> all){
@@ -114,7 +121,7 @@ public record Package(
     }
   }
 
-  static boolean checks(List<T.Alias>global,List<Package>ps){
+  static boolean checks(List<T.Alias> global, List<Package>ps){
     assert !ps.isEmpty();
     var n=ps.get(0).name();
     assert ps.stream().allMatch(p->p.name().equals(n));    

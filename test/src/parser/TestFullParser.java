@@ -473,15 +473,17 @@ class TestFullParser {
     """); }
 
   @Test void namedInline() { ok("""
-    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immB]->
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm test.B[]]->
       LambdaId[name=test.B/0,gens=[],bounds={}]:[-infer-][]{}}]}
     """, """
     package test
     A:{ #: B -> B:{} }
     """); }
   @Test void namedInlineGens() { ok("""
-    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immB]->
-      LambdaId[name=test.B/0,gens=[],bounds={}]:[-infer-][]{}}]}
+    {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-infer-][]{
+      #/1([x]):Sig[mdf=imm,gens=[],ts=[immX],ret=immtest.B[immX]]->
+        LambdaId[name=test.B/1,gens=[X],bounds={}]:[-infer-][]{
+          .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->x:infer}}]}
     """, """
     package test
     A[X]:{ #(x: X): B[X] -> B[X]:{ .m1: X -> x } }

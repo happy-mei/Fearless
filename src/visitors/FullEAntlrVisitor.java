@@ -31,6 +31,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public StringBuilder errors = new StringBuilder();
   private String pkg;
   private Map<Id.GX<T>, Set<Mdf>> xbs = Map.of();
+  public List<T.Alias> inlineNames = new ArrayList<>();
   public FullEAntlrVisitor(Path fileName,Function<String,Optional<Id.IT<T>>> resolve){
     this.fileName=fileName;
     this.resolve=resolve;
@@ -364,6 +365,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .orElse(new GenericParams(List.of(), Map.of()));
     var id = new Id.DecId(cName,mGen.gxs.size());
 
+    var inlineNamesVisitor = new InlineDecNamesAntlrVisitor(this, pkg);
+    inlineNamesVisitor.visitTopDec(ctx);
+    this.inlineNames.addAll(inlineNamesVisitor.inlineDecs);
+
     var oldXbs = this.xbs;
     this.xbs = Map.copyOf(mGen.bounds);
     var body = shallow ? null : visitBlock(ctx.block(), Optional.empty(), Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds)));
@@ -378,7 +383,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public T.Alias visitAlias(AliasContext ctx) {
     check(ctx);
     var in = visitFullCN(ctx.fullCN(0));
-    var _inG = opt(ctx.mGen(0),mGenCtx->visitMGen(mGenCtx, true));
+    var _inG = opt(ctx.mGen(0), mGenCtx->visitMGen(mGenCtx, true));
     var inG = Optional.ofNullable(_inG).flatMap(e->e).orElse(List.of());
     var inT=new Id.IT<>(in,inG);
     var out = visitFullCN(ctx.fullCN(1));
@@ -388,12 +393,13 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   @Override
   public Package visitNudeProgram(NudeProgramContext ctx) {
-    String name = ctx.Pack().toString();
+    String name = ctx.Pack().getText();
     assert name.startsWith("package ");
     assert name.endsWith("\n");
-    name=name.substring("package ".length(),name.length()-1);
-    var as=ctx.alias().stream().map(this::visitAlias).toList();
-    var decs=List.copyOf(ctx.topDec()); // TODO: save all inline dec names as aliases
+    name = name.substring("package ".length(),name.length()-1);
+    var as = ctx.alias().stream().map(this::visitAlias).toList();
+
+    var decs = List.copyOf(ctx.topDec()); // TODO: save all inline dec names as aliases
     return new Package(name,as,decs,decs.stream().map(e->fileName).toList());
   }
 }

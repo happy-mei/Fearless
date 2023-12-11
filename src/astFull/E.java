@@ -36,7 +36,11 @@ public sealed interface E extends HasPos {
       assert mdf.isPresent() == it.isPresent();
     }
 
-    public record LambdaId(Id.DecId name, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {}
+    public record LambdaId(Id.DecId name, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {
+      public LambdaId(T.Dec dec) {
+        this(dec.name(), dec.gxs(), dec.bounds());
+      }
+    }
     public static LambdaId nameFromMs(Map<Id.GX<T>, Set<Mdf>> bounds, List<Meth> meths) {
       var visitor = new FreeGensFullVisitor();
       meths.forEach(visitor::visitMeth);
