@@ -5,29 +5,29 @@ Main:{ #(s: mut System): Void }
 Sealed:{}
 Void:Sealed{}
 
-Abort:Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: mdf R -> this! } // can be optimised to just terminate (goes stuck)
-Magic:Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: mdf R -> this! } // magic'd out to tell us what we forgot to implement
+Abort:Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: R -> this! } // can be optimised to just terminate (goes stuck)
+Magic:Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: R -> this! } // magic'd out to tell us what we forgot to implement
 Debug:Sealed{ #[T](x: T): T -> x }
 HasIdentity:{ mut .idEq(other: readOnly HasIdentity): Bool -> Magic! } // TODO: magic
 
-As[X:imm,mut,read,iso]:Sealed{ #(x: mdf X): mdf X -> x }
+As[X:imm,mut,read,iso]:Sealed{ #(x: X): X -> x }
 
 Let:{
-  #[V,R](l: mut Let[mdf V, mdf R]): mdf R -> l.in(l.var),
+  #[V,R](l: mut Let[V, R]): R -> l.in(l.var),
   }
-Let[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+Let[V,R]:{ mut .var: V, mut .in(v: V): R }
 
-F[R:read,mut,imm,iso]:{ read #: mdf R }
-F[A:read,mut,imm,iso,R:read,mut,imm,iso]:{ read #(a: mdf A): mdf R }
-F[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: mdf A, b: mdf B): mdf R }
-F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: mdf A, b: mdf B, c: mdf C): mdf R }
+F[R:read,mut,imm,iso]:{ read #: R }
+F[A:read,mut,imm,iso,R:read,mut,imm,iso]:{ read #(a: A): R }
+F[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: A, b: B): R }
+F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: A, b: B, c: C): R }
 
-ToImm[R]:{ readOnly .toImm: R, }
-Freezer[T,R]:{ mut #(self: mdf T): R }
-Ice[T]:{ readOnly .get: T }
+ToImm[R]:{ readOnly .toImm: imm R, }
+Freezer[T,R]:{ mut #(self: T): imm R }
+Ice[T]:{ readOnly .get: imm T }
 
 Box[T]:{
-  mut  .get: mdf T,
+  mut  .get: T,
   read .get: read T,
-  imm  .get: T,
+  imm  .get: imm T,
   }

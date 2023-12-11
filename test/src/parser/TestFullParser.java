@@ -297,8 +297,8 @@ class TestFullParser {
           cont:infer#/2[-]([x:infer,cont:infer]):infer}]}
     """, """
     package base
-    Cont[X,R]:{ mut #(x: mdf X, self: A): mdf R }
-    A:{ .foo[T](x: mdf T, cont: mut Cont[mdf T, mdf T]): mdf T -> cont#(x, cont) }
+    Cont[X,R]:{ mut #(x: X, self: A): R }
+    A:{ .foo[T](x: T, cont: mut Cont[T, T]): T -> cont#(x, cont) }
     B:{ #: 5 -> A
       .foo (lol=5)
       }
@@ -321,11 +321,11 @@ class TestFullParser {
     package test
     Void:{}
     Foo:{ .v: Void -> {} }
-    Cont[X,R]:{ mut #(x: mdf X, cont: mut Candy[mdf R]): mdf R }
-    ReturnStmt[R]:{ mut #: mdf R }
+    Cont[X,R]:{ mut #(x: X, cont: mut Candy[R]): R }
+    ReturnStmt[R]:{ mut #: R }
     Candy[R]:{
-      mut .sugar[X](x: mdf X, cont: mut Cont[mdf X, mdf R]): mdf R -> cont#(x, this),
-      mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+      mut .sugar[X](x: X, cont: mut Cont[X, R]): R -> cont#(x, this),
+      mut .return(a: mut ReturnStmt[R]): R -> a#,
       }
     Usage:{
       .foo: Void -> Candy[Void]
@@ -350,11 +350,11 @@ class TestFullParser {
     package test
     Void:{}
     Foo:{ .v: Void -> {} }
-    Cont[X,R]:{ mut #(x: mdf X, cont: mut Candy[mdf R]): mdf R }
-    ReturnStmt[R]:{ mut #: mdf R }
+    Cont[X,R]:{ mut #(x: X, cont: mut Candy[R]): R }
+    ReturnStmt[R]:{ mut #: R }
     Candy[R]:{
-      mut .sugar[X](x: mdf X, cont: mut Cont[mdf X, mdf R]): mdf R -> cont#(x, this),
-      mut .return(a: mut ReturnStmt[mdf R]): mdf R -> a#,
+      mut .sugar[X](x: X, cont: mut Cont[X, R]): R -> cont#(x, this),
+      mut .return(a: mut ReturnStmt[R]): R -> a#,
       }
     Usage:{
       .foo: Void -> Candy[Void]
@@ -368,13 +368,13 @@ class TestFullParser {
       name=base.Let/2,
       gxs=[V,R],
       lambda=[-infer-][]{
-        .var/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immV]->[-],
-        .in/1([v]):Sig[mdf=imm,gens=[],ts=[immV],ret=immR]->[-]
+        .var/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mdf V]->[-],
+        .in/1([v]):Sig[mdf=imm ,gens=[],ts=[mdf V],ret=mdf R]->[-]
       }],
     base.Ref/1=Dec[
       name=base.Ref/1,
       gxs=[X],
-      lambda=[-infer-][base.NoMutHyg[imm X],base.Sealed[]]{
+      lambda=[-infer-][base.NoMutHyg[mdf X],base.Sealed[]]{
         */0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
         .swap/1([x]):Sig[mdf=mut,gens=[],ts=[mdf X],ret=mdfX]->[-],
         :=/1([x]):Sig[mdf=mut,gens=[],ts=[mdf X],ret=imm base.Void[]]->
@@ -387,7 +387,7 @@ class TestFullParser {
       }],
     base.Sealed/0=Dec[name=base.Sealed/0,gxs=[],lambda=[-infer-][]{}],
     base.Ref/0=Dec[name=base.Ref/0,gxs=[],lambda=[-infer-][]{#/1([x]):Sig[mdf=imm,gens=[X],ts=[mdfX],ret=mut base.Ref[mdfX]]->this:infer#/1[-]([x:infer]):infer}],
-    base.Let/0=Dec[name=base.Let/0,gxs=[],lambda=[-infer-][]{#/1([l]):Sig[mdf=imm,gens=[V,R],ts=[imm base.Let[immV,immR]],ret=immR]->l:infer.in/1[-]([l:infer.var/0[-]([]):infer]):infer}],
+    base.Let/0=Dec[name=base.Let/0,gxs=[],lambda=[-infer-][]{#/1([l]):Sig[mdf=imm,gens=[V,R],ts=[imm base.Let[mdf V,mdf R]],ret=mdf R]->l:infer.in/1[-]([l:infer.var/0[-]([]):infer]):infer}],
     base.NoMutHyg/1=Dec[name=base.NoMutHyg/1,gxs=[X],lambda=[-infer-][]{}],
     base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{}],
     base.UpdateRef/1=Dec[name=base.UpdateRef/1,gxs=[X],lambda=[-infer-][]{#/1([x]):Sig[mdf=mut,gens=[],ts=[mdfX],ret=mdfX]->[-]}]}
@@ -396,15 +396,15 @@ class TestFullParser {
     NoMutHyg[X]:{}
     Sealed:{} Void:{}
     Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-    Let[V,R]:{ .var:V, .in(v:V):R }
-    Ref:{ #[X](x: mdf X): mut Ref[mdf X] -> this#(x) }
+    Let[V,R]:{ .var: V, .in(v:V): R }
+    Ref:{ #[X](x: X): mut Ref[X] -> this#(x) }
     Ref[X]:NoMutHyg[X],Sealed{
       read * : recMdf X,
-      mut .swap(x: mdf X): mdf X,
-      mut :=(x: mdf X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-      mut <-(f: UpdateRef[mdf X]): mdf X -> this.swap(f#(this*)),
+      mut .swap(x: X): X,
+      mut :=(x: X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
+      mut <-(f: UpdateRef[X]): X -> this.swap(f#(this*)),
     }
-    UpdateRef[X]:{ mut #(x: mdf X): mdf X }
+    UpdateRef[X]:{ mut #(x: X): X }
     """);}
 
   @Test void magicIntbers() { ok("""
@@ -470,6 +470,26 @@ class TestFullParser {
     A2[B: imm,mut]:{}
     A3[B: imm,mut, C]:{}
     A4[B: imm,mut, C, D: readOnly,lent]:{}
+    """); }
+
+  @Test void concreteGensImm() { ok("""
+    {test.G/1=Dec[name=test.G/1,gxs=[X],lambda=[-infer-][]{}],
+    test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-infer-][]{}],
+    test.A/1=Dec[name=test.A/1,gxs=[Z],lambda=[-infer-][test.G[imm test.B[]],test.G[mdf Z]]{}]}
+    """, """
+    package test
+    A[Z]:G[B],G[Z]{}
+    B:{}
+    G[X]:{}
+    """); }
+  @Test void mdfForGensRet() { ok("""
+    {test.G/1=Dec[name=test.G/1,gxs=[X],lambda=[-infer-][]{}],
+    test.B/1=Dec[name=test.B/1,gxs=[Y],lambda=[-infer-][]{
+      .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mdfY]->[-]}]}
+    """, """
+    package test
+    B[Y]:{ .m1: Y }
+    G[X]:{}
     """); }
 
   @Test void namedInline() { ok("""

@@ -1,27 +1,27 @@
 package base
 
-Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+Opt:{ #[T](x: T): mut Opt[T] -> {
    .match(m) -> m.some(x),
-//  mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
-//  read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.some(x),
+//  mut .match[R](m: mut OptMatch[T, R]): R -> m.some(x),
+//  read .match[R](m: mut OptMatch[read T, R]): R -> m.some(x),
 //  // imm case is needed because the read one will return read E even if E is imm
-//  imm  .match[R](m: mut OptMatch[T, mdf R]): mdf R -> m.some(x),
+//  imm  .match[R](m: mut OptMatch[T, R]): R -> m.some(x),
   }}
-Opt[T]:Extensible[Opt[mdf T]]{
+Opt[T]:Extensible[Opt[T]]{
   .self -> this,
-  mut  .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.empty,
-  read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.empty,
-  imm  .match[R](m: mut OptMatch[T, mdf R]): mdf R -> m.empty,
+  mut  .match[R](m: mut OptMatch[T, R]): R -> m.empty,
+  read .match[R](m: mut OptMatch[read T, R]): R -> m.empty,
+  imm  .match[R](m: mut OptMatch[imm T, R]): R -> m.empty,
 
-  mut  !: mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
+  mut  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
   read !: read T -> this.match[read T](mut OptMatch[read T, read T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
-  imm  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
+  imm  !: imm T -> this.match[imm T](mut OptMatch[imm T, imm T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
 
-  mut .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
-  read .map[R](f: mut OptMap[read T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
-  imm  .map[R](f: mut OptMap[T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
+  mut .map[R](f: mut OptMap[T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
+  read .map[R](f: mut OptMap[read T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
+  imm  .map[R](f: mut OptMap[imm T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
 
-//  mut |(alt: mdf T): mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{
+//  mut |(alt: T): T -> this.match[T](mut OptMatch[T, T]{
 //    .some(x) -> x,
 //    .empty -> alt
 //    }),
@@ -34,7 +34,7 @@ Opt[T]:Extensible[Opt[mdf T]]{
 //      .empty -> alt
 //      }),
 //
-//  mut  ||(alt: mut OptOrElse[mdf T]): mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{
+//  mut  ||(alt: mut OptOrElse[T]): T -> this.match[T](mut OptMatch[T, T]{
 //    .some(x) -> x,
 //    .empty -> alt#
 //    }),
@@ -47,12 +47,12 @@ Opt[T]:Extensible[Opt[mdf T]]{
 //    .empty -> alt#
 //    }),
 //
-//  mut .or(f: mut OptOrElse[mut Opt[mdf T]]): mut Opt[mdf T] -> this.match[mut Opt[mdf T]](mut OptMatch[mdf T, mut Opt[mdf T]]{
+//  mut .or(f: mut OptOrElse[mut Opt[T]]): mut Opt[T] -> this.match[mut Opt[T]](mut OptMatch[T, mut Opt[T]]{
 //    .some(x) -> this,
 //    .empty -> f#
 //    }),
 ////   TODO: this is the method that breaks the adapter ok check for imm Opt[read T] < imm Opt[imm T]
-//  read .or(f: mut OptOrElse[read Opt[mdf T]]): read Opt[mdf T] -> this.match[read Opt[mdf T]](mut OptMatch[read T, read Opt[mdf T]]{
+//  read .or(f: mut OptOrElse[read Opt[T]]): read Opt[T] -> this.match[read Opt[T]](mut OptMatch[read T, read Opt[T]]{
 //    .some(x) -> this,
 //    .empty -> f#
 //    }),
@@ -65,16 +65,16 @@ Opt[T]:Extensible[Opt[mdf T]]{
   read .isSome: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .empty -> False, .some(_) -> True }),
   }
 
-OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .empty: mdf R }
-OptOrElse[R]:{ mut #: mdf R }
-OptMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
-  mut #(t: mdf T): mdf R,
+OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
+OptOrElse[R]:{ mut #: R }
+OptMap[T,R]:OptMatch[T, mut Opt[R]]{
+  mut #(t: T): R,
   .some(x) -> Opt#(this#x),
   .empty -> {}
   }
 
 // TODO: proof of concept for extension methods
-OptOrElseExt[T]:Extension[mut Opt[mdf T], mdf T]{
-  mut .alt: mdf T,
+OptOrElseExt[T]:Extension[mut Opt[T], T]{
+  mut .alt: T,
   #(opt) -> opt.match{ .some(x) -> x, .empty -> this.alt }
   }

@@ -1,18 +1,18 @@
 package base
 
-Int:Sealed,_MathOps[Int],_IntOps[Int]{
+Int:Sealed,_MathOps[imm Int],_IntOps[imm Int]{
   readOnly .uint: UInt,
   readOnly .float: Float,
   // not Stringable due to limitations of the Java codegen target
   read .str: Str,
   }
-UInt:Sealed,_MathOps[UInt],_IntOps[UInt]{
+UInt:Sealed,_MathOps[imm UInt],_IntOps[imm UInt]{
   readOnly .int: Int,
   readOnly .float: Float,
   // not Stringable due to limitations of the Java codegen target
   read .str: Str,
   }
-Float:Sealed,_MathOps[Float]{
+Float:Sealed,_MathOps[imm Float]{
   readOnly .int: Int,
   readOnly .uint: UInt,
   readOnly .round: Int,

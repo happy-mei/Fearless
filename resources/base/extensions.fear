@@ -5,9 +5,9 @@ Extensible[S]:{
   read .self: read S,
   imm  .self: imm  S,
 
-  mut  |>[R](ext: mut Extension[mut  S, mdf R]): mdf R -> ext#(this.self),
-  read |>[R](ext: mut Extension[read S, mdf R]): mdf R -> ext#(this.self),
-  imm  |>[R](ext: mut Extension[imm  S, mdf R]): mdf R -> ext#(this.self),
+  mut  |>[R](ext: mut Extension[mut  S, R]): R -> ext#(this.self),
+  read |>[R](ext: mut Extension[read S, R]): R -> ext#(this.self),
+  imm  |>[R](ext: mut Extension[imm  S, R]): R -> ext#(this.self),
   }
-Extension[S,R]:{ mut #(self: mdf S): mdf R }
+Extension[S,R]:{ mut #(self: S): R }
 

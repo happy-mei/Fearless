@@ -174,7 +174,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         Map<Id.GX<astFull.T>, Set<Mdf>> boundsMap = Mapper.of(acc->Streams.zip(ctx.genDecl(), gxs)
           .filter((declCtx, gx)->declCtx.mdf() != null && !declCtx.mdf().isEmpty())
           .forEach((declCtx, gx) -> {
-            var bounds = declCtx.mdf().stream().map(this::visitMdf).collect(Collectors.toSet());
+            var bounds = declCtx.mdf().stream().map(this::visitGenMdf).collect(Collectors.toSet());
             acc.put(gx, bounds);
           }));
 
@@ -260,12 +260,11 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var topName = name.orElseGet(()->E.Lambda.nameFromMs(Map.copyOf(this.xbs), meths));
     return new E.Lambda(topName, mdf, its, _n, meths, rt, Optional.of(pos(ctx)));
   }
-  @Override
-  public String visitFullCN(FullCNContext ctx) {
+  @Override public String visitFullCN(FullCNContext ctx) {
     return ctx.getText();
   }
-  @Override
-  public Mdf visitMdf(MdfContext ctx) {
+
+  @Override public Mdf visitMdf(MdfContext ctx) {
     if(ctx.getText().isEmpty()){ return Mdf.imm; }
     return Mdf.valueOf(ctx.getText());
   }
@@ -273,24 +272,28 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(ctx.getText().isEmpty()){ return null; }
     return Mdf.valueOf(ctx.getText());
   }
+  public Mdf visitGenMdf(MdfContext ctx) {
+    if(ctx.getText().isEmpty()){ return Mdf.mdf; }
+    return Mdf.valueOf(ctx.getText());
+  }
+
   public Id.IT<T> visitIT(TContext ctx) {
     T t=visitT(ctx,false);
     return t.match(gx->{throw Fail.expectedConcreteType(t).pos(pos(ctx));}, it->it);
   }
-  @Override
-  public T visitNudeT(NudeTContext ctx) { return visitT(ctx.t()); }
-  @Override
-  public T visitT(TContext ctx) { return visitT(ctx,true); }
+  @Override public T visitNudeT(NudeTContext ctx) { return visitT(ctx.t()); }
+
+  @Override public T visitT(TContext ctx) { return visitT(ctx,true); }
   public T visitT(TContext ctx, boolean canMdf) {
     if(!canMdf && !ctx.mdf().getText().isEmpty()){
       throw Fail.noMdfInFormalParams(ctx.getText()).pos(pos(ctx));
     }
-    Mdf mdf = visitMdf(ctx.mdf());
     String name = visitFullCN(ctx.fullCN());
     var isFullName = name.contains(".");
     var mGen=visitMGen(ctx.mGen(), true);
     Optional<Id.IT<T>> resolved = isFullName ? Optional.empty() : resolve.apply(name);
     var isIT = isFullName || resolved.isPresent();
+    Mdf mdf = isIT ? visitMdf(ctx.mdf()) : visitGenMdf(ctx.mdf());
     if(!isIT){
       var t = new T(mdf, new Id.GX<>(name));
       if(mGen.isPresent()){ throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx)); }

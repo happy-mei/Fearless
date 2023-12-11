@@ -67,7 +67,7 @@ Whitespace: ('\t' | ' ' | '\n' )-> channel(HIDDEN);
 fullCN:FullCN;
 x: X| Underscore;
 m: SysInM | MName;
-mdf: Mut | ReadOnly | Lent | Read | Iso | RecMdf | Mdf | Imm | ;
+mdf: Mut | ReadOnly | Lent | Read | Iso | RecMdf | Imm | ;
 
 
 roundE : OR e CR;

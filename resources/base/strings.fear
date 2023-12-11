@@ -20,4 +20,4 @@ _StrInstance:Str{
   .toImm -> Magic!,
   }
 
-StrMap[V]:LinkedMap[Str, mdf V]{ k1, k2 -> k1 == k2 }
+StrMap[V]:LinkedMap[Str, V]{ k1, k2 -> k1 == k2 }
