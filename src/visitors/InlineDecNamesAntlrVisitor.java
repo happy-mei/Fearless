@@ -1,13 +1,10 @@
 package visitors;
 
-import astFull.E;
 import astFull.T;
 import generated.FearlessBaseVisitor;
 import generated.FearlessParser;
 import id.Id;
-import parser.Parser;
 import utils.Bug;
-import utils.Push;
 
 import java.util.ArrayList;
 import java.util.List;
