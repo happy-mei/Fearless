@@ -501,9 +501,9 @@ class TestFullParser {
     """); }
   @Test void namedInlineGens() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-infer-][]{
-      #/1([x]):Sig[mdf=imm,gens=[],ts=[immX],ret=immtest.B[immX]]->
+      #/1([x]):Sig[mdf=imm,gens=[],ts=[mdf X],ret=immtest.B[mdf X]]->
         LambdaId[name=test.B/1,gens=[X],bounds={}]:[-infer-][]{
-          .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immX]->x:infer}}]}
+          .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=mdf X]->x:infer}}]}
     """, """
     package test
     A[X]:{ #(x: X): B[X] -> B[X]:{ .m1: X -> x } }
