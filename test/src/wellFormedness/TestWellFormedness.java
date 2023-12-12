@@ -108,7 +108,27 @@ public class TestWellFormedness {
     package base
     Sealed:{}
     """); }
-  @Test void sealedOutsidePkgInline() { fail("""
+  @Test void sealedOutsidePkgInlineExplicit() { fail("""
+    In position [###]/Dummy1.fear:4:17
+    [E35 sealedCreation]
+    The sealed trait a.A/0 cannot be created in a different package (b).
+    """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{ .a: Foo }
+    B:A{ .a -> {} }
+    Foo:{}
+    """, """
+    package b
+    alias a.A as A, alias a.Foo as Foo,
+    C:{
+      .foo(): Foo -> a.A{ .a: Foo -> Foo }.a
+      }
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void sealedOutsidePkgInlineInferred() { fail("""
     In position [###]/Dummy1.fear:4:17
     [E35 sealedCreation]
     The sealed trait a.A/0 cannot be created in a different package (b).

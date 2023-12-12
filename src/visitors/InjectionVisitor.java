@@ -2,11 +2,9 @@ package visitors;
 
 import ast.T;
 import astFull.E;
-import failure.CompileError;
 import failure.Fail;
 import id.Id;
 import id.Mdf;
-import program.typesystem.XBs;
 import utils.Bug;
 import utils.Mapper;
 import utils.Push;
@@ -46,7 +44,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
 
     return new ast.E.Lambda(
       new ast.E.Lambda.LambdaId(
-        e.name().name(),
+        e.name().id(),
         e.name().gens().stream().map(this::visitGX).toList(),
         Mapper.of(xbs->e.name().bounds().forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs)))
       ),

@@ -291,14 +291,27 @@ public class TestFullWellFormedness {
     B:{ #: A -> A:{} }
     """); }
   @Test void disjointDecsInline2() { fail("""
-    [E55 conflictingDecls]
-    Trait names must be unique.
+    In position [###]/Dummy0.fear:3:14
+    [E2 conflictingDecl]
+    This trait declaration is in conflict with other trait declarations in the same package: test.A/0
     conflicts:
-    ([###]/Dummy0.fear:2:0) test.A/0
+    ([###]/Dummy0.fear:2:14) test.A/0
     """, """
     package test
     B:{ #: A -> A:{} }
     C:{ #: A -> A:{} }
+    """); }
+  @Test void disjointDecsInlineCallTwice1() { ok("""
+    package test
+    B:{ #: A -> A:{} }
+    C1:{ #: A -> B# }
+    C2:{ #: A -> B# }
+    """); }
+  @Test void disjointDecsInlineCallTwice2() { ok("""
+    package test
+    B:{ #: A -> A:{} }
+    C1:{ #(b: B): A -> C2#(b#, b#) }
+    C2:{ #(a1: A, a2: A): A -> a1 }
     """); }
 
   @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {

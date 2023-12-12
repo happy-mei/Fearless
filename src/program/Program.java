@@ -223,9 +223,7 @@ public interface Program {
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, ast.E.Lambda l, int depth) {
-    var dec = new T.Dec(new Id.DecId(Id.GX.fresh().name(), 0), List.of(), Map.of(), l, l.pos());
-    var p_ = this.withDec(dec);
-    return p_.methsAux(xbs, recvMdf, dec.toIT()).stream().map(cm->freshenMethGens(cm, depth)).toList();
+    return methsAux(xbs, recvMdf, l.name().toIT()).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, int depth) {

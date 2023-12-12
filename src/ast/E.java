@@ -30,7 +30,11 @@ public interface E extends HasPos {
       assert meths != null;
     }
 
-    public record LambdaId(Id.DecId name, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {}
+    public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {
+      public Id.IT<T> toIT() {
+        return new Id.IT<>(id, gens.stream().map(gx->new T(Mdf.mdf, gx)).toList());
+      }
+    }
 
     @Override public E accept(CloneVisitor v) {
       return v.visitLambda(this);

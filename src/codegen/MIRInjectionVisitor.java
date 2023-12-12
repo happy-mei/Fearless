@@ -181,11 +181,8 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   }
 
   private Stream<MIR.Trait> collectInlineTopDecs(Program p) {
-    var visitor = new AllLsVisitor();
-    var ds = p.ds();
-    ds.values().forEach(d->visitor.visitLambda(d.lambda()));
-    return visitor.res().stream()
-      .filter(dec->!ds.containsKey(dec.name()))
+    return p.inlineDs().values().stream()
+      .filter(d->!d.name().isFresh())
       .map(dec->new MIR.Trait(
         dec.name(),
         dec.gxs(),

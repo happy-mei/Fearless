@@ -7,8 +7,6 @@ import id.Id.MethName;
 import id.Mdf;
 import utils.Mapper;
 
-import java.util.Collection;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public interface FullCloneVisitor {
@@ -32,7 +30,7 @@ public interface FullCloneVisitor {
   default E visitLambda(E.Lambda e){ return visitLLambda(e); }
   default E.Lambda visitLLambda(E.Lambda e){ return new E.Lambda(
     new E.Lambda.LambdaId(
-      e.name().name(),
+      e.name().id(),
       e.name().gens().stream().map(this::visitGX).toList(),
       Mapper.of(acc->e.name().bounds().forEach((key, value)->{
         var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());

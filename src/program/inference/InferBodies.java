@@ -214,7 +214,7 @@ public record InferBodies(ast.Program p) {
       var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, Map.of(), iTs, e.t());
       // TODO: this doesn't consider narrowing down to gens on ITs (i.e. FIO:FCap[...] does not help refine FCap[...] because this only uses FIO)
       var refined = refiner.refineSig(c.mdf(), recv, List.of(baseSig), depth);
-      var refinedSig = refined.sigs().get(0);
+      var refinedSig = refined.sigs().getFirst();
 //      var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
       var fixedRecv = refiner.fixType(e.receiver(), new T(c.mdf(), refined.c()));
       var fixedArgs = refiner.fixSig(e.es(), refinedSig.args());

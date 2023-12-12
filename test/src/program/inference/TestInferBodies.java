@@ -1308,4 +1308,59 @@ public class TestInferBodies {
     A[X]:{ .foo(x: X): X -> { .foo: recMdf X -> x}.foo }
     B:{}
     """); }
+
+  @Test void multiTraitExplicit() { ok("""
+    {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[--][a.A[],base.Sealed[]]{'this
+      .a/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.Foo[]]->[-]}],
+     b.C/0=Dec[name=b.C/0,gxs=[],lambda=[--][b.C[]]{'this
+      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.Foo[]]->
+        [-imm-][a.A[]]{'fear[###]$ .a/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.Foo[]]->
+          [-imm-][a.Foo[]]{'fear[###]$}}.a/0[]([])}],
+     a.B/0=Dec[name=a.B/0,gxs=[],lambda=[--][a.B[],a.A[]]{'this
+       .a/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.Foo[]]->
+        [-imm-][a.Foo[]]{'fear[###]$}}],
+     a.Foo/0=Dec[name=a.Foo/0,gxs=[],lambda=[--][a.Foo[]]{'this}]}
+    """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{ .a: Foo }
+    B:A{ .a -> {} }
+    Foo:{}
+    """, """
+    package b
+    alias a.A as A, alias a.Foo as Foo,
+    C:{
+      .foo(): Foo -> a.A{ .a: Foo -> Foo }.a
+      }
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void multiTraitInferred() { ok("""
+    {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[--][a.A[],base.Sealed[]]{'this
+      .a/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.Foo[]]->[-]}],
+     b.C/0=Dec[name=b.C/0,gxs=[],lambda=[--][b.C[]]{'this
+      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.Foo[]]->
+        [-imm-][a.A[]]{'fear[###]$ .a/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.Foo[]]->
+          [-imm-][a.Foo[]]{'fear[###]$}}.a/0[]([])}],
+     a.B/0=Dec[name=a.B/0,gxs=[],lambda=[--][a.B[],a.A[]]{'this
+       .a/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imma.Foo[]]->
+        [-imm-][a.Foo[]]{'fear[###]$}}],
+     a.Foo/0=Dec[name=a.Foo/0,gxs=[],lambda=[--][a.Foo[]]{'this}]}
+    """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{ .a: Foo }
+    B:A{ .a -> {} }
+    Foo:{}
+    """, """
+    package b
+    alias a.A as A, alias a.Foo as Foo,
+    C:{
+      .foo(): Foo -> a.A{ Foo }.a
+      }
+    """, """
+    package base
+    Sealed:{}
+    """); }
 }

@@ -21,15 +21,16 @@ public class Program implements program.Program  {
   private final Map<Id.DecId, T.Dec> inlineDs;
   public Program(Map<Id.DecId, T.Dec> ds, Map<Id.DecId, T.Dec> inlineDs) {
     this.ds = ds;
-    this.inlineDs = Mapper.of(ds_->{
+    this.inlineDs = inlineDs.isEmpty() ? Mapper.of(ds_->{
       ds_.putAll(inlineDs);
       var visitor = new AllLsVisitor();
       ds.values().forEach(dec->visitor.visitTrait(dec.lambda()));
       visitor.res().forEach(dec->ds_.put(dec.name(), dec));
-    });
+    }) : inlineDs;
   }
 
-  public Map<Id.DecId, T.Dec> ds() { return this.ds; }
+  public Map<Id.DecId, T.Dec> ds() { return Collections.unmodifiableMap(this.ds); }
+  public Map<Id.DecId, T.Dec> inlineDs() { return Collections.unmodifiableMap(this.inlineDs); }
   public List<ast.E.Lambda> lambdas() { return this.ds().values().stream().map(T.Dec::lambda).toList(); }
 
   public void typeCheck(IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {

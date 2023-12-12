@@ -14,15 +14,13 @@ public class AllLsFullVisitor implements FullCollectorVisitor<List<T.Dec>> {
   }
 
   @Override public Void visitLambda(E.Lambda e) {
-    if (!e.name().name().isFresh()) {
-      var dec = new T.Dec(e.name().name(), e.name().gens(), e.name().bounds(), e, e.pos());
-      var idx = ds.indexOf(dec);
-      if (idx != -1) {
-        var conflict = ds.get(idx);
-        throw Fail.conflictingDecl(dec.name(), List.of(new Fail.Conflict(conflict.posOrUnknown(), conflict.name().toString()))).pos(e.pos());
-      }
-      ds.add(dec);
+    var dec = new T.Dec(e.name().id(), e.name().gens(), e.name().bounds(), e, e.pos());
+    var idx = ds.indexOf(dec);
+    if (idx != -1) {
+      var conflict = ds.get(idx);
+      throw Fail.conflictingDecl(dec.name(), List.of(new Fail.Conflict(conflict.posOrUnknown(), conflict.name().toString()))).pos(e.pos());
     }
+    ds.add(dec);
     return FullCollectorVisitor.super.visitLambda(e);
   }
   public Void visitTrait(E.Lambda e) {

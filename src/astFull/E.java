@@ -36,7 +36,7 @@ public sealed interface E extends HasPos {
       assert mdf.isPresent() == it.isPresent();
     }
 
-    public record LambdaId(Id.DecId name, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {}
+    public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {}
     public static LambdaId nameFromMs(Map<Id.GX<T>, Set<Mdf>> bounds, List<Meth> meths) {
       var visitor = new FreeGensFullVisitor();
       meths.forEach(visitor::visitMeth);
@@ -63,7 +63,7 @@ public sealed interface E extends HasPos {
     @Override public <R> R accept(FullVisitor<R> v){return v.visitLambda(this);}
     @Override public String toString() {
       var mdf = this.mdf().map(Mdf::toString).orElse("");
-      var name = this.name.name.isFresh() ? "" : this.name+":";
+      var name = this.name.id.isFresh() ? "" : this.name+":";
       var type = mdf().isEmpty() && it().isEmpty() ? "infer" : it().map(Id.IT::toString).orElse("infer");
       var meths = meths().stream().map(Meth::toString).collect(Collectors.joining(",\n"));
       var selfName = Optional.ofNullable(selfName()).map(sn->"'"+sn).orElse("");
