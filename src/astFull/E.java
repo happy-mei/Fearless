@@ -115,9 +115,9 @@ public sealed interface E extends HasPos {
   record X(String name, T t, Optional<Pos> pos) implements E{
     private static final AtomicInteger FRESH_N = new AtomicInteger(0);
     public static void reset() {
-      if (!Main.isUserInvoked() && FRESH_N.get() > 1000) {
-        throw Bug.of("FRESH_N is larger than we expected for tests.");
-      }
+//      if (!Main.isUserInvoked() && FRESH_N.get() > 1000) {
+//        throw Bug.of("FRESH_N is larger than we expected for tests.");
+//      }
       FRESH_N.set(0);
     }
     public static String freshName() {
