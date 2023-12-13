@@ -117,17 +117,17 @@ class TestParser {
     recv:infer.m1/2[immA]([v:infer,[-infer-][]{
       [-]([x,fear0$]):[-]->fear0$:infer.m2/1[immB,immbase.C[immD]]([a:infer]):infer
     }]):infer
-    """, "recv .m1[A] x=v.m2[B,base.C[D]] a"); }
+    """, "recv .m1[imm A] x=v.m2[imm B,base.C[imm D]] a"); }
   @Test void nestedGenerics() { ok("""
     recv:infer .m1/0[imm pkg1.A[imm B]]([]):infer
-    """, "recv .m1[pkg1.A[B]]"); }
+    """, "recv .m1[pkg1.A[imm B]]"); }
   @Test void failNestedGenerics() { fail("""
     In position [###]/Dummy.fear:1:5
     [E3 concreteTypeInFormalParams]
     Trait and method declarations may only have generic type parameters. This concrete type was provided instead:
     imm pkg1.A[imm B]
     Alternatively, are you attempting to shadow an existing class name?
-    """, "{ .m1[pkg1.A[B]]: base.Void }"); }
+    """, "{ .m1[pkg1.A[imm B]]: base.Void }"); }
   @Test void sameTest1(){ same("m.a", "m.a"); }
   @Test void sameTest2(){ same("recv .m1 a .m2 b .m3 c", "((recv .m1 a) .m2 b) .m3 c"); }
   @Test void sameTest3(){ same("recv .m1 a .m2 b", "(recv .m1 a) .m2 b"); }
