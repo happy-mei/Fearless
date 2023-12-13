@@ -11,11 +11,20 @@ public class FreeGensFullVisitor implements FullCloneVisitor {
   public final Set<Id.GX<T>> freeGens = new HashSet<>();
   private Set<Id.GX<T>> fresh = new HashSet<>();
 
-  @Override public E.Lambda visitLLambda(E.Lambda e) {
+//  @Override public E.Lambda visitLLambda(E.Lambda e) {
+////    var old = fresh;
+////    fresh = new HashSet<>(fresh);
+////    fresh.addAll(e.name().gens());
+//    var res = FullCloneVisitor.super.visitLLambda(e);
+////    this.fresh = old;
+//    return res;
+//  }
+
+  @Override public E.Sig visitSig(E.Sig e) {
     var old = fresh;
     fresh = new HashSet<>(fresh);
-    fresh.addAll(e.name().gens());
-    var res = FullCloneVisitor.super.visitLLambda(e);
+    fresh.addAll(e.gens());
+    var res = FullCloneVisitor.super.visitSig(e);
     this.fresh = old;
     return res;
   }

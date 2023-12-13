@@ -11,8 +11,11 @@ import magic.MagicImpls;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 // TODO: Sealed and _C/_m restrictions
 public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEnv<CompileError> {
@@ -33,6 +36,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
     return ShortCircuitVisitor.visitAll(e.its(), it->noPrivateTraitOutsidePkg(it.name()))
       .or(()->noSealedOutsidePkg(e))
       .or(()->noImplInlineDec(e))
+      .or(()->noFreeGensInLambda(e))
       .or(()->super.visitLambda(e))
       .map(err->err.parentPos(e.pos()));
   }
@@ -132,5 +136,13 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
     return Optional.of(Fail.implInlineDec(
       e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.name().id().equals(d)).toList()
     ));
+  }
+
+  private Optional<CompileError> noFreeGensInLambda(E.Lambda e) {
+    if (this.env.gxs().isEmpty()) { return Optional.empty(); }
+    var visitor = new UndefinedGXsVisitor(Set.copyOf(e.name().gens()));
+    visitor.visitLambda(e);
+    if (visitor.res().isEmpty()) { return Optional.empty(); }
+    return Optional.of(Fail.freeGensInLambda(e.name(), visitor.res()));
   }
 }

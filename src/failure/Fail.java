@@ -255,6 +255,11 @@ public class Fail{
     return of("Traits declared within expressions cannot be implemented. This lambda has the following invalid implementations: "+msg);
   }
 
+  public static CompileError freeGensInLambda(ast.E.Lambda.LambdaId name, Set<Id.GX<ast.T>> freeGens) {
+    var msg = freeGens.stream().map(Id.GX::toString).collect(Collectors.joining(", "));
+    return of("The declaration name for a lambda must include all type variables used in the lambda. The declaration name "+name.toIT()+" does not include the following type variables: "+msg);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -317,6 +322,7 @@ enum ErrorCode {
   incompatibleGenerics,
   xTypeError,
   lambdaTypeError,
-  conflictingDecls;
+  conflictingDecls,
+  freeGensInLambda;
   int code() {return this.ordinal() + 1;}
 }

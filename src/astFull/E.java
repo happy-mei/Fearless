@@ -37,13 +37,6 @@ public sealed interface E extends HasPos {
     }
 
     public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {}
-    public static LambdaId nameFromMs(Map<Id.GX<T>, Set<Mdf>> bounds, List<Meth> meths) {
-      var visitor = new FreeGensFullVisitor();
-      meths.forEach(visitor::visitMeth);
-      var gens = visitor.freeGens.stream().sorted(Comparator.comparing(Id.GX::name)).toList();
-      Map<Id.GX<T>, Set<Mdf>> xbs = Mapper.of(xbs_->gens.stream().filter(bounds::containsKey).forEach(gx->xbs_.put(gx, bounds.get(gx))));
-      return new LambdaId(new Id.DecId(gens.size()), gens, xbs);
-    }
 
     /** This method correctly throw assertion error if called on a top level lambda
     */

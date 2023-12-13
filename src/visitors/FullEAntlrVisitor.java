@@ -134,7 +134,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
 
       var contMs = List.of(new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest), Optional.of(head.pos())));
       var cont = new E.Lambda(
-        E.Lambda.nameFromMs(this.xbs, contMs),
+        new E.Lambda.LambdaId(new Id.DecId(0), List.of(), this.xbs),
         Optional.empty(),
         List.of(),
         null,
@@ -236,12 +236,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if (rt.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }
     mdf.filter(Mdf::isMdf).ifPresent(mdf1->{ throw Fail.invalidMdf(rt.get()); });
 
-//    assert name.isEmpty() || name.get().gen() == usedGens.size();
-//    var topName = name
-//      .map(id->new Id.IT<>(id, usedGens.stream().map(gx->new T(Mdf.mdf, gx)).toList()));
-//      .orElseGet(()->new Id.IT<>(new Id.DecId(usedGens.size()), usedGens.stream().map(gx->new T(Mdf.mdf, gx)).toList()));
-
-    Supplier<E.Lambda.LambdaId> emptyTopName = ()->new E.Lambda.LambdaId(new Id.DecId(0), List.of(), Map.of());
+    Supplier<E.Lambda.LambdaId> emptyTopName = ()->new E.Lambda.LambdaId(new Id.DecId(0), List.of(), this.xbs);
     if(ctx.bblock()==null){
       return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, null, List.of(), rt, Optional.of(pos(ctx)));
     }
@@ -257,8 +252,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
     var meths = mms;
 
-    var topName = name.orElseGet(()->E.Lambda.nameFromMs(Map.copyOf(this.xbs), meths));
-    return new E.Lambda(topName, mdf, its, _n, meths, rt, Optional.of(pos(ctx)));
+//    var topName = name.orElseGet(()->E.Lambda.nameFromLambda(Map.copyOf(this.xbs), meths, its));
+    return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, _n, meths, rt, Optional.of(pos(ctx)));
   }
   @Override public String visitFullCN(FullCNContext ctx) {
     return ctx.getText();

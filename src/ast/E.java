@@ -8,8 +8,10 @@ import id.Mdf;
 import parser.Parser;
 import utils.Mapper;
 import visitors.CloneVisitor;
+import visitors.FreeGensFullVisitor;
 import visitors.GammaVisitor;
 import visitors.Visitor;
+import wellFormedness.UndefinedGXsVisitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,11 +30,22 @@ public interface E extends HasPos {
       assert !its.isEmpty();
       assert X.validId(selfName);
       assert meths != null;
+      if (name.id().isFresh()) {
+        name = LambdaId.computeId(name.id.name(), name.bounds, meths, its);
+      }
     }
 
     public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {
       public Id.IT<T> toIT() {
         return new Id.IT<>(id, gens.stream().map(gx->new T(Mdf.mdf, gx)).toList());
+      }
+      private static E.Lambda.LambdaId computeId(String id, Map<Id.GX<T>, Set<Mdf>> bounds, List<E.Meth> meths, List<Id.IT<T>> its) {
+        var visitor = new UndefinedGXsVisitor(List.of());
+        its.forEach(visitor::visitIT);
+        meths.forEach(visitor::visitMeth);
+        var gens = visitor.res().stream().sorted(Comparator.comparing(Id.GX::name)).toList();
+        Map<Id.GX<T>, Set<Mdf>> xbs = Mapper.of(xbs_->gens.stream().filter(bounds::containsKey).forEach(gx->xbs_.put(gx, bounds.get(gx))));
+        return new E.Lambda.LambdaId(new Id.DecId(id, gens.size()), gens, xbs);
       }
     }
 

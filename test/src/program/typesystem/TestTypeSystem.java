@@ -26,6 +26,15 @@ public class TestTypeSystem {
     A:{ .m: A -> this }
     """); }
 
+  @Test void undefinedGens() { fail("""
+    In position file:///Users/nick/Programming/PhD/fearless/Dummy0.fear:2:4
+    [E28 undefinedName]
+    The identifier "X" is undefined or cannot be captured.
+    """, """
+    package test
+    A:{ .foo(x: X): X -> x }
+    """); }
+
   @Test void simpleTypeError(){ fail("""
     In position [###]/Dummy0.fear:4:2
     [E23 methTypeError]
