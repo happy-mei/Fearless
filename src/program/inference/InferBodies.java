@@ -8,7 +8,6 @@ import id.Id;
 import id.Mdf;
 import program.CM;
 import program.Program;
-import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Push;
 import utils.Streams;
@@ -18,8 +17,6 @@ import visitors.ShallowInjectionVisitor;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static program.Program.filterByMdf;
 
 public record InferBodies(ast.Program p) {
   public static ast.Program inferAll(astFull.Program fullProgram){

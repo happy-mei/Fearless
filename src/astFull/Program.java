@@ -30,6 +30,14 @@ public class Program implements program.Program{
       visitor.res().forEach(dec->ds_.put(dec.name(), dec));
     });
   }
+  public Program(Map<Id.DecId, T.Dec> ds, Map<Id.DecId, T.Dec> inlineDs) {
+    this.ds = ds;
+    this.inlineDs = inlineDs.isEmpty() ? Mapper.of(ds_->{
+      var visitor = new AllLsFullVisitor();
+      ds.values().forEach(dec->visitor.visitTrait(dec.lambda()));
+      visitor.res().forEach(dec->ds_.put(dec.name(), dec));
+    }) : inlineDs;
+  }
 
   public List<ast.E.Lambda> lambdas() { throw Bug.unreachable(); }
   public program.Program withDec(ast.T.Dec d) {
@@ -162,9 +170,14 @@ public class Program implements program.Program{
    */
   public astFull.Program inferSignatures(){
     var is=new InferSignatures(this);
-    for(int i: Range.of(is.decs)){
+    for (int i : Range.of(is.decs)){
       var di = is.inferSignatures(is.decs.get(i));
       is.updateDec(di,i);
+    }
+    this.reset();
+    for (int i : Range.of(is.inlineDecs)){
+      var di = is.inferInlineSignatures(is.inlineDecs.get(i));
+      is.updateInlineDec(di,i);
     }
     this.reset();
     return is.p;
@@ -173,8 +186,13 @@ public class Program implements program.Program{
 
   public static class InferSignatures {
     List<T.Dec> decs;
+    List<T.Dec> inlineDecs;
     Program p;
-    InferSignatures(Program p){ this.p=p; this.decs = orderDecs(p.ds().values()); }
+    InferSignatures(Program p){
+      this.p=p;
+      this.decs = orderDecs(p.ds().values());
+      this.inlineDecs = p.inlineDs().values().stream().filter(dec->!dec.name().isFresh()).collect(Collectors.toCollection(ArrayList::new));
+    }
     private List<T.Dec> orderDecs(Collection<T.Dec> ds){
       // Do a topological sort on the dep graph (should be a DAG) so we infer parents before children.
       // Just using Kahn's algorithm here
@@ -204,9 +222,16 @@ public class Program implements program.Program{
       decs.set(i,d);
       p=new Program(decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
     }
+    private void updateInlineDec(T.Dec d, int i) {
+      inlineDecs.set(i,d);
+      p=new Program(decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)), inlineDecs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
+    }
 
     private T.Dec inferSignatures(T.Dec d) {
       return d.withLambda(inferSignatures(d, d.lambda().withSelfName("this")));
+    }
+    private T.Dec inferInlineSignatures(T.Dec d) {
+      return d.withLambda(inferSignatures(d, d.lambda()));
     }
     private E.Lambda inferSignatures(T.Dec dec, E.Lambda l) {
       if (l.selfName() == null) {

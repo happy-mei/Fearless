@@ -40,7 +40,8 @@ public class ShallowInjectionVisitor extends InjectionVisitor implements FullVis
    * @return The same declaration with all methods removed
    */
   private static T.Dec removeInlineMs(T.Dec dec) {
-    if (!dec.name().isFresh()) { return dec; }
-    return dec.withLambda(dec.lambda().withMeths(List.of()));
+//    if (!dec.name().isFresh()) { return dec; }
+//    return dec.withLambda(dec.lambda().withMeths(List.of()));
+    return dec.withLambda(dec.lambda().withMeths(dec.lambda().meths().stream().filter(m->m.sig().isPresent()).toList()));
   }
 }

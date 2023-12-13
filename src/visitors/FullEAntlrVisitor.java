@@ -314,12 +314,11 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     check(ctx);
     var oldXbs = this.xbs;
     var mh = Optional.ofNullable(ctx.sig()).map(this::visitSig);
-    mh.ifPresent(header->{
+    mh.ifPresent(header->
       this.xbs = Mapper.of(xbs_->{
         xbs_.putAll(oldXbs);
         xbs_.putAll(header.bounds);
-      });
-    });
+      }));
     var xs = mh.map(MethHeader::xs).orElseGet(()->{
       var _xs = opt(ctx.x(), xs1->xs1.stream().map(this::visitX).toList());
       return _xs==null?List.of():_xs;

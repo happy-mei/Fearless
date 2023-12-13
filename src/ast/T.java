@@ -15,7 +15,10 @@ import java.util.stream.Stream;
 
 public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res, Id.Ty {
   public <R> R resMatch(Function<T,R> ok, Function<CompileError,R> err){ return ok.apply(this); }
-  @Override public String toString(){ return ""+mdf+" "+rt; }
+  @Override public String toString(){
+    if (mdf.isMdf()) { return rt.toString(); }
+    return mdf+" "+rt;
+  }
   public T{
     assert mdf!=null && rt!=null;
   }

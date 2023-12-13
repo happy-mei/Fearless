@@ -6,15 +6,13 @@ import ast.T;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
+import id.Mdf;
 import magic.Magic;
 import magic.MagicImpls;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 // TODO: Sealed and _C/_m restrictions
@@ -37,6 +35,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
       .or(()->noSealedOutsidePkg(e))
       .or(()->noImplInlineDec(e))
       .or(()->noFreeGensInLambda(e))
+      .or(()->validBoundsForLambdaGens(e))
       .or(()->super.visitLambda(e))
       .map(err->err.parentPos(e.pos()));
   }
@@ -143,6 +142,21 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
     var visitor = new UndefinedGXsVisitor(Set.copyOf(e.name().gens()));
     visitor.visitLambda(e);
     if (visitor.res().isEmpty()) { return Optional.empty(); }
-    return Optional.of(Fail.freeGensInLambda(e.name(), visitor.res()));
+    return Optional.of(Fail.freeGensInLambda(e.name(), visitor.res()).pos(e.pos()));
+  }
+
+  private Optional<CompileError> validBoundsForLambdaGens(E.Lambda e) {
+    if (e.name().gens().isEmpty()) { return Optional.empty(); }
+    List<String> invalidBounds = new ArrayList<>();
+    for (var gx : e.name().gens()) {
+      var boundsOpt = env.xbs().getO(gx);
+      if (boundsOpt.isEmpty()) { continue; }
+      var bounds = boundsOpt.get();
+      if (!bounds.equals(e.name().bounds().get(gx))) {
+        invalidBounds.add("X: "+bounds.stream().map(Mdf::toString).collect(Collectors.joining(", ")));
+      }
+    }
+    if (invalidBounds.isEmpty()) { return Optional.empty(); }
+    throw Fail.invalidLambdaNameMdfBounds(invalidBounds).pos(e.pos());
   }
 }

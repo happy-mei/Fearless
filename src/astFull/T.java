@@ -158,7 +158,8 @@ public final class T implements Id.Ty {
     if (isInfer()) {
       return "infer";
     }
-    return "" + mdf + " " + rt;
+    if (mdf.isMdf()) { return rt.toString(); }
+    return mdf+" "+rt;
   }
 
   @Override

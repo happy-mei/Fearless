@@ -148,7 +148,8 @@ public class Fail{
   }
 
   public static CompileError badCapture(String x, ast.T xT, Mdf lambdaMdf, Mdf methMdf) {
-    return of("'"+xT.mdf()+" "+x+"' cannot be captured by "+aVsAn(methMdf)+" method in "+aVsAn(lambdaMdf)+" lambda.");
+    var mdf = xT.mdf().isMdf() ? "" : xT.mdf()+" ";
+    return of("'"+mdf+x+"' cannot be captured by "+aVsAn(methMdf)+" method in "+aVsAn(lambdaMdf)+" lambda.");
   }
 
   public static CompileError invalidNum(String n, String kind) {
@@ -260,6 +261,11 @@ public class Fail{
     return of("The declaration name for a lambda must include all type variables used in the lambda. The declaration name "+name.toIT()+" does not include the following type variables: "+msg);
   }
 
+  public static CompileError invalidLambdaNameMdfBounds(List<String> invalidBounds) {
+    var boundsMsg = String.join("\n", invalidBounds).indent(2);
+    return of("This lambda is missing/has an incompatible set of bounds for its type parameters:\n"+boundsMsg);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -323,6 +329,7 @@ enum ErrorCode {
   xTypeError,
   lambdaTypeError,
   conflictingDecls,
-  freeGensInLambda;
+  freeGensInLambda,
+  invalidLambdaNameMdfBounds;
   int code() {return this.ordinal() + 1;}
 }
