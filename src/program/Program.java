@@ -35,6 +35,7 @@ public interface Program {
   Optional<Pos> posOf(Id.IT<ast.T> t);
   /** Produce a clone of Program without any cached data */
   Program shallowClone();
+  TypeSystemFeatures tsf();
 
   default void reset() {
     this.methsCache().clear();
@@ -114,6 +115,7 @@ public interface Program {
   }
 
   default boolean isAdaptSubType(XBs xbs, T t1, T t2) {
+    if (!tsf().adapterSubtyping()) { return false; }
   /*MDF C[T1..Tn]< MDF C[T1'..Tn']
     where
       adapterOk(MDF,C,T1..Tn,T1'..Tn')

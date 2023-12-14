@@ -5,6 +5,7 @@ import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
+import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import utils.Base;
 import utils.Err;
@@ -28,7 +29,7 @@ public class TestTypeSystemWithBase {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(baseLibs))
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
@@ -42,7 +43,7 @@ public class TestTypeSystemWithBase {
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
     try {
-      var p = Parser.parseAll(ps);
+      var p = Parser.parseAll(ps, new TypeSystemFeatures());
       new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
       var inferred = InferBodies.inferAll(p);
       new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });

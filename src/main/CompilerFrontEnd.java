@@ -14,6 +14,7 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import parser.Parser;
+import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
@@ -51,9 +52,6 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     }
   }
   enum BaseVariant { Std, Imm }
-  record TypeSystemFeatures(boolean recMdf, boolean adapterSubtyping, boolean hygienics) {
-    TypeSystemFeatures() { this(true, true, true); }
-  }
   static Box<Map<String, List<Package>>> immBaseLib = new Box<>(null);
   static Box<Map<String, List<Package>>> baseLib = new Box<>(null);
 
@@ -150,7 +148,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       ));
 
     v.progress.printTask("Parsing \uD83D\uDC40");
-    var p = Parser.parseAll(ps);
+    var p = Parser.parseAll(ps, tsf);
     v.progress.printTask("Parsing complete \uD83E\uDD73");
     v.progress.printTask("Checking that the program is well formed \uD83D\uDD0E");
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });

@@ -7,6 +7,7 @@ import net.jqwik.api.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
+import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import utils.Base;
 import utils.Err;
@@ -26,7 +27,7 @@ public class TestWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
     var res = new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
@@ -39,7 +40,7 @@ public class TestWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
 

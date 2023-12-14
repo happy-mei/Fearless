@@ -8,6 +8,7 @@ import failure.CompileError;
 import failure.Fail;
 import program.CM;
 import program.TypeRename;
+import program.TypeSystemFeatures;
 import program.typesystem.XBs;
 import utils.Bug;
 import utils.Mapper;
@@ -22,7 +23,9 @@ import java.util.stream.Collectors;
 public class Program implements program.Program{
   private final Map<Id.DecId, T.Dec> ds;
   private final Map<Id.DecId, T.Dec> inlineDs;
-  public Program(Map<Id.DecId, T.Dec> ds) {
+  private final TypeSystemFeatures tsf;
+  public Program(TypeSystemFeatures tsf, Map<Id.DecId, T.Dec> ds) {
+    this.tsf = tsf;
     this.ds = ds;
     this.inlineDs = Mapper.of(ds_->{
       var visitor = new AllLsFullVisitor();
@@ -30,7 +33,8 @@ public class Program implements program.Program{
       visitor.res().forEach(dec->ds_.put(dec.name(), dec));
     });
   }
-  public Program(Map<Id.DecId, T.Dec> ds, Map<Id.DecId, T.Dec> inlineDs) {
+  public Program(TypeSystemFeatures tsf, Map<Id.DecId, T.Dec> ds, Map<Id.DecId, T.Dec> inlineDs) {
+    this.tsf = tsf;
     this.ds = ds;
     this.inlineDs = inlineDs.isEmpty() ? Mapper.of(ds_->{
       var visitor = new AllLsFullVisitor();
@@ -51,7 +55,7 @@ public class Program implements program.Program{
   @Override public Program shallowClone() {
     var subTypeCache = new HashMap<>(this.subTypeCache);
     var methsCache = new HashMap<>(this.methsCache);
-    return new Program(ds){
+    return new Program(tsf, ds){
       @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
         return subTypeCache;
       }
@@ -59,6 +63,10 @@ public class Program implements program.Program{
         return methsCache;
       }
     };
+  }
+
+  @Override public TypeSystemFeatures tsf() {
+    return this.tsf;
   }
 
   private final HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();
@@ -220,11 +228,11 @@ public class Program implements program.Program{
     }
     private void updateDec(T.Dec d, int i) {
       decs.set(i,d);
-      p=new Program(decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
+      p=new Program(p.tsf, decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
     }
     private void updateInlineDec(T.Dec d, int i) {
       inlineDecs.set(i,d);
-      p=new Program(decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)), inlineDecs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
+      p=new Program(p.tsf, decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)), inlineDecs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
     }
 
     private T.Dec inferSignatures(T.Dec d) {

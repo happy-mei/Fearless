@@ -4,6 +4,7 @@ import astFull.E;
 import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
 import failure.CompileError;
 import id.Id;
+import program.TypeSystemFeatures;
 import utils.Box;
 import utils.Bug;
 
@@ -48,7 +49,7 @@ public class Main {
           res.hasOption("print-codegen"),
           pv
         ));
-        frontEnd = new CompilerFrontEnd(bv, verbosity.get(), new CompilerFrontEnd.TypeSystemFeatures());
+        frontEnd = new CompilerFrontEnd(bv, verbosity.get(), new TypeSystemFeatures());
 
         if (res.hasOption("new")) {
           frontEnd.newPkg(res.getOptionValue("new"));

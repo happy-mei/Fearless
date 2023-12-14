@@ -30,7 +30,7 @@ public class ShallowInjectionVisitor extends InjectionVisitor implements FullVis
       .collect(Collectors.toMap(Map.Entry::getKey, kv->visitDec(kv.getValue())));
     Map<Id.DecId, ast.T.Dec> inlineDs = p.inlineDs().entrySet().stream()
       .collect(Collectors.toMap(Map.Entry::getKey, kv->visitDec(removeInlineMs(kv.getValue()))));
-    return new ast.Program(coreDs, inlineDs);
+    return new ast.Program(p.tsf(), coreDs, inlineDs);
   }
 
   /**

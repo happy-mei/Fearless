@@ -5,6 +5,7 @@ import ast.T;
 import id.Id;
 import main.Main;
 import parser.Parser;
+import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import utils.Push;
 import utils.Streams;
@@ -22,7 +23,7 @@ public record RedexTermGenerator(ArrayList<String> tops, List<Id.GX<T>> inScopeG
     Main.resetAll();
     var path = Path.of(args[0]);
     var code = Parser.codeFromPath(path);
-    var p = Parser.parseAll(List.of(new Parser(path, code)));
+    var p = Parser.parseAll(List.of(new Parser(path, code)), new TypeSystemFeatures());
     var inferred = InferBodies.inferAll(p);
     var tops = new ArrayList<String>();
     var visitor = new RedexTermGenerator(tops, List.of());

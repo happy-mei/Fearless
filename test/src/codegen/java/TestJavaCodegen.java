@@ -7,6 +7,7 @@ import main.Main;
 import net.jqwik.api.Example;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
+import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
@@ -29,7 +30,7 @@ public class TestJavaCodegen {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(baseLibs))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });

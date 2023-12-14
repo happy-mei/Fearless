@@ -6,6 +6,7 @@ import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import program.TypeSystemFeatures;
 import utils.Err;
 
 import java.nio.file.Path;
@@ -19,7 +20,7 @@ class TestFullParser {
     var ps = Arrays.stream(content)
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
         .toList();
-    String res = Parser.parseAll(ps).toString();
+    String res = Parser.parseAll(ps, new TypeSystemFeatures()).toString();
     Err.strCmpFormat(expected,res);
   }
   void fail(String expectedErr, String... content){
@@ -29,7 +30,7 @@ class TestFullParser {
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
         .toList();
     try {
-      var res = Parser.parseAll(ps);
+      var res = Parser.parseAll(ps, new TypeSystemFeatures());
       Assertions.fail("Parsing did not fail. Got: "+res);
     }
     catch (CompileError e) {

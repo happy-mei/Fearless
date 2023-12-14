@@ -20,7 +20,7 @@ public class TestSigInference {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = p.inferSignatures();
     Err.strCmpFormat(expected, inferred.toString());
@@ -31,7 +31,7 @@ public class TestSigInference {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
 
     try {

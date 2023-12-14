@@ -5,6 +5,7 @@ import main.Main;
 import net.jqwik.api.Example;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
+import program.TypeSystemFeatures;
 import utils.Bug;
 import utils.Err;
 import visitors.ShallowInjectionVisitor;
@@ -26,7 +27,7 @@ public class TestRefineTypes {
     var e = new Parser(Parser.dummy,expr).parseFullE(Bug::err, s->Optional.empty());
     var pT1 = addInfers(new Parser(Parser.dummy, t1).parseFullT());
     var pT2 = addInfers(new Parser(Parser.dummy, t2).parseFullT());
-    var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)));
+    var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)), new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = new ShallowInjectionVisitor().visitProgram(p.inferSignatures());
 

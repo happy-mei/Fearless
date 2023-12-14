@@ -7,6 +7,7 @@ import id.Mdf;
 import magic.Magic;
 import program.CM;
 import program.TypeRename;
+import program.TypeSystemFeatures;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.TraitTypeSystem;
 import program.typesystem.XBs;
@@ -19,7 +20,9 @@ import java.util.stream.Collectors;
 public class Program implements program.Program  {
   private final Map<Id.DecId, T.Dec> ds;
   private final Map<Id.DecId, T.Dec> inlineDs;
-  public Program(Map<Id.DecId, T.Dec> ds, Map<Id.DecId, T.Dec> inlineDs) {
+  private final TypeSystemFeatures tsf;
+  public Program(TypeSystemFeatures tsf, Map<Id.DecId, T.Dec> ds, Map<Id.DecId, T.Dec> inlineDs) {
+    this.tsf = tsf;
     this.ds = ds;
     this.inlineDs = inlineDs.isEmpty() ? Mapper.of(ds_->{
       ds_.putAll(inlineDs);
@@ -35,7 +38,7 @@ public class Program implements program.Program  {
 
   public void typeCheck(IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
     var errors = new StringBuilder();
-    TraitTypeSystem.dsOk(this.ds.values(), resolvedCalls)
+    TraitTypeSystem.dsOk(tsf, this.ds.values(), resolvedCalls)
       .forEach(err->errors.append(err.toString()).append("\n\n"));
     if (!errors.isEmpty()) { throw Fail.typeError(errors.toString()); }
   }
@@ -44,7 +47,7 @@ public class Program implements program.Program  {
     var ds = new HashMap<>(ds());
     assert !ds.containsKey(d.name());
     ds.put(d.name(), d);
-    return new Program(Collections.unmodifiableMap(ds), inlineDs);
+    return new Program(tsf, Collections.unmodifiableMap(ds), inlineDs);
   }
 
   public Optional<Pos> posOf(Id.IT<ast.T> t) {
@@ -54,7 +57,7 @@ public class Program implements program.Program  {
   @Override public Program shallowClone() {
     var subTypeCache = new HashMap<>(this.subTypeCache);
     var methsCache = new HashMap<>(this.methsCache);
-    return new Program(ds, inlineDs){
+    return new Program(tsf, ds, inlineDs){
       @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
         return subTypeCache;
       }
@@ -62,6 +65,10 @@ public class Program implements program.Program  {
         return methsCache;
       }
     };
+  }
+
+  @Override public TypeSystemFeatures tsf() {
+    return this.tsf;
   }
 
   private final HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();

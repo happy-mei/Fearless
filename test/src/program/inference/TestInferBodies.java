@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
+import program.TypeSystemFeatures;
 import utils.Base;
 import utils.Err;
 import visitors.ShallowInjectionVisitor;
@@ -51,7 +52,7 @@ public class TestInferBodies {
     var ps = Stream.concat(Stream.of(first), Arrays.stream(content))
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     return new ParsedProgram(p, new ShallowInjectionVisitor().visitProgram(p.inferSignatures()));
   }

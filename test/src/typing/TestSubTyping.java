@@ -106,7 +106,7 @@ public class TestSubTyping {
     List[T]:{
       recMdf .get: recMdf T
     }
-    SortedList[T]:List[mdf T]
+    SortedList[T]:List[T]
     Int:{}
     Point:{ .x: Int, .y: Int }
     ColouredPoint:Point{ .colour: Int }
@@ -125,9 +125,9 @@ public class TestSubTyping {
   final String pointEx2 = """
     package a
     List[T]:{
-      read .get: mdf T
+      read .get: T
     }
-    SortedList[T]:List[mdf T]
+    SortedList[T]:List[T]
     Int:{}
     Point:{ .x: Int, .y: Int }
     ColouredPoint:Point{ .colour: Int }

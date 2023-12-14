@@ -2,12 +2,11 @@ package typing;
 
 import failure.CompileError;
 import id.Mdf;
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
+import program.TypeSystemFeatures;
 import program.typesystem.XBs;
 import utils.Err;
 import utils.FromContent;
@@ -21,6 +20,28 @@ public class TestMeths {
   void fail(String expected, String type, String ...code) {
     var it = new Parser(Parser.dummy, type).parseFullT();
     Program p = FromContent.of(code);
+    try {
+      var res = p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0);
+      Assertions.fail("Expected failure, got\n" + res);
+    } catch (CompileError e) {
+      Err.strCmp(expected, e.toString());
+    }
+  }
+
+  void okNoAdapt(String expected, String type, String ...code){
+    var it = new Parser(Parser.dummy, type).parseFullT();
+    var tsf = new TypeSystemFeatures.TypeSystemFeaturesBuilder()
+      .allowAdapterSubtyping(false)
+      .build();
+    Program p = FromContent.withTsf(tsf, code);
+    Err.strCmpFormat(expected, p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0).toString());
+  }
+  void failNoAdapt(String expected, String type, String ...code) {
+    var it = new Parser(Parser.dummy, type).parseFullT();
+    var tsf = new TypeSystemFeatures.TypeSystemFeaturesBuilder()
+      .allowAdapterSubtyping(false)
+      .build();
+    Program p = FromContent.withTsf(tsf, code);
     try {
       var res = p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0);
       Assertions.fail("Expected failure, got\n" + res);
@@ -539,7 +560,15 @@ public class TestMeths {
     Break[X]:{ .b:X }
     """); }
 
-  @Test void loopingSupTypes1() { fail("""
+  @Test void loopingSupTypes1() { ok("""
+    [a.A[],imm .m/0()[][]:imm a.Break[imm a.A[]]abs]
+    """, "a.A", """
+    package a
+    A:B{ .m: Break[A] }//pass? is this the looping one?
+    B:{ .m: Break[B] }
+    Break[X]:{ .b: Break[X] }
+    """); }
+  @Test void loopingSupTypes1NoAdapt() { failNoAdapt("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.
@@ -552,7 +581,15 @@ public class TestMeths {
     B:{ .m: Break[B] }
     Break[X]:{ .b: Break[X] }
     """); }
-  @Test void loopingSupTypes2() { fail("""
+  @Test void loopingSupTypes2() { ok("""
+    [a.A[],imm .m/0()[][]:imm a.Break[imm a.B[]]abs]
+    """, "a.A", """
+    package a
+    A:B{ .m:Break[B] }//pass? or is this one?
+    B:{ .m:Break[A] }
+    Break[X]:{ .b:Break[X] }
+    """); }
+  @Test void loopingSupTypes2NoAdapt() { failNoAdapt("""
     In position [###]/Dummy0.fear:2:0
     [E18 uncomposableMethods]
     These methods could not be composed.

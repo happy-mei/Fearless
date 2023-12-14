@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
+import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
@@ -38,7 +39,7 @@ public class TestJavaProgramImm {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.immBaseLib))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
@@ -62,7 +63,7 @@ public class TestJavaProgramImm {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.immBaseLib))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps);
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });

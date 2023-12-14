@@ -5,6 +5,7 @@ import id.Id;
 import main.Main;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
+import program.TypeSystemFeatures;
 import utils.Err;
 import visitors.ShallowInjectionVisitor;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
@@ -34,7 +35,7 @@ public class TestRefineSigGens {
         addInfers(new Parser(Parser.dummy, ts[1]).parseFullT())
         ))
       .toList();
-    var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)));
+    var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)), new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = new ShallowInjectionVisitor().visitProgram(p.inferSignatures());
     var freshParsed = fresh.stream().map(name->new Id.GX<ast.T>(name)).collect(Collectors.toUnmodifiableSet());
