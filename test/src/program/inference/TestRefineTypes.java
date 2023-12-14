@@ -93,7 +93,7 @@ public class TestRefineTypes {
   //We get to lent a.C[] = mut a.C[] and we take the 'best type: as specified by t1 (the user's type)
   @Test void aGenMdf2() {ok("""
     varName:imma.A[muta.B[],reada.B[]]
-    """, "varName", "a.A[mut X,read a.B[]]", "a.A[lent a.B[],mdf Y]", """
+    """, "varName", "a.A[mut X,read a.B[]]", "a.A[lent a.B[],Y]", """
     package a
     A[X,Y]:{}
     B:{}
@@ -183,36 +183,36 @@ public class TestRefineTypes {
 
   @Test void refineGensNoInfo() {ok("""
     varName:imm a.A[imm X]
-    """, "varName", "a.A[X]", "a.A[X]", """
+    """, "varName", "a.A[imm X]", "a.A[imm X]", """
     package a
     A[X]:{}
     B:{}
     """);}
 
   @Test void refineGensMdf1() {ok("""
-    varName:imma.A[mdfX]
-    """, "varName", "a.A[mdf X]", "a.A[imm X]", """
+    varName:imma.A[X]
+    """, "varName", "a.A[X]", "a.A[imm X]", """
     package a
     A[X]:{}
     B:{}
     """);}
   @Test void refineGensMdf2() {ok("""
     varName:imma.A[immX]
-    """, "varName", "a.A[imm X]", "a.A[mdf X]", """
+    """, "varName", "a.A[imm X]", "a.A[X]", """
     package a
     A[X]:{}
     B:{}
     """);}
   @Test void refineGensMdf3() {ok("""
     varName:imm a.A[mut a.B[]]
-    """, "varName", "a.A[mut a.B[]]", "a.A[mdf X]", """
+    """, "varName", "a.A[mut a.B[]]", "a.A[X]", """
     package a
     A[X]:{}
     B:{}
     """);}
   @Test void refineGensMdf4() {ok("""
     varName:imm a.A[mut a.B[]]
-    """, "varName", "a.A[mdf X]", "a.A[mut a.B[]]", """
+    """, "varName", "a.A[X]", "a.A[mut a.B[]]", """
     package a
     A[X]:{}
     B:{}
@@ -225,15 +225,15 @@ public class TestRefineTypes {
     B:{}
     """);}
   @Test void refineGensMdfNested1() {ok("""
-    varName:imma.A[imma.A[mdfX]]
-    """, "varName", "a.A[recMdf a.A[mdf X]]", "a.A[imm a.B[]]", """
+    varName:imm a.A[imm a.A[X]]
+    """, "varName", "a.A[recMdf a.A[X]]", "a.A[imm a.B[]]", """
     package a
     A[X]:{}
     B:{}
     """);}
   @Test void refineGensMdfNested2() {ok("""
     varName:imma.A[recMdfa.A[imma.B[]]]
-    """, "varName", "a.A[recMdf a.A[mdf X]]", "a.A[recMdf a.A[imm a.B[]]]", """
+    """, "varName", "a.A[recMdf a.A[X]]", "a.A[recMdf a.A[imm a.B[]]]", """
     package a
     A[X]:{}
     B:{}
