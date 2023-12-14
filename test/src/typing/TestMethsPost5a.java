@@ -170,7 +170,8 @@ public class TestMethsPost5a {
     A:{ .foo(a:A):A->this, .bar(a1: A, a2: read A): mut A }
     """); }
   @Test void twoMethBothImpl() { ok("""
-    [a.A[],imm .foo/1(a)[][imm a.A[]]:imma.A[]impl,a.A[],imm .bar/2(a1,a2)[][imm a.A[],read a.A[]]:mut a.A[]impl]
+    [a.A[],imm.bar/2(a1,a2)[][imma.A[],reada.A[]]:muta.A[]impl,
+    a.A[],imm.foo/1(a)[][imma.A[]]:imma.A[]impl]
     """, "a.A", """
     package a
     A:{ .foo(a:A):A->this, .bar(a1: A, a2: read A): mut A->{} }
@@ -461,8 +462,8 @@ public class TestMethsPost5a {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:3) a.B[], .m/0[X0/0$](): imm a.A[]
     ([###]/Dummy0.fear:2:4) a.A[], .m/0[](): imm a.A[]
+    ([###]/Dummy0.fear:3:3) a.B[], .m/0[X0/0$](): imm a.A[]
     """, "a.A", """
     package a
     A:B{.m:A}
@@ -499,10 +500,10 @@ public class TestMethsPost5a {
   @Test void t21() { ok("""
     [a.A[imm Panic],imm.foo/0()[][]:imm Panic abs,
     a.B[imm Panic],imm.m/0()[X0/0$][]:imma.Bi[immX0/0$,immPanic]impl]
-    """, "a.A[Panic]", """
+    """, "a.A[imm Panic]", """
     package a
-    A[X]:B[X]{ .foo:X }
-    B[Y]:{.m[X]:Bi[X,Y]->this}
+    A[X]:B[X]{ .foo:imm X }
+    B[Y]:{.m[X]:Bi[imm X,imm Y]->this}
     Bi[AA,BB]:{}
     """); }
   @Test void t22() { ok("""
@@ -571,8 +572,8 @@ public class TestMethsPost5a {
     """); }
 
   @Test void methGens() { ok("""
-    [base.A[],imm.m2/1(k)[X0/0$][immX0/0$]:imm base.Void[]abs,
-    base.A[],imm.m1/1(x)[X0/0$][immX0/0$]:imm base.Void[]impl]
+    [base.A[],imm.m1/1(x)[X0/0$][X0/0$]:immbase.Void[]impl,base.A[],
+    imm.m2/1(k)[X0/0$][X0/0$]:immbase.Void[]abs]
     """, "base.A", """
     package base
     A:{

@@ -457,8 +457,8 @@ public class TestMeths {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:3) a.B[], .m/0[X0/0$](): imm a.A[]
     ([###]/Dummy0.fear:2:4) a.A[], .m/0[](): imm a.A[]
+    ([###]/Dummy0.fear:3:3) a.B[], .m/0[X0/0$](): imm a.A[]
     """, "a.A", """
     package a
     A:B{.m:A}
@@ -473,10 +473,10 @@ public class TestMeths {
     """); }
   @Test void t20a() { ok("""
     [a.A[immX],imm.foo/0()[][]:immXabs,a.B[],imm.m/0()[X0/0$][]:imma.A[imma.B[]]impl]
-    """, "a.A[X]", """
+    """, "a.A[imm X]", """
     package a
-    A[X]:B{ .foo:X }
-    B:{.m[X]:A[B]->this}
+    A[X]:B{ .foo:imm X }
+    B:{.m[X]:A[imm B]->this}
     """); }
   @Test void t20b() { ok("""
     [a.A[imma.A[]],imm.foo/0()[][]:imma.A[]abs,a.B[],imm.m/0()[X0/0$][]:imma.A[imma.B[]]impl]
@@ -495,10 +495,10 @@ public class TestMeths {
   @Test void t21() { ok("""
     [a.A[imm Panic],imm.foo/0()[][]:imm Panic abs,
     a.B[imm Panic],imm.m/0()[X0/0$][]:imma.Bi[immX0/0$,immPanic]impl]
-    """, "a.A[Panic]", """
+    """, "a.A[imm Panic]", """
     package a
-    A[X]:B[X]{ .foo:X }
-    B[Y]:{.m[X]:Bi[X,Y]->this}
+    A[X]:B[imm X]{ .foo:X }
+    B[Y]:{.m[X]:Bi[imm X,imm Y]->this}
     Bi[AA,BB]:{}
     """); }
   @Test void t22() { ok("""
@@ -567,13 +567,13 @@ public class TestMeths {
     """); }
 
   @Test void methGens() { ok("""
-    [base.A[],imm.m2/1(k)[X0/0$][immX0/0$]:imm base.Void[]abs,
-    base.A[],imm.m1/1(x)[X0/0$][immX0/0$]:imm base.Void[]impl]
+    [base.A[],imm.m1/1(x)[X0/0$][immX0/0$]:imm base.Void[]impl,
+    base.A[],imm.m2/1(k)[X0/0$][immX0/0$]:imm base.Void[]abs]
     """, "base.A", """
     package base
     A:{
-      .m1[T](x:T):Void->this.m2(x),
-      .m2[K](k:K):Void
+      .m1[T](x:imm T):Void->this.m2(x),
+      .m2[K](k:imm K):Void
       }
     Void:{}
     """); }
@@ -587,7 +587,7 @@ public class TestMeths {
     Family:List[imm Person]{}
     """); }
   @Test void adaptRecMdfRead() { ok("""
-    [test.List[read test.Person[]],recMdf.get/0()[][]:read test.Person[]abs]
+    [test.List[read test.Person[]],recMdf.get/0()[][]:readOnly test.Person[]abs]
     """, "test.Family", """
     package test
     Person:{}
@@ -611,11 +611,11 @@ public class TestMeths {
     Family:List[lent Person]{}
     """); }
   @Test void adaptRecMdfMdf() { ok("""
-    [test.List[mdfP],recMdf.get/0()[][]:recMdfP abs]
-    """, "test.Family[mdf P]", """
+    [test.List[P],recMdf.get/0()[][]:recMdfP abs]
+    """, "test.Family[P]", """
     package test
     Person:{}
     List[X]:{ recMdf .get(): recMdf X }
-    Family[P]:List[mdf P]{}
+    Family[P]:List[P]{}
     """); }
 }

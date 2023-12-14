@@ -357,7 +357,7 @@ public interface Program {
           throw Fail.uncomposableMethods(List.of(
             Fail.conflict(first.pos(), first.toStringSimplified()),
             Fail.conflict(cmi.pos(), cmi.toStringSimplified())
-          ));
+          )).pos(lambdaPos);
         }
       })
       .filter(cmi->!firstIsMoreSpecific(xbs, first, cmi) && !firstIsMoreSpecific(xbs, plainCM(first), plainCM(cmi)))
