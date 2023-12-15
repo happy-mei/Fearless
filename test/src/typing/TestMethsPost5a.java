@@ -164,7 +164,7 @@ public class TestMethsPost5a {
    * Break[X]:{ b:Break[X] }
    * */
   @Test void twoMethOneAbs() { ok("""
-    [a.A[],imm.foo/1(a)[][imma.A[]]:imm a.A[]impl,a.A[],imm .bar/2(a1,a2)[][imma.A[],read a.A[]]:mut a.A[]abs]
+    [a.A[],imm.bar/2(a1,a2)[][imma.A[],reada.A[]]:muta.A[]abs,a.A[],imm.foo/1(a)[][imma.A[]]:imma.A[]impl]
     """, "a.A", """
     package a
     A:{ .foo(a:A):A->this, .bar(a1: A, a2: read A): mut A }
@@ -478,9 +478,9 @@ public class TestMethsPost5a {
     """); }
   @Test void t20a() { ok("""
     [a.A[immX],imm.foo/0()[][]:immXabs,a.B[],imm.m/0()[X0/0$][]:imma.A[imma.B[]]impl]
-    """, "a.A[X]", """
+    """, "a.A[imm X]", """
     package a
-    A[X]:B{ .foo:X }
+    A[X]:B{ .foo: imm X }
     B:{.m[X]:A[B]->this}
     """); }
   @Test void t20b() { ok("""
@@ -544,26 +544,16 @@ public class TestMethsPost5a {
     Break[X]:{ .b:X }
     """); }
 
-  @Test void loopingSupTypes1() { fail("""
-    In position [###]/Dummy0.fear:2:0
-    [E18 uncomposableMethods]
-    These methods could not be composed.
-    conflicts:
-    ([###]/Dummy0.fear:3:4) a.B[], .m/0[](): imm a.Break[imm a.B[]]
-    ([###]/Dummy0.fear:2:5) a.A[], .m/0[](): imm a.Break[imm a.A[]]
+  @Test void loopingSupTypes1() { ok("""
+    [a.A[],imm .m/0()[][]:imm a.Break[imm a.A[]]abs]
     """, "a.A", """
     package a
     A:B{ .m: Break[A] }//pass? is this the looping one?
     B:{ .m: Break[B] }
     Break[X]:{ .b: Break[X] }
     """); }
-  @Test void loopingSupTypes2() { fail("""
-    In position [###]/Dummy0.fear:2:0
-    [E18 uncomposableMethods]
-    These methods could not be composed.
-    conflicts:
-    ([###]/Dummy0.fear:3:4) a.B[], .m/0[](): imm a.Break[imm a.A[]]
-    ([###]/Dummy0.fear:2:5) a.A[], .m/0[](): imm a.Break[imm a.B[]]
+  @Test void loopingSupTypes2() { ok("""
+    [a.A[],imm .m/0()[][]:imm a.Break[imm a.B[]]abs]
     """, "a.A", """
     package a
     A:B{ .m:Break[B] }//pass? or is this one?
@@ -599,18 +589,18 @@ public class TestMethsPost5a {
   ThenElse[R]:{ mut .then: R, mut .else: R, }
   """;
   @Test void bool1() { ok("""
-    [bools.Bool[],imm.not/0()[][]:immbools.Bool[]abs,bools.Bool[],imm?/1(f)[X0/0$][mutbools.ThenElse[immX0/0$]]:immX0/0$abs,bools.Bool[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]abs,bools.Bool[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]abs]
+    [bools.Bool[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]abs,bools.Bool[],imm.not/0()[][]:immbools.Bool[]abs,bools.Bool[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]abs,bools.Bool[],imm?/1(f)[X0/0$][mutbools.ThenElse[X0/0$]]:X0/0$abs]
     """, "bools.Bool", boolPkg); }
   @Test void bool2() { ok("""
-    [bools.True[],imm.not/0()[][]:immbools.Bool[]impl,bools.True[],imm?/1(f)[X0/0$][mutbools.ThenElse[immX0/0$]]:immX0/0$impl,bools.True[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.True[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl]
+    [bools.True[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.True[],imm.not/0()[][]:immbools.Bool[]impl,bools.True[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.True[],imm?/1(f)[X0/0$][mutbools.ThenElse[X0/0$]]:X0/0$impl]
     """, "bools.True", boolPkg); }
   @Test void bool3() { ok("""
-    [bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X0/0$][mutbools.ThenElse[immX0/0$]]:immX0/0$impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl]
+    [bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X0/0$][mutbools.ThenElse[X0/0$]]:X0/0$impl]
     """, "bools.False", boolPkg); }
   @Test void bool4() { ok("""
-    [bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X0/0$][mutbools.ThenElse[immX0/0$]]:immX0/0$impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl]
+    [bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X0/0$][mutbools.ThenElse[X0/0$]]:X0/0$impl]
     """, "bools.Fresh1", boolPkg); }
   @Test void bool5() { ok("""
-    [bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X0/0$][mutbools.ThenElse[immX0/0$]]:immX0/0$impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl]
+    [bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X0/0$][mutbools.ThenElse[X0/0$]]:X0/0$impl]
     """, "bools.Fresh2", boolPkg); }
 }
