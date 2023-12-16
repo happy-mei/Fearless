@@ -141,8 +141,8 @@ public interface Base {
     alias base.Abort as Abort,
     alias base.StrMap as StrMap,
     alias base.Map as Map,
-    alias base.LensMap as LensMap,
-    alias base.LinkedMap as LinkedMap,
+    alias base.Lens as Lens,
+    alias base.LinkedLens as LinkedLens,
     alias base.Try as Try,
     """;
 }

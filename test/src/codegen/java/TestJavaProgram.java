@@ -1390,13 +1390,13 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .var[mut IO] io = { FIO#s }
-      .var[mut Ref[mut LinkedMap[Str, Int]]] m = { Ref#[mut LinkedMap[Str, Int]](mut StrMap[Int]) }
+      .var[mut Ref[mut LinkedLens[Str, Int]]] m = { Ref#[mut LinkedLens[Str, Int]](mut StrMap[Int]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
       .do{ io.println(m*.get("Bob")!.str) }
       .assert{ m*.get("nobody").isEmpty }
-      .var[mut Ref[mut LinkedMap[Str, Str]]] tm = { Ref#[mut LinkedMap[Str, Str]](m*.map(
+      .var[mut Ref[mut LinkedLens[Str, Str]]] tm = { Ref#[mut LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
         {k, v -> (v * 10).str },
         {k, v -> (v.toImm * 10).str }
@@ -1411,13 +1411,13 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .var[mut IO] io = { FIO#s }
-      .var[mut Ref[LinkedMap[Str, Int]]] m = { Ref#[LinkedMap[Str, Int]](StrMap[Int]) }
+      .var[mut Ref[LinkedLens[Str, Int]]] m = { Ref#[LinkedLens[Str, Int]](StrMap[Int]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
       .do{ io.println(m*.get("Bob")!.str) }
       .assert{ m*.get("nobody").isEmpty }
-      .var[mut Ref[LinkedMap[Str, Str]]] tm = { Ref#[LinkedMap[Str, Str]](m*.map(
+      .var[mut Ref[LinkedLens[Str, Str]]] tm = { Ref#[LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
         {k, v -> (v.toImm * 10).str }
         )) }
@@ -1431,13 +1431,13 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .var[mut IO] io = { FIO#s }
-      .var[mut Ref[read LinkedMap[Str, Int]]] m = { Ref#[read LinkedMap[Str, Int]]({k1,k2 -> k1 == k2}) }
+      .var[mut Ref[read LinkedLens[Str, Int]]] m = { Ref#[read LinkedLens[Str, Int]]({k1,k2 -> k1 == k2}) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.toImm.str) }
       .do{ io.println(m*.get("Bob")!.toImm.str) }
       .assert{ m*.get("nobody").isEmpty }
-      .var[mut Ref[read LinkedMap[Str, Str]]] tm = { Ref#[read LinkedMap[Str, Str]](m*.map(
+      .var[mut Ref[read LinkedLens[Str, Str]]] tm = { Ref#[read LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
         {k, v -> (v.toImm * 10).str }
         )) }
@@ -1452,13 +1452,13 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .var[mut IO] io = { FIO#s }
-      .var[mut Ref[LensMap[Str, Int]]] m = { Ref#[LensMap[Str, Int]]({k1,k2 -> k1 == k2}) }
+      .var[mut Ref[Lens[Str, Int]]] m = { Ref#[Lens[Str, Int]]({k1,k2 -> k1 == k2}) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
       .do{ io.println(m*.get("Bob")!.str) }
       .assert{ m*.get("nobody").isEmpty }
-      .var[mut Ref[LensMap[Str, Str]]] tm = { Ref#[LensMap[Str, Str]](m*.map{k, v -> (v * 10).str }) }
+      .var[mut Ref[Lens[Str, Str]]] tm = { Ref#[Lens[Str, Str]](m*.map{k, v -> (v * 10).str }) }
       .do{ io.println(tm*.get("Nick")!) }
       .do{ tm := (tm*.put("Nick", "hi")) }
       .do{ io.println(tm*.get("Nick")!) }

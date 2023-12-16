@@ -17,10 +17,10 @@ alias base.caps.System as System,
 
 alias base.Res as Res,
 
-alias base.LinkedMap as LinkedMap,
+alias base.LinkedLens as LinkedLens,
 alias base.Map as Map,
 alias base.EmptyMap as EmptyMap,
-alias base.LensMap as LensMap,
+alias base.Lens as Lens,
 
 alias base.Extensible as Extensible,
 alias base.Extension as Extension,
