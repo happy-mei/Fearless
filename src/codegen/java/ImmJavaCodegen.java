@@ -21,7 +21,7 @@ public class ImmJavaCodegen extends JavaCodegen {
       throw Bug.todo();
     }
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ "+argsToLList(Mdf.imm)+" base.Main_0 entry = new "+entryName+"(){}; System.out.println(entry.$35$imm$(FAux.LAUNCH_ARGS)); }\n";
+    var init = "\nstatic void main(String[] args){ "+argsToLList(Mdf.imm)+" base.Main_0 entry = new "+entryName+"(){}; try { System.out.println(entry.$35$imm$(FAux.LAUNCH_ARGS)); } catch (Throwable t) { System.err.println(\"Program crashed with: \"+t.getLocalizedMessage()); System.exit(1); } }\n";
 
     return "class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\ninterface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))

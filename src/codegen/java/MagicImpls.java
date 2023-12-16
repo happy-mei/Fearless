@@ -433,6 +433,9 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
             (switch (1) { default -> {
               try { yield base.Res_0._$self.ok$imm$(%s.$35$read$()); }
               catch(FearlessError _$err) { yield base.Res_0._$self.err$imm$(_$err.info); }
+              catch(java.lang.ArithmeticException _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
+              catch(java.lang.StackOverflowError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$("Stack overflowed")); }
+              catch(java.lang.VirtualMachineError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
             }})
             """.formatted(args.get(0).accept(gen)));
         }

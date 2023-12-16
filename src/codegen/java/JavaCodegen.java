@@ -34,7 +34,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   public String visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) {
     assert pkgs.containsKey("base");
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ "+argsToLList(Mdf.mut)+" base.Main_0 entry = new "+entryName+"(){}; entry.$35$imm$(new base$46caps.$95System_0(){}); }\n";
+    var init = "\nstatic void main(String[] args){ "+argsToLList(Mdf.mut)+" base.Main_0 entry = new "+entryName+"(){}; try { entry.$35$imm$(new base$46caps.$95System_0(){}); } catch (StackOverflowError e) { System.err.println(\"Program crashed with: Stack overflowed\"); System.exit(1); } catch (Throwable t) { System.err.println(\"Program crashed with: \"+t.getLocalizedMessage()); System.exit(1); } }\n";
 
     final String fearlessError = """
       class FearlessError extends RuntimeException {
@@ -43,6 +43,7 @@ public class JavaCodegen implements MIRVisitor<String> {
           super();
           this.info = info;
         }
+        public String getMessage() { return this.info.str$imm$(); }
       }
       """;
 

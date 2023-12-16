@@ -16,7 +16,7 @@ public interface RunJava {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       Res res = (Res) o;
-      return exitCode == res.exitCode && Err.strCmpFormat(stdOut, res.stdOut) && Err.strCmpFormat(stdErr, res.stdErr);
+      return exitCode == res.exitCode && Err.strCmp(stdOut, res.stdOut) && Err.strCmp(stdErr, res.stdErr);
     }
   }
   static CompletableFuture<Res> of(Path classFile, List<String> cliArgs) {

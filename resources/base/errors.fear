@@ -28,3 +28,20 @@ Info:Sealed{
   .map: Map[Str, Info],
   .list: List[Info],
   }
+FInfo: {
+  .str(str: Str): Info -> {
+    .str -> str,
+    .list -> List#,
+    .map -> EmptyMap[Str, Info],
+    },
+  .list(list: List[Info]): Info -> {
+    .str -> "",
+    .list -> list,
+    .map -> EmptyMap[Str, Info],
+    },
+  .map(map: Map[Str, Info]): Info -> {
+    .str -> "",
+    .list -> List#,
+    .map -> map,
+    },
+  }

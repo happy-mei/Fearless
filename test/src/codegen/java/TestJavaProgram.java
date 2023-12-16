@@ -1493,18 +1493,11 @@ public class TestJavaProgram {
       FIO#s.println(Try#[Str]{Error.str("oof")}.match{ .a(a) -> a, .b(err) -> err.str })
       }
     """, Base.mutBaseAliases);}
-  @Test void error1() { ok(new Res("", "Exception in thread \"main\" FearlessError[###]", 1), "test.Test", """
+  @Test void error1() { ok(new Res("", "Program crashed with: yolo", 1), "test.Test", """
     package test
     Test:Main{s -> Error.str("yolo") }
     """, Base.mutBaseAliases);}
-  @Test void emptyOptErr1() { ok(new Res("", """
-    Exception in thread "main" FearlessError
-    	at FProgram$base$Error_0.str$imm$(FProgram.java:[###])
-    	at FProgram$base$Opt_1$2.empty$mut$(FProgram.java:[###])
-    	at FProgram$base$Opt_1.match$imm$(FProgram.java:[###])
-    	at FProgram$base$Opt_1.$33$imm$(FProgram.java:[###])
-    	at FProgram$test$Test_0.$35$imm$(FProgram.java:[###])
-    	at FProgram.main(FProgram.java:[###])""", 1), "test.Test", """
+  @Test void emptyOptErr1() { ok(new Res("", "Program crashed with: Opt was empty", 1), "test.Test", """
     package test
     Test:Main{s -> Block#(Opt[Str]!) }
     """, Base.mutBaseAliases);}
