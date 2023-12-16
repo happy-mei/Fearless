@@ -1,7 +1,7 @@
 package base
 
 Collection:{
-  read .len: UInt,
+  read .size: UInt,
   read .isEmpty: Bool,
   // I might make this generic and have a .iter method on this
   // just need to think more about string representations first.
@@ -49,12 +49,12 @@ LList[E]:Collection{
     },
 
   read .isEmpty: Bool -> True,
-  read .len: UInt -> 0u,
+  read .size: UInt -> 0u,
 
   mut .list: mut List[E] -> List.fromLList[E](this),
 
   mut .pushFront(e: E): mut LList[E] -> Let#{
-    .var -> this.len + 1u,
+    .var -> this.size + 1u,
     .in(len) -> {'l
       mut  .match[R](m: mut LListMatch[E, R]): R -> m.elem(e, this),
       read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
@@ -71,11 +71,11 @@ LList[E]:Collection{
       .tail -> this,
       ++(l1) -> (this ++ l1).pushFront[](e),
       .isEmpty -> False,
-      .len -> len,
+      .size -> len,
       }
     },
   read .pushFront(e: read E): read LList[read E] -> Let#{
-    .var -> this.len + 1u,
+    .var -> this.size + 1u,
     .in(len) -> {'l
       read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
       imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
@@ -88,11 +88,11 @@ LList[E]:Collection{
       .tail -> this,
       ++(l1) -> (this ++ l1).pushFront[](e),
       .isEmpty -> False,
-      .len -> len,
+      .size -> len,
       }
     },
 //  imm  .pushFront(e: E): LList[E] -> Let#{
-//      .var -> this.len + 1u,
+//      .var -> this.size + 1u,
 //      .in(len) -> {'l
 //        imm  .match[R](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
 //        read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
@@ -106,7 +106,7 @@ LList[E]:Collection{
 //        .tail -> this,
 //        ++(l1) -> (this ++ l1).pushFront[](e),
 //        .isEmpty -> False,
-//        .len -> len,
+//        .size -> len,
 //        }
 //      },
   }
@@ -132,14 +132,14 @@ List:{
   // TODO: this up to 12 or something
   #[E](e1: E, e2: E, e3: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e3).pushFront(e2).pushFront(e1)),
   #[E](e1: E, e2: E, e3: E, e4: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e4).pushFront(e3).pushFront(e2).pushFront(e1)),
-  .fromLList[E](list: mut LList[E]): mut List[E] -> _List.new(Ref#(_ListState#[E](list.len, list))),
+  .fromLList[E](list: mut LList[E]): mut List[E] -> _List.new(Ref#(_ListState#[E](list.size, list))),
   }
 _List:{
   .new[E](s: mut Ref[mut _ListState[E]]): mut List[E] -> {'l
-    .len -> s*.len,
+    .size -> s*.size,
     .isEmpty -> s*.inner.isEmpty,
     .get(i) -> s*.inner.get(i),
-    .add(e) -> s := (_ListState#[E](s*.len + 1u, s*.inner + e)),
+    .add(e) -> s := (_ListState#[E](s*.size + 1u, s*.inner + e)),
     }
   }
 List[E]:Collection{
@@ -170,13 +170,13 @@ _ListParIter:{
     }
   }
 _ListState[E]:{
-  read .len: UInt,
+  read .size: UInt,
   mut .inner: mut LList[E],
   read .inner: read LList[read E],
   }
 _ListState:{
   #[E](len: UInt, inner: mut LList[E]): mut _ListState[E] -> {
-    .len -> len,
+    .size -> len,
     .inner -> inner
     }
   }
