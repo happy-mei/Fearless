@@ -7,6 +7,15 @@ import utils.Base;
 import static utils.RunJava.Res;
 import static codegen.java.RunJavaProgramTests.*;
 
+/*
+ * 1. Public contract for Flows
+ *
+ * 2. Internal deterministic specification for Flows
+ *
+ *
+ * (this is important for early exits like .limit or .find)
+ */
+
 @Disabled
 public class Ex09FlowsTest {
   @Test void flowSumStr() { ok(new Res("30", "", 0), "test.Test", """
@@ -145,6 +154,43 @@ public class Ex09FlowsTest {
         .actor(v, {acc, n -> ...2})
         .map{n -> n.str}
         #(Flow.str " ")
+      )}
+    """, Base.mutBaseAliases);}
+
+  @Test void flowSplit() { ok(new Res(), "test.Test", """
+    package test
+    Test: Main{sys -> "5 10 15".assertEq(
+      Flow#[Int](5, 10, 15)
+        .split(
+          {f -> f.map{n -> n * 5}.filter{n -> n > 10}},
+          {f -> f.map{n -> n * 10}},
+          {f -> f.map{n -> n * 15}},
+          {f1,f2,f3 -> f1#(Flow.str " ")+" "+f2#(Flow.str " ")+" "+f3#(Flow.str " ")},
+        )
+        //vs
+        .split3{
+          .f1(f) -> f.map{n -> n * 5},
+          .f2(f) -> f.map{n -> n * 10},
+          .f3(f) -> f.map{n -> n * 15},
+          .merge(f1,f2,f3) -> f1#(Flow.str " ")+" "+f2#(Flow.str " ")+" "+f3#(Flow.str " "),
+        }
+        // split actors
+        // with a capability, this is fine with imm messages. Without a capability we can call actor2 and actor3 from
+        // recvActor but actor2 and actor3 cannot call any other actor. Accessing the actor graph needs a capability.
+        .spawnSystemOf3(...., {
+          .recvActor(state, msg) -> ...,
+          .actor2(state, msg, actorRef3) -> ...,
+          .actor3(state, msg, actorRef2) -> ...,
+          .consume(state1, state2, state3) -> ...,
+          }
+          // or
+        .spawnSystemOf3(...., {
+          .recvActor(state, msg, downstream) -> ...,
+          .actor2(state, msg, actorRef3, downstream) -> ...,
+          .actor3(state, msg, actorRef2, downstream) -> ...,
+          } // has to internally represent the result as three downstream lists to have a deterministic ordering
+        .map{n -> n + 5}
+        .to list..
       )}
     """, Base.mutBaseAliases);}
 }
