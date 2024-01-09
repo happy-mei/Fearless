@@ -15,6 +15,7 @@ Ref:{
 Ref[X:imm,mut,read]:Sealed{
   mut  .get: X,
   read .get: read X,
+  // TODO: this will be unneeded if we add read/imm
   read .getImm(f: mut Freezer[read X, imm X]): imm X -> f#(this.get),
   read .getImm: Opt[imm X] -> {},
   mut  *: X -> this.get,

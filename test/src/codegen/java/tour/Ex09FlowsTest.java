@@ -84,7 +84,45 @@ public class Ex09FlowsTest {
       }
     """, Base.mutBaseAliases);}
 
-  // We may not need this
+  @Test void flowDuplicate() { ok(new Res("35 40 45", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> Flow#[Int](5, 10, 15)
+      .duplicate f2 = {f1 -> f1#(Flow.sum)}
+      .map{n -> n + f2}
+      .map{n -> n.str}
+      #(Flow.str " ")
+      }
+    """, Base.mutBaseAliases);}
+
+  @Test void mutExtensionMethod() { ok(new Res("20 30", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> Block#
+      .var list = {List#[Int](1, 2, 3)}
+      .var myFlow = {list.flow
+        .filter{n -> n > 1}
+        #{f -> f.map{n -> n*10}}
+        .map{n -> n.str}
+        #(Flow.str " ")
+      }
+    """, Base.mutBaseAliases);}
+
+  @Test void flowActor() { ok(new Res(), "test.Test", """
+    package test
+    Test:Main {sys -> "5 10 500".assertEq(
+      Flow#[Int](5, 10, 15)
+        // .actor requires an iso S for its initial value
+        // The 3rd argument is optional
+        .actor(Ref#1, {state, downstream -> Block#
+          .do {state.set(someMutList.get(0u)!)}
+          .if {state.get > 10} .return{downstream#500}
+          .do{downstream#42}
+          .return {downstream#n}}, mut Consumer[mut Ref[Int]]{state->someRandom.set(state.get)})
+        .map{n -> n.str}
+        #(Flow.str " ")
+      )}
+    """, Base.mutBaseAliases);}
+
+  // We may have this as a specialisation of .actor
   @Test void flowScan() { ok(new Res(), "test.Test", """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
@@ -95,43 +133,54 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases);}
 
-  // TODO: Next topic is what parallelisation is possible on .map
+//  @Test void flowActor() { ok(new Res(), "test.Test", """
+//    package test
+//    Test:Main {sys -> "5 10 500".assertEq(
+//      Flow#[Int](5, 10, 15)
+//        // .actor requires an iso S for its initial value
+//        // This lambda has the type read ActorImpl[mut IsoPod[S], ... E, R]
+//        .actor(Ref#1, mut Consume[mut Ref[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
+//          .do {state.set(someMutList.get(0u)!)}
+//          .if {state.get > 10} .return {500}
+//          .return {n})
+//        .actor(Ref#1, mut Consume[mut Ref[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
+//          .do {state.set(someMutList.get(0u)!)}
+//          .if {state.get > 10} .return {500}
+//          .return {n})
+//        // Actors on:
+//        // - mut flow of imm values with an imm lambda
+//        //    + the lambda can take mut state
+//              - the lambda can only capture imm
+//        // - mut flow of mut values with an imm lambda
+//        //    - we cannot take mut state
+//        //    - the lambda can only capture imm
+//        // - mut flow of imm values with an read lambda
+//        //    - the lambda cannot take mut state
+//        //    + the lambda can capture mut state as read
+//        // - mut flow of mut values with an read lambda
+//        //    - the lambda cannot take mut state
+//        //    - unsound to parallelise
+//        // - mut flow of imm values with an readH lambda
+//        // - mut flow of mut values with an readH lambda
+//
+//        .actor(Ref#1, {state, n -> Block#
+//          .if {state.get > 10} .return {500}
+//          .do {state.put(n + state.get)}
+//          .return {n})
+//        .map{n -> n.str}
+//        #(Flow.str " ")
+//      )}
+//    """, Base.mutBaseAliases);}
 
-  @Test void flowMutScan() { ok(new Res(), "test.Test", """
+  @Test void flowActorMultiParallel() { ok(new Res(), "test.Test", """
     package test
-    Test:Main {sys -> "5 10 500".assertEq(
-      Flow#[Int](5, 10, 15)
-        // .actor requires an iso S for its initial value
-        // This lambda has the type read ActorImpl[mut IsoPod[S], ... E, R]
-        .actor(Ref#1, mut Consume[mut Ref[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
+    Test:Main {sys -> "5 10".assertEq(
+      Flow#[Int](5, 10)
+        .actor(Ref#1, {state, n -> Block#
           .do {state.set(someMutList.get(0u)!)}
           .if {state.get > 10} .return {500}
           .return {n})
-          
-        // Actors on:
-        // - mut flow of imm values with an imm lambda
-        //    + the lambda can take mut state
-              - the lambda can only capture imm
-        // - mut flow of mut values with an imm lambda
-        //    - we cannot take mut state
-        //    - the lambda can only capture imm
-        // - mut flow of imm values with an read lambda
-        //    - the lambda cannot take mut state
-        //    + the lambda can capture mut state as read
-        // - mut flow of mut values with an read lambda
-        //    - the lambda cannot take mut state
-        //    - unsound to parallelise
-        // - mut flow of imm values with an readH lambda
-        // - mut flow of mut values with an readH lambda
-          
-        .actor(Ref#1, {state, n -> Block#
-          .if {state.get > 10} .return {500}
-          .do {state.put(n + state.get)}
-          .return {n})
-        .map{n -> n.str}
-        #(Flow.str " ")
-      )}
-    """, Base.mutBaseAliases);}
+    """, Base.mutBaseAliases); }
 
   // If we do not offer any mapMut/mut lambdas, we can have parallelised read lambdas
   @Test void mapAndMapMut() { ok(new Res(), "test.Test", """

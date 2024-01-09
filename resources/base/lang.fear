@@ -26,6 +26,8 @@ ToImm[R]:{ readOnly .toImm: imm R, }
 Freezer[T,R]:{ mut #(self: T): imm R }
 Ice[T]:{ readOnly .get: imm T }
 
+Consumer[T]:{ mut #(self: T): Void }
+
 Box[T]:{
   mut  .get: T,
   read .get: read T,

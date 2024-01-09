@@ -36,6 +36,7 @@ Block[R]:{
 BlockIf[R]:{
   mut .return(a: mut ReturnStmt[R]): mut Block[R],
   mut .do(r: mut ReturnStmt[Void]): mut Block[R],
+  // TODO: .error
   }
 _DecidedBlock:{
   #[R](res: R): mut Block[R] -> { 'self
