@@ -1,0 +1,29 @@
+package base.flows
+alias base.Todo as Todo,
+
+Flow:{
+  #[E]: mut Flow[E] -> mut EmptyFlow[E],
+  #[E](e: E): mut Flow[E] -> _SeqFlow#[E](e),
+  }
+
+Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
+  .self -> this,
+  }
+
+_NonTerminalOps[E]: {
+  mut .filter(predicate: read F[E, Bool]): mut Flow[E],
+  mut .map[R](f: read F[E, R]): mut Flow[R],
+  }
+_TerminalOps[E]: Sealed{
+  mut .anyMatch(predicate: read F[E, Bool]): Bool,
+  }
+
+//_FlowAction[U, E, R]: Sealed, Consumer[E, R]{
+////  mut .upstream: mut Flow[U],
+//  }
+
+EmptyFlow[E]: Flow[E]{
+  .filter(p) -> this,
+  mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
+  .anyMatch(p) -> False,
+  }

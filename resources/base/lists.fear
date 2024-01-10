@@ -142,7 +142,7 @@ _List:{
     .add(e) -> s := (_ListState#[E](s*.size + 1u, s*.inner + e)),
     }
   }
-List[E]:Collection{
+List[E]: Collection{
   mut  .get(i: UInt): mut Opt[E],
   read .get(i: UInt): mut Opt[read E],
   imm  .get(i: UInt): iso Opt[imm E],
@@ -179,4 +179,14 @@ _ListState:{
     .size -> len,
     .inner -> inner
     }
+  }
+
+/// A list that can be appended to, then iterated over. Elements cannot be removed from this list.
+/// After the list is built, it may no longer be modified. This data structure is equivalent to
+/// Java's SpinedBuffer.
+AppendList[E]: Collection{
+  mut  .get(i: UInt): mut Opt[E],
+  read .get(i: UInt): mut Opt[read E],
+  imm  .get(i: UInt): iso Opt[imm E],
+  mut .append(e: E): Void,
   }

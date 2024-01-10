@@ -1,0 +1,16 @@
+package flows
+alias base.flows.Flow as Flow,
+
+App:Main{ sys -> Block#
+  .var io = { FIO#sys }
+  .do{ io.println(FlowEx.emptyFlow.str) }
+  .do{ io.println(FlowEx.oneElem.str) }
+  .return{{}}
+  }
+
+FlowEx:{
+  .emptyFlow: Bool -> Flow#[Int].filter{e -> e > 3}.anyMatch{e -> e == 5},
+
+  .oneElem: Bool -> Flow#[Int](5).filter{e -> e > 3}.anyMatch{e -> e == 5},
+  }
+

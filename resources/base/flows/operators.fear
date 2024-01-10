@@ -1,0 +1,33 @@
+package base.flows
+
+_FlowOp[E]: {
+  mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R],
+  mut .forEachRemaining[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.step(sink).match{
+    .continue -> this.forEachRemaining(sink),
+    .return(x) -> ControlFlow.return(x),
+    .break -> ControlFlow.break[R],
+    },
+  }
+
+ControlFlow: {
+  .continue[T]: mut ControlFlow[T] -> {m -> m.continue},
+  .return[T](x: T): mut ControlFlow[T] -> {m -> m.return(x)},
+  .break[T]: mut ControlFlow[T] -> {m -> m.break},
+  }
+ControlFlow[T]: {
+  mut .match[R](m: mut ControlFlowMatcher[T, R]): R,
+  }
+ControlFlowMatcher[T, R]: {
+  mut .continue: R,
+  mut .break: R,
+  mut .return(x: T): R,
+  }
+
+_Sink[T,R]: { mut #(x: T): mut ControlFlow[R] }
+
+_Filter: {
+  #[E](upstream: mut _FlowOp[E], predicate: read F[E, Bool]): mut _FlowOp[E] -> { 'self
+     mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R] ->
+      upstream.step[R]{e -> predicate#e ? {.then -> sink#e, .else -> ControlFlow.continue[R]}},
+    }
+  }
