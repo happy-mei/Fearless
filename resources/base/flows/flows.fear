@@ -16,6 +16,8 @@ _NonTerminalOps[E]: {
   mut .map[R](f: read F[E, R]): mut Flow[R],
   }
 _TerminalOps[E]: Sealed{
+  mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],
+  mut .find(predicate: read F[E, Bool]): mut Opt[E],
   mut .anyMatch(predicate: read F[E, Bool]): Bool,
   }
 
@@ -26,5 +28,7 @@ _TerminalOps[E]: Sealed{
 EmptyFlow[E]: Flow[E]{
   .filter(p) -> this,
   mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
+  .findMap(_) -> {},
+  .find(_) -> {},
   .anyMatch(p) -> False,
   }

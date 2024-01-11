@@ -1,16 +1,22 @@
 package base.flows
 
 _SeqFlow: {
-  .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> {
+  .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> {'self
+    // non-terminals
     .filter(p) -> this.fromOp(_Filter#[E](source, p)),
     mut .map[R](f: read F[E, R]): mut Flow[R] -> Todo!,
-    .anyMatch(p) -> source.forEachRemaining[Bool]{e ->
-      p#e ? {.then -> ControlFlow.return(True), .else -> ControlFlow.continue[Bool]}
-      }.match{
-        .continue -> False,
-        .break -> False,
-        .return(true) -> true,
-      },
+
+    // terminals
+    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> source
+      .forEachRemaining[mut Opt[R]]{e -> Let#{
+        .var -> f#e,
+        .in(res) -> res.match{.some(_) -> ControlFlow.return res, .empty -> ControlFlow.continue},
+        }}
+      .match{.continue -> {}, .break -> {}, .return(x) -> x},
+    .find(p) -> self.findMap{e -> p#e ? {.then -> Opt#e, .else -> {}}},
+    .anyMatch(p) -> self
+      .findMap{e -> p#e ? {.then -> Opt#True, .else -> {}}}
+      .match{.some(x) -> x, .empty -> False},
     },
 
   #[E](e: E): mut Flow[E] -> Block#
