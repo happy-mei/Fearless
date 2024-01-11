@@ -26,7 +26,7 @@ ControlFlowMatcher[T, R]: {
 _Sink[T,R]: { mut #(x: T): mut ControlFlow[R] }
 
 _Filter: {
-  #[E](upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> { 'self
+  #[E](upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> {
      mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R] ->
       upstream.step[R]{e -> predicate#e ? {.then -> sink#e, .else -> ControlFlow.continue[R]}},
     }
