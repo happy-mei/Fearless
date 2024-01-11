@@ -1,7 +1,7 @@
 package base.flows
 
 _SeqFlow: {
-  .fromOp[E](source: mut _FlowOp[E]): mut Flow[E] -> {
+  .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> {
     .filter(p) -> this.fromOp(_Filter#[E](source, p)),
     mut .map[R](f: read F[E, R]): mut Flow[R] -> Todo!,
     .anyMatch(p) -> source.forEachRemaining[Bool]{e ->
@@ -15,12 +15,12 @@ _SeqFlow: {
 
   #[E](e: E): mut Flow[E] -> Block#
     .var[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
-    .var[mut _FlowOp[E]] source = {{ 'self
+    .var[mut FlowOp[E]] source = {{ 'self
       mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> seq.swap(mut Opt[E]).match{
         .some(x) -> sink#x,
         .empty -> ControlFlow.break[R],
         },
       .forEachRemaining(sink) -> self.step(sink),
       }}
-    .return{this.fromOp(source)},
+    .return {this.fromOp(source)},
   }

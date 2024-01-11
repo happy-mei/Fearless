@@ -48,6 +48,31 @@ LList[E]:Collection{
     .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
     },
 
+  mut  .flow: mut Flow[E] -> Block#
+    .var cursor = {Ref#this}
+    .return {Flow.fromOp{ 'self
+      mut .step[R](sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> (cursor.swap(cursor*.tail)).head.match{
+        .some(x) -> sink#x,
+        .empty -> FlowCtrl.break[R],
+        },
+      }},
+  read .flow: mut Flow[read E] -> Block#
+    .var cursor = {Ref#this}
+    .return {Flow.fromOp{ 'self
+      mut .step[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> (cursor.swap(cursor*.tail)).head.match{
+        .some(x) -> sink#x,
+        .empty -> FlowCtrl.break[R],
+        },
+      }},
+  imm  .flow: mut Flow[imm E] -> Block#
+    .var cursor = {Ref#this}
+    .return {Flow.fromOp{ 'self
+      mut .step[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> (cursor.swap(cursor*.tail)).head.match{
+        .some(x) -> sink#x,
+        .empty -> FlowCtrl.break[R],
+        },
+      }},
+
   read .isEmpty: Bool -> True,
   read .size: UInt -> 0u,
 

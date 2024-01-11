@@ -44,7 +44,20 @@ Iter[E]:{
   mut .llist: mut LList[E] -> this.fold(mut LList[E], { acc, e -> acc +[] e }),
   mut .str(toStr: mut IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
     .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e,
-                                                                         .else -> acc + joining + e }})
+                                                                         .else -> acc + joining + e }}),
+
+  mut .flow: mut Flow[E] -> Flow.fromOp{
+    mut .step[R](sink: mut FlowSink[E,R]): mut FlowCtrl[R] -> this.next.match{
+     .some(x) -> sink#x,
+     .empty -> FlowCtrl.break[R],
+     },
+    mut .forEachRemaining[R](sink: mut FlowSink[E,R]): mut FlowCtrl[R] ->
+      this.map{x -> sink#x}.find{ctrl -> ctrl.match{
+        .continue -> False,
+        .break -> True,
+        .return(_) -> True,
+        }}.match{.some(ctrl) -> ctrl, .empty -> FlowCtrl.break[R]},
+    },
   }
 
 Sum:{

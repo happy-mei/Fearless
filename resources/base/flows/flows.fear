@@ -4,6 +4,7 @@ alias base.Todo as Todo,
 Flow:{
   #[E]: mut Flow[E] -> mut EmptyFlow[E],
   #[E](e: E): mut Flow[E] -> _SeqFlow#[E](e),
+  .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> _SeqFlow.fromOp(source),
   }
 
 Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
