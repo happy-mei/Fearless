@@ -1,10 +1,15 @@
 package base.flows
 alias base.Todo as Todo,
 
-Flow:{
+Flow: _FlowExtensions{
   #[E]: mut Flow[E] -> mut EmptyFlow[E],
   #[E](e: E): mut Flow[E] -> _SeqFlow#[E](e),
-  .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> _SeqFlow.fromOp(source),
+  #[E](e1: E, e2: E): mut Flow[E] -> List#(e1, e2).flow,
+  #[E](e1: E, e2: E, e3: E): mut Flow[E] -> List#(e1, e2, e3).flow,
+  #[E](e1: E, e2: E, e3: E, e4: E): mut Flow[E] -> List#(e1, e2, e3, e4).flow,
+
+  .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> _SeqFlow.fromOp(source, {}),
+  .fromOp[E](source: mut FlowOp[E], size: UInt): mut Flow[E] -> _SeqFlow.fromOp(source, Opt#size),
   }
 
 Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
@@ -18,7 +23,16 @@ _NonTerminalOps[E]: {
 _TerminalOps[E]: Sealed{
   mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],
   mut .find(predicate: read F[E, Bool]): mut Opt[E],
-  mut .anyMatch(predicate: read F[E, Bool]): Bool,
+  mut .any(predicate: read F[E, Bool]): Bool,
+  mut .all(predicate: read F[E, Bool]): Bool,
+  mut .fold[S](acc: S, f: read F[S,E,S]): S,
+  mut .size: UInt,
+  }
+
+_FlowExtensions: {
+  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> Todo!},
+  .uSum: mut Extension[mut Flow[UInt], UInt] -> {flow -> Todo!},
+  .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> Todo!},
   }
 
 //_FlowAction[U, E, R]: Sealed, Consumer[E, R]{
@@ -30,5 +44,8 @@ EmptyFlow[E]: Flow[E]{
   mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
   .findMap(_) -> {},
   .find(_) -> {},
-  .anyMatch(p) -> False,
+  .any(p) -> False,
+  .all(p) -> False,
+  .fold(acc, _) -> acc,
+  .size -> 0u,
   }

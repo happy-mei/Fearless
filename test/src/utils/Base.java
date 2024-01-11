@@ -148,5 +148,7 @@ public interface Base {
     alias base.False as False,
     
     alias base.Assert as Assert,
+    
+    alias base.flows.Flow as Flow,
     """;
 }

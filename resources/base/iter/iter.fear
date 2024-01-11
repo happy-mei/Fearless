@@ -51,7 +51,7 @@ Iter[E]:{
      .some(x) -> sink#x,
      .empty -> FlowCtrl.break[R],
      },
-    mut .forEachRemaining[R](sink: mut FlowSink[E,R]): mut FlowCtrl[R] ->
+    mut .forRemaining[R](sink: mut FlowSink[E,R]): mut FlowCtrl[R] ->
       this.map{x -> sink#x}.find{ctrl -> ctrl.match{
         .continue -> False,
         .break -> True,

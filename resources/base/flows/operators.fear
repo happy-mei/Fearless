@@ -2,11 +2,13 @@ package base.flows
 
 FlowOp[E]: {
   mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R],
-  mut .forEachRemaining[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.step(sink).match{
-    .continue -> this.forEachRemaining(sink),
+  mut .forRemaining[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.step(sink).match{
+    .continue -> this.forRemaining(sink),
     .return(x) -> ControlFlow.return(x),
     .break -> ControlFlow.break[R],
     },
+  mut .hasSize: Bool -> False,
+  mut .isFinite: Bool -> True,
   }
 
 ControlFlow: {
@@ -16,12 +18,18 @@ ControlFlow: {
   }
 ControlFlow[T]: {
   mut .match[R](m: mut ControlFlowMatcher[T, R]): R,
+  mut .then(f: mut ControlFlowCont[T]): mut ControlFlow[T] -> this.match{
+    .continue -> f#,
+    .break -> this,
+    .return(_) -> this,
+    },
   }
 ControlFlowMatcher[T, R]: {
   mut .continue: R,
   mut .break: R,
   mut .return(x: T): R,
   }
+ControlFlowCont[T]: { mut #: mut ControlFlow[T] }
 
 _Sink[T,R]: { mut #(x: T): mut ControlFlow[R] }
 

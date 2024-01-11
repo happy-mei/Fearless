@@ -1,22 +1,32 @@
 package base.flows
 
 _SeqFlow: {
-  .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[UInt]): mut Flow[E] -> {'self
     // non-terminals
-    .filter(p) -> this.fromOp(_Filter#[E](source, p)),
+    .filter(p) -> this.fromOp(_Filter#[E](source, p), {}),
     mut .map[R](f: read F[E, R]): mut Flow[R] -> Todo!,
 
     // terminals
-    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> source
-      .forEachRemaining[mut Opt[R]]{e -> Let#{
-        .var -> f#e,
-        .in(res) -> res.match{.some(_) -> ControlFlow.return res, .empty -> ControlFlow.continue},
-        }}
+    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> source.forRemaining[mut Opt[R]]{e -> Let#{
+      .var -> f#e,
+      .in(res) -> res.match{.some(_) -> ControlFlow.return res, .empty -> ControlFlow.continue},
+      }}
       .match{.continue -> {}, .break -> {}, .return(x) -> x},
     .find(p) -> self.findMap{e -> p#e ? {.then -> Opt#e, .else -> {}}},
-    .anyMatch(p) -> self
+    .any(p) -> self
       .findMap{e -> p#e ? {.then -> Opt#True, .else -> {}}}
-      .match{.some(x) -> x, .empty -> False},
+      .isSome,
+    .all(p) -> self
+      .findMap{e -> p#e ? {.then -> {}, .else -> Opt#False}}
+      .isEmpty,
+    .fold(acc, f) -> Todo!,
+    .size -> size.match{
+      .some(n) -> n,
+      .empty -> Let#{
+        .var -> Count.uint(0u),
+        .in(n) -> Block#(source.forRemaining[UInt]{_ -> Block#(n := (n* + 1u), ControlFlow.continue)}, n*)
+        }
+      }
     },
 
   #[E](e: E): mut Flow[E] -> Block#
@@ -26,7 +36,7 @@ _SeqFlow: {
         .some(x) -> sink#x,
         .empty -> ControlFlow.break[R],
         },
-      .forEachRemaining(sink) -> self.step(sink),
+      .forRemaining(sink) -> self.step(sink),
       }}
-    .return {this.fromOp(source)},
+    .return {this.fromOp(source, Opt#1u)},
   }

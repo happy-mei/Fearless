@@ -73,3 +73,5 @@ alias base.True as True,
 alias base.False as False,
 
 alias base.Assert as Assert,
+
+alias base.flows.Flow as Flow,

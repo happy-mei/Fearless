@@ -13,20 +13,20 @@ App:Main{ sys -> Block#
   }
 
 FlowEx:{
-  .emptyFlow: Bool -> Flow#[Int].filter{e -> e > 3}.anyMatch{e -> e == 5},
+  .emptyFlow: Bool -> Flow#[Int].filter{e -> e > 3}.any{e -> e == 5},
 
-  .oneElem: Bool -> Flow#[Int](5).filter{e -> e > 3}.anyMatch{e -> e == 5},
+  .oneElem: Bool -> Flow#[Int](5).filter{e -> e > 3}.any{e -> e == 5},
 
   .listImm: Bool -> (LList[Int] + 10 + 5 + 1).flow
-    .anyMatch{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
+    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
   .listRead: Bool -> (read LList[Int] + 10 + 5 + 1).flow
-    .anyMatch{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
+    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
   .listMut: Bool -> (mut LList[Int] + 10 + 5 + 1).flow
-    .anyMatch{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
+    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
 
   .fromIter: Bool -> (LList[Int] + 10 + 1 + 5).iter
       .filter{e -> (e == 1).not}
       .flow
-      .anyMatch{e -> e == 1 ? {.then -> Error.str "not filtering", .else -> e == 5}},
+      .any{e -> e == 1 ? {.then -> Error.str "not filtering", .else -> e == 5}},
   }
 

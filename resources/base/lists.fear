@@ -173,6 +173,59 @@ List[E]: Collection{
   imm  .get(i: UInt): iso Opt[imm E],
   mut .add(e: E): Void,
   mut .addAll(other: mut List[E]): Void -> other.iter.for{ e -> this.add(e) },
+
+  mut  .flow: mut Flow[E] -> Let#{
+    .var -> Count.uint(0u),
+    .in(cursor) -> Flow.fromOp({ 'self
+       mut .step[R](sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
+         .some(x) -> sink#x,
+         .empty -> FlowCtrl.break[R],
+         },
+       mut .forRemaining[R](sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> Block#
+         .var from = {cursor*}
+         .do {cursor := 0u}
+         .return {self.range[R](from, this.size, sink)},
+       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> from >= to ? {
+         .then -> FlowCtrl.break,
+         .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
+         },
+       })
+    },
+  read .flow: mut Flow[read E] -> Let#{
+    .var -> Count.uint(0u),
+    .in(cursor) -> Flow.fromOp({ 'self
+       mut .step[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
+         .some(x) -> sink#x,
+         .empty -> FlowCtrl.break[R],
+         },
+       mut .forRemaining[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> Block#
+         .var from = {cursor*}
+         .do {cursor := 0u}
+         .return {self.range[R](from, this.size, sink)},
+       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> from >= to ? {
+         .then -> FlowCtrl.break,
+         .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
+         },
+       }, this.size)
+    },
+  imm  .flow: mut Flow[imm E] -> Let#{
+    .var -> Count.uint(0u),
+    .in(cursor) -> Flow.fromOp({ 'self
+       mut .step[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
+         .some(x) -> sink#x,
+         .empty -> FlowCtrl.break[R],
+         },
+       mut .forRemaining[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> Block#
+         .var from = {cursor*}
+         .do {cursor := 0u}
+         .return {self.range[R](from, this.size, sink)},
+       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> from >= to ? {
+         .then -> FlowCtrl.break,
+         .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
+         },
+       }, this.size)
+    },
+
   mut .iter: mut Iter[E] -> Let#{
     .var -> Count.uint(0u),
     .in(cursor) -> { .next -> this.get(cursor++) }
