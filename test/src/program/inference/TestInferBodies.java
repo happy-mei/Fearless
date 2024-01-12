@@ -1364,4 +1364,42 @@ public class TestInferBodies {
     package base
     Sealed:{}
     """); }
+
+  @Test void branchingReturnTypes() { ok("""
+    {a.OptMatch/2=Dec[name=a.OptMatch/2,gxs=[T,R],lambda=[--][a.OptMatch[T,R]]{'this
+      .some/1([x]):Sig[mdf=mut,gens=[],ts=[T],ret=R]->[-],
+      .empty/0([]):Sig[mdf=mut,gens=[],ts=[],ret=R]->[-]}],
+    a.N/0=Dec[name=a.N/0,gxs=[],lambda=[--][a.N[]]{'this}],
+    a.Zero/0=Dec[name=a.Zero/0,gxs=[],lambda=[--][a.Zero[],a.N[]]{'this}],
+    a.Opt/1=Dec[name=a.Opt/1,gxs=[T],lambda=[--][a.Opt[T]]{'this
+      .match/1([m]):Sig[mdf=mut,gens=[R],ts=[muta.OptMatch[T,R]],ret=R]->m.empty/0[]([]),
+      .match/1([m]):Sig[mdf=read,gens=[R],ts=[muta.OptMatch[readT,R]],ret=R]->m.empty/0[]([]),
+      .match/1([m]):Sig[mdf=imm,gens=[R],ts=[muta.OptMatch[immT,R]],ret=R]->m.empty/0[]([])}],
+    a.Opt/0=Dec[name=a.Opt/0,gxs=[],lambda=[--][a.Opt[]]{'this
+      #/1([x]):Sig[mdf=imm,gens=[T],ts=[T],ret=muta.Opt[T]]->
+        [-mut-][a.Opt[T]]{'fear6$
+          .match/1([m]):Sig[mdf=mut,gens=[X1/0$],ts=[muta.OptMatch[T,X1/0$]],ret=X1/0$]->m.some/1[]([x]),
+          .match/1([m]):Sig[mdf=imm,gens=[X1/0$],ts=[muta.OptMatch[immT,X1/0$]],ret=X1/0$]->m.some/1[]([x]),
+          .match/1([m]):Sig[mdf=read,gens=[X1/0$],ts=[muta.OptMatch[readT,X1/0$]],ret=X1/0$]->m.some/1[]([x])}}],
+    a.Test/0=Dec[name=a.Test/0,gxs=[],lambda=[--][a.Test[]]{'this
+      .test/1([opt]):Sig[mdf=imm,gens=[],ts=[imma.Opt[imma.N[]]],ret=imma.N[]]->
+        opt.match/1[imma.N[]]([[-mut-][a.OptMatch[imma.N[],imma.N[]]]{'fear7$
+          .some/1([n]):Sig[mdf=mut,gens=[],ts=[imma.N[]],ret=imma.N[]]->n,
+          .empty/0([]):Sig[mdf=mut,gens=[],ts=[],ret=imm a.N[]]->[-imm-][a.Zero[]]{'fear8$}}])}]}
+    """, """
+    package a
+    Opt:{ #[T](x: T): mut Opt[T] -> { .match(m) -> m.some(x) }}
+    Opt[T]:{
+      mut  .match[R](m: mut OptMatch[T, R]): R -> m.empty,
+      read .match[R](m: mut OptMatch[read T, R]): R -> m.empty,
+      imm  .match[R](m: mut OptMatch[imm T, R]): R -> m.empty
+      }
+    OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
+    N: {}
+    Zero: N{}
+    Test:{ .test(opt: Opt[N]): N -> opt.match{
+      .some(n) -> n,
+      .empty -> Zero,
+      }}
+    """); }
 }

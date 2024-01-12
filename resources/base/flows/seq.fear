@@ -4,7 +4,7 @@ _SeqFlow: {
   .fromOp[E](source: mut FlowOp[E], size: Opt[UInt]): mut Flow[E] -> {'self
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#[E](source, p), {}),
-    mut .map[R](f: read F[E, R]): mut Flow[R] -> Todo!,
+    mut .map[R](f: read F[E,R]): mut Flow[R] -> this.fromOp(_Map#[E,R](source, f), size),
 
     // terminals
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> source.forRemaining[mut Opt[R]]{e -> Let#{
@@ -19,24 +19,33 @@ _SeqFlow: {
     .all(p) -> self
       .findMap{e -> p#e ? {.then -> {}, .else -> Opt#False}}
       .isEmpty,
-    .fold(acc, f) -> Todo!,
-    .size -> size.match{
+
+    .fold(acc, f) -> source.step{e -> ControlFlow.continue(e)}.match{
+      .continue(e) -> self.fold(f#(acc, e), f),
+      .continue -> self.fold(acc, f),
+      .break -> acc,
+      .return(e) -> f#(acc, e),
+      },
+
+    .size -> size.match[UInt]{
       .some(n) -> n,
-      .empty -> Let#{
-        .var -> Count.uint(0u),
-        .in(n) -> Block#(source.forRemaining[UInt]{_ -> Block#(n := (n* + 1u), ControlFlow.continue)}, n*)
-        }
-      }
+    // TODO: inference broken on .empty, see the test `branchingReturnTypes`
+//      .empty -> self.fold[UInt](0u, {acc, _ -> acc + 1u}),
+      .empty -> Block#
+        .var[UInt] start = {0u}
+        .return {self.fold(start, {acc, _ -> acc + 1u})}
+      },
     },
 
   #[E](e: E): mut Flow[E] -> Block#
     .var[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
     .var[mut FlowOp[E]] source = {{ 'self
-      mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> seq.swap(mut Opt[E]).match{
+      mut .step[R](sink: read _Sink[E,R]): mut ControlFlow[R] -> seq.swap(mut Opt[E]).match{
         .some(x) -> sink#x,
         .empty -> ControlFlow.break[R],
         },
       .forRemaining(sink) -> self.step(sink),
       }}
     .return {this.fromOp(source, Opt#1u)},
+//    .return {this.fromOp(source, Opt#1u)},
   }

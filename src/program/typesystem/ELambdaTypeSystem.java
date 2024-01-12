@@ -84,7 +84,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .findFirst();
     T retT = expectedT //TOP LEVEL = declared type
       .map(t->t.withMdf(b.mdf()))
-      .orElseGet(()->new T(b.mdf(), b.its().get(0)));
+      .orElseGet(()->new T(b.mdf(), b.its().getFirst()));
     T selfT = new T(b.mdf(), d.toIT());
     var selfName=b.selfName();
     List<CompileError> mRes = b.meths().stream().flatMap(mi->{
@@ -95,7 +95,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       }
     }).toList();
     if(mRes.isEmpty()){ return Optional.empty(); }
-    return Optional.of(mRes.get(0));
+    return Optional.of(mRes.getFirst());
   }
   default Optional<CompileError> mOk(String selfName, T selfT, E.Meth m){
     var xbs_ = xbs();

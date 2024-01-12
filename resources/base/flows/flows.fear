@@ -30,9 +30,11 @@ _TerminalOps[E]: Sealed{
   }
 
 _FlowExtensions: {
-  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> Todo!},
+  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold(this._izero, {acc, e -> acc + e})},
   .uSum: mut Extension[mut Flow[UInt], UInt] -> {flow -> Todo!},
   .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> Todo!},
+  // TODO: inference on return types is broken, see the test `branchingReturnTypes`
+  ._izero: Int -> 0,
   }
 
 //_FlowAction[U, E, R]: Sealed, Consumer[E, R]{

@@ -16,7 +16,6 @@ import static codegen.java.RunJavaProgramTests.*;
  * (this is important for early exits like .limit or .find)
  */
 
-@Disabled
 public class Ex09FlowsTest {
   @Test void flowSumStr() { ok(new Res("30", "", 0), "test.Test", """
     package test
@@ -53,6 +52,13 @@ public class Ex09FlowsTest {
       Flow#[Int](5, 10, 15).filter{n -> n > 5}.size
       == 2u
       )}
+    """, Base.mutBaseAliases);}
+  @Test void flowFilterPrintSize() { ok(new Res("2", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> Block#
+      .var size = {Flow#[Int](5, 10, 15).filter{n -> n > 5}.size}
+      .return {FIO#sys.println(size.str)}
+      }
     """, Base.mutBaseAliases);}
   @Test void flowFilterMap() { ok(new Res(), "test.Test", """
     package test
@@ -103,6 +109,7 @@ public class Ex09FlowsTest {
         #{f -> f.map{n -> n*10}}
         .map{n -> n.str}
         #(Flow.str " ")
+        }
       }
     """, Base.mutBaseAliases);}
 

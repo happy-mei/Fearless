@@ -51,7 +51,7 @@ LList[E]:Collection{
   mut  .flow: mut Flow[E] -> Block#
     .var cursor = {Ref#this}
     .return {Flow.fromOp{ 'self
-      mut .step[R](sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> (cursor.swap(cursor*.tail)).head.match{
+      mut .step[R](sink: read FlowSink[E, R]): mut FlowCtrl[R] -> (cursor.swap(cursor*.tail)).head.match{
         .some(x) -> sink#x,
         .empty -> FlowCtrl.break[R],
         },
@@ -59,7 +59,7 @@ LList[E]:Collection{
   read .flow: mut Flow[read E] -> Block#
     .var cursor = {Ref#this}
     .return {Flow.fromOp{ 'self
-      mut .step[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> (cursor.swap(cursor*.tail)).head.match{
+      mut .step[R](sink: read FlowSink[read E, R]): mut FlowCtrl[R] -> (cursor.swap(cursor*.tail)).head.match{
         .some(x) -> sink#x,
         .empty -> FlowCtrl.break[R],
         },
@@ -67,7 +67,7 @@ LList[E]:Collection{
   imm  .flow: mut Flow[imm E] -> Block#
     .var cursor = {Ref#this}
     .return {Flow.fromOp{ 'self
-      mut .step[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> (cursor.swap(cursor*.tail)).head.match{
+      mut .step[R](sink: read FlowSink[imm E, R]): mut FlowCtrl[R] -> (cursor.swap(cursor*.tail)).head.match{
         .some(x) -> sink#x,
         .empty -> FlowCtrl.break[R],
         },
@@ -177,15 +177,15 @@ List[E]: Collection{
   mut  .flow: mut Flow[E] -> Let#{
     .var -> Count.uint(0u),
     .in(cursor) -> Flow.fromOp({ 'self
-       mut .step[R](sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
+       mut .step[R](sink: read FlowSink[E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
          .some(x) -> sink#x,
          .empty -> FlowCtrl.break[R],
          },
-       mut .forRemaining[R](sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> Block#
+       mut .forRemaining[R](sink: read FlowSink[E, R]): mut FlowCtrl[R] -> Block#
          .var from = {cursor*}
          .do {cursor := 0u}
          .return {self.range[R](from, this.size, sink)},
-       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> from >= to ? {
+       mut .range[R](from: UInt, to: UInt, sink: read FlowSink[E, R]): mut FlowCtrl[R] -> from >= to ? {
          .then -> FlowCtrl.break,
          .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
          },
@@ -194,15 +194,15 @@ List[E]: Collection{
   read .flow: mut Flow[read E] -> Let#{
     .var -> Count.uint(0u),
     .in(cursor) -> Flow.fromOp({ 'self
-       mut .step[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
+       mut .step[R](sink: read FlowSink[read E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
          .some(x) -> sink#x,
          .empty -> FlowCtrl.break[R],
          },
-       mut .forRemaining[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> Block#
+       mut .forRemaining[R](sink: read FlowSink[read E, R]): mut FlowCtrl[R] -> Block#
          .var from = {cursor*}
          .do {cursor := 0u}
          .return {self.range[R](from, this.size, sink)},
-       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> from >= to ? {
+       mut .range[R](from: UInt, to: UInt, sink: read FlowSink[read E, R]): mut FlowCtrl[R] -> from >= to ? {
          .then -> FlowCtrl.break,
          .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
          },
@@ -211,15 +211,15 @@ List[E]: Collection{
   imm  .flow: mut Flow[imm E] -> Let#{
     .var -> Count.uint(0u),
     .in(cursor) -> Flow.fromOp({ 'self
-       mut .step[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
+       mut .step[R](sink: read FlowSink[imm E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
          .some(x) -> sink#x,
          .empty -> FlowCtrl.break[R],
          },
-       mut .forRemaining[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> Block#
+       mut .forRemaining[R](sink: read FlowSink[imm E, R]): mut FlowCtrl[R] -> Block#
          .var from = {cursor*}
          .do {cursor := 0u}
          .return {self.range[R](from, this.size, sink)},
-       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> from >= to ? {
+       mut .range[R](from: UInt, to: UInt, sink: read FlowSink[imm E, R]): mut FlowCtrl[R] -> from >= to ? {
          .then -> FlowCtrl.break,
          .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
          },
