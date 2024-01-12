@@ -7,7 +7,6 @@ FlowOp[E]: {
     .return(x) -> ControlFlow.return(x),
     .break -> ControlFlow.break[R],
     },
-  mut .hasSize: Bool -> False,
   mut .isFinite: Bool -> True,
   }
 
