@@ -2,6 +2,7 @@ package base.flows
 
 FlowOp[E]: {
   mut .step[R](sink: read _Sink[E,R]): mut ControlFlow[R],
+  mut .stepSeq[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.step(sink),
   mut .forRemaining[R](sink: read _Sink[E,R]): mut ControlFlow[R] -> this.step(sink).match{
     .continue -> this.forRemaining(sink),
     .return(x) -> ControlFlow.return(x),
@@ -32,8 +33,10 @@ ControlFlowMatcher[T, R]: {
   }
 ControlFlowCont[T]: { mut #: mut ControlFlow[T] }
 
-_Sink[T,R]: { read #(x: T): mut ControlFlow[R] }
-_SinkSeq[T,R]: { mut #(x: T): mut ControlFlow[R] }
+_Sink[T,R]: {
+  read #(x: T): mut ControlFlow[R],
+  mut  #(x: T): mut ControlFlow[R],
+  }
 
 _Filter: {
   #[E](upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> {
