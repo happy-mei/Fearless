@@ -1571,4 +1571,17 @@ public class TestJavaProgram {
       .name(p: Person): Str -> p.name,
       }
     """, Base.mutBaseAliases);}
+
+  @Test void codegenCloneMethodBodiesForAbstractMdfOverloads() { ok(new Res(), "test.Ex", """
+    package test
+    alias base.Void as Void, alias base.Main as Main,
+    Ex:Main { _ -> Void }
+    
+    OhNo: { #: Void -> Fun#{v -> v} }
+    Fun: { #(s: read _Sink[Void, Void]): Void -> s#Void }
+    _Sink[T,R]: {
+      read #(x: T): Void,
+      mut  #(x: T): Void,
+      }
+    """); }
 }

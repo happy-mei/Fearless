@@ -35,7 +35,7 @@ ControlFlowCont[T]: { mut #: mut ControlFlow[T] }
 
 _Sink[T,R]: {
   read #(x: T): mut ControlFlow[R],
-  mut  #(x: T): mut ControlFlow[R],
+//  mut  #(x: T): mut ControlFlow[R],
   }
 
 _Filter: {
