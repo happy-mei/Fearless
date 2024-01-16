@@ -386,6 +386,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName("!", 0))) {
+          // todo: does this fail if used as an argument for something wanting like an int?
           return Optional.of("""
             (switch (1) { default -> {
               System.err.println("No magic code was found at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
@@ -408,6 +409,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName("!", 1))) {
+          // TODO: why the "case 2"?
           return Optional.of("""
             (switch (1) {
               default -> throw new FearlessError(%s);

@@ -95,5 +95,9 @@ public interface MagicImpls<R> {
       }
     }
     public Optional<MIR.Lambda> visitLambda(MIR.Lambda newL, boolean _ignored) { return Optional.of(newL); }
+
+    @Override public Optional<MIR.Lambda> visitUnreachable(MIR.Unreachable u) {
+      return Optional.empty();
+    }
   }
 }

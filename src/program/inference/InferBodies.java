@@ -42,7 +42,7 @@ public record InferBodies(ast.Program p) {
   ast.E.Meth inferMethBody(ast.T.Dec dec, E e, ast.E.Meth coreMeth) {
     var refiner = new RefineTypes(p);
     var iV = new InjectionVisitor();
-    var type = refiner.fixType(e,coreMeth.sig().toAstFullSig().ret());
+    var type = refiner.fixType(e, coreMeth.sig().toAstFullSig().ret());
     var newBody = fixInferStep(iGOf(dec, coreMeth), type, 0).accept(iV);
     return coreMeth.withBody(Optional.of(newBody));
   }

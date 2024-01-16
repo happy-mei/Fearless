@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -38,8 +39,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var validMethods = b.meths().stream()
       .filter(m->filterByMdf(mdf, m.sig().mdf()))
       .toList();
-    // todo: check set of meth names are equal instead
-    if (validMethods.size() != b.meths().size()) {
+
+    var validMethNames = validMethods.stream().map(E.Meth::name).collect(Collectors.toSet());
+    if (b.meths().stream().anyMatch(m -> !validMethNames.contains(m.name()))) {
       throw Fail.uncallableMeths(
         mdf,
         b.meths().stream().filter(m->!validMethods.contains(m)).toList()

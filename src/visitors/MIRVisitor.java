@@ -19,6 +19,7 @@ public interface MIRVisitor<R> {
   R visitMCall(MIR.MCall mCall, boolean checkMagic);
   default R visitLambda(MIR.Lambda newL) { return visitLambda(newL, true); }
   R visitLambda(MIR.Lambda newL, boolean checkMagic);
+  R visitUnreachable(MIR.Unreachable u);
 //  R visitNewDynLambda(MIR.NewDynLambda newL);
 //  R visitNewStaticLambda(MIR.NewStaticLambda newL);
 //  R visitShare(MIR.Share s);

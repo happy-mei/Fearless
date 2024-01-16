@@ -53,6 +53,14 @@ public interface MIR {
       return new Lambda(mdf, freshName, selfName, its, captures, meths, canSingleton);
     }
   }
+  record Unreachable(T t) implements MIR {
+    @Override public <R> R accept(MIRVisitor<R> v) {
+      return v.visitUnreachable(this);
+    }
+    @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
+      return v.visitUnreachable(this);
+    }
+  }
 //  record Share(MIR e) implements MIR {
 //    public <R> R accept(MIRVisitor<R> v) {
 //      return v.visitShare(this);

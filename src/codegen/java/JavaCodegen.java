@@ -9,6 +9,7 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import program.typesystem.EMethTypeSystem;
+import utils.Bug;
 import visitors.MIRVisitor;
 
 import java.util.IdentityHashMap;
@@ -134,6 +135,15 @@ public class JavaCodegen implements MIRVisitor<String> {
       .map(m->visitMeth(m, l.selfName(), true))
       .collect(Collectors.joining("\n"));
     return start + ms + "}";
+  }
+
+  @Override public String visitUnreachable(MIR.Unreachable u) {
+    return """
+      (switch (1) {
+        default -> throw new RuntimeException("Unreachable code");
+        case 2 -> (Object)null;
+        })
+      """;
   }
 
 //  public String visitNewLambda(MIR.NewLambda newL) {
