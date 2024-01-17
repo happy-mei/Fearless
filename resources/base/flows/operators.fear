@@ -8,6 +8,11 @@ FlowOp[E]: {
     .return(x) -> ControlFlow.return(x),
     .break -> ControlFlow.break[R],
     },
+  mut .forRemainingSeq[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.stepSeq(sink).match{
+    .continue -> this.forRemainingSeq(sink),
+    .return(x) -> ControlFlow.return(x),
+    .break -> ControlFlow.break[R],
+    },
   mut .isFinite: Bool -> True,
   }
 

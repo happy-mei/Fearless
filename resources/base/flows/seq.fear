@@ -20,12 +20,30 @@ _SeqFlow: {
       .findMap{e -> p#e ? {.then -> {}, .else -> Opt#False}}
       .isEmpty,
 
-    .fold(acc, f) -> source.step{e -> ControlFlow.continue(e)}.match{
-      .continue(e) -> self.fold(f#(acc, e), f),
-      .continue -> self.fold(acc, f),
-      .break -> acc,
-      .return(e) -> f#(acc, e),
-      },
+//    .fold(acc, f) -> source.step{e -> ControlFlow.continue(e)}.match{
+//      .continue(e) -> self.fold(f#(acc, e), f),
+//      .continue -> self.fold(acc, f),
+//      .break -> acc,
+//      .return(e) -> f#(acc, e),
+//      },
+    mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
+      .var[mut Ref[S]] acc' = {Ref#acc}
+      .return {source.forRemainingSeq{
+        mut #(e: E): mut ControlFlow[S] -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S]),
+        read #(e: E): mut ControlFlow[S] -> Error.str "No mutable access to the flow environment",
+        }.match{
+          .continue -> acc'.get,
+          .break -> acc'.get,
+          .return(_) -> acc'.get,
+          }},
+//      .return{self.forRemainingSeq[S] mut _Sink[E, S]{
+//        mut #(e: E): mut ControlFlow[S] -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S]),
+//        read #(e: E): mut ControlFlow[S] -> Error.str "unreachable",
+//        }.match[S]{
+//          .continue -> acc'.get,
+//          .break -> acc'.get,
+//          .return(_) -> acc'.get,
+//          }},
 
     .size -> size.match[UInt]{
       .some(n) -> n,
