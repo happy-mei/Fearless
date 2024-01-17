@@ -47,16 +47,15 @@ Iter[E]:{
                                                                          .else -> acc + joining + e }}),
 
   mut .flow: mut Flow[E] -> Flow.fromOp{
-    mut .step[R](sink: read FlowSink[E,R]): mut FlowCtrl[R] -> this.next.match{
-     .some(x) -> sink#x,
-     .empty -> FlowCtrl.break[R],
-     },
-    mut .forRemaining[R](sink: read FlowSink[E,R]): mut FlowCtrl[R] ->
-      this.map{x -> sink#x}.find{ctrl -> ctrl.match{
-        .continue -> False,
-        .break -> True,
-        .return(_) -> True,
-        }}.match{.some(ctrl) -> ctrl, .empty -> FlowCtrl.break[R]},
+    .step(sink) -> this.next.match{
+      .some(x) -> sink#x,
+      .empty -> FlowCtrl.break,
+      },
+    .forRemaining(sink) -> this.map{x -> sink#x}.find{ctrl -> ctrl.match{
+      .continue -> False,
+      .break -> True,
+      .return(_) -> True,
+      }}.match{.some(ctrl) -> ctrl, .empty -> FlowCtrl.break},
     },
   }
 

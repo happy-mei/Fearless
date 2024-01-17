@@ -25,6 +25,15 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases);}
+  @Test void flowFilterSumStr() { ok(new Res("25", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](5, 10, 15)
+        .filter{n -> n > 5}
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases);}
   @Disabled
   @Test void flowSumAssert() { ok(new Res(), "test.Test", """
     package test

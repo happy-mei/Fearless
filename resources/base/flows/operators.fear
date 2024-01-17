@@ -1,24 +1,31 @@
 package base.flows
 
+// I could have .step with a read sink (so we know that sink operation can be parallelised) _and_ a .step with a mut sink
+// which must be sequential. However, this adds implementation burden for people making flowable data structures and introduces
+// new sources of runtime exceptions (i.e. accidentially calling the non .seq and it throwing because it would have to be
+// unimplemented). Because _Sink/2 is a private trait, we can just manually make sure that a _Sink that would be unsafe
+// to parallelise never runs in parallel. This should be easy because basically all parallel implementations of _Sink
+// will be Magic!.
+
 FlowOp[E]: {
-  mut .step[R](sink: read _Sink[E,R]): mut ControlFlow[R],
-  mut .stepSeq[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.step(sink),
-  mut .forRemaining[R](sink: read _Sink[E,R]): mut ControlFlow[R] -> this.step(sink).match{
+  mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R],
+//  mut .stepSeq[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.step(sink),
+  mut .forRemaining[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.step(sink).match{
     .continue -> this.forRemaining(sink),
     .return(x) -> ControlFlow.return(x),
     .break -> ControlFlow.break[R],
     },
-  mut .forRemainingSeq[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.stepSeq(sink).match{
-    .continue -> this.forRemainingSeq(sink),
-    .return(x) -> ControlFlow.return(x),
-    .break -> ControlFlow.break[R],
-    },
+//  mut .forRemainingSeq[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.stepSeq(sink).match{
+//    .continue -> this.forRemainingSeq(sink),
+//    .return(x) -> ControlFlow.return(x),
+//    .break -> ControlFlow.break[R],
+//    },
   mut .isFinite: Bool -> True,
   }
 
 ControlFlow: {
   .continue[T]: mut ControlFlow[T] -> {m -> m.continue},
-  .continue[T](x: T): mut ControlFlow[T] -> {m -> m.continue(x)},
+//  .continue[T](x: T): mut ControlFlow[T] -> {m -> m.continue(x)},
   .return[T](x: T): mut ControlFlow[T] -> {m -> m.return(x)},
   .break[T]: mut ControlFlow[T] -> {m -> m.break},
   }
@@ -32,7 +39,7 @@ ControlFlow[T]: {
   }
 ControlFlowMatcher[T, R]: {
   mut .continue: R,
-  mut .continue(x: T): R -> this.continue,
+//  mut .continue(x: T): R -> this.continue,
   mut .break: R,
   mut .return(x: T): R,
   }
@@ -45,13 +52,17 @@ _Sink[T,R]: {
 
 _Filter: {
   #[E](upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> {
-     mut .step[R](sink: read _Sink[E,R]): mut ControlFlow[R] ->
-      upstream.step[R]{e -> predicate#e ? {.then -> sink#e, .else -> ControlFlow.continue[R]}},
-    }
+     sink ->
+      upstream.step{e -> predicate#e ? {.then -> sink#e, .else -> ControlFlow.continue}}},
+//     mut .stepSeq[R](sink: mut _Sink[E,R]): mut ControlFlow[R] ->
+//       upstream.stepSeq[R]{e -> predicate#e ? {.then -> sink#e, .else -> ControlFlow.continue[R]}},
+//    }
   }
 _Map: {
   #[E,R](upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> {
-     mut .step[RR](sink: read _Sink[R,RR]): mut ControlFlow[RR] ->
-       upstream.step[RR]{e -> sink#(f#e)},
-    }
+     sink ->
+       upstream.step{e -> sink#(f#e)}},
+//     mut .stepSeq[RR](sink: mut _Sink[R,RR]): mut ControlFlow[RR] ->
+//       upstream.stepSeq[RR]{e -> sink#(f#e)},
+//    }
   }

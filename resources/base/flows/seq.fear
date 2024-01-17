@@ -28,7 +28,7 @@ _SeqFlow: {
 //      },
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .var[mut Ref[S]] acc' = {Ref#acc}
-      .return {source.forRemainingSeq{
+      .return {source.forRemaining{
         mut #(e: E): mut ControlFlow[S] -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S]),
         read #(e: E): mut ControlFlow[S] -> Error.str "No mutable access to the flow environment",
         }.match{
@@ -58,7 +58,7 @@ _SeqFlow: {
   #[E](e: E): mut Flow[E] -> Block#
     .var[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
     .var[mut FlowOp[E]] source = {{ 'self
-      mut .step[R](sink: read _Sink[E,R]): mut ControlFlow[R] -> seq.swap(mut Opt[E]).match{
+      mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> seq.swap(mut Opt[E]).match{
         .some(x) -> sink#x,
         .empty -> ControlFlow.break[R],
         },
@@ -67,3 +67,5 @@ _SeqFlow: {
     .return {this.fromOp(source, Opt#1u)},
 //    .return {this.fromOp(source, Opt#1u)},
   }
+
+NonSeqErr:{ #[R]: R -> Error.str "No mutable access to the flow environment." }
