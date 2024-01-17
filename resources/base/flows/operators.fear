@@ -8,59 +8,30 @@ package base.flows
 // will be Magic!.
 
 FlowOp[E]: {
-  mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R],
-//  mut .stepSeq[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.step(sink),
-  mut .forRemaining[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.step(sink).match{
+  mut .step[S](sink: mut _Sink[S,E]): Void,
+  mut .forRemaining[S](sink: mut _Sink[S,E]): Void -> this.step(sink).match{
     .continue -> this.forRemaining(sink),
     .return(x) -> ControlFlow.return(x),
     .break -> ControlFlow.break[R],
     },
-//  mut .forRemainingSeq[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> this.stepSeq(sink).match{
-//    .continue -> this.forRemainingSeq(sink),
-//    .return(x) -> ControlFlow.return(x),
-//    .break -> ControlFlow.break[R],
-//    },
   mut .isFinite: Bool -> True,
   }
 
-ControlFlow: {
-  .continue[T]: mut ControlFlow[T] -> {m -> m.continue},
-//  .continue[T](x: T): mut ControlFlow[T] -> {m -> m.continue(x)},
-  .return[T](x: T): mut ControlFlow[T] -> {m -> m.return(x)},
-  .break[T]: mut ControlFlow[T] -> {m -> m.break},
+_Sink[T]: _Sink[Void, T]{
+  mut #(x: T): Void,
+  #(state, x) -> this#x,
   }
-ControlFlow[T]: {
-  mut .match[R](m: mut ControlFlowMatcher[T, R]): R,
-  mut .then(f: mut ControlFlowCont[T]): mut ControlFlow[T] -> this.match{
-    .continue -> f#,
-    .break -> this,
-    .return(_) -> this,
-    },
-  }
-ControlFlowMatcher[T, R]: {
-  mut .continue: R,
-//  mut .continue(x: T): R -> this.continue,
-  mut .break: R,
-  mut .return(x: T): R,
-  }
-ControlFlowCont[T]: { mut #: mut ControlFlow[T] }
-
-_Sink[T,R]: {
-//  read #(x: T): mut ControlFlow[R],
-  mut  #(x: T): mut ControlFlow[R],
+_Sink[S,T]: {
+  mut  #(state: S, x: T): Void,
+  mut .stop: Void,
+  mut .start(state: iso S): Void,
   }
 
 _Filter: {
   #[E](upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> {sink ->
     upstream.step{e -> predicate#e ? {.then -> sink#e, .else -> ControlFlow.continue}}},
-//     mut .stepSeq[R](sink: mut _Sink[E,R]): mut ControlFlow[R] ->
-//       upstream.stepSeq[R]{e -> predicate#e ? {.then -> sink#e, .else -> ControlFlow.continue[R]}},
-//    }
   }
 _Map: {
   #[E,R](upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> {sink ->
     upstream.step{e -> sink#(f#e)}},
-//     mut .stepSeq[RR](sink: mut _Sink[R,RR]): mut ControlFlow[RR] ->
-//       upstream.stepSeq[RR]{e -> sink#(f#e)},
-//    }
   }
