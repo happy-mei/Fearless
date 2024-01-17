@@ -3,8 +3,9 @@ package base.flows
 _SeqFlow: {
   .fromOp[E](source: mut FlowOp[E], size: Opt[UInt]): mut Flow[E] -> {'self
     // non-terminals
-    .filter(p) -> this.fromOp(_Filter#[E](source, p), {}),
-    mut .map[R](f: read F[E,R]): mut Flow[R] -> this.fromOp(_Map#[E,R](source, f), size),
+    .filter(p) -> this.fromOp(_Filter#(source, p), {}),
+    .map(f) -> this.fromOp(_Map#(source, f), size),
+    .limit(n) -> this.fromOp(_Limit#(source, n), size),
 
     // terminals
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> source.forRemaining[mut Opt[R]]{e -> Let#{
@@ -28,14 +29,11 @@ _SeqFlow: {
 //      },
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .var[mut Ref[S]] acc' = {Ref#acc}
-      .return {source.forRemaining{
-        mut #(e: E): mut ControlFlow[S] -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S]),
-        read #(e: E): mut ControlFlow[S] -> Error.str "No mutable access to the flow environment",
-        }.match{
-          .continue -> acc'.get,
-          .break -> acc'.get,
-          .return(_) -> acc'.get,
-          }},
+      .return {source.forRemaining{e -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S])}.match{
+        .continue -> acc'.get,
+        .break -> acc'.get,
+        .return(_) -> acc'.get,
+        }},
 //      .return{self.forRemainingSeq[S] mut _Sink[E, S]{
 //        mut #(e: E): mut ControlFlow[S] -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S]),
 //        read #(e: E): mut ControlFlow[S] -> Error.str "unreachable",

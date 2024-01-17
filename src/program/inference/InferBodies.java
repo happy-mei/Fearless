@@ -9,6 +9,7 @@ import id.Mdf;
 import program.CM;
 import program.Program;
 import program.typesystem.XBs;
+import utils.Box;
 import utils.Push;
 import utils.Streams;
 import visitors.InjectionVisitor;
@@ -199,7 +200,7 @@ public record InferBodies(ast.Program p) {
     var iTs = typesOf(e.es());
     if (c.isInfer() || (!(c.rt() instanceof Id.IT<T> recv))) { return Optional.empty(); }
     try {
-      var ms = p().meths(XBs.empty(), c.mdf(), recv.toAstIT(T::toAstT), e.name(), depth);
+      var ms = p().meths(XBs.empty(), c.mdf(), recv.toAstIT(it->it.toAstTFreshenInfers(new Box<>(0))), e.name(), depth);
 //        .filter(cm->filterByMdf(c.mdf(), cm.mdf()) && gens.size() == cm.sig().gens().size())
       if (ms.isEmpty()) { // TODO: might need to be ms.size != 1
         return Optional.empty();

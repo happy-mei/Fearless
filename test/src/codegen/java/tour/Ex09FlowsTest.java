@@ -24,7 +24,7 @@ public class Ex09FlowsTest {
         #(Flow.sum)
         .str
       )}
-    """, Base.mutBaseAliases);}
+    """, Base.mutBaseAliases); }
   @Test void flowFilterSumStr() { ok(new Res("25", "", 0), "test.Test", """
     package test
     Test:Main {sys -> FIO#sys.println(
@@ -33,7 +33,7 @@ public class Ex09FlowsTest {
         #(Flow.sum)
         .str
       )}
-    """, Base.mutBaseAliases);}
+    """, Base.mutBaseAliases); }
   @Disabled
   @Test void flowSumAssert() { ok(new Res(), "test.Test", """
     package test
@@ -53,6 +53,63 @@ public class Ex09FlowsTest {
       == 30
       )}
     """, Base.mutBaseAliases);}
+
+  @Test void flowMap() { ok(new Res("300", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](5, 10, 15)
+        .map{n -> n * 10}
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+
+  @Test void flowLimit0() { ok(new Res("0", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](5, 10, 15)
+        .limit(0u)
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+  @Test void flowLimit1() { ok(new Res("5", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](5, 10, 15)
+        .limit(1u)
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+  @Test void flowLimit2() { ok(new Res("15", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](5, 10, 15)
+        .limit(2u)
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+  @Test void flowLimit3() { ok(new Res("30", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](5, 10, 15)
+        .limit(3u)
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+  @Test void flowLimit4() { ok(new Res("30", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](5, 10, 15)
+        .limit(4u)
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+
   // Attempting to do a terminal operation on an infinite flow is always an exception.
   // The flow must be bounded by an intermediate operation before a terminal operation can be performed.
   @Test void flowFilter() { ok(new Res(), "test.Test", """

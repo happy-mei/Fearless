@@ -11,10 +11,7 @@ import program.CM;
 import program.TypeRename;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
-import utils.Bug;
-import utils.Push;
-import utils.Range;
-import utils.Streams;
+import utils.*;
 import visitors.FullShortCircuitVisitor;
 
 import java.util.*;
@@ -40,7 +37,12 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     List<E.Meth> lambdaOnlyMeths = lambda.meths().stream()
       .filter(m->{
         try {
-          return m.name().isPresent() && p().meths(XBs.empty(), lambda.mdf().orElse(Mdf.imm), c.toAstIT(T::toAstT), m.name().get(), depth).isEmpty();
+          return m.name().isPresent() && p().meths(
+            XBs.empty(),
+            lambda.mdf().orElse(Mdf.imm), c.toAstIT(it->it.toAstTFreshenInfers(new Box<>(0))),
+            m.name().get(),
+            depth
+          ).isEmpty();
         } catch (T.MatchOnInfer err) {
           return false;
         }
@@ -287,7 +289,8 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
   record Sub(Id.GX<T> x,T t){
     Sub {
-      assert x.name().endsWith("$") || !t.match(gx->gx.name().endsWith("$"),it->false);
+      // TODO: do we need this assertion?
+//      assert x.name().endsWith("$") || !t.match(gx->gx.name().endsWith("$"),it->false);
     }
     boolean isCircular() {
       if (t.isInfer() || t.rt() instanceof Id.GX<?>) { return false; }

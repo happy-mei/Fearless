@@ -185,7 +185,7 @@ List[E]: Collection{
          .var from = {cursor*}
          .do {cursor := 0u}
          .return {self.range[R](from, this.size, sink)},
-       mut .range[R](from: UInt, to: UInt, sink: read FlowSink[E, R]): mut FlowCtrl[R] -> from >= to ? {
+       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> from >= to ? {
          .then -> FlowCtrl.break,
          .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
          },

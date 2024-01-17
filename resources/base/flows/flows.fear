@@ -19,6 +19,7 @@ Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
 _NonTerminalOps[E]: {
   mut .filter(predicate: read F[E, Bool]): mut Flow[E],
   mut .map[R](f: read F[E, R]): mut Flow[R],
+  mut .limit(n: UInt): mut Flow[E],
   }
 _TerminalOps[E]: Sealed{
   mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],
@@ -44,6 +45,7 @@ _FlowExtensions: {
 EmptyFlow[E]: Flow[E]{
   .filter(p) -> this,
   mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
+  .limit(n) -> this,
   .findMap(_) -> {},
   .find(_) -> {},
   .any(p) -> False,
