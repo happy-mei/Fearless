@@ -35,6 +35,8 @@ import java.util.stream.Stream;
 import static java.util.Objects.requireNonNull;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
+// TODO: It might be good to ban any files from having a "package base*" that are not in the base directory.
+
 public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures tsf) {
   record Verbosity(boolean showInternalStackTraces, boolean printCodegen, ProgressVerbosity progress){
     Verbosity showInternalStackTraces(boolean showInternalStackTraces) { return new Verbosity(showInternalStackTraces, printCodegen, progress); }
