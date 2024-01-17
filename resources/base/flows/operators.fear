@@ -8,12 +8,13 @@ package base.flows
 // will be Magic!.
 
 FlowOp[E]: {
-  mut .step[S](sink: mut _Sink[S,E]): Void,
-  mut .forRemaining[S](sink: mut _Sink[S,E]): Void -> this.step(sink).match{
-    .continue -> this.forRemaining(sink),
-    .return(x) -> ControlFlow.return(x),
-    .break -> ControlFlow.break[R],
-    },
+  mut .step(sink: mut _Sink[E]): Void,
+  mut .stop: Void,
+  mut .isRunning: Bool,
+  mut .forRemaining(downstream: mut _Sink[E]): Void -> Block#
+    .do{this.step(downstream)}
+    .if {this.isRunning.not} .return {{}}
+    .return {this.forRemaining(downstream)},
   mut .isFinite: Bool -> True,
   }
 
@@ -24,14 +25,27 @@ _Sink[T]: _Sink[Void, T]{
 _Sink[S,T]: {
   mut  #(state: S, x: T): Void,
   mut .stop: Void,
-  mut .start(state: iso S): Void,
+//  mut .start(state: iso S): Void,
   }
 
 _Filter: {
-  #[E](upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> {sink ->
-    upstream.step{e -> predicate#e ? {.then -> sink#e, .else -> ControlFlow.continue}}},
+  #[E](upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> {'op
+    .step(downstream) -> upstream.step{
+      .stop -> Block#(downstream.stop, op.stop),
+      #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
+      },
+    .stop -> upstream.stop,
+    .isRunning -> upstream.isRunning,
+    },
   }
 _Map: {
-  #[E,R](upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> {sink ->
-    upstream.step{e -> sink#(f#e)}},
+  #[E,R](upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> {'op
+    .step(downstream) -> upstream.step{
+      .stop -> Block#(downstream.stop, op.stop),
+      #(e) ->downstream#(f#e),
+      },
+    .stop -> upstream.stop,
+    .isRunning -> upstream.isRunning,
+    },
   }
+

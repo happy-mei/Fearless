@@ -8,11 +8,14 @@ _SeqFlow: {
     .limit(n) -> this.fromOp(_Limit#(source, n), size),
 
     // terminals
-    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> source.forRemaining[mut Opt[R]]{e -> Let#{
-      .var -> f#e,
-      .in(res) -> res.match{.some(_) -> ControlFlow.return res, .empty -> ControlFlow.continue},
-      }}
-      .match{.continue -> {}, .break -> {}, .return(x) -> x},
+    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
+      .var[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
+      .do {source.forRemaining{'runner
+        .stop -> source.stop,
+        #(e) -> f#e.match{.some(e') -> Block#(res := (Opt#e'), runner.stop), .empty -> {}},
+        }}
+      .return {res.get},
+
     .find(p) -> self.findMap{e -> p#e ? {.then -> Opt#e, .else -> {}}},
     .any(p) -> self
       .findMap{e -> p#e ? {.then -> Opt#True, .else -> {}}}
@@ -29,11 +32,11 @@ _SeqFlow: {
 //      },
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .var[mut Ref[S]] acc' = {Ref#acc}
-      .return {source.forRemaining{e -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S])}.match{
-        .continue -> acc'.get,
-        .break -> acc'.get,
-        .return(_) -> acc'.get,
-        }},
+      .do {source.forRemaining{
+        .stop -> source.stop,
+        #(e) -> acc' := (f#(acc'.get, e)),
+        }}
+      .return {acc'.get},
 //      .return{self.forRemainingSeq[S] mut _Sink[E, S]{
 //        mut #(e: E): mut ControlFlow[S] -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S]),
 //        read #(e: E): mut ControlFlow[S] -> Error.str "unreachable",
@@ -56,11 +59,16 @@ _SeqFlow: {
   #[E](e: E): mut Flow[E] -> Block#
     .var[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
     .var[mut FlowOp[E]] source = {{ 'self
-      mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> seq.swap(mut Opt[E]).match{
-        .some(x) -> sink#x,
-        .empty -> ControlFlow.break[R],
+      .isRunning -> seq.get.isSome,
+      .stop -> seq := {},
+      .step(downstream) -> seq.swap(mut Opt[E]).match{
+        .some(x) -> downstream#x,
+        .empty -> downstream.stop,
         },
-      .forRemaining(sink) -> self.step(sink),
+      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+        .some(x) -> Block#(downstream#x, downstream.stop),
+        .empty -> downstream.stop,
+        },
       }}
     .return {this.fromOp(source, Opt#1u)},
 //    .return {this.fromOp(source, Opt#1u)},

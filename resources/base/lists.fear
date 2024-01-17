@@ -48,28 +48,50 @@ LList[E]:Collection{
     .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
     },
 
+//  mut  .flow: mut Flow[E] -> Block#
+//    .var cursor = {Ref#this}
+//    .return {Flow.fromOp{ 'self
+//      .step(sink) -> (cursor.swap(cursor*.tail)).head.match{
+//        .some(x) -> sink#x,
+//        .empty -> FlowCtrl.break,
+//        },
+//      }},
+//  read .flow: mut Flow[read E] -> Block#
+//    .var cursor = {Ref#this}
+//    .return {Flow.fromOp{ 'self
+//      .step(sink) -> (cursor.swap(cursor*.tail)).head.match{
+//        .some(x) -> sink#x,
+//        .empty -> FlowCtrl.break,
+//        },
+//      }},
   mut  .flow: mut Flow[E] -> Block#
     .var cursor = {Ref#this}
-    .return {Flow.fromOp{ 'self
-      .step(sink) -> (cursor.swap(cursor*.tail)).head.match{
-        .some(x) -> sink#x,
-        .empty -> FlowCtrl.break,
+    .return {Flow.fromOp{'op
+      .stop -> cursor := {},
+      .isRunning -> cursor*.isEmpty.not,
+      .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
+        .some(x) -> downstream#x,
+        .empty -> op.stop,
         },
       }},
   read .flow: mut Flow[read E] -> Block#
     .var cursor = {Ref#this}
-    .return {Flow.fromOp{ 'self
-      .step(sink) -> (cursor.swap(cursor*.tail)).head.match{
-        .some(x) -> sink#x,
-        .empty -> FlowCtrl.break,
+    .return {Flow.fromOp{'op
+      .stop -> cursor := {},
+      .isRunning -> cursor*.isEmpty.not,
+      .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
+        .some(x) -> downstream#x,
+        .empty -> op.stop,
         },
       }},
   imm  .flow: mut Flow[imm E] -> Block#
     .var cursor = {Ref#this}
-    .return {Flow.fromOp{ 'self
-      .step(sink) -> (cursor.swap(cursor*.tail)).head.match{
-        .some(x) -> sink#x,
-        .empty -> FlowCtrl.break,
+    .return {Flow.fromOp{'op
+      .stop -> cursor := {},
+      .isRunning -> cursor*.isEmpty.not,
+      .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
+        .some(x) -> downstream#x,
+        .empty -> op.stop,
         },
       }},
 
@@ -174,51 +196,52 @@ List[E]: Collection{
   mut .add(e: E): Void,
   mut .addAll(other: mut List[E]): Void -> other.iter.for{ e -> this.add(e) },
 
-  mut  .flow: mut Flow[E] -> Let#{
-    .var -> Count.uint(0u),
-    .in(cursor) -> Flow.fromOp({ 'self
-       mut .step[R](sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
-         .some(x) -> sink#x,
-         .empty -> FlowCtrl.break[R],
-         },
-       mut .forRemaining[R](sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> Block#
-         .var from = {cursor*}
-         .do {cursor := 0u}
-         .return {self.range[R](from, this.size, sink)},
-       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> from >= to ? {
-         .then -> FlowCtrl.break,
-         .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
-         },
-
-//       mut .stepSeq[R](sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
+  mut .flow: mut Flow[E] -> Block#
+    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .return {Flow.fromOp({'self
+      .isRunning -> cursor* < (this.size),
+      .stop -> cursor := (this.size),
+      .step(downstream) -> this.get(cursor++).match{
+        .some(x) -> downstream#x,
+        .empty -> self.stop,
+        },
+      }, this.size)},
+  read .flow: mut Flow[read E] -> Block#
+    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .return {Flow.fromOp({'self
+      .isRunning -> cursor* < (this.size),
+      .stop -> cursor := (this.size),
+      .step(downstream) -> this.get(cursor++).match{
+        .some(x) -> downstream#x,
+        .empty -> self.stop,
+        },
+      }, this.size)},
+  imm .flow: mut Flow[imm E] -> Block#
+    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .return {Flow.fromOp({'self
+      .isRunning -> cursor* < (this.size),
+      .stop -> cursor := (this.size),
+      .step(downstream) -> this.get(cursor++).match{
+        .some(x) -> downstream#x,
+        .empty -> self.stop,
+        },
+      }, this.size)},
+//  read .flow: mut Flow[read E] -> Let#{
+//    .var -> Count.uint(0u),
+//    .in(cursor) -> Flow.fromOp({ 'self
+//       .isRunning ->
+//       .step(downstream) -> this.get(cursor++).match{
 //         .some(x) -> sink#x,
-//         .empty -> FlowCtrl.break[R],
+//         .empty -> FlowCtrl.break,
 //         },
-//       mut .forRemainingSeq[R](sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> Block#
+//       mut .forRemaining[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> Block#
 //         .var from = {cursor*}
 //         .do {cursor := 0u}
-//         .return {self.rangeSeq[R](from, this.size, sink)},
-//       mut .rangeSeq[R](from: UInt, to: UInt, sink: mut FlowSink[E, R]): mut FlowCtrl[R] -> from >= to ? {
+//         .return {self.range[R](from, this.size, sink)},
+//       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> from >= to ? {
 //         .then -> FlowCtrl.break,
-//         .else -> sink#(this.get(from)!).then{self.rangeSeq[R](from + 1u, to, sink)}
+//         .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
 //         },
-       })
-    },
-  read .flow: mut Flow[read E] -> Let#{
-    .var -> Count.uint(0u),
-    .in(cursor) -> Flow.fromOp({ 'self
-       mut .step[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
-         .some(x) -> sink#x,
-         .empty -> FlowCtrl.break,
-         },
-       mut .forRemaining[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> Block#
-         .var from = {cursor*}
-         .do {cursor := 0u}
-         .return {self.range[R](from, this.size, sink)},
-       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> from >= to ? {
-         .then -> FlowCtrl.break,
-         .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
-         },
 
 //        mut .stepSeq[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
 //          .some(x) -> sink#x,
@@ -232,24 +255,8 @@ List[E]: Collection{
 //          .then -> FlowCtrl.break,
 //          .else -> sink#(this.get(from)!).then{self.rangeSeq[R](from + 1u, to, sink)}
 //          },
-       }, this.size)
-    },
-  imm  .flow: mut Flow[imm E] -> Let#{
-    .var -> Count.uint(0u),
-    .in(cursor) -> Flow.fromOp({ 'self
-       mut .step[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
-         .some(x) -> sink#x,
-         .empty -> FlowCtrl.break,
-         },
-       mut .forRemaining[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> Block#
-         .var from = {cursor*}
-         .do {cursor := 0u}
-         .return {self.range[R](from, this.size, sink)},
-       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> from >= to ? {
-         .then -> FlowCtrl.break,
-         .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
-         },
-
+//       }, this.size)
+//    },
 //       mut .stepSeq[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
 //        .some(x) -> sink#x,
 //        .empty -> FlowCtrl.break,
@@ -262,8 +269,8 @@ List[E]: Collection{
 //        .then -> FlowCtrl.break,
 //        .else -> sink#(this.get(from)!).then{self.rangeSeq[R](from + 1u, to, sink)}
 //        },
-       }, this.size)
-    },
+//       }, this.size)
+//    },
 
   mut .iter: mut Iter[E] -> Let#{
     .var -> Count.uint(0u),

@@ -266,6 +266,12 @@ public class Fail{
     return of("This lambda is missing/has an incompatible set of bounds for its type parameters:\n"+boundsMsg);
   }
 
+  public static CompileError mismatchedMethodGens(Id.MethName name, List<Id.GX<T>> baseGens, List<Id.GX<ast.T>> implGens) {
+    var gens1Msg = baseGens.stream().map(Id.GX::toString).collect(Collectors.joining(", "));
+    var gens2Msg = implGens.stream().map(Id.GX::toString).collect(Collectors.joining(", "));
+    return of("The base method for "+name+" has the following type parameters: ["+gens1Msg+"]. The provided implementation has: ["+gens2Msg+"].\nThe number of type parameters must match.");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -330,6 +336,7 @@ enum ErrorCode {
   lambdaTypeError,
   conflictingDecls,
   freeGensInLambda,
-  invalidLambdaNameMdfBounds;
+  invalidLambdaNameMdfBounds,
+  mismatchedMethodGens;
   int code() {return this.ordinal() + 1;}
 }

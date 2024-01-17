@@ -46,17 +46,31 @@ Iter[E]:{
     .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e,
                                                                          .else -> acc + joining + e }}),
 
-  mut .flow: mut Flow[E] -> Flow.fromOp{
-    .step(sink) -> this.next.match{
-      .some(x) -> sink#x,
-      .empty -> FlowCtrl.break,
-      },
-    .forRemaining(sink) -> this.map{x -> sink#x}.find{ctrl -> ctrl.match{
-      .continue -> False,
-      .break -> True,
-      .return(_) -> True,
-      }}.match{.some(ctrl) -> ctrl, .empty -> FlowCtrl.break},
-    },
+  mut .flow: mut Flow[E] -> Block#
+    .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+    .return {Flow.fromOp{'op
+      .stop -> isRunning := False,
+      .isRunning -> isRunning*,
+      .step(downstream) -> isRunning* ? {
+        .then -> this.next.match{
+          .some(x) -> downstream#x,
+          .empty -> op.stop,
+          },
+        .else -> op.stop,
+        }
+      }},
+
+//  Flow.fromOp{'op
+//    .step(sink) -> this.next.match{
+//      .some(x) -> sink#x,
+//      .empty -> op.stop,
+//      },
+//    .forRemaining(sink) -> this.map{x -> sink#x}.find{ctrl -> ctrl.match{
+//      .continue -> False,
+//      .break -> True,
+//      .return(_) -> True,
+//      }}.match{.some(ctrl) -> ctrl, .empty -> FlowCtrl.break},
+//    },
   }
 
 Sum:{

@@ -3,20 +3,24 @@ package base.flows
 _Limit: {
   #[E](upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
     .var[mut Count[UInt]] remaining = {Count.uint(n)}
-    .return {{
+    .return {{ 'runner
+      .stop -> upstream.stop,
+      .isRunning -> upstream.isRunning,
       .isFinite -> True,
-      mut .step[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> Block#
-        .if {n == 0u} .return {ControlFlow.break[R]}
-        .return {upstream.step{e -> Block#
-          .if {remaining-- == 0u} .return {ControlFlow.break[R]}
-          .return {sink#e}
+      mut .step(downstream: mut _Sink[E]): Void -> Block#
+        .if {n == 0u} .return {Block#(downstream.stop, runner.stop)}
+        .return {upstream.step{
+          .stop -> Block#(downstream.stop, runner.stop),
+          #(e) -> Block#
+            .if {remaining-- == 0u} .return {Block#(downstream.stop, runner.stop)}
+            .return {downstream#e},
           }},
-      mut .forRemaining[R](sink: mut _Sink[E,R]): mut ControlFlow[R] -> Block#
-        .if {n == 0u} .return {ControlFlow.break[R]}
-        .return {upstream.forRemaining{e -> Block#
-          .if {remaining-- == 0u} .return {ControlFlow.break[R]}
-          .return {sink#e}
-          }}
+//      mut .forRemaining[R](sink: mut _Sink[E]): Void -> Block#
+//        .if {n == 0u} .return {ControlFlow.break[R]}
+//        .return {upstream.forRemaining{e -> Block#
+//          .if {remaining-- == 0u} .return {ControlFlow.break[R]}
+//          .return {sink#e}
+//          }}
       }},
   }
 

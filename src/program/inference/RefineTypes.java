@@ -187,7 +187,9 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 
   RefinedSig freshXs(CM cm, Id.MethName name, List<Id.GX<ast.T>> gxs) {
     var sig = cm.sig().toAstFullSig();
-    assert sig.gens().size() == gxs.size();
+    if (sig.gens().size() != gxs.size()) {
+      throw Fail.mismatchedMethodGens(name, sig.gens(), gxs);
+    }
     var tgxs = gxs.stream().map(gx->new T(Mdf.mdf, gx.toFullAstGX())).toList();
     var f = renamer.renameFun(tgxs,sig.gens());
     return new RefinedSig(
