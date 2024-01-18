@@ -6,13 +6,13 @@ _Limit: {
   #[E](upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
     .var[mut Count[UInt]] remaining = {Count.uint(n)}
     .return {{ 'runner
-      .stop -> upstream.stop,
-      .isRunning -> upstream.isRunning,
+      .stop -> Block#(remaining := 0u, upstream.stop),
+      .isRunning -> (remaining* > 0u) && (upstream.isRunning),
       .isFinite -> True,
       mut .step(downstream: mut _Sink[E]): Void -> Block#
         .if {n == 0u} .return {Block#(downstream.stop, runner.stop)}
         .return {upstream.step{
-          .stop -> Block#(downstream.stop, runner.stop),
+          .stop -> Block#(downstream.stop, remaining := 0u),
           #(e) -> Block#
             .if {remaining-- == 0u} .return {Block#(downstream.stop, runner.stop)}
             .return {downstream#e},
@@ -41,12 +41,12 @@ _InternalActor: {
        },
       .isRunning -> isRunning*,
       .step(downstream) -> upstream.step{
-       .stop -> Block#(downstream.stop, op.stop),
-       #(e) -> f#(downstream, state, e).match{
-         .continue -> {},
-         .stop -> Block#(downstream.stop, op.stop),
-         },
-       },
+        .stop -> Block#(downstream.stop, op.stop),
+        #(e) -> f#(downstream, state, e).match{
+          .continue -> {},
+          .stop -> Block#(downstream.stop, isRunning := False, onComplete#state),
+          },
+        },
       }},
   }
 

@@ -412,11 +412,10 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
         if (m.equals(new Id.MethName("!", 1))) {
-          // TODO: why the "case 2"?
           return Optional.of("""
             (switch (1) {
               default -> throw new FearlessError(%s);
-              case 2 -> 0;
+              case 2 -> (Object)null;
             })
             """.formatted(args.get(0).accept(gen)));
         }

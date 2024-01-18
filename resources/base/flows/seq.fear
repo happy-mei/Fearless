@@ -5,13 +5,14 @@ _SeqFlow: {
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(source, p), {}),
     .map(f) -> this.fromOp(_Map#(source, f), size),
-//    .flatMap(f) -> this.fromOp(_FlatMap#(source, f), size),
+    .flatMap(f) -> this.fromOp(_FlatMap#(source, f), {}),
     mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[R] ->
       this.fromOp(_Actor#[S,E,R](source, state, f, onComplete), {}),
     .limit(n) -> this.fromOp(_Limit#(source, n), size),
 
     // terminals
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
+      .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .var[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
       .do {source.forRemaining{'runner
         .stop -> source.stop,
@@ -35,6 +36,7 @@ _SeqFlow: {
 //      .return(e) -> f#(acc, e),
 //      },
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
+      .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .var[mut Ref[S]] acc' = {Ref#acc}
       .do {source.forRemaining{
         .stop -> source.stop,

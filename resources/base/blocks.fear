@@ -24,19 +24,21 @@ Block[R]:{
   mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond
     .then -> { 't
       .return(a) -> _DecidedBlock#(a#),
+      .error(info) -> Error!(info#),
       .do(r) -> t._do[](r#),
         mut ._do(v: Void): mut Block[R] -> this,
       },
     .else -> { 'f
       .return(_) -> this,
       .do(_) -> this,
+      .error(_) -> this,
       },
     },
   }
 BlockIf[R]:{
   mut .return(a: mut ReturnStmt[R]): mut Block[R],
   mut .do(r: mut ReturnStmt[Void]): mut Block[R],
-  // TODO: .error
+  mut .error(info: mut ReturnStmt[Info]): mut Block[R],
   }
 _DecidedBlock:{
   #[R](res: R): mut Block[R] -> { 'self

@@ -19,12 +19,13 @@ Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
 _NonTerminalOps[E]: {
   mut .filter(predicate: read F[E, Bool]): mut Flow[E],
   mut .map[R](f: read F[E, R]): mut Flow[R],
-//  mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R], // TODO
-//  mut .chain(other: mut Flow[R]): mut Flow[R],
+  mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R],
+//  mut .chain(other: mut Flow[R]): mut Flow[R], // TODO: maybe
   mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[R] -> this.actor[S,R](state, f, {_ -> {}}),
   mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[R],
   mut .limit(n: UInt): mut Flow[E],
 
+  // TODO: this can keep size if it is known
   mut .scan[S:imm](acc: S, f: read F[S,E,S]): mut Flow[S] -> this.actor[mut Ref[S], S](Ref#[S]acc, {downstream, acc', e -> Block#(
     acc' := (f#(acc'.get, e)),
     downstream#(acc'.get),
@@ -39,6 +40,7 @@ _TerminalOps[E]: Sealed{
   mut .fold[S](acc: S, f: read F[S,E,S]): S,
   mut .size: UInt,
 
+  mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
   mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> Block#(acc.add(e), acc)}),
   }
 
@@ -75,3 +77,5 @@ EmptyFlow[E]: Flow[E]{
   .fold(acc, _) -> acc,
   .size -> 0u,
   }
+
+TerminalOnInfiniteError: { #: Info -> FInfo.str "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5u) to bound the flow." }

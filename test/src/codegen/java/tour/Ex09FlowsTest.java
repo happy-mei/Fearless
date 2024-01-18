@@ -64,13 +64,14 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases); }
 
-  @Test void flowFlatMap() { ok(new Res("700", "", 0), "test.Test", """
+  @Test void flowFlatMap() { ok(new Res("50, 50, 100, 100, 150", "", 0), "test.Test", """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
-        .flatMap{n -> Flow#[Int](n, n*2, n*3).map{n -> n * 10}}
-        #(Flow.sum)
-        .str
+        .flatMap{n -> Flow#[Int](n, n, n).limit(2u).map{n' -> n' * 10}}
+        .limit(5u)
+        .map{n -> n.str}
+        #(Flow.str ", ")
       )}
     """, Base.mutBaseAliases); }
 
@@ -216,7 +217,37 @@ public class Ex09FlowsTest {
         .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
-          .do{downstream#42}
+          .do {downstream#42}
+          .do {downstream#n}
+          .return {{}}}, mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
+        .map{n -> n.str}
+        #(Flow.str " ")
+      )}
+    """, Base.mutBaseAliases);}
+  @Test void limitedFlowActorAfter() { ok(new Res("6", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> "42 5".assertEq(
+      Flow#[Int](5, 10, 15)
+        .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+          .do {state := (state* + n)}
+          .if {state.get > 16} .return{Block#(downstream#500, {})}
+          .do {downstream#42}
+          .do {downstream#n}
+          .return {{}}}, mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
+        .limit(2u)
+        .map{n -> n.str}
+        #(Flow.str " ")
+      )}
+    """, Base.mutBaseAliases);}
+  @Test void limitedFlowActorBefore() { ok(new Res("16", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> "42 5 42 10".assertEq(
+      Flow#[Int](5, 10, 15)
+        .limit(2u)
+        .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+          .do {state := (state* + n)}
+          .if {state.get > 16} .return{Block#(downstream#500, {})}
+          .do {downstream#42}
           .do {downstream#n}
           .return {{}}}, mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
         .map{n -> n.str}
@@ -230,7 +261,7 @@ public class Ex09FlowsTest {
         .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
-          .do{downstream#42}
+          .do {downstream#42}
           .do {downstream#n}
           .return {{}}})
         .map{n -> n.str}
