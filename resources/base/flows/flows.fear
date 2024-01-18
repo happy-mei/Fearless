@@ -38,6 +38,8 @@ _TerminalOps[E]: Sealed{
   mut .all(predicate: read F[E, Bool]): Bool,
   mut .fold[S](acc: S, f: read F[S,E,S]): S,
   mut .size: UInt,
+
+  mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> Block#(acc.add(e), acc)}),
   }
 
 _FlowExtensions: {

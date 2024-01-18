@@ -75,6 +75,6 @@ _SeqFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opt#1u)},
+    .return {this.fromOp(source, Opt#[UInt]1u)},
 //    .return {this.fromOp(source, Opt#1u)},
   }

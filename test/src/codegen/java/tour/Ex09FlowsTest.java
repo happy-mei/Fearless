@@ -74,6 +74,23 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases); }
 
+  @Test void optFlow() { ok(new Res(), "test.Test", """
+    package test
+    Test:Main {sys -> Block#
+      .var f1 = {(Opt#[Int]5).flow
+        .map{n -> n * 10}
+        .list
+        }
+      .var f2 = {mut Opt[Int].flow
+        .map{n -> n * 10}
+        .list
+        }
+      .assert{f1.get(0u)! == 50}
+      .assert{f2.size == 0u}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases); }
+
   @Test void flowLimit0() { ok(new Res("0", "", 0), "test.Test", """
     package test
     Test:Main {sys -> FIO#sys.println(
