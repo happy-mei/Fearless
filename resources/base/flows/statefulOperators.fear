@@ -25,8 +25,17 @@ _Limit: {
   }
 
 _Actor: {
-  #[S,E,R](upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[R] ->
-    Todo!,
+  #[S,E,R](upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[R] -> {'op
+    .stop -> upstream.stop,
+    .isRunning -> upstream.isRunning,
+    .step(downstream) -> Todo!,
+    },
   }
 
-ActorImpl[S,E,R]: { read #(downstream: mut _Sink[R], state: S, e: E): Void }
+ActorImpl[S,E,R]: { read #(downstream: mut _Sink[R], state: S, e: E): ActorRes }
+ActorRes: Sealed{
+  .match[R](m: mut ActorResMatch[R]): R -> m.stop,
+  .continue: ActorRes -> {.match(m) -> m.continue},
+  .stop: ActorRes -> {.match(m) -> m.stop},
+  }
+ActorResMatch[R]: { mut .continue: R, mut .stop: R, }

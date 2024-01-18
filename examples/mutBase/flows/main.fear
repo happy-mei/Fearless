@@ -7,9 +7,10 @@ App:Main {sys -> "5 10 500".assertEq(
     // The 3rd argument is optional
     .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
       .do {state := (state* + n)}
-      .if {state.get > 10} .return{downstream#500}
+      .if {state.get > 10} .return{Block#(downstream#500, {})}
       .do{downstream#42}
-      .return {downstream#n}}, mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
+      .do {downstream#n}
+      .return {{}}}, mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
     .map{n -> n.str}
     #(Flow.str " ")
   )}
