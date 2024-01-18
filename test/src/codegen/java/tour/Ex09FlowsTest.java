@@ -200,8 +200,6 @@ public class Ex09FlowsTest {
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](5, 10, 15)
-        // .actor requires an iso S for its initial value
-        // The 3rd argument is optional
         .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
