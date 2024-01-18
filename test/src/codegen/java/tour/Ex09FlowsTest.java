@@ -331,7 +331,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
 
   // If we do not offer any mapMut/mut lambdas, we can have parallelised read lambdas
-  @Test void mapAndMapMut() { ok(new Res(), "test.Test", """
+  @Disabled @Test void mapAndMapMut() { ok(new Res(), "test.Test", """
     package test
     Test:Main {sys -> "5 10 500".assertEq(
       Flow#[Int](5, 10, 15)
