@@ -196,6 +196,22 @@ public class Ex09FlowsTest {
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
+  @Test void flowActorNoConsumer() { ok(new Res(), "test.Test", """
+    package test
+    Test:Main {sys -> "42 5 42 10 500".assertEq(
+      Flow#[Int](5, 10, 15)
+        // .actor requires an iso S for its initial value
+        // The 3rd argument is optional
+        .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+          .do {state := (state* + n)}
+          .if {state.get > 16} .return{Block#(downstream#500, {})}
+          .do{downstream#42}
+          .do {downstream#n}
+          .return {{}}})
+        .map{n -> n.str}
+        #(Flow.str " ")
+      )}
+    """, Base.mutBaseAliases);}
 
   // We may have this as a specialisation of .actor
   @Test void flowScan() { ok(new Res(), "test.Test", """
