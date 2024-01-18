@@ -63,6 +63,19 @@ Opt[T]:Extensible[Opt[T]]{
 
   read .isEmpty: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .empty -> True, .some(_) -> False }),
   read .isSome: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .empty -> False, .some(_) -> True }),
+
+  mut  .flow: mut Flow[T] -> this.match{
+    .empty -> Flow#,
+    .some(x) -> Flow#(x)
+    },
+  imm  .flow: mut Flow[imm T] -> this.match{
+    .empty -> Flow#,
+    .some(x) -> Flow#(x)
+    },
+  read .flow: mut Flow[read T] -> this.match{
+    .empty -> Flow#,
+    .some(x) -> Flow#(x)
+    },
   }
 
 OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
