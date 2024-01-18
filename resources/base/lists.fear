@@ -203,7 +203,7 @@ List[E]: Collection{
       .stop -> cursor := (this.size),
       .step(downstream) -> this.get(cursor++).match{
         .some(x) -> downstream#x,
-        .empty -> self.stop,
+        .empty -> Block#(downstream.stop, self.stop),
         },
       }, this.size)},
   read .flow: mut Flow[read E] -> Block#
@@ -213,7 +213,7 @@ List[E]: Collection{
       .stop -> cursor := (this.size),
       .step(downstream) -> this.get(cursor++).match{
         .some(x) -> downstream#x,
-        .empty -> self.stop,
+        .empty -> Block#(downstream.stop, self.stop),
         },
       }, this.size)},
   imm .flow: mut Flow[imm E] -> Block#
@@ -223,7 +223,7 @@ List[E]: Collection{
       .stop -> cursor := (this.size),
       .step(downstream) -> this.get(cursor++).match{
         .some(x) -> downstream#x,
-        .empty -> self.stop,
+        .empty -> Block#(downstream.stop, self.stop),
         },
       }, this.size)},
 //  read .flow: mut Flow[read E] -> Let#{

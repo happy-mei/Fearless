@@ -16,6 +16,7 @@ _SeqFlow: {
         .stop -> source.stop,
         #(e) -> f#e.match{.some(e') -> Block#(res := (Opt#e'), runner.stop), .empty -> {}},
         }}
+      .do {source.stop}
       .return {res.get},
 
     .find(p) -> self.findMap{e -> p#e ? {.then -> Opt#e, .else -> {}}},
@@ -38,6 +39,7 @@ _SeqFlow: {
         .stop -> source.stop,
         #(e) -> acc' := (f#(acc'.get, e)),
         }}
+      .do {source.stop}
       .return {acc'.get},
 //      .return{self.forRemainingSeq[S] mut _Sink[E, S]{
 //        mut #(e: E): mut ControlFlow[S] -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S]),
@@ -65,11 +67,11 @@ _SeqFlow: {
       .stop -> seq := {},
       .step(downstream) -> seq.swap(mut Opt[E]).match{
         .some(x) -> downstream#x,
-        .empty -> downstream.stop,
+        .empty -> Block#(downstream.stop, self.stop),
         },
       .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
-        .some(x) -> Block#(downstream#x, downstream.stop),
-        .empty -> downstream.stop,
+        .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
+        .empty -> Block#(downstream.stop, self.stop),
         },
       }}
     .return {this.fromOp(source, Opt#1u)},

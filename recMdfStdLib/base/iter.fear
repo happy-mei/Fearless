@@ -44,7 +44,7 @@ Iter[E:imm,mut]:{
   mut .llist: mut LList[mdf E] -> this.fold(mut LList[mdf E], { acc, e -> mut LList.cons(e, acc) }),
   mut .str(toStr: mut IterMapper[mdf E, Str], joining: Str): Str -> this.map(toStr)
     .fold[Str]("", mut IterFolder[Str, Str]{ acc, e ->
-      acc.len == 0u ? { .then -> acc + e, .else -> acc + joining + e } })
+      acc.size == 0u ? { .then -> acc + e, .else -> acc + joining + e } })
   }
 
 Sum:{

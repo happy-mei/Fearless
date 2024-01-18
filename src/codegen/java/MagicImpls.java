@@ -209,7 +209,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         return isLiteral(lambdaName) ? lambdaName : "((String)"+e.accept(gen)+")";
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
-        if (m.equals(new Id.MethName(".len", 0))) { return Optional.of(instantiate()+".length()"); }
+        if (m.equals(new Id.MethName(".size", 0))) { return Optional.of(instantiate()+".length()"); }
         if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of("("+instantiate()+".isEmpty()?base.True_0._$self:base.False_0._$self)"); }
         if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate()); }
         if (m.equals(new Id.MethName(".toImm", 0))) { return Optional.of(instantiate()); }

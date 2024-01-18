@@ -42,8 +42,8 @@ Iter[E]:{
   .list: mut List[imm E] -> this.fold(List#[imm E], { acc, e -> Block#(acc.add(e), acc) }),
   .llist: mut LList[imm E] -> this.fold(mut LList[imm E], { acc, e -> acc +[] e }),
   .str(toStr: IterMapper[imm E, Str], joining: Str): Str -> this.map(toStr)
-    .fold[Str]("", IterFolder[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e,
-                                                                         .else -> acc + joining + e }})
+    .fold[Str]("", IterFolder[Str, Str]{ acc, e -> acc.size == 0u ? { .then -> acc + e,
+                                                                       .else -> acc + joining + e }})
   }
 
 Sum:{

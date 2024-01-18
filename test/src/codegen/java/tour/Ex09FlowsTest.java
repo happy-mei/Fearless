@@ -180,17 +180,18 @@ public class Ex09FlowsTest {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void flowActor() { ok(new Res(), "test.Test", """
+  @Test void flowActor() { ok(new Res("31", "", 0), "test.Test", """
     package test
-    Test:Main {sys -> "5 10 500".assertEq(
+    Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](5, 10, 15)
         // .actor requires an iso S for its initial value
         // The 3rd argument is optional
-        .actor[mut Ref[Int], Int](Ref#[Int]1, (read base.flows.ActorImpl[mut Ref[Int],Int,Int]{downstream, state, n -> Block#
-          .do {state <- {old -> old + n}}
-          .if {state.get > 10} .return{downstream#500}
+        .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+          .do {state := (state* + n)}
+          .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do{downstream#42}
-          .return {downstream#n}}), mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
+          .do {downstream#n}
+          .return {{}}}, mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
         .map{n -> n.str}
         #(Flow.str " ")
       )}

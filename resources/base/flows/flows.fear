@@ -33,7 +33,10 @@ _TerminalOps[E]: Sealed{
   }
 
 _FlowExtensions: {
-  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold(this._istr, {acc, str -> acc + separator + str})},
+  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold(this._istr, {acc, str -> acc.size == 0u ? {
+    .then -> acc + str,
+    .else -> acc + separator + str,
+    }})},
 
   .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold(this._izero, {acc, e -> acc + e})},
   .uSum: mut Extension[mut Flow[UInt], UInt] -> {flow -> Todo!},
@@ -50,7 +53,9 @@ _FlowExtensions: {
 EmptyFlow[E]: Flow[E]{
   .filter(p) -> this,
   mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
-  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[R] -> mut EmptyFlow[R],
+  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[R] -> Block#(
+    onComplete#state,
+    mut EmptyFlow[R]),
   .limit(_) -> this,
   .findMap(_) -> {},
   .find(_) -> {},

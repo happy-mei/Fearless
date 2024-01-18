@@ -2,7 +2,7 @@ package base
 Str:Sealed {
   // Str is not Stringable due to limitations of the Java codegen target
   read .str: Str,
-  readOnly .len: UInt,
+  readOnly .size: UInt,
   readOnly .isEmpty: Bool,
   readOnly +(other: readOnly Str): Str,
   readOnly ==(other: readOnly Str): Bool,
@@ -13,7 +13,7 @@ Stringable: {
   read .str: Str,
   }
 _StrInstance:Str {
-  .len -> Magic!,
+  .size -> Magic!,
   .isEmpty -> Magic!,
   .str -> Magic!,
   +(other) -> Magic!,

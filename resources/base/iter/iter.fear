@@ -43,8 +43,8 @@ Iter[E]:{
   mut .list: mut List[E] -> this.fold(List#[E], { acc, e -> Block#(acc.add(e), acc) }),
   mut .llist: mut LList[E] -> this.fold(mut LList[E], { acc, e -> acc +[] e }),
   mut .str(toStr: mut IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
-    .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.len == 0u ? { .then -> acc + e,
-                                                                         .else -> acc + joining + e }}),
+    .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.size == 0u ? { .then -> acc + e,
+                                                                          .else -> acc + joining + e }}),
 
   mut .flow: mut Flow[E] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
