@@ -64,6 +64,16 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases); }
 
+  @Test void flowFlatMap() { ok(new Res("700", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](5, 10, 15)
+        .flatMap{n -> Flow#[Int](n, n*2, n*3).map{n -> n * 10}}
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+
   @Test void flowLimit0() { ok(new Res("0", "", 0), "test.Test", """
     package test
     Test:Main {sys -> FIO#sys.println(

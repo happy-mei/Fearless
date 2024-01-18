@@ -48,4 +48,3 @@ _Map: {
     .isRunning -> upstream.isRunning,
     },
   }
-
