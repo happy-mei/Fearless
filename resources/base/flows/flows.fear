@@ -19,6 +19,8 @@ Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
 _NonTerminalOps[E]: {
   mut .filter(predicate: read F[E, Bool]): mut Flow[E],
   mut .map[R](f: read F[E, R]): mut Flow[R],
+  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[R] -> this.actor[S,R](state, f, {_ -> {}}),
+  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[R],
   mut .limit(n: UInt): mut Flow[E],
   }
 _TerminalOps[E]: Sealed{
@@ -31,11 +33,14 @@ _TerminalOps[E]: Sealed{
   }
 
 _FlowExtensions: {
+  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold(this._istr, {acc, str -> acc + separator + str})},
+
   .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold(this._izero, {acc, e -> acc + e})},
   .uSum: mut Extension[mut Flow[UInt], UInt] -> {flow -> Todo!},
   .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> Todo!},
   // TODO: inference on return types is broken, see the test `branchingReturnTypes`
   ._izero: Int -> 0,
+  ._istr: Str -> "",
   }
 
 //_FlowAction[U, E, R]: Sealed, Consumer[E, R]{
@@ -45,7 +50,8 @@ _FlowExtensions: {
 EmptyFlow[E]: Flow[E]{
   .filter(p) -> this,
   mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
-  .limit(n) -> this,
+  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[R] -> mut EmptyFlow[R],
+  .limit(_) -> this,
   .findMap(_) -> {},
   .find(_) -> {},
   .any(p) -> False,

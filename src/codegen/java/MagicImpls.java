@@ -213,9 +213,12 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of("("+instantiate()+".isEmpty()?base.True_0._$self:base.False_0._$self)"); }
         if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate()); }
         if (m.equals(new Id.MethName(".toImm", 0))) { return Optional.of(instantiate()); }
-        if (m.equals(new Id.MethName("+", 1))) { return Optional.of("("+instantiate()+"+"+args.get(0).accept(gen)+")"); }
+        if (m.equals(new Id.MethName("+", 1))) { return Optional.of("("+instantiate()+"+"+args.getFirst().accept(gen)+")"); }
         if (m.equals(new Id.MethName("==", 1))) {
-          return Optional.of("("+instantiate()+".equals("+args.get(0).accept(gen)+")?base.True_0._$self:base.False_0._$self)");
+          return Optional.of("("+instantiate()+".equals("+args.getFirst().accept(gen)+")?base.True_0._$self:base.False_0._$self)");
+        }
+        if (m.equals(new Id.MethName(".assertEq", 1))) {
+          return Optional.of("base.$95StrHelpers_0._$self.assertEq$imm$("+instantiate()+", "+args.getFirst().accept(gen)+")");
         }
         throw Bug.unreachable();
       }

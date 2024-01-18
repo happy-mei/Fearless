@@ -1,32 +1,45 @@
 package flows
-alias base.flows.Flow as Flow,
+alias base.flows.Flow as Flow, alias base.Consumer as Consumer,
 
-App:Main{ sys -> Block#
-  .var io = { FIO#sys }
-  .do{ io.println(FlowEx.emptyFlow.str) }
-  .do{ io.println(FlowEx.oneElem.str) }
-  .do{ io.println(FlowEx.listImm.str) }
-  .do{ io.println(FlowEx.listMut.str) }
-  .do{ io.println(FlowEx.listRead.str) }
-  .do{ io.println(FlowEx.fromIter.str) }
-  .return{{}}
-  }
+App:Main {sys -> "5 10 500".assertEq(
+  Flow#[Int](5, 10, 15)
+    // .actor requires an iso S for its initial value
+    // The 3rd argument is optional
+    .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+      .do {state := (state* + n)}
+      .if {state.get > 10} .return{downstream#500}
+      .do{downstream#42}
+      .return {downstream#n}}, mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
+    .map{n -> n.str}
+    #(Flow.str " ")
+  )}
 
-FlowEx:{
-  .emptyFlow: Bool -> Flow#[Int].filter{e -> e > 3}.any{e -> e == 5},
-
-  .oneElem: Bool -> Flow#[Int](5).filter{e -> e > 3}.any{e -> e == 5},
-
-  .listImm: Bool -> (LList[Int] + 10 + 5 + 1).flow
-    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
-  .listRead: Bool -> (read LList[Int] + 10 + 5 + 1).flow
-    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
-  .listMut: Bool -> (mut LList[Int] + 10 + 5 + 1).flow
-    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
-
-  .fromIter: Bool -> (LList[Int] + 10 + 1 + 5).iter
-      .filter{e -> (e == 1).not}
-      .flow
-      .any{e -> e == 1 ? {.then -> Error.str "not filtering", .else -> e == 5}},
-  }
+//App:Main{ sys -> Block#
+//  .var io = { FIO#sys }
+//  .do{ io.println(FlowEx.emptyFlow.str) }
+//  .do{ io.println(FlowEx.oneElem.str) }
+//  .do{ io.println(FlowEx.listImm.str) }
+//  .do{ io.println(FlowEx.listMut.str) }
+//  .do{ io.println(FlowEx.listRead.str) }
+//  .do{ io.println(FlowEx.fromIter.str) }
+//  .return{{}}
+//  }
+//
+//FlowEx:{
+//  .emptyFlow: Bool -> Flow#[Int].filter{e -> e > 3}.any{e -> e == 5},
+//
+//  .oneElem: Bool -> Flow#[Int](5).filter{e -> e > 3}.any{e -> e == 5},
+//
+//  .listImm: Bool -> (LList[Int] + 10 + 5 + 1).flow
+//    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
+//  .listRead: Bool -> (read LList[Int] + 10 + 5 + 1).flow
+//    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
+//  .listMut: Bool -> (mut LList[Int] + 10 + 5 + 1).flow
+//    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
+//
+//  .fromIter: Bool -> (LList[Int] + 10 + 1 + 5).iter
+//      .filter{e -> (e == 1).not}
+//      .flow
+//      .any{e -> e == 1 ? {.then -> Error.str "not filtering", .else -> e == 5}},
+//  }
 

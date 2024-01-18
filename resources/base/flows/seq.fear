@@ -5,6 +5,8 @@ _SeqFlow: {
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(source, p), {}),
     .map(f) -> this.fromOp(_Map#(source, f), size),
+    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[R] ->
+      this.fromOp(_Actor#[S,E,R](source, state, f, onComplete), {}),
     .limit(n) -> this.fromOp(_Limit#(source, n), size),
 
     // terminals
@@ -73,5 +75,3 @@ _SeqFlow: {
     .return {this.fromOp(source, Opt#1u)},
 //    .return {this.fromOp(source, Opt#1u)},
   }
-
-NonSeqErr:{ #[R]: R -> Error.str "No mutable access to the flow environment." }

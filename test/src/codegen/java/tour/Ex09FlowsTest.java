@@ -169,13 +169,14 @@ public class Ex09FlowsTest {
   @Test void mutExtensionMethod() { ok(new Res("20 30", "", 0), "test.Test", """
     package test
     Test:Main {sys -> Block#
-      .var list = {List#[Int](1, 2, 3)}
-      .var myFlow = {list.flow
+      .var[List[Int]] list = {List#[Int](1, 2, 3)}
+      .var[Str] myFlow = {list.flow
         .filter{n -> n > 1}
         #{f -> f.map{n -> n*10}}
         .map{n -> n.str}
         #(Flow.str " ")
         }
+      .return {FIO#sys.println(myFlow)}
       }
     """, Base.mutBaseAliases);}
 
@@ -185,11 +186,11 @@ public class Ex09FlowsTest {
       Flow#[Int](5, 10, 15)
         // .actor requires an iso S for its initial value
         // The 3rd argument is optional
-        .actor(Ref#1, {state, downstream -> Block#
-          .do {state.set(someMutList.get(0u)!)}
+        .actor[mut Ref[Int], Int](Ref#[Int]1, (read base.flows.ActorImpl[mut Ref[Int],Int,Int]{downstream, state, n -> Block#
+          .do {state <- {old -> old + n}}
           .if {state.get > 10} .return{downstream#500}
           .do{downstream#42}
-          .return {downstream#n}}, mut Consumer[mut Ref[Int]]{state->someRandom.set(state.get)})
+          .return {downstream#n}}), mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
         .map{n -> n.str}
         #(Flow.str " ")
       )}

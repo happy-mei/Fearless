@@ -24,6 +24,9 @@ _Limit: {
       }},
   }
 
-//_Actor: {
-//  #[E,R](upstream: mut FlowOp[E], state: iso S, f: read F[S, mut _Sink[E,R]])
-//  }
+_Actor: {
+  #[S,E,R](upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[R] ->
+    Todo!,
+  }
+
+ActorImpl[S,E,R]: { read #(downstream: mut _Sink[R], state: S, e: E): Void }
