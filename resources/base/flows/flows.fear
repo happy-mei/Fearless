@@ -22,6 +22,12 @@ _NonTerminalOps[E]: {
   mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[R] -> this.actor[S,R](state, f, {_ -> {}}),
   mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[R],
   mut .limit(n: UInt): mut Flow[E],
+
+  mut .scan[S:imm](acc: S, f: read F[S,E,S]): mut Flow[S] -> this.actor[mut Ref[S], S](Ref#[S]acc, {downstream, acc', e -> Block#(
+    acc' := (f#(acc'.get, e)),
+    downstream#(acc'.get),
+    ActorRes.continue
+    )}),
   }
 _TerminalOps[E]: Sealed{
   mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],

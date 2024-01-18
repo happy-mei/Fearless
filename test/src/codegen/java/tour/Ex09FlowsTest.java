@@ -218,10 +218,11 @@ public class Ex09FlowsTest {
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
       Flow#[Int](5, 10, 15)
-        .scan("!", {acc, n -> acc + (n.str)})
+        .scan(Hack.fixInferencePls, {acc, n -> acc + (n.str)})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
+    Hack:{ .fixInferencePls: Str -> "!" }
     """, Base.mutBaseAliases);}
 
 //  @Test void flowActor() { ok(new Res(), "test.Test", """

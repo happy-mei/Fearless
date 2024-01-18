@@ -1,5 +1,7 @@
 package base.flows
 
+// This could be implemented as an actor, but I have it special cased because it forces a Flow to be finite and gives
+// it a static size, which is more info than we could get if this was just an ActorImpl.
 _Limit: {
   #[E](upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
     .var[mut Count[UInt]] remaining = {Count.uint(n)}
