@@ -151,5 +151,8 @@ public interface Base {
     alias base.Assert as Assert,
     
     alias base.flows.Flow as Flow,
+    
+    alias base.Ordering as Ordering,
+    alias base.FOrdering as FOrdering,
     """;
 }

@@ -160,7 +160,7 @@ public class Ex09FlowsTest {
       Flow#[Int](5, 10, 15)
         .filter{n -> n > 5}
         .map{n -> n * 10}
-        #(Flow.max)
+        .max(base.CompareInts)!
       == 150
       )}
     """, Base.mutBaseAliases);}
@@ -170,7 +170,7 @@ public class Ex09FlowsTest {
       Flow#[Int](5, 10, 15)
         .filter{n -> n > 5}
         .map{n -> n * 10}
-        #(Flow.max)
+        .max(base.CompareInts)!
       )}
     """, Base.mutBaseAliases);}
   // We prefer flowFilterMapIntEq1 because it is more clear that this test is of an assertion rather than of a flow.
@@ -179,7 +179,7 @@ public class Ex09FlowsTest {
     Test:Main {sys -> Flow#[Int](5, 10, 15)
       .filter{n -> n > 5}
       .map{n -> n * 10}
-      #(Flow.max)
+      .max(base.CompareInts)!
       .assertEq(150)
       }
     """, Base.mutBaseAliases);}
