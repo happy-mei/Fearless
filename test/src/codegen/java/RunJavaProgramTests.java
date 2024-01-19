@@ -48,7 +48,7 @@ public class RunJavaProgramTests {
     var mir = mirInjectionVisitor.visitProgram();
     var java = new JavaCodegen(mirInjectionVisitor.getProgram(), resolvedCalls).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
     System.out.println("Running...");
-    var res = RunJava.of(new JavaProgram(java).compile(), args).join();
+    var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
     Assertions.assertEquals(expected, res);
   }
 
@@ -74,7 +74,7 @@ public class RunJavaProgramTests {
     var mir = mirInjectionVisitor.visitProgram();
     try {
       var java = new JavaCodegen(mirInjectionVisitor.getProgram(), resolvedCalls).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
-      var res = RunJava.of(new JavaProgram(java).compile(), args).join();
+      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

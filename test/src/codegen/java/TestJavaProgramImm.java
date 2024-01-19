@@ -49,7 +49,7 @@ public class TestJavaProgramImm {
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var java = new ImmJavaCodegen(inferred, resolvedCalls).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
-    var res = RunJava.of(new JavaProgram(java).compile(), args).join();
+    var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
     Assertions.assertEquals(expected, res);
   }
 
@@ -74,7 +74,7 @@ public class TestJavaProgramImm {
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     try {
       var java = new ImmJavaCodegen(inferred, resolvedCalls).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
-      var res = RunJava.of(new JavaProgram(java).compile(), args).join();
+      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
