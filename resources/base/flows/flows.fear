@@ -38,6 +38,7 @@ _TerminalOps[E]: Sealed{
   mut .any(predicate: read F[E, Bool]): Bool,
   mut .all(predicate: read F[E, Bool]): Bool,
   mut .fold[S](acc: S, f: read F[S,E,S]): S,
+  mut .fold[S](acc: S, f: read F[S,E,S], combine: read F[S, S, S]): S,
   mut .size: UInt,
 
   mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
@@ -49,7 +50,17 @@ _TerminalOps[E]: Sealed{
       .equal -> max,
       .greater -> max,
       }
-    }}),
+    }}, {a, b -> a.match{
+      .empty -> b,
+      .some(a') -> b.match{
+        .empty -> a,
+        .some(b') -> compare#(a', b').match{
+          .less -> b,
+          .equal -> a,
+          .greater -> a,
+          }
+        }
+      }})
   }
 
 _FlowExtensions: {
@@ -76,6 +87,7 @@ EmptyFlow[E]: Flow[E]{
   .any(p) -> False,
   .all(p) -> False,
   .fold(acc, _) -> acc,
+  .fold(acc, _, _) -> acc,
   .size -> 0u,
   }
 

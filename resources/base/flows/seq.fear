@@ -44,6 +44,8 @@ _SeqFlow: {
         }}
       .do {source.stop}
       .return {acc'.get},
+    // Seq flows do not split so no combine is needed
+    .fold(acc, f, combine) -> self.fold(acc, f),
 //      .return{self.forRemainingSeq[S] mut _Sink[E, S]{
 //        mut #(e: E): mut ControlFlow[S] -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S]),
 //        read #(e: E): mut ControlFlow[S] -> Error.str "unreachable",
