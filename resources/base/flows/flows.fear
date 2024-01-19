@@ -45,22 +45,15 @@ _TerminalOps[E]: Sealed{
   }
 
 _FlowExtensions: {
-  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold(this._istr, {acc, str -> acc.size == 0u ? {
+  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold[Str]("", {acc, str -> acc.size == 0u ? {
     .then -> acc + str,
     .else -> acc + separator + str,
     }})},
 
-  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold(this._izero, {acc, e -> acc + e})},
-  .uSum: mut Extension[mut Flow[UInt], UInt] -> {flow -> Todo!},
-  .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> Todo!},
-  // TODO: inference on return types is broken, see the test `branchingReturnTypes`
-  ._izero: Int -> 0,
-  ._istr: Str -> "",
+  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int](0, {acc, e -> acc + e})},
+  .uSum: mut Extension[mut Flow[UInt], UInt] -> {flow -> flow.fold[UInt](0u, {acc, e -> acc + e})},
+  .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> flow.fold[Float](0.0, {acc, e -> acc + e})},
   }
-
-//_FlowAction[U, E, R]: Sealed, Consumer[E, R]{
-////  mut .upstream: mut Flow[U],
-//  }
 
 EmptyFlow[E]: Flow[E]{
   .filter(p) -> this,

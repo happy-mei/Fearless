@@ -88,7 +88,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
   E.Sig fixSig(E.Sig sig, T iTi){
     var ret  = sig.ret();
-    var best = best(ret, iTi);
+    var best = best(ret, iTi, new BestITStrategy.MostSpecific(p));
     if(best==ret){ return sig; }
     var res  = sig.withRet(best);
     // TODO: poorly written programs can fail this assertion, should throw a CompileError instead.
@@ -111,9 +111,9 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 //      l = l.withITs(its);
 //      return l.withT(best);
 //    }
-    return ie.withT(best(ie.t(), iT));
+    return ie.withT(best(ie.t(), iT, new BestITStrategy.MostSpecific(p)));
   }
-  T best(T iT1, T iT2) {
+  T best(T iT1, T iT2, BestITStrategy bestIT) {
     if(iT1.equals(iT2)){ return iT1; }
     if(iT1.isInfer()){ return iT2; }
     if(iT2.isInfer()){ return iT1; }
@@ -135,11 +135,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
       ast.T t2C; try { t2C = t2.toAstT(); }
         catch (T.MatchOnInfer e) { return iT1; }
 
-      if (p.isSubType(XBs.empty(), t1C, t2C)) { return iT1; }
-      if (p.isSubType(XBs.empty(), t2C, t1C)) { return iT2; }
-
-//      throw Fail.noSubTypingRelationship(c1, c2);
-      return iT1;
+      return bestIT.of(t1C, t2C, iT1, iT2);
     }
 
     // Keep the explicit mdf from the expression if it has one
@@ -247,7 +243,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     if (ms.isEmpty()) {
       throw Fail.undefinedMethod(sig.name(), new ast.T(lambdaMdf, c), p.meths(XBs.empty(), lambdaMdf, c, depth).stream());
     }
-    var freshSig = freshXs(ms.get(0), sig.name(), gxs);
+    var freshSig = freshXs(ms.getFirst(), sig.name(), gxs);
     var freshGens = freshSig.gens();
     return Streams.of(
       RP.of(freshGens, sig.gens()).stream(),
@@ -432,16 +428,22 @@ collect(empty) = empty
   */
 
   Map<Id.GX<T>, T> refineSubs(List<Sub> subs) {
+    /* TODO: For inferring things like .fold where we have FearX1$ = 0 and FearX1$ = Int in the same rps
+     we actually want the supertype concrete type if possible */
+
     Map<Id.GX<T>, List<Sub>> res = subs.stream()
       .filter(si->!si.isCircular())
       .filter(si->!si.x().equals(si.t().rt()))
       .collect(Collectors.groupingBy(Sub::x));
     return res.values().stream().collect(Collectors.toMap(
-      si->si.get(0).x(),
-      si->bestAll(si.stream().map(Sub::t))
+      si->si.getFirst().x(),
+      si->bestSub(si.stream().map(Sub::t))
     ));
   }
-  T bestAll(Stream<T> ts){ return ts.reduce(this::best).orElseThrow(); }
+  T bestSub(Stream<T> ts) {
+    var bestIT = new BestITStrategy.MostGeneral(p);
+    return ts.reduce((t1,t2)->best(t1,t2,bestIT)).orElseThrow();
+  }
 
   public RP renameRP(RP rp, Map<Id.GX<T>, T> map, TypeRename.FullTTypeRename rename){
     var t1 = rename.renameT(rp.t1(),map::get);

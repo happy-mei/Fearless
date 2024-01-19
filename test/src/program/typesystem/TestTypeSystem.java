@@ -2583,4 +2583,46 @@ were valid:
     Num:{}
     Five:Num{}
     """); }
+
+  @Test void branchingReturnTypes() { ok("""
+    package a
+    Opt:{ #[T](x: T): mut Opt[T] -> { .match(m) -> m.some(x) }}
+    Opt[T]:{
+      mut  .match[R](m: mut OptMatch[T, R]): R -> m.empty,
+      read .match[R](m: mut OptMatch[read T, R]): R -> m.empty,
+      imm  .match[R](m: mut OptMatch[imm T, R]): R -> m.empty
+      }
+    OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
+    N: {}
+    Zero: N{}
+    Test:{ .test(opt: Opt[N]): N -> opt.match{
+      .some(n) -> n,
+      .empty -> Zero,
+      }}
+    """); }
+
+  @Test void foldAccExplicit() { ok("""
+    package test
+    Num: { +(other: Num): Num }
+    Zero: Num{ +(other) -> other, }
+    One: Num{ +(other) -> Abort! }
+    List[E]: { .fold[S](acc: S, f: Fold[S, E]): S -> Abort! }
+    Fold[S,T]: { #(acc: S, x: T): S }
+    
+    Break:{ #(l: List[Num]): Num -> l.fold[Num](Zero, Fold[Num, Num]{acc, n -> acc + n}) }
+    
+    Abort: { ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
+    """); }
+  @Test void foldAccInferred() { ok("""
+    package test
+    Num: { +(other: Num): Num }
+    Zero: Num{ +(other) -> other, }
+    One: Num{ +(other) -> Abort! }
+    List[E]: { .fold[S](acc: S, f: Fold[S, E]): S -> Abort! }
+    Fold[S,T]: { #(acc: S, x: T): S }
+    
+    Break:{ #(l: List[Num]): Num -> l.fold[Num](Zero, {acc, n -> acc + n}) }
+    
+    Abort: { ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
+    """); }
 }

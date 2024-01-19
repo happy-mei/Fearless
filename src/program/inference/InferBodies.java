@@ -224,7 +224,7 @@ public record InferBodies(ast.Program p) {
         refinedSig.name(),
         Optional.of(fixedGens),
         fixedArgs,
-        refiner.best(e.t(), refinedSig.rt()),
+        refiner.best(e.t(), refinedSig.rt(), new BestITStrategy.MostSpecific(p)),
         e.pos()
       );
       return e.equals(res) ? Optional.empty() : Optional.of(res);

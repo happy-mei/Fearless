@@ -219,7 +219,7 @@ public class Ex09FlowsTest {
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
           .do {downstream#n}
-          .return {{}}}, mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
+          .return {{}}}, mut Consumer[mut Ref[Int]]{state -> FIO#sys.println(state.get.str)})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
@@ -233,7 +233,7 @@ public class Ex09FlowsTest {
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
           .do {downstream#n}
-          .return {{}}}, mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
+          .return {{}}}, {state -> FIO#sys.println(state.get.str)})
         .limit(2u)
         .map{n -> n.str}
         #(Flow.str " ")
@@ -249,7 +249,7 @@ public class Ex09FlowsTest {
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
           .do {downstream#n}
-          .return {{}}}, mut Consumer[mut Ref[Int]]{state->FIO#sys.println(state.get.str)})
+          .return {{}}}, {state -> FIO#sys.println(state.get.str)})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
@@ -274,11 +274,10 @@ public class Ex09FlowsTest {
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
       Flow#[Int](5, 10, 15)
-        .scan(Hack.fixInferencePls, {acc, n -> acc + (n.str)})
+        .scan[Str]("!", {acc, n -> acc + (n.str)})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
-    Hack:{ .fixInferencePls: Str -> "!" }
     """, Base.mutBaseAliases);}
 
 //  @Test void flowActor() { ok(new Res(), "test.Test", """
