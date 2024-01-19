@@ -1,14 +1,16 @@
 package rt;
 
-import utils.Box;
-
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.SubmissionPublisher;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 public final class FlowRuntime {
   public static final int BUFFER_SIZE = 256;
   private static final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-//  private
 
   // TODO: I might not need this wrapper because I may always want to call ref.consume(..) where I would use signal.
   public record Subject<E>(SubmissionPublisher<Message<E>> ref, CompletableFuture<Void> signal) implements AutoCloseable {
@@ -41,6 +43,22 @@ public final class FlowRuntime {
     record Stop<E>() implements Message<E> {
       @SuppressWarnings("rawtypes")
       static final Stop INSTANCE = new Stop<>();
+    }
+  }
+
+  // TODO remove:
+  public static class Box<T> {
+    private T inner;
+
+    public static <T> Box<T> of(Supplier<T> f) { return new Box<>(f.get()); }
+
+    public Box(T inner) { this.inner = inner; }
+
+    public T get() { return inner; }
+    public void set(T inner) { this.inner = inner; }
+    public T update(Function<T, T> f) {
+      this.inner = f.apply(this.inner);
+      return this.inner;
     }
   }
 }

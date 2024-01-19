@@ -31,9 +31,11 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import utils.ResolveResource;
 
 import static java.util.Objects.requireNonNull;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
+import static utils.ResolveResource.read;
 
 // TODO: It might be good to ban any files from having a "package base*" that are not in the base directory.
 
@@ -106,8 +108,8 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     if (!isEntryValid) { throw Fail.invalidEntryPoint(entry, main); }
 
     v.progress.printTask("Running code generation \uD83C\uDFED");
-    var java = toJava(entry, p, resolvedCalls);
-    var classFile = java.compile();
+    var mainClass = toJava(entry, p, resolvedCalls);
+    var classFile = JavaProgram.compile(mainClass);
     v.progress.printTask("Code generated \uD83E\uDD73");
 
     var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
@@ -185,11 +187,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       case Std -> "/default-aliases.fear";
       case Imm -> "/default-imm-aliases.fear";
     };
-    try {
-      return resolveResource(path, throwingFunction(CompilerFrontEnd::read));
-    } catch (URISyntaxException | IOException e) {
-      throw Bug.of(e);
-    }
+    return ResolveResource.getStringOrThrow(path);
   }
 
   Map<String, List<Package>> parseBase() {
@@ -198,12 +196,12 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       switch (bv) {
         case Std -> {
           var res = baseLib.get();
-          if (res == null) { res = resolveResource("/base", load); baseLib.set(res); }
+          if (res == null) { res = ResolveResource.of("/base", load); baseLib.set(res); }
           yield res;
         }
         case Imm -> {
           var res = immBaseLib.get();
-          if (res == null) { res = resolveResource("/immBase", load); immBaseLib.set(res); }
+          if (res == null) { res = ResolveResource.of("/immBase", load); immBaseLib.set(res); }
           yield res;
         }
       };
@@ -213,27 +211,12 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     return ps;
   }
 
-  static <R> R resolveResource(String root, Function<Path, R> f) throws IOException, URISyntaxException {
-    var top = requireNonNull(CompilerFrontEnd.class.getResource(root)).toURI();
-    if (!top.getScheme().equals("jar") && !top.getScheme().equals("resource")) {
-      return f.apply(Path.of(top));
-    }
-    try(var fs = FileSystems.newFileSystem(top, Map.of())) {
-      return f.apply(fs.getPath(root));
-    }
-  }
-
   static Map<String, List<Package>> load(Path root) throws IOException {
     try(var fs = Files.walk(root)) {
       return fs
         .filter(Files::isRegularFile)
         .map(throwingFunction(path->new Parser(path, read(path)).parseFile(CompileError::err)))
         .collect(Collectors.groupingBy(Package::name));
-    }
-  }
-  static String read(Path p) throws IOException {
-    try(var br = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
-      return br.lines().collect(Collectors.joining("\n"));
     }
   }
 }
