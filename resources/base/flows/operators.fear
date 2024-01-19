@@ -16,6 +16,7 @@ FlowOp[E]: {
     .if {this.isRunning.not} .return {{}}
     .return {this.forRemaining(downstream)},
   mut .isFinite: Bool -> True,
+  mut .split: mut Opt[mut FlowOp[E]] -> {},
   }
 
 _Sink[T]: _Sink[Void, T]{
