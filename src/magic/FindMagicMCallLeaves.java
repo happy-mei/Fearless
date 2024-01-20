@@ -21,6 +21,10 @@ import java.util.*;
   Then I need to ...
 
   After I have my root node, I go in reverse.
+
+  ALTERNATIVELY
+
+  If I am in a method that calls Flow.fromOp, dynamically make calls to that method magic?
  */
 
 public interface FindMagicMCallLeaves {
