@@ -20,13 +20,17 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     if (e.ts().isEmpty()) {
       throw Fail.couldNotInferCallGenerics(e.name()).pos(e.pos());
     }
-    return new ast.E.MCall(
-      recv,
-      e.name(),
-      e.ts().get().stream().map(this::visitTInGens).toList(),
-      e.es().stream().map(ei->ei.accept(this)).toList(),
-      e.pos()
-    );
+    try {
+      return new ast.E.MCall(
+        recv,
+        e.name(),
+        e.ts().get().stream().map(this::visitTInGens).toList(),
+        e.es().stream().map(ei->ei.accept(this)).toList(),
+        e.pos()
+      );
+    } catch (astFull.T.MatchOnInfer err) {
+      throw Fail.inferFailed("Could not infer:\n"+e).pos(e.pos());
+    }
   }
 
   public ast.E.X visitX(E.X e){
@@ -68,7 +72,6 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
 
   public ast.T visitT(astFull.T t){
     if (t.isInfer()) {
-      // TODO: throw Fail.....
       throw new astFull.T.MatchOnInfer();
     }
     return t.toAstT();
@@ -76,8 +79,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
 
   public ast.T visitTInGens(astFull.T t){
     if (t.isInfer()) {
-      // TODO: throw Fail.....
-      throw Bug.todo();
+      throw new astFull.T.MatchOnInfer();
     }
     return t.toAstT();
   }

@@ -48,7 +48,7 @@ Iter[E]:{
 
   mut .flow: mut Flow[E] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .return {Flow.fromOp{'op
+    .return {Flow.fromMutSource{'op
       .stop -> isRunning := False,
       .isRunning -> isRunning*,
       .step(downstream) -> isRunning* ? {

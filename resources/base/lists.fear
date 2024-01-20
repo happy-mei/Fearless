@@ -198,7 +198,7 @@ List[E]: Collection{
 
   mut .flow: mut Flow[E] -> Block#
     .var[mut Count[UInt]] cursor = {Count.uint(0u)}
-    .return {Flow.fromOp({'self
+    .return {Flow.fromMutSource({'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
       .step(downstream) -> this.get(cursor++).match{

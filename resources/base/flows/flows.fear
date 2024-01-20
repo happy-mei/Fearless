@@ -10,6 +10,11 @@ Flow: _FlowExtensions{
 
   .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> _SeqFlow.fromOp(source, {}),
   .fromOp[E](source: mut FlowOp[E], size: UInt): mut Flow[E] -> _SeqFlow.fromOp(source, Opt#size),
+
+  // This variant of fromOp asks the compiler to emit code that collects the source into an intermediary list to
+  // avoid any concurrent modification issues if they would be possible during the execution of the flow.
+  .fromMutSource[E](source: mut FlowOp[E]): mut Flow[E] -> this.fromOp(source),
+  .fromMutSource[E](source: mut FlowOp[E], size: UInt): mut Flow[E] -> this.fromOp(source, size),
   }
 
 Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
