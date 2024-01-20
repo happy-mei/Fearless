@@ -4,12 +4,10 @@ import ast.E;
 import ast.Program;
 import ast.T;
 import codegen.MIR;
-import failure.CompileError;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
 import program.typesystem.EMethTypeSystem;
-import utils.Bug;
 import visitors.MIRVisitor;
 
 import java.util.IdentityHashMap;
@@ -106,7 +104,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   public String visitMCall(MIR.MCall mCall, boolean checkMagic) {
     var magicImpl = magic.get(mCall.recv());
     if (checkMagic && magicImpl.isPresent()) {
-      var impl = magicImpl.get().call(mCall.name(), mCall.args(), Map.of());
+      var impl = magicImpl.get().call(mCall.name(), mCall.args(), Map.of(), mCall.variant());
       if (impl.isPresent()) { return impl.get(); }
     }
 

@@ -72,12 +72,14 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   public MIR.MCall visitMCall(String pkg, E.MCall e, Map<String, T> gamma) {
     var recv = e.receiver().accept(this, pkg, gamma);
     var tst = this.resolvedCalls.get(e);
+
     return new MIR.MCall(
       recv,
       e.name().withMdf(Optional.of(tst.original().mdf())),
       e.es().stream().map(ei->ei.accept(this, pkg, gamma)).toList(),
       tst.t(),
-      tst.original().mdf()
+      tst.original().mdf(),
+      getVariant(recv, e)
     );
   }
 
@@ -202,6 +204,23 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
         dec.lambda().meths().stream().map(m->visitMeth(dec.name().pkg(), m.withBody(Optional.empty()), Map.of())).toList(),
         false
       ));
+  }
+
+  private MIR.MCall.CallVariant getVariant(MIR recv, E.MCall e) {
+    // The issue with basing it on the recv here is that the call to the actual flow constructor only knows
+    // about "mdf E" in most cases :(
+    // We basically need to make any code that calls the flow functions, magic.
+    // We could have a collector which walks the AST and recursively builds up a list of all method calls that end up
+    // invoking a flow constructor until it gets non-generic. Then we associate each one of those leaf method calls
+    // with a call variant. Basically a BFS/DFS for relevant method calls?
+
+    if (recv.t().equals(new T(Mdf.imm, new Id.IT<>("base.flows.Flow", List.of())))) {
+      if (e.ts().size() == 1 && e.ts().getFirst().isIt()) {
+        System.out.println(e.ts().getFirst()+" at "+e.pos());
+      }
+    }
+
+    return MIR.MCall.CallVariant.Standard;
   }
 
   private static class CaptureCollector implements CollectorVisitor<Set<String>> {

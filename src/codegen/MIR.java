@@ -31,7 +31,13 @@ public interface MIR {
       return v.visitX(this, checkMagic);
     }
   }
-  record MCall(MIR recv, Id.MethName name, List<MIR> args, T t, Mdf mdf) implements MIR {
+  record MCall(MIR recv, Id.MethName name, List<MIR> args, T t, Mdf mdf, CallVariant variant) implements MIR {
+    public enum CallVariant {
+      Standard,
+      PipelineParallelFlow,
+      DataParallelFlow,
+      MutMutSourceFlow,
+    }
     public <R> R accept(MIRVisitor<R> v) {
       return this.accept(v, true);
     }

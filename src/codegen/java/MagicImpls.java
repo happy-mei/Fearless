@@ -34,7 +34,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
           throw Fail.invalidNum(lambdaName, "Int");
         }
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         return Optional.ofNullable(_call(m, args, gamma));
       }
       private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
@@ -97,7 +97,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         }
         return "((long)"+e.accept(gen)+")";
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         return Optional.of(_call(m, args, gamma));
       }
       private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
@@ -159,7 +159,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         }
         return "((double)"+e.accept(gen)+")";
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         return Optional.of(_call(m, args, gamma));
       }
       private String _call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
@@ -208,7 +208,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         var lambdaName = name().name().name();
         return isLiteral(lambdaName) ? lambdaName : "((String)"+e.accept(gen)+")";
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         if (m.equals(new Id.MethName(".size", 0))) { return Optional.of(instantiate()+".length()"); }
         if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of("("+instantiate()+".isEmpty()?base.True_0._$self:base.False_0._$self)"); }
         if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate()); }
@@ -232,7 +232,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
 //        java.util.Arrays.stream(m.getClass().getDeclaredMethods())
 //          .filter(meth->
 //            meth.getName().equals("str$")
@@ -276,7 +276,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
           var x = args.get(0);
           return Optional.of(String.format("""
@@ -300,7 +300,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         if (m.equals(new Id.MethName("#", 1))) {
           var x = args.get(0);
           return Optional.of(String.format("""
@@ -334,7 +334,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         if (m.equals(new Id.MethName("._fail", 0))) {
           return Optional.of("""
             (switch (1) { default -> {
@@ -365,7 +365,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         if (m.equals(new Id.MethName("!", 0))) {
           return Optional.of("""
             (switch (1) { default -> {
@@ -387,7 +387,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         if (m.equals(new Id.MethName("!", 0))) {
           // todo: does this fail if used as an argument for something wanting like an int?
           return Optional.of("""
@@ -410,7 +410,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         if (m.equals(new Id.MethName("!", 1))) {
           return Optional.of("""
             (switch (1) {
@@ -431,7 +431,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         if (m.equals(new Id.MethName("#", 1))) {
           return Optional.of("""
             (switch (1) { default -> {
@@ -463,25 +463,20 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
-        if (m.equals(new Id.MethName(".fromMutSource", 1)) || m.equals(new Id.MethName(".fromMutSource", 2))) {
-          // TODO: Empty if E is not mut
-          return Optional.of("""
-            base$46flows.$95MutSourceCollection_1._$self.$35$imm$(%s)
-            """.formatted(args.getFirst().accept(gen)));
-        }
-//        if (m.equals(new Id.MethName("#", 1))) {
-//          return Optional.of("""
-//            (switch (1) { default -> {
-//              try { yield base.Res_0._$self.ok$imm$(%s.$35$read$()); }
-//              catch(FearlessError _$err) { yield base.Res_0._$self.err$imm$(_$err.info); }
-//              catch(java.lang.ArithmeticException _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
-//              catch(java.lang.StackOverflowError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$("Stack overflowed")); }
-//              catch(java.lang.VirtualMachineError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
-//            }})
-//            """.formatted(args.get(0).accept(gen)));
-//        }
-        return Optional.empty();
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
+        return switch (variant) {
+          case Standard -> Optional.empty();
+          case MutMutSourceFlow -> {
+            if (m.equals(new Id.MethName(".fromMutSource", 1)) || m.equals(new Id.MethName(".fromMutSource", 2))) {
+              yield  Optional.of("""
+              base$46flows.$95MutSourceCollection_1._$self.$35$imm$(%s)
+              """.formatted(args.getFirst().accept(gen)));
+            }
+            yield Optional.empty();
+          }
+          case PipelineParallelFlow -> throw Bug.todo();
+          case DataParallelFlow -> throw Bug.todo();
+        };
       }
     };
   }
@@ -494,7 +489,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public String instantiate() {
         return gen.visitLambda(l, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, MIR.MCall.CallVariant variant) {
         ObjCapImpl impl = null;
         if (target == Magic.RootCap) { impl = (ctx, m1, args1, gamma1) -> null; }
         if (target == Magic.IO) { impl = io(); }

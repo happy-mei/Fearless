@@ -14,7 +14,7 @@ _MutSourceCollection[E]: {
        .var[mut List[E]] dup = {Flow.fromOp(original).list}
        .do {cloned := (Opt#(Block#[mut FlowOp[E]]
          .var[mut Count[UInt]] cursor = {Count.uint(0u)}
-//         .do {base.Error.str "hiya"} // TODO: testing
+         .do {base.Error.str "hiya"} // TODO: testing
          .return {{'self
            .isRunning -> cursor* < (dup.size),
            .stop -> cursor := (dup.size),
