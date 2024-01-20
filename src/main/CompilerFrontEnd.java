@@ -114,7 +114,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
 
     var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
     String[] command = Stream.concat(
-      Stream.of(jrePath.toString(), classFile.getFileName().toString().split("\\.class")[0]),
+      Stream.of(jrePath.toString(), "userCode."+classFile.getFileName().toString().split("\\.class")[0]),
       cliArgs.stream()
     ).toArray(String[]::new);
     var pb = new ProcessBuilder(command);

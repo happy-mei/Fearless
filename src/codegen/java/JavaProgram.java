@@ -54,7 +54,8 @@ public class JavaProgram extends SimpleJavaFileObject {
     var errors = new Box<Diagnostic<?>>(null);
 
     var runtimeFiles = Stream.of(
-      "FlowRuntime"
+      "FlowRuntime",
+      "PipelineParallelFlow"
     ).map(name -> new JavaProgram(name, ResolveResource.getStringOrThrow("/rt-source/"+name+".java")));
     var userFiles = Arrays.stream(files);
     var codegenUnits = Stream.concat(userFiles, runtimeFiles);

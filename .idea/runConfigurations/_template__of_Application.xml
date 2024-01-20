@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="true" type="Application" factoryName="Application">
+    <module name="fearless" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="fearless [compile]" run_configuration_type="MavenRunConfiguration" />
+    </method>
+  </configuration>
+</component>

@@ -38,6 +38,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     var init = "\nstatic void main(String[] args){ "+argsToLList(Mdf.mut)+" base.Main_0 entry = new "+entryName+"(){}; try { entry.$35$imm$(new base$46caps.$95System_0(){}); } catch (StackOverflowError e) { System.err.println(\"Program crashed with: Stack overflowed\"); System.exit(1); } catch (Throwable t) { System.err.println(\"Program crashed with: \"+t.getLocalizedMessage()); System.exit(1); } }\n";
 
     final String fearlessError = """
+      package userCode;
       class FearlessError extends RuntimeException {
         public FProgram.base.Info_0 info;
         public FearlessError(FProgram.base.Info_0 info) {
