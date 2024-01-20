@@ -441,7 +441,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
               catch(java.lang.StackOverflowError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$("Stack overflowed")); }
               catch(java.lang.VirtualMachineError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
             }})
-            """.formatted(args.get(0).accept(gen)));
+            """.formatted(args.getFirst().accept(gen)));
         }
 //        if (m.equals(new Id.MethName("#", 2))) {
 //          return Optional.of("""
@@ -450,6 +450,36 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
 //              catch(FearlessError _$err) { yield %s.$35$mut$(_$err.info); }
 //            }})
 //            """.formatted(args.get(0).accept(gen), args.get(1).accept(gen)));
+//        }
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<String> flowK(MIR.Lambda l, MIR e) {
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
+      @Override public MIR.Lambda instance() { return l; }
+      @Override public String instantiate() {
+        return gen.visitLambda(l, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma) {
+        if (m.equals(new Id.MethName(".fromMutSource", 1)) || m.equals(new Id.MethName(".fromMutSource", 2))) {
+          // TODO: Empty if E is not mut
+          return Optional.of("""
+            base$46flows.$95MutSourceCollection_1._$self.$35$imm$(%s)
+            """.formatted(args.getFirst().accept(gen)));
+        }
+//        if (m.equals(new Id.MethName("#", 1))) {
+//          return Optional.of("""
+//            (switch (1) { default -> {
+//              try { yield base.Res_0._$self.ok$imm$(%s.$35$read$()); }
+//              catch(FearlessError _$err) { yield base.Res_0._$self.err$imm$(_$err.info); }
+//              catch(java.lang.ArithmeticException _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
+//              catch(java.lang.StackOverflowError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$("Stack overflowed")); }
+//              catch(java.lang.VirtualMachineError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
+//            }})
+//            """.formatted(args.get(0).accept(gen)));
 //        }
         return Optional.empty();
       }

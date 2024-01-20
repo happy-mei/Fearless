@@ -23,6 +23,8 @@ public class Magic {
   public static final Id.DecId ErrorK = new Id.DecId("base.Error", 0);
   public static final Id.DecId Try = new Id.DecId("base.Try", 0);
 
+  public static final Id.DecId Flow = new Id.DecId("base.flows.Flow", 0);
+
   // object capabilities
   public static final Id.DecId RootCap = new Id.DecId("base.caps.RootCap", 0);
   public static final Id.DecId IO = new Id.DecId("base.caps.IO", 0);
