@@ -96,6 +96,9 @@ public record InferBodies(ast.Program p) {
       : bProp(gamma,mi,fixedLambda,depth).map(mj->{done[0]=true;return mj.stream();}).orElseGet(()->Stream.of(mi)))
     .toList();
     if(!done[0]){ return Optional.empty(); }
+    if (newMs.size() < e.meths().size()) {
+      throw Fail.inferFailed("Could not infer all methods on:\n"+e).pos(e.pos());
+    }
     var res = refineLambda(e, e.withMeths(newMs), depth); // TODO: why can't we get rid of this?
 //    var res = Optional.of(e.withMeths(newMs));
     return res.flatMap(e1->!e1.equals(e) ? res : Optional.empty());
