@@ -5,7 +5,11 @@ MyApp:Main{ s -> Block#
   .return{ io.println(ImmMain#args) }
   }
 ImmMain:{
-  #(args: LList[Str]): Str -> args.get(1u) || { ((this.errMsg((args.head).isSome)) *) },
+  #(args: LList[Str]): Str -> args.get(1u).match{
+    .some(res) -> res,
+    .empty -> this.errMsg(args.head.isSome)*
+    },
+  // #(args: LList[Str]): Str -> args.get(1u) || { ((this.errMsg((args.head).isSome)) *) },
     // simpler version of above:
 //  #(args: LList[Str]): Str -> args.get(1u).match{
 //    .some(x) -> x,
