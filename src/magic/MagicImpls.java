@@ -20,6 +20,10 @@ public interface MagicImpls<R> {
   }
 
   default Optional<MagicTrait<R>> get(MIR e) {
+    if (e instanceof MIR.MCall call && !call.variant().contains(MIR.MCall.CallVariant.Standard)) {
+      return Optional.ofNullable(variantCall(e));
+    }
+
     return e.accept(new LambdaVisitor(p(), resolvedCalls())).flatMap(l->{
       if (isMagic(Magic.Int, l)) { return Optional.ofNullable(int_(l, e)); }
       if (isMagic(Magic.UInt, l)) { return Optional.ofNullable(uint(l, e)); }
@@ -33,7 +37,7 @@ public interface MagicImpls<R> {
       if (isMagic(Magic.MagicAbort, l)) { return Optional.ofNullable(magicAbort(l, e)); }
       if (isMagic(Magic.ErrorK, l)) { return Optional.ofNullable(errorK(l, e)); }
       if (isMagic(Magic.Try, l)) { return Optional.ofNullable(tryCatch(l, e)); }
-      if (isMagic(Magic.Flow, l)) { return Optional.ofNullable(flowK(l, e)); }
+      if (isMagic(Magic.FlowK, l)) { return Optional.ofNullable(flowK(l, e)); }
       return Magic.ObjectCaps.stream()
         .filter(target->isMagic(target, l))
         .map(target->Optional.ofNullable(objCap(target, l, e)))
@@ -73,6 +77,7 @@ public interface MagicImpls<R> {
   MagicTrait<R> tryCatch(MIR.Lambda l, MIR e);
   MagicTrait<R> flowK(MIR.Lambda l, MIR e);
   MagicTrait<R> objCap(Id.DecId magicTrait, MIR.Lambda l, MIR e);
+  MagicTrait<R> variantCall(MIR e);
   ast.Program p();
   IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls();
 

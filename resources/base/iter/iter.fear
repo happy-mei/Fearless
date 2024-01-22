@@ -45,21 +45,6 @@ Iter[E]:{
   mut .str(toStr: mut IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
     .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.size == 0u ? { .then -> acc + e,
                                                                           .else -> acc + joining + e }}),
-
-  mut .flow: mut Flow[E] -> Block#
-    .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .return {Flow.fromMutSource{'op
-      .stop -> isRunning := False,
-      .isRunning -> isRunning*,
-      .step(downstream) -> isRunning* ? {
-        .then -> this.next.match{
-          .some(x) -> downstream#x,
-          .empty -> op.stop,
-          },
-        .else -> op.stop,
-        }
-      }},
-
 //  Flow.fromOp{'op
 //    .step(sink) -> this.next.match{
 //      .some(x) -> sink#x,

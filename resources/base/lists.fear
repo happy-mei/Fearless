@@ -10,7 +10,7 @@ Collection:{
 // Done in the traditional order where adding to the end concatenates an empty list on.
 // Doing the linked list in stack ordering would make getting elements much slower
 LList:{ #[E]: mut LList[E] -> mut LList[E] }
-LList[E]:Collection{
+LList[E]:Collection,Sealed{
   mut  .match[R](m: mut LListMatch[E, R]): R -> m.empty,
   read .match[R](m: mut LListMatchRead[read E, R]): R -> m.empty,
 

@@ -38,9 +38,7 @@ FlowEx:{
   .listMut: Bool -> (mut LList[Int] + 10 + 5 + 1).flow
     .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
 
-  .fromIter: Bool -> (LList[Int] + 10 + 1 + 5).iter
-      .filter{e -> (e == 1).not}
-      .flow
-      .any{e -> e == 1 ? {.then -> Error.str "not filtering", .else -> e == 5}},
+  .fromIter: Bool -> Flow.fromIter((LList[Int] + 10 + 1 + 5).iter.filter{e -> (e == 1).not})
+    .any{e -> e == 1 ? {.then -> Error.str "not filtering", .else -> e == 5}},
   }
 

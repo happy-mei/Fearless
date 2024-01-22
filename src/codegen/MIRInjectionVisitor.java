@@ -1,16 +1,13 @@
 package codegen;
 
-import ast.AllLsVisitor;
 import ast.E;
 import ast.Program;
 import ast.T;
 import id.Id;
 import id.Mdf;
 import program.CM;
-import program.TypeRename;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
-import utils.Push;
 import utils.Streams;
 import visitors.CollectorVisitor;
 import visitors.GammaVisitor;
@@ -79,7 +76,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       e.es().stream().map(ei->ei.accept(this, pkg, gamma)).toList(),
       tst.t(),
       tst.original().mdf(),
-      getVariant(recv, e)
+      getVariants(recv, e)
     );
   }
 
@@ -206,7 +203,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       ));
   }
 
-  private MIR.MCall.CallVariant getVariant(MIR recv, E.MCall e) {
+  private EnumSet<MIR.MCall.CallVariant> getVariants(MIR recv, E.MCall e) {
     // The issue with basing it on the recv here is that the call to the actual flow constructor only knows
     // about "mdf E" in most cases :(
     // We basically need to make any code that calls the flow functions, magic.
@@ -214,13 +211,39 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     // invoking a flow constructor until it gets non-generic. Then we associate each one of those leaf method calls
     // with a call variant. Basically a BFS/DFS for relevant method calls?
 
-    if (recv.t().equals(new T(Mdf.imm, new Id.IT<>("base.flows.Flow", List.of())))) {
-      if (e.ts().size() == 1 && e.ts().getFirst().isIt()) {
-        System.out.println(e.ts().getFirst()+" at "+e.pos());
+//    if (recv.t().equals(new T(Mdf.imm, new Id.IT<>("base.flows.Flow", List.of())))) {
+//      if (e.ts().size() == 1 && e.ts().getFirst().isIt()) {
+//        System.out.println(e.ts().getFirst()+" at "+e.pos());
+//      }
+//    }
+
+    // Standard library .flow methods:
+    var recvT = recv.t();
+    var recvIT = recvT.itOrThrow();
+    if (e.name().name().equals(".flow")) {
+      if (recvIT.name().equals(new Id.DecId("base.LList", 1))) {
+        var flowElem = recvIT.ts().getFirst();
+        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow); }
+        return EnumSet.of(MIR.MCall.CallVariant.Standard);
+      }
+      if (recvIT.name().equals(new Id.DecId("base.List", 1))) {
+        var flowElem = recvIT.ts().getFirst();
+        if (recvT.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow); }
+        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow); }
+        return EnumSet.of(MIR.MCall.CallVariant.Standard);
+      }
+    }
+    if (recvIT.name().equals(new Id.DecId("base.flows.Flow", 0))) {
+      if (e.name().equals(new Id.MethName(Optional.of(Mdf.imm), ".fromIter", 1))) {
+        var flowElem = e.ts().getFirst();
+        // Cannot be safe and data-parallel because mut .next/0 on the iterator may not be called in parallel.
+        // Pipeline parallelism is okay because we know .next will never be called simultaneously with itself.
+        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.SafeMutSourceFlow, MIR.MCall.CallVariant.PipelineParallelFlow); }
+        return EnumSet.of(MIR.MCall.CallVariant.Standard);
       }
     }
 
-    return MIR.MCall.CallVariant.Standard;
+    return EnumSet.of(MIR.MCall.CallVariant.Standard);
   }
 
   private static class CaptureCollector implements CollectorVisitor<Set<String>> {

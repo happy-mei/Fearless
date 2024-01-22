@@ -1,0 +1,34 @@
+package base.flows
+
+_FlowConverters: Sealed{
+  .fromIter[E](iter: mut base.iter.Iter[E]): mut Flow[E] -> Block#
+    .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+    .return {Flow.fromMutSource{'op
+      .stop -> isRunning := False,
+      .isRunning -> isRunning*,
+      .step(downstream) -> isRunning* ? {
+        .then -> iter.next.match{
+          .some(x) -> downstream#x,
+          .empty -> op.stop,
+          },
+        .else -> op.stop,
+        }
+      }}
+  }
+
+// Cariants of the converter methods that do not clone if is safe to do so. Invoked by magic
+_SafeSource: {
+  .fromIter[E](iter: mut base.iter.Iter[E]): mut Flow[E] -> Block#
+    .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+    .return {Flow.fromOp{'op
+      .stop -> isRunning := False,
+      .isRunning -> isRunning*,
+      .step(downstream) -> isRunning* ? {
+        .then -> iter.next.match{
+          .some(x) -> downstream#x,
+          .empty -> op.stop,
+          },
+        .else -> op.stop,
+        }
+      }}
+  }

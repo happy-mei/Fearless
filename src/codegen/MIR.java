@@ -31,13 +31,17 @@ public interface MIR {
       return v.visitX(this, checkMagic);
     }
   }
-  record MCall(MIR recv, Id.MethName name, List<MIR> args, T t, Mdf mdf, CallVariant variant) implements MIR {
+  record MCall(MIR recv, Id.MethName name, List<MIR> args, T t, Mdf mdf, EnumSet<CallVariant> variant) implements MIR {
     public enum CallVariant {
       Standard,
       PipelineParallelFlow,
       DataParallelFlow,
-      MutMutSourceFlow,
+      SafeMutSourceFlow;
+
+      public boolean isStandard() { return this == Standard; }
+      public boolean canParallelise() { return this == PipelineParallelFlow || this == DataParallelFlow; }
     }
+
     public <R> R accept(MIRVisitor<R> v) {
       return this.accept(v, true);
     }
@@ -46,6 +50,20 @@ public interface MIR {
     }
   }
   record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, Set<X> captures, List<Meth> meths, boolean canSingleton) implements MIR {
+    public Lambda(Mdf mdf, Id.DecId impls) {
+      this(
+        mdf,
+//        new Id.DecId(impls.pkg()+"."+Id.GX.fresh().name(), 0),
+        impls,
+        astFull.E.X.freshName(),
+//        List.of(new Id.IT<>(impls, List.of())),
+        List.of(),
+        Set.of(),
+        List.of(),
+        true
+      );
+    }
+
     public <R> R accept(MIRVisitor<R> v) {
       return this.accept(v, true);
     }
