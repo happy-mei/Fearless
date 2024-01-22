@@ -559,7 +559,6 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         var recvT = call.recv().t().itOrThrow();
         if (recvT.name().equals(Magic.FlowK)) {
           if (m.equals(new Id.MethName(Optional.of(Mdf.imm), ".fromIter", 1))) {
-            System.out.println(variants);
             if (variants.contains(MIR.MCall.CallVariant.SafeMutSourceFlow)) {
               var newVariants = EnumSet.copyOf(variants);
               newVariants.remove(MIR.MCall.CallVariant.SafeMutSourceFlow);
@@ -571,6 +570,29 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
                 call.mdf(),
                 newVariants
               )));
+            }
+            if (variants.contains(MIR.MCall.CallVariant.Standard)) {
+              return Optional.empty();
+            }
+          }
+        }
+
+        if (recvT.name().equals(Magic.FList)) {
+          if (m.equals(new Id.MethName(Optional.of(Mdf.mut), ".flow", 0))) {
+            if (variants.contains(MIR.MCall.CallVariant.SafeMutSourceFlow)) {
+              var newVariants = EnumSet.copyOf(variants);
+              newVariants.remove(MIR.MCall.CallVariant.SafeMutSourceFlow);
+              return Optional.of(gen.visitMCall(new MIR.MCall(
+                new MIR.Lambda(Mdf.imm, new Id.DecId("base.flows._SafeSource", 0)),
+                new Id.MethName(Optional.of(Mdf.imm), ".fromList", 1),
+                List.of(call.recv()),
+                call.t(),
+                Mdf.imm,
+                newVariants
+              )));
+            }
+            if (variants.contains(MIR.MCall.CallVariant.Standard)) {
+              return Optional.empty();
             }
           }
         }

@@ -10,6 +10,7 @@ import magic.Magic;
 import program.typesystem.EMethTypeSystem;
 import visitors.MIRVisitor;
 
+import java.util.EnumSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,6 +103,11 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitMCall(MIR.MCall mCall, boolean checkMagic) {
+    if (mCall.variant().size() > 1 || !mCall.variant().contains(MIR.MCall.CallVariant.Standard)) {
+      var impl = magic.variantCall(mCall).call(mCall.name(), mCall.args(), Map.of(), mCall.variant());
+      if (impl.isPresent()) { return impl.get(); }
+    }
+
     var magicImpl = magic.get(mCall.recv());
     if (checkMagic && magicImpl.isPresent()) {
       var impl = magicImpl.get().call(mCall.name(), mCall.args(), Map.of(), mCall.variant());

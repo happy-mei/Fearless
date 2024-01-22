@@ -16,7 +16,7 @@ _FlowConverters: Sealed{
       }}
   }
 
-// Cariants of the converter methods that do not clone if is safe to do so. Invoked by magic
+// Variants of the converter methods that do not clone if is safe to do so. Invoked by magic
 _SafeSource: {
   .fromIter[E](iter: mut base.iter.Iter[E]): mut Flow[E] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
@@ -30,5 +30,16 @@ _SafeSource: {
           },
         .else -> op.stop,
         }
-      }}
+      }},
+
+  .fromList[E](list: mut List[E]): mut Flow[E] -> Block#
+    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .return {Flow.fromMutSource({'self
+      .isRunning -> cursor* < (list.size),
+      .stop -> cursor := (list.size),
+      .step(downstream) -> list.get(cursor++).match{
+        .some(x) -> downstream#x,
+        .empty -> Block#(downstream.stop, self.stop),
+        },
+      }, list.size)},
   }

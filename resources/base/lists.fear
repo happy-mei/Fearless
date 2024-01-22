@@ -189,7 +189,7 @@ _List:{
     .add(e) -> s := (_ListState#[E](s*.size + 1u, s*.inner + e)),
     }
   }
-List[E]: Collection{
+List[E]: Collection,Sealed{
   mut  .get(i: UInt): mut Opt[E],
   read .get(i: UInt): mut Opt[read E],
   imm  .get(i: UInt): iso Opt[imm E],

@@ -20,10 +20,6 @@ public interface MagicImpls<R> {
   }
 
   default Optional<MagicTrait<R>> get(MIR e) {
-    if (e instanceof MIR.MCall call && !call.variant().contains(MIR.MCall.CallVariant.Standard)) {
-      return Optional.ofNullable(variantCall(e));
-    }
-
     return e.accept(new LambdaVisitor(p(), resolvedCalls())).flatMap(l->{
       if (isMagic(Magic.Int, l)) { return Optional.ofNullable(int_(l, e)); }
       if (isMagic(Magic.UInt, l)) { return Optional.ofNullable(uint(l, e)); }

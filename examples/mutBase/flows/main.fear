@@ -23,6 +23,7 @@ App:Main{ sys -> Block#
   .do{ io.println(FlowEx.listMut.str) }
   .do{ io.println(FlowEx.listRead.str) }
   .do{ io.println(FlowEx.fromIter.str) }
+  .do{ io.println(Flow.fromIter((mut LList[mut LList[Int]] + {}).iter).size.str) }
   .return{{}}
   }
 
