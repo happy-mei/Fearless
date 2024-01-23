@@ -28,11 +28,11 @@ _Limit: {
 
 _Actor: {
   // Delegates to _InternalActor to unwrap the iso state so it can be captured as whatever the user wants.
-  #[S,E,R](upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[R] ->
+  #[S,E,R](upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] ->
     _InternalActor#[S,E,R](upstream, state, f, onComplete)
   }
 _InternalActor: {
-  #[S,E,R](upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[R] -> Block#
+  #[S,E,R](upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
     .return {{'op
       .stop -> op.isRunning ? {
@@ -50,7 +50,18 @@ _InternalActor: {
       }},
   }
 
-ActorImpl[S,E,R]: { read #(downstream: mut _Sink[R], state: S, e: E): ActorRes }
+ActorImpl[S,E,R]: { read #(downstream: mut _Sink[imm R], state: S, e: E): ActorRes }
+//ActorMsg[T:imm,iso]: Sealed{
+//  .match[R](m: ActorMsgMatch[T,R]): R,
+//  .imm(msg: imm T): ActorMsg[T] -> {.match(m) -> m.imm(msg)},
+//  .iso(msg: iso T): ActorMsg[T] -> Block#
+//    .var[mut IsoPod[T]] wrapped = {IsoPod#msg},
+//  }
+//ActorMsgMatch[T:imm,iso, R]: {
+//  .imm(msg: imm T): R,
+//  .iso(msg: iso T): R,
+//  }
+
 ActorRes: Sealed{
   .match[R](m: mut ActorResMatch[R]): R -> m.continue,
   .continue: ActorRes -> {.match(m) -> m.continue},
