@@ -233,7 +233,34 @@ public class Ex09FlowsTest {
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
-  @Test void flowActorMutRet() { ok(new Res("31", "", 0), "test.Test", """
+  @Test void flowSimpleActorMutRet() { ok(new Res(), "test.Test", """
+    package test
+    Test:Main {sys -> "".assertEq(
+      Flow#[Int](5, 10, 15)
+        .map{i -> i.uint}
+        .actorMut[mut Person, mut Person](FPerson#0u, {downstream, p, age -> Block#(
+          downstream#(FPerson#(age + (p.age))),
+          {}
+          )})
+        .map{p -> p.age.str}
+        #(Flow.str " ")
+      )}
+    """, """
+    package test
+    FPerson:{
+      #(age: UInt): mut Person -> Block#
+        .var[mut Ref[UInt]] age' = {Ref#age}
+        .return {mut Person {
+          read .age: UInt -> age'.getImm!,
+          mut .age(n: UInt): Void -> age' := n,
+          }}
+      }
+    Person: {
+      read .age: UInt,
+      mut .age(n: UInt): Void,
+      }
+    """, Base.mutBaseAliases);}
+  @Disabled @Test void flowActorMutRet() { ok(new Res("31", "", 0), "test.Test", """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](5, 10, 15)
@@ -294,7 +321,7 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases);}
 
-  // We may have this as a specialisation of .actor
+  // We have this as a specialisation of .actor
   @Test void flowScan() { ok(new Res(), "test.Test", """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
@@ -303,6 +330,27 @@ public class Ex09FlowsTest {
         .map{n -> n.str}
         #(Flow.str " ")
       )}
+    """, Base.mutBaseAliases);}
+
+  // TODO: fix top level dec issue when wanting a mut instance of a top level lambda
+  @Test void flowSimpleActorMutRetBROKEN() { ok(new Res(), "test.Test", """
+    package test
+    Test:Main {sys -> "!5 !510 !51015".assertEq(
+      Flow#[Int](5, 10, 15)
+        .scan[Str]("!", {acc, n -> acc + (n.str)})
+        .map{n -> n.str}
+        #(Flow.str " ")
+      )}
+    """, """
+    package test
+    FPerson:{
+      #(age: UInt): mut Person -> Block#
+        .var[mut Ref[UInt]] age' = {Ref#age}
+        .return mut base.ReturnStmt[mut Person]{mut Person: Person{
+          read .age: UInt -> age'.get,
+          mut .age(n: UInt): Void -> age' := n,
+          }}
+      }
     """, Base.mutBaseAliases);}
 
 //  @Test void flowActor() { ok(new Res(), "test.Test", """

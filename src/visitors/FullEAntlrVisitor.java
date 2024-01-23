@@ -218,9 +218,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       res = visitBlock(ctx.topDec().block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), name);
     } else {
       res = visitBlock(ctx.block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), Optional.empty());
+      if (res.its().isEmpty() && !ctx.mdf().getText().isEmpty()) { throw Fail.modifierOnInferredLambda().pos(pos(ctx)); }
     }
 
-    if (res.its().isEmpty() && !ctx.mdf().getText().isEmpty()) { throw Fail.modifierOnInferredLambda().pos(pos(ctx)); }
     this.xbs = oldXbs;
     return res;
   }
@@ -230,7 +230,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .map(its->its.stream().map(this::visitIT).toList());
     var rt = _its.flatMap(its->GetO.of(its,0));
     var its = _its.orElse(List.of());
-    if (rt.isEmpty() && mdf.isPresent()) {
+    if (rt.isEmpty() && name.isEmpty() && mdf.isPresent()) {
       throw Fail.mustProvideImplsIfMdfProvided().pos(pos(ctx));
     }
     if (rt.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }

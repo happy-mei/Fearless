@@ -27,11 +27,15 @@ public sealed interface E extends HasPos {
   E withPos(Optional<Pos> pos);
   E withT(T t);
 
-  record Lambda(LambdaId name, Optional<Mdf> mdf, List<Id.IT<T>>its, String selfName, List<Meth>meths, Optional<Id.IT<T>> it, Optional<Pos> pos) implements E {
+  record Lambda(LambdaId name, Optional<Mdf> mdf, List<Id.IT<T>>its, String selfName, List<Meth> meths, Optional<Id.IT<T>> it, Optional<Pos> pos) implements E {
     public Lambda {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
+
+      if (it.isEmpty() && mdf.isPresent() && !name.id.isFresh()) {
+        it = Optional.of(new Id.IT<>(name.id, name.gens.stream().map(gx->new T(Mdf.mdf, gx)).toList()));
+      }
 
       assert mdf.isPresent() == it.isPresent();
     }
