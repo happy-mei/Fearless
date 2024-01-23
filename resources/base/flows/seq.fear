@@ -8,6 +8,8 @@ _SeqFlow: {
     .flatMap(f) -> this.fromOp(_FlatMap#(source, f), {}),
     mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[imm R] ->
       this.fromOp(_Actor#[S,E,R](source, state, f, onComplete), {}),
+    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut Flow[R] ->
+      this.fromOp(_Actor.anyRet[S,E,R](source, state, f, onComplete), {}),
     .limit(n) -> this.fromOp(_Limit#(source, n), size),
 
     // terminals

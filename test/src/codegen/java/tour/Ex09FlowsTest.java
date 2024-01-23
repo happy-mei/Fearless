@@ -233,6 +233,22 @@ public class Ex09FlowsTest {
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
+  @Test void flowActorMutRet() { ok(new Res("31", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> "42 5 42 10 500".assertEq(
+      Flow#[Int](5, 10, 15)
+        // .actor requires an iso S for its initial value
+        // The 3rd argument is optional
+        .actorMut[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+          .do {state := (state* + n)}
+          .if {state.get > 16} .return{Block#(downstream#500, {})}
+          .do {downstream#42}
+          .do {downstream#n}
+          .return {{}}}, mut Consumer[mut Ref[Int]]{state -> FIO#sys.println(state.get.str)})
+        .map{n -> n.str}
+        #(Flow.str " ")
+      )}
+    """, Base.mutBaseAliases);}
   @Test void limitedFlowActorAfter() { ok(new Res("6", "", 0), "test.Test", """
     package test
     Test:Main {sys -> "42 5".assertEq(

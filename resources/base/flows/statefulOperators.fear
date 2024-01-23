@@ -29,7 +29,10 @@ _Limit: {
 _Actor: {
   // Delegates to _InternalActor to unwrap the iso state so it can be captured as whatever the user wants.
   #[S,E,R](upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] ->
-    _InternalActor#[S,E,R](upstream, state, f, onComplete)
+    _InternalActor#[S,E,R](upstream, state, f, onComplete),
+
+  .anyRet[S,E,R](upstream: mut FlowOp[E], state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] ->
+    _InternalActor.anyRet[S,E,R](upstream, state, f, onComplete),
   }
 _InternalActor: {
   #[S,E,R](upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] -> Block#
@@ -48,9 +51,27 @@ _InternalActor: {
           },
         },
       }},
+
+  .anyRet[S,E,R](upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] -> Block#
+    .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+    .return {{'op
+      .stop -> op.isRunning ? {
+       .then -> Block#(isRunning := False, upstream.stop, onComplete#state),
+       .else -> {}
+       },
+      .isRunning -> isRunning*,
+      .step(downstream) -> upstream.step{
+        .stop -> Block#(downstream.stop, op.stop),
+        #(e) -> f#(downstream, state, e).match{
+          .continue -> {},
+          .stop -> Block#(downstream.stop, isRunning := False, onComplete#state),
+          },
+        },
+      }},
   }
 
 ActorImpl[S,E,R]: { read #(downstream: mut _Sink[imm R], state: S, e: E): ActorRes }
+ActorImplMut[S,E,R]: { read #(downstream: mut _Sink[R], state: lent S, e: E): ActorRes }
 
 ActorRes: Sealed{
   .match[R](m: mut ActorResMatch[R]): R -> m.continue,
