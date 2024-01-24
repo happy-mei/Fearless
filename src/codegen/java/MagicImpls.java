@@ -583,7 +583,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
               var newVariants = EnumSet.copyOf(variants);
               newVariants.remove(MIR.MCall.CallVariant.SafeMutSourceFlow);
               return Optional.of(gen.visitMCall(new MIR.MCall(
-                new MIR.Lambda(Mdf.imm, new Id.DecId("base.flows._SafeSource", 0)),
+                new MIR.Lambda(Mdf.imm, Magic.SafeFlowSource),
                 new Id.MethName(Optional.of(Mdf.imm), ".fromList", 1),
                 List.of(call.recv()),
                 call.t(),
@@ -594,6 +594,27 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
             if (variants.contains(MIR.MCall.CallVariant.Standard)) {
               return Optional.empty();
             }
+          }
+        }
+
+        if (recvT.name().equals(Magic.SafeFlowSource)) {
+          if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
+            var op = gen.visitMCall(new MIR.MCall(
+              new MIR.Lambda(Mdf.imm, Magic.SafeFlowSource),
+              new Id.MethName(Optional.of(Mdf.imm), m.name()+"'", 1),
+              args,
+              new T(Mdf.mut, new Id.IT<>("base.flows.FlowOp", call.t().itOrThrow().ts())),
+              Mdf.imm,
+              EnumSet.of(MIR.MCall.CallVariant.Standard)
+            ), false);
+            var size = "base.Opt_1._$self"; // TODO: size for lists
+            // In the future I'll specifically call PipelineParFlow instead of SeqFlow, so magic can propagate
+            return Optional.of("""
+              (switch (1) { default -> {
+                base$46flows.FlowOp_1 original = %s;
+                yield base$46flows.$95SeqFlow_0._$self.fromOp$imm$(original, %s);
+              }})
+              """.formatted(op, size));
           }
         }
 

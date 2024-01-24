@@ -103,7 +103,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitMCall(MIR.MCall mCall, boolean checkMagic) {
-    if (mCall.variant().size() > 1 || !mCall.variant().contains(MIR.MCall.CallVariant.Standard)) {
+    if (checkMagic && (mCall.variant().size() > 1 || !mCall.variant().contains(MIR.MCall.CallVariant.Standard))) {
       var impl = magic.variantCall(mCall).call(mCall.name(), mCall.args(), Map.of(), mCall.variant());
       if (impl.isPresent()) { return impl.get(); }
     }
