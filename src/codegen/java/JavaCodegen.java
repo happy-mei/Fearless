@@ -48,7 +48,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       }
       """;
 
-    return fearlessError +"\nclass FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\ninterface FProgram{" + pkgs.entrySet().stream()
+    return fearlessError +"\nclass FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\npublic interface FProgram{" + pkgs.entrySet().stream()
       .map(pkg->visitPackage(pkg.getKey(), pkg.getValue()))
       .collect(Collectors.joining("\n"))+init+"}";
   }
