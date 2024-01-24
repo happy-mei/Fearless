@@ -235,11 +235,12 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases);}
   @Test void flowSimpleActorMutRet() { ok(new Res(), "test.Test", """
     package test
-    Test:Main {sys -> "".assertEq(
+    Test:Main {sys -> "5 15 25".assertEq(
       Flow#[Int](5, 10, 15)
         .map{i -> i.uint}
         .actorMut[mut Person, mut Person](FPerson#0u, {downstream, p, age -> Block#(
           downstream#(FPerson#(age + (p.age))),
+          p.age(age),
           {}
           )})
         .map{p -> p.age.str}
@@ -249,7 +250,7 @@ public class Ex09FlowsTest {
     package test
     FPerson:{
       #(age: UInt): mut Person -> Block#
-        .var[mut Ref[UInt]] age' = {Ref#age}
+        .var[mut Ref[UInt]] age' = {Ref.ofImm(age)}
         .return {mut Person {
           read .age: UInt -> age'.getImm!,
           mut .age(n: UInt): Void -> age' := n,
