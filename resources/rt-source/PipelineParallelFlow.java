@@ -20,7 +20,7 @@ public interface PipelineParallelFlow {
     );
   }
 
-  static <S,E,R> FlowRuntime.Subject<E> getSubj(
+  static <S,E,R> FlowRuntime.Subject<E> getSubject(
     long subjectId,
     userCode.FProgram.base$46flows.$95Sink_1 downstream,
     S state,
@@ -47,7 +47,15 @@ public interface PipelineParallelFlow {
     return new FlowRuntime.Subject<E>(self, self.consume(msg->{
       System.out.println("TODO: "+msg);
       switch (msg) {
-        case FlowRuntime.Message.Data<E> data -> subscriber.apply(state, downstream, data);
+        case FlowRuntime.Message.Data<E> data -> subscriber.apply(state, downstream, data).match$imm$(new userCode.FProgram.base$46flows.ActorResMatch_1(){
+          public Object stop$mut$() {
+            self.submit(new FlowRuntime.Message.Stop<>());
+            return null;
+          }
+          public Object continue$mut$() {
+            return null;
+          }
+        });
         case FlowRuntime.Message.Stop<E> ignored -> self.close();
       }
     }));

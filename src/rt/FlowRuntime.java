@@ -17,8 +17,8 @@ public interface FlowRuntime {
 
   @SuppressWarnings("unchecked")
   static <E> Optional<Subject<E>> getSubject(long subjectId) {
-    var subj = (Subject<E>) subjects.get(subjectId).get();
-    return Optional.ofNullable(subj);
+    return Optional.ofNullable(subjects.get(subjectId))
+      .flatMap(ref -> Optional.ofNullable((Subject<E>) ref.get()));
   }
 
   static <E> SubmissionPublisher<Message<E>> spawnWorker() {
