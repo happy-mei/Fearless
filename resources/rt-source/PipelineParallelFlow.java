@@ -46,9 +46,10 @@ public interface PipelineParallelFlow {
   ) {
     return new FlowRuntime.Subject<E>(self, self.consume(msg->{
       System.out.println("TODO: "+msg);
-//      switch (msg) {
-//        case FlowRuntime.Message.Data<E> data -> subscriber.apply(state, subject, data);
-//      }
+      switch (msg) {
+        case FlowRuntime.Message.Data<E> data -> subscriber.apply(state, downstream, data);
+        case FlowRuntime.Message.Stop<E> ignored -> self.close();
+      }
     }));
   };
 }
