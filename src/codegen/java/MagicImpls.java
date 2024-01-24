@@ -612,11 +612,11 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
             return Optional.of("""
               (switch (1) { default -> {
                 base$46flows.FlowOp_1 original = %s;
-                var subj = rt.PipelineParallelFlow.getSubject(123, null, null, (downstream, state, e) -> {
+                var subj = rt.PipelineParallelFlow.getSubject(123, null, (downstream, e) -> {
                   System.out.println("A wizard is never early or late.");
-                  return userCode.FProgram.base$46flows.ActorRes_0._$self.stop$imm$();
                 }, () -> original.stop$mut$());
                 subj.ref().submit(new rt.FlowRuntime.Message.Data("yeet"));
+                subj.stop();
                 subj.signal().join();
                 yield base$46flows.$95SeqFlow_0._$self.fromOp$imm$(original, %s);
               }})

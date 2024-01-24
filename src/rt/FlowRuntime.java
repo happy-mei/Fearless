@@ -29,6 +29,10 @@ public interface FlowRuntime {
     @Override public void close() {
       ref.close();
     }
+    @SuppressWarnings("unchecked")
+    public void stop() {
+      ref.submit(FlowRuntime.Message.Stop.INSTANCE);
+    }
   }
 //  static <E> Subject<E> spawnSubject() {
 //    var subject = new SubmissionPublisher<Message<E>>(executor, BUFFER_SIZE);
