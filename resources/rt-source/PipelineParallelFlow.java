@@ -23,19 +23,21 @@ public interface PipelineParallelFlow {
     }
 
     @Override public FProgram.base.Void_0 stop$mut$() {
-      original.stop$mut$();
+      System.out.println("bye");
       if (subject != null) {
         subject.stop();
         subject.signal().join();
       }
+      original.stop$mut$();
       return FProgram.base.Void_0._$self;
     }
     @Override public FProgram.base.Void_0 $35$mut$(Object x$) {
-      System.out.println("hello?");
-      if (this.subject == null) {
-        this.subject = getSubject(subjectId, data -> original.$35$mut$(data), this::stop$mut$);
-      }
-      this.subject.ref().submit(new FlowRuntime.Message.Data<>(x$));
+//      if (this.subject == null) {
+//        this.subject = getSubject(subjectId, data -> original.$35$mut$(data), this::stop$mut$);
+//      }
+//      System.out.println("hello?");
+//      this.subject.ref().submit(new FlowRuntime.Message.Data<>(x$));
+      // TODO: how does the example work at all with no code running here???
       return FProgram.base.Void_0._$self;
     }
   }
