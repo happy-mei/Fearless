@@ -3,7 +3,7 @@ package base.flows
 // This could be implemented as an actor, but I have it special cased because it forces a Flow to be finite and gives
 // it a static size, which is more info than we could get if this was just an ActorImpl.
 _Limit: {
-  #[E](upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
+  #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
     .var[mut Count[UInt]] remaining = {Count.uint(n)}
     .return {{ 'runner
       .stop -> Block#(remaining := 0u, upstream.stop),
@@ -11,12 +11,12 @@ _Limit: {
       .isFinite -> True,
       mut .step(downstream: mut _Sink[E]): Void -> Block#
         .if {n == 0u} .return {Block#(downstream.stop, runner.stop)}
-        .return {upstream.step{
+        .return {upstream.step(sinkFactory#[E]{
           .stop -> Block#(downstream.stop, remaining := 0u),
           #(e) -> Block#
             .if {remaining-- == 0u} .return {Block#(downstream.stop, runner.stop)}
             .return {downstream#e},
-          }},
+          })},
 //      mut .forRemaining[R](sink: mut _Sink[E]): Void -> Block#
 //        .if {n == 0u} .return {ControlFlow.break[R]}
 //        .return {upstream.forRemaining{e -> Block#
@@ -28,14 +28,14 @@ _Limit: {
 
 _Actor: {
   // Delegates to _InternalActor to unwrap the iso state so it can be captured as whatever the user wants.
-  #[S,E,R](upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] ->
-    _InternalActor#[S,E,R](upstream, state, f, onComplete),
+  #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] ->
+    _InternalActor#[S,E,R](sinkFactory, upstream, state, f, onComplete),
 
-  .anyRet[S,E,R](upstream: mut FlowOp[E], state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] ->
-    _InternalActor.anyRet[S,E,R](upstream, state, f, onComplete),
+  .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] ->
+    _InternalActor.anyRet[S,E,R](sinkFactory, upstream, state, f, onComplete),
   }
 _InternalActor: {
-  #[S,E,R](upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] -> Block#
+  #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
     .return {{'op
       .stop -> op.isRunning ? {
@@ -43,16 +43,16 @@ _InternalActor: {
        .else -> {}
        },
       .isRunning -> isRunning*,
-      .step(downstream) -> upstream.step{
+      .step(downstream) -> upstream.step(sinkFactory#[E]{
         .stop -> Block#(downstream.stop, op.stop),
         #(e) -> f#(downstream, state, e).match{
           .continue -> {},
           .stop -> Block#(downstream.stop, isRunning := False, onComplete#state),
           },
-        },
+        }),
       }},
 
-  .anyRet[S,E,R](upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] -> Block#
+  .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
     .return {{'op
       .stop -> op.isRunning ? {
@@ -60,13 +60,13 @@ _InternalActor: {
        .else -> {}
        },
       .isRunning -> isRunning*,
-      .step(downstream) -> upstream.step{
+      .step(downstream) -> upstream.step(sinkFactory#[E]{
         .stop -> Block#(downstream.stop, op.stop),
         #(e) -> f#(downstream, state, e).match{
           .continue -> {},
           .stop -> Block#(downstream.stop, isRunning := False, onComplete#state),
           },
-        },
+        }),
       }},
   }
 

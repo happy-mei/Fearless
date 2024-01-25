@@ -1,5 +1,35 @@
 package base.flows
 
+// Prevents any issues arising from someone mutating the thing the flow is going over
+// from within the flow itself. This is prevented by collecting the flow-source into a list and then
+// flowing on that instead.
+_MutSourceCollection[E]: {
+  #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#
+    .var[mut Ref[mut Opt[mut FlowOp[E]]]] cloned = {Ref#[mut Opt[mut FlowOp[E]]]{}}
+    .return{{
+      .isRunning -> this.get(cloned, source).isRunning,
+      .stop -> this.get(cloned, source).stop,
+      .step(downstream) -> this.get(cloned, source).step(downstream),
+      }}),
+  .get(cloned: mut Ref[mut Opt[mut FlowOp[E]]], original: mut FlowOp[E]): mut FlowOp[E] -> cloned.get.match{
+     .some(cloned') -> cloned',
+     .empty -> Block#
+       .var[mut List[E]] dup = {Flow.fromOp(original).list}
+       .do {cloned := (Opt#(Block#[mut FlowOp[E]]
+         .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+         .return {{'self
+           .isRunning -> cursor* < (dup.size),
+           .stop -> cursor := (dup.size),
+           // TODO: also add .forRemaining
+           .step(downstream) -> dup.get(cursor++).match{
+             .some(x) -> downstream#x,
+             .empty -> Block#(downstream.stop, self.stop),
+             },
+           }}))}
+       .return{cloned.get!},
+     },
+  }
+
 _FlowConverters: Sealed{
   .fromIter[E](iter: mut base.iter.Iter[E]): mut Flow[E] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}

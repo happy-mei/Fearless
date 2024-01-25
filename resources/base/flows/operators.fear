@@ -19,48 +19,47 @@ FlowOp[E]: {
   mut .split: mut Opt[mut FlowOp[E]] -> {},
   }
 
-_Sink[T]: _Sink[Void, T]{
-  mut #(x: T): Void,
-  #(state, x) -> this#x,
+
+_Sink: {
+  #[T](s: mut _Sink[T]): mut _Sink[T] -> s,
   }
-_Sink[S,T]: {
-  mut  #(state: S, x: T): Void,
+_Sink[T]: {
+  mut #(x: T): Void,
   mut .stop: Void,
-//  mut .start(state: iso S): Void,
   }
 
 _Filter: {
-  #[E](upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
+  #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
     .return{{'op
-    .step(downstream) -> upstream.step{
+    .step(downstream) -> upstream.step(sinkFactory#[E]{
       .stop -> Block#(isRunning := False, downstream.stop),
       #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
-      },
+      }),
     .stop -> Block#(isRunning := False, upstream.stop),
     .isRunning -> (isRunning*) && (upstream.isRunning),
     }}
   }
 _Map: {
-  #[E,R](upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
+  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
     .return  {{'op
-    .step(downstream) -> upstream.step{
+    .step(downstream) -> upstream.step(sinkFactory#[E]{
       .stop -> Block#(isRunning := False, downstream.stop),
       #(e) -> downstream#(f#e),
-      },
+      }),
     .stop -> Block#(isRunning := False, upstream.stop),
     .isRunning -> (isRunning*) && (upstream.isRunning),
     }}
   }
 _FlatMap: {
-  #[E,R](upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
+  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
     .return{{'op
-      .step(downstream) -> upstream.step{
+      .step(downstream) -> upstream.step(sinkFactory#[E]{
         .stop -> Block#(isRunning := False, downstream.stop),
         #(e) -> f#e.list.iter.filter{_ -> isRunning*}.for{e' -> downstream#e'},
-        },
+        }),
       .stop -> Block#(isRunning := False, upstream.stop),
       .isRunning -> (isRunning*) && (upstream.isRunning),
       }}

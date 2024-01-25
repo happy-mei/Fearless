@@ -18,6 +18,7 @@ import static java.util.Objects.requireNonNull;
 import static magic.MagicImpls.isLiteral;
 
 public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) implements magic.MagicImpls<String> {
+  static long NEXT_SUBJECT_ID = 0;
   @Override public MagicTrait<String> int_(MIR.Lambda l, MIR e) {
     var name = new Id.IT<T>(l.freshName().name(), List.of());
     return new MagicTrait<>() {
@@ -48,11 +49,11 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName(".str", 0))) {
           return "Long.toString("+instantiate()+")";
         }
-        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+" + "+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+" - "+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("/", 1))) { return instantiate()+"/"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("%", 1))) { return instantiate()+"%"+args.get(0).accept(gen); }
+        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+" + "+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+" - "+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("/", 1))) { return instantiate()+"/"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("%", 1))) { return instantiate()+"%"+args.getFirst().accept(gen); }
         if (m.equals(new Id.MethName("**", 1))) { return String.format("""
           (switch (1) { default -> {
               long base = %s; long exp = %s; long res = base;
@@ -60,18 +61,18 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
               for(; exp > 1; exp--) { res *= base; }
               yield res;
             }})
-          """, instantiate(), args.get(0).accept(gen)); }
+          """, instantiate(), args.getFirst().accept(gen)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return "Math.abs("+instantiate()+")"; }
-        if (m.equals(new Id.MethName(">>", 1))) { return instantiate()+">>"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("<<", 1))) { return instantiate()+"<<"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("^", 1))) { return instantiate()+"^"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("&", 1))) { return instantiate()+"&"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("|", 1))) { return instantiate()+"|"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate()+">"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate()+"<"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate()+">="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate()+"<="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("==", 1))) { return "("+instantiate()+"=="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">>", 1))) { return instantiate()+">>"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("<<", 1))) { return instantiate()+"<<"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("^", 1))) { return instantiate()+"^"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("&", 1))) { return instantiate()+"&"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("|", 1))) { return instantiate()+"|"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate()+">"+args.getFirst().accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate()+"<"+args.getFirst().accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate()+">="+args.getFirst().accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate()+"<="+args.getFirst().accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("==", 1))) { return "("+instantiate()+"=="+args.getFirst().accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
         throw Bug.unreachable();
       }
     };
@@ -111,11 +112,11 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName(".str", 0))) {
           return "Long.toUnsignedString("+instantiate()+")";
         }
-        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+" + "+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+" - "+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("/", 1))) { return "Long.divideUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
-        if (m.equals(new Id.MethName("%", 1))) { return "Long.remainderUnsigned("+instantiate()+","+args.get(0).accept(gen)+")"; }
+        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+" + "+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+" - "+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("/", 1))) { return "Long.divideUnsigned("+instantiate()+","+args.getFirst().accept(gen)+")"; }
+        if (m.equals(new Id.MethName("%", 1))) { return "Long.remainderUnsigned("+instantiate()+","+args.getFirst().accept(gen)+")"; }
         if (m.equals(new Id.MethName("**", 1))) { return String.format("""
           (switch (1) { default -> {
               long base = %s; long exp = %s; long res = base;
@@ -123,18 +124,18 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
               for(; exp > 1; exp--) { res *= base; }
               yield res;
             }})
-          """, instantiate(), args.get(0).accept(gen)); }
+          """, instantiate(), args.getFirst().accept(gen)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return instantiate(); } // no-op for unsigned
-        if (m.equals(new Id.MethName(">>", 1))) { return instantiate()+">>"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("<<", 1))) { return instantiate()+"<<"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("^", 1))) { return instantiate()+"^"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("&", 1))) { return instantiate()+"&"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("|", 1))) { return instantiate()+"|"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName(">", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName(">=", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")>=0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<=", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")<=0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("==", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.get(0).accept(gen)+")==0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">>", 1))) { return instantiate()+">>"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("<<", 1))) { return instantiate()+"<<"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("^", 1))) { return instantiate()+"^"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("&", 1))) { return instantiate()+"&"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("|", 1))) { return instantiate()+"|"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName(">", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.getFirst().accept(gen)+")>0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.getFirst().accept(gen)+")<0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">=", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.getFirst().accept(gen)+")>=0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<=", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.getFirst().accept(gen)+")<=0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("==", 1))) { return "(Long.compareUnsigned("+instantiate()+","+args.getFirst().accept(gen)+")==0?base.True_0._$self:base.False_0._$self)"; }
         throw Bug.unreachable();
       }
     };
@@ -169,19 +170,19 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         if (m.equals(new Id.MethName(".str", 0))) {
           return "Double.toString("+instantiate()+")";
         }
-        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+" + "+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+" - "+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("/", 1))) { return instantiate()+"/"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("%", 1))) { return instantiate()+"%"+args.get(0).accept(gen); }
-        if (m.equals(new Id.MethName("**", 1))) { return String.format("Math.pow(%s, %s)", instantiate(), args.get(0).accept(gen)); }
+        if (m.equals(new Id.MethName("+", 1))) { return instantiate()+" + "+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("-", 1))) { return instantiate()+" - "+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("*", 1))) { return instantiate()+"*"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("/", 1))) { return instantiate()+"/"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("%", 1))) { return instantiate()+"%"+args.getFirst().accept(gen); }
+        if (m.equals(new Id.MethName("**", 1))) { return String.format("Math.pow(%s, %s)", instantiate(), args.getFirst().accept(gen)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return "Math.abs("+instantiate()+")"; }
-        if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate()+">"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate()+"<"+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate()+">="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate()+"<="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate()+">"+args.getFirst().accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate()+"<"+args.getFirst().accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate()+">="+args.getFirst().accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate()+"<="+args.getFirst().accept(gen)+"?base.True_0._$self:base.False_0._$self)"; }
         if (m.equals(new Id.MethName("==", 1))) {
-          return "("+instantiate()+"=="+args.get(0).accept(gen)+"?base.True_0._$self:base.False_0._$self)";
+          return "("+instantiate()+"=="+args.getFirst().accept(gen)+"?base.True_0._$self:base.False_0._$self)";
         }
         //Float specifics
         if (m.equals(new Id.MethName(".round", 0))) { return "Math.round("+instantiate()+")"; }
@@ -237,7 +238,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
 //              && meth.getParameterCount() == 0)
 //          .findAny().ifPresent(msf -> msf.invoke());
         if (m.equals(new Id.MethName("#", 1))) {
-          var x = args.get(0);
+          var x = args.getFirst();
           return Optional.of(String.format("""
             (switch (1) { default -> {
               var x = %s;
@@ -275,7 +276,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
-          var x = args.get(0);
+          var x = args.getFirst();
           return Optional.of(String.format("""
             new base.Ref_1(){
               protected Object x = %s;
@@ -299,7 +300,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName("#", 1))) {
-          var x = args.get(0);
+          var x = args.getFirst();
           return Optional.of(String.format("""
             new base$46caps.IsoPod_1(){
               protected Object x = %s;
@@ -348,7 +349,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
               System.exit(1);
               yield null;
             }})
-            """, args.get(0).accept(gen)));
+            """, args.getFirst().accept(gen)));
         }
         return Optional.empty();
       }
@@ -414,7 +415,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
               default -> throw new FearlessError(%s);
               case 2 -> (Object)null;
             })
-            """.formatted(args.get(0).accept(gen)));
+            """.formatted(args.getFirst().accept(gen)));
         }
         return Optional.empty();
       }
@@ -446,14 +447,14 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
 //              try { yield %s.$35$read$(); }
 //              catch(FearlessError _$err) { yield %s.$35$mut$(_$err.info); }
 //            }})
-//            """.formatted(args.get(0).accept(gen), args.get(1).accept(gen)));
+//            """.formatted(args.getFirst().accept(gen), args.get(1).accept(gen)));
 //        }
         return Optional.empty();
       }
     };
   }
 
-  @Override public MagicTrait<String> flowK(MIR.Lambda l, MIR e) {
+  @Override public MagicTrait<String> pipelineParallelFlowK(MIR.Lambda l, MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
 
@@ -461,21 +462,12 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         return gen.visitLambda(l, false);
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, EnumSet<MIR.MCall.CallVariant> variants) {
+//        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2))) {
+//          return Optional.of("""
+//            new rt.PipelineParallelFlow.WrappedOp(%d, %s, %s).toFlow()
+//            """.formatted(NEXT_SUBJECT_ID++, args.getFirst().accept(gen), args.get(1).accept(gen)));
+//        }
         return Optional.empty();
-//        return switch (variant) {
-//
-////          case Standard -> Optional.empty();
-////          case MutMutSourceFlow -> {
-////            if (m.equals(new Id.MethName(".fromMutSource", 1)) || m.equals(new Id.MethName(".fromMutSource", 2))) {
-////              yield  Optional.of("""
-////              base$46flows.$95MutSourceCollection_1._$self.$35$imm$(%s)
-////              """.formatted(args.getFirst().accept(gen)));
-////            }
-////            yield Optional.empty();
-////          }
-////          case PipelineParallelFlow -> throw Bug.todo();
-////          case DataParallelFlow -> throw Bug.todo();
-//        };
       }
     };
   }
@@ -507,7 +499,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
                 System.out.print(%s);
                 yield base.Void_0._$self;
               }})
-              """, args.get(0).accept(gen));
+              """, args.getFirst().accept(gen));
           }
           if (m.equals(new Id.MethName(".println", 1))) {
             return String.format("""
@@ -515,7 +507,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
                 System.out.println(%s);
                 yield base.Void_0._$self;
               }})
-              """, args.get(0).accept(gen));
+              """, args.getFirst().accept(gen));
           }
           if (m.equals(new Id.MethName(".printErr", 1))) {
             return String.format("""
@@ -523,7 +515,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
                 System.err.print(%s);
                 yield base.Void_0._$self;
               }})
-              """, args.get(0).accept(gen));
+              """, args.getFirst().accept(gen));
           }
           if (m.equals(new Id.MethName(".printlnErr", 1))) {
             return String.format("""
@@ -531,7 +523,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
                 System.err.println(%s);
                 yield base.Void_0._$self;
               }})
-              """, args.get(0).accept(gen));
+              """, args.getFirst().accept(gen));
           }
           return null;
         };
@@ -609,18 +601,39 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
             ), false);
             var size = "base.Opt_1._$self"; // TODO: size for lists
             // In the future I'll specifically call PipelineParFlow instead of SeqFlow, so magic can propagate
-            return Optional.of("""
-              (switch (1) { default -> {
-                base$46flows.FlowOp_1 original = %s;
-                var subj = rt.PipelineParallelFlow.getSubject(123, null, (downstream, e) -> {
-                  System.out.println("A wizard is never early or late.");
-                }, () -> original.stop$mut$());
-                subj.ref().submit(new rt.FlowRuntime.Message.Data("yeet"));
-                subj.stop();
-                subj.signal().join();
-                yield base$46flows.$95SeqFlow_0._$self.fromOp$imm$(original, %s);
-              }})
-              """.formatted(op, size));
+            // THE FUTURE IS NOW OLD MAN
+            var parFlow = gen.visitMCall(new MIR.MCall(
+              new MIR.Lambda(Mdf.imm, Magic.PipelineParallelSink),
+              new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
+              List.of(
+                new MIR.MCall(
+                  new MIR.Lambda(Mdf.imm, Magic.SafeFlowSource),
+                  new Id.MethName(Optional.of(Mdf.imm), m.name()+"'", 1),
+                  args,
+                  new T(Mdf.mut, new Id.IT<>("base.flows.FlowOp", call.t().itOrThrow().ts())),
+                  Mdf.imm,
+                  EnumSet.of(MIR.MCall.CallVariant.Standard)
+                ),
+                new MIR.Lambda(Mdf.imm, new Id.DecId("base.Opt", 1)) // TODO: list size
+              ),
+              new T(Mdf.mut, new Id.IT<>("base.flows.Flow", call.t().itOrThrow().ts())),
+              Mdf.imm,
+              variants
+            ));
+            return Optional.of(parFlow);
+//            return Optional.of("""
+//              (switch (1) { default -> {
+////                base$46flows.FlowOp_1 original = ...;
+////                var subj = rt.PipelineParallelFlow.getSubject(123, null, (downstream, e) -> {
+////                  System.out.println("A wizard is never early or late.");
+////                }, () -> original.stop$mut$());
+////                subj.ref().submit(new rt.FlowRuntime.Message.Data("yeet"));
+////                subj.stop();
+////                subj.signal().join();
+////                yield base$46flows.$95PipelineParallelFlow_0._$self.fromOp$imm$(original, ...);
+//                  yield %s;
+//              }})
+//              """.formatted(op, size, parFlow));
           }
         }
 
