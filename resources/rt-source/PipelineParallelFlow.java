@@ -31,17 +31,17 @@ public interface PipelineParallelFlow {
       return FProgram.base.Void_0._$self;
     }
     @Override public FProgram.base.Void_0 $35$mut$(Object x$) {
+      System.out.println("hello?");
       if (this.subject == null) {
-        this.subject = getSubject(subjectId, msg -> original.$35$mut$(x$), this::stop$mut$);
+        this.subject = getSubject(subjectId, data -> original.$35$mut$(data), this::stop$mut$);
       }
+      this.subject.ref().submit(new FlowRuntime.Message.Data<>(x$));
       return FProgram.base.Void_0._$self;
     }
   }
 
   interface Subscriber<E> {
-    void apply(
-      FlowRuntime.Message.Data<E> msg
-    );
+    void apply(E msg);
   }
 //  interface ActorImpl<S,E> {
 //    FProgram.base$46flows.ActorRes_0 apply(
@@ -90,7 +90,7 @@ public interface PipelineParallelFlow {
     return new FlowRuntime.Subject<E>(self, self.consume(msg->{
       System.out.println("Message received: "+msg);
       switch (msg) {
-        case FlowRuntime.Message.Data<E> data -> subscriber.apply(data);
+        case FlowRuntime.Message.Data<E> data -> subscriber.apply(data.data());
         case FlowRuntime.Message.Stop<E> ignored -> {
           stop.run();
           self.close();

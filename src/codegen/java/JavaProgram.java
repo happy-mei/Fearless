@@ -48,7 +48,8 @@ public class JavaProgram extends SimpleJavaFileObject {
     }
     var options = List.of(
       "-d",
-      workingDir.toString()
+      workingDir.toString(),
+      "-Xdiags:verbose"
     );
 
     var errors = new Box<Diagnostic<?>>(null);

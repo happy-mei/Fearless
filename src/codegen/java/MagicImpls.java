@@ -454,7 +454,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> pipelineParallelFlowK(MIR.Lambda l, MIR e) {
+  @Override public MagicTrait<String> pipelineParallelSinkK(MIR.Lambda l, MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
 
@@ -462,11 +462,11 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         return gen.visitLambda(l, false);
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, EnumSet<MIR.MCall.CallVariant> variants) {
-//        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2))) {
-//          return Optional.of("""
-//            new rt.PipelineParallelFlow.WrappedOp(%d, %s, %s).toFlow()
-//            """.formatted(NEXT_SUBJECT_ID++, args.getFirst().accept(gen), args.get(1).accept(gen)));
-//        }
+        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
+          return Optional.of("""
+            new rt.PipelineParallelFlow.WrappedSink(%d, %s)
+            """.formatted(NEXT_SUBJECT_ID++, args.getFirst().accept(gen)));
+        }
         return Optional.empty();
       }
     };
@@ -603,7 +603,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
             // In the future I'll specifically call PipelineParFlow instead of SeqFlow, so magic can propagate
             // THE FUTURE IS NOW OLD MAN
             var parFlow = gen.visitMCall(new MIR.MCall(
-              new MIR.Lambda(Mdf.imm, Magic.PipelineParallelSink),
+              new MIR.Lambda(Mdf.imm, Magic.PipelineParallelFlowK),
               new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
               List.of(
                 new MIR.MCall(
