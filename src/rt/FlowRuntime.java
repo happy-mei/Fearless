@@ -1,8 +1,5 @@
 package rt;
 
-import java.lang.ref.WeakReference;
-import java.util.HashMap;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,18 +10,18 @@ import java.util.function.Supplier;
 public interface FlowRuntime {
   int BUFFER_SIZE = 256;
   ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-  HashMap<Long, WeakReference<Subject<?>>> subjects = new HashMap<>();
+//  HashMap<Long, WeakReference<Subject<?>>> subjects = new HashMap<>();
 
-  @SuppressWarnings("unchecked")
-  static <E> Optional<Subject<E>> getSubject(long subjectId) {
-    return Optional.ofNullable(subjects.get(subjectId))
-      .flatMap(ref -> Optional.ofNullable((Subject<E>) ref.get()));
-  }
+//  @SuppressWarnings("unchecked")
+//  static <E> Optional<Subject<E>> getSubject(long subjectId) {
+//    return Optional.ofNullable(subjects.get(subjectId))
+//      .flatMap(ref -> Optional.ofNullable((Subject<E>) ref.get()));
+//  }
 
   static <E> SubmissionPublisher<Message<E>> spawnWorker() {
     return new SubmissionPublisher<>(executor, BUFFER_SIZE);
   }
-//  // TODO: I might not need this wrapper because I may always want to call ref.consume(..) where I would use signal.
+  //  // TODO: I might not need this wrapper because I may always want to call ref.consume(..) where I would use signal.
   record Subject<E>(SubmissionPublisher<Message<E>> ref, CompletableFuture<Void> signal) implements AutoCloseable {
     @Override public void close() {
       ref.close();

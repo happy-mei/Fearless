@@ -2,7 +2,7 @@ package rt;
 
 import userCode.FProgram;
 
-import java.util.concurrent.SubmissionPublisher;
+import java.util.function.Consumer;
 
 /*
   The plan:
@@ -14,6 +14,7 @@ import java.util.concurrent.SubmissionPublisher;
 
 public interface PipelineParallelFlow {
   final class WrappedSinkK implements FProgram.base$46flows.$95PipelineParallelSink_0 {
+    // TODO: sink id is not actually used, just here to make debugging easier during development
     static long SINK_ID = 0;
     @Override public FProgram.base$46flows.$95PipelineParallelSink_1 $35$imm$(Object original) {
       return new WrappedSink(SINK_ID++, (FProgram.base$46flows.$95Sink_1) original);
@@ -27,11 +28,14 @@ public interface PipelineParallelFlow {
     public WrappedSink(long subjectId, FProgram.base$46flows.$95Sink_1 original) {
       this.subjectId = subjectId;
       this.original = original;
+
+      System.out.println("SPAWNING SUBJ: "+subjectId);
+      this.subject = spawn(original::$35$mut$, original::stop$mut$);
     }
 
     @Override public FProgram.base.Void_0 stop$mut$() {
       System.out.println("STOPPING SUBJ: "+subjectId);
-      if (subject != null && !subject.ref().isClosed()) {
+      if (!subject.ref().isClosed()) {
         subject.stop();
         subject.signal()
           .exceptionally(t -> {
@@ -46,19 +50,12 @@ public interface PipelineParallelFlow {
       return FProgram.base.Void_0._$self;
     }
     @Override public FProgram.base.Void_0 $35$mut$(Object x$) {
-      if (this.subject == null) {
-        System.out.println("SPAWNING SUBJ: "+subjectId);
-        System.out.println("SUBJ: "+subjectId+" GOT MSG: "+x$);
-        this.subject = getSubject(subjectId, original::$35$mut$, original::stop$mut$);
-      }
+      System.out.println("SUBJ: "+subjectId+" GOT MSG: "+x$);
       this.subject.ref().submit(new FlowRuntime.Message.Data<>(x$));
       return FProgram.base.Void_0._$self;
     }
   }
 
-  interface Subscriber<E> {
-    void apply(E msg);
-  }
 //  interface ActorImpl<S,E> {
 //    FProgram.base$46flows.ActorRes_0 apply(
 //      SubmissionPublisher<FlowRuntime.Message<E>> self,
@@ -69,18 +66,6 @@ public interface PipelineParallelFlow {
 //  }
 
 
-  static <E> FlowRuntime.Subject<E> getSubject(
-    long subjectId,
-    Subscriber<E> subscriber,
-    Runnable stop
-  ) {
-    return FlowRuntime.<E>getSubject(subjectId)
-      .orElseGet(() -> spawn(
-        FlowRuntime.spawnWorker(),
-        subscriber,
-        stop
-      ));
-  }
 //  static <S,E> FlowRuntime.Subject<E> getActor(
 //    long subjectId,
 //    FProgram.base$46flows.$95Sink_1 downstream,
@@ -98,22 +83,19 @@ public interface PipelineParallelFlow {
 //      ));
 //  }
 
-  static <E> FlowRuntime.Subject<E> spawn(
-    SubmissionPublisher<FlowRuntime.Message<E>> self,
-    Subscriber<E> subscriber,
-    Runnable stop
-  ) {
+  static <E> FlowRuntime.Subject<E> spawn(Consumer<E> subscriber, Runnable stop) {
+    var self = FlowRuntime.<E>spawnWorker();
     return new FlowRuntime.Subject<>(self, self.consume(msg->{
       System.out.println("Message received: "+msg);
       switch (msg) {
-        case FlowRuntime.Message.Data<E> data -> subscriber.apply(data.data());
+        case FlowRuntime.Message.Data<E> data -> subscriber.accept(data.data());
         case FlowRuntime.Message.Stop<E> ignored -> {
           stop.run();
           self.close();
         }
       }
     }));
-  };
+  }
 
 //  static <S,E,R> FlowRuntime.Subject<E> spawnActor(
 //    SubmissionPublisher<FlowRuntime.Message<E>> self,

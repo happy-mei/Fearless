@@ -46,12 +46,18 @@ _Filter: {
 _Map: {
   #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .var[mut _Sink[E]] sink = {sinkFactory#[E]{
-      .stop -> Block#(downstream.stop, isRunning := False),
-      #(e) -> Block#(base.Debug#e, downstream#(f#e)),
-      }}
+    .var[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return  {{'op
-      .step(downstream) -> upstream.step(),
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#(
+          sink := (Opt#(sinkFactory#[E]{
+            .stop -> Block#(downstream.stop, isRunning := False),
+            #(e) -> Block#(base.Debug#e, downstream#(f#e)),
+            })),
+          upstream.step(sink.get!)
+          )
+        },
 //    .stop -> Block#(isRunning := False, upstream.stop),
 //    .isRunning -> (isRunning*) && (upstream.isRunning),
       .stop -> upstream.stop,
