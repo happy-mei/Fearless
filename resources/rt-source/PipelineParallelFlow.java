@@ -13,31 +13,45 @@ import java.util.concurrent.SubmissionPublisher;
  */
 
 public interface PipelineParallelFlow {
-  final class WrappedSink implements FProgram.base$46flows.$95Sink_1 {
+  final class WrappedSinkK implements FProgram.base$46flows.$95PipelineParallelSink_0 {
+    static long SINK_ID = 0;
+    @Override public FProgram.base$46flows.$95PipelineParallelSink_1 $35$imm$(Object original) {
+      return new WrappedSink(SINK_ID++, (FProgram.base$46flows.$95Sink_1) original);
+    }
+  }
+  final class WrappedSink implements FProgram.base$46flows.$95PipelineParallelSink_1 {
     final long subjectId;
     final FProgram.base$46flows.$95Sink_1 original;
     FlowRuntime.Subject<Object> subject;
+    Throwable exception;
     public WrappedSink(long subjectId, FProgram.base$46flows.$95Sink_1 original) {
       this.subjectId = subjectId;
       this.original = original;
     }
 
     @Override public FProgram.base.Void_0 stop$mut$() {
-      System.out.println("bye");
-      if (subject != null) {
+      System.out.println("STOPPING SUBJ: "+subjectId);
+      if (subject != null && !subject.ref().isClosed()) {
         subject.stop();
-        subject.signal().join();
+        subject.signal()
+          .exceptionally(t -> {
+            exception = t;
+            return null;
+          })
+          .join();
+        if (exception != null) {
+          throw new RuntimeException(exception.getLocalizedMessage(), exception);
+        }
       }
-      original.stop$mut$();
       return FProgram.base.Void_0._$self;
     }
     @Override public FProgram.base.Void_0 $35$mut$(Object x$) {
-//      if (this.subject == null) {
-//        this.subject = getSubject(subjectId, data -> original.$35$mut$(data), this::stop$mut$);
-//      }
-//      System.out.println("hello?");
-//      this.subject.ref().submit(new FlowRuntime.Message.Data<>(x$));
-      // TODO: how does the example work at all with no code running here???
+      if (this.subject == null) {
+        System.out.println("SPAWNING SUBJ: "+subjectId);
+        System.out.println("SUBJ: "+subjectId+" GOT MSG: "+x$);
+        this.subject = getSubject(subjectId, original::$35$mut$, original::stop$mut$);
+      }
+      this.subject.ref().submit(new FlowRuntime.Message.Data<>(x$));
       return FProgram.base.Void_0._$self;
     }
   }
@@ -84,12 +98,12 @@ public interface PipelineParallelFlow {
 //      ));
 //  }
 
-  static <E,R> FlowRuntime.Subject<E> spawn(
+  static <E> FlowRuntime.Subject<E> spawn(
     SubmissionPublisher<FlowRuntime.Message<E>> self,
     Subscriber<E> subscriber,
     Runnable stop
   ) {
-    return new FlowRuntime.Subject<E>(self, self.consume(msg->{
+    return new FlowRuntime.Subject<>(self, self.consume(msg->{
       System.out.println("Message received: "+msg);
       switch (msg) {
         case FlowRuntime.Message.Data<E> data -> subscriber.apply(data.data());

@@ -114,7 +114,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       if (impl.isPresent()) { return impl.get(); }
     }
 
-    var magicRecv = !(mCall.recv() instanceof MIR.Lambda);
+    var magicRecv = !(mCall.recv() instanceof MIR.Lambda) || magicImpl.isPresent();
     var start = "(("+getRetName(mCall.t())+")"+mCall.recv().accept(this, magicRecv)+"."+name(getName(mCall.mdf(), mCall.name()))+"(";
     var args = mCall.args().stream()
       .map(a->a.accept(this))

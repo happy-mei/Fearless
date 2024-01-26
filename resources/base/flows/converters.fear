@@ -57,7 +57,7 @@ _SafeSource: {
       .step(downstream) -> isRunning* ? {
         .then -> iter.next.match{
           .some(x) -> downstream#x,
-          .empty -> op.stop,
+          .empty -> Block#(downstream.stop, op.stop),
           },
         .else -> op.stop,
         }

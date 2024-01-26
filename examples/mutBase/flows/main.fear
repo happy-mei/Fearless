@@ -17,29 +17,34 @@ alias base.flows.Flow as Flow, alias base.Consumer as Consumer,
 
 App:Main{ sys -> Block#
   .var io = { FIO#sys }
-  .do{ io.println(FlowEx.emptyFlow.str) }
-  .do{ io.println(FlowEx.oneElem.str) }
-  .do{ io.println(FlowEx.listImm.str) }
-  .do{ io.println(FlowEx.listMut.str) }
-  .do{ io.println(FlowEx.listRead.str) }
-  .do{ io.println(FlowEx.fromIter.str) }
-  .do{ io.println(Flow.fromIter((mut LList[mut LList[Int]] + {}).iter).size.str) }
+//  .do{ io.println(FlowEx.emptyFlow.str) }
+//  .do{ io.println(FlowEx.oneElem.str) }
+//  .do{ io.println(FlowEx.listImm.str) }
+//  .do{ io.println(FlowEx.listMut.str) }
+//  .do{ io.println(FlowEx.listRead.str) }
+//  .do{ io.println(FlowEx.fromIter.str) }
+//  .do{ io.println(Flow.fromIter((mut LList[mut LList[Int]] + {}).iter).size.str) }
+  .do {io.println(FlowEx.somePipelineParallelThing)}
   .return{{}}
   }
 
 FlowEx:{
-  .emptyFlow: Bool -> Flow#[Int].filter{e -> e > 3}.any{e -> e == 5},
-
-  .oneElem: Bool -> Flow#[Int](5).filter{e -> e > 3}.any{e -> e == 5},
-
-  .listImm: Bool -> (LList[Int] + 10 + 5 + 1).flow
-    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
-  .listRead: Bool -> (read LList[Int] + 10 + 5 + 1).flow
-    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
-  .listMut: Bool -> (mut LList[Int] + 10 + 5 + 1).flow
-    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
-
-  .fromIter: Bool -> Flow.fromIter((LList[Int] + 10 + 1 + 5).iter.filter{e -> (e == 1).not})
-    .any{e -> e == 1 ? {.then -> Error.str "not filtering", .else -> e == 5}},
+//  .emptyFlow: Bool -> Flow#[Int].filter{e -> e > 3}.any{e -> e == 5},
+//
+//  .oneElem: Bool -> Flow#[Int](5).filter{e -> e > 3}.any{e -> e == 5},
+//
+//  .listImm: Bool -> (LList[Int] + 10 + 5 + 1).flow
+//    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
+//  .listRead: Bool -> (read LList[Int] + 10 + 5 + 1).flow
+//    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
+//  .listMut: Bool -> (mut LList[Int] + 10 + 5 + 1).flow
+//    .any{e -> e == 1 ? {.then -> Error.str "not short circuiting", .else -> e == 5}},
+//
+//  .fromIter: Bool -> Flow.fromIter((LList[Int] + 10 + 1 + 5).iter.filter{e -> (e == 897897).not})
+//    .any{e -> e == 1 ? {.then -> Error.str "not filtering", .else -> e == 5}},
+  .somePipelineParallelThing: Str -> Flow.fromIter(List#[Int](5, 10, 15).iter)
+    .map{n -> n * 5}
+    #(Flow.sum)
+    .str
   }
 

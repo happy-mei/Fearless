@@ -71,7 +71,7 @@ LList[E]:Collection,Sealed{
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
         .some(x) -> downstream#x,
-        .empty -> op.stop,
+        .empty -> Block#(downstream.stop, op.stop),
         },
       }},
   read .flow: mut Flow[read E] -> Block#
@@ -81,7 +81,7 @@ LList[E]:Collection,Sealed{
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
         .some(x) -> downstream#x,
-        .empty -> op.stop,
+        .empty -> Block#(downstream.stop, op.stop),
         },
       }},
   imm  .flow: mut Flow[imm E] -> Block#
@@ -91,7 +91,7 @@ LList[E]:Collection,Sealed{
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
         .some(x) -> downstream#x,
-        .empty -> op.stop,
+        .empty -> Block#(downstream.stop, op.stop),
         },
       }},
 

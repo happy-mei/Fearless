@@ -18,7 +18,6 @@ import static java.util.Objects.requireNonNull;
 import static magic.MagicImpls.isLiteral;
 
 public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) implements magic.MagicImpls<String> {
-  static long NEXT_SUBJECT_ID = 0;
   @Override public MagicTrait<String> int_(MIR.Lambda l, MIR e) {
     var name = new Id.IT<T>(l.freshName().name(), List.of());
     return new MagicTrait<>() {
@@ -459,14 +458,9 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       @Override public Id.IT<T> name() { return l.t().itOrThrow(); }
 
       @Override public String instantiate() {
-        return gen.visitLambda(l, false);
+        return "new rt.PipelineParallelFlow.WrappedSinkK()";
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, EnumSet<MIR.MCall.CallVariant> variants) {
-        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
-          return Optional.of("""
-            new rt.PipelineParallelFlow.WrappedSink(%d, %s)
-            """.formatted(NEXT_SUBJECT_ID++, args.getFirst().accept(gen)));
-        }
         return Optional.empty();
       }
     };
@@ -599,7 +593,6 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
               Mdf.imm,
               EnumSet.of(MIR.MCall.CallVariant.Standard)
             ), false);
-            var size = "base.Opt_1._$self"; // TODO: size for lists
             // In the future I'll specifically call PipelineParFlow instead of SeqFlow, so magic can propagate
             // THE FUTURE IS NOW OLD MAN
             var parFlow = gen.visitMCall(new MIR.MCall(

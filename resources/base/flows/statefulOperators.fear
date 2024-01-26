@@ -6,15 +6,20 @@ _Limit: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
     .var[mut Count[UInt]] remaining = {Count.uint(n)}
     .return {{ 'runner
-      .stop -> Block#(remaining := 0u, upstream.stop),
-      .isRunning -> (remaining* > 0u) && (upstream.isRunning),
+//      .stop -> Block#(remaining := 0u, upstream.stop),
+//      .isRunning -> (remaining* > 0u) && (upstream.isRunning),
+      .stop -> upstream.stop,
+      .isRunning -> upstream.isRunning,
       .isFinite -> True,
       mut .step(downstream: mut _Sink[E]): Void -> Block#
-        .if {n == 0u} .return {Block#(downstream.stop, runner.stop)}
+//        .if {n == 0u} .return {Block#(downstream.stop, runner.stop)}
+        .if {n == 0u} .return {runner.stop}
         .return {upstream.step(sinkFactory#[E]{
-          .stop -> Block#(downstream.stop, remaining := 0u),
+          .stop -> downstream.stop,
+//          .stop -> Block#(downstream.stop, remaining := 0u),
           #(e) -> Block#
-            .if {remaining-- == 0u} .return {Block#(downstream.stop, runner.stop)}
+//            .if {remaining-- == 0u} .return {Block#(downstream.stop, runner.stop)}
+            .if {remaining-- == 0u} .return {runner.stop}
             .return {downstream#e},
           })},
 //      mut .forRemaining[R](sink: mut _Sink[E]): Void -> Block#
