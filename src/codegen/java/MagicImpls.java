@@ -585,14 +585,14 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
 
         if (recvT.name().equals(Magic.SafeFlowSource)) {
           if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
-            var op = gen.visitMCall(new MIR.MCall(
-              new MIR.Lambda(Mdf.imm, Magic.SafeFlowSource),
-              new Id.MethName(Optional.of(Mdf.imm), m.name()+"'", 1),
-              args,
-              new T(Mdf.mut, new Id.IT<>("base.flows.FlowOp", call.t().itOrThrow().ts())),
-              Mdf.imm,
-              EnumSet.of(MIR.MCall.CallVariant.Standard)
-            ), false);
+//            var op = gen.visitMCall(new MIR.MCall(
+//              new MIR.Lambda(Mdf.imm, Magic.SafeFlowSource),
+//              new Id.MethName(Optional.of(Mdf.imm), m.name()+"'", 1),
+//              args,
+//              new T(Mdf.mut, new Id.IT<>("base.flows.FlowOp", call.t().itOrThrow().ts())),
+//              Mdf.imm,
+//              EnumSet.of(MIR.MCall.CallVariant.Standard)
+//            ), false);
             // In the future I'll specifically call PipelineParFlow instead of SeqFlow, so magic can propagate
             // THE FUTURE IS NOW OLD MAN
             var parFlow = gen.visitMCall(new MIR.MCall(

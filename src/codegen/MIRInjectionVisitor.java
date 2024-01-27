@@ -228,28 +228,14 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       }
       if (recvIT.name().equals(new Id.DecId("base.List", 1))) {
         var flowElem = recvIT.ts().getFirst();
-//        if (recvT.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow); }
-//        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow); }
-        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.SafeMutSourceFlow); }
+        if (recvT.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow); }
+        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow); }
+//        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.SafeMutSourceFlow); }
         return EnumSet.of(MIR.MCall.CallVariant.Standard);
       }
     }
     if (recvIT.name().equals(new Id.DecId("base.flows.Flow", 0))) {
-      if (e.name().equals(new Id.MethName(Optional.of(Mdf.imm), ".fromIter", 1))) {
-        var flowElem = e.ts().getFirst();
-        // Cannot be safe and data-parallel because mut .next/0 on the iterator may not be called in parallel.
-        // Pipeline parallelism is okay because we know .next will never be called simultaneously with itself.
-        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) {
-          return EnumSet.of(
-            MIR.MCall.CallVariant.SafeMutSourceFlow,
-            MIR.MCall.CallVariant.PipelineParallelFlow
-          );
-//          return EnumSet.of(
-//            MIR.MCall.CallVariant.SafeMutSourceFlow
-//          );
-        }
-        return EnumSet.of(MIR.MCall.CallVariant.Standard);
-      }
+      // TODO
     }
 
     return EnumSet.of(MIR.MCall.CallVariant.Standard);
