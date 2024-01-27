@@ -43,8 +43,16 @@ FlowEx:{
 //  .fromIter: Bool -> Flow.fromIter((LList[Int] + 10 + 1 + 5).iter.filter{e -> (e == 897897).not})
 //    .any{e -> e == 1 ? {.then -> Error.str "not filtering", .else -> e == 5}},
   .somePipelineParallelThing: Str -> List#[Int](5, 10, 15).flow
-    .map{n -> n * 5}
-    #(Flow.sum)
+    .filter{n -> (n == 10).not}
+    .map{n -> n.uint}
+    .map{n -> Fib#n}
+    #(Flow.uSum)
     .str
   }
 
+Fib: {
+  #(n: UInt): UInt -> n <= 1u ? {
+    .then -> n,
+    .else -> this#(n - 1u) + (this#(n - 2u))
+    }
+  }
