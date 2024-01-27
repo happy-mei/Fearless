@@ -13,7 +13,7 @@ FlowOp[E]: {
   mut .isRunning: Bool,
   mut .forRemaining(downstream: mut _Sink[E]): Void -> Block#
     .do{this.step(downstream)}
-    .if {base.Debug#(this.isRunning).not} .return {downstream.stop}
+    .if {base.Debug#(this.isRunning).not} .return {{}}
     .return {this.forRemaining(downstream)},
   mut .isFinite: Bool -> True,
   mut .split: mut Opt[mut FlowOp[E]] -> {},
