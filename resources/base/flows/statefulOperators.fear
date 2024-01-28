@@ -5,23 +5,26 @@ package base.flows
 _Limit: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
     .var[mut Count[UInt]] remaining = {Count.uint(n)}
+    .var[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return {{ 'runner
 //      .stop -> Block#(remaining := 0u, upstream.stop),
 //      .isRunning -> (remaining* > 0u) && (upstream.isRunning),
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
       .isFinite -> True,
-      mut .step(downstream: mut _Sink[E]): Void -> Block#
-//        .if {n == 0u} .return {Block#(downstream.stop, runner.stop)}
-        .if {n == 0u} .return {runner.stop}
-        .return {upstream.step(sinkFactory#[E]{
-          .stop -> downstream.stop,
-//          .stop -> Block#(downstream.stop, remaining := 0u),
-          #(e) -> Block#
-//            .if {remaining-- == 0u} .return {Block#(downstream.stop, runner.stop)}
-            .if {remaining-- == 0u} .return {runner.stop}
-            .return {downstream#e},
-          })},
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#
+          .if {n == 0u} .return {runner.stop}
+          .do {sink := (Opt#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> (remaining-- == 0u) ? {
+              .then -> runner.stop,
+              .else -> downstream#e
+              }
+            }))}
+          .return {upstream.step(sink.get!)}
+        },
 //      mut .forRemaining[R](sink: mut _Sink[E]): Void -> Block#
 //        .if {n == 0u} .return {ControlFlow.break[R]}
 //        .return {upstream.forRemaining{e -> Block#

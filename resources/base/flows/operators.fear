@@ -13,7 +13,7 @@ FlowOp[E]: {
   mut .isRunning: Bool,
   mut .forRemaining(downstream: mut _Sink[E]): Void -> Block#
     .do{this.step(downstream)}
-    .if {base.Debug#(this.isRunning).not} .return {{}}
+    .if {this.isRunning.not} .return {{}}
     .return {this.forRemaining(downstream)},
   mut .isFinite: Bool -> True,
   mut .split: mut Opt[mut FlowOp[E]] -> {},
@@ -75,11 +75,18 @@ _Map: {
 _FlatMap: {
   #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+    .var[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return{{'op
-      .step(downstream) -> upstream.step(sinkFactory#[E]{
-        .stop -> Block#(downstream.stop, isRunning := False),
-        #(e) -> f#e.list.iter.filter{_ -> isRunning*}.for{e' -> downstream#e'},
-        }),
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#(
+          sink := (Opt#(sinkFactory#[E]{
+            .stop -> Block#(isRunning := False, downstream.stop),
+            #(e) -> f#e.list.iter.filter{_ -> op.isRunning}.for{e' -> downstream#e'},
+            })),
+          upstream.step(sink.get!)
+          )
+        },
       .stop -> upstream.stop,
 //      .isRunning -> (isRunning*) && (upstream.isRunning),
       .isRunning -> isRunning*,

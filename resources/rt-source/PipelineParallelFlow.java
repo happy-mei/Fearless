@@ -29,15 +29,15 @@ public interface PipelineParallelFlow {
       this.subjectId = subjectId;
       this.original = original;
 
-      System.out.println("SPAWNING SUBJ: "+subjectId);
-//      this.subject = spawn(original::$35$mut$, original::stop$mut$);
-      this.subject = spawn(msg -> {
-        System.out.println("SUBJ: "+subjectId+", Message received: "+msg);
-        original.$35$mut$(msg);
-      }, () -> {
-        System.out.println("Stop received (SUBJ "+subjectId+")");
-        original.stop$mut$();
-      });
+//      System.out.println("SPAWNING SUBJ: "+subjectId);
+//      this.subject = spawn(msg -> {
+//        System.out.println("SUBJ: "+subjectId+", Message received: "+msg);
+//        original.$35$mut$(msg);
+//      }, () -> {
+//        System.out.println("Stop received (SUBJ "+subjectId+")");
+//        original.stop$mut$();
+//      });
+      this.subject = spawn(original::$35$mut$, original::stop$mut$);
     }
 
     @Override public FProgram.base.Void_0 stop$mut$() {
