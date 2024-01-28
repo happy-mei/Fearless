@@ -30,11 +30,17 @@ public interface PipelineParallelFlow {
       this.original = original;
 
       System.out.println("SPAWNING SUBJ: "+subjectId);
-      this.subject = spawn(original::$35$mut$, original::stop$mut$);
+//      this.subject = spawn(original::$35$mut$, original::stop$mut$);
+      this.subject = spawn(msg -> {
+        System.out.println("SUBJ: "+subjectId+", Message received: "+msg);
+        original.$35$mut$(msg);
+      }, () -> {
+        System.out.println("Stop received (SUBJ "+subjectId+")");
+        original.stop$mut$();
+      });
     }
 
     @Override public FProgram.base.Void_0 stop$mut$() {
-      System.out.println("STOPPING SUBJ: "+subjectId);
       if (!subject.ref().isClosed()) {
         subject.stop();
         subject.signal()
@@ -50,7 +56,7 @@ public interface PipelineParallelFlow {
       return FProgram.base.Void_0._$self;
     }
     @Override public FProgram.base.Void_0 $35$mut$(Object x$) {
-      System.out.println("SUBJ: "+subjectId+" GOT MSG: "+x$);
+//      System.out.println("SUBJ: "+subjectId+" GOT MSG: "+x$);
       this.subject.ref().submit(new FlowRuntime.Message.Data<>(x$));
       return FProgram.base.Void_0._$self;
     }
@@ -86,7 +92,6 @@ public interface PipelineParallelFlow {
   static <E> FlowRuntime.Subject<E> spawn(Consumer<E> subscriber, Runnable stop) {
     var self = FlowRuntime.<E>spawnWorker();
     return new FlowRuntime.Subject<>(self, self.consume(msg->{
-      System.out.println("Message received: "+msg);
       switch (msg) {
         case FlowRuntime.Message.Data<E> data -> subscriber.accept(data.data());
         case FlowRuntime.Message.Stop<E> ignored -> {
