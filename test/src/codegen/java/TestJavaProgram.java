@@ -112,7 +112,7 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!("hi".len() > 9000u, { Void }) }
+    Test:Main{ _ -> Assert!("hi".size > 9000u, { Void }) }
     """);}
 
   @Test void longToStr() { ok(new Res("", "123456789", 1), "test.Test", """
