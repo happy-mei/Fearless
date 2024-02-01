@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class JavaCodegen implements MIRVisitor<String> {
   private final MagicImpls magic;
-  private Program p;
+
   public JavaCodegen(Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
     this.magic = new MagicImpls(this, p, resolvedCalls);
 

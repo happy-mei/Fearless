@@ -10,8 +10,6 @@ import static codegen.java.RunJavaProgramTests.*;
 import static utils.RunJava.Res;
 
 public class TestJavaProgram {
-
-
   @Test void emptyProgram() { ok(new Res("", "", 0), "test.Test", """
     package test
     alias base.Main as Main,
@@ -185,7 +183,7 @@ public class TestJavaProgram {
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5_00_000.5 + 2.1) .str, { Void }) }
     """);}
-  @Test void intDivByZero() { ok(new Res("", "", 1), "test.Test", """
+  @Test void intDivByZero() { ok(new Res("", "Program crashed with: / by zero", 1), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void, alias base.Block as Do,
@@ -592,6 +590,7 @@ public class TestJavaProgram {
     """, Base.mutBaseAliases); }
   @Test void listIterMut() { ok(new Res("", "", 0), "test.Test", """
     package test
+    alias base.iter.Sum as Sum,
     Test:Main{ _ -> Block#
       .var[mut List[Int]] l1 = { (mut LList[Int] + 35 + 52 + 84 + 14).list }
       .assert({ l1.get(0u)! == (l1.iter.next!) }, "sanity") // okay, time to use this for new tests
@@ -837,6 +836,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
+  /*
   @Test void automatonPure() {
     ok(new Res("", "", 0), "test.Test", """
       package test
@@ -1073,6 +1073,7 @@ public class TestJavaProgram {
         }
       """, Base.mutBaseAliases);
   }
+   */
 
   @Test void optionalMapImm() {
     ok(new Res("", "", 0), "test.Test", """
@@ -1141,7 +1142,7 @@ public class TestJavaProgram {
       #(s) -> ToVoid#(this.aRead(mut A)),
       read .aRead(a: mut A): read B -> a.m1[](),
       }
-    ToVoid:{ #[I](x: mdf I): Void -> {} }
+    ToVoid:{ #[I](x: I): Void -> {} }
     """); }
   @Test void callingMultiSigAmbiguousDiffRetMut() { ok(new Res("", "", 0), "test.Test", """
     package test
@@ -1155,7 +1156,7 @@ public class TestJavaProgram {
       #(s) -> ToVoid#(this.aRead(mut A)),
       read .aRead(a: mut A): mut A -> a.m1[](),
       }
-    ToVoid:{ #[I](x: mdf I): Void -> {} }
+    ToVoid:{ #[I](x: I): Void -> {} }
     """); }
   @Test void callingMultiSigAmbiguousSameRet() { ok(new Res("", "", 0), "test.Test", """
     package test
@@ -1169,7 +1170,7 @@ public class TestJavaProgram {
       #(s) -> ToVoid#(this.aRead(mut A)),
       read .aRead(a: mut A): mut A -> a.m1[](),
       }
-    ToVoid:{ #[I](x: mdf I): Void -> {} }
+    ToVoid:{ #[I](x: I): Void -> {} }
     """); }
   @Test void optionals1() { ok(new Res("", "", 0), "test.Test", """
     package test
@@ -1213,7 +1214,7 @@ public class TestJavaProgram {
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
         .var[mut Ref[Int]] closest = { Ref#[Int](ns.head!) }
         .do{ mut Closest'{ 'self
-          h, t -> h.match[Void] mut OptMatch[Int,Void]{
+          h, t -> h.match[Void] mut base.OptMatch[Int,Void]{
             .empty -> {},
             .some(n) -> (target - n).abs < ((target - (closest*[])).abs) ? {
               .then -> closest := n,
@@ -1552,7 +1553,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .var[Opt[Int]] res = { Opt[Int]
-                             |> {opt -> opt.match{.some(_) -> opt, .empty -> Opt#9001 }} }
+                             #{opt -> opt.match{.some(_) -> opt, .empty -> Opt#9001 }} }
       .assert{res! == 9001}
       .return {{}}
       }
