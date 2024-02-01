@@ -20,26 +20,27 @@ public interface MagicImpls<R> {
   }
 
   default Optional<MagicTrait<R>> get(MIR e) {
-    return e.accept(new LambdaVisitor(p(), resolvedCalls())).flatMap(l->{
-      if (isMagic(Magic.Int, e)) { return Optional.ofNullable(int_(l, e)); }
-      if (isMagic(Magic.UInt, e)) { return Optional.ofNullable(uint(l, e)); }
-      if (isMagic(Magic.Float, e)) { return Optional.ofNullable(float_(l, e)); }
-      if (isMagic(Magic.Str, e)) { return Optional.ofNullable(str(l, e)); }
-      if (isMagic(Magic.Debug, e)) { return Optional.ofNullable(debug(l, e)); }
-      if (isMagic(Magic.RefK, e)) { return Optional.ofNullable(refK(l, e)); }
-      if (isMagic(Magic.IsoPodK, e)) { return Optional.ofNullable(isoPodK(l, e)); }
-      if (isMagic(Magic.Assert, e)) { return Optional.ofNullable(assert_(l, e)); }
-      if (isMagic(Magic.Abort, e)) { return Optional.ofNullable(abort(l, e)); }
-      if (isMagic(Magic.MagicAbort, e)) { return Optional.ofNullable(magicAbort(l, e)); }
-      if (isMagic(Magic.ErrorK, e)) { return Optional.ofNullable(errorK(l, e)); }
-      if (isMagic(Magic.Try, e)) { return Optional.ofNullable(tryCatch(l, e)); }
-      if (isMagic(Magic.PipelineParallelSinkK, e)) { return Optional.ofNullable(pipelineParallelSinkK(l, e)); }
-      return Magic.ObjectCaps.stream()
-        .filter(target->isMagic(target, e))
-        .map(target->Optional.ofNullable(objCap(target, l, e)))
-        .findAny()
-        .flatMap(o->o);
-    });
+    if (isMagic(Magic.Int, e)) { return Optional.ofNullable(int_(e)); }
+    if (isMagic(Magic.UInt, e)) { return Optional.ofNullable(uint(e)); }
+    if (isMagic(Magic.Float, e)) { return Optional.ofNullable(float_(e)); }
+    if (isMagic(Magic.Str, e)) { return Optional.ofNullable(str(e)); }
+    if (isMagic(Magic.Debug, e)) { return Optional.ofNullable(debug(e)); }
+    if (isMagic(Magic.RefK, e)) { return Optional.ofNullable(refK(e)); }
+    if (isMagic(Magic.IsoPodK, e)) { return Optional.ofNullable(isoPodK(e)); }
+    if (isMagic(Magic.Assert, e)) { return Optional.ofNullable(assert_(e)); }
+    if (isMagic(Magic.Abort, e)) { return Optional.ofNullable(abort(e)); }
+    if (isMagic(Magic.MagicAbort, e)) { return Optional.ofNullable(magicAbort(e)); }
+    if (isMagic(Magic.ErrorK, e)) { return Optional.ofNullable(errorK(e)); }
+    if (isMagic(Magic.Try, e)) { return Optional.ofNullable(tryCatch(e)); }
+    if (isMagic(Magic.PipelineParallelSinkK, e)) { return Optional.ofNullable(pipelineParallelSinkK(e)); }
+    return Magic.ObjectCaps.stream()
+      .filter(target->isMagic(target, e))
+      .map(target->Optional.ofNullable(objCap(target, e)))
+      .findAny()
+      .flatMap(o->o);
+//    return e.accept(new LambdaVisitor(p(), resolvedCalls())).flatMap(l->{
+//
+//    });
   }
 
   default boolean isMagic(Id.DecId magicDec, MIR e) {
@@ -55,20 +56,20 @@ public interface MagicImpls<R> {
     return p().isSubType(XBs.empty(), new T(Mdf.mdf, new Id.IT<>(freshName, List.of())), new T(Mdf.mdf, new Id.IT<>(magicDec, List.of())));
   }
 
-  MagicTrait<R> int_(MIR.Lambda l, MIR e);
-  MagicTrait<R> uint(MIR.Lambda l, MIR e);
-  MagicTrait<R> float_(MIR.Lambda l, MIR e);
-  MagicTrait<R> str(MIR.Lambda l, MIR e);
-  MagicTrait<R> debug(MIR.Lambda l, MIR e);
-  MagicTrait<R> refK(MIR.Lambda l, MIR e);
-  MagicTrait<R> isoPodK(MIR.Lambda l, MIR e);
-  MagicTrait<R> assert_(MIR.Lambda l, MIR e);
-  default MagicTrait<R> abort(MIR.Lambda l, MIR e) { return null; }
-  default MagicTrait<R> magicAbort(MIR.Lambda l, MIR e) { return null; }
-  MagicTrait<R> errorK(MIR.Lambda l, MIR e);
-  MagicTrait<R> tryCatch(MIR.Lambda l, MIR e);
-  MagicTrait<R> pipelineParallelSinkK(MIR.Lambda l, MIR e);
-  MagicTrait<R> objCap(Id.DecId magicTrait, MIR.Lambda l, MIR e);
+  MagicTrait<R> int_(MIR e);
+  MagicTrait<R> uint(MIR e);
+  MagicTrait<R> float_(MIR e);
+  MagicTrait<R> str(MIR e);
+  MagicTrait<R> debug(MIR e);
+  MagicTrait<R> refK(MIR e);
+  MagicTrait<R> isoPodK(MIR e);
+  MagicTrait<R> assert_(MIR e);
+  default MagicTrait<R> abort(MIR e) { return null; }
+  default MagicTrait<R> magicAbort(MIR e) { return null; }
+  MagicTrait<R> errorK(MIR e);
+  MagicTrait<R> tryCatch(MIR e);
+  MagicTrait<R> pipelineParallelSinkK(MIR e);
+  MagicTrait<R> objCap(Id.DecId magicTrait, MIR e);
   MagicTrait<R> variantCall(MIR e);
   ast.Program p();
   IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls();
