@@ -1,7 +1,7 @@
 package base
 
 Str:Sealed{
-  .len: UInt,
+  .size: UInt,
   // Str is not Stringable due to limitations of the Java codegen target
   .str: Str,
   +(other: Str): Str,
@@ -11,7 +11,7 @@ Stringable:{
   .str: Str,
   }
 _StrInstance:Str{
-  .len -> this.len,
+  .size -> this.size,
   .str -> this.str,
   +(other) -> this + other,
   ==(other) -> this == other,

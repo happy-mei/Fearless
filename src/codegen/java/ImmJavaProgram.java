@@ -5,33 +5,21 @@ import utils.Bug;
 import utils.ResolveResource;
 
 import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
-public class JavaProgram extends SimpleJavaFileObject {
-  private final String code;
-  public static final String MAIN_CLASS_NAME = "FProgram";
-  public JavaProgram(String code) {
-    this(MAIN_CLASS_NAME, code);
+public class ImmJavaProgram extends JavaProgram {
+  public ImmJavaProgram(String code) {
+    super(code);
   }
-  public JavaProgram(String topLevelClassName, String code) {
-    super(URI.create("string:///" + topLevelClassName + Kind.SOURCE.extension), Kind.SOURCE);
-    this.code = code;
-  }
-
-  public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-    return this.code;
+  public ImmJavaProgram(String topLevelClassName, String code) {
+    super(topLevelClassName, code);
   }
 
   public static Path compile(JavaProgram... files) {
@@ -54,13 +42,7 @@ public class JavaProgram extends SimpleJavaFileObject {
 
     var errors = new Box<Diagnostic<?>>(null);
 
-    var runtimeFiles = Stream.of(
-      "FlowRuntime",
-      "PipelineParallelFlow"
-    ).map(name -> new JavaProgram(name, ResolveResource.getStringOrThrow("/rt-source/"+name+".java")));
-    var userFiles = Arrays.stream(files);
-    var codegenUnits = Stream.concat(userFiles, runtimeFiles);
-
+    var codegenUnits = Arrays.stream(files);
     boolean success = compiler.getTask(
       null,
       null,

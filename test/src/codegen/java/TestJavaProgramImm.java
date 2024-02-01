@@ -5,9 +5,7 @@ import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import id.Id;
 import main.Main;
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.TypeSystemFeatures;
@@ -49,7 +47,7 @@ public class TestJavaProgramImm {
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var java = new ImmJavaCodegen(inferred, resolvedCalls).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
-    var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
+    var res = RunJava.of(ImmJavaProgram.compile(new JavaProgram(java)), args).join();
     Assertions.assertEquals(expected, res);
   }
 
@@ -174,7 +172,7 @@ public class TestJavaProgramImm {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!("hi".len() > 9000u, { "" }) }
+    Test:Main{ _ -> Assert!("hi".size > 9000u, { "" }) }
     """);}
 
   @Test void longToStr() { ok(new Res("", "123456789", 1), "test.Test", """
