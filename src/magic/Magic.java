@@ -44,10 +44,11 @@ public class Magic {
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
     var isLiteral  = !name.isEmpty() && MagicImpls.isLiteral(name);
     if(isLiteral){ return Optional.of(new Id.IT<>(name, List.of())); }
-    return switch(name){
+    return Optional.empty();
+//    return switch(name){
 //      case noMutHygName -> Optional.of(new Id.IT<>(new Id.DecId(noMutHygName, 0), List.of()));
-      default -> Optional.empty();
-    };
+//      default -> Optional.empty();
+//    };
   }
 
   public static astFull.T.Dec getFullDec(Function<Id.DecId, astFull.T.Dec> resolve, Id.DecId id) {
