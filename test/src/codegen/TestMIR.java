@@ -1,8 +1,10 @@
 package codegen;
 
 import ast.E;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import failure.CompileError;
 import main.Main;
@@ -23,6 +25,8 @@ import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class TestMIR {
   void ok(String expected, String... content){
     assert content.length > 0;
@@ -38,12 +42,7 @@ public class TestMIR {
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
-    var toJson = new ObjectMapper().registerModule(new Jdk8Module().configureAbsentsAsNulls(true));
-    try {
-      Err.strCmpFormat(expected, toJson.writeValueAsString(mir));
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
+    Err.strCmpFormat(expected, mir.toString());
   }
   void fail(String expectedErr, String... content){
     assert content.length > 0;
@@ -57,14 +56,13 @@ public class TestMIR {
     var inferred = InferBodies.inferAll(p);
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
-    var toJson = new ObjectMapper();
+//    var toJson = new ObjectMapper();
     try {
-      var mir = toJson.writeValueAsString(new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram());
-      Assertions.fail("Did not fail, got:\n" + mir);
+//      var mir = toJson.writeValueAsString(new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram());
+      var res = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
+      Assertions.fail("Did not fail, got:\n" + res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
     }
   }
 
@@ -72,9 +70,10 @@ public class TestMIR {
     {"pkgs":{}}
     """, """
     package test
+    A:{ .foo(a: A): A -> this.foo({}) }
     """);}
 
-  @Disabled // Disabled until I can figure out a good format for this
+  @Disabled
   @Test void simpleProgram() { ok("""
 {
   "pkgs": {
@@ -100,9 +99,7 @@ public class TestMIR {
                     "gen": 0
                   },
                   "ts": []
-                },
-                "it": true,
-                "gx": false
+                }
               }
             ]
           }
@@ -110,6 +107,7 @@ public class TestMIR {
         "meths": [
           {
             "name": {
+              "mdf": "imm",
               "name": ".loop",
               "num": 0
             },
@@ -132,14 +130,10 @@ public class TestMIR {
                         "gen": 0
                       },
                       "ts": []
-                    },
-                    "it": true,
-                    "gx": false
+                    }
                   }
                 ]
-              },
-              "it": true,
-              "gx": false
+              }
             },
             "body": {
               "op": "MIR$MCall",
@@ -154,12 +148,11 @@ public class TestMIR {
                       "gen": 0
                     },
                     "ts": []
-                  },
-                  "it": true,
-                  "gx": false
+                  }
                 }
               },
               "name": {
+                "mdf": "imm",
                 "name": ".loop",
                 "num": 0
               },
@@ -180,20 +173,20 @@ public class TestMIR {
                           "gen": 0
                         },
                         "ts": []
-                      },
-                      "it": true,
-                      "gx": false
+                      }
                     }
                   ]
-                },
-                "it": true,
-                "gx": false
-              }
-            },
-            "abs": false
+                }
+              },
+              "mdf": "imm",
+              "variant": [
+                "Standard"
+              ]
+            }
           },
           {
             "name": {
+              "mdf": "imm",
               "name": "#",
               "num": 0
             },
@@ -208,9 +201,7 @@ public class TestMIR {
                   "gen": 0
                 },
                 "ts": []
-              },
-              "it": true,
-              "gx": false
+              }
             },
             "body": {
               "op": "MIR$Lambda",
@@ -219,14 +210,15 @@ public class TestMIR {
                 "name": "test.Foo",
                 "gen": 0
               },
-              "selfName": "fear0$",
+              "selfName": "fear1$",
               "its": [],
               "captures": [],
-              "meths": []
-            },
-            "abs": false
+              "meths": [],
+              "canSingleton": true
+            }
           }
-        ]
+        ],
+        "canSingleton": true
       },
       {
         "name": {
@@ -235,7 +227,8 @@ public class TestMIR {
         },
         "gens": [],
         "its": [],
-        "meths": []
+        "meths": [],
+        "canSingleton": true
       },
       {
         "name": {
@@ -247,6 +240,7 @@ public class TestMIR {
         "meths": [
           {
             "name": {
+              "mdf": "imm",
               "name": "#",
               "num": 0
             },
@@ -261,14 +255,12 @@ public class TestMIR {
                   "gen": 0
                 },
                 "ts": []
-              },
-              "it": true,
-              "gx": false
+              }
             },
-            "body": null,
-            "abs": true
+            "body": null
           }
-        ]
+        ],
+        "canSingleton": false
       },
       {
         "name": {
@@ -284,6 +276,7 @@ public class TestMIR {
         "meths": [
           {
             "name": {
+              "mdf": "imm",
               "name": "#",
               "num": 0
             },
@@ -291,17 +284,15 @@ public class TestMIR {
             "gens": [],
             "xs": [],
             "rt": {
-              "mdf": "imm",
+              "mdf": "mdf",
               "rt": {
                 "name": "X"
-              },
-              "it": false,
-              "gx": true
+              }
             },
-            "body": null,
-            "abs": true
+            "body": null
           }
-        ]
+        ],
+        "canSingleton": false
       },
       {
         "name": {
@@ -313,6 +304,7 @@ public class TestMIR {
         "meths": [
           {
             "name": {
+              "mdf": "imm",
               "name": ".lm",
               "num": 0
             },
@@ -327,9 +319,7 @@ public class TestMIR {
                   "gen": 0
                 },
                 "ts": []
-              },
-              "it": true,
-              "gx": false
+              }
             },
             "body": {
               "op": "MIR$Lambda",
@@ -344,6 +334,7 @@ public class TestMIR {
               "meths": [
                 {
                   "name": {
+                    "mdf": "imm",
                     "name": "#",
                     "num": 0
                   },
@@ -358,9 +349,7 @@ public class TestMIR {
                         "gen": 0
                       },
                       "ts": []
-                    },
-                    "it": true,
-                    "gx": false
+                    }
                   },
                   "body": {
                     "op": "MIR$MCall",
@@ -375,12 +364,11 @@ public class TestMIR {
                             "gen": 0
                           },
                           "ts": []
-                        },
-                        "it": true,
-                        "gx": false
+                        }
                       }
                     },
                     "name": {
+                      "mdf": "imm",
                       "name": "#",
                       "num": 0
                     },
@@ -393,18 +381,20 @@ public class TestMIR {
                           "gen": 0
                         },
                         "ts": []
-                      },
-                      "it": true,
-                      "gx": false
-                    }
-                  },
-                  "abs": false
+                      }
+                    },
+                    "mdf": "imm",
+                    "variant": [
+                      "Standard"
+                    ]
+                  }
                 }
-              ]
-            },
-            "abs": false
+              ],
+              "canSingleton": false
+            }
           }
-        ]
+        ],
+        "canSingleton": true
       }
     ]
   }

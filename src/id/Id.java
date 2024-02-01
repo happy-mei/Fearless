@@ -27,9 +27,11 @@ public class Id {
     if (name.endsWith("$")) { return true; }
     return new parser.Parser(Parser.dummy,name).parseGX();      
   }
-  public record DecId(String name,int gen){
+  public record DecId(String name, int gen){
     public DecId{ assert validDecName(name) && gen>=0 : name; }
-    public DecId(int gens) { this(Id.GX.fresh().name(), gens); }
+    public static DecId fresh(String pkg, int gens) {
+      return new DecId(pkg+"."+Id.GX.fresh().name(), gens);
+    }
 
     public boolean isFresh() {
       return this.name.endsWith("$");

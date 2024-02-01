@@ -8,6 +8,7 @@ import id.Mdf;
 import program.CM;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
+import utils.Push;
 import utils.Streams;
 import visitors.CollectorVisitor;
 import visitors.GammaVisitor;
@@ -90,6 +91,56 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
     public NotInGammaException(String x) { super(x); }
   }
 
+
+  private final HashSet<CM> methodCycles = new HashSet<>();
+  public MIR.Lambda visitLambda(String pkg, E.Lambda e, Map<String, T> gamma) {
+    var id = e.name().id();
+    var dec = p.of(id);
+    var nonSelfImpls = simplifyImpls(e.its()).stream().filter(it->!it.name().equals(id)).toList();
+
+    var g = new HashMap<>(gamma);
+    g.put(e.selfName(), new T(e.mdf(), dec.toIT()));
+    var ms = p.meths(XBs.empty(), e.mdf(), e, 0).stream()
+      .map(cm->{
+        if (methodCycles.contains(cm)) {
+          var skeleton = visitMeth(pkg, ((CM.CoreCM) cm).m().withBody(Optional.empty()), g);
+          return new MIR.Meth(skeleton.name(), skeleton.mdf(), skeleton.gens(), skeleton.xs(), skeleton.rt(), Optional.of(new MIR.Unreachable(skeleton.rt())));
+        }
+        methodCycles.add(cm);
+        return visitMeth(pkg, ((CM.CoreCM) cm).m(), g);
+      })
+      .toList();
+
+    // This optimisation can be generalised, but this is the minimal one needed for magic to work on literals
+    if (nonSelfImpls.size() == 1 && e.meths().isEmpty()) {
+      return new MIR.Lambda(
+        e.mdf(),
+        nonSelfImpls.getFirst().name(),
+        e.selfName(),
+        List.of(),
+        Set.of(),
+        List.of(),
+        true
+      );
+    }
+
+
+    var captureCollector = new CaptureCollector();
+    captureCollector.visitLambda(e);
+    Set<MIR.X> captures = captureCollector.res().stream().map(x->visitX(x, gamma)).collect(Collectors.toSet());
+
+    return new MIR.Lambda(
+      e.mdf(),
+      id,
+      e.selfName(),
+      nonSelfImpls,
+      captures,
+      ms,
+      false
+    );
+  }
+
+  /*
   public MIR.Lambda visitLambda(String pkg, E.Lambda e, Map<String, T> gamma) {
     var captureCollector = new CaptureCollector();
     captureCollector.visitLambda(e);
@@ -108,7 +159,6 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       e.pos()
     ), e.pos());
     var nonSelfImpls = impls.stream().filter(it->!it.name().equals(freshName)).toList();
-//    var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
     var declP = this.p.withDec(freshDecImplsOnly);
     var declaredMeths = declP.meths(XBs.empty(), Mdf.recMdf, freshDec.toIT(), 0).stream()
       .map(CM::name)
@@ -162,6 +212,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       canSingletonTrait && ms.isEmpty()
     );
   }
+  */
 
   public MIR.Meth visitMeth(String pkg, E.Meth m, Map<String, T> gamma) {
     var g = new HashMap<>(gamma);

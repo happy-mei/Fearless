@@ -47,9 +47,9 @@ public interface MagicImpls<R> {
   default boolean isMagic(Id.DecId magicDec, Id.DecId freshName) {
     var name = freshName.name();
     if (freshName.gen() != 0) { return false; }
-    if (!name.startsWith("base.") && Character.isJavaIdentifierStart(name.charAt(0))) {
-      return false;
-    }
+//    if (!name.startsWith("base.") && Character.isJavaIdentifierStart(name.charAt(0))) {
+//      return false;
+//    }
     return p().isSubType(XBs.empty(), new T(Mdf.mdf, new Id.IT<>(freshName, List.of())), new T(Mdf.mdf, new Id.IT<>(magicDec, List.of())));
   }
 

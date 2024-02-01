@@ -1,8 +1,7 @@
 package codegen;
 
 import ast.T;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import id.Id;
 import id.Mdf;
@@ -20,7 +19,9 @@ public interface MIR {
 
   record Program(Map<String, List<Trait>> pkgs) {}
   record Trait(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<Meth> meths, boolean canSingleton) {}
+
   record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<X> xs, T rt, Optional<MIR> body) {
+    @JsonIgnore
     public boolean isAbs() { return body.isEmpty(); }
   }
   record X(String name, T t) implements MIR  {

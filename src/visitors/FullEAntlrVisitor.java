@@ -134,7 +134,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
 
       var contMs = List.of(new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest), Optional.of(head.pos())));
       var cont = new E.Lambda(
-        new E.Lambda.LambdaId(new Id.DecId(0), List.of(), this.xbs),
+        new E.Lambda.LambdaId(Id.DecId.fresh(pkg, 0), List.of(), this.xbs),
         Optional.empty(),
         List.of(),
         null,
@@ -236,7 +236,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if (rt.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }
     mdf.filter(Mdf::isMdf).ifPresent(mdf1->{ throw Fail.invalidMdf(rt.get()); });
 
-    Supplier<E.Lambda.LambdaId> emptyTopName = ()->new E.Lambda.LambdaId(new Id.DecId(0), List.of(), this.xbs);
+    Supplier<E.Lambda.LambdaId> emptyTopName = ()->new E.Lambda.LambdaId(Id.DecId.fresh(pkg, 0), List.of(), this.xbs);
     if(ctx.bblock()==null){
       return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, null, List.of(), rt, Optional.of(pos(ctx)));
     }
