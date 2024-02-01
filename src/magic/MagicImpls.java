@@ -21,34 +21,30 @@ public interface MagicImpls<R> {
 
   default Optional<MagicTrait<R>> get(MIR e) {
     return e.accept(new LambdaVisitor(p(), resolvedCalls())).flatMap(l->{
-      if (isMagic(Magic.Int, l)) { return Optional.ofNullable(int_(l, e)); }
-      if (isMagic(Magic.UInt, l)) { return Optional.ofNullable(uint(l, e)); }
-      if (isMagic(Magic.Float, l)) { return Optional.ofNullable(float_(l, e)); }
-      if (isMagic(Magic.Str, l)) { return Optional.ofNullable(str(l, e)); }
-      if (isMagic(Magic.Debug, l)) { return Optional.ofNullable(debug(l, e)); }
-      if (isMagic(Magic.RefK, l)) { return Optional.ofNullable(refK(l, e)); }
-      if (isMagic(Magic.IsoPodK, l)) { return Optional.ofNullable(isoPodK(l, e)); }
-      if (isMagic(Magic.Assert, l)) { return Optional.ofNullable(assert_(l, e)); }
-      if (isMagic(Magic.Abort, l)) { return Optional.ofNullable(abort(l, e)); }
-      if (isMagic(Magic.MagicAbort, l)) { return Optional.ofNullable(magicAbort(l, e)); }
-      if (isMagic(Magic.ErrorK, l)) { return Optional.ofNullable(errorK(l, e)); }
-      if (isMagic(Magic.Try, l)) { return Optional.ofNullable(tryCatch(l, e)); }
-      if (isMagic(Magic.PipelineParallelSinkK, l)) { return Optional.ofNullable(pipelineParallelSinkK(l, e)); }
+      if (isMagic(Magic.Int, e)) { return Optional.ofNullable(int_(l, e)); }
+      if (isMagic(Magic.UInt, e)) { return Optional.ofNullable(uint(l, e)); }
+      if (isMagic(Magic.Float, e)) { return Optional.ofNullable(float_(l, e)); }
+      if (isMagic(Magic.Str, e)) { return Optional.ofNullable(str(l, e)); }
+      if (isMagic(Magic.Debug, e)) { return Optional.ofNullable(debug(l, e)); }
+      if (isMagic(Magic.RefK, e)) { return Optional.ofNullable(refK(l, e)); }
+      if (isMagic(Magic.IsoPodK, e)) { return Optional.ofNullable(isoPodK(l, e)); }
+      if (isMagic(Magic.Assert, e)) { return Optional.ofNullable(assert_(l, e)); }
+      if (isMagic(Magic.Abort, e)) { return Optional.ofNullable(abort(l, e)); }
+      if (isMagic(Magic.MagicAbort, e)) { return Optional.ofNullable(magicAbort(l, e)); }
+      if (isMagic(Magic.ErrorK, e)) { return Optional.ofNullable(errorK(l, e)); }
+      if (isMagic(Magic.Try, e)) { return Optional.ofNullable(tryCatch(l, e)); }
+      if (isMagic(Magic.PipelineParallelSinkK, e)) { return Optional.ofNullable(pipelineParallelSinkK(l, e)); }
       return Magic.ObjectCaps.stream()
-        .filter(target->isMagic(target, l))
+        .filter(target->isMagic(target, e))
         .map(target->Optional.ofNullable(objCap(target, l, e)))
         .findAny()
         .flatMap(o->o);
     });
   }
 
-  default boolean isMagic(Id.DecId magicDec, MIR.Lambda l) {
-    var name = l.freshName().name();
-    if (l.freshName().gen() != 0) { return false; }
-    if (!name.startsWith("base.") && Character.isJavaIdentifierStart(name.charAt(0))) {
-      return false;
-    }
-    return p().isSubType(XBs.empty(), new T(l.mdf(), new Id.IT<>(l.freshName(), List.of())), new T(l.mdf(), new Id.IT<>(magicDec, List.of())));
+  default boolean isMagic(Id.DecId magicDec, MIR e) {
+    var it = e.t().itOrThrow();
+    return isMagic(magicDec, it.name());
   }
   default boolean isMagic(Id.DecId magicDec, Id.DecId freshName) {
     var name = freshName.name();
