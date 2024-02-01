@@ -70,13 +70,12 @@ _SafeSource: {
     .return {{'self
       .isRunning -> cursor* < (list.size),
       .stop -> cursor := (list.size),
-      .step(downstream) -> Block#(
-        list.get(cursor++).match{
-          .some(x) -> Block#
-            .do {downstream#x}
-            .if {cursor.get >= (list.size)} .do {Block#(downstream.stop, self.stop)}
-            .return {{}},
-          .empty -> Block#(downstream.stop, self.stop),
-          }),
+      .step(downstream) -> list.get(cursor++).match{
+        .some(x) -> Block#
+          .do {downstream#x}
+          .if {cursor.get >= (list.size)} .do {Block#(downstream.stop, self.stop)}
+          .return {{}},
+        .empty -> Block#(downstream.stop, self.stop),
+        },
       }},
   }

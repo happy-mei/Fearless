@@ -56,10 +56,12 @@ public interface CloneVisitor{
       e.pos()
     );
   }
-  default T visitT(T t){ return new T(
-    visitMdf(t.mdf()),
-    t.rt().match(this::visitGX,this::visitIT)
-  );}
+  default T visitT(T t){
+    return new T(
+      visitMdf(t.mdf()),
+      t.rt().match(this::visitGX,this::visitIT)
+    );
+  }
   default Id.IT<T> visitIT(Id.IT<T> t){ return new Id.IT<>(
     t.name(),
     t.ts().stream().map(this::visitT).toList()

@@ -581,21 +581,33 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
             if (variants.contains(MIR.MCall.CallVariant.Standard)) {
               return Optional.empty();
             }
+          } else if (m.name().equals(".flow")) {
+            if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
+              var parFlow = gen.visitMCall(new MIR.MCall(
+                new MIR.Lambda(Mdf.imm, Magic.PipelineParallelFlowK),
+                new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
+                List.of(
+                  new MIR.MCall(
+                    call.recv(),
+                    new Id.MethName(call.name().mdf(), "._flow"+call.mdf(), 0),
+                    List.of(),
+                    new T(Mdf.mut, new Id.IT<>(Magic.FlowOp, call.t().itOrThrow().ts())),
+                    call.mdf(),
+                    EnumSet.of(MIR.MCall.CallVariant.Standard)
+                  ),
+                  new MIR.Lambda(Mdf.imm, new Id.DecId("base.Opt", 1)) // TODO: list size
+                ),
+                new T(Mdf.mut, new Id.IT<>("base.flows.Flow", call.t().itOrThrow().ts())),
+                Mdf.imm,
+                variants
+              ));
+              return Optional.of(parFlow);
+            }
           }
         }
 
         if (recvT.name().equals(Magic.SafeFlowSource)) {
           if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
-//            var op = gen.visitMCall(new MIR.MCall(
-//              new MIR.Lambda(Mdf.imm, Magic.SafeFlowSource),
-//              new Id.MethName(Optional.of(Mdf.imm), m.name()+"'", 1),
-//              args,
-//              new T(Mdf.mut, new Id.IT<>("base.flows.FlowOp", call.t().itOrThrow().ts())),
-//              Mdf.imm,
-//              EnumSet.of(MIR.MCall.CallVariant.Standard)
-//            ), false);
-            // In the future I'll specifically call PipelineParFlow instead of SeqFlow, so magic can propagate
-            // THE FUTURE IS NOW OLD MAN
             var parFlow = gen.visitMCall(new MIR.MCall(
               new MIR.Lambda(Mdf.imm, Magic.PipelineParallelFlowK),
               new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
@@ -604,7 +616,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
                   new MIR.Lambda(Mdf.imm, Magic.SafeFlowSource),
                   new Id.MethName(Optional.of(Mdf.imm), m.name()+"'", 1),
                   args,
-                  new T(Mdf.mut, new Id.IT<>("base.flows.FlowOp", call.t().itOrThrow().ts())),
+                  new T(Mdf.mut, new Id.IT<>(Magic.FlowOp, call.t().itOrThrow().ts())),
                   Mdf.imm,
                   EnumSet.of(MIR.MCall.CallVariant.Standard)
                 ),
@@ -615,19 +627,6 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
               variants
             ));
             return Optional.of(parFlow);
-//            return Optional.of("""
-//              (switch (1) { default -> {
-////                base$46flows.FlowOp_1 original = ...;
-////                var subj = rt.PipelineParallelFlow.getSubject(123, null, (downstream, e) -> {
-////                  System.out.println("A wizard is never early or late.");
-////                }, () -> original.stop$mut$());
-////                subj.ref().submit(new rt.FlowRuntime.Message.Data("yeet"));
-////                subj.stop();
-////                subj.signal().join();
-////                yield base$46flows.$95PipelineParallelFlow_0._$self.fromOp$imm$(original, ...);
-//                  yield %s;
-//              }})
-//              """.formatted(op, size, parFlow));
           }
         }
 

@@ -66,7 +66,7 @@ LList[E]:Collection,Sealed{
 //      }},
   mut  .flow: mut Flow[E] -> Block#
     .var cursor = {Ref#this}
-    .return {Flow.fromOp{'op
+    .return {Flow.fromMutSource{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
@@ -74,9 +74,10 @@ LList[E]:Collection,Sealed{
         .empty -> Block#(downstream.stop, op.stop),
         },
       }},
-  read .flow: mut Flow[read E] -> Block#
+  read .flow: mut Flow[read E] -> Flow.fromOp[read E](this._flowread),
+  read ._flowread: mut FlowOp[read E] -> Block#
     .var cursor = {Ref#this}
-    .return {Flow.fromOp{'op
+    .return {mut FlowOp[read E]{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
@@ -84,9 +85,10 @@ LList[E]:Collection,Sealed{
         .empty -> Block#(downstream.stop, op.stop),
         },
       }},
-  imm  .flow: mut Flow[imm E] -> Block#
+  imm  .flow: mut Flow[imm E] -> Flow.fromOp[imm E](this._flowimm),
+  imm  ._flowimm: mut FlowOp[imm E] -> Block#
     .var cursor = {Ref#this}
-    .return {Flow.fromOp{'op
+    .return {mut FlowOp[imm E]{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
@@ -202,30 +204,41 @@ List[E]: Collection,Sealed{
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
       .step(downstream) -> this.get(cursor++).match{
-        .some(x) -> downstream#x,
+        .some(x) -> Block#
+          .do {downstream#x}
+          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+          .return {{}},
         .empty -> Block#(downstream.stop, self.stop),
         },
       }, this.size)},
-  read .flow: mut Flow[read E] -> Block#
+  read .flow: mut Flow[read E] -> Flow.fromOp(this._flowread, this.size),
+  read ._flowread: mut FlowOp[read E] -> Block#
     .var[mut Count[UInt]] cursor = {Count.uint(0u)}
-    .return {Flow.fromOp({'self
+    .return {{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
       .step(downstream) -> this.get(cursor++).match{
-        .some(x) -> downstream#x,
+        .some(x) -> Block#
+          .do {downstream#x}
+          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+          .return {{}},
         .empty -> Block#(downstream.stop, self.stop),
         },
-      }, this.size)},
-  imm .flow: mut Flow[imm E] -> Block#
+      }},
+  imm .flow: mut Flow[imm E] -> Flow.fromOp(this._flowimm, this.size),
+  imm ._flowimm: mut FlowOp[imm E] -> Block#
     .var[mut Count[UInt]] cursor = {Count.uint(0u)}
-    .return {Flow.fromOp({'self
+    .return {{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
       .step(downstream) -> this.get(cursor++).match{
-        .some(x) -> downstream#x,
+        .some(x) -> Block#
+          .do {downstream#x}
+          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+          .return {{}},
         .empty -> Block#(downstream.stop, self.stop),
         },
-      }, this.size)},
+      }},
 //  read .flow: mut Flow[read E] -> Let#{
 //    .var -> Count.uint(0u),
 //    .in(cursor) -> Flow.fromOp({ 'self

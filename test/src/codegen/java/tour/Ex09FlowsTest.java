@@ -25,6 +25,14 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
+  @Test void immFlowSumStr() { ok(new Res("30", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      As[imm List[Int]]#(List#[Int](5, 10, 15)).flow
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
   @Test void flowFilterSumStr() { ok(new Res("25", "", 0), "test.Test", """
     package test
     Test:Main {sys -> FIO#sys.println(
