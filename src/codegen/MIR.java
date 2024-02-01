@@ -85,15 +85,6 @@ public interface MIR {
       return v.visitUnreachable(this);
     }
   }
-//  record Share(MIR e) implements MIR {
-//    public <R> R accept(MIRVisitor<R> v) {
-//      return v.visitShare(this);
-//    }
-//  }
-//  }
-//  record RefK(L out, L v) implements MIR {}
-//  record DeRef(L out, L ref) implements MIR {}
-//  record RefSwap(L out, L ref, L v) implements MIR {}
 
   enum Op {
     X,

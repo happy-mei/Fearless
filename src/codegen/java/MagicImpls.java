@@ -543,22 +543,24 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
         var call = (MIR.MCall) e;
         var recvT = call.recv().t().itOrThrow();
         if (recvT.name().equals(Magic.FlowK)) {
-          if (m.equals(new Id.MethName(Optional.of(Mdf.imm), ".fromIter", 1))) {
-            if (variants.contains(MIR.MCall.CallVariant.SafeMutSourceFlow)) {
-              var newVariants = EnumSet.copyOf(variants);
-              newVariants.remove(MIR.MCall.CallVariant.SafeMutSourceFlow);
-              return Optional.of(gen.visitMCall(new MIR.MCall(
-                new MIR.Lambda(Mdf.imm, new Id.DecId("base.flows._SafeSource", 0)),
-                call.name(),
-                call.args(),
-                call.t(),
-                call.mdf(),
-                newVariants
-              )));
-            }
-            if (variants.contains(MIR.MCall.CallVariant.Standard)) {
-              return Optional.empty();
-            }
+          if (m.name().equals("#")) {
+            var listKCall = new MIR.MCall(
+              new MIR.Lambda(Mdf.imm, Magic.ListK),
+              new Id.MethName(Optional.of(Mdf.imm), "#", call.args().size()),
+              call.args(),
+              new T(Mdf.mut, new Id.IT<>(Magic.FList, List.of(new T(Mdf.mdf, Id.GX.fresh())))),
+              Mdf.imm,
+              EnumSet.of(MIR.MCall.CallVariant.Standard)
+            );
+            var listFlowCall = new MIR.MCall(
+              listKCall,
+              new Id.MethName(Optional.of(Mdf.mut), ".flow", 0),
+              List.of(),
+              call.t(),
+              Mdf.mut,
+              variants
+            );
+            return Optional.of(gen.visitMCall(listFlowCall));
           }
         }
 
@@ -627,6 +629,10 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
 //              }})
 //              """.formatted(op, size, parFlow));
           }
+        }
+
+        if (recvT.name().equals(Magic.PipelineParallelFlowK)) {
+          return Optional.empty();
         }
 
         System.err.println("Warning: No magic handler found for: "+e+"\nFalling back to Fearless implementation.");

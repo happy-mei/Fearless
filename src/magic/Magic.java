@@ -27,6 +27,7 @@ public class Magic {
   public static final Id.DecId PipelineParallelSinkK = new Id.DecId("base.flows._PipelineParallelSink", 0);
   public static final Id.DecId PipelineParallelFlowK = new Id.DecId("base.flows._PipelineParallelFlow", 0);
   public static final Id.DecId FList = new Id.DecId("base.List", 1);
+  public static final Id.DecId ListK = new Id.DecId("base.List", 0);
   public static final Id.DecId LList = new Id.DecId("base.LList", 1);
   public static final Id.DecId SafeFlowSource = new Id.DecId("base.flows._SafeSource", 0);
 

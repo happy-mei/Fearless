@@ -204,19 +204,6 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   }
 
   private EnumSet<MIR.MCall.CallVariant> getVariants(MIR recv, E.MCall e) {
-    // The issue with basing it on the recv here is that the call to the actual flow constructor only knows
-    // about "mdf E" in most cases :(
-    // We basically need to make any code that calls the flow functions, magic.
-    // We could have a collector which walks the AST and recursively builds up a list of all method calls that end up
-    // invoking a flow constructor until it gets non-generic. Then we associate each one of those leaf method calls
-    // with a call variant. Basically a BFS/DFS for relevant method calls?
-
-//    if (recv.t().equals(new T(Mdf.imm, new Id.IT<>("base.flows.Flow", List.of())))) {
-//      if (e.ts().size() == 1 && e.ts().getFirst().isIt()) {
-//        System.out.println(e.ts().getFirst()+" at "+e.pos());
-//      }
-//    }
-
     // Standard library .flow methods:
     var recvT = recv.t();
     var recvIT = recvT.itOrThrow();
@@ -234,8 +221,9 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
         return EnumSet.of(MIR.MCall.CallVariant.Standard);
       }
     }
-    if (recvIT.name().equals(new Id.DecId("base.flows.Flow", 0))) {
-      // TODO
+    if (recvIT.name().equals(new Id.DecId("base.flows.Flow", 0)) && e.name().name().equals("#")) {
+      var flowElem = e.ts().getFirst();
+      if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow); }
     }
 
     return EnumSet.of(MIR.MCall.CallVariant.Standard);
