@@ -38,9 +38,6 @@ public interface MagicImpls<R> {
       .map(target->Optional.ofNullable(objCap(target, e)))
       .findAny()
       .flatMap(o->o);
-//    return e.accept(new LambdaVisitor(p(), resolvedCalls())).flatMap(l->{
-//
-//    });
   }
 
   default boolean isMagic(Id.DecId magicDec, MIR e) {
@@ -74,30 +71,4 @@ public interface MagicImpls<R> {
   ast.Program p();
   IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls();
 
-  record LambdaVisitor(Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) implements MIRVisitor<Optional<MIR.Lambda>> {
-    public Optional<MIR.Lambda> visitProgram(Map<String, List<MIR.Trait>> pkgs, Id.DecId entry) { throw Bug.unreachable(); }
-    public Optional<MIR.Lambda> visitTrait(String pkg, MIR.Trait trait) { throw Bug.unreachable(); }
-    public Optional<MIR.Lambda> visitMeth(MIR.Meth meth, String selfName, boolean concrete) { throw Bug.unreachable(); }
-    public Optional<MIR.Lambda> visitX(MIR.X x, boolean _ignored) {
-      var ret = p().of(x.t().itOrThrow().name());
-      try {
-        return Optional.of(new MIRInjectionVisitor(p(), resolvedCalls()).visitLambda("base", ret.lambda(), Map.of()));
-      } catch (MIRInjectionVisitor.NotInGammaException e) {
-        return Optional.empty();
-      }
-    }
-    public Optional<MIR.Lambda> visitMCall(MIR.MCall mCall, boolean _ignored) {
-      var ret = p().of(mCall.t().itOrThrow().name());
-      try {
-        return Optional.of(new MIRInjectionVisitor(p(), resolvedCalls()).visitLambda("base", ret.lambda(), Map.of()));
-      } catch (MIRInjectionVisitor.NotInGammaException e) {
-        return Optional.empty();
-      }
-    }
-    public Optional<MIR.Lambda> visitLambda(MIR.Lambda newL, boolean _ignored) { return Optional.of(newL); }
-
-    @Override public Optional<MIR.Lambda> visitUnreachable(MIR.Unreachable u) {
-      return Optional.empty();
-    }
-  }
 }
