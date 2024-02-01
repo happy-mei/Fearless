@@ -44,7 +44,7 @@ _PipelineParallelFlow: {
 //        .stop -> source.stop,
         #(e) -> acc' := (f#(acc'.get, e)),
         })}
-//      .do {source.stop}
+      .do {source.stop}
       .return {acc'.get},
     // Pipeline parallel flows do not split so no combine is needed
     .fold(acc, f, combine) -> self.fold(acc, f),

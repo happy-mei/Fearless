@@ -8,7 +8,7 @@ _Limit: {
     .var[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return {{ 'runner
       .stop -> Block#(remaining := 0u, upstream.stop),
-      .isRunning -> (remaining* > 0u) && (upstream.isRunning),
+      .isRunning -> remaining* > 0u && (upstream.isRunning),
 //      .stop -> upstream.stop,
 //      .isRunning -> upstream.isRunning,
       .isFinite -> True,
@@ -18,7 +18,7 @@ _Limit: {
           .if {n == 0u} .return {runner.stop}
           .do {sink := (Opt#(sinkFactory#[E]{
             .stop -> downstream.stop,
-            #(e) -> runner.isRunning.not || (remaining-- == 0u) ? {
+            #(e) -> remaining* == 0u || (remaining-- == 0u) ? {
               .then -> runner.stop,
               .else -> downstream#e
               }

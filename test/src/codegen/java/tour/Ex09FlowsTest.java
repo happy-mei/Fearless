@@ -128,10 +128,28 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
+  @Test void flowLimit2List() { ok(new Res("15", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      List#[Int](5, 10, 15).flow
+        .limit(2u)
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
   @Test void flowLimit3() { ok(new Res("30", "", 0), "test.Test", """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
+        .limit(3u)
+        #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+  @Test void flowLimit3List() { ok(new Res("30", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      List#[Int](5, 10, 15).flow
         .limit(3u)
         #(Flow.sum)
         .str
