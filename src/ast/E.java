@@ -64,6 +64,9 @@ public interface E extends HasPos {
     public ast.E.Lambda withITs(List<Id.IT<T>> its) {
       return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
     }
+    public ast.E.Lambda withSelfName(String selfName) {
+      return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
+    }
     @Override
     public String toString() {
       var meths = meths().stream().map(Meth::toString).collect(Collectors.joining(",\n"));

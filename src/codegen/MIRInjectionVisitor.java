@@ -10,8 +10,10 @@ import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Push;
 import utils.Streams;
+import visitors.CloneVisitor;
 import visitors.CollectorVisitor;
 import visitors.GammaVisitor;
+import visitors.MIRVisitor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,7 +22,7 @@ import java.util.stream.Stream;
 import static program.Program.filterByMdf;
 
 public class MIRInjectionVisitor implements GammaVisitor<MIR> {
-  private final List<MIR.Trait> freshTraits = new ArrayList<>();
+  private final HashMap<Id.DecId, MIR.Trait> freshTraits = new HashMap<>();
   private Program p;
   private final IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls;
   public MIRInjectionVisitor(Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
@@ -37,7 +39,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
 
     Map<String, List<MIR.Trait>> ds = Streams.of(
       traits.stream(),
-      freshTraits.stream(),
+      freshTraits.values().stream(),
       this.collectInlineTopDecs(p)
     ).collect(Collectors.groupingBy(t->t.name().pkg()));
     return new MIR.Program(ds);
@@ -46,7 +48,7 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   public MIR.Trait visitDec(String pkg, T.Dec dec) {
     var ms = p.meths(XBs.empty(), Mdf.recMdf, dec.toIT(), 0).stream()
       .map(cm->{
-        var m = p.ds().get(cm.c().name())
+        var m = p.of(cm.c().name())
           .lambda()
           .meths()
           .stream()
@@ -96,19 +98,44 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
   public MIR.Lambda visitLambda(String pkg, E.Lambda e, Map<String, T> gamma) {
     var id = e.name().id();
     var dec = p.of(id);
+
+    if (id.name().equals("base.Fear27$")) {
+      System.out.println(e);
+    }
     var nonSelfImpls = simplifyImpls(e.its()).stream().filter(it->!it.name().equals(id)).toList();
+
+    var fixSelfNameVisitor = new MIRCloneVisitor(){
+      @Override public MIR.X visitX(MIR.X x, boolean checkMagic) {
+        if (x.name().equals("this")) {
+          return new MIR.X(e.selfName(), new T(e.mdf(), dec.toIT()));
+        }
+        return x;
+      }
+    };
+
+    var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
 
     var g = new HashMap<>(gamma);
     g.put(e.selfName(), new T(e.mdf(), dec.toIT()));
-    var ms = p.meths(XBs.empty(), e.mdf(), e, 0).stream()
+    var ms = p.meths(XBs.empty(), recvMdf, e, 0).stream()
       .map(cm->{
+        var m = ((CM.CoreCM) cm).m();
         if (methodCycles.contains(cm)) {
-          var skeleton = visitMeth(pkg, ((CM.CoreCM) cm).m().withBody(Optional.empty()), g);
+          var skeleton = visitMeth(pkg, m.withBody(Optional.empty()), g);
           return new MIR.Meth(skeleton.name(), skeleton.mdf(), skeleton.gens(), skeleton.xs(), skeleton.rt(), Optional.of(new MIR.Unreachable(skeleton.rt())));
         }
         methodCycles.add(cm);
-        return visitMeth(pkg, ((CM.CoreCM) cm).m(), g);
+        var res = visitMeth(pkg, m, g);
+        methodCycles.remove(cm);
+        return res;
       })
+      .map(m->fixSelfNameVisitor.visitMeth(m, "", true))
+      .toList();
+
+    var nonCallableMeths = p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
+      .filter(cm->!filterByMdf(recvMdf, cm.mdf()))
+      .map(cm->visitMeth(pkg, ((CM.CoreCM)cm).m().withBody(Optional.empty()), new HashMap<>(gamma)))
+      .map(m->new MIR.Meth(m.name(), m.mdf(), m.gens(), m.xs(), m.rt(), Optional.of(new MIR.Unreachable(m.rt()))))
       .toList();
 
     // This optimisation can be generalised, but this is the minimal one needed for magic to work on literals
@@ -119,15 +146,35 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
         e.selfName(),
         List.of(),
         Set.of(),
-        List.of(),
+        nonCallableMeths,
         true
       );
     }
 
-
     var captureCollector = new CaptureCollector();
     captureCollector.visitLambda(e);
     Set<MIR.X> captures = captureCollector.res().stream().map(x->visitX(x, gamma)).collect(Collectors.toSet());
+
+    var traitMs = Stream.concat(ms.stream(), nonCallableMeths.stream())
+      .map(MIR.Meth::name)
+      .collect(Collectors.toUnmodifiableSet());
+    var hasNoExtraMeths = e.meths().stream().map(E.Meth::name).allMatch(traitMs::contains);
+
+    var canSingletonTrait = captures.isEmpty() && hasNoExtraMeths && nonCallableMeths.isEmpty();
+//    List<MIR.Meth> msTrait = canSingletonTrait
+//      ? ms
+//      : p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
+//          .map(cm->visitMeth(pkg, ((CM.CoreCM) cm).m().withBody(Optional.empty()), g))
+//          .toList();
+    if (!freshTraits.containsKey(id)) {
+      var msTrait = canSingletonTrait
+        ? visitDec(pkg, dec.withSelfName("this")).meths()
+        : p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
+            .map(cm->visitMeth(pkg, ((CM.CoreCM) cm).m().withBody(Optional.empty()), g))
+            .toList();
+      var freshTrait = new MIR.Trait(id, List.of(), nonSelfImpls, msTrait, canSingletonTrait);
+      freshTraits.put(id, freshTrait);
+    }
 
     return new MIR.Lambda(
       e.mdf(),
@@ -135,8 +182,8 @@ public class MIRInjectionVisitor implements GammaVisitor<MIR> {
       e.selfName(),
       nonSelfImpls,
       captures,
-      ms,
-      false
+      Push.of(ms, nonCallableMeths),
+      canSingletonTrait && e.meths().isEmpty()
     );
   }
 

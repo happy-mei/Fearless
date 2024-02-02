@@ -53,6 +53,7 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res, Id.Ty {
   public record Dec(DecId name, List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos, Id.Dec {
     public Dec{ assert gxs.size()==name.gen() && lambda!=null; }
     public ast.T.Dec withName(Id.DecId name) { return new ast.T.Dec(name,gxs,bounds,lambda,pos); }
+    public ast.T.Dec withSelfName(String selfName) { return new ast.T.Dec(name,gxs,bounds,lambda.withSelfName(selfName),pos); }
     public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(name,gxs,bounds,lambda,pos); }
 
     public Id.IT<T> toIT(){
