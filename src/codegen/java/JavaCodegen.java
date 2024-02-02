@@ -10,10 +10,7 @@ import magic.Magic;
 import program.typesystem.EMethTypeSystem;
 import visitors.MIRVisitor;
 
-import java.util.EnumSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class JavaCodegen implements MIRVisitor<String> {
@@ -88,7 +85,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     var selfVar = "var "+name(selfName)+" = this;\n";
 //    var gens = meth.gens().isEmpty() ? "" : "<"+String.join(",", meth.gens())+"> ";
     var args = meth.xs().stream()
-      .map(x->new MIR.X(x.name(), new T(x.t().mdf(), new Id.GX<>("Object")))) // required for overriding meths with generic args
+      .map(x->new MIR.X(x.name(), new T(x.t().mdf(), new Id.GX<>("Object")), Optional.empty())) // required for overriding meths with generic args
       .map(this::typePair)
       .collect(Collectors.joining(","));
     var visibility = concrete ? "public " : "default ";

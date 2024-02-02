@@ -23,12 +23,13 @@ public class MIRCloneVisitor implements MIRVisitor<Object> {
       meth.gens(),
       meth.xs(),
       meth.rt(),
-      meth.body().map(e->(MIR)e.accept(this))
+      meth.body().map(e->(MIR)e.accept(this)),
+      meth.captures().stream().map(x->(MIR.X) visitX(x)).toList()
     );
   }
 
   @Override public MIR.X visitX(MIR.X x, boolean checkMagic) {
-    return new MIR.X(x.name(), x.t());
+    return new MIR.X(x.name(), x.t(), x.capturer());
   }
 
   @Override public MIR.MCall visitMCall(MIR.MCall mCall, boolean checkMagic) {

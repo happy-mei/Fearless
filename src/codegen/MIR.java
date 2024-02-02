@@ -18,13 +18,14 @@ public interface MIR {
   T t();
 
   record Program(Map<String, List<Trait>> pkgs) {}
+  record Package(List<Trait> traits, List<Lambda> impls) {}
   record Trait(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<Meth> meths, boolean canSingleton) {}
 
-  record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<X> xs, T rt, Optional<MIR> body) {
-    @JsonIgnore
+  record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<X> xs, T rt, Optional<MIR> body, List<X> captures) {
     public boolean isAbs() { return body.isEmpty(); }
   }
-  record X(String name, T t) implements MIR  {
+  record Capturer(Id.DecId id, Id.MethName name) {}
+  record X(String name, T t, Optional<Capturer> capturer) implements MIR  {
     public <R> R accept(MIRVisitor<R> v) {
       return this.accept(v, true);
     }
@@ -52,19 +53,8 @@ public interface MIR {
   }
   record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, Set<X> captures, List<Meth> meths, boolean canSingleton) implements MIR {
     public Lambda(Mdf mdf, Id.DecId impls) {
-      this(
-        mdf,
-//        new Id.DecId(impls.pkg()+"."+Id.GX.fresh().name(), 0),
-        impls,
-        astFull.E.X.freshName(),
-//        List.of(new Id.IT<>(impls, List.of())),
-        List.of(),
-        Set.of(),
-        List.of(),
-        true
-      );
+      this(mdf, impls, astFull.E.X.freshName(), List.of(), Set.of(), List.of(), true);
     }
-
     public <R> R accept(MIRVisitor<R> v) {
       return this.accept(v, true);
     }
@@ -73,9 +63,6 @@ public interface MIR {
     }
     public T t() {
       return new T(mdf, new Id.IT<>(freshName, Collections.nCopies(freshName.gen(), new T(Mdf.mdf, new Id.GX<>("FearIgnored$")))));
-    }
-    public Lambda withITs(List<Id.IT<T>> its) {
-      return new Lambda(mdf, freshName, selfName, its, captures, meths, canSingleton);
     }
   }
   record Unreachable(T t) implements MIR {
