@@ -21,7 +21,7 @@ public interface MIR {
   record Package(List<Trait> traits, List<Lambda> impls) {}
   record Trait(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<Meth> meths, boolean canSingleton) {}
 
-  record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<X> xs, T rt, Optional<MIR> body, List<X> captures) {
+  record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<X> xs, T rt, Optional<MIR> body) {
     public boolean isAbs() { return body.isEmpty(); }
   }
   record Capturer(Id.DecId id, Id.MethName name) {}
@@ -51,9 +51,13 @@ public interface MIR {
       return v.visitMCall(this, checkMagic);
     }
   }
-  record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, Set<X> captures, List<Meth> meths, boolean canSingleton) implements MIR {
+  record Lambda(Mdf mdf, Id.DecId freshName, String selfName, List<Id.IT<T>> its, List<Meth> meths, List<List<X>> methCaptures, boolean canSingleton) implements MIR {
+    public Lambda {
+      assert meths.size() == methCaptures.size();
+    }
+
     public Lambda(Mdf mdf, Id.DecId impls) {
-      this(mdf, impls, astFull.E.X.freshName(), List.of(), Set.of(), List.of(), true);
+      this(mdf, impls, astFull.E.X.freshName(), List.of(), List.of(), List.of(), true);
     }
     public <R> R accept(MIRVisitor<R> v) {
       return this.accept(v, true);

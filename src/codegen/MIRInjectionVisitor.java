@@ -271,14 +271,16 @@ public class MIRInjectionVisitor implements CtxVisitor<Map<String, MIR.X>, MIR> 
       })
       .toList();
 
+    var captureVisitor = new CaptureCollector();
+    captureVisitor.visitMeth(m);
+
     return new MIR.Meth(
       m.name(),
       m.sig().mdf(),
       m.sig().gens(),
       xs,
       m.sig().ret(),
-      m.body().map(e->e.accept(this, pkg, g)),
-      List.of() // TODO
+      m.body().map(e->e.accept(this, pkg, g))
     );
   }
 

@@ -23,8 +23,7 @@ public class MIRCloneVisitor implements MIRVisitor<Object> {
       meth.gens(),
       meth.xs(),
       meth.rt(),
-      meth.body().map(e->(MIR)e.accept(this)),
-      meth.captures().stream().map(x->(MIR.X) visitX(x)).toList()
+      meth.body().map(e->(MIR)e.accept(this))
     );
   }
 
@@ -49,8 +48,8 @@ public class MIRCloneVisitor implements MIRVisitor<Object> {
       newL.freshName(),
       newL.selfName(),
       newL.its(),
-      newL.captures(),
       newL.meths(),
+      newL.methCaptures().stream().map(mCaps->mCaps.stream().map(x->(MIR.X)visitX(x)).toList()).toList(),
       newL.canSingleton()
     );
   }
