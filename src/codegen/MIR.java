@@ -26,6 +26,9 @@ public interface MIR {
   }
   record Capturer(Id.DecId id, Id.MethName name) {}
   record X(String name, T t, Optional<Capturer> capturer) implements MIR  {
+    public X withCapturer(Optional<Capturer> capturer) {
+      return new X(name, t, capturer);
+    }
     public <R> R accept(MIRVisitor<R> v) {
       return this.accept(v, true);
     }

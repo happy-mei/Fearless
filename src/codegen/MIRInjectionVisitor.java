@@ -90,8 +90,73 @@ public class MIRInjectionVisitor implements CtxVisitor<Map<String, MIR.X>, MIR> 
   }
 
 
+//  private record MethodInstance(Id.DecId lambda, Id.MethName name, List<MIR.X> captures) {}
+  private static Map<List<MIR.X>, MIR.Meth> methCache = new HashMap<>();
   public MIR.Lambda visitLambda(String pkg, E.Lambda e, Map<String, MIR.X> gamma) {
-    throw Bug.todo(); // TODO
+    var id = e.name().id();
+    var dec = p.of(id);
+    var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
+
+//    var g = new HashMap<>(gamma);
+//    g.put(e.selfName(), new MIR.X(e.selfName(), new T(e.mdf(), dec.toIT()), Optional.empty()));
+
+    // TODO: interesting, because the selfName for top level methods will be "this", the e.selfName() is not really working as expected.
+    List<List<MIR.X>> msCaptures = p.meths(XBs.empty(), recvMdf, e, 0).stream()
+      .map(cm->{
+        var collector = new CaptureCollector();
+//        collector.visitMeth(((CM.CoreCM)cm).m());
+
+        var lambdaImpl = p.of(cm.c().name()).lambda();
+        var m = lambdaImpl
+          .meths()
+          .stream()
+          .filter(mi->mi.name().equals(cm.name()))
+          .findAny()
+          .orElseThrow();
+        collector.visitMeth(m);
+
+        var res = collector.res();
+        res.remove(lambdaImpl.selfName());
+        return res.stream()
+          .map(x->{
+            var baseX = gamma.get(x);
+            if (baseX == null) { throw new NotInGammaException(x); }
+            return baseX.withCapturer(Optional.of(new MIR.Capturer(id, cm.name())));
+          })
+          .toList();
+      })
+      .toList();
+
+    var ms = Streams.zip(p.meths(XBs.empty(), recvMdf, e, 0), msCaptures)
+      .map((cm, captures)->{
+        if (methCache.containsKey(captures)) {
+          return methCache.get(captures);
+        }
+        var lambdaImpl = p.of(cm.c().name()).lambda();
+        var g = new HashMap<>(gamma);
+        g.put(lambdaImpl.selfName(), new MIR.X(lambdaImpl.selfName(), new T(recvMdf, cm.c()), Optional.empty()));
+        captures.forEach(x->g.put(x.name(), x));
+        var m = p.of(cm.c().name()).lambda()
+          .meths()
+          .stream()
+          .filter(mi->mi.name().equals(cm.name()))
+          .findAny()
+          .orElseThrow();
+        var res = visitMeth(pkg, m, g);
+        methCache.put(captures, res);
+        return res;
+      })
+      .toList();
+
+    return new MIR.Lambda(
+      e.mdf(),
+      id,
+      e.selfName(),
+      List.of(), // TODO
+      ms, // TODO
+      msCaptures,
+      false // TODO
+    );
   }
 //  private final HashSet<CM> methodCycles = new HashSet<>();
 //  public MIR.Lambda visitLambda(String pkg, E.Lambda e, HashMap<String, MIR.X>) {
