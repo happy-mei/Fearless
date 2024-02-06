@@ -63,12 +63,11 @@ public interface Base {
 
   String minimalBase = """
     package base
-    Main:{ #(s: lent System[Void]): Void }
-    NoMutHyg[X]:{}
+    Main:{ #(s: mut System): Void }
     Sealed:{}
     Void:{}
     
-    System[R]:Sealed{}
+    System:Sealed{}
     """;
 
   String mutBaseAliases = """

@@ -1,18 +1,16 @@
 package magic;
 
 import ast.E;
-import ast.Program;
 import ast.T;
 import codegen.MIR;
-import codegen.MIRInjectionVisitor;
 import id.Id;
 import id.Mdf;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
-import utils.Bug;
-import visitors.MIRVisitor;
 
-import java.util.*;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Optional;
 
 public interface MagicImpls<R> {
   static boolean isLiteral(String name) {

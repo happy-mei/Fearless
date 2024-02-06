@@ -9,6 +9,7 @@ import program.CM;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Bug;
+import utils.Mapper;
 import utils.Streams;
 import visitors.CollectorVisitor;
 import visitors.CtxVisitor;
@@ -91,8 +92,9 @@ public class MIRInjectionVisitor implements CtxVisitor<Map<String, MIR.X>, MIR> 
 
 
 //  private record MethodInstance(Id.DecId lambda, Id.MethName name, List<MIR.X> captures) {}
-  private static Map<List<MIR.X>, MIR.Meth> methCache = new HashMap<>();
-  public MIR.Lambda visitLambda(String pkg, E.Lambda e, Map<String, MIR.X> gamma) {
+  private record CMKey(Id.IT<T> c, Id.MethName m) {}
+  private static Map<CMKey, MIR.Meth> methCache = new HashMap<>();
+  public MIR visitLambda(String pkg, E.Lambda e, Map<String, MIR.X> gamma) {
     var id = e.name().id();
     var dec = p.of(id);
     var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
@@ -101,22 +103,18 @@ public class MIRInjectionVisitor implements CtxVisitor<Map<String, MIR.X>, MIR> 
 //    g.put(e.selfName(), new MIR.X(e.selfName(), new T(e.mdf(), dec.toIT()), Optional.empty()));
 
     // TODO: interesting, because the selfName for top level methods will be "this", the e.selfName() is not really working as expected.
-    List<List<MIR.X>> msCaptures = p.meths(XBs.empty(), recvMdf, e, 0).stream()
+    var allMs = p.meths(XBs.empty(), recvMdf, e, 0);
+    Map<Id.MethName, E.Meth> lambdaMs = Mapper.of(res->e.meths().forEach(m->res.put(m.name(), m)));
+    List<List<MIR.X>> msCaptures = allMs.stream()
       .map(cm->{
-        var collector = new CaptureCollector();
-//        collector.visitMeth(((CM.CoreCM)cm).m());
+        var lambdaM = lambdaMs.get(cm.name());
+        if (lambdaM == null) { return List.<MIR.X>of(); }
 
-        var lambdaImpl = p.of(cm.c().name()).lambda();
-        var m = lambdaImpl
-          .meths()
-          .stream()
-          .filter(mi->mi.name().equals(cm.name()))
-          .findAny()
-          .orElseThrow();
-        collector.visitMeth(m);
+        var collector = new CaptureCollector();
+        collector.visitMeth(lambdaM);
 
         var res = collector.res();
-        res.remove(lambdaImpl.selfName());
+        res.remove(e.selfName());
         return res.stream()
           .map(x->{
             var baseX = gamma.get(x);
@@ -127,26 +125,46 @@ public class MIRInjectionVisitor implements CtxVisitor<Map<String, MIR.X>, MIR> 
       })
       .toList();
 
-    var ms = Streams.zip(p.meths(XBs.empty(), recvMdf, e, 0), msCaptures)
+//    if (lambdaMs.isEmpty()) {
+//      return new MIR.NewLambda(new T(e.mdf(), dec.toIT()));
+//    }
+
+    var lambdaG = new HashMap<>(gamma);
+    var selfX = new MIR.X(e.selfName(), new T(e.mdf(), dec.toIT()), Optional.empty());
+    lambdaG.put(e.selfName(), selfX);
+    var ms = Streams.zip(allMs, msCaptures)
       .map((cm, captures)->{
-        if (methCache.containsKey(captures)) {
-          return methCache.get(captures);
+        var isLocal = lambdaMs.containsKey(cm.name());
+        var cacheKey = new CMKey(cm.c(), cm.name());
+        if (!isLocal && methCache.containsKey(cacheKey)) {
+          return methCache.get(cacheKey);
         }
-        var lambdaImpl = p.of(cm.c().name()).lambda();
-        var g = new HashMap<>(gamma);
-        g.put(lambdaImpl.selfName(), new MIR.X(lambdaImpl.selfName(), new T(recvMdf, cm.c()), Optional.empty()));
-        captures.forEach(x->g.put(x.name(), x));
-        var m = p.of(cm.c().name()).lambda()
-          .meths()
-          .stream()
-          .filter(mi->mi.name().equals(cm.name()))
-          .findAny()
-          .orElseThrow();
-        var res = visitMeth(pkg, m, g);
-        methCache.put(captures, res);
+
+        var m = isLocal ? lambdaMs.get(cm.name()) : ((CM.CoreCM)cm).m();
+        var g = lambdaG;
+        if (!isLocal) {
+          // if this method is inherited, the self-name will always be "this", so we need to map that here.
+          g = new HashMap<>(gamma);
+          g.put("this", selfX);
+        }
+        final var gg = g;
+
+        captures.forEach(x->gg.put(x.name(), x));
+//        var m = p.of(cm.c().name()).lambda()
+//          .meths()
+//          .stream()
+//          .filter(mi->mi.name().equals(cm.name()))
+//          .findAny()z
+//          .orElseThrow();
+//
+        methCache.put(cacheKey, visitMeth(pkg, m.withBody(Optional.empty()), gg));
+        var res = visitMeth(pkg, m, gg);
+        methCache.put(cacheKey, res);
         return res;
       })
       .toList();
+
+    assert ms.stream().noneMatch(MIR.Meth::isAbs);
 
     return new MIR.Lambda(
       e.mdf(),

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import id.Id;
 import id.Mdf;
+import utils.Bug;
 import visitors.MIRVisitor;
 
 import java.util.*;
@@ -70,6 +71,19 @@ public interface MIR {
     }
     public T t() {
       return new T(mdf, new Id.IT<>(freshName, Collections.nCopies(freshName.gen(), new T(Mdf.mdf, new Id.GX<>("FearIgnored$")))));
+    }
+  }
+  record NewLambda(T t) implements MIR {
+    public NewLambda {
+      assert t.isIt();
+    }
+
+    @Override public <R> R accept(MIRVisitor<R> v) {
+      throw Bug.todo();
+    }
+
+    @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
+      throw Bug.todo();
     }
   }
   record Unreachable(T t) implements MIR {
