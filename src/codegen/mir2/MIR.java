@@ -38,7 +38,7 @@ public sealed interface MIR {
       return v.visitCreateObj(this, checkMagic);
     }
   }
-  record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<MIR.X> xs, T rt, Optional<MIR> body) implements MIR {
+  record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<MIR.X> xs, T rt, Optional<E> body) implements MIR {
     public boolean isAbs() { return body.isEmpty(); }
     public Meth withUnreachable() {
       return new Meth(name, mdf, gens, xs, rt, Optional.of(new MIR.Unreachable(rt)));
@@ -54,7 +54,7 @@ public sealed interface MIR {
       return v.visitX(this, checkMagic);
     }
   }
-  record MCall(MIR recv, Id.MethName name, List<MIR> args, T t, Mdf mdf, EnumSet<MCall.CallVariant> variant) implements E {
+  record MCall(E recv, Id.MethName name, List<E> args, T t, Mdf mdf, EnumSet<MCall.CallVariant> variant) implements E {
     @Override public <R> R accept(MIRVisitor2<R> v, boolean checkMagic) {
       return v.visitMCall(this, checkMagic);
     }

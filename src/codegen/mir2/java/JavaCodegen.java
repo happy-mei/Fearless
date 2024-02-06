@@ -9,6 +9,7 @@ import utils.Bug;
 import visitors.MIRVisitor2;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class JavaCodegen implements MIRVisitor2<String> {
@@ -28,13 +29,50 @@ public class JavaCodegen implements MIRVisitor2<String> {
       .collect(Collectors.joining("\n"))+init+"}";
   }
   public String visitPackage(MIR.Package pkg) {
-    throw Bug.todo();
+    var typeDefs = pkg.defs().values().stream()
+      .map(def->visitTypeDef(pkg.name(), def))
+      .collect(Collectors.joining("\n"));
+    return "interface "+getPkgName(pkg.name())+"{" + typeDefs + "\n}";
   }
   public String visitTypeDef(String pkg, MIR.TypeDef def) {
-    throw Bug.todo();
+    if (pkg.equals("base") && def.name().name().endsWith("Instance")) {
+      return "";
+    }
+
+    var longName = getName(def.name());
+    var shortName = longName;
+    if (def.name().pkg().equals(pkg)) { shortName = getBase(def.name().shortName())+"_"+def.name().gen(); }
+    var its = def.its().stream()
+      .map(this::getName)
+      .filter(tr->!tr.equals(longName))
+      .distinct()
+      .collect(Collectors.joining(","));
+    var impls = its.isEmpty() ? "" : " extends "+its;
+    var start = "interface "+shortName+impls+"{\n";
+    var singletonGet = "";
+    if (def.canSingleton()) {
+      // TODO: Create an instance of the ObjLit here
+//      singletonGet = """
+//        %s _$self = new %s(){};
+//        """.formatted(longName, longName);
+    }
+
+    return start + singletonGet + def.meths().stream()
+      .map(m->visitMeth(pkg, m, "this", true))
+      .collect(Collectors.joining("\n")) + "}";
   }
-  public String visitMeth(String pkg, MIR.Meth meth, boolean signatureOnly) {
-    throw Bug.todo();
+  public String visitMeth(String pkg, MIR.Meth meth, String selfName, boolean signatureOnly) {
+    var selfVar = "var "+name(selfName)+" = this;\n";
+    var args = meth.xs().stream()
+      .map(x->new MIR.X(x.name(), new T(x.t().mdf(), new Id.GX<>("Object")), Optional.empty())) // required for overriding meths with generic args
+      .map(this::typePair)
+      .collect(Collectors.joining(","));
+
+    signatureOnly = signatureOnly || meth.isAbs();
+    if (!signatureOnly) { throw Bug.todo(); }
+    var start = getRetName(meth.rt())+" "+name(getName(meth.mdf(), meth.name()))+"("+args+")";
+    if (signatureOnly) { return start + ";"; }
+    return start + "{\n"+selfVar+"return (("+getName(meth.rt())+")("+meth.body().get().accept(this, true)+"));\n}";
   }
   public String visitObjLit(String pkg, MIR.ObjLit lit, boolean checkMagic) {
     throw Bug.todo();

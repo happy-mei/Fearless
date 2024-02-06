@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, MIR> {
+public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, MIR.E> {
   private Program p;
   private final IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls;
 //  private final List<MIR.TypeDef> inlineDefs = new ArrayList<>();
@@ -123,7 +123,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     );
   }
 
-  @Override public MIR visitMCall(String pkg, E.MCall e, Ctx ctx) {
+  @Override public MIR.MCall visitMCall(String pkg, E.MCall e, Ctx ctx) {
     var recv = e.receiver().accept(this, pkg, ctx);
     var tst = this.resolvedCalls.get(e);
 
@@ -137,7 +137,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     );
   }
 
-  @Override public MIR visitX(E.X e, Ctx ctx) {
+  @Override public MIR.X visitX(E.X e, Ctx ctx) {
     return visitX(e.name(), ctx);
   }
   public MIR.X visitX(String x, Ctx ctx) {
@@ -146,7 +146,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     return fullX;
   }
 
-  @Override public MIR visitLambda(String pkg, E.Lambda e, Ctx ctx) {
+  @Override public MIR.CreateObj visitLambda(String pkg, E.Lambda e, Ctx ctx) {
     var selfX = new MIR.X(e.selfName(), new T(e.mdf(), e.name().toIT()), Optional.empty());
     var xXs = new HashMap<String, MIR.X>();
     xXs.put(e.selfName(), selfX);
