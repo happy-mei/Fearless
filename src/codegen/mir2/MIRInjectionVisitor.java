@@ -46,7 +46,10 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
           return m.withUnreachable();
         })
         .toList();
-      var lit = new MIR.ObjLit(objK.mdf(), def, ms, objK.methCaptures(), false);
+
+      var uniqueName = Id.GX.fresh().name()+"$Impl$"+def.name().shortName()+"$"+def.name().gen();
+
+      var lit = new MIR.ObjLit(uniqueName, objK.mdf(), def, ms, objK.methCaptures(), false);
       literals.put(objK, lit);
     }
 

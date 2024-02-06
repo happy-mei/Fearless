@@ -1,6 +1,5 @@
 package codegen.mir2.java;
 
-import ast.Program;
 import ast.T;
 import codegen.mir2.MIR;
 import id.Id;
@@ -8,8 +7,7 @@ import id.Mdf;
 import utils.Bug;
 import visitors.MIRVisitor2;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class JavaCodegen implements MIRVisitor2<String> {
@@ -32,6 +30,11 @@ public class JavaCodegen implements MIRVisitor2<String> {
     var typeDefs = pkg.defs().values().stream()
       .map(def->visitTypeDef(pkg.name(), def))
       .collect(Collectors.joining("\n"));
+    // TODO: move obj lits to the package level (package of the caller, not of type def).
+//    var objLits = p.literals().values().stream()
+//      .filter(lit->lit.)
+//      .map(def->visitTypeDef(pkg.name(), def))
+//      .collect(Collectors.joining("\n"));
     return "interface "+getPkgName(pkg.name())+"{" + typeDefs + "\n}";
   }
   public String visitTypeDef(String pkg, MIR.TypeDef def) {
@@ -79,6 +82,9 @@ public class JavaCodegen implements MIRVisitor2<String> {
   }
 
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
+    var lit = p.literals().get(createObj);
+    assert Objects.nonNull(lit);
+
     throw Bug.todo();
   }
 
