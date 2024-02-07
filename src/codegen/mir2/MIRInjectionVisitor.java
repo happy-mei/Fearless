@@ -47,9 +47,10 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
         })
         .toList();
 
-      var uniqueName = Id.GX.fresh().name()+"$Impl$"+def.name().shortName()+"$"+def.name().gen();
+      var uniqueName = Id.GX.fresh().name()+"$Impl$"+def.name().shortName()+"$"+def.name().gen()+"$"+objK.mdf();
 
-      var lit = new MIR.ObjLit(uniqueName, objK.mdf(), def, ms, objK.methCaptures(), false);
+      // TODO: canSingleton
+      var lit = new MIR.ObjLit(uniqueName, objK.selfName(), def, ms, objK.methCaptures(), false);
       literals.put(objK, lit);
     }
 
@@ -94,14 +95,14 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
         })
       .toList();
 
-    visitLambda(pkg, dec.lambda(), new Ctx());
+    var singletonInstance = visitLambda(pkg, dec.lambda(), new Ctx());
 
     return new MIR.TypeDef(
       dec.name(),
       dec.gxs(),
       dec.lambda().its(),
       ms,
-      canSingleton
+      canSingleton ? Optional.of(singletonInstance) : Optional.empty()
     );
   }
 
@@ -176,7 +177,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       })
       .toList();
 
-    var res = new MIR.CreateObj(e.mdf(), e.name().id(), localMs, allCaptures, false);
+    var res = new MIR.CreateObj(e.mdf(), e.selfName(), e.name().id(), localMs, allCaptures, false);
     objKs.add(res);
     return res;
   }

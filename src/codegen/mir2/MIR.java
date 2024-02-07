@@ -17,14 +17,14 @@ public sealed interface MIR {
 
   record Program(ast.Program p, List<MIR.Package> pkgs, IdentityHashMap<CreateObj, ObjLit> literals) implements MIR {}
   record Package(String name, Map<Id.DecId, TypeDef> defs) implements MIR {}
-  record TypeDef(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<MIR.Meth> meths, boolean canSingleton) implements MIR {}
-  record ObjLit(String uniqueName, Mdf mdf, TypeDef def, List<MIR.Meth> allMeths, Map<Capturer, List<MIR.X>> methCaptures, boolean canSingleton) implements MIR {
+  record TypeDef(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<MIR.Meth> meths, Optional<CreateObj> singletonInstance) implements MIR {}
+  record ObjLit(String uniqueName, String selfName, TypeDef def, List<MIR.Meth> allMeths, Map<Capturer, List<MIR.X>> methCaptures, boolean canSingleton) implements MIR {
     public ObjLit {
       assert def.meths().size() == allMeths.size();
       assert allMeths.stream().noneMatch(Meth::isAbs);
     }
   }
-  record CreateObj(Mdf mdf, Id.DecId def, List<MIR.Meth> localMeths, Map<Capturer, List<MIR.X>> methCaptures, boolean canSingleton) implements E {
+  record CreateObj(Mdf mdf, String selfName, Id.DecId def, List<MIR.Meth> localMeths, Map<Capturer, List<MIR.X>> methCaptures, boolean canSingleton) implements E {
     public CreateObj {
       assert localMeths.stream().noneMatch(Meth::isAbs);
     }

@@ -37,7 +37,7 @@ public class Id {
       return this.name.endsWith("$");
     }
 
-    static Pattern pkgRegex = Pattern.compile("(.+\\.)+([A-Za-z0-9_']+)\\$?$");
+    static Pattern pkgRegex = Pattern.compile("(.+\\.)+([A-Za-z0-9_'$]+)\\$?$");
     public String pkg() {
       var pkg = OneOr.of("Malformed package: "+name, pkgRegex.matcher(name).results()).group(1);
       return pkg.substring(0, pkg.length() - 1);

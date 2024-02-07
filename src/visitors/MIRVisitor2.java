@@ -1,7 +1,6 @@
 package visitors;
 
 import codegen.mir2.MIR;
-import id.Id;
 
 public interface MIRVisitor2<R> {
 //  R visitProgram(MIR.Program p, Id.DecId entry);

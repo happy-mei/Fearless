@@ -70,6 +70,7 @@ public class TestJavaCodegen {
     True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, ?(f) -> f.then() }
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
+    Fear1:{}
     """, Base.minimalBase);}
   @Test void multiPackage() { ok("""
 class FearlessError extends RuntimeException {
