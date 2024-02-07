@@ -91,7 +91,12 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
           final var finalCtx = ctx;
 
           var m = ((CM.CoreCM)cm).m();
-          return visitMeth(pkg, m, finalCtx);
+          try {
+            return visitMeth(pkg, m, finalCtx);
+          } catch (codegen.MIRInjectionVisitor.NotInGammaException e) {
+            // if a capture failed, this method is not relevant at the top level anyway, skip it
+            return visitMeth(pkg, m.withBody(Optional.empty()), finalCtx).withUnreachable();
+          }
         })
       .toList();
 
@@ -152,7 +157,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 
   @Override public MIR.CreateObj visitLambda(String pkg, E.Lambda e, Ctx ctx) {
     var selfX = new MIR.X(e.selfName(), new T(e.mdf(), e.name().toIT()), Optional.empty());
-    var xXs = new HashMap<String, MIR.X>();
+    var xXs = new HashMap<>(ctx.xXs);
     xXs.put(e.selfName(), selfX);
     var selfCtx = new Ctx(xXs);
 
@@ -165,13 +170,17 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
         var res = captureVisitor.res();
         var mXXs = new HashMap<>(xXs);
         var capturer = new MIR.Capturer(e.name().id(), m.sig().mdf(), m.name());
-        var captures = res.stream()
-          .filter(x->!x.equals(e.selfName()))
-          .map(selfCtx.xXs::get)
-          .map(x->x.withCapturer(Optional.of(capturer)))
-          .peek(x->mXXs.put(x.name(), x))
-          .toList();
-        allCaptures.put(capturer, captures);
+        try {
+          var captures = res.stream()
+            .filter(x->!x.equals(e.selfName()))
+            .map(x->visitX(x, selfCtx))
+            .map(x->x.withCapturer(Optional.of(capturer)))
+            .peek(x->mXXs.put(x.name(), x))
+            .toList();
+          allCaptures.put(capturer, captures);
+        } catch (codegen.MIRInjectionVisitor.NotInGammaException err) {
+          return visitMeth(pkg, m.withBody(Optional.empty()), new Ctx(mXXs)).withUnreachable();
+        }
 
         return visitMeth(pkg, m, new Ctx(mXXs));
       })

@@ -47,6 +47,19 @@ public class TestJavaCodegen {
     package test
     """, Base.minimalBase);}
 
+  @Test void capturing() { ok("""
+    """, "fake.Fake", false, """
+    package test
+    FPerson: { #(age: Num): mut Person -> mut Person: {
+      read .age: Num -> age,
+      }}
+    Usage: {
+      #(p: mut Person): Num -> p.age,
+      }
+    Num: {}
+    FortyTwo: Num
+    """, Base.minimalBase);}
+
   @Test void simpleProgram() { ok("""
     """, "fake.Fake", false, """
     package test
@@ -73,41 +86,6 @@ public class TestJavaCodegen {
     Fear1:{}
     """, Base.minimalBase);}
   @Test void multiPackage() { ok("""
-class FearlessError extends RuntimeException {
-  public FProgram.base.Info_0 info;
-  public FearlessError(FProgram.base.Info_0 info) {
-    super();
-    this.info = info;
-  }
-}
-
-class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
-interface FProgram{interface test{interface HelloWorld_0 extends base.Main_0{
-test.HelloWorld_0 _$self = new test.HelloWorld_0(){};
-default base.Void_0 $35$imm$(Object s$){
-var f$thiz = this;
-return ((base.Void_0)(base.Void_0._$self));
-}}
-}
-interface base{interface System_1 extends base.Sealed_0{
-base.System_1 _$self = new base.System_1(){};
-}
-interface Sealed_0{
-base.Sealed_0 _$self = new base.Sealed_0(){};
-}
-interface NoMutHyg_1{
-base.NoMutHyg_1 _$self = new base.NoMutHyg_1(){};
-}
-interface Void_0{
-base.Void_0 _$self = new base.Void_0(){};
-}
-interface Main_0{
-base.Void_0 $35$imm$(Object s$);}
-}
-static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
-for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
- base.Main_0 entry = new test.HelloWorld_0(){}; entry.$35$imm$(new base$46caps.$95System_0(){}); }
-}
     """, "test.HelloWorld", false, """
     package test
     alias base.Main as Main,
@@ -117,60 +95,6 @@ for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
     """, Base.minimalBase); }
 
   @Test void nestedPkgs() { ok("""
-class FearlessError extends RuntimeException {
-  public FProgram.base.Info_0 info;
-  public FearlessError(FProgram.base.Info_0 info) {
-    super();
-    this.info = info;
-  }
-}
-
-class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
-interface FProgram{interface test{interface Foo_0{
-test.Foo_0 a$imm$();}
-interface A_0{
-test.A_0 _$self = new test.A_0(){};
-default test$46foo.Bar_0 $35$imm$(){
-var f$thiz = this;
-return ((test$46foo.Bar_0)(new test$46foo.Bar_0(){
-public test$46foo.Bar_0 a$imm$(){
-var fear4$$ = this;
-return ((test$46foo.Bar_0)(test$46foo.Bar_0._$self));
-}}));
-}}
-interface Test_0 extends base.Main_0{
-test.Test_0 _$self = new test.Test_0(){};
-default base.Void_0 $35$imm$(Object fear0$$){
-var f$thiz = this;
-return ((base.Void_0)(base.Void_0._$self));
-}}
-}
-interface test$46foo{interface Bar_0 extends test.Foo_0{
-test$46foo.Bar_0 _$self = new test$46foo.Bar_0(){};
-default test.Foo_0 a$imm$(){
-var f$thiz = this;
-return ((test.Foo_0)(((test$46foo.Bar_0)(f$thiz))));
-}}
-}
-interface base{interface System_1 extends base.Sealed_0{
-base.System_1 _$self = new base.System_1(){};
-}
-interface Sealed_0{
-base.Sealed_0 _$self = new base.Sealed_0(){};
-}
-interface NoMutHyg_1{
-base.NoMutHyg_1 _$self = new base.NoMutHyg_1(){};
-}
-interface Void_0{
-base.Void_0 _$self = new base.Void_0(){};
-}
-interface Main_0{
-base.Void_0 $35$imm$(Object s$);}
-}
-static void main(String[] args){ FAux.LAUNCH_ARGS = new base.LList_1(){};
-for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
- base.Main_0 entry = new test.Test_0(){}; entry.$35$imm$(new base$46caps.$95System_0(){}); }
-}
     """, "test.Test", false, """
     package test
     Test:base.Main[]{ _ -> {} }
