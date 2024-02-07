@@ -16,6 +16,7 @@ public class JavaCodegen implements MIRVisitor2<String> {
   private record ObjLitK(MIR.ObjLit lit, boolean checkMagic) {}
   private HashSet<ObjLitK> objLitsInPkg = new HashSet<>();
   private HashSet<String> codeGenedObjLits = new HashSet<>();
+  private MIR.Package pkg;
 
   public JavaCodegen(MIR.Program p) {
     this.p = p;
@@ -31,6 +32,7 @@ public class JavaCodegen implements MIRVisitor2<String> {
       .collect(Collectors.joining("\n"))+init+"}}";
   }
   public String visitPackage(MIR.Package pkg) {
+    this.pkg = pkg;
     this.objLitsInPkg = new HashSet<>();
     this.codeGenedObjLits = new HashSet<>();
     var typeDefs = pkg.defs().values().stream()
@@ -51,6 +53,8 @@ public class JavaCodegen implements MIRVisitor2<String> {
     var longName = getName(def.name());
     var shortName = longName;
     if (def.name().pkg().equals(pkg)) { shortName = getBase(def.name().shortName())+"_"+def.name().gen(); }
+    final var selfTypeName = shortName;
+
     var its = def.its().stream()
       .map(this::getName)
       .filter(tr->!tr.equals(longName))
@@ -60,10 +64,10 @@ public class JavaCodegen implements MIRVisitor2<String> {
     var start = "interface "+shortName+impls+"{\n";
     var singletonGet = def.singletonInstance()
       .map(objK->{
-        var instance = visitCreateObj(objK, true);
+        var instance = visitCreateObjNoSingleton(objK, true);
         return """
           %s _$self = %s;
-          """.formatted(longName, instance);
+          """.formatted(selfTypeName, instance);
       })
       .orElse("");
 
@@ -98,28 +102,65 @@ public class JavaCodegen implements MIRVisitor2<String> {
     return start + "{\n"+selfVar+"return (("+getName(meth.rt())+")("+meth.body().get().accept(this, true)+"));\n}";
   }
   public Optional<String> visitObjLit(MIR.ObjLit lit, boolean checkMagic) {
+    var def = lit.def();
+    var shortName = getName(def.name());
+    if (def.name().pkg().equals(this.pkg.name())) { shortName = getBase(def.name().shortName())+"_"+def.name().gen(); }
+
     var ms = lit.allMeths().stream()
       .map(m->visitMeth(m, lit.selfName(), false))
       .collect(Collectors.joining("\n"));
 
+    var captureRecords = new StringBuilder();
+    var captureArgs = new ArrayList<String>(lit.methCaptures().size());
+    lit.methCaptures().forEach((capturer,xs)->{
+      var name = getName(capturer);
+      captureArgs.add(name+" "+name);
+      var capts = xs.stream().map(this::typePair).collect(Collectors.joining(", "));
+      // TODO: check if this capture record already exists
+      captureRecords.append("""
+        record %s(%s) {}
+        """.formatted(name, capts));
+    });
+
     // TODO: captures
     var res = """
-      record %s() implements %s {
+      record %s(%s) implements %s {
         %s
       }
-      """.formatted(name(lit.uniqueName()), getName(lit.def().name()), ms);
+      %s
+      """.formatted(name(lit.uniqueName()), String.join(", ", captureArgs), shortName, ms, captureRecords.toString());
     return Optional.of(res);
   }
 
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
+    if (createObj.canSingleton() && pkg.defs().get(createObj.def()).singletonInstance().isPresent()) {
+      return getName(createObj.def())+"._$self";
+    }
+    return visitCreateObjNoSingleton(createObj, checkMagic);
+  }
+  public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic) {
     var lit = p.literals().get(createObj);
     assert Objects.nonNull(lit);
     this.objLitsInPkg.add(new ObjLitK(lit, checkMagic));
-//    visitObjLit(lit, checkMagic).ifPresent(code->extraTopLevel.push(code));
-    return "new %s()".formatted(name(lit.uniqueName()));
+
+    var capturers = createObj.methCaptures().entrySet().stream()
+      .map(kv->{
+        var collector = kv.getKey();
+        var xs = kv.getValue();
+        // TODO: we need to handle the case where the X is directly in scope _and_ the case where it was captured by the meth this lambda creation is in
+        var xsArgs = xs.stream().map(x->visitX(x.withCapturer(Optional.empty()), checkMagic)).collect(Collectors.joining(", "));
+        return "new "+getName(collector)+"("+xsArgs+")";
+      })
+      .collect(Collectors.joining(", "));
+
+    // TODO: call with captures as arguments
+    return "new %s(%s)".formatted(name(lit.uniqueName()), capturers);
   }
 
   @Override public String visitX(MIR.X x, boolean checkMagic) {
+    if (x.capturer().isPresent()) {
+      return "(("+getName(x.t())+")("+getName(x.capturer().get())+"."+name(x.name())+"))";
+    }
     return "(("+getName(x.t())+")("+name(x.name())+"))";
   }
 
@@ -142,7 +183,6 @@ public class JavaCodegen implements MIRVisitor2<String> {
   }
 
   private String typePair(MIR.X x) {
-    // TODO: captures
     return getName(x.t())+" "+name(x.name());
   }
   private String name(String x) {
@@ -154,6 +194,9 @@ public class JavaCodegen implements MIRVisitor2<String> {
       .toList();
   }
   private String getName(T t) { return t.match(this::getName, this::getName); }
+  private String getName(MIR.Capturer capturer) {
+    return capturer.id().shortName()+"$"+name(getName(capturer.methMdf(), capturer.name()))+"$ImplCapts";
+  }
   private String getRetName(T t) { return t.match(this::getName, it->getName(it, true)); }
   private String getName(Id.GX<T> gx) { return "Object"; }
   private String getName(Id.IT<T> it) { return getName(it, false); }

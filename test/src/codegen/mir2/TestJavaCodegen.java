@@ -54,7 +54,7 @@ public class TestJavaCodegen {
       read .age: Num -> age,
       }}
     Usage: {
-      #(p: mut Person): Num -> p.age,
+      #: Num -> FPerson#FortyTwo.age,
       }
     Num: {}
     FortyTwo: Num

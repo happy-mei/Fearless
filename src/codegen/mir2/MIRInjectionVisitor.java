@@ -186,7 +186,8 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       })
       .toList();
 
-    var res = new MIR.CreateObj(e.mdf(), e.selfName(), e.name().id(), localMs, allCaptures, false);
+    var canSingleton = localMs.isEmpty();
+    var res = new MIR.CreateObj(e.mdf(), e.selfName(), e.name().id(), localMs, allCaptures, canSingleton);
     objKs.add(res);
     return res;
   }
