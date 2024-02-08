@@ -8,7 +8,6 @@ import id.Mdf;
 import program.CM;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
-import utils.Bug;
 import utils.Mapper;
 import utils.Streams;
 import visitors.CollectorVisitor;
@@ -50,7 +49,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       var uniqueName = Id.GX.fresh().name()+"$Impl$"+def.name().shortName()+"$"+def.name().gen()+"$"+objK.mdf();
 
       // TODO: canSingleton
-      var lit = new MIR.ObjLit(uniqueName, objK.selfName(), def, ms, objK.methCaptures(), false);
+      var lit = new MIR.ObjLit(uniqueName, objK.selfName(), def, ms, objK.captures(), false);
       literals.put(objK, lit);
     }
 
@@ -161,7 +160,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     xXs.put(e.selfName(), selfX);
     var selfCtx = new Ctx(xXs);
 
-    var allCaptures = new HashMap<MIR.Capturer, List<MIR.X>>(e.meths().size());
+    var allCaptures = new ArrayList<MIR.X>();
     var localMs = e.meths().stream()
       .filter(m->!m.isAbs())
       .map(m->{
@@ -177,7 +176,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
             .map(x->x.withCapturer(Optional.of(capturer)))
             .peek(x->mXXs.put(x.name(), x))
             .toList();
-          allCaptures.put(capturer, captures);
+          allCaptures.addAll(captures);
         } catch (codegen.MIRInjectionVisitor.NotInGammaException err) {
           return visitMeth(pkg, m.withBody(Optional.empty()), new Ctx(mXXs)).withUnreachable();
         }
@@ -187,7 +186,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       .toList();
 
     var canSingleton = localMs.isEmpty();
-    var res = new MIR.CreateObj(e.mdf(), e.selfName(), e.name().id(), localMs, allCaptures, canSingleton);
+    var res = new MIR.CreateObj(e.mdf(), e.selfName(), e.name().id(), localMs, Collections.unmodifiableList(allCaptures), canSingleton);
     objKs.add(res);
     return res;
   }

@@ -4,7 +4,6 @@ import ast.T;
 import codegen.mir2.MIR;
 import id.Id;
 import id.Mdf;
-import utils.Bug;
 import visitors.MIRVisitor2;
 
 import java.util.*;
@@ -110,25 +109,14 @@ public class JavaCodegen implements MIRVisitor2<String> {
       .map(m->visitMeth(m, lit.selfName(), false))
       .collect(Collectors.joining("\n"));
 
-    var captureRecords = new StringBuilder();
-    var captureArgs = new ArrayList<String>(lit.methCaptures().size());
-    lit.methCaptures().forEach((capturer,xs)->{
-      var name = getName(capturer);
-      captureArgs.add(name+" "+name);
-      var capts = xs.stream().map(this::typePair).collect(Collectors.joining(", "));
-      // TODO: check if this capture record already exists
-      captureRecords.append("""
-        record %s(%s) {}
-        """.formatted(name, capts));
-    });
+    var capts = lit.captures().stream().map(this::typePair).collect(Collectors.joining(", "));
 
     // TODO: captures
     var res = """
       record %s(%s) implements %s {
         %s
       }
-      %s
-      """.formatted(name(lit.uniqueName()), String.join(", ", captureArgs), shortName, ms, captureRecords.toString());
+      """.formatted(name(lit.uniqueName()), capts, shortName, ms);
     return Optional.of(res);
   }
 
@@ -143,24 +131,17 @@ public class JavaCodegen implements MIRVisitor2<String> {
     assert Objects.nonNull(lit);
     this.objLitsInPkg.add(new ObjLitK(lit, checkMagic));
 
-    var capturers = createObj.methCaptures().entrySet().stream()
-      .map(kv->{
-        var collector = kv.getKey();
-        var xs = kv.getValue();
-        // TODO: we need to handle the case where the X is directly in scope _and_ the case where it was captured by the meth this lambda creation is in
-        var xsArgs = xs.stream().map(x->visitX(x.withCapturer(Optional.empty()), checkMagic)).collect(Collectors.joining(", "));
-        return "new "+getName(collector)+"("+xsArgs+")";
-      })
+    var captures = createObj.captures().stream()
+      .map(x->visitX(x, checkMagic))
       .collect(Collectors.joining(", "));
 
-    // TODO: call with captures as arguments
-    return "new %s(%s)".formatted(name(lit.uniqueName()), capturers);
+    return "new %s(%s)".formatted(name(lit.uniqueName()), captures);
   }
 
   @Override public String visitX(MIR.X x, boolean checkMagic) {
-    if (x.capturer().isPresent()) {
-      return "(("+getName(x.t())+")("+getName(x.capturer().get())+"."+name(x.name())+"))";
-    }
+//    if (x.capturer().isPresent()) {
+//      return "(("+getName(x.t())+")(this."+name(x.name())+"))";
+//    }
     return "(("+getName(x.t())+")("+name(x.name())+"))";
   }
 
