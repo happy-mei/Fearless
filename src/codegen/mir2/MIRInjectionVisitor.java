@@ -85,7 +85,8 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
           if (!isLocal) {
             // if this method is inherited, the self-name will always be "this", so we need to map that here.
             var remoteXXs = new HashMap<>(xXs);
-            remoteXXs.put("this", selfX);
+            var remoteX = new MIR.X(dec.lambda().selfName(), new T(Mdf.mdf, cm.c()));
+            remoteXXs.put("this", remoteX);
             ctx = new Ctx(remoteXXs);
           }
           final var finalCtx = ctx;
@@ -180,6 +181,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       })
       .filter(Optional::isPresent)
       .map(Optional::get)
+      .filter(x->!x.name().equals(e.selfName()))
       .peek(x->xXs.put(x.name(), x))
       .toList();
     var selfCtx = new Ctx(Collections.unmodifiableMap(xXs));
@@ -198,6 +200,9 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 
     var canSingleton = localMs.isEmpty();
     var res = new MIR.CreateObj(new T(e.mdf(), e.name().toIT()), e.selfName(), e.name().id(), localMs, allCaptures, canSingleton);
+//    if (res.captures().stream().anyMatch(x->x.name().equals(res.selfName()))) {
+//      System.out.println("...");
+//    }
     objKs.add(res);
     return res;
   }
