@@ -1,5 +1,6 @@
 package codegen.mir2.java;
 
+import ast.Program;
 import ast.T;
 import codegen.mir2.MIR;
 import failure.Fail;
@@ -17,7 +18,7 @@ import java.util.Optional;
 
 //public record MagicImpls(ast.Program p) implements magic.MagicImpls<String> {
 public record MagicImpls(JavaCodegen gen, ast.Program p) {
-  public Optional<String> getLiteral(Id.DecId d) {
+  public static Optional<String> getLiteral(Program p, Id.DecId d) {
     var supers = p.superDecIds(d);
     return supers.stream().filter(dec->{
       var name = dec.name();
@@ -64,10 +65,10 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) {
       @Override public Id.IT<T> name() { return name; }
 
       @Override public String instantiate() {
-        var lit = getLiteral(name.name());
+        var lit = getLiteral(p, name.name());
         try {
           return lit
-            .map(lambdaName->lambdaName.replace("_", "")+"L")
+            .map(lambdaName->Long.parseLong(lambdaName.replace("_", ""), 10)+"L")
             .orElseGet(()->"((long)"+e.accept(gen, true)+")");
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "Int");
@@ -125,10 +126,10 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) {
       @Override public Id.IT<T> name() { return name; }
 
       @Override public String instantiate() {
-        var lit = getLiteral(name.name());
+        var lit = getLiteral(p, name.name());
         try {
           return lit
-            .map(lambdaName->Long.parseUnsignedLong(lambdaName.substring(0, lambdaName.length()-1).replace("_", ""))+"L")
+            .map(lambdaName->Long.parseUnsignedLong(lambdaName.substring(0, lambdaName.length()-1).replace("_", ""), 10)+"L")
             .orElseGet(()->"((long)"+e.accept(gen, true)+")");
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "UInt");
@@ -185,7 +186,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) {
       @Override public Id.IT<T> name() { return name; }
 
       @Override public String instantiate() {
-        var lit = getLiteral(name.name());
+        var lit = getLiteral(p, name.name());
         try {
           return lit
             .map(lambdaName->Double.parseDouble(lambdaName.replace("_", ""))+"d")
@@ -239,7 +240,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
       @Override public String instantiate() {
-        var lit = getLiteral(name.name());
+        var lit = getLiteral(p, name.name());
         return lit.orElseGet(()->"((String)"+e.accept(gen, true)+")");
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma, EnumSet<codegen.MIR.MCall.CallVariant> variants) {
@@ -339,7 +340,6 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) {
       }
       @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma, EnumSet<codegen.MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName("!", 0))) {
-          // todo: does this fail if used as an argument for something wanting like an int?
           return Optional.of("""
             (switch (1) { default -> {
               System.err.println("No magic code was found at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));

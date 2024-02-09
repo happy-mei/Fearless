@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class JavaCodegen implements MIRVisitor2<String> {
-  private MIR.Program p;
+  protected MIR.Program p;
   private MagicImpls magic;
 
   private record ObjLitK(MIR.ObjLit lit, boolean checkMagic) {}
@@ -24,14 +24,49 @@ public class JavaCodegen implements MIRVisitor2<String> {
     this.magic = new MagicImpls(this, p.p());
   }
 
+  protected static String argsToLList(Mdf addMdf) {
+    return """
+      FAux.LAUNCH_ARGS = base.LList_1._$self;
+      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$%s$(arg); }
+      """.formatted(addMdf);
+  }
+
   public String visitProgram(MIR.Program p, Id.DecId entry) {
     assert this.p == p;
     var entryName = getName(entry);
-    var init = "\nstatic void main(String[] args){ base.Main_0 entry = %s._$self; entry.$35$imm$(null);\n".formatted(entryName);
+    var init = """
+      static void main(String[] args){
+        %s base.Main_0 entry = %s._$self;
+        try {
+          entry.$35$imm$(FAux.LAUNCH_ARGS);
+        } catch (StackOverflowError e) {
+          System.err.println("Program crashed with: Stack overflowed");
+          System.exit(1);
+        } catch (Throwable t) {
+          System.err.println("Program crashed with: "+t.getLocalizedMessage());
+          System.exit(1);
+        }
+      }
+    """.formatted(
+      argsToLList(Mdf.mut),
+      entryName
+    );
 
-    return "package userCode;\npublic interface FProgram{\n" +p.pkgs().stream()
+    final String fearlessError = """
+      package userCode;
+      class FearlessError extends RuntimeException {
+        public FProgram.base.Info_0 info;
+        public FearlessError(FProgram.base.Info_0 info) {
+          super();
+          this.info = info;
+        }
+        public String getMessage() { return this.info.str$imm$(); }
+      }
+      """;
+
+    return fearlessError+"\nclass FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\npublic interface FProgram{\n" +p.pkgs().stream()
       .map(this::visitPackage)
-      .collect(Collectors.joining("\n"))+init+"}}";
+      .collect(Collectors.joining("\n"))+init+"}";
   }
   public String visitPackage(MIR.Package pkg) {
     this.pkg = pkg;
@@ -51,7 +86,7 @@ public class JavaCodegen implements MIRVisitor2<String> {
     if (pkg.equals("base") && def.name().name().endsWith("Instance")) {
       return "";
     }
-    if (magic.getLiteral(def.name()).isPresent()) {
+    if (MagicImpls.getLiteral(p.p(), def.name()).isPresent()) {
       return "";
     }
 
@@ -62,7 +97,7 @@ public class JavaCodegen implements MIRVisitor2<String> {
 
     var its = def.its().stream()
       .map(Id.IT::name)
-      .filter(dec->magic.getLiteral(dec).isEmpty())
+      .filter(dec->MagicImpls.getLiteral(p.p(), dec).isEmpty())
       .map(JavaCodegen::getName)
       .filter(tr->!tr.equals(longName))
       .distinct()
@@ -170,8 +205,8 @@ public class JavaCodegen implements MIRVisitor2<String> {
       if (impl.isPresent()) { return impl.get(); }
     }
 
-    var magicRecv = !(call.recv() instanceof MIR.CreateObj) || magicImpl.isPresent();
-    var start = "(("+getRetName(call.t())+")"+call.recv().accept(this, magicRecv)+"."+name(getName(call.mdf(), call.name()))+"(";
+//    var magicRecv = !(call.recv() instanceof MIR.CreateObj) || magicImpl.isPresent();
+    var start = "(("+getRetName(call.t())+")"+call.recv().accept(this, checkMagic)+"."+name(getName(call.mdf(), call.name()))+"(";
     var args = call.args().stream()
       .map(a->a.accept(this, checkMagic))
       .collect(Collectors.joining(","));

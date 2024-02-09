@@ -76,7 +76,7 @@ public interface Program {
         return true;
 //        throw Fail.cyclicSubType(t1, t2);
       }
-      return subTypeCache.get(q) == SubTypeResult.Yes;
+      return res == SubTypeResult.Yes;
     }
     subTypeCache.put(q, SubTypeResult.Unknown);
     var isSubType = isSubTypeAux(xbs, t1, t2);

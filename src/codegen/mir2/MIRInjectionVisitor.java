@@ -3,6 +3,7 @@ package codegen.mir2;
 import ast.E;
 import ast.Program;
 import ast.T;
+import codegen.mir2.java.MagicImpls;
 import id.Id;
 import id.Mdf;
 import program.CM;
@@ -157,6 +158,12 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
   }
 
   @Override public MIR.CreateObj visitLambda(String pkg, E.Lambda e, Ctx ctx) {
+//    var literal = MagicImpls.getLiteral(p, e.name().id());
+//    if (literal.isPresent()) {
+//      var litDecId = new Id.DecId(literal.get(), 0);
+//      var it = new Id.IT<T>(litDecId, List.of());
+//      return new MIR.CreateObj(new T(e.mdf(), it), "this", litDecId, List.of(), List.of(), true);
+//    }
     var selfX = new MIR.X(e.selfName(), new T(e.mdf(), e.name().toIT()));
     var xXs = new HashMap<>(ctx.xXs);
     xXs.put(e.selfName(), selfX);

@@ -244,6 +244,11 @@ public class TestJavaProgramImm {
     Test:Main{ _ -> Assert!(False, ((0 - 2) - 9223372036854775807) .str, { "" }) }
     """);}
 
+  @Test void launchArg() { okWithArgs(new Res("yeet", "", 0), "test.Test", List.of("yeet"), """
+    package test
+    Test:base.Main{ args -> args.head.match{ .none -> "boo", .some(msg) -> msg } }
+    """);}
+
   @Test void nestedPkgs() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:base.Main[]{ _ -> test.foo.Bar{ .a -> test.foo.Bar }.str }
