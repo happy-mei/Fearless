@@ -33,6 +33,7 @@ public class Magic {
   public static final Id.DecId SafeFlowSource = new Id.DecId("base.flows._SafeSource", 0);
 
   // object capabilities
+  public static final Id.DecId SystemImpl = new Id.DecId("base.caps._System", 0);
   public static final Id.DecId RootCap = new Id.DecId("base.caps.RootCap", 0);
   public static final Id.DecId IO = new Id.DecId("base.caps.IO", 0);
   public static final Id.DecId FEnv = new Id.DecId("base.caps.FEnv", 0);

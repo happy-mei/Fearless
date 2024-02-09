@@ -34,11 +34,13 @@ public class JavaCodegen implements MIRVisitor2<String> {
   public String visitProgram(MIR.Program p, Id.DecId entry) {
     assert this.p == p;
     var entryName = getName(entry);
+    var systemImpl = getName(Magic.SystemImpl);
     var init = """
       static void main(String[] args){
-        %s base.Main_0 entry = %s._$self;
+        %s
+        base.Main_0 entry = %s._$self;
         try {
-          entry.$35$imm$(FAux.LAUNCH_ARGS);
+          entry.$35$imm$(%s._$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
@@ -49,7 +51,8 @@ public class JavaCodegen implements MIRVisitor2<String> {
       }
     """.formatted(
       argsToLList(Mdf.mut),
-      entryName
+      entryName,
+      systemImpl
     );
 
     final String fearlessError = """
