@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface MagicTrait<R> {
+public interface MagicTrait<E,R> {
   Id.IT<T> name();
   R instantiate();
-  Optional<R> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, EnumSet<MIR.MCall.CallVariant> variants);
+  Optional<R> call(Id.MethName m, List<E> args, Map<E, T> gamma, EnumSet<MIR.MCall.CallVariant> variants);
 }

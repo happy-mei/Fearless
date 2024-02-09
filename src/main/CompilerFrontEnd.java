@@ -173,7 +173,8 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     var mir = mirVisitor.visitProgram();
     var codegen = switch (bv) {
       case Std -> new JavaCodegen(mirVisitor.getProgram(), resolvedCalls);
-      case Imm -> new ImmJavaCodegen(mirVisitor.getProgram(), resolvedCalls);
+//      case Imm -> new ImmJavaCodegen(mirVisitor.getProgram(), resolvedCalls);
+      case Imm -> throw Bug.todo(); // TODO: restore this to use MIR2
     };
     var src = codegen.visitProgram(mir.pkgs(), entry);
     if (v.printCodegen) {

@@ -1,5 +1,6 @@
 package ast;
 
+import failure.CompileError;
 import failure.Fail;
 import files.Pos;
 import id.Id;
@@ -125,6 +126,34 @@ public class Program implements program.Program  {
   }
   @Override public Set<Id.GX<T>> gxsOf(Id.IT<T> t) {
     return of(t.name()).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
+  }
+
+  private final HashMap<Id.DecId, Set<Id.DecId>> superDecIdsCache = new HashMap<>();
+  public Set<Id.DecId> superDecIds(Id.DecId start) {
+    if (superDecIdsCache.containsKey(start)) { return superDecIdsCache.get(start); }
+
+    HashSet<Id.DecId> visited = new HashSet<>();
+    superDecIds(visited, start);
+    var res = Collections.unmodifiableSet(visited);
+    superDecIdsCache.put(start, res);
+    return res;
+  }
+
+  public void superDecIds(HashSet<Id.DecId> visited, Id.DecId current) {
+    if (superDecIdsCache.containsKey(current)) {
+      visited.addAll(superDecIdsCache.get(current));
+      return;
+    }
+
+    var currentDec = of(current);
+    for(var it : currentDec.lambda().its()) {
+      var novel=visited.add(it.name());
+      try {
+        if(novel){ superDecIds(visited, it.name()); }
+      } catch (CompileError err) {
+        throw err.parentPos(currentDec.pos());
+      }
+    }
   }
 
   @Override public String toString() { return this.ds.toString(); }

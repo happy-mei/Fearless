@@ -17,7 +17,7 @@ import java.util.*;
 import static magic.MagicImpls.isLiteral;
 
 public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) implements magic.MagicImpls<String> {
-  @Override public MagicTrait<String> int_(MIR e) {
+  @Override public MagicTrait<MIR,String> int_(MIR e) {
     var name = e.t().itOrThrow();
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
@@ -76,7 +76,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> uint(MIR e) {
+  @Override public MagicTrait<MIR,String> uint(MIR e) {
     var name = e.t().itOrThrow();
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
@@ -138,7 +138,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
       }
     };
   }
-  @Override public MagicTrait<String> float_(MIR e) {
+  @Override public MagicTrait<MIR,String> float_(MIR e) {
     var name = e.t().itOrThrow();
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
@@ -195,7 +195,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> str(MIR e) {
+  @Override public MagicTrait<MIR,String> str(MIR e) {
     var name = e.t().itOrThrow();
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return name; }
@@ -221,7 +221,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> debug(MIR e) {
+  @Override public MagicTrait<MIR,String> debug(MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
 
@@ -265,7 +265,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> refK(MIR e) {
+  @Override public MagicTrait<MIR,String> refK(MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
 
@@ -289,7 +289,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> isoPodK(MIR e) {
+  @Override public MagicTrait<MIR,String> isoPodK(MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
 
@@ -323,7 +323,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> assert_(MIR e) {
+  @Override public MagicTrait<MIR,String> assert_(MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
 
@@ -354,7 +354,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> abort(MIR e) {
+  @Override public MagicTrait<MIR,String> abort(MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
 
@@ -376,7 +376,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> magicAbort(MIR e) {
+  @Override public MagicTrait<MIR,String> magicAbort(MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
 
@@ -399,7 +399,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> errorK(MIR e) {
+  @Override public MagicTrait<MIR,String> errorK(MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
 
@@ -420,7 +420,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> tryCatch(MIR e) {
+  @Override public MagicTrait<MIR,String> tryCatch(MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
 
@@ -452,7 +452,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> pipelineParallelSinkK(MIR e) {
+  @Override public MagicTrait<MIR,String> pipelineParallelSinkK(MIR e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
 
@@ -465,7 +465,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> objCap(Id.DecId target, MIR e) {
+  @Override public MagicTrait<MIR,String> objCap(Id.DecId target, MIR e) {
     var _this = this;
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
@@ -536,7 +536,7 @@ public record MagicImpls(JavaCodegen gen, Program p, IdentityHashMap<E.MCall, EM
     };
   }
 
-  @Override public MagicTrait<String> variantCall(MIR e) {
+  @Override public MagicTrait<MIR,String> variantCall(MIR e) {
     return new MagicTrait<>() {
       @Override
       public Optional<String> call(Id.MethName m, List<MIR> args, Map<MIR, T> gamma, EnumSet<MIR.MCall.CallVariant> variants) {

@@ -46,7 +46,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
         })
         .toList();
 
-      var uniqueName = Id.GX.fresh().name()+"$Impl$"+def.name().shortName()+"$"+def.name().gen()+"$"+objK.mdf();
+      var uniqueName = Id.GX.fresh().name()+"$Impl$"+def.name().shortName()+"$"+def.name().gen()+"$"+objK.t().mdf();
 
       // TODO: canSingleton
       var lit = new MIR.ObjLit(uniqueName, objK.selfName(), def, ms, objK.captures(), false);
@@ -72,7 +72,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       canSingleton = capturesVisitor.res().isEmpty();
     }
 
-    var selfX = new MIR.X(dec.lambda().selfName(), new T(Mdf.mdf, dec.toIT()), Optional.empty());
+    var selfX = new MIR.X(dec.lambda().selfName(), new T(Mdf.mdf, dec.toIT()));
     var xXs = new HashMap<String, MIR.X>();
     xXs.put(dec.lambda().selfName(), selfX);
     var selfCtx = new Ctx(xXs);
@@ -115,7 +115,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     List<MIR.X> xs = Streams.zip(m.xs(), m.sig().ts())
       .map((x,t)->{
         if (x.equals("_")) { x = astFull.E.X.freshName(); }
-        var fullX = new MIR.X(x, t, Optional.empty());
+        var fullX = new MIR.X(x, t);
         g.put(x, fullX);
         return fullX;
       })
@@ -150,43 +150,47 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
   }
   public MIR.X visitX(String x, Ctx ctx) {
     var fullX = ctx.xXs.get(x);
-    if (fullX == null) { throw new codegen.MIRInjectionVisitor.NotInGammaException(x); }
+    if (fullX == null) {
+      throw new codegen.MIRInjectionVisitor.NotInGammaException(x);
+    }
     return fullX;
   }
 
   @Override public MIR.CreateObj visitLambda(String pkg, E.Lambda e, Ctx ctx) {
-    var selfX = new MIR.X(e.selfName(), new T(e.mdf(), e.name().toIT()), Optional.empty());
+    var selfX = new MIR.X(e.selfName(), new T(e.mdf(), e.name().toIT()));
     var xXs = new HashMap<>(ctx.xXs);
     xXs.put(e.selfName(), selfX);
-    var selfCtx = new Ctx(xXs);
 
-    var allCaptures = new ArrayList<MIR.X>();
+    var captureVisitor = new CaptureCollector();
+    captureVisitor.visitLambda(e);
+    var allCaptures = captureVisitor.res.stream()
+      .map(x->{
+        try {
+          return Optional.of(visitX(x, ctx));
+        } catch (codegen.MIRInjectionVisitor.NotInGammaException err) {
+          return Optional.<MIR.X>empty();
+        }
+      })
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .peek(x->xXs.put(x.name(), x))
+      .toList();
+    var selfCtx = new Ctx(Collections.unmodifiableMap(xXs));
+
+
     var localMs = e.meths().stream()
       .filter(m->!m.isAbs())
       .map(m->{
-        var captureVisitor = new CaptureCollector();
-        captureVisitor.visitMeth(m);
-        var res = captureVisitor.res();
-        var mXXs = new HashMap<>(xXs);
-        var capturer = new MIR.Capturer(e.name().id(), m.sig().mdf(), m.name());
         try {
-          var captures = res.stream()
-            .filter(x->!x.equals(e.selfName()))
-            .map(x->visitX(x, selfCtx))
-            .map(x->x.withCapturer(Optional.of(capturer)))
-            .peek(x->mXXs.put(x.name(), x))
-            .toList();
-          allCaptures.addAll(captures);
+          return visitMeth(pkg, m, selfCtx);
         } catch (codegen.MIRInjectionVisitor.NotInGammaException err) {
-          return visitMeth(pkg, m.withBody(Optional.empty()), new Ctx(mXXs)).withUnreachable();
+          return visitMeth(pkg, m.withBody(Optional.empty()), selfCtx).withUnreachable();
         }
-
-        return visitMeth(pkg, m, new Ctx(mXXs));
       })
       .toList();
 
     var canSingleton = localMs.isEmpty();
-    var res = new MIR.CreateObj(e.mdf(), e.selfName(), e.name().id(), localMs, Collections.unmodifiableList(allCaptures), canSingleton);
+    var res = new MIR.CreateObj(new T(e.mdf(), e.name().toIT()), e.selfName(), e.name().id(), localMs, allCaptures, canSingleton);
     objKs.add(res);
     return res;
   }

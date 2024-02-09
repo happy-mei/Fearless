@@ -9,13 +9,20 @@ import visitors.MIRVisitor2;
 import java.util.*;
 
 public sealed interface MIR {
-
   sealed interface E extends MIR {
     T t();
     <R> R accept(MIRVisitor2<R> v, boolean checkMagic);
   }
 
-  record Program(ast.Program p, List<MIR.Package> pkgs, IdentityHashMap<CreateObj, ObjLit> literals) implements MIR {}
+  record Program(ast.Program p, List<MIR.Package> pkgs, IdentityHashMap<CreateObj, ObjLit> literals) implements MIR {
+    public TypeDef of(Id.DecId id) {
+      return pkgs.stream()
+        .filter(pkg->pkg.defs.containsKey(id))
+        .map(pkg->pkg.defs.get(id))
+        .findFirst()
+        .orElseThrow();
+    }
+  }
   record Package(String name, Map<Id.DecId, TypeDef> defs) implements MIR {}
   record TypeDef(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<MIR.Meth> meths, Optional<CreateObj> singletonInstance) implements MIR {}
   record ObjLit(String uniqueName, String selfName, TypeDef def, List<MIR.Meth> allMeths, List<MIR.X> captures, boolean canSingleton) implements MIR {
@@ -24,13 +31,9 @@ public sealed interface MIR {
       assert allMeths.stream().noneMatch(Meth::isAbs);
     }
   }
-  record CreateObj(Mdf mdf, String selfName, Id.DecId def, List<MIR.Meth> localMeths, List<MIR.X> captures, boolean canSingleton) implements E {
+  record CreateObj(T t, String selfName, Id.DecId def, List<MIR.Meth> localMeths, List<MIR.X> captures, boolean canSingleton) implements E {
     public CreateObj {
       assert localMeths.stream().noneMatch(Meth::isAbs);
-    }
-
-    @Override public T t() {
-      throw Bug.todo();
     }
 
     @Override public <R> R accept(MIRVisitor2<R> v, boolean checkMagic) {
@@ -43,11 +46,10 @@ public sealed interface MIR {
       return new Meth(name, mdf, gens, xs, rt, Optional.of(new MIR.Unreachable(rt)));
     }
   }
-  record Capturer(Id.DecId id, Mdf methMdf, Id.MethName name) {}
-  record X(String name, T t, Optional<Capturer> capturer) implements E {
-    public X withCapturer(Optional<Capturer> capturer) {
-      return new X(name, t, capturer);
-    }
+  record X(String name, T t) implements E {
+//    public X withCapturer(Optional<Capturer> capturer) {
+//      return new X(name, t, capturer);
+//    }
 
     @Override public <R> R accept(MIRVisitor2<R> v, boolean checkMagic) {
       return v.visitX(this, checkMagic);
