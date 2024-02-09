@@ -9,7 +9,6 @@ import magic.Magic;
 import magic.MagicTrait;
 import program.typesystem.XBs;
 import utils.Bug;
-import utils.OneOr;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -273,7 +272,38 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) {
   }
 
   /*@Override*/ public MagicTrait<MIR.E,String> assert_(MIR.E e) {
-    return null;
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() {
+        return e.t().itOrThrow();
+      }
+
+      @Override public String instantiate() {
+        return e.accept(gen, false);
+      }
+
+      @Override
+      public Optional<String> call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma, EnumSet<codegen.MIR.MCall.CallVariant> variants) {
+        if (m.equals(new Id.MethName("._fail", 0))) {
+          return Optional.of("""
+            (switch (1) { default -> {
+              System.err.println("Assertion failed :(");
+              System.exit(1);
+              yield null;
+            }})
+            """);
+        }
+        if (m.equals(new Id.MethName("._fail", 1))) {
+          return Optional.of(String.format("""
+            (switch (1) { default -> {
+              System.err.println(%s);
+              System.exit(1);
+              yield null;
+            }})
+            """, args.getFirst().accept(gen, true)));
+        }
+        return Optional.empty();
+      }
+    };
   }
 
   /*@Override*/ public MagicTrait<MIR.E,String> errorK(MIR.E e) {
@@ -301,6 +331,25 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) {
   }
 
   /*@Override*/ public MagicTrait<MIR.E,String> magicAbort(MIR.E e) {
-    return null;
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+
+      @Override public String instantiate() {
+        return e.accept(gen, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma, EnumSet<codegen.MIR.MCall.CallVariant> variants) {
+        if (m.equals(new Id.MethName("!", 0))) {
+          // todo: does this fail if used as an argument for something wanting like an int?
+          return Optional.of("""
+            (switch (1) { default -> {
+              System.err.println("No magic code was found at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
+              System.exit(1);
+              yield (Object)null;
+            }})
+            """);
+        }
+        return Optional.empty();
+      }
+    };
   }
 }

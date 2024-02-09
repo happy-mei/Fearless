@@ -10,7 +10,7 @@ Assert:Sealed{
     .then -> cont#,
     .else -> this._fail[R](msg)
     },
-  ._fail[R:imm]: R -> this._fail,
-  ._fail[R:imm](msg: Str): R -> this._fail(msg),
+  ._fail[R:imm]: R -> Magic!,
+  ._fail[R:imm](msg: Str): R -> Magic!,
   }
 AssertCont[R:imm]:{ #: R }
