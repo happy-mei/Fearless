@@ -163,12 +163,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
   }
 
   @Override public MIR.CreateObj visitLambda(String pkg, E.Lambda e, Ctx ctx) {
-//    var literal = MagicImpls.getLiteral(p, e.name().id());
-//    if (literal.isPresent()) {
-//      var litDecId = new Id.DecId(literal.get(), 0);
-//      var it = new Id.IT<T>(litDecId, List.of());
-//      return new MIR.CreateObj(new T(e.mdf(), it), "this", litDecId, List.of(), List.of(), true);
-//    }
+    // TODO: fix nested self-name capturing (llist.pushFront)
     var transparentSource = getTransparentSource(p.of(e.name().id()));
     if (transparentSource.isPresent()) {
       var realDec = transparentSource.get();

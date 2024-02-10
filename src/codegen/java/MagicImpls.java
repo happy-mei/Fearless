@@ -411,7 +411,16 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   }
 
   @Override public MagicTrait<MIR.E,String> pipelineParallelSinkK(MIR.E e) {
-    return null;
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+
+      @Override public String instantiate() {
+        return "new rt.PipelineParallelFlow.WrappedSinkK()";
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        return Optional.empty();
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E,String> objCap(Id.DecId target, MIR.E e) {
