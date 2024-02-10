@@ -5,6 +5,7 @@ import codegen.MIR;
 import failure.Fail;
 import id.Id;
 import id.Mdf;
+import magic.Magic;
 import magic.MagicTrait;
 import utils.Bug;
 
@@ -257,48 +258,6 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
     };
   }
 
-  @Override public MagicTrait<MIR.E,String> ref(MIR.E e) {
-    return new MagicTrait<>() {
-      @Override public Id.IT<T> name() {
-        return e.t().itOrThrow();
-      }
-
-      @Override public String instantiate() {
-        return e.accept(gen, false);
-      }
-
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
-        System.out.println(e);
-        System.out.println(m);
-
-//        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
-//          var x = args.getFirst();
-//          return Optional.of(String.format("""
-//            new base.Ref_1(){
-//              protected Object x = %s;
-//              public Object get$mut$() { return this.x; }
-//              public Object get$read$() { return this.x; }
-//              public Object swap$mut$(Object x$) { var x1 = this.x; this.x = x$; return x1; }
-//
-//              public base.Void_0 set$mut$(Object x$);
-//              public Object $60$45$mut$(Object f$);
-//              public Object get$read$();
-//              public Object get$mut$();
-//              public base.Opt_1 getImm$read$();
-//              public Object update$mut$(Object f$);
-//              public Object $42$read$();
-//              public Object $42$mut$();
-//              public Object getImm$read$(Object f$);
-//              public Object swap$mut$(Object x$);
-//              public base.Void_0 $58$61$mut$(Object x$);
-//            }
-//            """, x.accept(gen, true)));
-//        }
-        return Optional.empty();
-      }
-    };
-  }
-
   @Override public MagicTrait<MIR.E,String> refK(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Id.IT<T> name() {
@@ -399,19 +358,131 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   }
 
   @Override public MagicTrait<MIR.E,String> errorK(MIR.E e) {
-    return null;
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+
+      @Override public String instantiate() {
+        return e.accept(gen, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        if (m.equals(new Id.MethName("!", 1))) {
+          return Optional.of("""
+            (switch (1) {
+              default -> throw new FearlessError(%s);
+              case 2 -> (Object)null;
+            })
+            """.formatted(args.getFirst().accept(gen, true)));
+        }
+        return Optional.empty();
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E,String> tryCatch(MIR.E e) {
-    return null;
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+
+      @Override public String instantiate() {
+        return e.accept(gen, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        if (m.equals(new Id.MethName("#", 1))) {
+          return Optional.of("""
+            (switch (1) { default -> {
+              try { yield base.Res_0._$self.ok$imm$(%s.$35$read$()); }
+              catch(FearlessError _$err) { yield base.Res_0._$self.err$imm$(_$err.info); }
+              catch(java.lang.ArithmeticException _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
+              catch(java.lang.StackOverflowError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$("Stack overflowed")); }
+              catch(java.lang.VirtualMachineError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
+            }})
+            """.formatted(args.getFirst().accept(gen, true)));
+        }
+//        if (m.equals(new Id.MethName("#", 2))) {
+//          return Optional.of("""
+//            (switch (1) { default -> {
+//              try { yield %s.$35$read$(); }
+//              catch(FearlessError _$err) { yield %s.$35$mut$(_$err.info); }
+//            }})
+//            """.formatted(args.getFirst().accept(gen), args.get(1).accept(gen)));
+//        }
+        return Optional.empty();
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E,String> pipelineParallelSinkK(MIR.E e) {
     return null;
   }
 
-  @Override public MagicTrait<MIR.E,String> objCap(Id.DecId magicTrait, MIR.E e) {
-    return null;
+  @Override public MagicTrait<MIR.E,String> objCap(Id.DecId target, MIR.E e) {
+    var _this = this;
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+      @Override public String instantiate() {
+        return e.accept(gen, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        ObjCapImpl impl = null;
+        if (target == Magic.RootCap) { impl = (ctx, m1, args1) -> null; }
+        if (target == Magic.FEnv) { impl = env(); }
+        if (target == Magic.IO) { impl = io(); }
+        assert impl != null;
+
+        var res = impl.call(_this, m, args);
+        return Optional.ofNullable(res);
+      }
+
+      private ObjCapImpl env() {
+        return (ctx, m, args) ->{
+          if (m.equals(new Id.MethName("#", 1)) || m.equals(new Id.MethName(".io", 1))) {
+            return """
+              new base$46caps.Env_0(){
+                public base.LList_1 launchArgs$mut$() { return FAux.LAUNCH_ARGS; }
+              }
+              """;
+          }
+          return null;
+        };
+      }
+
+      private ObjCapImpl io() {
+        return (ctx, m, args) ->{
+          if (m.equals(new Id.MethName(".print", 1))) {
+            return String.format("""
+              (switch (1) { default -> {
+                System.out.print(%s);
+                yield base.Void_0._$self;
+              }})
+              """, args.getFirst().accept(gen, true));
+          }
+          if (m.equals(new Id.MethName(".println", 1))) {
+            return String.format("""
+              (switch (1) { default -> {
+                System.out.println(%s);
+                yield base.Void_0._$self;
+              }})
+              """, args.getFirst().accept(gen, true));
+          }
+          if (m.equals(new Id.MethName(".printErr", 1))) {
+            return String.format("""
+              (switch (1) { default -> {
+                System.err.print(%s);
+                yield base.Void_0._$self;
+              }})
+              """, args.getFirst().accept(gen, true));
+          }
+          if (m.equals(new Id.MethName(".printlnErr", 1))) {
+            return String.format("""
+              (switch (1) { default -> {
+                System.err.println(%s);
+                yield base.Void_0._$self;
+              }})
+              """, args.getFirst().accept(gen, true));
+          }
+          return null;
+        };
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E,String> variantCall(MIR.E e) {
@@ -419,7 +490,25 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   }
 
   @Override public MagicTrait<MIR.E,String> abort(MIR.E e) {
-    return null;
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+
+      @Override public String instantiate() {
+        return e.accept(gen, false);
+      }
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        if (m.equals(new Id.MethName("!", 0))) {
+          return Optional.of("""
+            (switch (1) { default -> {
+              System.err.println("Program aborted at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
+              System.exit(1);
+              yield (Object)null;
+            }})
+            """);
+        }
+        return Optional.empty();
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E,String> magicAbort(MIR.E e) {

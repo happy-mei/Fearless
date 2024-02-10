@@ -58,7 +58,6 @@ public interface MagicImpls<R> {
   MagicTrait<MIR.E,R> float_(MIR.E e);
   MagicTrait<MIR.E,R> str(MIR.E e);
   MagicTrait<MIR.E,R> debug(MIR.E e);
-  MagicTrait<MIR.E,R> ref(MIR.E e);
   MagicTrait<MIR.E,R> refK(MIR.E e);
   MagicTrait<MIR.E,R> isoPodK(MIR.E e);
   MagicTrait<MIR.E,R> assert_(MIR.E e);
