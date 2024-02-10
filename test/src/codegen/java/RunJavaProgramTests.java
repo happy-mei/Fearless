@@ -1,7 +1,7 @@
 package codegen.java;
 
 import ast.E;
-import codegen.mir2.MIRInjectionVisitor;
+import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import id.Id;
 import main.Main;
@@ -46,7 +46,7 @@ public class RunJavaProgramTests {
     inferred.typeCheck(resolvedCalls);
     var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();
-    var java = new codegen.mir2.java.JavaCodegen(mir).visitProgram(mir, new Id.DecId(entry, 0));
+    var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
     System.out.println("Running...");
     var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
     Assertions.assertEquals(expected, res);
@@ -73,7 +73,7 @@ public class RunJavaProgramTests {
     var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();
     try {
-      var java = new codegen.mir2.java.JavaCodegen(mir).visitProgram(mir, new Id.DecId(entry, 0));
+      var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
       var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {

@@ -18,344 +18,110 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MIRInjectionVisitor implements CtxVisitor<Map<String, MIR.X>, MIR> {
-  private final HashMap<Id.DecId, MIR.Trait> freshTraits = new HashMap<>();
+public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, MIR.E> {
   private Program p;
   private final IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls;
+//  private final List<MIR.TypeDef> inlineDefs = new ArrayList<>();
+  private final List<MIR.CreateObj> objKs = new ArrayList<>();
+
   public MIRInjectionVisitor(Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
     this.p = p;
     this.resolvedCalls = resolvedCalls;
   }
 
-  public Program getProgram() {
-    return this.p.shallowClone();
-  }
-
   public MIR.Program visitProgram() {
-    var traits = p.ds().values().stream().map(d->visitDec(d.name().pkg(), d)).toList();
+    Map<Id.DecId, MIR.TypeDef> defs = Mapper.of(res->Stream.concat(p.ds().values().stream(), p.inlineDs().values().stream())
+      .map(d->visitTopDec(d.name().pkg(), d))
+      .forEach(typeDef->res.put(typeDef.name(), typeDef)));
 
-    Map<String, List<MIR.Trait>> ds = Streams.of(
-      traits.stream(),
-      freshTraits.values().stream(),
-      this.collectInlineTopDecs(p)
-    ).collect(Collectors.groupingBy(t->t.name().pkg()));
-    return new MIR.Program(ds);
-  }
+    var literals = new IdentityHashMap<MIR.CreateObj, MIR.ObjLit>();
+    for (var objK : objKs) {
+      var def = defs.get(objK.def());
+      var allMeths = new HashMap<Id.MethName, MIR.Meth>(def.meths().size() + objK.localMeths().size());
+      def.meths().forEach(m->allMeths.put(m.name(), m));
+      objK.localMeths().forEach(m->allMeths.put(m.name(), m));
+      var ms = allMeths.values().stream()
+        .map(m->{
+          if (!m.isAbs()) { return m; }
+          return m.withUnreachable();
+        })
+        .toList();
 
-  public MIR.Trait visitDec(String pkg, T.Dec dec) {
-    var ms = p.meths(XBs.empty(), Mdf.recMdf, dec.toIT(), 0).stream()
-      .map(cm->{
-        var m = p.of(cm.c().name())
-          .lambda()
-          .meths()
-          .stream()
-          .filter(mi->mi.name().equals(cm.name()))
-          .findAny()
-          .orElseThrow();
-        return visitMeth(pkg, m, Map.of(dec.lambda().selfName(), new MIR.X(dec.lambda().selfName(), new T(cm.mdf(), dec.toIT()), Optional.empty())));
-      })
-      .toList();
-    var impls = simplifyImpls(dec.lambda().its().stream().filter(it->!it.name().equals(dec.name())).toList());
-    var canSingleton = p.meths(XBs.empty().addBounds(dec.gxs(), dec.bounds()), Mdf.recMdf, dec.toIT(), 0).stream().noneMatch(CM::isAbs);
-    return new MIR.Trait(
-      dec.name(),
-      dec.gxs(),
-      impls,
-      ms,
-      canSingleton
-    );
-  }
+      var uniqueName = Id.GX.fresh().name()+"$Impl$"+def.name().shortName()+"$"+def.name().gen()+"$"+objK.t().mdf();
 
-  public MIR.MCall visitMCall(String pkg, E.MCall e, Map<String, MIR.X> gamma) {
-    var recv = e.receiver().accept(this, pkg, gamma);
-    var tst = this.resolvedCalls.get(e);
-
-    return new MIR.MCall(
-      recv,
-      e.name().withMdf(Optional.of(tst.original().mdf())),
-      e.es().stream().map(ei->ei.accept(this, pkg, gamma)).toList(),
-      tst.t(),
-      tst.original().mdf(),
-      getVariants(recv, e)
-    );
-  }
-
-  public MIR.X visitX(E.X e, Map<String, MIR.X> gamma) { return visitX(e.name(), gamma); }
-  public MIR.X visitX(String x, Map<String, MIR.X> gamma) {
-    var fullX = gamma.get(x);
-    if (fullX == null) { throw new NotInGammaException(x); }
-    return fullX;
-  }
-  public static class NotInGammaException extends RuntimeException {
-    public NotInGammaException(String x) { super(x); }
-  }
-
-
-//  private record MethodInstance(Id.DecId lambda, Id.MethName name, List<MIR.X> captures) {}
-  private record CMKey(Id.IT<T> c, Id.MethName m) {}
-  private static Map<CMKey, MIR.Meth> methCache = new HashMap<>();
-  public MIR visitLambda(String pkg, E.Lambda e, Map<String, MIR.X> gamma) {
-    var id = e.name().id();
-    var dec = p.of(id);
-    var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
-
-//    var g = new HashMap<>(gamma);
-//    g.put(e.selfName(), new MIR.X(e.selfName(), new T(e.mdf(), dec.toIT()), Optional.empty()));
-
-    // TODO: interesting, because the selfName for top level methods will be "this", the e.selfName() is not really working as expected.
-    var allMs = p.meths(XBs.empty(), recvMdf, e, 0);
-    Map<Id.MethName, E.Meth> lambdaMs = Mapper.of(res->e.meths().forEach(m->res.put(m.name(), m)));
-    List<List<MIR.X>> msCaptures = allMs.stream()
-      .map(cm->{
-        var lambdaM = lambdaMs.get(cm.name());
-        if (lambdaM == null) { return List.<MIR.X>of(); }
-
-        var collector = new CaptureCollector();
-        collector.visitMeth(lambdaM);
-
-        var res = collector.res();
-        res.remove(e.selfName());
-        return res.stream()
-          .map(x->{
-            var baseX = gamma.get(x);
-            if (baseX == null) { throw new NotInGammaException(x); }
-            return baseX.withCapturer(Optional.of(new MIR.Capturer(id, cm.name())));
-          })
-          .toList();
-      })
-      .toList();
-
-//    if (lambdaMs.isEmpty()) {
-//      return new MIR.NewLambda(new T(e.mdf(), dec.toIT()));
-//    }
-
-    var lambdaG = new HashMap<>(gamma);
-    var selfX = new MIR.X(e.selfName(), new T(e.mdf(), dec.toIT()), Optional.empty());
-    lambdaG.put(e.selfName(), selfX);
-    var ms = Streams.zip(allMs, msCaptures)
-      .map((cm, captures)->{
-        var isLocal = lambdaMs.containsKey(cm.name());
-        var cacheKey = new CMKey(cm.c(), cm.name());
-        if (!isLocal && methCache.containsKey(cacheKey)) {
-          return methCache.get(cacheKey);
-        }
-
-        var m = isLocal ? lambdaMs.get(cm.name()) : ((CM.CoreCM)cm).m();
-        var g = lambdaG;
-        if (!isLocal) {
-          // if this method is inherited, the self-name will always be "this", so we need to map that here.
-          g = new HashMap<>(gamma);
-          g.put("this", selfX);
-        }
-        final var gg = g;
-
-        captures.forEach(x->gg.put(x.name(), x));
-//        var m = p.of(cm.c().name()).lambda()
-//          .meths()
-//          .stream()
-//          .filter(mi->mi.name().equals(cm.name()))
-//          .findAny()z
-//          .orElseThrow();
-//
-        methCache.put(cacheKey, visitMeth(pkg, m.withBody(Optional.empty()), gg));
-        var res = visitMeth(pkg, m, gg);
-        methCache.put(cacheKey, res);
-        return res;
-      })
-      .toList();
-
-    assert ms.stream().noneMatch(MIR.Meth::isAbs);
-
-    return new MIR.Lambda(
-      e.mdf(),
-      id,
-      e.selfName(),
-      List.of(), // TODO
-      ms, // TODO
-      msCaptures,
-      false // TODO
-    );
-  }
-//  private final HashSet<CM> methodCycles = new HashSet<>();
-//  public MIR.Lambda visitLambda(String pkg, E.Lambda e, HashMap<String, MIR.X>) {
-//    var id = e.name().id();
-//    var dec = p.of(id);
-//
-//    if (id.name().equals("base.Fear27$")) {
-//      System.out.println(e);
-//    }
-//    var nonSelfImpls = simplifyImpls(e.its()).stream().filter(it->!it.name().equals(id)).toList();
-//
-//    var fixSelfNameVisitor = new MIRCloneVisitor(){
-//      @Override public MIR.X visitX(MIR.X x, boolean checkMagic) {
-//        if (x.name().equals("this")) {
-//          return new MIR.X(e.selfName(), new T(e.mdf(), dec.toIT()));
-//        }
-//        return x;
-//      }
-//    };
-//
-//    var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
-//
-//    var g = new HashMap<>(gamma);
-//    g.put(e.selfName(), new T(e.mdf(), dec.toIT()));
-//    var ms = p.meths(XBs.empty(), recvMdf, e, 0).stream()
-//      .map(cm->{
-//        var m = ((CM.CoreCM) cm).m();
-//        if (methodCycles.contains(cm)) {
-//          var skeleton = visitMeth(pkg, m.withBody(Optional.empty()), g);
-//          return new MIR.Meth(skeleton.name(), skeleton.mdf(), skeleton.gens(), skeleton.xs(), skeleton.rt(), Optional.of(new MIR.Unreachable(skeleton.rt())));
-//        }
-//        methodCycles.add(cm);
-//        var res = visitMeth(pkg, m, g);
-//        methodCycles.remove(cm);
-//        return res;
-//      })
-//      .map(m->fixSelfNameVisitor.visitMeth(m, "", true))
-//      .toList();
-//
-//    var nonCallableMeths = p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
-//      .filter(cm->!filterByMdf(recvMdf, cm.mdf()))
-//      .map(cm->visitMeth(pkg, ((CM.CoreCM)cm).m().withBody(Optional.empty()), new HashMap<>(gamma)))
-//      .map(m->new MIR.Meth(m.name(), m.mdf(), m.gens(), m.xs(), m.rt(), Optional.of(new MIR.Unreachable(m.rt()))))
-//      .toList();
-//
-//    // This optimisation can be generalised, but this is the minimal one needed for magic to work on literals
-//    if (nonSelfImpls.size() == 1 && e.meths().isEmpty()) {
-//      return new MIR.Lambda(
-//        e.mdf(),
-//        nonSelfImpls.getFirst().name(),
-//        e.selfName(),
-//        List.of(),
-//        Set.of(),
-//        nonCallableMeths,
-//        true
-//      );
-//    }
-//
-//    var captureCollector = new CaptureCollector();
-//    captureCollector.visitLambda(e);
-//    Set<MIR.X> captures = captureCollector.res().stream().map(x->visitX(x, gamma)).collect(Collectors.toSet());
-//
-//    var traitMs = Stream.concat(ms.stream(), nonCallableMeths.stream())
-//      .map(MIR.Meth::name)
-//      .collect(Collectors.toUnmodifiableSet());
-//    var hasNoExtraMeths = e.meths().stream().map(E.Meth::name).allMatch(traitMs::contains);
-//
-//    var canSingletonTrait = captures.isEmpty() && hasNoExtraMeths && nonCallableMeths.isEmpty();
-////    List<MIR.Meth> msTrait = canSingletonTrait
-////      ? ms
-////      : p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
-////          .map(cm->visitMeth(pkg, ((CM.CoreCM) cm).m().withBody(Optional.empty()), g))
-////          .toList();
-//    if (!freshTraits.containsKey(id)) {
-//      var msTrait = canSingletonTrait
-//        ? visitDec(pkg, dec.withSelfName("this")).meths()
-//        : p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
-//            .map(cm->visitMeth(pkg, ((CM.CoreCM) cm).m().withBody(Optional.empty()), g))
-//            .toList();
-//      var freshTrait = new MIR.Trait(id, List.of(), nonSelfImpls, msTrait, canSingletonTrait);
-//      freshTraits.put(id, freshTrait);
-//    }
-//
-//    return new MIR.Lambda(
-//      e.mdf(),
-//      id,
-//      e.selfName(),
-//      nonSelfImpls,
-//      captures,
-//      Push.of(ms, nonCallableMeths),
-//      canSingletonTrait && e.meths().isEmpty()
-//    );
-//  }
-
-  /*
-  public MIR.Lambda visitLambda(String pkg, E.Lambda e, HashMap<String, MIR.X>) {
-    var captureCollector = new CaptureCollector();
-    captureCollector.visitLambda(e);
-    Set<MIR.X> captures = captureCollector.res().stream().map(x->visitX(x, gamma)).collect(Collectors.toSet());
-
-    var impls = simplifyImpls(e.its());
-    var fresh = Id.GX.fresh().name();
-    var freshName = new Id.DecId(pkg+"."+fresh, 0);
-    var freshDec = new T.Dec(freshName, List.of(), Map.of(), e, e.pos());
-    var freshDecImplsOnly = new T.Dec(freshName, List.of(), Map.of(), new E.Lambda(
-      new E.Lambda.LambdaId(freshName, List.of(), Map.of()),
-      Mdf.recMdf,
-      e.its(),
-      e.selfName(),
-      List.of(),
-      e.pos()
-    ), e.pos());
-    var nonSelfImpls = impls.stream().filter(it->!it.name().equals(freshName)).toList();
-    var declP = this.p.withDec(freshDecImplsOnly);
-    var declaredMeths = declP.meths(XBs.empty(), Mdf.recMdf, freshDec.toIT(), 0).stream()
-      .map(CM::name)
-      .collect(Collectors.toSet());
-
-    // This check should not be needed after I refactor to take into account the mdf of the lambda as part of this optimisation.
-    var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
-    var uncallableMeths = declP.meths(XBs.empty(), Mdf.recMdf, freshDec.toIT(), 0).stream()
-      .filter(cm->!filterByMdf(recvMdf, cm.mdf()))
-      .map(cm->visitMeth(pkg, ((CM.CoreCM)cm).m().withBody(Optional.empty()), new HashMap<>(gamma)))
-      .map(m->new MIR.Meth(m.name(), m.mdf(), m.gens(), m.xs(), m.rt(), Optional.of(new MIR.Unreachable(m.rt()))));
-
-    var noExtraMeths = e.meths().stream().allMatch(m->declaredMeths.contains(m.name()));
-
-    if (impls.size() == 1 && noExtraMeths) {
-      var it = impls.getFirst();
-      var g = new HashMap<>(gamma);
-      g.put(e.selfName(), new T(e.mdf(), it));
-      List<MIR.Meth> ms = Stream.concat(e.meths().stream().map(m->visitMeth(pkg, m, g)), uncallableMeths).toList();
-      var canSingleton = ms.isEmpty() && p.meths(XBs.empty(), recvMdf, it, 0).stream().noneMatch(CM::isAbs);
-      return new MIR.Lambda(
-        e.mdf(),
-        it.name(),
-        e.selfName(),
-        List.of(),
-        captures,
-        ms,
-        canSingleton
-      );
+      // TODO: canSingleton
+      var lit = new MIR.ObjLit(uniqueName, objK.selfName(), def, ms, objK.captures(), false);
+      literals.put(objK, lit);
     }
 
-    this.p = p.withDec(freshDec);
-    var noAbsMeths = this.p.meths(XBs.empty(), recvMdf, freshDec.toIT(), 0).stream().noneMatch(CM::isAbs);
-    var canSingletonTrait = noAbsMeths && noExtraMeths;
+    var pkgs = defs.values().stream()
+      .collect(Collectors.groupingBy(t->t.name().pkg()))
+      .entrySet().stream()
+      .map(kv->new MIR.Package(kv.getKey(), Mapper.of(res->kv.getValue().forEach(def->res.put(def.name(), def)))))
+      .toList();
 
-    var g = new HashMap<>(gamma);
-    g.put(e.selfName(), new T(e.mdf(), new Id.IT<>(freshName.name(), List.of())));
+    return new MIR.Program(p.shallowClone(), pkgs, literals);
+  }
 
-    List<MIR.Meth> msTrait = e.meths().stream().map(m->visitMeth(pkg, m.withBody(Optional.empty()), g)).toList();
-    List<MIR.Meth> ms = Stream.concat(e.meths().stream().map(m->visitMeth(pkg, m, g)), uncallableMeths).toList();
-    MIR.Trait freshTrait = new MIR.Trait(freshName, List.of(), nonSelfImpls, msTrait, canSingletonTrait);
-    freshTraits.add(freshTrait);
+  public MIR.TypeDef visitTopDec(String pkg, T.Dec dec) {
+    var rawMs = p.meths(XBs.empty().addBounds(dec.gxs(), dec.bounds()), Mdf.recMdf, dec.toIT(), 0);
 
-    return new MIR.Lambda(
-      e.mdf(),
-      freshName,
-      e.selfName(),
-      nonSelfImpls,
-      captures,
+    var canSingleton = rawMs.stream().noneMatch(CM::isAbs);
+    if (canSingleton) {
+      var capturesVisitor = new CaptureCollector();
+      capturesVisitor.visitLambda(dec.lambda());
+      canSingleton = capturesVisitor.res().isEmpty();
+    }
+
+    var selfX = new MIR.X(dec.lambda().selfName(), new T(Mdf.mdf, dec.toIT()));
+    var xXs = new HashMap<String, MIR.X>();
+    xXs.put(dec.lambda().selfName(), selfX);
+    var selfCtx = new Ctx(xXs);
+
+    var ms = rawMs.stream()
+        .map(cm->{
+          var isLocal = cm.c().equals(dec.toIT());
+          var ctx = selfCtx;
+          if (!isLocal) {
+            // if this method is inherited, the self-name will always be "this", so we need to map that here.
+            var remoteXXs = new HashMap<>(xXs);
+            var remoteX = new MIR.X(dec.lambda().selfName(), new T(Mdf.mdf, cm.c()));
+            remoteXXs.put("this", remoteX);
+            ctx = new Ctx(remoteXXs);
+          }
+          final var finalCtx = ctx;
+
+          var m = ((CM.CoreCM)cm).m();
+          try {
+            return visitMeth(pkg, m, finalCtx);
+          } catch (NotInGammaException e) {
+            // if a capture failed, this method is not relevant at the top level anyway, skip it
+            return visitMeth(pkg, m.withBody(Optional.empty()), finalCtx).withUnreachable();
+          }
+        })
+      .toList();
+
+    var singletonInstance = visitLambda(pkg, dec.lambda(), new Ctx());
+
+    return new MIR.TypeDef(
+      dec.name(),
+      dec.gxs(),
+      dec.lambda().its(),
       ms,
-      canSingletonTrait && ms.isEmpty()
+      canSingleton ? Optional.of(singletonInstance) : Optional.empty()
     );
   }
-  */
 
-  public MIR.Meth visitMeth(String pkg, E.Meth m, Map<String, MIR.X> gamma) {
-    var g = new HashMap<>(gamma);
+  public MIR.Meth visitMeth(String pkg, E.Meth m, Ctx ctx) {
+    var g = new HashMap<>(ctx.xXs);
     List<MIR.X> xs = Streams.zip(m.xs(), m.sig().ts())
       .map((x,t)->{
         if (x.equals("_")) { x = astFull.E.X.freshName(); }
-        var fullX = new MIR.X(x, t, Optional.empty());
+        var fullX = new MIR.X(x, t);
         g.put(x, fullX);
         return fullX;
       })
       .toList();
-
-    var captureVisitor = new CaptureCollector();
-    captureVisitor.visitMeth(m);
 
     return new MIR.Meth(
       m.name(),
@@ -363,54 +129,86 @@ public class MIRInjectionVisitor implements CtxVisitor<Map<String, MIR.X>, MIR> 
       m.sig().gens(),
       xs,
       m.sig().ret(),
-      m.body().map(e->e.accept(this, pkg, g))
+      m.body().map(e->e.accept(this, pkg, new Ctx(g)))
     );
   }
 
-  /** Removes any redundant ITs from the list of impls for a lambda. */
-  private List<Id.IT<T>> simplifyImpls(List<Id.IT<T>> its) {
-    return its.stream()
-      .filter(it->its.stream()
-        .noneMatch(it1->it != it1 && p.isSubType(XBs.empty(), new T(Mdf.mdf, it1), new T(Mdf.mdf, it))))
+  @Override public MIR.MCall visitMCall(String pkg, E.MCall e, Ctx ctx) {
+    var recv = e.receiver().accept(this, pkg, ctx);
+    var tst = this.resolvedCalls.get(e);
+
+    return new MIR.MCall(
+      recv,
+      e.name().withMdf(Optional.of(tst.original().mdf())),
+      e.es().stream().map(ei->ei.accept(this, pkg, ctx)).toList(),
+      tst.t(),
+      tst.original().mdf(),
+      EnumSet.of(MIR.MCall.CallVariant.Standard) // TODO
+    );
+  }
+
+  @Override public MIR.X visitX(E.X e, Ctx ctx) {
+    return visitX(e.name(), ctx);
+  }
+  public MIR.X visitX(String x, Ctx ctx) {
+    var fullX = ctx.xXs.get(x);
+    if (fullX == null) {
+      throw new NotInGammaException(x);
+    }
+    return fullX;
+  }
+
+  @Override public MIR.CreateObj visitLambda(String pkg, E.Lambda e, Ctx ctx) {
+//    var literal = MagicImpls.getLiteral(p, e.name().id());
+//    if (literal.isPresent()) {
+//      var litDecId = new Id.DecId(literal.get(), 0);
+//      var it = new Id.IT<T>(litDecId, List.of());
+//      return new MIR.CreateObj(new T(e.mdf(), it), "this", litDecId, List.of(), List.of(), true);
+//    }
+    var selfX = new MIR.X(e.selfName(), new T(e.mdf(), e.name().toIT()));
+    var xXs = new HashMap<>(ctx.xXs);
+    xXs.put(e.selfName(), selfX);
+
+    var captureVisitor = new CaptureCollector();
+    captureVisitor.visitLambda(e);
+    var allCaptures = captureVisitor.res.stream()
+      .map(x->{
+        try {
+          return Optional.of(visitX(x, ctx));
+        } catch (NotInGammaException err) {
+          return Optional.<MIR.X>empty();
+        }
+      })
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .filter(x->!x.name().equals(e.selfName()))
+      .peek(x->xXs.put(x.name(), x))
       .toList();
+    var selfCtx = new Ctx(Collections.unmodifiableMap(xXs));
+
+
+    var localMs = e.meths().stream()
+      .filter(m->!m.isAbs())
+      .map(m->{
+        try {
+          return visitMeth(pkg, m, selfCtx);
+        } catch (NotInGammaException err) {
+          return visitMeth(pkg, m.withBody(Optional.empty()), selfCtx).withUnreachable();
+        }
+      })
+      .toList();
+
+    var canSingleton = localMs.isEmpty();
+    var res = new MIR.CreateObj(new T(e.mdf(), e.name().toIT()), e.selfName(), e.name().id(), localMs, allCaptures, canSingleton);
+//    if (res.captures().stream().anyMatch(x->x.name().equals(res.selfName()))) {
+//      System.out.println("...");
+//    }
+    objKs.add(res);
+    return res;
   }
 
-  private Stream<MIR.Trait> collectInlineTopDecs(Program p) {
-    return p.inlineDs().values().stream()
-      .filter(d->!d.name().isFresh())
-      .map(dec->new MIR.Trait(
-        dec.name(),
-        dec.gxs(),
-        List.of(),
-        dec.lambda().meths().stream().map(m->visitMeth(dec.name().pkg(), m.withBody(Optional.empty()), Map.of())).toList(),
-        false
-      ));
-  }
-
-  private EnumSet<MIR.MCall.CallVariant> getVariants(MIR recv, E.MCall e) {
-    // Standard library .flow methods:
-    var recvT = recv.t();
-    var recvIT = recvT.itOrThrow();
-    if (e.name().name().equals(".flow")) {
-      if (recvIT.name().equals(new Id.DecId("base.LList", 1))) {
-        var flowElem = recvIT.ts().getFirst();
-//        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow); }
-        return EnumSet.of(MIR.MCall.CallVariant.Standard);
-      }
-      if (recvIT.name().equals(new Id.DecId("base.List", 1))) {
-        var flowElem = recvIT.ts().getFirst();
-        if (recvT.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow); }
-        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow); }
-//        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.SafeMutSourceFlow); }
-        return EnumSet.of(MIR.MCall.CallVariant.Standard);
-      }
-    }
-    if (recvIT.name().equals(new Id.DecId("base.flows.Flow", 0)) && e.name().name().equals("#")) {
-      var flowElem = e.ts().getFirst();
-      if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow); }
-    }
-
-    return EnumSet.of(MIR.MCall.CallVariant.Standard);
+  public record Ctx(Map<String, MIR.X> xXs) {
+    public Ctx() { this(Map.of()); }
   }
 
   private static class CaptureCollector implements CollectorVisitor<Set<String>> {
@@ -441,4 +239,9 @@ public class MIRInjectionVisitor implements CtxVisitor<Map<String, MIR.X>, MIR> 
       return CollectorVisitor.super.visitX(e);
     }
   }
+
+  private static class NotInGammaException extends Bug {
+    public NotInGammaException(String x) { super(x); }
+  }
+
 }

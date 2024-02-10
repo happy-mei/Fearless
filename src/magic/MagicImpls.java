@@ -1,5 +1,6 @@
 package magic;
 
+import ast.Program;
 import ast.T;
 import codegen.MIR;
 import id.Id;
@@ -10,11 +11,18 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MagicImpls<R> {
+  static Optional<String> getLiteral(Program p, Id.DecId d) {
+    var supers = p.superDecIds(d);
+    return supers.stream().filter(dec->{
+      var name = dec.name();
+      return isLiteral(name);
+    }).map(Id.DecId::name).findFirst();
+  }
   static boolean isLiteral(String name) {
     return Character.isDigit(name.charAt(0)) || name.startsWith("\"") || name.startsWith("-");
   }
 
-  default Optional<MagicTrait<MIR,R>> get(MIR e) {
+  default Optional<MagicTrait<MIR.E,R>> get(MIR.E e) {
     if (isMagic(Magic.Int, e)) { return Optional.ofNullable(int_(e)); }
     if (isMagic(Magic.UInt, e)) { return Optional.ofNullable(uint(e)); }
     if (isMagic(Magic.Float, e)) { return Optional.ofNullable(float_(e)); }
@@ -35,7 +43,7 @@ public interface MagicImpls<R> {
       .flatMap(o->o);
   }
 
-  default boolean isMagic(Id.DecId magicDec, MIR e) {
+  default boolean isMagic(Id.DecId magicDec, MIR.E e) {
     var it = e.t().itOrThrow();
     return isMagic(magicDec, it.name());
   }
@@ -48,21 +56,21 @@ public interface MagicImpls<R> {
     return p().isSubType(XBs.empty(), new T(Mdf.mdf, new Id.IT<>(freshName, List.of())), new T(Mdf.mdf, new Id.IT<>(magicDec, List.of())));
   }
 
-  MagicTrait<MIR,R> int_(MIR e);
-  MagicTrait<MIR,R> uint(MIR e);
-  MagicTrait<MIR,R> float_(MIR e);
-  MagicTrait<MIR,R> str(MIR e);
-  MagicTrait<MIR,R> debug(MIR e);
-  MagicTrait<MIR,R> refK(MIR e);
-  MagicTrait<MIR,R> isoPodK(MIR e);
-  MagicTrait<MIR,R> assert_(MIR e);
-  default MagicTrait<MIR,R> abort(MIR e) { return null; }
-  default MagicTrait<MIR,R> magicAbort(MIR e) { return null; }
-  default MagicTrait<MIR,R> errorK(MIR e) { return null; }
-  default MagicTrait<MIR,R> tryCatch(MIR e) { return null; }
-  default MagicTrait<MIR,R> pipelineParallelSinkK(MIR e) { return null; }
-  default MagicTrait<MIR,R> objCap(Id.DecId magicTrait, MIR e) { return null; }
-  default MagicTrait<MIR,R> variantCall(MIR e) { return null; }
+  MagicTrait<MIR.E,R> int_(MIR.E e);
+  MagicTrait<MIR.E,R> uint(MIR.E e);
+  MagicTrait<MIR.E,R> float_(MIR.E e);
+  MagicTrait<MIR.E,R> str(MIR.E e);
+  MagicTrait<MIR.E,R> debug(MIR.E e);
+  MagicTrait<MIR.E,R> refK(MIR.E e);
+  MagicTrait<MIR.E,R> isoPodK(MIR.E e);
+  MagicTrait<MIR.E,R> assert_(MIR.E e);
+  default MagicTrait<MIR.E,R> abort(MIR.E e) { return null; }
+  default MagicTrait<MIR.E,R> magicAbort(MIR.E e) { return null; }
+  default MagicTrait<MIR.E,R> errorK(MIR.E e) { return null; }
+  default MagicTrait<MIR.E,R> tryCatch(MIR.E e) { return null; }
+  default MagicTrait<MIR.E,R> pipelineParallelSinkK(MIR.E e) { return null; }
+  default MagicTrait<MIR.E,R> objCap(Id.DecId magicTrait, MIR.E e) { return null; }
+  default MagicTrait<MIR.E,R> variantCall(MIR.E e) { return null; }
   ast.Program p();
 
 }

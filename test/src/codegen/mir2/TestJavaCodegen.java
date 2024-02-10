@@ -1,6 +1,7 @@
 package codegen.mir2;
 
 import ast.E;
+import codegen.MIRInjectionVisitor;
 import id.Id;
 import main.Main;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import codegen.mir2.java.JavaCodegen;
+import codegen.java.JavaCodegen;
 
 public class TestJavaCodegen {
   void ok(String expected, String entry, boolean loadBase, String... content) {
@@ -38,7 +39,7 @@ public class TestJavaCodegen {
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
-    var java = new JavaCodegen(mir).visitProgram(mir, new Id.DecId(entry, 0));
+    var java = new JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
     Err.strCmp(expected, java);
   }
 

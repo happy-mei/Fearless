@@ -5,6 +5,7 @@ import ast.Program;
 import astFull.Package;
 import codegen.MIRInjectionVisitor;
 import codegen.java.ImmJavaCodegen;
+import codegen.java.ImmJavaProgram;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaProgram;
 import codegen.md.MarkdownDocgen;
@@ -25,10 +26,8 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import utils.ResolveResource;
@@ -109,7 +108,10 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
 
     v.progress.printTask("Running code generation \uD83C\uDFED");
     var mainClass = toJava(entry, p, resolvedCalls);
-    var classFile = JavaProgram.compile(mainClass);
+    var classFile = switch (bv) {
+      case Std -> JavaProgram.compile(mainClass);
+      case Imm -> ImmJavaProgram.compile(mainClass);
+    };
     v.progress.printTask("Code generated \uD83E\uDD73");
 
     var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
@@ -169,14 +171,12 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     return inferred;
   }
   private JavaProgram toJava(Id.DecId entry, Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
-    var mirVisitor = new MIRInjectionVisitor(p, resolvedCalls);
-    var mir = mirVisitor.visitProgram();
+    var mir = new MIRInjectionVisitor(p, resolvedCalls).visitProgram();
     var codegen = switch (bv) {
-      case Std -> new JavaCodegen(mirVisitor.getProgram(), resolvedCalls);
-//      case Imm -> new ImmJavaCodegen(mirVisitor.getProgram(), resolvedCalls);
-      case Imm -> throw Bug.todo(); // TODO: restore this to use MIR2
+      case Std -> new JavaCodegen(mir);
+      case Imm -> new ImmJavaCodegen(mir);
     };
-    var src = codegen.visitProgram(mir.pkgs(), entry);
+    var src = codegen.visitProgram(entry);
     if (v.printCodegen) {
       System.out.println(src);
     }

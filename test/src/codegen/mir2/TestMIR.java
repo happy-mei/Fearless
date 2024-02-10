@@ -1,6 +1,7 @@
 package codegen.mir2;
 
 import ast.E;
+import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import main.Main;
 import org.junit.jupiter.api.Assertions;

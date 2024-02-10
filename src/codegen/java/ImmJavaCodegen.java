@@ -1,15 +1,15 @@
 package codegen.java;
 
-import codegen.mir2.MIR;
+import codegen.MIR;
 import id.Id;
 import id.Mdf;
 
 import java.util.stream.Collectors;
 
-public class ImmJavaCodegen extends codegen.mir2.java.JavaCodegen {
+public class ImmJavaCodegen extends JavaCodegen {
   public ImmJavaCodegen(MIR.Program p) { super(p); }
 
-  @Override public String visitProgram(MIR.Program p, Id.DecId entry) {
+  @Override public String visitProgram(Id.DecId entry) {
     assert this.p == p;
     var entryName = getName(entry);
     var init = """

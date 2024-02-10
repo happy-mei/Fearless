@@ -4,7 +4,6 @@ import ast.E;
 import codegen.MIRInjectionVisitor;
 import id.Id;
 import main.Main;
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
@@ -41,7 +40,7 @@ public class TestJavaCodegen {
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
-    var java = new JavaCodegen(inferred, resolvedCalls).visitProgram(mir.pkgs(), new Id.DecId(entry, 0));
+    var java = new JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
     Err.strCmp(expected, java);
   }
 
