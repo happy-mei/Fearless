@@ -216,7 +216,44 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   }
 
   @Override public MagicTrait<MIR.E,String> debug(MIR.E e) {
-    return null;
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() {
+        return e.t().itOrThrow();
+      }
+
+      @Override public String instantiate() {
+        return e.accept(gen, false);
+      }
+
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        if (m.equals(new Id.MethName("#", 1))) {
+          var x = args.getFirst();
+          return Optional.of(String.format("""
+            (switch (1) { default -> {
+              var x = %s;
+              Object xObj = x;
+              var strMethod = java.util.Arrays.stream(xObj.getClass().getMethods())
+                .filter(meth->
+                  (meth.getName().equals("str$read$") || meth.getName().equals("str$readOnly$"))
+                  && meth.getReturnType().equals(String.class)
+                  && meth.getParameterCount() == 0)
+                .findAny();
+              if (strMethod.isPresent()) {
+                try {
+                  System.out.println(strMethod.get().invoke(x));
+                } catch(java.lang.IllegalAccessException | java.lang.reflect.InvocationTargetException err) {
+                  System.out.println(x);
+                }
+              } else {
+                System.out.println(x);
+              }
+              yield x;
+            }})
+            """, x.accept(gen, true)));
+        }
+        return Optional.empty();
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E,String> refK(MIR.E e) {

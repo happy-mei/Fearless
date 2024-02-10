@@ -5,6 +5,7 @@ import ast.Program;
 import ast.T;
 import id.Id;
 import id.Mdf;
+import magic.MagicImpls;
 import program.CM;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
@@ -30,13 +31,16 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
   }
 
   public MIR.Program visitProgram() {
-    Map<Id.DecId, MIR.TypeDef> defs = Mapper.of(res->Stream.concat(p.ds().values().stream(), p.inlineDs().values().stream())
+    var meaningfulInlineDecs = p.inlineDs().values().stream()
+      .filter(d->getTransparentSource(d).isEmpty());
+    Map<Id.DecId, MIR.TypeDef> defs = Mapper.of(res->Stream.concat(p.ds().values().stream(), meaningfulInlineDecs)
       .map(d->visitTopDec(d.name().pkg(), d))
       .forEach(typeDef->res.put(typeDef.name(), typeDef)));
 
     var literals = new IdentityHashMap<MIR.CreateObj, MIR.ObjLit>();
     for (var objK : objKs) {
       var def = defs.get(objK.def());
+      if (MagicImpls.isLiteral(objK.def().name())) { continue; }
       var allMeths = new HashMap<Id.MethName, MIR.Meth>(def.meths().size() + objK.localMeths().size());
       def.meths().forEach(m->allMeths.put(m.name(), m));
       objK.localMeths().forEach(m->allMeths.put(m.name(), m));
@@ -165,6 +169,14 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 //      var it = new Id.IT<T>(litDecId, List.of());
 //      return new MIR.CreateObj(new T(e.mdf(), it), "this", litDecId, List.of(), List.of(), true);
 //    }
+    var transparentSource = getTransparentSource(p.of(e.name().id()));
+    if (transparentSource.isPresent()) {
+      var realDec = transparentSource.get();
+      var res = new MIR.CreateObj(new T(e.mdf(), realDec.toIT()), realDec.lambda().selfName(), realDec.name(), List.of(), List.of(), true);
+      objKs.add(res);
+      return res;
+    }
+
     var selfX = new MIR.X(e.selfName(), new T(e.mdf(), e.name().toIT()));
     var xXs = new HashMap<>(ctx.xXs);
     xXs.put(e.selfName(), selfX);
@@ -200,15 +212,22 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 
     var canSingleton = localMs.isEmpty();
     var res = new MIR.CreateObj(new T(e.mdf(), e.name().toIT()), e.selfName(), e.name().id(), localMs, allCaptures, canSingleton);
-//    if (res.captures().stream().anyMatch(x->x.name().equals(res.selfName()))) {
-//      System.out.println("...");
-//    }
     objKs.add(res);
     return res;
   }
 
   public record Ctx(Map<String, MIR.X> xXs) {
     public Ctx() { this(Map.of()); }
+  }
+
+  private Optional<T.Dec> getTransparentSource(T.Dec d) {
+    if (d.name().isFresh() && d.lambda().meths().isEmpty()) {
+      var nonSelfImpls = d.lambda().its().stream().filter(it->!it.name().equals(d.name())).toList();
+      if (nonSelfImpls.size() != 1) { return Optional.empty(); }
+      var realIT = nonSelfImpls.getFirst();
+      return Optional.of(p.of(realIT.name()));
+    }
+    return Optional.empty();
   }
 
   private static class CaptureCollector implements CollectorVisitor<Set<String>> {
@@ -240,7 +259,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     }
   }
 
-  private static class NotInGammaException extends Bug {
+  private static class NotInGammaException extends RuntimeException {
     public NotInGammaException(String x) { super(x); }
   }
 
