@@ -4,6 +4,7 @@ import ast.T;
 import codegen.MIR;
 import failure.Fail;
 import id.Id;
+import id.Mdf;
 import magic.MagicTrait;
 import utils.Bug;
 
@@ -256,12 +257,110 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
     };
   }
 
+  @Override public MagicTrait<MIR.E,String> ref(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() {
+        return e.t().itOrThrow();
+      }
+
+      @Override public String instantiate() {
+        return e.accept(gen, false);
+      }
+
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        System.out.println(e);
+        System.out.println(m);
+
+//        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
+//          var x = args.getFirst();
+//          return Optional.of(String.format("""
+//            new base.Ref_1(){
+//              protected Object x = %s;
+//              public Object get$mut$() { return this.x; }
+//              public Object get$read$() { return this.x; }
+//              public Object swap$mut$(Object x$) { var x1 = this.x; this.x = x$; return x1; }
+//
+//              public base.Void_0 set$mut$(Object x$);
+//              public Object $60$45$mut$(Object f$);
+//              public Object get$read$();
+//              public Object get$mut$();
+//              public base.Opt_1 getImm$read$();
+//              public Object update$mut$(Object f$);
+//              public Object $42$read$();
+//              public Object $42$mut$();
+//              public Object getImm$read$(Object f$);
+//              public Object swap$mut$(Object x$);
+//              public base.Void_0 $58$61$mut$(Object x$);
+//            }
+//            """, x.accept(gen, true)));
+//        }
+        return Optional.empty();
+      }
+    };
+  }
+
   @Override public MagicTrait<MIR.E,String> refK(MIR.E e) {
-    return null;
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() {
+        return e.t().itOrThrow();
+      }
+
+      @Override public String instantiate() {
+        return e.accept(gen, false);
+      }
+
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
+          var x = args.getFirst();
+          return Optional.of(String.format("""
+            new base.$95MagicRefImpl_1(){
+              private Object x = %s;
+              public Object get$mut$() { return this.x; }
+              public Object get$read$() { return this.x; }
+              public Object swap$mut$(Object x$) { var x1 = this.x; this.x = x$; return x1; }
+            }
+            """, x.accept(gen, true)));
+        }
+        return Optional.empty();
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E,String> isoPodK(MIR.E e) {
-    return null;
+    return new MagicTrait<>() {
+      @Override public Id.IT<T> name() {
+        return e.t().itOrThrow();
+      }
+
+      @Override public String instantiate() {
+        return e.accept(gen, false);
+      }
+
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
+          var x = args.getFirst();
+          return Optional.of(String.format("""
+            new base$46caps.$95MagicIsoPodImpl_1(){
+              private Object x = %s;
+              private boolean isAlive = true;
+              
+              public base.Bool_0 isAlive$readOnly$() { return this.isAlive ? base.True_0._$self : base.False_0._$self; }
+              public Object peek$readOnly$(Object f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$mut$(this.x) : ((base$46caps.IsoViewer_2)f).empty$mut$(); }
+              public Object $33$mut$() {
+                if (!this.isAlive) {
+                  base.Error_0._$self.str$imm$("Cannot consume an empty IsoPod.");
+                  return null;
+                }
+                this.isAlive = false;
+                return this.x;
+              }
+              public base.Void_0 next$mut$(Object x) { this.isAlive = true; this.x = x; return new base.Void_0(){}; }
+            }
+            """, x.accept(gen, true)));
+        }
+        return Optional.empty();
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E,String> assert_(MIR.E e) {

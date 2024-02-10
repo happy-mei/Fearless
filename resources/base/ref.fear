@@ -1,7 +1,12 @@
 package base
 
 Ref:{
-  #[X](x: X): mut Ref[X] -> Magic!,
+  #[X](x: X): mut Ref[X] -> Block#
+    .var[mut _MagicRefImpl[X]] inner = {_MagicRefImpl#x}
+    .return {{
+      .get -> inner.get,
+      .swap(x') -> inner.swap(x'),
+      }},
   readOnly #[X](x: imm X): mut RefImm[imm X] -> Ref.ofImm x,
   .ofImm[X](x: imm X): mut RefImm[imm X] -> Let#{
     .var -> Ref#(Ice[imm X]{x}),
@@ -12,7 +17,7 @@ Ref:{
          }
       }
   }
-Ref[X:imm,mut,read]:Sealed{
+Ref[X:imm,mut,read]: Sealed{
   mut  .get: X,
   read .get: read X,
   // TODO: this will be unneeded if we add read/imm
@@ -27,15 +32,15 @@ Ref[X:imm,mut,read]:Sealed{
   mut <-(f: mut UpdateRef[X]): X -> this.swap(f#(this*)),
   mut .update(f: mut UpdateRef[X]): X -> this <- f,
   }
-UpdateRef[X]:{ mut #(x: X): X }
-RefImm[X:imm]:Ref[X]{
+UpdateRef[X]: { mut #(x: X): X }
+RefImm[X:imm]: Ref[X]{
   read .get: X,
   read *: X -> this.get,
   .getImm(f) -> this.get,
   .getImm -> Opt#(this.get),
   }
 
-Count[N:imm]:RefImm[imm N]{
+Count[N:imm]: RefImm[imm N]{
   mut ++: N,
   mut --: N,
   mut +=(n: N): N,
@@ -68,4 +73,13 @@ Count:{
       *=(n2) -> c <- { c' -> c' * n2 },
       }
     })
+  }
+
+// Ref as defined in the formal reduction of Fearless.
+// We capture this in the richer Ref.
+_MagicRefImpl: {#[X](x: X): mut _MagicRefImpl[X] -> Magic!}
+_MagicRefImpl[X]: {
+  mut  .get: X,
+  read .get: read X,
+  mut .swap(x: X): X,
   }

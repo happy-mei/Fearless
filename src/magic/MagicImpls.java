@@ -48,12 +48,9 @@ public interface MagicImpls<R> {
     return isMagic(magicDec, it.name());
   }
   default boolean isMagic(Id.DecId magicDec, Id.DecId freshName) {
-    var name = freshName.name();
-    if (freshName.gen() != 0) { return false; }
-//    if (!name.startsWith("base.") && Character.isJavaIdentifierStart(name.charAt(0))) {
-//      return false;
-//    }
-    return p().isSubType(XBs.empty(), new T(Mdf.mdf, new Id.IT<>(freshName, List.of())), new T(Mdf.mdf, new Id.IT<>(magicDec, List.of())));
+    if (freshName.gen() != magicDec.gen()) { return false; }
+    var gens = Id.GX.standardNames(freshName.gen()).stream().map(gx->new T(Mdf.mdf, gx)).toList();
+    return p().isSubType(XBs.empty(), new T(Mdf.mdf, new Id.IT<>(freshName, gens)), new T(Mdf.mdf, new Id.IT<>(magicDec, gens)));
   }
 
   MagicTrait<MIR.E,R> int_(MIR.E e);
@@ -61,6 +58,7 @@ public interface MagicImpls<R> {
   MagicTrait<MIR.E,R> float_(MIR.E e);
   MagicTrait<MIR.E,R> str(MIR.E e);
   MagicTrait<MIR.E,R> debug(MIR.E e);
+  MagicTrait<MIR.E,R> ref(MIR.E e);
   MagicTrait<MIR.E,R> refK(MIR.E e);
   MagicTrait<MIR.E,R> isoPodK(MIR.E e);
   MagicTrait<MIR.E,R> assert_(MIR.E e);

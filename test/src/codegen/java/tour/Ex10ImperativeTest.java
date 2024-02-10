@@ -23,4 +23,14 @@ public class Ex10ImperativeTest {
       .return {Void}
       }
     """, Base.mutBaseAliases); }
+  @Test void refIsMutable() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> Block#
+      .var[mut Ref[Int]] n = {Ref#[Int] 5}
+      .assert {n.get == 5}
+      .do {n := 10}
+      .assert {n.get == 10}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases); }
 }

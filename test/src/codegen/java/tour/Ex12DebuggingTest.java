@@ -18,7 +18,7 @@ public class Ex12DebuggingTest {
     Test:Main {sys -> Block#(Debug#(Foo))}
     Foo: {read .str: Str -> "hi!"}
     """, Base.mutBaseAliases);}
-  @Test void debugPrintNonStringable() { ok(new RunJava.Res("Fear12618$$Impl$Fear50$$0$imm$[]", "", 0), "test.Test", """
+  @Test void debugPrintNonStringable() { ok(new RunJava.Res("[###]$$Impl$Foo$0$$[]", "", 0), "test.Test", """
     package test
     alias base.Debug as Debug,
     Test:Main {sys -> Block#(Debug#(Foo))}
