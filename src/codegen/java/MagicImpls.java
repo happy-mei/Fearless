@@ -9,7 +9,6 @@ import utils.Bug;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static magic.MagicImpls.getLiteral;
@@ -30,10 +29,10 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
           throw Fail.invalidNum(lit.orElse(name.toString()), "Int");
         }
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma, EnumSet<codegen.MIR.MCall.CallVariant> variants) {
-        return Optional.ofNullable(_call(m, args, gamma));
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        return Optional.ofNullable(_call(m, args));
       }
-      private String _call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma) {
+      private String _call(Id.MethName m, List<MIR.E> args) {
         // _NumInstance
         if (m.equals(new Id.MethName(".uint", 0))) {
           return instantiate(); // only different at type level
@@ -91,10 +90,10 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
           throw Fail.invalidNum(lit.orElse(name.toString()), "UInt");
         }
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma, EnumSet<codegen.MIR.MCall.CallVariant> variants) {
-        return Optional.of(_call(m, args, gamma));
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        return Optional.of(_call(m, args));
       }
-      private String _call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma) {
+      private String _call(Id.MethName m, List<MIR.E> args) {
         // _NumInstance
         if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate(); // only different at type level
@@ -151,10 +150,10 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
           throw Fail.invalidNum(lit.orElse(name.toString()), "Float");
         }
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma, EnumSet<codegen.MIR.MCall.CallVariant> variants) {
-        return Optional.of(_call(m, args, gamma));
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+        return Optional.of(_call(m, args));
       }
-      private String _call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma) {
+      private String _call(Id.MethName m, List<MIR.E> args) {
         if (m.equals(new Id.MethName(".int", 0)) || m.equals(new Id.MethName(".uint", 0))) {
           return "("+"(long)"+instantiate()+")";
         }
@@ -199,7 +198,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
         var lit = getLiteral(p, name.name());
         return lit.orElseGet(()->"((String)"+e.accept(gen, true)+")");
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma, EnumSet<codegen.MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName(".size", 0))) { return Optional.of(instantiate()+".length()"); }
         if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of("("+instantiate()+".isEmpty()?base.True_0._$self:base.False_0._$self)"); }
         if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate()); }
@@ -239,7 +238,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
       }
 
       @Override
-      public Optional<String> call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma, EnumSet<codegen.MIR.MCall.CallVariant> variants) {
+      public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName("._fail", 0))) {
           return Optional.of("""
             (switch (1) { default -> {
@@ -294,7 +293,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
       @Override public String instantiate() {
         return e.accept(gen, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, Map<MIR.E, T> gamma, EnumSet<codegen.MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName("!", 0))) {
           return Optional.of("""
             (switch (1) { default -> {
