@@ -1,29 +1,68 @@
 package base
 
-// Cons#(1, Cons#(2, Cons#(4, {})))
-Cons:{
-  #[E:imm](h: E, t: LList[E]): LList[E] -> { .match(m) -> m.elem(h, t) },
+Collection: {
+  .size: UInt,
+  .isEmpty: Bool,
   }
-LList[E:imm]:Sealed{
+
+LList: {#[E:imm]: LList[E] -> LList[E]}
+LList[E:imm]: Collection,Sealed{
   .match[R:imm](m: LListMatch[E, R]): R -> m.empty,
-  .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
-  .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
-  ++(l1: LList[E]): LList[E] -> this.match{
-    .empty -> l1,
-    .elem(h, t) -> Cons#(h, t ++ l1)
+  .isEmpty: Bool -> True,
+  .size: UInt -> 0u,
+  .get(i: UInt): Opt[E] -> {},
+  .head: Opt[E] -> {},
+  .tail: LList[E] -> this,
+  ++(l1: LList[E]): LList[E] -> l1,
+  +(e: E): LList[E] -> this ++ (LList[E].pushFront(e)),
+  .pushFront(e: E): LList[E] -> {'l
+    .match(m) -> m.elem(e, this),
+    .isEmpty -> False,
+    .size -> this.size + 1u,
+    .get(i) -> (i == 0u) ? {.then -> Opt#e, .else -> this.get(i - 1u)},
+    .head -> Opt#e,
+    .tail -> this, // TODO this is being incorrectly codegen'd as `.tail -> l`
+    ++(l1) -> (this ++ l1).pushFront(e),
     },
-  +(e: E): LList[E] -> this ++ (Cons#(e, {})),
-  .get(i: UInt) : Opt[E] -> this.match{
-    .empty -> {},
-    .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
-    },
-  .head: Opt[E] -> this.match{
-    .empty -> {},
-    .elem(h,_) -> Opt#h,
-    },
-  .tail: LList[E] -> this.match{
-    .empty -> {},
-    .elem(_,t) -> t,
-    },
+//  .pushFront(e: E): LList[E] -> Let#{
+//    .var -> this.size + 1u,
+//    .in(len) -> {'l
+//      .match(m) -> m.elem(e, this),
+//      .isEmpty -> False,
+//      .size -> len,
+//      .get(i) -> (i == 0u) ? {.then -> Opt#e, .else -> this.get(i - 1u)},
+//      .head -> Opt#e,
+//      .tail -> this, // TODO this is being incorrectly codegen'd as `.tail -> l`
+//      ++(l1) -> (this ++ l1).pushFront(e),
+//      }
+//    },
   }
-LListMatch[E:imm,R:imm]:{ .elem(head: E, tail: LList[E]): R, .empty: R }
+LListMatch[E:imm,R:imm]: {.elem(head: E, tail: LList[E]): R, .empty: R}
+
+// Old list impl:
+//// Cons#(1, Cons#(2, Cons#(4, {})))
+//Cons:{
+//  #[E:imm](h: E, t: LList[E]): LList[E] -> { .match(m) -> m.elem(h, t) },
+//  }
+//LList[E:imm]:Sealed{
+//  .match[R:imm](m: LListMatch[E, R]): R -> m.empty,
+//  .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
+//  .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
+//  ++(l1: LList[E]): LList[E] -> this.match{
+//    .empty -> l1,
+//    .elem(h, t) -> Cons#(h, t ++ l1)
+//    },
+//  +(e: E): LList[E] -> this ++ (Cons#(e, {})),
+//  .get(i: UInt) : Opt[E] -> this.match{
+//    .empty -> {},
+//    .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
+//    },
+//  .head: Opt[E] -> this.match{
+//    .empty -> {},
+//    .elem(h,_) -> Opt#h,
+//    },
+//  .tail: LList[E] -> this.match{
+//    .empty -> {},
+//    .elem(_,t) -> t,
+//    },
+//  }
