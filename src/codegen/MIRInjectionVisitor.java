@@ -11,7 +11,6 @@ import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Bug;
 import utils.Mapper;
-import utils.Push;
 import utils.Streams;
 import visitors.CollectorVisitor;
 import visitors.CtxVisitor;
@@ -20,7 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MIRInjectionVisitor implements CtxVisitor<MIR.Ctx, MIR.E> {
+public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, MIR.E> {
   private Program p;
   private final IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls;
 //  private final List<MIR.TypeDef> inlineDefs = new ArrayList<>();
@@ -38,60 +37,25 @@ public class MIRInjectionVisitor implements CtxVisitor<MIR.Ctx, MIR.E> {
       .map(d->visitTopDec(d.name().pkg(), d))
       .forEach(typeDef->res.put(typeDef.name(), typeDef)));
 
-    // My original idea was to just replace "this" with selfName on inherited methods and skip methods that throw during
-    // injection but that seems fragile. This approach guarantees that we know about all captures whenever we
-    // generate method code.
     var literals = new HashMap<MIR.CreateObj, MIR.ObjLit>();
-    var seen = new HashSet<MIR.CreateObj>();
-    OUTER: while (true) {
-      var workingSet = List.copyOf(objKs);
-      for (var objK : workingSet) {
-        if (seen.containsAll(objKs)) { break OUTER; }
-        if (seen.contains(objK)) { continue; }
-        seen.add(objK);
-        var def = defs.get(objK.def());
-        if (MagicImpls.isLiteral(objK.def().name())) {
-          continue;
-        }
-        var allMeths = new HashMap<Id.MethName, MIR.Meth>(def.meths().size() + objK.localMeths().size());
+    for (var objK : objKs) {
+      var def = defs.get(objK.def());
+      if (MagicImpls.isLiteral(objK.def().name())) { continue; }
+      var allMeths = new HashMap<Id.MethName, MIR.Meth>(def.meths().size() + objK.localMeths().size());
+      def.meths().forEach(m->allMeths.put(m.name(), m));
+      objK.localMeths().forEach(m->allMeths.put(m.name(), m));
+      var ms = allMeths.values().stream()
+        .map(m->{
+          if (!m.isAbs()) { return m; }
+          return m.withUnreachable();
+        })
+        .toList();
 
-        var dec = p.of(def.name());
-        var rawMs = p.meths(XBs.empty().addBounds(dec.gxs(), dec.bounds()), Mdf.recMdf, dec.toIT(), 0);
-        var allCaptures = MIR.createCapturesSet();
-        allCaptures.addAll(objK.captures());
-        for (var cm : rawMs) {
-          var m = ((CM.CoreCM) cm).m();
+      var uniqueName = Id.GX.fresh().name()+"$Impl$"+def.name().shortName()+"$"+def.name().gen()+"$"+objK.t().mdf();
 
-          var selfXXs = new HashMap<>(objK.ctx().xXs());
-          var selfX = new MIR.X(objK.selfName(), new T(objK.t().mdf(), cm.c()));
-          selfXXs.put(p.of(cm.c().name()).lambda().selfName(), selfX);
-          var selfCtx = new MIR.Ctx(Collections.unmodifiableMap(selfXXs));
-
-          var cc = new CaptureCollector();
-          cc.visitMeth(m);
-          cc.res().stream().map(x->visitX(x, selfCtx)).filter(x->!x.name().equals(objK.selfName())).forEach(allCaptures::add);
-
-          var mirM = visitMeth(def.name().pkg(), m, selfCtx);
-          allMeths.put(mirM.name(), mirM);
-        }
-
-//        def.meths().forEach(m->allMeths.put(m.name(), m));
-        objK.localMeths().forEach(m->allMeths.put(m.name(), m));
-        var ms = allMeths.values().stream()
-          .map(m->{
-            if (!m.isAbs()) {
-              return m;
-            }
-            return m.withUnreachable();
-          })
-          .toList();
-
-        var uniqueName = Id.GX.fresh().name() + "$Impl$" + def.name().shortName() + "$" + def.name().gen() + "$" + objK.t().mdf();
-
-        // TODO: canSingleton
-        var lit = new MIR.ObjLit(uniqueName, objK.selfName(), def, ms, allCaptures, false);
-        literals.put(objK, lit);
-      }
+      // TODO: canSingleton
+      var lit = new MIR.ObjLit(uniqueName, objK.selfName(), def, ms, objK.captures(), false);
+      literals.put(objK, lit);
     }
 
     var pkgs = defs.values().stream()
@@ -116,33 +80,44 @@ public class MIRInjectionVisitor implements CtxVisitor<MIR.Ctx, MIR.E> {
     var selfX = new MIR.X(dec.lambda().selfName(), new T(Mdf.mdf, dec.toIT()));
     var xXs = new HashMap<String, MIR.X>();
     xXs.put(dec.lambda().selfName(), selfX);
-    var selfCtx = new MIR.Ctx(xXs);
+    var selfCtx = new Ctx(xXs);
 
     var ms = rawMs.stream()
         .map(cm->{
+          var isLocal = cm.c().equals(dec.toIT());
+          var ctx = selfCtx;
+          if (!isLocal) {
+            // if this method is inherited, the self-name will always be "this", so we need to map that here.
+            var remoteXXs = new HashMap<>(xXs);
+            var remoteX = new MIR.X(dec.lambda().selfName(), new T(Mdf.mdf, cm.c()));
+            remoteXXs.put("this", remoteX);
+            ctx = new Ctx(remoteXXs);
+          }
+          final var finalCtx = ctx;
+
           var m = ((CM.CoreCM)cm).m();
-          return visitMeth(pkg, m.withBody(Optional.empty()), selfCtx);
-//          try {
-//          } catch (NotInGammaException e) {
-//            // if a capture failed, this method is not relevant at the top level anyway, skip it
-//            return visitMeth(pkg, m.withBody(Optional.empty()), finalCtx).withUnreachable();
-//          }
+          try {
+            return visitMeth(pkg, m, finalCtx);
+          } catch (NotInGammaException e) {
+            // if a capture failed, this method is not relevant at the top level anyway, skip it
+            return visitMeth(pkg, m.withBody(Optional.empty()), finalCtx).withUnreachable();
+          }
         })
       .toList();
 
-    var singletonInstance = canSingleton ? Optional.of(visitLambda(pkg, dec.lambda(), MIR.Ctx.EMPTY)) : Optional.<MIR.CreateObj>empty();
+    var singletonInstance = visitLambda(pkg, dec.lambda(), new Ctx());
 
     return new MIR.TypeDef(
       dec.name(),
       dec.gxs(),
       dec.lambda().its(),
       ms,
-      singletonInstance
+      canSingleton ? Optional.of(singletonInstance) : Optional.empty()
     );
   }
 
-  public MIR.Meth visitMeth(String pkg, E.Meth m, MIR.Ctx ctx) {
-    var g = new HashMap<>(ctx.xXs());
+  public MIR.Meth visitMeth(String pkg, E.Meth m, Ctx ctx) {
+    var g = new HashMap<>(ctx.xXs);
     List<MIR.X> xs = Streams.zip(m.xs(), m.sig().ts())
       .map((x,t)->{
         if (x.equals("_")) { x = astFull.E.X.freshName(); }
@@ -158,11 +133,11 @@ public class MIRInjectionVisitor implements CtxVisitor<MIR.Ctx, MIR.E> {
       m.sig().gens(),
       xs,
       m.sig().ret(),
-      m.body().map(e->e.accept(this, pkg, new MIR.Ctx(g)))
+      m.body().map(e->e.accept(this, pkg, new Ctx(g)))
     );
   }
 
-  @Override public MIR.MCall visitMCall(String pkg, E.MCall e, MIR.Ctx ctx) {
+  @Override public MIR.MCall visitMCall(String pkg, E.MCall e, Ctx ctx) {
     var recv = e.receiver().accept(this, pkg, ctx);
     var tst = this.resolvedCalls.get(e);
 
@@ -176,29 +151,29 @@ public class MIRInjectionVisitor implements CtxVisitor<MIR.Ctx, MIR.E> {
     );
   }
 
-  @Override public MIR.X visitX(E.X e, MIR.Ctx ctx) {
+  @Override public MIR.X visitX(E.X e, Ctx ctx) {
     return visitX(e.name(), ctx);
   }
-  public MIR.X visitX(String x, MIR.Ctx ctx) {
-    var fullX = ctx.xXs().get(x);
+  public MIR.X visitX(String x, Ctx ctx) {
+    var fullX = ctx.xXs.get(x);
     if (fullX == null) {
       throw new NotInGammaException(x);
     }
     return fullX;
   }
 
-  @Override public MIR.CreateObj visitLambda(String pkg, E.Lambda e, MIR.Ctx ctx) {
+  @Override public MIR.CreateObj visitLambda(String pkg, E.Lambda e, Ctx ctx) {
     // TODO: fix nested self-name capturing (llist.pushFront)
     var transparentSource = getTransparentSource(p.of(e.name().id()));
     if (transparentSource.isPresent()) {
       var realDec = transparentSource.get();
-      var res = new MIR.CreateObj(new T(e.mdf(), realDec.toIT()), realDec.lambda().selfName(), realDec.name(), List.of(), MIR.createCapturesSet(), MIR.Ctx.EMPTY, true);
+      var res = new MIR.CreateObj(new T(e.mdf(), realDec.toIT()), realDec.lambda().selfName(), realDec.name(), List.of(), MIR.createCapturesSet(), true);
       objKs.add(res);
       return res;
     }
 
     var selfX = new MIR.X(e.selfName(), new T(e.mdf(), e.name().toIT()));
-    var xXs = new HashMap<>(ctx.xXs());
+    var xXs = new HashMap<>(ctx.xXs);
     xXs.put(e.selfName(), selfX);
 
     var captureVisitor = new CaptureCollector();
@@ -216,7 +191,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIR.Ctx, MIR.E> {
       .filter(x->!x.name().equals(e.selfName()))
       .peek(x->xXs.put(x.name(), x))
       .collect(Collectors.toCollection(MIR::createCapturesSet));
-    var selfCtx = new MIR.Ctx(Collections.unmodifiableMap(xXs));
+    var selfCtx = new Ctx(Collections.unmodifiableMap(xXs));
 
 
     var localMs = e.meths().stream()
@@ -231,9 +206,14 @@ public class MIRInjectionVisitor implements CtxVisitor<MIR.Ctx, MIR.E> {
       .toList();
 
     var canSingleton = localMs.isEmpty();
-    var res = new MIR.CreateObj(new T(e.mdf(), e.name().toIT()), e.selfName(), e.name().id(), localMs, allCaptures, selfCtx, canSingleton);
+    var res = new MIR.CreateObj(new T(e.mdf(), e.name().toIT()), e.selfName(), e.name().id(), localMs, allCaptures, canSingleton);
     objKs.add(res);
     return res;
+  }
+
+  public record Ctx(Map<String, MIR.X> xXs) {
+    public static Ctx EMPTY = new Ctx();
+    private Ctx() { this(Map.of()); }
   }
 
   private Optional<T.Dec> getTransparentSource(T.Dec d) {

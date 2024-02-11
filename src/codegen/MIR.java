@@ -35,7 +35,7 @@ public sealed interface MIR {
       captures = Collections.unmodifiableSortedSet(captures);
     }
   }
-  record CreateObj(T t, String selfName, Id.DecId def, List<MIR.Meth> localMeths, SortedSet<MIR.X> captures, Ctx ctx, boolean canSingleton) implements E {
+  record CreateObj(T t, String selfName, Id.DecId def, List<MIR.Meth> localMeths, SortedSet<MIR.X> captures, boolean canSingleton) implements E {
     public CreateObj {
       assert localMeths.stream().noneMatch(Meth::isAbs);
       captures = Collections.unmodifiableSortedSet(captures);
@@ -79,10 +79,5 @@ public sealed interface MIR {
     @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
       return v.visitUnreachable(this);
     }
-  }
-
-  record Ctx(Map<String, MIR.X> xXs) {
-    public static Ctx EMPTY = new Ctx();
-    private Ctx() { this(Map.of()); }
   }
 }
