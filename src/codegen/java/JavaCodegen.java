@@ -121,7 +121,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       .map(m->visitMeth(m, "this", true, true))
       .collect(Collectors.joining("\n")) + "}");
 
-    while (!objLitsInPkg.isEmpty()) {
+    while (true) {
       var litsInPkg = new ArrayList<>(objLitsInPkg);
       if (objLitsInPkg.stream().map(litK->litK.lit.uniqueName()).allMatch(codeGenedObjLits::contains)) {
         break;

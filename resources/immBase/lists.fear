@@ -15,15 +15,8 @@ LList[E:imm]: Collection,Sealed{
   .tail: LList[E] -> this,
   ++(l1: LList[E]): LList[E] -> l1,
   +(e: E): LList[E] -> this ++ (LList[E].pushFront(e)),
-  .pushFront(e: E): LList[E] -> {'l
-    .match(m) -> m.elem(e, this),
-    .isEmpty -> False,
-    .size -> this.size + 1u,
-    .get(i) -> (i == 0u) ? {.then -> Opt#e, .else -> this.get(i - 1u)},
-    .head -> Opt#e,
-    .tail -> this, // TODO this is being incorrectly codegen'd as `.tail -> l`
-    ++(l1) -> (this ++ l1).pushFront(e),
-    },
+  .pushFront(e: E): LList[E] -> _LListCons#(this, e),
+  // TODO: the .pushFront inside the lambda this makes is ?wrong?, because this == l in it
 //  .pushFront(e: E): LList[E] -> Let#{
 //    .var -> this.size + 1u,
 //    .in(len) -> {'l
@@ -32,12 +25,27 @@ LList[E:imm]: Collection,Sealed{
 //      .size -> len,
 //      .get(i) -> (i == 0u) ? {.then -> Opt#e, .else -> this.get(i - 1u)},
 //      .head -> Opt#e,
-//      .tail -> this, // TODO this is being incorrectly codegen'd as `.tail -> l`
+//      .tail -> this,
 //      ++(l1) -> (this ++ l1).pushFront(e),
 //      }
 //    },
   }
 LListMatch[E:imm,R:imm]: {.elem(head: E, tail: LList[E]): R, .empty: R}
+
+_LListCons: {
+  #[E:imm](tail: LList[E], e: E): LList[E] -> Let#{
+    .var -> tail.size + 1u,
+    .in(len) -> {
+      .match(m) -> m.elem(e, tail),
+      .isEmpty -> False,
+      .size -> len,
+      .get(i) -> (i == 0u) ? {.then -> Opt#e, .else -> tail.get(i - 1u)},
+      .head -> Opt#e,
+      .tail -> tail,
+      ++(l1) -> (tail ++ l1).pushFront(e),
+      }
+    },
+  }
 
 // Old list impl:
 //// Cons#(1, Cons#(2, Cons#(4, {})))
