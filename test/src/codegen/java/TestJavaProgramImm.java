@@ -85,6 +85,16 @@ public class TestJavaProgramImm {
     Test:Main{ _ -> "" }
     """);}
 
+  @Test void lists() { ok(new Res("2", "", 0), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.LList as LList, alias base.Int as Int,
+    Test:Main{_ -> A.m1.get(1u).match{.some(n) -> n.str, .none -> base.Abort!}}
+    A:{
+      .m1: LList[Int] -> LList[Int] + 1 + 2 + 3,
+      }
+    """);}
+
+
   @Test void assertTrue() { ok(new Res("", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
