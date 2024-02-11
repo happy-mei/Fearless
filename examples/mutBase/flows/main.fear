@@ -24,7 +24,8 @@ App:Main{ sys -> Block#
 //  .do{ io.println(FlowEx.listRead.str) }
 //  .do{ io.println(FlowEx.fromIter.str) }
 //  .do{ io.println(Flow.fromIter((mut LList[mut LList[Int]] + {}).iter).size.str) }
-  .do {io.println(FlowEx.somePipelineParallelThing)}
+//  .do {io.println(FlowEx.somePipelineParallelThing)}
+  .do {io.println((Fib#50u).str)}
   .return{{}}
   }
 
