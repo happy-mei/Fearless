@@ -197,15 +197,14 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   @Override public String visitMCall(MIR.MCall call, boolean checkMagic) {
-    var variants = EnumSet.of(codegen.MIR.MCall.CallVariant.Standard);
     if (checkMagic && !call.variant().contains(MIR.MCall.CallVariant.Standard)) {
-      var impl = magic.variantCall(call).call(call.name(), call.args(), variants);
+      var impl = magic.variantCall(call).call(call.name(), call.args(), call.variant());
       if (impl.isPresent()) { return impl.get(); }
     }
 
     var magicImpl = magic.get(call.recv());
     if (checkMagic && magicImpl.isPresent()) {
-      var impl = magicImpl.get().call(call.name(), call.args(), variants);
+      var impl = magicImpl.get().call(call.name(), call.args(), call.variant());
       if (impl.isPresent()) { return impl.get(); }
     }
 

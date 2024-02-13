@@ -5,11 +5,11 @@ import ast.Program;
 import ast.T;
 import id.Id;
 import id.Mdf;
+import magic.Magic;
 import magic.MagicImpls;
 import program.CM;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
-import utils.Bug;
 import utils.Mapper;
 import utils.Streams;
 import visitors.CollectorVisitor;
@@ -53,8 +53,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 
       var uniqueName = Id.GX.fresh().name()+"$Impl$"+def.name().shortName()+"$"+def.name().gen()+"$"+objK.t().mdf();
 
-      // TODO: canSingleton
-      var lit = new MIR.ObjLit(uniqueName, objK.selfName(), def, ms, objK.captures(), false);
+      var lit = new MIR.ObjLit(uniqueName, objK.selfName(), def, ms, objK.captures());
       literals.put(objK, lit);
     }
 
@@ -147,7 +146,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       e.es().stream().map(ei->ei.accept(this, pkg, ctx)).toList(),
       tst.t(),
       tst.original().mdf(),
-      EnumSet.of(MIR.MCall.CallVariant.Standard) // TODO
+      getVariants(recv, e)
     );
   }
 
@@ -224,6 +223,32 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       return Optional.of(p.of(realIT.name()));
     }
     return Optional.empty();
+  }
+
+  private EnumSet<MIR.MCall.CallVariant> getVariants(MIR.E recv, E.MCall e) {
+    // Standard library .flow methods:
+    var recvT = recv.t();
+    var recvIT = recvT.itOrThrow();
+    if (e.name().name().equals(".flow")) {
+      if (recvIT.name().equals(new Id.DecId("base.LList", 1))) {
+        var flowElem = recvIT.ts().getFirst();
+//        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow); }
+        return EnumSet.of(MIR.MCall.CallVariant.Standard);
+      }
+      if (recvIT.name().equals(Magic.FList)) {
+        var flowElem = recvIT.ts().getFirst();
+        if (recvT.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow); }
+        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow); }
+//        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.SafeMutSourceFlow); }
+        return EnumSet.of(MIR.MCall.CallVariant.Standard);
+      }
+    }
+    if (recvIT.name().equals(Magic.FlowK) && e.name().name().equals("#")) {
+      var flowElem = e.ts().getFirst();
+      if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow); }
+    }
+
+    return EnumSet.of(MIR.MCall.CallVariant.Standard);
   }
 
   private static class CaptureCollector implements CollectorVisitor<Set<String>> {

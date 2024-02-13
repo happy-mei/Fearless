@@ -28,7 +28,7 @@ public sealed interface MIR {
   }
   record Package(String name, Map<Id.DecId, TypeDef> defs) implements MIR {}
   record TypeDef(Id.DecId name, List<Id.GX<T>> gens, List<Id.IT<T>> its, List<MIR.Meth> meths, Optional<CreateObj> singletonInstance) implements MIR {}
-  record ObjLit(String uniqueName, String selfName, TypeDef def, List<MIR.Meth> allMeths, SortedSet<MIR.X> captures, boolean canSingleton) implements MIR {
+  record ObjLit(String uniqueName, String selfName, TypeDef def, List<MIR.Meth> allMeths, SortedSet<MIR.X> captures) implements MIR {
     public ObjLit {
       assert def.meths().size() == allMeths.size();
       assert allMeths.stream().noneMatch(Meth::isAbs);
@@ -39,6 +39,17 @@ public sealed interface MIR {
     public CreateObj {
       assert localMeths.stream().noneMatch(Meth::isAbs);
       captures = Collections.unmodifiableSortedSet(captures);
+    }
+
+    public CreateObj(Mdf mdf, Id.DecId def) {
+      this(
+        new T(mdf, new Id.IT<T>(def, Id.GX.standardNames(def.gen()).stream().map(gx->new T(Mdf.mdf, gx)).toList())),
+        astFull.E.X.freshName(),
+        def,
+        List.of(),
+        Collections.unmodifiableSortedSet(createCapturesSet()),
+        true
+      );
     }
 
     @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {

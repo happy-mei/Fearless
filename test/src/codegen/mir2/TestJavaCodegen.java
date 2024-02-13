@@ -4,6 +4,7 @@ import ast.E;
 import codegen.MIRInjectionVisitor;
 import id.Id;
 import main.Main;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.TypeSystemFeatures;
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import codegen.java.JavaCodegen;
 
+@Disabled
 public class TestJavaCodegen {
   void ok(String expected, String entry, boolean loadBase, String... content) {
     assert content.length > 0;

@@ -67,7 +67,7 @@ public interface MagicImpls<R> {
   default MagicTrait<MIR.E,R> tryCatch(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> pipelineParallelSinkK(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> objCap(Id.DecId magicTrait, MIR.E e) { return null; }
-  default MagicTrait<MIR.E,R> variantCall(MIR.E e) { return null; }
+  default MagicCallable<MIR.E,R> variantCall(MIR.E e) { return null; }
   ast.Program p();
 
 }
