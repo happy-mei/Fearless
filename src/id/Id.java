@@ -25,7 +25,8 @@ public class Id {
     assert name!=null && !name.isEmpty();
     // Compiler-inserted names are valid
     if (name.endsWith("$")) { return true; }
-    return new parser.Parser(Parser.dummy,name).parseGX();      
+    if (name.equals("interface{}")) { return true; }
+    return new parser.Parser(Parser.dummy,name).parseGX();
   }
   public record DecId(String name, int gen){
     public DecId{ assert validDecName(name) && gen>=0 : name; }

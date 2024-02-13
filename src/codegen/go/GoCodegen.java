@@ -24,7 +24,7 @@ public class GoCodegen {
 
     return new GoProgram(
       """
-        package main
+        package fProgram
         import "%s"
         func main() {
           println(%s.%s{}.Φ35Φ())
@@ -35,6 +35,9 @@ public class GoCodegen {
   }
 
   public static String pkgPath(String pkg) {
-    return pkg.replace(".", "/");
+    return "fProgram/userCode/"+getPkgName(pkg);
+  }
+  static String getPkgName(String pkg) {
+    return pkg.replace(".", "φ"+(int)'.');
   }
 }
