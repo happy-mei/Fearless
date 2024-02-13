@@ -2,7 +2,6 @@ package codegen.go;
 
 import ast.T;
 import codegen.MIR;
-import codegen.java.JavaCodegen;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
