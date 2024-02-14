@@ -19,6 +19,7 @@ Block[R]:{
   mut .assert(p: mut Condition, failMsg: Str): mut Block[R] ->
     Assert!(p#, failMsg, mut AssertCont[mut Block[R]]{this}),
   mut .var[X](x: mut ReturnStmt[X], cont: mut VarContinuation[X, R]): R -> cont#(x#, this),
+  mut .varIso[X:iso](x: X, cont: mut VarContinuation[mut X, R]): R -> cont#(x, this),
 //  mut .ref[X:imm,mut](x: mut ReturnStmt[X], cont: mut VarContinuation[mut Ref[X], R]): R -> cont#(Ref#(x#), this),
 //  mut .isoPod[X:iso](x: mut ReturnStmt[X], cont: mut VarContinuation[mut IsoPod[X], R]): R -> cont#(IsoPod#(x#), this),
   mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond
