@@ -129,7 +129,6 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     return new MIR.Meth(
       m.name(),
       m.sig().mdf(),
-      m.sig().gens(),
       xs,
       m.sig().ret(),
       m.body().map(e->e.accept(this, pkg, new Ctx(g)))

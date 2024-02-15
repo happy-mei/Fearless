@@ -56,10 +56,10 @@ public sealed interface MIR {
       return v.visitCreateObj(this, checkMagic);
     }
   }
-  record Meth(Id.MethName name, Mdf mdf, List<Id.GX<T>> gens, List<MIR.X> xs, T rt, Optional<E> body) implements MIR {
+  record Meth(Id.MethName name, Mdf mdf, List<MIR.X> xs, T rt, Optional<E> body) implements MIR {
     public boolean isAbs() { return body.isEmpty(); }
     public Meth withUnreachable() {
-      return new Meth(name, mdf, gens, xs, rt, Optional.of(new MIR.Unreachable(rt)));
+      return new Meth(name, mdf, xs, rt, Optional.of(new MIR.Unreachable(rt)));
     }
   }
   record X(String name, T t) implements E {
