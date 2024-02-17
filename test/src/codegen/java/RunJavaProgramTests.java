@@ -11,6 +11,7 @@ import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
+import utils.Bug;
 import utils.Err;
 import utils.RunJava;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
@@ -72,12 +73,13 @@ public class RunJavaProgramTests {
     inferred.typeCheck(resolvedCalls);
     var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();
-    try {
-      var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
-      Assertions.fail("Did not fail. Got: "+res);
-    } catch (CompileError e) {
-      Err.strCmp(expectedErr, e.toString());
-    }
+    throw Bug.todo();
+//    try {
+//      var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
+//      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
+//      Assertions.fail("Did not fail. Got: "+res);
+//    } catch (CompileError e) {
+//      Err.strCmp(expectedErr, e.toString());
+//    }
   }
 }

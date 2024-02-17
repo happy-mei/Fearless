@@ -44,8 +44,8 @@ public interface MagicImpls<R> {
   }
 
   default boolean isMagic(Id.DecId magicDec, MIR.E e) {
-    var it = e.t().itOrThrow();
-    return isMagic(magicDec, it.name());
+    var t = (MIR.MT.Usual) e.t();
+    return isMagic(magicDec, t.it().name());
   }
   default boolean isMagic(Id.DecId magicDec, Id.DecId freshName) {
     if (freshName.gen() != magicDec.gen()) { return false; }

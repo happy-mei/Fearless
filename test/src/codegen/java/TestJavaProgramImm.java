@@ -2,7 +2,6 @@ package codegen.java;
 
 import ast.E;
 import codegen.MIRInjectionVisitor;
-import failure.CompileError;
 import id.Id;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
@@ -12,7 +11,7 @@ import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
-import utils.Err;
+import utils.Bug;
 import utils.RunJava;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
@@ -70,13 +69,14 @@ public class TestJavaProgramImm {
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
-    try {
-      var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
-      Assertions.fail("Did not fail. Got: "+res);
-    } catch (CompileError e) {
-      Err.strCmp(expectedErr, e.toString());
-    }
+    throw Bug.todo();
+//    try {
+//      var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
+//      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
+//      Assertions.fail("Did not fail. Got: "+res);
+//    } catch (CompileError e) {
+//      Err.strCmp(expectedErr, e.toString());
+//    }
   }
 
   @Test void emptyProgram() { ok(new Res("", "", 0), "test.Test", """

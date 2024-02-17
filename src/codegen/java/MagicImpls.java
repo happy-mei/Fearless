@@ -18,9 +18,10 @@ import static magic.MagicImpls.getLiteral;
 
 public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicImpls<String> {
   @Override public MagicTrait<MIR.E,String> int_(MIR.E e) {
-    var name = e.t().itOrThrow();
+    var t = ((MIR.MT.Usual)e.t());
+    var name = t.it();
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return name; }
+      @Override public MIR.MT.Usual name() { return t; }
 
       @Override public String instantiate() {
         var lit = getLiteral(p, name.name());
@@ -32,10 +33,10 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
           throw Fail.invalidNum(lit.orElse(name.toString()), "Int");
         }
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         return Optional.ofNullable(_call(m, args));
       }
-      private String _call(Id.MethName m, List<MIR.E> args) {
+      private String _call(Id.MethName m, List<? extends MIR.E> args) {
         // _NumInstance
         if (m.equals(new Id.MethName(".uint", 0))) {
           return instantiate(); // only different at type level
@@ -79,12 +80,12 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   }
 
   @Override public MagicTrait<MIR.E,String> uint(MIR.E e) {
-    var name = e.t().itOrThrow();
+    var name = (MIR.MT.Usual) e.t();
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return name; }
+      @Override public MIR.MT.Usual name() { return name; }
 
       @Override public String instantiate() {
-        var lit = getLiteral(p, name.name());
+        var lit = getLiteral(p, name.it().name());
         try {
           return lit
             .map(lambdaName->Long.parseUnsignedLong(lambdaName.substring(0, lambdaName.length()-1).replace("_", ""), 10)+"L")
@@ -93,10 +94,10 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
           throw Fail.invalidNum(lit.orElse(name.toString()), "UInt");
         }
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         return Optional.of(_call(m, args));
       }
-      private String _call(Id.MethName m, List<MIR.E> args) {
+      private String _call(Id.MethName m, List<? extends MIR.E> args) {
         // _NumInstance
         if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate(); // only different at type level
@@ -139,12 +140,12 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
     };
   }
   @Override public MagicTrait<MIR.E,String> float_(MIR.E e) {
-    var name = e.t().itOrThrow();
+    var name = (MIR.MT.Usual) e.t();
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return name; }
+      @Override public MIR.MT.Usual name() { return name; }
 
       @Override public String instantiate() {
-        var lit = getLiteral(p, name.name());
+        var lit = getLiteral(p, name.it().name());
         try {
           return lit
             .map(lambdaName->Double.parseDouble(lambdaName.replace("_", ""))+"d")
@@ -153,10 +154,10 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
           throw Fail.invalidNum(lit.orElse(name.toString()), "Float");
         }
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         return Optional.of(_call(m, args));
       }
-      private String _call(Id.MethName m, List<MIR.E> args) {
+      private String _call(Id.MethName m, List<? extends MIR.E> args) {
         if (m.equals(new Id.MethName(".int", 0)) || m.equals(new Id.MethName(".uint", 0))) {
           return "("+"(long)"+instantiate()+")";
         }
@@ -194,14 +195,14 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   }
 
   @Override public MagicTrait<MIR.E,String> str(MIR.E e) {
-    var name = e.t().itOrThrow();
+    var name = (MIR.MT.Usual) e.t();
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return name; }
+      @Override public MIR.MT.Usual name() { return name; }
       @Override public String instantiate() {
-        var lit = getLiteral(p, name.name());
+        var lit = getLiteral(p, name.it().name());
         return lit.orElseGet(()->"((String)"+e.accept(gen, true)+")");
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName(".size", 0))) { return Optional.of(instantiate()+".length()"); }
         if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of("("+instantiate()+".isEmpty()?base.True_0._$self:base.False_0._$self)"); }
         if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate()); }
@@ -220,15 +221,15 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
   @Override public MagicTrait<MIR.E,String> debug(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() {
-        return e.t().itOrThrow();
+      @Override public MIR.MT.Usual name() {
+        return (MIR.MT.Usual) e.t();
       }
 
       @Override public String instantiate() {
         return e.accept(gen, false);
       }
 
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName("#", 1))) {
           var x = args.getFirst();
           return Optional.of(String.format("""
@@ -261,15 +262,15 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
   @Override public MagicTrait<MIR.E,String> refK(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() {
-        return e.t().itOrThrow();
+      @Override public MIR.MT.Usual name() {
+        return (MIR.MT.Usual) e.t();
       }
 
       @Override public String instantiate() {
         return e.accept(gen, false);
       }
 
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
           var x = args.getFirst();
           return Optional.of(String.format("""
@@ -288,22 +289,22 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
   @Override public MagicTrait<MIR.E,String> isoPodK(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() {
-        return e.t().itOrThrow();
+      @Override public MIR.MT.Usual name() {
+        return (MIR.MT.Usual) e.t();
       }
 
       @Override public String instantiate() {
         return e.accept(gen, false);
       }
 
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
           var x = args.getFirst();
           return Optional.of(String.format("""
             new base$46caps.$95MagicIsoPodImpl_1(){
               private Object x = %s;
               private boolean isAlive = true;
-              
+
               public base.Bool_0 isAlive$readOnly$() { return this.isAlive ? base.True_0._$self : base.False_0._$self; }
               public Object peek$readOnly$(Object f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$mut$(this.x) : ((base$46caps.IsoViewer_2)f).empty$mut$(); }
               public Object $33$mut$() {
@@ -325,8 +326,8 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
   @Override public MagicTrait<MIR.E,String> assert_(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() {
-        return e.t().itOrThrow();
+      @Override public MIR.MT.Usual name() {
+        return (MIR.MT.Usual) e.t();
       }
 
       @Override public String instantiate() {
@@ -334,7 +335,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
       }
 
       @Override
-      public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName("._fail", 0))) {
           return Optional.of("""
             (switch (1) { default -> {
@@ -360,12 +361,12 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
   @Override public MagicTrait<MIR.E,String> errorK(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+      @Override public MIR.MT.Usual name() { return (MIR.MT.Usual) e.t(); }
 
       @Override public String instantiate() {
         return e.accept(gen, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName("!", 1))) {
           return Optional.of("""
             (switch (1) {
@@ -381,12 +382,12 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
   @Override public MagicTrait<MIR.E,String> tryCatch(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+      @Override public MIR.MT.Usual name() { return (MIR.MT.Usual) e.t(); }
 
       @Override public String instantiate() {
         return e.accept(gen, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName("#", 1))) {
           return Optional.of("""
             (switch (1) { default -> {
@@ -413,12 +414,12 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
   @Override public MagicTrait<MIR.E,String> pipelineParallelSinkK(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+      @Override public MIR.MT.Usual name() { return (MIR.MT.Usual) e.t(); }
 
       @Override public String instantiate() {
         return "new rt.PipelineParallelFlow.WrappedSinkK()";
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         return Optional.empty();
       }
     };
@@ -427,11 +428,11 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   @Override public MagicTrait<MIR.E,String> objCap(Id.DecId target, MIR.E e) {
     var _this = this;
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+      @Override public MIR.MT.Usual name() { return (MIR.MT.Usual) e.t(); }
       @Override public String instantiate() {
         return e.accept(gen, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         ObjCapImpl impl = null;
         if (target == Magic.RootCap) { impl = (ctx, m1, args1) -> null; }
         if (target == Magic.FEnv) { impl = env(); }
@@ -498,14 +499,14 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   @Override public MagicCallable<MIR.E,String> variantCall(MIR.E e) {
     return (m, args, variants)->{
       var call = (MIR.MCall) e;
-      var recvT = call.recv().t().itOrThrow();
+      var recvT = ((MIR.MT.Usual) call.recv().t()).it();
       if (isMagic(Magic.FlowK, call.recv())) {
         if (m.name().equals("#")) {
           var listKCall = new MIR.MCall(
             new MIR.CreateObj(Mdf.imm, Magic.ListK),
             new Id.MethName(Optional.of(Mdf.imm), "#", call.args().size()),
             call.args(),
-            new T(Mdf.mut, new Id.IT<>(Magic.FList, List.of(new T(Mdf.mdf, Id.GX.fresh())))),
+            new MIR.MT.Plain(Mdf.mut, Magic.FList),
             Mdf.imm,
             EnumSet.of(MIR.MCall.CallVariant.Standard)
           );
@@ -548,13 +549,13 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
                   call.recv(),
                   new Id.MethName(call.name().mdf(), "._flow"+call.mdf(), 0),
                   List.of(),
-                  new T(Mdf.mut, new Id.IT<>(Magic.FlowOp, call.t().itOrThrow().ts())),
+                  new MIR.MT.Plain(Mdf.mut, Magic.FlowOp),
                   call.mdf(),
                   EnumSet.of(MIR.MCall.CallVariant.Standard)
                 ),
                 new MIR.CreateObj(Mdf.imm, new Id.DecId("base.Opt", 1)) // TODO: list size
               ),
-              new T(Mdf.mut, new Id.IT<>("base.flows.Flow", call.t().itOrThrow().ts())),
+              MIR.MT.of(new T(Mdf.mut, new Id.IT<>("base.flows.Flow", ((MIR.MT.Usual)call.t()).it().ts()))),
               Mdf.imm,
               variants
             ), true);
@@ -573,13 +574,13 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
                 new MIR.CreateObj(Mdf.imm, Magic.SafeFlowSource),
                 new Id.MethName(Optional.of(Mdf.imm), m.name()+"'", 1),
                 args,
-                new T(Mdf.mut, new Id.IT<>(Magic.FlowOp, call.t().itOrThrow().ts())),
+                new MIR.MT.Plain(Mdf.mut, Magic.FlowOp),
                 Mdf.imm,
                 EnumSet.of(MIR.MCall.CallVariant.Standard)
               ),
               new MIR.CreateObj(Mdf.imm, new Id.DecId("base.Opt", 1)) // TODO: list size
             ),
-            new T(Mdf.mut, new Id.IT<>("base.flows.Flow", call.t().itOrThrow().ts())),
+            new MIR.MT.Plain(Mdf.mut, new Id.DecId("base.flows.Flow", 1)),
             Mdf.imm,
             variants
           ), true);
@@ -598,12 +599,12 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
   @Override public MagicTrait<MIR.E,String> abort(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+      @Override public MIR.MT.Usual name() { return (MIR.MT.Usual) e.t(); }
 
       @Override public String instantiate() {
         return e.accept(gen, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName("!", 0))) {
           return Optional.of("""
             (switch (1) { default -> {
@@ -620,12 +621,12 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
   @Override public MagicTrait<MIR.E,String> magicAbort(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Id.IT<T> name() { return e.t().itOrThrow(); }
+      @Override public MIR.MT.Usual name() { return (MIR.MT.Usual) e.t(); }
 
       @Override public String instantiate() {
         return e.accept(gen, false);
       }
-      @Override public Optional<String> call(Id.MethName m, List<MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants) {
         if (m.equals(new Id.MethName("!", 0))) {
           return Optional.of("""
             (switch (1) { default -> {

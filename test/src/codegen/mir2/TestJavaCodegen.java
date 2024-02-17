@@ -2,6 +2,7 @@ package codegen.mir2;
 
 import ast.E;
 import codegen.MIRInjectionVisitor;
+import codegen.java.JavaCodegen;
 import id.Id;
 import main.Main;
 import org.junit.jupiter.api.Disabled;
@@ -20,7 +21,6 @@ import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import codegen.java.JavaCodegen;
 
 @Disabled
 public class TestJavaCodegen {
