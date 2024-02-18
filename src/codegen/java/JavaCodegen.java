@@ -154,13 +154,14 @@ public class JavaCodegen implements MIRVisitor<String> {
     return """
       public %s %s(%s) {
         var %s = this;
-        return %s.%s(%s);
+        return (%s) %s.%s(%s);
       }
       """.formatted(
         getRetName(meth.sig().rt()),
         name(getName(meth.sig().mdf(), meth.sig().name())),
         args,
         name(selfName),
+        getRetName(meth.sig().rt()),
         getName(meth.origin()),
         getName(meth.fName()),
         funArgs);
@@ -178,9 +179,9 @@ public class JavaCodegen implements MIRVisitor<String> {
 
     return """
       static %s %s(%s) {
-        return %s;
+        return (%s) %s;
       }
-      """.formatted(getRetName(fun.ret()), name, args, body);
+      """.formatted(getRetName(fun.ret()), name, args, getRetName(fun.ret()), body);
   }
 
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {

@@ -147,7 +147,10 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     return new MIR.Sig(
       cm.name(),
       cm.mdf(),
-      Streams.zip(cm.xs(), cm.sig().ts()).map((x,t)->new MIR.X(x, MIR.MT.of(t))).toList(),
+      Streams.zip(cm.xs(), cm.sig().ts()).map((x,t)->{
+        if (x.equals("_")) { x = astFull.E.X.freshName(); }
+        return new MIR.X(x, MIR.MT.of(t));
+      }).toList(),
       MIR.MT.of(cm.ret())
     );
   }
