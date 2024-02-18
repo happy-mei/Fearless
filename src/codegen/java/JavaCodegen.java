@@ -15,9 +15,6 @@ import java.util.stream.Stream;
 
 import static magic.MagicImpls.getLiteral;
 
-// TODO: We need to invoke the static meth on the origin dec if that's where we store it, which means we need that info at the call-site
-// TODO: We need to include captures of inherited meths
-
 public class JavaCodegen implements MIRVisitor<String> {
   protected MIR.Program p;
   private MagicImpls magic;
@@ -107,7 +104,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     final var selfTypeName = shortName;
 
     var its = def.impls().stream()
-      .map(MIR.MT.Plain::name)
+      .map(MIR.MT.Plain::id)
       .filter(dec->getLiteral(p.p(), dec).isEmpty())
       .map(JavaCodegen::getName)
       .filter(tr->!tr.equals(longName))
@@ -137,6 +134,7 @@ public class JavaCodegen implements MIRVisitor<String> {
 
   public String visitSig(MIR.Sig sig) {
     var args = sig.xs().stream()
+      .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))) // required for overriding meths with generic args
       .map(this::typePair)
       .collect(Collectors.joining(","));
 
@@ -144,10 +142,13 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitMeth(MIR.Meth meth, String selfName, boolean checkMagic) {
-    var args = meth.sig().xs().stream()
+    var sigArgs = meth.sig().xs().stream()
+      .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))) // required for overriding meths with generic args
+      .toList();
+    var args = sigArgs.stream()
       .map(this::typePair)
       .collect(Collectors.joining(","));
-    var funArgs = Stream.concat(meth.sig().xs().stream(), meth.captures().stream())
+    var funArgs = Stream.concat(sigArgs.stream(), meth.captures().stream())
       .map(x->visitX(x, checkMagic))
       .collect(Collectors.joining(","));
     return """
@@ -167,7 +168,10 @@ public class JavaCodegen implements MIRVisitor<String> {
 
   public String visitFun(MIR.Fun fun) {
     var name = getName(fun.name());
-    var args = Stream.concat(fun.args().stream(), fun.captures().stream())
+    var args = Stream.concat(
+      fun.args().stream().map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))),
+      fun.captures().stream()
+    )
       .map(this::typePair)
       .collect(Collectors.joining(", "));
     var body = fun.body().accept(this, true);
@@ -185,7 +189,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       return magicImpl.get().instantiate();
     }
 
-    var id = createObj.concreteT().name();
+    var id = createObj.concreteT().id();
     if (createObj.canSingleton() && p.of(id).singletonInstance().isPresent()) {
       return getName(id)+"._$self";
     }
@@ -193,7 +197,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     return visitCreateObjNoSingleton(createObj, checkMagic);
   }
   public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic) {
-    var name = createObj.concreteT().name();
+    var name = createObj.concreteT().id();
     var recordName = getSafeName(name)+"Impl";
     if (!this.freshRecords.containsKey(name)) {
       var args = createObj.captures().stream().map(this::typePair).collect(Collectors.joining(", "));
@@ -222,13 +226,13 @@ public class JavaCodegen implements MIRVisitor<String> {
 
   @Override public String visitMCall(MIR.MCall call, boolean checkMagic) {
     if (checkMagic && !call.variant().contains(MIR.MCall.CallVariant.Standard)) {
-      var impl = magic.variantCall(call).call(call.name(), call.args(), call.variant());
+      var impl = magic.variantCall(call).call(call.name(), call.args(), call.variant(), call.t());
       if (impl.isPresent()) { return impl.get(); }
     }
 
     var magicImpl = magic.get(call.recv());
     if (checkMagic && magicImpl.isPresent()) {
-      var impl = magicImpl.get().call(call.name(), call.args(), call.variant());
+      var impl = magicImpl.get().call(call.name(), call.args(), call.variant(), call.t());
       if (impl.isPresent()) { return impl.get(); }
     }
 
@@ -410,24 +414,24 @@ public class JavaCodegen implements MIRVisitor<String> {
       .map(this::getName)
       .toList();
   }
-  private String getName(MIR.FName name) {
+  public String getName(MIR.FName name) {
     return getSafeName(name.d())+"$"+name(getName(name.mdf(), name.m()));
   }
-  private String getName(MIR.MT t) {
+  public String getName(MIR.MT t) {
     return switch (t) {
       case MIR.MT.Any ignored -> "Object";
-      case MIR.MT.Plain plain -> getName(plain.name(), false);
+      case MIR.MT.Plain plain -> getName(plain.id(), false);
       case MIR.MT.Usual usual -> getName(usual.it().name(), false);
     };
   }
-  private String getRetName(MIR.MT t) {
+  public String getRetName(MIR.MT t) {
     return switch (t) {
       case MIR.MT.Any ignored -> "Object";
-      case MIR.MT.Plain plain -> getName(plain.name(), true);
+      case MIR.MT.Plain plain -> getName(plain.id(), true);
       case MIR.MT.Usual usual -> getName(usual.it().name(), true);
     };
   }
-  private String getName(Id.DecId name, boolean isRet) {
+  public String getName(Id.DecId name, boolean isRet) {
     return switch (name.name()) {
       case "base.Int", "base.UInt" -> isRet ? "Long" : "long";
       case "base.Float" -> isRet ? "Double" : "double";

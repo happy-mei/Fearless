@@ -196,7 +196,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     var tst = this.resolvedCalls.get(e);
     var args = e.es().stream().map(ei->ei.accept(this, pkg, ctx)).toList();
     var topLevel = Stream.concat(Stream.of(recvRes), args.stream())
-      .collect(()->TopLevelRes.EMPTY, TopLevelRes::mergeAsTopLevel, TopLevelRes::merge);
+      .reduce(TopLevelRes.EMPTY, TopLevelRes::mergeAsTopLevel, TopLevelRes::merge);
 
     var call = new MIR.MCall(
       recvRes.e(),

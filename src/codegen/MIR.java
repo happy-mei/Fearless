@@ -97,6 +97,8 @@ public sealed interface MIR {
   }
 
   sealed interface MT {
+    Mdf mdf();
+    Optional<Id.DecId> name();
     static MT of(T t) {
       return t.match(gx->new Any(t.mdf()), it->new Usual(t));
     }
@@ -110,8 +112,15 @@ public sealed interface MIR {
       public Id.IT<T> it() {
         return (Id.IT<T>) t.rt();
       }
+      public Optional<Id.DecId> name() { return Optional.of(it().name()); }
     }
-    record Plain(Mdf mdf, Id.DecId name) implements MT {}
-    record Any(Mdf mdf) implements MT {}
+    record Plain(Mdf mdf, Id.DecId id) implements MT {
+      public Optional<Id.DecId> name() { return Optional.of(id); }
+    }
+    record Any(Mdf mdf) implements MT {
+      @Override public Optional<Id.DecId> name() {
+        return Optional.empty();
+      }
+    }
   }
 }
