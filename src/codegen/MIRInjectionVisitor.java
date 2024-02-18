@@ -188,7 +188,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 //    );
   }
   public MIR.Meth visitMeth(CM.CoreCM cm, MIR.Sig sig, SortedSet<MIR.X> captures) {
-    return new MIR.Meth(visitSig(cm), captures, new MIR.FName(cm));
+    return new MIR.Meth(cm.c().name(), sig, captures, new MIR.FName(cm));
   }
 
   @Override public Res<MIR.MCall> visitMCall(String pkg, E.MCall e, Ctx ctx) {
@@ -254,7 +254,8 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 
     var dec = p.of(e.name().id());
     var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
-    var rawMs = p.meths(XBs.empty().addBounds(dec.gxs(), dec.bounds()), recvMdf, e, 0);
+    var bounds = XBs.empty().addBounds(dec.gxs(), dec.bounds());
+    var rawMs = p.meths(bounds, recvMdf, e, 0);
 
     var sigs = rawMs.stream()
       .map(cm->this.visitSig((CM.CoreCM)cm))
@@ -263,9 +264,19 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     var allMs = Streams.zip(rawMs, sigs)
       .filter((cm,sig)->!cm.isAbs())
       .map((cm,sig)->{
+        var isLocal = p.isSubType(bounds, new T(Mdf.mdf, cm.c()), new T(Mdf.mdf, dec.toIT()));
+        final Ctx relativeCtx;
+        if (!isLocal) {
+          var remoteXXs = new HashMap<String, MIR.X>();
+          remoteXXs.put(p.of(cm.c().name()).lambda().selfName(), selfCtx.xXs().get(e.selfName()));
+          relativeCtx = new Ctx(remoteXXs);
+        } else {
+          relativeCtx = selfCtx;
+        }
+
         var cc = new CaptureCollector();
         cc.visitMeth(((CM.CoreCM)cm).m());
-        var captures = cc.res().stream().map(x->visitX(x, selfCtx)).collect(Collectors.toCollection(MIR::createCapturesSet));
+        var captures = cc.res().stream().map(x->visitX(x, relativeCtx)).collect(Collectors.toCollection(MIR::createCapturesSet));
         return this.visitMeth((CM.CoreCM)cm, sig, Collections.unmodifiableSortedSet(captures));
       })
       .toList();

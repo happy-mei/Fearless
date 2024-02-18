@@ -58,13 +58,7 @@ public sealed interface MIR {
       return v.visitCreateObj(this, checkMagic);
     }
   }
-  record Meth(Sig sig, SortedSet<X> captures, FName fName) implements MIR {
-//    public boolean isAbs() { return body.isEmpty(); }
-    public Meth withUnreachable() {
-      throw Bug.todo();
-//      return new Meth(sig, xs, rt, Optional.of(new MIR.Unreachable(rt)));
-    }
-  }
+  record Meth(Id.DecId origin, Sig sig, SortedSet<X> captures, FName fName) implements MIR {}
   record Sig(Id.MethName name, Mdf mdf, List<X> xs, MT rt) implements MIR {}
   record X(String name, MT t) implements E {
 //    public X withCapturer(Optional<Capturer> capturer) {

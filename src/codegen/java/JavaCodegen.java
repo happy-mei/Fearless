@@ -143,7 +143,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     return getRetName(sig.rt())+" "+name(getName(sig.mdf(), sig.name()))+"("+args+");";
   }
 
-  public String visitMeth(Id.DecId origin, MIR.Meth meth, String selfName, boolean checkMagic) {
+  public String visitMeth(MIR.Meth meth, String selfName, boolean checkMagic) {
     var args = meth.sig().xs().stream()
       .map(this::typePair)
       .collect(Collectors.joining(","));
@@ -160,7 +160,7 @@ public class JavaCodegen implements MIRVisitor<String> {
         name(getName(meth.sig().mdf(), meth.sig().name())),
         args,
         name(selfName),
-        getName(origin),
+        getName(meth.origin()),
         getName(meth.fName()),
         funArgs);
   }
@@ -198,7 +198,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     if (!this.freshRecords.containsKey(name)) {
       var args = createObj.captures().stream().map(this::typePair).collect(Collectors.joining(", "));
       var ms = createObj.meths().stream()
-        .map(m->this.visitMeth(name, m, createObj.selfName(), checkMagic))
+        .map(m->this.visitMeth(m, createObj.selfName(), checkMagic))
         .collect(Collectors.joining("\n"));
       this.freshRecords.put(name, """
         record %s(%s) implements %s {
