@@ -61,19 +61,11 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
   }
 
   public MIR.Program visitProgram() {
-    var meaningfulInlineDecs = p.inlineDs().values().stream()
-      .filter(d->getTransparentSource(d).isEmpty());
-//    Map<Id.DecId, MIR.TypeDef> defs = Mapper.of(res->Stream.concat(p.ds().values().stream(), meaningfulInlineDecs)
-//      .map(d->visitTopDec(d.name().pkg(), d))
-//      .forEach(typeDef->res.put(typeDef.name(), typeDef)));
-//
     var pkgs = p.ds().values().stream()
       .collect(Collectors.groupingBy(t->t.name().pkg()))
       .entrySet().stream()
       .map(kv->visitPackage(kv.getKey(), kv.getValue()))
       .toList();
-//      .map(kv->new MIR.Package(kv.getKey(), Mapper.of(res->kv.getValue().forEach(def->res.put(def.name(), def)))))
-//      .toList();
 
     return new MIR.Program(p.shallowClone(), pkgs);
   }
@@ -87,60 +79,12 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
         allTDefs.addAll(res.defs());
         allFuns.addAll(res.funs());
       });
-//    return new TopLevelRes(Collections.unmodifiableList(allTDefs), Collections.unmodifiableList(allFuns));
     return new MIR.Package(pkg, Mapper.of(defs->allTDefs.forEach(def->defs.put(def.name(), def))), Collections.unmodifiableList(allFuns));
   }
 
   public TopLevelRes visitTopDec(String pkg, T.Dec dec) {
     var res = this.visitLambda(pkg, dec.lambda(), Ctx.EMPTY);
     return new TopLevelRes(res.defs(), res.funs());
-
-//    var rawMs = p.meths(XBs.empty().addBounds(dec.gxs(), dec.bounds()), Mdf.recMdf, dec.toIT(), 0);
-//
-//    var canSingleton = rawMs.stream().noneMatch(CM::isAbs);
-//    if (canSingleton) {
-//      var capturesVisitor = new CaptureCollector();
-//      capturesVisitor.visitLambda(dec.lambda());
-//      canSingleton = capturesVisitor.res().isEmpty();
-//    }
-//
-//    var selfX = new MIR.X(dec.lambda().selfName(), MIR.MT.of(new T(Mdf.mdf, dec.toIT())));
-//    var xXs = new HashMap<String, MIR.X>();
-//    xXs.put(dec.lambda().selfName(), selfX);
-//    var selfCtx = new Ctx(xXs);
-//
-//    var ms = rawMs.stream()
-//        .map(cm->{
-//          var isLocal = cm.c().equals(dec.toIT());
-//          var ctx = selfCtx;
-//          if (!isLocal) {
-//            // if this method is inherited, the self-name will always be "this", so we need to map that here.
-//            var remoteXXs = new HashMap<>(xXs);
-//            var remoteX = new MIR.X(dec.lambda().selfName(), MIR.MT.of(new T(Mdf.mdf, cm.c())));
-//            remoteXXs.put("this", remoteX);
-//            ctx = new Ctx(remoteXXs);
-//          }
-//          final var finalCtx = ctx;
-//
-//          var m = ((CM.CoreCM)cm).m();
-//          try {
-//            return visitMeth(pkg, m, finalCtx);
-//          } catch (NotInGammaException e) {
-//            // if a capture failed, this method is not relevant at the top level anyway, skip it
-//            return visitMeth(pkg, m.withBody(Optional.empty()), finalCtx).withUnreachable();
-//          }
-//        })
-//      .toList();
-//
-//    var singletonInstance = visitLambda(pkg, dec.lambda(), new Ctx());
-//
-//    return new MIR.TypeDef(
-//      dec.name(),
-//      dec.gxs(),
-//      dec.lambda().its(),
-//      ms,
-//      canSingleton ? Optional.of(singletonInstance) : Optional.empty()
-//    );
   }
 
   public MIR.Sig visitSig(CM.CoreCM cm) {
@@ -171,24 +115,6 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     var bodyRes = rawBody.accept(this, pkg, mCtx);
     var fun = new MIR.Fun(new MIR.FName(cm), sig.xs(), captures, sig.rt(), bodyRes.e());
     return new TopLevelRes(bodyRes.defs(), Push.of(bodyRes.funs(), fun));
-
-//    var g = new HashMap<>(ctx.xXs);
-//    List<MIR.X> xs = Streams.zip(m.xs(), m.sig().ts())
-//      .map((x,t)->{
-//        if (x.equals("_")) { x = astFull.E.X.freshName(); }
-//        var fullX = new MIR.X(x, MIR.MT.of(t));
-//        g.put(x, fullX);
-//        return fullX;
-//      })
-//      .toList();
-//
-//    return new MIR.Meth(
-//      m.name(),
-//      m.sig().mdf(),
-//      xs,
-//      m.sig().ret(),
-//      m.body().map(e->e.accept(this, pkg, new Ctx(g)))
-//    );
   }
   public MIR.Meth visitMeth(CM.CoreCM cm, MIR.Sig sig, SortedSet<MIR.X> captures) {
     return new MIR.Meth(cm.c().name(), sig, captures, new MIR.FName(cm));
@@ -211,15 +137,6 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     );
 
     return new Res<>(call, topLevel.defs(), topLevel.funs());
-
-//    return new MIR.MCall(
-//      recv,
-//      e.name().withMdf(Optional.of(tst.original().mdf())),
-//      e.es().stream().map(ei->ei.accept(this, pkg, ctx)).toList(),
-//      tst.t(),
-//      tst.original().mdf(),
-//      getVariants(recv, e)
-//    );
   }
 
   @Override public Res<MIR.X> visitX(E.X e, Ctx ctx) {
@@ -298,37 +215,6 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     var typeDef = new MIR.TypeDef(e.name().id(), impls, sigs, canSingleton ? Optional.of(k) : Optional.empty());
 
     return new Res<>(k, Push.of(freshRes.defs(), typeDef), freshRes.funs());
-//    var allCaptures = captureVisitor.res.stream()
-//      .map(x->{
-//        try {
-//          return Optional.of(visitX(x, ctx));
-//        } catch (NotInGammaException err) {
-//          return Optional.<MIR.X>empty();
-//        }
-//      })
-//      .filter(Optional::isPresent)
-//      .map(Optional::get)
-//      .filter(x->!x.name().equals(e.selfName()))
-//      .peek(x->xXs.put(x.name(), x))
-//      .collect(Collectors.toCollection(MIR::createCapturesSet));
-//    var selfCtx = new Ctx(Collections.unmodifiableMap(xXs));
-//
-//
-//    var localMs = e.meths().stream()
-//      .filter(m->!m.isAbs())
-//      .map(m->{
-//        try {
-//          return visitMeth(pkg, m, selfCtx);
-//        } catch (NotInGammaException err) {
-//          return visitMeth(pkg, m.withBody(Optional.empty()), selfCtx).withUnreachable();
-//        }
-//      })
-//      .toList();
-//
-//    var canSingleton = localMs.isEmpty();
-//    var res = new MIR.CreateObj(new T(e.mdf(), e.name().toIT()), e.selfName(), e.name().id(), localMs, allCaptures, canSingleton);
-//    objKs.add(res);
-//    return res;
   }
 
   private Optional<T.Dec> getTransparentSource(T.Dec d) {
