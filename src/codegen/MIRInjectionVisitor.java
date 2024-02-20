@@ -19,6 +19,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static program.Program.filterByMdf;
+
 public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, MIRInjectionVisitor.Res<? extends MIR.E>> {
   private Program p;
   private final IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls;
@@ -80,6 +82,19 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     return new TopLevelRes(res.defs(), res.funs());
   }
 
+  /*
+  #Define constr[R L]^G = MK
+  L = D[Xs]:D1[_]...Dn[_]{'x M1...Mk}
+  Mmeths = {method[DM] |  DM in meths(D[Xs]) so that callable(R,DM.M) }
+  MK = new {x:R D [captures(L, G)] Mmeths} //note: FV(L) does not include the x
+   */
+//  public MIR.CreateObj constr(String pkg, E.Lambda e, Ctx ctx) {
+//    var ms =  p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
+//      .filter(cm->filterByMdf(e.mdf(), cm.mdf()))
+//      .map(cm->visitMeth(cm, cm.sig(), ))
+//      .toList();
+//  }
+
   public MIR.Sig visitSig(CM.CoreCM cm) {
     return new MIR.Sig(
       cm.name(),
@@ -104,7 +119,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 
     var rawBody = cm.m().body().orElseThrow();
     var bodyRes = rawBody.accept(this, pkg, mCtx);
-    var fun = new MIR.Fun(new MIR.FName(cm), sig.xs(), captures, sig.rt(), bodyRes.e());
+    var fun = new MIR.Fun(new MIR.FName(cm), Stream.concat(sig.xs().stream(), captures.stream()).toList(), sig.rt(), bodyRes.e());
     return new TopLevelRes(bodyRes.defs(), Push.of(bodyRes.funs(), fun));
   }
   public MIR.Meth visitMeth(CM.CoreCM cm, MIR.Sig sig, SortedSet<MIR.X> captures) {

@@ -30,7 +30,7 @@ public sealed interface MIR {
   }
   record Package(String name, Map<Id.DecId, TypeDef> defs, List<Fun> funs) implements MIR {}
   record TypeDef(Id.DecId name, List<MT.Plain> impls, List<Sig> sigs, Optional<CreateObj> singletonInstance) implements MIR {}
-  record Fun(FName name, List<X> args, SortedSet<X> captures, MT ret, E body) implements MIR {}
+  record Fun(FName name, List<X> args, MT ret, E body) implements MIR {}
   record CreateObj(MT t, String selfName, List<Meth> meths, SortedSet<X> captures, boolean canSingleton) implements E {
     public CreateObj {
       captures = Collections.unmodifiableSortedSet(captures);

@@ -169,10 +169,7 @@ public class JavaCodegen implements MIRVisitor<String> {
 
   public String visitFun(MIR.Fun fun) {
     var name = getName(fun.name());
-    var args = Stream.concat(
-      fun.args().stream().map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))),
-      fun.captures().stream()
-    )
+    var args = fun.args().stream().map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf())))
       .map(this::typePair)
       .collect(Collectors.joining(", "));
     var body = fun.body().accept(this, true);
