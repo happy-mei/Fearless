@@ -6,11 +6,9 @@ import ast.T;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
-import magic.MagicImpls;
 import program.CM;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
-import utils.Bug;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
@@ -18,11 +16,6 @@ import visitors.CollectorVisitor;
 import visitors.CtxVisitor;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -101,9 +94,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 
   public TopLevelRes visitMeth(String pkg, CM.CoreCM cm, Ctx ctx) {
     var sig = visitSig(cm);
-    var cc = new CaptureCollector();
-    cc.visitMeth(cm.m());
-    var captures = cc.res().stream().map(x->visitX(x, ctx)).collect(Collectors.toCollection(MIR::createCapturesSet));
+    var captures = captures(cm.m(), ctx);
 
     var mCtx = new Ctx(Mapper.of(xXs->{
       xXs.putAll(ctx.xXs());
@@ -162,13 +153,9 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     var selfX = new MIR.X(e.selfName(), selfT);
     var xXs = new HashMap<>(ctx.xXs);
     xXs.put(e.selfName(), selfX);
-//
-    var captureVisitor = new CaptureCollector();
-    captureVisitor.visitLambda(e);
-    var allCaptures = captureVisitor.res.stream()
-      .map(x->visitX(x, ctx))
-      .peek(x->xXs.put(x.name(), x))
-      .collect(Collectors.toCollection(MIR::createCapturesSet));
+
+    var allCaptures = captures(e, ctx);
+    allCaptures.forEach(x->xXs.put(x.name(), x));
 
     var selfCtx = new Ctx(xXs);
 
@@ -194,10 +181,8 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
           relativeCtx = selfCtx;
         }
 
-        var cc = new CaptureCollector();
-        cc.visitMeth(((CM.CoreCM)cm).m());
-        var captures = cc.res().stream().map(x->visitX(x, relativeCtx)).collect(Collectors.toCollection(MIR::createCapturesSet));
-        return this.visitMeth((CM.CoreCM)cm, sig, Collections.unmodifiableSortedSet(captures));
+        var captures = captures(((CM.CoreCM)cm).m(), relativeCtx);
+        return this.visitMeth((CM.CoreCM)cm, sig, captures);
       })
       .toList();
 
@@ -253,7 +238,24 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     return EnumSet.of(MIR.MCall.CallVariant.Standard);
   }
 
-  private static class CaptureCollector implements CollectorVisitor<Set<String>> {
+  private SortedSet<MIR.X> captures(E.Lambda e, Ctx ctx) {
+    var fv = new FreeVariables();
+    fv.visitLambda(e);
+    return Collections.unmodifiableSortedSet(fv.res().stream().
+      map(x->visitX(x, ctx))
+      .collect(Collectors.toCollection(MIR::createCapturesSet)
+      ));
+  }
+  private SortedSet<MIR.X> captures(E.Meth m, Ctx ctx) {
+    var fv = new FreeVariables();
+    fv.visitMeth(m);
+    return Collections.unmodifiableSortedSet(fv.res().stream().
+      map(x->visitX(x, ctx))
+      .collect(Collectors.toCollection(MIR::createCapturesSet)
+      ));
+  }
+
+  private static class FreeVariables implements CollectorVisitor<Set<String>> {
     private final Set<String> res = new HashSet<>();
     private Set<String> fresh = new HashSet<>();
     public Set<String> res() { return this.res; }
