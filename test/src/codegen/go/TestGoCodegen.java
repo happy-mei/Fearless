@@ -69,6 +69,45 @@ entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
     package test
     """, Base.minimalBase);}
 
+  @Test void capturing() { ok("""
+    """, "fake.Fake", false, """
+    package test
+    FPerson: { #(age: Num): mut Person -> mut Person: {
+      read .age: Num -> age,
+      }}
+    Usage: {
+      #: Num -> FPerson#FortyTwo.age,
+      }
+    Num: {}
+    FortyTwo: Num
+    """, Base.minimalBase);}
+
+  @Test void capturingDeep() { ok("""
+    """, "fake.Fake", false, """
+    package test
+    Person: {
+      read .age: Num,
+      mut .wrap: mut Person -> {'self
+       .age -> this.age.plus1,
+       .wrap -> {'topLevelWrapped
+         .age -> self.age.plus1,
+         }
+       },
+      }
+    FPerson: { #(age: Num): mut Person -> {'original
+      .age -> age,
+      }}
+    Usage: {
+      #: Num -> FPerson#FortyTwo.wrap.age,
+      }
+    Num: {
+      .plus1: Num,
+      }
+    FortyTwo: Num{ .plus1 -> FortyThree }
+    FortyThree: Num{ .plus1 -> FortyFour }
+    FortyFour: Num{ .plus1 -> this.plus1 }
+    """, Base.minimalBase);}
+
   @Test void simpleProgram() { ok("""
     package main
     type testΦBar_0 interface {

@@ -4,7 +4,6 @@ import codegen.MIR;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
-import utils.Bug;
 import utils.Streams;
 import visitors.MIRVisitor;
 
@@ -19,12 +18,8 @@ import static magic.MagicImpls.getLiteral;
 public class JavaCodegen implements MIRVisitor<String> {
   protected MIR.Program p;
   private MagicImpls magic;
-
-//  private record ObjLitK(MIR.ObjLit lit, boolean checkMagic) {}
-//  private HashSet<ObjLitK> objLitsInPkg = new HashSet<>();
-//  private HashSet<String> codeGenedObjLits = new HashSet<>();
   private HashMap<Id.DecId, String> freshRecords;
-  private MIR.Package pkg;
+  private String pkg;
 
   public JavaCodegen(MIR.Program p) {
     this.p = p;
@@ -80,7 +75,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitPackage(MIR.Package pkg) {
-    this.pkg = pkg;
+    this.pkg = pkg.name();
     this.freshRecords = new HashMap<>();
     Map<Id.DecId, List<MIR.Fun>> funs = pkg.funs().stream().collect(Collectors.groupingBy(f->f.name().d()));
     var typeDefs = pkg.defs().values().stream()
@@ -153,8 +148,9 @@ public class JavaCodegen implements MIRVisitor<String> {
     var funArgs = Streams.of(sigArgs.stream().map(MIR.X::name).map(this::name), selfArg, meth.captures().stream().map(this::name).map(x->"this."+x))
       .collect(Collectors.joining(","));
 
-    var expr = "return (%s) %s.%s(%s);".formatted(getRetName(meth.sig().rt()), getName(meth.origin()), getName(meth.fName()), funArgs);
-    var realExpr = isReachable ? expr : "throw new Error(\"Unreachable code\");";
+    var realExpr = isReachable
+      ? "return (%s) %s.%s(%s);".formatted(getRetName(meth.sig().rt()), getName(meth.origin()), getName(meth.fName()), funArgs)
+      : "throw new Error(\"Unreachable code\");";
 
     return """
       public %s %s(%s) {
@@ -196,7 +192,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
   public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic) {
     var name = createObj.concreteT().id();
-    var recordName = getSafeName(name)+"Impl";
+    var recordName = getSafeName(name)+"Impl"; // todo: should this include a pkg. in front?
     if (!this.freshRecords.containsKey(name)) {
       var args = createObj.captures().stream().map(this::typePair).collect(Collectors.joining(", "));
       var ms = createObj.meths().stream()
@@ -294,6 +290,13 @@ public class JavaCodegen implements MIRVisitor<String> {
     return pkg.replace(".", "$"+(int)'.');
   }
   protected static String getName(Id.DecId d) {
+    var pkg = getPkgName(d.pkg());
+    return pkg+"."+getBase(d.shortName())+"_"+d.gen();
+  }
+  protected String getRelativeName(Id.DecId d) {
+    if (d.pkg().equals(this.pkg)) {
+      return getBase(d.shortName());
+    }
     var pkg = getPkgName(d.pkg());
     return pkg+"."+getBase(d.shortName())+"_"+d.gen();
   }

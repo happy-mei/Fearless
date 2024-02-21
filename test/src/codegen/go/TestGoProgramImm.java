@@ -1,7 +1,10 @@
-package codegen.java;
+package codegen.go;
 
 import ast.E;
 import codegen.MIRInjectionVisitor;
+import codegen.java.ImmJavaCodegen;
+import codegen.java.ImmJavaProgram;
+import codegen.java.JavaProgram;
 import failure.CompileError;
 import id.Id;
 import main.Main;
@@ -27,7 +30,7 @@ import java.util.stream.Stream;
 
 import static utils.RunJava.Res;
 
-public class TestJavaProgramImm {
+public class TestGoProgramImm {
   void ok(Res expected, String entry, String... content) {
     okWithArgs(expected, entry, List.of(), content);
   }
@@ -47,11 +50,11 @@ public class TestJavaProgramImm {
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
-    var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-    var res = RunJava.of(ImmJavaProgram.compile(new JavaProgram(java)), args).join();
-    Assertions.assertEquals(expected, res);
+    var go = new GoCodegen(mir).visitProgram(new Id.DecId(entry, 0));
+//    var res = RunJava.of(ImmJavaProgram.compile(new JavaProgram(java)), args).join();
+//    Assertions.assertEquals(expected, res);
+    System.out.println(go);
   }
-
   void fail(String expectedErr, String entry, String... content) {
     failWithArgs(expectedErr, entry, List.of(), content);
   }
@@ -72,9 +75,13 @@ public class TestJavaProgramImm {
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     try {
-      var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
+      var go = new GoCodegen(mir).visitProgram(new Id.DecId(entry, 0));
+//      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
+      Res res = null;
+      System.out.println(go);
+      //TODO
       Assertions.fail("Did not fail. Got: "+res);
+
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
     }

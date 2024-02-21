@@ -20,14 +20,17 @@ public class GoCodegen {
       .toList();
 
     var entryPkg = entry.pkg();
-    var entryImpl = "Test_0Impl"; // TODO
+    var entryImpl = "Φ"+PackageCodegen.getBase(entry.shortName())+"Impl";
 
     return new GoProgram(
       """
-        package fProgram
-        import "%s"
+        package main
+        import (
+          "fmt"
+          "%s"
+        )
         func main() {
-          println(%s.%s{}.Φ35Φ())
+          fmt.Println(%s.%s{}.Φ35_1_immφ(nil))
         }
         """.formatted(pkgPath(entryPkg), entryPkg, entryImpl),
       pkgs
