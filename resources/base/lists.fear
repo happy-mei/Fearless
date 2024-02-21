@@ -102,46 +102,44 @@ LList[E]:Collection,Sealed{
 
   mut .list: mut List[E] -> List.fromLList[E](this),
 
-  mut .pushFront(e: E): mut LList[E] -> _LListCons.mut(this, e),
-  read .pushFront(e: read E): read LList[read E] -> _LListCons.read(this, e),
-//  mut .pushFront(e: E): mut LList[E] -> Let#{
-//    .var -> this.size + 1u,
-//    .in(len) -> {'l
-//      mut  .match[R](m: mut LListMatch[E, R]): R -> m.elem(e, this),
-//      read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
-//      imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
-//
-//      mut  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
-//      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#[read E]e, .else -> this.get[](i - 1u) },
-//      imm  .get(i: UInt): iso Opt[imm E] -> (i  == 0u) ? { .then -> Opt#[imm E]e, .else -> this.get[](i - 1u) },
-//
-//      mut  .head: mut Opt[E] -> Opt#e,
-//      read .head: mut Opt[read E] -> Opt#[read E]e,
-//      imm  .head: iso Opt[imm E] -> Opt#[imm E]e,
-//
-//      .tail -> this,
-//      ++(l1) -> (this ++ l1).pushFront[](e),
-//      .isEmpty -> False,
-//      .size -> len,
-//      }
-//    },
-//  read .pushFront(e: read E): read LList[read E] -> Let#{
-//    .var -> this.size + 1u,
-//    .in(len) -> {'l
-//      read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
-//      imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
-//
-//      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
-//      imm  .get(i: UInt): iso Opt[imm E] -> (i == 0u) ? { .then -> Opt#[imm E]e, .else -> this.get[](i - 1u) },
-//
-//      read .head: mut Opt[read E] -> Opt#e,
-//      imm  .head: iso Opt[imm E] -> Opt#[imm E]e,
-//      .tail -> this,
-//      ++(l1) -> (this ++ l1).pushFront[](e),
-//      .isEmpty -> False,
-//      .size -> len,
-//      }
-//    },
+  mut .pushFront(e: E): mut LList[E] -> Let#{
+    .var -> this.size + 1u,
+    .in(len) -> {'l
+      mut  .match[R](m: mut LListMatch[E, R]): R -> m.elem(e, this),
+      read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
+      imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
+
+      mut  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
+      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#[read E]e, .else -> this.get[](i - 1u) },
+      imm  .get(i: UInt): iso Opt[imm E] -> (i  == 0u) ? { .then -> Opt#[imm E]e, .else -> this.get[](i - 1u) },
+
+      mut  .head: mut Opt[E] -> Opt#e,
+      read .head: mut Opt[read E] -> Opt#[read E]e,
+      imm  .head: iso Opt[imm E] -> Opt#[imm E]e,
+
+      .tail -> this,
+      ++(l1) -> (this ++ l1).pushFront[](e),
+      .isEmpty -> False,
+      .size -> len,
+      }
+    },
+  read .pushFront(e: read E): read LList[read E] -> Let#{
+    .var -> this.size + 1u,
+    .in(len) -> {'l
+      read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
+      imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
+
+      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
+      imm  .get(i: UInt): iso Opt[imm E] -> (i == 0u) ? { .then -> Opt#[imm E]e, .else -> this.get[](i - 1u) },
+
+      read .head: mut Opt[read E] -> Opt#e,
+      imm  .head: iso Opt[imm E] -> Opt#[imm E]e,
+      .tail -> this,
+      ++(l1) -> (this ++ l1).pushFront[](e),
+      .isEmpty -> False,
+      .size -> len,
+      }
+    },
 //  imm  .pushFront(e: E): LList[E] -> Let#{
 //      .var -> this.size + 1u,
 //      .in(len) -> {'l
@@ -168,46 +166,6 @@ LListMatch[E,R]:{
 LListMatchRead[E,R]:{
   mut .elem(head: read E, tail: read LList[read E]): R,
   mut .empty: R,
-  }
-_LListCons: {
-  .mut[E](tail: mut LList[E], e: E): mut LList[E] -> Let#{
-    .var -> tail.size + 1u,
-    .in(len) -> {'l
-       mut  .match[R](m: mut LListMatch[E, R]): R -> m.elem(e, tail),
-       read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, tail),
-       imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, tail),
-
-       mut  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opt#e, .else -> tail.get[](i - 1u) },
-       read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#[read E]e, .else -> tail.get[](i - 1u) },
-       imm  .get(i: UInt): iso Opt[imm E] -> (i  == 0u) ? { .then -> Opt#[imm E]e, .else -> tail.get[](i - 1u) },
-
-       mut  .head: mut Opt[E] -> Opt#e,
-       read .head: mut Opt[read E] -> Opt#[read E]e,
-       imm  .head: iso Opt[imm E] -> Opt#[imm E]e,
-
-       .tail -> tail,
-       ++(l1) -> (tail ++ l1).pushFront[](e),
-       .isEmpty -> False,
-       .size -> len,
-       }
-    },
-  .read[E](tail: read LList[E], e: read E): read LList[read E] -> Let#{
-    .var -> tail.size + 1u,
-    .in(len) -> {'l
-       read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, tail),
-       imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, tail),
-
-       read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#e, .else -> tail.get[](i - 1u) },
-       imm  .get(i: UInt): iso Opt[imm E] -> (i == 0u) ? { .then -> Opt#[imm E]e, .else -> tail.get[](i - 1u) },
-
-       read .head: mut Opt[read E] -> Opt#e,
-       imm  .head: iso Opt[imm E] -> Opt#[imm E]e,
-       .tail -> tail,
-       ++(l1) -> (tail ++ l1).pushFront[](e),
-       .isEmpty -> False,
-       .size -> len,
-       }
-    }
   }
 //_LListParIter:{
 //  #[E](l: LList[imm E]): base.iter.par.Iter[imm E] -> {

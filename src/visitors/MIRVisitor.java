@@ -11,5 +11,4 @@ public interface MIRVisitor<R> {
   R visitCreateObj(MIR.CreateObj createObj, boolean checkMagic);
   R visitX(MIR.X x, boolean checkMagic);
   R visitMCall(MIR.MCall call, boolean checkMagic);
-  R visitUnreachable(MIR.Unreachable unreachable);
 }

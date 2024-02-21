@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public interface E extends HasPos {
   E accept(CloneVisitor v);
   <R>  R accept(Visitor<R> v);
-  <Ctx, R>  R accept(CtxVisitor<Ctx,R> v, String pkg, Ctx ctx);
+  <Ctx, R>  R accept(CtxVisitor<Ctx,R> v, Ctx ctx);
 
   // TODO: we could cache lambda's type checking like so:
   // - map from a pair (or a composed string of the two) of a string of gamma AND an expected T to a Res
@@ -54,8 +54,8 @@ public interface E extends HasPos {
     @Override public <R> R accept(Visitor<R> v) {
       return v.visitLambda(this);
     }
-    @Override public <Ctx,R> R accept(CtxVisitor<Ctx,R> v, String pkg, Ctx ctx) {
-      return v.visitLambda(pkg, this, ctx);
+    @Override public <Ctx,R> R accept(CtxVisitor<Ctx,R> v, Ctx ctx) {
+      return v.visitLambda(this, ctx);
     }
     public ast.E.Lambda withMeths(List<Meth> meths) {
       return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
@@ -64,6 +64,9 @@ public interface E extends HasPos {
       return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
     }
     public ast.E.Lambda withSelfName(String selfName) {
+      return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
+    }
+    public ast.E.Lambda withMdf(Mdf mdf) {
       return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
     }
     @Override
@@ -77,8 +80,8 @@ public interface E extends HasPos {
     public MCall{ assert receiver!=null && name.num()==es.size() && ts!=null; }
     @Override public E accept(CloneVisitor v){return v.visitMCall(this);}
     @Override public <R> R accept(Visitor<R> v){return v.visitMCall(this);}
-    @Override public <Ctx,R> R accept(CtxVisitor<Ctx,R> v, String pkg, Ctx ctx) {
-      return v.visitMCall(pkg, this, ctx);
+    @Override public <Ctx,R> R accept(CtxVisitor<Ctx,R> v, Ctx ctx) {
+      return v.visitMCall(this, ctx);
     }
     @Override public String toString() {
       return String.format("%s %s%s(%s)", receiver, name, ts, es);
@@ -93,7 +96,7 @@ public interface E extends HasPos {
     }
     @Override public E accept(CloneVisitor v){ return v.visitX(this); }
     @Override public <R> R accept(Visitor<R> v){ return v.visitX(this); }
-    @Override public <Ctx,R> R accept(CtxVisitor<Ctx,R> v, String pkg, Ctx ctx) {
+    @Override public <Ctx,R> R accept(CtxVisitor<Ctx,R> v, Ctx ctx) {
       return v.visitX(this, ctx);
     }
     @Override public String toString(){ return name; }

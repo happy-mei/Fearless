@@ -5,6 +5,7 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import utils.Bug;
+import utils.Streams;
 import visitors.MIRVisitor;
 
 import java.util.HashMap;
@@ -141,30 +142,29 @@ public class JavaCodegen implements MIRVisitor<String> {
     return getRetName(sig.rt())+" "+name(getName(sig.mdf(), sig.name()))+"("+args+");";
   }
 
-  public String visitMeth(MIR.Meth meth, String selfName, boolean checkMagic) {
+  public String visitMeth(MIR.Meth meth, boolean isReachable) {
     var sigArgs = meth.sig().xs().stream()
       .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))) // required for overriding meths with generic args
       .toList();
     var args = sigArgs.stream()
       .map(this::typePair)
       .collect(Collectors.joining(","));
-    var funArgs = Stream.concat(sigArgs.stream(), meth.captures().stream())
-      .map(x->visitX(x, checkMagic))
+    var selfArg = meth.capturesSelf() ? Stream.of("this") : Stream.<String>of();
+    var funArgs = Streams.of(sigArgs.stream().map(MIR.X::name).map(this::name), selfArg, meth.captures().stream().map(this::name).map(x->"this."+x))
       .collect(Collectors.joining(","));
+
+    var expr = "return (%s) %s.%s(%s);".formatted(getRetName(meth.sig().rt()), getName(meth.origin()), getName(meth.fName()), funArgs);
+    var realExpr = isReachable ? expr : "throw new Error(\"Unreachable code\");";
+
     return """
       public %s %s(%s) {
-        var %s = this;
-        return (%s) %s.%s(%s);
+        %s
       }
       """.formatted(
         getRetName(meth.sig().rt()),
         name(getName(meth.sig().mdf(), meth.sig().name())),
         args,
-        name(selfName),
-        getRetName(meth.sig().rt()),
-        getName(meth.origin()),
-        getName(meth.fName()),
-        funArgs);
+        realExpr);
   }
 
   public String visitFun(MIR.Fun fun) {
@@ -188,7 +188,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     }
 
     var id = createObj.concreteT().id();
-    if (createObj.canSingleton() && p.of(id).singletonInstance().isPresent()) {
+    if (p.of(id).singletonInstance().isPresent()) {
       return getName(id)+"._$self";
     }
 
@@ -200,13 +200,17 @@ public class JavaCodegen implements MIRVisitor<String> {
     if (!this.freshRecords.containsKey(name)) {
       var args = createObj.captures().stream().map(this::typePair).collect(Collectors.joining(", "));
       var ms = createObj.meths().stream()
-        .map(m->this.visitMeth(m, createObj.selfName(), checkMagic))
+        .map(m->this.visitMeth(m, true))
+        .collect(Collectors.joining("\n"));
+      var unreachableMs = createObj.unreachableMs().stream()
+        .map(m->this.visitMeth(m, false))
         .collect(Collectors.joining("\n"));
       this.freshRecords.put(name, """
         record %s(%s) implements %s {
           %s
+          %s
         }
-        """.formatted(recordName, args, getName(name), ms));
+        """.formatted(recordName, args, getName(name), ms, unreachableMs));
     }
 
     var captures = createObj.captures().stream().map(x->visitX(x, checkMagic)).collect(Collectors.joining(", "));
@@ -242,165 +246,6 @@ public class JavaCodegen implements MIRVisitor<String> {
     return start+args+"))";
   }
 
-  @Override public String visitUnreachable(MIR.Unreachable unreachable) {
-    throw Bug.todo();
-  }
-
-  /*
-  public String visitPackage(MIR.Package pkg) {
-    this.pkg = pkg;
-    this.objLitsInPkg = new HashSet<>();
-    this.codeGenedObjLits = new HashSet<>();
-    var typeDefs = pkg.defs().values().stream()
-      .map(def->visitTypeDef(pkg.name(), def))
-      .collect(Collectors.joining("\n"));
-    // TODO: move obj lits to the package level (package of the caller, not of type def).
-//    var objLits = p.literals().values().stream()
-//      .filter(lit->lit.)
-//      .map(def->visitTypeDef(pkg.name(), def))
-//      .collect(Collectors.joining("\n"));
-    return "interface "+getPkgName(pkg.name())+"{" + typeDefs + "\n}";
-  }
-  public String visitTypeDef(String pkg, MIR.TypeDef def) {
-    if (pkg.equals("base") && def.name().name().endsWith("Instance")) {
-      return "";
-    }
-    if (getLiteral(p.p(), def.name()).isPresent()) {
-      return "";
-    }
-
-    var longName = getName(def.name());
-    var shortName = longName;
-    if (def.name().pkg().equals(pkg)) { shortName = getBase(def.name().shortName())+"_"+def.name().gen(); }
-    final var selfTypeName = shortName;
-
-    var its = def.its().stream()
-      .map(Id.IT::name)
-      .filter(dec->getLiteral(p.p(), dec).isEmpty())
-      .map(JavaCodegen::getName)
-      .filter(tr->!tr.equals(longName))
-      .distinct()
-      .collect(Collectors.joining(","));
-    var impls = its.isEmpty() ? "" : " extends "+its;
-    var start = "interface "+shortName+impls+"{\n";
-    var singletonGet = def.singletonInstance()
-      .map(objK->{
-        var instance = visitCreateObjNoSingleton(objK, true);
-        return """
-          %s _$self = %s;
-          """.formatted(selfTypeName, instance);
-      })
-      .orElse("");
-
-    var res = new StringBuilder(start + singletonGet + def.meths().stream()
-      .map(m->visitMeth(m, "this", true, true))
-      .collect(Collectors.joining("\n")) + "}");
-
-    while (true) {
-      var litsInPkg = new ArrayList<>(objLitsInPkg);
-      if (objLitsInPkg.stream().map(litK->litK.lit.uniqueName()).allMatch(codeGenedObjLits::contains)) {
-        break;
-      }
-//      objLitsInPkg.clear();
-      litsInPkg.stream().filter(litK->!codeGenedObjLits.contains(litK.lit.uniqueName())).forEach(litK->{
-        codeGenedObjLits.add(litK.lit.uniqueName());
-        visitObjLit(litK.lit, litK.checkMagic).ifPresent(res::append);
-      });
-    }
-    return res.toString();
-  }
-  public String visitMeth(MIR.Meth meth, String selfName, boolean signatureOnly, boolean checkMagic) {
-    var selfVar = "var "+name(selfName)+" = this;\n";
-    var args = meth.xs().stream()
-      .map(x->new MIR.X(x.name(), new T(x.t().mdf(), new Id.GX<>("Object")))) // required for overriding meths with generic args
-      .map(this::typePair)
-      .collect(Collectors.joining(","));
-
-    var visibility = signatureOnly ? "" : "public ";
-    signatureOnly = signatureOnly || meth.isAbs();
-    var start = visibility+getRetName(meth.rt())+" "+name(getName(meth.mdf(), meth.name()))+"("+args+")";
-    if (signatureOnly) { return start + ";"; }
-    return start + "{\n"+selfVar+"return (("+getName(meth.rt())+")("+meth.body().get().accept(this, checkMagic)+"));\n}";
-  }
-  public Optional<String> visitObjLit(MIR.ObjLit lit, boolean checkMagic) {
-    var def = lit.def();
-    var shortName = getName(def.name());
-    if (def.name().pkg().equals(this.pkg.name())) { shortName = getBase(def.name().shortName())+"_"+def.name().gen(); }
-
-    var ms = lit.allMeths().stream()
-      .map(m->visitMeth(m, lit.selfName(), false, checkMagic))
-      .collect(Collectors.joining("\n"));
-
-    var capts = lit.captures().stream().map(this::typePair).collect(Collectors.joining(", "));
-
-    var res = """
-      record %s(%s) implements %s {
-        %s
-      }
-      """.formatted(name(lit.uniqueName()), capts, shortName, ms);
-    return Optional.of(res);
-  }
-
-  @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
-    var magicImpl = magic.get(createObj);
-    if (checkMagic && magicImpl.isPresent()) {
-      return magicImpl.get().instantiate();
-    }
-
-    if (createObj.canSingleton() && p.of(createObj.def()).singletonInstance().isPresent()) {
-      return getName(createObj.def())+"._$self";
-    }
-    return visitCreateObjNoSingleton(createObj, checkMagic);
-  }
-  public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic) {
-    var lit = p.literals().get(createObj);
-    assert Objects.nonNull(lit);
-    this.objLitsInPkg.add(new ObjLitK(lit, checkMagic));
-
-    var captures = createObj.captures().stream()
-      .map(x->visitX(x, checkMagic))
-      .collect(Collectors.joining(", "));
-
-    return "new %s(%s)".formatted(name(lit.uniqueName()), captures);
-  }
-
-  @Override public String visitX(MIR.X x, boolean checkMagic) {
-//    if (x.capturer().isPresent()) {
-//      return "(("+getName(x.t())+")(this."+name(x.name())+"))";
-//    }
-    return "(("+getName(x.t())+")("+name(x.name())+"))";
-  }
-
-  @Override public String visitMCall(MIR.MCall call, boolean checkMagic) {
-    if (checkMagic && !call.variant().contains(MIR.MCall.CallVariant.Standard)) {
-      var impl = magic.variantCall(call).call(call.name(), call.args(), call.variant());
-      if (impl.isPresent()) { return impl.get(); }
-    }
-
-    var magicImpl = magic.get(call.recv());
-    if (checkMagic && magicImpl.isPresent()) {
-      var impl = magicImpl.get().call(call.name(), call.args(), call.variant());
-      if (impl.isPresent()) { return impl.get(); }
-    }
-
-//    var magicRecv = !(call.recv() instanceof MIR.CreateObj) || magicImpl.isPresent();
-    var start = "(("+getRetName(call.t())+")"+call.recv().accept(this, checkMagic)+"."+name(getName(call.mdf(), call.name()))+"(";
-    var args = call.args().stream()
-      .map(a->a.accept(this, checkMagic))
-      .collect(Collectors.joining(","));
-    return start+args+"))";
-  }
-
-  @Override public String visitUnreachable(MIR.Unreachable unreachable) {
-    return """
-      (switch (1) {
-        default -> throw new RuntimeException("Unreachable code");
-        case 2 -> (Object)null;
-        })
-      """;
-  }
-  */
-
   private String typePair(MIR.X x) {
     return getName(x.t())+" "+name(x.name());
   }
@@ -413,7 +258,8 @@ public class JavaCodegen implements MIRVisitor<String> {
       .toList();
   }
   public String getName(MIR.FName name) {
-    return getSafeName(name.d())+"$"+name(getName(name.mdf(), name.m()));
+    var capturesSelf = name.capturesSelf() ? "selfCap" : "noSelfCap";
+    return getSafeName(name.d())+"$"+name(getName(name.mdf(), name.m()))+"$"+capturesSelf;
   }
   public String getName(MIR.MT t) {
     return switch (t) {

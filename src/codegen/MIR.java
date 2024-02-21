@@ -31,7 +31,7 @@ public sealed interface MIR {
   record Package(String name, Map<Id.DecId, TypeDef> defs, List<Fun> funs) implements MIR {}
   record TypeDef(Id.DecId name, List<MT.Plain> impls, List<Sig> sigs, Optional<CreateObj> singletonInstance) implements MIR {}
   record Fun(FName name, List<X> args, MT ret, E body) implements MIR {}
-  record CreateObj(MT t, String selfName, List<Meth> meths, SortedSet<X> captures, boolean canSingleton) implements E {
+  record CreateObj(MT t, String selfName, List<Meth> meths, List<Meth> unreachableMs, SortedSet<X> captures) implements E {
     public CreateObj {
       captures = Collections.unmodifiableSortedSet(captures);
     }
@@ -49,8 +49,8 @@ public sealed interface MIR {
         new MT.Usual(new T(mdf, new Id.IT<>(def, Id.GX.standardNames(def.gen()).stream().map(gx->new T(Mdf.mdf, gx)).toList()))),
         astFull.E.X.freshName(),
         List.of(),
-        Collections.unmodifiableSortedSet(createCapturesSet()),
-        true
+        List.of(),
+        Collections.unmodifiableSortedSet(createCapturesSet())
       );
     }
 
@@ -58,7 +58,7 @@ public sealed interface MIR {
       return v.visitCreateObj(this, checkMagic);
     }
   }
-  record Meth(Id.DecId origin, Sig sig, SortedSet<X> captures, FName fName) implements MIR {}
+  record Meth(Id.DecId origin, Sig sig, boolean capturesSelf, SortedSet<String> captures, FName fName) implements MIR {}
   record Sig(Id.MethName name, Mdf mdf, List<X> xs, MT rt) implements MIR {}
   record X(String name, MT t) implements E {
 //    public X withCapturer(Optional<Capturer> capturer) {
@@ -84,15 +84,10 @@ public sealed interface MIR {
       public boolean canParallelise() { return this == PipelineParallelFlow || this == DataParallelFlow; }
     }
   }
-  record Unreachable(MT t) implements E {
-    @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
-      return v.visitUnreachable(this);
-    }
-  }
 
-  record FName(Id.DecId d, Id.MethName m, Mdf mdf) {
-    public FName(CM cm) {
-      this(cm.c().name(), cm.name(), cm.mdf());
+  record FName(Id.DecId d, Id.MethName m, boolean capturesSelf, Mdf mdf) {
+    public FName(CM cm, boolean capturesSelf) {
+      this(cm.c().name(), cm.name(), capturesSelf, cm.mdf());
     }
   }
 

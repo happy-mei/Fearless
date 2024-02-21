@@ -9,6 +9,7 @@ import magic.Magic;
 import program.CM;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
+import utils.Box;
 import utils.Mapper;
 import utils.Push;
 import utils.Streams;
@@ -47,6 +48,9 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     public Ctx {
       xXs = Collections.unmodifiableMap(xXs);
     }
+    public Ctx withXXs(Map<String, MIR.X> xXs) {
+      return new Ctx(xXs);
+    }
     private Ctx() { this(Map.of()); }
   }
 
@@ -69,7 +73,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     var allTDefs = new ArrayList<MIR.TypeDef>(ds.size());
     var allFuns = new ArrayList<MIR.Fun>(ds.size());
     ds.stream()
-      .map(d->visitTopDec(pkg, d))
+      .map(d->visitTopDec(d.withLambda(d.lambda().withMdf(Mdf.mut)), Ctx.EMPTY))
       .forEach(res->{
         allTDefs.addAll(res.defs());
         allFuns.addAll(res.funs());
@@ -77,23 +81,58 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     return new MIR.Package(pkg, Mapper.of(defs->allTDefs.forEach(def->defs.put(def.name(), def))), Collections.unmodifiableList(allFuns));
   }
 
-  public TopLevelRes visitTopDec(String pkg, T.Dec dec) {
-    var res = this.visitLambda(pkg, dec.lambda(), Ctx.EMPTY);
-    return new TopLevelRes(res.defs(), res.funs());
+  public TopLevelRes visitTopDec(T.Dec dec, Ctx ctx) {
+    if (getTransparentSource(dec).isPresent()) {
+      return TopLevelRes.EMPTY;
+    }
+
+    var it = dec.toIT();
+    var freshTops = dec.lambda().meths().stream()
+      .filter(m->!m.isAbs())
+      .map(m->{
+        var g = new HashMap<>(ctx.xXs());
+        g.put(dec.lambda().selfName(), new MIR.X(dec.lambda().selfName(), MIR.MT.of(new T(m.sig().mdf(), it))));
+        var ctx_ = ctx.withXXs(g);
+        return function(new CM.CoreCM(it, m, m.sig()), ctx_);
+      })
+      .reduce(TopLevelRes::merge).orElse(TopLevelRes.EMPTY);
+
+    var allConcrete = new Box<>(true);
+    var sigs = p.meths(XBs.empty().addBounds(dec.gxs(), dec.bounds()), Mdf.recMdf, dec.lambda(), 0).stream()
+      .peek(cm->{
+        if (cm.isAbs()) { allConcrete.set(false); }
+      })
+      .map(cm->visitSig((CM.CoreCM)cm))
+      .toList();
+    var impls = dec.lambda().its().stream().map(it_->new MIR.MT.Plain(Mdf.mdf, it_.name())).toList();
+    var canSingleton = allConcrete.get() && freeVariables(dec.lambda()).isEmpty();
+    var singleton = canSingleton ? Optional.of(constr(dec.lambda(), ctx)) : Optional.<MIR.CreateObj>empty();
+    var tDef = new MIR.TypeDef(dec.name(), impls, sigs, singleton);
+
+    return freshTops.merge(new TopLevelRes(List.of(tDef), List.of()));
   }
 
-  /*
-  #Define constr[R L]^G = MK
-  L = D[Xs]:D1[_]...Dn[_]{'x M1...Mk}
-  Mmeths = {method[DM] |  DM in meths(D[Xs]) so that callable(R,DM.M) }
-  MK = new {x:R D [captures(L, G)] Mmeths} //note: FV(L) does not include the x
-   */
-//  public MIR.CreateObj constr(String pkg, E.Lambda e, Ctx ctx) {
-//    var ms =  p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
-//      .filter(cm->filterByMdf(e.mdf(), cm.mdf()))
-//      .map(cm->visitMeth(cm, cm.sig(), ))
-//      .toList();
-//  }
+  public MIR.CreateObj constr(E.Lambda e, Ctx ctx) {
+    var ms =  p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
+      .filter(cm->filterByMdf(e.mdf(), cm.mdf()))
+      .map(cm->(CM.CoreCM)cm)
+      .map(cm->visitMeth(cm, visitSig(cm)))
+      .toList();
+
+    var uncallableMs =  p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
+      .filter(cm->!filterByMdf(e.mdf(), cm.mdf()))
+      .map(cm->(CM.CoreCM)cm)
+      .map(cm->visitMeth(cm, visitSig(cm)))
+      .toList();
+
+    return new MIR.CreateObj(
+      new MIR.MT.Plain(e.mdf(), e.name().id()),
+      e.selfName(),
+      ms,
+      uncallableMs,
+      captures(e, ctx)
+    );
+  }
 
   public MIR.Sig visitSig(CM.CoreCM cm) {
     return new MIR.Sig(
@@ -107,7 +146,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     );
   }
 
-  public TopLevelRes visitMeth(String pkg, CM.CoreCM cm, Ctx ctx) {
+  public TopLevelRes function(CM.CoreCM cm, Ctx ctx) {
     var sig = visitSig(cm);
     var captures = captures(cm.m(), ctx);
 
@@ -117,19 +156,31 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       captures.forEach(x->xXs.put(x.name(), x));
     }));
 
+    var x = ctx.xXs().get(selfNameOf(cm.c().name()));
+    Stream<MIR.X> selfArg = captures.contains(x) ? Stream.of(x) : Stream.of();
+    var args = Streams.of(sig.xs().stream(), selfArg, captures.stream().filter(xi->!xi.name().equals(x.name()))).toList();
+
     var rawBody = cm.m().body().orElseThrow();
-    var bodyRes = rawBody.accept(this, pkg, mCtx);
-    var fun = new MIR.Fun(new MIR.FName(cm), Stream.concat(sig.xs().stream(), captures.stream()).toList(), sig.rt(), bodyRes.e());
+    var bodyRes = rawBody.accept(this, mCtx);
+    var fun = new MIR.Fun(new MIR.FName(cm, captures.contains(x)), args, sig.rt(), bodyRes.e());
     return new TopLevelRes(bodyRes.defs(), Push.of(bodyRes.funs(), fun));
   }
-  public MIR.Meth visitMeth(CM.CoreCM cm, MIR.Sig sig, SortedSet<MIR.X> captures) {
-    return new MIR.Meth(cm.c().name(), sig, captures, new MIR.FName(cm));
+  public MIR.Meth visitMeth(CM.CoreCM cm, MIR.Sig sig) {
+    assert !cm.isAbs();
+    var x = selfNameOf(cm.c().name());
+
+    var fv = new FreeVariables();
+    fv.visitMeth(cm.m());
+    var xs = fv.res();
+    var capturesSelf = xs.remove(x);
+
+    return new MIR.Meth(cm.c().name(), sig, capturesSelf, Collections.unmodifiableSortedSet(xs), new MIR.FName(cm, capturesSelf));
   }
 
-  @Override public Res<MIR.MCall> visitMCall(String pkg, E.MCall e, Ctx ctx) {
-    var recvRes = e.receiver().accept(this, pkg, ctx);
+  @Override public Res<MIR.MCall> visitMCall(E.MCall e, Ctx ctx) {
+    var recvRes = e.receiver().accept(this, ctx);
     var tst = this.resolvedCalls.get(e);
-    var args = e.es().stream().map(ei->ei.accept(this, pkg, ctx)).toList();
+    var args = e.es().stream().map(ei->ei.accept(this, ctx)).toList();
     var topLevel = Stream.concat(Stream.of(recvRes), args.stream())
       .reduce(TopLevelRes.EMPTY, TopLevelRes::mergeAsTopLevel, TopLevelRes::merge);
 
@@ -156,65 +207,65 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     return fullX;
   }
 
-  @Override public Res<MIR.CreateObj> visitLambda(String pkg, E.Lambda e, Ctx ctx) {
+  @Override public Res<MIR.CreateObj> visitLambda(E.Lambda e, Ctx ctx) {
+    var dec = p.of(e.name().id());
+    assert dec.lambda() == e;
     var transparentSource = getTransparentSource(p.of(e.name().id()));
     if (transparentSource.isPresent()) {
       var realDec = transparentSource.get();
-      var k = new MIR.CreateObj(MIR.MT.of(new T(e.mdf(), realDec.toIT())), realDec.lambda().selfName(), List.of(), MIR.createCapturesSet(), true);
+      var k = new MIR.CreateObj(
+        MIR.MT.of(new T(e.mdf(), realDec.toIT())),
+        realDec.lambda().selfName(),
+        List.of(),
+        List.of(),
+        MIR.createCapturesSet()
+      );
       return new Res<>(k, List.of(), List.of());
     }
 
-    var selfT = MIR.MT.of(new T(e.mdf(), e.name().toIT()));
-    var selfX = new MIR.X(e.selfName(), selfT);
-    var xXs = new HashMap<>(ctx.xXs);
-    xXs.put(e.selfName(), selfX);
+    var k = constr(e, ctx);
+    var topLevel = visitTopDec(dec, ctx);
+    return new Res<>(k, topLevel.defs(), topLevel.funs());
 
-    var allCaptures = captures(e, ctx);
-    allCaptures.forEach(x->xXs.put(x.name(), x));
-
-    var selfCtx = new Ctx(xXs);
-
-    var dec = p.of(e.name().id());
-    var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
-    var bounds = XBs.empty().addBounds(dec.gxs(), dec.bounds());
-    var rawMs = p.meths(bounds, recvMdf, e, 0);
-
-    var sigs = rawMs.stream()
-      .map(cm->this.visitSig((CM.CoreCM)cm))
-      .toList();
-
-    var allMs = Streams.zip(rawMs, sigs)
-      .filter((cm,sig)->!cm.isAbs())
-      .map((cm,sig)->{
-        var isLocal = p.isSubType(bounds, new T(Mdf.mdf, cm.c()), new T(Mdf.mdf, dec.toIT()));
-        final Ctx relativeCtx;
-        if (!isLocal) {
-          var remoteXXs = new HashMap<String, MIR.X>();
-          remoteXXs.put(p.of(cm.c().name()).lambda().selfName(), selfCtx.xXs().get(e.selfName()));
-          relativeCtx = new Ctx(remoteXXs);
-        } else {
-          relativeCtx = selfCtx;
-        }
-
-        var captures = captures(((CM.CoreCM)cm).m(), relativeCtx);
-        return this.visitMeth((CM.CoreCM)cm, sig, captures);
-      })
-      .toList();
-
-    var freshRes = e.meths().stream()
-      .filter(m->!m.isAbs())
-      .map(m->new CM.CoreCM(e.name().toIT(), m, m.sig()))
-      .map(cm->this.visitMeth(pkg, cm, selfCtx))
-      .reduce(TopLevelRes::merge)
-      .orElse(TopLevelRes.EMPTY);
-
-    var canSingleton = allCaptures.isEmpty() && allMs.size() == rawMs.size();
-    var k = new MIR.CreateObj(selfT, e.selfName(), allMs, allCaptures, canSingleton);
-
-    var impls = e.its().stream().map(it->new MIR.MT.Plain(Mdf.mdf, it.name())).toList();
-    var typeDef = new MIR.TypeDef(e.name().id(), impls, sigs, canSingleton ? Optional.of(k) : Optional.empty());
-
-    return new Res<>(k, Push.of(freshRes.defs(), typeDef), freshRes.funs());
+//
+//    var selfT = MIR.MT.of(new T(e.mdf(), e.name().toIT()));
+//    var selfX = new MIR.X(e.selfName(), selfT);
+//    var xXs = new HashMap<>(ctx.xXs);
+//    xXs.put(e.selfName(), selfX);
+//
+//    var allCaptures = captures(e, ctx);
+//    allCaptures.forEach(x->xXs.put(x.name(), x));
+//
+//    var selfCtx = new Ctx(xXs);
+//
+//    var dec = p.of(e.name().id());
+//    var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
+//    var bounds = XBs.empty().addBounds(dec.gxs(), dec.bounds());
+//    var rawMs = p.meths(bounds, recvMdf, e, 0);
+//
+//    var sigs = rawMs.stream()
+//      .map(cm->this.visitSig((CM.CoreCM)cm))
+//      .toList();
+//
+//    var allMs = Streams.zip(rawMs, sigs)
+//      .filter((cm,sig)->!cm.isAbs())
+//      .map((cm,sig)->this.visitMeth((CM.CoreCM)cm, sig))
+//      .toList();
+//
+//    var freshRes = e.meths().stream()
+//      .filter(m->!m.isAbs())
+//      .map(m->new CM.CoreCM(e.name().toIT(), m, m.sig()))
+//      .map(cm->this.visitMeth(cm, selfCtx))
+//      .reduce(TopLevelRes::merge)
+//      .orElse(TopLevelRes.EMPTY);
+//
+//    var canSingleton = allCaptures.isEmpty() && allMs.size() == rawMs.size();
+//    var k = new MIR.CreateObj(selfT, e.selfName(), allMs, allCaptures, canSingleton);
+//
+//    var impls = e.its().stream().map(it->new MIR.MT.Plain(Mdf.mdf, it.name())).toList();
+//    var typeDef = new MIR.TypeDef(e.name().id(), impls, sigs, canSingleton ? Optional.of(k) : Optional.empty());
+//
+//    return new Res<>(k, Push.of(freshRes.defs(), typeDef), freshRes.funs());
   }
 
   private Optional<T.Dec> getTransparentSource(T.Dec d) {
@@ -225,6 +276,10 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       return Optional.of(p.of(realIT.name()));
     }
     return Optional.empty();
+  }
+
+  private String selfNameOf(Id.DecId d) {
+    return p.of(d).lambda().selfName();
   }
 
   private EnumSet<MIR.MCall.CallVariant> getVariants(MIR.E recv, E.MCall e) {
@@ -253,27 +308,35 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     return EnumSet.of(MIR.MCall.CallVariant.Standard);
   }
 
+  private SortedSet<String> freeVariables(E.Lambda e) {
+    var fv = new FreeVariables();
+    fv.visitLambda(e);
+    return Collections.unmodifiableSortedSet(fv.res());
+  }
+  private SortedSet<String> freeVariables(E.Meth m) {
+    var fv = new FreeVariables();
+    fv.visitMeth(m);
+    return Collections.unmodifiableSortedSet(fv.res());
+  }
   private SortedSet<MIR.X> captures(E.Lambda e, Ctx ctx) {
     var fv = new FreeVariables();
     fv.visitLambda(e);
-    return Collections.unmodifiableSortedSet(fv.res().stream().
-      map(x->visitX(x, ctx))
-      .collect(Collectors.toCollection(MIR::createCapturesSet)
-      ));
+    return Collections.unmodifiableSortedSet(fv.res().stream()
+        .map(x->visitX(x, ctx))
+        .collect(Collectors.toCollection(MIR::createCapturesSet)));
   }
   private SortedSet<MIR.X> captures(E.Meth m, Ctx ctx) {
     var fv = new FreeVariables();
     fv.visitMeth(m);
-    return Collections.unmodifiableSortedSet(fv.res().stream().
-      map(x->visitX(x, ctx))
-      .collect(Collectors.toCollection(MIR::createCapturesSet)
-      ));
+    return Collections.unmodifiableSortedSet(fv.res().stream()
+      .map(x->visitX(x, ctx))
+      .collect(Collectors.toCollection(MIR::createCapturesSet)));
   }
 
-  private static class FreeVariables implements CollectorVisitor<Set<String>> {
-    private final Set<String> res = new HashSet<>();
+  private static class FreeVariables implements CollectorVisitor<SortedSet<String>> {
+    private final SortedSet<String> res = new TreeSet<>(String::compareTo);
     private Set<String> fresh = new HashSet<>();
-    public Set<String> res() { return this.res; }
+    public SortedSet<String> res() { return this.res; }
 
     public Void visitLambda(E.Lambda e) {
       var old = fresh;

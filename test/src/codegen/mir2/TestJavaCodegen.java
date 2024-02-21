@@ -67,7 +67,7 @@ public class TestJavaCodegen {
     """, "fake.Fake", false, """
     package test
     Person: {
-      read .age: Num,x
+      read .age: Num,
       mut .wrap: mut Person -> {'self
        .age -> this.age.plus1,
        .wrap -> {'topLevelWrapped
