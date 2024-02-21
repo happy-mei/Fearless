@@ -30,7 +30,7 @@ public class GoCodegen {
           "%s"
         )
         func main() {
-          fmt.Println(%s.%s{}.Φ35_1_immφ(nil))
+          fmt.Println(%s.%s{}.Φ35_1_immφ())
         }
         """.formatted(pkgPath(entryPkg), entryPkg, entryImpl),
       pkgs

@@ -17,7 +17,7 @@ import static codegen.go.GoCodegen.getPkgName;
 import static magic.MagicImpls.getLiteral;
 
 public class PackageCodegen implements MIRVisitor<String> {
-  public record GoPackage(String name, String src) {}
+  public record GoPackage(String name, String src) implements GoCompiler.Unit {}
 
   protected final MIR.Program p;
   private final MIR.Package pkg;

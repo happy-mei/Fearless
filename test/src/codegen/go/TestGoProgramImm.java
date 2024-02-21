@@ -14,10 +14,7 @@ import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
-import utils.Base;
-import utils.Bug;
-import utils.Err;
-import utils.RunJava;
+import utils.*;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -51,6 +48,7 @@ public class TestGoProgramImm {
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var go = new GoCodegen(mir).visitProgram(new Id.DecId(entry, 0));
+    new GoCompiler(go.pkgs()).compile();
 //    var res = RunJava.of(ImmJavaProgram.compile(new JavaProgram(java)), args).join();
 //    Assertions.assertEquals(expected, res);
     System.out.println(go);
