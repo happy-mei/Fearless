@@ -19,7 +19,7 @@ public record GoCompiler(List<? extends Unit> units) {
   public Path compile() {
     assert !units.isEmpty();
     try {
-      var res = ResolveResource.of("/go-compilers/go-linux-amd64/go/bin/go", compiler->{
+      var res = ResolveResource.of("/go-compilers/go-linux-amd64/go", compiler->{
         String[] command = Stream.of(compiler.toString()).toArray(String[]::new);
         var pb = new ProcessBuilder(command);
         Process proc; try { proc = pb.inheritIO().start(); }
