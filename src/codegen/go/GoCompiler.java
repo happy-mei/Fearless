@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 public record GoCompiler(List<? extends Unit> units) {
@@ -29,6 +30,10 @@ public record GoCompiler(List<? extends Unit> units) {
       throw Bug.of(e);
     }
 
+    throw Bug.todo();
+  }
+
+  private CompletableFuture<String> runGoCmd(String... args) {
     throw Bug.todo();
   }
 }
