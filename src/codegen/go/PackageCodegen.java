@@ -1,5 +1,25 @@
-//package codegen.go;
-//
+package codegen.go;
+
+import codegen.MIR;
+import utils.Bug;
+import visitors.MIRVisitor;
+
+public class PackageCodegen implements MIRVisitor<String> {
+  public GoPackage visitPackage() {
+    throw Bug.todo();
+  }
+  @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
+    throw Bug.todo();
+  }
+  @Override public String visitX(MIR.X x, boolean checkMagic) {
+    throw Bug.todo();
+  }
+  @Override public String visitMCall(MIR.MCall call, boolean checkMagic) {
+    throw Bug.todo();
+  }
+  public record GoPackage(String name, String src) {}
+    public PackageCodegen(MIR.Program p, MIR.Package pkg) {}
+}
 //import ast.T;
 //import codegen.MIR;
 //import id.Id;
