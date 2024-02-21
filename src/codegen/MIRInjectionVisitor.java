@@ -226,46 +226,6 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     var k = constr(e, ctx);
     var topLevel = visitTopDec(dec, ctx);
     return new Res<>(k, topLevel.defs(), topLevel.funs());
-
-//
-//    var selfT = MIR.MT.of(new T(e.mdf(), e.name().toIT()));
-//    var selfX = new MIR.X(e.selfName(), selfT);
-//    var xXs = new HashMap<>(ctx.xXs);
-//    xXs.put(e.selfName(), selfX);
-//
-//    var allCaptures = captures(e, ctx);
-//    allCaptures.forEach(x->xXs.put(x.name(), x));
-//
-//    var selfCtx = new Ctx(xXs);
-//
-//    var dec = p.of(e.name().id());
-//    var recvMdf = e.mdf().isMdf() ? Mdf.recMdf : e.mdf();
-//    var bounds = XBs.empty().addBounds(dec.gxs(), dec.bounds());
-//    var rawMs = p.meths(bounds, recvMdf, e, 0);
-//
-//    var sigs = rawMs.stream()
-//      .map(cm->this.visitSig((CM.CoreCM)cm))
-//      .toList();
-//
-//    var allMs = Streams.zip(rawMs, sigs)
-//      .filter((cm,sig)->!cm.isAbs())
-//      .map((cm,sig)->this.visitMeth((CM.CoreCM)cm, sig))
-//      .toList();
-//
-//    var freshRes = e.meths().stream()
-//      .filter(m->!m.isAbs())
-//      .map(m->new CM.CoreCM(e.name().toIT(), m, m.sig()))
-//      .map(cm->this.visitMeth(cm, selfCtx))
-//      .reduce(TopLevelRes::merge)
-//      .orElse(TopLevelRes.EMPTY);
-//
-//    var canSingleton = allCaptures.isEmpty() && allMs.size() == rawMs.size();
-//    var k = new MIR.CreateObj(selfT, e.selfName(), allMs, allCaptures, canSingleton);
-//
-//    var impls = e.its().stream().map(it->new MIR.MT.Plain(Mdf.mdf, it.name())).toList();
-//    var typeDef = new MIR.TypeDef(e.name().id(), impls, sigs, canSingleton ? Optional.of(k) : Optional.empty());
-//
-//    return new Res<>(k, Push.of(freshRes.defs(), typeDef), freshRes.funs());
   }
 
   private Optional<T.Dec> getTransparentSource(T.Dec d) {
