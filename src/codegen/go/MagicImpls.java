@@ -15,7 +15,6 @@ import java.util.Set;
 import static magic.MagicImpls.getLiteral;
 
 public record MagicImpls(PackageCodegen gen, ast.Program p) implements magic.MagicImpls<MagicImpls.Res> {
-  private static final String RT_PKG = "main/rt/base~rt";
   public record Res(String output, Set<String> imports) {
     public Res(String output) { this(output, Set.of()); }
   }
@@ -55,18 +54,18 @@ public record MagicImpls(PackageCodegen gen, ast.Program p) implements magic.Mag
         if (m.equals(new Id.MethName("*", 1))) { return new Res(instantiate().output()+"*"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("/", 1))) { return new Res(instantiate().output()+"/"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("%", 1))) { return new Res(instantiate().output()+"%"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName("**", 1))) { return new Res(String.format("baseφrt.Pow(%s, %s)", instantiate().output(), args.getFirst().accept(gen, true)), Set.of(RT_PKG)); }
-        if (m.equals(new Id.MethName(".abs", 0))) { return new Res("baseφrt.Abs("+instantiate().output()+")", Set.of("rt/rt/baseφrt")); }
+        if (m.equals(new Id.MethName("**", 1))) { return new Res(String.format("baseφrtφPow(%s, %s)", instantiate().output(), args.getFirst().accept(gen, true)), Set.of()); }
+        if (m.equals(new Id.MethName(".abs", 0))) { return new Res("baseφrtφAbs("+instantiate().output()+")", Set.of("rt/rt/baseφrt")); }
         if (m.equals(new Id.MethName(">>", 1))) { return new Res(instantiate().output()+">>"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("<<", 1))) { return new Res(instantiate().output()+"<<"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("^", 1))) { return new Res(instantiate().output()+"^"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("&", 1))) { return new Res(instantiate().output()+"&"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("|", 1))) { return new Res(instantiate().output()+"|"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName(">", 1))) { return new Res("baseφrt.ConvertBool("+instantiate().output()+">"+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)); }
-        if (m.equals(new Id.MethName("<", 1))) { new Res("baseφrt.ConvertBool("+instantiate().output()+"<"+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)); }
-        if (m.equals(new Id.MethName(">=", 1))) { new Res("baseφrt.ConvertBool("+instantiate().output()+">="+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)); }
-        if (m.equals(new Id.MethName("<=", 1))) { new Res("baseφrt.ConvertBool("+instantiate().output()+"<="+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)); }
-        if (m.equals(new Id.MethName("==", 1))) { new Res("baseφrt.ConvertBool("+instantiate().output()+"=="+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)); }
+        if (m.equals(new Id.MethName(">", 1))) { return new Res("baseφrtφConvertBool("+instantiate().output()+">"+args.getFirst().accept(gen, true)+")", Set.of()); }
+        if (m.equals(new Id.MethName("<", 1))) { new Res("baseφrtφConvertBool("+instantiate().output()+"<"+args.getFirst().accept(gen, true)+")", Set.of()); }
+        if (m.equals(new Id.MethName(">=", 1))) { new Res("baseφrtφConvertBool("+instantiate().output()+">="+args.getFirst().accept(gen, true)+")", Set.of()); }
+        if (m.equals(new Id.MethName("<=", 1))) { new Res("baseφrtφConvertBool("+instantiate().output()+"<="+args.getFirst().accept(gen, true)+")", Set.of()); }
+        if (m.equals(new Id.MethName("==", 1))) { new Res("baseφrtφConvertBool("+instantiate().output()+"=="+args.getFirst().accept(gen, true)+")", Set.of()); }
         throw Bug.unreachable();
       }
     };
@@ -109,18 +108,18 @@ public record MagicImpls(PackageCodegen gen, ast.Program p) implements magic.Mag
         if (m.equals(new Id.MethName("*", 1))) { return new Res(instantiate().output()+"*"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("/", 1))) { return new Res(instantiate().output()+"/"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("%", 1))) { return new Res(instantiate().output()+"%"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName("**", 1))) { return new Res(String.format("baseφrt.Pow(%s, %s)", instantiate().output(), args.getFirst().accept(gen, true)), Set.of(RT_PKG)); }
-        if (m.equals(new Id.MethName(".abs", 0))) { return new Res("baseφrt.Abs("+instantiate().output()+")", Set.of("rt/rt/baseφrt")); }
+        if (m.equals(new Id.MethName("**", 1))) { return new Res(String.format("baseφrtφPow(%s, %s)", instantiate().output(), args.getFirst().accept(gen, true)), Set.of()); }
+        if (m.equals(new Id.MethName(".abs", 0))) { return new Res("baseφrtφAbs("+instantiate().output()+")", Set.of("rt/rt/baseφrt")); }
         if (m.equals(new Id.MethName(">>", 1))) { return new Res(instantiate().output()+">>"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("<<", 1))) { return new Res(instantiate().output()+"<<"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("^", 1))) { return new Res(instantiate().output()+"^"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("&", 1))) { return new Res(instantiate().output()+"&"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("|", 1))) { return new Res(instantiate().output()+"|"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName(">", 1))) { return new Res("baseφrt.ConvertBool("+instantiate().output()+">"+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)); }
-        if (m.equals(new Id.MethName("<", 1))) { return new Res("baseφrt.ConvertBool("+instantiate().output()+"<"+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)); }
-        if (m.equals(new Id.MethName(">=", 1))) { return new Res("baseφrt.ConvertBool("+instantiate().output()+">="+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)); }
-        if (m.equals(new Id.MethName("<=", 1))) { return new Res("baseφrt.ConvertBool("+instantiate().output()+"<="+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)); }
-        if (m.equals(new Id.MethName("==", 1))) { return new Res("baseφrt.ConvertBool("+instantiate().output()+"=="+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)); }
+        if (m.equals(new Id.MethName(">", 1))) { return new Res("baseφrtφConvertBool("+instantiate().output()+">"+args.getFirst().accept(gen, true)+")", Set.of()); }
+        if (m.equals(new Id.MethName("<", 1))) { return new Res("baseφrtφConvertBool("+instantiate().output()+"<"+args.getFirst().accept(gen, true)+")", Set.of()); }
+        if (m.equals(new Id.MethName(">=", 1))) { return new Res("baseφrtφConvertBool("+instantiate().output()+">="+args.getFirst().accept(gen, true)+")", Set.of()); }
+        if (m.equals(new Id.MethName("<=", 1))) { return new Res("baseφrtφConvertBool("+instantiate().output()+"<="+args.getFirst().accept(gen, true)+")", Set.of()); }
+        if (m.equals(new Id.MethName("==", 1))) { return new Res("baseφrtφConvertBool("+instantiate().output()+"=="+args.getFirst().accept(gen, true)+")", Set.of()); }
         throw Bug.unreachable();
       }
     };
@@ -157,12 +156,12 @@ public record MagicImpls(PackageCodegen gen, ast.Program p) implements magic.Mag
       @Override
       public Optional<Res> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName(".size", 0))) { return Optional.of(new Res("uint64(len("+Optional.of(instantiate().output()+"))"))); }
-        if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of(new Res("baseφrt.ConvertBool(len("+instantiate().output()+") == 0)", Set.of(RT_PKG))); }
+        if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of(new Res("baseφrtφConvertBool(len("+instantiate().output()+") == 0)", Set.of())); }
         if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate()); }
         if (m.equals(new Id.MethName(".toImm", 0))) { return Optional.of(instantiate()); }
         if (m.equals(new Id.MethName("+", 1))) { return Optional.of(new Res("("+instantiate().output()+"+"+args.getFirst().accept(gen, true)+")")); }
         if (m.equals(new Id.MethName("==", 1))) {
-          return Optional.of(new Res("baseφrt.ConvertBool("+instantiate().output()+" == "+args.getFirst().accept(gen, true)+")", Set.of(RT_PKG)));
+          return Optional.of(new Res("baseφrtφConvertBool("+instantiate().output()+" == "+args.getFirst().accept(gen, true)+")", Set.of()));
         }
         if (m.equals(new Id.MethName(".assertEq", 1))) {
 //          return Optional.of("base.$95StrHelpers_0._$self.assertEq$imm$("+instantiate()+", "+args.getFirst().accept(gen, true)+")");

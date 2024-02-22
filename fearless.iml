@@ -7,4 +7,5 @@
       <excludeFolder url="file://$MODULE_DIR$/resources/go-linux-amd64/go" />
     </content>
   </component>
+  <component name="Go" enabled="true" />
 </module>

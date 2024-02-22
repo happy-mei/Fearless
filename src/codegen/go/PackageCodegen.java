@@ -16,24 +16,17 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static codegen.go.GoCodegen.getBase;
 import static codegen.go.GoCodegen.getPkgFileName;
-import static codegen.go.GoCodegen.getPkgName;
 import static magic.MagicImpls.getLiteral;
 
 public class PackageCodegen implements MIRVisitor<String> {
   public record GoPackage(String pkg, String src) implements GoCompiler.Unit {
     public String pkg() {
-      return "userCode/"+this.pkg;
+      return this.pkg;
     }
     @Override public String name() {
       return pkg+".go";
-    }
-    @Override public void write(Path workingDir) throws IOException {
-      var userCodeDir = workingDir.resolve("userCode");
-      if (!Files.exists(userCodeDir)) {
-        if (!userCodeDir.toFile().mkdir()) { throw Bug.of("Could not create: "+userCodeDir.toAbsolutePath()); }
-      }
-      GoCompiler.Unit.super.write(workingDir);
     }
   }
 
@@ -62,15 +55,18 @@ public class PackageCodegen implements MIRVisitor<String> {
       import (
         %s
       )
-      """.formatted(this.imports.stream().filter(x->!x.endsWith("/"+getPkgFileName(this.pkg.name()))).map("\"%s\""::formatted).collect(Collectors.joining("\n")));
+      """.formatted(this.imports.stream()
+        .map("\"%s\""::formatted)
+        .collect(Collectors.joining("\n"))
+        );
 
     var src = """
-      package %s
+      package main
       %s
       %s
       %s
       %s
-      """.formatted(pkg.name(), imports, typeDefs, freshStructs, funs);
+      """.formatted(imports, typeDefs, freshStructs, funs);
 
     return new GoPackage(getPkgFileName(pkg.name()), src);
   }
@@ -93,7 +89,7 @@ public class PackageCodegen implements MIRVisitor<String> {
       type %s interface {
         %s
       }
-      """.formatted(getShortName(def.name()), ms);
+      """.formatted(getName(def.name()), ms);
   }
 
   public String visitSig(MIR.Sig sig) {
@@ -158,9 +154,6 @@ public class PackageCodegen implements MIRVisitor<String> {
     }
 
     var id = createObj.concreteT().id();
-    if (!id.pkg().equals(this.pkg.name())) {
-      this.imports.add("main/userCode/"+getPkgFileName(id.pkg()));
-    }
 
     if (p.of(id).singletonInstance().isPresent()) {
       return getName(id)+"Impl{}";
@@ -235,10 +228,10 @@ public class PackageCodegen implements MIRVisitor<String> {
       ? "this"
       : x.replace("'", "φ"+(int)'\'').replace("$", "φ"+(int)'$')+"φ";
   }
-public String getName(MIR.FName name) {
-  var capturesSelf = name.capturesSelf() ? "selfCap" : "noSelfCap";
-  return getSafeName(name.d())+"φ"+name(getName(name.mdf(), name.m()))+"φ"+capturesSelf;
-}
+  public String getName(MIR.FName name) {
+    var capturesSelf = name.capturesSelf() ? "selfCap" : "noSelfCap";
+    return getName(name.d())+"φ"+name(getName(name.mdf(), name.m()))+"φ"+capturesSelf;
+  }
   public String getName(MIR.MT t) {
     return switch (t) {
       case MIR.MT.Any ignored -> "interface{}";
@@ -268,37 +261,8 @@ public String getName(MIR.FName name) {
       }
     };
   }
-  protected String getName(Id.DecId d) {
-    if (d.pkg().equals(this.pkg.name())) {
-      return getShortName(d);
-    }
-    return getPkgName(d.pkg())+"."+getShortName(d);
-  }
-  protected static String getSafeName(Id.DecId d) {
-    var pkg = getPkgName(d.pkg());
-    return pkg+"φ"+getBase(d.shortName())+"_"+d.gen();
-  }
-  public static String getShortName(Id.DecId d) {
-    return "Φ"+getBase(d.shortName())+"_"+d.gen();
+  public String getName(Id.DecId d) {
+    return GoCodegen.getName(d);
   }
   private String getName(Mdf mdf, Id.MethName m) { return getBase(m.name())+"_"+m.num()+"_"+mdf; }
-  public static String getBase(String name) {
-    if (name.startsWith(".")) { name = "Φ"+name.substring(1); }
-    return name.chars().mapToObj(c->{
-      if (c != '\'' && (c == '.' || Character.isAlphabetic(c) || Character.isDigit(c))) {
-        return Character.toString(c);
-      }
-      // We have to start with a capital to export
-      return "Φ"+c;
-    }).collect(Collectors.joining());
-  }
-//  protected enum NameKind {
-//    LIT, DEF;
-//    public String suffix() {
-//      return switch (this) {
-//        case LIT -> "Impl";
-//        case DEF -> "";
-//      };
-//    }
-//  }
 }

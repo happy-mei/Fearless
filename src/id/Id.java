@@ -124,8 +124,14 @@ public class Id {
     }
 
     @Override public String toString(){ return name(); }
-    public GX<ast.T> toAstGX() { return (GX<ast.T>) this; }
-    public GX<astFull.T> toFullAstGX() { return (GX<astFull.T>) this; }
+    @SuppressWarnings("unchecked")
+    public GX<ast.T> toAstGX() {
+      return (GX<ast.T>) this;
+    }
+    @SuppressWarnings("unchecked")
+    public GX<astFull.T> toFullAstGX() {
+      return (GX<astFull.T>) this;
+    }
     public GX<TT> withName(String name) { return new GX<>(name); }
   }
   public record IT<TT extends Ty>(Id.DecId name, List<TT> ts)implements RT<TT>{

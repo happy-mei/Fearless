@@ -21,32 +21,19 @@ import java.util.stream.Stream;
 
 public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Unit> units, CompilerFrontEnd.Verbosity verbosity) {
   public static List<Unit.Runtime> IMM_RUNTIME_UNITS = List.of(
-    new Unit.Runtime("", "go.mod"),
-    new Unit.Runtime("rt/base~rt", "base~rt.go")
+    new Unit.Runtime("go.mod"),
+    new Unit.Runtime("base~rt.go")
   );
 
   public sealed interface Unit permits GoCodegen.MainFile, Unit.Runtime, PackageCodegen.GoPackage {
-    String pkg();
     String name();
     String src();
     default void write(Path workingDir) throws IOException {
-      var pkgDir = workingDir.resolve(this.pkg());
-      if (!this.pkg().isEmpty() && !pkgDir.toFile().mkdir()) { throw Bug.of("Could not create: "+pkgDir.toAbsolutePath()); }
-      Files.writeString(pkgDir.resolve(this.name()), this.src());
+      Files.writeString(workingDir.resolve(this.name()), this.src());
     }
-    record Runtime(String pkg, String name) implements Unit {
+    record Runtime(String name) implements Unit {
       @Override public String src() {
         return ResolveResource.getStringOrThrow("/rt-source/"+name);
-      }
-
-      @Override public void write(Path workingDir) throws IOException {
-        if (!this.pkg.isEmpty()) {
-          var rtDir = workingDir.resolve("rt");
-          if (!Files.exists(rtDir)) {
-            if (!rtDir.toFile().mkdir()) { throw Bug.of("Could not create: "+rtDir.toAbsolutePath()); }
-          }
-        }
-        Unit.super.write(workingDir);
       }
     }
   }
