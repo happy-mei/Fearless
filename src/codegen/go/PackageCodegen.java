@@ -62,7 +62,7 @@ public class PackageCodegen implements MIRVisitor<String> {
       import (
         %s
       )
-      """.formatted(this.imports.stream().filter(x->x.endsWith("/"+getPkgFileName(this.pkg.name()))).map("\"%s\""::formatted).collect(Collectors.joining("\n")));
+      """.formatted(this.imports.stream().filter(x->!x.endsWith("/"+getPkgFileName(this.pkg.name()))).map("\"%s\""::formatted).collect(Collectors.joining("\n")));
 
     var src = """
       package %s
@@ -133,6 +133,9 @@ public class PackageCodegen implements MIRVisitor<String> {
   }
 
   public String visitFun(MIR.Fun fun) {
+    if (fun.name().d().pkg().equals("base") && fun.name().d().name().endsWith("Instance")) {
+      return "";
+    }
     var name = getName(fun.name());
     var args = fun.args().stream().map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf())))
       .map(this::typePair)
