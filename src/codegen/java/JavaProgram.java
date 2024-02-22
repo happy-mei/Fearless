@@ -5,18 +5,14 @@ import utils.Bug;
 import utils.ResolveResource;
 
 import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public class JavaProgram extends SimpleJavaFileObject {
@@ -42,7 +38,7 @@ public class JavaProgram extends SimpleJavaFileObject {
       throw new RuntimeException("No Java compiler could be found. Please install a JDK >= 10.");
     }
 
-    var workingDir = Paths.get(System.getProperty("java.io.tmpdir"), "fearOut"+System.currentTimeMillis());
+    var workingDir = Paths.get(System.getProperty("java.io.tmpdir"), "fearOut"+UUID.randomUUID());
     if (!workingDir.toFile().mkdir()) {
       throw Bug.of("Could not create a working directory for building the program in: " + System.getProperty("java.io.tmpdir"));
     }

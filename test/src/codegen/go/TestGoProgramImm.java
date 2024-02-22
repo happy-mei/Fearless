@@ -7,6 +7,7 @@ import codegen.java.ImmJavaProgram;
 import codegen.java.JavaProgram;
 import failure.CompileError;
 import id.Id;
+import main.CompilerFrontEnd;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import utils.*;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
@@ -48,7 +50,12 @@ public class TestGoProgramImm {
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var go = new GoCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-    new GoCompiler(go.pkgs()).compile();
+    var vb = new CompilerFrontEnd.Verbosity(true, true, CompilerFrontEnd.ProgressVerbosity.Full);
+    try {
+      new GoCompiler(go.mainFile(), GoCompiler.IMM_RUNTIME_UNITS, go.pkgs(), vb).compile();
+    } catch (IOException e) {
+      throw Bug.of(e);
+    }
 //    var res = RunJava.of(ImmJavaProgram.compile(new JavaProgram(java)), args).join();
 //    Assertions.assertEquals(expected, res);
     System.out.println(go);

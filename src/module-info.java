@@ -15,4 +15,5 @@ module FearlessCompiler {//TODO: can I use suppress warnings here?
   requires org.eclipse.lsp4j.jsonrpc;
   requires java.logging;
   requires org.apache.commons.text;
+  requires org.apache.commons.lang3;
 }

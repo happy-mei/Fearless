@@ -6,7 +6,11 @@ import id.Id;
 import java.util.List;
 
 public class GoCodegen {
-  public record GoProgram(String mainFile, List<PackageCodegen.GoPackage> pkgs) {}
+  public record GoProgram(MainFile mainFile, List<PackageCodegen.GoPackage> pkgs) {}
+  public record MainFile(String src) implements GoCompiler.Unit {
+    @Override public String pkg() { return ""; }
+    @Override public String name() { return "entry.go"; }
+  }
   protected final MIR.Program p;
 
 
@@ -20,25 +24,25 @@ public class GoCodegen {
       .toList();
 
     var entryPkg = entry.pkg();
-    var entryImpl = "Φ"+PackageCodegen.getBase(entry.shortName())+"Impl";
+    var entryImpl = PackageCodegen.getShortName(entry)+"Impl";
 
     return new GoProgram(
-      """
+      new MainFile("""
         package main
         import (
           "fmt"
           "%s"
         )
         func main() {
-          fmt.Println(%s.%s{}.Φ35_1_immφ())
+          fmt.Println(%s.%s{}.Φ35_1_immφ(nil))
         }
-        """.formatted(pkgPath(entryPkg), entryPkg, entryImpl),
+        """.formatted(pkgPath(entryPkg), entryPkg, entryImpl)),
       pkgs
     );
   }
 
   public static String pkgPath(String pkg) {
-    return "fProgram/userCode/"+getPkgName(pkg);
+    return "main/userCode/"+getPkgName(pkg);
   }
   static String getPkgName(String pkg) {
     return pkg.replace(".", "φ"+(int)'.');

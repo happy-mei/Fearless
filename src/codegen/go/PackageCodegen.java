@@ -1,6 +1,5 @@
 package codegen.go;
 
-import ast.T;
 import codegen.MIR;
 import id.Id;
 import id.Mdf;
@@ -9,15 +8,34 @@ import utils.Bug;
 import utils.Streams;
 import visitors.MIRVisitor;
 
-import java.util.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static codegen.go.GoCodegen.getPkgName;
+import static codegen.go.GoCodegen.pkgPath;
 import static magic.MagicImpls.getLiteral;
 
 public class PackageCodegen implements MIRVisitor<String> {
-  public record GoPackage(String name, String src) implements GoCompiler.Unit {}
+  public record GoPackage(String pkg, String src) implements GoCompiler.Unit {
+    public String pkg() {
+      return "userCode/"+this.pkg;
+    }
+    @Override public String name() {
+      return pkg+".go";
+    }
+    @Override public void write(Path workingDir) throws IOException {
+      var userCodeDir = workingDir.resolve("userCode");
+      if (!Files.exists(userCodeDir)) {
+        if (!userCodeDir.toFile().mkdir()) { throw Bug.of("Could not create: "+userCodeDir.toAbsolutePath()); }
+      }
+      GoCompiler.Unit.super.write(workingDir);
+    }
+  }
 
   protected final MIR.Program p;
   private final MIR.Package pkg;
@@ -40,7 +58,11 @@ public class PackageCodegen implements MIRVisitor<String> {
 
     var freshStructs = String.join("\n", this.freshStructs.values());
 
-    var imports = ""; // TODO
+    var imports = this.imports.isEmpty() ? "" : """
+      import (
+        %s
+      )
+      """.formatted(this.imports.stream().map(GoCodegen::pkgPath).map("\"%s\""::formatted).collect(Collectors.joining("\n")));
 
     var src = """
       package %s
@@ -131,6 +153,10 @@ public class PackageCodegen implements MIRVisitor<String> {
     }
 
     var id = createObj.concreteT().id();
+    if (!id.pkg().equals(this.pkg.name())) {
+      this.imports.add(id.pkg());
+    }
+
     if (p.of(id).singletonInstance().isPresent()) {
       return getName(id)+"Impl{}";
     }
@@ -138,6 +164,10 @@ public class PackageCodegen implements MIRVisitor<String> {
   }
   public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic) {
     var name = createObj.concreteT().id();
+    if (!name.pkg().equals(this.pkg.name())) {
+      this.imports.add(name.pkg());
+    }
+
     var structName = getName(name)+"Impl"; // todo: should this include a pkg. in front?
     if (!this.freshStructs.containsKey(name)) {
       var ms = createObj.meths().stream()
@@ -235,7 +265,7 @@ public String getName(MIR.FName name) {
     var pkg = getPkgName(d.pkg());
     return pkg+"φ"+getBase(d.shortName())+"_"+d.gen();
   }
-  protected String getShortName(Id.DecId d) {
+  public static String getShortName(Id.DecId d) {
     return "Φ"+getBase(d.shortName())+"_"+d.gen();
   }
   private String getName(Mdf mdf, Id.MethName m) { return getBase(m.name())+"_"+m.num()+"_"+mdf; }
