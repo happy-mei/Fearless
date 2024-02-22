@@ -54,7 +54,7 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     for (var unit : this.rt()) { unit.write(workingDir); }
 
     try {
-      runGoCmd(workingDir, "build", "-o", "fear_out", "entry.go").join();
+      runGoCmd(workingDir, "build", "-o", "fear_out").join();
     } catch (CompletionException err) {
       var cause = err.getCause();
       if (cause instanceof Bug bug) { throw bug; }

@@ -126,7 +126,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       .toList();
 
     return new MIR.CreateObj(
-      new MIR.MT.Plain(e.mdf(), e.name().id()),
+      MIR.MT.of(new T(e.mdf(), e.name().toIT())),
       e.selfName(),
       ms,
       uncallableMs,

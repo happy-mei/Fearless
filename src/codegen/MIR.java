@@ -58,7 +58,11 @@ public sealed interface MIR {
       return v.visitCreateObj(this, checkMagic);
     }
   }
-  record Meth(Id.DecId origin, Sig sig, boolean capturesSelf, SortedSet<String> captures, FName fName) implements MIR {}
+  record Meth(Id.DecId origin, Sig sig, boolean capturesSelf, SortedSet<String> captures, FName fName) implements MIR {
+    public Meth withSig(Sig sig) {
+      return new Meth(origin, sig, capturesSelf, captures, fName);
+    }
+  }
   record Sig(Id.MethName name, Mdf mdf, List<X> xs, MT rt) implements MIR {}
   record X(String name, MT t) implements E {
 //    public X withCapturer(Optional<Capturer> capturer) {

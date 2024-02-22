@@ -4,15 +4,14 @@ import codegen.MIR;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
-import utils.Bug;
+import utils.Mapper;
 import utils.Streams;
 import visitors.MIRVisitor;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,7 +78,9 @@ public class PackageCodegen implements MIRVisitor<String> {
       return "";
     }
 
+    var leastSpecific = this.leastSpecificSigs(def);
     var ms = def.sigs().stream()
+      .map(sig->leastSpecific.get(sig.name()))
       .map(this::visitSig)
       .collect(Collectors.joining("\n"));
 
@@ -166,12 +167,16 @@ public class PackageCodegen implements MIRVisitor<String> {
       this.imports.add(name.pkg());
     }
 
-    var structName = getName(name)+"Impl"; // todo: should this include a pkg. in front?
+    var leastSpecific = this.leastSpecificSigs(p.of(createObj.concreteT().id()));
+
+    var structName = getName(name)+"Impl";
     if (!this.freshStructs.containsKey(name)) {
       var ms = createObj.meths().stream()
+        .map(m->m.withSig(leastSpecific.get(m.sig().name())))
         .map(m->this.visitMeth(m, name, true))
         .collect(Collectors.joining("\n"));
       var unreachableMs = createObj.unreachableMs().stream()
+        .map(m->m.withSig(leastSpecific.get(m.sig().name())))
         .map(m->this.visitMeth(m, name, false))
         .collect(Collectors.joining("\n"));
 
@@ -265,4 +270,21 @@ public class PackageCodegen implements MIRVisitor<String> {
     return GoCodegen.getName(d);
   }
   private String getName(Mdf mdf, Id.MethName m) { return getBase(m.name())+"_"+m.num()+"_"+mdf; }
+
+  /**
+   * Go does not support covariant return types, they must match exactly.
+   * Because Mearless _does_ support this (or more accurately has no semantics around it)
+   * we need to find the original type here if there is one.
+   */
+  private Map<Id.MethName, MIR.Sig> leastSpecificSigs(MIR.TypeDef root) {
+    return Mapper.of(res->{
+      var q = new ArrayDeque<MIR.TypeDef>();
+      q.offer(root);
+      while (!q.isEmpty()) {
+        var d = q.poll();
+        d.impls().stream().filter(ty->!ty.id().equals(d.name())).map(ty->p.of(ty.id())).forEach(q::offer);
+        d.sigs().forEach(s->res.put(s.name(), s));
+      }
+    });
+  }
 }
