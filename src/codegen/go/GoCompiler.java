@@ -21,7 +21,8 @@ import java.util.stream.Stream;
 
 public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Unit> units, CompilerFrontEnd.Verbosity verbosity) {
   public static List<Unit.Runtime> IMM_RUNTIME_UNITS = List.of(
-    new Unit.Runtime("", "go.mod")
+    new Unit.Runtime("", "go.mod"),
+    new Unit.Runtime("rt/base~rt", "base~rt.go")
   );
 
   public sealed interface Unit permits GoCodegen.MainFile, Unit.Runtime, PackageCodegen.GoPackage {
@@ -36,6 +37,16 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     record Runtime(String pkg, String name) implements Unit {
       @Override public String src() {
         return ResolveResource.getStringOrThrow("/rt-source/"+name);
+      }
+
+      @Override public void write(Path workingDir) throws IOException {
+        if (!this.pkg.isEmpty()) {
+          var rtDir = workingDir.resolve("rt");
+          if (!Files.exists(rtDir)) {
+            if (!rtDir.toFile().mkdir()) { throw Bug.of("Could not create: "+rtDir.toAbsolutePath()); }
+          }
+        }
+        Unit.super.write(workingDir);
       }
     }
   }

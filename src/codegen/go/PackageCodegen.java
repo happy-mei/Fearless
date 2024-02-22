@@ -16,8 +16,8 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static codegen.go.GoCodegen.getPkgFileName;
 import static codegen.go.GoCodegen.getPkgName;
-import static codegen.go.GoCodegen.pkgPath;
 import static magic.MagicImpls.getLiteral;
 
 public class PackageCodegen implements MIRVisitor<String> {
@@ -62,7 +62,7 @@ public class PackageCodegen implements MIRVisitor<String> {
       import (
         %s
       )
-      """.formatted(this.imports.stream().map(GoCodegen::pkgPath).map("\"%s\""::formatted).collect(Collectors.joining("\n")));
+      """.formatted(this.imports.stream().filter(x->x.endsWith("/"+getPkgFileName(this.pkg.name()))).map("\"%s\""::formatted).collect(Collectors.joining("\n")));
 
     var src = """
       package %s
@@ -72,7 +72,7 @@ public class PackageCodegen implements MIRVisitor<String> {
       %s
       """.formatted(pkg.name(), imports, typeDefs, freshStructs, funs);
 
-    return new GoPackage(pkg.name(), src);
+    return new GoPackage(getPkgFileName(pkg.name()), src);
   }
 
   public String visitTypeDef(String pkg, MIR.TypeDef def) {
@@ -149,12 +149,14 @@ public class PackageCodegen implements MIRVisitor<String> {
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
     var magicImpl = magic.get(createObj);
     if (checkMagic && magicImpl.isPresent()) {
-      return magicImpl.get().instantiate();
+      var res = magicImpl.get().instantiate();
+      this.imports.addAll(res.imports());
+      return res.output();
     }
 
     var id = createObj.concreteT().id();
     if (!id.pkg().equals(this.pkg.name())) {
-      this.imports.add(id.pkg());
+      this.imports.add("main/userCode/"+getPkgFileName(id.pkg()));
     }
 
     if (p.of(id).singletonInstance().isPresent()) {
@@ -198,13 +200,21 @@ public class PackageCodegen implements MIRVisitor<String> {
   @Override public String visitMCall(MIR.MCall call, boolean checkMagic) {
     if (checkMagic && !call.variant().contains(MIR.MCall.CallVariant.Standard)) {
       var impl = magic.variantCall(call).call(call.name(), call.args(), call.variant(), call.t());
-      if (impl.isPresent()) { return impl.get(); }
+      if (impl.isPresent()) {
+        var magic = impl.get();
+        this.imports.addAll(magic.imports());
+        return magic.output();
+      }
     }
 
     var magicImpl = magic.get(call.recv());
     if (checkMagic && magicImpl.isPresent()) {
       var impl = magicImpl.get().call(call.name(), call.args(), call.variant(), call.t());
-      if (impl.isPresent()) { return impl.get(); }
+      if (impl.isPresent()) {
+        var magic = impl.get();
+        this.imports.addAll(magic.imports());
+        return magic.output();
+      }
     }
 
     var start = "("+call.recv().accept(this, checkMagic)+"."+name(getName(call.mdf(), call.name()))+"(";

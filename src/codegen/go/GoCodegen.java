@@ -42,9 +42,12 @@ public class GoCodegen {
   }
 
   public static String pkgPath(String pkg) {
-    return "main/userCode/"+getPkgName(pkg);
+    return "main/userCode/"+getPkgFileName(pkg);
   }
   static String getPkgName(String pkg) {
     return pkg.replace(".", "φ"+(int)'.');
+  }
+  static String getPkgFileName(String pkg) {
+    return pkg.replace(".", "~"+(int)'.');
   }
 }
