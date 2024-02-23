@@ -1,15 +1,18 @@
 package codegen.java;
 
 import codegen.MIR;
+import codegen.ParentWalker;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
+import utils.Bug;
 import utils.Streams;
 import visitors.MIRVisitor;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -117,8 +120,10 @@ public class JavaCodegen implements MIRVisitor<String> {
       })
       .orElse("");
 
+    var leastSpecific = ParentWalker.leastSpecificSigs(p, def);
+
     var sigs = def.sigs().stream()
-      .map(this::visitSig)
+      .map(sig->visitSig(sig, leastSpecific))
       .collect(Collectors.joining("\n"));
 
     var staticFuns = funs.stream()
@@ -128,7 +133,13 @@ public class JavaCodegen implements MIRVisitor<String> {
     return start + singletonGet + sigs + staticFuns + "}";
   }
 
-  public String visitSig(MIR.Sig sig) {
+  public String visitSig(MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
+    // If params are different in my parent, we need to objectify
+    var overriddenSig = this.overriddenSig(sig, leastSpecific);
+    if (overriddenSig.isPresent()) {
+      return visitSig(overriddenSig.get(), Map.of());
+    }
+
     var args = sig.xs().stream()
       .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))) // required for overriding meths with generic args
       .map(this::typePair)
@@ -137,20 +148,58 @@ public class JavaCodegen implements MIRVisitor<String> {
     return getRetName(sig.rt())+" "+name(getName(sig.mdf(), sig.name()))+"("+args+");";
   }
 
-  public String visitMeth(MIR.Meth meth, boolean isReachable) {
-    var sigArgs = meth.sig().xs().stream()
-      .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))) // required for overriding meths with generic args
-      .toList();
-    var args = sigArgs.stream()
+  public sealed interface MethExprKind {
+    Kind kind();
+    enum Kind implements MethExprKind {
+      RealExpr, Delegate, Unreachable, Delegator;
+      @Override public Kind kind() { return this; }
+    }
+    record Delegator(MIR.Sig original, MIR.Sig delegate) implements MethExprKind {
+      public Stream<MIR.X> xs() {
+        return Streams.zip(delegate.xs(), original.xs()).map((o,d)->new MIR.X(o.name(), d.t()));
+      }
+      @Override public Kind kind() {
+        return Kind.Delegator;
+      }
+    }
+  }
+  public String visitMeth(MIR.Meth meth, MethExprKind kind, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
+    var overriddenSig = this.overriddenSig(meth.sig(), leastSpecific);
+    if (overriddenSig.isPresent()) {
+      var delegator = visitMeth(meth.withSig(overriddenSig.get()), new MethExprKind.Delegator(meth.sig(), overriddenSig.get()), Map.of());
+      var delegate = visitMeth(meth, MethExprKind.Kind.Delegate, Map.of());
+      return delegator+"\n"+delegate;
+    }
+
+    var methName = switch (kind.kind()) {
+      case Delegate -> name(getName(meth.sig().mdf(), meth.sig().name()))+"$Delegate";
+      default -> name(getName(meth.sig().mdf(), meth.sig().name()));
+    };
+
+//    var sigArgs = meth.sig().xs().stream()
+//      .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))) // required for overriding meths with generic args
+//      .toList();
+    var args = meth.sig().xs().stream()
       .map(this::typePair)
       .collect(Collectors.joining(","));
     var selfArg = meth.capturesSelf() ? Stream.of("this") : Stream.<String>of();
-    var funArgs = Streams.of(sigArgs.stream().map(MIR.X::name).map(this::name), selfArg, meth.captures().stream().map(this::name).map(x->"this."+x))
+    var funArgs = Streams.of(meth.sig().xs().stream().map(MIR.X::name).map(this::name), selfArg, meth.captures().stream().map(this::name).map(x->"this."+x))
       .collect(Collectors.joining(","));
 
-    var realExpr = isReachable
-      ? "return (%s) %s.%s(%s);".formatted(getRetName(meth.sig().rt()), getName(meth.origin()), getName(meth.fName()), funArgs)
-      : "throw new Error(\"Unreachable code\");";
+    var realExpr = switch (kind) {
+      case MethExprKind.Kind k -> switch (k.kind()) {
+        case RealExpr, Delegate -> "return %s.%s(%s);".formatted(getName(meth.origin()), getName(meth.fName()), funArgs);
+        case Unreachable -> "throw new Error(\"Unreachable code\");";
+        case Delegator -> throw Bug.unreachable();
+      };
+      case MethExprKind.Delegator k -> "return (%s) this.%s(%s);".formatted(
+        getRetName(meth.sig().rt()),
+        methName,
+        k.xs()
+          .map(x->"("+getName(x.t())+") "+name(x.name()))
+          .collect(Collectors.joining(", "))
+        );
+    };
 
     return """
       public %s %s(%s) {
@@ -158,14 +207,15 @@ public class JavaCodegen implements MIRVisitor<String> {
       }
       """.formatted(
         getRetName(meth.sig().rt()),
-        name(getName(meth.sig().mdf(), meth.sig().name())),
+        methName,
         args,
         realExpr);
   }
 
   public String visitFun(MIR.Fun fun) {
     var name = getName(fun.name());
-    var args = fun.args().stream().map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf())))
+    var args = fun.args().stream()
+//      .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf())))
       .map(this::typePair)
       .collect(Collectors.joining(", "));
     var body = fun.body().accept(this, true);
@@ -194,12 +244,13 @@ public class JavaCodegen implements MIRVisitor<String> {
     var name = createObj.concreteT().id();
     var recordName = getSafeName(name)+"Impl"; // todo: should this include a pkg. in front?
     if (!this.freshRecords.containsKey(name)) {
+      var leastSpecific = ParentWalker.leastSpecificSigs(p, p.of(name));
       var args = createObj.captures().stream().map(this::typePair).collect(Collectors.joining(", "));
       var ms = createObj.meths().stream()
-        .map(m->this.visitMeth(m, true))
+        .map(m->this.visitMeth(m, MethExprKind.Kind.RealExpr, leastSpecific))
         .collect(Collectors.joining("\n"));
       var unreachableMs = createObj.unreachableMs().stream()
-        .map(m->this.visitMeth(m, false))
+        .map(m->this.visitMeth(m, MethExprKind.Kind.RealExpr, leastSpecific))
         .collect(Collectors.joining("\n"));
       this.freshRecords.put(name, """
         record %s(%s) implements %s {
@@ -241,6 +292,14 @@ public class JavaCodegen implements MIRVisitor<String> {
       .map(a->a.accept(this, checkMagic))
       .collect(Collectors.joining(","));
     return start+args+"))";
+  }
+
+  private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
+    var leastSpecificSig = leastSpecific.get(ParentWalker.FullMethId.of(sig));
+    if (leastSpecificSig != null && Streams.zip(sig.xs(),leastSpecificSig.xs()).anyMatch((a,b)->!a.t().equals(b.t()))) {
+      return Optional.of(leastSpecificSig.withRT(sig.rt()));
+    }
+    return Optional.empty();
   }
 
   private String typePair(MIR.X x) {

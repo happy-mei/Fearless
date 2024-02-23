@@ -14,6 +14,7 @@ public class Id {
   public sealed interface Dec permits astFull.T.Dec, ast.T.Dec {}
   public static boolean validM(String m){
     assert m!=null && !m.isEmpty();
+    if (m.endsWith("$")) { return true; }
     return new parser.Parser(Parser.dummy,m).parseM();      
   }
   public static boolean validDecName(String name){

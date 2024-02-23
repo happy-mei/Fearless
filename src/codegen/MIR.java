@@ -62,8 +62,18 @@ public sealed interface MIR {
     public Meth withSig(Sig sig) {
       return new Meth(origin, sig, capturesSelf, captures, fName);
     }
+    public Meth withName(Id.MethName name) {
+      return this.withSig(this.sig.withName(name));
+    }
   }
-  record Sig(Id.MethName name, Mdf mdf, List<X> xs, MT rt) implements MIR {}
+  record Sig(Id.MethName name, Mdf mdf, List<X> xs, MT rt) implements MIR {
+    public Sig withName(Id.MethName name) {
+      return new Sig(name, mdf, xs, rt);
+    }
+    public Sig withRT(MT rt) {
+      return new Sig(name, mdf, xs, rt);
+    }
+  }
   record X(String name, MT t) implements E {
 //    public X withCapturer(Optional<Capturer> capturer) {
 //      return new X(name, t, capturer);
