@@ -37,7 +37,7 @@ public class GoCodegen {
           "fmt"
         )
         func main() {
-          fmt.Println(%s{}.Φ35_1_immφ(nil))
+          fmt.Println(%s{}.φ35_1_immφ(nil))
         }
         """.formatted(entryImpl)),
       pkgs
@@ -51,16 +51,15 @@ public class GoCodegen {
     return pkg.replace(".", "~"+(int)'.');
   }
   public static String getName(Id.DecId d) {
-    return "Φ"+getPkgName(d.pkg())+"φ"+getBase(d.shortName())+"_"+d.gen();
+    return "φ"+getPkgName(d.pkg())+"φ"+getBase(d.shortName())+"_"+d.gen();
   }
   public static String getBase(String name) {
-    if (name.startsWith(".")) { name = "Φ"+name.substring(1); }
+    if (name.startsWith(".")) { name = "φ"+name.substring(1); }
     return name.chars().mapToObj(c->{
       if (c != '\'' && (c == '.' || Character.isAlphabetic(c) || Character.isDigit(c))) {
         return Character.toString(c);
       }
-      // We have to start with a capital to export
-      return "Φ"+c;
+      return "φ"+c;
     }).collect(Collectors.joining());
   }
 }

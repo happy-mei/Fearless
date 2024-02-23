@@ -1,10 +1,10 @@
 package main
 
-func baseφrtφConvertBool(b bool) ΦbaseφBool_0 {
+func baseφrtφConvertBool(b bool) φbaseφBool_0 {
 	if b {
-		return ΦbaseφTrue_0Impl{}
+		return φbaseφTrue_0Impl{}
 	} else {
-		return ΦbaseφFalse_0Impl{}
+		return φbaseφFalse_0Impl{}
 	}
 }
 
