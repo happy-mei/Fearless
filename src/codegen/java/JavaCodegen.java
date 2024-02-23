@@ -1,6 +1,7 @@
 package codegen.java;
 
 import codegen.MIR;
+import codegen.MethExprKind;
 import codegen.ParentWalker;
 import id.Id;
 import id.Mdf;
@@ -145,21 +146,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     return getRetName(sig.rt())+" "+name(getName(sig.mdf(), sig.name()))+"("+args+");";
   }
 
-  public sealed interface MethExprKind {
-    Kind kind();
-    enum Kind implements MethExprKind {
-      RealExpr, Delegate, Unreachable, Delegator;
-      @Override public Kind kind() { return this; }
-    }
-    record Delegator(MIR.Sig original, MIR.Sig delegate) implements MethExprKind {
-      public Stream<MIR.X> xs() {
-        return Streams.zip(delegate.xs(), original.xs()).map((o,d)->new MIR.X(o.name(), d.t()));
-      }
-      @Override public Kind kind() {
-        return Kind.Delegator;
-      }
-    }
-  }
+
   public String visitMeth(MIR.Meth meth, MethExprKind kind, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
     var overriddenSig = this.overriddenSig(meth.sig(), leastSpecific);
     if (overriddenSig.isPresent()) {
@@ -173,9 +160,6 @@ public class JavaCodegen implements MIRVisitor<String> {
       default -> name(getName(meth.sig().mdf(), meth.sig().name()));
     };
 
-//    var sigArgs = meth.sig().xs().stream()
-//      .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))) // required for overriding meths with generic args
-//      .toList();
     var args = meth.sig().xs().stream()
       .map(this::typePair)
       .collect(Collectors.joining(","));
@@ -183,18 +167,17 @@ public class JavaCodegen implements MIRVisitor<String> {
     var funArgs = Streams.of(meth.sig().xs().stream().map(MIR.X::name).map(this::name), selfArg, meth.captures().stream().map(this::name).map(x->"this."+x))
       .collect(Collectors.joining(","));
 
-    var cast = switch (meth.sig().rt()) {
-      case MIR.MT.Any ignored -> "("+getRetName(meth.sig().rt())+")";
-      default -> "";
-    };
+//    var cast = switch (meth.sig().rt()) {
+//      case MIR.MT.Any ignored -> "("+getRetName(meth.sig().rt())+")";
+//      default -> "";
+//    };
     var realExpr = switch (kind) {
       case MethExprKind.Kind k -> switch (k.kind()) {
         case RealExpr, Delegate -> "return %s.%s(%s);".formatted(getName(meth.origin()), getName(meth.fName()), funArgs);
         case Unreachable -> "throw new Error(\"Unreachable code\");";
         case Delegator -> throw Bug.unreachable();
       };
-      case MethExprKind.Delegator k -> "return %s this.%s(%s);".formatted(
-        cast,
+      case MethExprKind.Delegator k -> "return this.%s(%s);".formatted(
         methName+"$Delegate",
         k.xs()
           .map(x->"("+getName(x.t())+") "+name(x.name()))
