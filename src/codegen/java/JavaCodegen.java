@@ -9,10 +9,7 @@ import utils.Bug;
 import utils.Streams;
 import visitors.MIRVisitor;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -141,7 +138,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     }
 
     var args = sig.xs().stream()
-      .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))) // required for overriding meths with generic args
+//      .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf()))) // required for overriding meths with generic args
       .map(this::typePair)
       .collect(Collectors.joining(","));
 
@@ -186,15 +183,19 @@ public class JavaCodegen implements MIRVisitor<String> {
     var funArgs = Streams.of(meth.sig().xs().stream().map(MIR.X::name).map(this::name), selfArg, meth.captures().stream().map(this::name).map(x->"this."+x))
       .collect(Collectors.joining(","));
 
+    var cast = switch (meth.sig().rt()) {
+      case MIR.MT.Any ignored -> "("+getRetName(meth.sig().rt())+")";
+      default -> "";
+    };
     var realExpr = switch (kind) {
       case MethExprKind.Kind k -> switch (k.kind()) {
         case RealExpr, Delegate -> "return %s.%s(%s);".formatted(getName(meth.origin()), getName(meth.fName()), funArgs);
         case Unreachable -> "throw new Error(\"Unreachable code\");";
         case Delegator -> throw Bug.unreachable();
       };
-      case MethExprKind.Delegator k -> "return (%s) this.%s(%s);".formatted(
-        getRetName(meth.sig().rt()),
-        methName,
+      case MethExprKind.Delegator k -> "return %s this.%s(%s);".formatted(
+        cast,
+        methName+"$Delegate",
         k.xs()
           .map(x->"("+getName(x.t())+") "+name(x.name()))
           .collect(Collectors.joining(", "))
@@ -222,9 +223,9 @@ public class JavaCodegen implements MIRVisitor<String> {
 
     return """
       static %s %s(%s) {
-        return (%s) %s;
+        return %s;
       }
-      """.formatted(getRetName(fun.ret()), name, args, getRetName(fun.ret()), body);
+      """.formatted(getRetName(fun.ret()), name, args, body);
   }
 
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
@@ -286,8 +287,11 @@ public class JavaCodegen implements MIRVisitor<String> {
       if (impl.isPresent()) { return impl.get(); }
     }
 
+    var mustCast = !call.t().equals(call.originalRet());
+    var cast = mustCast ? "("+getRetName(call.t())+")" : "";
+
     //    var magicRecv = !(call.recv() instanceof MIR.CreateObj) || magicImpl.isPresent();
-    var start = "(("+getRetName(call.t())+")"+call.recv().accept(this, checkMagic)+"."+name(getName(call.mdf(), call.name()))+"(";
+    var start = "("+cast+call.recv().accept(this, checkMagic)+"."+name(getName(call.mdf(), call.name()))+"(";
     var args = call.args().stream()
       .map(a->a.accept(this, checkMagic))
       .collect(Collectors.joining(","));

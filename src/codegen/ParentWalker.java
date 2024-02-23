@@ -33,10 +33,10 @@ public interface ParentWalker {
   }
 
   // TODO: write tests to check how this works when multiple candidates at the same level exist
-  static MIR.Sig leastSpecificSig(MIR.Program p, MIR.TypeDef root, Id.MethName name) {
+  static MIR.Sig leastSpecificSig(MIR.Program p, MIR.TypeDef root, FullMethId name) {
     return of(p, root)
       .flatMap(def->def.sigs().stream())
-      .filter(sig->sig.name().equals(name))
+      .filter(sig->FullMethId.of(sig).equals(name))
       .toList()
       .getLast();
   }
