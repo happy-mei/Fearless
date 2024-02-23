@@ -269,4 +269,18 @@ public class TestJavaProgramImm {
     alias base.Str as Str,
     Bar:test.Foo{ .a -> this, .str: Str -> "" }
     """); }
+
+  @Test void gens() { ok(new Res("132", "", 0), "test.Test", """
+    package test
+    alias base.Int as Int, alias base.Str as Str,
+    Test:base.Main[]{ _ -> F[Int,Str]{n -> n.str}#132 }
+    F[A,R]:{ #(a: A): R }
+    """); }
+  @Test void methodGens() { ok(new Res("hi", "", 0), "test.Test", """
+    package test
+    alias base.Int as Int, alias base.Str as Str,
+    Box[T:imm]:{.get: T}
+    Box:{#[T:imm](x: T): Box[T] -> {x}}
+    Test:base.Main[]{ _ -> Box#"hi".get }
+    """); }
 }

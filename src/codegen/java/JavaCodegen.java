@@ -10,21 +10,26 @@ import utils.Bug;
 import utils.Streams;
 import visitors.MIRVisitor;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static magic.MagicImpls.getLiteral;
 
 public class JavaCodegen implements MIRVisitor<String> {
-  protected MIR.Program p;
+  protected final MIR.Program p;
+  protected final Map<MIR.FName, MIR.Fun> funMap;
   private MagicImpls magic;
   private HashMap<Id.DecId, String> freshRecords;
-  private String pkg;
+  private MIR.Package pkg;
 
   public JavaCodegen(MIR.Program p) {
     this.p = p;
     this.magic = new MagicImpls(this, p.p());
+    this.funMap = p.pkgs().stream().flatMap(pkg->pkg.funs().stream()).collect(Collectors.toMap(MIR.Fun::name, f->f));
   }
 
   protected static String argsToLList(Mdf addMdf) {
@@ -76,7 +81,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   public String visitPackage(MIR.Package pkg) {
-    this.pkg = pkg.name();
+    this.pkg = pkg;
     this.freshRecords = new HashMap<>();
     Map<Id.DecId, List<MIR.Fun>> funs = pkg.funs().stream().collect(Collectors.groupingBy(f->f.name().d()));
     var typeDefs = pkg.defs().values().stream()
@@ -171,9 +176,14 @@ public class JavaCodegen implements MIRVisitor<String> {
 //      case MIR.MT.Any ignored -> "("+getRetName(meth.sig().rt())+")";
 //      default -> "";
 //    };
+
+    var fun = this.funMap.get(meth.fName());
+    var mustCast = fun.ret() instanceof MIR.MT.Any && !(meth.sig().rt() instanceof MIR.MT.Any);
+    var cast = mustCast ? "(%s)".formatted(getName(meth.sig().rt()) ): "";
+
     var realExpr = switch (kind) {
       case MethExprKind.Kind k -> switch (k.kind()) {
-        case RealExpr, Delegate -> "return %s.%s(%s);".formatted(getName(meth.origin()), getName(meth.fName()), funArgs);
+        case RealExpr, Delegate -> "return %s %s.%s(%s);".formatted(cast, getName(meth.origin()), getName(meth.fName()), funArgs);
         case Unreachable -> "throw new Error(\"Unreachable code\");";
         case Delegator -> throw Bug.unreachable();
       };
@@ -261,17 +271,17 @@ public class JavaCodegen implements MIRVisitor<String> {
   @Override public String visitMCall(MIR.MCall call, boolean checkMagic) {
     if (checkMagic && !call.variant().contains(MIR.MCall.CallVariant.Standard)) {
       var impl = magic.variantCall(call).call(call.name(), call.args(), call.variant(), call.t());
-      if (impl.isPresent()) { return impl.get(); }
+      if (impl.isPresent()) { return "(("+getName(call.t())+")"+impl.get()+")"; }
     }
 
     var magicImpl = magic.get(call.recv());
     if (checkMagic && magicImpl.isPresent()) {
       var impl = magicImpl.get().call(call.name(), call.args(), call.variant(), call.t());
-      if (impl.isPresent()) { return impl.get(); }
+      if (impl.isPresent()) { return "(("+getName(call.t())+")"+impl.get()+")"; }
     }
 
     var mustCast = !call.t().equals(call.originalRet());
-    var cast = mustCast ? "("+getRetName(call.t())+")" : "";
+    var cast = mustCast ? "("+getName(call.t())+")" : "";
 
     //    var magicRecv = !(call.recv() instanceof MIR.CreateObj) || magicImpl.isPresent();
     var start = "("+cast+call.recv().accept(this, checkMagic)+"."+name(getName(call.mdf(), call.name()))+"(";

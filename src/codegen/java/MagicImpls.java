@@ -291,7 +291,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
               private boolean isAlive = true;
 
               public base.Bool_0 isAlive$readOnly$() { return this.isAlive ? base.True_0._$self : base.False_0._$self; }
-              public Object peek$readOnly$(Object f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$mut$(this.x) : ((base$46caps.IsoViewer_2)f).empty$mut$(); }
+              public Object peek$readOnly$(userCode.FProgram.base$46caps.IsoViewer_2 f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$mut$(this.x) : ((base$46caps.IsoViewer_2)f).empty$mut$(); }
               public Object $33$mut$() {
                 if (!this.isAlive) {
                   base.Error_0._$self.str$imm$("Cannot consume an empty IsoPod.");

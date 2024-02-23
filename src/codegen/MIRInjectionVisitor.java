@@ -189,7 +189,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       e.name().withMdf(Optional.of(tst.original().mdf())),
       args.stream().map(Res::e).toList(),
       MIR.MT.of(tst.t()),
-      MIR.MT.of(tst.original().ret()),
+      MIR.MT.of(((CM.CoreCM) tst.original()).m().sig().ret()),
       tst.original().mdf(),
       getVariants(recvRes.e(), e)
     );

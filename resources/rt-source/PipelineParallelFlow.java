@@ -16,8 +16,8 @@ public interface PipelineParallelFlow {
   final class WrappedSinkK implements FProgram.base$46flows.$95PipelineParallelSink_0 {
     // TODO: sink id is not actually used, just here to make debugging easier during development
     static long SINK_ID = 0;
-    @Override public FProgram.base$46flows.$95PipelineParallelSink_1 $35$imm$(Object original) {
-      return new WrappedSink(SINK_ID++, (FProgram.base$46flows.$95Sink_1) original);
+    @Override public FProgram.base$46flows.$95PipelineParallelSink_1 $35$imm$(FProgram.base$46flows.$95Sink_1 original) {
+      return new WrappedSink(SINK_ID++, original);
     }
   }
   final class WrappedSink implements FProgram.base$46flows.$95PipelineParallelSink_1 {
