@@ -1,6 +1,7 @@
 package codegen.go;
 
 import codegen.MIR;
+import codegen.ParentWalker;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
@@ -275,16 +276,11 @@ public class PackageCodegen implements MIRVisitor<String> {
    * Go does not support covariant return types, they must match exactly.
    * Because Mearless _does_ support this (or more accurately has no semantics around it)
    * we need to find the original type here if there is one.
+   * TODO: this might be broken if B and C both offer different .m1 to D
    */
   private Map<Id.MethName, MIR.Sig> leastSpecificSigs(MIR.TypeDef root) {
-    return Mapper.of(res->{
-      var q = new ArrayDeque<MIR.TypeDef>();
-      q.offer(root);
-      while (!q.isEmpty()) {
-        var d = q.poll();
-        d.impls().stream().filter(ty->!ty.id().equals(d.name())).map(ty->p.of(ty.id())).forEach(q::offer);
-        d.sigs().forEach(s->res.put(s.name(), s));
-      }
-    });
+    return ParentWalker.of(p, root)
+      .flatMap(def->def.sigs().stream())
+      .collect(Collectors.toMap(MIR.Sig::name, sig->sig, (sigA,sigB)->sigB));
   }
 }

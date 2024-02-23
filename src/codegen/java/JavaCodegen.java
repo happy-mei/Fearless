@@ -219,7 +219,8 @@ public class JavaCodegen implements MIRVisitor<String> {
 //      case MIR.MT.Plain ignored -> name(x.name());
 //      case MIR.MT.Usual ignored -> name(x.name());
 //    };
-    return "(("+getName(x.t())+")("+name(x.name())+"))";
+//    return "(("+getName(x.t())+")("+name(x.name())+"))";
+    return name(x.name());
   }
 
   @Override public String visitMCall(MIR.MCall call, boolean checkMagic) {
