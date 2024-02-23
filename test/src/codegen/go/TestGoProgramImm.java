@@ -98,6 +98,18 @@ public class TestGoProgramImm {
     Test:Main{ _ -> "" }
     """);}
 
+  @Test void fib50() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    alias base.Main as Main, alias base.UInt as UInt,
+    Test:Main{ _ -> Fib#(50u).str }
+    Fib: {
+      #(n: UInt): UInt -> n <= 1u ? {
+        .then -> n,
+        .else -> this#(n - 1u) + (this#(n - 2u))
+        }
+      }
+    """);}
+
   @Test void lists() { ok(new Res("2", "", 0), "test.Test", """
     package test
     alias base.Main as Main, alias base.LList as LList, alias base.Int as Int,
