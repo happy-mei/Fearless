@@ -230,7 +230,7 @@
                 <executions>
                     <execution>
                         <id>download-go-linux-amd64</id>
-                        <phase>generate-resources</phase>
+                        <phase>post-clean</phase>
                         <goals>
                             <goal>wget</goal>
                         </goals>
@@ -244,7 +244,7 @@
                     </execution>
                     <execution>
                         <id>download-go-linux-arm64</id>
-                        <phase>generate-resources</phase>
+                        <phase>post-clean</phase>
                         <goals>
                             <goal>wget</goal>
                         </goals>
@@ -258,7 +258,7 @@
                     </execution>
                     <execution>
                         <id>download-go-macos-amd64</id>
-                        <phase>generate-resources</phase>
+                        <phase>post-clean</phase>
                         <goals>
                             <goal>wget</goal>
                         </goals>
@@ -272,7 +272,7 @@
                     </execution>
                     <execution>
                         <id>download-go-macos-arm64</id>
-                        <phase>generate-resources</phase>
+                        <phase>post-clean</phase>
                         <goals>
                             <goal>wget</goal>
                         </goals>
@@ -286,7 +286,7 @@
                     </execution>
                     <execution>
                         <id>download-go-windows-amd64</id>
-                        <phase>generate-resources</phase>
+                        <phase>post-clean</phase>
                         <goals>
                             <goal>wget</goal>
                         </goals>
