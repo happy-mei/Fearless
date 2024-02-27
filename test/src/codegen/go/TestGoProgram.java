@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-import static utils.RunJava.Res;
+import static utils.RunOutput.Res;
 
 public class TestGoProgram {
   void ok(Res expected, String entry, String... content) {

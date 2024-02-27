@@ -1,5 +1,7 @@
 package main
 
+var baseφrtφGlobalLaunchArgs φbaseφLList_1 = φbaseφLList_1Impl{}
+
 func baseφrtφConvertBool(b bool) φbaseφBool_0 {
 	if b {
 		return φbaseφTrue_0Impl{}

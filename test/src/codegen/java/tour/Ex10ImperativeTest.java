@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import utils.Base;
 
 import static codegen.java.RunJavaProgramTests.ok;
-import static utils.RunJava.Res;
+import static utils.RunOutput.Res;
 
 public class Ex10ImperativeTest {
   @Test void ifTerminatesTrue() { ok(new Res("hi\nyay", "", 0), "test.Test", """

@@ -7,7 +7,7 @@ import utils.Base;
 import java.util.List;
 
 import static codegen.java.RunJavaProgramTests.*;
-import static utils.RunJava.Res;
+import static utils.RunOutput.Res;
 
 public class TestJavaProgram {
   @Test void emptyProgram() { ok(new Res("", "", 0), "test.Test", """

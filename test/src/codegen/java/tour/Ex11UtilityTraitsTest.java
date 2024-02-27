@@ -2,12 +2,12 @@ package codegen.java.tour;
 
 import org.junit.jupiter.api.Test;
 import utils.Base;
-import utils.RunJava;
+import utils.RunOutput;
 
 import static codegen.java.RunJavaProgramTests.ok;
 
 public class Ex11UtilityTraitsTest {
-  @Test void flowSumStr() { ok(new RunJava.Res("30", "", 0), "test.Test", """
+  @Test void flowSumStr() { ok(new RunOutput.Res("30", "", 0), "test.Test", """
     package test
     Test:Main {sys -> Block#
       .var[mut Person] personMut = {FPerson#("Bob")}

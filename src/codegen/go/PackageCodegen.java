@@ -7,11 +7,13 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import utils.Bug;
-import utils.Mapper;
 import utils.Streams;
 import visitors.MIRVisitor;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -106,6 +108,9 @@ public class PackageCodegen implements MIRVisitor<String> {
   public String visitMeth(MIR.Meth meth, Id.DecId associated, MethExprKind kind, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
     var overriddenSig = this.overriddenSig(meth.sig(), leastSpecific);
     if (overriddenSig.isPresent()) {
+      if (kind.kind() == MethExprKind.Kind.Unreachable) {
+        return visitMeth(meth.withSig(overriddenSig.get()), associated, MethExprKind.Kind.Unreachable, Map.of());
+      }
       var delegator = visitMeth(meth.withSig(overriddenSig.get()), associated, new MethExprKind.Delegator(meth.sig(), overriddenSig.get()), Map.of());
       var delegate = visitMeth(meth, associated, MethExprKind.Kind.Delegate, Map.of());
       return delegator+"\n"+delegate;
@@ -126,20 +131,13 @@ public class PackageCodegen implements MIRVisitor<String> {
     var funArgs = Streams.of(sigArgs.stream().map(MIR.X::name).map(this::name), selfArg, meth.captures().stream().map(this::name).map(x->"FSpφself."+x))
       .collect(Collectors.joining(","));
 
-//    var realExpr = isReachable
-//      ? "return %s(%s)".formatted(getName(meth.fName()), funArgs)
-//      : "panic(\"Unreachable code\")";
-//    var cast = switch (meth.sig().rt()) {
-//      case MIR.MT.Any ignored -> ".("+getRetName(meth.sig().rt())+")";
-//      default -> "";
-//    };
     var realExpr = switch (kind) {
       case MethExprKind.Kind k -> switch (k.kind()) {
         case RealExpr, Delegate -> "return %s(%s)".formatted(getName(meth.fName()), funArgs);
         case Unreachable -> "panic(\"Unreachable code\")";
         case Delegator -> throw Bug.unreachable();
       };
-      case MethExprKind.Delegator k -> "return FSpφself.%s(%s);".formatted(
+      case MethExprKind.Delegator k -> "return FSpφself.%s(%s)".formatted(
         methName+"φDelegate",
         k.xs()
           .map(x->"%s.(%s)".formatted(name(x.name()), getName(x.t())))
@@ -181,8 +179,11 @@ public class PackageCodegen implements MIRVisitor<String> {
     var magicImpl = magic.get(createObj);
     if (checkMagic && magicImpl.isPresent()) {
       var res = magicImpl.get().instantiate();
-      this.imports.addAll(res.imports());
-      return res.output();
+      if (res.isPresent()) {
+        var res_ = res.get();
+        this.imports.addAll(res_.imports());
+        return res_.output();
+      }
     }
 
     var id = createObj.concreteT().id();

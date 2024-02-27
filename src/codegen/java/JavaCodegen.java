@@ -155,6 +155,9 @@ public class JavaCodegen implements MIRVisitor<String> {
   public String visitMeth(MIR.Meth meth, MethExprKind kind, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
     var overriddenSig = this.overriddenSig(meth.sig(), leastSpecific);
     if (overriddenSig.isPresent()) {
+      if (kind.kind() == MethExprKind.Kind.Unreachable) {
+        return visitMeth(meth.withSig(overriddenSig.get()), MethExprKind.Kind.Unreachable, Map.of());
+      }
       var delegator = visitMeth(meth.withSig(overriddenSig.get()), new MethExprKind.Delegator(meth.sig(), overriddenSig.get()), Map.of());
       var delegate = visitMeth(meth, MethExprKind.Kind.Delegate, Map.of());
       return delegator+"\n"+delegate;
@@ -224,7 +227,8 @@ public class JavaCodegen implements MIRVisitor<String> {
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
     var magicImpl = magic.get(createObj);
     if (checkMagic && magicImpl.isPresent()) {
-      return magicImpl.get().instantiate();
+      var res = magicImpl.get().instantiate();
+      if (res.isPresent()) { return res.get(); }
     }
 
     var id = createObj.concreteT().id();

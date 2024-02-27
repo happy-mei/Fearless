@@ -23,6 +23,14 @@ public class GoCodegen {
     this.p = p;
   }
 
+  protected static String argsToLList(Mdf addMdf) {
+    return """
+      for _, e := range os.Args[1:] {
+        baseφrtφGlobalLaunchArgs = baseφrtφGlobalLaunchArgs.φ43_1_%sφ(e)
+      }
+      """.formatted(addMdf);
+  }
+
   public GoProgram visitProgram(Id.DecId entry) {
     var pkgs = p.pkgs().stream()
       .map(pkg->new PackageCodegen(p, pkg).visitPackage())
@@ -35,11 +43,13 @@ public class GoCodegen {
         package main
         import (
           "fmt"
+          "os"
         )
         func main() {
-          fmt.Println(%s{}.φ35_1_immφ(nil))
+          %s
+          fmt.Println(%s{}.φ35_1_immφ(baseφrtφGlobalLaunchArgs))
         }
-        """.formatted(entryImpl)),
+        """.formatted(argsToLList(Mdf.imm), entryImpl)),
       pkgs
     );
   }

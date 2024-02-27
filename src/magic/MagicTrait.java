@@ -1,7 +1,7 @@
 package magic;
 
-import codegen.MIR;
+import java.util.Optional;
 
 public interface MagicTrait<E,R> extends MagicCallable<E,R> {
-  R instantiate();
+  Optional<R> instantiate();
 }

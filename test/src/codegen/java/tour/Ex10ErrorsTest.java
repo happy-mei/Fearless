@@ -3,7 +3,7 @@ package codegen.java.tour;
 import org.junit.jupiter.api.Test;
 import utils.Base;
 
-import static utils.RunJava.Res;
+import static utils.RunOutput.Res;
 import static codegen.java.RunJavaProgramTests.*;
 
 public class Ex10ErrorsTest {
