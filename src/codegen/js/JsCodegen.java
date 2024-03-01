@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 public class JsCodegen implements MIRVisitor<String> {
   protected final MIR.Program p;
+  private final MagicImpls magic;
   private MIR.Package pkg;
   private HashMap<Id.DecId, String> freshClasses;
 
@@ -23,6 +24,7 @@ public class JsCodegen implements MIRVisitor<String> {
 
   public JsCodegen(MIR.Program p) {
     this.p = p;
+    this.magic = new MagicImpls(this, p.p());
   }
 
   public String visitProgram(Id.DecId entry) {
@@ -89,6 +91,12 @@ public class JsCodegen implements MIRVisitor<String> {
   }
 
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
+    var magicImpl = magic.get(createObj);
+    if (checkMagic && magicImpl.isPresent()) {
+      var res = magicImpl.get().instantiate();
+      if (res.isPresent()) { return res.get(); }
+    }
+
     var id = createObj.concreteT().id();
     if (p.of(id).singletonInstance().isPresent()) {
       return getName(id)+"Impl";
@@ -131,6 +139,17 @@ public class JsCodegen implements MIRVisitor<String> {
   }
 
   @Override public String visitMCall(MIR.MCall call, boolean checkMagic) {
+    if (checkMagic && !call.variant().contains(MIR.MCall.CallVariant.Standard)) {
+      var impl = magic.variantCall(call).call(call.name(), call.args(), call.variant(), call.t());
+      if (impl.isPresent()) { return impl.get(); }
+    }
+
+    var magicImpl = magic.get(call.recv());
+    if (checkMagic && magicImpl.isPresent()) {
+      var impl = magicImpl.get().call(call.name(), call.args(), call.variant(), call.t());
+      if (impl.isPresent()) { return impl.get(); }
+    }
+
     var args = call.args().stream()
       .map(a->a.accept(this, checkMagic))
       .collect(Collectors.joining(","));

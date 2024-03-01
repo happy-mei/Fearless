@@ -52,4 +52,21 @@ public interface RunOutput {
       p.exitValue()
     ));
   }
+
+  static CompletableFuture<Res> node(Path jsFile, List<String> cliArgs) {
+    String[] command = Stream.concat(
+      Stream.of("node", jsFile.toAbsolutePath().toString()),
+      cliArgs.stream()
+    ).toArray(String[]::new);
+    var pb = new ProcessBuilder(command);
+    pb.directory(jsFile.getParent().toFile());
+    Process proc; try { proc = pb.start(); }
+    catch (IOException e) { throw new RuntimeException(e); }
+
+    return proc.onExit().thenApply(p->new Res(
+      p.inputReader().lines().collect(Collectors.joining("\n")),
+      p.errorReader().lines().collect(Collectors.joining("\n")),
+      p.exitValue()
+    ));
+  }
 }
