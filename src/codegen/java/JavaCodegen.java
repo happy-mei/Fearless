@@ -175,11 +175,6 @@ public class JavaCodegen implements MIRVisitor<String> {
     var funArgs = Streams.of(meth.sig().xs().stream().map(MIR.X::name).map(this::name), selfArg, meth.captures().stream().map(this::name).map(x->"this."+x))
       .collect(Collectors.joining(","));
 
-//    var cast = switch (meth.sig().rt()) {
-//      case MIR.MT.Any ignored -> "("+getRetName(meth.sig().rt())+")";
-//      default -> "";
-//    };
-
     var fun = this.funMap.get(meth.fName());
     var mustCast = fun.ret() instanceof MIR.MT.Any && !(meth.sig().rt() instanceof MIR.MT.Any);
     var cast = mustCast ? "(%s)".formatted(getName(meth.sig().rt()) ): "";

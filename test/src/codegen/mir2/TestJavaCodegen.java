@@ -3,6 +3,7 @@ package codegen.mir2;
 import ast.E;
 import codegen.MIRInjectionVisitor;
 import codegen.java.JavaCodegen;
+import codegen.js.JsCodegen;
 import id.Id;
 import main.Main;
 import org.junit.jupiter.api.Disabled;
@@ -41,7 +42,7 @@ public class TestJavaCodegen {
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
-    var java = new JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
+    var java = new JsCodegen(mir).visitProgram(new Id.DecId(entry, 0));
     Err.strCmp(expected, java);
   }
 

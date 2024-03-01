@@ -94,6 +94,14 @@ public class TestJavaProgramImm {
       }
     """);}
 
+  @Test void inheritedFnNoSingleton() { ok(new Res("5", "", 0), """
+    package test
+    alias base.Main as Main, alias base.Int as Int,
+    A: {.m1: Int -> 5, .unrelated: Int,}
+    B: A{.m2: Int -> this.m1, .unrelated -> 123}
+    Test: Main{_ -> B.m2.str}
+    """);}
+
   @Test void fib43() { ok(new Res("433494437", "", 0), """
     package test
     alias base.Main as Main, alias base.UInt as UInt,
