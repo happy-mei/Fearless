@@ -114,6 +114,13 @@ public class TestJavaProgramImm {
       }
     """);}
 
+  @Test void nestedConditional() { ok(new Res("2", "", 0), """
+    package test
+    alias base.Main as Main, alias base.True as True, alias base.False as False, alias base.Int as Int,
+    Test:Main {l -> True ?[Int] {.then -> False ?[Int] {.then -> 1, .else -> Block#(l, 2)}, .else -> 3}.str}
+    Block:{#[A:imm,R:imm](_: A, r: R): R -> r}
+    """); }
+
   @Test void assertTrue() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
