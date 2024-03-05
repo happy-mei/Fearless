@@ -2,6 +2,7 @@ package codegen.java;
 
 import codegen.MIR;
 import codegen.MethExprKind;
+import codegen.BoolIfOptimisation;
 import codegen.ParentWalker;
 import id.Id;
 import id.Mdf;
@@ -27,8 +28,9 @@ public class JavaCodegen implements MIRVisitor<String> {
   private MIR.Package pkg;
 
   public JavaCodegen(MIR.Program p) {
-    this.p = p;
     this.magic = new MagicImpls(this, p.p());
+    var optimiser = new BoolIfOptimisation(magic);
+    this.p = optimiser.visitProgram(p);
     this.funMap = p.pkgs().stream().flatMap(pkg->pkg.funs().stream()).collect(Collectors.toMap(MIR.Fun::name, f->f));
   }
 
@@ -288,6 +290,14 @@ public class JavaCodegen implements MIRVisitor<String> {
       .map(a->a.accept(this, checkMagic))
       .collect(Collectors.joining(","));
     return start+args+"))";
+  }
+
+  @Override public String visitBoolExpr(MIR.BoolExpr expr, boolean checkMagic) {
+    var recv = expr.condition().accept(this, checkMagic);
+    var mustCast = !this.funMap.get(expr.then()).ret().equals(this.funMap.get(expr.else_()).ret());
+    var cast = mustCast ? "(%s)".formatted(getRetName(expr.t())) : "";
+
+    return "(%s(%s == base.True_0._$self ? %s : %s))".formatted(cast, recv, this.funMap.get(expr.then()).body().accept(this, true), this.funMap.get(expr.else_()).body().accept(this, true));
   }
 
   private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {

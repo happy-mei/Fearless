@@ -75,10 +75,6 @@ public sealed interface MIR {
     }
   }
   record X(String name, MT t) implements E {
-//    public X withCapturer(Optional<Capturer> capturer) {
-//      return new X(name, t, capturer);
-//    }
-
     @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
       return v.visitX(this, checkMagic);
     }
@@ -106,6 +102,22 @@ public sealed interface MIR {
   record FName(Id.DecId d, Id.MethName m, boolean capturesSelf, Mdf mdf) {
     public FName(CM cm, boolean capturesSelf) {
       this(cm.c().name(), cm.name(), capturesSelf, cm.mdf());
+    }
+  }
+
+  record BoolExpr(E original, E condition, FName then, FName else_) implements E {
+    public BoolExpr {
+      assert condition.t().name().isPresent() && (
+        condition.t().name().get().equals(new Id.DecId("base.True", 0))
+        || condition.t().name().get().equals(new Id.DecId("base.False", 0))
+        || condition.t().name().get().equals(new Id.DecId("base.Bool", 0))
+      );
+    }
+    @Override public MT t() {
+      return original.t();
+    }
+    @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
+      return v.visitBoolExpr(this, checkMagic);
     }
   }
 
