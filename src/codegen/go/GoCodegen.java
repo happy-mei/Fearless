@@ -1,6 +1,7 @@
 package codegen.go;
 
 import codegen.MIR;
+import codegen.optimisations.OptimisationBuilder;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
@@ -20,7 +21,9 @@ public class GoCodegen {
   private final MIR.Program p;
 
   public GoCodegen(MIR.Program p) {
-    this.p = p;
+    this.p = new OptimisationBuilder(new MagicImpls(null, p.p()))
+      .withBoolIfOptimisation()
+      .run(p);
   }
 
   protected static String argsToLList(Mdf addMdf) {
@@ -32,8 +35,9 @@ public class GoCodegen {
   }
 
   public GoProgram visitProgram(Id.DecId entry) {
+    var funMap = p.pkgs().stream().flatMap(pkg->pkg.funs().stream()).collect(Collectors.toMap(MIR.Fun::name, f->f));
     var pkgs = p.pkgs().stream()
-      .map(pkg->new PackageCodegen(p, pkg).visitPackage())
+      .map(pkg->new PackageCodegen(p, pkg, funMap).visitPackage())
       .toList();
 
     var entryImpl = getName(entry)+"Impl";

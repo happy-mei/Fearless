@@ -2,8 +2,8 @@ package codegen.java;
 
 import codegen.MIR;
 import codegen.MethExprKind;
-import codegen.BoolIfOptimisation;
 import codegen.ParentWalker;
+import codegen.optimisations.OptimisationBuilder;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
@@ -29,8 +29,9 @@ public class JavaCodegen implements MIRVisitor<String> {
 
   public JavaCodegen(MIR.Program p) {
     this.magic = new MagicImpls(this, p.p());
-    var optimiser = new BoolIfOptimisation(magic);
-    this.p = optimiser.visitProgram(p);
+    this.p = new OptimisationBuilder(this.magic)
+      .withBoolIfOptimisation()
+      .run(p);
     this.funMap = p.pkgs().stream().flatMap(pkg->pkg.funs().stream()).collect(Collectors.toMap(MIR.Fun::name, f->f));
   }
 

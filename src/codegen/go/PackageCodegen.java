@@ -37,11 +37,13 @@ public class PackageCodegen implements MIRVisitor<String> {
 
   private final HashMap<Id.DecId, String> freshStructs = new HashMap<>();
   private final HashSet<String> imports = new HashSet<>();
+  protected final Map<MIR.FName, MIR.Fun> funMap;
 
-  public PackageCodegen(MIR.Program p, MIR.Package pkg) {
+  public PackageCodegen(MIR.Program p, MIR.Package pkg, Map<MIR.FName, MIR.Fun> funMap) {
     this.p = p;
     this.pkg = pkg;
     this.magic = new MagicImpls(this, p.p());
+    this.funMap = funMap;
   }
 
   public GoPackage visitPackage() {
@@ -258,6 +260,22 @@ public class PackageCodegen implements MIRVisitor<String> {
       .map(a->a.accept(this, checkMagic))
       .collect(Collectors.joining(","));
     return start+args+"))"+cast;
+  }
+
+  @Override public String visitBoolExpr(MIR.BoolExpr expr, boolean checkMagic) {
+    var recv = expr.condition().accept(this, checkMagic);
+    var mustCast = !this.funMap.get(expr.then()).ret().equals(this.funMap.get(expr.else_()).ret());
+    var cast = mustCast ? ".(%s)".formatted(getRetName(expr.t())) : "";
+
+    return """
+      (func () %s {
+        if %s == (φbaseφTrue_0Impl{}) {
+          return %s%s
+        } else {
+          return %s%s
+        }
+      })()
+      """.formatted(getName(expr.t()), recv,  this.funMap.get(expr.then()).body().accept(this, true), cast, this.funMap.get(expr.else_()).body().accept(this, true), cast);
   }
 
   private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {

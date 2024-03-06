@@ -1,5 +1,7 @@
-package codegen;
+package codegen.optimisations;
 
+import codegen.MIR;
+import codegen.MIRCloneVisitor;
 import id.Id;
 import magic.Magic;
 import magic.MagicImpls;
@@ -13,6 +15,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Inlines all boolean `.if` and `?` method calls as ternaries if the ThenElse/1 argument is a literal and does not
+ * capture itself. This inlining is shallow but the DevirtualisationOptimisation may extend it.
+ */
 public class BoolIfOptimisation implements MIRCloneVisitor {
   private final MagicImpls<?> magic;
   private Map<MIR.FName, MIR.Fun> funs;

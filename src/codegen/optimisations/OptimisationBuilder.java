@@ -1,0 +1,31 @@
+package codegen.optimisations;
+
+import codegen.MIR;
+import codegen.MIRCloneVisitor;
+import magic.MagicImpls;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class OptimisationBuilder {
+  private List<MIRCloneVisitor> passes = new ArrayList<>();
+  private MagicImpls<?> magic;
+  public OptimisationBuilder(MagicImpls<?> magic) {
+    this.magic = magic;
+  }
+  public MIR.Program run(MIR.Program p) {
+    var p_ = p;
+    for (var pass : this.passes) {
+      p_ = pass.visitProgram(p_);
+    }
+    return p_;
+  }
+  public OptimisationBuilder withBoolIfOptimisation() {
+    passes.add(new BoolIfOptimisation(magic));
+    return this;
+  }
+  public OptimisationBuilder withDevirtualisationOptimisation() {
+    passes.add(new DevirtualisationOptimisation(magic));
+    return this;
+  }
+}
