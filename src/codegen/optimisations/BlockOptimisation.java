@@ -18,6 +18,11 @@ public class BlockOptimisation implements MIRCloneVisitor {
     this.magic = magic;
   }
 
+//  @Override public MIR.Program visitProgram(MIR.Program p) {
+//    this.funs = p.pkgs().stream().flatMap(pkg->pkg.funs().stream()).collect(Collectors.toMap(MIR.Fun::name, Function.identity()));
+//    return MIRCloneVisitor.super.visitProgram(p);
+//  }
+
   @Override public MIR.Package visitPackage(MIR.Package pkg) {
     this.funs = pkg.funs().stream().collect(Collectors.toMap(MIR.Fun::name, Function.identity()));
     return MIRCloneVisitor.super.visitPackage(pkg);
@@ -36,6 +41,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
     var stmts = new ArrayDeque<MIR.Block.BlockStmt>();
     var res = flattenBlock(call, stmts);
     if (res == FlattenStatus.INVALID) { return Optional.empty(); }
+    if (!(stmts.getLast() instanceof MIR.Block.BlockStmt.Return)) { return Optional.empty(); }
     assert res == FlattenStatus.FLATTENED;
     return Optional.of(new MIR.Block(call, Collections.unmodifiableCollection(stmts)));
   }
@@ -48,7 +54,11 @@ public class BlockOptimisation implements MIRCloneVisitor {
           yield FlattenStatus.FLATTENED;
         }
         if (mCall.name().equals(new Id.MethName(".return", 1))) {
-          stmts.add(new MIR.Block.BlockStmt.Return(mCall.args().getFirst()));
+          var res = this.visitReturn(mCall.args().getFirst());
+          if (res.isEmpty()) { yield  FlattenStatus.INVALID; }
+          stmts.add(res.get());
+        } else {
+          yield FlattenStatus.INVALID;
         }
         yield flattenBlock(mCall.recv(), stmts);
       }
@@ -57,5 +67,15 @@ public class BlockOptimisation implements MIRCloneVisitor {
       case MIR.X ignored -> FlattenStatus.INVALID;
       case MIR.Block ignored -> throw Bug.unreachable();
     };
+  }
+
+  private Optional<MIR.Block.BlockStmt.Return> visitReturn(MIR.E fn) {
+    if (!(fn instanceof MIR.CreateObj k)) { return Optional.empty(); }
+    if (!this.magic.isMagic(Magic.ReturnStmt, k)) { return Optional.empty(); }
+    if (k.meths().size() != 1) { return Optional.empty(); }
+    var m = k.meths().getFirst();
+    assert m.sig().name().equals(new Id.MethName("#", 0));
+    var body = this.funs.get(m.fName()).body();
+    return Optional.of(new MIR.Block.BlockStmt.Return(body));
   }
 }

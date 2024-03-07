@@ -49,9 +49,10 @@ public interface MagicImpls<R> {
     return isMagic(magicDec, e.t().name().get());
   }
   default boolean isMagic(Id.DecId magicDec, Id.DecId freshName) {
-    if (freshName.gen() != magicDec.gen()) { return false; }
-    var gens = Id.GX.standardNames(freshName.gen()).stream().map(gx->new T(Mdf.mdf, gx)).toList();
-    return p().isSubType(XBs.empty(), new T(Mdf.mdf, new Id.IT<>(freshName, gens)), new T(Mdf.mdf, new Id.IT<>(magicDec, gens)));
+    return p().superDecIds(freshName).contains(magicDec);
+//    if (freshName.gen() != magicDec.gen()) { return false; }
+//    var gens = Id.GX.standardNames(freshName.gen()).stream().map(gx->new T(Mdf.mdf, gx)).toList();
+//    return p().isSubType(XBs.empty(), new T(Mdf.mdf, new Id.IT<>(freshName, gens)), new T(Mdf.mdf, new Id.IT<>(magicDec, gens)));
   }
 
   MagicTrait<MIR.E,R> int_(MIR.E e);

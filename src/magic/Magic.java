@@ -16,8 +16,14 @@ public class Magic {
   public static final Id.DecId Float = new Id.DecId("base.Float", 0);
   public static final Id.DecId Str = new Id.DecId("base.Str", 0);
   public static final Id.DecId Debug = new Id.DecId("base.Debug", 0);
+
   public static final Id.DecId BlockK = new Id.DecId("base.Block", 0);
   public static final Id.DecId Block = new Id.DecId("base.Block", 1);
+  public static final Id.DecId ReturnStmt = new Id.DecId("base.ReturnStmt", 1);
+  public static final Id.DecId Condition = new Id.DecId("base.Condition", 0);
+  public static final Id.DecId VarContinuation = new Id.DecId("base.VarContinuation", 2);
+
+
   public static final Id.DecId RefK = new Id.DecId("base._MagicRefImpl", 0);
   public static final Id.DecId IsoPodK = new Id.DecId("base.caps._MagicIsoPodImpl", 0);
   public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);

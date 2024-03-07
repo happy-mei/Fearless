@@ -211,16 +211,27 @@ public class JavaCodegen implements MIRVisitor<String> {
   public String visitFun(MIR.Fun fun) {
     var name = getName(fun.name());
     var args = fun.args().stream()
-//      .map(x->new MIR.X(x.name(), new MIR.MT.Any(x.t().mdf())))
       .map(this::typePair)
       .collect(Collectors.joining(", "));
     var body = fun.body().accept(this, true);
 
+    var ret = fun.body() instanceof MIR.Block ? "" : "return ";
+
     return """
       static %s %s(%s) {
-        return %s;
+        %s%s;
       }
-      """.formatted(getRetName(fun.ret()), name, args, body);
+      """.formatted(getRetName(fun.ret()), name, args, ret, body);
+  }
+  @Override public String visitBlockExpr(MIR.Block expr, boolean checkMagic) {
+    var res = new StringBuilder();
+    for (var stmt : expr.stmts()) {
+      String stmtCode = switch (stmt) {
+        case MIR.Block.BlockStmt.Return ret -> "return %s".formatted(ret.e().accept(this, checkMagic));
+      };
+      res.append(stmtCode);
+    }
+    return res.toString();
   }
 
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
