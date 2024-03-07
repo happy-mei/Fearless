@@ -309,13 +309,7 @@ public class TestJavaProgramImm {
     Test:base.Main[]{ _ -> Box#"hi".get }
     """); }
 
-  @Test void block() { ok(new Res("5", "", 0), """
-    package test
-    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block,
-    Test:base.Main{ _ -> Block#
-     .return {5 .str}
-     }
-    """, """
+  private static final String blockLib = """
     package base
     
     Info:{}
@@ -359,5 +353,31 @@ public class TestJavaProgramImm {
         .var(_, _) -> res,
         }
       }
-    """);}
+    """;
+  @Test void blockRet() { ok(new Res("5", "", 0), """
+    package test
+    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block,
+    Test:base.Main{ _ -> Block#
+     .return {5 .str}
+     }
+    """, blockLib);}
+  @Test void blockDoRet() { ok(new Res("5", "", 0), """
+    package test
+    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    Test:base.Main { _ -> Block#
+     .do {ForceGen#}
+     .return {5 .str}
+     }
+    ForceGen: {#: Void -> {}}
+    """, blockLib);}
+  @Test void blockVarDoRet() { ok(new Res("5", "", 0), """
+    package test
+    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    Test:base.Main { _ -> Block#
+     .var n = {5}
+     .do {ForceGen#}
+     .return {n .str}
+     }
+    ForceGen: {#: Void -> {}}
+    """, blockLib);}
 }

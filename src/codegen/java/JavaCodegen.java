@@ -228,6 +228,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     for (var stmt : expr.stmts()) {
       String stmtCode = switch (stmt) {
         case MIR.Block.BlockStmt.Return ret -> "return %s".formatted(ret.e().accept(this, checkMagic));
+        case MIR.Block.BlockStmt.Do do_ -> "%s;\n".formatted(do_.e().accept(this, checkMagic));
       };
       res.append(stmtCode);
     }
@@ -295,14 +296,16 @@ public class JavaCodegen implements MIRVisitor<String> {
     }
 
     var mustCast = !call.t().equals(call.originalRet());
-    var cast = mustCast ? "("+getName(call.t())+")" : "";
+    var cast = mustCast ? "(("+getName(call.t())+")" : "";
 
     //    var magicRecv = !(call.recv() instanceof MIR.CreateObj) || magicImpl.isPresent();
-    var start = "("+cast+call.recv().accept(this, checkMagic)+"."+name(getName(call.mdf(), call.name()))+"(";
+
+
+    var start = cast+call.recv().accept(this, checkMagic)+"."+name(getName(call.mdf(), call.name()))+"(";
     var args = call.args().stream()
       .map(a->a.accept(this, checkMagic))
       .collect(Collectors.joining(","));
-    return start+args+"))";
+    return start+args+")"+(mustCast ? ")" : "");
   }
 
   @Override public String visitBoolExpr(MIR.BoolExpr expr, boolean checkMagic) {

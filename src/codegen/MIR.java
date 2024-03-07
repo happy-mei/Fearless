@@ -126,6 +126,7 @@ public sealed interface MIR {
   record Block(E original, Collection<BlockStmt> stmts) implements E {
     public sealed interface BlockStmt {
       record Return(E e) implements BlockStmt {}
+      record Do(E e) implements BlockStmt {}
     }
     @Override public MT t() {
       return original.t();

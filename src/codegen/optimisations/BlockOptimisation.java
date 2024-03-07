@@ -56,7 +56,16 @@ public class BlockOptimisation implements MIRCloneVisitor {
         if (mCall.name().equals(new Id.MethName(".return", 1))) {
           var res = this.visitReturn(mCall.args().getFirst());
           if (res.isEmpty()) { yield  FlattenStatus.INVALID; }
-          stmts.add(res.get());
+          stmts.offerFirst(new MIR.Block.BlockStmt.Return(res.get()));
+        } else if (mCall.name().equals(new Id.MethName(".do", 1))) {
+          var res = this.visitReturn(mCall.args().getFirst());
+          if (res.isEmpty()) { yield  FlattenStatus.INVALID; }
+          var doExpr = res.get();
+          // MCall is the only fearless expression that can perform a side effect,
+          // so we can just ignore any other expressions at this point.
+          if (doExpr instanceof MIR.MCall) {
+            stmts.offerFirst(new MIR.Block.BlockStmt.Do(res.get()));
+          }
         } else {
           yield FlattenStatus.INVALID;
         }
@@ -69,13 +78,13 @@ public class BlockOptimisation implements MIRCloneVisitor {
     };
   }
 
-  private Optional<MIR.Block.BlockStmt.Return> visitReturn(MIR.E fn) {
+  private Optional<MIR.E> visitReturn(MIR.E fn) {
     if (!(fn instanceof MIR.CreateObj k)) { return Optional.empty(); }
     if (!this.magic.isMagic(Magic.ReturnStmt, k)) { return Optional.empty(); }
     if (k.meths().size() != 1) { return Optional.empty(); }
     var m = k.meths().getFirst();
     assert m.sig().name().equals(new Id.MethName("#", 0));
     var body = this.funs.get(m.fName()).body();
-    return Optional.of(new MIR.Block.BlockStmt.Return(body));
+    return Optional.of(body);
   }
 }
