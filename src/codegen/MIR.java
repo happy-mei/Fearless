@@ -30,7 +30,9 @@ public sealed interface MIR {
   }
   record Package(String name, Map<Id.DecId, TypeDef> defs, List<Fun> funs) implements MIR {}
   record TypeDef(Id.DecId name, List<MT.Plain> impls, List<Sig> sigs, Optional<CreateObj> singletonInstance) implements MIR {}
-  record Fun(FName name, List<X> args, MT ret, E body) implements MIR {}
+  record Fun(FName name, List<X> args, MT ret, E body) implements MIR {
+    public Fun withBody(E body) { return new Fun(name, args, ret, body); }
+  }
   record CreateObj(MT t, String selfName, List<Meth> meths, List<Meth> unreachableMs, SortedSet<X> captures) implements E {
     public CreateObj {
       captures = Collections.unmodifiableSortedSet(captures);
@@ -118,6 +120,19 @@ public sealed interface MIR {
     }
     @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
       return v.visitBoolExpr(this, checkMagic);
+    }
+  }
+
+  record Block(E original, Collection<BlockStmt> stmts) implements E {
+    public sealed interface BlockStmt {
+      record Return() implements BlockStmt {}
+    }
+    @Override public MT t() {
+      return original.t();
+    }
+
+    @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
+      throw Bug.todo();
     }
   }
 

@@ -28,4 +28,8 @@ public class OptimisationBuilder {
     passes.add(new DevirtualisationOptimisation(magic));
     return this;
   }
+  public OptimisationBuilder withBlockOptimisation() {
+    passes.add(new BlockOptimisation(magic));
+    return this;
+  }
 }

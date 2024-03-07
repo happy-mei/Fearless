@@ -31,6 +31,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     this.magic = new MagicImpls(this, p.p());
     this.p = new OptimisationBuilder(this.magic)
       .withBoolIfOptimisation()
+      .withBlockOptimisation()
       .run(p);
     this.funMap = p.pkgs().stream().flatMap(pkg->pkg.funs().stream()).collect(Collectors.toMap(MIR.Fun::name, f->f));
   }
