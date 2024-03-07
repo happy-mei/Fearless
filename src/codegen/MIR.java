@@ -125,14 +125,14 @@ public sealed interface MIR {
 
   record Block(E original, Collection<BlockStmt> stmts) implements E {
     public sealed interface BlockStmt {
-      record Return() implements BlockStmt {}
+      record Return(E e) implements BlockStmt {}
     }
     @Override public MT t() {
       return original.t();
     }
 
     @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
-      throw Bug.todo();
+      return v.visitBlockExpr(this, checkMagic);
     }
   }
 

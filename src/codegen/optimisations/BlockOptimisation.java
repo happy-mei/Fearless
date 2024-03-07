@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 public class BlockOptimisation implements MIRCloneVisitor {
   private final MagicImpls<?> magic;
   private Map<MIR.FName, MIR.Fun> funs;
-  private boolean isEffectiveStatement = false;
   public BlockOptimisation(MagicImpls<?> magic) {
     this.magic = magic;
   }
@@ -25,34 +24,12 @@ public class BlockOptimisation implements MIRCloneVisitor {
   }
 
   @Override public MIR.Fun visitFun(MIR.Fun fun) {
-    this.isEffectiveStatement = true;
     if (!(fun.body() instanceof MIR.MCall call)) { return MIRCloneVisitor.super.visitFun(fun); }
-    System.out.println(call.recv());
     var isBlock = this.magic.isMagic(Magic.Block, call.recv());
     if (!isBlock) {
       return MIRCloneVisitor.super.visitFun(fun);
     }
     return this.visitBlockCall(call).map(fun::withBody).orElse(MIRCloneVisitor.super.visitFun(fun));
-  }
-
-  @Override public MIR.E visitMCall(MIR.MCall call, boolean checkMagic) {
-    this.isEffectiveStatement = false;
-    return MIRCloneVisitor.super.visitMCall(call, checkMagic);
-  }
-
-  @Override public MIR.CreateObj visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
-    this.isEffectiveStatement = false;
-    return MIRCloneVisitor.super.visitCreateObj(createObj, checkMagic);
-  }
-
-  @Override public MIR.E visitX(MIR.X x, boolean checkMagic) {
-    this.isEffectiveStatement = false;
-    return MIRCloneVisitor.super.visitX(x, checkMagic);
-  }
-
-  @Override public MIR.E visitBoolExpr(MIR.BoolExpr expr, boolean checkMagic) {
-    this.isEffectiveStatement = false;
-    return MIRCloneVisitor.super.visitBoolExpr(expr, checkMagic);
   }
 
   private Optional<MIR.E> visitBlockCall(MIR.MCall call) {
@@ -70,7 +47,10 @@ public class BlockOptimisation implements MIRCloneVisitor {
         if (mCall.name().equals(new Id.MethName("#", 0)) && this.magic.isMagic(Magic.BlockK, mCall.recv())) {
           yield FlattenStatus.FLATTENED;
         }
-        throw Bug.todo();
+        if (mCall.name().equals(new Id.MethName(".return", 1))) {
+          stmts.add(new MIR.Block.BlockStmt.Return(mCall.args().getFirst()));
+        }
+        yield flattenBlock(mCall.recv(), stmts);
       }
       case MIR.BoolExpr boolExpr -> throw Bug.todo();
       case MIR.CreateObj ignored -> FlattenStatus.INVALID;
