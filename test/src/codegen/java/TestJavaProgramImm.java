@@ -309,11 +309,13 @@ public class TestJavaProgramImm {
     Test:base.Main[]{ _ -> Box#"hi".get }
     """); }
 
-  @Test void shadowingViaReduction() { ok(new Res(), """
+  // Based on this it looks like Mearless basically handles anti-shadowing for us
+  @Test void shadowingViaReduction() { ok(new Res("3", "", 0), """
     package test
-    Test: base.Main{_ -> ""}
-    L: {#(l: L): L}
-    Break: {#: L -> L{x -> L{y -> x}}#(L{y -> y})}
+//    Test: base.Main{_ -> (Break# #(L{#(z) -> z, .n -> 4})#(L{#(z) -> z, .n -> 5})).n.str}
+    Test: base.Main{_ -> (Break# #(L{#(z) -> z, .n -> 4})).n.str}
+    L: {#(l: L): L, .n: base.Int}
+    Break: {#: L -> L{#(x) -> L{#(y) -> x, .n -> 2}, .n -> 1}#(L{#(y) -> y, .n -> 3})}
     """); }
 
   private static final String blockLib = """
