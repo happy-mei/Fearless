@@ -309,6 +309,13 @@ public class TestJavaProgramImm {
     Test:base.Main[]{ _ -> Box#"hi".get }
     """); }
 
+  @Test void shadowingViaReduction() { ok(new Res(), """
+    package test
+    Test: base.Main{_ -> ""}
+    L: {#(l: L): L}
+    Break: {#: L -> L{x -> L{y -> x}}#(L{y -> y})}
+    """); }
+
   private static final String blockLib = """
     package base
     

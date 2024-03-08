@@ -315,6 +315,28 @@ public class TestFullWellFormedness {
     C2:{ #(a1: A, a2: A): A -> a1 }
     """); }
 
+  @Test void noShadowingOk() { ok("""
+    package test
+    A: {.m1(a: A): A -> {.m1(b) -> a}}
+    """); }
+  @Test void noShadowingParam() { fail("""
+    In position [###]/Dummy0.fear:2:21
+    [E9 shadowingX]
+    'a' is shadowing another variable in scope.
+    """, """
+    package test
+    A: {.m1(a: A): A -> {.m1(a) -> a}}
+    """); }
+//  @Test void noShadowingFixPoint() { fail("""
+//    In position [###]/Dummy0.fear:2:21
+//    [E9 shadowingX]
+//    'a' is shadowing another variable in scope.
+//    """, """
+//    package test
+//    L: {#(l: L): L}
+//    Break: {#: L -> L{x -> L{y -> x}}#(L{y -> y})}
+//    """); }
+
   @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {
     var code = String.format("""
     package test
