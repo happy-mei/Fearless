@@ -1,4 +1,4 @@
-package codegen.java.tour;
+package tour;
 
 import org.junit.jupiter.api.Test;
 import utils.Base;

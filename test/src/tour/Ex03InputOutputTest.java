@@ -1,4 +1,4 @@
-package codegen.java.tour;
+package tour;
 
 public class Ex03InputOutputTest {
 }
