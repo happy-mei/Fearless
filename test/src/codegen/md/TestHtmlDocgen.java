@@ -16,7 +16,7 @@ import java.util.IdentityHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
-public class TestMarkdownDocgen {
+public class TestHtmlDocgen {
   void ok(String expected, String entry, boolean loadBase, String... content) {
     assert content.length > 0;
     Main.resetAll();
@@ -32,42 +32,11 @@ public class TestMarkdownDocgen {
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     inferred.typeCheck(new IdentityHashMap<>());
-    var md = new MarkdownDocgen(inferred).visitProgram();
+    var md = new HtmlDocgen(inferred).visitProgram();
     Err.strCmp(expected, md.toString());
   }
 
   @Test void emptyProgram() { ok("""
-[TraitDoc[fileName=base.md, markdown=<h1><code>base</code></h1>
-
-<h2 id="base.System"><a href="#base.System"><code>base.System/1</code></a></h2>
-
-**Implements**: [`base.Sealed[]`](../base/#base.Sealed)
-**Type parameters**:
-- `R`
-
-<h2 id="base.Sealed"><a href="#base.Sealed"><code>base.Sealed/0</code></a></h2>
-
-<h2 id="base.NoMutHyg"><a href="#base.NoMutHyg"><code>base.NoMutHyg/1</code></a></h2>
-
-
-**Type parameters**:
-- `X`
-
-<h2 id="base.Void"><a href="#base.Void"><code>base.Void/0</code></a></h2>
-
-<h2 id="base.Main"><a href="#base.Main"><code>base.Main/0</code></a></h2>
-
-
-
-<h3 id="../base/#base.Main_%23%2F1"><a href="#base.Main_%23%2F1"><em><code>#/1</code></em></a></h3>
-
-*Abstract*
-
-
-**Returns**: [`base.Void[]`](../base/#base.Void)
-
-**Parameters**:
-- [`s: base.System[imm base.Void[]]`](../base/#base.System)]]
     """, "fake.Fake", false, """
     package test
     """, Base.minimalBase);

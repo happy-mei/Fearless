@@ -8,7 +8,7 @@ import codegen.java.ImmJavaCodegen;
 import codegen.java.ImmJavaProgram;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaProgram;
-import codegen.md.MarkdownDocgen;
+import codegen.md.HtmlDocgen;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
@@ -85,15 +85,24 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     }
   }
 
-  void generateDocs(String[] files) throws IOException {
+  void generateDocs(String[] files) throws IOException, URISyntaxException {
     if (files == null) { files = new String[0]; }
-    var p = compile(files, new IdentityHashMap<>());
-    var docgen = new MarkdownDocgen(p);
+    var p = generateProgram(files, new IdentityHashMap<>());
+    var docgen = new HtmlDocgen(p);
     var docs = docgen.visitProgram();
     Path root = Path.of("docs");
     try { Files.createDirectory(root); } catch (FileAlreadyExistsException ignored) {}
-    for (var doc : docs) {
-      Files.writeString(root.resolve(doc.fileName()), doc.markdown());
+    Files.writeString(root.resolve(docs.fileName()), docs.index());
+    var styleCss = ResolveResource.of("/style.css", throwingFunction(ResolveResource::read));
+    var highlightingJs = ResolveResource.of("/highlighting.js", throwingFunction(ResolveResource::read));
+    Files.writeString(root.resolve("style.css"), styleCss);
+    Files.writeString(root.resolve("highlighting.js"), highlightingJs);
+    for (var pkg : docs.docs()) {
+      var links = pkg.links();
+      Files.writeString(root.resolve(pkg.fileName()), pkg.index(links));
+      for (var trait : pkg.traits()) {
+        Files.writeString(root.resolve(trait.fileName()), trait.html(links));
+      }
     }
   }
 
@@ -135,7 +144,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     compile(files, new IdentityHashMap<>());
   }
 
-  Program compile(String[] files, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+  Program generateProgram(String[] files, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
     var base = parseBase();
     Map<String, List<Package>> ps = new HashMap<>(base);
     Arrays.stream(files)
@@ -165,7 +174,11 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     v.progress.printTask("Checking that the program is still well formed \uD83D\uDD0E");
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
     v.progress.printTask("Well formedness checks complete \uD83E\uDD73");
-    v.progress.printTask("Checking types \uD83E\uDD14");
+    return inferred;
+  }
+
+  Program compile(String[] files, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+    var inferred = generateProgram(files, resolvedCalls);
     inferred.typeCheck(resolvedCalls);
     v.progress.printTask("Types look all good \uD83E\uDD73");
     return inferred;
