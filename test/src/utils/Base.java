@@ -102,6 +102,7 @@ public interface Base {
     alias base.Either as Either,
     
     alias base.Block as Block,
+    alias base.ControlFlow as ControlFlow,
     
     alias base.Str as Str,
     alias base.StrMap as StrMap,

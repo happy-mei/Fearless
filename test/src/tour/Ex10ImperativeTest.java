@@ -33,4 +33,43 @@ public class Ex10ImperativeTest {
       .return {Void}
       }
     """, Base.mutBaseAliases); }
+  @Test void incrementLoop() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> Block#
+      .var n = {Count.int(0)}
+      .loop {Block#
+        .if {n.get == 10} .return {ControlFlow.break}
+        .do {Block#(n++)}
+        .return {ControlFlow.continue}
+        }
+      .assert {n.get == 10}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void earlyReturnLoop() { ok(new Res("10", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> (FIO#sys).println(Foo#)}
+    Foo: {#: Str -> Block#
+      .var n = {Count.int(0)}
+      .loop {Block#
+        .if {n.get == 10} .return {ControlFlow.return[Str](n.get.str)}
+        .do {Block#(n++)}
+        .return {ControlFlow.continueWith[Str]}
+        }
+      .return {"Boo :("}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void earlyReturnLoopEarlyExit() { ok(new Res("Boo :(", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> (FIO#sys).println(Foo#)}
+    Foo: {#: Str -> Block#
+      .var n = {Count.int(0)}
+      .loop {Block#
+        .if {n.get == 10} .return {ControlFlow.return[Str](n.get.str)}
+        .do {Block#(n++)}
+        .return {ControlFlow.breakWith[Str]}
+        }
+      .return {"Boo :("}
+      }
+    """, Base.mutBaseAliases); }
 }

@@ -1,8 +1,25 @@
 package base
 
-ReturnStmt[R]:{ mut #: R }
-Condition:{ mut #: Bool }
-VarContinuation[X,R]:{ mut #(x: X, self: mut Block[R]): R }
+ReturnStmt[R]: {mut #: R}
+Condition: {mut #: Bool}
+VarContinuation[X,R]: {mut #(x: X, self: mut Block[R]): R}
+ControlFlow: {
+  .continue: mut ControlFlow[Void] -> {m -> m.continue},
+  .break: mut ControlFlow[Void] -> {m -> m.break},
+  .continueWith[T]: mut ControlFlow[T] -> {m -> m.continue},
+  .breakWith[T]: mut ControlFlow[T] -> {m -> m.break},
+  .return[T](returnValue: T): mut ControlFlow[T] -> {m -> m.return(returnValue)},
+  }
+ControlFlow[T]: {
+  mut .match[R](m: mut ControlFlowMatch[T,R]): R,
+  }
+ControlFlowMatch[T,R]: {
+  mut .continue: R,
+  mut .break: R,
+  mut .return(returnValue: T): R,
+  }
+LoopBody[R]: ReturnStmt[mut ControlFlow[R]]
+
 Block:{
   #[R]: mut Block[R] -> {},
   #[X:read,mut,imm,iso](x: X): Void -> this#(x, Void),
@@ -34,6 +51,11 @@ Block[R]:{
       .do(_) -> this,
       .error(_) -> this,
       },
+    },
+  mut .loop(body: mut LoopBody[R]): mut Block[R] -> body#.match{
+    .continue -> this.loop(body),
+    .break -> this,
+    .return(rv) -> _DecidedBlock#rv,
     },
   }
 BlockIf[R]:{
