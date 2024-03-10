@@ -1,5 +1,6 @@
 package codegen.java;
 
+import main.CompilerFrontEnd;
 import utils.Box;
 import utils.Bug;
 import utils.ResolveResource;
@@ -30,7 +31,7 @@ public class JavaProgram extends SimpleJavaFileObject {
     return this.code;
   }
 
-  public static Path compile(JavaProgram... files) {
+  public static Path compile(CompilerFrontEnd.Verbosity verbosity, JavaProgram... files) {
     assert files.length > 0;
     assert Arrays.stream(files).anyMatch(f->f.isNameCompatible(MAIN_CLASS_NAME, Kind.SOURCE));
     var compiler = ToolProvider.getSystemJavaCompiler();
@@ -42,6 +43,10 @@ public class JavaProgram extends SimpleJavaFileObject {
     if (!workingDir.toFile().mkdir()) {
       throw Bug.of("Could not create a working directory for building the program in: " + System.getProperty("java.io.tmpdir"));
     }
+    if (verbosity.printCodegen()) {
+      System.err.println("Java codegen working dir: "+workingDir.toAbsolutePath());
+    }
+
     var options = List.of(
       "-d",
       workingDir.toString(),

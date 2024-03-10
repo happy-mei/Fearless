@@ -109,8 +109,8 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     v.progress.printTask("Running code generation \uD83C\uDFED");
     var mainClass = toJava(entry, p, resolvedCalls);
     var classFile = switch (bv) {
-      case Std -> JavaProgram.compile(mainClass);
-      case Imm -> ImmJavaProgram.compile(mainClass);
+      case Std -> JavaProgram.compile(v, mainClass);
+      case Imm -> ImmJavaProgram.compile(v, mainClass);
     };
     v.progress.printTask("Code generated \uD83E\uDD73");
 

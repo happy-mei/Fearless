@@ -4,6 +4,7 @@ import ast.E;
 import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import id.Id;
+import main.CompilerFrontEnd;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,8 @@ public class TestJavaProgramImm {
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-    var res = RunOutput.java(ImmJavaProgram.compile(new JavaProgram(java)), args).join();
+    var verbosity = new CompilerFrontEnd.Verbosity(false, true, CompilerFrontEnd.ProgressVerbosity.None);
+    var res = RunOutput.java(ImmJavaProgram.compile(verbosity, new JavaProgram(java)), args).join();
     Assertions.assertEquals(expected, res);
   }
 
@@ -70,9 +72,10 @@ public class TestJavaProgramImm {
     IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
+    var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     try {
       var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId("test.Test", 0));
-      var res = RunOutput.java(JavaProgram.compile(new JavaProgram(java)), args).join();
+      var res = RunOutput.java(JavaProgram.compile(verbosity, new JavaProgram(java)), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

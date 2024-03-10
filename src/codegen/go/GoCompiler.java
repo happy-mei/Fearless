@@ -43,7 +43,7 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
 
     var workingDir = Paths.get(System.getProperty("java.io.tmpdir"), "fearOut"+UUID.randomUUID());
     if (verbosity.printCodegen()) {
-      System.out.println("Go codegen working dir: "+workingDir.toAbsolutePath());
+      System.err.println("Go codegen working dir: "+workingDir.toAbsolutePath());
     }
     if (!workingDir.toFile().mkdir()) {
       throw Bug.of("Could not create a working directory for building the program in: " + System.getProperty("java.io.tmpdir"));
@@ -73,7 +73,6 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     try (Stream<Path> walk = Files.walk(workingDir)) {
       walk.sorted(Comparator.reverseOrder())
         .map(Path::toFile)
-        .peek(System.out::println)
         .forEach(File::delete);
     } catch (IOException err) {
       System.err.println("ICE: Could not fully clean up temporary working dir: "+workingDir+"\n"+err.getLocalizedMessage());

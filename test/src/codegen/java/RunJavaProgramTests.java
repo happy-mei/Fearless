@@ -3,6 +3,7 @@ package codegen.java;
 import ast.E;
 import codegen.MIRInjectionVisitor;
 import id.Id;
+import main.CompilerFrontEnd;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import parser.Parser;
@@ -46,8 +47,9 @@ public class RunJavaProgramTests {
     var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();
     var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
+    var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     System.out.println("Running...");
-    var res = RunOutput.java(JavaProgram.compile(new JavaProgram(java)), args).join();
+    var res = RunOutput.java(JavaProgram.compile(verbosity, new JavaProgram(java)), args).join();
     Assertions.assertEquals(expected, res);
   }
 

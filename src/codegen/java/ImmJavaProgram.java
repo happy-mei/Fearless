@@ -1,18 +1,15 @@
 package codegen.java;
 
+import main.CompilerFrontEnd;
 import utils.Box;
 import utils.Bug;
-import utils.ResolveResource;
 
 import javax.tools.Diagnostic;
-import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
-import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class ImmJavaProgram extends JavaProgram {
   public ImmJavaProgram(String code) {
@@ -22,7 +19,7 @@ public class ImmJavaProgram extends JavaProgram {
     super(topLevelClassName, code);
   }
 
-  public static Path compile(JavaProgram... files) {
+  public static Path compile(CompilerFrontEnd.Verbosity verbosity, JavaProgram... files) {
     assert files.length > 0;
     assert Arrays.stream(files).anyMatch(f->f.isNameCompatible(MAIN_CLASS_NAME, Kind.SOURCE));
     var compiler = ToolProvider.getSystemJavaCompiler();
@@ -34,6 +31,11 @@ public class ImmJavaProgram extends JavaProgram {
     if (!workingDir.toFile().mkdir()) {
       throw Bug.of("Could not create a working directory for building the program in: " + System.getProperty("java.io.tmpdir"));
     }
+
+    if (verbosity.printCodegen()) {
+      System.err.println("Java codegen working dir: "+workingDir.toAbsolutePath());
+    }
+
     var options = List.of(
       "-d",
       workingDir.toString(),
