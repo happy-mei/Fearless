@@ -2,7 +2,7 @@ package base.flows
 
 // I could have .step with a read sink (so we know that sink operation can be parallelised) _and_ a .step with a mut sink
 // which must be sequential. However, this adds implementation burden for people making flowable data structures and introduces
-// new sources of runtime exceptions (i.e. accidentially calling the non .seq and it throwing because it would have to be
+// new sources of runtime exceptions (i.e. accidentally calling the non .seq and it throwing because it would have to be
 // unimplemented). Because _Sink/2 is a private trait, we can just manually make sure that a _Sink that would be unsafe
 // to parallelise never runs in parallel. This should be easy because basically all parallel implementations of _Sink
 // will be Magic!.
