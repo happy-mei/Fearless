@@ -42,10 +42,10 @@ public class HtmlDocgen {
       return generatePage(pkgName, "<ul>"+links+"</ul>", "");
     }
   }
-  public record TraitDoc(Id.DecId traitName, String content) {
+  public record TraitDoc(Id.DecId traitName, T traitT, String content) {
     public String fileName() { return traitName.name().replace('.', '_')+"_"+traitName.gen()+".html"; }
     public String html(String links) {
-      return generatePage(traitName.toString(), "<ul>"+links+"</ul>", content);
+      return generatePage(formatT(traitT), "<ul>"+links+"</ul>", content);
     }
   }
 
@@ -72,7 +72,7 @@ public class HtmlDocgen {
       .map(cm->visitMeth(trait, cm))
       .collect(Collectors.joining("\n"));
 
-    return new TraitDoc(trait.name(), "<pre><code class=\"language-fearless code-block\">"+sigs+"</code></pre>");
+    return new TraitDoc(trait.name(), new T(trait.lambda().mdf(), trait.toIT()), "<pre><code class=\"language-fearless code-block\">"+sigs+"</code></pre>");
   }
 
   public String visitMeth(T.Dec parent, CM cm) {
