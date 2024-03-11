@@ -10,13 +10,6 @@ import java.util.function.Supplier;
 public interface FlowRuntime {
   int BUFFER_SIZE = 256;
   ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-//  HashMap<Long, WeakReference<Subject<?>>> subjects = new HashMap<>();
-
-//  @SuppressWarnings("unchecked")
-//  static <E> Optional<Subject<E>> getSubject(long subjectId) {
-//    return Optional.ofNullable(subjects.get(subjectId))
-//      .flatMap(ref -> Optional.ofNullable((Subject<E>) ref.get()));
-//  }
 
   static <E> SubmissionPublisher<Message<E>> spawnWorker() {
     return new SubmissionPublisher<>(executor, BUFFER_SIZE);
@@ -31,47 +24,12 @@ public interface FlowRuntime {
       ref.submit(FlowRuntime.Message.Stop.INSTANCE);
     }
   }
-//  static <E> Subject<E> spawnSubject() {
-//    var subject = new SubmissionPublisher<Message<E>>(executor, BUFFER_SIZE);
-//    // TODO: The default consumer subscriber stops processing new things on exception. I might want to make my own to have different behaviour.
-//    var signal = subject.consume(msg->{
-//      switch (msg) {
-//        case Message.Stop<E> ignored -> {
-//          System.out.println("stopped");
-//          subject.close();
-//        }
-//        case Message.Data<E> data -> {
-//          System.out.println("onNext: "+data.data);
-//          var idk = new Box<>(0L);
-//          IntStream.range(0, 200_000_000).forEach(i -> idk.update(j -> i + j));
-////          throw new Error("throws");
-//        }
-//      }
-//    });
-//    return new Subject<>(subject, signal);
-//  }
 
   sealed interface Message<E> {
     record Data<E>(E data) implements Message<E> {}
     record Stop<E>() implements Message<E> {
       @SuppressWarnings("rawtypes")
       static final Stop INSTANCE = new Stop<>();
-    }
-  }
-
-  // TODO remove:
-  class Box<T> {
-    private T inner;
-
-    public static <T> Box<T> of(Supplier<T> f) { return new Box<>(f.get()); }
-
-    public Box(T inner) { this.inner = inner; }
-
-    public T get() { return inner; }
-    public void set(T inner) { this.inner = inner; }
-    public T update(Function<T, T> f) {
-      this.inner = f.apply(this.inner);
-      return this.inner;
     }
   }
 }
