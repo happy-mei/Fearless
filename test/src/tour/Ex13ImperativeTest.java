@@ -6,7 +6,7 @@ import utils.Base;
 import static codegen.java.RunJavaProgramTests.ok;
 import static utils.RunOutput.Res;
 
-public class Ex10ImperativeTest {
+public class Ex13ImperativeTest {
   @Test void ifTerminatesTrue() { ok(new Res("hi\nyay", "", 0), "test.Test", """
     package test
     Test:Main {sys -> Block#
@@ -43,6 +43,18 @@ public class Ex10ImperativeTest {
         .return {ControlFlow.continue}
         }
       .assert {n.get == 10}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void incrementLoopNoVar() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> Foo#(Count.int(0)) }
+    Foo: {#(n: mut Count[Int]): Void -> Block#
+      .loop {Block#
+        .if {n.get == 10} .return {ControlFlow.break}
+        .do {Block#(n++)}
+        .return {ControlFlow.continue}
+        }
       .return {Void}
       }
     """, Base.mutBaseAliases); }

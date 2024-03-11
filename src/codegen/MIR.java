@@ -123,10 +123,12 @@ public sealed interface MIR {
     }
   }
 
-  record Block(E original, Collection<BlockStmt> stmts) implements E {
+  record Block(E original, Collection<BlockStmt> stmts, MT expectedT) implements E {
     public sealed interface BlockStmt {
       record Return(E e) implements BlockStmt {}
       record Do(E e) implements BlockStmt {}
+      record Loop(E e) implements BlockStmt {}
+      record If(E pred) implements BlockStmt {}
     }
     @Override public MT t() {
       return original.t();

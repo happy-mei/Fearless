@@ -179,6 +179,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
 
   Program compile(String[] files, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
     var inferred = generateProgram(files, resolvedCalls);
+    v.progress.printTask("Checking types \uD83E\uDD14");
     inferred.typeCheck(resolvedCalls);
     v.progress.printTask("Types look all good \uD83E\uDD73");
     return inferred;

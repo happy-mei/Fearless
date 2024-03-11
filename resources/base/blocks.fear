@@ -1,14 +1,18 @@
 package base
 
 ReturnStmt[R]: {mut #: R}
-Condition: {mut #: Bool}
+Condition: ReturnStmt[Bool]
+LoopBody[R]: ReturnStmt[mut ControlFlow[R]]
 VarContinuation[X,R]: {mut #(x: X, self: mut Block[R]): R}
 ControlFlow: {
-  .continue: mut ControlFlow[Void] -> {m -> m.continue},
-  .break: mut ControlFlow[Void] -> {m -> m.break},
-  .continueWith[T]: mut ControlFlow[T] -> {m -> m.continue},
-  .breakWith[T]: mut ControlFlow[T] -> {m -> m.break},
-  .return[T](returnValue: T): mut ControlFlow[T] -> {m -> m.return(returnValue)},
+  .continue: mut ControlFlow[Void] -> mut ControlFlowContinue: ControlFlow[Void]{m -> m.continue},
+  .break: mut ControlFlow[Void] -> mut ControlFlowBreak: ControlFlow[Void]{m -> m.break},
+  .continueWith[T]: mut ControlFlow[T] ->  mut ControlFlowContinue[T]: ControlFlow[T]{m -> m.continue},
+  .breakWith[T]: mut ControlFlow[T] -> mut ControlFlowBreak[T]: ControlFlow[T]{m -> m.break},
+  .return[T](returnValue: T): mut ControlFlow[T] -> mut ControlFlowReturn[T]: ControlFlow[T]{
+    .match(m) -> m.return(returnValue),
+    mut .value: T -> returnValue,
+    },
   }
 ControlFlow[T]: {
   mut .match[R](m: mut ControlFlowMatch[T,R]): R,
@@ -18,7 +22,6 @@ ControlFlowMatch[T,R]: {
   mut .break: R,
   mut .return(returnValue: T): R,
   }
-LoopBody[R]: ReturnStmt[mut ControlFlow[R]]
 
 Block:{
   #[R]: mut Block[R] -> {},

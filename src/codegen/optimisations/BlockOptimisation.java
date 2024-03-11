@@ -18,11 +18,6 @@ public class BlockOptimisation implements MIRCloneVisitor {
     this.magic = magic;
   }
 
-//  @Override public MIR.Program visitProgram(MIR.Program p) {
-//    this.funs = p.pkgs().stream().flatMap(pkg->pkg.funs().stream()).collect(Collectors.toMap(MIR.Fun::name, Function.identity()));
-//    return MIRCloneVisitor.super.visitProgram(p);
-//  }
-
   @Override public MIR.Package visitPackage(MIR.Package pkg) {
     this.funs = pkg.funs().stream().collect(Collectors.toMap(MIR.Fun::name, Function.identity()));
     return MIRCloneVisitor.super.visitPackage(pkg);
@@ -43,7 +38,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
     if (res == FlattenStatus.INVALID) { return Optional.empty(); }
     if (!(stmts.getLast() instanceof MIR.Block.BlockStmt.Return)) { return Optional.empty(); }
     assert res == FlattenStatus.FLATTENED;
-    return Optional.of(new MIR.Block(call, Collections.unmodifiableCollection(stmts)));
+    return Optional.of(new MIR.Block(call, Collections.unmodifiableCollection(stmts), call.t()));
   }
 
   private enum FlattenStatus { CONTINUE, INVALID, FLATTENED }
@@ -59,13 +54,28 @@ public class BlockOptimisation implements MIRCloneVisitor {
           stmts.offerFirst(new MIR.Block.BlockStmt.Return(res.get()));
         } else if (mCall.name().equals(new Id.MethName(".do", 1))) {
           var res = this.visitReturn(mCall.args().getFirst());
-          if (res.isEmpty()) { yield  FlattenStatus.INVALID; }
+          if (res.isEmpty()) {
+            yield FlattenStatus.INVALID;
+          }
           var doExpr = res.get();
           // MCall is the only fearless expression that can perform a side effect,
           // so we can just ignore any other expressions at this point.
           if (doExpr instanceof MIR.MCall) {
             stmts.offerFirst(new MIR.Block.BlockStmt.Do(res.get()));
           }
+        } else if (mCall.name().equals(new Id.MethName(".loop", 1))) {
+          // maybe don't inline this, so we can optimise the loop body too
+          var res = this.visitReturn(mCall.args().getFirst());
+          if (res.isEmpty()) {
+            yield FlattenStatus.INVALID;
+          }
+          stmts.offerFirst(new MIR.Block.BlockStmt.Loop(res.get()));
+        } else if (mCall.name().equals(new Id.MethName(".if", 1))) {
+          var res = this.visitReturn(mCall.args().getFirst());
+          if (res.isEmpty()) {
+            yield FlattenStatus.INVALID;
+          }
+          stmts.offerFirst(new MIR.Block.BlockStmt.If(res.get()));
         } else {
           yield FlattenStatus.INVALID;
         }

@@ -7,14 +7,12 @@ import codegen.optimisations.OptimisationBuilder;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
+import utils.Box;
 import utils.Bug;
 import utils.Streams;
 import visitors.MIRVisitor;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -225,14 +223,36 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
   @Override public String visitBlockExpr(MIR.Block expr, boolean checkMagic) {
     var res = new StringBuilder();
-    for (var stmt : expr.stmts()) {
-      String stmtCode = switch (stmt) {
-        case MIR.Block.BlockStmt.Return ret -> "return %s".formatted(ret.e().accept(this, checkMagic));
-        case MIR.Block.BlockStmt.Do do_ -> "%s;\n".formatted(do_.e().accept(this, checkMagic));
-      };
-      res.append(stmtCode);
+    var stmts = new ArrayDeque<>(expr.stmts());
+    var doIdx = new Box<>(0);
+    while (!stmts.isEmpty()) {
+      res.append(this.visitBlockStmt(expr, stmts, doIdx));
     }
     return res.toString();
+  }
+
+  private String visitBlockStmt(MIR.Block expr, ArrayDeque<MIR.Block.BlockStmt> stmts, Box<Integer> doIdx) {
+    var stmt = stmts.poll();
+    assert stmt != null;
+    return switch (stmt) {
+      case MIR.Block.BlockStmt.Return ret -> "return %s".formatted(ret.e().accept(this, true));
+      case MIR.Block.BlockStmt.Do do_ -> "var doRes%s = %s;\n".formatted(doIdx.update(n->n + 1), do_.e().accept(this, true));
+      case MIR.Block.BlockStmt.Loop loop -> """
+          while (true) {
+            var res = %s;
+            if (res == base.ControlFlowContinue_0._$self || res == base.ControlFlowContinue_1._$self) { continue; }
+            if (res == base.ControlFlowBreak_0._$self || res == base.ControlFlowBreak_1._$self) { break; }
+            if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut$(); }
+          }
+          """.formatted(loop.e().accept(this, true), getName(expr.expectedT()));
+      case MIR.Block.BlockStmt.If if_ -> {
+        var body = this.visitBlockStmt(expr, stmts, doIdx);
+        if (body.startsWith("return")) { body += ";"; }
+        yield """
+          if (%s == base.True_0._$self) { %s }
+          """.formatted(if_.pred().accept(this, true), body);
+      }
+    };
   }
 
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {

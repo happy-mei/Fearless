@@ -321,58 +321,13 @@ public class TestJavaProgramImm {
     Break: {#: L -> L{#(x) -> L{#(y) -> x, .n -> 2}, .n -> 1}#(L{#(y) -> y, .n -> 3})}
     """); }
 
-  private static final String blockLib = """
-    package base
-    
-    Info:{}
-    ReturnStmt[R:imm]:{ #: R }
-    Condition:{ #: Bool }
-    VarContinuation[X:imm,R:imm]:{ #(x: X, self: Block[R]): R }
-    Block:{
-      #[R:imm]: Block[R] -> {},
-      }
-    Block[R:imm]:{
-      .return(a: ReturnStmt[R]): R -> a#,
-      .do(r: ReturnStmt[Void]): Block[R] -> this._do(r#),
-        ._do(v: Void): Block[R] -> this,
-      .assert(p: Condition): Block[R] -> Assert!(p#, AssertCont[Block[R]]{this}),
-      .assert(p: Condition, failMsg: Str): Block[R] ->
-        Assert!(p#, failMsg, AssertCont[Block[R]]{this}),
-      .var[X:imm](x: ReturnStmt[X], cont: VarContinuation[X, R]): R -> cont#(x#, this),
-      .if(p: Condition): BlockIf[R] -> p# ? { 'cond
-        .then -> { 't
-          .return(a) -> _DecidedBlock#(a#),
-          .error(info) -> t.error(info),
-          .do(r) -> t._do[](r#),
-            ._do(v: Void): Block[R] -> this,
-          },
-        .else -> { 'f
-          .return(_) -> this,
-          .do(_) -> this,
-          .error(_) -> this,
-          },
-        },
-      }
-    BlockIf[R:imm]:{
-      .return(a: ReturnStmt[R]): Block[R],
-      .do(r: ReturnStmt[Void]): Block[R],
-      .error(info: ReturnStmt[Info]): Block[R],
-      }
-    _DecidedBlock:{
-      #[R:imm](res: R): mut Block[R] -> { 'self
-        .return(_) -> res,
-        .do(_) -> self,
-        .var(_, _) -> res,
-        }
-      }
-    """;
   @Test void blockRet() { ok(new Res("5", "", 0), """
     package test
     alias base.Int as Int, alias base.Str as Str, alias base.Block as Block,
     Test:base.Main{ _ -> Block#
      .return {5 .str}
      }
-    """, blockLib);}
+    """);}
   @Test void blockDoRet() { ok(new Res("5", "", 0), """
     package test
     alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
@@ -381,7 +336,7 @@ public class TestJavaProgramImm {
      .return {5 .str}
      }
     ForceGen: {#: Void -> {}}
-    """, blockLib);}
+    """);}
   @Test void blockVarDoRet() { ok(new Res("5", "", 0), """
     package test
     alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
@@ -391,5 +346,5 @@ public class TestJavaProgramImm {
      .return {n .str}
      }
     ForceGen: {#: Void -> {}}
-    """, blockLib);}
+    """);}
 }
