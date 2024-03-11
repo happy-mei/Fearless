@@ -57,12 +57,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
           if (res.isEmpty()) {
             yield FlattenStatus.INVALID;
           }
-          var doExpr = res.get();
-          // MCall is the only fearless expression that can perform a side effect,
-          // so we can just ignore any other expressions at this point.
-          if (doExpr instanceof MIR.MCall) {
-            stmts.offerFirst(new MIR.Block.BlockStmt.Do(res.get()));
-          }
+          stmts.offerFirst(new MIR.Block.BlockStmt.Do(res.get()));
         } else if (mCall.name().equals(new Id.MethName(".loop", 1))) {
           // maybe don't inline this, so we can optimise the loop body too
           var res = this.visitReturn(mCall.args().getFirst());
@@ -77,6 +72,9 @@ public class BlockOptimisation implements MIRCloneVisitor {
           }
           stmts.offerFirst(new MIR.Block.BlockStmt.If(res.get()));
         } else {
+          // TODO: .var
+          // TODO: .error
+          // TODO: .varIso
           yield FlattenStatus.INVALID;
         }
         yield flattenBlock(mCall.recv(), stmts);
