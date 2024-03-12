@@ -8,7 +8,7 @@ import codegen.java.ImmJavaCodegen;
 import codegen.java.ImmJavaProgram;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaProgram;
-import codegen.md.HtmlDocgen;
+import codegen.html.HtmlDocgen;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
