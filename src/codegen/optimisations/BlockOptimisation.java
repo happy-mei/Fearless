@@ -74,6 +74,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
         } else {
           // TODO: .var
           // TODO: .error
+          // TODO: .assert
           // TODO: .varIso
           yield FlattenStatus.INVALID;
         }

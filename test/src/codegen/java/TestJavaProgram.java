@@ -1604,4 +1604,15 @@ public class TestJavaProgram {
     Test: Main{ _ -> A#(Error.str "whoops") }
     A:{ #(x: Str): Void -> Void }
     """, Base.mutBaseAliases); }
+
+  @Test void noMagicWithManualCapability() { ok(new Res("", "No magic code was found[###]", 1), "test.Test", """
+    package test
+    Test: Main{_ -> mut FakeIO.println("oh no")}
+    FakeIO: IO{
+      .print(msg) -> Magic!,
+      .println(msg) -> Magic!,
+      .printErr(msg) -> Magic!,
+      .printlnErr(msg) -> Magic!,
+      }
+    """, Base.mutBaseAliases); }
 }

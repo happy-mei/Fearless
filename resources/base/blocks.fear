@@ -23,7 +23,7 @@ ControlFlowMatch[T,R]: {
   mut .return(returnValue: T): R,
   }
 
-Block:{
+Block: Sealed{
   #[R]: mut Block[R] -> {},
   #[X:read,mut,imm,iso](x: X): Void -> this#(x, Void),
   #[X:read,mut,imm,iso, R:read,mut,imm,iso](_: X, res: R): R -> res,
@@ -31,7 +31,7 @@ Block:{
   #[X1:read,mut,imm,iso, X2:read,mut,imm,iso, X3:read,mut,imm,iso, R:read,mut,imm,iso](_: X1, _: X2, _: X3, res: R): R -> res,
   #[X1:read,mut,imm,iso, X2:read,mut,imm,iso, X3:read,mut,imm,iso, X4:read,mut,imm,iso, R:read,mut,imm,iso](_: X1, _: X2, _: X3, _: X4, res: R): R -> res,
   }
-Block[R]:{
+Block[R]: Sealed{
   mut .return(a: mut ReturnStmt[R]): R -> a#,
   mut .do(r: mut ReturnStmt[Void]): mut Block[R] -> this._do(r#),
     mut ._do(v: Void): mut Block[R] -> this,

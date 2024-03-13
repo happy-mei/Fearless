@@ -83,9 +83,10 @@ public interface Base {
     
     alias base.caps.FIO as FIO,
     alias base.caps.IO as IO,
-    
     alias base.caps.Env as Env,
     alias base.caps.FEnv as FEnv,
+    alias base.caps.FRandomSeed as FRandomSeed,
+    alias base.caps.RandomSeed as RandomSeed,
     
     alias base.caps.System as System,
     

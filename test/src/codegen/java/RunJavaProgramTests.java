@@ -2,6 +2,7 @@ package codegen.java;
 
 import ast.E;
 import codegen.MIRInjectionVisitor;
+import failure.CompileError;
 import id.Id;
 import main.CompilerFrontEnd;
 import main.Main;
@@ -12,6 +13,7 @@ import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
 import utils.Bug;
+import utils.Err;
 import utils.RunOutput;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
@@ -73,13 +75,14 @@ public class RunJavaProgramTests {
     inferred.typeCheck(resolvedCalls);
     var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();
-    throw Bug.todo();
-//    try {
-//      var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-//      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
-//      Assertions.fail("Did not fail. Got: "+res);
-//    } catch (CompileError e) {
-//      Err.strCmp(expectedErr, e.toString());
-//    }
+    var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
+    try {
+      var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
+      System.out.println("Running...");
+      var res = RunOutput.java(JavaProgram.compile(verbosity, new JavaProgram(java)), args).join();
+      Assertions.fail("Did not fail. Got: "+res);
+    } catch (CompileError e) {
+      Err.strCmp(expectedErr, e.toString());
+    }
   }
 }
