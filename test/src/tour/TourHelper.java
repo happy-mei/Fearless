@@ -1,7 +1,5 @@
 package tour;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import utils.Base;
 
 import static codegen.java.RunJavaProgramTests.ok;
