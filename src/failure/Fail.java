@@ -46,10 +46,7 @@ public class Fail{
     return String.format("%s\nconflicts:\n%s", base, conflictMsg);
     }
   private static CompileError of(String msg){
-    var arr=Thread.currentThread().getStackTrace();
-    var kind=arr[2].getMethodName();
-    int code=ErrorCode.valueOf(kind).code();
-    return new CompileError(code, kind, msg);
+    return new CompileError(msg);
   }
 
   //ALL OUR ERRORS
