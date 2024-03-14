@@ -19,6 +19,7 @@ import utils.Streams;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -33,9 +34,9 @@ public interface EMethTypeSystem extends ETypeSystem {
     return Push.of(recvMdf, base);
   }
 
-  default Optional<CompileError> visitMCall(E.MCall e) {
+  default Optional<Supplier<CompileError>> visitMCall(E.MCall e) {
     var guessType = new GuessIT(p(), g(), xbs(), depth());
-    Optional<CompileError> error = Optional.empty();
+    Optional<Supplier<CompileError>> error = Optional.empty();
     for (var expectedRecv : e.receiver().accept(guessType)) {
       var res = visitMCall(e, expectedRecv);
       if (res.isEmpty()) { return res; }
@@ -43,63 +44,66 @@ public interface EMethTypeSystem extends ETypeSystem {
     }
     return error;
   }
-  default Optional<CompileError> visitMCall(E.MCall e, Id.IT<T> recvIT) {
+  default Optional<Supplier<CompileError>> visitMCall(E.MCall e, Id.IT<T> recvIT) {
     var guessType = new GuessITX(p(), g(), xbs(), depth());
     var guessFullType = new GuessT(p(), g(), xbs(), depth());
     var recvMdf = e.receiver().accept(guessFullType).stream().map(T::mdf).findFirst().orElse(Mdf.recMdf);
     var optTst=multiMeth(recvIT, recvMdf, e.name(), e.ts());
     if (optTst.isEmpty()) {
-      return Optional.of(Fail.undefinedMethod(e.name(), new T(recvMdf, recvIT), p().meths(xbs(), Mdf.recMdf, recvIT, depth()).stream()));
+      return Optional.of(()->Fail.undefinedMethod(e.name(), new T(recvMdf, recvIT), p().meths(xbs(), Mdf.recMdf, recvIT, depth()).stream()));
     }
     List<TsT> tsts = optTst.stream()
       .filter(this::filterOnRes)
       .toList();
 
     if (tsts.isEmpty()) {
-      return Optional.of(Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.stream().distinct().toList()).pos(e.pos()));
+      return Optional.of(()->Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.stream().distinct().toList()).pos(e.pos()));
     }
 
     List<E> es = Push.of(e.receiver(),e.es());
-    var nestedErrors = new ArrayDeque<ArrayList<CompileError>>(tsts.size());
+    var nestedErrors = new ArrayDeque<ArrayList<Supplier<CompileError>>>(tsts.size());
     var methArgCache = IntStream.range(0, es.size()).mapToObj(i_->new HashMap<T, Res>()).toList();
     for (var tst : tsts) {
-      var errors = new ArrayList<CompileError>();
+      var errors = new ArrayList<Supplier<CompileError>>();
       nestedErrors.add(errors);
       if (okAll(es, tst.ts(), errors, methArgCache, guessType)) {
         var recvT = tst.ts().get(0);
         var invalidBounds = GenericBounds.validGenericMeth(p(), xbs(), recvT.mdf(), recvT.itOrThrow(), depth(), tst.original(), e.ts());
-        if (invalidBounds.isPresent()) { return Optional.of(invalidBounds.get().pos(e.pos())); }
+        if (invalidBounds.isPresent()) { return Optional.of(()->invalidBounds.get().get().pos(e.pos())); }
 
         var expected = expectedT().orElseThrow();
         if (!p().isSubType(xbs(), tst.t(), expected)) {
-          return Optional.of(Fail.methTypeError(expected, tst.t(), e.name()).pos(e.pos()));
+          return Optional.of(()->Fail.methTypeError(expected, tst.t(), e.name()).pos(e.pos()));
         }
         resolvedCalls().put(e, tst);
         return Optional.empty();
       }
     }
 
-    var calls1 = tsts.stream()
-      .map(tst1->{
-        var call = CompletableFuture.supplyAsync(()->Streams.zip(es, tst1.ts()).map((e1,t1)->guessToStr(e1.accept(guessFullType)))
-          .collect(Collectors.joining(", ")))
-          .completeOnTimeout("<timed out>", 100, TimeUnit.MILLISECONDS)
-          .exceptionally(err->switch (err.getCause()) {
-            case CompileError ce -> ce.header();
-            default -> throw Bug.of(err);
-          })
-          .join();
-        var dependentErrorMsgs = nestedErrors.removeFirst().stream()
-          .map(CompileError::toString)
-          .collect(Collectors.joining("\n"))
-          .indent(4);
-        var dependentErrors = !dependentErrorMsgs.isEmpty()
-          ? "\n"+"The following errors were found when checking this sub-typing:\n".indent(2)+dependentErrorMsgs
-          : "";
-        return "("+ String.join(", ", call) +") <: "+tst1+dependentErrors;
-      }).toList();
-    var calls = String.join("\n", calls1);
-    return Optional.of(Fail.callTypeError(e, expectedT(), calls).pos(e.pos()));
+    return Optional.of(()->{
+      var calls1 = tsts.stream()
+        .map(tst1->{
+          var call = CompletableFuture.supplyAsync(()->Streams.zip(es, tst1.ts()).map((e1,t1)->guessToStr(e1.accept(guessFullType)))
+              .collect(Collectors.joining(", ")))
+            .completeOnTimeout("<timed out>", 100, TimeUnit.MILLISECONDS)
+            .exceptionally(err->switch (err.getCause()) {
+              case CompileError ce -> ce.header();
+              default -> throw Bug.of(err);
+            })
+            .join();
+          var dependentErrorMsgs = nestedErrors.removeFirst().stream()
+            .map(Supplier::get)
+            .map(CompileError::toString)
+            .collect(Collectors.joining("\n"))
+            .indent(4);
+          var dependentErrors = !dependentErrorMsgs.isEmpty()
+            ? "\n"+"The following errors were found when checking this sub-typing:\n".indent(2)+dependentErrorMsgs
+            : "";
+          return "("+ String.join(", ", call) +") <: "+tst1+dependentErrors;
+        }).toList();
+      var calls = String.join("\n", calls1);
+      return Fail.callTypeError(e, expectedT(), calls).pos(e.pos());
+    });
   }
   default String guessToStr(Set<T> guessedTypes) {
     if (guessedTypes.size() == 1) { return guessedTypes.stream().findFirst().get().toString(); }
@@ -109,12 +113,12 @@ public interface EMethTypeSystem extends ETypeSystem {
     if(expectedT().isEmpty()){ return true; }
     return p().isSubType(xbs(), tst.t(), expectedT().get());
   }
-  default boolean okAll(List<E> es, List<T> ts, ArrayList<CompileError> errors, List<HashMap<T, Res>> caches, GuessITX guessType) {
+  default boolean okAll(List<E> es, List<T> ts, ArrayList<Supplier<CompileError>> errors, List<HashMap<T, Res>> caches, GuessITX guessType) {
     assert es.size() == ts.size() && caches.size() == es.size();
     return IntStream.range(0, es.size())
       .allMatch(i->ok(es.get(i), ts.get(i), errors, caches.get(i), guessType));
   }
-  default boolean ok(E e, T t, ArrayList<CompileError> errors, HashMap<T, Res> cache, GuessITX guessType) {
+  default boolean ok(E e, T t, ArrayList<Supplier<CompileError>> errors, HashMap<T, Res> cache, GuessITX guessType) {
 //    var res = cache.computeIfAbsent(t, t_->e.accept(this.withT(Optional.of(t_))));
     // TODO: cache res based on the same visitor hashcode
     /*

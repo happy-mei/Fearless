@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public interface GenericBounds {
-  static Optional<CompileError> validGenericLambda(Program p, XBs xbs, E.Lambda l) {
+  static Optional<Supplier<CompileError>> validGenericLambda(Program p, XBs xbs, E.Lambda l) {
     return l.its().stream()
       .map(it->validGenericIT(p, xbs, it))
       .filter(Optional::isPresent)
@@ -25,7 +25,7 @@ public interface GenericBounds {
       .findAny();
   }
 
-  static Optional<CompileError> validGenericMeth(Program p, XBs xbs, Mdf recvMdf, Id.IT<T> recvIT, int depth, CM cm, List<T> typeArgs) {
+  static Optional<Supplier<CompileError>> validGenericMeth(Program p, XBs xbs, Mdf recvMdf, Id.IT<T> recvIT, int depth, CM cm, List<T> typeArgs) {
     var gensValid = typeArgs.stream()
       .map(t->validGenericT(p, xbs, t))
       .filter(Optional::isPresent)
@@ -44,7 +44,7 @@ public interface GenericBounds {
       .findAny();
   }
 
-  static Optional<CompileError> validGenericIT(Program p, XBs xbs, Id.IT<T> it) {
+  static Optional<Supplier<CompileError>> validGenericIT(Program p, XBs xbs, Id.IT<T> it) {
     var innerInvalid = it.ts().stream()
       .map(t->validGenericT(p, xbs, t))
       .filter(Optional::isPresent)
@@ -71,22 +71,22 @@ public interface GenericBounds {
       .findAny();
   }
 
-  static Optional<CompileError> validGenericT(Program p, XBs xbs, T t) {
+  static Optional<Supplier<CompileError>> validGenericT(Program p, XBs xbs, T t) {
     return t.match(
       gx->Optional.empty(),
       it->validGenericIT(p, xbs, it)
     );
   }
 
-  static Optional<CompileError> validGenericMdf(XBs xbs, Set<Mdf> bounds, T t) {
-    Supplier<Optional<CompileError>> errMsg = ()->Optional.of(Fail.invalidMdfBound(t, bounds.stream().sorted().toList()));
+  static Optional<Supplier<CompileError>> validGenericMdf(XBs xbs, Set<Mdf> bounds, T t) {
+    Optional<Supplier<CompileError>> errMsg = Optional.of(()->Fail.invalidMdfBound(t, bounds.stream().sorted().toList()));
     if (!t.mdf().is(Mdf.mdf, Mdf.recMdf)) {
-      return bounds.contains(t.mdf()) ? Optional.empty() : errMsg.get();
+      return bounds.contains(t.mdf()) ? Optional.empty() : errMsg;
     }
 
     if (t.mdf().isMdf()) {
       var bs = xbs.get(t.gxOrThrow());
-      return bounds.containsAll(bs) ? Optional.empty() : errMsg.get();
+      return bounds.containsAll(bs) ? Optional.empty() : errMsg;
     }
 
     if (t.mdf().isRecMdf()) {
@@ -107,7 +107,7 @@ public interface GenericBounds {
         },
         it->bounds.containsAll(XBs.defaultBounds)
       );
-      return isOk ? Optional.empty() : errMsg.get();
+      return isOk ? Optional.empty() : errMsg;
     }
     throw Bug.unreachable();
   }

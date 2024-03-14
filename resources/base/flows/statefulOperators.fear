@@ -45,36 +45,51 @@ _Actor: {
 _InternalActor: {
   #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+    .var[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return {{'op
       .stop -> op.isRunning ? {
        .then -> Block#(isRunning := False, upstream.stop, onComplete#state),
        .else -> {}
        },
       .isRunning -> isRunning*,
-      .step(downstream) -> upstream.step(sinkFactory#[E]{
-        .stop -> Block#(downstream.stop, op.stop),
-        #(e) -> f#(downstream, state, e).match{
-          .continue -> {},
-          .stop -> Block#(downstream.stop, isRunning := False, onComplete#state),
-          },
-        }),
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#
+          .do {sink := (Opt#(sinkFactory#[E]{
+            .stop -> Block#(downstream.stop, op.stop),
+            #(e) -> isRunning.get ? {
+              .then -> f#(downstream, state, e).match{
+                .continue -> {},
+                .stop -> Block#(downstream.stop, isRunning := False, onComplete#state),
+                },
+              .else -> op.stop,
+              },
+            }))}
+          .return {upstream.step(sink.get!)}
+        },
       }},
 
   .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] -> Block#
     .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+    .var[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return {{'op
       .stop -> op.isRunning ? {
        .then -> Block#(isRunning := False, upstream.stop, onComplete#state),
        .else -> {}
        },
       .isRunning -> isRunning*,
-      .step(downstream) -> upstream.step(sinkFactory#[E]{
-        .stop -> Block#(downstream.stop, op.stop),
-        #(e) -> f#(downstream, state, e).match{
-          .continue -> {},
-          .stop -> Block#(downstream.stop, isRunning := False, onComplete#state),
-          },
-        }),
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#
+          .do {sink := (Opt#(sinkFactory#[E]{
+            .stop -> Block#(downstream.stop, op.stop),
+            #(e) -> f#(downstream, state, e).match{
+              .continue -> {},
+              .stop -> Block#(downstream.stop, isRunning := False, onComplete#state),
+              },
+            }))}
+          .return {upstream.step(sink.get!)}
+        },
       }},
   }
 

@@ -303,6 +303,11 @@ public class Ex09FlowsTest {
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
+
+  // TODO: right now it is possible to observe pipeline parallelism with the consumer and a limit + actor
+  // This is because the limit runs in parallel with the actor, the actor won't submit any messages incorrectly
+  // but it may run needlessly :(
+  // This is because the STOP message is queued behind any prior messages.
   @Test void limitedFlowActorAfter() { ok(new Res("6", "", 0), "test.Test", """
     package test
     Test:Main {sys -> "42 5".assertEq(
