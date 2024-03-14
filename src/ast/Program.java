@@ -40,7 +40,7 @@ public class Program implements program.Program  {
   public void typeCheck(IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
     var errors = new StringBuilder();
     TraitTypeSystem.dsOk(tsf, this.ds.values(), resolvedCalls)
-      .forEach(err->errors.append(err.get().toString()).append("\n\n"));
+      .forEach(err->errors.append(err.toString()).append("\n\n"));
     if (!errors.isEmpty()) { throw Fail.typeError(errors.toString()); }
   }
 
