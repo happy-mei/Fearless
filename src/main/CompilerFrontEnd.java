@@ -115,13 +115,14 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     var isEntryValid = p.isSubType(XBs.empty(), new ast.T(Mdf.mdf, p.of(entry).toIT()), new ast.T(Mdf.mdf, main));
     if (!isEntryValid) { throw Fail.invalidEntryPoint(entry, main); }
 
+    var timer = new Timer();
     v.progress.printTask("Running code generation \uD83C\uDFED");
     var mainClass = toJava(entry, p, resolvedCalls);
     var classFile = switch (bv) {
       case Std -> JavaProgram.compile(v, mainClass);
       case Imm -> ImmJavaProgram.compile(v, mainClass);
     };
-    v.progress.printTask("Code generated \uD83E\uDD73");
+    v.progress.printTask("Code generated \uD83E\uDD73 ("+timer.duration()+"ms)");
 
     var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
     String[] command = Stream.concat(
@@ -162,26 +163,28 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
           .orElse(pkg.getValue())
       ));
 
+    var timer = new Timer();
     v.progress.printTask("Parsing \uD83D\uDC40");
     var p = Parser.parseAll(ps, tsf);
-    v.progress.printTask("Parsing complete \uD83E\uDD73");
+    v.progress.printTask("Parsing complete \uD83E\uDD73 ("+timer.duration()+"ms)");
     v.progress.printTask("Checking that the program is well formed \uD83D\uDD0E");
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    v.progress.printTask("Well formedness checks complete \uD83E\uDD73");
+    v.progress.printTask("Well formedness checks complete \uD83E\uDD73 ("+timer.duration()+"ms)");
     v.progress.printTask("Inferring types \uD83D\uDD75️");
     var inferred = InferBodies.inferAll(p);
-    v.progress.printTask("Types inferred \uD83E\uDD73");
+    v.progress.printTask("Types inferred \uD83E\uDD73 ("+timer.duration()+"ms)");
     v.progress.printTask("Checking that the program is still well formed \uD83D\uDD0E");
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-    v.progress.printTask("Well formedness checks complete \uD83E\uDD73");
+    v.progress.printTask("Well formedness checks complete \uD83E\uDD73 ("+timer.duration()+"ms)");
     return inferred;
   }
 
   Program compile(String[] files, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
     var inferred = generateProgram(files, resolvedCalls);
+    var timer = new Timer();
     v.progress.printTask("Checking types \uD83E\uDD14");
     inferred.typeCheck(resolvedCalls);
-    v.progress.printTask("Types look all good \uD83E\uDD73");
+    v.progress.printTask("Types look all good \uD83E\uDD73 ("+timer.duration()+"ms)");
     return inferred;
   }
   private JavaProgram toJava(Id.DecId entry, Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
