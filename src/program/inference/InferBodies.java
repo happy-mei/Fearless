@@ -22,21 +22,21 @@ import java.util.stream.Stream;
 public record InferBodies(ast.Program p) {
   public static ast.Program inferAll(astFull.Program fullProgram){
     var inferredSigs = fullProgram.inferSignatures();
-    var inferBodies = new InferBodies(new ShallowInjectionVisitor().visitProgram(inferredSigs));
-    return new ast.Program(inferredSigs.tsf(), inferBodies.inferDecs(inferredSigs), Map.of());
+    var coreP = new ShallowInjectionVisitor().visitProgram(inferredSigs);
+    return new ast.Program(inferredSigs.tsf(), inferDecs(coreP, inferredSigs), Map.of());
   }
 
-  Map<Id.DecId, ast.T.Dec> inferDecs(astFull.Program fullProgram){
-    return fullProgram.ds().values().stream()
-      .map(this::inferDec)
-      .collect(Collectors.toMap(ast.T.Dec::name, d->d));
+  static Map<Id.DecId, ast.T.Dec> inferDecs(ast.Program p, astFull.Program fullProgram){
+    return fullProgram.ds().values().parallelStream()
+      .map(dec->new InferBodies(p.shallowClone()).inferDec(dec))
+      .collect(Collectors.toConcurrentMap(ast.T.Dec::name, d->d));
   }
   ast.T.Dec inferDec(astFull.T.Dec d){
     var coreDecl = p.ds().get(d.name());
     var l = coreDecl.lambda();
     return coreDecl.withLambda(l.withMeths(
       Streams.zip(d.lambda().meths(),l.meths())
-        .map((fullMeth, coreMeth)->fullMeth.body().map(b->inferMethBody(coreDecl,b, coreMeth)).orElse(coreMeth.withBody(Optional.empty())))
+        .map((fullMeth, coreMeth)->fullMeth.body().map(b->inferMethBody(coreDecl, b, coreMeth)).orElse(coreMeth.withBody(Optional.empty())))
         .toList()
     ));
   }

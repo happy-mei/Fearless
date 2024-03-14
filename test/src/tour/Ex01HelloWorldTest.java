@@ -13,7 +13,7 @@ The organization of files in folders is for the benefit of the programmers and
 have no impact on the semantic of fearless.
 To start a Fearless application, we specify the fully qualified name of a type.
 In the example below, we would need to run
->fearless myFolder test.Test
+> java -jar fearless.jar -e test.Test -r myFolder
 -------------------------*/@Test void helloWorld() { run("""
     package test
     Test:Main {sys -> FIO#sys.println("Hello, World!")}
@@ -21,7 +21,7 @@ In the example below, we would need to run
     """); }/*--------------------------------------------
 As you can see, the code above is a very minimal Hello World program.
 - In the first line we declare that our file belongs to the package 'test'.
-Note how there is no need the files inside the package 'test' to be all contained inside a 'test' folder.
+Note how there is no need for the files inside the package 'test' to be all contained inside a 'test' folder.
 We will omit the `package test` line in all other examples.
 - We then declare the type Test. Test implements Main. All runnable types must implement Main and have zero
 abstract methods.

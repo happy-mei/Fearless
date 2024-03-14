@@ -26,6 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class RunJavaProgramTests {
+  private static final TypeSystemFeatures TSF = new TypeSystemFeatures.TypeSystemFeaturesBuilder()
+    .build();
+
   public static void ok(RunOutput.Res expected, String entry, String... content) {
     okWithArgs(expected, entry, List.of(), content);
   }
@@ -36,7 +39,7 @@ public class RunJavaProgramTests {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.baseLib))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TSF);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
@@ -65,7 +68,7 @@ public class RunJavaProgramTests {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.baseLib))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TSF);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
