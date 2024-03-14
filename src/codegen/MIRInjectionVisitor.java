@@ -9,10 +9,7 @@ import magic.Magic;
 import program.CM;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
-import utils.Box;
-import utils.Mapper;
-import utils.Push;
-import utils.Streams;
+import utils.*;
 import visitors.CollectorVisitor;
 import visitors.CtxVisitor;
 
@@ -117,6 +114,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       .filter(cm->filterByMdf(e.mdf(), cm.mdf()))
       .map(cm->(CM.CoreCM)cm)
       .map(cm->visitMeth(cm, visitSig(cm)))
+      .peek(m->{assert m.fName().isPresent();})
       .toList();
 
     var uncallableMs =  p.meths(XBs.empty(), Mdf.recMdf, e, 0).stream()
@@ -166,6 +164,10 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     return new TopLevelRes(bodyRes.defs(), Push.of(bodyRes.funs(), fun));
   }
   public MIR.Meth visitMeth(CM.CoreCM cm, MIR.Sig sig) {
+    // uncallable meths can be abstract
+    if (cm.isAbs()) {
+      return new MIR.Meth(cm.c().name(), sig, false, Collections.emptySortedSet(), Optional.empty());
+    }
     assert !cm.isAbs();
     var x = selfNameOf(cm.c().name());
 
@@ -174,7 +176,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     var xs = fv.res();
     var capturesSelf = xs.remove(x);
 
-    return new MIR.Meth(cm.c().name(), sig, capturesSelf, Collections.unmodifiableSortedSet(xs), new MIR.FName(cm, capturesSelf));
+    return new MIR.Meth(cm.c().name(), sig, capturesSelf, Collections.unmodifiableSortedSet(xs), Optional.of(new MIR.FName(cm, capturesSelf)));
   }
 
   @Override public Res<MIR.MCall> visitMCall(E.MCall e, Ctx ctx) {

@@ -135,7 +135,7 @@ public class PackageCodegen implements MIRVisitor<String> {
 
     var realExpr = switch (kind) {
       case MethExprKind.Kind k -> switch (k.kind()) {
-        case RealExpr, Delegate -> "return %s(%s)".formatted(getName(meth.fName()), funArgs);
+        case RealExpr, Delegate -> "return %s(%s)".formatted(getName(meth.fName().orElseThrow()), funArgs);
         case Unreachable -> "panic(\"Unreachable code\")";
         case Delegator -> throw Bug.unreachable();
       };

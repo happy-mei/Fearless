@@ -73,7 +73,7 @@ public class JsCodegen implements MIRVisitor<String> {
       ).collect(Collectors.joining(", "));
     return """
       %s(%s) { return %s(%s); }
-      """.formatted(methName, args, getName(meth.fName()), funArgs);
+      """.formatted(methName, args, getName(meth.fName().orElseThrow()), funArgs);
   }
 
   public String visitFun(MIR.Fun fun) {

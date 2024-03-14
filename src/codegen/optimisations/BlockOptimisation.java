@@ -93,7 +93,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
     if (k.meths().size() != 1) { return Optional.empty(); }
     var m = k.meths().getFirst();
     assert m.sig().name().equals(new Id.MethName("#", 0));
-    var body = this.funs.get(m.fName()).body();
+    var body = this.funs.get(m.fName().orElseThrow()).body();
     return Optional.of(body);
   }
 }
