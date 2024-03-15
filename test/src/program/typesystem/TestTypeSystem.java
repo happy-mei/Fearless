@@ -2625,4 +2625,12 @@ were valid:
     
     Abort: { ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
     """); }
+
+  @Test void genericSimplificationSubTyping() { ok("""
+    package test
+    Default: {} Foo: {}
+    A[X,Y]: {}
+    B[X]: A[X,Default]
+    Break:{ #(b: B[Foo]): A[Foo,Default] -> b }
+    """); }
 }

@@ -552,27 +552,6 @@ public class TestJavaProgram {
       .return{{}}
       }
     """, Base.mutBaseAliases); }
-  @Test void LListItersIterPar() { ok(new Res("", "", 0), "test.Test", """
-    package test
-    Test:Main{ _ -> Block#
-      .var[LList[Int]] l1 = { LList[Int] + 35 + 52 + 84 + 14 }
-      .do{ Assert!(l1.head! == (l1.iter2.cur!), "sanity", {{}}) }
-      .do{ Assert!((l1.iter2.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((l1.iter2.find{n -> n > 100}).isEmpty, "find empty", {{}}) }
-      .do{ Assert!((l1.iter2
-                      .map{n -> n * 10}
-                      .find{n -> n == 140})
-                      .isSome,
-        "map", {{}})}
-      .do{ Assert!(l1.iter2
-                    .filter{n -> n == 52 .not }
-                    .flatMap{n -> (LList[Int] + n + n + n).iter2}
-                    .map{n -> n * 10}
-                    .str({n -> n.str}, ";") == "350;350;350;840;840;840;140;140;140",
-        "flatMap", {{}})}
-      .return{{}}
-      }
-    """, Base.mutBaseAliases); }
   @Test void LListItersIterMut() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Block#
@@ -612,12 +591,12 @@ public class TestJavaProgram {
         "count", {{}})}
       .do{ Assert!(l1.iter
                       .filter{n -> n > 50}
-                      .list.len == 2u,
+                      .list.size == 2u,
         "toList", {{}})}
       .do{ Assert!(l1.iter
                       .filter{n -> n > 50}
                       .llist
-                      .len == 2u,
+                      .size == 2u,
         "to mut LList", {{}})}
       .do{ Assert!(l1.iter
                     .flatMap{n -> List#(n, n, n).iter}
@@ -635,19 +614,43 @@ public class TestJavaProgram {
     package test
     alias base.Int as Int, alias base.Str as Str,
     alias base.List as List, alias base.Block as Block,
-    alias base.caps.FIO as FIO,
+    alias base.caps.FIO as FIO, alias base.caps.IO as IO,
         
     IterFind:base.Main{ sys -> Block#
-        .var l1 = { List#(35, 52, 84, 14) }
+        .var l1 = { List#[Int](35, 52, 84, 14) }
         .assert{l1.iter
-                  .map{n -> n * 10}
-                  .find{n -> n == 140}
-                  .isSome}
-        .var msg = {l1.iter
-                      .filter{n -> n < 40}
-                      .flatMap{n -> List#(n, n, n).iter}
-                      .map{n -> n * 10}
-                      .str({n -> n.str}, ",")}
+          .map{n -> n * 10}
+          .find{n -> n == 140}
+          .isSome}
+        .var[Str] msg = {l1.iter
+          .filter{n -> n < 40}
+          .flatMap{n -> List#(n, n, n).iter}
+          .map{n -> n * 10}
+          .str({n -> n.str}, ",")}
+        .var io = {FIO#sys}
+        .return {io.println(msg)}
+        // prints 350,350,350,140,140,140
+    }
+    """);}
+  @Test void paperExamplePrintFlow() { ok(new Res("350,350,350,140,140,140", "", 0), "test.IterFind", """
+    package test
+    alias base.Int as Int, alias base.Str as Str,
+    alias base.List as List, alias base.Block as Block,
+    alias base.caps.FIO as FIO, alias base.caps.IO as IO,
+    alias base.flows.Flow as Flow,
+        
+    IterFind:base.Main{ sys -> Block#
+        .var l1 = { List#[Int](35, 52, 84, 14) }
+        .assert{l1.iter
+          .map{n -> n * 10}
+          .find{n -> n == 140}
+          .isSome}
+        .var[Str] msg = {l1.flow
+          .filter{n -> n < 40}
+          .flatMap{n -> List#(n, n, n).flow}
+          .map{n -> n * 10}
+          .map{n -> n.str}
+          #(Flow.str ",")}
         .var io = {FIO#sys}
         .return {io.println(msg)}
         // prints 350,350,350,140,140,140
@@ -1544,7 +1547,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .var[Int] res = {mut Opt[Int]
-                       |> mut base.OptOrElseExt[Int]{9001}}
+                       # mut base.OptOrElseExt[Int]{9001}}
       .assert{res == 9001}
       .return {{}}
       }
@@ -1553,7 +1556,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .var[Opt[Int]] res = { Opt[Int]
-                             #{opt -> opt.match{.some(_) -> opt, .empty -> Opt#9001 }} }
+                             #{opt -> opt.match{.some(_) -> opt, .empty -> base.As[imm Opt[Int]]#(Opt#9001) }} }
       .assert{res! == 9001}
       .return {{}}
       }
