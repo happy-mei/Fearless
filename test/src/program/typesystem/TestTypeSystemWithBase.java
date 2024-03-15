@@ -15,6 +15,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -33,7 +34,7 @@ public class TestTypeSystemWithBase {
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-    inferred.typeCheck(new IdentityHashMap<>());
+    inferred.typeCheck(new ConcurrentHashMap<>());
   }
   void fail(String expectedErr, String... content){
     Main.resetAll();
@@ -47,7 +48,7 @@ public class TestTypeSystemWithBase {
       new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
       var inferred = InferBodies.inferAll(p);
       new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-      inferred.typeCheck(new IdentityHashMap<>());
+      inferred.typeCheck(new ConcurrentHashMap<>());
       Assertions.fail("Did not fail!\n");
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

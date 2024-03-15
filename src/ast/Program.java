@@ -15,6 +15,7 @@ import program.typesystem.XBs;
 import utils.Mapper;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,7 +38,7 @@ public class Program implements program.Program  {
   public Map<Id.DecId, T.Dec> inlineDs() { return Collections.unmodifiableMap(this.inlineDs); }
   public List<ast.E.Lambda> lambdas() { return this.ds().values().stream().map(T.Dec::lambda).toList(); }
 
-  public void typeCheck(IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+  public void typeCheck(ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     var errors = new StringBuilder();
     TraitTypeSystem.dsOk(tsf, this.ds.values(), resolvedCalls)
       .forEach(err->errors.append(err.toString()).append("\n\n"));

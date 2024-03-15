@@ -9,13 +9,14 @@ import visitors.Visitor;
 
 import java.util.IdentityHashMap;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public interface ETypeSystem extends Visitor<Optional<Supplier<CompileError>>> {
   Program p();
   Gamma g();
   XBs xbs();
-  IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls();
+  ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls();
   Optional<T> expectedT();
   int depth();
   default Optional<Supplier<CompileError>> visitX(E.X e){
@@ -32,8 +33,8 @@ public interface ETypeSystem extends Visitor<Optional<Supplier<CompileError>>> {
     return Optional.empty();
   }
 
-  static ETypeSystem of(Program p, Gamma g, XBs xbs, Optional<T> expectedT, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls, int depth){
-    record Ts(Program p, Gamma g, XBs xbs, Optional<T> expectedT, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls, int depth) implements EMethTypeSystem, ELambdaTypeSystem{}
+  static ETypeSystem of(Program p, Gamma g, XBs xbs, Optional<T> expectedT, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls, int depth){
+    record Ts(Program p, Gamma g, XBs xbs, Optional<T> expectedT, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls, int depth) implements EMethTypeSystem, ELambdaTypeSystem{}
     return new Ts(p,g,xbs,expectedT,resolvedCalls,depth);
   }
   default ETypeSystem withT(Optional<T> expectedT){ return of(p(), g(), xbs(), expectedT, resolvedCalls(), depth()); }

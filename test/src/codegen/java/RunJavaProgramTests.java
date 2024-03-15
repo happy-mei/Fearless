@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -47,7 +48,7 @@ public class RunJavaProgramTests {
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{
       throw err;
     });
-    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();
@@ -74,7 +75,7 @@ public class RunJavaProgramTests {
     });
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();

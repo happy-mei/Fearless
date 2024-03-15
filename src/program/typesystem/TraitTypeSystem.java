@@ -12,16 +12,17 @@ import program.TypeSystemFeatures;
 import utils.Mapper;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public interface TraitTypeSystem {
   Program p();
-  static List<CompileError> dsOk(TypeSystemFeatures tsf, Collection<Dec> ds, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls){
+  static List<CompileError> dsOk(TypeSystemFeatures tsf, Collection<Dec> ds, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls){
     Map<Id.DecId, Dec> pDs = Mapper.of(c->ds.forEach(e->c.put(e.name(),e)));
     TraitTypeSystem ttt = ()->new Program(tsf, pDs, Map.of());
     return ds.stream().flatMap(di->ttt.dOk(di, resolvedCalls).stream()).toList();
   }
-  default Optional<CompileError> dOk(Dec d, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls){
+  default Optional<CompileError> dOk(Dec d, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls){
     var c=d.name();
     var xs=d.gxs();
     var b=d.lambda();

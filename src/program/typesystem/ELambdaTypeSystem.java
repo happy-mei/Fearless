@@ -62,7 +62,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .filter(m->filtered.stream().noneMatch(cm->cm.name().equals(m.name())))
       .toList();
     assert sadlyExtra.isEmpty();//TODO: can we break this assertion? We think no.
-    return ((ELambdaTypeSystem) withProgram(p0)).bothT(d);
+    return ((ELambdaTypeSystem)withProgram(p0)).bothT(d);
   }
 
   default Optional<Supplier<CompileError>> bothT(Dec d) {
@@ -77,7 +77,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
       xbs = xbs.add(gx.name(), bounds);
     }
     var invalidGens = GenericBounds.validGenericLambda(p(), xbs, b);
-    ELambdaTypeSystem boundedTypeSys = (ELambdaTypeSystem) withXBs(xbs);
+    XBs finalXbs = xbs;
+    Supplier<ELambdaTypeSystem> boundedTypeSys = ()->(ELambdaTypeSystem) ETypeSystem.of(p().shallowClone(), g(), finalXbs, expectedT(), resolvedCalls(), depth());
     if (invalidGens.isPresent()) { return Optional.of(()->invalidGens.get().get().pos(b.pos())); }
     //var errMdf = expectedT.map(ti->!p().isSubType(ti.mdf(),b.mdf())).orElse(false);
     //after discussion, line above not needed
@@ -90,9 +91,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .orElseGet(()->new T(b.mdf(), b.its().getFirst()));
     T selfT = new T(b.mdf(), d.toIT());
     var selfName=b.selfName();
-    List<Supplier<CompileError>> mRes = b.meths().stream().flatMap(mi->{
+    List<Supplier<CompileError>> mRes = b.meths().parallelStream().flatMap(mi->{
       try {
-        return boundedTypeSys.mOk(selfName, selfT, mi).stream();
+        return boundedTypeSys.get().mOk(selfName, selfT, mi).stream();
       } catch (CompileError err) {
         return Optional.<Supplier<CompileError>>of(()->err.parentPos(mi.pos())).stream();
       }

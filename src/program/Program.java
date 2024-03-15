@@ -17,6 +17,7 @@ import utils.*;
 import visitors.CloneVisitor;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -178,7 +179,7 @@ public interface Program {
 
   default Optional<Supplier<CompileError>> isType(Gamma g, XBs xbs, ast.E e, ast.T expected) {
 //    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
-    var v = ETypeSystem.of(this, g, xbs, Optional.of(expected), new IdentityHashMap<>(), 0);
+    var v = ETypeSystem.of(this, g, xbs, Optional.of(expected), new ConcurrentHashMap<>(), 0);
     var res = e.accept(v);
     return res;
 //    return res.resMatch(t->isSubType(xbs,t,expected),err->false);

@@ -75,7 +75,7 @@ public interface EMethTypeSystem extends ETypeSystem {
         if (!p().isSubType(xbs(), tst.t(), expected)) {
           return Optional.of(()->Fail.methTypeError(expected, tst.t(), e.name()).pos(e.pos()));
         }
-        resolvedCalls().put(e, tst);
+        resolvedCalls().put(e.callId(), tst);
         return Optional.empty();
       }
     }

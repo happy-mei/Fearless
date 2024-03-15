@@ -13,6 +13,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -31,7 +32,7 @@ public class TestHtmlDocgen {
     });
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    inferred.typeCheck(new IdentityHashMap<>());
+    inferred.typeCheck(new ConcurrentHashMap<>());
     var md = new HtmlDocgen(inferred).visitProgram();
     Err.strCmp(expected, md.toString());
   }

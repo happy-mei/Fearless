@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import utils.ResolveResource;
@@ -87,7 +88,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
 
   void generateDocs(String[] files) throws IOException, URISyntaxException {
     if (files == null) { files = new String[0]; }
-    var p = generateProgram(files, new IdentityHashMap<>());
+    var p = generateProgram(files, new ConcurrentHashMap<>());
     var docgen = new HtmlDocgen(p);
     var docs = docgen.visitProgram();
     Path root = Path.of("docs");
@@ -108,7 +109,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
 
   void run(String entryPoint, String[] files, List<String> cliArgs) {
     var entry = new Id.DecId(entryPoint, 0);
-    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     var p = compile(files, resolvedCalls);
 
     var main = p.of(Magic.Main).toIT();
@@ -118,11 +119,13 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     var timer = new Timer();
     v.progress.printTask("Running code generation \uD83C\uDFED");
     var mainClass = toJava(entry, p, resolvedCalls);
+    v.progress.printTask("Code generated \uD83E\uDD73 ("+timer.duration()+"ms)");
+    v.progress.printStep("Executing backend compiler \uD83C\uDFED");
     var classFile = switch (bv) {
       case Std -> JavaProgram.compile(v, mainClass);
       case Imm -> ImmJavaProgram.compile(v, mainClass);
     };
-    v.progress.printTask("Code generated \uD83E\uDD73 ("+timer.duration()+"ms)");
+    v.progress.printStep("Done executing backend compiler \uD83E\uDD73 ("+timer.duration()+"ms)");
 
     var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
     String[] command = Stream.concat(
@@ -142,10 +145,10 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
   }
 
   void check(String[] files) {
-    compile(files, new IdentityHashMap<>());
+    compile(files, new ConcurrentHashMap<>());
   }
 
-  Program generateProgram(String[] files, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+  Program generateProgram(String[] files, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     var base = parseBase();
     Map<String, List<Package>> ps = new HashMap<>(base);
     Arrays.stream(files)
@@ -179,7 +182,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     return inferred;
   }
 
-  Program compile(String[] files, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+  Program compile(String[] files, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     var inferred = generateProgram(files, resolvedCalls);
     var timer = new Timer();
     v.progress.printTask("Checking types \uD83E\uDD14");
@@ -187,7 +190,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     v.progress.printTask("Types look all good \uD83E\uDD73 ("+timer.duration()+"ms)");
     return inferred;
   }
-  private JavaProgram toJava(Id.DecId entry, Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+  private JavaProgram toJava(Id.DecId entry, Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     var mir = new MIRInjectionVisitor(p, resolvedCalls).visitProgram();
     var codegen = switch (bv) {
       case Std -> new JavaCodegen(mir);

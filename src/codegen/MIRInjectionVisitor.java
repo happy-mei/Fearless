@@ -14,6 +14,7 @@ import visitors.CollectorVisitor;
 import visitors.CtxVisitor;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,7 +22,7 @@ import static program.Program.filterByMdf;
 
 public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, MIRInjectionVisitor.Res<? extends MIR.E>> {
   private Program p;
-  private final IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls;
+  private final ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls;
 //  private final List<MIR.TypeDef> inlineDefs = new ArrayList<>();
 //  private final List<MIR.CreateObj> objKs = new ArrayList<>();
 
@@ -51,7 +52,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     private Ctx() { this(Map.of()); }
   }
 
-  public MIRInjectionVisitor(Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+  public MIRInjectionVisitor(Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     this.p = p;
     this.resolvedCalls = resolvedCalls;
   }
@@ -181,7 +182,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 
   @Override public Res<MIR.MCall> visitMCall(E.MCall e, Ctx ctx) {
     var recvRes = e.receiver().accept(this, ctx);
-    var tst = this.resolvedCalls.get(e);
+    var tst = this.resolvedCalls.get(e.callId());
     var args = e.es().stream().map(ei->ei.accept(this, ctx)).toList();
     var topLevel = Stream.concat(Stream.of(recvRes), args.stream())
       .reduce(TopLevelRes.EMPTY, TopLevelRes::mergeAsTopLevel, TopLevelRes::merge);

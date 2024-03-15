@@ -13,6 +13,7 @@ import visitors.Visitor;
 import wellFormedness.UndefinedGXsVisitor;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public interface E extends HasPos {
@@ -76,7 +77,11 @@ public interface E extends HasPos {
       return String.format("[-%s-]%s{%s %s}", mdf, its, selfName, meths);
     }
   }
-  record MCall(E receiver, MethName name, List<T> ts, List<E> es, Optional<Pos> pos)implements E{
+  record MCall(long callId, E receiver, MethName name, List<T> ts, List<E> es, Optional<Pos> pos)implements E{
+    private static AtomicInteger nextCallId = new AtomicInteger();
+    public MCall(E receiver, MethName name, List<T> ts, List<E> es, Optional<Pos> pos) {
+      this(nextCallId.getAndIncrement(), receiver, name, ts, es, pos);
+    }
     public MCall{ assert receiver!=null && name.num()==es.size() && ts!=null; }
     @Override public E accept(CloneVisitor v){return v.visitMCall(this);}
     @Override public <R> R accept(Visitor<R> v){return v.visitMCall(this);}
