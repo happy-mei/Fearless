@@ -1,6 +1,5 @@
 package codegen.java;
 
-import ast.E;
 import codegen.MIRInjectionVisitor;
 import id.Id;
 import main.Main;
@@ -17,7 +16,6 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.IdentityHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
