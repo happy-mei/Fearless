@@ -33,7 +33,7 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     }
     record Runtime(String name) implements Unit {
       @Override public String src() {
-        return ResolveResource.getStringOrThrow("/rt-source/"+name);
+        return ResolveResource.getStringOrThrow("/rt/" +name);
       }
     }
   }

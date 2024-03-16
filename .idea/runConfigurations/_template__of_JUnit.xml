@@ -1,6 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="true" type="JUnit" factoryName="JUnit">
     <module name="fearless" />
+    <selectedOptions>
+      <option name="beforeRunTasks" />
+    </selectedOptions>
     <useClassPathOnly />
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
@@ -10,7 +13,6 @@
     </option>
     <method v="2">
       <option name="Make" enabled="true" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="fearless [compile]" run_configuration_type="MavenRunConfiguration" />
     </method>
   </configuration>
 </component>

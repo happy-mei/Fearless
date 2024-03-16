@@ -60,7 +60,7 @@ public class JavaProgram extends SimpleJavaFileObject {
       "PipelineParallelFlow",
       "IO",
       "Random"
-    ).map(name -> new JavaProgram(name, ResolveResource.getStringOrThrow("/rt-source/"+name+".java")));
+    ).map(name -> new JavaProgram(name, ResolveResource.getStringOrThrow("/rt/" +name+".java")));
     var userFiles = Arrays.stream(files);
     var codegenUnits = Stream.concat(userFiles, runtimeFiles);
 
