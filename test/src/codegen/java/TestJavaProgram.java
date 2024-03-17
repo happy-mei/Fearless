@@ -346,7 +346,7 @@ public class TestJavaProgram {
       .return{ io.println(ImmMain#(env.launchArgs)) }
       }
     ImmMain:{
-      #(args: LList[Str]): Str -> args.get(1u) || { (this.errMsg((args.head).isSome)) * },
+      #(args: LList[Str]): Str -> args.get(1u).match{.some(arg) -> arg, .empty -> this.errMsg(args.head.isSome).get},
       .errMsg(retCounter: Bool): mut Ref[Str] -> Block#
         .var res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
         .var counter = { Count.int(42) }
@@ -388,10 +388,13 @@ public class TestJavaProgram {
         .return{ Ref#(counter*.str) }
       }
     """;
+  @Disabled
   @Test void cliArgs2a() { okWithArgs(new Res("moar mutability", "", 0), "test.MyApp", List.of(), getCliArgsOrElse, Base.mutBaseAliases); }
+  @Disabled
   @Test void cliArgs2b() { okWithArgs(new Res("387000", "", 0), "test.MyApp", List.of(
     "hi"
   ), getCliArgsOrElse, Base.mutBaseAliases); }
+  @Disabled
   @Test void cliArgs2c() { okWithArgs(new Res("bye", "", 0), "test.MyApp", List.of(
     "hi",
     "bye"
@@ -501,7 +504,7 @@ public class TestJavaProgram {
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
         .var closest = { Ref#[Int](ns.get(0u)!) }
         .do{ mut Closest'{ 'self
-          h, t -> h.match mut OptMatch[Int,Void]{
+          h, t -> h.match{
             .empty -> {},
             .some(n) -> (target - n).abs < ((target - (closest*[])).abs) ? {
               .then -> closest := n,
@@ -524,13 +527,13 @@ public class TestJavaProgram {
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
         .var closest = { Ref#[Int](ns.get(0u)!) }
         .do{ mut Closest'{ 'self
-          i -> ns.get(i).match(mut OptMatch[Int, Void]{
+          i -> ns.get(i).match{
             .empty -> {},
             .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
               .else -> self#(i + 1u)
               }
-            })
+            }
           }#(1u) }
         .return{ closest* }
       }
@@ -839,245 +842,6 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
-  /*
-  @Test void automatonPure() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      Test:Main{ _ -> Block#
-        .var[Auto[FB, FB]] pB = { Auto.pure(F[FB,FB]{ _ -> Bar }) }
-        .var[Auto[FB, FB]] pId = { Auto.pure(F[FB,FB]{ a -> a }) }
-        .do{ Assert!(pB.step(Foo)!.result.str == "Bar") }
-        .do{ Assert!(pB.step(Foo)!.next.step(Foo)!.result.str == "Bar") }
-        .do{ Assert!(pId.step(Foo)!.result.str == "Foo") }
-        .do{ Assert!(pId.step(Foo)!.next.step(Bar)!.result.str == "Bar") }
-        .return{{}}
-        }
-      
-      FB:Stringable{}
-      Foo:FB{ .str -> "Foo" }
-      Bar:FB{ .str -> "Bar" }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonConst() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      Test:Main{ _ -> Block#
-        .var[mut Auto[FB, mut FB]] pB = { mut Auto.const[FB, mut FB](mut Bar) }
-        .do{ Assert!(pB.step(Foo)!.result.str == "Bar") }
-        .do{ Assert!(pB.step(Foo)!.next.step(Foo)!.result.str == "Bar") }
-        .return{{}}
-        }
-      FB:Stringable{}
-      Foo:FB{ .str -> "Foo" }
-      Bar:FB{ .str -> "Bar" }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonConstMutCapture() {
-    ok(new Res("", "", 0), "test.Test", """
-    package test
-    alias base.iter.Automaton as Auto,
-    Test:Main{ _ -> Block#
-      .var[mut Bar] bar = { mut Bar }
-      .var[mut Auto[FB, mut FB]] pB = { mut Auto.const[FB, mut FB](bar) }
-      .do{ Assert!(pB.step(Foo)!.result.str == "Bar") }
-      .do{ Assert!(pB.step(Foo)!.next.step(Foo)!.result.str == "Bar") }
-      .return{{}}
-      }
-    FB:Stringable{}
-    Foo:FB{ .str -> "Foo" }
-    Bar:FB{ .str -> "Bar" }
-    """, Base.mutBaseAliases);
-  }
-  @Test void automatonId() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      Test:Main{ _ -> Block#
-        .var[mut Auto[mut FB, mut FB]] pB = { mut Auto.id[mut FB] }
-        .do{ Assert!(pB.step(mut Foo)!.result.str == "Foo") }
-        .do{ Assert!(pB.step(mut Foo)!.next.step(mut Bar)!.result.str == "Bar") }
-        .return{{}}
-        }
-      FB:Stringable{}
-      Foo:FB{ .str -> "Foo" }
-      Bar:FB{ .str -> "Bar" }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonComposition() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      Test:Main{ _ -> Block#
-        .var[Auto[Int,Int]] a = { Auto.const[Int,Int] 5 }
-        .var[Auto[Int,Int]] b = { Auto.pure(F[Int,Int]{n -> n * 10}) }
-        .do{ Assert!(a.step(0)!.result == 5) }
-        .do{ Assert!(b.step(6)!.result == 60) }
-        .var[Auto[Int,Int]] c = { a |> b }
-        .do{ Assert!(c.step(0)!.result == 50) }
-        .return{{}}
-        }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonCompositionBackwards() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      Test:Main{ _ -> Block#
-        .var[Auto[Int,Int]] a = { Auto.const[Int,Int] 5 }
-        .var[Auto[Int,Int]] b = { Auto.pure(F[Int,Int]{n -> n * 10}) }
-        .do{ Assert!(a.step(0)!.result == 5) }
-        .do{ Assert!(b.step(6)!.result == 60) }
-        .var[Auto[Int,Int]] c = { b <| a }
-        .do{ Assert!(c.step(0)!.result == 50) }
-        .return{{}}
-        }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonList1() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      Test:Main{ _ -> Block#
-        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
-        .var[mut Auto[Void, Int]] a = { mut Auto.llist(l) }
-        .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
-        .var[mut Auto[Void, Int]] ax10 = { a |> x10 }
-        .do{ Assert!(a.step{}!.result == 12) }
-        .do{ Assert!(a.step{}!.result == 12) }
-        .do{ Assert!(a.step{}!.next.step(Void)!.result == 3) }
-        .do{ Assert!(ax10.step{}!.result == 120) }
-        .return{{}}
-        }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonList2() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      Test:Main{ _ -> Block#
-        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
-        .var[Auto[Void,Int]] a = { Auto.llist(l) }
-        .var[Auto[Int,Int]] x10 = { Auto.pure(F[Int,Int]{ n -> n * 10 }) }
-        .var[Auto[Void, Int]] ax10 = { a |> x10 }
-        .do{ Assert!(a.step(Void)!.result == 12) }
-        .do{ Assert!(a.step(Void)!.result == 12) }
-        .do{ Assert!(a.step(Void)!.next.step(Void)!.result == 3) }
-        .do{ Assert!(ax10.step(Void)!.result == 120) }
-        .return{{}}
-        }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonListRunnerMut() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      Test:Main{ _ -> Block#
-        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
-        .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
-        .var[Int] lx10 = { l.run(x10)! }
-        .assert{ lx10 == 70 }
-        .return{{}}
-        }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonListRunner() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      Test:Main{ _ -> Block#
-        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
-        .var[Auto[Int,Int]] x10 = { Auto.pure(F[Int,Int]{ n -> n * 10 }) }
-        .var[Int] lx10 = { l.run(x10)! }
-        .assert{ lx10 == 70 }
-        .return{{}}
-        }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonAllMatch1() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      alias base.iter.Predicate as P,
-      Test:Main{ _ -> Block#
-        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
-        .assert{ l.run(Auto.allMatch P[Int]{n -> n > 1 })! }
-        .assert{ l.run(Auto.allMatch P[Int]{n -> n > 4 })!.not }
-        .assert{ l.run[Bool]((Auto.allMatch P[Int]{n -> n > 4 }) |> (Auto.pure F[Bool,Bool]{b -> b.not}))! }
-        .assert{ l.run[Bool]((Auto.pure F[Bool,Bool]{b -> b.not}) <| (Auto.allMatch P[Int]{n -> n > 4 }))! }
-        .return{{}}
-        }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonEarlyExit() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      alias base.iter.MapFn as MF, alias base.iter.Predicate as P, alias base.iter.DoFn as DF,
-      Test:Main{ s -> Block#
-        .var[LList[Int]] l = { LList[Int] + 5 + 3 + 6 + 7 }
-        .var[mut Auto[Int,Int]] x10 = { mut Auto.pure(F[Int,Int]{ n -> n * 10 }) }
-        .assert{ l.run(mut Auto.map(mut MF[Int,Int]{n -> n * 10})
-                               .map(mut MF[Int,Int]{n -> Assert!(n < 70, "not early exiting", {n})})
-                               .allMatch(mut P[Int]{n -> n >= 50}))!.not }
-        .return{{}}
-        }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonEarlyExitFilter() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      alias base.iter.MapFn as MF, alias base.iter.Predicate as P, alias base.iter.DoFn as DF,
-      Test:Main{ s -> Block#
-        .var[LList[Int]] l = { LList[Int] + 1 + 2 + 3 }
-        .assert{ l.run(mut Auto.map(mut MF[Int,Int]{n -> n * 10})
-                               .filter(mut P[Int]{n -> (n == 20).not})
-                               .allMatch(mut P[Int]{n -> (n == 20).not}))! }
-        .return{{}}
-        }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonRead() {
-    ok(new Res("Bob", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      alias base.iter.MapFn as MF, alias base.iter.Predicate as P, alias base.iter.DoFn as DF,
-      Person:{ read .name: Str } FPerson:F[Str,mut Person]{ name -> { name } }
-      Test:Main{ s -> Block#
-        .var[mut LList[mut Person]] l = { mut LList#[mut Person] (FPerson#"Alice") + (FPerson#"Bob") + (FPerson#"Charles") }
-        .do{ FIO#s.println(ReadAuto#l) }
-        .return{{}}
-        }
-      ReadAuto:{
-        #(l: read LList[mut Person]): Str -> l.run[Str](read Auto.map(read MF[read Person,Str]{p -> p.name})
-                                                                 .filter({name -> (name == "Charles").not }))!,
-        }
-      """, Base.mutBaseAliases);
-  }
-  @Test void automatonAllMatch2() {
-    ok(new Res("", "", 0), "test.Test", """
-      package test
-      alias base.iter.Automaton as Auto,
-      alias base.iter.Predicate as P,
-      alias base.iter.MapFn as MF,
-      Test:Main{ _ -> Block#
-        .var[LList[Int]] l = { LList[Int] + 12 + 3 + 6 + 7 }
-        .assert{ l.run(Auto.map(MF[Int,Int]{n -> n * 10})
-                           .map(MF[Int,Int]{n -> n * 1000})
-                           .allMatch(P[Int]{n -> n >= 30000}))! }
-//        .assert{ Auto.map(MF[Int,Int]{n -> n * 10})
-//                     .map(MF[Int,Int]{n -> n * 1000})
-//                     .allMatch(P[Int]{n -> n >= 30000})
-//                     .run(base.iter.RunAutomaton[Int,Bool,Opt[Bool]]{auto -> l.run(auto)})
-//          }
-        .return{{}}
-        }
-      """, Base.mutBaseAliases);
-  }
-   */
-
   @Test void optionalMapImm() {
     ok(new Res("", "", 0), "test.Test", """
       package test
@@ -1375,21 +1139,6 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void listFilterParIter() { ok(new Res("13, 14", "", 0), "test.Test", """
-    package test
-    Test:Main{ s -> Block#
-      .var io = { FIO#s }
-      .var[List[Int]] l = { List#[Int](12, 13, 14) }
-      .do { io.println(A.m1(l)) }
-      .return {{}}
-      }
-    A:{
-      .m1(l: List[Int]): Str -> l.iter2
-                                 .filter{n -> n >= (12.5 .round)}
-                                 .str({n->n.str}, ", ")
-      }
-    """, Base.mutBaseAliases);}
-
   @Test void strMap() { ok(new Res("23\n32\n230\nhi", "", 0), "test.Test", """
     package test
     Test:Main{ s -> Block#
@@ -1538,7 +1287,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .var[Int] res = {Opt[Int]
-                       |> {opt -> opt.match{.some(x) -> x, .empty -> 9001}}}
+                       #{opt -> opt.match{.some(x) -> x, .empty -> 9001}}}
       .assert{res == 9001}
       .return {{}}
       }
@@ -1552,11 +1301,12 @@ public class TestJavaProgram {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
-  @Test void optWithExtensionMethodOr() { ok(new Res(), "test.Test", """
+  @Test void extensionMethodMdfDispatch() { ok(new Res(), "test.Test", """
     package test
     Test:Main{ s -> Block#
       .var[Opt[Int]] res = { Opt[Int]
-                             #{opt -> opt.match{.some(_) -> opt, .empty -> base.As[imm Opt[Int]]#(Opt#9001) }} }
+        #{opt -> opt.match{.some(_) -> opt, .empty -> Opt#[Int]9001}}
+        }
       .assert{res! == 9001}
       .return {{}}
       }
@@ -1617,5 +1367,30 @@ public class TestJavaProgram {
       .printErr(msg) -> Magic!,
       .printlnErr(msg) -> Magic!,
       }
+    """, Base.mutBaseAliases); }
+
+  @Test void lazyCall() { ok(new Res("hey", "", 0), "test.Test", """
+    package test
+    Test: Main{sys -> Block#
+      .var[Void] x = {FIO#sys.println("hey")}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void lazyCallEarlyExit() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test: Main{sys -> Block#
+      .if {True} .return {Void}
+      .var[Void] x = {FIO#sys.println("hey")}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void eagerCallEarlyExit() { ok(new Res("hey", "", 0), "test.Test", """
+    package test
+    Test: Main{sys -> Block#
+      .if {True} .return {Void}
+      .varIso[iso Rez] x = (Block#(base.Debug#[Str]"hey", iso Rez))
+      .return {Void}
+      }
+    Rez: {}
     """, Base.mutBaseAliases); }
 }

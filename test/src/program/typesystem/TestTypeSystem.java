@@ -103,7 +103,7 @@ Type error: None of the following candidates (returning the expected type "imm b
 .in/1([fear0$]): Sig[mdf=imm,gens=[],ts=[mdf X],ret=imm base.Void[]] -> [-imm-][base.Void[]]{'fear3$ }}])
 were valid:
 (imm base.Let[], ?[-imm-][base.Let[mdf X, imm base.Void[]]]{'fear2$ .var/0([]): Sig[mdf=imm,gens=[],ts=[],ret=mdf X] -> this .swap/1[]([x]),
-.in/1([fear0$]): Sig[mdf=imm,gens=[],ts=[mdf X],ret=imm base.Void[]] -> [-imm-][base.Void[]]{'fear3$ }}?) <: (imm base.Let[], imm base.Let[mdf X, imm base.Void[]]): imm base.Void[]
+.in/1([fear0$]): Sig[mdf=imm,gens=[],ts=[mdf X],ret=imm base.Void[]] -> [-imm-][base.Void[]]{'fear3$ }}?) <= (imm base.Let[], imm base.Let[mdf X, imm base.Void[]]): imm base.Void[]
   The following errors were found when checking this sub-typing:
     In position [###]/Dummy0.fear:10:42
     [E30 badCapture]
@@ -172,7 +172,7 @@ were valid:
     Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
     this .b/0[]([])
     were valid:
-    (readOnly test.A[]) <: (imm test.A[]): iso test.B[]
+    (readOnly test.A[]) <= (imm test.A[]): iso test.B[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:4:30
         [E53 xTypeError]
@@ -199,7 +199,7 @@ were valid:
     Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
     this .b/1[]([[-mut-][test.A[]]{'fear1$ }])
     were valid:
-    (imm test.A[], mut test.A[]) <: (imm test.A[], iso test.A[]): iso test.B[]
+    (imm test.A[], mut test.A[]) <= (imm test.A[], iso test.A[]): iso test.B[]
     """, """
     package test
     A:{
@@ -299,16 +299,16 @@ In position [###]/Dummy0.fear:5:30
 Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
 this .promote/1[]([this .b/0[]([])])
 were valid:
-(lent test.A[], lent test.B[]) <: (readOnly test.A[], mut test.B[]): mut test.B[]
+(lent test.A[], lent test.B[]) <= (readOnly test.A[], mut test.B[]): mut test.B[]
   The following errors were found when checking this sub-typing:
     In position [###]/Dummy0.fear:5:43
     [E33 callTypeError]
     Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
     this .b/0[]([])
     were valid:
-    (lent test.A[]) <: (iso test.A[]): iso test.B[]
+    (lent test.A[]) <= (iso test.A[]): iso test.B[]
 
-(lent test.A[], lent test.B[]) <: (imm test.A[], iso test.B[]): iso test.B[]
+(lent test.A[], lent test.B[]) <= (imm test.A[], iso test.B[]): iso test.B[]
     """, """
     package test
     A:{
@@ -513,7 +513,7 @@ were valid:
     Type error: None of the following candidates (returning the expected type "mut test.A[]") for this method call:
     this .m/0[]([])
     were valid:
-    (lent test.A[]) <: (iso test.A[]): iso test.A[]
+    (lent test.A[]) <= (iso test.A[]): iso test.A[]
     """, """
     package test
     A:{
@@ -834,10 +834,10 @@ were valid:
     Type error: None of the following candidates for this method call:
     s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.IO'[]]{'fear[###]$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear[###]$ #/2([io, fear1$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear1$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear[###]$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear[###]$ }])}])}])
     were valid:
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (iso base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <: (mut base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (iso base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (mut base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
@@ -920,21 +920,21 @@ were valid:
     Type error: None of the following candidates for this method call:
     cont #/2[]([c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }]), this])
     were valid:
-    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: (mut base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]): mdf R
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <= (mut base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]): mdf R
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy1.fear:7:11
         [E33 callTypeError]
         Type error: None of the following candidates for this method call:
         c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])
         were valid:
-        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps._RootCap[]): lent C
-        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], iso base.caps._RootCap[]): iso C
-        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <: (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], mut base.caps._RootCap[]): lent C
+        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <= (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps._RootCap[]): lent C
+        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <= (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], iso base.caps._RootCap[]): iso C
+        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <= (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], mut base.caps._RootCap[]): lent C
         
-    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]): mdf R
-    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], iso C, iso base.caps.System[mdf R]): mdf R
-    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], mut C, lent base.caps.System[mdf R]): mdf R
-    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <: (iso base.caps.UseCapCont[imm C, mdf R], lent C, mut base.caps.System[mdf R]): mdf R
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <= (iso base.caps.UseCapCont[imm C, mdf R], lent C, lent base.caps.System[mdf R]): mdf R
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <= (iso base.caps.UseCapCont[imm C, mdf R], iso C, iso base.caps.System[mdf R]): mdf R
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <= (iso base.caps.UseCapCont[imm C, mdf R], mut C, lent base.caps.System[mdf R]): mdf R
+    (mut base.caps.UseCapCont[imm C, mdf R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[mdf R]) <= (iso base.caps.UseCapCont[imm C, mdf R], lent C, mut base.caps.System[mdf R]): mdf R
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
@@ -1527,8 +1527,8 @@ were valid:
     Type error: None of the following candidates (returning the expected type "mut test.Ref[imm test.Name[]]") for this method call:
     p .name/0[]([])
     were valid:
-    (lent test.Person[]) <: (mut test.Person[]): mut test.Ref[imm test.Name[]]
-    (lent test.Person[]) <: (iso test.Person[]): iso test.Ref[imm test.Name[]]
+    (lent test.Person[]) <= (mut test.Person[]): mut test.Ref[imm test.Name[]]
+    (lent test.Person[]) <= (iso test.Person[]): iso test.Ref[imm test.Name[]]
     """, """
     package test
     Person:{ mut .name: mut Ref[Name] }
@@ -2193,7 +2193,7 @@ were valid:
     Type error: None of the following candidates (returning the expected type "read test.Foo[]") for this method call:
     r .rb/0[]([]) .get/0[]([])
     were valid:
-    (read test.Box[imm test.Foo[]]) <: (mut test.Box[imm test.Foo[]]): imm test.Foo[]
+    (read test.Box[imm test.Foo[]]) <= (mut test.Box[imm test.Foo[]]): imm test.Foo[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:2:45
         [E32 noCandidateMeths]
@@ -2202,7 +2202,7 @@ were valid:
         (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
         (readOnly test.MutyBox[]): readOnly test.Box[imm test.Foo[]]
         
-    (read test.Box[imm test.Foo[]]) <: (iso test.Box[imm test.Foo[]]): imm test.Foo[]
+    (read test.Box[imm test.Foo[]]) <= (iso test.Box[imm test.Foo[]]): imm test.Foo[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:2:45
         [E32 noCandidateMeths]
@@ -2211,7 +2211,7 @@ were valid:
         (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
         (readOnly test.MutyBox[]): readOnly test.Box[imm test.Foo[]]
         
-    (read test.Box[imm test.Foo[]]) <: (lent test.Box[imm test.Foo[]]): imm test.Foo[]
+    (read test.Box[imm test.Foo[]]) <= (lent test.Box[imm test.Foo[]]): imm test.Foo[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:2:45
         [E32 noCandidateMeths]
@@ -2220,33 +2220,33 @@ were valid:
         (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
         (readOnly test.MutyBox[]): readOnly test.Box[imm test.Foo[]]
         
-    (read test.Box[imm test.Foo[]]) <: (read test.Box[imm test.Foo[]]): read test.Foo[]
+    (read test.Box[imm test.Foo[]]) <= (read test.Box[imm test.Foo[]]): read test.Foo[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:2:45
         [E33 callTypeError]
         Type error: None of the following candidates (returning the expected type "read test.Box[imm test.Foo[]]") for this method call:
         r .rb/0[]([])
         were valid:
-        (readOnly test.MutyBox[]) <: (read test.MutyBox[]): read test.Box[imm test.Foo[]]
+        (readOnly test.MutyBox[]) <= (read test.MutyBox[]): read test.Box[imm test.Foo[]]
           The following errors were found when checking this sub-typing:
             In position [###]/Dummy0.fear:2:44
             [E53 xTypeError]
             Expected r to be read test.MutyBox[], got readOnly test.MutyBox[].
        \s
-        (readOnly test.MutyBox[]) <: (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
+        (readOnly test.MutyBox[]) <= (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
           The following errors were found when checking this sub-typing:
             In position [###]/Dummy0.fear:2:44
             [E53 xTypeError]
             Expected r to be imm test.MutyBox[], got readOnly test.MutyBox[].
         
-    (read test.Box[imm test.Foo[]]) <: (imm test.Box[imm test.Foo[]]): imm test.Foo[]
+    (read test.Box[imm test.Foo[]]) <= (imm test.Box[imm test.Foo[]]): imm test.Foo[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:2:45
         [E33 callTypeError]
         Type error: None of the following candidates (returning the expected type "imm test.Box[imm test.Foo[]]") for this method call:
         r .rb/0[]([])
         were valid:
-        (readOnly test.MutyBox[]) <: (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
+        (readOnly test.MutyBox[]) <= (imm test.MutyBox[]): imm test.Box[imm test.Foo[]]
           The following errors were found when checking this sub-typing:
             In position [###]/Dummy0.fear:2:44
             [E53 xTypeError]
@@ -2401,13 +2401,13 @@ were valid:
     Type error: None of the following candidates (returning the expected type "mut test.Beer[mdf Y]") for this method call:
     [-imm-][test.Foo[]]{'fear1$ } .m/1[mdf Y]([y])
     were valid:
-    ([E28 undefinedName]) <: (imm test.Foo[], mdf Y): mut test.Beer[mdf Y]
+    ([E28 undefinedName]) <= (imm test.Foo[], mdf Y): mut test.Beer[mdf Y]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:3:55
         [E28 undefinedName]
         The identifier "y" is undefined or cannot be captured.
         
-    ([E28 undefinedName]) <: (imm test.Foo[], iso Y): iso test.Beer[mdf Y]
+    ([E28 undefinedName]) <= (imm test.Foo[], iso Y): iso test.Beer[mdf Y]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:3:55
         [E28 undefinedName]
@@ -2435,7 +2435,7 @@ were valid:
     Type error: None of the following candidates (returning the expected type "imm test.Beer[mdf Y]") for this method call:
     [-imm-][test.Foo[]]{'fear1$ } .m/1[mdf Y]([y])
     were valid:
-    (imm test.Foo[], mdf Y) <: (imm test.Foo[], iso Y): iso test.Beer[mdf Y]
+    (imm test.Foo[], mdf Y) <= (imm test.Foo[], iso Y): iso test.Beer[mdf Y]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:3:55
         [E53 xTypeError]

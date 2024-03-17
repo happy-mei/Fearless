@@ -259,34 +259,6 @@ public class Ex09FlowsTest {
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
-  @Test void flowSimpleActorMutRet() { ok(new Res(), "test.Test", """
-    package test
-    Test:Main {sys -> "5 15 25".assertEq(
-      Flow#[Int](5, 10, 15)
-        .map{i -> i.uint}
-        .actorMut[mut Person, mut Person](FPerson#0u, {downstream, p, age -> Block#(
-          downstream#(FPerson#(age + (p.age))),
-          p.age(age),
-          {}
-          )})
-        .map{p -> p.age.str}
-        #(Flow.str " ")
-      )}
-    """, """
-    package test
-    FPerson:{
-      #(age: UInt): mut Person -> Block#
-        .var[mut Ref[UInt]] age' = {Ref.ofImm(age)}
-        .return {mut Person {
-          read .age: UInt -> age'.getImm!,
-          mut .age(n: UInt): Void -> age' := n,
-          }}
-      }
-    Person: {
-      read .age: UInt,
-      mut .age(n: UInt): Void,
-      }
-    """, Base.mutBaseAliases);}
   @Disabled @Test void flowActorMutRet() { ok(new Res("31", "", 0), "test.Test", """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
@@ -363,9 +335,19 @@ public class Ex09FlowsTest {
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
+  @Test void flowScan2() { ok(new Res(), "test.Test", """
+    package test
+    Test:Main {sys -> "5 20 50".assertEq(
+      Flow#[Int](5, 10, 15)
+        .scan[Int](0, {acc, n -> acc + n})
+        .scan[Int](0, {acc, n -> acc + n})
+        .map{n -> n.str}
+        #(Flow.str " ")
+      )}
+    """, Base.mutBaseAliases);}
 
   // TODO: fix top level dec issue when wanting a mut instance of a top level lambda
-  @Test void flowSimpleActorMutRetBROKEN() { ok(new Res(), "test.Test", """
+  @Test void flowSimpleActorMutRet() { ok(new Res(), "test.Test", """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
       Flow#[Int](5, 10, 15)
@@ -379,7 +361,7 @@ public class Ex09FlowsTest {
       #(age: UInt): mut Person -> Block#
         .var[mut Ref[UInt]] age' = {Ref.ofImm(age)}
         .return mut base.ReturnStmt[mut Person]{mut Person: Person{
-          read .age: UInt -> age'.get,
+          read .age: UInt -> age'.getImm!,
           mut .age(n: UInt): Void -> age' := n,
           }}
       }
@@ -424,14 +406,23 @@ public class Ex09FlowsTest {
 //      )}
 //    """, Base.mutBaseAliases);}
 
+  // TODO: The error that this generates without the .toImm on the list item is _terrible_ (and takes like 1 and a half minutes)
   @Test void flowActorMultiParallel() { ok(new Res(), "test.Test", """
     package test
-    Test:Main {sys -> "5 10".assertEq(
-      Flow#[Int](5, 10)
-        .actor(Ref#1, {state, n -> Block#
-          .do {state.set(someMutList.get(0u)!)}
-          .if {state.get > 10} .return {500}
-          .return {n})
+    Test:Main {sys -> Block#
+      .var[mut List[Int]] someMutList = {List#[Int](30)}
+      .return {"500 5 500 10".assertEq(
+        Flow#[Int](5, 10)
+          .actor[mut Ref[Int],Int](Ref#[Int]1, {next, state, n -> Block#
+            .do {state.set(someMutList.get(0u)!.toImm)}
+            .if {state.get > 10} .do {next#500}
+            .do {next#n}
+            .return {{}}
+            })
+          .map{n -> n.str}
+          #(Flow.str " ")
+        )}
+      }
     """, Base.mutBaseAliases); }
 
   // If we do not offer any mapMut/mut lambdas, we can have parallelised read lambdas
@@ -447,18 +438,8 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases);}
 
-  @Test void flowScan2() { ok(new Res(), "test.Test", """
-    package test
-    Test:Main {sys -> "5 10 500".assertEq(
-      Flow#[Int](5, 10, 15)
-        .actor(v, {acc, n -> ...1})
-        .actor(v, {acc, n -> ...2})
-        .map{n -> n.str}
-        #(Flow.str " ")
-      )}
-    """, Base.mutBaseAliases);}
-
-  @Test void flowSplit() { ok(new Res(), "test.Test", """
+  // TODO: Do we want .split?
+  @Disabled @Test void flowSplit() { ok(new Res(), "test.Test", """
     package test
     Test: Main{sys -> "5 10 15".assertEq(
       Flow#[Int](5, 10, 15)
