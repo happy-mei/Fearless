@@ -79,14 +79,14 @@ public interface GenericBounds {
   }
 
   static Optional<Supplier<CompileError>> validGenericMdf(XBs xbs, Set<Mdf> bounds, T t) {
-    Optional<Supplier<CompileError>> errMsg = Optional.of(()->Fail.invalidMdfBound(t, bounds.stream().sorted().toList()));
+    Supplier<Optional<Supplier<CompileError>>> errMsg = ()->Optional.of(()->Fail.invalidMdfBound(t, bounds.stream().sorted().toList()));
     if (!t.mdf().is(Mdf.mdf, Mdf.recMdf)) {
-      return bounds.contains(t.mdf()) ? Optional.empty() : errMsg;
+      return bounds.contains(t.mdf()) ? Optional.empty() : errMsg.get();
     }
 
     if (t.mdf().isMdf()) {
       var bs = xbs.get(t.gxOrThrow());
-      return bounds.containsAll(bs) ? Optional.empty() : errMsg;
+      return bounds.containsAll(bs) ? Optional.empty() : errMsg.get();
     }
 
     if (t.mdf().isRecMdf()) {
@@ -107,7 +107,7 @@ public interface GenericBounds {
         },
         it->bounds.containsAll(XBs.defaultBounds)
       );
-      return isOk ? Optional.empty() : errMsg;
+      return isOk ? Optional.empty() : errMsg.get();
     }
     throw Bug.unreachable();
   }

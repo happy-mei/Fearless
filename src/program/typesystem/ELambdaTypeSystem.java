@@ -79,7 +79,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var invalidGens = GenericBounds.validGenericLambda(p(), xbs, b);
     XBs finalXbs = xbs;
     Supplier<ELambdaTypeSystem> boundedTypeSys = ()->(ELambdaTypeSystem) ETypeSystem.of(p().shallowClone(), g(), finalXbs, expectedT(), resolvedCalls(), depth());
-    if (invalidGens.isPresent()) { return Optional.of(()->invalidGens.get().get().pos(b.pos())); }
+    if (invalidGens.isPresent()) {
+      return Optional.of(()->invalidGens.get().get().pos(b.pos()));
+    }
     //var errMdf = expectedT.map(ti->!p().isSubType(ti.mdf(),b.mdf())).orElse(false);
     //after discussion, line above not needed
     var its = p().itsOf(d.toIT());
@@ -115,7 +117,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .map(t->GenericBounds.validGenericT(p(), xbs, t))
       .filter(Optional::isPresent)
       .map(Optional::get)
-//      .map(err->err.pos(m.pos()))
+      .<Supplier<CompileError>>map(errorSupplier->()->errorSupplier.get().pos(m.pos()))
       .findAny();
     if (sigInvalid.isPresent()) { return sigInvalid; }
     if(m.isAbs()){

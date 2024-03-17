@@ -72,9 +72,11 @@ public class Fail{
   public static CompileError modifierOnInferredLambda(){return of(
     "Modifiers cannot be specified on lambdas without an explicit type."
   );}
-  public static CompileError invalidMdfBound(ast.T badType, List<Mdf> bounds){return of(
-    "The type "+badType+" is not valid because it's modifier is not in the required bounds. The allowed modifiers are: "+bounds.stream().map(Enum::toString).collect(Collectors.joining(", "))+"."
-  );}
+  public static CompileError invalidMdfBound(ast.T badType, List<Mdf> bounds){
+    return of(
+      "The type "+badType+" is not valid because it's modifier is not in the required bounds. The allowed modifiers are: "+bounds.stream().map(Enum::toString).collect(Collectors.joining(", "))+"."
+    );
+  }
   public static CompileError shadowingX(String x){return of(String.format("'%s' is shadowing another variable in scope.", x));}
 
   public static CompileError shadowingGX(String x){return of("Type variable "+x+" is shadowing another type variable in scope.");}

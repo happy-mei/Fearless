@@ -69,7 +69,9 @@ public interface EMethTypeSystem extends ETypeSystem {
       if (okAll(es, tst.ts(), errors, methArgCache, guessType)) {
         var recvT = tst.ts().get(0);
         var invalidBounds = GenericBounds.validGenericMeth(p(), xbs(), recvT.mdf(), recvT.itOrThrow(), depth(), tst.original(), e.ts());
-        if (invalidBounds.isPresent()) { return Optional.of(()->invalidBounds.get().get().pos(e.pos())); }
+        if (invalidBounds.isPresent()) {
+          return Optional.of(()->invalidBounds.get().get().pos(e.pos()));
+        }
 
         var expected = expectedT().orElseThrow();
         if (!p().isSubType(xbs(), tst.t(), expected)) {
