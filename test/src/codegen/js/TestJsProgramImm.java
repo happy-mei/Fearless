@@ -1,30 +1,20 @@
 package codegen.js;
 
-import ast.E;
 import codegen.MIRInjectionVisitor;
-import codegen.go.GoCodegen;
-import codegen.go.GoCompiler;
-import failure.CompileError;
 import id.Id;
 import main.CompilerFrontEnd;
 import main.Main;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
-import utils.Bug;
-import utils.Err;
-import utils.RunOutput;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,7 +44,7 @@ public class TestJsProgramImm {
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var js = new JsCodegen(mir).visitProgram(new Id.DecId("test.Test", 0));
     var vb = new CompilerFrontEnd.Verbosity(true, true, CompilerFrontEnd.ProgressVerbosity.Full);
-    System.out.println(js);
+//    System.out.println(js);
 //    Res res; try {
 ////      var dist = new GoCompiler(js, GoCompiler.IMM_RUNTIME_UNITS, js.pkgs(), vb).compile();
 ////      res = RunOutput.node(dist, args).join();
