@@ -129,6 +129,7 @@ public sealed interface MIR {
       record Do(E e) implements BlockStmt {}
       record Loop(E e) implements BlockStmt {}
       record If(E pred) implements BlockStmt {}
+      record Var(String name, E value) implements BlockStmt {}
     }
     @Override public MT t() {
       return original.t();

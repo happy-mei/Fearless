@@ -251,6 +251,7 @@ public class JavaCodegen implements MIRVisitor<String> {
           if (%s == base.True_0._$self) { %s }
           """.formatted(if_.pred().accept(this, true), body);
       }
+      case MIR.Block.BlockStmt.Var var -> "var %s = %s;\n".formatted(name(var.name()), var.value().accept(this, true));
     };
   }
 

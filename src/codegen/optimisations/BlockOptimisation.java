@@ -34,7 +34,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
       .orElse(MIRCloneVisitor.super.visitFun(fun));
   }
 
-  private Optional<MIR.E> visitBlockCall(MIR.MCall call, List<Class<? extends MIR.Block.BlockStmt>> validEndings, Optional<MIR.X> self) {
+  private Optional<MIR.Block> visitBlockCall(MIR.MCall call, List<Class<? extends MIR.Block.BlockStmt>> validEndings, Optional<MIR.X> self) {
     var stmts = new ArrayDeque<MIR.Block.BlockStmt>();
     var res = flattenBlock(call, stmts, self);
     if (res == FlattenStatus.INVALID) { return Optional.empty(); }
@@ -79,12 +79,13 @@ public class BlockOptimisation implements MIRCloneVisitor {
           if (variable.isEmpty() || continuationCall.isEmpty()) { yield FlattenStatus.INVALID; }
           var continuation = this.visitBlockCall(
             continuationCall.get().continuationCall(),
-            List.of(MIR.Block.BlockStmt.Return.class, MIR.Block.BlockStmt.Do.class), // TODO: and Error when we have that
+            List.of(MIR.Block.BlockStmt.Return.class, MIR.Block.BlockStmt.Do.class), // TODO: and .error when we have that
             Optional.of(continuationCall.get().selfVar())
           );
-          throw Bug.todo();
+          if (continuation.isEmpty()) { yield FlattenStatus.INVALID; }
+          stmts.offerFirst(new MIR.Block.BlockStmt.Var(continuationCall.get().var().name(), variable.get()));
+          continuation.get().stmts().forEach(stmts::offerLast);
         } else {
-          // TODO: .var
           // TODO: .error
           // TODO: .assert
           // TODO: .varIso
@@ -108,7 +109,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
     var body = this.funs.get(m.fName().orElseThrow()).body();
     return Optional.of(body);
   }
-  private record VarContinuation(MIR.X selfVar, MIR.MCall continuationCall) {}
+  private record VarContinuation(MIR.X var, MIR.X selfVar, MIR.MCall continuationCall) {}
   private Optional<VarContinuation> visitVarContinuation(MIR.E fn) {
     if (!(fn instanceof MIR.CreateObj k)) { return Optional.empty(); }
     if (!this.magic.isMagic(Magic.VarContinuation, k)) { return Optional.empty(); }
@@ -116,6 +117,6 @@ public class BlockOptimisation implements MIRCloneVisitor {
     var m = k.meths().getFirst();
     assert m.sig().name().equals(new Id.MethName("#", 2));
     var body = (MIR.MCall) this.funs.get(m.fName().orElseThrow()).body();
-    return Optional.of(new VarContinuation(m.sig().xs().get(1), body));
+    return Optional.of(new VarContinuation(m.sig().xs().getFirst(), m.sig().xs().get(1), body));
   }
 }
