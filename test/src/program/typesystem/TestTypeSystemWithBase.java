@@ -14,13 +14,9 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.IdentityHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-
-import static program.typesystem.RunTypeSystem.fail;
-import static program.typesystem.RunTypeSystem.ok;
 
 public class TestTypeSystemWithBase {
   void ok(String... content){
@@ -187,7 +183,7 @@ public class TestTypeSystemWithBase {
     Type error: None of the following candidates (returning the expected type "imm base.Int[]") for this method call:
     this .nm/1[]([[-imm-][5[]]{'fear[###]$ }])
     were valid:
-    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm base.Float[]): imm base.Int[]
+    (imm test.Bar[], imm 5[]) <= (imm test.Bar[], imm base.Float[]): imm base.Int[]
     """, """
     package test
     alias base.Int as Int, alias base.Float as Float,
@@ -203,7 +199,7 @@ public class TestTypeSystemWithBase {
     Type error: None of the following candidates (returning the expected type "imm base.Int[]") for this method call:
     this .nm/1[]([[-imm-][5[]]{'fear[###]$ }])
     were valid:
-    (imm test.Bar[], imm 5[]) <: (imm test.Bar[], imm 6[]): imm base.Int[]
+    (imm test.Bar[], imm 5[]) <= (imm test.Bar[], imm 6[]): imm base.Int[]
     """, """
     package test
     alias base.Int as Int,
@@ -265,8 +261,8 @@ public class TestTypeSystemWithBase {
     Type error: None of the following candidates (returning the expected type "mut base.Ref[imm base.Str[]]") for this method call:
     p .name/0[]([])
     were valid:
-    (lent test.Person[]) <: (mut test.Person[]): mut base.Ref[imm base.Str[]]
-    (lent test.Person[]) <: (iso test.Person[]): iso base.Ref[imm base.Str[]]
+    (lent test.Person[]) <= (mut test.Person[]): mut base.Ref[imm base.Str[]]
+    (lent test.Person[]) <= (iso test.Person[]): iso base.Ref[imm base.Str[]]
     """, """
     package test
     Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
@@ -332,7 +328,7 @@ public class TestTypeSystemWithBase {
     Type error: None of the following candidates (returning the expected type "mut base.LList[read test.Person[]]") for this method call:
     l +/1[]([p])
     were valid:
-    (lent base.LList[read test.Person[]], read test.Person[]) <: (iso base.LList[read test.Person[]], imm test.Person[]): iso base.LList[read test.Person[]]
+    (lent base.LList[read test.Person[]], read test.Person[]) <= (iso base.LList[read test.Person[]], imm test.Person[]): iso base.LList[read test.Person[]]
     """, """
     package test
     Person:{ read .age: UInt, mut .age(n: UInt): Void }
@@ -588,4 +584,15 @@ public class TestTypeSystemWithBase {
       .nums(l: mut List[mut Person]): read List[read Person] -> l,
       }
     """, Base.mutBaseAliases); }
+
+  @Test void extensionMethodMdfDispatch() { ok("""
+    package test
+    Test:Main{ s -> Block#
+      .var[Opt[Int]] res = { Opt[Int]
+        #{opt -> opt.match{.some(_) -> opt, .empty -> Opt#[Int]9001}}
+        }
+      .assert{res! == 9001}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
 }

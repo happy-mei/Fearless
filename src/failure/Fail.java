@@ -107,7 +107,7 @@ public class Fail{
     return of(msg);
   }
   public static CompileError xTypeError(ast.T expected, ast.T actual, ast.E.X x){
-    var msg = "Expected "+x+" to be "+expected+", got "+actual+".";
+    var msg = "Expected '"+x+"' to be "+expected+", got "+actual+".";
     return of(msg);
   }
   public static CompileError lambdaTypeError(ast.T expected){

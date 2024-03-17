@@ -84,7 +84,7 @@ public class TestSigInference {
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this.fullType/0([]):Sig[mdf=imm,gens=[X],ts=[],ret=immX]->[-]}]}
     """, """
     package base
-    A:{ .fullType[X]: X }
+    A:{ .fullType[X]: imm X }
     B:A{ .fullType->this.fullType }
     """);}
 
@@ -96,8 +96,8 @@ public class TestSigInference {
       .fullType/0([]):Sig[mdf=imm,gens=[X0/0$],ts=[],ret=immX0/0$]->this:infer.fullType/0[-]([]):infer}]}
     """, """
     package base
-    A:{ .fullType[X]: X }
-    B[X]:A{ .bla:X, .fullType->this.fullType }
+    A:{ .fullType[X]: imm X }
+    B[X]:A{ .bla:imm X, .fullType->this.fullType }
     """);}
 
   @Test void inferClashingGenMeth() { fail("""
@@ -105,8 +105,8 @@ public class TestSigInference {
     [E18 uncomposableMethods]
     These methods could not be composed.
     conflicts:
-    ([###]/Dummy0.fear:3:4) base.B[], .g/0[X0/0$, X0/1$](): imm X0/0$
-    ([###]/Dummy0.fear:4:4) base.C[], .g/0[X0/0$](): imm X0/0$
+    ([###]/Dummy0.fear:3:4) base.B[], .g/0[X0/0$, X0/1$](): X0/0$
+    ([###]/Dummy0.fear:4:4) base.C[], .g/0[X0/0$](): X0/0$
     """, """
     package base
     A[AA,BB]:B,C{ .g -> this.g }
@@ -121,7 +121,7 @@ public class TestSigInference {
       base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this.fullType/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immbase.A[]]->[-]}]}
     """, """
     package base
-    A:{ .fullType[X](x: X): A }
+    A:{ .fullType[X](x: imm X): A }
     B:A{ .fullType(y)->B }
     """);}
 
@@ -165,7 +165,7 @@ public class TestSigInference {
       .fullType/1([a]):Sig[mdf=imm,gens=[],ts=[immX],ret=immX]->[-]}]}
     """, """
     package base
-    A[X]:{ .fullType(a: X): X }
+    A[X]:{ .fullType(a: imm X): imm X }
     B:A[B]{ x -> B }
     """);}
 
@@ -181,7 +181,7 @@ public class TestSigInference {
     package base
     Void:{}
     A:{ .fullType: Void }
-    A[X]:{ .fullType: X }
+    A[X]:{ .fullType: imm X }
     B:A[B]{ B }
     """);}
 
@@ -219,7 +219,7 @@ public class TestSigInference {
       .id/1([a]):Sig[mdf=imm,gens=[X0/0$],ts=[immX0/0$],ret=immX0/0$]->a:infer}]}
     """, """
     package a
-    Id:{ .id[X](x:X):X }
+    Id:{ .id[X](x:imm X):imm X }
     A:Id
     B[X]:Id
     C:A,B[A]{.id a->a}
@@ -235,8 +235,8 @@ public class TestSigInference {
       .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}]}
     """, """
     package a
-    Id1:{ .id[X](x:X):X }
-    Id2:{ .id[Z](x:Z):Z }
+    Id1:{ .id[X](x:imm X):imm X }
+    Id2:{ .id[Z](x:imm Z): imm Z }
     A:Id1
     B[Y]:Id2
     C:A,B[A]{.id a->a}
@@ -252,8 +252,8 @@ public class TestSigInference {
       .id/1([x]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}]}
     """, """
     package a
-    Id1:{ .id[X](x:X):X }
-    Id2:{ .id[X](x:X):X }
+    Id1:{ .id[X](x:imm X):imm X }
+    Id2:{ .id[X](x:imm X):imm X }
     A:Id1
     B[Y]:Id2
     C:A,B[A]{.id a->a}
@@ -277,7 +277,7 @@ public class TestSigInference {
         .m/2([a1,a2]):Sig[mdf=imm,gens=[X0/0$,X0/1$],ts=[immX0/0$,immX0/1$],ret=immX0/1$]->a2:infer}]}
     """, """
     package a
-    A:{ .m[X,Y](x:X,y:Y): Y }
+    A:{ .m[X,Y](x:imm X,y:imm Y): imm Y }
     B:A{ .m(a1,a2) -> a2 }
     """); }
   @Test void multiGensOneConcrete() { ok("""
@@ -301,7 +301,7 @@ public class TestSigInference {
     """, """
     package a
     Foo[X]:{}
-    A:{ recMdf .m[X,Y](x:mut Foo[X],y:recMdf Y): recMdf Y }
+    A:{ recMdf .m[X,Y](x:mut Foo[imm X],y:recMdf Y): recMdf Y }
     B:A{ .m(a1,a2) -> a2 }
     """); }
   @Test void sameGens() {
@@ -314,8 +314,8 @@ public class TestSigInference {
       """, """
       package base
       A:B,C{ .g -> this.g }
-      B:{ .g[AA]: AA }
-      C:{ .g[BB]: BB }
+      B:{ .g[AA]: imm AA }
+      C:{ .g[BB]: imm BB }
       """);
   }
 
@@ -335,7 +335,7 @@ public class TestSigInference {
       .id/1([x]):Sig[mdf=imm,gens=[X0/0$],ts=[immX0/0$],ret=immX0/0$]->x:infer}]}
     """, """
     package a
-    Id:{ .id[X](x: X): X }
+    Id:{ .id[X](x: imm X): imm X }
     Id2:Id{ x -> x }
     """); }
   @Test void adaptGens() { ok("""
@@ -435,8 +435,8 @@ public class TestSigInference {
     """, """
     package base
     A:{
-      .m1[T](x:T):Void->this.m2(x),
-      .m2[K](k:K):Void
+      .m1[T](x:imm T):Void->this.m2(x),
+      .m2[K](k:imm K):Void
       }
     B:A{ .m2(k)->this.m1(k) }
     Void:{}

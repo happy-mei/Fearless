@@ -99,7 +99,7 @@ public interface EMethTypeSystem extends ETypeSystem {
           var dependentErrors = !dependentErrorMsgs.isEmpty()
             ? "\n"+"The following errors were found when checking this sub-typing:\n".indent(2)+dependentErrorMsgs
             : "";
-          return "("+ String.join(", ", call) +") <: "+tst1+dependentErrors;
+          return "("+ String.join(", ", call) +") <= "+tst1+dependentErrors;
         }).toList();
       var calls = String.join("\n", calls1);
       return Fail.callTypeError(e, expectedT(), calls).pos(e.pos());

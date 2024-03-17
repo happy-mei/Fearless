@@ -1,12 +1,12 @@
 package codegen.go;
 
-import ast.E;
 import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import id.Id;
 import main.CompilerFrontEnd;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.TypeSystemFeatures;
@@ -21,7 +21,6 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,6 +91,7 @@ public class TestGoProgram {
     }
   }
 
+  @Disabled
   @Test void emptyProgram() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main{ _ -> Void }

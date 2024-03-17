@@ -12,12 +12,15 @@
           <option name="goals">
             <list>
               <option value="compile" />
+              <option value="-DskipTests" />
             </list>
           </option>
           <option name="multimoduleDir" />
           <option name="pomFileName" value="pom.xml" />
           <option name="profilesMap">
-            <map />
+            <map>
+              <entry key="test" value="false" />
+            </map>
           </option>
           <option name="projectsCmdOptionValues">
             <list />

@@ -38,6 +38,8 @@ public class TestHtmlDocgen {
   }
 
   @Test void emptyProgram() { ok("""
+    ProgramDocs[docs=[PackageDoc[pkgName=base, traits=[TraitDoc[
+      traitName=base.Main/0, traitT=base.Main[], content=<pre><code class="language-fearless code-block">imm #[](s: mut base.System[]): imm base.Void[],</code></pre>], TraitDoc[traitName=base.Sealed/0, traitT=base.Sealed[], content=<pre><code class="language-fearless code-block"></code></pre>], TraitDoc[traitName=base.System/0, traitT=base.System[], content=<pre><code class="language-fearless code-block"></code></pre>], TraitDoc[traitName=base.Void/0, traitT=base.Void[], content=<pre><code class="language-fearless code-block"></code></pre>]]]]]
     """, "fake.Fake", false, """
     package test
     """, Base.minimalBase);

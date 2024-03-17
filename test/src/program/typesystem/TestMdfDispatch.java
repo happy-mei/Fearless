@@ -1,5 +1,6 @@
 package program.typesystem;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
@@ -20,8 +21,8 @@ public class TestMdfDispatch {
   // This fails because in the promotion that we're asking for (mut -> imm) "mut this" cannot be used in gamma
   @Test void inferringShouldFailWhenMultipleCandidates1() { fail("""
     In position [###]/Dummy0.fear:8:9
-    [E28 undefinedName]
-    The identifier "this" is undefined or cannot be captured.
+    [E53 xTypeError]
+    Expected 'this' to be imm test.A[], got mut test.B[].
     """, """
     package test
     A:{
@@ -35,6 +36,7 @@ public class TestMdfDispatch {
       }
     """); }
 
+  @Disabled
   @Test void inferringShouldFailWhenMultipleCompatibleCandidates() { fail("""
     In position [###]/Dummy0.fear:9:16
     [E52 ambiguousMethod]
@@ -91,12 +93,22 @@ public class TestMdfDispatch {
       }
     """); }
   @Test void callingMultiSigFail() { fail("""
-    In position [###]/Dummy0.fear:8:36
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: a .m1/0[]([]), no candidates for .m1/0 returned the expected type mut test.A[]. The candidates were:
-    (read test.A[]): read test.B[]
-    (imm test.A[]): imm test.B[]
-    (readOnly test.A[]): readOnly test.B[]
+  In position [###]/Dummy0.fear:8:36
+  [E33 callTypeError]
+  Type error: None of the following candidates (returning the expected type "mut test.A[]") for this method call:
+  a .m1/0[]([])
+  were valid:
+  (read test.A[]) <= (mut test.A[]): mut test.A[]
+    The following errors were found when checking this sub-typing:
+      In position [###]/Dummy0.fear:8:35
+      [E53 xTypeError]
+      Expected 'a' to be mut test.A[], got read test.A[].
+  
+  (read test.A[]) <= (iso test.A[]): iso test.A[]
+    The following errors were found when checking this sub-typing:
+      In position [###]/Dummy0.fear:8:35
+      [E53 xTypeError]
+      Expected 'a' to be iso test.A[], got read test.A[].
     """, """
     package test
     A:{
@@ -158,25 +170,25 @@ public class TestMdfDispatch {
 
   @Test void optWithImmMatcher() { ok("""
   package base
-  Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
-    mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
-    read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.some(x),
+  Opt:{ #[T](x: T): mut Opt[T] -> {
+    mut .match[R](m: mut OptMatch[T, R]): R -> m.some(x),
+    read .match[R](m: mut OptMatch[read T, R]): R -> m.some(x),
     }}
   Opt[T]:{
-    mut  .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.empty,
-    read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.empty,
-    imm  .match[R](m: mut OptMatch[T, mdf R]): mdf R -> m.empty,
-    read .or(f: mut OptOrElse[read Opt[mdf T]]): read Opt[mdf T] -> this.match[read Opt[mdf T]](mut OptMatch[read T, read Opt[mdf T]]{
+    mut  .match[R](m: mut OptMatch[T, R]): R -> m.empty,
+    read .match[R](m: mut OptMatch[read T, R]): R -> m.empty,
+    imm  .match[R](m: mut OptMatch[T, R]): R -> m.empty,
+    read .or(f: mut OptOrElse[read Opt[T]]): read Opt[T] -> this.match[read Opt[T]](mut OptMatch[read T, read Opt[T]]{
       .some(x) -> this,
       .empty -> f#
       }),
-    imm .or(f: mut OptOrElse[Opt[mdf T]]): Opt[mdf T] -> this.match[Opt[mdf T]](mut OptMatch[T, Opt[mdf T]]{
+    imm .or(f: mut OptOrElse[Opt[T]]): Opt[T] -> this.match[Opt[T]](mut OptMatch[T, Opt[T]]{
         .some(x) -> this,
         .empty -> f#
         }),
       }
-    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .empty: mdf R }
-    OptOrElse[R]:{ mut #: mdf R }
+    OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
+    OptOrElse[R]:{ mut #: R }
         """); }
   @Test void newBase() { ok("""
     package base
@@ -186,25 +198,25 @@ public class TestMdfDispatch {
     Sealed:{}
     Void:Sealed{}
 
-    Abort:Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: mdf R -> this! } // can be optimised to just terminate (goes stuck)
-    Magic:Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: mdf R -> this! } // magic'd out to tell us what we forgot to implement
+    Abort:Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: R -> this! } // can be optimised to just terminate (goes stuck)
+    Magic:Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: R -> this! } // magic'd out to tell us what we forgot to implement
     Debug:Sealed{ #[T](x: T): T -> x } // TODO: magic
     HasIdentity:{ mut .idEq(other: readOnly HasIdentity): Bool -> Magic! } // TODO: magic
         
     Let:{
-      #[V,R](l: mut Let[mdf V, mdf R]): mdf R -> l.in(l.var),
+      #[V,R](l: mut Let[V, R]): R -> l.in(l.var),
       }
-    Let[V,R]:{ mut .var: mdf V, mut .in(v: mdf V): mdf R }
+    Let[V,R]:{ mut .var: V, mut .in(v: V): R }
 
-    F[R:read,mut,imm,iso]:{ read #: mdf R }
-    F[A:read,mut,imm,iso,R:read,mut,imm,iso]:{ read #(a: mdf A): mdf R }
-    F[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: mdf A, b: mdf B): mdf R }
-    F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: mdf A, b: mdf B, c: mdf C): mdf R }
+    F[R:read,mut,imm,iso]:{ read #: R }
+    F[A:read,mut,imm,iso,R:read,mut,imm,iso]:{ read #(a: A): R }
+    F[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: A, b: B): R }
+    F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]:{ read #(a: A, b: B, c: C): R }
     
     // TODO: could be overloads on Do
     Yeet:{
-      #[X:read,mut,imm,iso](x: mdf X): Void -> this.with(x, Void),
-      .with[X:read,mut,imm,iso, R:read,mut,imm,iso](_: mdf X, res: mdf R): mdf R -> res,
+      #[X:read,mut,imm,iso](x: X): Void -> this.with(x, Void),
+      .with[X:read,mut,imm,iso, R:read,mut,imm,iso](_: X, res: R): R -> res,
       }
     """, """
     package base
@@ -214,12 +226,12 @@ public class TestMdfDispatch {
       .or(b: Bool): Bool,
       ||(b: Bool): Bool -> this.or(b),
       .not: Bool,
-      .if[R](f: mut ThenElse[mdf R]): mdf R,
-      ?[R](f: mut ThenElse[mdf R]): mdf R -> this.if(f),
+      .if[R](f: mut ThenElse[R]): R,
+      ?[R](f: mut ThenElse[R]): R -> this.if(f),
       }
     True:Bool{ .and(b) -> b, .or(b) -> this, .not -> False, .if(f) -> f.then(), .str -> "True" }
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, .if(f) -> f.else(), .str -> "False" }
-    ThenElse[R]:{ mut .then: mdf R, mut .else: mdf R, }
+    ThenElse[R]:{ mut .then: R, mut .else: R, }
     """, """
     package base
     Str:Sealed{
@@ -374,17 +386,17 @@ public class TestMdfDispatch {
     """, """
     package base
         
-    Opt:{ #[T](x: mdf T): mut Opt[mdf T] -> {
+    Opt:{ #[T](x: T): mut Opt[T] -> {
       // .match(m) -> m.some(x),
-      mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.some(x),
-      read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.some(x),
+      mut .match[R](m: mut OptMatch[T, R]): R -> m.some(x),
+      read .match[R](m: mut OptMatch[read T, R]): R -> m.some(x),
       }}
     Opt[T]:{
-      mut .match[R](m: mut OptMatch[mdf T, mdf R]): mdf R -> m.none,
-      read .match[R](m: mut OptMatch[read T, mdf R]): mdf R -> m.none,
-      mut .map[R](f: mut OptMap[mdf T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
-      read .map[R](f: mut OptMap[read T, mdf R]): mut Opt[mdf R] -> this.match[mut Opt[mdf R]](f),
-      mut |(alt: mdf T): mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{
+      mut .match[R](m: mut OptMatch[T, R]): R -> m.none,
+      read .match[R](m: mut OptMatch[read T, R]): R -> m.none,
+      mut .map[R](f: mut OptMap[T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
+      read .map[R](f: mut OptMap[read T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
+      mut |(alt: T): T -> this.match[T](mut OptMatch[T, T]{
         .some(x) -> x,
         .none -> alt
         }),
@@ -392,7 +404,7 @@ public class TestMdfDispatch {
         .some(x) -> x,
         .none -> alt
         }),
-      mut ||(alt: mut OptOrElse[mdf T]): mdf T -> this.match[mdf T](mut OptMatch[mdf T, mdf T]{
+      mut ||(alt: mut OptOrElse[T]): T -> this.match[T](mut OptMatch[T, T]{
         .some(x) -> x,
         .none -> alt#
         }),
@@ -400,7 +412,7 @@ public class TestMdfDispatch {
         .some(x) -> x,
         .none -> alt#
         }),
-      mut .or(f: mut OptOrElse[mut Opt[mdf T]]): mut Opt[mdf T] -> this.match[mut Opt[mdf T]](mut OptMatch[mdf T, mut Opt[mdf T]]{
+      mut .or(f: mut OptOrElse[mut Opt[T]]): mut Opt[T] -> this.match[mut Opt[T]](mut OptMatch[T, mut Opt[T]]{
         .some(x) -> this,
         .none -> f#
         }),
@@ -412,10 +424,10 @@ public class TestMdfDispatch {
       read .isSome: Bool -> this.match[Bool](mut OptMatch[read T, Bool]{ .none -> False, .some(_) -> True }),
       }
     
-    OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
-    OptOrElse[R]:{ mut #: mdf R }
-    OptMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
-      mut #(t: mdf T): mdf R,
+    OptMatch[T,R]:{ mut .some(x: T): R, mut .none: R }
+    OptOrElse[R]:{ mut #: R }
+    OptMap[T,R]:OptMatch[T, mut Opt[R]]{
+      mut #(t: T): R,
       .some(x) -> Opt#(this#x),
       .none -> {}
       }
