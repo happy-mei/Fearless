@@ -54,6 +54,15 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     for (var unit : this.rt()) { unit.write(workingDir); }
 
     try {
+      var canExecute = ResolveResource.of("/go-compilers/%s/go/bin/go".formatted(goCompilerVersion()), compilerPath->compilerPath.toFile().setExecutable(true));
+      if (!canExecute) {
+        System.err.println("Warning: Could not make the Go compiler executable");
+      }
+    } catch (URISyntaxException e) {
+      throw Bug.of(e);
+    }
+
+    try {
       runGoCmd(workingDir, "build", "-o", "fear_out").join();
     } catch (CompletionException err) {
       var cause = err.getCause();
