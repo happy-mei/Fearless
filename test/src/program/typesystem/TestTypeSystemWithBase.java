@@ -78,7 +78,7 @@ public class TestTypeSystemWithBase {
   @Test void numbersSubTyping2(){ fail("""
     In position [###]/Dummy0.fear:3:22
     [E53 xTypeError]
-    Expected a to be imm 42[], got imm base.Int[].
+    Expected 'a' to be imm 42[], got imm base.Int[].
     """, """
     package test
     alias base.Int as Int,
@@ -114,9 +114,9 @@ public class TestTypeSystemWithBase {
     C:A[Int]{ .count -> 56, .sum -> 3001 }
     """); }
   @Test void numbersGenericTypes2a(){ fail("""
-    In position [###]/Dummy0.fear:4:23
-    [E23 methTypeError]
-    Expected the method .sum/0 to return imm 42[], got imm 43[].
+    In position [###]/Dummy0.fear:4:31
+    [E54 lambdaTypeError]
+    Expected the lambda here to implement imm 42[].
     """, """
     package test
     alias base.Int as Int,
@@ -184,6 +184,10 @@ public class TestTypeSystemWithBase {
     this .nm/1[]([[-imm-][5[]]{'fear[###]$ }])
     were valid:
     (imm test.Bar[], imm 5[]) <= (imm test.Bar[], imm base.Float[]): imm base.Int[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:5:25
+        [E54 lambdaTypeError]
+        Expected the lambda here to implement imm base.Float[].
     """, """
     package test
     alias base.Int as Int, alias base.Float as Float,
@@ -200,6 +204,10 @@ public class TestTypeSystemWithBase {
     this .nm/1[]([[-imm-][5[]]{'fear[###]$ }])
     were valid:
     (imm test.Bar[], imm 5[]) <= (imm test.Bar[], imm 6[]): imm base.Int[]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:5:25
+        [E54 lambdaTypeError]
+        Expected the lambda here to implement imm 6[].
     """, """
     package test
     alias base.Int as Int,
@@ -262,7 +270,16 @@ public class TestTypeSystemWithBase {
     p .name/0[]([])
     were valid:
     (lent test.Person[]) <= (mut test.Person[]): mut base.Ref[imm base.Str[]]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:9:47
+        [E53 xTypeError]
+        Expected 'p' to be mut test.Person[], got lent test.Person[].
+        
     (lent test.Person[]) <= (iso test.Person[]): iso base.Ref[imm base.Str[]]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:9:47
+        [E53 xTypeError]
+        Expected 'p' to be iso test.Person[], got lent test.Person[].
     """, """
     package test
     Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
@@ -281,7 +298,7 @@ public class TestTypeSystemWithBase {
       }
     """, Base.mutBaseAliases); }
   @Test void unsoundHygienicList() { fail("""
-    [###]'lent p' cannot be captured by a lent method in a mut lambda.[###]
+    [###]Expected 'p' to be imm test.Person[], got mut test.Person[].[###]
     """, """
     package test
     Person:{ read .age: UInt, mut .age(n: UInt): Void }
@@ -302,7 +319,7 @@ public class TestTypeSystemWithBase {
       }
     """, Base.mutBaseAliases); }
   @Test void unsoundHygienicLList() { fail("""
-    [###]'lent p' cannot be captured by a lent method in a mut lambda.[###]
+    [###]Expected 'p' to be imm test.Person[], got mut test.Person[].[###]
     """, """
     package test
     Person:{ readOnly .age: UInt, mut .age(n: UInt): Void }
@@ -328,7 +345,17 @@ public class TestTypeSystemWithBase {
     Type error: None of the following candidates (returning the expected type "mut base.LList[read test.Person[]]") for this method call:
     l +/1[]([p])
     were valid:
-    (lent base.LList[read test.Person[]], read test.Person[]) <= (iso base.LList[read test.Person[]], imm test.Person[]): iso base.LList[read test.Person[]]
+    (lent base.LList[read test.Person[]], readOnly test.Person[]) <= (mut base.LList[read test.Person[]], read test.Person[]): mut base.LList[read test.Person[]]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:16:74
+        [E53 xTypeError]
+        Expected 'l' to be mut base.LList[read test.Person[]], got lent base.LList[read test.Person[]].
+        
+    (lent base.LList[read test.Person[]], readOnly test.Person[]) <= (iso base.LList[read test.Person[]], imm test.Person[]): iso base.LList[read test.Person[]]
+      The following errors were found when checking this sub-typing:
+        In position [###]/Dummy0.fear:16:74
+        [E53 xTypeError]
+        Expected 'l' to be iso base.LList[read test.Person[]], got lent base.LList[read test.Person[]].
     """, """
     package test
     Person:{ read .age: UInt, mut .age(n: UInt): Void }
@@ -350,6 +377,13 @@ public class TestTypeSystemWithBase {
     """, Base.mutBaseAliases); }
 
   @Test void adaptFails() { fail("""
+    In position [###]/Dummy0.fear:6:47
+    [E53 xTypeError]
+    Expected 'f' to be mut test.Box[read test.Foo[]], got mut test.Box[mut test.Foo[]].
+        
+    In position [###]/Dummy0.fear:4:51
+    [E53 xTypeError]
+    Expected 'f' to be read test.Box[read test.Foo[]], got mut test.Box[mut test.Foo[]].
     """, """
     package test
     Foo:{}
@@ -361,7 +395,7 @@ public class TestTypeSystemWithBase {
       }
     Box[T]:{
       recMdf .get: recMdf T,
-      mut .update(x: mdf T): Void -> {},
+      mut .update(x: T): Void -> {},
       }
     Void:{}
     Break:{ #(foo: read Foo): read Box[read Foo] -> read Box#foo }
@@ -436,7 +470,7 @@ public class TestTypeSystemWithBase {
   @Test void canGetImmIntFromImmListOfImmIntMatch() { ok("""
     package test
     MakeList:{ #: LList[Int] -> LList[Int] + 12 }
-    Test:{ #: Bool -> (MakeList#).head.match mut OptMatch[Int,Int]{ .some(x) -> x, .empty -> 0 } == 12  }
+    Test:{ #: Bool -> (MakeList#).head.match mut base.OptMatch[Int,Int]{ .some(x) -> x, .empty -> 0 } == 12  }
     """, Base.mutBaseAliases); }
   @Test void canGetImmIntFromImmListOfImmIntMatchExplicitGens() { ok("""
     package test
@@ -456,10 +490,10 @@ public class TestTypeSystemWithBase {
   @Test void worksWithCast() { ok("""
     package test
     Red[T]:{
-      .blue: Blue[mdf T],
+      .blue: Blue[T],
       }
     Blue[T]:{
-      .red: Red[mdf T],
+      .red: Red[T],
       }
     Foo:{}
     DoIt:{
@@ -470,12 +504,12 @@ public class TestTypeSystemWithBase {
   @Test void worksWithCastWithGetter() { ok("""
     package test
     Red[T]:{
-      .blue: Blue[mdf T],
-      .get: mdf T,
+      .blue: Blue[T],
+      .get: T,
       }
     Blue[T]:{
-      .red: Red[mdf T],
-      .get: mdf T,
+      .red: Red[T],
+      .get: T,
       }
     Foo:{}
     DoIt:{
@@ -500,7 +534,7 @@ public class TestTypeSystemWithBase {
   @Test void noImmFromRef() { fail("""
     In position [###]/Dummy0.fear:3:32
     [E28 undefinedName]
-    The identifier "r" is undefined or cannot be captured.
+    The identifier "r" is undefined or cannot be [###]ured.
     """, """
     package test
     Test:{
