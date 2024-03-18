@@ -1,6 +1,5 @@
 package codegen.go;
 
-import ast.E;
 import codegen.MIRInjectionVisitor;
 import id.Id;
 import main.Main;
@@ -16,7 +15,6 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.IdentityHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -44,33 +42,184 @@ public class TestGoCodegen {
   }
 
   @Test void emptyProgram() { ok("""
-package main
-type baseΦSystem_1 interface {
-}
-type baseΦSystem_1Impl struct {}
-type baseΦSealed_0 interface {
-}
-type baseΦSealed_0Impl struct {}
-type baseΦNoMutHyg_1 interface {
-}
-type baseΦNoMutHyg_1Impl struct {}
-type baseΦVoid_0 interface {
-}
-type baseΦVoid_0Impl struct {}
-type baseΦMain_0 interface {
-Φ35Φ(sΦ baseΦSystem_1) baseΦVoid_0
-}
-type baseΦMain_0Impl struct {}
+    GoProgram[mainFile=MainFile[src=package main
+    import (
+      "fmt"
+      "os"
+    )
+    func main() {
+      for _, e := range os.Args[1:] {
+      baseφrtφGlobalLaunchArgs = baseφrtφGlobalLaunchArgs.φ43_1_immφ(e)
+    }
 
-func main(){
-var entry baseΦMain_0 = fakeΦFake_0Impl{}
-entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
-}
+      fmt.Println(φfakeφFake_0Impl{}.φ35_1_immφ(baseφrtφGlobalLaunchArgs))
+    }
+    ], pkgs=[GoPackage[pkg=base, src=package main
+
+    type φbaseφSealed_0 interface {
+     \s
+    }
+
+    type φbaseφSystem_0 interface {
+     \s
+    }
+
+    type φbaseφVoid_0 interface {
+     \s
+    }
+
+    type φbaseφMain_0 interface {
+      φ35_1_immφ(sφ φbaseφSystem_0) φbaseφVoid_0
+    }
+
+    type φbaseφSealed_0Impl struct {
+     \s
+    }
+
+
+
+    type φbaseφSystem_0Impl struct {
+     \s
+    }
+
+
+
+    type φbaseφVoid_0Impl struct {
+     \s
+    }
+
+
+
+
+    ]]]
     """, "fake.Fake", false, """
     package test
     """, Base.minimalBase);}
 
   @Test void capturing() { ok("""
+    GoProgram[mainFile=MainFile[src=package main
+    import (
+      "fmt"
+      "os"
+    )
+    func main() {
+      for _, e := range os.Args[1:] {
+      baseφrtφGlobalLaunchArgs = baseφrtφGlobalLaunchArgs.φ43_1_immφ(e)
+    }
+        
+      fmt.Println(φfakeφFake_0Impl{}.φ35_1_immφ(baseφrtφGlobalLaunchArgs))
+    }
+    ], pkgs=[GoPackage[pkg=test, src=package main
+        
+    type φtestφNum_0 interface {
+     \s
+    }
+        
+    type φtestφFortyTwo_0 interface {
+     \s
+    }
+        
+    type φtestφUsage_0 interface {
+      φ35_0_immφ() φtestφNum_0
+    }
+        
+    type φtestφPerson_0 interface {
+      φage_0_readφ() φtestφNum_0
+    }
+        
+    type φtestφFPerson_0 interface {
+      φ35_1_immφ(ageφ φtestφNum_0) φtestφPerson_0
+    }
+        
+    type φtestφNum_0Impl struct {
+     \s
+    }
+        
+        
+        
+    type φtestφFortyTwo_0Impl struct {
+     \s
+    }
+        
+        
+        
+    type φtestφUsage_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφUsage_0Impl) φ35_0_immφ() φtestφNum_0 {
+      return φtestφUsage_0φφ35_0_immφφnoSelfCap()
+    }
+        
+        
+        
+    type φtestφPerson_0Impl struct {
+      ageφ φtestφNum_0
+    }
+    func (FSpφself φtestφPerson_0Impl) φage_0_readφ() φtestφNum_0 {
+      return φtestφPerson_0φφage_0_readφφnoSelfCap(FSpφself.ageφ)
+    }
+        
+        
+        
+    type φtestφFPerson_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφFPerson_0Impl) φ35_1_immφ(ageφ φtestφNum_0) φtestφPerson_0 {
+      return φtestφFPerson_0φφ35_1_immφφnoSelfCap(ageφ)
+    }
+        
+        
+        
+    func φtestφUsage_0φφ35_0_immφφnoSelfCap() φtestφNum_0 {
+      return ((φtestφFPerson_0Impl{}.φ35_1_immφ(φtestφFortyTwo_0Impl{})).φage_0_readφ())
+    }
+        
+    func φtestφPerson_0φφage_0_readφφnoSelfCap(ageφ φtestφNum_0) φtestφNum_0 {
+      return ageφ
+    }
+        
+    func φtestφFPerson_0φφ35_1_immφφnoSelfCap(ageφ φtestφNum_0) φtestφPerson_0 {
+      return φtestφPerson_0Impl{ageφ}
+    }
+        
+    ], GoPackage[pkg=base, src=package main
+        
+    type φbaseφSealed_0 interface {
+     \s
+    }
+        
+    type φbaseφSystem_0 interface {
+     \s
+    }
+        
+    type φbaseφVoid_0 interface {
+     \s
+    }
+        
+    type φbaseφMain_0 interface {
+      φ35_1_immφ(sφ φbaseφSystem_0) φbaseφVoid_0
+    }
+        
+    type φbaseφSealed_0Impl struct {
+     \s
+    }
+        
+        
+        
+    type φbaseφSystem_0Impl struct {
+     \s
+    }
+        
+        
+        
+    type φbaseφVoid_0Impl struct {
+     \s
+    }
+        
+        
+        
+        
+    ]]]
     """, "fake.Fake", false, """
     package test
     FPerson: { #(age: Num): mut Person -> mut Person: {
@@ -84,6 +233,226 @@ entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
     """, Base.minimalBase);}
 
   @Test void capturingDeep() { ok("""
+    GoProgram[mainFile=MainFile[src=package main
+    import (
+      "fmt"
+      "os"
+    )
+    func main() {
+      for _, e := range os.Args[1:] {
+      baseφrtφGlobalLaunchArgs = baseφrtφGlobalLaunchArgs.φ43_1_immφ(e)
+    }
+        
+      fmt.Println(φfakeφFake_0Impl{}.φ35_1_immφ(baseφrtφGlobalLaunchArgs))
+    }
+    ], pkgs=[GoPackage[pkg=test, src=package main
+        
+    type φtestφNum_0 interface {
+      φplus1_0_immφ() φtestφNum_0
+    }
+        
+    type φtestφFortyThree_0 interface {
+      φplus1_0_immφ() φtestφNum_0
+    }
+        
+    type φtestφFortyTwo_0 interface {
+      φplus1_0_immφ() φtestφNum_0
+    }
+        
+    type φtestφUsage_0 interface {
+      φ35_0_immφ() φtestφNum_0
+    }
+        
+    type φtestφPerson_0 interface {
+      φage_0_readφ() φtestφNum_0
+    φwrap_0_mutφ() φtestφPerson_0
+    }
+        
+    type φtestφFear0φ36_0 interface {
+      φage_0_readφ() φtestφNum_0
+    φwrap_0_mutφ() φtestφPerson_0
+    }
+        
+    type φtestφFear1φ36_0 interface {
+      φage_0_readφ() φtestφNum_0
+    φwrap_0_mutφ() φtestφPerson_0
+    }
+        
+    type φtestφFortyFour_0 interface {
+      φplus1_0_immφ() φtestφNum_0
+    }
+        
+    type φtestφFear2φ36_0 interface {
+      φage_0_readφ() φtestφNum_0
+    φwrap_0_mutφ() φtestφPerson_0
+    }
+        
+    type φtestφFPerson_0 interface {
+      φ35_1_immφ(ageφ φtestφNum_0) φtestφPerson_0
+    }
+        
+    type φtestφFortyThree_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφFortyThree_0Impl) φplus1_0_immφ() φtestφNum_0 {
+      return φtestφFortyThree_0φφplus1_0_immφφnoSelfCap()
+    }
+        
+        
+        
+    type φtestφFortyTwo_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφFortyTwo_0Impl) φplus1_0_immφ() φtestφNum_0 {
+      return φtestφFortyTwo_0φφplus1_0_immφφnoSelfCap()
+    }
+        
+        
+        
+    type φtestφUsage_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφUsage_0Impl) φ35_0_immφ() φtestφNum_0 {
+      return φtestφUsage_0φφ35_0_immφφnoSelfCap()
+    }
+        
+        
+        
+    type φtestφFear0φ36_0Impl struct {
+      selfφ φtestφFear1φ36_0
+    }
+    func (FSpφself φtestφFear0φ36_0Impl) φage_0_readφ() φtestφNum_0 {
+      return φtestφFear0φ36_0φφage_0_readφφnoSelfCap(FSpφself.selfφ)
+    }
+        
+    func (FSpφself φtestφFear0φ36_0Impl) φwrap_0_mutφ() φtestφPerson_0 {
+      return φtestφPerson_0φφwrap_0_mutφφselfCap(FSpφself)
+    }
+        
+        
+        
+    type φtestφFear1φ36_0Impl struct {
+      this φtestφPerson_0
+    }
+    func (FSpφself φtestφFear1φ36_0Impl) φage_0_readφ() φtestφNum_0 {
+      return φtestφFear1φ36_0φφage_0_readφφnoSelfCap(FSpφself.this)
+    }
+        
+    func (FSpφself φtestφFear1φ36_0Impl) φwrap_0_mutφ() φtestφPerson_0 {
+      return φtestφFear1φ36_0φφwrap_0_mutφφselfCap(FSpφself)
+    }
+        
+        
+        
+    type φtestφFortyFour_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφFortyFour_0Impl) φplus1_0_immφ() φtestφNum_0 {
+      return φtestφFortyFour_0φφplus1_0_immφφselfCap(FSpφself)
+    }
+        
+        
+        
+    type φtestφFear2φ36_0Impl struct {
+      ageφ φtestφNum_0
+    }
+    func (FSpφself φtestφFear2φ36_0Impl) φage_0_readφ() φtestφNum_0 {
+      return φtestφFear2φ36_0φφage_0_readφφnoSelfCap(FSpφself.ageφ)
+    }
+        
+    func (FSpφself φtestφFear2φ36_0Impl) φwrap_0_mutφ() φtestφPerson_0 {
+      return φtestφPerson_0φφwrap_0_mutφφselfCap(FSpφself)
+    }
+        
+        
+        
+    type φtestφFPerson_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφFPerson_0Impl) φ35_1_immφ(ageφ φtestφNum_0) φtestφPerson_0 {
+      return φtestφFPerson_0φφ35_1_immφφnoSelfCap(ageφ)
+    }
+        
+        
+        
+    func φtestφFortyThree_0φφplus1_0_immφφnoSelfCap() φtestφNum_0 {
+      return φtestφFortyFour_0Impl{}
+    }
+        
+    func φtestφFortyTwo_0φφplus1_0_immφφnoSelfCap() φtestφNum_0 {
+      return φtestφFortyThree_0Impl{}
+    }
+        
+    func φtestφUsage_0φφ35_0_immφφnoSelfCap() φtestφNum_0 {
+      return (((φtestφFPerson_0Impl{}.φ35_1_immφ(φtestφFortyTwo_0Impl{})).φwrap_0_mutφ()).φage_0_readφ())
+    }
+        
+    func φtestφFear1φ36_0φφage_0_readφφnoSelfCap(this φtestφPerson_0) φtestφNum_0 {
+      return ((this.φage_0_readφ()).φplus1_0_immφ())
+    }
+        
+    func φtestφFear0φ36_0φφage_0_readφφnoSelfCap(selfφ φtestφFear1φ36_0) φtestφNum_0 {
+      return ((selfφ.φage_0_readφ()).φplus1_0_immφ())
+    }
+        
+    func φtestφFear1φ36_0φφwrap_0_mutφφselfCap(selfφ φtestφFear1φ36_0) φtestφPerson_0 {
+      return φtestφFear0φ36_0Impl{selfφ}
+    }
+        
+    func φtestφPerson_0φφwrap_0_mutφφselfCap(this φtestφPerson_0) φtestφPerson_0 {
+      return φtestφFear1φ36_0Impl{this}
+    }
+        
+    func φtestφFortyFour_0φφplus1_0_immφφselfCap(this φtestφFortyFour_0) φtestφNum_0 {
+      return (this.φplus1_0_immφ())
+    }
+        
+    func φtestφFear2φ36_0φφage_0_readφφnoSelfCap(ageφ φtestφNum_0) φtestφNum_0 {
+      return ageφ
+    }
+        
+    func φtestφFPerson_0φφ35_1_immφφnoSelfCap(ageφ φtestφNum_0) φtestφPerson_0 {
+      return φtestφFear2φ36_0Impl{ageφ}
+    }
+        
+    ], GoPackage[pkg=base, src=package main
+        
+    type φbaseφSealed_0 interface {
+     \s
+    }
+        
+    type φbaseφSystem_0 interface {
+     \s
+    }
+        
+    type φbaseφVoid_0 interface {
+     \s
+    }
+        
+    type φbaseφMain_0 interface {
+      φ35_1_immφ(sφ φbaseφSystem_0) φbaseφVoid_0
+    }
+        
+    type φbaseφSealed_0Impl struct {
+     \s
+    }
+        
+        
+        
+    type φbaseφSystem_0Impl struct {
+     \s
+    }
+        
+        
+        
+    type φbaseφVoid_0Impl struct {
+     \s
+    }
+        
+        
+        
+        
+    ]]]
     """, "fake.Fake", false, """
     package test
     Person: {
@@ -110,57 +479,140 @@ entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
     """, Base.minimalBase);}
 
   @Test void simpleProgram() { ok("""
-    package main
-    type testΦBar_0 interface {
-    loopΦ() testΦBaz_1
-    Φ35Φ() testΦFoo_0
+    GoProgram[mainFile=MainFile[src=package main
+    import (
+      "fmt"
+      "os"
+    )
+    func main() {
+      for _, e := range os.Args[1:] {
+      baseφrtφGlobalLaunchArgs = baseφrtφGlobalLaunchArgs.φ43_1_immφ(e)
     }
-    type testΦBar_0Impl struct {}
-    func (this testΦBar_0Impl) loopΦ() testΦBaz_1 {
-     return this.loopΦ()
-    }
-    func (this testΦBar_0Impl) Φ35Φ() testΦFoo_0 {
-     return testΦFoo_0Impl{}
-    }
-    type testΦFoo_0 interface {
-    }
-    type testΦFoo_0Impl struct {}
-    type testΦOk_0 interface {
-    Φ35Φ() testΦOk_0
-    }
-    type testΦOk_0Impl struct {}
-    type testΦBaz_1 interface {
-    Φ35Φ() interface{}
-    }
-    type testΦBaz_1Impl struct {}
-    type testΦYo_0 interface {
-    lmΦ() testΦOk_0
-    }
-    type testΦYo_0Impl struct {}
-    func (this testΦYo_0Impl) lmΦ() testΦOk_0 {
-     return testΦOk_0Impl{}
-    }
-    type baseΦSystem_1 interface {
-    }
-    type baseΦSystem_1Impl struct {}
-    type baseΦSealed_0 interface {
-    }
-    type baseΦSealed_0Impl struct {}
-    type baseΦNoMutHyg_1 interface {
-    }
-    type baseΦNoMutHyg_1Impl struct {}
-    type baseΦVoid_0 interface {
-    }
-    type baseΦVoid_0Impl struct {}
-    type baseΦMain_0 interface {
-    Φ35Φ(sΦ baseΦSystem_1) baseΦVoid_0
-    }
-    type baseΦMain_0Impl struct {}
 
-    func main(){
-    var entry baseΦMain_0 = fakeΦFake_0Impl{}
-    entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
+      fmt.Println(φfakeφFake_0Impl{}.φ35_1_immφ(baseφrtφGlobalLaunchArgs))
     }
+    ], pkgs=[GoPackage[pkg=test, src=package main
+
+    type φtestφBar_0 interface {
+      φloop_0_immφ() φtestφBaz_1
+    φ35_0_immφ() interface{}
+    }
+
+    type φtestφFoo_0 interface {
+     \s
+    }
+
+    type φtestφFear1φ36_0 interface {
+      φ35_0_immφ() φtestφOk_0
+    }
+
+    type φtestφOk_0 interface {
+      φ35_0_immφ() φtestφOk_0
+    }
+
+    type φtestφBaz_1 interface {
+      φ35_0_immφ() interface{}
+    }
+
+    type φtestφYo_0 interface {
+      φlm_0_immφ() φtestφOk_0
+    }
+
+    type φtestφBar_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφBar_0Impl) φloop_0_immφ() φtestφBaz_1 {
+      return φtestφBar_0φφloop_0_immφφselfCap(FSpφself)
+    }
+
+    func (FSpφself φtestφBar_0Impl) φ35_0_immφ() interface{} {
+      return FSpφself.φ35_0_immφφDelegate()
+    }
+
+    func (FSpφself φtestφBar_0Impl) φ35_0_immφφDelegate() φtestφFoo_0 {
+      return φtestφBar_0φφ35_0_immφφnoSelfCap()
+    }
+
+
+
+    type φtestφFoo_0Impl struct {
+     \s
+    }
+
+
+
+    type φtestφFear1φ36_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφFear1φ36_0Impl) φ35_0_immφ() φtestφOk_0 {
+      return φtestφFear1φ36_0φφ35_0_immφφselfCap(FSpφself)
+    }
+
+
+
+    type φtestφYo_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφYo_0Impl) φlm_0_immφ() φtestφOk_0 {
+      return φtestφYo_0φφlm_0_immφφnoSelfCap()
+    }
+
+
+
+    func φtestφBar_0φφ35_0_immφφnoSelfCap() φtestφFoo_0 {
+      return φtestφFoo_0Impl{}
+    }
+
+    func φtestφBar_0φφloop_0_immφφselfCap(this φtestφBar_0) φtestφBaz_1 {
+      return (this.φloop_0_immφ())
+    }
+
+    func φtestφFear1φ36_0φφ35_0_immφφselfCap(okφ φtestφFear1φ36_0) φtestφOk_0 {
+      return (okφ.φ35_0_immφ())
+    }
+
+    func φtestφYo_0φφlm_0_immφφnoSelfCap() φtestφOk_0 {
+      return φtestφFear1φ36_0Impl{}
+    }
+
+    ], GoPackage[pkg=base, src=package main
+
+    type φbaseφSealed_0 interface {
+     \s
+    }
+
+    type φbaseφSystem_0 interface {
+     \s
+    }
+
+    type φbaseφVoid_0 interface {
+     \s
+    }
+
+    type φbaseφMain_0 interface {
+      φ35_1_immφ(sφ φbaseφSystem_0) φbaseφVoid_0
+    }
+
+    type φbaseφSealed_0Impl struct {
+     \s
+    }
+
+
+
+    type φbaseφSystem_0Impl struct {
+     \s
+    }
+
+
+
+    type φbaseφVoid_0Impl struct {
+     \s
+    }
+
+
+
+
+    ]]]
     """, "fake.Fake", false, """
     package test
     Baz[X]:{ #: X }
@@ -171,81 +623,168 @@ entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
     """, Base.minimalBase);}
 
   @Test void bools() {ok("""
-package main
-type testΦTrue_0 interface {
-notΦ() testΦBool_0
-Φ63Φ(fΦ interface{}) interface{}
-orΦ(bΦ testΦBool_0) testΦBool_0
-andΦ(bΦ testΦBool_0) testΦBool_0
-}
-type testΦTrue_0Impl struct {}
-func (this testΦTrue_0Impl) notΦ() testΦBool_0 {
- return testΦFalse_0Impl{}
-}
-func (this testΦTrue_0Impl) Φ63Φ(fΦ interface{}) interface{} {
- return fΦ.(testΦThenElse_1).thenΦ()
-}
-func (this testΦTrue_0Impl) orΦ(bΦ testΦBool_0) testΦBool_0 {
- return this
-}
-func (this testΦTrue_0Impl) andΦ(bΦ testΦBool_0) testΦBool_0 {
- return bΦ.(testΦBool_0)
-}
-type testΦFalse_0 interface {
-notΦ() testΦBool_0
-Φ63Φ(fΦ interface{}) interface{}
-orΦ(bΦ testΦBool_0) testΦBool_0
-andΦ(bΦ testΦBool_0) testΦBool_0
-}
-type testΦFalse_0Impl struct {}
-func (this testΦFalse_0Impl) notΦ() testΦBool_0 {
- return testΦTrue_0Impl{}
-}
-func (this testΦFalse_0Impl) Φ63Φ(fΦ interface{}) interface{} {
- return fΦ.(testΦThenElse_1).elseΦ()
-}
-func (this testΦFalse_0Impl) orΦ(bΦ testΦBool_0) testΦBool_0 {
- return bΦ.(testΦBool_0)
-}
-func (this testΦFalse_0Impl) andΦ(bΦ testΦBool_0) testΦBool_0 {
- return this
-}
-type testΦThenElse_1 interface {
-thenΦ() interface{}
-elseΦ() interface{}
-}
-type testΦThenElse_1Impl struct {}
-type testΦBool_0 interface {
-notΦ() testΦBool_0
-Φ63Φ(fΦ interface{}) interface{}
-orΦ(bΦ testΦBool_0) testΦBool_0
-andΦ(bΦ testΦBool_0) testΦBool_0
-}
-type testΦBool_0Impl struct {}
-type testΦSealed_0 interface {
-}
-type testΦSealed_0Impl struct {}
-type baseΦSystem_1 interface {
-}
-type baseΦSystem_1Impl struct {}
-type baseΦSealed_0 interface {
-}
-type baseΦSealed_0Impl struct {}
-type baseΦNoMutHyg_1 interface {
-}
-type baseΦNoMutHyg_1Impl struct {}
-type baseΦVoid_0 interface {
-}
-type baseΦVoid_0Impl struct {}
-type baseΦMain_0 interface {
-Φ35Φ(sΦ baseΦSystem_1) baseΦVoid_0
-}
-type baseΦMain_0Impl struct {}
+    GoProgram[mainFile=MainFile[src=package main
+    import (
+      "fmt"
+      "os"
+    )
+    func main() {
+      for _, e := range os.Args[1:] {
+      baseφrtφGlobalLaunchArgs = baseφrtφGlobalLaunchArgs.φ43_1_immφ(e)
+    }
 
-func main(){
-var entry baseΦMain_0 = fakeΦFake_0Impl{}
-entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
-}
+      fmt.Println(φfakeφFake_0Impl{}.φ35_1_immφ(baseφrtφGlobalLaunchArgs))
+    }
+    ], pkgs=[GoPackage[pkg=test, src=package main
+
+    type φtestφTrue_0 interface {
+      φ63_1_immφ(fφ φtestφThenElse_1) interface{}
+    φnot_0_immφ() φtestφBool_0
+    φor_1_immφ(bφ φtestφBool_0) φtestφBool_0
+    φand_1_immφ(bφ φtestφBool_0) φtestφBool_0
+    }
+
+    type φtestφFalse_0 interface {
+      φ63_1_immφ(fφ φtestφThenElse_1) interface{}
+    φnot_0_immφ() φtestφBool_0
+    φor_1_immφ(bφ φtestφBool_0) φtestφBool_0
+    φand_1_immφ(bφ φtestφBool_0) φtestφBool_0
+    }
+
+    type φtestφThenElse_1 interface {
+      φthen_0_mutφ() interface{}
+    φelse_0_mutφ() interface{}
+    }
+
+    type φtestφBool_0 interface {
+      φ63_1_immφ(fφ φtestφThenElse_1) interface{}
+    φnot_0_immφ() φtestφBool_0
+    φor_1_immφ(bφ φtestφBool_0) φtestφBool_0
+    φand_1_immφ(bφ φtestφBool_0) φtestφBool_0
+    }
+
+    type φtestφSealed_0 interface {
+     \s
+    }
+
+    type φtestφTrue_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφTrue_0Impl) φ63_1_immφ(fφ φtestφThenElse_1) interface{} {
+      return φtestφTrue_0φφ63_1_immφφnoSelfCap(fφ)
+    }
+
+    func (FSpφself φtestφTrue_0Impl) φnot_0_immφ() φtestφBool_0 {
+      return φtestφTrue_0φφnot_0_immφφnoSelfCap()
+    }
+
+    func (FSpφself φtestφTrue_0Impl) φor_1_immφ(bφ φtestφBool_0) φtestφBool_0 {
+      return φtestφTrue_0φφor_1_immφφselfCap(bφ,FSpφself)
+    }
+
+    func (FSpφself φtestφTrue_0Impl) φand_1_immφ(bφ φtestφBool_0) φtestφBool_0 {
+      return φtestφTrue_0φφand_1_immφφnoSelfCap(bφ)
+    }
+
+
+
+    type φtestφFalse_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφFalse_0Impl) φ63_1_immφ(fφ φtestφThenElse_1) interface{} {
+      return φtestφFalse_0φφ63_1_immφφnoSelfCap(fφ)
+    }
+
+    func (FSpφself φtestφFalse_0Impl) φnot_0_immφ() φtestφBool_0 {
+      return φtestφFalse_0φφnot_0_immφφnoSelfCap()
+    }
+
+    func (FSpφself φtestφFalse_0Impl) φor_1_immφ(bφ φtestφBool_0) φtestφBool_0 {
+      return φtestφFalse_0φφor_1_immφφnoSelfCap(bφ)
+    }
+
+    func (FSpφself φtestφFalse_0Impl) φand_1_immφ(bφ φtestφBool_0) φtestφBool_0 {
+      return φtestφFalse_0φφand_1_immφφselfCap(bφ,FSpφself)
+    }
+
+
+
+    type φtestφSealed_0Impl struct {
+     \s
+    }
+
+
+
+    func φtestφTrue_0φφand_1_immφφnoSelfCap(bφ φtestφBool_0) φtestφBool_0 {
+      return bφ
+    }
+
+    func φtestφTrue_0φφor_1_immφφselfCap(bφ φtestφBool_0, this φtestφTrue_0) φtestφBool_0 {
+      return this
+    }
+
+    func φtestφTrue_0φφnot_0_immφφnoSelfCap() φtestφBool_0 {
+      return φtestφFalse_0Impl{}
+    }
+
+    func φtestφTrue_0φφ63_1_immφφnoSelfCap(fφ φtestφThenElse_1) interface{} {
+      return (fφ.φthen_0_mutφ())
+    }
+
+    func φtestφFalse_0φφand_1_immφφselfCap(bφ φtestφBool_0, this φtestφFalse_0) φtestφBool_0 {
+      return this
+    }
+
+    func φtestφFalse_0φφor_1_immφφnoSelfCap(bφ φtestφBool_0) φtestφBool_0 {
+      return bφ
+    }
+
+    func φtestφFalse_0φφnot_0_immφφnoSelfCap() φtestφBool_0 {
+      return φtestφTrue_0Impl{}
+    }
+
+    func φtestφFalse_0φφ63_1_immφφnoSelfCap(fφ φtestφThenElse_1) interface{} {
+      return (fφ.φelse_0_mutφ())
+    }
+
+    ], GoPackage[pkg=base, src=package main
+
+    type φbaseφSealed_0 interface {
+     \s
+    }
+
+    type φbaseφSystem_0 interface {
+     \s
+    }
+
+    type φbaseφVoid_0 interface {
+     \s
+    }
+
+    type φbaseφMain_0 interface {
+      φ35_1_immφ(sφ φbaseφSystem_0) φbaseφVoid_0
+    }
+
+    type φbaseφSealed_0Impl struct {
+     \s
+    }
+
+
+
+    type φbaseφSystem_0Impl struct {
+     \s
+    }
+
+
+
+    type φbaseφVoid_0Impl struct {
+     \s
+    }
+
+
+
+
+    ]]]
     """, "fake.Fake", false, """
     package test
     Sealed:{}
@@ -260,35 +799,75 @@ entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
     ThenElse[R]:{ mut .then: R, mut .else: R, }
     """, Base.minimalBase);}
   @Test void multiPackage() { ok("""
-package main
-type testΦHelloWorld_0 interface {
-Φ35Φ(sΦ baseΦSystem_1) baseΦVoid_0
-}
-type testΦHelloWorld_0Impl struct {}
-func (this testΦHelloWorld_0Impl) Φ35Φ(sΦ baseΦSystem_1) baseΦVoid_0 {
- return baseΦVoid_0Impl{}
-}
-type baseΦSystem_1 interface {
-}
-type baseΦSystem_1Impl struct {}
-type baseΦSealed_0 interface {
-}
-type baseΦSealed_0Impl struct {}
-type baseΦNoMutHyg_1 interface {
-}
-type baseΦNoMutHyg_1Impl struct {}
-type baseΦVoid_0 interface {
-}
-type baseΦVoid_0Impl struct {}
-type baseΦMain_0 interface {
-Φ35Φ(sΦ baseΦSystem_1) baseΦVoid_0
-}
-type baseΦMain_0Impl struct {}
+    GoProgram[mainFile=MainFile[src=package main
+    import (
+      "fmt"
+      "os"
+    )
+    func main() {
+      for _, e := range os.Args[1:] {
+      baseφrtφGlobalLaunchArgs = baseφrtφGlobalLaunchArgs.φ43_1_immφ(e)
+    }
 
-func main(){
-var entry baseΦMain_0 = testΦHelloWorld_0Impl{}
-entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
-}
+      fmt.Println(φtestφHelloWorld_0Impl{}.φ35_1_immφ(baseφrtφGlobalLaunchArgs))
+    }
+    ], pkgs=[GoPackage[pkg=test, src=package main
+
+    type φtestφHelloWorld_0 interface {
+      φ35_1_immφ(sφ φbaseφSystem_0) φbaseφVoid_0
+    }
+
+    type φtestφHelloWorld_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφHelloWorld_0Impl) φ35_1_immφ(sφ φbaseφSystem_0) φbaseφVoid_0 {
+      return φtestφHelloWorld_0φφ35_1_immφφnoSelfCap(sφ)
+    }
+
+
+
+    func φtestφHelloWorld_0φφ35_1_immφφnoSelfCap(sφ φbaseφSystem_0) φbaseφVoid_0 {
+      return φbaseφVoid_0Impl{}
+    }
+
+    ], GoPackage[pkg=base, src=package main
+
+    type φbaseφSealed_0 interface {
+     \s
+    }
+
+    type φbaseφSystem_0 interface {
+     \s
+    }
+
+    type φbaseφVoid_0 interface {
+     \s
+    }
+
+    type φbaseφMain_0 interface {
+      φ35_1_immφ(sφ φbaseφSystem_0) φbaseφVoid_0
+    }
+
+    type φbaseφSealed_0Impl struct {
+     \s
+    }
+
+
+
+    type φbaseφSystem_0Impl struct {
+     \s
+    }
+
+
+
+    type φbaseφVoid_0Impl struct {
+     \s
+    }
+
+
+
+
+    ]]]
     """, "test.HelloWorld", false, """
     package test
     alias base.Main as Main,
@@ -298,53 +877,136 @@ entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
     """, Base.minimalBase); }
 
   @Test void nestedPkgs() { ok("""
-package main
-type testΦFoo_0 interface {
-aΦ() testΦFoo_0
-}
-type testΦFoo_0Impl struct {}
-type testΦTest_0 interface {
-Φ35Φ(fear0$Φ baseΦSystem_1) baseΦVoid_0
-}
-type testΦTest_0Impl struct {}
-func (this testΦTest_0Impl) Φ35Φ(fear0$Φ baseΦSystem_1) baseΦVoid_0 {
- return baseΦVoid_0Impl{}
-}
-type testΦA_0 interface {
-Φ35Φ() testΦ46fooΦBar_0
-}
-type testΦA_0Impl struct {}
-func (this testΦA_0Impl) Φ35Φ() testΦ46fooΦBar_0 {
- return testΦ46fooΦBar_0Impl{}
-}
-type testΦ46fooΦBar_0 interface {
-aΦ() testΦFoo_0
-}
-type testΦ46fooΦBar_0Impl struct {}
-func (this testΦ46fooΦBar_0Impl) aΦ() testΦFoo_0 {
- return this
-}
-type baseΦSystem_1 interface {
-}
-type baseΦSystem_1Impl struct {}
-type baseΦSealed_0 interface {
-}
-type baseΦSealed_0Impl struct {}
-type baseΦNoMutHyg_1 interface {
-}
-type baseΦNoMutHyg_1Impl struct {}
-type baseΦVoid_0 interface {
-}
-type baseΦVoid_0Impl struct {}
-type baseΦMain_0 interface {
-Φ35Φ(sΦ baseΦSystem_1) baseΦVoid_0
-}
-type baseΦMain_0Impl struct {}
+    GoProgram[mainFile=MainFile[src=package main
+    import (
+      "fmt"
+      "os"
+    )
+    func main() {
+      for _, e := range os.Args[1:] {
+      baseφrtφGlobalLaunchArgs = baseφrtφGlobalLaunchArgs.φ43_1_immφ(e)
+    }
 
-func main(){
-var entry baseΦMain_0 = testΦTest_0Impl{}
-entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
-}
+      fmt.Println(φtestφTest_0Impl{}.φ35_1_immφ(baseφrtφGlobalLaunchArgs))
+    }
+    ], pkgs=[GoPackage[pkg=test, src=package main
+
+    type φtestφFoo_0 interface {
+      φa_0_immφ() φtestφFoo_0
+    }
+
+    type φtestφFear2φ36_0 interface {
+      φa_0_immφ() φtestφFoo_0
+    }
+
+    type φtestφA_0 interface {
+      φ35_0_immφ() φtestφ46fooφBar_0
+    }
+
+    type φtestφTest_0 interface {
+      φ35_1_immφ(sφ φbaseφSystem_0) φbaseφVoid_0
+    }
+
+    type φtestφFear2φ36_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφFear2φ36_0Impl) φa_0_immφ() φtestφFoo_0 {
+      return FSpφself.φa_0_immφφDelegate()
+    }
+
+    func (FSpφself φtestφFear2φ36_0Impl) φa_0_immφφDelegate() φtestφ46fooφBar_0 {
+      return φtestφFear2φ36_0φφa_0_immφφnoSelfCap()
+    }
+
+
+
+    type φtestφA_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφA_0Impl) φ35_0_immφ() φtestφ46fooφBar_0 {
+      return φtestφA_0φφ35_0_immφφnoSelfCap()
+    }
+
+
+
+    type φtestφTest_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφTest_0Impl) φ35_1_immφ(fear0φ36φ φbaseφSystem_0) φbaseφVoid_0 {
+      return φtestφTest_0φφ35_1_immφφnoSelfCap(fear0φ36φ)
+    }
+
+
+
+    func φtestφFear2φ36_0φφa_0_immφφnoSelfCap() φtestφ46fooφBar_0 {
+      return φtestφ46fooφBar_0Impl{}
+    }
+
+    func φtestφA_0φφ35_0_immφφnoSelfCap() φtestφ46fooφBar_0 {
+      return φtestφFear2φ36_0Impl{}
+    }
+
+    func φtestφTest_0φφ35_1_immφφnoSelfCap(fear0φ36φ φbaseφSystem_0) φbaseφVoid_0 {
+      return φbaseφVoid_0Impl{}
+    }
+
+    ], GoPackage[pkg=test~46foo, src=package main
+
+    type φtestφ46fooφBar_0 interface {
+      φa_0_immφ() φtestφFoo_0
+    }
+
+    type φtestφ46fooφBar_0Impl struct {
+     \s
+    }
+    func (FSpφself φtestφ46fooφBar_0Impl) φa_0_immφ() φtestφFoo_0 {
+      return φtestφ46fooφBar_0φφa_0_immφφselfCap(FSpφself)
+    }
+
+
+
+    func φtestφ46fooφBar_0φφa_0_immφφselfCap(this φtestφ46fooφBar_0) φtestφFoo_0 {
+      return this
+    }
+
+    ], GoPackage[pkg=base, src=package main
+
+    type φbaseφSealed_0 interface {
+     \s
+    }
+
+    type φbaseφSystem_0 interface {
+     \s
+    }
+
+    type φbaseφVoid_0 interface {
+     \s
+    }
+
+    type φbaseφMain_0 interface {
+      φ35_1_immφ(sφ φbaseφSystem_0) φbaseφVoid_0
+    }
+
+    type φbaseφSealed_0Impl struct {
+     \s
+    }
+
+
+
+    type φbaseφSystem_0Impl struct {
+     \s
+    }
+
+
+
+    type φbaseφVoid_0Impl struct {
+     \s
+    }
+
+
+
+
+    ]]]
     """, "test.Test", false, """
     package test
     Test:base.Main[]{ _ -> {} }
@@ -354,12 +1016,4 @@ entry.Φ35Φ(baseΦ46capsΦΦ95System_0{})
     package test.foo
     Bar:test.Foo{ .a -> this }
     """, Base.minimalBase);}
-
-  @Test void fullBase() { ok("""
-    """, "test.Test", true, """
-    package test
-    alias base.Main as Main,
-    alias base.Void as Void,
-    Test:Main{ _ -> "hi" }
-    """); }
 }
