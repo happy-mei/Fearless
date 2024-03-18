@@ -30,6 +30,9 @@ jobs:
           distribution: 'oracle'
           cache: maven
 
+      - name: Fetch Go compilers
+        run: mvn -B generate-resources --file setup-go.xml
+
       - name: Build with Maven
         run: mvn -B package --file pom.xml --fail-at-end
 
