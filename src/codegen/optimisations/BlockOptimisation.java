@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+// TODO: also optimise Block#(...)
 public class BlockOptimisation implements MIRCloneVisitor {
   private final MagicImpls<?> magic;
   private Map<MIR.FName, MIR.Fun> funs;
@@ -61,12 +62,9 @@ public class BlockOptimisation implements MIRCloneVisitor {
           }
           stmts.offerFirst(new MIR.Block.BlockStmt.Do(res.get()));
         } else if (mCall.name().equals(new Id.MethName(".loop", 1))) {
-          // maybe don't inline this, so we can optimise the loop body too
-          var res = this.visitReturn(mCall.args().getFirst());
-          if (res.isEmpty()) {
-            yield FlattenStatus.INVALID;
-          }
-          stmts.offerFirst(new MIR.Block.BlockStmt.Loop(res.get()));
+          // We intentionally do not inline the block function because, often it is implemented with a Block itself,
+          // so leaving it as a different function lets us apply this optimisation to it as well.
+          stmts.offerFirst(new MIR.Block.BlockStmt.Loop(mCall.args().getFirst()));
         } else if (mCall.name().equals(new Id.MethName(".if", 1))) {
           var res = this.visitReturn(mCall.args().getFirst());
           if (res.isEmpty()) {
