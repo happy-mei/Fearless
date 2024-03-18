@@ -238,7 +238,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       case MIR.Block.BlockStmt.Do do_ -> "var doRes%s = %s;\n".formatted(doIdx.update(n->n + 1), do_.e().accept(this, true));
       case MIR.Block.BlockStmt.Loop loop -> """
           while (true) {
-            var res = %s;
+            var res = %s.$35$mut$();
             if (res == base.ControlFlowContinue_0._$self || res == base.ControlFlowContinue_1._$self) { continue; }
             if (res == base.ControlFlowBreak_0._$self || res == base.ControlFlowBreak_1._$self) { break; }
             if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut$(); }
