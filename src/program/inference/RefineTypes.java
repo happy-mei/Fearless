@@ -3,6 +3,7 @@ package program.inference;
 import ast.Program;
 import astFull.E;
 import astFull.T;
+import failure.CompileError;
 import failure.Fail;
 import files.Pos;
 import id.Id;
@@ -53,7 +54,10 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     List<RefinedSig> sigs = traitMeths.stream()
       .map(this::tSigOf)
       .toList();
-    var res = refineSig(lambda.mdf().orElse(Mdf.imm), c, sigs, depth);
+    RefinedLambda res; try { res = refineSig(lambda.mdf().orElse(Mdf.imm), c, sigs, depth);
+    } catch (CompileError err) {
+      throw err.parentPos(lambda.pos());
+    }
     var ms = Stream.concat(
       Streams.zip(traitMeths, res.sigs()).map(this::tM),
       lambdaOnlyMeths.stream()
