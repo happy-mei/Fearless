@@ -92,6 +92,91 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases); }
 
+  @Test void flowGetFirst() { ok(new Res("100", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](5, 10, 15)
+        .map{n -> n * 10}
+        .filter{n -> n > 50}
+        .find{n -> True}!
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+
+  @Test void flowGetFirstDifferentApproaches() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> Block#
+      .assert({Trick.find == (Trick.findAndLimit)}, "find == findAndLimit ("+(Trick.find.str)+" == "+(Trick.findAndLimit.str)+")")
+      .assert({Trick.first == (Trick.firstAndLimit)}, "first == firstAndLimit ("+(Trick.first.str)+" == "+(Trick.firstAndLimit.str)+")")
+      .assert({Trick.first == (Trick.find)}, "first == find ("+(Trick.first.str)+" == "+(Trick.find.str)+")")
+      .return{Void}
+      }
+    Trick: {
+      .find: Int -> Flow#[Int](5, 10, 15)
+        .map{n -> n * 10}
+        .filter{n -> n > 50}
+        .find{n -> True}
+        .match{.some(n) -> n, .empty -> Error.str ".find was empty"},
+      .findAndLimit: Int -> Flow#[Int](5, 10, 15)
+        .map{n -> n * 10}
+        .filter{n -> n > 50}
+        .limit(1u)
+        .find{n -> True}
+        .match{.some(n) -> n, .empty -> Error.str ".findAndLimit was empty"},
+      .first: Int -> Flow#[Int](5, 10, 15)
+        .map{n -> n * 10}
+        .filter{n -> n > 50}
+        .first
+        .match{.some(n) -> n, .empty -> Error.str ".first was empty"},
+      .firstAndLimit: Int -> Flow#[Int](5, 10, 15)
+        .map{n -> n * 10}
+        .filter{n -> n > 50}
+        .limit(1u)
+        .first
+        .match{.some(n) -> n, .empty -> Error.str ".firstAndLimit was empty"},
+      }
+    """, Base.mutBaseAliases); }
+  @Test void flowGetFirstDifferentApproachesSeq() { ok(new Res("", "", 0), "test.Test", """
+    package test
+    Test:Main {sys -> Block#
+      .assert({Trick.find == (Trick.findAndLimit)}, "find == findAndLimit ("+(Trick.find.str)+" == "+(Trick.findAndLimit.str)+")")
+      .assert({Trick.first == (Trick.firstAndLimit)}, "first == firstAndLimit ("+(Trick.first.str)+" == "+(Trick.firstAndLimit.str)+")")
+      .assert({Trick.first == (Trick.find)}, "first == find ("+(Trick.first.str)+" == "+(Trick.find.str)+")")
+      .return{Void}
+      }
+    Trick: {
+      .find: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
+        .map{p -> FPerson#(p.age * 10u)}
+        .filter{p -> p.age > 50u}
+        .find{n -> True}
+        .match{.some(n) -> n, .empty -> Error.str ".find was empty"},
+      .findAndLimit: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
+        .map{p -> FPerson#(p.age * 10u)}
+        .filter{p -> p.age > 50u}
+        .limit(1u)
+        .find{n -> True}
+        .match{.some(n) -> n, .empty -> Error.str ".findAndLimit was empty"},
+      .first: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
+        .map{p -> FPerson#(p.age * 10u)}
+        .filter{p -> p.age > 50u}
+        .first
+        .match{.some(n) -> n, .empty -> Error.str ".first was empty"},
+      .firstAndLimit: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
+        .map{p -> FPerson#(p.age * 10u)}
+        .filter{p -> p.age > 50u}
+        .limit(1u)
+        .first
+        .match{.some(n) -> n, .empty -> Error.str ".firstAndLimit was empty"},
+      }
+    """, """
+    package test
+    FPerson: { #(age: UInt): mut Person -> mut Person: {'self
+      read .age: UInt -> age,
+      read .str: Str -> "Person that is "+(self.age.str)+" years old",
+      read ==(other: read Person): Bool -> self.age == (other.age),
+      }}
+    """, Base.mutBaseAliases); }
+
   @Test void optFlow() { ok(new Res(), "test.Test", """
     package test
     Test:Main {sys -> Block#

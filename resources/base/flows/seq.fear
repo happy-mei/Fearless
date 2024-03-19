@@ -13,12 +13,33 @@ _SeqFlow: {
     .limit(n) -> this.fromOp(_Limit#(_Sink, source, n), size),
 
     // terminals
+    mut .first: mut Opt[E] -> Block#
+      .var[mut Ref[mut Opt[E]]] res = {Ref#mut Opt[E]}
+      .do {source.forRemaining(mut _Sink[E]{'runner
+        .stop -> source.stop,
+        #(e) -> res.get.isEmpty ? {
+          .then -> Block#
+            .do {res := (Opt#e)}
+            .return {runner.stop},
+          .else -> {},
+          },
+        })}
+      .do {source.stop}
+      .return {res.get},
+
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
-      .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .var[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
       .do {source.forRemaining(mut _Sink[E]{'runner
-        .stop -> {},
-        #(e) -> f#e.match{.some(e') -> Block#(res := (Opt#e'), runner.stop), .empty -> {}},
+        .stop -> source.stop,
+        #(e) -> res.get.isEmpty ? {
+          .then -> f#e.match{
+            .some(e') -> Block#
+              .do{res := (Opt#e')}
+              .return {runner.stop},
+            .empty -> {},
+            },
+          .else -> {},
+          },
         })}
       .do {source.stop}
       .return {res.get},

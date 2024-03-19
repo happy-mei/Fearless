@@ -44,6 +44,7 @@ _NonTerminalOps[E]: {
     )}),
   }
 _TerminalOps[E]: Sealed{
+  mut .first: mut Opt[E],
   mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],
   mut .find(predicate: read F[E, Bool]): mut Opt[E],
   mut .any(predicate: read F[E, Bool]): Bool,
@@ -96,6 +97,7 @@ EmptyFlow[E]: Flow[E]{
     onComplete#state,
     mut EmptyFlow[R]),
   .limit(_) -> this,
+  .first -> {},
   .findMap(_) -> {},
   .find(_) -> {},
   .any(p) -> False,
