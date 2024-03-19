@@ -393,7 +393,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     }
     // otherwise...
     assert !rps.isEmpty();
-    RP head = rps.remove(0);
+    RP head = rps.removeFirst();
     var sub= refineSubs(head);
     if (sub.isEmpty()){ return collectRec(rps); }
     rename(rps,sub.get());

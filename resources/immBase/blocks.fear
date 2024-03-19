@@ -21,10 +21,10 @@ ControlFlowMatch[T:imm,R:imm]: {
   }
 LoopBody[R:imm]: ReturnStmt[ControlFlow[R]]
 
-Block:{
+Block: Sealed{
   #[R:imm]: Block[R] -> {},
   }
-Block[R:imm]:{
+Block[R:imm]: Sealed{
   .return(a: ReturnStmt[R]): R -> a#,
   .do(r: ReturnStmt[Void]): Block[R] -> this._do(r#),
     ._do(v: Void): Block[R] -> this,

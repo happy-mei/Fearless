@@ -1,6 +1,5 @@
 package codegen.java;
 
-import ast.E;
 import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import id.Id;
@@ -20,8 +19,8 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -44,7 +43,7 @@ public class TestJavaProgramImm {
     });
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
@@ -69,7 +68,7 @@ public class TestJavaProgramImm {
     });
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);

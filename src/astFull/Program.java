@@ -228,7 +228,7 @@ public class Program implements program.Program{
     }
     private void updateDec(T.Dec d, int i) {
       decs.set(i,d);
-      p=new Program(p.tsf, decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
+      p=new Program(p.tsf, decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)), inlineDecs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
     }
     private void updateInlineDec(T.Dec d, int i) {
       inlineDecs.set(i,d);

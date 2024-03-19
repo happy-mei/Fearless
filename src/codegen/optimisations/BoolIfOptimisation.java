@@ -59,6 +59,6 @@ public class BoolIfOptimisation implements MIRCloneVisitor {
 
     // This optimisation is shallow, it will only inline one level of a .if
     // If there is a nested .if, that nested if could also be optimised, but it will not be inlined into this one.
-    return Optional.of(new MIR.BoolExpr(original, original.recv(), then.fName(), else_.fName()));
+    return Optional.of(new MIR.BoolExpr(original, original.recv(), then.fName().orElseThrow(), else_.fName().orElseThrow()));
   }
 }

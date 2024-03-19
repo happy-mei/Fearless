@@ -46,10 +46,7 @@ public class Fail{
     return String.format("%s\nconflicts:\n%s", base, conflictMsg);
     }
   private static CompileError of(String msg){
-    var arr=Thread.currentThread().getStackTrace();
-    var kind=arr[2].getMethodName();
-    int code=ErrorCode.valueOf(kind).code();
-    return new CompileError(code, kind, msg);
+    return new CompileError(msg);
   }
 
   //ALL OUR ERRORS
@@ -75,9 +72,11 @@ public class Fail{
   public static CompileError modifierOnInferredLambda(){return of(
     "Modifiers cannot be specified on lambdas without an explicit type."
   );}
-  public static CompileError invalidMdfBound(ast.T badType, List<Mdf> bounds){return of(
-    "The type "+badType+" is not valid because it's modifier is not in the required bounds. The allowed modifiers are: "+bounds.stream().map(Enum::toString).collect(Collectors.joining(", "))+"."
-  );}
+  public static CompileError invalidMdfBound(ast.T badType, List<Mdf> bounds){
+    return of(
+      "The type "+badType+" is not valid because it's modifier is not in the required bounds. The allowed modifiers are: "+bounds.stream().map(Enum::toString).collect(Collectors.joining(", "))+"."
+    );
+  }
   public static CompileError shadowingX(String x){return of(String.format("'%s' is shadowing another variable in scope.", x));}
 
   public static CompileError shadowingGX(String x){return of("Type variable "+x+" is shadowing another type variable in scope.");}
@@ -110,7 +109,7 @@ public class Fail{
     return of(msg);
   }
   public static CompileError xTypeError(ast.T expected, ast.T actual, ast.E.X x){
-    var msg = "Expected "+x+" to be "+expected+", got "+actual+".";
+    var msg = "Expected '"+x+"' to be "+expected+", got "+actual+".";
     return of(msg);
   }
   public static CompileError lambdaTypeError(ast.T expected){

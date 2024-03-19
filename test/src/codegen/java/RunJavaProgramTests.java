@@ -2,6 +2,7 @@ package codegen.java;
 
 import ast.E;
 import codegen.MIRInjectionVisitor;
+import failure.CompileError;
 import id.Id;
 import main.CompilerFrontEnd;
 import main.Main;
@@ -12,6 +13,7 @@ import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
 import utils.Bug;
+import utils.Err;
 import utils.RunOutput;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
@@ -20,10 +22,14 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class RunJavaProgramTests {
+  private static final TypeSystemFeatures TSF = new TypeSystemFeatures.TypeSystemFeaturesBuilder()
+    .build();
+
   public static void ok(RunOutput.Res expected, String entry, String... content) {
     okWithArgs(expected, entry, List.of(), content);
   }
@@ -34,7 +40,7 @@ public class RunJavaProgramTests {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.baseLib))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TSF);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
@@ -42,7 +48,7 @@ public class RunJavaProgramTests {
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{
       throw err;
     });
-    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();
@@ -63,23 +69,24 @@ public class RunJavaProgramTests {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.baseLib))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TSF);
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();
-    throw Bug.todo();
-//    try {
-//      var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-//      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();
-//      Assertions.fail("Did not fail. Got: "+res);
-//    } catch (CompileError e) {
-//      Err.strCmp(expectedErr, e.toString());
-//    }
+    var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
+    try {
+      var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
+      System.out.println("Running...");
+      var res = RunOutput.java(JavaProgram.compile(verbosity, new JavaProgram(java)), args).join();
+      Assertions.fail("Did not fail. Got: "+res);
+    } catch (CompileError e) {
+      Err.strCmp(expectedErr, e.toString());
+    }
   }
 }

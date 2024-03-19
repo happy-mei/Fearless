@@ -57,8 +57,10 @@ public class JavaProgram extends SimpleJavaFileObject {
 
     var runtimeFiles = Stream.of(
       "FlowRuntime",
-      "PipelineParallelFlow"
-    ).map(name -> new JavaProgram(name, ResolveResource.getStringOrThrow("/rt-source/"+name+".java")));
+      "PipelineParallelFlow",
+      "IO",
+      "Random"
+    ).map(name -> new JavaProgram(name, ResolveResource.getStringOrThrow("/rt/" +name+".java")));
     var userFiles = Arrays.stream(files);
     var codegenUnits = Stream.concat(userFiles, runtimeFiles);
 

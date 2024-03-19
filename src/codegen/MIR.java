@@ -60,7 +60,7 @@ public sealed interface MIR {
       return v.visitCreateObj(this, checkMagic);
     }
   }
-  record Meth(Id.DecId origin, Sig sig, boolean capturesSelf, SortedSet<String> captures, FName fName) implements MIR {
+  record Meth(Id.DecId origin, Sig sig, boolean capturesSelf, SortedSet<String> captures, Optional<FName> fName) implements MIR {
     public Meth withSig(Sig sig) {
       return new Meth(origin, sig, capturesSelf, captures, fName);
     }
@@ -129,6 +129,7 @@ public sealed interface MIR {
       record Do(E e) implements BlockStmt {}
       record Loop(E e) implements BlockStmt {}
       record If(E pred) implements BlockStmt {}
+      record Var(String name, E value) implements BlockStmt {}
     }
     @Override public MT t() {
       return original.t();

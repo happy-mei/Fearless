@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -43,7 +44,7 @@ public class TestGoProgramImm {
     });
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var go = new GoCodegen(mir).visitProgram(new Id.DecId("test.Test", 0));
@@ -72,7 +73,7 @@ public class TestGoProgramImm {
     });
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var vb = new CompilerFrontEnd.Verbosity(true, true, CompilerFrontEnd.ProgressVerbosity.Full);

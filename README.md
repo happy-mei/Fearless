@@ -1,11 +1,7 @@
 # Fearless
-## Initial setup
-Initialise custom resources:
 
-```bash
-$ mvn clean
-$ mvn post-clean
+## Go Codegen
+If you want to do Go Codegen you will need to run:
+```sh
+mvn generate-resources --file setup-go.xml
 ```
-
-## Running tests
-Run `mvn compile` before running anything else, and re-run if any runtime resources are changed.

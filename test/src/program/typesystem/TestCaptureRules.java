@@ -19,7 +19,7 @@ public class TestCaptureRules {
   
   void c1(Mdf lambda, Mdf captured, Mdf method, List<Mdf> capturedAs) {
     capturedAs.forEach(mdf->cInnerOk(codeGen1.formatted(method, mdf, captured, lambda, lambda)));
-    Stream.of(allMdfs).filter(mdf->!capturedAs.contains(mdf))
+    Stream.of(allMdfs).filter(mdf->!mdf.isMdf()).filter(mdf->!capturedAs.contains(mdf))
       .forEach(mdf->cInnerFail(codeGen1.formatted(method, mdf, captured, lambda, lambda)));
   }
   String codeGen1 = """
@@ -141,7 +141,6 @@ public class TestCaptureRules {
   @Test void t003(){ c1(lent, imm, imm, of(imm, readOnly)); }
   @Test void t004(){ c1(mut, imm, imm, of(imm, readOnly)); }
   @Test void t005(){ c1(iso, imm, imm, of(imm, readOnly)); }
-  @Test void t006(){ c1(mdf, imm, imm, of(/*not well formed lambda*/)); }
   @Test void t007(){ c1(recMdf, imm, imm, of(imm, readOnly)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t011(){ c1(imm, readOnly, imm, of(/*impossible*/)); }
@@ -173,16 +172,7 @@ public class TestCaptureRules {
   @Test void t043(){ c1(lent, iso, imm, of(imm, readOnly)); }
   @Test void t044(){ c1(mut, iso, imm, of(imm, readOnly)); }
   @Test void t045(){ c1(iso, iso, imm, of(imm, readOnly)); }
-  @Test void t046(){ c1(mdf, iso, imm, of(/*not well formed lambda*/)); }
   @Test void t047(){ c1(recMdf, iso, imm, of(imm, readOnly)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Test void t051(){ c1(imm, mdf, imm, of(/*not well formed parameter with mdf*/)); }
-  @Test void t052(){ c1(readOnly, mdf, imm, of(/*not well formed parameter with mdf*/)); }
-  @Test void t053(){ c1(lent, mdf, imm, of(/*not well formed parameter with mdf*/)); }
-  @Test void t054(){ c1(mut, mdf, imm, of(/*not well formed parameter with mdf*/)); }
-  @Test void t055(){ c1(iso, mdf, imm, of(/*not well formed parameter with mdf*/)); }
-  @Test void t056(){ c1(mdf, mdf, imm, of(/*not well formed parameter with mdf*/)); }
-  @Test void t057(){ c1(recMdf, mdf, imm, of(/*not well formed parameter with mdf*/)); }/*not well formed parameter with mdf*/
   //                     lambda, captured, method, ...capturedAs
   @Test void t061(){ c1(imm, recMdf, imm, of(/*impossible*/)); }
   @Test void t062(){ c1(readOnly, recMdf, imm, of(imm, readOnly)); }
@@ -198,7 +188,6 @@ public class TestCaptureRules {
   @Test void t183(){ c1(lent, imm, readOnly, of(imm, readOnly)); }
   @Test void t184(){ c1(mut, imm, readOnly, of(imm, readOnly)); }
   @Test void t185(){ c1(iso, imm, readOnly, of(imm, readOnly)); }
-  @Test void t186(){ c1(mdf, imm, readOnly, of(/*not well formed lambda*/)); }
   @Test void t187(){ c1(recMdf, imm, readOnly, of(imm, readOnly)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t101(){ c1(imm, readOnly, readOnly, of(/*impossible*/)); }
@@ -230,16 +219,7 @@ public class TestCaptureRules {
   @Test void t133(){ c1(lent, iso, readOnly, of(imm, readOnly)); }
   @Test void t134(){ c1(mut, iso, readOnly, of(imm, readOnly)); }
   @Test void t135(){ c1(iso, iso, readOnly, of(imm, readOnly)); }
-  @Test void t136(){ c1(mdf, iso, readOnly, of(/*not well formed lambda*/)); }
   @Test void t137(){ c1(recMdf, iso, readOnly, of(imm, readOnly)); }
-  //                     lambda, captured, method, ...capturedAs
-  @Test void t141(){ c1(imm, mdf, readOnly, of(/*not well formed parameter with mdf*/)); }
-  @Test void t142(){ c1(readOnly, mdf, readOnly, of(/*not well formed parameter with mdf*/)); }
-  @Test void t143(){ c1(lent, mdf, readOnly, of(/*not well formed parameter with mdf*/)); }
-  @Test void t144(){ c1(mut, mdf, readOnly, of(/*not well formed parameter with mdf*/)); }
-  @Test void t145(){ c1(iso, mdf, readOnly, of(/*not well formed parameter with mdf*/)); }
-  @Test void t146(){ c1(mdf, mdf, readOnly, of(/*not well formed parameter with mdf*/)); }
-  @Test void t147(){ c1(recMdf, mdf, readOnly, of(/*not well formed parameter with mdf*/)); }/*not well formed parameter with mdf*/
   //                     lambda, captured, method, ...capturedAs
   @Test void t151(){ c1(imm, recMdf, readOnly, of(/*impossible*/)); }
   @Test void t152(){ c1(readOnly, recMdf, readOnly, of(readOnly)); }
@@ -254,7 +234,6 @@ public class TestCaptureRules {
   @Test void t163(){ c1(lent, imm, readOnly, of(readOnly,imm)); }
   @Test void t164(){ c1(mut, imm, readOnly, of(readOnly,imm)); }
   @Test void t165(){ c1(iso, imm, readOnly, of(readOnly,imm)); }
-  @Test void t166(){ c1(mdf, imm, readOnly, of(/*not well formed lambda*/)); }
   @Test void t167(){ c1(recMdf, imm, readOnly, of(readOnly,imm)); }
 
   //                     lambda, captured, method, ...capturedAs

@@ -60,7 +60,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
               for(; exp > 1; exp--) { res *= base; }
               yield res;
             }})
-          """, instantiate(), args.getFirst().accept(gen, true)); }
+          """, instantiate().orElseThrow(), args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return "Math.abs("+instantiate().orElseThrow()+")"; }
         if (m.equals(new Id.MethName(">>", 1))) { return instantiate().orElseThrow()+">>"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("<<", 1))) { return instantiate().orElseThrow()+"<<"+args.getFirst().accept(gen, true); }
@@ -119,10 +119,10 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
               for(; exp > 1; exp--) { res *= base; }
               yield res;
             }})
-          """, instantiate(), args.getFirst().accept(gen, true)); }
+          """, instantiate().orElseThrow(), args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return instantiate().orElseThrow(); } // no-op for unsigned
-        if (m.equals(new Id.MethName(">>", 1))) { return instantiate().orElseThrow()+">>"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName("<<", 1))) { return instantiate().orElseThrow()+"<<"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(">>", 1))) { return instantiate().orElseThrow()+">>>"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName("<<", 1))) { return instantiate().orElseThrow()+"<<<"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("^", 1))) { return instantiate().orElseThrow()+"^"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("&", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("|", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
@@ -167,7 +167,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
         if (m.equals(new Id.MethName("*", 1))) { return instantiate().orElseThrow()+"*"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("/", 1))) { return instantiate().orElseThrow()+"/"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("%", 1))) { return instantiate().orElseThrow()+"%"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName("**", 1))) { return String.format("Math.pow(%s, %s)", instantiate(), args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName("**", 1))) { return String.format("Math.pow(%s, %s)", instantiate().orElseThrow(), args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return "Math.abs("+instantiate().orElseThrow()+")"; }
         if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate().orElseThrow()+">"+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
         if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate().orElseThrow()+"<"+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
@@ -414,7 +414,8 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
         ObjCapImpl impl = null;
         if (target == Magic.RootCap) { impl = (ctx, m1, args1) -> null; }
         if (target == Magic.FEnv) { impl = env(); }
-        if (target == Magic.IO) { impl = io(); }
+        if (target == Magic.FIO) { impl = io(); }
+        if (target == Magic.FRandomSeed) { impl = randomSeed(); }
         assert impl != null;
 
         var res = impl.call(_this, m, args);
@@ -422,7 +423,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
       }
 
       private ObjCapImpl env() {
-        return (ctx, m, args) ->{
+        return (ctx, m, args)->{
           if (m.equals(new Id.MethName("#", 1)) || m.equals(new Id.MethName(".io", 1))) {
             return """
               new base$46caps.Env_0(){
@@ -436,37 +437,17 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
       private ObjCapImpl io() {
         return (ctx, m, args) ->{
-          if (m.equals(new Id.MethName(".print", 1))) {
-            return String.format("""
-              (switch (1) { default -> {
-                System.out.print(%s);
-                yield base.Void_0._$self;
-              }})
-              """, args.getFirst().accept(gen, true));
+          if (m.equals(new Id.MethName("#", 1))) {
+            return "rt.IO._$self";
           }
-          if (m.equals(new Id.MethName(".println", 1))) {
-            return String.format("""
-              (switch (1) { default -> {
-                System.out.println(%s);
-                yield base.Void_0._$self;
-              }})
-              """, args.getFirst().accept(gen, true));
-          }
-          if (m.equals(new Id.MethName(".printErr", 1))) {
-            return String.format("""
-              (switch (1) { default -> {
-                System.err.print(%s);
-                yield base.Void_0._$self;
-              }})
-              """, args.getFirst().accept(gen, true));
-          }
-          if (m.equals(new Id.MethName(".printlnErr", 1))) {
-            return String.format("""
-              (switch (1) { default -> {
-                System.err.println(%s);
-                yield base.Void_0._$self;
-              }})
-              """, args.getFirst().accept(gen, true));
+          return null;
+        };
+      }
+
+      private ObjCapImpl randomSeed() {
+        return (ctx, m, args) ->{
+          if (m.equals(new Id.MethName("#", 1))) {
+            return "rt.Random.SeedGenerator._$self";
           }
           return null;
         };

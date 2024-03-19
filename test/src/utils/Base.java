@@ -83,9 +83,10 @@ public interface Base {
     
     alias base.caps.FIO as FIO,
     alias base.caps.IO as IO,
-    
     alias base.caps.Env as Env,
     alias base.caps.FEnv as FEnv,
+    alias base.caps.FRandomSeed as FRandomSeed,
+    alias base.caps.RandomSeed as RandomSeed,
     
     alias base.caps.System as System,
     
@@ -151,6 +152,7 @@ public interface Base {
     alias base.Assert as Assert,
     
     alias base.flows.Flow as Flow,
+    alias base.flows.ActorRes as ActorRes,
     
     alias base.Ordering as Ordering,
     alias base.FOrdering as FOrdering,

@@ -8,7 +8,7 @@ import codegen.java.ImmJavaCodegen;
 import codegen.java.ImmJavaProgram;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaProgram;
-import codegen.md.HtmlDocgen;
+import codegen.html.HtmlDocgen;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import utils.ResolveResource;
@@ -87,7 +88,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
 
   void generateDocs(String[] files) throws IOException, URISyntaxException {
     if (files == null) { files = new String[0]; }
-    var p = generateProgram(files, new IdentityHashMap<>());
+    var p = generateProgram(files, new ConcurrentHashMap<>());
     var docgen = new HtmlDocgen(p);
     var docs = docgen.visitProgram();
     Path root = Path.of("docs");
@@ -108,20 +109,23 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
 
   void run(String entryPoint, String[] files, List<String> cliArgs) {
     var entry = new Id.DecId(entryPoint, 0);
-    IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls = new IdentityHashMap<>();
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     var p = compile(files, resolvedCalls);
 
     var main = p.of(Magic.Main).toIT();
     var isEntryValid = p.isSubType(XBs.empty(), new ast.T(Mdf.mdf, p.of(entry).toIT()), new ast.T(Mdf.mdf, main));
     if (!isEntryValid) { throw Fail.invalidEntryPoint(entry, main); }
 
+    var timer = new Timer();
     v.progress.printTask("Running code generation \uD83C\uDFED");
     var mainClass = toJava(entry, p, resolvedCalls);
+    v.progress.printTask("Code generated \uD83E\uDD73 ("+timer.duration()+"ms)");
+    v.progress.printStep("Executing backend compiler \uD83C\uDFED");
     var classFile = switch (bv) {
       case Std -> JavaProgram.compile(v, mainClass);
       case Imm -> ImmJavaProgram.compile(v, mainClass);
     };
-    v.progress.printTask("Code generated \uD83E\uDD73");
+    v.progress.printStep("Done executing backend compiler \uD83E\uDD73 ("+timer.duration()+"ms)");
 
     var jrePath = Path.of(System.getProperty("java.home"), "bin", "java").toAbsolutePath();
     String[] command = Stream.concat(
@@ -141,10 +145,10 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
   }
 
   void check(String[] files) {
-    compile(files, new IdentityHashMap<>());
+    compile(files, new ConcurrentHashMap<>());
   }
 
-  Program generateProgram(String[] files, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+  Program generateProgram(String[] files, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     var base = parseBase();
     Map<String, List<Package>> ps = new HashMap<>(base);
     Arrays.stream(files)
@@ -162,29 +166,31 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
           .orElse(pkg.getValue())
       ));
 
+    var timer = new Timer();
     v.progress.printTask("Parsing \uD83D\uDC40");
     var p = Parser.parseAll(ps, tsf);
-    v.progress.printTask("Parsing complete \uD83E\uDD73");
+    v.progress.printTask("Parsing complete \uD83E\uDD73 ("+timer.duration()+"ms)");
     v.progress.printTask("Checking that the program is well formed \uD83D\uDD0E");
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    v.progress.printTask("Well formedness checks complete \uD83E\uDD73");
+    v.progress.printTask("Well formedness checks complete \uD83E\uDD73 ("+timer.duration()+"ms)");
     v.progress.printTask("Inferring types \uD83D\uDD75️");
     var inferred = InferBodies.inferAll(p);
-    v.progress.printTask("Types inferred \uD83E\uDD73");
+    v.progress.printTask("Types inferred \uD83E\uDD73 ("+timer.duration()+"ms)");
     v.progress.printTask("Checking that the program is still well formed \uD83D\uDD0E");
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-    v.progress.printTask("Well formedness checks complete \uD83E\uDD73");
+    v.progress.printTask("Well formedness checks complete \uD83E\uDD73 ("+timer.duration()+"ms)");
     return inferred;
   }
 
-  Program compile(String[] files, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+  Program compile(String[] files, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     var inferred = generateProgram(files, resolvedCalls);
+    var timer = new Timer();
     v.progress.printTask("Checking types \uD83E\uDD14");
     inferred.typeCheck(resolvedCalls);
-    v.progress.printTask("Types look all good \uD83E\uDD73");
+    v.progress.printTask("Types look all good \uD83E\uDD73 ("+timer.duration()+"ms)");
     return inferred;
   }
-  private JavaProgram toJava(Id.DecId entry, Program p, IdentityHashMap<E.MCall, EMethTypeSystem.TsT> resolvedCalls) {
+  private JavaProgram toJava(Id.DecId entry, Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     var mir = new MIRInjectionVisitor(p, resolvedCalls).visitProgram();
     var codegen = switch (bv) {
       case Std -> new JavaCodegen(mir);

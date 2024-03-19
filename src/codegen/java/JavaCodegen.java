@@ -177,13 +177,12 @@ public class JavaCodegen implements MIRVisitor<String> {
     var funArgs = Streams.of(meth.sig().xs().stream().map(MIR.X::name).map(this::name), selfArg, meth.captures().stream().map(this::name).map(x->"this."+x))
       .collect(Collectors.joining(","));
 
-    var fun = this.funMap.get(meth.fName());
-    var mustCast = fun.ret() instanceof MIR.MT.Any && !(meth.sig().rt() instanceof MIR.MT.Any);
+    var mustCast = meth.fName().isPresent() && this.funMap.get(meth.fName().get()).ret() instanceof MIR.MT.Any && !(meth.sig().rt() instanceof MIR.MT.Any);
     var cast = mustCast ? "(%s)".formatted(getName(meth.sig().rt()) ): "";
 
     var realExpr = switch (kind) {
       case MethExprKind.Kind k -> switch (k.kind()) {
-        case RealExpr, Delegate -> "return %s %s.%s(%s);".formatted(cast, getName(meth.origin()), getName(meth.fName()), funArgs);
+        case RealExpr, Delegate -> "return %s %s.%s(%s);".formatted(cast, getName(meth.origin()), getName(meth.fName().orElseThrow()), funArgs);
         case Unreachable -> "throw new Error(\"Unreachable code\");";
         case Delegator -> throw Bug.unreachable();
       };
@@ -239,7 +238,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       case MIR.Block.BlockStmt.Do do_ -> "var doRes%s = %s;\n".formatted(doIdx.update(n->n + 1), do_.e().accept(this, true));
       case MIR.Block.BlockStmt.Loop loop -> """
           while (true) {
-            var res = %s;
+            var res = %s.$35$mut$();
             if (res == base.ControlFlowContinue_0._$self || res == base.ControlFlowContinue_1._$self) { continue; }
             if (res == base.ControlFlowBreak_0._$self || res == base.ControlFlowBreak_1._$self) { break; }
             if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut$(); }
@@ -252,6 +251,7 @@ public class JavaCodegen implements MIRVisitor<String> {
           if (%s == base.True_0._$self) { %s }
           """.formatted(if_.pred().accept(this, true), body);
       }
+      case MIR.Block.BlockStmt.Var var -> "var %s = %s;\n".formatted(name(var.name()), var.value().accept(this, true));
     };
   }
 
@@ -279,7 +279,7 @@ public class JavaCodegen implements MIRVisitor<String> {
         .map(m->this.visitMeth(m, MethExprKind.Kind.RealExpr, leastSpecific))
         .collect(Collectors.joining("\n"));
       var unreachableMs = createObj.unreachableMs().stream()
-        .map(m->this.visitMeth(m, MethExprKind.Kind.RealExpr, leastSpecific))
+        .map(m->this.visitMeth(m, MethExprKind.Kind.Unreachable, leastSpecific))
         .collect(Collectors.joining("\n"));
       this.freshRecords.put(name, """
         record %s(%s) implements %s {

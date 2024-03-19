@@ -3,7 +3,7 @@ alias base.LList[base.Str] as Path,
 
 /// Capability for reading and writing to files and devices, including stdout and stderr.
 /// This capability is for local IO, there is a different capability for network IO and IPC IO.
-IO:{
+IO: {
   mut .print(msg: Str): Void,
   mut .println(msg: Str): Void,
   mut .printErr(msg: Str): Void,

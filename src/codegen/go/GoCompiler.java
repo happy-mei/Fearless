@@ -33,7 +33,7 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     }
     record Runtime(String name) implements Unit {
       @Override public String src() {
-        return ResolveResource.getStringOrThrow("/rt-source/"+name);
+        return ResolveResource.getStringOrThrow("/rt/" +name);
       }
     }
   }
@@ -52,6 +52,15 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     this.entry().write(workingDir);
     for (var unit : this.units()) { unit.write(workingDir); }
     for (var unit : this.rt()) { unit.write(workingDir); }
+
+    try {
+      var canExecute = ResolveResource.of("/go-compilers/%s/go/bin/go".formatted(goCompilerVersion()), compilerPath->compilerPath.toFile().setExecutable(true));
+      if (!canExecute) {
+        System.err.println("Warning: Could not make the Go compiler executable");
+      }
+    } catch (URISyntaxException e) {
+      throw Bug.of(e);
+    }
 
     try {
       runGoCmd(workingDir, "build", "-o", "fear_out").join();

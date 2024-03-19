@@ -72,7 +72,7 @@ public class TestInlineDecs {
     In position [###]/Dummy0.fear:3:67
     [E57 invalidLambdaNameMdfBounds]
     This lambda is missing/has an incompatible set of bounds for its type parameters:
-      X: imm
+      N: imm
     """, """
     package test
     //Person[N: imm]:{ .name: Str, .age: N }
