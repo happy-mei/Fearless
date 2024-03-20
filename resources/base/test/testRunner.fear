@@ -4,10 +4,10 @@ Main: AppMain{
   #(sys) -> Block#
     .do {Block#(this.testMain(FTestRunner#sys))}
     .return {Void},
-  .testMain(runner: mut TestRunner): mut List[mut TestResults]
+  .testMain(runner: mut TestRunner): read List[read TestResults]
   }
 
-// TODO: split this so that the suite runner and top level runner are different
+// TODO: When we have maps support nested test suites
 FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
   .var[mut List[mut Test]] tests = {List#}
   .var[mut List[mut TestSuite]] suites = {List#}
@@ -21,7 +21,7 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
       .return {self},
 
     .run -> Block#
-      .var[mut List[mut TestResults]] results = {List#[mut TestResults](FTestResults#("<unnamed>", self.runDirectTests[]))}
+      .var[mut List[read TestResults]] results = {List#[read TestResults](FTestResults#("<unnamed>", self.runDirectTests[]))}
       .do {results.addAll(self.runSuiteTests[])}
       .return {results},
     mut .runDirectTests: mut List[TestResult] -> tests.iter
@@ -30,22 +30,22 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
         .return {FTestResult#(test.title, FTestResultKind.passed)}
         }
       .list,
-    mut .runSuiteTests: mut List[mut TestResults] -> suites.iter
-      .map{suite -> FTestResults#(suite.title, suite.runner.run.iter.flatMap{tmp->tmp.results.iter}.list)}
+    mut .runSuiteTests: mut List[read TestResults] -> suites.iter
+      .map{suite -> FTestResults#(suite.title, suite.runner.run.iter.flatMap{subSuites->subSuites.results.iter}.list)}
       .list,
     }}
   }
 TestRunner: {
   mut .suite(title: Str, registerTests: F[mut TestRunner, mut TestRunner]): mut TestRunner,
   mut .test(title: Str, impl: AppMain): mut TestRunner,
-  mut .run: mut List[mut TestResults],
+  mut .run: read List[read TestResults],
   }
 
 TestSuite: {read .title: Str, mut .runner: mut TestRunner}
 Test: {read .title: Str, mut .impl: AppMain}
-FTestResults: F[Str, mut List[TestResult], mut TestResults]{suiteTitle, results -> mut TestResults: {
+FTestResults: F[Str, read List[TestResult], read TestResults]{suiteTitle, results -> mut TestResults: {
   read .suiteTitle: Str -> suiteTitle,
-  mut .results: mut List[TestResult] -> results,
+  read .results: read List[TestResult] -> results,
   }}
 FTestResult: F[Str, TestResultKind, TestResult]{title, kind -> TestResult: {.title: Str -> title, .kind: TestResultKind -> kind}}
 
@@ -61,4 +61,8 @@ TestResultKindMatcher[R]: {
   mut .skipped: R,
   mut .failed(details: Str): R,
   mut .errored(details: Str): R,
+  }
+
+ResultReporter: {
+  mut #(results: read List[read TestResults]): Void,
   }

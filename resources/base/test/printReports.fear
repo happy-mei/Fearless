@@ -1,0 +1,5 @@
+package base.test
+
+FResultPrinter: F[mut IO, mut ResultPrinter]{io -> mut ResultPrinter: ResultReporter{#(results) ->
+  Void
+  }}
