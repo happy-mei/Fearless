@@ -1,7 +1,7 @@
 package main;
 
 import astFull.E;
-import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
+//import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
 import failure.CompileError;
 import id.Id;
 import program.TypeSystemFeatures;
@@ -22,7 +22,8 @@ public class Main {
   public static void main(String[] args) {
     args = args.length > 0 ? args : new String[]{"--help"};
     var verbosity = new Box<>(new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None));
-    var cli = new CmdLineAppBuilder(args)
+//This commented code was terrible anyway, please, divide in more methods and concepts....
+    /*    var cli = new CmdLineAppBuilder(args)
       .withJarName("fearless")
       .withDescription("The compiler for the Fearless programming language. See https://fearlang.org for more information.")
       .withArg("new", "Create a new package")
@@ -91,7 +92,7 @@ public class Main {
       System.exit(1);
     } catch (Exception e) {
       throw Bug.of(e);
-    }
+    }*/
   }
 
 //  private static Options buildCli() {

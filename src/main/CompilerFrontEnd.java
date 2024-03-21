@@ -25,6 +25,7 @@ import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.util.*;
@@ -32,9 +33,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import utils.ResolveResource;
+import utils.ThrowingFunction;
 
 import static java.util.Objects.requireNonNull;
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
 import static utils.ResolveResource.read;
 
 // TODO: It might be good to ban any files from having a "package base*" that are not in the base directory.
@@ -94,8 +95,8 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     Path root = Path.of("docs");
     try { Files.createDirectory(root); } catch (FileAlreadyExistsException ignored) {}
     Files.writeString(root.resolve(docs.fileName()), docs.index());
-    var styleCss = ResolveResource.of("/style.css", throwingFunction(ResolveResource::read));
-    var highlightingJs = ResolveResource.of("/highlighting.js", throwingFunction(ResolveResource::read));
+    var styleCss = ResolveResource.read(ResolveResource.of("style.css"));
+    var highlightingJs = ResolveResource.read(ResolveResource.of("highlighting.js"));
     Files.writeString(root.resolve("style.css"), styleCss);
     Files.writeString(root.resolve("highlighting.js"), highlightingJs);
     for (var pkg : docs.docs()) {
@@ -208,35 +209,37 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       case Std -> "/default-aliases.fear";
       case Imm -> "/default-imm-aliases.fear";
     };
-    return ResolveResource.getStringOrThrow(path);
+    return ResolveResource.read(ResolveResource.of(path));
   }
-
+  
+  Map<String, List<Package>> parseBase(String root, Box<Map<String, List<Package>>> box){
+    var res = box.get();
+    if (res == null) {
+      try{
+        res = CompilerFrontEnd.load(ResolveResource.of(root));
+        box.set(res);
+        }
+      catch(IOException ioe){ throw new UncheckedIOException(ioe); }
+      //TODO: should we keep throwing Bug.of or should we use the above for IOExceptions?
+      //we could even update Bug.of to do an instanceof and use UncheckedIOException when needed.
+      }
+    return res;
+  }
+  
   Map<String, List<Package>> parseBase() {
-    var load = throwingFunction(CompilerFrontEnd::load);
-    Map<String, List<Package>> ps; try { ps =
-      switch (bv) {
-        case Std -> {
-          var res = baseLib.get();
-          if (res == null) { res = ResolveResource.of("/base", load); baseLib.set(res); }
-          yield res;
-        }
-        case Imm -> {
-          var res = immBaseLib.get();
-          if (res == null) { res = ResolveResource.of("/immBase", load); immBaseLib.set(res); }
-          yield res;
-        }
-      };
-    } catch (URISyntaxException | IOException e) {
-      throw Bug.of(e);
-    }
+    var load = ThrowingFunction.of(CompilerFrontEnd::load);
+    Map<String, List<Package>> ps= switch (bv){
+      case Std -> parseBase("/base",baseLib);
+      case Imm -> parseBase("/immBase",immBaseLib);
+    };
     return ps;
   }
 
-  static Map<String, List<Package>> load(Path root) throws IOException {
+  static Map<String, List<Package>> load(Path root) throws IOException{
     try(var fs = Files.walk(root)) {
       return fs
         .filter(Files::isRegularFile)
-        .map(throwingFunction(path->new Parser(path, read(path)).parseFile(CompileError::err)))
+        .map(ThrowingFunction.of(path->new Parser(path, read(path)).parseFile(CompileError::err)))
         .collect(Collectors.groupingBy(Package::name));
     }
   }

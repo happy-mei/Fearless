@@ -10,6 +10,8 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import main.Main;
+
 public interface Base {
   static ast.Program ignoreBase(ast.Program p) {
     return new ast.Program(
@@ -43,20 +45,18 @@ public interface Base {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
+  }   
   static String[] readAll(String prefix) {
     try {
-      var root = Thread.currentThread().getContextClassLoader().getResource(prefix).toURI();
-      try(var fs = Files.walk(Path.of(root))) {
+      var root= ResolveResource.of(prefix);
+      try(var fs= Files.walk(root)) {
         return fs
           .filter(Files::isRegularFile)
           .map(Base::read)
           .toArray(String[]::new);
       }
-    } catch (IOException | URISyntaxException e) {
-      throw new RuntimeException(e);
     }
+    catch (IOException e){ throw new RuntimeException(e); }
   }
   String[] baseLib = readAll("base");
   String[] immBaseLib = readAll("immBase");
