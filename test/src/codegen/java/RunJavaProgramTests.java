@@ -1,6 +1,5 @@
 package codegen.java;
 
-import ast.E;
 import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import id.Id;
@@ -12,7 +11,6 @@ import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
-import utils.Bug;
 import utils.Err;
 import utils.RunOutput;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
@@ -20,7 +18,6 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;

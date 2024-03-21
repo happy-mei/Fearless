@@ -293,6 +293,10 @@ List[E]: Collection,Sealed{
     .var -> Count.uint(0u),
     .in(cursor) -> { .next -> this.get(cursor++) }
     },
+  read .iterRead: mut Iter[read E] -> Let#{ // TODO: temporary while I debug mdf overloading
+    .var -> Count.uint(0u),
+    .in(cursor) -> { .next -> this.get(cursor++) }
+    },
   imm .iter: mut Iter[imm E] -> Let#{
     .var -> Count.uint(0u),
     .in(cursor) -> { .next -> this.get(cursor++) }

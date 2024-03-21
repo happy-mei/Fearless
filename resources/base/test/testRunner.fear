@@ -2,15 +2,16 @@ package base.test
 
 Main: AppMain{
   #(sys) -> Block#
-    .do {Block#(this.testMain(FTestRunner#sys))}
+    .do {Block#(this.testMain(sys, FTestRunner#sys))}
     .return {Void},
-  .testMain(runner: mut TestRunner): read List[read TestResults]
+  .testMain(system: mut System, runner: mut TestRunner): read List[read TestResults]
   }
 
 // TODO: When we have maps support nested test suites
 FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
   .var[mut List[mut Test]] tests = {List#}
   .var[mut List[mut TestSuite]] suites = {List#}
+  .var[mut List[mut ResultReporter]] reporters = {List#}
   .return {{'self
     .suite(title, registerTests) -> Block#
       .do {suites.add({.title -> title, .runner -> registerTests#(FTestRunner#sys)})}
@@ -20,9 +21,14 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
       .do {tests.add({.title -> title, .impl -> impl})}
       .return {self},
 
+    .withReporter(reporter) -> Block#
+      .do {reporters.add(reporter)}
+      .return {self},
+
     .run -> Block#
       .var[mut List[read TestResults]] results = {List#[read TestResults](FTestResults#("<unnamed>", self.runDirectTests[]))}
       .do {results.addAll(self.runSuiteTests[])}
+      .do {reporters.iter.for{reporter -> reporter#results}}
       .return {results},
     mut .runDirectTests: mut List[TestResult] -> tests.iter
       .map{test -> Block#
@@ -38,6 +44,7 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
 TestRunner: {
   mut .suite(title: Str, registerTests: F[mut TestRunner, mut TestRunner]): mut TestRunner,
   mut .test(title: Str, impl: AppMain): mut TestRunner,
+  mut .withReporter(reporter: mut ResultReporter): mut TestRunner,
   mut .run: read List[read TestResults],
   }
 
@@ -47,7 +54,22 @@ FTestResults: F[Str, read List[TestResult], read TestResults]{suiteTitle, result
   read .suiteTitle: Str -> suiteTitle,
   read .results: read List[TestResult] -> results,
   }}
-FTestResult: F[Str, TestResultKind, TestResult]{title, kind -> TestResult: {.title: Str -> title, .kind: TestResultKind -> kind}}
+FTestResult: F[Str, TestResultKind, TestResult]{
+  #(title, kind) -> {
+    .title -> title,
+    .kind -> kind,
+    },
+  .withInfo(title: Str, kind: TestResultKind, info: Opt[Info]): TestResult -> {
+    .title -> title,
+    .kind -> kind,
+    .info -> info,
+    },
+  }
+TestResult: {
+  read .title: Str,
+  read .kind: TestResultKind,
+  read .info: Opt[Info] -> {},
+  }
 
 TestResultKind: Sealed{.match[R](m: mut TestResultKindMatcher[R]): R}
 FTestResultKind: {

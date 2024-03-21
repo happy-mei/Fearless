@@ -1,15 +1,18 @@
 package tour;
 
 import org.junit.jupiter.api.Test;
+import utils.Base;
+import utils.RunOutput.Res;
 
 import static tour.TourHelper.run;
+import static codegen.java.RunJavaProgramTests.*;
 
 public class Ex15TestsTest {
   @Test void runTests() { run("""
     package test
     alias base.test.Main as TestMain,
     
-    Test: TestMain{runner -> runner
+    Test: TestMain{_, runner -> runner
       .test("Empty test", {sys -> Void})
       .test("Printing test", {sys -> FIO#sys.println("Hello, world!")})
       .run
@@ -20,7 +23,7 @@ public class Ex15TestsTest {
     package test
     alias base.test.Main as TestMain,
     
-    Test: TestMain{runner -> runner
+    Test: TestMain{_, runner -> runner
       .test("Empty test", {sys -> Void})
       .suite("Printing suite", {suite -> suite
         .test("Printing test", {sys -> FIO#sys.println("Hello, world!")})
@@ -29,4 +32,17 @@ public class Ex15TestsTest {
       }
     //prints Hello, world!
     """); }
+  @Test void runTestsWithPrintReporter() { ok(new Res("Hello, world!", "**Test Results**", 0), "test.Test", """
+    package test
+    alias base.test.Main as TestMain, alias base.test.FResultPrinter as FResultPrinter,
+    
+    Test: TestMain{system, runner -> runner
+      .test("Empty test", {sys -> Void})
+      .suite("Printing suite", {suite -> suite
+        .test("Printing test", {sys -> FIO#sys.println("Hello, world!")})
+        })
+      .withReporter(FResultPrinter#(FIO#system))
+      .run
+      }
+    """, Base.mutBaseAliases); }
 }

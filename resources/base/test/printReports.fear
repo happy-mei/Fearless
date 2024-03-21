@@ -1,5 +1,13 @@
 package base.test
 
-FResultPrinter: F[mut IO, mut ResultPrinter]{io -> mut ResultPrinter: ResultReporter{#(results) ->
-  Void
+FResultPrinter: F[mut IO, mut ResultPrinter]{io -> mut ResultPrinter: ResultReporter{#(results) -> Block#
+  .do {io.printlnErr("# Test Results")}
+  .do {results.iter.for{suite -> Block#
+    .do {io.printlnErr("## "+(suite.suiteTitle))}
+    .do {suite.results.iter.for{result -> io.printlnErr(result.title)}}
+    .return {Void}
+    }}
+  .return {Void}
   }}
+
+//Foo: F[mut IO, read List[read TestResult], Void]{io, results -> results.iter.for{result -> io.printlnErr(result.title)}}
