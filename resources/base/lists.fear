@@ -196,7 +196,7 @@ List[E]: Collection,Sealed{
   read .get(i: UInt): mut Opt[read E],
   imm  .get(i: UInt): iso Opt[imm E],
   mut .add(e: E): Void,
-  mut .addAll(other: mut List[E]): Void -> other.iter.for{ e -> this.add(e) },
+  mut .addAll(other: mut List[E]): Void -> other.iter.for{e -> this.add(e)},
 
   mut .flow: mut Flow[E] -> Block#
     .var[mut Count[UInt]] cursor = {Count.uint(0u)}
@@ -290,10 +290,6 @@ List[E]: Collection,Sealed{
     .in(cursor) -> { .next -> this.get(cursor++) }
     },
   read .iter: mut Iter[read E] -> Let#{
-    .var -> Count.uint(0u),
-    .in(cursor) -> { .next -> this.get(cursor++) }
-    },
-  read .iterRead: mut Iter[read E] -> Let#{ // TODO: temporary while I debug mdf overloading
     .var -> Count.uint(0u),
     .in(cursor) -> { .next -> this.get(cursor++) }
     },
