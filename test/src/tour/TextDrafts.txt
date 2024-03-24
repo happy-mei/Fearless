@@ -1,6 +1,56 @@
 # Fearless
 
 # Preface
+This is a guide to learn the standard library of fearless.
+This guide assums that you know all of the language features already, but you have no idea how the standard library works, or
+how the files are organized into a project.
+
+# Hello world
+
+A Fearless project is a folder containing files with extension *.fear.
+Those files can be at top level or inside folders. The organization of files in folders is for the benefit of the programmers and
+have no impact on the semantic of fearless.
+Assume in folder 'myFolder' we have a file with the following content:
+    package test
+    Test:Main {sys -> FIO#sys.println("Hello, World!")}
+    //prints Hello, World!
+
+To run it, we specify the fully qualified name of the runnable type `test.Test`.
+  `> java -jar fearless.jar -e test.Test -r myFolder`
+  `> java -jar fearless.jar myFolder;.test.Test`//marco favorite
+If we look in the folder again, we will see that there is now a subfolder `/out`
+containing the code that was compiled. (as 'myFolder.far')
+
+That command actually runs two separate commands:
+-  `> java -jar fearless.jar myFolder` This just compiles
+-  `> java -jar fearless.jar myFolder.test.Test`  This ignores the source and runs the compiled code
+
+We can re run the code without re-compiling by using the second command.
+
+The code above is a minimal Hello World program.
+- In the first line we declare that our file belongs to the package 'test'.
+Note how there is no need for the files inside the package 'test' to be all contained inside a 'test' folder.
+We will omit the `package test` line in all other examples.
+- We then declare the type Test. Test implements Main. All runnable types implement Main.
+- In the body of Test we implement Main by `sys -> IOs#sys.println("Hello, World!")`,
+- `sys` is a parameter name (we can freely choose those) that will refer to a mutable System object.
+
+The System object is our starting point for any kind of interaction with the real world.
+We call those objects that allows us to interact with the real world 'Object Capabilities'.
+In this example, we call `IOs#sys` to produce an `IO` object capability, and then we call the method `.println` on it.
+The syntax `IOs#sys` calls the method `#` on the object `IOs` passing `sys` as a parameter.
+
+
+Next:
+Int,Nat,Str,Optional,HasStr,Ordered/Comparator,List,
+
+------
+Below attempting to explain the language while explaining the standard library.
+Overall, a failure.
+----------------------------------------------------------------------------------
+# Fearless
+
+# Preface
 This is a guide to learn the programming language fearless.
 Fearless is in many ways similar to Java, C#, Kotlin or Scala. We expect you to know at least one of those languages to be able to follow this guide.
 We will sometime use technical terminology that you may not be aware of.
@@ -10,6 +60,7 @@ This guide has plenty of examples and informal discussions too.
 The first paragraph of the guide is a perfect example of this idea: plenty of technical jargons that helping experts to pinpoint what fearless is and is not, but not preventing novices to ignore it and move on.
 If that is you, do not be scared by those few unknown terms.
 Be Fearless!
+
 
 # Intro
 
@@ -23,15 +74,98 @@ If you are working in a company using Fearless, your users are your coworkers an
 
 ## Type names and Packages
 Programming projects may involve thousands of different types.
-Fearless projects are no different. To allow for hierarchical organization of code,
-Fearless code is divided in packages, and types belong to a specific package.
+Fearless projects are no different. To allow for hierarchical organization of code, Fearless code is divided in packages, and types belong to a specific package.
 A type has a type name, that can be simple or fully qualiefied.
-For example `Person` is a simple type name, and
-`com.city.Person` is a fully qualified type name.
+For example `Person` is a simple type name, and `com.city.Person` is a fully qualified type name.
 We will discuss packages much later in this guide, for now all our example code is assumed to live in the same package.
 At this stage, we would just like to reassure you that they are much less annoying that Java packages.
 
-//From here it could be in an article too
+## Types, methods and expressions.
+
+Types, methods and expressions are the main concepts in Fearless.
+Type declarations contains method declarations, method declarations contain expressions.
+An expression can be a reference name, a method call or an object literal.
+An object literal is simply a type declaration happening inside of a method body;
+it both creates and object and declares a new type.
+
+Finally, a program is just as set of type declarations.
+Top level type declarations are rougly similar to interfaces in Java8: they can implement other types and methods can be abstract or implemented.
+Type declarations inside method bodies are not nested types, and are rougly similar to final classes: all methods have to be implemented.
+
+The code below is a type declaration for point.
+It relies on the standard library type Int representing signed 64 bit ints.
+
+Points: {
+  #(x: Int, y: Int): Point ->
+    Point: {
+      .x: Int -> x,
+      .y: Int -> y,
+  }
+}
+UserCode:{
+  .sumPoint(p1: Point, p2: Point): Point ->
+    Points#(p1.x + (p2.x), p1.y + (p2.y))
+}
+We now show how to read this code:
+Line 1 is a type declaration for the type Points.
+Points have a single method called #, taking two Int parameters and returning a Point.
+The body of the method Points# is the type declaration for Point.
+Point has two methods taking zero arguments and return an int. They just return the value of the parameters.
+
+Line 8 define type UserCode, showing how to sum two Points.
+As you can see, even if Point is defined inside of Points, we just use it as 'Point', not Points.Point.
+
+As in many other languages,
+Types and methods are both named parametric abstractions:
+Type declarations have parameters: generic type parameters,
+Methods declarations have parameters: generic type parameters and formal parameters.
+Concrete types are instantiated by passing actual types to their generic type parameters.
+Methods are called by passing actual types to their generic type parameters and actual parameters to their formal parameters.
+
+Consider this simple code example, showing how Fearless encodes first class functions as objects, exactly like Java and Scala do.
+
+F[A,R]:{
+  #[](a:A):R,
+  .andThen[R2](f: F[R,R2]): F[A,R2] ->
+    {a->f#(this#a)}
+  }
+Here F is the type name, A and R are the generic type parameters of F.
+We conventionally use `R` for generic results.
+Method `#` have zero generic type parameters. Empty parenthesis can always be omitted, so we could have just written `#(a:A):R,`.
+This method is abstract since it has no body.
+The method `.andThen`
+
+
+The following code is an example of a type declaration, containing two method declarations.
+TotalMap[K,E]:{
+  .get[](k:K):E,
+  .combine[V](other: TotalMap[E,V]):TotalMap[K,V]->{
+    .get(k)->other.get(this.get)
+    }
+}
+
+HashMaps are common data types, where a Key may map to a value (that is, not all keys maps to values). TotalMap represents total mappings, where all keys maps to a value.
+Here TotalMap is the type name, K and E are the generic type parameters of TotalMap.
+method `.get` have zero generic type parameters. Empty parenthesis can always be omitted, so we could have just written `.get(k:K):E,`.
+This method is abstract. It 
+
+For example
+The code below is a type declaration for point.
+It relies on the standard library type Nat representing unsigned 64 bit ints.
+
+Points: {
+  #(x: Nat, y: Nat): Point ->
+    Point: {
+      .x: Nat -> x,
+      .y: Nat -> y,
+  }
+}
+UserCode:{
+  .sumPoint(p1: Point, p2: Point): Point ->
+    Points#(p1.x + (p2.x), p1.y + (p2.y))
+}
+
+
 
 ## Type declaration
 
