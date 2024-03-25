@@ -629,4 +629,13 @@ public class TestTypeSystemWithBase {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+
+  @Test void inferListWithDifferentNums() { ok("""
+    package test
+    Test: Main{s -> Block#
+      .var myList = {List#[Int](5, 10, -15)}
+      .do {FIO#s.println(myList.get(0u)! .str)}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases); }
 }
