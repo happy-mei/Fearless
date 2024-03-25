@@ -47,19 +47,20 @@ public interface Base {
 
   static String[] readAll(String prefix) {
     try {
-      var root = Thread.currentThread().getContextClassLoader().getResource(prefix).toURI();
-      try(var fs = Files.walk(Path.of(root))) {
-        return fs
-          .filter(Files::isRegularFile)
-          .map(Base::read)
-          .toArray(String[]::new);
-      }
+      return ResolveResource.of(prefix, ThrowingFunction.of(root->{
+        try(var fs = Files.walk(root)) {
+          return fs
+            .filter(Files::isRegularFile)
+            .map(Base::read)
+            .toArray(String[]::new);
+        }
+      }));
     } catch (IOException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }
-  String[] baseLib = readAll("base");
-  String[] immBaseLib = readAll("immBase");
+  String[] baseLib = readAll("/base");
+  String[] immBaseLib = readAll("/immBase");
 
   String minimalBase = """
     package base
