@@ -1,5 +1,8 @@
 package astFull;
 
+import failure.CompileError;
+import failure.ParserErrors;
+import failure.PlainError;
 import generated.FearlessParser.TopDecContext;
 import id.Id;
 import magic.Magic;
@@ -22,7 +25,11 @@ public record Package(
     ){
   public Map<Id.DecId,T.Dec> parse(){
     var res = new HashMap<Id.DecId,T.Dec>();
-    IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, new ArrayList<>(), i, false));
+    try {
+      IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, new ArrayList<>(), i, false));
+    } catch (CompileError err) {
+      throw ParserErrors.fromCompileError(err);
+    }
     return Collections.unmodifiableMap(res);
   }
   public Stream<T.Alias> shallowParse(){

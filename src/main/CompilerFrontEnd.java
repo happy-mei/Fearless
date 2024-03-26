@@ -1,14 +1,13 @@
 package main;
 
-import ast.E;
 import ast.Program;
 import astFull.Package;
 import codegen.MIRInjectionVisitor;
+import codegen.html.HtmlDocgen;
 import codegen.java.ImmJavaCodegen;
 import codegen.java.ImmJavaProgram;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaProgram;
-import codegen.html.HtmlDocgen;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
@@ -21,19 +20,21 @@ import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Box;
 import utils.Bug;
+import utils.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.*;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystemException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import utils.ResolveResource;
 
-import static java.util.Objects.requireNonNull;
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
 import static utils.ResolveResource.read;
 

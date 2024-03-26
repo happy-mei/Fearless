@@ -34,9 +34,9 @@ public interface EMethTypeSystem extends ETypeSystem {
     return Push.of(recvMdf, base);
   }
 
-  default Optional<Supplier<CompileError>> visitMCall(E.MCall e) {
+  default Optional<Supplier<? extends CompileError>> visitMCall(E.MCall e) {
     var guessType = new GuessIT(p(), g(), xbs(), depth());
-    Optional<Supplier<CompileError>> error = Optional.empty();
+    Optional<Supplier<? extends CompileError>> error = Optional.empty();
     for (var expectedRecv : e.receiver().accept(guessType)) {
       var res = visitMCall(e, expectedRecv);
       if (res.isEmpty()) { return res; }
@@ -44,7 +44,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     }
     return error;
   }
-  default Optional<Supplier<CompileError>> visitMCall(E.MCall e, Id.IT<T> recvIT) {
+  default Optional<Supplier<? extends CompileError>> visitMCall(E.MCall e, Id.IT<T> recvIT) {
     var guessType = new GuessITX(p(), g(), xbs(), depth());
     var guessFullType = new GuessT(p(), g(), xbs(), depth());
     var recvMdf = e.receiver().accept(guessFullType).stream().map(T::mdf).findFirst().orElse(Mdf.recMdf);
@@ -61,10 +61,10 @@ public interface EMethTypeSystem extends ETypeSystem {
     }
 
     List<E> es = Push.of(e.receiver(),e.es());
-    var nestedErrors = new ArrayDeque<ArrayList<Supplier<CompileError>>>(tsts.size());
+    var nestedErrors = new ArrayDeque<ArrayList<Supplier<? extends CompileError>>>(tsts.size());
     var methArgCache = IntStream.range(0, es.size()).mapToObj(i_->new HashMap<T, Res>()).toList();
     for (var tst : tsts) {
-      var errors = new ArrayList<Supplier<CompileError>>();
+      var errors = new ArrayList<Supplier<? extends CompileError>>();
       nestedErrors.add(errors);
       if (okAll(es, tst.ts(), errors, methArgCache, guessType)) {
         var recvT = tst.ts().get(0);
@@ -115,12 +115,12 @@ public interface EMethTypeSystem extends ETypeSystem {
     if(expectedT().isEmpty()){ return true; }
     return p().isSubType(xbs(), tst.t(), expectedT().get());
   }
-  default boolean okAll(List<E> es, List<T> ts, ArrayList<Supplier<CompileError>> errors, List<HashMap<T, Res>> caches, GuessITX guessType) {
+  default boolean okAll(List<E> es, List<T> ts, ArrayList<Supplier<? extends CompileError>> errors, List<HashMap<T, Res>> caches, GuessITX guessType) {
     assert es.size() == ts.size() && caches.size() == es.size();
     return IntStream.range(0, es.size())
       .allMatch(i->ok(es.get(i), ts.get(i), errors, caches.get(i), guessType));
   }
-  default boolean ok(E e, T t, ArrayList<Supplier<CompileError>> errors, HashMap<T, Res> cache, GuessITX guessType) {
+  default boolean ok(E e, T t, ArrayList<Supplier<? extends CompileError>> errors, HashMap<T, Res> cache, GuessITX guessType) {
 //    var res = cache.computeIfAbsent(t, t_->e.accept(this.withT(Optional.of(t_))));
     // TODO: cache res based on the same visitor hashcode
     /*

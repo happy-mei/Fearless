@@ -203,6 +203,22 @@ public class TestTypeSystem {
       }
     Void:{}
     """); }
+  @Test void noCallMutFromImmFailLate() { fail("""
+    In position [###]/Dummy0.fear:4:26
+    [E36 undefinedMethod]
+    .foo/0 does not exist in imm test.B[]. The following methods exist on that type: mut .foo/0, mut .ret/0
+    """, """
+    package test
+    A:{
+      .b: imm B -> {},
+      .doThing: Void -> this.b.foo[].ret[]
+      }
+    B:{
+      mut .foo(): mut B -> this,
+      mut .ret(): Void -> {},
+      }
+    Void:{}
+    """); }
   @Test void noCallMutFromReadOnly() { fail("""
     In position [###]/Dummy0.fear:4:26
     [E36 undefinedMethod]

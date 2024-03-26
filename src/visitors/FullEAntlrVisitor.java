@@ -388,15 +388,14 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(!outG.genDecl().isEmpty()){ throw Bug.of("No gen on out Alias"); }
     return new T.Alias(inT, out, Optional.of(pos(ctx)));
   }
-  @Override
-  public Package visitNudeProgram(NudeProgramContext ctx) {
+  @Override public Package visitNudeProgram(NudeProgramContext ctx) {
     String name = ctx.Pack().getText();
     assert name.startsWith("package ");
     assert name.endsWith("\n");
     name = name.substring("package ".length(),name.length()-1);
     var as = ctx.alias().stream().map(this::visitAlias).toList();
 
-    var decs = List.copyOf(ctx.topDec()); // TODO: save all inline dec names as aliases
+    var decs = List.copyOf(ctx.topDec());
     return new Package(name,as,decs,decs.stream().map(e->fileName).toList());
   }
 }

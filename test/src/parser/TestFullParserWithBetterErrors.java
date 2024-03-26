@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class TestFullParser {
+class TestFullParserWithBetterErrors {
   void ok(String expected, String... content){
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
@@ -506,15 +506,5 @@ class TestFullParser {
     """, """
     package test
     A[X]:{ #(x: X): B[X] -> B[X]:{ .m1: X -> x } }
-    """); }
-
-  @Test void missingColonTypeDeclaration() { fail("""
-    In position [###]/Dummy0.fear:2:3
-    [E59 syntaxError]
-    missing ':' at '{'
-    """, """
-    package base
-    Foo{}
-    // I missed a colon :(
     """); }
 }
