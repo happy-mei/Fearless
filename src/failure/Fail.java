@@ -342,10 +342,11 @@ enum ErrorCode {
   invalidLambdaNameMdfBounds,
   mismatchedMethodGens,
   syntaxError;
+  private static final ErrorCode[] values = values();
   int code() {
     return this.ordinal() + 1;
   }
   static ErrorCode fromCode(int code) {
-    return ErrorCode.values()[code - 1];
+    return values[code - 1];
   }
 }
