@@ -63,9 +63,6 @@ public interface EMethTypeSystem extends ETypeSystem {
     List<E> es = Push.of(e.receiver(),e.es());
     var nestedErrors = new ArrayDeque<ArrayList<Supplier<? extends CompileError>>>(tsts.size());
     var methArgCache = IntStream.range(0, es.size()).mapToObj(i_->new HashMap<T, Res>()).toList();
-    if (e.pos().isPresent() && e.pos().get().fileName().getPath().endsWith("printReports.fear") && e.pos().get().line() == 13) {
-      System.out.println("here: "+e);
-    }
     for (var tst : tsts) {
       var errors = new ArrayList<Supplier<? extends CompileError>>();
       nestedErrors.add(errors);

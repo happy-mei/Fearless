@@ -31,7 +31,7 @@ _MutSourceCollection[E]: {
   }
 
 _FlowConverters: Sealed{
-  .range(start: Int, end: Int): mut Flow[Int] -> Flow.fromOp[Int](this.range'(start, end), Opt#((end - start).uint)),
+  .range(start: Int, end: Int): mut Flow[Int] -> _PipelineParallelFlow.fromOp[Int](this.range'(start, end), Opt#((end - start).uint)),
   .range'(start: Int, end: Int): mut FlowOp[Int] -> Block#
     .var cursor = {Count.int(start)}
     .return {{'self
