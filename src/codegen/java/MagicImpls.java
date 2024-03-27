@@ -478,6 +478,9 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
           );
           return Optional.of(gen.visitMCall(listFlowCall, true));
         }
+        if (m.name().equals(".range")) {
+
+        }
       }
 
       if (isMagic(Magic.FList, call.recv())) {

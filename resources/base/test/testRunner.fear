@@ -9,7 +9,7 @@ Main: AppMain{
 
 // TODO: When we have maps support nested test suites
 FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
-  .var[mut List[mut Test]] tests = {List#}
+  .var[mut List[Test]] tests = {List#}
   .var[mut List[mut TestSuite]] suites = {List#}
   .var[mut List[mut ResultReporter]] reporters = {List#}
   .return {{'self
@@ -26,8 +26,7 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
       .return {self},
 
     .run -> Block#
-      .var[mut List[read TestResults]] results = {List#[read TestResults](FTestResults#("<unnamed>", self.runDirectTests[]))}
-      .do {results.addAll(self.runSuiteTests[])}
+      .var[mut List[read TestResults]] results = {List#[read TestResults](FTestResults#("<unnamed>", self.runDirectTests[], self.runSuiteTests[]))}
       .do {reporters.iter.for{reporter -> reporter#results}}
       .return {results},
     mut .runDirectTests: mut List[TestResult] -> tests.iter
@@ -36,8 +35,19 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
         .return {FTestResult#(test.title, FTestResultKind.passed)}
         }
       .list,
-    mut .runSuiteTests: mut List[read TestResults] -> suites.iter
-      .map{suite -> FTestResults#(suite.title, suite.runner.run.iter.flatMap{subSuites->subSuites.results.iter}.list)}
+    mut .runSuiteTests: mut List[read TestResults] -> suites.flow
+      .map[read TestResults]{suite -> Block#
+        .var[read List[read TestResults]] suiteResults = {suite.runner.run}
+        .return {FTestResults#(
+          suite.title,
+          suiteResults.flow
+           .flatMap{subSuite->subSuite.results.flow}
+           .list,
+          suiteResults.flow
+            .flatMap{subSuite->subSuite.nestedResults.flow}
+            .list
+          )}
+        }
       .list,
     }}
   }
@@ -49,10 +59,11 @@ TestRunner: {
   }
 
 TestSuite: {read .title: Str, mut .runner: mut TestRunner}
-Test: {read .title: Str, mut .impl: AppMain}
-FTestResults: F[Str, read List[TestResult], read TestResults]{suiteTitle, results -> mut TestResults: {
+Test: {read .title: Str, read .impl: AppMain}
+FTestResults: F[Str, read List[TestResult], read List[read TestResults], read TestResults]{suiteTitle, results, nested -> mut TestResults: {
   read .suiteTitle: Str -> suiteTitle,
   read .results: read List[TestResult] -> results,
+  read .nestedResults: read List[read TestResults] -> nested,
   }}
 FTestResult: F[Str, TestResultKind, TestResult]{
   #(title, kind) -> {

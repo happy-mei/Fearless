@@ -1,13 +1,21 @@
 package base.test
 
-FResultPrinter: F[mut IO, mut ResultPrinter]{io -> mut ResultPrinter: ResultReporter{#(results) -> Block#
-  .do {io.printlnErr("# Test Results")}
-  .do {results.iter.for{suite -> Block#
-    .do {io.printlnErr("## "+(suite.suiteTitle))}
-    .do {suite.results.iter.for{result -> io.printlnErr(result.title)}}
-    .return {Void}
-    }}
+ResultPrinters: F[mut IO, mut ResultPrinter]{io -> mut ResultPrinter: ResultReporter{#(results) -> Block#
+  .var[Str] resultsMsg = {results.flow.map{suite -> _TextUtils.suite(suite, 1)}#(Flow.str "\n")}
+  .do {io.printlnErr("# Test Results\n" + resultsMsg)}
   .return {Void}
   }}
 
-//Foo: F[mut IO, read List[read TestResult], Void]{io, results -> results.iter.for{result -> io.printlnErr(result.title)}}
+_TextUtils: {
+  .results(results: read List[TestResult]): mut Flow[Str] -> results.flow.map{result -> result.title},
+  .suite(suite: read TestResults, depth: Int): Str ->
+    this.heading(suite.suiteTitle, depth)
+    + "\n"
+    + (this.results(suite.results)#(Flow.str "\n\n"))
+    + (suite.nestedResults.isEmpty ?[Str] {.then -> "", .else -> "\n\n"})
+    + (suite.nestedResults.flow.map{nested -> this.suite(nested, depth + 1)}#(Flow.str "\n")),
+
+  .heading(title: Str, depth: Int): Str -> Block#
+    .if {depth > 5} .return {"**"+title+"**  "}
+    .return {Flow.range(0, depth + 1).map[Str]{_ -> "#"}#(Flow.str "") + " " + title},
+  }

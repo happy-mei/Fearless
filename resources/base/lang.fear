@@ -21,6 +21,7 @@ F[R:read,mut,imm,iso]: { read #: R }
 F[A:read,mut,imm,iso,R:read,mut,imm,iso]: { read #(a: A): R }
 F[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B): R }
 F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B, c: C): R }
+F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, D:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B, c: C, d: D): R }
 
 Consumer[A:read,mut,imm,iso]: { mut #(a: A): Void }
 Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso]: { mut #(a: A, b: B): Void }

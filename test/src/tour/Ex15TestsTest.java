@@ -32,16 +32,23 @@ public class Ex15TestsTest {
       }
     //prints Hello, world!
     """); }
-  @Test void runTestsWithPrintReporter() { ok(new Res("Hello, world!", "**Test Results**", 0), "test.Test", """
+  @Test void runTestsWithPrintReporter() { ok(new Res("Hello, world!", """
+    # Test Results
+    ## <unnamed>
+    Empty test
+
+    ### Printing suite
+    Printing test
+    """, 0), "test.Test", """
     package test
-    alias base.test.Main as TestMain, alias base.test.FResultPrinter as FResultPrinter,
+    alias base.test.Main as TestMain, alias base.test.ResultPrinters as ResultPrinters,
     
     Test: TestMain{system, runner -> runner
       .test("Empty test", {sys -> Void})
       .suite("Printing suite", {suite -> suite
         .test("Printing test", {sys -> FIO#sys.println("Hello, world!")})
         })
-      .withReporter(FResultPrinter#(FIO#system))
+      .withReporter(ResultPrinters#(FIO#system))
       .run
       }
     """, Base.mutBaseAliases); }

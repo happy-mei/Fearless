@@ -31,20 +31,24 @@ _MutSourceCollection[E]: {
   }
 
 _FlowConverters: Sealed{
-// NO: .fromIter is not safe against concurrent modification, easier to force users to myIter.list.flow
-//  .fromIter[E](iter: mut base.iter.Iter[E]): mut Flow[E] -> Block#
-//    .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-//    .return {Flow.fromMutSource{'op
-//      .stop -> isRunning := False,
-//      .isRunning -> isRunning*,
-//      .step(downstream) -> isRunning* ? {
-//        .then -> iter.next.match{
-//          .some(x) -> downstream#x,
-//          .empty -> op.stop,
-//          },
-//        .else -> op.stop,
-//        }
-//      }}
+  .range(start: Int, end: Int): mut Flow[Int] -> Flow.fromOp[Int](this.range'(start, end), Opt#((end - start).uint)),
+  .range'(start: Int, end: Int): mut FlowOp[Int] -> Block#
+    .var cursor = {Count.int(start)}
+    .return {{'self
+      .isRunning -> cursor* < end,
+      .stop -> cursor := end,
+      .step(downstream) -> Block#
+        .do {downstream#(cursor <- {n -> n + 1})}
+        .if {cursor* >= end} .do {Block#(downstream.stop, self.stop)}
+        .return {{}},
+      .forRemaining(downstream) -> Block#
+        .loop {Block#
+          .if {cursor* >= end} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+          .do {downstream#(cursor <- {n -> n + 1})}
+          .return {ControlFlow.continue}
+          }
+        .return {{}},
+      }}
   }
 
 // Variants of the converter methods that do not clone if is safe to do so. Invoked by magic
