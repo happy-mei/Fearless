@@ -6,6 +6,7 @@ import astFull.Program;
 import astFull.T;
 import astFull.T.Alias;
 import failure.Fail;
+import failure.ParserErrors;
 import files.Pos;
 import generated.FearlessLexer;
 import generated.FearlessParser;
@@ -47,8 +48,9 @@ public record Parser(Path fileName,String content){
     //balanced parenthesis with decent error
   }
 
-  public static Program parseAll(List<Parser>ps, TypeSystemFeatures tsf) {
-    List<Alias> globals=List.of();//TODO: global aliases
+  public static Program parseAll(List<Parser> ps, TypeSystemFeatures tsf) {
+    // We currently do not have any global aliases in Fearless
+    List<Alias> globals = List.of();
     var all=ps.stream()
         .map(p->p.parseFile(Bug::err))
         .collect(Collectors.groupingBy(Package::name));
@@ -122,6 +124,7 @@ public record Parser(Path fileName,String content){
   public Package parseFile(Function<String,Package> orElse){
     var l = new FearlessLexer(CharStreams.fromString(content));
     var p = new FearlessParser(new CommonTokenStream(l));
+    p.addErrorListener(new ParserErrors(fileName.toUri()));
     var errorst = new StringBuilder();
     var errorsp = new StringBuilder();
     FailConsole.setFail(fileName, l, p, errorst, errorsp);

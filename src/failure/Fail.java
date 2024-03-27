@@ -271,6 +271,10 @@ public class Fail{
     return of("The base method for "+name+" has the following type parameters: ["+gens1Msg+"]. The provided implementation has: ["+gens2Msg+"].\nThe number of type parameters must match.");
   }
 
+  public static CompileError syntaxError(String msg) {
+    return of(msg);
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -336,6 +340,13 @@ enum ErrorCode {
   conflictingDecls,
   freeGensInLambda,
   invalidLambdaNameMdfBounds,
-  mismatchedMethodGens;
-  int code() {return this.ordinal() + 1;}
+  mismatchedMethodGens,
+  syntaxError;
+  private static final ErrorCode[] values = values();
+  int code() {
+    return this.ordinal() + 1;
+  }
+  static ErrorCode fromCode(int code) {
+    return values[code - 1];
+  }
 }
