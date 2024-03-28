@@ -56,10 +56,14 @@ public class JavaProgram extends SimpleJavaFileObject {
     var errors = new Box<Diagnostic<?>>(null);
 
     var runtimeFiles = Stream.of(
+      "FearlessError",
       "FlowRuntime",
       "PipelineParallelFlow",
       "IO",
-      "Random"
+      "Random",
+      "Error",
+      "Try",
+      "CapTry"
     ).map(name -> new JavaProgram(name, ResolveResource.getStringOrThrow("/rt/" +name+".java")));
     var userFiles = Arrays.stream(files);
     var codegenUnits = Stream.concat(userFiles, runtimeFiles);

@@ -21,7 +21,7 @@ public interface FlowRuntime {
     }
     @SuppressWarnings("unchecked")
     public void stop() {
-      ref.submit(FlowRuntime.Message.Stop.INSTANCE);
+      ref.submit(Message.Stop.INSTANCE);
     }
   }
 

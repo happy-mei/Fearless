@@ -20,7 +20,6 @@ Todo:{
 Try:{
   #[R](try: read Try[R]): mut Res[R,Info] -> Magic!,
   }
-
 Try[R]:{ read #: R, }
 
 Info:Sealed{

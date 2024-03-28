@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 
 public interface PipelineParallelFlow {
   final class WrappedSinkK implements FProgram.base$46flows.$95PipelineParallelSink_0 {
+    public static WrappedSinkK _$self = new WrappedSinkK();
     // TODO: sink id is not actually used, just here to make debugging easier during development
     static long SINK_ID = 0;
     @Override public FProgram.base$46flows.$95PipelineParallelSink_1 $35$imm$(FProgram.base$46flows.$95Sink_1 original) {

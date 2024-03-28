@@ -1,0 +1,53 @@
+package tour;
+
+import org.junit.jupiter.api.Test;
+import utils.Base;
+import utils.RunOutput;
+
+import static codegen.java.RunJavaProgramTests.ok;
+
+public class Ex16ErrorsTest {
+  @Test void catchNothing() { ok(new RunOutput.Res("Happy", "", 0), "test.Test", """
+    package test
+    Test:Main{s ->
+      FIO#s.println(Try#[Str]{"Happy"}.resMatch{
+        .ok(res) -> res,
+        .err(err) -> err.str,
+        })
+      }
+    """, Base.mutBaseAliases); }
+
+  @Test void catchExplicitError() { ok(new RunOutput.Res("Sad", "", 0), "test.Test", """
+    package test
+    Test:Main{s ->
+      FIO#s.println(Try#[Str]{Error.str "Sad"}.resMatch{
+        .ok(res) -> res,
+        .err(err) -> err.str,
+        })
+      }
+    """, Base.mutBaseAliases); }
+
+  @Test void cannotCatchStackOverflow() { ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), "test.Test", """
+    package test
+    Test:Main{s ->
+      FIO#s.println(Try#[Str]{Loop!}.resMatch{
+        .ok(res) -> res,
+        .err(err) -> err.str,
+        })
+      }
+    Loop: {![R]: R -> this!}
+    """, Base.mutBaseAliases); }
+
+  @Test void capabilityCatchStackOverflow() { ok(new RunOutput.Res("Stack overflowed", "", 0), "test.Test", """
+    package test
+    Test:Main{s -> Block#
+      .var io = {FIO#s}
+      .var try = {CapTries#s}
+      .return {io.println(try#[Str]{Loop!}.resMatch{
+        .ok(res) -> res,
+        .err(err) -> err.str,
+        })}
+      }
+    Loop: {![R]: R -> this!}
+    """, Base.mutBaseAliases); }
+}

@@ -349,12 +349,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName("!", 1))) {
-          return Optional.of("""
-            (switch (1) {
-              default -> throw new FearlessError(%s);
-              case 2 -> (Object)null;
-            })
-            """.formatted(args.getFirst().accept(gen, true)));
+          return Optional.of("rt.Error.throwFearlessError(%s)".formatted(args.getFirst().accept(gen, true)));
         }
         return Optional.empty();
       }
@@ -363,30 +358,21 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
 
   @Override public MagicTrait<MIR.E,String> tryCatch(MIR.E e) {
     return new MagicTrait<>() {
-
       @Override public Optional<String> instantiate() {
-        return Optional.empty();
+        return Optional.of("rt.Try._$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
-        if (m.equals(new Id.MethName("#", 1))) {
-          return Optional.of("""
-            (switch (1) { default -> {
-              try { yield base.Res_0._$self.ok$imm$(%s.$35$read$()); }
-              catch(FearlessError _$err) { yield base.Res_0._$self.err$imm$(_$err.info); }
-              catch(java.lang.ArithmeticException _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
-              catch(java.lang.StackOverflowError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$("Stack overflowed")); }
-              catch(java.lang.VirtualMachineError _$err) { yield base.Res_0._$self.err$imm$(base.FInfo_0._$self.str$imm$(_$err.getLocalizedMessage())); }
-            }})
-            """.formatted(args.getFirst().accept(gen, true)));
-        }
-//        if (m.equals(new Id.MethName("#", 2))) {
-//          return Optional.of("""
-//            (switch (1) { default -> {
-//              try { yield %s.$35$read$(); }
-//              catch(FearlessError _$err) { yield %s.$35$mut$(_$err.info); }
-//            }})
-//            """.formatted(args.getFirst().accept(gen), args.get(1).accept(gen)));
-//        }
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<MIR.E, String> capTryCatch(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        return Optional.of("rt.CapTry._$self");
+      }
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
       }
     };
@@ -396,7 +382,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
     return new MagicTrait<>() {
 
       @Override public Optional<String> instantiate() {
-        return Optional.of("new rt.PipelineParallelFlow.WrappedSinkK()");
+        return Optional.of("rt.PipelineParallelFlow.WrappedSinkK._$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();

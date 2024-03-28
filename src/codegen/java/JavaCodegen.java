@@ -64,20 +64,12 @@ public class JavaCodegen implements MIRVisitor<String> {
       systemImpl
     );
 
-    final String fearlessError = """
+    final String fearlessHeader = """
       package userCode;
-      class FearlessError extends RuntimeException {
-        public FProgram.base.Info_0 info;
-        public FearlessError(FProgram.base.Info_0 info) {
-          super();
-          this.info = info;
-        }
-        public String getMessage() { return this.info.str$imm$(); }
-      }
       class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
       """;
 
-    return fearlessError+"\npublic interface FProgram{\n" +p.pkgs().stream()
+    return fearlessHeader+"\npublic interface FProgram{\n" +p.pkgs().stream()
       .map(this::visitPackage)
       .collect(Collectors.joining("\n"))+init+"}";
   }

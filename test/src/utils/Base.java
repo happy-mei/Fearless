@@ -88,6 +88,8 @@ public interface Base {
     alias base.caps.FEnv as FEnv,
     alias base.caps.FRandomSeed as FRandomSeed,
     alias base.caps.RandomSeed as RandomSeed,
+    alias base.caps.CapTries as CapTries,
+    alias base.caps.CapTry as CapTry,
     
     alias base.caps.System as System,
     
