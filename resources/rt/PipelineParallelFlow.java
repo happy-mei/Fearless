@@ -2,6 +2,7 @@ package rt;
 
 import userCode.FProgram;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /*
@@ -51,7 +52,9 @@ public interface PipelineParallelFlow {
           })
           .join();
         if (exception != null) {
-          throw new RuntimeException(exception.getLocalizedMessage(), exception);
+          var message = exception.getLocalizedMessage();
+          if (exception instanceof StackOverflowError) { message = "Stack overflowed"; }
+          throw new RuntimeException(message, exception);
         }
       }
       return FProgram.base.Void_0._$self;
