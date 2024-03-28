@@ -296,19 +296,19 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   @Override public String visitMCall(MIR.MCall call, boolean checkMagic) {
+    var mustCast = !call.t().equals(call.originalRet());
+    var cast = mustCast ? "(("+getName(call.t())+")" : "";
+
     if (checkMagic && !call.variant().contains(MIR.MCall.CallVariant.Standard)) {
       var impl = magic.variantCall(call).call(call.name(), call.args(), call.variant(), call.t());
-      if (impl.isPresent()) { return "(("+getName(call.t())+")"+impl.get()+")"; }
+      if (impl.isPresent()) { return cast+impl.get()+(mustCast ? ")" : ""); }
     }
 
     var magicImpl = magic.get(call.recv());
     if (checkMagic && magicImpl.isPresent()) {
       var impl = magicImpl.get().call(call.name(), call.args(), call.variant(), call.t());
-      if (impl.isPresent()) { return "(("+getName(call.t())+")"+impl.get()+")"; }
+      if (impl.isPresent()) { return cast+impl.get()+(mustCast ? ")" : ""); }
     }
-
-    var mustCast = !call.t().equals(call.originalRet());
-    var cast = mustCast ? "(("+getName(call.t())+")" : "";
 
     //    var magicRecv = !(call.recv() instanceof MIR.CreateObj) || magicImpl.isPresent();
 
