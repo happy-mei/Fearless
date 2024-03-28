@@ -12,6 +12,7 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
   .var[mut List[Test]] tests = {List#}
   .var[mut List[mut TestSuite]] suites = {List#}
   .var[mut List[mut ResultReporter]] reporters = {List#}
+  .var[mut CapTry] try = {CapTries#sys}
   .return {{'self
     .suite(title, registerTests) -> Block#
       .do {suites.add({.title -> title, .runner -> registerTests#(FTestRunner#sys)})}
@@ -31,8 +32,10 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
       .return {results},
     mut .runDirectTests: mut List[TestResult] -> tests.iter
       .map{test -> Block#
-        .do {test.impl#sys}
-        .return {FTestResult#(test.title, FTestResultKind.passed)}
+        .return {FTestResult#(test.title, try#{test.impl#sys}.resMatch{
+          .ok(_) -> FTestResultKind.passed,
+          .err(info) -> FTestResultKind.errored(info.str)
+          })}
         }
       .list,
     mut .runSuiteTests: mut List[read TestResults] -> suites.flow

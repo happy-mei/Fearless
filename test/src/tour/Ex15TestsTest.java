@@ -35,10 +35,10 @@ public class Ex15TestsTest {
   @Test void runTestsWithPrintReporter() { ok(new Res("Hello, world!", """
     # Test Results
     ## <unnamed>
-    Empty test
-
+    Empty test - PASSED
+        
     ### Printing suite
-    Printing test
+    Printing test - PASSED
     """, 0), "test.Test", """
     package test
     alias base.test.Main as TestMain, alias base.test.ResultPrinters as ResultPrinters,
@@ -56,36 +56,42 @@ public class Ex15TestsTest {
   @Test void nestedTestsWithPrintReporter() { ok(new Res("Hello, world!", """
     # Test Results
     ## <unnamed>
-    Empty test
+    Empty test - PASSED
         
     ### Printing suite
-    Printing test
+    Printing test - PASSED
         
-    non-Printing test
+    non-Printing test - PASSED
         
     #### nested
-    test1
+    test1 - PASSED
         
-    test2
+    test2 - ERRORED
+    ```
+    sad
+    ```
         
     ##### more nested
-    test3
+    test3 - PASSED
         
-    test4
+    test4 - PASSED
         
     ###### more nested
-    test5
+    test5 - PASSED
         
     **more nested** \s
-    test6
+    test6 - ERRORED
+    ```
+    another one
+    ```
         
     **more nested** \s
-    test7
+    test7 - PASSED
         
     **more nested** \s
-    test8
+    test8 - PASSED
     ### top level
-    test1
+    test1 - PASSED
     """, 0), "test.Test", """
     package test
     alias base.test.Main as TestMain, alias base.test.ResultPrinters as ResultPrinters,
@@ -97,14 +103,14 @@ public class Ex15TestsTest {
         .test("non-Printing test", {sys -> Void})
         .suite("nested", {suite' -> suite'
           .test("test1", {sys -> Void})
-          .test("test2", {sys -> Void})
+          .test("test2", {sys -> Error.str "sad"})
           .suite("more nested", {suite'' -> suite''
             .test("test3", {sys -> Void})
             .test("test4", {sys -> Void})
             .suite("more nested", {suite3 -> suite3
               .test("test5", {sys -> Void})
               .suite("more nested", {suite4 -> suite4
-                .test("test6", {sys -> Void})
+                .test("test6", {sys -> Error.str "another one"})
                 .suite("more nested", {suite5 -> suite5
                   .test("test7", {sys -> Void})
                   .suite("more nested", {suite6 -> suite6

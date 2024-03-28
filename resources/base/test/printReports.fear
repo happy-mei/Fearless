@@ -7,7 +7,9 @@ ResultPrinters: F[mut IO, mut ResultPrinter]{io -> mut ResultPrinter: ResultRepo
   }}
 
 _TextUtils: {
-  .results(results: read List[TestResult]): mut Flow[Str] -> results.flow.map{result -> result.title},
+  .results(results: read List[TestResult]): mut Flow[Str] -> results.flow
+    .map{result -> result.title+" - "+(this.status(result.kind))},
+
   .suite(suite: read TestResults, depth: Int): Str ->
     this.heading(suite.suiteTitle, depth)
     + "\n"
@@ -18,4 +20,11 @@ _TextUtils: {
   .heading(title: Str, depth: Int): Str -> Block#
     .if {depth > 5} .return {"**"+title+"**  "}
     .return {Flow.range(0, depth + 1).map[Str]{_ -> "#"}#(Flow.str "") + " " + title},
+
+  .status(kind: TestResultKind): Str -> kind.match{
+    .passed -> "PASSED",
+    .skipped -> "SKIPPED",
+    .failed(details) -> "FAILED\n```\n"+(details)+"\n```",
+    .errored(details) -> "ERRORED\n```\n"+(details)+"\n```",
+    },
   }
