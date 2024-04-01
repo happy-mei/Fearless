@@ -14,12 +14,18 @@ public class TourHelper {
 
   public static void run(String content){
     var last= lastLine(content);
-    if (!content.startsWith("package")){ content = "package test\n" + content; }
-    if (last.startsWith("//prints ")){
-      ok(new Res(last.substring("//prints ".length()),"",0),"test.Test",content,Base.mutBaseAliases);
-      return;
+    if (!content.startsWith("package")){
+      content = "package test\n" + content;
     }
+    String expectedPrint= "";
+    if (last.startsWith("//prints ")){
+      expectedPrint = last.substring("//prints ".length()); 
+    } 
+    if(!content.contains(":Main")){
+      content += "Test:Main{s->Void}"; 
+    }
+    ok(new Res(expectedPrint,"",0), "test.Test",
+      content, Base.mutBaseAliases);
     //TODO: add case for errs?
-    ok(new Res("","",0),"test.Test",content,Base.mutBaseAliases);
   }
 }

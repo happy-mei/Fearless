@@ -12,7 +12,7 @@ Those files can be at top level or inside folders. The organization of files in 
 have no impact on the semantic of fearless.
 Assume in folder 'myFolder' we have a file with the following content:
     package test
-    Test:Main {sys -> FIO#sys.println("Hello, World!")}
+    Test:Main {sys -> UnrestrictedIO#sys.println("Hello, World!")}
     //prints Hello, World!
 
 To run it, we specify the fully qualified name of the runnable type `test.Test`.
