@@ -10,14 +10,14 @@ public class Ex01HelloWorldTest {
 
 # Preface
 This is a guide to learn the standard library of fearless.
-This guide assumes that you know all of the language features already, but you have no idea how the standard library works, or
+This guide assumes that you know all the language features already, but you have no idea how the standard library works, or
 how the files are organized into a project.
 
 # Hello world
 
 A Fearless project is a folder containing files with extension *.fear.
 Those files can be at top level or inside folders. The organization of files in folders is for the benefit of the programmers and
-have no impact on the semantic of fearless.
+has no impact on the semantics of fearless.
 Assume in folder 'myFolder' we have a file with the following content:  
 -------------------------*/@Test void helloWorld() { run("""
     package test
@@ -26,7 +26,7 @@ Assume in folder 'myFolder' we have a file with the following content:
     """); }/*--------------------------------------------
 To run it, we specify the fully qualified name of the runnable type `test.Test`.
   `> java -jar fearless.jar -e test.Test -r myFolder`//From nick
-  `> java -jar fearless.jar myFolder;.test.Test`//marco's favorite
+  `> java -jar fearless.jar myFolder;.test.Test`//marco's favorite. // Nick: this will not work, `;` has special meaning in shell syntax
 If we look in the folder again, we will see that there is now a subfolder `/out`
 containing the code that was compiled. (as 'myFolder.far')
 
@@ -41,7 +41,7 @@ The code above is a minimal Hello World program.
 Note how there is no need for the files inside the package 'test' to be all contained inside a 'test' folder. In this example it is just contained directly inside `myFolder`
 We will omit the `package test` line in all other examples.
 - We then declare the type Test. Test implements Main. All runnable types implement Main.
-- `Main` is declared like this: `Main:{ .main(sys: mut System): Void }`
+- `Main` is declared like this: `Main: {.main(sys: mut System): Void}`
 - In the body of Test we implement Main by `sys -> UnrestrictedIO#sys.println("Hello, World!")`,
 - `sys` is a parameter name (we can freely choose those) that will refer to a mutable System object.
 - `UnrestrictedIO` is a factory creating an IO capability that can do any kind of IO.
@@ -60,8 +60,8 @@ If someone is printing just because they want a debugging printout, the can use
     //prints Hello, World!
     """); }/*--------------------------------------------
 
-On the other side, if they are writing a console program, or any kind kind of program that needs to do input output, there will be a few
-well designed types that have this responsibility, and the main will assign capabilities to those types. We will see an example of this (much) later.
+On the other hand, if they are writing a console program, or any kind of program that needs to do input output, there will be a few
+well-designed types that have this responsibility, and the main will assign capabilities to those types. We will see an example of this (much) later.
 
  # Block
 One of the easier ways to start writing fearless code when coming from other languages is to use `Block`.
@@ -100,16 +100,16 @@ Since writing `.return{Void}` can get verbose and repetitive, we can just write 
 Block supports early exits, using the `.if` method, and many other useful features. To explore them, we write a `StrToMessage` function
 that can be useful to map strings into good error messages
 -------------------------*/@Test void blockIf() { run("""
-    StrToMessage:F[Str,Str]{s->Block#      
+    StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
       .var res = {s}
-      .if {res#.contains("\n")} .do {res := res#.replaceAll("\n","\\n")} 
-      .if {res#.size() > 100} .do {Block#
-        .let start = { res#.substring(0,48) }
-        .let end   = { res#.substringLast(48,0) }
+      .if {res#.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")}
+      .if {res#.size > 100} .do {Block#
+        .let start = {res#.substring(0,48)}
+        .let end   = {res#.substringLast(48,0)}
         .return {res := start + "[..]" + end}
         }
-      .return res#
+      .return {res#}
       }
     """); }/*--------------------------------------------
 
@@ -136,31 +136,31 @@ Note the difference between `.var` and `.let`:
 The nested block ends with '.return'. This is different from what you may expect, the '.return' here is making the inner block return `Void`, the result of `:=`.
 To clarify the behavior of nested blocks, we show some alternative to that code below:
 -------------------------*/@Test void blockNested1() { run("""
-    StrToMessage:F[Str,Str]{s->Block#      
+    StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
       .var res = {s}
-      .if {res.contains("\n")} .do {res := res#.replaceAll("\n","\\n")} 
+      .if {res.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")}
       .if {res.size() > 100} .return {Block#
         .let start = {res#.substring(0,48)}
         .let end   = {res#.substringLast(48,0)}
         .return {start + "[..]" + end}
         }
-      .return res#
+      .return {res#}
       }
     """); }/*--------------------------------------------
 In this alternative, we use `.if .. .return` to propagate out the result. Note how we now return the final result directly instead of updating `res`.
 -------------------------*/@Test void blockNested2() { run("""
-    StrToMessage:F[Str,Str]{s->Block#      
+    StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
       .var res = {s}
-      .if {res#.contains("\n")} .do {res := res#.replaceAll("\n","\\n")} 
+      .if {res#.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")}
       .if {res#.size() > 100} .do {Block#
         .let start = {res#.substring(0,48)}
         .let end   = {res#.substringLast(48,0)}
         .do {res := start + "[..]" + end}
         .done
         }
-      .return res#
+      .return {res#}
       }
     """); }/*--------------------------------------------
 In this alternative, we mimic more closely what happens in conventional statements. We think this is just more verbose that using `.return` directly.
@@ -172,11 +172,11 @@ As always, the best alternative is to avoid nesting and to write
     StrToMessage:F[Str,Str]{s->Block#      
       .if {s.isEmpty} .return {"<EmptyString>"}
       .var res = {s}
-      .if {res#.contains("\n")} .do {res := res#.replaceAll("\n","\\n")} 
+      .if {res#.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")} 
       .if {res#.size() <= 100} .return {res#}
       .let start = {res#.substring(0,48)}
       .let end   = {res#.substringLast(48,0)}
-      .return start + "[..]" + end
+      .return {start + "[..]" + end}
       }
     """); }/*--------------------------------------------
 
@@ -185,22 +185,22 @@ As you can see, by inverting the `.if` condition and inserting a one liner early
 Block is much more powerful that usual statements, because each individual bit is an expression. Thus we can use it to modularize method bodies that requires many early returns, and we can scope local variables:
 
 -------------------------*/@Test void blockScoped() { run("""
-  Example:F[Str,Str]{s->Block# //bad all mixed
+  Example: F[Str,Str]{s->Block# //bad all mixed
     //part1 //comments used to denote section of code: bad smell
-    .var res = {s}      
+    .var res = {s}
     .if {res#.isEmpty} .return {"<EmptyString>"}
-    .if {res#.contains("\n")} .do {res := res#.replaceAll("\n","\\n")} 
+    .if {res#.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")}
     .if {res#.size() <= 100} .return {res#}
     //part2
     .let start = {res#.substring(0,48)}
     .let end   = {res#.substringLast(48,0)}
-    .return start + "[..]" + end
+    .return {start + "[..]" + end}
     }
     
   Example:F[Str,Str]{//Better version, with division in parts
     #(s) -> Block#
       .var res = {s}
-      .let scope = ExampleParts{ .res->res } 
+      .let scope = {ExampleParts{.res->res}}
       .part{b->scope.part1(b)}
       .part{b->scope.part2(b)}
     }
@@ -209,8 +209,8 @@ Block is much more powerful that usual statements, because each individual bit i
     
     .part1(c: Block[Str]): Block[Str] -> c
       .if {this.res#.isEmpty} .return {"<EmptyString>"}
-      .if {this.res#.contains("\n")}
-        .do {this.res# := this.res#.replaceAll("\n","\\n")} 
+      .if {this.res#.contains("\\n")}
+        .do {this.res# := this.res#.replaceAll("\\n","\\\\n")}
       .if {this.res#.size() <= 100} .return {this.res#},
 
     .part2(c: Block[Str]):Str -> c
