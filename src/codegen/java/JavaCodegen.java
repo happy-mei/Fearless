@@ -30,6 +30,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     this.p = new OptimisationBuilder(this.magic)
       .withBoolIfOptimisation()
       .withBlockOptimisation()
+      .withDevirtualisationOptimisation()
       .run(p);
     this.funMap = p.pkgs().stream().flatMap(pkg->pkg.funs().stream()).collect(Collectors.toMap(MIR.Fun::name, f->f));
   }
@@ -310,9 +311,6 @@ public class JavaCodegen implements MIRVisitor<String> {
       if (impl.isPresent()) { return cast+impl.get()+(mustCast ? ")" : ""); }
     }
 
-    //    var magicRecv = !(call.recv() instanceof MIR.CreateObj) || magicImpl.isPresent();
-
-
     var start = cast+call.recv().accept(this, checkMagic)+"."+name(getName(call.mdf(), call.name()))+"(";
     var args = call.args().stream()
       .map(a->a.accept(this, checkMagic))
@@ -326,6 +324,16 @@ public class JavaCodegen implements MIRVisitor<String> {
     var cast = mustCast ? "(%s)".formatted(getRetName(expr.t())) : "";
 
     return "(%s(%s == base.True_0._$self ? %s : %s))".formatted(cast, recv, this.funMap.get(expr.then()).body().accept(this, true), this.funMap.get(expr.else_()).body().accept(this, true));
+  }
+
+  @Override public String visitStaticCall(MIR.StaticCall call, boolean checkMagic) {
+    var cast = call.castTo().map(t->"(("+getName(t)+")").orElse("");
+    var castEnd = cast.isEmpty() ? "" : ")";
+
+    var args = call.args().stream()
+      .map(a->a.accept(this, checkMagic))
+      .collect(Collectors.joining(","));
+    return "%s %s.%s(%s)%s".formatted(cast, getName(call.fun().d()), getName(call.fun()), args, castEnd);
   }
 
   private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {

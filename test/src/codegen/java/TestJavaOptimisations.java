@@ -141,7 +141,7 @@ public class TestJavaOptimisations {
     [###]
     """, "test.Test", true, """
     package test
-    Test:Main {sys -> (FIO#sys).println(Foo#)}
+    Test:Main{sys -> (FIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
       .var n = {Count.int(0)}
       .loop {Block#
@@ -152,4 +152,12 @@ public class TestJavaOptimisations {
       .return {"Boo :("}
       }
     """, Base.mutBaseAliases);}
+
+  @Disabled @Test void methodChainDevirtualisation() { ok("""
+    """, "test.Test", true, """
+    package test
+    A: {.m1(a: A): A}
+    B: {.m1: A -> A{a0 -> a0}.m1(A{.m1(a1) -> A{.m1(a2) -> a1}})}
+    Test: Main{sys -> Void}
+    """, Base.mutBaseAliases); }
 }

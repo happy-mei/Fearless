@@ -92,8 +92,9 @@ public class BlockOptimisation implements MIRCloneVisitor {
         yield flattenBlock(mCall.recv(), stmts, self);
       }
       case MIR.BoolExpr boolExpr -> throw Bug.todo();
-      case MIR.CreateObj ignored -> FlattenStatus.INVALID;
       case MIR.X x -> self.filter(x::equals).map(x_->FlattenStatus.FLATTENED).orElse(FlattenStatus.INVALID);
+      case MIR.CreateObj ignored -> FlattenStatus.INVALID;
+      case MIR.StaticCall ignored -> throw Bug.unreachable();
       case MIR.Block ignored -> throw Bug.unreachable();
     };
   }
