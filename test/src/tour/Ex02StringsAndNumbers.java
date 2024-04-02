@@ -12,12 +12,11 @@ public class Ex02StringsAndNumbers {
 
 The Fearless standard library offers the following numeric types:
 
-- `Nat` : unsigned 32 bit integers
+- `Nat` : unsigned 64 bit integers
 - `Int` : signed 64 bit integers
-- `Float` : double precision 64 bit floating points according to specification XXXX
-- `Num` : Unlimited precision fractional numbers (TODO)
+- `Float` : double precision 64 bit floating points according to specification IEEE 754
+- `Num` : Unlimited precision fractional numbers
 //Is this all?
-Note that `Nat` is a 32 bit number because this is what list indexes ranges over.
 //We need to discuss how to fix this: not Stringable due to limitations of the Java codegen target
 //I had the same exact problem in 42 and I fixed it.
 
@@ -27,15 +26,15 @@ With `T` in `Nat`,`Int`,`Float`,`Num`, they support the following conventional o
   - (n: T): T,
   * (n: T): T,
   / (n: T): T,
-  **(n: T): T, // pow (why not implement it for all types?)
-  % (n: T): T, //really, also for floats?
+  **(n: T): T, // there is a good reason for pow to have different signatures
+  % (n: T): T, //really, also for floats? Java supports it, do we want to?
   .abs: T, //really? also for Nat?
   > (n: T): Bool,
   < (n: T): Bool,
   >=(n: T): Bool,
   <=(n: T): Bool,
   ==(n: T): Bool,
-
+  // TODO: add .assertEq
 ```
 This means that we can only operate on homogeneous numeric types.
 We can sum two `Int` but we can not directly sum `Int` and `Float`.
@@ -48,9 +47,7 @@ Instead, in Fearless you convert numeric types to each other manually, by using 
   readH .float: Float,
   readH .num: Num,
 ```
-All numeric types support all of those methods, so `myInt.int`
-is just going to just return `this`. 
-(We will encounter many methods that just return `this`. We will call them identity methods.)
+All numeric types support all of those methods, so `myInt.int` is just going to just return itself.
 They take a `readH` receiver, so that if somehow the type system have lost the knowledge that a numeric type is immutable, we can recover it. This is safe since all instances of numeric types are always immutable.
 This can happen for example when generic code is used, and integers are passed to satisfy a `read` parameter.
 
@@ -77,6 +74,9 @@ Finally, all the numeric types have a method
   readH .str: Str,
 ```
 returning a string.
+// We should use `read` everywhere we used `readH` due to our read promotion rules. A readH can call a read method like this
+// (i.e. takes no args & returns an imm)
+
 The code below shows those numeric types in action.
 -------------------------*/@Test void numericTypes() { run("""
     package test
@@ -93,8 +93,8 @@ The code below shows those numeric types in action.
       .let ok = {+10 + -10}
     //.let err = {+10 + - 10}//error: method Int.+() does not exists
       //this is less drammatic, since that space is really innatural
-      .let mixTypes1 = fTen + ten.float
-      .let mixTypes2 = fTen.nat + ten //very different results! 
+      .let mixTypes1 = {fTen + (ten.float)}
+      .let mixTypes2 = {fTen.nat + ten} //very different results!
       .return {UnrestrictedIO#sys.println(ten.str)}
       }
     //prints 0
@@ -106,15 +106,15 @@ If you want to avoid worrying about representation details, consider just using 
 
 # Strings and String builders (accumulator? from list/flow?)
 
-Fearless `Str` encode sequences of characters, under encoding XXXX (check Java).
+Fearless `Str` encode sequences of characters, under encoding XXXX (check Java). (TODO Talk to Michael Homer about string encodings)
 For simplicity Fearless do not have a dedicate character type, and elements of the string are visible just as `Nat`.
 Here the methods supported by Str:
 ```
-  readH .str: Str,
-  readH .int: mut Action[Int],
-  readH .nat: mut Action[Nat],
-  readH .float: mut Action[Float],
-  readH .num: mut Action[Num],
+  read .str: Str,
+  read .int: mut Action[Int],
+  read .nat: mut Action[Nat],
+  read .float: mut Action[Float],
+  read .num: mut Action[Num],
   .size: Nat,
   .isEmpty: Bool,
   +(other: Stringable): Str,
@@ -136,7 +136,7 @@ write code like the following:
 -------------------------*/@Test void stringable() { run("""
     package test
     //as defined in the standard library
-    //Stringable: {readH .str: Str, }
+    //Stringable: {read .str: Str, }
 
     Persons:F[Str,Nat,Person],Stringable{name,age->Person:{
       .name:Str->name,
@@ -161,9 +161,9 @@ Action is declared as follows in the standard library:
   //sholuld a mut Action cache the result?
   MF[A,R]:{ mut #(a:A):R }
   Actions:{
-    .some[E](e: E): Action[E]   -> {m-> m.some(e)},
-    .info[E](i: Info): Action[E]-> {m-> m.info(i)},
-    .info[E](kind: Str, msg: Str): Action[E]-> {m-> m.info(Info#(kind,msg))},//How to make info {kind:"..", msg:".."}
+    .some[E](e: E): mut Action[E]   -> {m-> m.some(e)},
+    .info[E](i: Info): mut Action[E]-> {m-> m.info(i)},
+    .info[E](kind: Str, msg: Str): mut Action[E]-> {m-> m.info(Info#(kind,msg))},//How to make info {kind:"..", msg:".."}
     }
   ActionMatch[E,R]:{ .some(e: E): R, .info(i: Info): R, }
   Action[E]:{
@@ -175,8 +175,8 @@ Action is declared as follows in the standard library:
     mut .map[R'](f: mut MF[R,R']): Action[R']->{m->this.run{//RIGHT, lazy!
       .some(e)->m.some(f#e),
       .info(i)->m.info(i),
-      }
-    mut !: E-> this?{
+      }}
+    mut !: E-> this.match{
       .some(e)-> e,
       .info(i)-> Error#(i),
       }
@@ -200,20 +200,20 @@ Action is declared as follows in the standard library:
             })
            +" a number overflowing the Int representation",
       .int(s:Str): Action[Int] ->Block#//this works like an Either
-         .if {s.size>20} .return {this.intOverflow(s)}
+        .if {s.size>20} .return {this.intOverflow(s)}
         .let pos = {s.startsWith("+")}
         .let neg = {s.startsWith("-")}
         .if {pos .or neg !} .return {this.intInfoStart(s)}
-        .let start = neg ? {.then-> +0, .else-> -0}
+        .let start = neg ? {.then-> +0, .else-> -0} // Nick: this does not make sense
         .let s0 = {s.substring(1,s.size)}
         .let digits[List[Nat]] = {"0123456789".flow.list}
-        .let err = {s0.flow.findFirst{c->c.indexOf(@==c).opt}}
+        .let err = {s0.flow.findFirst{c->digits.indexOf({e->e == c).isSome}}
         .if {err.isPresent} .return {this.intInfoNoDigit(err!)}
         .let res= {s0.flow
-          .flatMap{c->c.indexOf(@==c).flow}//{e->e==c} converts ashii to int
+          .flatMap{c->digits.indexOf({e->e == c}).flow}//{e->e==c} converts ashii to int
           .fold(start,{acc,curr-> acc * +10 + curr.int})
           }
-         .if {(res => 0 .and neg) .or (res < 0 . and pos)}
+         .if {(res >= 0 .and neg) .or (res < 0 . and pos)}
            .return {this.intOverflow(s)}
          .return{res}
       }
@@ -267,9 +267,7 @@ An empty optional it is not representing a mistake/error/problem.
     read .flow: mut Flow[read/imm T],
     imm  .flow: mut Flow[imm T],
     }
-  Opt[T]:Extensible[Opt[T]],_Opt[T]{
-    .self -> this,
-
+  Opt[T]:,_Opt[T]{
     .match(m) -> m.empty,
       
     .map(f) -> this.match(f),

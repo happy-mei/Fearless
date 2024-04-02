@@ -83,7 +83,7 @@ Since the block is implementing `Main.main`, we need to return `Void`.
 We could alternatively write
 -------------------------*/@Test void helloWorldBlockVar2() { run("""
     Test:Main {sys -> Block#
-      .var io = {UnrestrictedIO#sys}
+      .let io = {UnrestrictedIO#sys}
       .do {io.println("Hello, World!")}
       .return {Void}
       }
