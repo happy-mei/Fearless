@@ -14,8 +14,10 @@ public class TourHelper {
 
   public static void run(String content){
     var last= lastLine(content);
+    var aliases = Base.mutBaseAliases;
     if (!content.startsWith("package")){
       content = "package test\n" + content;
+      aliases = "package test\n";
     }
     String expectedPrint= "";
     if (last.startsWith("//prints ")){
