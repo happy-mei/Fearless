@@ -1,4 +1,6 @@
-package utils;
+package rt;
+
+import utils.Bug;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -11,7 +13,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
 public interface ResolveResource {
   static <R> R of(String root, Function<Path, R> f) throws IOException, URISyntaxException {
@@ -26,7 +27,7 @@ public interface ResolveResource {
 
   static String getStringOrThrow(String path) {
     try {
-      return of(path, throwingFunction(ResolveResource::read));
+      return of(path, ThrowingFunction.of(ResolveResource::read));
     } catch (URISyntaxException | IOException e) {
       throw Bug.of(e);
     }

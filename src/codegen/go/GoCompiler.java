@@ -3,7 +3,7 @@ package codegen.go;
 import main.CompilerFrontEnd;
 import org.apache.commons.lang3.SystemUtils;
 import utils.Bug;
-import utils.ResolveResource;
+import rt.ResolveResource;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,6 +1,8 @@
 package utils;
 
 import program.TypeSystemFeatures;
+import rt.ResolveResource;
+import rt.ThrowingFunction;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

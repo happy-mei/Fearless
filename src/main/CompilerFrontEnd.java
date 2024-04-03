@@ -20,7 +20,7 @@ import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
 import utils.Box;
 import utils.Bug;
-import utils.ResolveResource;
+import rt.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.zalando.fauxpas.FauxPas.throwingFunction;
-import static utils.ResolveResource.read;
+import static rt.ResolveResource.read;
 
 // TODO: It might be good to ban any files from having a "package base*" that are not in the base directory.
 

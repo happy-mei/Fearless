@@ -3,7 +3,7 @@ package codegen.java;
 import main.CompilerFrontEnd;
 import utils.Box;
 import utils.Bug;
-import utils.ResolveResource;
+import rt.ResolveResource;
 
 import javax.tools.Diagnostic;
 import javax.tools.SimpleJavaFileObject;

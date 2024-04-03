@@ -7,6 +7,10 @@ import id.Id;
 import program.TypeSystemFeatures;
 import utils.Box;
 import utils.Bug;
+import rt.FearlessUnicode;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class Main {
   private static CompilerFrontEnd frontEnd = null;
@@ -20,6 +24,10 @@ public class Main {
   }
 
   public static void main(String[] args) {
+    Arrays.stream(FearlessUnicode.parse("Hello, world! \uD83E\uDDD9\u200D♂\uFE0F"))
+      .map(bytes->new String(bytes, StandardCharsets.UTF_8))
+      .forEach(System.out::println);
+
     args = args.length > 0 ? args : new String[]{"--help"};
     var verbosity = new Box<>(new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None));
     var cli = new CmdLineAppBuilder(args)
