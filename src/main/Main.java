@@ -24,9 +24,14 @@ public class Main {
   }
 
   public static void main(String[] args) {
-    Arrays.stream(FearlessUnicode.parse("Hello, world! \uD83E\uDDD9\u200D♂\uFE0F"))
+    var tmp = new StringBuilder();
+    var jString = "Hello, world! \uD83E\uDDD9\u200D♂\uFE0F";
+    Arrays.stream(FearlessUnicode.parse(jString))
       .map(bytes->new String(bytes, StandardCharsets.UTF_8))
-      .forEach(System.out::println);
+      .forEach(tmp::append);
+    tmp.append('\n');
+    System.out.println(tmp);
+    System.out.println(jString.length()+" vs. "+jString.codePoints().count()+" vs. "+FearlessUnicode.parse(jString).length);
 
     args = args.length > 0 ? args : new String[]{"--help"};
     var verbosity = new Box<>(new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None));
