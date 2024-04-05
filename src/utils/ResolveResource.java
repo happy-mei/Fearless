@@ -49,7 +49,7 @@ public class ResolveResource{
   }*/
   static public Path of(String s){
     var res= root.resolve(resourcesLoc).resolve(s);
-    assert Files.exists(res);
+    assert Files.exists(res): res;
     return res;
   }
   static public String read(Path p){
@@ -76,8 +76,8 @@ public class ResolveResource{
     catch (IOException e) { throw Bug.of(e); }
   }
   static private Path myRoot(){
-    var noJar= !rootURI.getScheme().equals("jar");
-    //&& !rootURI.getScheme().equals("resource")
+    var noJar= !rootURI.getScheme().equals("jar")
+      && !rootURI.getScheme().equals("resource");
     Path p= noJar?Path.of(rootURI):jarPath();
     while (!p.endsWith(Path.of(srcRootTag))){
       p = p.getParent();
