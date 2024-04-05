@@ -20,7 +20,7 @@ public record TestMutLogicMain(
   Consumer<Process> res
   )
 implements LogicMainJava{
-  public Path base() {return ResolveResource.of("/base"); }
+  public String baseDir() {return "/base"; }
   public Map<String,List<Package>> parseApp(){
     var ps= IntStream.range(0,files.size())
       .mapToObj(i->new Parser(Path.of("Dummy"+i+".fear"),files.get(i)))
@@ -30,4 +30,6 @@ implements LogicMainJava{
   public void onStart(Process proc) { 
     proc.onExit().thenAccept(res).join();
   }
+
+  @Override public void preStart(ProcessBuilder pb) {}
 }

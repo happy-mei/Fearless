@@ -22,7 +22,8 @@ Assume in folder 'myFolder' we have a file with the following content:
 -------------------------*/@Test void helloWorld() { run("""
     package test
     alias base.Main as Main,
-    alias base.caps.UnrestrictedIO as UnrestrictedIO,
+    //alias base.caps.UnrestrictedIO as UnrestrictedIO,
+    alias base.caps.FIO as UnrestrictedIO,
     
     Test:Main {sys -> UnrestrictedIO#sys.println("Hello, World!")}
     //prints Hello, World!

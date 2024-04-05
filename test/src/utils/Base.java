@@ -3,6 +3,7 @@ package utils;
 import program.TypeSystemFeatures;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -22,20 +23,7 @@ public interface Base {
   }
 
   static String load(String file) {
-    try {
-      var root = Path.of(Thread.currentThread().getContextClassLoader().getResource("base").toURI());
-      return read(root.resolve(file));
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  static String loadImm(String file) {
-    try {
-      var root = Path.of(Thread.currentThread().getContextClassLoader().getResource("immBase").toURI());
-      return read(root.resolve(file));
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
+    return ResolveResource.read("/base/"+file);
   }
   static String read(Path path) {
     try {
@@ -55,7 +43,7 @@ public interface Base {
             .toArray(String[]::new);
         }
       }));
-    } catch (IOException | URISyntaxException e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }

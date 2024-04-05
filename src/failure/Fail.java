@@ -13,10 +13,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.FileSystemException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -275,6 +272,16 @@ public class Fail{
     return of(msg);
   }
 
+  public static CompileError specialPackageConflict(Set<String> special, Set<String> user) {
+    var conflicts = new HashSet<>(user);
+    conflicts.retainAll(special);
+    var taggedConflicts = conflicts.stream()
+      .map(pkg->conflict(Pos.UNKNOWN, pkg))
+      .toList();
+
+    return of(conflictingMsg("The following package names are reserved for use in the Fearless standard library", taggedConflicts));
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -341,7 +348,8 @@ enum ErrorCode {
   freeGensInLambda,
   invalidLambdaNameMdfBounds,
   mismatchedMethodGens,
-  syntaxError;
+  syntaxError,
+  specialPackageConflict;
   private static final ErrorCode[] values = values();
   int code() {
     return this.ordinal() + 1;

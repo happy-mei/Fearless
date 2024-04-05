@@ -64,7 +64,7 @@ public class JavaProgram extends SimpleJavaFileObject {
       "Error",
       "Try",
       "CapTry"
-    ).map(name -> new JavaProgram(name, ResolveResource.read(ResolveResource.of("rt").resolve(name+".java"))));
+    ).map(name -> new JavaProgram(name, ResolveResource.read("/rt/"+name+".java")));
     var userFiles = Arrays.stream(files);
     var codegenUnits = Stream.concat(userFiles, runtimeFiles);
 

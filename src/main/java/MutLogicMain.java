@@ -1,13 +1,12 @@
 package main.java;
 
+import astFull.Package;
+import main.CompilerFrontEnd.Verbosity;
+import utils.ResolveResource;
+
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-
-import astFull.Package;
-import main.CompilerFrontEnd;
-import main.CompilerFrontEnd.Verbosity;
-import utils.ResolveResource;
 
 public record MutLogicMain(
   List<String> commandLineArguments,
@@ -16,7 +15,7 @@ public record MutLogicMain(
   Verbosity verbosity
   )
 implements LogicMainJava{
-  public Path base() {return ResolveResource.of("/base"); }
+  public String baseDir() {return "/base"; }
   public Map<String,List<Package>> parseApp(){
     return load(loadFiles(userApp()));
   }

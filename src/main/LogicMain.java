@@ -2,11 +2,13 @@ package main;
 
 import astFull.Package;
 import failure.CompileError;
+import failure.Fail;
 import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Bug;
+import utils.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -14,18 +16,24 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static utils.ResolveResource.read;
+import static utils.ResolveResource.readLive;
 
 public interface LogicMain<Exe> {
-  Path base();
+  String baseDir();
   CompilerFrontEnd.Verbosity verbosity();
   Map<String,List<Package>> parseApp();
   default astFull.Program parse(Map<String,List<Package>> app) {
-    Map<String,List<Package>> base = load(loadFiles(this.base()));
+    Map<String,List<Package>> base; try { base = load(ResolveResource.of(this.baseDir(), this::loadFiles));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
     return generateProgram(base, app);
     }
   default void wellFormednessFull(astFull.Program fullProgram){
@@ -62,6 +70,7 @@ public interface LogicMain<Exe> {
       Exe mainExe,
       ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls 
       );
+  void preStart(ProcessBuilder pb);
   void onStart(Process process);
   default void logicMain(){
     var v= verbosity();
@@ -81,7 +90,7 @@ public interface LogicMain<Exe> {
     try (var fs = Files.walk(root)) {
       return fs
         .filter(Files::isRegularFile)
-        .map(p->new Parser(p,read(p)))
+        .map(p->new Parser(p,readLive(p)))
         .toList();
     }
     catch(IOException io) { throw new UncheckedIOException(io); }
@@ -95,8 +104,10 @@ public interface LogicMain<Exe> {
       Map<String,List<Package>> base,
       Map<String,List<Package>> app
       ) {
-    var err = Collections.disjoint(base.keySet(), app.keySet());
-    if (err) { throw Bug.todo(); }
+    var standardLibOverriden = !Collections.disjoint(base.keySet(), app.keySet());
+    if (standardLibOverriden) {
+      throw Fail.specialPackageConflict(base.keySet(), app.keySet());
+    }
     var packages = new HashMap<>(base);
     packages.putAll(app);
     return Parser.parseAll(packages, new TypeSystemFeatures());

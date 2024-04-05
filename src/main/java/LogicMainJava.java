@@ -61,9 +61,13 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
     Path pathToMain= JavaProgram.compile(verbosity(), mainExe);
     var pb = new ProcessBuilder(makeJavaCommand(pathToMain));
     pb.directory(pathToMain.getParent().toFile());
-    pb.inheritIO();
+    this.preStart(pb);
     Process proc; try { proc = pb.start();}
     catch (IOException e) { throw new UncheckedIOException(e); }
     return proc;
+  }
+
+  @Override default void preStart(ProcessBuilder pb) {
+    pb.inheritIO();
   }
 }

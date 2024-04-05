@@ -1,6 +1,8 @@
 package utils;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
@@ -13,9 +15,10 @@ import java.util.stream.Collectors;
 import static java.util.Objects.requireNonNull;
 
 public interface ResolveResource {
-  static <R> R of(String relativePath, Function<Path, R> f) throws IOException, URISyntaxException {
+  static <R> R of(String relativePath, Function<Path, R> f) throws IOException {
     assert relativePath.startsWith("/");
-    var absolutePath = requireNonNull(ResolveResource.class.getResource(relativePath)).toURI();
+    URI absolutePath; try { absolutePath = requireNonNull(ResolveResource.class.getResource(relativePath)).toURI();
+    } catch (URISyntaxException err) { throw Bug.of(err); }
     if (!absolutePath.getScheme().equals("jar") && !absolutePath.getScheme().equals("resource")) {
       return f.apply(Path.of(absolutePath));
     }
@@ -26,17 +29,24 @@ public interface ResolveResource {
     }
   }
 
-  static String getStringOrThrow(String path) {
+  static String read(String path) {
     try {
-      return of(path, ThrowingFunction.of(ResolveResource::read));
-    } catch (URISyntaxException | IOException e) {
-      throw Bug.of(e);
+      return of(path, ThrowingFunction.of(ResolveResource::readLive));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
 
-  static String read(Path p) throws IOException {
+  /**
+   * Read the contents of the file at a path in to a string. This should only ever be called on
+   * paths that are known to exist. That means that it should not be called on a path that is within a JAR
+   * unless you know that the virtual filesystem of the JAR is alive.
+   */
+  static String readLive(Path p) {
     try(var br = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
       return br.lines().collect(Collectors.joining("\n"));
+    } catch (IOException err) {
+      throw new UncheckedIOException(err);
     }
   }
 }

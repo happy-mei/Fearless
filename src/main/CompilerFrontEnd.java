@@ -26,6 +26,7 @@ import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static utils.ResolveResource.read;
+import static utils.ResolveResource.readLive;
 
 // TODO: It might be good to ban any files from having a "package base*" that are not in the base directory.
 
@@ -95,9 +97,9 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     Path root = Path.of("docs");
     try { Files.createDirectory(root); } catch (FileAlreadyExistsException ignored) {}
     Files.writeString(root.resolve(docs.fileName()), docs.index());
-    var styleCss = ResolveResource.of("/style.css", ThrowingFunction.of(ResolveResource::read));
-    var highlightingJs = ResolveResource.of("/highlighting.js", ThrowingFunction.of(ResolveResource::read));
+    var styleCss = ResolveResource.read("/style.css");
     Files.writeString(root.resolve("style.css"), styleCss);
+    var highlightingJs = ResolveResource.read("/highlighting.js");
     Files.writeString(root.resolve("highlighting.js"), highlightingJs);
     for (var pkg : docs.docs()) {
       var links = pkg.links();
@@ -209,7 +211,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       case Std -> "/default-aliases.fear";
       case Imm -> "/default-imm-aliases.fear";
     };
-    return ResolveResource.getStringOrThrow(path);
+    return ResolveResource.read(path);
   }
 
 
@@ -228,8 +230,8 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
           yield res;
         }
       };
-    } catch (URISyntaxException | IOException e) {
-      throw Bug.of(e);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
     return ps;
   }
@@ -238,7 +240,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     try(var fs = Files.walk(root)) {
       return fs
         .filter(Files::isRegularFile)
-        .map(ThrowingFunction.of(path->new Parser(path, read(path)).parseFile(CompileError::err)))
+        .map(path->new Parser(path, readLive(path)).parseFile(CompileError::err))
         .collect(Collectors.groupingBy(Package::name));
     }
   }
