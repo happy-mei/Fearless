@@ -11,17 +11,17 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
-public class ImmJavaProgram extends JavaProgram {
+public class ImmJavaProgram extends JavaFile {
   public ImmJavaProgram(String code) {
-    super(code);
+    super(JavaCompiler.MAIN_CLASS_NAME,code);
   }
   public ImmJavaProgram(String topLevelClassName, String code) {
     super(topLevelClassName, code);
   }
 
-  public static Path compile(CompilerFrontEnd.Verbosity verbosity, JavaProgram... files) {
+  public static Path compile(CompilerFrontEnd.Verbosity verbosity, JavaFile... files) {
     assert files.length > 0;
-    assert Arrays.stream(files).anyMatch(f->f.isNameCompatible(MAIN_CLASS_NAME, Kind.SOURCE));
+    assert Arrays.stream(files).anyMatch(f->f.isNameCompatible(JavaCompiler.MAIN_CLASS_NAME, Kind.SOURCE));
     var compiler = ToolProvider.getSystemJavaCompiler();
     if (compiler == null) {
       throw new RuntimeException("No Java compiler could be found. Please install a JDK >= 10.");
@@ -51,7 +51,7 @@ public class ImmJavaProgram extends JavaProgram {
       errors::set,
       options,
       null,
-      (Iterable<JavaProgram>) codegenUnits::iterator
+      (Iterable<JavaFile>) codegenUnits::iterator
     ).call();
 
     if (!success) {

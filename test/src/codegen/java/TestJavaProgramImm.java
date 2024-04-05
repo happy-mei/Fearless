@@ -48,7 +48,7 @@ public class TestJavaProgramImm {
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
     var verbosity = new CompilerFrontEnd.Verbosity(false, true, CompilerFrontEnd.ProgressVerbosity.None);
-    var res = RunOutput.java(ImmJavaProgram.compile(verbosity, new JavaProgram(java)), args).join();
+    var res = RunOutput.java(ImmJavaProgram.compile(verbosity, new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java)), args).join();
     Assertions.assertEquals(expected, res);
   }
 
@@ -74,7 +74,7 @@ public class TestJavaProgramImm {
     var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     try {
       var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId("test.Test", 0));
-      var res = RunOutput.java(JavaProgram.compile(verbosity, new JavaProgram(java)), args).join();
+      var res = RunOutput.java(JavaCompiler.compile(verbosity, new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java)), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

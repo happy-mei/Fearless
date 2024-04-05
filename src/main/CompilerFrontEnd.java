@@ -7,6 +7,8 @@ import codegen.html.HtmlDocgen;
 import codegen.java.ImmJavaCodegen;
 import codegen.java.ImmJavaProgram;
 import codegen.java.JavaCodegen;
+import codegen.java.JavaCompiler;
+import codegen.java.JavaFile;
 import codegen.java.JavaProgram;
 import failure.CompileError;
 import failure.Fail;
@@ -122,8 +124,8 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     v.progress.printTask("Code generated \uD83E\uDD73 ("+timer.duration()+"ms)");
     v.progress.printStep("Executing backend compiler \uD83C\uDFED");
     var classFile = switch (bv) {
-      case Std -> JavaProgram.compile(v, mainClass);
-      case Imm -> ImmJavaProgram.compile(v, mainClass);
+      case Std -> new JavaCompiler().compile(v, mainClass.files().get(0));
+      case Imm -> throw Bug.todo();//ImmJavaProgram.compile(v, mainClass);
     };
     v.progress.printStep("Done executing backend compiler \uD83E\uDD73 ("+timer.duration()+"ms)");
 
@@ -200,7 +202,8 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     if (v.printCodegen) {
       System.out.println(src);
     }
-    return new JavaProgram(src);
+    return new JavaProgram(List.of(
+      new JavaFile(JavaCompiler.MAIN_CLASS_NAME,src)));
   }
 
   String regenerateAliases() {

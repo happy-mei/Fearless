@@ -407,7 +407,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     return pkg+"$"+getBase(d.shortName())+"_"+d.gen();
   }
   private static String getName(Mdf mdf, Id.MethName m) { return getBase(m.name())+"$"+mdf; }
-  private static String getBase(String name) {
+  static String getBase(String name) {
     if (name.startsWith(".")) { name = name.substring(1); }
     return name.chars().mapToObj(c->{
       if (c != '\'' && (c == '.' || Character.isAlphabetic(c) || Character.isDigit(c))) {

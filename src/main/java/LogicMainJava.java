@@ -9,6 +9,8 @@ import java.util.stream.Stream;
 
 import codegen.MIRInjectionVisitor;
 import codegen.java.JavaCodegen;
+import codegen.java.JavaCompiler;
+import codegen.java.JavaFile;
 import codegen.java.JavaProgram;
 import failure.Fail;
 import id.Id;
@@ -42,7 +44,8 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
       .isSubType(XBs.empty(), new ast.T(Mdf.mdf, program.of(entry).toIT()), new ast.T(Mdf.mdf,main));
     if (!isEntryValid) { throw Fail.invalidEntryPoint(entry, main); }
     var src = codegen.visitProgram(entry);
-    return new JavaProgram(src);
+    return new JavaProgram(List.of(
+      new JavaFile(JavaCompiler.MAIN_CLASS_NAME,src)));
   }
   default JavaProgram mainCodeGeneration(
       ast.Program program,
@@ -58,7 +61,7 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
       JavaProgram mainExe,
       ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
       ){
-    Path pathToMain= JavaProgram.compile(verbosity(), mainExe);
+    Path pathToMain= new JavaCompiler().compile(verbosity(), mainExe.files().get(0));
     var pb = new ProcessBuilder(makeJavaCommand(pathToMain));
     pb.directory(pathToMain.getParent().toFile());
     this.preStart(pb);
