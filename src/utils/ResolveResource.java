@@ -11,22 +11,24 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
 
 public interface ResolveResource {
-  static <R> R of(String root, Function<Path, R> f) throws IOException, URISyntaxException {
-    var top = requireNonNull(ResolveResource.class.getResource(root)).toURI();
-    if (!top.getScheme().equals("jar") && !top.getScheme().equals("resource")) {
-      return f.apply(Path.of(top));
+  static <R> R of(String relativePath, Function<Path, R> f) throws IOException, URISyntaxException {
+    assert relativePath.startsWith("/");
+    var absolutePath = requireNonNull(ResolveResource.class.getResource(relativePath)).toURI();
+    if (!absolutePath.getScheme().equals("jar") && !absolutePath.getScheme().equals("resource")) {
+      return f.apply(Path.of(absolutePath));
     }
-    try(var fs = FileSystems.newFileSystem(top, Map.of())) {
-      return f.apply(fs.getPath(root));
+    // yes, this technically fetches /something/foo.file and resolves to / but it's fine for our purposes.
+    // We cannot just do  ResolveResource.class.getResource("/") because the resource path we provide must be to a file
+    try(var fs = FileSystems.newFileSystem(absolutePath, Map.of())) {
+      return f.apply(fs.getPath(relativePath));
     }
   }
 
   static String getStringOrThrow(String path) {
     try {
-      return of(path, throwingFunction(ResolveResource::read));
+      return of(path, ThrowingFunction.of(ResolveResource::read));
     } catch (URISyntaxException | IOException e) {
       throw Bug.of(e);
     }
