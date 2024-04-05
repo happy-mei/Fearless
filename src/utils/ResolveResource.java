@@ -14,24 +14,37 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
-public interface ResolveResource {
-  static <R> R of(String relativePath, Function<Path, R> f) throws IOException {
+public final class ResolveResource {
+  static private final Path root;
+  static{
+    ResolveResource.class.getResource("ResolveResource.class");
+    var url= ResolveResource.class.getResource("/base");
+    if(url==null) {
+      String workingDir = System.getProperty("user.dir");
+      root=Path.of(workingDir).resolve("resources");
+      assert root!=null;
+      assert Files.exists(root):root;
+    }
+    else {
+      URI uri; try {uri= url.toURI();}
+      catch (URISyntaxException e) { throw Bug.of(e); }
+      root=Path.of(uri);
+    }
+  }
+  static public <R> R of(String relativePath, Function<Path, R> f) throws IOException {
     assert relativePath.startsWith("/");
-    URI absolutePath; try { absolutePath = requireNonNull(ResolveResource.class.getResource(relativePath)).toURI();
-    } catch (URISyntaxException err) { throw Bug.of(err); }
+    URI absolutePath= root.resolve(relativePath.substring(1)).toUri();
     if (!absolutePath.getScheme().equals("jar") && !absolutePath.getScheme().equals("resource")) {
       return f.apply(Path.of(absolutePath));
     }
-    // yes, this technically fetches /something/foo.file and resolves to / but it's fine for our purposes.
-    // We cannot just do  ResolveResource.class.getResource("/") because the resource path we provide must be to a file
-    try(var fs = FileSystems.newFileSystem(absolutePath, Map.of())) {
+    try(var fs = FileSystems.newFileSystem(root.toUri(), Map.of())) {
       return f.apply(fs.getPath(relativePath));
     }
   }
 
-  static String read(String path) {
+  static public String read(String path) {
     try {
-      return of(path, ThrowingFunction.of(ResolveResource::readLive));
+      return of(path, ResolveResource::readLive);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -42,7 +55,7 @@ public interface ResolveResource {
    * paths that are known to exist. That means that it should not be called on a path that is within a JAR
    * unless you know that the virtual filesystem of the JAR is alive.
    */
-  static String readLive(Path p) {
+  static public String readLive(Path p) {
     try(var br = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
       return br.lines().collect(Collectors.joining("\n"));
     } catch (IOException err) {
