@@ -21,6 +21,7 @@ import program.typesystem.XBs;
 import utils.Box;
 import utils.Bug;
 import utils.ResolveResource;
+import utils.ThrowingFunction;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -35,7 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.zalando.fauxpas.FauxPas.throwingFunction;
 import static utils.ResolveResource.read;
 
 // TODO: It might be good to ban any files from having a "package base*" that are not in the base directory.
@@ -95,8 +95,8 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     Path root = Path.of("docs");
     try { Files.createDirectory(root); } catch (FileAlreadyExistsException ignored) {}
     Files.writeString(root.resolve(docs.fileName()), docs.index());
-    var styleCss = ResolveResource.of("/style.css", throwingFunction(ResolveResource::read));
-    var highlightingJs = ResolveResource.of("/highlighting.js", throwingFunction(ResolveResource::read));
+    var styleCss = ResolveResource.of("/style.css", ThrowingFunction.of(ResolveResource::read));
+    var highlightingJs = ResolveResource.of("/highlighting.js", ThrowingFunction.of(ResolveResource::read));
     Files.writeString(root.resolve("style.css"), styleCss);
     Files.writeString(root.resolve("highlighting.js"), highlightingJs);
     for (var pkg : docs.docs()) {
@@ -212,8 +212,9 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     return ResolveResource.getStringOrThrow(path);
   }
 
+
   Map<String, List<Package>> parseBase() {
-    var load = throwingFunction(CompilerFrontEnd::load);
+    var load = ThrowingFunction.of(CompilerFrontEnd::load);
     Map<String, List<Package>> ps; try { ps =
       switch (bv) {
         case Std -> {
@@ -233,11 +234,11 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     return ps;
   }
 
-  static Map<String, List<Package>> load(Path root) throws IOException {
+  static Map<String, List<Package>> load(Path root) throws IOException{
     try(var fs = Files.walk(root)) {
       return fs
         .filter(Files::isRegularFile)
-        .map(throwingFunction(path->new Parser(path, read(path)).parseFile(CompileError::err)))
+        .map(ThrowingFunction.of(path->new Parser(path, read(path)).parseFile(CompileError::err)))
         .collect(Collectors.groupingBy(Package::name));
     }
   }
