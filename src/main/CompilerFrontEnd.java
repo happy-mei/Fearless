@@ -37,9 +37,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static utils.ResolveResource.read;
-import static utils.ResolveResource.readLive;
-
 // TODO: It might be good to ban any files from having a "package base*" that are not in the base directory.
 
 public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures tsf) {
@@ -97,9 +94,9 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     Path root = Path.of("docs");
     try { Files.createDirectory(root); } catch (FileAlreadyExistsException ignored) {}
     Files.writeString(root.resolve(docs.fileName()), docs.index());
-    var styleCss = ResolveResource.read("/style.css");
+    var styleCss = ResolveResource.getAndRead("/style.css");
     Files.writeString(root.resolve("style.css"), styleCss);
-    var highlightingJs = ResolveResource.read("/highlighting.js");
+    var highlightingJs = ResolveResource.getAndRead("/highlighting.js");
     Files.writeString(root.resolve("highlighting.js"), highlightingJs);
     for (var pkg : docs.docs()) {
       var links = pkg.links();
@@ -211,7 +208,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       case Std -> "/default-aliases.fear";
       case Imm -> "/default-imm-aliases.fear";
     };
-    return ResolveResource.read(path);
+    return ResolveResource.getAndRead(path);
   }
 
 
@@ -221,12 +218,12 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       switch (bv) {
         case Std -> {
           var res = baseLib.get();
-          if (res == null) { res = ResolveResource.of("/base", load); baseLib.set(res); }
+          if (res == null) { res = load(ResolveResource.of("/base")); baseLib.set(res); }
           yield res;
         }
         case Imm -> {
           var res = immBaseLib.get();
-          if (res == null) { res = ResolveResource.of("/immBase", load); immBaseLib.set(res); }
+          if (res == null) { res = load(ResolveResource.of("/immBase")); immBaseLib.set(res); }
           yield res;
         }
       };
@@ -240,7 +237,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     try(var fs = Files.walk(root)) {
       return fs
         .filter(Files::isRegularFile)
-        .map(path->new Parser(path, readLive(path)).parseFile(CompileError::err))
+        .map(path->new Parser(path, ResolveResource.read(path)).parseFile(CompileError::err))
         .collect(Collectors.groupingBy(Package::name));
     }
   }

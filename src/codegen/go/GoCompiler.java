@@ -33,7 +33,7 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     }
     record Runtime(String name) implements Unit {
       @Override public String src() {
-        return ResolveResource.read("/rt/" +name);
+        return ResolveResource.getAndRead("/rt/" +name);
       }
     }
   }
@@ -53,7 +53,8 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     for (var unit : this.units()) { unit.write(workingDir); }
     for (var unit : this.rt()) { unit.write(workingDir); }
 
-    var canExecute = ResolveResource.of(GoVersion.path(), compilerPath->compilerPath.toFile().setExecutable(true));
+    var compilerPath = ResolveResource.of(GoVersion.path());
+    var canExecute = compilerPath.toFile().setExecutable(true);
     if (!canExecute) {
       System.err.println("Warning: Could not make the Go compiler executable");
     }
@@ -85,20 +86,15 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
   }
 
   Process goProcess(Path workingDir, String[] args) {
-    Process proc; try { proc = ResolveResource.of(GoVersion.path(), compiler->{
-      String[] command = Stream.concat(Stream.of(compiler.toString()), Arrays.stream(args)).toArray(String[]::new);
-      var pb = new ProcessBuilder(command).directory(workingDir.toFile());
-      var inheritIO = verbosity.progress() == CompilerFrontEnd.ProgressVerbosity.Full;
-      try {
-        return inheritIO ? pb.inheritIO().start() : pb.start();
-      } catch (IOException e) {
-        throw Bug.of(e);
-      }
-    });
+    var compiler = ResolveResource.of(GoVersion.path());
+    String[] command = Stream.concat(Stream.of(compiler.toString()), Arrays.stream(args)).toArray(String[]::new);
+    var pb = new ProcessBuilder(command).directory(workingDir.toFile());
+    var inheritIO = verbosity.progress() == CompilerFrontEnd.ProgressVerbosity.Full;
+    try {
+      return inheritIO ? pb.inheritIO().start() : pb.start();
     } catch (IOException e) {
-      throw new UncheckedIOException(e);
+      throw Bug.of(e);
     }
-    return proc;
   }
   private CompletableFuture<Void> runGoCmd(Path workingDir, String... args) {
     Process proc= goProcess(workingDir,args);

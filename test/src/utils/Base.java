@@ -23,28 +23,27 @@ public interface Base {
   }
 
   static String load(String file) {
-    return ResolveResource.read("/base/"+file);
+    return ResolveResource.getAndRead("/base/"+file);
   }
   static String read(Path path) {
     try {
       return Files.readString(path, StandardCharsets.UTF_8);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 
   static String[] readAll(String prefix) {
     try {
-      return ResolveResource.of(prefix, ThrowingFunction.of(root->{
-        try(var fs = Files.walk(root)) {
-          return fs
-            .filter(Files::isRegularFile)
-            .map(Base::read)
-            .toArray(String[]::new);
-        }
-      }));
+      var root = ResolveResource.of(prefix);
+      try(var fs = Files.walk(root)) {
+        return fs
+          .filter(Files::isRegularFile)
+          .map(Base::read)
+          .toArray(String[]::new);
+      }
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
   String[] baseLib = readAll("/base");

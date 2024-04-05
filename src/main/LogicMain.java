@@ -3,11 +3,11 @@ package main;
 import astFull.Package;
 import failure.CompileError;
 import failure.Fail;
+import failure.Res;
 import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
-import utils.Bug;
 import utils.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
@@ -23,17 +23,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static utils.ResolveResource.readLive;
-
 public interface LogicMain<Exe> {
   String baseDir();
   CompilerFrontEnd.Verbosity verbosity();
   Map<String,List<Package>> parseApp();
   default astFull.Program parse(Map<String,List<Package>> app) {
-    Map<String,List<Package>> base; try { base = load(ResolveResource.of(this.baseDir(), this::loadFiles));
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    Map<String,List<Package>> base = load(loadFiles(ResolveResource.of(this.baseDir())));
     return generateProgram(base, app);
     }
   default void wellFormednessFull(astFull.Program fullProgram){
@@ -90,7 +85,7 @@ public interface LogicMain<Exe> {
     try (var fs = Files.walk(root)) {
       return fs
         .filter(Files::isRegularFile)
-        .map(p->new Parser(p,readLive(p)))
+        .map(p->new Parser(p, ResolveResource.read(p)))
         .toList();
     }
     catch(IOException io) { throw new UncheckedIOException(io); }
