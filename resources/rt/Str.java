@@ -11,7 +11,7 @@ public interface Str extends FProgram.base.Str_0 {
 			private byte[][] CHARS = null;
 			@Override public String javaEncoding() { return str; }
 			@Override public byte[][] chars() {
-				if (CHARS == null) { CHARS = FearlessUnicode.parse(str); }
+				if (CHARS == null) { CHARS = NativeRuntime.parse(str); }
 				return CHARS;
 			}
 		};

@@ -5,12 +5,11 @@ import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
 import failure.CompileError;
 import id.Id;
 import program.TypeSystemFeatures;
+import rt.NativeRuntime;
 import utils.Box;
 import utils.Bug;
-import rt.FearlessUnicode;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 public class Main {
   private static CompilerFrontEnd frontEnd = null;
@@ -24,14 +23,12 @@ public class Main {
   }
 
   public static void main(String[] args) {
-    var tmp = new StringBuilder();
     var jString = "Hello, world! \uD83E\uDDD9\u200D♂\uFE0F";
-    Arrays.stream(FearlessUnicode.parse(jString))
-      .map(bytes->new String(bytes, StandardCharsets.UTF_8))
-      .forEach(tmp::append);
-    tmp.append('\n');
-    System.out.println(tmp);
-    System.out.println(jString.length()+" vs. "+jString.codePoints().count()+" vs. "+FearlessUnicode.parse(jString).length);
+    var utf8 = jString.getBytes(StandardCharsets.UTF_8);
+    var indexes = NativeRuntime.indexString(utf8);
+    NativeRuntime.println(utf8);
+    NativeRuntime.printlnErr(utf8);
+    NativeRuntime.print("yo".getBytes(StandardCharsets.UTF_8));
 
     args = args.length > 0 ? args : new String[]{"--help"};
     var verbosity = new Box<>(new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None));
