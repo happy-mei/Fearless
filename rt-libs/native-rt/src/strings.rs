@@ -13,7 +13,7 @@ pub struct FearlessStr<'a, 'local, 'array_local, 'array> {
 }
 impl<'a, 'local, 'array_local, 'array> FearlessStr<'a, 'local, 'array_local, 'array> {
     pub fn new(env: &mut JNIEnv<'local>, utf8_str: &'array JByteArray<'array_local>) -> FearlessStr<'a, 'local, 'array_local, 'array> {
-        // Safety: the derived &str from this reference. Making this critical would be safe too,
+        // Safety: Lifetimes bind the data here. Making this critical would be safe too,
         // but we don't need to do that unless this is becoming a perf issue (making it critical
         // has stalling risks on other threads because it locks the allocator)
         let array_ref = unsafe { env.get_array_elements(utf8_str, ReleaseMode::NoCopyBack).unwrap() };
@@ -26,7 +26,7 @@ impl<'a, 'local, 'array_local, 'array> FearlessStr<'a, 'local, 'array_local, 'ar
         let raw_str = self.as_bytes();
         std::str::from_utf8(raw_str)
     }
-    pub fn as_bytes(&'a self) -> &[u8] {
+    fn as_bytes(&'a self) -> &[u8] {
         // Safety:
         // - The JNI guarantees that there is data here with the provided length.
         // - i8 and u8 are safely interchangeable for the bytes here

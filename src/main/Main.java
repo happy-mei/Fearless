@@ -10,6 +10,7 @@ import utils.Box;
 import utils.Bug;
 
 import java.nio.charset.StandardCharsets;
+import java.util.stream.IntStream;
 
 public class Main {
   private static CompilerFrontEnd frontEnd = null;
@@ -26,9 +27,15 @@ public class Main {
     var jString = "Hello, world! \uD83E\uDDD9\u200D♂\uFE0F";
     var utf8 = jString.getBytes(StandardCharsets.UTF_8);
     var indexes = NativeRuntime.indexString(utf8);
+    IntStream.range(0, 100).mapToObj(i->(i+"").getBytes(StandardCharsets.UTF_8))
+        .forEach(s->{
+          NativeRuntime.printlnErr(s);
+          NativeRuntime.println(s);
+        });
     NativeRuntime.println(utf8);
     NativeRuntime.printlnErr(utf8);
     NativeRuntime.print("yo".getBytes(StandardCharsets.UTF_8));
+    NativeRuntime.println(new byte[]{-28});
 
     args = args.length > 0 ? args : new String[]{"--help"};
     var verbosity = new Box<>(new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None));

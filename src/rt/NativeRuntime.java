@@ -18,6 +18,12 @@ public final class NativeRuntime {
     }
   }
 
+  public static class StringEncodingError extends RuntimeException {
+    public StringEncodingError(String message) {
+      super(message);
+    }
+  }
+
   public static native int[] indexString(byte[] utf8Str);
   public static native void print(byte[] utf8Str);
   public static native void println(byte[] utf8Str);

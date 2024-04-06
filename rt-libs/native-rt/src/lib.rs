@@ -16,7 +16,7 @@ pub extern "system" fn Java_rt_NativeRuntime_indexString<'local>(mut env: JNIEnv
         let str = match f_str.as_str() {
             Ok(str) => str,
             Err(err) => {
-                env.throw_new("java/lang/RuntimeException", format!("{}", err)).unwrap();
+                env.throw_new("rt/NativeRuntime$StringEncodingError", format!("{}", err)).unwrap();
                 return JObject::null().into_raw();
             }
         };
@@ -52,7 +52,14 @@ pub extern "system" fn Java_rt_NativeRuntime_printlnErr<'local>(env: JNIEnv<'loc
 
 fn print<'local, B: Write>(mut env: JNIEnv<'local>, utf8_str: JByteArray<'local>, append_newline: bool, mut buffer: B) {
     let f_str = FearlessStr::new(&mut env, &utf8_str);
-    buffer.write_all(f_str.as_bytes()).unwrap();
+    let str = match f_str.as_str() {
+        Ok(str) => str.as_bytes(),
+        Err(err) => {
+            env.throw_new("rt/NativeRuntime$StringEncodingError", format!("{}", err)).unwrap();
+            return;
+        }
+    };
+    buffer.write_all(str).unwrap();
     if append_newline { buffer.write_all(b"\n").unwrap(); }
     buffer.flush().unwrap();
 }
