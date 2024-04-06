@@ -35,7 +35,8 @@ public class Main {
 
     args = args.length > 0 ? args : new String[]{"--help"};
     var verbosity = new Box<>(new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None));
-    var cli = new CmdLineAppBuilder(args)
+//This commented code was terrible anyway, please, divide in more methods and concepts....
+     var cli = new CmdLineAppBuilder(args)
       .withJarName("fearless")
       .withDescription("The compiler for the Fearless programming language. See https://fearlang.org for more information.")
       .withArg("new", "Create a new package")

@@ -1,41 +1,59 @@
 package rt;
 
-import utils.Bug;
-
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.requireNonNull;
-
-public interface ResolveResource {
-  static <R> R of(String root, Function<Path, R> f) throws IOException, URISyntaxException {
-    var top = requireNonNull(ResolveResource.class.getResource(root)).toURI();
-    if (!top.getScheme().equals("jar") && !top.getScheme().equals("resource")) {
-      return f.apply(Path.of(top));
+public final class ResolveResource {
+  static private final Path root;
+  static private FileSystem virtualFs;
+  static{
+    var url= ResolveResource.class.getResource("/base");
+    if(url==null) {
+      String workingDir = System.getProperty("user.dir");
+      root=Path.of(workingDir).resolve("resources");
+      assert Files.exists(root):root;
     }
-    try(var fs = FileSystems.newFileSystem(top, Map.of())) {
-      return f.apply(fs.getPath(root));
+    else {
+      URI uri; try { uri= url.toURI();}
+      catch (URISyntaxException e) { throw new RuntimeException(e); }
+      root=Path.of(uri).getParent();
+
+      if (uri.getScheme().equals("jar") || uri.getScheme().equals("resource")) {
+        try {
+          virtualFs = FileSystems.newFileSystem(uri, Map.of());
+        } catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      }
     }
   }
-
-  static String getStringOrThrow(String path) {
-    try {
-      return of(path, ThrowingFunction.of(ResolveResource::read));
-    } catch (URISyntaxException | IOException e) {
-      throw Bug.of(e);
+  static public Path of(String relativePath) {
+    assert relativePath.startsWith("/");
+    URI absolutePath= root.resolve(relativePath.substring(1)).toUri();
+    if (virtualFs != null) {
+      return virtualFs.getPath(relativePath);
     }
+    return Path.of(absolutePath);
   }
 
-  static String read(Path p) throws IOException {
-    try(var br = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
+  static public String getAndRead(String path) {
+    return read(of(path));
+  }
+
+  static public String read(Path path) {
+    try(var br = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
       return br.lines().collect(Collectors.joining("\n"));
+    } catch (IOException err) {
+      throw new UncheckedIOException(err);
     }
   }
 }

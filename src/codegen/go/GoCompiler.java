@@ -7,7 +7,7 @@ import rt.ResolveResource;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,7 +33,7 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     }
     record Runtime(String name) implements Unit {
       @Override public String src() {
-        return ResolveResource.getStringOrThrow("/rt/" +name);
+        return ResolveResource.getAndRead("/rt/" +name);
       }
     }
   }
@@ -53,13 +53,10 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     for (var unit : this.units()) { unit.write(workingDir); }
     for (var unit : this.rt()) { unit.write(workingDir); }
 
-    try {
-      var canExecute = ResolveResource.of("/go-compilers/%s/go/bin/go".formatted(goCompilerVersion()), compilerPath->compilerPath.toFile().setExecutable(true));
-      if (!canExecute) {
-        System.err.println("Warning: Could not make the Go compiler executable");
-      }
-    } catch (URISyntaxException e) {
-      throw Bug.of(e);
+    var compilerPath = ResolveResource.of(GoVersion.path());
+    var canExecute = compilerPath.toFile().setExecutable(true);
+    if (!canExecute) {
+      System.err.println("Warning: Could not make the Go compiler executable");
     }
 
     try {
@@ -88,42 +85,45 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     }
   }
 
-  private CompletableFuture<Void> runGoCmd(Path workingDir, String... args) {
-    Process proc; try { proc = ResolveResource.of("/go-compilers/%s/go/bin/go".formatted(goCompilerVersion()), compiler->{
-      String[] command = Stream.concat(Stream.of(compiler.toString()), Arrays.stream(args)).toArray(String[]::new);
-      var pb = new ProcessBuilder(command).directory(workingDir.toFile());
-      try {
-        return verbosity.progress() == CompilerFrontEnd.ProgressVerbosity.Full ? pb.inheritIO().start() : pb.start();
-      } catch (IOException e) {
-        throw Bug.of(e);
-      }
-    });
-    } catch (IOException | URISyntaxException e) {
+  Process goProcess(Path workingDir, String[] args) {
+    var compiler = ResolveResource.of(GoVersion.path());
+    String[] command = Stream.concat(Stream.of(compiler.toString()), Arrays.stream(args)).toArray(String[]::new);
+    var pb = new ProcessBuilder(command).directory(workingDir.toFile());
+    var inheritIO = verbosity.progress() == CompilerFrontEnd.ProgressVerbosity.Full;
+    try {
+      return inheritIO ? pb.inheritIO().start() : pb.start();
+    } catch (IOException e) {
       throw Bug.of(e);
     }
-
-    return proc.onExit().thenApply(p->{
+  }
+  private CompletableFuture<Void> runGoCmd(Path workingDir, String... args) {
+    Process proc= goProcess(workingDir,args);
+    return proc.onExit().thenAccept(p->{
       var exitValue = proc.exitValue();
       if (exitValue != 0) {
         throw Bug.of("ICE: Go compilation failed");
       }
-      return null;
     });
   }
 
-  private String goCompilerVersion() {
-    var arch = switch (SystemUtils.OS_ARCH) {
-      case "x86_64", "amd64" -> "amd64";
-      case "aarch64", "arm64" -> "arm64";
-      default -> throw new IllegalStateException("Unsupported architecture: "+System.getProperty(SystemUtils.OS_ARCH));
-    };
-    return "go-"+osName()+"-"+arch;
-  }
-
-  private String osName() {
-    if (SystemUtils.IS_OS_MAC) { return "macos"; }
-    if (SystemUtils.IS_OS_WINDOWS) { return "windows"; }
-    if (SystemUtils.IS_OS_LINUX) { return "linux"; }
-    throw new IllegalStateException("Unsupported OS: "+System.getProperty("os.name"));
+  interface GoVersion {
+    static String path() {
+      return "/go-compilers/%s/go/bin/go".formatted(goCompilerVersion());
+    }
+    private static String goCompilerVersion() {
+      var arch = switch (SystemUtils.OS_ARCH) {
+        case "x86_64", "amd64" -> "amd64";
+        case "aarch64", "arm64" -> "arm64";
+        default -> throw new IllegalStateException("Unsupported architecture: "+System.getProperty(SystemUtils.OS_ARCH));
+      };
+      return "go-"+osName()+"-"+arch;
+    }
+    private static String osName() {
+      if (SystemUtils.IS_OS_MAC) { return "macos"; }
+      if (SystemUtils.IS_OS_WINDOWS) { return "windows"; }
+      if (SystemUtils.IS_OS_LINUX) { return "linux"; }
+      throw new IllegalStateException("Unsupported OS: "+System.getProperty("os.name"));
+    }
   }
 }
+
