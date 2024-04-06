@@ -24,18 +24,18 @@ public class Main {
   }
 
   public static void main(String[] args) {
-    var jString = "Hello, world! \uD83E\uDDD9\u200D♂\uFE0F";
-    var utf8 = jString.getBytes(StandardCharsets.UTF_8);
-    var indexes = NativeRuntime.indexString(utf8);
-    IntStream.range(0, 100).mapToObj(i->(i+"").getBytes(StandardCharsets.UTF_8))
-        .forEach(s->{
-          NativeRuntime.printlnErr(s);
-          NativeRuntime.println(s);
-        });
-    NativeRuntime.println(utf8);
-    NativeRuntime.printlnErr(utf8);
-    NativeRuntime.print("yo".getBytes(StandardCharsets.UTF_8));
-    NativeRuntime.println(new byte[]{-28});
+//    var jString = "Hello, world! \uD83E\uDDD9\u200D♂\uFE0F";
+//    var utf8 = jString.getBytes(StandardCharsets.UTF_8);
+//    var indexes = NativeRuntime.indexString(utf8);
+//    IntStream.range(0, 100).mapToObj(i->(i+"").getBytes(StandardCharsets.UTF_8))
+//        .forEach(s->{
+//          NativeRuntime.printlnErr(s);
+//          NativeRuntime.println(s);
+//        });
+//    NativeRuntime.println(utf8);
+//    NativeRuntime.printlnErr(utf8);
+//    NativeRuntime.print("yo".getBytes(StandardCharsets.UTF_8));
+//    NativeRuntime.println(new byte[]{-28});
 
     args = args.length > 0 ? args : new String[]{"--help"};
     var verbosity = new Box<>(new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None));
