@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/resources/go-compilers" />
       <excludeFolder url="file://$MODULE_DIR$/resources/go-linux-amd64/go" />
+      <excludeFolder url="file://$MODULE_DIR$/GeneratedFearless" />
     </content>
   </component>
   <component name="Go" enabled="true" />

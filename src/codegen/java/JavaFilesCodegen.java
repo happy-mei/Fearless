@@ -41,10 +41,12 @@ public class JavaFilesCodegen{
     catch(IOException io){ throw new UncheckedIOException(io); }
   }
   public static final Path filesRoot=
+    Path.of(System.getProperty("user.dir"), "GeneratedFearless", "src");
     //ResolveResource.of("/testFiles/test1");
-    Path.of("/Users/sonta/Desktop/Java22/wk/GeneratedFearless/src");
+//    Path.of("/Users/sonta/Desktop/Java22/wk/GeneratedFearless/src");
   
   private void _deleteOldFiles() throws IOException{
+    if (!Files.exists(filesRoot)) { return; }
     try (Stream<Path> walk = Files.walk(filesRoot)) {
       Iterable<Path> ps=walk.sorted(Comparator.reverseOrder())::iterator;
       for(Path p:ps){ Files.deleteIfExists(p); }
@@ -66,7 +68,7 @@ public class JavaFilesCodegen{
       for(var p:ps) {
         String content= Files.readString(p);
         Files.createDirectories(filesRoot.resolve("rt"));
-        var dest= filesRoot.resolve("rt",p.getFileName().toString());
+        var dest= filesRoot.resolve(Path.of("rt",p.getFileName().toString()));
         Files.writeString(dest, content);
       }
     }
