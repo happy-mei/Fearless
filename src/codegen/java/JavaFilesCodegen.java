@@ -8,7 +8,6 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import parser.Parser;
-import rt.FProgram;
 import utils.Box;
 import utils.Bug;
 import utils.ResolveResource;
