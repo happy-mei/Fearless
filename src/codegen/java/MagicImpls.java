@@ -9,14 +9,19 @@ import magic.Magic;
 import magic.MagicCallable;
 import magic.MagicTrait;
 import utils.Bug;
+import visitors.MIRVisitor;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static magic.MagicImpls.getLiteral;
 
-public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicImpls<String> {
+public record MagicImpls(
+    MIRVisitor<String> gen,
+    Function<MIR.MT,String> getTName,
+    ast.Program p) implements magic.MagicImpls<String> {
   @Override public MagicTrait<MIR.E,String> int_(MIR.E e) {
     var name = e.t().name().orElseThrow();
     return new MagicTrait<>() {
@@ -67,11 +72,11 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
         if (m.equals(new Id.MethName("^", 1))) { return instantiate().orElseThrow()+"^"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("&", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("|", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate().orElseThrow()+">"+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate().orElseThrow()+"<"+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate().orElseThrow()+">="+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate().orElseThrow()+"<="+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("==", 1))) { return "("+instantiate().orElseThrow()+"=="+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate().orElseThrow()+">"+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate().orElseThrow()+"<"+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate().orElseThrow()+">="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate().orElseThrow()+"<="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName("==", 1))) { return "("+instantiate().orElseThrow()+"=="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         throw Bug.unreachable();
       }
     };
@@ -126,11 +131,11 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
         if (m.equals(new Id.MethName("^", 1))) { return instantiate().orElseThrow()+"^"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("&", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("|", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName(">", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")>0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")<0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName(">=", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")>=0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<=", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")<=0?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("==", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")==0?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")>0?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName("<", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")<0?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName(">=", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")>=0?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName("<=", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")<=0?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName("==", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")==0?base.True_0.$self:base.False_0.$self)"; }
         throw Bug.unreachable();
       }
     };
@@ -169,21 +174,21 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
         if (m.equals(new Id.MethName("%", 1))) { return instantiate().orElseThrow()+"%"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("**", 1))) { return String.format("Math.pow(%s, %s)", instantiate().orElseThrow(), args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return "Math.abs("+instantiate().orElseThrow()+")"; }
-        if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate().orElseThrow()+">"+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate().orElseThrow()+"<"+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate().orElseThrow()+">="+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate().orElseThrow()+"<="+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate().orElseThrow()+">"+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate().orElseThrow()+"<"+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate().orElseThrow()+">="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate().orElseThrow()+"<="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("==", 1))) {
-          return "("+instantiate().orElseThrow()+"=="+args.getFirst().accept(gen, true)+"?base.True_0._$self:base.False_0._$self)";
+          return "("+instantiate().orElseThrow()+"=="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)";
         }
         //Float specifics
         if (m.equals(new Id.MethName(".round", 0))) { return "Math.round("+instantiate().orElseThrow()+")"; }
         if (m.equals(new Id.MethName(".ceil", 0))) { return "Math.ceil("+instantiate().orElseThrow()+")"; }
         if (m.equals(new Id.MethName(".floor", 0))) { return "Math.floor("+instantiate().orElseThrow()+")"; }
-        if (m.equals(new Id.MethName(".isNaN", 0))) { return "(Double.isNaN("+instantiate().orElseThrow()+")?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName(".isInfinite", 0))) { return "(Double.isInfinite("+instantiate().orElseThrow()+")?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName(".isPosInfinity", 0))) { return "("+instantiate().orElseThrow()+" == Double.POSITIVE_INFINITY)?base.True_0._$self:base.False_0._$self)"; }
-        if (m.equals(new Id.MethName(".isNegInfinity", 0))) { return "("+instantiate().orElseThrow()+" == Double.NEGATIVE_INFINITY)?base.True_0._$self:base.False_0._$self)"; }
+        if (m.equals(new Id.MethName(".isNaN", 0))) { return "(Double.isNaN("+instantiate().orElseThrow()+")?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName(".isInfinite", 0))) { return "(Double.isInfinite("+instantiate().orElseThrow()+")?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName(".isPosInfinity", 0))) { return "("+instantiate().orElseThrow()+" == Double.POSITIVE_INFINITY)?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName(".isNegInfinity", 0))) { return "("+instantiate().orElseThrow()+" == Double.NEGATIVE_INFINITY)?base.True_0.$self:base.False_0.$self)"; }
         throw Bug.unreachable();
       }
     };
@@ -198,15 +203,15 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName(".size", 0))) { return Optional.of(instantiate().orElseThrow()+".length()"); }
-        if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of("("+instantiate().orElseThrow()+".isEmpty()?base.True_0._$self:base.False_0._$self)"); }
+        if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of("("+instantiate().orElseThrow()+".isEmpty()?base.True_0.$self:base.False_0.$self)"); }
         if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate().orElseThrow()); }
         if (m.equals(new Id.MethName(".toImm", 0))) { return Optional.of(instantiate().orElseThrow()); }
         if (m.equals(new Id.MethName("+", 1))) { return Optional.of("("+instantiate().orElseThrow()+"+"+args.getFirst().accept(gen, true)+")"); }
         if (m.equals(new Id.MethName("==", 1))) {
-          return Optional.of("("+instantiate().orElseThrow()+".equals("+args.getFirst().accept(gen, true)+")?base.True_0._$self:base.False_0._$self)");
+          return Optional.of("("+instantiate().orElseThrow()+".equals("+args.getFirst().accept(gen, true)+")?base.True_0.$self:base.False_0.$self)");
         }
         if (m.equals(new Id.MethName(".assertEq", 1))) {
-          return Optional.of("base.$95StrHelpers_0._$self.assertEq$imm$("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+")");
+          return Optional.of("base.$95StrHelpers_0.$self.assertEq$imm$("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+")");
         }
         throw Bug.unreachable();
       }
@@ -290,11 +295,11 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
               private Object x = %s;
               private boolean isAlive = true;
 
-              public base.Bool_0 isAlive$readOnly$() { return this.isAlive ? base.True_0._$self : base.False_0._$self; }
+              public base.Bool_0 isAlive$readOnly$() { return this.isAlive ? base.True_0.$self : base.False_0.$self; }
               public Object peek$readOnly$(userCode.FProgram.base$46caps.IsoViewer_2 f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$mut$(this.x) : ((base$46caps.IsoViewer_2)f).empty$mut$(); }
               public Object $33$mut$() {
                 if (!this.isAlive) {
-                  base.Error_0._$self.str$imm$("Cannot consume an empty IsoPod.");
+                  base.Error_0.$self.str$imm$("Cannot consume an empty IsoPod.");
                   return null;
                 }
                 this.isAlive = false;
@@ -359,7 +364,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   @Override public MagicTrait<MIR.E,String> tryCatch(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
-        return Optional.of("rt.Try._$self");
+        return Optional.of("rt.Try.$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
@@ -370,7 +375,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   @Override public MagicTrait<MIR.E, String> capTryCatch(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
-        return Optional.of("rt.CapTry._$self");
+        return Optional.of("rt.CapTry.$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
@@ -382,7 +387,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
     return new MagicTrait<>() {
 
       @Override public Optional<String> instantiate() {
-        return Optional.of("rt.PipelineParallelFlow.WrappedSinkK._$self");
+        return Optional.of("rt.PipelineParallelFlow.WrappedSinkK.$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
@@ -424,7 +429,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
       private ObjCapImpl io() {
         return (ctx, m, args) ->{
           if (m.equals(new Id.MethName("#", 1))) {
-            return "rt.IO._$self";
+            return "rt.IO.$self";
           }
           return null;
         };
@@ -433,7 +438,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
       private ObjCapImpl randomSeed() {
         return (ctx, m, args) ->{
           if (m.equals(new Id.MethName("#", 1))) {
-            return "rt.Random.SeedGenerator._$self";
+            return "rt.Random.SeedGenerator.$self";
           }
           return null;
         };
@@ -587,7 +592,7 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
   }
 
   private String getJavaRet(MIR.MT expectedT) {
-    var ret = gen.getName(expectedT);
+    var ret = getTName.apply(expectedT);
     return switch (ret) {
       default -> "(%s) null".formatted(ret);
       case "Long", "long", "Double", "double" -> "(%s) 0".formatted(ret);

@@ -26,7 +26,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   private MIR.Package pkg;
 
   public JavaCodegen(MIR.Program p) {
-    this.magic = new MagicImpls(this, p.p());
+    this.magic = new MagicImpls(this,this::getName, p.p());
     this.p = new OptimisationBuilder(this.magic)
       .withBoolIfOptimisation()
       .withBlockOptimisation()
@@ -37,7 +37,7 @@ public class JavaCodegen implements MIRVisitor<String> {
 
   protected static String argsToLList(Mdf addMdf) {
     return """
-      FAux.LAUNCH_ARGS = base.LList_1._$self;
+      FAux.LAUNCH_ARGS = base.LList_1.$self;
       for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$%s$(arg); }
       """.formatted(addMdf);
   }
@@ -48,9 +48,9 @@ public class JavaCodegen implements MIRVisitor<String> {
     var init = """
       static void main(String[] args){
         %s
-        base.Main_0 entry = %s._$self;
+        base.Main_0 entry = %s.$self;
         try {
-          entry.$35$imm$(%s._$self);
+          entry.$35$imm$(%s.$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
@@ -113,7 +113,7 @@ public class JavaCodegen implements MIRVisitor<String> {
       .map(objK->{
         var instance = visitCreateObjNoSingleton(objK, true);
         return """
-          %s _$self = %s;
+          %s $self = %s;
           """.formatted(selfTypeName, instance);
       })
       .orElse("");
@@ -173,6 +173,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     var mustCast = meth.fName().isPresent() && this.funMap.get(meth.fName().get()).ret() instanceof MIR.MT.Any && !(meth.sig().rt() instanceof MIR.MT.Any);
     var cast = mustCast ? "(%s)".formatted(getName(meth.sig().rt()) ): "";
 
+    assert meth.fName().isPresent();//added
     var realExpr = switch (kind) {
       case MethExprKind.Kind k -> switch (k.kind()) {
         case RealExpr, Delegate -> "return %s %s.%s(%s);".formatted(cast, getName(meth.origin()), getName(meth.fName().orElseThrow()), funArgs);
@@ -232,8 +233,8 @@ public class JavaCodegen implements MIRVisitor<String> {
       case MIR.Block.BlockStmt.Loop loop -> """
           while (true) {
             var res = %s.$35$mut$();
-            if (res == base.ControlFlowContinue_0._$self || res == base.ControlFlowContinue_1._$self) { continue; }
-            if (res == base.ControlFlowBreak_0._$self || res == base.ControlFlowBreak_1._$self) { break; }
+            if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
+            if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
             if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut$(); }
           }
           """.formatted(loop.e().accept(this, true), getName(expr.expectedT()));
@@ -241,7 +242,7 @@ public class JavaCodegen implements MIRVisitor<String> {
         var body = this.visitBlockStmt(expr, stmts, doIdx);
         if (body.startsWith("return")) { body += ";"; }
         yield """
-          if (%s == base.True_0._$self) { %s }
+          if (%s == base.True_0.$self) { %s }
           """.formatted(if_.pred().accept(this, true), body);
       }
       case MIR.Block.BlockStmt.Var var -> "var %s = %s;\n".formatted(name(var.name()), var.value().accept(this, true));
@@ -257,7 +258,7 @@ public class JavaCodegen implements MIRVisitor<String> {
 
     var id = createObj.concreteT().id();
     if (p.of(id).singletonInstance().isPresent()) {
-      return getName(id)+"._$self";
+      return getName(id)+".$self";
     }
 
     return visitCreateObjNoSingleton(createObj, checkMagic);
@@ -323,7 +324,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     var mustCast = !this.funMap.get(expr.then()).ret().equals(this.funMap.get(expr.else_()).ret());
     var cast = mustCast ? "(%s)".formatted(getRetName(expr.t())) : "";
 
-    return "(%s(%s == base.True_0._$self ? %s : %s))".formatted(cast, recv, this.funMap.get(expr.then()).body().accept(this, true), this.funMap.get(expr.else_()).body().accept(this, true));
+    return "(%s(%s == base.True_0.$self ? %s : %s))".formatted(cast, recv, this.funMap.get(expr.then()).body().accept(this, true), this.funMap.get(expr.else_()).body().accept(this, true));
   }
 
   @Override public String visitStaticCall(MIR.StaticCall call, boolean checkMagic) {

@@ -38,7 +38,9 @@ public class Id {
     public boolean isFresh() {
       return this.name.endsWith("$");
     }
-
+    /**The pattern captures two groups:
+    * The first group captures the package name (excluding the last dot).
+    * The second group captures the class name.*/
     static Pattern pkgRegex = Pattern.compile("(.+\\.)+([A-Za-z0-9_'$]+)\\$?$");
     public String pkg() {
       var pkg = OneOr.of("Malformed package: "+name, pkgRegex.matcher(name).results()).group(1);

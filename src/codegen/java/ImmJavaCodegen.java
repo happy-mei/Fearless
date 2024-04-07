@@ -14,7 +14,7 @@ public class ImmJavaCodegen extends JavaCodegen {
     var entryName = getName(entry);
     var init = """
       static void main(String[] args){
-        %s base.Main_0 entry = %s._$self;
+        %s base.Main_0 entry = %s.$self;
         try {
           System.out.println(entry.$35$imm$(FAux.LAUNCH_ARGS));
         } catch (StackOverflowError e) {

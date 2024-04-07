@@ -11,6 +11,7 @@ import codegen.MIRInjectionVisitor;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaCompiler;
 import codegen.java.JavaFile;
+import codegen.java.JavaFilesCodegen;
 import codegen.java.JavaProgram;
 import failure.Fail;
 import id.Id;
@@ -38,6 +39,10 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
       ){
     var mir = new MIRInjectionVisitor(program, resolvedCalls).visitProgram();
     var codegen= new JavaCodegen(mir);
+    var files= new JavaFilesCodegen(mir);
+    files.generateFiles();
+    files.writeFiles();
+    
     var main = program.of(Magic.Main).toIT();
     var entry= new Id.DecId(entry(),0);
     var isEntryValid = program

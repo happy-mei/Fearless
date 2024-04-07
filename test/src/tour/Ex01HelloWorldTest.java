@@ -25,6 +25,24 @@ Assume in folder 'myFolder' we have a file with the following content:
     //alias base.caps.UnrestrictedIO as UnrestrictedIO,
     alias base.caps.FIO as UnrestrictedIO,
     
+    Bool:{
+      //.and(other:Bool):Bool,
+      .if[R](m:ThenElse[R]):R,
+      }
+    True:Bool{
+      //.and(other)->other}
+      .if(m)->m.then
+      }
+    False:Bool{
+      //.and(other)->this
+      .if(m)->m.else
+      }
+    ThenElse[R]:{.then:R,.else:R}
+    
+    Foo:{
+      .bar(b:Bool):Bool->b.if{.then->False, .else->True}
+      }
+    
     Test:Main {sys -> UnrestrictedIO#sys.println("Hello, World!")}
     //prints Hello, World!
     """); }/*--------------------------------------------

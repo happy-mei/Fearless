@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 public interface PipelineParallelFlow {
   final class WrappedSinkK implements FProgram.base$46flows.$95PipelineParallelSink_0 {
-    public static WrappedSinkK _$self = new WrappedSinkK();
+    public static WrappedSinkK $self = new WrappedSinkK();
     // TODO: sink id is not actually used, just here to make debugging easier during development
     static long SINK_ID = 0;
     @Override public FProgram.base$46flows.$95PipelineParallelSink_1 $35$imm$(FProgram.base$46flows.$95Sink_1 original) {
@@ -57,12 +57,12 @@ public interface PipelineParallelFlow {
           throw new RuntimeException(message, exception);
         }
       }
-      return FProgram.base.Void_0._$self;
+      return FProgram.base.Void_0.$self;
     }
     @Override public FProgram.base.Void_0 $35$mut$(Object x$) {
 //      System.out.println("SUBJ: "+subjectId+" GOT MSG: "+x$);
       this.subject.ref().submit(new FlowRuntime.Message.Data<>(x$));
-      return FProgram.base.Void_0._$self;
+      return FProgram.base.Void_0.$self;
     }
   }
 

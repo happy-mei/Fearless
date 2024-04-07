@@ -8,11 +8,17 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import parser.Parser;
+import rt.FProgram;
 import utils.Box;
 import utils.Bug;
+import utils.ResolveResource;
 import utils.Streams;
 import visitors.MIRVisitor;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,46 +47,87 @@ import static magic.MagicImpls.getLiteral;
 */
 public class JavaFilesCodegen{
   JavaProgram javaProgram= new JavaProgram(new ArrayList<>());
-  JavaCodegen gen;
+  JavaSingleCodegen gen;
   MIR.Program program;
-  JavaFilesCodegen(MIR.Program program){
+  public JavaFilesCodegen(MIR.Program program){
     this.program=program;
-    this.gen= new JavaCodegen(program);
+    this.gen= new JavaSingleCodegen(program);
     }
-  static final String userCodeDir = "userCode";
-  static final String userCodePkg = "package userCode;\n";
+  public void writeFiles(){
+    try {_writeFiles();}
+    catch(IOException io){ throw new UncheckedIOException(io); }
+  }
+  public static final Path filesRoot=
+    //ResolveResource.of("/testFiles/test1");
+    Path.of("/Users/sonta/Desktop/Java22/wk/GeneratedFearless/src");
   
+  private void _deleteOldFiles() throws IOException{
+    try (Stream<Path> walk = Files.walk(filesRoot)) {
+      Iterable<Path> ps=walk.sorted(Comparator.reverseOrder())::iterator;
+      for(Path p:ps){ Files.deleteIfExists(p); }
+    }
+  }
+  private void _writeFiles() throws IOException{
+    _deleteOldFiles();
+    for(var fi:javaProgram.files()) {
+      var pi= Path.of(fi.toUri());
+      Files.createDirectories(pi.getParent());
+      Files.write(pi,fi.code().getBytes());
+    }
+    _copyRtFiles();
+  }
+  private void _copyRtFiles()  throws IOException{
+    try(var fs= Files.walk(ResolveResource.of("/rt"))){
+      Iterable<Path> ps=fs.filter(p
+        ->p.toString().endsWith(".java"))::iterator;
+      for(var p:ps) {
+        String content= Files.readString(p);
+        Files.createDirectories(filesRoot.resolve("rt"));
+        content= content.replace("FProgram.base.", "base.");
+        var dest= filesRoot.resolve("rt",p.getFileName().toString());
+        Files.writeString(dest, content);
+      }
+    }
+  }
   public void generateFiles() {
-     String fearlessErrorContent = userCodePkg+"""
+     /*String fearlessErrorContent = userCodePkg+"""
        class FearlessError extends RuntimeException {
          // ...
        }
        """;
      String fearlessAuxContent = userCodePkg+"""
        class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
-       """;
-      addFile(userCodeDir, "FearlessError.java", fearlessErrorContent);
-      addFile(userCodeDir, "FAux.java", fearlessAuxContent);
+       """;*/
+      //addFile(userCodeDir, "FearlessError.java", fearlessErrorContent);
+      //addFile(userCodeDir, "FAux.java", fearlessAuxContent);
 
       for (MIR.Package pkg : program.pkgs()) {
+        //if(pkg.name().startsWith("base")){ continue; }
         for (MIR.TypeDef def : pkg.defs().values()) {
-          String typeDefContent = gen.visitTypeDef(pkg.name(), def, pkg.funs());
-                String fileName = JavaCodegen.getBase(def.name().shortName()) + "_" + def.name().gen() + ".java";
-                addFile(userCodePkg, fileName, typeDefContent);
-            }
+          var funs= pkg.funs().stream()
+            .filter(f->f.name().d().equals(def.name()))
+            .toList();
+          String typeDefContent = gen
+            .visitTypeDef(pkg.name(), def, funs);
+          if(typeDefContent.isEmpty()){ continue; }
+          String name   = gen.id.getSimpleName(def.name());
+          addFile(pkg.name(), name, typeDefContent);
         }
-
-        // Generate the main entry point file
-        //String entryContent = generateEntryPoint();
-        //addFile("", "Main.java", entryContent);
+      }
+      for(var e: gen.freshRecords.entrySet()){
+        String pkg    = e.getKey().pkg();
+        String name   = gen.id.getSimpleName(e.getKey())+"Impl";
+        String content= e.getValue();
+        addFile(pkg, name, content);
+      }
     }
 
-    private String generateEntryPoint() {
-      return "";
-    }
-
-    private void addFile(String dirName, String fileName, String content) {
-
+    private void addFile(String pkgName, String name, String content) {
+      String pkg= "package "+pkgName+";\n";
+      String fileName=pkgName.replace(".","/")+"/"+name+".java";
+      System.out.println(pkgName+" "+fileName);
+      Path p=filesRoot.resolve(fileName);
+      javaProgram.files().add(new JavaFile(p,pkg+content));
     }
 
 }

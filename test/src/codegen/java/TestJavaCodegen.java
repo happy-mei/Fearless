@@ -57,13 +57,13 @@ public class TestJavaCodegen {
         
     public interface FProgram{
     interface base{interface Sealed_0{
-    Sealed_0 _$self = new base$Sealed_0Impl();
+    Sealed_0 $self = new base$Sealed_0Impl();
     }
     interface System_0 extends base.Sealed_0{
-    System_0 _$self = new base$System_0Impl();
+    System_0 $self = new base$System_0Impl();
     }
     interface Void_0{
-    Void_0 _$self = new base$Void_0Impl();
+    Void_0 $self = new base$Void_0Impl();
     }
     interface Main_0{
     base.Void_0 $35$imm$(base.System_0 s$);}
@@ -83,12 +83,12 @@ public class TestJavaCodegen {
     }
         
     }  static void main(String[] args){
-        FAux.LAUNCH_ARGS = base.LList_1._$self;
+        FAux.LAUNCH_ARGS = base.LList_1.$self;
     for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
         
-        base.Main_0 entry = fake.Fake_0._$self;
+        base.Main_0 entry = fake.Fake_0.$self;
         try {
-          entry.$35$imm$(base$46caps.$95System_0._$self);
+          entry.$35$imm$(base$46caps.$95System_0.$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
@@ -116,15 +116,15 @@ public class TestJavaCodegen {
         
     public interface FProgram{
     interface test{interface Num_0{
-    Num_0 _$self = new test$Num_0Impl();
+    Num_0 $self = new test$Num_0Impl();
     }
     interface FortyTwo_0 extends test.Num_0{
-    FortyTwo_0 _$self = new test$FortyTwo_0Impl();
+    FortyTwo_0 $self = new test$FortyTwo_0Impl();
     }
     interface Usage_0{
-    Usage_0 _$self = new test$Usage_0Impl();
+    Usage_0 $self = new test$Usage_0Impl();
     test.Num_0 $35$imm$();static test.Num_0 test$Usage_0$$35$imm$$noSelfCap() {
-      return test.FPerson_0._$self.$35$imm$(test.FortyTwo_0._$self).age$read$();
+      return test.FPerson_0.$self.$35$imm$(test.FortyTwo_0.$self).age$read$();
     }
     }
     interface Person_0{
@@ -133,7 +133,7 @@ public class TestJavaCodegen {
     }
     }
     interface FPerson_0{
-    FPerson_0 _$self = new test$FPerson_0Impl();
+    FPerson_0 $self = new test$FPerson_0Impl();
     test.Person_0 $35$imm$(test.Num_0 age$);static test.Person_0 test$FPerson_0$$35$imm$$noSelfCap(test.Num_0 age$) {
       return new test$Person_0Impl(age$);
     }
@@ -174,13 +174,13 @@ public class TestJavaCodegen {
         
     }
     interface base{interface Sealed_0{
-    Sealed_0 _$self = new base$Sealed_0Impl();
+    Sealed_0 $self = new base$Sealed_0Impl();
     }
     interface System_0 extends base.Sealed_0{
-    System_0 _$self = new base$System_0Impl();
+    System_0 $self = new base$System_0Impl();
     }
     interface Void_0{
-    Void_0 _$self = new base$Void_0Impl();
+    Void_0 $self = new base$Void_0Impl();
     }
     interface Main_0{
     base.Void_0 $35$imm$(base.System_0 s$);}
@@ -200,12 +200,12 @@ public class TestJavaCodegen {
     }
         
     }  static void main(String[] args){
-        FAux.LAUNCH_ARGS = base.LList_1._$self;
+        FAux.LAUNCH_ARGS = base.LList_1.$self;
     for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
         
-        base.Main_0 entry = fake.Fake_0._$self;
+        base.Main_0 entry = fake.Fake_0.$self;
         try {
-          entry.$35$imm$(base$46caps.$95System_0._$self);
+          entry.$35$imm$(base$46caps.$95System_0.$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
@@ -243,21 +243,21 @@ public class TestJavaCodegen {
     interface test{interface Num_0{
     test.Num_0 plus1$imm$();}
     interface FortyThree_0 extends test.Num_0{
-    FortyThree_0 _$self = new test$FortyThree_0Impl();
+    FortyThree_0 $self = new test$FortyThree_0Impl();
     test.Num_0 plus1$imm$();static test.Num_0 test$FortyThree_0$plus1$imm$$noSelfCap() {
-      return test.FortyFour_0._$self;
+      return test.FortyFour_0.$self;
     }
     }
     interface FortyTwo_0 extends test.Num_0{
-    FortyTwo_0 _$self = new test$FortyTwo_0Impl();
+    FortyTwo_0 $self = new test$FortyTwo_0Impl();
     test.Num_0 plus1$imm$();static test.Num_0 test$FortyTwo_0$plus1$imm$$noSelfCap() {
-      return test.FortyThree_0._$self;
+      return test.FortyThree_0.$self;
     }
     }
     interface Usage_0{
-    Usage_0 _$self = new test$Usage_0Impl();
+    Usage_0 $self = new test$Usage_0Impl();
     test.Num_0 $35$imm$();static test.Num_0 test$Usage_0$$35$imm$$noSelfCap() {
-      return test.FPerson_0._$self.$35$imm$(test.FortyTwo_0._$self).wrap$mut$().age$read$();
+      return test.FPerson_0.$self.$35$imm$(test.FortyTwo_0.$self).wrap$mut$().age$read$();
     }
     }
     interface Person_0{
@@ -283,7 +283,7 @@ public class TestJavaCodegen {
     }
     }
     interface FortyFour_0 extends test.Num_0{
-    FortyFour_0 _$self = new test$FortyFour_0Impl();
+    FortyFour_0 $self = new test$FortyFour_0Impl();
     test.Num_0 plus1$imm$();static test.Num_0 test$FortyFour_0$plus1$imm$$selfCap(test.FortyFour_0 f$thiz) {
       return f$thiz.plus1$imm$();
     }
@@ -295,7 +295,7 @@ public class TestJavaCodegen {
     }
     }
     interface FPerson_0{
-    FPerson_0 _$self = new test$FPerson_0Impl();
+    FPerson_0 $self = new test$FPerson_0Impl();
     test.Person_0 $35$imm$(test.Num_0 age$);static test.Person_0 test$FPerson_0$$35$imm$$noSelfCap(test.Num_0 age$) {
       return new test$Fear2$36_0Impl(age$);
     }
@@ -378,13 +378,13 @@ public class TestJavaCodegen {
         
     }
     interface base{interface Sealed_0{
-    Sealed_0 _$self = new base$Sealed_0Impl();
+    Sealed_0 $self = new base$Sealed_0Impl();
     }
     interface System_0 extends base.Sealed_0{
-    System_0 _$self = new base$System_0Impl();
+    System_0 $self = new base$System_0Impl();
     }
     interface Void_0{
-    Void_0 _$self = new base$Void_0Impl();
+    Void_0 $self = new base$Void_0Impl();
     }
     interface Main_0{
     base.Void_0 $35$imm$(base.System_0 s$);}
@@ -404,12 +404,12 @@ public class TestJavaCodegen {
     }
         
     }  static void main(String[] args){
-        FAux.LAUNCH_ARGS = base.LList_1._$self;
+        FAux.LAUNCH_ARGS = base.LList_1.$self;
     for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
         
-        base.Main_0 entry = fake.Fake_0._$self;
+        base.Main_0 entry = fake.Fake_0.$self;
         try {
-          entry.$35$imm$(base$46caps.$95System_0._$self);
+          entry.$35$imm$(base$46caps.$95System_0.$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
@@ -459,10 +459,10 @@ public class TestJavaCodegen {
         
     public interface FProgram{
     interface test{interface Bar_0 extends test.Baz_1{
-    Bar_0 _$self = new test$Bar_0Impl();
+    Bar_0 $self = new test$Bar_0Impl();
     test.Baz_1 loop$imm$();
     test.Foo_0 $35$imm$();static test.Foo_0 test$Bar_0$$35$imm$$noSelfCap() {
-      return test.Foo_0._$self;
+      return test.Foo_0.$self;
     }
         
     static test.Baz_1 test$Bar_0$loop$imm$$selfCap(test.Bar_0 f$thiz) {
@@ -470,10 +470,10 @@ public class TestJavaCodegen {
     }
     }
     interface Foo_0{
-    Foo_0 _$self = new test$Foo_0Impl();
+    Foo_0 $self = new test$Foo_0Impl();
     }
     interface Fear1$36_0 extends test.Ok_0{
-    Fear1$36_0 _$self = new test$Fear1$36_0Impl();
+    Fear1$36_0 $self = new test$Fear1$36_0Impl();
     test.Ok_0 $35$imm$();static test.Ok_0 test$Fear1$36_0$$35$imm$$selfCap(test.Fear1$36_0 ok$) {
       return ok$.$35$imm$();
     }
@@ -483,9 +483,9 @@ public class TestJavaCodegen {
     interface Baz_1{
     Object $35$imm$();}
     interface Yo_0{
-    Yo_0 _$self = new test$Yo_0Impl();
+    Yo_0 $self = new test$Yo_0Impl();
     test.Ok_0 lm$imm$();static test.Ok_0 test$Yo_0$lm$imm$$noSelfCap() {
-      return test.Fear1$36_0._$self;
+      return test.Fear1$36_0.$self;
     }
     }
     record test$Bar_0Impl() implements test.Bar_0 {
@@ -523,13 +523,13 @@ public class TestJavaCodegen {
         
     }
     interface base{interface Sealed_0{
-    Sealed_0 _$self = new base$Sealed_0Impl();
+    Sealed_0 $self = new base$Sealed_0Impl();
     }
     interface System_0 extends base.Sealed_0{
-    System_0 _$self = new base$System_0Impl();
+    System_0 $self = new base$System_0Impl();
     }
     interface Void_0{
-    Void_0 _$self = new base$Void_0Impl();
+    Void_0 $self = new base$Void_0Impl();
     }
     interface Main_0{
     base.Void_0 $35$imm$(base.System_0 s$);}
@@ -549,12 +549,12 @@ public class TestJavaCodegen {
     }
         
     }  static void main(String[] args){
-        FAux.LAUNCH_ARGS = base.LList_1._$self;
+        FAux.LAUNCH_ARGS = base.LList_1.$self;
     for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
         
-        base.Main_0 entry = fake.Fake_0._$self;
+        base.Main_0 entry = fake.Fake_0.$self;
         try {
-          entry.$35$imm$(base$46caps.$95System_0._$self);
+          entry.$35$imm$(base$46caps.$95System_0.$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
@@ -587,7 +587,7 @@ public class TestJavaCodegen {
         
     public interface FProgram{
     interface test{interface True_0 extends test.Bool_0{
-    True_0 _$self = new test$True_0Impl();
+    True_0 $self = new test$True_0Impl();
     Object $63$imm$(test.ThenElse_1 f$);
     test.Bool_0 not$imm$();
     test.Bool_0 or$imm$(test.Bool_0 b$);
@@ -600,7 +600,7 @@ public class TestJavaCodegen {
     }
         
     static test.Bool_0 test$True_0$not$imm$$noSelfCap() {
-      return test.False_0._$self;
+      return test.False_0.$self;
     }
         
     static Object test$True_0$$63$imm$$noSelfCap(test.ThenElse_1 f$) {
@@ -608,10 +608,10 @@ public class TestJavaCodegen {
     }
     }
     interface Fear1_0{
-    Fear1_0 _$self = new test$Fear1_0Impl();
+    Fear1_0 $self = new test$Fear1_0Impl();
     }
     interface False_0 extends test.Bool_0{
-    False_0 _$self = new test$False_0Impl();
+    False_0 $self = new test$False_0Impl();
     Object $63$imm$(test.ThenElse_1 f$);
     test.Bool_0 not$imm$();
     test.Bool_0 or$imm$(test.Bool_0 b$);
@@ -624,7 +624,7 @@ public class TestJavaCodegen {
     }
         
     static test.Bool_0 test$False_0$not$imm$$noSelfCap() {
-      return test.True_0._$self;
+      return test.True_0.$self;
     }
         
     static Object test$False_0$$63$imm$$noSelfCap(test.ThenElse_1 f$) {
@@ -640,7 +640,7 @@ public class TestJavaCodegen {
     test.Bool_0 or$imm$(test.Bool_0 b$);
     test.Bool_0 and$imm$(test.Bool_0 b$);}
     interface Sealed_0{
-    Sealed_0 _$self = new test$Sealed_0Impl();
+    Sealed_0 $self = new test$Sealed_0Impl();
     }
     record test$True_0Impl() implements test.True_0 {
       public Object $63$imm$(test.ThenElse_1 f$) {
@@ -694,13 +694,13 @@ public class TestJavaCodegen {
         
     }
     interface base{interface Sealed_0{
-    Sealed_0 _$self = new base$Sealed_0Impl();
+    Sealed_0 $self = new base$Sealed_0Impl();
     }
     interface System_0 extends base.Sealed_0{
-    System_0 _$self = new base$System_0Impl();
+    System_0 $self = new base$System_0Impl();
     }
     interface Void_0{
-    Void_0 _$self = new base$Void_0Impl();
+    Void_0 $self = new base$Void_0Impl();
     }
     interface Main_0{
     base.Void_0 $35$imm$(base.System_0 s$);}
@@ -720,12 +720,12 @@ public class TestJavaCodegen {
     }
         
     }  static void main(String[] args){
-        FAux.LAUNCH_ARGS = base.LList_1._$self;
+        FAux.LAUNCH_ARGS = base.LList_1.$self;
     for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
         
-        base.Main_0 entry = fake.Fake_0._$self;
+        base.Main_0 entry = fake.Fake_0.$self;
         try {
-          entry.$35$imm$(base$46caps.$95System_0._$self);
+          entry.$35$imm$(base$46caps.$95System_0.$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
@@ -763,9 +763,9 @@ public class TestJavaCodegen {
         
     public interface FProgram{
     interface test{interface HelloWorld_0 extends base.Main_0{
-    HelloWorld_0 _$self = new test$HelloWorld_0Impl();
+    HelloWorld_0 $self = new test$HelloWorld_0Impl();
     base.Void_0 $35$imm$(base.System_0 s$);static base.Void_0 test$HelloWorld_0$$35$imm$$noSelfCap(base.System_0 s$) {
-      return base.Void_0._$self;
+      return base.Void_0.$self;
     }
     }
     record test$HelloWorld_0Impl() implements test.HelloWorld_0 {
@@ -778,13 +778,13 @@ public class TestJavaCodegen {
         
     }
     interface base{interface Sealed_0{
-    Sealed_0 _$self = new base$Sealed_0Impl();
+    Sealed_0 $self = new base$Sealed_0Impl();
     }
     interface System_0 extends base.Sealed_0{
-    System_0 _$self = new base$System_0Impl();
+    System_0 $self = new base$System_0Impl();
     }
     interface Void_0{
-    Void_0 _$self = new base$Void_0Impl();
+    Void_0 $self = new base$Void_0Impl();
     }
     interface Main_0{
     base.Void_0 $35$imm$(base.System_0 s$);}
@@ -804,12 +804,12 @@ public class TestJavaCodegen {
     }
         
     }  static void main(String[] args){
-        FAux.LAUNCH_ARGS = base.LList_1._$self;
+        FAux.LAUNCH_ARGS = base.LList_1.$self;
     for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
         
-        base.Main_0 entry = test.HelloWorld_0._$self;
+        base.Main_0 entry = test.HelloWorld_0.$self;
         try {
-          entry.$35$imm$(base$46caps.$95System_0._$self);
+          entry.$35$imm$(base$46caps.$95System_0.$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
@@ -843,21 +843,21 @@ public class TestJavaCodegen {
     interface test{interface Foo_0{
     test.Foo_0 a$imm$();}
     interface Fear2$36_0 extends test$46foo.Bar_0{
-    Fear2$36_0 _$self = new test$Fear2$36_0Impl();
+    Fear2$36_0 $self = new test$Fear2$36_0Impl();
     test$46foo.Bar_0 a$imm$();static test$46foo.Bar_0 test$Fear2$36_0$a$imm$$noSelfCap() {
-      return test$46foo.Bar_0._$self;
+      return test$46foo.Bar_0.$self;
     }
     }
     interface A_0{
-    A_0 _$self = new test$A_0Impl();
+    A_0 $self = new test$A_0Impl();
     test$46foo.Bar_0 $35$imm$();static test$46foo.Bar_0 test$A_0$$35$imm$$noSelfCap() {
-      return test.Fear2$36_0._$self;
+      return test.Fear2$36_0.$self;
     }
     }
     interface Test_0 extends base.Main_0{
-    Test_0 _$self = new test$Test_0Impl();
+    Test_0 $self = new test$Test_0Impl();
     base.Void_0 $35$imm$(base.System_0 fear0$$);static base.Void_0 test$Test_0$$35$imm$$noSelfCap(base.System_0 fear0$$) {
-      return base.Void_0._$self;
+      return base.Void_0.$self;
     }
     }
     record test$Fear2$36_0Impl() implements test.Fear2$36_0 {
@@ -886,7 +886,7 @@ public class TestJavaCodegen {
         
     }
     interface test$46foo{interface Bar_0 extends test.Foo_0{
-    Bar_0 _$self = new test$46foo$Bar_0Impl();
+    Bar_0 $self = new test$46foo$Bar_0Impl();
     test.Foo_0 a$imm$();static test.Foo_0 test$46foo$Bar_0$a$imm$$selfCap(test$46foo.Bar_0 f$thiz) {
       return f$thiz;
     }
@@ -901,13 +901,13 @@ public class TestJavaCodegen {
         
     }
     interface base{interface Sealed_0{
-    Sealed_0 _$self = new base$Sealed_0Impl();
+    Sealed_0 $self = new base$Sealed_0Impl();
     }
     interface System_0 extends base.Sealed_0{
-    System_0 _$self = new base$System_0Impl();
+    System_0 $self = new base$System_0Impl();
     }
     interface Void_0{
-    Void_0 _$self = new base$Void_0Impl();
+    Void_0 $self = new base$Void_0Impl();
     }
     interface Main_0{
     base.Void_0 $35$imm$(base.System_0 s$);}
@@ -927,12 +927,12 @@ public class TestJavaCodegen {
     }
         
     }  static void main(String[] args){
-        FAux.LAUNCH_ARGS = base.LList_1._$self;
+        FAux.LAUNCH_ARGS = base.LList_1.$self;
     for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$mut$(arg); }
         
-        base.Main_0 entry = test.Test_0._$self;
+        base.Main_0 entry = test.Test_0.$self;
         try {
-          entry.$35$imm$(base$46caps.$95System_0._$self);
+          entry.$35$imm$(base$46caps.$95System_0.$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);

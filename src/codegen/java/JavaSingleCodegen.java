@@ -1,0 +1,506 @@
+package codegen.java;
+
+import codegen.MIR;
+import codegen.MethExprKind;
+import codegen.ParentWalker;
+import codegen.optimisations.OptimisationBuilder;
+import id.Id;
+import id.Id.DecId;
+import id.Mdf;
+import magic.Magic;
+import utils.Box;
+import utils.Bug;
+import utils.Streams;
+import visitors.MIRVisitor;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import ast.Program;
+import static codegen.MethExprKind.Kind.RealExpr;
+import static codegen.MethExprKind.Kind.Unreachable;
+import static codegen.MethExprKind.Kind.Delegate;
+
+public class JavaSingleCodegen implements MIRVisitor<String> {
+  protected final MIR.Program p;
+  protected final Map<MIR.FName, MIR.Fun> funMap;
+  private final MagicImpls magic;
+  public final HashMap<Id.DecId, String> freshRecords= new HashMap<>();
+  public final StringIds id= new StringIds();
+  public JavaSingleCodegen(MIR.Program p) {
+    magic= new MagicImpls(this,t->getTName(t,false), p.p());
+    this.p= new OptimisationBuilder(this.magic)
+      .withBoolIfOptimisation()
+      .withBlockOptimisation()
+      .withDevirtualisationOptimisation()
+      .run(p);
+    this.funMap = p.pkgs().stream()
+      .flatMap(pkg->pkg.funs().stream())
+      .collect(Collectors.toMap(MIR.Fun::name, f->f));
+  }
+  public boolean isLiteral(Id.DecId d) {
+    return id.getLiteral(p.p(), d).isPresent();
+  }
+  public String extendsStr(MIR.TypeDef def,String fullName){
+    var its = def.impls().stream()
+      .map(MIR.MT.Plain::id)
+      .filter(e->!isLiteral(e))
+      .map(id::getFullName)
+      .filter(tr->!tr.equals(fullName))//TODO: remove when fixed
+      .distinct()
+      .sorted()
+      .collect(Collectors.joining(","));
+      return its.isEmpty() ? "" : " extends "+its;
+  }
+  public <T> String seq(Collection<T> es, Function<T,String> f, String join){
+    return seq(es.stream(),f,join);
+  }
+  public <T> String seq(Stream<T> s, Function<T,String> f, String join){
+    return s.map(f).collect(Collectors.joining(join));
+  }
+  public String visitTypeDef(String pkg, MIR.TypeDef def, List<MIR.Fun> funs) {
+    var isMagic= pkg.equals("base") 
+      && def.name().name().endsWith("Instance");
+    var isLiteral= isLiteral(def.name());
+    if (isMagic || isLiteral ) { return ""; }
+
+    var fullName = id.getFullName(def.name());
+    var shortName= id.getSimpleName(def.name());
+    var impls= extendsStr(def,fullName);
+    var singletonGet = def.singletonInstance()
+      .map(objK->shortName
+        +" $self = "
+        +visitCreateObjNoSingleton(objK, true)
+        +";\n")
+      .orElse("");
+    var leastSpecific = ParentWalker.leastSpecificSigs(p, def);
+    var sigs = seq(def.sigs(),sig->visitSig(sig, leastSpecific),"\n");
+    var staticFuns = seq(funs,this::visitFun,"\n");    
+    return "public interface "+shortName+impls+"{\n"
+      + singletonGet + sigs + staticFuns + "}";
+  }
+  public String visitSig(
+      MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
+    // If params are different in my parent, we need to objectify
+    var overriddenSig= this.overriddenSig(sig, leastSpecific);
+    if (overriddenSig.isPresent()) {
+      return visitSig(overriddenSig.get(), Map.of());
+    }
+    var args = seq(sig.xs(),this::typePair,", ");
+    return getTName(sig.rt(),true)+" "
+      +id.getMName(sig.mdf(), sig.name())+"("+args+");\n";
+  }
+  private String castX(MIR.X x){
+    return "("+getTName(x.t(),false)+") "+id.varName(x.name());
+  }
+  public String visitMeth(
+      MIR.Meth meth, MethExprKind kind,
+      Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
+    
+    var overriddenSig= this.overriddenSig(meth.sig(), leastSpecific);
+    var toSkip= overriddenSig.isPresent();
+    var deleMeth= meth;
+    if (toSkip){ deleMeth= meth.withSig(overriddenSig.get()); }
+    var canSkip= toSkip && kind.kind() == Unreachable;
+    if (canSkip){return visitMeth(meth, Unreachable, Map.of());}
+    if (toSkip){
+      var d= new MethExprKind.Delegator(meth.sig(),deleMeth.sig());
+      var delegator= visitMeth(deleMeth,d , Map.of());
+      var delegate= visitMeth(meth,Delegate, Map.of());
+      return delegator+"\n"+delegate+"\n";
+    }
+    var methName = id.getMName(meth.sig().mdf(), meth.sig().name())
+      +(kind.kind()==Delegate?"$Delegate":"");
+    var args = seq(meth.sig().xs(),this::typePair,", ");
+    var funArgs = Streams.of(
+      meth.sig().xs().stream().map(MIR.X::name).map(id::varName),
+      meth.capturesSelf() ? Stream.of("this") : Stream.<String>of(),
+      meth.captures().stream().map(id::varName).map(x->"this."+x)
+      )
+      .collect(Collectors.joining(", "));
+    var mustCast = meth.fName().isPresent() 
+      && this.funMap.get(meth.fName().get()).ret() instanceof MIR.MT.Any
+      && !(meth.sig().rt() instanceof MIR.MT.Any);
+    var cast = mustCast ? "("+getTName(meth.sig().rt(),true)+")" : "";
+
+    var realBody="return %s %s.%s(%s);".formatted(
+      cast, id.getFullName(meth.origin()),
+      getFName(meth.fName().orElseThrow()), funArgs);
+    var realExpr = switch (kind) {
+      case MethExprKind.Kind k -> switch (k.kind()) {
+        case RealExpr, Delegate -> realBody;
+        case Unreachable -> "throw new Error(\"Unreachable code\");";
+        case Delegator -> throw Bug.unreachable();
+      };
+      case MethExprKind.Delegator k -> "return this.%s(%s);".formatted(
+        methName+"$Delegate",seq(k.xs(),this::castX,", ")
+        );
+    };
+    return """
+      public %s %s(%s) {
+        %s
+      }
+      """.formatted(
+        getTName(meth.sig().rt(),true),
+        methName,
+        args,
+        realExpr);
+  }
+
+  public String visitFun(MIR.Fun fun) {
+    var name = getFName(fun.name());
+    var args = seq(fun.args(),this::typePair,", ");
+    var body = fun.body().accept(this, true);
+    var ret = fun.body() instanceof MIR.Block ? "" : "return ";
+    return """
+      static %s %s(%s) {
+        %s%s;
+      }
+      """.formatted(getTName(fun.ret(),true), name, args, ret, body);
+  }
+  @Override public String visitBlockExpr(MIR.Block expr, boolean checkMagic) {
+    var res = new StringBuilder();
+    var stmts = new ArrayDeque<>(expr.stmts());
+    var doIdx = new Box<>(0);
+    while (!stmts.isEmpty()) {
+      res.append(this.visitBlockStmt(expr, stmts, doIdx));
+    }
+    return res.toString();
+  }
+
+  private String visitBlockStmt(
+      MIR.Block expr, ArrayDeque<MIR.Block.BlockStmt> stmts, Box<Integer> doIdx) {
+    var stmt = stmts.poll();
+    assert stmt != null;
+    return switch (stmt) {
+      case MIR.Block.BlockStmt.Return ret ->
+        "return %s".formatted(ret.e().accept(this, true));
+      case MIR.Block.BlockStmt.Do do_ ->
+        "var doRes%s = %s;\n"
+        .formatted(doIdx.update(n->n + 1), do_.e().accept(this, true));
+      case MIR.Block.BlockStmt.Loop loop -> """
+        while (true) {
+          var res = %s.$hash$mut$();
+          if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
+            if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
+            if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut$(); }
+          }
+          """.formatted(
+        loop.e().accept(this, true),
+        getTName(expr.expectedT(),false));
+      case MIR.Block.BlockStmt.If if_ -> {
+        var body = this.visitBlockStmt(expr, stmts, doIdx);
+        if (body.startsWith("return")) { body += ";"; }
+        yield """
+          if (%s == base.True_0.$self) { %s }
+          """.formatted(if_.pred().accept(this, true), body);
+      }
+      case MIR.Block.BlockStmt.Var var -> "var %s = %s;\n"
+        .formatted(id.varName(var.name()), var.value().accept(this, true));
+    };
+  }
+
+  @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
+    var magicImpl = magic.get(createObj);
+    if (checkMagic && magicImpl.isPresent()) {
+      var res = magicImpl.get().instantiate();
+      if (res.isPresent()) { return res.get(); }
+    }
+    var objId = createObj.concreteT().id();
+    var singleton= p.of(objId).singletonInstance().isPresent();
+    if (singleton){ return id.getFullName(objId)+".$self"; }
+    return visitCreateObjNoSingleton(createObj, checkMagic);
+  }
+  public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic){
+    var name= createObj.concreteT().id();
+    var recordName= id.getSimpleName(name)+"Impl"; 
+    addFreshRecord(createObj, name, recordName);
+    var captures= seq(createObj.captures(),x->visitX(x, checkMagic),", ");
+    return "new "+recordName+"("+captures+")";
+  }
+  private void addFreshRecord(
+      MIR.CreateObj createObj, DecId name, String recordName) {
+    if(this.freshRecords.containsKey(name)){ return; }
+//    assert !this.freshRecords.containsKey(name):
+//      "current "+name+" in \n"+this.freshRecords.keySet();
+    var leastSpecific = ParentWalker.leastSpecificSigs(p, p.of(name));
+    var args = seq(createObj.captures(),this::typePair,", ");
+    var ms = seq(createObj.meths(),
+      m->this.visitMeth(m,RealExpr,leastSpecific),"\n");
+    var unreachableMs = seq(createObj.unreachableMs(),
+      m->this.visitMeth(m, Unreachable, leastSpecific),"\n");
+    this.freshRecords.put(name, """
+      public record %s(%s) implements %s {
+        %s
+        %s
+      }
+      """.formatted(
+      recordName, args, id.getFullName(name), ms, unreachableMs));
+  }
+
+  @Override public String visitX(MIR.X x, boolean checkMagic) {
+    return id.varName(x.name());
+  }
+
+  @Override public String visitMCall(MIR.MCall call, boolean checkMagic) {
+    var mustCast = !call.t().equals(call.originalRet());
+    var cast = mustCast ? "(("+getTName(call.t(),false)+")" : "";
+
+    if (checkMagic && !call.variant().contains(MIR.MCall.CallVariant.Standard)) {
+      var impl = magic.variantCall(call).call(call.name(), call.args(), call.variant(), call.t());
+      if (impl.isPresent()) { return cast+impl.get()+(mustCast ? ")" : ""); }
+    }
+
+    var magicImpl = magic.get(call.recv());
+    if (checkMagic && magicImpl.isPresent()) {
+      var impl = magicImpl.get()
+        .call(call.name(), call.args(), call.variant(), call.t());
+      if (impl.isPresent()) { return cast+impl.get()+(mustCast ? ")" : ""); }
+    }
+    var start = cast
+      +call.recv().accept(this, checkMagic)
+      +"."+id.getMName(call.mdf(), call.name())+"(";
+    var args = seq(call.args(),a->a.accept(this, checkMagic),",");
+    return start+args+")"+(mustCast ? ")" : "");
+  }
+
+  @Override public String visitBoolExpr(MIR.BoolExpr expr, boolean checkMagic) {
+    var recv = expr.condition().accept(this, checkMagic);
+    var mustCast = !this.funMap.get(expr.then()).ret().equals(this.funMap.get(expr.else_()).ret());
+    var cast = mustCast ? "(%s)".formatted(getTName(expr.t(),true)) : "";
+
+    return "(%s(%s == base.True_0.$self ? %s : %s))".formatted(cast, recv, this.funMap.get(expr.then()).body().accept(this, true), this.funMap.get(expr.else_()).body().accept(this, true));
+  }
+
+  @Override public String visitStaticCall(MIR.StaticCall call, boolean checkMagic) {
+    var cast = call.castTo().map(t->"(("+getTName(t,false)+")").orElse("");
+    var castEnd = cast.isEmpty() ? "" : ")";
+
+    var args = call.args().stream()
+      .map(a->a.accept(this, checkMagic))
+      .collect(Collectors.joining(","));
+    return "%s %s.%s(%s)%s"
+      .formatted(cast, 
+          id.getFullName(call.fun().d()),
+          getFName(call.fun()), args, castEnd);
+  }
+
+  private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
+    var leastSpecificSig = leastSpecific.get(ParentWalker.FullMethId.of(sig));
+    if (leastSpecificSig != null && Streams.zip(sig.xs(),leastSpecificSig.xs()).anyMatch((a,b)->!a.t().equals(b.t()))) {
+      return Optional.of(leastSpecificSig.withRT(sig.rt()));
+    }
+    return Optional.empty();
+  }
+
+  private String typePair(MIR.X x) {
+    return getTName(x.t(),false)+" "+id.varName(x.name());
+  }
+  public String getFName(MIR.FName name) {
+    var capturesSelf = name.capturesSelf() ? "selfCap" : "noSelfCap";
+    return 
+      //id.getFullName(name.d()).replace(".","$")+"$"+
+      id.getMName(name.mdf(), name.m())
+      +"$"+capturesSelf;
+  }
+  public String getTName(MIR.MT t, boolean isRet) {
+    return new TypeIds(magic,id).getTName(t,isRet);
+  }
+  public String visitProgram(Id.DecId entry){ throw Bug.unreachable(); }
+  public String visitPackage(MIR.Package pkg){ throw Bug.unreachable(); }
+}
+record TypeIds(MagicImpls magic,StringIds id){
+  public String getTName(MIR.MT t, boolean isRet) {
+    var res= switch (t) {
+      case MIR.MT.Any ignored -> "Object";
+      case MIR.MT.Plain plain -> auxGetTName(plain.id());
+      case MIR.MT.Usual usual -> auxGetTName(usual.it().name());
+    };
+    return isRet?boxOf(res):res;
+  }
+  public String auxGetTName(Id.DecId name) {
+    return switch (name.name()) {
+      case "base.Int", "base.UInt" -> "long";
+      case "base.Float" -> "double";
+      case "base.Str" -> "String";
+      default -> magicName(name);
+      };
+    }
+  private String magicName(Id.DecId name){
+    if (magic.isMagic(Magic.Int, name)) { return "long"; }
+    if (magic.isMagic(Magic.UInt, name)) { return "long"; }
+    if (magic.isMagic(Magic.Float, name)) { return "double"; }
+    if (magic.isMagic(Magic.Float, name)) { return "double"; }
+    if (magic.isMagic(Magic.Str, name)) { return "String"; }
+    return id.getFullName(name);
+  }
+  public String boxOf(String s){
+    return Optional.ofNullable(boxed.get(s)).orElse(s);
+  }
+  private static final Map<String,String> boxed= Map.of(
+    "int","Integer",
+    "float","Float",
+    "double","Double",
+    "char","Character",
+    "byte","Byte",
+    "short","Short",
+    "boolean","Boolean"
+  );
+}
+class StringIds{
+  public Optional<String> getLiteral(Program p, Id.DecId d) {
+    return p.superDecIds(d).stream()
+      .map(Id.DecId::name)
+      .filter(this::isLiteral)
+      .findFirst();
+  }
+  public boolean isLiteral(String name) {
+    return isDigit(name.codePointAt(0)) 
+      || name.startsWith("\"")
+      || name.startsWith("-")
+      || name.startsWith("+");
+  }
+  public boolean isDigit(int codepoint){
+    //Character.isDigit is way too relaxed
+    return codepoint >= '0' && codepoint <= '9';
+  }
+  public boolean isAlphabetic(int codepoint){
+    return (codepoint >= 'A' && codepoint <= 'Z') 
+      || (codepoint >= 'a' && codepoint <= 'z');
+    //return Character.isAlphabetic(codepoint);
+    //Here instead I'm actually not sure what the best way is.
+    //What do we want our identifiers to be?
+  }
+  public String getFullName(Id.DecId d) {
+    return d.pkg()+"."+getSimpleName(d);
+  }
+  public String getSimpleName(Id.DecId d) {
+    return getBase(d.shortName())+"_"+d.gen();//just to translate the '
+  }
+
+  public String getRelativeName(String currentPkg,Id.DecId d) {
+    if(!currentPkg.equals(d.pkg())){ return getFullName(d); }
+    return getSimpleName(d);
+  }
+  public String getMName(Mdf mdf, Id.MethName m) {
+    return getBase(m.name())+"$"+mdf;
+  }
+
+  public String getBase(String name) {
+    String _name=name;
+    //if (name.equals("this")){ return "$this"; }
+    if (name.startsWith(".")) { name = name.substring(1); }
+    return name.codePoints().mapToObj(c->{
+      var base= isAlphabetic(c) || isDigit(c);
+      if (base){ return Character.toString(c); }
+      assert c != '.';
+      var res= escape.get(c);
+      assert res!=null
+        :"not considered character ["+Character.toString(c)+"] in "+_name;
+      return res;
+    }).collect(Collectors.joining());
+  }
+  private static final Map<Integer, String> escape = Map.ofEntries(
+    Map.entry((int)'_', "_"),
+    Map.entry((int)'\'', "$apostrophe"),
+    Map.entry((int)'+', "$plus"),
+    Map.entry((int)'-', "$minus"),
+    Map.entry((int)'*', "$asterisk"),
+    Map.entry((int)'/', "$slash"),
+    Map.entry((int)'\\', "$backslash"),
+    Map.entry((int)'|', "$pipe"),
+    Map.entry((int)'!', "$exclamation"),
+    Map.entry((int)'@', "$at"),
+    Map.entry((int)'#', "$hash"),
+    Map.entry((int)'$', "$"),
+    Map.entry((int)'%', "$percent"),
+    Map.entry((int)'^', "$caret"),
+    Map.entry((int)'&', "$ampersand"),
+    Map.entry((int)'?', "$question"),
+    Map.entry((int)'~', "$tilde"),
+    Map.entry((int)'<', "$lt"),
+    Map.entry((int)'>', "$gt"),
+    Map.entry((int)'=', "$equals"),
+    Map.entry((int)':', "$colon")
+  );
+  private static final String[] keywords = {
+    "abstract", "assert", "boolean", "break", "byte",
+    "case", "catch", "char", "class", "const",
+    "continue", "default", "do", "double", "else", "enum", "extends",
+    "final", "finally", "float", "for", "goto", "if", "implements",
+    "import", "instanceof", "int", "interface", "long", "native",
+    "new", "package", "private", "protected", "public", "return",
+    "short", "static", "strictfp", "super", "switch", "synchronized",
+    "this", "throw", "throws", "transient", "try", "void", "volatile",
+    "while", "true", "false", "null"
+    };
+  private static final Map<String,String> keywordsMap= Stream.of(keywords)
+    .collect(Collectors.toMap(e->e,e->"$"+e));
+  public String varName(String name){
+    return Optional.ofNullable(keywordsMap.get(name))
+      .orElse(name.replace("'","$"));
+  }
+}
+/*
+
+  protected static String argsToLList(Mdf addMdf) {
+    return """
+      FAux.LAUNCH_ARGS = base.LList_1.$self;
+      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$%s$(arg); }
+      """.formatted(addMdf);
+  }
+
+
+  public String visitProgram(Id.DecId entry) {
+    var entryName = id.getName(entry);
+    var systemImpl = id.getName(Magic.SystemImpl);
+    var init = """
+      static void main(String[] args){
+        %s
+        base.Main_0 entry = %s.$self;
+        try {
+          entry.$35$imm$(%s.$self);
+        } catch (StackOverflowError e) {
+          System.err.println("Program crashed with: Stack overflowed");
+          System.exit(1);
+        } catch (Throwable t) {
+          System.err.println("Program crashed with: "+t.getLocalizedMessage());
+          System.exit(1);
+        }
+      }
+    """.formatted(
+      argsToLList(Mdf.mut),
+      entryName,
+      systemImpl
+    );
+
+    final String fearlessHeader = """
+      package userCode;
+      class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
+      """;
+
+    return fearlessHeader+"\npublic interface FProgram{\n" +p.pkgs().stream()
+      .map(this::visitPackage)
+      .collect(Collectors.joining("\n"))+init+"}";
+  }
+  public String visitPackage(MIR.Package pkg) {
+    this.pkg = pkg;
+    this.freshRecords = new HashMap<>();
+    Map<Id.DecId, List<MIR.Fun>> funs = pkg.funs().stream().collect(Collectors.groupingBy(f->f.name().d()));
+    var typeDefs = pkg.defs().values().stream()
+      .map(def->visitTypeDef(pkg.name(), def, funs.getOrDefault(def.name(), List.of())))
+      .collect(Collectors.joining("\n"));
+
+    var freshRecords = String.join("\n", this.freshRecords.values());
+    return "interface "+getPkgName(pkg.name())+"{"+typeDefs+"\n"+freshRecords+"\n}";
+  }
+
+ private List<String> getImplsNames(List<MIR.MT.Plain> its) {
+    return its.stream()
+      .map(this::getName)
+      .toList();
+  }
+
+*/
