@@ -24,28 +24,12 @@ import java.util.stream.Stream;
 
 import static magic.MagicImpls.getLiteral;
 
-/*
- JavaCompiler need instance compile
- Files:
-   String typeDefContent = gen.visitTypeDef(pkg.name(), def, pkg.funs());
-   Is this all the 'class body'? what this looks like?
-   makes sense to make a file for each of those?
-   
- package: one or many?
- class name mangling: does contain package name or not?
- so I can generate fully qualified names, mangling does not include packages
- reserved package names?  'rt' can not be a package name 
- rt is a package that contains core magic stuff that we have
- to include in the classpath to run/compile
- Or, we can copy those source file as 'base' classes 
- what really is "FProgram"
- interface Top
-   interface pk1
-     interface Person
- 
-*/
 public class JavaFilesCodegen{
-  JavaProgram javaProgram= new JavaProgram(new ArrayList<>());
+  //TODO: simplyfy and store arraylist only in here
+  private JavaProgram javaProgram= new JavaProgram(new ArrayList<>());
+  public JavaProgram getJavaProgram(){
+    return new JavaProgram(List.copyOf(javaProgram.files()));
+  } 
   JavaSingleCodegen gen;
   MIR.Program program;
   public JavaFilesCodegen(MIR.Program program){
@@ -82,26 +66,13 @@ public class JavaFilesCodegen{
       for(var p:ps) {
         String content= Files.readString(p);
         Files.createDirectories(filesRoot.resolve("rt"));
-        content= content.replace("FProgram.base.", "base.");
         var dest= filesRoot.resolve("rt",p.getFileName().toString());
         Files.writeString(dest, content);
       }
     }
   }
   public void generateFiles() {
-     /*String fearlessErrorContent = userCodePkg+"""
-       class FearlessError extends RuntimeException {
-         // ...
-       }
-       """;
-     String fearlessAuxContent = userCodePkg+"""
-       class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
-       """;*/
-      //addFile(userCodeDir, "FearlessError.java", fearlessErrorContent);
-      //addFile(userCodeDir, "FAux.java", fearlessAuxContent);
-
       for (MIR.Package pkg : program.pkgs()) {
-        //if(pkg.name().startsWith("base")){ continue; }
         for (MIR.TypeDef def : pkg.defs().values()) {
           var funs= pkg.funs().stream()
             .filter(f->f.name().d().equals(def.name()))
@@ -124,7 +95,6 @@ public class JavaFilesCodegen{
     private void addFile(String pkgName, String name, String content) {
       String pkg= "package "+pkgName+";\n";
       String fileName=pkgName.replace(".","/")+"/"+name+".java";
-      System.out.println(pkgName+" "+fileName);
       Path p=filesRoot.resolve(fileName);
       javaProgram.files().add(new JavaFile(p,pkg+content));
     }

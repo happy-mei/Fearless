@@ -1266,11 +1266,11 @@ public class TestJavaProgram {
   @Disabled // TODO: cannot wrap this because try can't capture System right now
   @Test void emptyOptErrWrapped() { ok(new Res("", """
     Exception in thread "main" FearlessError
-    	at FProgram$base$Error_0.str$imm$(FProgram.java:[###])
-    	at FProgram$base$Opt_1$2.empty$mut$(FProgram.java:[###])
-    	at FProgram$base$Opt_1.match$imm$(FProgram.java:[###])
-    	at FProgram$base$Opt_1.$33$imm$(FProgram.java:[###])
-    	at FProgram$test$Test_0.$35$imm$(FProgram.java:[###])
+    	at FProgram$base$Error_0.str$imm(FProgram.java:[###])
+    	at FProgram$base$Opt_1$2.empty$mut(FProgram.java:[###])
+    	at FProgram$base$Opt_1.match$imm(FProgram.java:[###])
+    	at FProgram$base$Opt_1.$33$imm(FProgram.java:[###])
+    	at FProgram$test$Test_0.$hash$imm(FProgram.java:[###])
     	at FProgram.main(FProgram.java:[###])""", 1), "test.Test", """
     package test
     SMain:Main{

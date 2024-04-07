@@ -74,7 +74,7 @@ public class TestJavaProgramImm {
     var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     try {
       var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId("test.Test", 0));
-      var res = RunOutput.java(new JavaCompiler().compile(verbosity, new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java)), args).join();
+      var res = RunOutput.java(new JavaCompiler().compile(verbosity, List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java))), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

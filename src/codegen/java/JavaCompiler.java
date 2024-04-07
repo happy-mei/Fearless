@@ -18,28 +18,25 @@ import utils.ResolveResource;
 
 public class JavaCompiler{
   public static final String MAIN_CLASS_NAME = "FProgram";
-  public Path compile(CompilerFrontEnd.Verbosity verbosity, JavaFile... files) {
-    assert files.length > 0;
-    assert Arrays.stream(files).anyMatch(f->f.isNameCompatible(MAIN_CLASS_NAME, Kind.SOURCE));
+  public Path compile(CompilerFrontEnd.Verbosity verbosity, List<JavaFile> files) {
+    assert files.size() > 0;
     var compiler = ToolProvider.getSystemJavaCompiler();
     if (compiler == null) {
-      throw new RuntimeException("No Java compiler could be found. Please install a JDK >= 10.");
-    }
-  
+      throw new RuntimeException("No Java compiler could be found. Please use a JDK >= 10");
+      //TODO: are you sure this is the right message? used to be about JDK vs JRE
+    }  
     var workingDir = Paths.get(System.getProperty("java.io.tmpdir"), "fearOut"+UUID.randomUUID());
     if (!workingDir.toFile().mkdir()) {
       throw Bug.of("Could not create a working directory for building the program in: " + System.getProperty("java.io.tmpdir"));
     }
     if (verbosity.printCodegen()) {
       System.err.println("Java codegen working dir: "+workingDir.toAbsolutePath());
-    }
-  
+    }  
     var options = List.of(
       "-d",
       workingDir.toString(),
       "-Xdiags:verbose"
-    );
-  
+    );  
     var errors = new Box<Diagnostic<?>>(null);
   
     var runtimeFiles = Stream.of(
@@ -50,10 +47,10 @@ public class JavaCompiler{
       "Random",
       "Error",
       "Try",
-      "CapTry"
+      "CapTry",
+      "FearlessMain"
     ).map(name -> new JavaFile(name, ResolveResource.getAndRead("/rt/"+name+".java")));
-    var userFiles = Arrays.stream(files);
-    var codegenUnits = Stream.concat(userFiles, runtimeFiles);
+    var codegenUnits = Stream.concat(files.stream(), runtimeFiles);
   
     boolean success = compiler.getTask(
       null,
@@ -72,5 +69,5 @@ public class JavaCompiler{
       throw Bug.of("ICE: Java compilation failed:\n"+ diagnostic);
     }
   
-    return workingDir.resolve("FProgram.class");
+    return workingDir;
   }}

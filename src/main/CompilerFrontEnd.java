@@ -124,7 +124,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     v.progress.printTask("Code generated \uD83E\uDD73 ("+timer.duration()+"ms)");
     v.progress.printStep("Executing backend compiler \uD83C\uDFED");
     var classFile = switch (bv) {
-      case Std -> new JavaCompiler().compile(v, mainClass.files().get(0));
+      case Std -> new JavaCompiler().compile(v, mainClass.files());
       case Imm -> throw Bug.todo();//ImmJavaProgram.compile(v, mainClass);
     };
     v.progress.printStep("Done executing backend compiler \uD83E\uDD73 ("+timer.duration()+"ms)");

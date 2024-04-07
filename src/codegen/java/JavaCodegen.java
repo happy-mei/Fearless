@@ -50,7 +50,7 @@ public class JavaCodegen implements MIRVisitor<String> {
         %s
         base.Main_0 entry = %s.$self;
         try {
-          entry.$35$imm$(%s.$self);
+          entry.$hash$imm(%s.$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
@@ -67,7 +67,7 @@ public class JavaCodegen implements MIRVisitor<String> {
 
     final String fearlessHeader = """
       package userCode;
-      class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
+      class FAux { static base.LList_1 LAUNCH_ARGS; }
       """;
 
     return fearlessHeader+"\npublic interface FProgram{\n" +p.pkgs().stream()
@@ -232,10 +232,10 @@ public class JavaCodegen implements MIRVisitor<String> {
       case MIR.Block.BlockStmt.Do do_ -> "var doRes%s = %s;\n".formatted(doIdx.update(n->n + 1), do_.e().accept(this, true));
       case MIR.Block.BlockStmt.Loop loop -> """
           while (true) {
-            var res = %s.$35$mut$();
+            var res = %s.$hash$mut();
             if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
             if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-            if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut$(); }
+            if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut(); }
           }
           """.formatted(loop.e().accept(this, true), getName(expr.expectedT()));
       case MIR.Block.BlockStmt.If if_ -> {

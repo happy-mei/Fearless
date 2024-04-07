@@ -165,7 +165,7 @@ public record MagicImpls(PackageCodegen gen, ast.Program p) implements magic.Mag
           return Optional.of(new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+" == "+args.getFirst().accept(gen, true)+")", Set.of()));
         }
         if (m.equals(new Id.MethName(".assertEq", 1))) {
-//          return Optional.of("base.$95StrHelpers_0.$self.assertEq$imm$("+instantiate()+", "+args.getFirst().accept(gen, true)+")");
+//          return Optional.of("base._StrHelpers_0.$self.assertEq$imm("+instantiate()+", "+args.getFirst().accept(gen, true)+")");
           throw Bug.todo(); // TODO
         }
         throw Bug.unreachable();

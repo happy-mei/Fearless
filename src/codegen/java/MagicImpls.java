@@ -211,7 +211,7 @@ public record MagicImpls(
           return Optional.of("("+instantiate().orElseThrow()+".equals("+args.getFirst().accept(gen, true)+")?base.True_0.$self:base.False_0.$self)");
         }
         if (m.equals(new Id.MethName(".assertEq", 1))) {
-          return Optional.of("base.$95StrHelpers_0.$self.assertEq$imm$("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+")");
+          return Optional.of("base._StrHelpers_0.$self.assertEq$imm("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+")");
         }
         throw Bug.unreachable();
       }
@@ -234,7 +234,7 @@ public record MagicImpls(
               Object xObj = x;
               var strMethod = java.util.Arrays.stream(xObj.getClass().getMethods())
                 .filter(meth->
-                  (meth.getName().equals("str$read$") || meth.getName().equals("str$readOnly$"))
+                  (meth.getName().equals("str$read") || meth.getName().equals("str$readOnly"))
                   && meth.getReturnType().equals(String.class)
                   && meth.getParameterCount() == 0)
                 .findAny();
@@ -267,11 +267,13 @@ public record MagicImpls(
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
           var x = args.getFirst();
           return Optional.of(String.format("""
-            new base.$95MagicRefImpl_1(){
-              private Object x = %s;
-              public Object get$mut$() { return this.x; }
-              public Object get$read$() { return this.x; }
-              public Object swap$mut$(Object x$) { var x1 = this.x; this.x = x$; return x1; }
+            new base._MagicRefImpl_1(){
+              private Object x$ = %s;
+              public Object get$mut() { return this.x$; }
+              public Object get$read() { return this.x$; }
+              public Object swap$mut(Object x$) {
+                var y$ = this.x$; this.x$ = x$; return y$;
+                }
             }
             """, x.accept(gen, true)));
         }
@@ -291,21 +293,21 @@ public record MagicImpls(
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
           var x = args.getFirst();
           return Optional.of(String.format("""
-            new base$46caps.$95MagicIsoPodImpl_1(){
+            new base.caps._MagicIsoPodImpl_1(){
               private Object x = %s;
               private boolean isAlive = true;
 
-              public base.Bool_0 isAlive$readOnly$() { return this.isAlive ? base.True_0.$self : base.False_0.$self; }
-              public Object peek$readOnly$(userCode.FProgram.base$46caps.IsoViewer_2 f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$mut$(this.x) : ((base$46caps.IsoViewer_2)f).empty$mut$(); }
-              public Object $33$mut$() {
+              public base.Bool_0 isAlive$readOnly() { return this.isAlive ? base.True_0.$self : base.False_0.$self; }
+              public Object peek$readOnly(base.caps.IsoViewer_2 f) { return this.isAlive ? ((base.caps.IsoViewer_2)f).some$mut(this.x) : ((base.caps.IsoViewer_2)f).empty$mut(); }
+              public Object $exclamation$mut() {
                 if (!this.isAlive) {
-                  base.Error_0.$self.str$imm$("Cannot consume an empty IsoPod.");
+                  base.Error_0.$self.str$imm("Cannot consume an empty IsoPod.");
                   return null;
                 }
                 this.isAlive = false;
                 return this.x;
               }
-              public base.Void_0 next$mut$(Object x) { this.isAlive = true; this.x = x; return new base.Void_0(){}; }
+              public base.Void_0 next$mut(Object x) { this.isAlive = true; this.x = x; return new base.Void_0(){}; }
             }
             """, x.accept(gen, true)));
         }
@@ -417,8 +419,8 @@ public record MagicImpls(
         return (ctx, m, args)->{
           if (m.equals(new Id.MethName("#", 1)) || m.equals(new Id.MethName(".io", 1))) {
             return """
-              new base$46caps.Env_0(){
-                public base.LList_1 launchArgs$mut$() { return FAux.LAUNCH_ARGS; }
+              new base.caps.Env_0(){
+                public base.LList_1 launchArgs$mut() { return FAux.LAUNCH_ARGS; }
               }
               """;
           }

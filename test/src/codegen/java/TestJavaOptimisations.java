@@ -44,9 +44,9 @@ public class TestJavaOptimisations {
   }
 
   @Test void blockVarDoRet() { ok("""
-    [###]static base.Void_0 test$Test_0$$35$imm$$noSelfCap(base$46caps.System_0 fear5$$) {
+    [###]static base.Void_0 test$Test_0$$hash$imm$noSelfCap(base.caps.System_0 fear5$$) {
       var n$ = 5L;
-    var doRes1 = test.ForceGen_0.$self.$35$imm$();
+    var doRes1 = test.ForceGen_0.$self.$hash$imm();
     return base.Void_0.$self;
     }
     [###]
@@ -62,7 +62,7 @@ public class TestJavaOptimisations {
     """);}
 
   @Test void blockRet() { ok("""
-    [###]static base.Void_0 test$Test_0$$35$imm$$noSelfCap(base$46caps.System_0 fear5$$) {
+    [###]static base.Void_0 test$Test_0$$hash$imm$noSelfCap(base.caps.System_0 fear5$$) {
       return base.Void_0.$self;
     }
     [###]
@@ -75,13 +75,13 @@ public class TestJavaOptimisations {
     """);}
 
   @Test void incrementLoop() { ok("""
-    [###]static base.Void_0 test$Test_0$$35$imm$$noSelfCap(base$46caps.System_0 sys$) {
-      var n$ = base.Count_0.$self.int$imm$(0L);
+    [###]static base.Void_0 test$Test_0$$hash$imm$noSelfCap(base.caps.System_0 sys$) {
+      var n$ = base.Count_0.$self.int$imm(0L);
     while (true) {
-      var res = new test$Fear61$36_0Impl(n$).$35$mut$();
+      var res = new test$Fear61$36_0Impl(n$).$hash$mut();
       if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
       if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-      if (res instanceof base.ControlFlowReturn_1 rv) { return (base.Void_0) rv.value$mut$(); }
+      if (res instanceof base.ControlFlowReturn_1 rv) { return (base.Void_0) rv.value$mut(); }
     }
     return base.Void_0.$self;
     }
@@ -101,13 +101,13 @@ public class TestJavaOptimisations {
     """, Base.mutBaseAliases);}
 
   @Test void earlyReturnLoop() { ok("""
-    [###]static String test$Foo_0$$35$imm$$noSelfCap() {
-      var n$ = base.Count_0.$self.int$imm$(0L);
+    [###]static String test$Foo_0$$hash$imm$noSelfCap() {
+      var n$ = base.Count_0.$self.int$imm(0L);
     while (true) {
-     var res = new test$Fear63$36_0Impl(n$).$35$mut$();
+     var res = new test$Fear63$36_0Impl(n$).$hash$mut();
      if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
      if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-     if (res instanceof base.ControlFlowReturn_1 rv) { return (String) rv.value$mut$(); }
+     if (res instanceof base.ControlFlowReturn_1 rv) { return (String) rv.value$mut(); }
    }
    return "Boo :(";
    }
@@ -128,13 +128,13 @@ public class TestJavaOptimisations {
 
   @Test void earlyReturnLoopEarlyExit() { ok("""
     [###]
-    static String test$Foo_0$$35$imm$$noSelfCap() {
-      var n$ = base.Count_0.$self.int$imm$(0L);
+    static String test$Foo_0$$hash$imm$noSelfCap() {
+      var n$ = base.Count_0.$self.int$imm(0L);
       while (true) {
-        var res = new test$Fear63$36_0Impl(n$).$35$mut$();
+        var res = new test$Fear63$36_0Impl(n$).$hash$mut();
         if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
         if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-        if (res instanceof base.ControlFlowReturn_1 rv) { return (String) rv.value$mut$(); }
+        if (res instanceof base.ControlFlowReturn_1 rv) { return (String) rv.value$mut(); }
       }
       return "Boo :(";
     }

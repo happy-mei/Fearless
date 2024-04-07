@@ -2,11 +2,11 @@ package main.java;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
-
 import codegen.MIRInjectionVisitor;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaCompiler;
@@ -25,12 +25,14 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
   List<String> commandLineArguments();
   String entry();
   default String[] makeJavaCommand(Path pathToMain) {
+    pathToMain=pathToMain.resolve("rt/FearlessMain.class");
     var jrePath= Path.of(System.getProperty("java.home"), "bin", "java")
       .toAbsolutePath();
-    String entryPoint= "userCode." 
+    String entryPoint= "rt." 
       + pathToMain.getFileName().toString().split("\\.class")[0];
-    var baseCommand = Stream.of(jrePath.toString(),entryPoint);
-    return Stream.concat(baseCommand, commandLineArguments().stream())
+    var baseCommand = Stream.of(jrePath.toString(),entryPoint,this.entry());
+    return Stream.concat(baseCommand,
+        commandLineArguments().stream())
       .toArray(String[]::new);
   }
   default JavaProgram codeGeneration(
@@ -42,15 +44,7 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
     var files= new JavaFilesCodegen(mir);
     files.generateFiles();
     files.writeFiles();
-    
-    var main = program.of(Magic.Main).toIT();
-    var entry= new Id.DecId(entry(),0);
-    var isEntryValid = program
-      .isSubType(XBs.empty(), new ast.T(Mdf.mdf, program.of(entry).toIT()), new ast.T(Mdf.mdf,main));
-    if (!isEntryValid) { throw Fail.invalidEntryPoint(entry, main); }
-    var src = codegen.visitProgram(entry);
-    return new JavaProgram(List.of(
-      new JavaFile(JavaCompiler.MAIN_CLASS_NAME,src)));
+    return files.getJavaProgram();
   }
   default JavaProgram mainCodeGeneration(
       ast.Program program,
@@ -66,9 +60,13 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
       JavaProgram mainExe,
       ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
       ){
-    Path pathToMain= new JavaCompiler().compile(verbosity(), mainExe.files().get(0));
-    var pb = new ProcessBuilder(makeJavaCommand(pathToMain));
-    pb.directory(pathToMain.getParent().toFile());
+    Path pathToMain= new JavaCompiler()
+      .compile(verbosity(), exe.files());
+    var command= makeJavaCommand(pathToMain);
+    System.out.println(List.of(command));
+    System.out.println(pathToMain);
+    var pb = new ProcessBuilder(command);
+    pb.directory(pathToMain.toFile());
     this.preStart(pb);
     Process proc; try { proc = pb.start();}
     catch (IOException e) { throw new UncheckedIOException(e); }

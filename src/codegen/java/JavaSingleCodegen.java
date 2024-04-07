@@ -182,10 +182,10 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
         .formatted(doIdx.update(n->n + 1), do_.e().accept(this, true));
       case MIR.Block.BlockStmt.Loop loop -> """
         while (true) {
-          var res = %s.$hash$mut$();
+          var res = %s.$hash$mut();
           if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
             if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-            if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut$(); }
+            if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut(); }
           }
           """.formatted(
         loop.e().accept(this, true),
@@ -346,6 +346,7 @@ record TypeIds(MagicImpls magic,StringIds id){
     "char","Character",
     "byte","Byte",
     "short","Short",
+    "long","Long",
     "boolean","Boolean"
   );
 }
@@ -443,64 +444,3 @@ class StringIds{
       .orElse(name.replace("'","$"));
   }
 }
-/*
-
-  protected static String argsToLList(Mdf addMdf) {
-    return """
-      FAux.LAUNCH_ARGS = base.LList_1.$self;
-      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$%s$(arg); }
-      """.formatted(addMdf);
-  }
-
-
-  public String visitProgram(Id.DecId entry) {
-    var entryName = id.getName(entry);
-    var systemImpl = id.getName(Magic.SystemImpl);
-    var init = """
-      static void main(String[] args){
-        %s
-        base.Main_0 entry = %s.$self;
-        try {
-          entry.$35$imm$(%s.$self);
-        } catch (StackOverflowError e) {
-          System.err.println("Program crashed with: Stack overflowed");
-          System.exit(1);
-        } catch (Throwable t) {
-          System.err.println("Program crashed with: "+t.getLocalizedMessage());
-          System.exit(1);
-        }
-      }
-    """.formatted(
-      argsToLList(Mdf.mut),
-      entryName,
-      systemImpl
-    );
-
-    final String fearlessHeader = """
-      package userCode;
-      class FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }
-      """;
-
-    return fearlessHeader+"\npublic interface FProgram{\n" +p.pkgs().stream()
-      .map(this::visitPackage)
-      .collect(Collectors.joining("\n"))+init+"}";
-  }
-  public String visitPackage(MIR.Package pkg) {
-    this.pkg = pkg;
-    this.freshRecords = new HashMap<>();
-    Map<Id.DecId, List<MIR.Fun>> funs = pkg.funs().stream().collect(Collectors.groupingBy(f->f.name().d()));
-    var typeDefs = pkg.defs().values().stream()
-      .map(def->visitTypeDef(pkg.name(), def, funs.getOrDefault(def.name(), List.of())))
-      .collect(Collectors.joining("\n"));
-
-    var freshRecords = String.join("\n", this.freshRecords.values());
-    return "interface "+getPkgName(pkg.name())+"{"+typeDefs+"\n"+freshRecords+"\n}";
-  }
-
- private List<String> getImplsNames(List<MIR.MT.Plain> its) {
-    return its.stream()
-      .map(this::getName)
-      .toList();
-  }
-
-*/

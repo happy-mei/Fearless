@@ -16,7 +16,7 @@ public class ImmJavaCodegen extends JavaCodegen {
       static void main(String[] args){
         %s base.Main_0 entry = %s.$self;
         try {
-          System.out.println(entry.$35$imm$(FAux.LAUNCH_ARGS));
+          System.out.println(entry.$hash$imm(FAux.LAUNCH_ARGS));
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
@@ -30,7 +30,7 @@ public class ImmJavaCodegen extends JavaCodegen {
       entryName
     );
 
-    return "package userCode;\nclass FAux { static FProgram.base.LList_1 LAUNCH_ARGS; }\npublic interface FProgram{\n" +p.pkgs().stream()
+    return "package userCode;\nclass FAux { static base.LList_1 LAUNCH_ARGS; }\npublic interface FProgram{\n" +p.pkgs().stream()
       .map(this::visitPackage)
       .collect(Collectors.joining("\n"))+init+"}";
   }
