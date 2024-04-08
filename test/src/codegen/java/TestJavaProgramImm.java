@@ -13,6 +13,7 @@ import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
 import utils.Err;
+import utils.ResolveResource;
 import utils.RunOutput;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
@@ -74,7 +75,7 @@ public class TestJavaProgramImm {
     var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     try {
       var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId("test.Test", 0));
-      var res = RunOutput.java(new JavaCompiler().compile(verbosity, List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java))), args).join();
+      var res = RunOutput.java(new JavaCompiler(verbosity).compile(ResolveResource.freshTmpPath(), List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java))), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

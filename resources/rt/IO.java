@@ -1,4 +1,4 @@
-package rt;
+package base;
 
 public final class IO implements base.caps.IO_0 {
 	public static final IO $self = new IO();

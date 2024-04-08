@@ -3,17 +3,15 @@ package main;
 import astFull.Package;
 import failure.CompileError;
 import failure.Fail;
-import failure.Res;
 import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
+import utils.IoErr;
 import utils.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -23,12 +21,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import ast.T;
+import main.java.HDCache;
 public interface LogicMain<Exe> {
-  String baseDir();
+  Path baseDir();
+  Path rtDir();
+  Path output();
   CompilerFrontEnd.Verbosity verbosity();
   Map<String,List<Package>> parseApp();
   default astFull.Program parse(Map<String,List<Package>> app) {
-    Map<String,List<Package>> base = load(loadFiles(ResolveResource.of(this.baseDir())));
+    Map<String,List<Package>> base = load(loadFiles(this.baseDir()));
     return generateProgram(base, app);
     }
   default void wellFormednessFull(astFull.Program fullProgram){
@@ -46,9 +48,10 @@ public interface LogicMain<Exe> {
   }
   default ConcurrentHashMap<Long, EMethTypeSystem.TsT> typeSystem(ast.Program program){
     var acc= new ConcurrentHashMap<Long, EMethTypeSystem.TsT>();
-    program.typeCheck(acc);
+    program.typeCheck(acc);    
     return acc;
   }
+  void cachePackageTypes(ast.Program program);
 
   Exe codeGeneration(
       ast.Program program,
@@ -78,17 +81,17 @@ public interface LogicMain<Exe> {
     var code= codeGeneration(program,resolvedCalls);
     var mainCode= mainCodeGeneration(program,code,resolvedCalls);
     var process= execution(program,code,mainCode,resolvedCalls);
+    cachePackageTypes(program);
     onStart(process);
   }
   
   default List<Parser> loadFiles(Path root) {
-    try (var fs = Files.walk(root)) {
+    return IoErr.of(()->{try(var fs = Files.walk(root)) {
       return fs
         .filter(Files::isRegularFile)
         .map(p->new Parser(p, ResolveResource.read(p)))
         .toList();
-    }
-    catch(IOException io) { throw new UncheckedIOException(io); }
+      }});
   }
   default Map<String, List<Package>> load(List<Parser> files) {
     return files.stream()

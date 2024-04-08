@@ -2,9 +2,6 @@ package utils;
 
 import program.TypeSystemFeatures;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,15 +23,11 @@ public interface Base {
     return ResolveResource.getAndRead("/base/"+file);
   }
   static String read(Path path) {
-    try {
-      return Files.readString(path, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    return IoErr.of(()->Files.readString(path, StandardCharsets.UTF_8));
   }
 
   static String[] readAll(String prefix) {
-    try {
+    return IoErr.of(()->{
       var root = ResolveResource.of(prefix);
       try(var fs = Files.walk(root)) {
         return fs
@@ -42,9 +35,7 @@ public interface Base {
           .map(Base::read)
           .toArray(String[]::new);
       }
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    });
   }
   String[] baseLib = readAll("/base");
   String[] immBaseLib = readAll("/immBase");

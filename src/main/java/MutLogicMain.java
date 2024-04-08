@@ -12,10 +12,12 @@ public record MutLogicMain(
   List<String> commandLineArguments,
   String entry,
   Path userApp,
-  Verbosity verbosity
+  Verbosity verbosity,
+  Path output
   )
 implements LogicMainJava{
-  public String baseDir() {return "/base"; }
+  public Path baseDir() {return ResolveResource.of("/base"); }
+  public Path rtDir() {return ResolveResource.of("/rt"); }
   public Map<String,List<Package>> parseApp(){
     return load(loadFiles(userApp()));
   }
@@ -23,5 +25,5 @@ implements LogicMainJava{
     proc.onExit().join();
     System.exit(proc.exitValue());
   }
-
+  public Path cachedBase() {return ResolveResource.of("/cachedBase"); }
 }

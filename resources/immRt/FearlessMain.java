@@ -1,5 +1,6 @@
 package base;
 
+//TODO: fix me using LList
 import java.lang.reflect.Field;
 import java.util.List;
 public class FearlessMain {
@@ -18,8 +19,8 @@ public class FearlessMain {
       System.err.println(
         "Program crashed with: "+t.getLocalizedMessage());
       System.exit(1);
-    }*/
-  }
+    }
+  }*/
   public static void _main(String[] args) throws NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalArgumentException, IllegalAccessException {
     //System.out.println("Command is \n"+List.of(args));
     String mainName= args[0];

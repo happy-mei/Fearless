@@ -7,14 +7,11 @@ import utils.ResolveResource;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Stream;
@@ -41,12 +38,12 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
   public Path compile() throws IOException {
     assert !units.isEmpty();
 
-    var workingDir = Paths.get(System.getProperty("java.io.tmpdir"), "fearOut"+UUID.randomUUID());
+    var workingDir = ResolveResource.freshTmpPath();
     if (verbosity.printCodegen()) {
       System.err.println("Go codegen working dir: "+workingDir.toAbsolutePath());
     }
     if (!workingDir.toFile().mkdir()) {
-      throw Bug.of("Could not create a working directory for building the program in: " + System.getProperty("java.io.tmpdir"));
+      throw Bug.of("Could not create a working directory for building the program in: " + workingDir.toAbsolutePath());
     }
 
     this.entry().write(workingDir);

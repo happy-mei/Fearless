@@ -3,6 +3,7 @@ package codegen.java;
 import main.CompilerFrontEnd;
 import utils.Box;
 import utils.Bug;
+import utils.ResolveResource;
 
 import javax.tools.Diagnostic;
 import javax.tools.ToolProvider;
@@ -27,9 +28,9 @@ public class ImmJavaProgram extends JavaFile {
       throw new RuntimeException("No Java compiler could be found. Please install a JDK >= 10.");
     }
 
-    var workingDir = Paths.get(System.getProperty("java.io.tmpdir"), "fearOut"+System.currentTimeMillis());
+    var workingDir = ResolveResource.freshTmpPath();
     if (!workingDir.toFile().mkdir()) {
-      throw Bug.of("Could not create a working directory for building the program in: " + System.getProperty("java.io.tmpdir"));
+      throw Bug.of("Could not create a working directory for building the program in: " + workingDir.toAbsolutePath());
     }
 
     if (verbosity.printCodegen()) {

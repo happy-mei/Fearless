@@ -1,77 +1,47 @@
 package codegen.java;
 
 import codegen.MIR;
-import codegen.MethExprKind;
-import codegen.ParentWalker;
-import codegen.optimisations.OptimisationBuilder;
-import id.Id;
-import id.Mdf;
-import magic.Magic;
-import parser.Parser;
-import utils.Box;
-import utils.Bug;
-import utils.ResolveResource;
-import utils.Streams;
-import visitors.MIRVisitor;
+import utils.IoErr;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static magic.MagicImpls.getLiteral;
-
 public class JavaFilesCodegen{
-  //TODO: simplyfy and store arraylist only in here
-  private JavaProgram javaProgram= new JavaProgram(new ArrayList<>());
-  public JavaProgram getJavaProgram(){
-    return new JavaProgram(List.copyOf(javaProgram.files()));
-  } 
-  JavaSingleCodegen gen;
-  MIR.Program program;
-  public JavaFilesCodegen(MIR.Program program){
+  final private Path filesRoot;
+  final private JavaCompiler c;
+  private ArrayList<JavaFile> javaFiles= new ArrayList<>();
+  final JavaSingleCodegen gen;
+  final MIR.Program program;
+  public JavaFilesCodegen(Path filesRoot, MIR.Program program, JavaCompiler c){
     this.program=program;
     this.gen= new JavaSingleCodegen(program);
+    this.filesRoot= filesRoot;
+    this.c= c;
     }
-  public void writeFiles(){
-    try {_writeFiles();}
-    catch(IOException io){ throw new UncheckedIOException(io); }
+  public JavaProgram getJavaProgram(List<JavaFile> more){
+    var all= Stream.concat(javaFiles.stream(),more.stream()).toList();
+    return new JavaProgram(filesRoot,all,c);
   }
-  public static final Path filesRoot=
-    Path.of(System.getProperty("user.dir"), "GeneratedFearless", "src");
-    //ResolveResource.of("/testFiles/test1");
-//    Path.of("/Users/sonta/Desktop/Java22/wk/GeneratedFearless/src");
-  
-  private void _deleteOldFiles() throws IOException{
-    if (!Files.exists(filesRoot)) { return; }
-    try (Stream<Path> walk = Files.walk(filesRoot)) {
-      Iterable<Path> ps=walk.sorted(Comparator.reverseOrder())::iterator;
-      for(Path p:ps){ Files.deleteIfExists(p); }
-    }
-  }
-  private void _writeFiles() throws IOException{
-    _deleteOldFiles();
-    for(var fi:javaProgram.files()) {
-      var pi= Path.of(fi.toUri());
-      Files.createDirectories(pi.getParent());
-      Files.write(pi,fi.code().getBytes());
-    }
-    _copyRtFiles();
-  }
-  private void _copyRtFiles()  throws IOException{
-    try(var fs= Files.walk(ResolveResource.of("/rt"))){
-      Iterable<Path> ps=fs.filter(p
-        ->p.toString().endsWith(".java"))::iterator;
-      for(var p:ps) {
-        String content= Files.readString(p);
-        Files.createDirectories(filesRoot.resolve("rt"));
-        var dest= filesRoot.resolve(Path.of("rt",p.getFileName().toString()));
-        Files.writeString(dest, content);
+
+  public List<JavaFile> readAllFiles(Path path){
+    return IoErr.of(()->_readAllFiles(path));
+  }    
+  private List<JavaFile> _readAllFiles(Path path) throws IOException{
+    assert Files.exists(path);
+    var res= new ArrayList<JavaFile>();
+    try (Stream<Path> walk = Files.walk(path)) {
+      Iterable<Path> ps=walk.filter(p
+          ->p.toString().endsWith(".java"))::iterator;
+      for(Path p:ps){
+        String fileName="base/"+p.getFileName();
+        Path pi=filesRoot.resolve(fileName);
+        res.add(new JavaFile(pi, Files.readString(p)));
       }
     }
+    return Collections.unmodifiableList(res);
   }
   public void generateFiles() {
       for (MIR.Package pkg : program.pkgs()) {
@@ -98,7 +68,7 @@ public class JavaFilesCodegen{
       String pkg= "package "+pkgName+";\n";
       String fileName=pkgName.replace(".","/")+"/"+name+".java";
       Path p=filesRoot.resolve(fileName);
-      javaProgram.files().add(new JavaFile(p,pkg+content));
+      javaFiles.add(new JavaFile(p,pkg+content));
+      //file locations seems to be ignored
     }
-
 }

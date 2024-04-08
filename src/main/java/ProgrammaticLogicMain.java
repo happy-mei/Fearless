@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import astFull.Package;
@@ -12,15 +11,17 @@ import main.CompilerFrontEnd.Verbosity;
 import parser.Parser;
 import utils.ResolveResource;
 
-public record TestMutLogicMain(
+public record ProgrammaticLogicMain(
   List<String> commandLineArguments,
   String entry,
   Verbosity verbosity,
   List<String> files,
-  Consumer<Process> res
+  Consumer<Process> res,
+  Path output
   )
 implements LogicMainJava{
-  public String baseDir() {return "/base"; }
+  public Path baseDir() {return ResolveResource.of("/base"); }
+  public Path rtDir() {return ResolveResource.of("/rt"); }
   public Map<String,List<Package>> parseApp(){
     var ps= IntStream.range(0,files.size())
       .mapToObj(i->new Parser(Path.of("Dummy"+i+".fear"),files.get(i)))
@@ -30,6 +31,6 @@ implements LogicMainJava{
   public void onStart(Process proc) { 
     proc.onExit().thenAccept(res).join();
   }
-
+  public Path cachedBase() {return ResolveResource.of("/cachedBase"); }
   @Override public void preStart(ProcessBuilder pb) {}
 }

@@ -12,6 +12,7 @@ import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
 import utils.Err;
+import utils.ResolveResource;
 import utils.RunOutput;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
@@ -52,7 +53,7 @@ public class RunJavaProgramTests {
     var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
     var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     System.out.println("Running...");
-    var res = RunOutput.java(new JavaCompiler().compile(verbosity, List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java))), args).join();
+    var res = RunOutput.java(new JavaCompiler(verbosity).compile(ResolveResource.freshTmpPath(), List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java))), args).join();
     Assertions.assertEquals(expected, res);
   }
 
@@ -80,7 +81,7 @@ public class RunJavaProgramTests {
     try {
       var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
       System.out.println("Running...");
-      var res = RunOutput.java(new JavaCompiler().compile(verbosity, List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java))), args).join();
+      var res = RunOutput.java(new JavaCompiler(verbosity).compile(ResolveResource.freshTmpPath(), List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java))), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

@@ -6,8 +6,6 @@ import codegen.ParentWalker;
 import codegen.optimisations.OptimisationBuilder;
 import id.Id;
 import id.Id.DecId;
-import id.Mdf;
-import magic.Magic;
 import utils.Box;
 import utils.Bug;
 import utils.Streams;
@@ -18,7 +16,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import ast.Program;
 import static codegen.MethExprKind.Kind.RealExpr;
 import static codegen.MethExprKind.Kind.Unreachable;
 import static codegen.MethExprKind.Kind.Delegate;
@@ -131,7 +128,8 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     var realExpr = switch (kind) {
       case MethExprKind.Kind k -> switch (k.kind()) {
         case RealExpr, Delegate -> realBody;
-        case Unreachable -> "throw new Error(\"Unreachable code\");";
+        case Unreachable 
+          -> "throw new java.lang.Error(\"Unreachable code\");";
         case Delegator -> throw Bug.unreachable();
       };
       case MethExprKind.Delegator k -> "return this.%s(%s);".formatted(
@@ -310,137 +308,4 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   }
   public String visitProgram(Id.DecId entry){ throw Bug.unreachable(); }
   public String visitPackage(MIR.Package pkg){ throw Bug.unreachable(); }
-}
-record TypeIds(MagicImpls magic,StringIds id){
-  public String getTName(MIR.MT t, boolean isRet) {
-    var res= switch (t) {
-      case MIR.MT.Any ignored -> "Object";
-      case MIR.MT.Plain plain -> auxGetTName(plain.id());
-      case MIR.MT.Usual usual -> auxGetTName(usual.it().name());
-    };
-    return isRet?boxOf(res):res;
-  }
-  public String auxGetTName(Id.DecId name) {
-    return switch (name.name()) {
-      case "base.Int", "base.UInt" -> "long";
-      case "base.Float" -> "double";
-      case "base.Str" -> "String";
-      default -> magicName(name);
-      };
-    }
-  private String magicName(Id.DecId name){
-    if (magic.isMagic(Magic.Int, name)) { return "long"; }
-    if (magic.isMagic(Magic.UInt, name)) { return "long"; }
-    if (magic.isMagic(Magic.Float, name)) { return "double"; }
-    if (magic.isMagic(Magic.Float, name)) { return "double"; }
-    if (magic.isMagic(Magic.Str, name)) { return "String"; }
-    return id.getFullName(name);
-  }
-  public String boxOf(String s){
-    return Optional.ofNullable(boxed.get(s)).orElse(s);
-  }
-  private static final Map<String,String> boxed= Map.of(
-    "int","Integer",
-    "float","Float",
-    "double","Double",
-    "char","Character",
-    "byte","Byte",
-    "short","Short",
-    "long","Long",
-    "boolean","Boolean"
-  );
-}
-class StringIds{
-  public Optional<String> getLiteral(Program p, Id.DecId d) {
-    return p.superDecIds(d).stream()
-      .map(Id.DecId::name)
-      .filter(this::isLiteral)
-      .findFirst();
-  }
-  public boolean isLiteral(String name) {
-    return isDigit(name.codePointAt(0)) 
-      || name.startsWith("\"")
-      || name.startsWith("-")
-      || name.startsWith("+");
-  }
-  public boolean isDigit(int codepoint){
-    //Character.isDigit is way too relaxed
-    return codepoint >= '0' && codepoint <= '9';
-  }
-  public boolean isAlphabetic(int codepoint){
-    return (codepoint >= 'A' && codepoint <= 'Z') 
-      || (codepoint >= 'a' && codepoint <= 'z');
-    //return Character.isAlphabetic(codepoint);
-    //Here instead I'm actually not sure what the best way is.
-    //What do we want our identifiers to be?
-  }
-  public String getFullName(Id.DecId d) {
-    return d.pkg()+"."+getSimpleName(d);
-  }
-  public String getSimpleName(Id.DecId d) {
-    return getBase(d.shortName())+"_"+d.gen();//just to translate the '
-  }
-
-  public String getRelativeName(String currentPkg,Id.DecId d) {
-    if(!currentPkg.equals(d.pkg())){ return getFullName(d); }
-    return getSimpleName(d);
-  }
-  public String getMName(Mdf mdf, Id.MethName m) {
-    return getBase(m.name())+"$"+mdf;
-  }
-
-  public String getBase(String name) {
-    String _name=name;
-    //if (name.equals("this")){ return "$this"; }
-    if (name.startsWith(".")) { name = name.substring(1); }
-    return name.codePoints().mapToObj(c->{
-      var base= isAlphabetic(c) || isDigit(c);
-      if (base){ return Character.toString(c); }
-      assert c != '.';
-      var res= escape.get(c);
-      assert res!=null
-        :"not considered character ["+Character.toString(c)+"] in "+_name;
-      return res;
-    }).collect(Collectors.joining());
-  }
-  private static final Map<Integer, String> escape = Map.ofEntries(
-    Map.entry((int)'_', "_"),
-    Map.entry((int)'\'', "$apostrophe"),
-    Map.entry((int)'+', "$plus"),
-    Map.entry((int)'-', "$minus"),
-    Map.entry((int)'*', "$asterisk"),
-    Map.entry((int)'/', "$slash"),
-    Map.entry((int)'\\', "$backslash"),
-    Map.entry((int)'|', "$pipe"),
-    Map.entry((int)'!', "$exclamation"),
-    Map.entry((int)'@', "$at"),
-    Map.entry((int)'#', "$hash"),
-    Map.entry((int)'$', "$"),
-    Map.entry((int)'%', "$percent"),
-    Map.entry((int)'^', "$caret"),
-    Map.entry((int)'&', "$ampersand"),
-    Map.entry((int)'?', "$question"),
-    Map.entry((int)'~', "$tilde"),
-    Map.entry((int)'<', "$lt"),
-    Map.entry((int)'>', "$gt"),
-    Map.entry((int)'=', "$equals"),
-    Map.entry((int)':', "$colon")
-  );
-  private static final String[] keywords = {
-    "abstract", "assert", "boolean", "break", "byte",
-    "case", "catch", "char", "class", "const",
-    "continue", "default", "do", "double", "else", "enum", "extends",
-    "final", "finally", "float", "for", "goto", "if", "implements",
-    "import", "instanceof", "int", "interface", "long", "native",
-    "new", "package", "private", "protected", "public", "return",
-    "short", "static", "strictfp", "super", "switch", "synchronized",
-    "this", "throw", "throws", "transient", "try", "void", "volatile",
-    "while", "true", "false", "null"
-    };
-  private static final Map<String,String> keywordsMap= Stream.of(keywords)
-    .collect(Collectors.toMap(e->e,e->"$"+e));
-  public String varName(String name){
-    return Optional.ofNullable(keywordsMap.get(name))
-      .orElse(name.replace("'","$"));
-  }
 }

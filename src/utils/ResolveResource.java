@@ -1,7 +1,5 @@
 package utils;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -9,9 +7,9 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 public final class ResolveResource {
   static private final Path root;
@@ -20,21 +18,18 @@ public final class ResolveResource {
     var url= ResolveResource.class.getResource("/base");
     if(url==null) {
       String workingDir = System.getProperty("user.dir");
-      root=Path.of(workingDir).resolve("resources");
+      root= Path.of(workingDir).resolve("resources");
       assert Files.exists(root):root;
     }
     else {
       URI uri; try { uri= url.toURI();}
       catch (URISyntaxException e) { throw Bug.of(e); }
       root=Path.of(uri).getParent();
-
-      if (uri.getScheme().equals("jar") || uri.getScheme().equals("resource")) {
-        try {
+      var inJar= uri.getScheme().equals("jar")
+        || uri.getScheme().equals("resource");
+      if (inJar) { IoErr.of(()->{
           virtualFs = FileSystems.newFileSystem(uri, Map.of());
-        } catch (IOException e) {
-          throw new UncheckedIOException(e);
-        }
-      }
+          });}
     }
   }
   static public Path of(String relativePath) {
@@ -51,10 +46,11 @@ public final class ResolveResource {
   }
 
   static public String read(Path path) {
-    try(var br = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-      return br.lines().collect(Collectors.joining("\n"));
-    } catch (IOException err) {
-      throw new UncheckedIOException(err);
-    }
+    return IoErr.of(()->Files.readString(path, StandardCharsets.UTF_8));
+  }
+  static public Path freshTmpPath(){
+    return Paths.get(
+      System.getProperty("java.io.tmpdir"),
+      "fearOut"+UUID.randomUUID());
   }
 }

@@ -34,6 +34,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -124,7 +125,9 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     v.progress.printTask("Code generated \uD83E\uDD73 ("+timer.duration()+"ms)");
     v.progress.printStep("Executing backend compiler \uD83C\uDFED");
     var classFile = switch (bv) {
-      case Std -> new JavaCompiler().compile(v, mainClass.files());
+      case Std -> new JavaCompiler(v).compile(
+        ResolveResource.freshTmpPath(),
+        mainClass);
       case Imm -> throw Bug.todo();//ImmJavaProgram.compile(v, mainClass);
     };
     v.progress.printStep("Done executing backend compiler \uD83E\uDD73 ("+timer.duration()+"ms)");
@@ -192,7 +195,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     v.progress.printTask("Types look all good \uD83E\uDD73 ("+timer.duration()+"ms)");
     return inferred;
   }
-  private JavaProgram toJava(Id.DecId entry, Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
+  private List<JavaFile> toJava(Id.DecId entry, Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     var mir = new MIRInjectionVisitor(p, resolvedCalls).visitProgram();
     var codegen = switch (bv) {
       case Std -> new JavaCodegen(mir);
@@ -202,8 +205,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     if (v.printCodegen) {
       System.out.println(src);
     }
-    return new JavaProgram(List.of(
-      new JavaFile(JavaCompiler.MAIN_CLASS_NAME,src)));
+    return List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,src));
   }
 
   String regenerateAliases() {

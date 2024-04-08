@@ -1,4 +1,4 @@
-package rt;
+package base;
 
 public final class CapTry implements base.caps.CapTry_0 {
 	public static final CapTry $self = new CapTry();

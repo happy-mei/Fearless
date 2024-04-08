@@ -1,6 +1,7 @@
 package tour;
 
 import utils.Base;
+import utils.ResolveResource;
 
 import static codegen.java.RunJavaProgramTests.ok;
 import static utils.RunOutput.Res;
@@ -49,8 +50,10 @@ public class TourHelper {
   static void runCode(List<String> files, String expectedIO){
     var v= new CompilerFrontEnd.Verbosity(false,false,
       ProgressVerbosity.None);
-    var runner= new main.java.TestMutLogicMain(
-      List.of(), "test.Test",v, files,p->checker(p,expectedIO));
+    var runner= new main.java.ProgrammaticLogicMain(
+      List.of(), "test.Test",v,
+      files,p->checker(p,expectedIO),
+      ResolveResource.freshTmpPath());
     runner.logicMain();
   }
 }

@@ -1,50 +1,58 @@
 package main.java;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
+import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import ast.T;
 import codegen.MIRInjectionVisitor;
-import codegen.java.JavaCodegen;
 import codegen.java.JavaCompiler;
-import codegen.java.JavaFile;
 import codegen.java.JavaFilesCodegen;
 import codegen.java.JavaProgram;
-import failure.Fail;
-import id.Id;
-import id.Mdf;
-import magic.Magic;
 import main.LogicMain;
 import program.typesystem.EMethTypeSystem;
-import program.typesystem.XBs;
+import utils.IoErr;
 
 public interface LogicMainJava extends LogicMain<JavaProgram>{
   List<String> commandLineArguments();
   String entry();
+  Path cachedBase();
   default String[] makeJavaCommand(Path pathToMain) {
-    pathToMain=pathToMain.resolve("rt/FearlessMain.class");
-    var jrePath= Path.of(System.getProperty("java.home"), "bin", "java")
-      .toAbsolutePath();
-    String entryPoint= "rt." 
-      + pathToMain.getFileName().toString().split("\\.class")[0];
-    var baseCommand = Stream.of(jrePath.toString(),entryPoint,this.entry());
+    Path fearlessMainPath = pathToMain.resolve("base/FearlessMain.class");
+    var jrePath = Path.of(System.getProperty("java.home"), "bin", "java")
+        .toAbsolutePath().toString();
+    String entryPoint = "base." 
+        + fearlessMainPath.getFileName().toString().split("\\.class")[0];
+    String classpath = pathToMain.toString()
+      + File.pathSeparator + cachedBase().toString();
+
+    var baseCommand = Stream.of(
+      jrePath, "-cp", classpath, entryPoint, this.entry());
     return Stream.concat(baseCommand,
-        commandLineArguments().stream())
-      .toArray(String[]::new);
+      commandLineArguments().stream())
+        .toArray(String[]::new);
+  }
+  default void cachePackageTypes(ast.Program program) {
+    Map<String,List<T.Dec>> mapped= program.ds().values()
+      .stream().collect(Collectors.groupingBy(d->d.name().pkg()));
+    mapped.entrySet().stream().forEach(e
+      ->new HDCache(output()).cacheTypeInfo(e.getKey(),e.getValue()));
+    new HDCache(output()).cacheBase(cachedBase());
   }
   default JavaProgram codeGeneration(
       ast.Program program,
       ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
       ){
     var mir = new MIRInjectionVisitor(program, resolvedCalls).visitProgram();
-    var codegen= new JavaCodegen(mir);
-    var files= new JavaFilesCodegen(mir);
+    var files= new JavaFilesCodegen(output(),mir,new JavaCompiler(verbosity()));
     files.generateFiles();
-    files.writeFiles();
-    return files.getJavaProgram();
+    JavaProgram res= files.getJavaProgram(files.readAllFiles(this.rtDir()));
+    //res.writeFiles();//just for debugging
+    return res;
   }
   default JavaProgram mainCodeGeneration(
       ast.Program program,
@@ -60,16 +68,12 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
       JavaProgram mainExe,
       ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
       ){
-    Path pathToMain= new JavaCompiler()
-      .compile(verbosity(), exe.files());
+    Path pathToMain= exe.pathToMain();
     var command= makeJavaCommand(pathToMain);
     System.out.println(List.of(command));
-    System.out.println(pathToMain);
     var pb = new ProcessBuilder(command);
-    pb.directory(pathToMain.toFile());
     this.preStart(pb);
-    Process proc; try { proc = pb.start();}
-    catch (IOException e) { throw new UncheckedIOException(e); }
+    Process proc= IoErr.of(pb::start);
     return proc;
   }
 
@@ -77,3 +81,15 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
     pb.inheritIO();
   }
 }
+
+
+
+/*
+ 
+ During typechecking, for each package we need to produce a file with
+ package pkgName
+ abstract Fearless
+ and save that one in output/pkgName.
+ 
+ 
+ */

@@ -356,7 +356,7 @@ public record MagicImpls(
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName("!", 1))) {
-          return Optional.of("rt.Error.throwFearlessError(%s)".formatted(args.getFirst().accept(gen, true)));
+          return Optional.of("base.Error.throwFearlessError(%s)".formatted(args.getFirst().accept(gen, true)));
         }
         return Optional.empty();
       }
@@ -366,7 +366,7 @@ public record MagicImpls(
   @Override public MagicTrait<MIR.E,String> tryCatch(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
-        return Optional.of("rt.Try.$self");
+        return Optional.of("base.Try.$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
@@ -377,7 +377,7 @@ public record MagicImpls(
   @Override public MagicTrait<MIR.E, String> capTryCatch(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
-        return Optional.of("rt.CapTry.$self");
+        return Optional.of("base.CapTry.$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
@@ -389,7 +389,7 @@ public record MagicImpls(
     return new MagicTrait<>() {
 
       @Override public Optional<String> instantiate() {
-        return Optional.of("rt.PipelineParallelFlow.WrappedSinkK.$self");
+        return Optional.of("base.PipelineParallelFlow.WrappedSinkK.$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
@@ -431,7 +431,7 @@ public record MagicImpls(
       private ObjCapImpl io() {
         return (ctx, m, args) ->{
           if (m.equals(new Id.MethName("#", 1))) {
-            return "rt.IO.$self";
+            return "base.IO.$self";
           }
           return null;
         };
@@ -440,7 +440,7 @@ public record MagicImpls(
       private ObjCapImpl randomSeed() {
         return (ctx, m, args) ->{
           if (m.equals(new Id.MethName("#", 1))) {
-            return "rt.Random.SeedGenerator.$self";
+            return "base.Random.SeedGenerator.$self";
           }
           return null;
         };

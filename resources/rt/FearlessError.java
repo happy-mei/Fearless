@@ -1,4 +1,4 @@
-package rt;
+package base;
 
 class FearlessError extends RuntimeException {
 	public base.Info_0 info;

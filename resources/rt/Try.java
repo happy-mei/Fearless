@@ -1,4 +1,4 @@
-package rt;
+package base;
 
 public class Try implements base.Try_0 {
 	public static final Try $self = new Try();
