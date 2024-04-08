@@ -1,4 +1,4 @@
-package utils;
+package rt;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -10,7 +10,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class ResolveResource {
@@ -24,7 +23,7 @@ public final class ResolveResource {
       assert Files.exists(root):root;
     } else {
       URI uri; try { uri= url.toURI();}
-      catch (URISyntaxException e) { throw Bug.of(e); }
+      catch (URISyntaxException e) { throw new RuntimeException(e); }
 
       if (uri.getScheme().equals("jar") || uri.getScheme().equals("resource")) {
         try {

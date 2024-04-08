@@ -21,27 +21,28 @@ public final class ResolveResource {
       String workingDir = System.getProperty("user.dir");
       root=Path.of(workingDir).resolve("resources");
       assert Files.exists(root):root;
-    }
-    else {
+    } else {
       URI uri; try { uri= url.toURI();}
       catch (URISyntaxException e) { throw new RuntimeException(e); }
-      root=Path.of(uri).getParent();
 
       if (uri.getScheme().equals("jar") || uri.getScheme().equals("resource")) {
         try {
           virtualFs = FileSystems.newFileSystem(uri, Map.of());
+          root = virtualFs.getPath("/");
         } catch (IOException e) {
           throw new UncheckedIOException(e);
         }
+      } else {
+        root=Path.of(uri).getParent();
       }
     }
   }
   static public Path of(String relativePath) {
     assert relativePath.startsWith("/");
-    URI absolutePath= root.resolve(relativePath.substring(1)).toUri();
     if (virtualFs != null) {
       return virtualFs.getPath(relativePath);
     }
+    URI absolutePath= root.resolve(relativePath.substring(1)).toUri();
     return Path.of(absolutePath);
   }
 
