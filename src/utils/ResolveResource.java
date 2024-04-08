@@ -1,5 +1,7 @@
 package utils;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -18,26 +20,30 @@ public final class ResolveResource {
     var url= ResolveResource.class.getResource("/base");
     if(url==null) {
       String workingDir = System.getProperty("user.dir");
-      root= Path.of(workingDir).resolve("resources");
+      root = Path.of(workingDir).resolve("resources");
       assert Files.exists(root):root;
-    }
-    else {
+    } else {
       URI uri; try { uri= url.toURI();}
       catch (URISyntaxException e) { throw Bug.of(e); }
-      root=Path.of(uri).getParent();
-      var inJar= uri.getScheme().equals("jar")
-        || uri.getScheme().equals("resource");
-      if (inJar) { IoErr.of(()->{
+      var inBundle = uri.getScheme().equals("jar") || uri.getScheme().equals("resource");
+      if (inBundle) {
+        try {
           virtualFs = FileSystems.newFileSystem(uri, Map.of());
-          });}
+          root = virtualFs.getPath("/");
+        } catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      } else {
+        root=Path.of(uri).getParent();
+      }
     }
   }
   static public Path of(String relativePath) {
     assert relativePath.startsWith("/");
-    URI absolutePath= root.resolve(relativePath.substring(1)).toUri();
     if (virtualFs != null) {
       return virtualFs.getPath(relativePath);
     }
+    URI absolutePath= root.resolve(relativePath.substring(1)).toUri();
     return Path.of(absolutePath);
   }
 
