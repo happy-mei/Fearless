@@ -19,11 +19,17 @@ impl<'a, 'local, 'array_local, 'array> FearlessStr<'a, 'local, 'array_local, 'ar
         let array_ref = unsafe { env.get_array_elements(utf8_str, ReleaseMode::NoCopyBack).unwrap() };
         Self { array_ref, _keep_alive: PhantomData }
     }
-    pub fn as_str(&self) -> Result<&str, Utf8Error> {
+    pub fn validate(&self) -> Option<Utf8Error> {
         let raw_str = self.as_bytes();
-        std::str::from_utf8(raw_str)
+        std::str::from_utf8(raw_str).err()
     }
-    fn as_bytes(&'a self) -> &'a [u8] {
+    /// # Safety
+    /// You have called `self.validate()` on this string, and it returned `None`.
+    pub unsafe fn as_str(&self) -> &str {
+        let raw_str = self.as_bytes();
+        std::str::from_utf8_unchecked(raw_str)
+    }
+    pub fn as_bytes(&'a self) -> &'a [u8] {
         // Safety:
         // - The JNI guarantees that there is data here with the provided length.
         // - i8 and u8 are safely interchangeable for the bytes here
