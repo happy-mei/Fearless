@@ -1,5 +1,7 @@
 package rt;
 
+import userCode.FProgram;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -32,9 +34,9 @@ public final class NativeRuntime {
     }
   }
 
-  public static class StringEncodingError extends RuntimeException {
+  public static class StringEncodingError extends FearlessError {
     public StringEncodingError(String message) {
-      super(message);
+      super(FProgram.base.FInfo_0.base$FInfo_0$str$imm$$noSelfCap(rt.Str.fromJavaStr(message)));
     }
   }
 

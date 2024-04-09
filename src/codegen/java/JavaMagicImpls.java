@@ -8,15 +8,25 @@ import id.Mdf;
 import magic.Magic;
 import magic.MagicCallable;
 import magic.MagicTrait;
+import rt.NativeRuntime;
 import utils.Bug;
 
+import java.lang.constant.ClassDesc;
+import java.lang.constant.ConstantDesc;
+import java.lang.constant.DirectMethodHandleDesc;
+import java.lang.constant.DynamicConstantDesc;
+import java.lang.invoke.MethodHandle;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static magic.MagicImpls.getLiteral;
 
-public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicImpls<String> {
+public record JavaMagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicImpls<String> {
   @Override public MagicTrait<MIR.E,String> int_(MIR.E e) {
     var name = e.t().name().orElseThrow();
     return new MagicTrait<>() {
@@ -194,21 +204,32 @@ public record MagicImpls(JavaCodegen gen, ast.Program p) implements magic.MagicI
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
         var lit = getLiteral(p, name);
-        return lit.orElseGet(()->"((String)"+e.accept(gen, true)+")").describeConstable();
+        if (lit.isEmpty()) { return e.accept(gen, true).describeConstable(); }
+        var javaStr = lit.map(l->l.substring(1, l.length() - 1)).get();
+        var utf8 = javaStr.getBytes(StandardCharsets.UTF_8);
+        try {
+          NativeRuntime.validateStringOrThrow(utf8);
+        } catch (NativeRuntime.StringEncodingError err) {
+          // TODO: throw a nice Fail...
+          throw Bug.of(err);
+        }
+
+        var utf8Array = IntStream.range(0, utf8.length).mapToObj(i->Byte.toString(utf8[i])).collect(Collectors.joining(","));
+        var graphemes = Arrays.stream(NativeRuntime.indexString(utf8)).mapToObj(Integer::toString).collect(Collectors.joining(","));
+        // todo: make this global so we can reuse it
+        return Optional.of("""
+          new rt.Str(){
+            private static final byte[] UTF8 = new byte[]{%s};
+            private static final int[] GRAPHEMES = new int[]{%s};
+            @Override public byte[] utf8() { return UTF8; }
+            @Override public int[] graphemes() { return GRAPHEMES; }
+          }
+          """.formatted(utf8Array, graphemes));
+
+//        return lit.orElseGet(()->"((String)"+e.accept(gen, true)+")").describeConstable();
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
-        if (m.equals(new Id.MethName(".size", 0))) { return Optional.of(instantiate().orElseThrow()+".length()"); }
-        if (m.equals(new Id.MethName(".isEmpty", 0))) { return Optional.of("("+instantiate().orElseThrow()+".isEmpty()?base.True_0._$self:base.False_0._$self)"); }
-        if (m.equals(new Id.MethName(".str", 0))) { return Optional.of(instantiate().orElseThrow()); }
-        if (m.equals(new Id.MethName(".toImm", 0))) { return Optional.of(instantiate().orElseThrow()); }
-        if (m.equals(new Id.MethName("+", 1))) { return Optional.of("("+instantiate().orElseThrow()+"+"+args.getFirst().accept(gen, true)+")"); }
-        if (m.equals(new Id.MethName("==", 1))) {
-          return Optional.of("("+instantiate().orElseThrow()+".equals("+args.getFirst().accept(gen, true)+")?base.True_0._$self:base.False_0._$self)");
-        }
-        if (m.equals(new Id.MethName(".assertEq", 1))) {
-          return Optional.of("base.$95StrHelpers_0._$self.assertEq$imm$("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+")");
-        }
-        throw Bug.unreachable();
+        return Optional.empty();
       }
     };
   }

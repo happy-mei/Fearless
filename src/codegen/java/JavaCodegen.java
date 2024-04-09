@@ -7,6 +7,7 @@ import codegen.optimisations.OptimisationBuilder;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
+import magic.MagicImpls;
 import utils.Box;
 import utils.Bug;
 import utils.Streams;
@@ -21,12 +22,12 @@ import static magic.MagicImpls.getLiteral;
 public class JavaCodegen implements MIRVisitor<String> {
   protected final MIR.Program p;
   protected final Map<MIR.FName, MIR.Fun> funMap;
-  private MagicImpls magic;
+  private JavaMagicImpls magic;
   private HashMap<Id.DecId, String> freshRecords;
   private MIR.Package pkg;
 
   public JavaCodegen(MIR.Program p) {
-    this.magic = new MagicImpls(this, p.p());
+    this.magic = new JavaMagicImpls(this, p.p());
     this.p = new OptimisationBuilder(this.magic)
       .withBoolIfOptimisation()
       .withBlockOptimisation()
@@ -91,9 +92,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     if (pkg.equals("base") && def.name().name().endsWith("Instance")) {
       return "";
     }
-    if (getLiteral(p.p(), def.name()).isPresent()) {
-      return "";
-    }
+    assert getLiteral(p.p(), def.name()).isEmpty();
 
     var longName = getName(def.name());
     var shortName = longName;
@@ -377,13 +376,12 @@ public class JavaCodegen implements MIRVisitor<String> {
     return switch (name.name()) {
       case "base.Int", "base.UInt" -> isRet ? "Long" : "long";
       case "base.Float" -> isRet ? "Double" : "double";
-      case "base.Str" -> "String";
       default -> {
         if (magic.isMagic(Magic.Int, name)) { yield isRet ? "Long" : "long"; }
         if (magic.isMagic(Magic.UInt, name)) { yield isRet ? "Long" : "long"; }
         if (magic.isMagic(Magic.Float, name)) { yield isRet ? "Double" : "double"; }
         if (magic.isMagic(Magic.Float, name)) { yield isRet ? "Double" : "double"; }
-        if (magic.isMagic(Magic.Str, name)) { yield "String"; }
+        if (magic.isMagic(Magic.Str, name)) { yield "rt.Str"; }
         yield getName(name);
       }
     };

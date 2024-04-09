@@ -63,7 +63,10 @@ public class JavaProgram extends SimpleJavaFileObject {
       "Random",
       "Error",
       "Try",
-      "CapTry"
+      "CapTry",
+      "Str",
+      "ResolveResource",
+      "NativeRuntime"
     ).map(name -> new JavaProgram(name, ResolveResource.getAndRead("/rt/"+name+".java")));
     var userFiles = Arrays.stream(files);
     var codegenUnits = Stream.concat(userFiles, runtimeFiles);

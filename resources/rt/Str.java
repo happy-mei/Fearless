@@ -27,14 +27,14 @@ public interface Str extends FProgram.base.Str_0 {
 		};
 	}
 
-	@Override default FProgram.base.Str_0 str$read$() {
+	@Override default Str str$read$() {
 		return this;
 	}
-	@Override default FProgram.base.Bool_0 $61$61$readOnly$(FProgram.base.Str_0 other$) {
+	@Override default FProgram.base.Bool_0 $61$61$readOnly$(Str other$) {
 		Str other = (Str) other$;
 		return this.graphemes().equals(other.graphemes()) ? FProgram.base.True_0._$self : FProgram.base.False_0._$self;
 	}
-	@Override default FProgram.base.Str_0 $43$readOnly$(FProgram.base.Str_0 other$) {
+	@Override default Str $43$readOnly$(Str other$) {
 		Str other = (Str) other$;
 		var a = this.utf8();
 		var b = other.utf8();
@@ -46,14 +46,14 @@ public interface Str extends FProgram.base.Str_0 {
 	@Override default Long size$readOnly$() {
 		return (long) this.graphemes().length;
 	}
-	@Override default FProgram.base.Void_0 assertEq$readOnly$(FProgram.base.Str_0 other$) {
+	@Override default FProgram.base.Void_0 assertEq$readOnly$(Str other$) {
 //		return FProgram.base.$95StrHelpers_0._$self.assertEq$imm$(this, other$);
 		throw new RuntimeException("tbd");
 	}
 	@Override default FProgram.base.Bool_0 isEmpty$readOnly$() {
 		return this.utf8().length == 0 ? FProgram.base.True_0._$self : FProgram.base.False_0._$self;
 	}
-	@Override default FProgram.base.Str_0 toImm$readOnly$() {
+	@Override default Str toImm$readOnly$() {
 		return this.str$read$();
 	}
 }

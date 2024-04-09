@@ -19,7 +19,10 @@ public interface MagicImpls<R> {
     }).map(Id.DecId::name).findFirst();
   }
   static boolean isLiteral(String name) {
-    return Character.isDigit(name.charAt(0)) || name.startsWith("\"") || name.startsWith("-");
+    return Character.isDigit(name.charAt(0)) || isStringLiteral(name) || name.startsWith("-");
+  }
+  static boolean isStringLiteral(String name) {
+    return name.startsWith("\"");
   }
 
   default Optional<MagicTrait<MIR.E,R>> get(MIR.E e) {
