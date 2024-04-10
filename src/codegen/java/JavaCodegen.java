@@ -8,6 +8,7 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import magic.MagicImpls;
+import org.apache.commons.text.StringEscapeUtils;
 import rt.NativeRuntime;
 import utils.Box;
 import utils.Bug;
@@ -296,7 +297,8 @@ public class JavaCodegen implements MIRVisitor<String> {
     var javaStr = getLiteral(p.p(), id).map(l->l.substring(1, l.length() - 1)).orElseThrow();
     var recordName = "str$$"+getBase(javaStr.hashCode()+"")+"$$str";
     if (!this.freshRecords.containsKey(id)) {
-      var utf8 = javaStr.getBytes(StandardCharsets.UTF_8);
+      // We parse literal \n, unicode escapes as if this was a Java string literal.
+      var utf8 = StringEscapeUtils.unescapeJava(javaStr).getBytes(StandardCharsets.UTF_8);
       try {
         NativeRuntime.validateStringOrThrow(utf8);
       } catch (NativeRuntime.StringEncodingError err) {
