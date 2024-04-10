@@ -11,6 +11,7 @@ public class Ex15TestsTest {
   @Test void runTests() { run("""
     package test
     alias base.test.Main as TestMain,
+    alias base.Void as Void, alias base.caps.FIO as FIO,
     
     Test: TestMain{_, runner -> runner
       .test("Empty test", {sys -> Void})
@@ -22,6 +23,8 @@ public class Ex15TestsTest {
   @Test void runTestsWithSuite() { run("""
     package test
     alias base.test.Main as TestMain,
+    alias base.Void as Void, alias base.caps.FIO as FIO,
+
     
     Test: TestMain{_, runner -> runner
       .test("Empty test", {sys -> Void})

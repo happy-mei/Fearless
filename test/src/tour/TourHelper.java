@@ -32,7 +32,7 @@ public class TourHelper {
     if (last.startsWith("//prints ")){
       expectedPrint = last.substring("//prints ".length()); 
     } 
-    if(!content.contains(":Main")){
+    if(!content.contains(":Main") && !content.contains(": TestMain")){
       content += "Test:Main{s->Void}"; 
     }
     /*ok(new Res(expectedPrint,"",0), "test.Test",
