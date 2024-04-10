@@ -16,7 +16,7 @@ public final class ResolveResource {
   static private final Path root;
   static private FileSystem virtualFs;
   static{
-    var url= ResolveResource.class.getResource("/base");
+    var url= ResolveResource.class.getResource("/rt");
     if(url==null) {
       String workingDir = System.getProperty("user.dir");
       root=Path.of(workingDir).resolve("resources");

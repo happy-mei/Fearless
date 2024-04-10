@@ -1,6 +1,5 @@
 package base
 
-Info:{}
 ReturnStmt[R:imm]:{ #: R }
 Condition:{ #: Bool }
 VarContinuation[X:imm,R:imm]:{ #(x: X, self: Block[R]): R }

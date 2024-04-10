@@ -8,9 +8,11 @@ import rt.ResolveResource;
 import javax.tools.Diagnostic;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -88,6 +90,23 @@ public class JavaProgram extends SimpleJavaFileObject {
       throw Bug.of("ICE: Java compilation failed:\n"+ diagnostic);
     }
 
+    copyRuntimeLibs(workingDir);
     return workingDir.resolve("FProgram.class");
+  }
+
+  static void copyRuntimeLibs(Path workingDir) {
+    var resourceLibPath = ResolveResource.of("/rt/libnative");
+    try {
+      Files.walkFileTree(resourceLibPath, new SimpleFileVisitor<>(){
+        @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+          var dest = workingDir.resolve(Path.of("rt", "libnative")).resolve(file.getFileName());
+          Files.createDirectories(dest);
+          Files.copy(file, dest, StandardCopyOption.REPLACE_EXISTING);
+          return FileVisitResult.CONTINUE;
+        }
+      });
+    } catch (IOException err) {
+      throw new UncheckedIOException(err);
+    }
   }
 }

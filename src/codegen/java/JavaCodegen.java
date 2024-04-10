@@ -8,13 +8,16 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import magic.MagicImpls;
+import rt.NativeRuntime;
 import utils.Box;
 import utils.Bug;
 import utils.Streams;
 import visitors.MIRVisitor;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static magic.MagicImpls.getLiteral;
@@ -39,7 +42,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   protected static String argsToLList(Mdf addMdf) {
     return """
       FAux.LAUNCH_ARGS = base.LList_1._$self;
-      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$%s$(arg); }
+      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$%s$(rt.Str.fromJavaStr(arg)); }
       """.formatted(addMdf);
   }
 
@@ -50,13 +53,13 @@ public class JavaCodegen implements MIRVisitor<String> {
       static void main(String[] args){
         %s
         base.Main_0 entry = %s._$self;
-        try {
           entry.$35$imm$(%s._$self);
+        try {
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
         } catch (Throwable t) {
-          System.err.println("Program crashed with: "+t.getLocalizedMessage());
+          System.err.println("Program crashed with: "+t.getMessage());
           System.exit(1);
         }
       }
@@ -248,6 +251,10 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
+    if (magic.isMagic(Magic.Str, createObj.concreteT().id())) {
+      return visitStringLiteral(createObj);
+    }
+
     var magicImpl = magic.get(createObj);
     if (checkMagic && magicImpl.isPresent()) {
       var res = magicImpl.get().instantiate();
@@ -283,6 +290,33 @@ public class JavaCodegen implements MIRVisitor<String> {
 
     var captures = createObj.captures().stream().map(x->visitX(x, checkMagic)).collect(Collectors.joining(", "));
     return "new "+recordName+"("+captures+")";
+  }
+  public String visitStringLiteral(MIR.CreateObj k) {
+    var id = k.concreteT().id();
+    var javaStr = getLiteral(p.p(), id).map(l->l.substring(1, l.length() - 1)).orElseThrow();
+    var recordName = "str$$"+getBase(javaStr.hashCode()+"")+"$$str";
+    if (!this.freshRecords.containsKey(id)) {
+      var utf8 = javaStr.getBytes(StandardCharsets.UTF_8);
+      try {
+        NativeRuntime.validateStringOrThrow(utf8);
+      } catch (NativeRuntime.StringEncodingError err) {
+        // TODO: throw a nice Fail...
+        throw Bug.of(err);
+      }
+      var utf8Array = IntStream.range(0, utf8.length).mapToObj(i->Byte.toString(utf8[i])).collect(Collectors.joining(","));
+      var graphemes = Arrays.stream(NativeRuntime.indexString(utf8)).mapToObj(Integer::toString).collect(Collectors.joining(","));
+
+      this.freshRecords.put(id, """
+        final class %s implements rt.Str {
+          public static final rt.Str _self$ = new %s();
+          private static final byte[] UTF8 = new byte[]{%s};
+          private static final int[] GRAPHEMES = new int[]{%s};
+          @Override public byte[] utf8() { return UTF8; }
+          @Override public int[] graphemes() { return GRAPHEMES; }
+        }
+        """.formatted(recordName, recordName, utf8Array, graphemes));
+    }
+    return recordName+"._self$";
   }
 
   @Override public String visitX(MIR.X x, boolean checkMagic) {
@@ -394,11 +428,10 @@ public class JavaCodegen implements MIRVisitor<String> {
     return pkg+"."+getBase(d.shortName())+"_"+d.gen();
   }
   protected String getRelativeName(Id.DecId d) {
-    if (d.pkg().equals(this.pkg)) {
+    if (d.pkg().equals(this.pkg.name())) {
       return getBase(d.shortName());
     }
-    var pkg = getPkgName(d.pkg());
-    return pkg+"."+getBase(d.shortName())+"_"+d.gen();
+    return getName(d);
   }
   protected static String getSafeName(Id.DecId d) {
     var pkg = getPkgName(d.pkg());

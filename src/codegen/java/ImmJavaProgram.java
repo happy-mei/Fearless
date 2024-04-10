@@ -1,6 +1,7 @@
 package codegen.java;
 
 import main.CompilerFrontEnd;
+import rt.ResolveResource;
 import utils.Box;
 import utils.Bug;
 
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class ImmJavaProgram extends JavaProgram {
   public ImmJavaProgram(String code) {
@@ -44,7 +46,15 @@ public class ImmJavaProgram extends JavaProgram {
 
     var errors = new Box<Diagnostic<?>>(null);
 
-    var codegenUnits = Arrays.stream(files);
+    var runtimeFiles = Stream.of(
+      "Str",
+      "ResolveResource",
+      "NativeRuntime",
+      "FearlessError"
+    ).map(name -> new JavaProgram(name, ResolveResource.getAndRead("/rt/"+name+".java")));
+    var userFiles = Arrays.stream(files);
+    var codegenUnits = Stream.concat(userFiles, runtimeFiles);
+
     boolean success = compiler.getTask(
       null,
       null,
@@ -62,6 +72,7 @@ public class ImmJavaProgram extends JavaProgram {
       throw Bug.of("ICE: Java compilation failed:\n"+ diagnostic);
     }
 
+    copyRuntimeLibs(workingDir);
     return workingDir.resolve("FProgram.class");
   }
 }

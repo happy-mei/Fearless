@@ -12,6 +12,7 @@ import java.util.Optional;
 
 public interface MagicImpls<R> {
   static Optional<String> getLiteral(Program p, Id.DecId d) {
+    if (isLiteral(d.name())) { return Optional.of(d.name()); }
     var supers = p.superDecIds(d);
     return supers.stream().filter(dec->{
       var name = dec.name();

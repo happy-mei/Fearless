@@ -56,7 +56,7 @@ public record JavaMagicImpls(JavaCodegen gen, ast.Program p) implements magic.Ma
           return "("+"(double)"+instantiate().orElseThrow()+")";
         }
         if (m.equals(new Id.MethName(".str", 0))) {
-          return "Long.toString("+instantiate().orElseThrow()+")";
+          return "rt.Str.fromJavaStr(Long.toString("+instantiate().orElseThrow()+"))";
         }
         if (m.equals(new Id.MethName("+", 1))) { return instantiate().orElseThrow()+" + "+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("-", 1))) { return instantiate().orElseThrow()+" - "+args.getFirst().accept(gen, true); }
@@ -115,7 +115,7 @@ public record JavaMagicImpls(JavaCodegen gen, ast.Program p) implements magic.Ma
           return "("+"(double)"+instantiate().orElseThrow()+")";
         }
         if (m.equals(new Id.MethName(".str", 0))) {
-          return "Long.toUnsignedString("+instantiate().orElseThrow()+")";
+          return "rt.Str.fromJavaStr(Long.toUnsignedString("+instantiate().orElseThrow()+"))";
         }
         if (m.equals(new Id.MethName("+", 1))) { return instantiate().orElseThrow()+" + "+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("-", 1))) { return instantiate().orElseThrow()+" - "+args.getFirst().accept(gen, true); }
@@ -170,7 +170,7 @@ public record JavaMagicImpls(JavaCodegen gen, ast.Program p) implements magic.Ma
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".str", 0))) {
-          return "Double.toString("+instantiate().orElseThrow()+")";
+          return "rt.Str.fromJavaStr(Double.toString("+instantiate().orElseThrow()+"))";
         }
         if (m.equals(new Id.MethName("+", 1))) { return instantiate().orElseThrow()+" + "+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("-", 1))) { return instantiate().orElseThrow()+" - "+args.getFirst().accept(gen, true); }
@@ -200,33 +200,9 @@ public record JavaMagicImpls(JavaCodegen gen, ast.Program p) implements magic.Ma
   }
 
   @Override public MagicTrait<MIR.E,String> str(MIR.E e) {
-    var name = e.t().name().orElseThrow();
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
-        var lit = getLiteral(p, name);
-        if (lit.isEmpty()) { return e.accept(gen, true).describeConstable(); }
-        var javaStr = lit.map(l->l.substring(1, l.length() - 1)).get();
-        var utf8 = javaStr.getBytes(StandardCharsets.UTF_8);
-        try {
-          NativeRuntime.validateStringOrThrow(utf8);
-        } catch (NativeRuntime.StringEncodingError err) {
-          // TODO: throw a nice Fail...
-          throw Bug.of(err);
-        }
-
-        var utf8Array = IntStream.range(0, utf8.length).mapToObj(i->Byte.toString(utf8[i])).collect(Collectors.joining(","));
-        var graphemes = Arrays.stream(NativeRuntime.indexString(utf8)).mapToObj(Integer::toString).collect(Collectors.joining(","));
-        // todo: make this global so we can reuse it
-        return Optional.of("""
-          new rt.Str(){
-            private static final byte[] UTF8 = new byte[]{%s};
-            private static final int[] GRAPHEMES = new int[]{%s};
-            @Override public byte[] utf8() { return UTF8; }
-            @Override public int[] graphemes() { return GRAPHEMES; }
-          }
-          """.formatted(utf8Array, graphemes));
-
-//        return lit.orElseGet(()->"((String)"+e.accept(gen, true)+")").describeConstable();
+        throw Bug.unreachable();
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
@@ -315,7 +291,7 @@ public record JavaMagicImpls(JavaCodegen gen, ast.Program p) implements magic.Ma
               public Object peek$readOnly$(userCode.FProgram.base$46caps.IsoViewer_2 f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$mut$(this.x) : ((base$46caps.IsoViewer_2)f).empty$mut$(); }
               public Object $33$mut$() {
                 if (!this.isAlive) {
-                  base.Error_0._$self.str$imm$("Cannot consume an empty IsoPod.");
+                  base.Error_0._$self.str$imm$(rt.Str.fromJavaStr("Cannot consume an empty IsoPod."));
                   return null;
                 }
                 this.isAlive = false;
@@ -351,7 +327,7 @@ public record JavaMagicImpls(JavaCodegen gen, ast.Program p) implements magic.Ma
         if (m.equals(new Id.MethName("._fail", 1))) {
           return Optional.of(String.format("""
             (switch (1) { default -> {
-              System.err.println(%s);
+              rt.NativeRuntime.printlnErr(%s.utf8());
               System.exit(1);
               yield %s;
             }})

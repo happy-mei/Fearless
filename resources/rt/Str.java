@@ -47,8 +47,7 @@ public interface Str extends FProgram.base.Str_0 {
 		return (long) this.graphemes().length;
 	}
 	@Override default FProgram.base.Void_0 assertEq$readOnly$(Str other$) {
-//		return FProgram.base.$95StrHelpers_0._$self.assertEq$imm$(this, other$);
-		throw new RuntimeException("tbd");
+		return FProgram.base.$95StrHelpers_0._$self.assertEq$imm$(this, other$);
 	}
 	@Override default FProgram.base.Bool_0 isEmpty$readOnly$() {
 		return this.utf8().length == 0 ? FProgram.base.True_0._$self : FProgram.base.False_0._$self;
