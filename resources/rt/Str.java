@@ -3,6 +3,7 @@ package rt;
 import userCode.FProgram;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public interface Str extends FProgram.base.Str_0 {
 	byte[] utf8();
@@ -31,13 +32,11 @@ public interface Str extends FProgram.base.Str_0 {
 		return this;
 	}
 	@Override default FProgram.base.Bool_0 $61$61$readOnly$(Str other$) {
-		Str other = (Str) other$;
-		return this.graphemes().equals(other.graphemes()) ? FProgram.base.True_0._$self : FProgram.base.False_0._$self;
+		return Arrays.equals(this.utf8(), other$.utf8()) ? FProgram.base.True_0._$self : FProgram.base.False_0._$self;
 	}
 	@Override default Str $43$readOnly$(Str other$) {
-		Str other = (Str) other$;
 		var a = this.utf8();
-		var b = other.utf8();
+		var b = other$.utf8();
 		var res = new byte[a.length + b.length];
 		System.arraycopy(a, 0, res, 0, a.length);
 		System.arraycopy(b, 0, res, a.length, b.length);

@@ -176,6 +176,7 @@ public sealed interface MIR {
   sealed interface MT {
     Mdf mdf();
     Optional<Id.DecId> name();
+    default boolean isAny() { return false; }
     static MT of(T t) {
       return t.match(gx->new Any(t.mdf()), it->new Usual(t));
     }
@@ -215,6 +216,7 @@ public sealed interface MIR {
 
     }
     record Any(Mdf mdf) implements MT {
+      @Override public boolean isAny() { return true; }
       @Override public Optional<Id.DecId> name() {
         return Optional.empty();
       }

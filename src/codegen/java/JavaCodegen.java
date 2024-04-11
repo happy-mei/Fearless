@@ -35,7 +35,6 @@ public class JavaCodegen implements MIRVisitor<String> {
     this.p = new OptimisationBuilder(this.magic)
       .withBoolIfOptimisation()
       .withBlockOptimisation()
-      .withDevirtualisationOptimisation()
       .run(p);
     this.funMap = p.pkgs().stream().flatMap(pkg->pkg.funs().stream()).collect(Collectors.toMap(MIR.Fun::name, f->f));
   }
@@ -54,8 +53,8 @@ public class JavaCodegen implements MIRVisitor<String> {
       static void main(String[] args){
         %s
         base.Main_0 entry = %s._$self;
-          entry.$35$imm$(%s._$self);
         try {
+          entry.$35$imm$(%s._$self);
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);

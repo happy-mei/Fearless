@@ -116,24 +116,24 @@ public class Ex09FlowsTest {
         .map{n -> n * 10}
         .filter{n -> n > 50}
         .find{n -> True}
-        .match{.some(n) -> n, .empty -> Error.str ".find was empty"},
+        .match{.some(n) -> n, .empty -> Error.msg ".find was empty"},
       .findAndLimit: Int -> Flow#[Int](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
         .limit(1u)
         .find{n -> True}
-        .match{.some(n) -> n, .empty -> Error.str ".findAndLimit was empty"},
+        .match{.some(n) -> n, .empty -> Error.msg ".findAndLimit was empty"},
       .first: Int -> Flow#[Int](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
         .first
-        .match{.some(n) -> n, .empty -> Error.str ".first was empty"},
+        .match{.some(n) -> n, .empty -> Error.msg ".first was empty"},
       .firstAndLimit: Int -> Flow#[Int](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
         .limit(1u)
         .first
-        .match{.some(n) -> n, .empty -> Error.str ".firstAndLimit was empty"},
+        .match{.some(n) -> n, .empty -> Error.msg ".firstAndLimit was empty"},
       }
     """, Base.mutBaseAliases); }
   @Test void flowGetFirstDifferentApproachesSeq() { ok(new Res("", "", 0), "test.Test", """
@@ -149,24 +149,24 @@ public class Ex09FlowsTest {
         .map{p -> FPerson#(p.age * 10u)}
         .filter{p -> p.age > 50u}
         .find{n -> True}
-        .match{.some(n) -> n, .empty -> Error.str ".find was empty"},
+        .match{.some(n) -> n, .empty -> Error.msg ".find was empty"},
       .findAndLimit: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
         .map{p -> FPerson#(p.age * 10u)}
         .filter{p -> p.age > 50u}
         .limit(1u)
         .find{n -> True}
-        .match{.some(n) -> n, .empty -> Error.str ".findAndLimit was empty"},
+        .match{.some(n) -> n, .empty -> Error.msg ".findAndLimit was empty"},
       .first: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
         .map{p -> FPerson#(p.age * 10u)}
         .filter{p -> p.age > 50u}
         .first
-        .match{.some(n) -> n, .empty -> Error.str ".first was empty"},
+        .match{.some(n) -> n, .empty -> Error.msg ".first was empty"},
       .firstAndLimit: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
         .map{p -> FPerson#(p.age * 10u)}
         .filter{p -> p.age > 50u}
         .limit(1u)
         .first
-        .match{.some(n) -> n, .empty -> Error.str ".firstAndLimit was empty"},
+        .match{.some(n) -> n, .empty -> Error.msg ".firstAndLimit was empty"},
       }
     """, """
     package test

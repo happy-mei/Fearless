@@ -59,7 +59,7 @@ Foo   {}  x! //we want to AT LEAST WRITE SOMETHING
 
 Var[E]:Data{
   mut r:mut Ref[mut Opt[mdf E]]
-  mut*:mdf E->this.r*.get{Error.str"Nope"}
+  mut*:mdf E->this.r*.get{Error.msg"Nope"}
   mut:=(e:mdf E):Void->this.r:=Opt#e
   }
 

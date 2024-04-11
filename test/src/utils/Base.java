@@ -134,6 +134,7 @@ public interface Base {
     alias base.Error as Error,
     alias base.Try as Try,
     alias base.Info as Info,
+    alias base.FInfo as FInfo,
     
     alias base.Bool as Bool,
     alias base.True as True,

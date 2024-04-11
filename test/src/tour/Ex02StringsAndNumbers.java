@@ -274,7 +274,7 @@ An empty optional it is not representing a mistake/error/problem.
   
     ||(f) -> this.match{.some(x)-> x, .empty->f# },
     
-    ! -> this || {Error.str "Opt was empty"},
+    ! -> this || {Error.msg "Opt was empty"},
       
     read .isEmpty: Bool ->
       this .match {.empty -> True, .some(_) -> False},

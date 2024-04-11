@@ -291,7 +291,7 @@ public record JavaMagicImpls(JavaCodegen gen, ast.Program p) implements magic.Ma
               public Object peek$readOnly$(userCode.FProgram.base$46caps.IsoViewer_2 f) { return this.isAlive ? ((base$46caps.IsoViewer_2)f).some$mut$(this.x) : ((base$46caps.IsoViewer_2)f).empty$mut$(); }
               public Object $33$mut$() {
                 if (!this.isAlive) {
-                  base.Error_0._$self.str$imm$(rt.Str.fromJavaStr("Cannot consume an empty IsoPod."));
+                  base.Error_0._$self.msg$imm$(rt.Str.fromJavaStr("Cannot consume an empty IsoPod."));
                   return null;
                 }
                 this.isAlive = false;

@@ -16,7 +16,7 @@ FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
       .var[imm R] res={f#x}
       .do{repr.reset}
       .return {res},
-    mut  .reset:Void->_inv#x?{.then->Void,.else->Error.str "AAAH",},
+    mut  .reset:Void->_inv#x?{.then->Void,.else->Error.msg "AAAH",},
     read .cached[R](f:F[read T,imm R]): imm R ->f#x, //magic
     //read .cached[R](f:RepeatableF[read T,imm R]): imm R ->f#x, //magic
     //read .derived[R](f:F[read T,imm R]): imm R ->f#x, //magic

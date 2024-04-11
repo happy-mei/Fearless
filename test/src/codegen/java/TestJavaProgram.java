@@ -1238,17 +1238,17 @@ public class TestJavaProgram {
     package test
 //    Test:Main{s ->
 //      FIO#s.println(Try#[Str](
-//        {Error.str("oof")},
+//        {Error.msg("oof")},
 //        {err->err.str}
 //        ))
 //      }
     Test:Main{s ->
-      FIO#s.println(Try#[Str]{Error.str("oof")}.match{ .a(a) -> a, .b(err) -> err.str })
+      FIO#s.println(Try#[Str]{Error.msg("oof")}.match{ .a(a) -> a, .b(err) -> err.str })
       }
     """, Base.mutBaseAliases);}
   @Test void error1() { ok(new Res("", "Program crashed with: yolo", 1), "test.Test", """
     package test
-    Test:Main{s -> Error.str("yolo") }
+    Test:Main{s -> Error.msg("yolo") }
     """, Base.mutBaseAliases);}
   @Test void emptyOptErr1() { ok(new Res("", "Program crashed with: Opt was empty", 1), "test.Test", """
     package test
@@ -1354,7 +1354,7 @@ public class TestJavaProgram {
 
   @Test void errorKToObj() { ok(new Res("", "Program crashed with: whoops", 1), "test.Test", """
     package test
-    Test: Main{ _ -> A#(Error.str "whoops") }
+    Test: Main{ _ -> A#(Error.msg "whoops") }
     A:{ #(x: Str): Void -> Void }
     """, Base.mutBaseAliases); }
 

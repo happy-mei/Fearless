@@ -39,24 +39,6 @@ public class DevirtualisationOptimisation implements MIRCloneVisitor {
     return MIRCloneVisitor.super.visitPackage(pkg);
   }
 
-//  @Override public MIR.Fun visitFun(MIR.Fun fun) {
-//    if (!(fun.body() instanceof MIR.MCall call)) { return MIRCloneVisitor.super.visitFun(fun); }
-//    return fun.withBody(this.visitFunCall(call));
-//  }
-//
-//  @Override public MIR.E visitBlockExpr(MIR.Block expr, boolean checkMagic) {
-//    var newStmts = expr.stmts().stream()
-//      .map(stmt->{
-//        if (!(stmt.e() instanceof MIR.MCall call)) {
-//          return stmt;
-//        }
-//        return stmt.withE(this.visitFunCall(call));
-//      })
-//      .toList();
-//
-//    return expr.withStmts(newStmts);
-//  }
-
   @Override public MIR.E visitMCall(MIR.MCall call, boolean checkMagic) {
     if (!call.variant().contains(MIR.MCall.CallVariant.Standard)) { return call; }
     if (!(call.recv() instanceof MIR.MCall) && !(call.recv() instanceof MIR.CreateObj)) { return call; }
@@ -77,6 +59,7 @@ public class DevirtualisationOptimisation implements MIRCloneVisitor {
     if (meth.capturesSelf()) { return call; }
     var fName = meth.fName().orElseThrow();
     var fun = this.funs.get(fName);
+    // TODO: there's an issue with a missing cast and generic return type combo here (on Error.msg inlining Info...)
     Optional<MIR.MT> cast = !call.t().equals(call.originalRet()) ? Optional.of(call.t()) : Optional.empty();
     var args = Stream.concat(call.args().stream(), fun.args().stream().skip(call.args().size())).toList();
     // we can easily inline the static function if there are no args
@@ -86,30 +69,4 @@ public class DevirtualisationOptimisation implements MIRCloneVisitor {
 
     return new MIR.StaticCall(call, fName, args, cast);
   }
-
-//  private MIR.E visitFunCall(MIR.MCall call) {
-//    if (!call.variant().contains(MIR.MCall.CallVariant.Standard)) { return call; }
-//    if (!(call.recv() instanceof MIR.MCall) && !(call.recv() instanceof MIR.CreateObj)) { return call; }
-//    if (call.recv() instanceof MIR.MCall recvCall) { return call.withRecv(this.visitFunCall(recvCall)); }
-//
-//    var recvK = (MIR.CreateObj) call.recv();
-//    if (this.magic.get(call.recv()).isPresent()) { return call; }
-//
-//    var singletonInstance = this.p.of(recvK.concreteT().id()).singletonInstance();
-//    var ms = singletonInstance.map(MIR.CreateObj::meths).orElse(recvK.meths());
-//
-//    var meth = ms.stream()
-//      .filter(m->m.fName().isPresent())
-//      .filter(m->m.sig().name().withMdf(Optional.of(m.sig().mdf()))
-//        .equals(call.name().withMdf(Optional.of(call.mdf()))))
-//      .findFirst()
-//      .orElseThrow();
-//    if (meth.capturesSelf()) { return call; }
-//    var fName = meth.fName().orElseThrow();
-//    var fun = this.funs.get(fName);
-//    Optional<MIR.MT> cast = !call.t().equals(call.originalRet()) ? Optional.of(call.t()) : Optional.empty();
-//    var args = Stream.concat(call.args().stream(), fun.args().stream().skip(call.args().size())).toList();
-//
-//    return new MIR.StaticCall(call, fName, args, cast);
-//  }
 }

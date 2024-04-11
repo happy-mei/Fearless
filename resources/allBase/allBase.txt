@@ -234,8 +234,8 @@ Error:{
   }
 
 Todo:{
-  ![R:read,mut,imm,iso,lent,readOnly]: R -> Error.str[R] "TODO: Implement this code",
-  ![R:read,mut,imm,iso,lent,readOnly](msg: Str): R -> Error.str[R]("TODO: "+msg),
+  ![R:read,mut,imm,iso,lent,readOnly]: R -> Error.msg[R] "TODO: Implement this code",
+  ![R:read,mut,imm,iso,lent,readOnly](msg: Str): R -> Error.msg[R]("TODO: "+msg),
 }
 
 Try:{
@@ -434,7 +434,7 @@ EmptyFlow[E]: Flow[E]{
   .size -> 0u,
   }
 
-TerminalOnInfiniteError: { #: Info -> FInfo.str "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5u) to bound the flow." }
+TerminalOnInfiniteError: { #: Info -> FInfo.msg "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5u) to bound the flow." }
 
 //---File flows\operators.fear
 package base.flows
@@ -1424,9 +1424,9 @@ Opt[T]:Extensible[Opt[T]]{
   read .match[R](m: mut OptMatch[read T, R]): R -> m.empty,
   imm  .match[R](m: mut OptMatch[imm T, R]): R -> m.empty,
 
-  mut  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
-  read !: read T -> this.match[read T](mut OptMatch[read T, read T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
-  imm  !: imm T -> this.match[imm T](mut OptMatch[imm T, imm T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
+  mut  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Error.msg "Opt was empty" }),
+  read !: read T -> this.match[read T](mut OptMatch[read T, read T]{ .some(x) -> x, .empty -> Error.msg "Opt was empty" }),
+  imm  !: imm T -> this.match[imm T](mut OptMatch[imm T, imm T]{ .some(x) -> x, .empty -> Error.msg "Opt was empty" }),
 
   mut .map[R](f: mut OptMap[T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
   read .map[R](f: mut OptMap[read T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
@@ -1558,7 +1558,7 @@ FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
       .var[imm R] res={f#x}
       .do{repr.reset}
       .return {res},
-    mut  .reset:Void->_inv#x?{.then->Void,.else->Error.str "AAAH",},
+    mut  .reset:Void->_inv#x?{.then->Void,.else->Error.msg "AAAH",},
     read .cached[R](f:F[read T,imm R]): imm R ->f#x, //magic
      }}
    .do {res.reset}
@@ -1586,9 +1586,9 @@ Res[T,E]:Either[T, E]{
   read .resMatch[R](m: mut ResMatch[read T, read E, R]): R -> this.match(m),
   imm  .resMatch[R](m: mut ResMatch[imm T, imm E, R]): R -> this.match(m),
 
-  mut  !: T -> this.resMatch[T]{ .ok(x) -> x, .err(_) -> Error.str "Res was not ok" },
-  read !: read T -> this.resMatch[read T]{ .ok(x) -> x, .err(_) -> Error.str "Res was not ok" },
-  imm  !: imm T -> this.resMatch[imm T]{ .ok(x) -> x, .err(_) -> Error.str "Res was not ok" },
+  mut  !: T -> this.resMatch[T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
+  read !: read T -> this.resMatch[read T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
+  imm  !: imm T -> this.resMatch[imm T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
 
   mut  .map[R](f: mut ResMap[T, E, R]): mut Res[R, E] -> this.match(f),
   read .map[R](f: mut ResMap[read T, read E, R]): mut Res[R, read E] -> this.match(f),
@@ -1839,9 +1839,9 @@ Opt[T]:Extensible[Opt[T]]{
   read .match[R](m: mut OptMatch[read T, R]): R -> m.empty,
   imm  .match[R](m: mut OptMatch[imm T, R]): R -> m.empty,
 
-  mut  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
-  read !: read T -> this.match[read T](mut OptMatch[read T, read T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
-  imm  !: imm T -> this.match[imm T](mut OptMatch[imm T, imm T]{ .some(x) -> x, .empty -> Error.str "Opt was empty" }),
+  mut  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Error.msg "Opt was empty" }),
+  read !: read T -> this.match[read T](mut OptMatch[read T, read T]{ .some(x) -> x, .empty -> Error.msg "Opt was empty" }),
+  imm  !: imm T -> this.match[imm T](mut OptMatch[imm T, imm T]{ .some(x) -> x, .empty -> Error.msg "Opt was empty" }),
 
   mut .map[R](f: mut OptMap[T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
   read .map[R](f: mut OptMap[read T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
@@ -2014,7 +2014,7 @@ FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
       .var[imm R] res={f#x}
       .do{repr.reset}
       .return {res},
-    mut  .reset:Void->_inv#x?{.then->Void,.else->Error.str "AAAH",},
+    mut  .reset:Void->_inv#x?{.then->Void,.else->Error.msg "AAAH",},
     read .cached[R](f:F[read T,imm R]): imm R ->f#x, //magic
     //read .cached[R](f:RepeatableF[read T,imm R]): imm R ->f#x, //magic
     //read .derived[R](f:F[read T,imm R]): imm R ->f#x, //magic
@@ -2051,9 +2051,9 @@ Res[T,E]:Either[T, E]{
   read .resMatch[R](m: mut ResMatch[read T, read E, R]): R -> this.match(m),
   imm  .resMatch[R](m: mut ResMatch[imm T, imm E, R]): R -> this.match(m),
 
-  mut  !: T -> this.resMatch[T]{ .ok(x) -> x, .err(_) -> Error.str "Res was not ok" },
-  read !: read T -> this.resMatch[read T]{ .ok(x) -> x, .err(_) -> Error.str "Res was not ok" },
-  imm  !: imm T -> this.resMatch[imm T]{ .ok(x) -> x, .err(_) -> Error.str "Res was not ok" },
+  mut  !: T -> this.resMatch[T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
+  read !: read T -> this.resMatch[read T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
+  imm  !: imm T -> this.resMatch[imm T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
 
   mut  .map[R](f: mut ResMap[T, E, R]): mut Res[R, E] -> this.match(f),
   read .map[R](f: mut ResMap[read T, read E, R]): mut Res[R, read E] -> this.match(f),
