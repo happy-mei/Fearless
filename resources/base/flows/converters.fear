@@ -4,7 +4,7 @@ package base.flows
 // from within the flow itself. This is prevented by collecting the flow-source into a list and then
 // flowing on that instead.
 _MutSourceCollection[E]: {
-  #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#
+  #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#[mut FlowOp[E]]
     .var[mut Ref[mut Opt[mut FlowOp[E]]]] cloned = {Ref#[mut Opt[mut FlowOp[E]]]{}}
     .return{{
       .isRunning -> this.get(cloned, source).isRunning,
