@@ -837,7 +837,7 @@ public class TestJavaProgram {
         .return{pod!}
         }.resMatch{
           .ok(msg) -> FIO#s.println(msg),
-          .err(info) -> FIO#s.printlnErr(info.str),
+          .err(info) -> FIO#s.printlnErr(info.msg),
         }
       }
     """, Base.mutBaseAliases); }
@@ -1243,14 +1243,14 @@ public class TestJavaProgram {
 //        ))
 //      }
     Test:Main{s ->
-      FIO#s.println(Try#[Str]{Error.msg("oof")}.match{ .a(a) -> a, .b(err) -> err.str })
+      FIO#s.println(Try#[Str]{Error.msg("oof")}.match{ .a(a) -> a, .b(err) -> err.msg })
       }
     """, Base.mutBaseAliases);}
-  @Test void error1() { ok(new Res("", "Program crashed with: yolo", 1), "test.Test", """
+  @Test void error1() { ok(new Res("", "Program crashed with: \"yolo\" ", 1), "test.Test", """
     package test
     Test:Main{s -> Error.msg("yolo") }
     """, Base.mutBaseAliases);}
-  @Test void emptyOptErr1() { ok(new Res("", "Program crashed with: Opt was empty", 1), "test.Test", """
+  @Test void emptyOptErr1() { ok(new Res("", "Program crashed with: \"Opt was empty\"", 1), "test.Test", """
     package test
     Test:Main{s -> Block#(Opt[Str]!) }
     """, Base.mutBaseAliases);}
@@ -1259,7 +1259,7 @@ public class TestJavaProgram {
     Test:Main{s ->
       Try#{Opt[Str]!}.match{
         .a(_) -> {},
-        .b(info) -> FIO#s.printlnErr(info.str),
+        .b(info) -> FIO#s.printlnErr(info.msg),
         }
       }
     """, Base.mutBaseAliases);}
@@ -1352,7 +1352,7 @@ public class TestJavaProgram {
       }
     """); }
 
-  @Test void errorKToObj() { ok(new Res("", "Program crashed with: whoops", 1), "test.Test", """
+  @Test void errorKToObj() { ok(new Res("", "Program crashed with: \"whoops\"", 1), "test.Test", """
     package test
     Test: Main{ _ -> A#(Error.msg "whoops") }
     A:{ #(x: Str): Void -> Void }

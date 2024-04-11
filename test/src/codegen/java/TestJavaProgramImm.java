@@ -47,7 +47,7 @@ public class TestJavaProgramImm {
     inferred.typeCheck(resolvedCalls);
     var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
     var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-    var verbosity = new CompilerFrontEnd.Verbosity(false, true, CompilerFrontEnd.ProgressVerbosity.None);
+    var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     var res = RunOutput.java(ImmJavaProgram.compile(verbosity, new JavaProgram(java)), args).join();
     Assertions.assertEquals(expected, res);
   }

@@ -8,21 +8,11 @@ import id.Mdf;
 import magic.Magic;
 import magic.MagicCallable;
 import magic.MagicTrait;
-import rt.NativeRuntime;
 import utils.Bug;
 
-import java.lang.constant.ClassDesc;
-import java.lang.constant.ConstantDesc;
-import java.lang.constant.DirectMethodHandleDesc;
-import java.lang.constant.DynamicConstantDesc;
-import java.lang.invoke.MethodHandle;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static magic.MagicImpls.getLiteral;
 
@@ -227,12 +217,12 @@ public record JavaMagicImpls(JavaCodegen gen, ast.Program p) implements magic.Ma
               var strMethod = java.util.Arrays.stream(xObj.getClass().getMethods())
                 .filter(meth->
                   (meth.getName().equals("str$read$") || meth.getName().equals("str$readOnly$"))
-                  && meth.getReturnType().equals(String.class)
+                  && meth.getReturnType().equals(rt.Str.class)
                   && meth.getParameterCount() == 0)
                 .findAny();
               if (strMethod.isPresent()) {
                 try {
-                  System.out.println(strMethod.get().invoke(x));
+                  rt.NativeRuntime.println(((rt.Str)strMethod.get().invoke(x)).utf8());
                 } catch(java.lang.IllegalAccessException | java.lang.reflect.InvocationTargetException err) {
                   System.out.println(x);
                 }
