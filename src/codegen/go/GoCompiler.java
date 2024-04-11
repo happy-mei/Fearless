@@ -4,6 +4,8 @@ import main.CompilerFrontEnd;
 import org.apache.commons.lang3.SystemUtils;
 import utils.Bug;
 import rt.ResolveResource;
+import utils.DeleteOnExit;
+import utils.IoErr;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,12 +43,9 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
   public Path compile() throws IOException {
     assert !units.isEmpty();
 
-    var workingDir = Paths.get(System.getProperty("java.io.tmpdir"), "fearOut"+UUID.randomUUID());
+    var workingDir = IoErr.of(()->Files.createTempDirectory("fearOut"));
     if (verbosity.printCodegen()) {
       System.err.println("Go codegen working dir: "+workingDir.toAbsolutePath());
-    }
-    if (!workingDir.toFile().mkdir()) {
-      throw Bug.of("Could not create a working directory for building the program in: " + System.getProperty("java.io.tmpdir"));
     }
 
     this.entry().write(workingDir);
@@ -68,21 +67,11 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
     }
 
     if (!verbosity.printCodegen()) {
-      cleanUp(workingDir);
+      DeleteOnExit.of(workingDir);
     }
 
     // TODO: maybe fear_out.exe on windows?
     return workingDir.resolve("fear_out");
-  }
-
-  private void cleanUp(Path workingDir) {
-    try (Stream<Path> walk = Files.walk(workingDir)) {
-      walk.sorted(Comparator.reverseOrder())
-        .map(Path::toFile)
-        .forEach(File::delete);
-    } catch (IOException err) {
-      System.err.println("ICE: Could not fully clean up temporary working dir: "+workingDir+"\n"+err.getLocalizedMessage());
-    }
   }
 
   Process goProcess(Path workingDir, String[] args) {

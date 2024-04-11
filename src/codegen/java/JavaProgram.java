@@ -1,9 +1,12 @@
 package codegen.java;
 
 import main.CompilerFrontEnd;
+import rt.ThrowingConsumer;
 import utils.Box;
 import utils.Bug;
 import rt.ResolveResource;
+import utils.DeleteOnExit;
+import utils.IoErr;
 
 import javax.tools.Diagnostic;
 import javax.tools.SimpleJavaFileObject;
@@ -15,7 +18,6 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 public class JavaProgram extends SimpleJavaFileObject {
@@ -41,10 +43,7 @@ public class JavaProgram extends SimpleJavaFileObject {
       throw new RuntimeException("No Java compiler could be found. Please install a JDK >= 10.");
     }
 
-    var workingDir = Paths.get(System.getProperty("java.io.tmpdir"), "fearOut"+UUID.randomUUID());
-    if (!workingDir.toFile().mkdir()) {
-      throw Bug.of("Could not create a working directory for building the program in: " + System.getProperty("java.io.tmpdir"));
-    }
+    var workingDir = IoErr.of(()->Files.createTempDirectory("fearOut"));
     if (verbosity.printCodegen()) {
       System.err.println("Java codegen working dir: "+workingDir.toAbsolutePath());
     }
@@ -91,22 +90,21 @@ public class JavaProgram extends SimpleJavaFileObject {
     }
 
     copyRuntimeLibs(workingDir);
+
+    if (!verbosity.printCodegen()) {
+      DeleteOnExit.of(workingDir);
+    }
     return workingDir.resolve("FProgram.class");
   }
 
   static void copyRuntimeLibs(Path workingDir) {
     var resourceLibPath = ResolveResource.of("/rt/libnative");
-    try {
-      Files.walkFileTree(resourceLibPath, new SimpleFileVisitor<>(){
-        @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          var dest = workingDir.resolve(Path.of("rt", "libnative")).resolve(file.getFileName());
-          Files.createDirectories(dest);
-          Files.copy(file, dest, StandardCopyOption.REPLACE_EXISTING);
-          return FileVisitResult.CONTINUE;
-        }
-      });
-    } catch (IOException err) {
-      throw new UncheckedIOException(err);
+    try(var tree = IoErr.of(()->Files.walk(resourceLibPath))) {
+      tree.forEach(ThrowingConsumer.of(p->{
+        var dest = workingDir.resolve(Path.of("rt", "libnative")).resolve(p.getFileName());
+        Files.createDirectories(dest);
+        Files.copy(p, dest, StandardCopyOption.REPLACE_EXISTING);
+      }));
     }
   }
 }

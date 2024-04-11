@@ -18,7 +18,7 @@ import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
-import rt.ThrowingFunction;
+import utils.ThrowingFunction;
 import utils.Box;
 import utils.Bug;
 import rt.ResolveResource;
