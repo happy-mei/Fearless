@@ -9,10 +9,10 @@ import static utils.RunOutput.Res;
 public class Ex13ImperativeTest {
   @Test void ifTerminatesTrue() { ok(new Res("hi\nyay", "", 0), "test.Test", """
     package test
-    Test:Main {sys -> Block#
+    Test:Main {sys -> Block#[Void]
       .if {True} .do {FIO#sys.println("hi")}
       .do {FIO#sys.println("yay")}
-      .return {Void}
+      .done
       }
     """, Base.mutBaseAliases); }
   @Test void ifTerminatesFalse() { ok(new Res("yay", "", 0), "test.Test", """
