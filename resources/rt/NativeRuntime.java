@@ -28,8 +28,8 @@ public final class NativeRuntime {
            var libFileReader = Files.newInputStream(resourceLibPath, StandardOpenOption.READ)) {
         libFileReader.transferTo(libFileWriter);
         libFileWriter.flush();
-        System.load(concreteLibPath.toAbsolutePath().toString());
       }
+      System.load(concreteLibPath.toAbsolutePath().toString());
     } catch (IOException | UnsatisfiedLinkError err) {
       throw new RuntimeException("Internal Fearless runtime error: Could not link to "+resourceLibPath+".\n"+err.getMessage());
     }
