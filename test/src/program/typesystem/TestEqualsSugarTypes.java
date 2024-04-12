@@ -45,4 +45,36 @@ public class TestEqualsSugarTypes {
       .in {(y) + (ten)}//returns 30
       }
     """, LET, NUMS); }
+
+  @Test void letUsageGeneric() { ok("""
+    package test
+    A[T]: {mut .a: T}
+    B: {#[T](a: mut A[T]): mut B[T] -> this#a}
+    B[T]: {}
+    Usage: {#[T](x: T): mut A[T] -> Let#
+      .let[mut A[T]] y = {{x}}
+      .in {{y.a}}
+      }
+    """, LET); }
+  // TODO: This should pass, that it does not is an inference bug
+  @Test void letUsageGenericWrapped() { ok("""
+    package test
+    A[T]: {mut .a: T}
+    B: {#[T](a: mut A[T]): mut B[T] -> this#a}
+    B[T]: {}
+    Usage: {#[T](x: T): mut B[T] -> B#(Let#
+      .let[mut A[T]] y = {{x}}
+      .in {{y.a}}
+      )}
+    """, LET); }
+  @Test void letUsageGenericWrappedExplicit() { ok("""
+    package test
+    A[T]: {mut .a: T}
+    B: {#[T](a: mut A[T]): mut B[T] -> this#a}
+    B[T]: {}
+    Usage: {#[T](x: T): mut B[T] -> B#(Let#[mut A[T]]
+      .let[mut A[T]] y = {{x}}
+      .in {{y.a}}
+      )}
+    """, LET); }
 }

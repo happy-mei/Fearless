@@ -638,25 +638,4 @@ public class TestTypeSystemWithBase {
       .return {Void}
       }
     """, Base.mutBaseAliases); }
-
-  @Test void nicerContinuationExplicitGens() { ok("""
-    package test
-    A[T]: {mut .a: T}
-    B: {#[T](a: mut A[T]): mut B[T] -> this#a}
-    B[T]: {}
-    Test: {#[T](x: T): mut B[T] -> B#(Block#[mut A[T]]
-      .let[mut A[T]] y = {{x}}
-      .return {{y.a}}
-      )}
-    """, Base.mutBaseAliases); }
-  @Test void nicerContinuationInfer() { ok("""
-    package test
-    A[T]: {mut .a: T}
-    B: {#[T](a: mut A[T]): mut B[T] -> this#a}
-    B[T]: {}
-    Test: {#[T](x: T): mut B[T] -> B#(Block#
-      .let[mut A[T]] y = {{x}}
-      .return {{y.a}}
-      )}
-    """, Base.mutBaseAliases); }
 }
