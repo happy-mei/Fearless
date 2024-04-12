@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/rt-libs/native-rt/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/resources/go-compilers" />
       <excludeFolder url="file://$MODULE_DIR$/rt-libs/native-rt/target" />
+      <excludeFolder url="file://$MODULE_DIR$/docs" />
     </content>
   </component>
   <component name="Go" enabled="true" />

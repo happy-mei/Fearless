@@ -14,8 +14,8 @@ public class ImmJavaCodegen extends JavaCodegen {
     var init = """
       static void main(String[] args){
         %s base.Main_0 entry = %s._$self;
-        try {
           rt.NativeRuntime.println(entry.$35$imm$(FAux.LAUNCH_ARGS).utf8());
+        try {
         } catch (StackOverflowError e) {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);

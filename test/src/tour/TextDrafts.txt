@@ -254,7 +254,7 @@ Consider now the following Animal type declaration:
 
 Animals:{
   #(start: Point): mut Animal -> Block#
-    .var[Point] location = {start}//var vs val
+    .let[Point] location = {start}//var vs val
     .return {
       mut Animal:{
         read .location: Point -> location#,

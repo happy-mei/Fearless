@@ -468,7 +468,7 @@ We can obtain a `Block[T]` by calling `Block#` without parameters.
 Example:
 Fearless```
 MyApp:Main{s->Block#
-  .var[mut Fs] fs = {FIO#s}
+  .let[mut Fs] fs = {FIO#s}
   .var content = {fs.read("data.txt")}
   .if {content.size > 5} .return {s.println("Big")}
   .return {s.println("Small")}
@@ -480,7 +480,7 @@ This is just a layer of syntactic sugar encoding a simplified continuation passi
 Removing this layer of sugar the code would look as follow:
 Fearless```
 MyApp:Main{s->Block#
-  .var[mut Fs]({FIO#s}, {fs,self1->self1
+  .let[mut Fs]({FIO#s}, {fs,self1->self1
     .var({fs.read("data.txt")}, {content,self2->self2
       .if {content.size > 5} .return {s.println("Big")}
       .return{s.println("Small")}
@@ -907,8 +907,8 @@ Block[R]:{
   mut .assert(p: mut Condition): mut Block[R] -> Assert!(p#, mut AssertCont[mut Block[R]]{this}),
   mut .assert(p: mut Condition, failMsg: Str): mut Block[R] ->
     Assert!(p#, failMsg, mut AssertCont[mut Block[R]]{this}),
-  mut .var[X](x: mut ReturnStmt[X], cont: mut VarContinuation[X, R]): R -> cont#(x#, this),
-  mut .varIso[X:iso](x: X, cont: mut VarContinuation[mut X, R]): R -> cont#(x, this),
+  mut .let[X](x: mut ReturnStmt[X], cont: mut VarContinuation[X, R]): R -> cont#(x#, this),
+  mut .letIso[X:iso](x: X, cont: mut VarContinuation[mut X, R]): R -> cont#(x, this),
   mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond
     .then -> { 't
       .return(a) -> _DecidedBlock#(a#),
@@ -1156,7 +1156,7 @@ package base.flows
 
 _MutSourceCollection[E]: {
   #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#
-    .var[mut Ref[mut Opt[mut FlowOp[E]]]] cloned = {Ref#[mut Opt[mut FlowOp[E]]]{}}
+    .let[mut Ref[mut Opt[mut FlowOp[E]]]] cloned = {Ref#[mut Opt[mut FlowOp[E]]]{}}
     .return{{
       .isRunning -> this.get(cloned, source).isRunning,
       .stop -> this.get(cloned, source).stop,
@@ -1165,9 +1165,9 @@ _MutSourceCollection[E]: {
   .get(cloned: mut Ref[mut Opt[mut FlowOp[E]]], original: mut FlowOp[E]): mut FlowOp[E] -> cloned.get.match{
      .some(cloned') -> cloned',
      .empty -> Block#
-       .var[mut List[E]] dup = {Flow.fromOp(original).list}
+       .let[mut List[E]] dup = {Flow.fromOp(original).list}
        .do {cloned := (Opt#(Block#[mut FlowOp[E]]
-         .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+         .let[mut Count[UInt]] cursor = {Count.uint(0u)}
          .return {{'self
            .isRunning -> cursor* < (dup.size),
            .stop -> cursor := (dup.size),
@@ -1187,7 +1187,7 @@ _SafeSource: {
 
   .fromList[E](list: mut List[E]): mut Flow[E] -> Flow.fromOp[E](this.fromList'[E](list), list.size),
   .fromList'[E](list: mut List[E]): mut FlowOp[E] -> Block#
-    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .let[mut Count[UInt]] cursor = {Count.uint(0u)}
     .return {{'self
       .isRunning -> cursor* < (list.size),
       .stop -> cursor := (list.size),
@@ -1333,7 +1333,7 @@ _Sink[T]: {
 
 _Filter: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
-    .var[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return{{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -1351,7 +1351,7 @@ _Filter: {
   }
 _Map: {
   #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
-    .var[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return  {{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -1369,8 +1369,8 @@ _Map: {
   }
 _FlatMap: {
   #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
-    .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .var[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return{{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -1408,7 +1408,7 @@ _PipelineParallelFlow: {
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .var[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
+      .let[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
         .stop -> source.stop,
         #(e) -> f#e.match{.some(e') -> Block#(res := (Opt#e'), runner.stop), .empty -> {}},
@@ -1426,7 +1426,7 @@ _PipelineParallelFlow: {
 
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .var[mut Ref[S]] acc' = {Ref#acc}
+      .let[mut Ref[S]] acc' = {Ref#acc}
       .do {source.forRemaining(_PipelineParallelSink#[E]{
         .stop -> {},
         #(e) -> acc' := (f#(acc'.get, e)),
@@ -1442,8 +1442,8 @@ _PipelineParallelFlow: {
     },
 
   #[E](e: E): mut Flow[E] -> Block#
-    .var[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
-    .var[mut FlowOp[E]] source = {{ 'self
+    .let[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
+    .let[mut FlowOp[E]] source = {{ 'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},
       .step(downstream) -> seq.swap(mut Opt[E]).match{
@@ -1494,7 +1494,7 @@ _SeqFlow: {
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .var[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
+      .let[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
       .do {source.forRemaining(mut _Sink[E]{'runner
         .stop -> {},
         #(e) -> f#e.match{.some(e') -> Block#(res := (Opt#e'), runner.stop), .empty -> {}},
@@ -1512,7 +1512,7 @@ _SeqFlow: {
 
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .var[mut Ref[S]] acc' = {Ref#acc}
+      .let[mut Ref[S]] acc' = {Ref#acc}
       .do {source.forRemaining(mut _Sink[E]{
         .stop -> {},
         #(e) -> acc' := (f#(acc'.get, e)),
@@ -1528,8 +1528,8 @@ _SeqFlow: {
     },
 
   #[E](e: E): mut Flow[E] -> Block#
-    .var[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
-    .var[mut FlowOp[E]] source = {{ 'self
+    .let[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
+    .let[mut FlowOp[E]] source = {{ 'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},
       .step(downstream) -> seq.swap(mut Opt[E]).match{
@@ -1549,8 +1549,8 @@ package base.flows
 
 _Limit: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
-    .var[mut Count[UInt]] remaining = {Count.uint(n)}
-    .var[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Count[UInt]] remaining = {Count.uint(n)}
+    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return {{ 'runner
       .stop -> Block#(remaining := 0u, upstream.stop),
       .isRunning -> remaining* > 0u && (upstream.isRunning),
@@ -1580,7 +1580,7 @@ _Actor: {
   }
 _InternalActor: {
   #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] -> Block#
-    .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
     .return {{'op
       .stop -> op.isRunning ? {
        .then -> Block#(isRunning := False, upstream.stop, onComplete#state),
@@ -1597,7 +1597,7 @@ _InternalActor: {
       }},
 
   .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] -> Block#
-    .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
     .return {{'op
       .stop -> op.isRunning ? {
        .then -> Block#(isRunning := False, upstream.stop, onComplete#state),
@@ -1671,8 +1671,8 @@ Iter[E]:{
 
   mut .map[R](f: mut IterMapper[E, R]): mut Iter[R] -> { this.next.map[R](f) },
   mut .flatMap[R](f: mut IterMapper[E, mut Iter[R]]): mut Iter[R] -> Block#
-    .var[mut Iter[mut Iter[R]]] mapIter = { this.map(f) }
-    .var[mut Ref[mut Opt[mut Iter[R]]]] optCurIter = { Ref#(mapIter.next) }
+    .let[mut Iter[mut Iter[R]]] mapIter = { this.map(f) }
+    .let[mut Ref[mut Opt[mut Iter[R]]]] optCurIter = { Ref#(mapIter.next) }
     .return(mut ReturnStmt[mut Iter[R]]{ mut Iter[R]{ 'self
       .next -> optCurIter*[].match[mut Opt[R]]{
         .some(curIter) -> curIter.next.match[mut Opt[R]]{
@@ -2010,7 +2010,7 @@ List[E]: Collection,Sealed{
   mut .addAll(other: mut List[E]): Void -> other.iter.for{ e -> this.add(e) },
 
   mut .flow: mut Flow[E] -> Block#
-    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .let[mut Count[UInt]] cursor = {Count.uint(0u)}
     .return {Flow.fromMutSource({'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -2024,7 +2024,7 @@ List[E]: Collection,Sealed{
       }, this.size)},
   read .flow: mut Flow[read E] -> Flow.fromOp(this._flowread, this.size),
   read ._flowread: mut FlowOp[read E] -> Block#
-    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .let[mut Count[UInt]] cursor = {Count.uint(0u)}
     .return {{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -2038,7 +2038,7 @@ List[E]: Collection,Sealed{
       }},
   imm .flow: mut Flow[imm E] -> Flow.fromOp(this._flowimm, this.size),
   imm ._flowimm: mut FlowOp[imm E] -> Block#
-    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .let[mut Count[UInt]] cursor = {Count.uint(0u)}
     .return {{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -2420,11 +2420,11 @@ alias base.Bool as Bool,
 
 FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
   _x,_inv->Block#
-   .varIso x = _x
-   .var[mut Repr[T]] res= {mut Repr[T:imm]:{'repr
+   .letIso x = _x
+   .let[mut Repr[T]] res= {mut Repr[T:imm]:{'repr
     read .look[R](f:read F[read T,imm R]): imm R ->f#x,
     mut  .mutate[R](f:read F[mut T,imm R]): imm R -> Block#
-      .var[imm R] res={f#x}
+      .let[imm R] res={f#x}
       .do{repr.reset}
       .return {res},
     mut  .reset:Void->_inv#x?{.then->Void,.else->Error.msg "AAAH",},
@@ -2876,11 +2876,11 @@ alias base.Bool as Bool,
 
 FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
   _x,_inv->Block#
-   .varIso x = _x
-   .var[mut Repr[T]] res= {mut Repr[T:imm]:{'repr
+   .letIso x = _x
+   .let[mut Repr[T]] res= {mut Repr[T:imm]:{'repr
     read .look[R](f:read F[read T,imm R]): imm R ->f#x,
     mut  .mutate[R](f:read F[mut T,imm R]): imm R -> Block#
-      .var[imm R] res={f#x}
+      .let[imm R] res={f#x}
       .do{repr.reset}
       .return {res},
     mut  .reset:Void->_inv#x?{.then->Void,.else->Error.msg "AAAH",},
@@ -2900,7 +2900,7 @@ FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
   // missing return type
 
 
-  //inference bug: why Block#.var[imm R] res={f#x} .do{repr.reset} .return {res}, requires imm R
+  //inference bug: why Block#.let[imm R] res={f#x} .do{repr.reset} .return {res}, requires imm R
 
 
 

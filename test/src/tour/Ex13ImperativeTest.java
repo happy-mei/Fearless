@@ -26,7 +26,7 @@ public class Ex13ImperativeTest {
   @Test void refIsMutable() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main {sys -> Block#
-      .var[mut Ref[Int]] n = {Ref#[Int] 5}
+      .let[mut Ref[Int]] n = {Ref#[Int] 5}
       .assert {n.get == 5}
       .do {n := 10}
       .assert {n.get == 10}
@@ -36,7 +36,7 @@ public class Ex13ImperativeTest {
   @Test void incrementLoop() { ok(new Res("", "", 0), "test.Test", """
     package test
     Test:Main {sys -> Block#
-      .var n = {Count.int(0)}
+      .let n = {Count.int(0)}
       .loop {Block#
         .if {n.get == 10} .return {ControlFlow.break}
         .do {Block#(n++)}
@@ -62,7 +62,7 @@ public class Ex13ImperativeTest {
     package test
     Test:Main {sys -> (FIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
-      .var n = {Count.int(0)}
+      .let n = {Count.int(0)}
       .loop {Block#
         .if {n.get == 10} .return {ControlFlow.return[Str](n.get.str)}
         .do {Block#(n++)}
@@ -75,7 +75,7 @@ public class Ex13ImperativeTest {
     package test
     Test:Main {sys -> (FIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
-      .var n = {Count.int(0)}
+      .let n = {Count.int(0)}
       .loop {Block#
         .if {n.get == 10} .return {ControlFlow.return[Str](n.get.str)}
         .do {Block#(n++)}

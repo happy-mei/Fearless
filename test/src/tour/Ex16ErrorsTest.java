@@ -64,8 +64,8 @@ public class Ex16ErrorsTest {
   @Test void capabilityCatchStackOverflow() { ok(new RunOutput.Res("Stack overflowed", "", 0), "test.Test", """
     package test
     Test:Main{s -> Block#
-      .var io = {FIO#s}
-      .var try = {CapTries#s}
+      .let io = {FIO#s}
+      .let try = {CapTries#s}
       .return {io.println(try#[Str]{Loop!}.resMatch{
         .ok(res) -> res,
         .err(err) -> err.str,
