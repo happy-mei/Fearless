@@ -6,6 +6,7 @@ import utils.ResolveResource;
 import static codegen.java.RunJavaProgramTests.ok;
 import static utils.RunOutput.Res;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -53,7 +54,7 @@ public class TourHelper {
     var runner= new main.java.ProgrammaticLogicMain(
       List.of(), "test.Test",v,
       files,p->checker(p,expectedIO),
-      ResolveResource.freshTmpPath());
+      ResolveResource.freshTmpPath(),new ArrayList<>());
     runner.logicMain();
   }
 }

@@ -1,6 +1,5 @@
 package codegen;
 
-import id.Id;
 import id.Mdf;
 
 import java.util.*;
@@ -47,6 +46,13 @@ public interface ParentWalker {
       return new FullMethId(sig.mdf(), sig.name().name(), sig.name().num());
     }
   }
+  /**
+   * 
+   * @param p
+   * @param root
+   * @return the most generic signature of all the super
+   *  signatures for a give type (root)
+   */
   static Map<FullMethId, MIR.Sig> leastSpecificSigs(MIR.Program p, MIR.TypeDef root) {
     return ParentWalker.of(p, root)
       .flatMap(def->def.sigs().stream())

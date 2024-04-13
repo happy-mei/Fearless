@@ -21,12 +21,11 @@ import java.util.stream.Stream;
 import static program.Program.filterByMdf;
 
 public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, MIRInjectionVisitor.Res<? extends MIR.E>> {
-  private Program p;
+  private final Program p;
   private final ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls;
-//  private final List<MIR.TypeDef> inlineDefs = new ArrayList<>();
-//  private final List<MIR.CreateObj> objKs = new ArrayList<>();
+  private final List<String> cached;
 
-  public record Res<E extends MIR.E>(E e, List<MIR.TypeDef> defs, List<MIR.Fun> funs) {
+  public record Res<EE extends MIR.E>(EE e, List<MIR.TypeDef> defs, List<MIR.Fun> funs) {
     public TopLevelRes mergeAsTopLevel(Res<?> other) {
       return new TopLevelRes(Push.of(defs(), other.defs()), Push.of(funs(), other.funs()));
     }
@@ -52,15 +51,18 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     private Ctx() { this(Map.of()); }
   }
 
-  public MIRInjectionVisitor(Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
+  public MIRInjectionVisitor(List<String>cached, Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     this.p = p;
     this.resolvedCalls = resolvedCalls;
+    this.cached = cached;//TODO: clean up mearless so that can work
+    //on partial programs
   }
 
   public MIR.Program visitProgram() {
     var pkgs = p.ds().values().stream()
       .collect(Collectors.groupingBy(t->t.name().pkg()))
       .entrySet().stream()
+      //.filter(kv->!cached.contains(kv.getKey()))//uncomment when cached TODO is sorted
       .map(kv->visitPackage(kv.getKey(), kv.getValue()))
       .toList();
 

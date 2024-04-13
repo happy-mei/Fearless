@@ -46,6 +46,15 @@ Assume in folder 'myFolder' we have a file with the following content:
     Test:Main {sys -> UnrestrictedIO#sys.println("Hello, World!")}
     //prints Hello, World!
     """); }/*--------------------------------------------
+    Again 
+    -------------------------*/@Test void helloWorld2() { run("""
+    package test
+    alias base.Main as Main,
+    alias base.caps.FIO as UnrestrictedIO,
+    
+    Test:Main {sys -> UnrestrictedIO#sys.println("Hello, World!")}
+    //prints Hello, World!
+    """); }/*--------------------------------------------
 To run it, we specify the fully qualified name of the runnable type `test.Test`.
   `> java -jar fearless.jar -e test.Test -r myFolder`//From nick
   `> java -jar fearless.jar myFolder;.test.Test`//marco's favorite. // Nick: this will not work, `;` has special meaning in shell syntax

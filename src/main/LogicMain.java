@@ -21,17 +21,43 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import ast.T;
-import main.java.HDCache;
 public interface LogicMain<Exe> {
   Path baseDir();
   Path rtDir();
   Path output();
+  Path cachedBase();
+  List<String>cachedPkg();
   CompilerFrontEnd.Verbosity verbosity();
   Map<String,List<Package>> parseApp();
+  
+  private List<Parser> loadCachedFiles(Path root) {
+    var res= IoErr.of(()->{try(var fs = Files.walk(root)) {
+      return fs
+        .filter(Files::isRegularFile)
+        .filter(p->p.endsWith("pkgInfo.txt"))
+        .map(p->new Parser(p, ResolveResource.read(p)))
+        .toList();
+      }});
+    cachedPkg().addAll(extractCachedPkg(res));
+    return res;
+  }
+  private List<String> extractCachedPkg(List<Parser> ps) {
+    return ps.stream()
+      .map(p->pkgName(p.content()))
+      .toList();
+  }
+  private String pkgName(String content){
+    assert content.startsWith("package ");
+    int nl=content.indexOf("\n");
+    assert nl!=-1;
+    return content.substring("package ".length(),nl).trim();
+  }
   default astFull.Program parse(Map<String,List<Package>> app) {
-    Map<String,List<Package>> base = load(loadFiles(this.baseDir()));
-    return generateProgram(base, app);
+    var cached= Files.exists(cachedBase().resolve("base"));
+    List<Parser> base=cached
+      ?loadCachedFiles(cachedBase().resolve("base"))
+      :loadFiles(this.baseDir());
+    return generateProgram(load(base), app);
     }
   default void wellFormednessFull(astFull.Program fullProgram){
     new WellFormednessFullShortCircuitVisitor()

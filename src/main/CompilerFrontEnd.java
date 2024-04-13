@@ -196,7 +196,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     return inferred;
   }
   private List<JavaFile> toJava(Id.DecId entry, Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
-    var mir = new MIRInjectionVisitor(p, resolvedCalls).visitProgram();
+    var mir = new MIRInjectionVisitor(List.of(),p, resolvedCalls).visitProgram();
     var codegen = switch (bv) {
       case Std -> new JavaCodegen(mir);
       case Imm -> new ImmJavaCodegen(mir);
@@ -205,7 +205,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     if (v.printCodegen) {
       System.out.println(src);
     }
-    return List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,src));
+    return List.of(new JavaFile(Bug.<String>err(),src));//TODO: this code should all die anyway
   }
 
   String regenerateAliases() {

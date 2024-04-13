@@ -14,7 +14,7 @@ import java.util.List;
 
 public class ImmJavaProgram extends JavaFile {
   public ImmJavaProgram(String code) {
-    super(JavaCompiler.MAIN_CLASS_NAME,code);
+    super(Bug.<String>err(),code);//TODO:dead code anyway
   }
   public ImmJavaProgram(String topLevelClassName, String code) {
     super(topLevelClassName, code);
@@ -22,7 +22,7 @@ public class ImmJavaProgram extends JavaFile {
 
   public static Path compile(CompilerFrontEnd.Verbosity verbosity, JavaFile... files) {
     assert files.length > 0;
-    assert Arrays.stream(files).anyMatch(f->f.isNameCompatible(JavaCompiler.MAIN_CLASS_NAME, Kind.SOURCE));
+    assert Arrays.stream(files).anyMatch(f->f.isNameCompatible(Bug.<String>err(), Kind.SOURCE));
     var compiler = ToolProvider.getSystemJavaCompiler();
     if (compiler == null) {
       throw new RuntimeException("No Java compiler could be found. Please install a JDK >= 10.");

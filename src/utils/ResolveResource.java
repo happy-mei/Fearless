@@ -10,8 +10,12 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public final class ResolveResource {
   static private final Path root;
@@ -55,8 +59,33 @@ public final class ResolveResource {
     return IoErr.of(()->Files.readString(path, StandardCharsets.UTF_8));
   }
   static public Path freshTmpPath(){
-    return Paths.get(
+    /*var res= Paths.get(
       System.getProperty("java.io.tmpdir"),
-      "fearOut"+UUID.randomUUID());
+      "fearOut"+UUID.randomUUID());*/
+    var res=ResolveResource.of("/tempFiles")
+      .resolve("fearOut"+UUID.randomUUID());
+    //NOTE: may not work in the Jar, but we should not
+    //  use this in the Jar anyway
+    if(tempToKill.isEmpty()){
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        for(var f:tempToKill){ deleteOldFiles(f); }
+      }));}
+    tempToKill.add(res);
+    return res;
   }
+  static public void deleteOldFiles(Path output){ 
+    IoErr.of(()->_deleteOldFiles(output));
+  }
+  static private void _deleteOldFiles(Path output) throws IOException{
+    if (!Files.exists(output)) { return; }
+    try (Stream<Path> walk = Files.walk(output)) {
+      Iterable<Path> ps=walk.sorted(Comparator.reverseOrder())::iterator;
+      for(Path p:ps){
+        if(p.equals(output)){ continue; }
+        Files.deleteIfExists(p); 
+        }
+    }
+    Files.deleteIfExists(output);
+  }
+  static private final List<Path> tempToKill=new ArrayList<>();
 }

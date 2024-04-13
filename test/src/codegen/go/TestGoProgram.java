@@ -47,7 +47,7 @@ public class TestGoProgram {
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
-    var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
+    var mir = new MIRInjectionVisitor(List.of(),inferred, resolvedCalls).visitProgram();
     var go = new GoCodegen(mir).visitProgram(new Id.DecId(entry, 0));
     var vb = new CompilerFrontEnd.Verbosity(true, true, CompilerFrontEnd.ProgressVerbosity.Full);
     try {
@@ -77,7 +77,7 @@ public class TestGoProgram {
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
-    var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
+    var mir = new MIRInjectionVisitor(List.of(),inferred, resolvedCalls).visitProgram();
     try {
       var go = new GoCodegen(mir).visitProgram(new Id.DecId(entry, 0));
 //      var res = RunJava.of(JavaProgram.compile(new JavaProgram(java)), args).join();

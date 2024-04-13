@@ -11,6 +11,7 @@ import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
 import utils.Base;
+import utils.Bug;
 import utils.Err;
 import utils.ResolveResource;
 import utils.RunOutput;
@@ -48,12 +49,12 @@ public class RunJavaProgramTests {
     });
     ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
-    var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
+    var mirInjectionVisitor = new MIRInjectionVisitor(List.of(),inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();
     var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
     var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     System.out.println("Running...");
-    var res = RunOutput.java(new JavaCompiler(verbosity).compile(ResolveResource.freshTmpPath(), List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java))), args).join();
+    var res = RunOutput.java(new JavaCompiler(verbosity).compile(ResolveResource.freshTmpPath(), List.of(new JavaFile(Bug.<String>err(),java))), args).join();
     Assertions.assertEquals(expected, res);
   }
 
@@ -75,13 +76,13 @@ public class RunJavaProgramTests {
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
-    var mirInjectionVisitor = new MIRInjectionVisitor(inferred, resolvedCalls);
+    var mirInjectionVisitor = new MIRInjectionVisitor(List.of(),inferred, resolvedCalls);
     var mir = mirInjectionVisitor.visitProgram();
     var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     try {
       var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
       System.out.println("Running...");
-      var res = RunOutput.java(new JavaCompiler(verbosity).compile(ResolveResource.freshTmpPath(), List.of(new JavaFile(JavaCompiler.MAIN_CLASS_NAME,java))), args).join();
+      var res = RunOutput.java(new JavaCompiler(verbosity).compile(ResolveResource.freshTmpPath(), List.of(new JavaFile(Bug.<String>err(),java))), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

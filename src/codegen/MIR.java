@@ -21,6 +21,11 @@ public sealed interface MIR {
 
   record Program(ast.Program p, List<Package> pkgs) implements MIR {
     public TypeDef of(Id.DecId id) {
+      /*List<String>domain= pkgs.stream()
+         //for easier debugging
+        .flatMap(p->p.defs.keySet().stream())
+        .map(s->s.toString())
+        .toList();*/
       return pkgs.stream()
         .filter(pkg->pkg.defs.containsKey(id))
         .map(pkg->pkg.defs.get(id))

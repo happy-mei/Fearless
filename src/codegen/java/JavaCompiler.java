@@ -21,7 +21,6 @@ public class JavaCompiler{
   public JavaCompiler(CompilerFrontEnd.Verbosity verbosity){
     this.verbosity= verbosity;
   }
-  public static final String MAIN_CLASS_NAME = "FProgram";
   public Path compile(Path workingDir, List<JavaFile> files) {
     assert files.size() > 0;
     var compiler = ToolProvider.getSystemJavaCompiler();
@@ -35,11 +34,13 @@ public class JavaCompiler{
     if (verbosity.printCodegen()) {
       System.err.println("Java codegen working dir: "+workingDir.toAbsolutePath());
     }  
+
     var options = List.of(
-      "-d",
-      workingDir.toString(),
-      "-Xdiags:verbose"
-    );  
+        "-d", workingDir.toString(),
+        "-classpath", ResolveResource.of("/cachedBase")
+          .toAbsolutePath().toString(),
+        "-Xdiags:verbose"
+    );
     var errors = new Box<Diagnostic<?>>(null);
     boolean success = compiler.getTask(
       null,

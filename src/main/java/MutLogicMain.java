@@ -13,11 +13,13 @@ public record MutLogicMain(
   String entry,
   Path userApp,
   Verbosity verbosity,
-  Path output
+  Path output,
+  List<String> cachedPkg
   )
 implements LogicMainJava{
   public Path baseDir() {return ResolveResource.of("/base"); }
   public Path rtDir() {return ResolveResource.of("/rt"); }
+  public Path cachedBase() {return ResolveResource.of("/cachedBase"); }
   public Map<String,List<Package>> parseApp(){
     return load(loadFiles(userApp()));
   }
@@ -25,5 +27,4 @@ implements LogicMainJava{
     proc.onExit().join();
     System.exit(proc.exitValue());
   }
-  public Path cachedBase() {return ResolveResource.of("/cachedBase"); }
 }

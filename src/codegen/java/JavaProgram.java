@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import main.CompilerFrontEnd;
 import utils.IoErr;
+import utils.ResolveResource;
 
 public record JavaProgram(Path output, List<JavaFile> files, Path pathToMain){
   JavaProgram(Path output, List<JavaFile> files,JavaCompiler c){
@@ -16,19 +17,9 @@ public record JavaProgram(Path output, List<JavaFile> files, Path pathToMain){
   }
   
   public void writeJavaFiles(){IoErr.of(this::_writeJavaFiles);}
-  
-  private void _deleteOldFiles() throws IOException{
-    if (!Files.exists(output)) { return; }
-    try (Stream<Path> walk = Files.walk(output)) {
-      Iterable<Path> ps=walk.sorted(Comparator.reverseOrder())::iterator;
-      for(Path p:ps){
-        if(p.equals(output)){ continue; }
-        Files.deleteIfExists(p); 
-        }
-    }
-  }
+
   private void _writeJavaFiles() throws IOException{
-    _deleteOldFiles();
+    ResolveResource.deleteOldFiles(output);
     for(var fi:files) {
       var pi= Path.of(fi.toUri());
       Files.createDirectories(pi.getParent());

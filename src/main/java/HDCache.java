@@ -4,18 +4,23 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import ast.E.Sig;
 import ast.T.Dec;
-import files.Pos;
-import id.Id.MethName;
 import utils.IoErr;
-import ast.E;
+import ast.T;
 
 public record HDCache(Path code) {
+  public static void cachePackageTypes(LogicMainJava main, ast.Program program) {
+    Map<String,List<T.Dec>> mapped= program.ds().values().stream()
+     .filter(d->!main.cachedPkg().contains(d.name().pkg()))
+     .collect(Collectors.groupingBy(d->d.name().pkg()));
+    mapped.entrySet().stream().forEach(e
+        ->new HDCache(main.output()).cacheTypeInfo(e.getKey(),e.getValue()));
+      new HDCache(main.output()).cacheBase(main.cachedBase());
+  }
+  
   public HDCache{ assert Files.exists(code) && Files.isDirectory(code):code; }
   public void cacheBase(Path cachedBase) {
     IoErr.of(()->_cacheBase(cachedBase));
@@ -34,13 +39,18 @@ public record HDCache(Path code) {
   public void cacheTypeInfo(String pkgName, List<Dec> decs) {
     var pkg= code.resolve(pkgName.replace(".","/"));
     assert Files.exists(pkg) && Files.isDirectory(pkg):pkg;
-    var v= new DecTypeInfo();
-    var file=decs.stream().map(v::visitDec).toList();
+    var file=decs.stream().map(d->new DecTypeInfo().visitDec(d)).toList();
     String tot="package "+pkgName+"\n"+file.stream()
       .collect(Collectors.joining());
-    System.out.println("FILE");
-    System.out.println(pkg.resolve("pkgInfo.txt").toAbsolutePath());
-    System.out.println(tot);
     IoErr.of(()->Files.writeString(pkg.resolve("pkgInfo.txt"),tot));
   }
 }
+
+/*
+If cached exists,
+load cached instead of /base into the program.
+
+At code generation time, if cached exists,
+do not regenerate anything in the base pkg
+
+*/

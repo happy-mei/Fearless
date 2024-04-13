@@ -16,6 +16,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -38,7 +39,7 @@ public class TestJavaCodegen {
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
     ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
     inferred.typeCheck(resolvedCalls);
-    var mir = new MIRInjectionVisitor(inferred, resolvedCalls).visitProgram();
+    var mir = new MIRInjectionVisitor(List.of(),inferred, resolvedCalls).visitProgram();
     var java = new JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
     Err.strCmp(expected, java);
   }

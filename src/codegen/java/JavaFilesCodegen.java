@@ -15,7 +15,9 @@ public class JavaFilesCodegen{
   private ArrayList<JavaFile> javaFiles= new ArrayList<>();
   final JavaSingleCodegen gen;
   final MIR.Program program;
-  public JavaFilesCodegen(Path filesRoot, MIR.Program program, JavaCompiler c){
+  final List<String> cached;
+  public JavaFilesCodegen(List<String>cached, Path filesRoot, MIR.Program program, JavaCompiler c){
+    this.cached=cached;
     this.program=program;
     this.gen= new JavaSingleCodegen(program);
     this.filesRoot= filesRoot;
@@ -45,6 +47,7 @@ public class JavaFilesCodegen{
   }
   public void generateFiles() {
       for (MIR.Package pkg : program.pkgs()) {
+        if(cached.contains(pkg.name())){ continue; }
         for (MIR.TypeDef def : pkg.defs().values()) {
           var funs= pkg.funs().stream()
             .filter(f->f.name().d().equals(def.name()))
