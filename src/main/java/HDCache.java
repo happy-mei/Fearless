@@ -17,16 +17,16 @@ public record HDCache(Path code) {
      .filter(d->!main.cachedPkg().contains(d.name().pkg()))
      .collect(Collectors.groupingBy(d->d.name().pkg()));
     mapped.entrySet().stream().forEach(e
-        ->new HDCache(main.output()).cacheTypeInfo(e.getKey(),e.getValue()));
-      new HDCache(main.output()).cacheBase(main.cachedBase());
+        ->new HDCache(main.io().output()).cacheTypeInfo(e.getKey(),e.getValue()));
+      new HDCache(main.io().output()).cacheBase(main.io().cachedBase());
   }
   
   public HDCache{ assert Files.exists(code) && Files.isDirectory(code):code; }
-  public void cacheBase(Path cachedBase) {
-    IoErr.of(()->_cacheBase(cachedBase));
-  }
+  
+  public void cacheBase(Path cachedBase){ IoErr.of(()->_cacheBase(cachedBase)); }
   private void _cacheBase(Path cachedBase) throws IOException {
-    assert Files.exists(cachedBase) && Files.isDirectory(cachedBase);    
+    assert Files.exists(cachedBase) && Files.isDirectory(cachedBase)
+      :cachedBase+" "+code;   
     Path basePath = code.resolve("base");
     // Check if basePath exists and is a directory
     if (!Files.exists(basePath)){ return; }

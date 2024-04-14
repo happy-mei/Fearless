@@ -50,7 +50,6 @@ class StringIds{
 
   public String getBase(String name) {
     String _name=name;
-    //if (name.equals("this")){ return "$this"; }
     if (name.startsWith(".")) { name = name.substring(1); }
     return name.codePoints().mapToObj(c->{
       var base= isAlphabetic(c) || isDigit(c);

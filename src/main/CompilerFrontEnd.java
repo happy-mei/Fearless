@@ -124,9 +124,9 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     var mainClass = toJava(entry, p, resolvedCalls);
     v.progress.printTask("Code generated \uD83E\uDD73 ("+timer.duration()+"ms)");
     v.progress.printStep("Executing backend compiler \uD83C\uDFED");
-    var classFile = switch (bv) {
-      case Std -> new JavaCompiler(v).compile(
-        ResolveResource.freshTmpPath(),
+    Path classFile = null;switch (bv) {
+      case Std -> new JavaCompiler(v,Bug.err("Dead code")).compile(
+//        ResolveResource.freshTmpPath(),
         mainClass);
       case Imm -> throw Bug.todo();//ImmJavaProgram.compile(v, mainClass);
     };

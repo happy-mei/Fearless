@@ -1,18 +1,22 @@
 package main.java;
 
-import java.util.List;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import codegen.MIRInjectionVisitor;
 import codegen.java.JavaCompiler;
-import codegen.java.JavaFilesCodegen;
 import codegen.java.JavaProgram;
+import main.CompilerFrontEnd.Verbosity;
+import main.InputOutput;
 import main.LogicMain;
 import program.typesystem.EMethTypeSystem;
+import utils.IoErr;
 
 public interface LogicMainJava extends LogicMain<JavaProgram>{
-  List<String> commandLineArguments();
-  String entry();
   default void cachePackageTypes(ast.Program program) {
     HDCache.cachePackageTypes(this, program);
   }
@@ -21,39 +25,48 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
       ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
       ){
     var mir = new MIRInjectionVisitor(cachedPkg(),program, resolvedCalls).visitProgram();
-    var files= new JavaFilesCodegen(cachedPkg(),output(),mir,new JavaCompiler(verbosity()));
-    files.generateFiles();
-    JavaProgram res= files.getJavaProgram(files.readAllFiles(this.rtDir()));
-    //res.writeFiles();//just for debugging
+    var c= new JavaCompiler(verbosity(),io());
+    var res= new JavaProgram(this,mir);
+    c.compile(res.files());
     return res;
   }
-  default JavaProgram mainCodeGeneration(
+  default ProcessBuilder execution(
       ast.Program program,
       JavaProgram exe,
-      ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls 
-      ) {
-    return exe;
-    }
-
-  default Process execution(
-      ast.Program program,
-      JavaProgram exe,
-      JavaProgram mainExe,
       ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
       ){
-    return new RunJava(this).execution(exe.pathToMain());
+    return MakeJavaProcess.of(io());
   }
-  @Override default void preStart(ProcessBuilder pb) {
-    pb.inheritIO();
+  public static LogicMainJava of(
+      InputOutput io, Verbosity verbosity){
+    var cachedPkg=new HashSet<String>();
+    return new LogicMainJava(){
+      public InputOutput io(){ return io; }
+      public HashSet<String> cachedPkg(){ return cachedPkg; }
+      public Verbosity verbosity(){ return verbosity; }
+    };
   }
 }
-
-/*
- 
- During typechecking, for each package we need to produce a file with
- package pkgName
- abstract Fearless
- and save that one in output/pkgName.
- 
- 
- */
+class MakeJavaProcess{
+  static public ProcessBuilder of(InputOutput io) {
+    var command= makeJavaCommand(io);
+    //System.out.println(List.of(command));
+    return new ProcessBuilder(command);
+  }
+  static private String[] makeJavaCommand(InputOutput io) {
+    Path fearlessMainPath = io.cachedBase()
+      .resolve("base/FearlessMain.class");
+    var jrePath = Path.of(System.getProperty("java.home"), "bin", "java")
+        .toAbsolutePath().toString();
+    String entryPoint = "base." 
+        + fearlessMainPath.getFileName().toString().split("\\.class")[0];
+    String classpath = io.output().toAbsolutePath().toString()
+      + File.pathSeparator 
+      + io.cachedBase().toAbsolutePath().toString();
+     var baseCommand = Stream.of(
+      jrePath, "-cp", classpath, entryPoint, io.entry());
+    return Stream.concat(baseCommand,
+      io.commandLineArguments().stream())
+        .toArray(String[]::new);
+  }
+}

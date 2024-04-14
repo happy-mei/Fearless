@@ -23,7 +23,7 @@ import static program.Program.filterByMdf;
 public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, MIRInjectionVisitor.Res<? extends MIR.E>> {
   private final Program p;
   private final ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls;
-  private final List<String> cached;
+  private final Collection<String> cached;
 
   public record Res<EE extends MIR.E>(EE e, List<MIR.TypeDef> defs, List<MIR.Fun> funs) {
     public TopLevelRes mergeAsTopLevel(Res<?> other) {
@@ -51,7 +51,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     private Ctx() { this(Map.of()); }
   }
 
-  public MIRInjectionVisitor(List<String>cached, Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
+  public MIRInjectionVisitor(Collection<String>cached, Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     this.p = p;
     this.resolvedCalls = resolvedCalls;
     this.cached = cached;//TODO: clean up mearless so that can work

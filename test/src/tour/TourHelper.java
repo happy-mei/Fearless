@@ -1,20 +1,16 @@
 package tour;
 
 import utils.Base;
-import utils.ResolveResource;
+import utils.IoErr;
 
-import static codegen.java.RunJavaProgramTests.ok;
-import static utils.RunOutput.Res;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
 
 import main.CompilerFrontEnd;
 import main.CompilerFrontEnd.ProgressVerbosity;
+import main.InputOutput;
 
 public class TourHelper {
   private static String lastLine(String text) {
@@ -51,10 +47,11 @@ public class TourHelper {
   static void runCode(List<String> files, String expectedIO){
     var v= new CompilerFrontEnd.Verbosity(false,false,
       ProgressVerbosity.None);
-    var runner= new main.java.ProgrammaticLogicMain(
-      List.of(), "test.Test",v,
-      files,p->checker(p,expectedIO),
-      ResolveResource.freshTmpPath(),new ArrayList<>());
-    runner.logicMain();
+    var io= InputOutput.programmaticAuto(files);
+    var runner= main.java.LogicMainJava.of(io,v);
+    ProcessBuilder proc= runner.logicMain();
+    //proc.inheritIO();//not in the tests
+    Process running= IoErr.of(proc::start);
+    running.onExit().thenAccept(p->checker(p,expectedIO)).join();
   }
 }

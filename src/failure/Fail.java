@@ -272,14 +272,13 @@ public class Fail{
     return of(msg);
   }
 
-  public static CompileError specialPackageConflict(Set<String> special, Set<String> user) {
-    var conflicts = new HashSet<>(user);
-    conflicts.retainAll(special);
+  public static CompileError specialPackageConflict(
+      Collection<String> conflicts) {
     var taggedConflicts = conflicts.stream()
       .map(pkg->conflict(Pos.UNKNOWN, pkg))
       .toList();
-
-    return of(conflictingMsg("The following package names are reserved for use in the Fearless standard library", taggedConflicts));
+    return of(conflictingMsg(
+      "The following package names are reserved for use in the Fearless standard library", taggedConflicts));
   }
 
   private static String aVsAn(Mdf mdf) {

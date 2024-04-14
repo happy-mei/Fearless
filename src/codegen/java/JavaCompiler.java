@@ -1,46 +1,34 @@
 package codegen.java;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import java.nio.file.Files;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Stream;
-
 import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject.Kind;
 import javax.tools.ToolProvider;
 
-import main.CompilerFrontEnd;
+import main.CompilerFrontEnd.Verbosity;
+import main.InputOutput;
 import utils.Box;
 import utils.Bug;
-import utils.ResolveResource;
+import utils.IoErr;
 
-public class JavaCompiler{
-  final CompilerFrontEnd.Verbosity verbosity;
-  public JavaCompiler(CompilerFrontEnd.Verbosity verbosity){
-    this.verbosity= verbosity;
-  }
-  public Path compile(Path workingDir, List<JavaFile> files) {
+public record JavaCompiler(Verbosity verbosity, InputOutput io){
+  public void compile(List<JavaFile> files) {
     assert files.size() > 0;
     var compiler = ToolProvider.getSystemJavaCompiler();
-    if (compiler == null) {
-      throw new RuntimeException("No Java compiler could be found. Please use a JDK >= 10");
-      //TODO: are you sure this is the right message? used to be about JDK vs JRE
-    }  
-    if (!workingDir.toFile().mkdir()) {
-      throw Bug.of("Could not create a working directory for building the program in: " + workingDir.toAbsolutePath());
-    }
-    if (verbosity.printCodegen()) {
-      System.err.println("Java codegen working dir: "+workingDir.toAbsolutePath());
-    }  
-
+    assert compiler != null
+      :"No Java compiler could be found. Please use a JDK >= 10";
+    //TODO: are you sure this is the right message? used to be about JDK vs JRE
+    IoErr.of(()->Files.createDirectories(io.output()));
+    if (verbosity.printCodegen()) {//TODO: what pattern is this???
+      System.err.println("Java codegen working dir: " 
+        +io.output().toAbsolutePath());
+    }//should not this be a method of verbosity?
+    
     var options = List.of(
-        "-d", workingDir.toString(),
-        "-classpath", ResolveResource.of("/cachedBase")
-          .toAbsolutePath().toString(),
-        "-Xdiags:verbose"
-    );
+      "-d", io.output().toAbsolutePath().toString(),
+      "-cp", io.cachedBase().toAbsolutePath().toString(),
+      "-Xdiags:verbose"
+      );
     var errors = new Box<Diagnostic<?>>(null);
     boolean success = compiler.getTask(
       null,
@@ -49,15 +37,13 @@ public class JavaCompiler{
       options,
       null,
       (Iterable<JavaFile>) files::iterator
-    ).call();
+      ).call();
   
-    if (!success) {
-      var diagnostic = errors.get();
-      if (diagnostic == null) {
-        throw Bug.of("ICE: Java compilation failed.");
-      }
-      throw Bug.of("ICE: Java compilation failed:\n"+ diagnostic);
+    if (success){ return; }
+    var diagnostic = errors.get();
+    if (diagnostic == null) {
+      throw Bug.of("Java compilation failed.");
     }
-  
-    return workingDir;
-  }}
+    throw Bug.of("Java compilation failed:\n"+ diagnostic);
+  }
+}

@@ -53,8 +53,8 @@ public class RunJavaProgramTests {
     var mir = mirInjectionVisitor.visitProgram();
     var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
     var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
-    System.out.println("Running...");
-    var res = RunOutput.java(new JavaCompiler(verbosity).compile(ResolveResource.freshTmpPath(), List.of(new JavaFile(Bug.<String>err(),java))), args).join();
+    new JavaCompiler(verbosity,Bug.err()).compile(List.of(new JavaFile(Bug.<String>err(),java)));
+    var res = RunOutput.java(Bug.err(), args).join();
     Assertions.assertEquals(expected, res);
   }
 
@@ -81,8 +81,8 @@ public class RunJavaProgramTests {
     var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     try {
       var java = new codegen.java.JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-      System.out.println("Running...");
-      var res = RunOutput.java(new JavaCompiler(verbosity).compile(ResolveResource.freshTmpPath(), List.of(new JavaFile(Bug.<String>err(),java))), args).join();
+      new JavaCompiler(verbosity,Bug.err()).compile(List.of(new JavaFile(Bug.<String>err(),java)));
+      var res = RunOutput.java(Bug.err(), args).join();
       Assertions.fail("Did not fail. Got: "+res);
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
