@@ -1,5 +1,4 @@
 module FearlessCompiler {
-  requires antlr4;
   requires org.antlr.antlr4.runtime;
   requires org.junit.jupiter.api;
   requires org.opentest4j;
