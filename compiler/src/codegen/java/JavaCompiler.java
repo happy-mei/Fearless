@@ -38,6 +38,8 @@ public record JavaCompiler(Verbosity verbosity, InputOutput io){
       null,
       (Iterable<JavaFile>) files::iterator
       ).call();
+
+    CopyRuntimeLibs.of(io.output().toAbsolutePath());
   
     if (success){ return; }
     var diagnostic = errors.get();

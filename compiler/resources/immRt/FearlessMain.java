@@ -4,15 +4,13 @@ package base;
 import java.lang.reflect.Field;
 import java.util.List;
 public class FearlessMain {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Throwable {
     try {_main(args);}
     catch(Throwable t) { t.printStackTrace(System.out); }
-    //TODO: somehow now the system hides all exceptions
-    try {
       _main(args);
+    try {
     }  catch (StackOverflowError e) {
-      System.err.println(
-              "Program crashed with Stack overflow");
+      System.err.println("Program crashed with Stack overflow");
       System.exit(1);
     }
     catch (Throwable t) {
@@ -28,6 +26,6 @@ public class FearlessMain {
     Field f= clazz.getField("$self");
     var myMain=(base.Main_0)f.get(null);
     // TODO: generate launch args again
-    System.out.println(myMain.$hash$imm(base.LList_1.$self));
+    rt.NativeRuntime.println(myMain.$hash$imm(base.LList_1.$self).utf8());
   }
 }

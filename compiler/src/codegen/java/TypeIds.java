@@ -29,7 +29,7 @@ record TypeIds(JavaMagicImpls magic, StringIds id){
     if (magic.isMagic(Magic.UInt, name)) { return "long"; }
     if (magic.isMagic(Magic.Float, name)) { return "double"; }
     if (magic.isMagic(Magic.Float, name)) { return "double"; }
-    if (magic.isMagic(Magic.Str, name)) { return "String"; }
+    if (magic.isMagic(Magic.Str, name)) { return "rt.Str"; }
     return id.getFullName(name);
   }
   public String boxOf(String s){

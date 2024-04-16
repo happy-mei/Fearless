@@ -35,7 +35,7 @@ public final class NativeRuntime {
 
   public static class StringEncodingError extends FearlessError {
     public StringEncodingError(String message) {
-      super(base.FInfo_0.str$imm$noSelfCap(Str.fromJavaStr(message)));
+      super(base.FInfo_0.msg$imm$noSelfCap(Str.fromJavaStr(message)));
     }
   }
 

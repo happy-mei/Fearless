@@ -75,8 +75,8 @@ public interface RunOutput {
   static void assertResMatch(ProcessBuilder pb, Res expected) {
     var proc = IoErr.of(pb::start);
     var res = proc.onExit().join();
-    assertEquals(expected.exitCode, res.exitValue());
     Err.strCmp(expected.stdErr, res.errorReader().lines().collect(Collectors.joining("\n")));
+    assertEquals(expected.exitCode, res.exitValue());
     Err.strCmp(expected.stdOut, res.inputReader().lines().collect(Collectors.joining("\n")));
   }
 }

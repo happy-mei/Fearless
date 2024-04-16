@@ -33,10 +33,10 @@ public interface Str extends base.Str_0 {
 	@Override default Str str$read() {
 		return this;
 	}
-	@Override default base.Bool_0 $61$61$readOnly(Str other$) {
+	@Override default base.Bool_0 $equals$equals$readOnly(Str other$) {
 		return Arrays.equals(this.utf8(), other$.utf8()) ? True_0.$self : False_0.$self;
 	}
-	@Override default Str $43$readOnly(Str other$) {
+	@Override default Str $plus$readOnly(Str other$) {
 		var a = this.utf8();
 		var b = other$.utf8();
 		var res = new byte[a.length + b.length];

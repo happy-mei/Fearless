@@ -40,12 +40,9 @@ public class TourHelper {
     //TODO: add case for errs?
   }
   static void checker(Process p,String expectedIO){
-    Assertions.assertEquals(0, p.exitValue());
     Err.strCmp("", p.errorReader().lines().collect(Collectors.joining("\n")));
-    Err.strCmp(
-	    expectedIO,
-	    p.inputReader().lines().collect(Collectors.joining("\n"))
-    );
+    Assertions.assertEquals(0, p.exitValue());
+    Err.strCmp(expectedIO, p.inputReader().lines().collect(Collectors.joining("\n")));
   }
   static void runCode(List<String> files, String expectedIO){
     var v= new CompilerFrontEnd.Verbosity(false,false,
