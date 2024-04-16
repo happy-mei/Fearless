@@ -1,0 +1,2 @@
+!rt/libnative/*.so
+!rt/libnative/*.dylib
