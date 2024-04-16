@@ -4,8 +4,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.SubmissionPublisher;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 public interface FlowRuntime {
   int BUFFER_SIZE = 256;

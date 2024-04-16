@@ -1,32 +1,17 @@
 package codegen.java;
 
-import codegen.MIRInjectionVisitor;
 import failure.CompileError;
-import id.Id;
 import main.CompilerFrontEnd;
 import main.Main;
 import main.java.LogicMainJava;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import parser.Parser;
-import program.TypeSystemFeatures;
-import program.inference.InferBodies;
-import program.typesystem.EMethTypeSystem;
-import utils.Base;
-import utils.Bug;
 import utils.Err;
-import utils.RunOutput;
-import wellFormedness.WellFormednessFullShortCircuitVisitor;
-import wellFormedness.WellFormednessShortCircuitVisitor;
+import utils.IoErr;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
-import static codegen.java.RunJavaProgramTests.ok;
 import static utils.RunOutput.Res;
 import static utils.RunOutput.assertResMatch;
 
@@ -48,25 +33,11 @@ public class TestJavaProgramImm {
   void failWithArgs(String expectedErr, List<String> args, String... content) {
     assert content.length > 0;
     Main.resetAll();
-    AtomicInteger pi = new AtomicInteger();
-    var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.immBaseLib))
-            .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
-            .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
-    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
-      throw err;
-    });
-    var inferred = InferBodies.inferAll(p);
-    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
-    inferred.typeCheck(resolvedCalls);
-    var mir = new MIRInjectionVisitor(List.of(),inferred, resolvedCalls).visitProgram();
     var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     try {
-      var java = new ImmJavaCodegen(mir).visitProgram(new Id.DecId("test.Test", 0));
-      new JavaCompiler(verbosity,Bug.err()).compile(List.of(new JavaFile(Bug.<String>err(),java)));
-      var res = RunOutput.java(Bug.err(), args).join();
-      Assertions.fail("Did not fail. Got: "+res);
+      var logicMain = LogicMainJava.of(TestInputOutputs.programmaticImm(Arrays.asList(content), args), verbosity);
+      IoErr.of(()->logicMain.run().inheritIO().start()).onExit().join();
+      Assertions.fail("Did not fail");
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
     }

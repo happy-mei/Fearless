@@ -105,6 +105,11 @@ public interface InputOutput{
             ResolveResource.freshTmpPath(),
             ResolveResource.of("/cachedBase"));
   }
+  static InputOutput programmaticAuto(List<String> files, List<String> args){
+    return programmatic("test.Test", args, files,
+        ResolveResource.freshTmpPath(),
+        ResolveResource.of("/cachedBase"));
+  }
 }
 class InputOutputHelper{
   static List<Parser> loadInputFiles(Path root) {

@@ -42,7 +42,7 @@ public class Ex15TestsTest {
         
     ### Printing suite
     Printing test - PASSED
-    """, 0), "test.Test", """
+    """, 0), """
     package test
     alias base.test.Main as TestMain, alias base.test.ResultPrinters as ResultPrinters,
     
@@ -95,7 +95,7 @@ public class Ex15TestsTest {
     test8 - PASSED
     ### top level
     test1 - PASSED
-    """, 0), "test.Test", """
+    """, 0), """
     package test
     alias base.test.Main as TestMain, alias base.test.ResultPrinters as ResultPrinters,
     

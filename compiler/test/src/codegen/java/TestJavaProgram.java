@@ -10,14 +10,14 @@ import static codegen.java.RunJavaProgramTests.*;
 import static utils.RunOutput.Res;
 
 public class TestJavaProgram {
-  @Test void emptyProgram() { ok(new Res("", "", 0), "test.Test", """
+  @Test void emptyProgram() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main,
     alias base.Void as Void,
     Test:Main{ _ -> {} }
     """);}
 
-  @Test void captureTest() { ok(new Res("", "", 0), "test.Test", """
+  @Test void captureTest() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main,
     alias base.Void as Void,
@@ -25,33 +25,33 @@ public class TestJavaProgram {
     A:{ #: A -> A{ # -> A { # -> this } }# }
     """);}
 
-  @Test void assertTrue() { ok(new Res("", "", 0), "test.Test", """
+  @Test void assertTrue() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(True, { Void }) }
     """);}
-  @Test void assertFalse() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
+  @Test void assertFalse() { ok(new Res("", "Assertion failed :(", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, { Void }) }
     """);}
-  @Test void assertFalseMsg() { ok(new Res("", "power level less than 9000", 1), "test.Test", """
+  @Test void assertFalseMsg() { ok(new Res("", "power level less than 9000", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, "power level less than 9000", { Void }) }
     """);}
 
-  @Test void falseToStr() { ok(new Res("", "False", 1), "test.Test", """
+  @Test void falseToStr() { ok(new Res("", "False", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, Foo.bs(False), { Void }) }
     Foo:{ .bs(b: base.Bool): base.Str -> b.str }
     """);}
-  @Test void trueToStr() { ok(new Res("", "True", 1), "test.Test", """
+  @Test void trueToStr() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
@@ -59,76 +59,76 @@ public class TestJavaProgram {
     Foo:{ .bs(s: base.Stringable): base.Str -> s.str }
     """);}
 
-  @Test void binaryAnd1() { ok(new Res("", "True", 1), "test.Test", """
+  @Test void binaryAnd1() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (True && True) .str, { Void }) }
     """);}
-  @Test void binaryAnd2() { ok(new Res("", "False", 1), "test.Test", """
+  @Test void binaryAnd2() { ok(new Res("", "False", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (True && False) .str, { Void }) }
     """);}
-  @Test void binaryAnd3() { ok(new Res("", "False", 1), "test.Test", """
+  @Test void binaryAnd3() { ok(new Res("", "False", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (False && False) .str, { Void }) }
     """);}
-  @Test void binaryOr1() { ok(new Res("", "True", 1), "test.Test", """
+  @Test void binaryOr1() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (True || True) .str, { Void }) }
     """);}
-  @Test void binaryOr2() { ok(new Res("", "True", 1), "test.Test", """
+  @Test void binaryOr2() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (True || False) .str, { Void }) }
     """);}
-  @Test void binaryOr3() { ok(new Res("", "True", 1), "test.Test", """
+  @Test void binaryOr3() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (False || True) .str, { Void }) }
     """);}
-  @Test void binaryOr4() { ok(new Res("", "False", 1), "test.Test", """
+  @Test void binaryOr4() { ok(new Res("", "False", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (False || False) .str, { Void }) }
     """);}
 
-  @Test void conditionals1() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
+  @Test void conditionals1() { ok(new Res("", "Assertion failed :(", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(420 > 9000, { Void }) }
     """);}
-  @Test void conditionals2() { ok(new Res("", "Assertion failed :(", 1), "test.Test", """
+  @Test void conditionals2() { ok(new Res("", "Assertion failed :(", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!("hi".size > 9000u, { Void }) }
     """);}
 
-  @Test void longToStr() { ok(new Res("", "123456789", 1), "test.Test", """
+  @Test void longToStr() { ok(new Res("", "123456789", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, 123456789 .str, { Void }) }
     """);}
-  @Test void longLongToStr() { ok(new Res("", "9223372036854775807", 1), "test.Test", """
+  @Test void longLongToStr() { ok(new Res("", "9223372036854775807", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, 9223372036854775807 .str, { Void }) }
     """);}
 
-  @Test void veryLongLongToStr() { ok(new Res("", "9223372036854775808", 1), "test.Test", """
+  @Test void veryLongLongToStr() { ok(new Res("", "9223372036854775808", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
@@ -137,7 +137,7 @@ public class TestJavaProgram {
   @Test void veryLongLongIntFail() { fail("""
     [E31 invalidNum]
     The number 9223372036854775808 is not a valid Int
-    """, "test.Test", """
+    """, """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
@@ -146,76 +146,76 @@ public class TestJavaProgram {
   @Test void veryLongLongUIntFail() { fail("""
     [E31 invalidNum]
     The number 10000000000000000000000u is not a valid UInt
-    """, "test.Test", """
+    """, """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, 10000000000000000000000u .str, { Void }) }
     """);}
-  @Test void negativeToStr() { ok(new Res("", "-123456789", 1), "test.Test", """
+  @Test void negativeToStr() { ok(new Res("", "-123456789", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, -123456789 .str, { Void }) }
     """);}
 
-  @Test void addition() { ok(new Res("", "7", 1), "test.Test", """
+  @Test void addition() { ok(new Res("", "7", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5 + 2) .str, { Void }) }
     """);}
-  @Test void addWithUnderscoreInt() { ok(new Res("", "500002", 1), "test.Test", """
+  @Test void addWithUnderscoreInt() { ok(new Res("", "500002", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5_00_000 + 2) .str, { Void }) }
     """);}
-  @Test void addWithUnderscoreUInt() { ok(new Res("", "500002", 1), "test.Test", """
+  @Test void addWithUnderscoreUInt() { ok(new Res("", "500002", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5_00_000u + 2u) .str, { Void }) }
     """);}
-  @Test void addWithUnderscoreFloat() { ok(new Res("", "500002.6", 1), "test.Test", """
+  @Test void addWithUnderscoreFloat() { ok(new Res("", "500002.6", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5_00_000.5 + 2.1) .str, { Void }) }
     """);}
-  @Test void intDivByZero() { ok(new Res("", "Program crashed with: / by zero", 1), "test.Test", """
+  @Test void intDivByZero() { ok(new Res("", "Program crashed with: / by zero", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void, alias base.Block as Do,
     Test:Main{ _ -> Do#(5 / 0) }
     """);}
-  @Test void subtraction() { ok(new Res("", "3", 1), "test.Test", """
+  @Test void subtraction() { ok(new Res("", "3", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5 - 2) .str, { Void }) }
     """);}
-  @Test void subtractionNeg() { ok(new Res("", "-2", 1), "test.Test", """
+  @Test void subtractionNeg() { ok(new Res("", "-2", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (0 - 2) .str, { Void }) }
     """);}
-  @Test void subtractionUnderflow() { ok(new Res("", "9223372036854775807", 1), "test.Test", """
+  @Test void subtractionUnderflow() { ok(new Res("", "9223372036854775807", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, ((0 - 2) - 9223372036854775807) .str, { Void }) }
     """);}
 
-  @Test void println() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+  @Test void println() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     Test:Main{ s -> Block#
       .let({ base.caps.FIO#s }, { io, s' -> s'.return{ io.println "Hello, World!" } })
       }
     """);}
-  @Test void printlnSugar() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+  @Test void printlnSugar() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     alias base.caps.IO as IO, alias base.caps.FIO as FIO,
@@ -224,7 +224,7 @@ public class TestJavaProgram {
       .return{ io.println("Hello, World!") }
       }
     """); }
-  @Test void printlnDeeper() { ok(new Res("IO begets IO", "", 0), "test.Test", """
+  @Test void printlnDeeper() { ok(new Res("IO begets IO", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     alias base.caps.IO as IO, alias base.caps.FIO as FIO,
@@ -236,7 +236,7 @@ public class TestJavaProgram {
         }
       }
     """); }
-  @Test void print() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+  @Test void print() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     alias base.caps.IO as IO, alias base.caps.FIO as FIO,
@@ -246,7 +246,7 @@ public class TestJavaProgram {
       .return{ io.print(", World!") }
       }
     """); }
-  @Test void printlnErr() { ok(new Res("", "Hello, World!", 0), "test.Test", """
+  @Test void printlnErr() { ok(new Res("", "Hello, World!", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     alias base.caps.IO as IO, alias base.caps.FIO as FIO,
@@ -255,7 +255,7 @@ public class TestJavaProgram {
       .return{ io.printlnErr("Hello, World!") }
       }
     """); }
-  @Test void printErr() { ok(new Res("", "Hello, World!", 0), "test.Test", """
+  @Test void printErr() { ok(new Res("", "Hello, World!", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     alias base.caps.IO as IO, alias base.caps.FIO as FIO,
@@ -265,7 +265,7 @@ public class TestJavaProgram {
       .return{ io.printErr(", World!") }
       }
     """); }
-  @Test void printlnShareLent() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+  @Test void printlnShareLent() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     alias base.caps.IO as IO, alias base.caps.FIO as FIO,
@@ -277,7 +277,7 @@ public class TestJavaProgram {
       #(io: lent IO): Void -> io.println("Hello, World!"),
       }
     """); }
-  @Test void printlnShareLentCapture() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+  @Test void printlnShareLentCapture() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     alias base.caps.IO as IO, alias base.caps.FIO as FIO,
@@ -291,7 +291,7 @@ public class TestJavaProgram {
       }
     """); }
 
-  @Test void printlnSugarInferUse() { ok(new Res("Hello, World!", "", 0), "test.Test", """
+  @Test void printlnSugarInferUse() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     alias base.caps.FIO as FIO,
@@ -301,7 +301,7 @@ public class TestJavaProgram {
       }
     """); }
 
-  @Test void nestedPkgs() { ok(new Res("", "", 0), "test.Test", """
+  @Test void nestedPkgs() { ok(new Res("", "", 0), """
     package test
     Test:base.Main{ _ -> {} }
     Bloop:{ #: test.foo.Bar -> { .a -> test.foo.Bar } }
@@ -311,14 +311,14 @@ public class TestJavaProgram {
     Bar:test.Foo{ .a -> this }
     """); }
 
-    @Test void ref1() { ok(new Res("", "", 0), "test.Test", """
+    @Test void ref1() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
     alias base.Ref as Ref, alias base.Int as Int,
     Test:Main{ _ -> Assert!((GetRef#5)* == 5, { Void }) }
     GetRef:{ #(n: Int): mut Ref[Int] -> Ref#n }
     """); }
-  @Test void ref2() { ok(new Res("", "", 0), "test.Test", """
+  @Test void ref2() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
     alias base.Ref as Ref, alias base.Int as Int,
@@ -326,7 +326,7 @@ public class TestJavaProgram {
     GetRef:{ #(n: Int): mut Ref[Int] -> Ref#n }
     """); }
   // TODO: loops if we give a broken value like `.let[mut Ref[Int]](n = Ref#5)` (not a ReturnStmt)
-  @Test void ref3() { ok(new Res("", "", 0), "test.Test", """
+  @Test void ref3() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert, alias base.Block as Block,
     alias base.Ref as Ref, alias base.Int as Int, alias base.ReturnStmt as ReturnStmt,
@@ -359,11 +359,11 @@ public class TestJavaProgram {
         .return{ Ref#(counter*.str) }
       }
     """;
-  @Test void cliArgs1a() { okWithArgs(new Res("moar mutability", "", 0), "test.MyApp", List.of(), cliArgsOrElseGet, Base.mutBaseAliases); }
-  @Test void cliArgs1b() { okWithArgs(new Res("387000", "", 0), "test.MyApp", List.of(
+  @Test void cliArgs1a() { okWithArgs(new Res("moar mutability", "", 0), List.of(), cliArgsOrElseGet, Base.mutBaseAliases); }
+  @Test void cliArgs1b() { okWithArgs(new Res("387000", "", 0), List.of(
     "hi"
   ), cliArgsOrElseGet, Base.mutBaseAliases); }
-  @Test void cliArgs1c() { okWithArgs(new Res("bye", "", 0), "test.MyApp", List.of(
+  @Test void cliArgs1c() { okWithArgs(new Res("bye", "", 0), List.of(
     "hi",
     "bye"
   ), cliArgsOrElseGet, Base.mutBaseAliases); }
@@ -389,18 +389,18 @@ public class TestJavaProgram {
       }
     """;
   @Disabled
-  @Test void cliArgs2a() { okWithArgs(new Res("moar mutability", "", 0), "test.MyApp", List.of(), getCliArgsOrElse, Base.mutBaseAliases); }
+  @Test void cliArgs2a() { okWithArgs(new Res("moar mutability", "", 0), List.of(), getCliArgsOrElse, Base.mutBaseAliases); }
   @Disabled
-  @Test void cliArgs2b() { okWithArgs(new Res("387000", "", 0), "test.MyApp", List.of(
+  @Test void cliArgs2b() { okWithArgs(new Res("387000", "", 0), List.of(
     "hi"
   ), getCliArgsOrElse, Base.mutBaseAliases); }
   @Disabled
-  @Test void cliArgs2c() { okWithArgs(new Res("bye", "", 0), "test.MyApp", List.of(
+  @Test void cliArgs2c() { okWithArgs(new Res("bye", "", 0), List.of(
     "hi",
     "bye"
   ), getCliArgsOrElse, Base.mutBaseAliases); }
 
-  @Test void findClosestInt() { ok(new Res("", "", 0), "test.Test", """
+  @Test void findClosestInt() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
@@ -423,7 +423,7 @@ public class TestJavaProgram {
       }
     Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }
-  @Test void findClosestIntMut1() { ok(new Res("", "", 0), "test.Test", """
+  @Test void findClosestIntMut1() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
@@ -447,7 +447,7 @@ public class TestJavaProgram {
       }
     Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }
-  @Test void findClosestIntMut2() { ok(new Res("", "", 0), "test.Test", """
+  @Test void findClosestIntMut2() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
@@ -470,7 +470,7 @@ public class TestJavaProgram {
       }
     Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }
-  @Test void findClosestIntMut3() { ok(new Res("", "", 0), "test.Test", """
+  @Test void findClosestIntMut3() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
@@ -493,7 +493,7 @@ public class TestJavaProgram {
       }
     Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }
-  @Test void findClosestIntMutWithMutLList() { ok(new Res("", "", 0), "test.Test", """
+  @Test void findClosestIntMutWithMutLList() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[Int] closest = { Closest#(mut LList[Int] + 35 + 52 + 84 + 14, 49) }
@@ -516,7 +516,7 @@ public class TestJavaProgram {
       }
     Closest':{ mut #(h: mut Opt[Int], t: mut LList[Int]): Void }
     """, Base.mutBaseAliases); }
-  @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), "test.Test", """
+  @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[Int] closest = { Closest#(mut LList[Int] + 35 + 52 + 84 + 14 .list, 49) }
@@ -540,7 +540,7 @@ public class TestJavaProgram {
     Closest':{ mut #(i: UInt): Void }
     """, Base.mutBaseAliases); }
 
-  @Test void LListItersIterImm() { ok(new Res("", "", 0), "test.Test", """
+  @Test void LListItersIterImm() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[LList[Int]] l1 = { LList[Int] + 35 + 52 + 84 + 14 }
@@ -555,7 +555,7 @@ public class TestJavaProgram {
       .return{{}}
       }
     """, Base.mutBaseAliases); }
-  @Test void LListItersIterMut() { ok(new Res("", "", 0), "test.Test", """
+  @Test void LListItersIterMut() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[mut LList[Int]] l1 = { mut LList[Int] +[] 35 +[] 52 +[] 84 +[] 14 }
@@ -570,7 +570,7 @@ public class TestJavaProgram {
       .return{{}}
       }
     """, Base.mutBaseAliases); }
-  @Test void listIterMut() { ok(new Res("", "", 0), "test.Test", """
+  @Test void listIterMut() { ok(new Res("", "", 0), """
     package test
     alias base.iter.Sum as Sum,
     Test:Main{ _ -> Block#
@@ -613,7 +613,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
-  @Test void paperExamplePrintIter() { ok(new Res("350,350,350,140,140,140", "", 0), "test.IterFind", """
+  @Test void paperExamplePrintIter() { ok(new Res("350,350,350,140,140,140", "", 0), """
     package test
     alias base.Int as Int, alias base.Str as Str,
     alias base.List as List, alias base.Block as Block,
@@ -635,7 +635,7 @@ public class TestJavaProgram {
         // prints 350,350,350,140,140,140
     }
     """);}
-  @Test void paperExamplePrintFlow() { ok(new Res("350,350,350,140,140,140", "", 0), "test.IterFind", """
+  @Test void paperExamplePrintFlow() { ok(new Res("350,350,350,140,140,140", "", 0), """
     package test
     alias base.Int as Int, alias base.Str as Str,
     alias base.List as List, alias base.Block as Block,
@@ -660,29 +660,29 @@ public class TestJavaProgram {
     }
     """);}
 
-  @Test void absIntPos() { ok(new Res("", "", 0), "test.Test", """
+  @Test void absIntPos() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Assert!(5 .abs == 5) }
     """, Base.mutBaseAliases); }
-  @Test void absIntZero() { ok(new Res("", "", 0), "test.Test", """
+  @Test void absIntZero() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Assert!(0 .abs == 0) }
     """, Base.mutBaseAliases); }
-  @Test void absIntNeg() { ok(new Res("", "", 0), "test.Test", """
+  @Test void absIntNeg() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Assert!(-5 .abs == 5) }
     """, Base.mutBaseAliases); }
 
-  @Test void absUIntPos() { ok(new Res("", "", 0), "test.Test", """
+  @Test void absUIntPos() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Assert!(5u .abs == 5u) }
     """, Base.mutBaseAliases); }
-  @Test void absUIntZero() { ok(new Res("", "", 0), "test.Test", """
+  @Test void absUIntZero() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Assert!(0u .abs == 0u) }
     """, Base.mutBaseAliases); }
 
-  @Test void isoPod1() { ok(new Res("", "", 0), "test.Test", """
+  @Test void isoPod1() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
@@ -692,7 +692,7 @@ public class TestJavaProgram {
     MutThingy:{ mut .n: mut Count[Int] }
     MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { n }  }
     """, Base.mutBaseAliases); }
-  @Test void isoPod1Consume() { ok(new Res("", "", 0), "test.Test", """
+  @Test void isoPod1Consume() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
@@ -702,7 +702,7 @@ public class TestJavaProgram {
     MutThingy:{ mut .n: mut Count[Int] }
     MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { n }  }
     """, Base.mutBaseAliases); }
-  @Test void isoPod2() { ok(new Res("", "", 0), "test.Test", """
+  @Test void isoPod2() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
@@ -713,7 +713,7 @@ public class TestJavaProgram {
     MutThingy:{ mut .n: mut Count[Int] }
     MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { n }  }
     """, Base.mutBaseAliases); }
-  @Test void isoPod3() { ok(new Res("", "", 0), "test.Test", """
+  @Test void isoPod3() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
@@ -724,7 +724,7 @@ public class TestJavaProgram {
     MutThingy:{ mut .n: mut Count[Int] }
     MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { n }  }
     """, Base.mutBaseAliases); }
-  @Test void isoPodNoImmFromPeekOk() { ok(new Res("", "", 0), "test.Test", """
+  @Test void isoPodNoImmFromPeekOk() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
@@ -735,7 +735,7 @@ public class TestJavaProgram {
     MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { .n -> n, .rn -> n }  }
     """, Base.mutBaseAliases); }
 
-  @Test void envFromRootAuth() { okWithArgs(new Res("hi bye", "", 0), "test.Test", List.of("hi", "bye"), """
+  @Test void envFromRootAuth() { okWithArgs(new Res("hi bye", "", 0), List.of("hi", "bye"), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
@@ -743,7 +743,7 @@ public class TestJavaProgram {
       .return{ io.println(env.launchArgs.iter.str({arg -> arg.str}, " ")) }
       }
     """, Base.mutBaseAliases); }
-  @Test void envFromIO() { okWithArgs(new Res("hi bye", "", 0), "test.Test", List.of("hi", "bye"), """
+  @Test void envFromIO() { okWithArgs(new Res("hi bye", "", 0), List.of("hi", "bye"), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
@@ -751,14 +751,14 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
-  @Test void intExp() { ok(new Res("3125", "", 0), "test.Test", """
+  @Test void intExp() { ok(new Res("3125", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
       .return{ io.println(5 ** 5u .str) }
       }
     """, Base.mutBaseAliases); }
-  @Test void uintExp() { ok(new Res("3125", "", 0), "test.Test", """
+  @Test void uintExp() { ok(new Res("3125", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
@@ -766,7 +766,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
-  @Test void negativeNums() { ok(new Res("", "", 0), "test.Test", """
+  @Test void negativeNums() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .do{ Assert!(-5 == -5, "id", {{}}) }
@@ -779,7 +779,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
-  @Test void floats() { ok(new Res("", "", 0), "test.Test", """
+  @Test void floats() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .do{ Assert!(-5.0 == -5.0, "id (neg)", {{}}) }
@@ -800,7 +800,7 @@ public class TestJavaProgram {
   @Test void shouldPeekIntoIsoPod() { ok(new Res("""
     peek: help, i'm alive
     consume: help, i'm alive
-    """.strip(), "", 0), "test.Test", """
+    """.strip(), "", 0), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
@@ -816,7 +816,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
-  @Test void shouldReadFullIsoPod() { ok(new Res("hi", "", 0), "test.Test", """
+  @Test void shouldReadFullIsoPod() { ok(new Res("hi", "", 0), """
     package test
     Test:Main{ s ->
       Try#[Str]{ Block#
@@ -828,7 +828,7 @@ public class TestJavaProgram {
         }
       }
     """, Base.mutBaseAliases); }
-  @Test void shouldFailOnEmptyIsoPod() { ok(new Res("", "Cannot consume an empty IsoPod.", 0), "test.Test", """
+  @Test void shouldFailOnEmptyIsoPod() { ok(new Res("", "Cannot consume an empty IsoPod.", 0), """
     package test
     Test:Main{ s ->
       Try#[Str]{ Block#
@@ -843,7 +843,7 @@ public class TestJavaProgram {
     """, Base.mutBaseAliases); }
 
   @Test void optionalMapImm() {
-    ok(new Res("", "", 0), "test.Test", """
+    ok(new Res("", "", 0), """
       package test
       Test:Main{ _ -> Block#
         .let[Opt[Int]] i = { Opt#[Int]16 }
@@ -854,7 +854,7 @@ public class TestJavaProgram {
   }
 
   @Test void equality() {
-    ok(new Res("", "", 0), "test.Test", """
+    ok(new Res("", "", 0), """
       package test
       Test:Main{ _ -> Block#
         .let[Shape] s1 = {{ .x -> 5, .y -> 6 }}
@@ -874,7 +874,7 @@ public class TestJavaProgram {
       """, Base.mutBaseAliases);
   }
   @Test void equalitySubtyping() {
-    ok(new Res("", "", 0), "test.Test", """
+    ok(new Res("", "", 0), """
       package test
       Test:Main{ _ -> Block#
         .let[Shape] s1 = {{ .x -> 5, .y -> 6 }}
@@ -897,7 +897,7 @@ public class TestJavaProgram {
       """, Base.mutBaseAliases);
   }
 
-  @Test void callingMultiSigAmbiguousDiffRet() { ok(new Res("", "", 0), "test.Test", """
+  @Test void callingMultiSigAmbiguousDiffRet() { ok(new Res("", "", 0), """
     package test
     alias base.Void as Void, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     A:{
@@ -911,7 +911,7 @@ public class TestJavaProgram {
       }
     ToVoid:{ #[I](x: I): Void -> {} }
     """); }
-  @Test void callingMultiSigAmbiguousDiffRetMut() { ok(new Res("", "", 0), "test.Test", """
+  @Test void callingMultiSigAmbiguousDiffRetMut() { ok(new Res("", "", 0), """
     package test
     alias base.Void as Void, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     A:{
@@ -925,7 +925,7 @@ public class TestJavaProgram {
       }
     ToVoid:{ #[I](x: I): Void -> {} }
     """); }
-  @Test void callingMultiSigAmbiguousSameRet() { ok(new Res("", "", 0), "test.Test", """
+  @Test void callingMultiSigAmbiguousSameRet() { ok(new Res("", "", 0), """
     package test
     alias base.Void as Void, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     A:{
@@ -939,7 +939,7 @@ public class TestJavaProgram {
       }
     ToVoid:{ #[I](x: I): Void -> {} }
     """); }
-  @Test void optionals1() { ok(new Res("", "", 0), "test.Test", """
+  @Test void optionals1() { ok(new Res("", "", 0), """
     package test
     alias base.Void as Void,
     A:{}
@@ -947,7 +947,7 @@ public class TestJavaProgram {
       #(s) -> (base.Opt#Void).match[base.Void](mut base.OptMatch[Void,Void]{ .some(x) -> x, .empty -> {} }),
       }
     """); }
-  @Test void canGetImmIntFromImmListOfImmInt() { ok(new Res("", "", 0), "test.Test", """
+  @Test void canGetImmIntFromImmListOfImmInt() { ok(new Res("", "", 0), """
     package test
     MakeList:{ #: LList[Int] -> LList[Int] + 12 + 34 + 56 }
     Test:Main{ _ -> Block#
@@ -959,7 +959,7 @@ public class TestJavaProgram {
       .return{Void}
       }
     """, Base.mutBaseAliases); }
-  @Test void canGetImmOptFromImmListOfImmInt() { ok(new Res("", "", 0), "test.Test", """
+  @Test void canGetImmOptFromImmListOfImmInt() { ok(new Res("", "", 0), """
     package test
     MakeList:{ #: LList[Int] -> LList[Int] + 12 + 34 + 56 }
     Test:Main{ _ -> Block#
@@ -970,7 +970,7 @@ public class TestJavaProgram {
       .return{Void}
       }
     """, Base.mutBaseAliases); }
-  @Test void findClosestIntMultiMdf() { ok(new Res("", "", 0), "test.Test", """
+  @Test void findClosestIntMultiMdf() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
       .let[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
@@ -999,13 +999,13 @@ public class TestJavaProgram {
       }
     Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
     """, Base.mutBaseAliases); }
-  @Test void canCreateMutLList() { ok(new Res("", "", 0), "test.Test", """
+  @Test void canCreateMutLList() { ok(new Res("", "", 0), """
     package test
     Test:base.Main{ _ -> {} }
     MutLList:{ #: mut base.LList[base.Int] -> mut base.LList[base.Int] +[] 35 +[] 52 +[] 84 +[] 14 }
     """); }
 
-  @Test void immFromRefImm() { ok(new Res("5", "", 0), "test.Test", """
+  @Test void immFromRefImm() { ok(new Res("5", "", 0), """
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
@@ -1013,7 +1013,7 @@ public class TestJavaProgram {
       .m2: Int -> this.m1(Ref#[Int]5),
       }
     """, Base.mutBaseAliases); }
-  @Test void immFromRefImmRecover() { ok(new Res("5", "", 0), "test.Test", """
+  @Test void immFromRefImmRecover() { ok(new Res("5", "", 0), """
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
@@ -1021,7 +1021,7 @@ public class TestJavaProgram {
       .m2: Int -> this.m1(Ref.ofImm[Int]5),
       }
     """, Base.mutBaseAliases); }
-  @Test void immFromRefImmPrimitive() { ok(new Res("5", "", 0), "test.Test", """
+  @Test void immFromRefImmPrimitive() { ok(new Res("5", "", 0), """
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
@@ -1029,7 +1029,7 @@ public class TestJavaProgram {
       .m2: Int -> this.m1(Ref#[Int]5),
       }
     """, Base.mutBaseAliases); }
-  @Test void updateRefImm() { ok(new Res("12", "", 0), "test.Test", """
+  @Test void updateRefImm() { ok(new Res("12", "", 0), """
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
@@ -1040,7 +1040,7 @@ public class TestJavaProgram {
       .m2: Int -> this.m1(Ref#[Int]5),
       }
     """, Base.mutBaseAliases); }
-  @Test void updateRefImmRecover() { ok(new Res("12", "", 0), "test.Test", """
+  @Test void updateRefImmRecover() { ok(new Res("12", "", 0), """
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
@@ -1052,7 +1052,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
-  @Test void llistFilterMultiMdf() { ok(new Res("13, 14", "", 0), "test.Test", """
+  @Test void llistFilterMultiMdf() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
@@ -1066,7 +1066,7 @@ public class TestJavaProgram {
                                  .str({n->n.str}, ", ")
       }
     """, Base.mutBaseAliases);}
-  @Test void listFilterMultiMdf() { ok(new Res("13, 14", "", 0), "test.Test", """
+  @Test void listFilterMultiMdf() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
@@ -1081,7 +1081,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void llistFilterMultiMdfMut() { ok(new Res("13, 14", "", 0), "test.Test", """
+  @Test void llistFilterMultiMdfMut() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
@@ -1095,7 +1095,7 @@ public class TestJavaProgram {
                                       .str({n->n.str}, ", ")
       }
     """, Base.mutBaseAliases);}
-  @Test void listFilterMultiMdfMut() { ok(new Res("13, 14", "", 0), "test.Test", """
+  @Test void listFilterMultiMdfMut() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
@@ -1110,7 +1110,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void llistFilterMultiMdfRead() { ok(new Res("13, 14", "", 0), "test.Test", """
+  @Test void llistFilterMultiMdfRead() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
@@ -1124,7 +1124,7 @@ public class TestJavaProgram {
                                       .str({n -> n.toImm.str}, ", ")
       }
     """, Base.mutBaseAliases);}
-  @Test void listFilterMultiMdfRead() { ok(new Res("13, 14", "", 0), "test.Test", """
+  @Test void listFilterMultiMdfRead() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
@@ -1139,7 +1139,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void strMap() { ok(new Res("23\n32\n230\nhi", "", 0), "test.Test", """
+  @Test void strMap() { ok(new Res("23\n32\n230\nhi", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
@@ -1160,7 +1160,7 @@ public class TestJavaProgram {
       .return{Void}
       }
     """, Base.mutBaseAliases);}
-  @Test void strMapImm() { ok(new Res("23\n32\n230\nhi", "", 0), "test.Test", """
+  @Test void strMapImm() { ok(new Res("23\n32\n230\nhi", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
@@ -1180,7 +1180,7 @@ public class TestJavaProgram {
       .return{Void}
       }
     """, Base.mutBaseAliases);}
-  @Test void strMapRead() { ok(new Res("23\n32\n230\nhi", "", 0), "test.Test", """
+  @Test void strMapRead() { ok(new Res("23\n32\n230\nhi", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
@@ -1201,7 +1201,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void lensMap() { ok(new Res("23\n32\n230\nhi", "", 0), "test.Test", """
+  @Test void lensMap() { ok(new Res("23\n32\n230\nhi", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
@@ -1219,7 +1219,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void tryCatch1() { ok(new Res("Happy", "", 0), "test.Test", """
+  @Test void tryCatch1() { ok(new Res("Happy", "", 0), """
     package test
 //    Test:Main{s ->
 //      FIO#s.println(Try#[Str](
@@ -1234,7 +1234,7 @@ public class TestJavaProgram {
         })
       }
     """, Base.mutBaseAliases);}
-  @Test void tryCatch2() { ok(new Res("oof", "", 0), "test.Test", """
+  @Test void tryCatch2() { ok(new Res("oof", "", 0), """
     package test
 //    Test:Main{s ->
 //      FIO#s.println(Try#[Str](
@@ -1246,15 +1246,15 @@ public class TestJavaProgram {
       FIO#s.println(Try#[Str]{Error.msg("oof")}.match{ .a(a) -> a, .b(err) -> err.msg })
       }
     """, Base.mutBaseAliases);}
-  @Test void error1() { ok(new Res("", "Program crashed with: \"yolo\" ", 1), "test.Test", """
+  @Test void error1() { ok(new Res("", "Program crashed with: \"yolo\" ", 1), """
     package test
     Test:Main{s -> Error.msg("yolo") }
     """, Base.mutBaseAliases);}
-  @Test void emptyOptErr1() { ok(new Res("", "Program crashed with: \"Opt was empty\"", 1), "test.Test", """
+  @Test void emptyOptErr1() { ok(new Res("", "Program crashed with: \"Opt was empty\"", 1), """
     package test
     Test:Main{s -> Block#(Opt[Str]!) }
     """, Base.mutBaseAliases);}
-  @Test void emptyOptErr2() { ok(new Res("", "Opt was empty", 0), "test.Test", """
+  @Test void emptyOptErr2() { ok(new Res("", "Opt was empty", 0), """
     package test
     Test:Main{s ->
       Try#{Opt[Str]!}.match{
@@ -1271,7 +1271,7 @@ public class TestJavaProgram {
     	at FProgram$base$Opt_1.match$imm(FProgram.java:[###])
     	at FProgram$base$Opt_1.$33$imm(FProgram.java:[###])
     	at FProgram$test$Test_0.$hash$imm(FProgram.java:[###])
-    	at FProgram.main(FProgram.java:[###])""", 1), "test.Test", """
+    	at FProgram.main(FProgram.java:[###])""", 1), """
     package test
     SMain:Main{
       #(s) -> Try#[Void]{this.realMain(s)}.resMatch{
@@ -1283,7 +1283,7 @@ public class TestJavaProgram {
     Test:SMain{s -> Block#(Opt[Str]!) }
     """, Base.mutBaseAliases);}
 
-  @Test void optWithExtensionMethodOrElse() { ok(new Res(), "test.Test", """
+  @Test void optWithExtensionMethodOrElse() { ok(new Res(), """
     package test
     Test:Main{ s -> Block#
       .let[Int] res = {Opt[Int]
@@ -1292,7 +1292,7 @@ public class TestJavaProgram {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
-  @Test void optWithExtensionMethodOrElseLib() { ok(new Res(), "test.Test", """
+  @Test void optWithExtensionMethodOrElseLib() { ok(new Res(), """
     package test
     Test:Main{ s -> Block#
       .let[Int] res = {mut Opt[Int]
@@ -1301,7 +1301,7 @@ public class TestJavaProgram {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
-  @Test void extensionMethodMdfDispatch() { ok(new Res(), "test.Test", """
+  @Test void extensionMethodMdfDispatch() { ok(new Res(), """
     package test
     Test:Main{ s -> Block#
       .let[Opt[Int]] res = { Opt[Int]
@@ -1312,7 +1312,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void personFactory() { ok(new Res("Bob", "", 0), "test.Ex", """
+  @Test void personFactory() { ok(new Res("Bob", "", 0), """
     package test
     FPerson:F[Str,UInt,Person]{ name, age -> Person:{
       .name: Str -> name,
@@ -1326,7 +1326,7 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void codegenCloneMethodBodiesForAbstractMdfOverloadsRead() { ok(new Res(), "test.Ex", """
+  @Test void codegenCloneMethodBodiesForAbstractMdfOverloadsRead() { ok(new Res(), """
     package test
     alias base.Void as Void, alias base.Main as Main,
     Ex:Main { _ -> Void }
@@ -1339,7 +1339,7 @@ public class TestJavaProgram {
       }
     """); }
 
-  @Test void codegenCloneMethodBodiesForAbstractMdfOverloadsMut() { ok(new Res(), "test.Ex", """
+  @Test void codegenCloneMethodBodiesForAbstractMdfOverloadsMut() { ok(new Res(), """
     package test
     alias base.Void as Void, alias base.Main as Main,
     Ex:Main { _ -> Void }
@@ -1352,13 +1352,13 @@ public class TestJavaProgram {
       }
     """); }
 
-  @Test void errorKToObj() { ok(new Res("", "Program crashed with: \"whoops\"", 1), "test.Test", """
+  @Test void errorKToObj() { ok(new Res("", "Program crashed with: \"whoops\"", 1), """
     package test
     Test: Main{ _ -> A#(Error.msg "whoops") }
     A:{ #(x: Str): Void -> Void }
     """, Base.mutBaseAliases); }
 
-  @Test void noMagicWithManualCapability() { ok(new Res("", "No magic code was found[###]", 1), "test.Test", """
+  @Test void noMagicWithManualCapability() { ok(new Res("", "No magic code was found[###]", 1), """
     package test
     Test: Main{_ -> mut FakeIO.println("oh no")}
     FakeIO: IO{
@@ -1369,14 +1369,14 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
-  @Test void lazyCall() { ok(new Res("hey", "", 0), "test.Test", """
+  @Test void lazyCall() { ok(new Res("hey", "", 0), """
     package test
     Test: Main{sys -> Block#
       .let[Void] x = {FIO#sys.println("hey")}
       .return {Void}
       }
     """, Base.mutBaseAliases); }
-  @Test void lazyCallEarlyExit() { ok(new Res("", "", 0), "test.Test", """
+  @Test void lazyCallEarlyExit() { ok(new Res("", "", 0), """
     package test
     Test: Main{sys -> Block#
       .if {True} .return {Void}
@@ -1384,7 +1384,7 @@ public class TestJavaProgram {
       .return {Void}
       }
     """, Base.mutBaseAliases); }
-  @Test void eagerCallEarlyExit() { ok(new Res("hey", "", 0), "test.Test", """
+  @Test void eagerCallEarlyExit() { ok(new Res("hey", "", 0), """
     package test
     Test: Main{sys -> Block#
       .if {True} .return {Void}

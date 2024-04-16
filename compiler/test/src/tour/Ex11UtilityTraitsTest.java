@@ -7,7 +7,7 @@ import utils.RunOutput;
 import static codegen.java.RunJavaProgramTests.ok;
 
 public class Ex11UtilityTraitsTest {
-  @Test void flowSumStr() { ok(new RunOutput.Res("", "", 0), "test.Test", """
+  @Test void flowSumStr() { ok(new RunOutput.Res("", "", 0), """
     package test
     Test:Main {sys -> Block#
       .let[mut Person] personMut = {FPerson#("Bob")}

@@ -28,10 +28,12 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
     var mir = new MIRInjectionVisitor(cachedPkg(),program, resolvedCalls).visitProgram();
     var c= new JavaCompiler(verbosity(),io());
     var res= new JavaProgram(this,mir);
-    var tmp = Path.of("/Users/nick/foutplswork");
-    res.writeJavaFiles(tmp);
+
+//    var tmp = IoErr.of(()->Files.createTempDirectory("fgen"));
+//    res.writeJavaFiles(tmp);
+//    System.out.println("saved to "+tmp);
+
     c.compile(res.files());
-    System.out.println("saved to "+tmp);
     return res;
   }
   default ProcessBuilder execution(

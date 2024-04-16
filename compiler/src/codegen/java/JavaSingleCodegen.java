@@ -38,7 +38,6 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     this.p= new OptimisationBuilder(this.magic)
       .withBoolIfOptimisation()
       .withBlockOptimisation()
-      .withDevirtualisationOptimisation()
       .run(p);
     this.funMap = p.pkgs().stream()
       .flatMap(pkg->pkg.funs().stream())

@@ -158,7 +158,7 @@ Many maps are on Str or Int types
     """);}
 
   // Our maps/sets are linked hashmaps/linked hashsets and thus have deterministic iteration order.
-  @Test void mapFlow() { ok(new Res("30", "", 0), "test.Test", """
+  @Test void mapFlow() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> Block#
       .let map = {Map.str("Alice",24, "Bob",30)}

@@ -26,12 +26,12 @@ public interface LogicMain<Exe> {
   HashSet<String> cachedPkg();
   CompilerFrontEnd.Verbosity verbosity();
   default astFull.Program parse() {
-    var cache= load(io().cachedFiles());
+    var cache = load(io().cachedFiles());
     cachedPkg().addAll(cache.keySet());
-    var app= load(io().inputFiles());
-    var standardLibOverriden= app.keySet().stream()
-            .filter(s -> s.startsWith("base.") || s.equals("base"))
-            .toList();
+    var app = load(io().inputFiles());
+    var standardLibOverriden = app.keySet().stream()
+      .filter(s->s.startsWith("base.") || s.equals("base") || s.startsWith("rt.") || s.equals("rt"))
+      .toList();
     if (!standardLibOverriden.isEmpty()) {
       throw Fail.specialPackageConflict(standardLibOverriden);
     }
@@ -44,8 +44,8 @@ public interface LogicMain<Exe> {
   }
   default void wellFormednessFull(astFull.Program fullProgram){
     new WellFormednessFullShortCircuitVisitor()
-            .visitProgram(fullProgram)
-            .ifPresent(err->{ throw err; });
+      .visitProgram(fullProgram)
+      .ifPresent(err->{ throw err; });
   }
   default ast.Program inference(astFull.Program fullProgram){
     return InferBodies.inferAll(fullProgram);
@@ -86,14 +86,14 @@ public interface LogicMain<Exe> {
   default List<Parser> loadFiles(Path root) {
     return IoErr.of(()->{try(var fs = Files.walk(root)) {
       return fs
-              .filter(Files::isRegularFile)
-              .map(p->new Parser(p, ResolveResource.read(p)))
-              .toList();
+        .filter(Files::isRegularFile)
+        .map(p->new Parser(p, ResolveResource.read(p)))
+        .toList();
     }});
   }
   default Map<String, List<Package>> load(List<Parser> files) {
     return files.stream()
-            .map(p->p.parseFile(CompileError::err))
-            .collect(Collectors.groupingBy(Package::name));
+      .map(p->p.parseFile(CompileError::err))
+      .collect(Collectors.groupingBy(Package::name));
   }
 }
