@@ -2,7 +2,7 @@ package codegen.java;
 
 import codegen.MIR;
 import codegen.MethExprKind;
-import codegen.NativeRuntime;
+import rt.NativeRuntime;
 import codegen.ParentWalker;
 import codegen.optimisations.OptimisationBuilder;
 import id.Id;

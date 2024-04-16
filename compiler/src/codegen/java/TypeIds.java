@@ -20,7 +20,7 @@ record TypeIds(JavaMagicImpls magic, StringIds id){
     return switch (name.name()) {
       case "base.Int", "base.UInt" -> "long";
       case "base.Float" -> "double";
-      case "base.Str" -> "String";
+      case "base.Str" -> "rt.Str";
       default -> magicName(name);
       };
     }

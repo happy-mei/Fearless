@@ -61,7 +61,7 @@ record ToJavaProgram(LogicMainJava main, MIR.Program program){
         res.add(toFile(pkg.name(), name, typeDefContent));
       }
     }
-    for(var e: gen.freshRecords.entrySet()){
+    for(var e : gen.freshRecords.entrySet()){
       String pkg    = e.getKey().pkg();
       String name   = gen.id.getSimpleName(e.getKey())+"Impl";
       String content= e.getValue();

@@ -2,23 +2,29 @@ package codegen.java;
 
 import codegen.MIR;
 import codegen.MethExprKind;
+import rt.NativeRuntime;
 import codegen.ParentWalker;
 import codegen.optimisations.OptimisationBuilder;
 import id.Id;
 import id.Id.DecId;
+import magic.Magic;
+import org.apache.commons.text.StringEscapeUtils;
 import utils.Box;
 import utils.Bug;
 import utils.Streams;
 import visitors.MIRVisitor;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static codegen.MethExprKind.Kind.RealExpr;
 import static codegen.MethExprKind.Kind.Unreachable;
 import static codegen.MethExprKind.Kind.Delegate;
+import static magic.MagicImpls.getLiteral;
 
 public class JavaSingleCodegen implements MIRVisitor<String> {
   protected final MIR.Program p;
@@ -26,6 +32,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   private final JavaMagicImpls magic;
   public final HashMap<Id.DecId, String> freshRecords= new HashMap<>();
   public final StringIds id= new StringIds();
+  private String pkg;
   public JavaSingleCodegen(MIR.Program p) {
     magic= new JavaMagicImpls(this, t->getTName(t,false), p.p());
     this.p= new OptimisationBuilder(this.magic)
@@ -58,14 +65,15 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     return s.map(f).collect(Collectors.joining(join));
   }
   public String visitTypeDef(String pkg, MIR.TypeDef def, List<MIR.Fun> funs) {
-    var isMagic= pkg.equals("base") 
+    this.pkg = pkg;
+    var isMagic = pkg.equals("base")
       && def.name().name().endsWith("Instance");
     var isLiteral= isLiteral(def.name());
     if (isMagic || isLiteral ) { return ""; }
 
     var fullName = id.getFullName(def.name());
-    var shortName= id.getSimpleName(def.name());
-    var impls= extendsStr(def,fullName);
+    var shortName = id.getSimpleName(def.name());
+    var impls = extendsStr(def,fullName);
     var singletonGet = def.singletonInstance()
       .map(objK->shortName
         +" $self = "
@@ -96,24 +104,24 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       MIR.Meth meth, MethExprKind kind,
       Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
     
-    var overriddenSig= this.overriddenSig(meth.sig(), leastSpecific);
-    var toSkip= overriddenSig.isPresent();
-    var deleMeth= meth;
-    if (toSkip){ deleMeth= meth.withSig(overriddenSig.get()); }
-    var canSkip= toSkip && kind.kind() == Unreachable;
+    var overriddenSig = this.overriddenSig(meth.sig(), leastSpecific);
+    var toSkip = overriddenSig.isPresent();
+    var deleMeth = meth;
+    if (toSkip){ deleMeth = meth.withSig(overriddenSig.get()); }
+    var canSkip = toSkip && kind.kind() == Unreachable;
     if (canSkip){return visitMeth(meth, Unreachable, Map.of());}
     if (toSkip){
       var d= new MethExprKind.Delegator(meth.sig(),deleMeth.sig());
-      var delegator= visitMeth(deleMeth,d , Map.of());
-      var delegate= visitMeth(meth,Delegate, Map.of());
+      var delegator = visitMeth(deleMeth, d, Map.of());
+      var delegate = visitMeth(meth, Delegate, Map.of());
       return delegator+"\n"+delegate+"\n";
     }
     var methName = id.getMName(meth.sig().mdf(), meth.sig().name())
-      +(kind.kind()==Delegate?"$Delegate":"");
+      +(kind.kind() == Delegate ? "$Delegate" : "");
     var args = seq(meth.sig().xs(),this::typePair,", ");
     var funArgs = Streams.of(
       meth.sig().xs().stream().map(MIR.X::name).map(id::varName),
-      meth.capturesSelf() ? Stream.of("this") : Stream.<String>of(),
+      meth.capturesSelf() ? Stream.of("this") : Stream.of(),
       meth.captures().stream().map(id::varName).map(x->"this."+x)
       )
       .collect(Collectors.joining(", "));
@@ -128,8 +136,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     var realExpr = switch (kind) {
       case MethExprKind.Kind k -> switch (k.kind()) {
         case RealExpr, Delegate -> realBody;
-        case Unreachable 
-          -> "throw new java.lang.Error(\"Unreachable code\");";
+        case Unreachable -> "throw new java.lang.Error(\"Unreachable code\");";
         case Delegator -> throw Bug.unreachable();
       };
       case MethExprKind.Delegator k -> "return this.%s(%s);".formatted(
@@ -201,6 +208,10 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   }
 
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
+    if (magic.isMagic(Magic.Str, createObj.concreteT().id())) {
+      return visitStringLiteral(createObj);
+    }
+
     var magicImpl = magic.get(createObj);
     if (checkMagic && magicImpl.isPresent()) {
       var res = magicImpl.get().instantiate();
@@ -236,6 +247,34 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       }
       """.formatted(
       recordName, args, id.getFullName(name), ms, unreachableMs));
+  }
+  public String visitStringLiteral(MIR.CreateObj k) {
+    var id = k.concreteT().id();
+    var javaStr = getLiteral(p.p(), id).map(l->l.substring(1, l.length() - 1)).orElseThrow();
+    var recordName = "str$"+javaStr.hashCode()+"$str$";
+    if (!this.freshRecords.containsKey(id)) {
+      // We parse literal \n, unicode escapes as if this was a Java string literal.
+      var utf8 = StringEscapeUtils.unescapeJava(javaStr).getBytes(StandardCharsets.UTF_8);
+      try {
+        NativeRuntime.validateStringOrThrow(utf8);
+      } catch (NativeRuntime.StringEncodingError err) {
+        // TODO: throw a nice Fail...
+        throw Bug.of(err);
+      }
+      var utf8Array = IntStream.range(0, utf8.length).mapToObj(i->Byte.toString(utf8[i])).collect(Collectors.joining(","));
+      var graphemes = Arrays.stream(NativeRuntime.indexString(utf8)).mapToObj(Integer::toString).collect(Collectors.joining(","));
+
+      this.freshRecords.put(new DecId(this.pkg+"."+recordName, 0), """
+        final class %s implements rt.Str {
+          public static final rt.Str $self = new %s();
+          private static final byte[] UTF8 = new byte[]{%s};
+          private static final int[] GRAPHEMES = new int[]{%s};
+          @Override public byte[] utf8() { return UTF8; }
+          @Override public int[] graphemes() { return GRAPHEMES; }
+        }
+        """.formatted(recordName, recordName, utf8Array, graphemes));
+    }
+    return recordName+".$self";
   }
 
   @Override public String visitX(MIR.X x, boolean checkMagic) {

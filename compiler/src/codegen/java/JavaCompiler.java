@@ -13,7 +13,7 @@ import utils.IoErr;
 
 public record JavaCompiler(Verbosity verbosity, InputOutput io){
   public void compile(List<JavaFile> files) {
-    assert files.size() > 0;
+    assert !files.isEmpty();
     var compiler = ToolProvider.getSystemJavaCompiler();
     assert compiler != null
       :"No Java compiler could be found. Please use a JDK >= 10";
