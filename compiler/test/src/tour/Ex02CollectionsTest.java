@@ -24,7 +24,7 @@ the elements in strings, as shown below.
 -------------------------*/@Disabled @Test void listNums1() { run("""
     package test
     Test:Main {sys -> Block#
-      .var myList= {List#[Int](5, 10, 15)}
+      .let myList= {List#[Int](5, 10, 15)}
       .var  myStr= {myList.str {n->n.str}}
       .var  myStr= {myList.str ::str}
       .return{FIO#sys.println(myStr)}
@@ -41,13 +41,13 @@ Here we first map the elements to strings using 'number.str'
 -------------------------*/@Disabled @Test void listNums2() { run("""
     package test
     Test:Main {sys -> Block#
-      .var myList= {List#[Int](5, 10, 15)}
-      .var myStr= {myList.flow
+      .let myList= {List#[Int](5, 10, 15)}
+      .let myStr= {myList.flow
         .map{n -> n.str}
         #"; "//ok and also #Sum/#USum/#FSum, so Flow.str/Flow.sum disappear
         }
-      .var myStr= {myList.flow.map::str#"; "} //options
-      .var myStr= {myList.flow.map{::str}#"; "}
+      .let myStr= {myList.flow.map::str#"; "} //options
+      .let myStr= {myList.flow.map{::str}#"; "}
       .return{FIO#sys.println(myStr)}//we agreed parenthesis needed
       }
     //prints 5; 10; 15
@@ -63,7 +63,7 @@ size of the list. In this case a dynamic error is thrown.
 -------------------------*/@Test void addAndGetFromList() {run("""
     package test
     Test:Main {sys -> Block#
-      .var list = {List#[Str]}//YES spaces on both sides of =?
+      .let list = {List#[Str]}//YES spaces on both sides of =?
       .do {list.add("YAY!")}
       .var  yay = {list.get(0)}
       .return {FIO#sys.println(yay)}
@@ -78,7 +78,7 @@ Using `length`/`count` is discouraged.
 -------------------------*/@Test void listSize() {run("""
     package test
     Test:Main {sys -> Block#
-      .var list = {List#(5, 10, 15)}
+      .let list = {List#(5, 10, 15)}
       .do {list.add(20)}
       .assert({list.size == 4u})
       .done
@@ -127,20 +127,20 @@ Many maps are on Str or Int types
           .and{Unsigns.compare#{p->p.age}}
     }
     Test:Main {sys -> Block#
-      .var print= {mut _:{mut #(s:Str):Void->FIO#sys.println(s)}}
-      //.var print= {mut Fresh:{mut #(s:Str):Void->FIO#sys.println(s)}}
-      .var mapStr = {Map.str(
+      .let print= {mut _:{mut #(s:Str):Void->FIO#sys.println(s)}}
+      //.let print= {mut Fresh:{mut #(s:Str):Void->FIO#sys.println(s)}}
+      .let mapStr = {Map.str(
         "Alice", 24,
         "Bob", 30)}
       .do{ mapStr.put("Bob",30) }
-      .var bobAgeOpt = {map.get("Bob")}
+      .let bobAgeOpt = {map.get("Bob")}
       .if {bobAgeOpt?}.do{print#(bobAgeOpt!.str)}
       .do{bobAgeOpt.flow.for{age->print#(age.str)}}
-      .var mapBase1 = {Map#(CPerson,
+      .let mapBase1 = {Map#(CPerson,
         FPerson#("Alice",24), "50032345b",
         FPerson#("Bob",30),   "50032211c"
         )}
-      .var mapBase2 = {Map#({
+      .let mapBase2 = {Map#({
           .eq(k1, k2) -> k1.name == k2.name,//For more control
           .hash(k) -> k.age.hash//nope
           },
@@ -150,8 +150,8 @@ Many maps are on Str or Int types
  
      // or:
       .do {map.put("Bob", 30)}
-      .var bobAgeOpt = {map.get("Bob")}
-      .var bobAge = {bobAgeOpt!}
+      .let bobAgeOpt = {map.get("Bob")}
+      .let bobAge = {bobAgeOpt!}
       .return {FIO#sys.println(bobAge.str)}
       }
       //30
@@ -161,10 +161,10 @@ Many maps are on Str or Int types
   @Test void mapFlow() { ok(new Res("30", "", 0), "test.Test", """
     package test
     Test:Main {sys -> Block#
-      .var map = {Map.str("Alice",24, "Bob",30)}
+      .let map = {Map.str("Alice",24, "Bob",30)}
       // if we have destructuring:
-      // .var ageSum = {map.flow.map{[key, val] -> val}#(Flow.sum)}
-      // .var ageSum = {map.flow.map{kv -> kv.val}#(Flow.sum)}
+      // .let ageSum = {map.flow.map{[key, val] -> val}#(Flow.sum)}
+      // .let ageSum = {map.flow.map{kv -> kv.val}#(Flow.sum)}
 //      .return {map#(Map.str "\\n") // Map.str requires Map[Stringable, Stringable]
       .return {map.flow
         .map{kv -> kv.key + ": " + (kv.val.str)}

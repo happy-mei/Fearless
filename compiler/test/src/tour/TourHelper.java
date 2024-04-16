@@ -31,7 +31,7 @@ public class TourHelper {
     if (last.startsWith("//prints ")){
       expectedPrint = last.substring("//prints ".length());
     }
-    if(!content.contains(":Main")){
+    if(!content.contains(":Main") && !content.contains(": TestMain")){
       content += "Test:Main{s->Void}";
     }
     /*ok(new Res(expectedPrint,"",0), "test.Test",
@@ -43,8 +43,8 @@ public class TourHelper {
     Assertions.assertEquals(0, p.exitValue());
     Err.strCmp("", p.errorReader().lines().collect(Collectors.joining("\n")));
     Err.strCmp(
-            expectedIO,
-            p.inputReader().lines().collect(Collectors.joining("\n"))
+	    expectedIO,
+	    p.inputReader().lines().collect(Collectors.joining("\n"))
     );
   }
   static void runCode(List<String> files, String expectedIO){

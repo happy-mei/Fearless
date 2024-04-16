@@ -2,18 +2,22 @@ package codegen.java;
 
 import codegen.MIR;
 import codegen.MethExprKind;
+import codegen.NativeRuntime;
 import codegen.ParentWalker;
 import codegen.optimisations.OptimisationBuilder;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
+import org.apache.commons.text.StringEscapeUtils;
 import utils.Box;
 import utils.Bug;
 import utils.Streams;
 import visitors.MIRVisitor;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static magic.MagicImpls.getLiteral;
@@ -21,16 +25,15 @@ import static magic.MagicImpls.getLiteral;
 public class JavaCodegen implements MIRVisitor<String> {
   protected final MIR.Program p;
   protected final Map<MIR.FName, MIR.Fun> funMap;
-  private MagicImpls magic;
+  private JavaMagicImpls magic;
   private HashMap<Id.DecId, String> freshRecords;
   private MIR.Package pkg;
 
   public JavaCodegen(MIR.Program p) {
-    this.magic = new MagicImpls(this,this::getName, p.p());
+    this.magic = new JavaMagicImpls(this,this::getName, p.p());
     this.p = new OptimisationBuilder(this.magic)
       .withBoolIfOptimisation()
       .withBlockOptimisation()
-      .withDevirtualisationOptimisation()
       .run(p);
     this.funMap = p.pkgs().stream().flatMap(pkg->pkg.funs().stream()).collect(Collectors.toMap(MIR.Fun::name, f->f));
   }
@@ -38,7 +41,7 @@ public class JavaCodegen implements MIRVisitor<String> {
   protected static String argsToLList(Mdf addMdf) {
     return """
       FAux.LAUNCH_ARGS = base.LList_1.$self;
-      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$%s$(arg); }
+      for (String arg : args) { FAux.LAUNCH_ARGS = FAux.LAUNCH_ARGS.$43$%s$(rt.Str.fromJavaStr(arg)); }
       """.formatted(addMdf);
   }
 
@@ -55,7 +58,7 @@ public class JavaCodegen implements MIRVisitor<String> {
           System.err.println("Program crashed with: Stack overflowed");
           System.exit(1);
         } catch (Throwable t) {
-          System.err.println("Program crashed with: "+t.getLocalizedMessage());
+          System.err.println("Program crashed with: "+t.getMessage());
           System.exit(1);
         }
       }
@@ -91,9 +94,7 @@ public class JavaCodegen implements MIRVisitor<String> {
     if (pkg.equals("base") && def.name().name().endsWith("Instance")) {
       return "";
     }
-    if (getLiteral(p.p(), def.name()).isPresent()) {
-      return "";
-    }
+    assert getLiteral(p.p(), def.name()).isEmpty();
 
     var longName = getName(def.name());
     var shortName = longName;
@@ -250,6 +251,10 @@ public class JavaCodegen implements MIRVisitor<String> {
   }
 
   @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
+    if (magic.isMagic(Magic.Str, createObj.concreteT().id())) {
+      return visitStringLiteral(createObj);
+    }
+
     var magicImpl = magic.get(createObj);
     if (checkMagic && magicImpl.isPresent()) {
       var res = magicImpl.get().instantiate();
@@ -285,6 +290,34 @@ public class JavaCodegen implements MIRVisitor<String> {
 
     var captures = createObj.captures().stream().map(x->visitX(x, checkMagic)).collect(Collectors.joining(", "));
     return "new "+recordName+"("+captures+")";
+  }
+  public String visitStringLiteral(MIR.CreateObj k) {
+    var id = k.concreteT().id();
+    var javaStr = getLiteral(p.p(), id).map(l->l.substring(1, l.length() - 1)).orElseThrow();
+    var recordName = "str$$"+getBase(javaStr.hashCode()+"")+"$$str";
+    if (!this.freshRecords.containsKey(id)) {
+      // We parse literal \n, unicode escapes as if this was a Java string literal.
+      var utf8 = StringEscapeUtils.unescapeJava(javaStr).getBytes(StandardCharsets.UTF_8);
+      try {
+        NativeRuntime.validateStringOrThrow(utf8);
+      } catch (NativeRuntime.StringEncodingError err) {
+        // TODO: throw a nice Fail...
+        throw Bug.of(err);
+      }
+      var utf8Array = IntStream.range(0, utf8.length).mapToObj(i->Byte.toString(utf8[i])).collect(Collectors.joining(","));
+      var graphemes = Arrays.stream(NativeRuntime.indexString(utf8)).mapToObj(Integer::toString).collect(Collectors.joining(","));
+
+      this.freshRecords.put(id, """
+        final class %s implements rt.Str {
+          public static final rt.Str _self$ = new %s();
+          private static final byte[] UTF8 = new byte[]{%s};
+          private static final int[] GRAPHEMES = new int[]{%s};
+          @Override public byte[] utf8() { return UTF8; }
+          @Override public int[] graphemes() { return GRAPHEMES; }
+        }
+        """.formatted(recordName, recordName, utf8Array, graphemes));
+    }
+    return recordName+"._self$";
   }
 
   @Override public String visitX(MIR.X x, boolean checkMagic) {
@@ -378,13 +411,12 @@ public class JavaCodegen implements MIRVisitor<String> {
     return switch (name.name()) {
       case "base.Int", "base.UInt" -> isRet ? "Long" : "long";
       case "base.Float" -> isRet ? "Double" : "double";
-      case "base.Str" -> "String";
       default -> {
         if (magic.isMagic(Magic.Int, name)) { yield isRet ? "Long" : "long"; }
         if (magic.isMagic(Magic.UInt, name)) { yield isRet ? "Long" : "long"; }
         if (magic.isMagic(Magic.Float, name)) { yield isRet ? "Double" : "double"; }
         if (magic.isMagic(Magic.Float, name)) { yield isRet ? "Double" : "double"; }
-        if (magic.isMagic(Magic.Str, name)) { yield "String"; }
+        if (magic.isMagic(Magic.Str, name)) { yield "rt.Str"; }
         yield getName(name);
       }
     };
@@ -397,11 +429,10 @@ public class JavaCodegen implements MIRVisitor<String> {
     return pkg+"."+getBase(d.shortName())+"_"+d.gen();
   }
   protected String getRelativeName(Id.DecId d) {
-    if (d.pkg().equals(this.pkg)) {
+    if (d.pkg().equals(this.pkg.name())) {
       return getBase(d.shortName());
     }
-    var pkg = getPkgName(d.pkg());
-    return pkg+"."+getBase(d.shortName())+"_"+d.gen();
+    return getName(d);
   }
   protected static String getSafeName(Id.DecId d) {
     var pkg = getPkgName(d.pkg());

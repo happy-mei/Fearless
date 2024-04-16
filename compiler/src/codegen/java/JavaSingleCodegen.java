@@ -23,11 +23,11 @@ import static codegen.MethExprKind.Kind.Delegate;
 public class JavaSingleCodegen implements MIRVisitor<String> {
   protected final MIR.Program p;
   protected final Map<MIR.FName, MIR.Fun> funMap;
-  private final MagicImpls magic;
+  private final JavaMagicImpls magic;
   public final HashMap<Id.DecId, String> freshRecords= new HashMap<>();
   public final StringIds id= new StringIds();
   public JavaSingleCodegen(MIR.Program p) {
-    magic= new MagicImpls(this,t->getTName(t,false), p.p());
+    magic= new JavaMagicImpls(this, t->getTName(t,false), p.p());
     this.p= new OptimisationBuilder(this.magic)
       .withBoolIfOptimisation()
       .withBlockOptimisation()

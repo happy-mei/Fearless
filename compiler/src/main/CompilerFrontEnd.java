@@ -5,11 +5,9 @@ import astFull.Package;
 import codegen.MIRInjectionVisitor;
 import codegen.html.HtmlDocgen;
 import codegen.java.ImmJavaCodegen;
-import codegen.java.ImmJavaProgram;
 import codegen.java.JavaCodegen;
 import codegen.java.JavaCompiler;
 import codegen.java.JavaFile;
-import codegen.java.JavaProgram;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
@@ -34,7 +32,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -75,8 +72,8 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       Files.writeString(dir.resolve("lib.fear"), "package " + name + "\nGreeting:{ .get: Str -> \"Hello, World!\" }\n");
       Files.writeString(dir.resolve("main.fear"), "package " + name + "\n"+"""
         App:Main{ sys -> Block#
-          .var io = {FIO#sys}
-          .var[Str] greeting = {Greeting.get}
+          .let io = {FIO#sys}
+          .let[Str] greeting = {Greeting.get}
           .return {io.println(greeting)}
           }
         """.stripIndent());

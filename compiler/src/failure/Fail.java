@@ -81,7 +81,7 @@ public class Fail{
   public static CompileError explicitThis(){ return of("Local variables may not be named 'this'."); }
 
   public static CompileError cyclicImplRelation(Id.DecId baseClass){
-    return of(String.format("Implements relations must be acyclic. There is a cycle on the class %s.", baseClass));
+    return of(String.format("Implements relations must be acyclic. There is a cycle on the trait %s.", baseClass));
   }
   public static CompileError invalidMdf(T t){return of("The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type "+t);}
   public static CompileError invalidMdf(Id.IT<T> it){return of("The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type "+it);}

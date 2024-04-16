@@ -84,7 +84,7 @@
                     <skip>false</skip>
                     <forkCount>1C</forkCount>
                     <reuseForks>true</reuseForks>
-                    <testFailureIgnore>true</testFailureIgnore>
+                    <testFailureIgnore>false</testFailureIgnore>
                 </configuration>
             </plugin>
             <plugin>

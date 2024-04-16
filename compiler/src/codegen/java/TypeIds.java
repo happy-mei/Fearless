@@ -7,7 +7,7 @@ import codegen.MIR;
 import id.Id;
 import magic.Magic;
 
-record TypeIds(MagicImpls magic,StringIds id){
+record TypeIds(JavaMagicImpls magic, StringIds id){
   public String getTName(MIR.MT t, boolean isRet) {
     var res= switch (t) {
       case MIR.MT.Any ignored -> "Object";

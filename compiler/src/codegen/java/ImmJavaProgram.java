@@ -4,13 +4,17 @@ import main.CompilerFrontEnd;
 import utils.Box;
 import utils.Bug;
 import utils.ResolveResource;
+import utils.DeleteOnExit;
+import utils.IoErr;
 
 import javax.tools.Diagnostic;
 import javax.tools.ToolProvider;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class ImmJavaProgram extends JavaFile {
   public ImmJavaProgram(String code) {
@@ -21,22 +25,16 @@ public class ImmJavaProgram extends JavaFile {
   }
 
   public static Path compile(CompilerFrontEnd.Verbosity verbosity, JavaFile... files) {
-    assert files.length > 0;
     assert Arrays.stream(files).anyMatch(f->f.isNameCompatible(Bug.<String>err(), Kind.SOURCE));
     var compiler = ToolProvider.getSystemJavaCompiler();
     if (compiler == null) {
       throw new RuntimeException("No Java compiler could be found. Please install a JDK >= 10.");
     }
 
-    var workingDir = ResolveResource.freshTmpPath();
-    if (!workingDir.toFile().mkdir()) {
-      throw Bug.of("Could not create a working directory for building the program in: " + workingDir.toAbsolutePath());
-    }
-
+    var workingDir = IoErr.of(()->Files.createTempDirectory("fearOut"));
     if (verbosity.printCodegen()) {
       System.err.println("Java codegen working dir: "+workingDir.toAbsolutePath());
     }
-
     var options = List.of(
       "-d",
       workingDir.toString(),
@@ -45,7 +43,15 @@ public class ImmJavaProgram extends JavaFile {
 
     var errors = new Box<Diagnostic<?>>(null);
 
-    var codegenUnits = Arrays.stream(files);
+    var runtimeFiles = Stream.of(
+      "Str",
+      "ResolveResource",
+      "NativeRuntime",
+      "FearlessError"
+    ).map(name->new JavaFile(name, ResolveResource.getAndRead("/rt/"+name+".java")));
+    var userFiles = Arrays.stream(files);
+    var codegenUnits = Stream.concat(userFiles, runtimeFiles);
+
     boolean success = compiler.getTask(
       null,
       null,
@@ -63,6 +69,10 @@ public class ImmJavaProgram extends JavaFile {
       throw Bug.of("ICE: Java compilation failed:\n"+ diagnostic);
     }
 
+    CopyRuntimeLibs.of(workingDir);
+    if (!verbosity.printCodegen()) {
+      DeleteOnExit.of(workingDir);
+    }
     return workingDir.resolve("FProgram.class");
   }
 }

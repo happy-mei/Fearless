@@ -71,7 +71,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
             yield FlattenStatus.INVALID;
           }
           stmts.offerFirst(new MIR.Block.BlockStmt.If(res.get()));
-        } else if (mCall.name().equals(new Id.MethName(".var", 2))) {
+        } else if (mCall.name().equals(new Id.MethName(".let", 2))) {
           var variable = this.visitReturn(mCall.args().getFirst());
           var continuationCall = this.visitVarContinuation(mCall.args().get(1));
           if (variable.isEmpty() || continuationCall.isEmpty()) { yield FlattenStatus.INVALID; }
@@ -86,7 +86,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
         } else {
           // TODO: .error
           // TODO: .assert
-          // TODO: .varIso
+          // TODO: .letIso
           yield FlattenStatus.INVALID;
         }
         yield flattenBlock(mCall.recv(), stmts, self);

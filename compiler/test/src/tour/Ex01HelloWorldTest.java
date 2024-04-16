@@ -122,7 +122,7 @@ It is like declaring a local variable of type `Void` whose name is never used.
 Since writing `.return{Void}` can get verbose and repetitive, we can just write `.done` instead.
 -------------------------*/@Test void helloWorldBlockDone() { run("""
     Test:Main {sys -> Block#
-      .var io = {UnrestrictedIO#sys}
+      .let io = {UnrestrictedIO#sys}
       .do {io.println("Hello, World!")}
       .done
       }
@@ -133,7 +133,7 @@ that can be useful to map strings into good error messages
 -------------------------*/@Test void blockIf() { run("""
     StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
-      .var res = {s}
+      .let res = {s}
       .if {res#.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")}
       .if {res#.size > 100} .do {Block#
         .let start = {res#.substring(0,48)}
@@ -169,7 +169,7 @@ To clarify the behavior of nested blocks, we show some alternative to that code 
 -------------------------*/@Test void blockNested1() { run("""
     StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
-      .var res = {s}
+      .let res = {s}
       .if {res.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")}
       .if {res.size() > 100} .return {Block#
         .let start = {res#.substring(0,48)}
@@ -183,7 +183,7 @@ In this alternative, we use `.if .. .return` to propagate out the result. Note h
 -------------------------*/@Test void blockNested2() { run("""
     StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
-      .var res = {s}
+      .let res = {s}
       .if {res#.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")}
       .if {res#.size() > 100} .do {Block#
         .let start = {res#.substring(0,48)}
@@ -202,7 +202,7 @@ As always, the best alternative is to avoid nesting and to write
 -------------------------*/@Test void blockNested3() { run("""
     StrToMessage:F[Str,Str]{s->Block#      
       .if {s.isEmpty} .return {"<EmptyString>"}
-      .var res = {s}
+      .let res = {s}
       .if {res#.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")} 
       .if {res#.size() <= 100} .return {res#}
       .let start = {res#.substring(0,48)}
@@ -218,7 +218,7 @@ Block is much more powerful that usual statements, because each individual bit i
 -------------------------*/@Test void blockScoped() { run("""
   Example: F[Str,Str]{s->Block# //bad all mixed
     //part1 //comments used to denote section of code: bad smell
-    .var res = {s}
+    .let res = {s}
     .if {res#.isEmpty} .return {"<EmptyString>"}
     .if {res#.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")}
     .if {res#.size() <= 100} .return {res#}
@@ -230,7 +230,7 @@ Block is much more powerful that usual statements, because each individual bit i
     
   Example:F[Str,Str]{//Better version, with division in parts
     #(s) -> Block#
-      .var res = {s}
+      .let res = {s}
       .let scope = {ExampleParts{.res->res}}
       .part{b->scope.part1(b)}
       .part{b->scope.part2(b)}
