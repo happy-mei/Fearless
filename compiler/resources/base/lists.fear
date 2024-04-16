@@ -1,0 +1,329 @@
+package base
+
+Collection:{
+  read .size: UInt,
+  read .isEmpty: Bool,
+  // I might make this generic and have a .iter method on this
+  // just need to think more about string representations first.
+  }
+
+// Done in the traditional order where adding to the end concatenates an empty list on.
+// Doing the linked list in stack ordering would make getting elements much slower
+LList:{ #[E]: mut LList[E] -> mut LList[E] }
+LList[E]:Collection,Sealed{
+  mut  .match[R](m: mut LListMatch[E, R]): R -> m.empty,
+  read .match[R](m: mut LListMatchRead[read E, R]): R -> m.empty,
+
+  mut  .get(i: UInt): mut Opt[E] -> {},
+  read .get(i: UInt): mut Opt[read E] -> {},
+  imm  .get(i: UInt): iso Opt[imm E] -> {},
+
+  mut  .head: mut Opt[E] -> {},
+  read .head: mut Opt[read E] -> {},
+  imm  .head: iso Opt[imm E] -> {},
+
+  mut  .tail: mut LList[E] -> this,
+  read .tail: read LList[read E] -> this,
+  imm  .tail: LList[imm E] -> this,
+
+  mut  ++(l1: mut LList[E]): mut LList[E] -> l1,
+  read ++(l1: read LList[read E]): read LList[read E] -> l1,
+  imm ++(l1: LList[imm E]): LList[imm E] -> l1,
+
+  mut  +(e: E): mut LList[E] -> this ++ (mut LList[E].pushFront[](e)),
+  read +(e: read E): read LList[read E] -> this ++ (read LList[read E].pushFront[](e)),
+  imm  +(e: imm E): LList[imm E] -> this ++ (LList[imm E].pushFront[](e)),
+
+  mut .iter: mut Iter[E] -> Let#{
+    .var -> Ref#this,
+    .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
+    },
+  imm .iter: mut Iter[imm E] -> Let#{
+    .var -> Ref#this,
+    .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
+    },
+//  imm .iter2: base.iter.par.Iter[imm E] -> _LListParIter#(this),
+  read .iter: mut Iter[read E] -> Let#{
+    .var -> Ref#this,
+    .in(cursor) -> { .next -> (cursor.swap[](cursor*[].tail[])).head[] }
+    },
+
+//  mut  .flow: mut Flow[E] -> Block#
+//    .var cursor = {Ref#this}
+//    .return {Flow.fromOp{ 'self
+//      .step(sink) -> (cursor.swap(cursor*.tail)).head.match{
+//        .some(x) -> sink#x,
+//        .empty -> FlowCtrl.break,
+//        },
+//      }},
+//  read .flow: mut Flow[read E] -> Block#
+//    .var cursor = {Ref#this}
+//    .return {Flow.fromOp{ 'self
+//      .step(sink) -> (cursor.swap(cursor*.tail)).head.match{
+//        .some(x) -> sink#x,
+//        .empty -> FlowCtrl.break,
+//        },
+//      }},
+  mut  .flow: mut Flow[E] -> Block#
+    .var cursor = {Ref#this}
+    .return {Flow.fromMutSource{'op
+      .stop -> cursor := {},
+      .isRunning -> cursor*.isEmpty.not,
+      .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
+        .some(x) -> downstream#x,
+        .empty -> Block#(downstream.stop, op.stop),
+        },
+      }},
+  read .flow: mut Flow[read E] -> Flow.fromOp[read E](this._flowread),
+  read ._flowread: mut FlowOp[read E] -> Block#
+    .var cursor = {Ref#this}
+    .return {mut FlowOp[read E]{'op
+      .stop -> cursor := {},
+      .isRunning -> cursor*.isEmpty.not,
+      .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
+        .some(x) -> downstream#x,
+        .empty -> Block#(downstream.stop, op.stop),
+        },
+      }},
+  imm  .flow: mut Flow[imm E] -> Flow.fromOp[imm E](this._flowimm),
+  imm  ._flowimm: mut FlowOp[imm E] -> Block#
+    .var cursor = {Ref#this}
+    .return {mut FlowOp[imm E]{'op
+      .stop -> cursor := {},
+      .isRunning -> cursor*.isEmpty.not,
+      .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
+        .some(x) -> downstream#x,
+        .empty -> Block#(downstream.stop, op.stop),
+        },
+      }},
+
+  read .isEmpty: Bool -> True,
+  read .size: UInt -> 0u,
+
+  mut .list: mut List[E] -> List.fromLList[E](this),
+
+  mut .pushFront(e: E): mut LList[E] -> Let#{
+    .var -> this.size + 1u,
+    .in(len) -> {'l
+      mut  .match[R](m: mut LListMatch[E, R]): R -> m.elem(e, this),
+      read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
+      imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
+
+      mut  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
+      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#[read E]e, .else -> this.get[](i - 1u) },
+      imm  .get(i: UInt): iso Opt[imm E] -> (i  == 0u) ? { .then -> Opt#[imm E]e, .else -> this.get[](i - 1u) },
+
+      mut  .head: mut Opt[E] -> Opt#e,
+      read .head: mut Opt[read E] -> Opt#[read E]e,
+      imm  .head: iso Opt[imm E] -> Opt#[imm E]e,
+
+      .tail -> this,
+      ++(l1) -> (this ++ l1).pushFront[](e),
+      .isEmpty -> False,
+      .size -> len,
+      }
+    },
+  read .pushFront(e: read E): read LList[read E] -> Let#{
+    .var -> this.size + 1u,
+    .in(len) -> {'l
+      read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
+      imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
+
+      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
+      imm  .get(i: UInt): iso Opt[imm E] -> (i == 0u) ? { .then -> Opt#[imm E]e, .else -> this.get[](i - 1u) },
+
+      read .head: mut Opt[read E] -> Opt#e,
+      imm  .head: iso Opt[imm E] -> Opt#[imm E]e,
+      .tail -> this,
+      ++(l1) -> (this ++ l1).pushFront[](e),
+      .isEmpty -> False,
+      .size -> len,
+      }
+    },
+//  imm  .pushFront(e: E): LList[E] -> Let#{
+//      .var -> this.size + 1u,
+//      .in(len) -> {'l
+//        imm  .match[R](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
+//        read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
+//
+//        imm  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opt#[E]e, .else -> this.get[](i - 1u) },
+//        read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#[read E]e, .else -> this.get[](i - 1u) },
+//
+//        imm  .head: mut Opt[E] -> Opt#e,
+//        read .head: mut Opt[read E] -> Opt#[read E]e,
+//
+//        .tail -> this,
+//        ++(l1) -> (this ++ l1).pushFront[](e),
+//        .isEmpty -> False,
+//        .size -> len,
+//        }
+//      },
+  }
+LListMatch[E,R]:{
+  mut .elem(head: E, tail: mut LList[E]): R,
+  mut .empty: R,
+  }
+LListMatchRead[E,R]:{
+  mut .elem(head: read E, tail: read LList[read E]): R,
+  mut .empty: R,
+  }
+//_LListParIter:{
+//  #[E](l: LList[imm E]): base.iter.par.Iter[imm E] -> {
+//    .cur -> l.head,
+//    .next -> this#(l.tail),
+//    }
+//  }
+
+List:{
+  #[E]: mut List[E] -> _List.new(Ref#(_ListState#[E](0u, {}))),
+  #[E](e1: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e1)),
+  #[E](e1: E, e2: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e2).pushFront(e1)),
+  // TODO: this up to 12 or something
+  #[E](e1: E, e2: E, e3: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e3).pushFront(e2).pushFront(e1)),
+  #[E](e1: E, e2: E, e3: E, e4: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e4).pushFront(e3).pushFront(e2).pushFront(e1)),
+  .fromLList[E](list: mut LList[E]): mut List[E] -> _List.new(Ref#(_ListState#[E](list.size, list))),
+  }
+_List:{
+  .new[E](s: mut Ref[mut _ListState[E]]): mut List[E] -> {'l
+    .size -> s*.size,
+    .isEmpty -> s*.inner.isEmpty,
+    .get(i) -> s*.inner.get(i),
+    .add(e) -> s := (_ListState#[E](s*.size + 1u, s*.inner + e)),
+    }
+  }
+List[E]: Collection,Sealed{
+  mut  .get(i: UInt): mut Opt[E],
+  read .get(i: UInt): mut Opt[read E],
+  imm  .get(i: UInt): iso Opt[imm E],
+  mut .add(e: E): Void,
+  mut .addAll(other: mut List[E]): Void -> other.iter.for{e -> this.add(e)},
+
+  mut .flow: mut Flow[E] -> Block#
+    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .return {Flow.fromMutSource({'self
+      .isRunning -> cursor* < (this.size),
+      .stop -> cursor := (this.size),
+      .step(downstream) -> this.get(cursor++).match{
+        .some(x) -> Block#
+          .do {downstream#x}
+          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+          .return {{}},
+        .empty -> Block#(downstream.stop, self.stop),
+        },
+      }, this.size)},
+  read .flow: mut Flow[read E] -> Flow.fromOp(this._flowread, this.size),
+  read ._flowread: mut FlowOp[read E] -> Block#
+    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .return {{'self
+      .isRunning -> cursor* < (this.size),
+      .stop -> cursor := (this.size),
+      .step(downstream) -> this.get(cursor++).match{
+        .some(x) -> Block#
+          .do {downstream#x}
+          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+          .return {{}},
+        .empty -> Block#(downstream.stop, self.stop),
+        },
+      }},
+  imm .flow: mut Flow[imm E] -> Flow.fromOp(this._flowimm, this.size),
+  imm ._flowimm: mut FlowOp[imm E] -> Block#
+    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .return {{'self
+      .isRunning -> cursor* < (this.size),
+      .stop -> cursor := (this.size),
+      .step(downstream) -> this.get(cursor++).match{
+        .some(x) -> Block#
+          .do {downstream#x}
+          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+          .return {{}},
+        .empty -> Block#(downstream.stop, self.stop),
+        },
+      }},
+//  read .flow: mut Flow[read E] -> Let#{
+//    .var -> Count.uint(0u),
+//    .in(cursor) -> Flow.fromOp({ 'self
+//       .isRunning ->
+//       .step(downstream) -> this.get(cursor++).match{
+//         .some(x) -> sink#x,
+//         .empty -> FlowCtrl.break,
+//         },
+//       mut .forRemaining[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> Block#
+//         .var from = {cursor*}
+//         .do {cursor := 0u}
+//         .return {self.range[R](from, this.size, sink)},
+//       mut .range[R](from: UInt, to: UInt, sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> from >= to ? {
+//         .then -> FlowCtrl.break,
+//         .else -> sink#(this.get(from)!).then{self.range[R](from + 1u, to, sink)}
+//         },
+
+//        mut .stepSeq[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
+//          .some(x) -> sink#x,
+//          .empty -> FlowCtrl.break,
+//          },
+//        mut .forRemainingSeq[R](sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> Block#
+//          .var from = {cursor*}
+//          .do {cursor := 0u}
+//          .return {self.range[R](from, this.size, sink)},
+//        mut .rangeSeq[R](from: UInt, to: UInt, sink: mut FlowSink[read E, R]): mut FlowCtrl[R] -> from >= to ? {
+//          .then -> FlowCtrl.break,
+//          .else -> sink#(this.get(from)!).then{self.rangeSeq[R](from + 1u, to, sink)}
+//          },
+//       }, this.size)
+//    },
+//       mut .stepSeq[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> this.get(cursor++).match{
+//        .some(x) -> sink#x,
+//        .empty -> FlowCtrl.break,
+//        },
+//      mut .forRemainingSeq[R](sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> Block#
+//        .var from = {cursor*}
+//        .do {cursor := 0u}
+//        .return {self.range[R](from, this.size, sink)},
+//      mut .rangeSeq[R](from: UInt, to: UInt, sink: mut FlowSink[imm E, R]): mut FlowCtrl[R] -> from >= to ? {
+//        .then -> FlowCtrl.break,
+//        .else -> sink#(this.get(from)!).then{self.rangeSeq[R](from + 1u, to, sink)}
+//        },
+//       }, this.size)
+//    },
+
+  mut .iter: mut Iter[E] -> Let#{
+    .var -> Count.uint(0u),
+    .in(cursor) -> { .next -> this.get(cursor++) }
+    },
+  read .iter: mut Iter[read E] -> Let#{
+    .var -> Count.uint(0u),
+    .in(cursor) -> { .next -> this.get(cursor++) }
+    },
+  imm .iter: mut Iter[imm E] -> Let#{
+    .var -> Count.uint(0u),
+    .in(cursor) -> { .next -> this.get(cursor++) }
+    },
+//  // TODO: only for testing this, pls ignore this method
+//  imm .iter2: base.iter.par.Iter[E] -> _ListParIter#(this, 0u),
+  }
+_ListParIter:{
+  #[E](l: List[imm E], i: UInt): base.iter.par.Iter[imm E] -> {
+    .cur -> l.get(i),
+    .next -> this#(l, i + 1u),
+    }
+  }
+_ListState[E]:{
+  read .size: UInt,
+  mut .inner: mut LList[E],
+  read .inner: read LList[read E],
+  }
+_ListState:{
+  #[E](len: UInt, inner: mut LList[E]): mut _ListState[E] -> {
+    .size -> len,
+    .inner -> inner
+    }
+  }
+
+/// A list that can be appended to, then iterated over. Elements cannot be removed from this list.
+/// After the list is built, it may no longer be modified. This data structure is equivalent to
+/// Java's SpinedBuffer.
+AppendList[E]: Collection{
+  mut  .get(i: UInt): mut Opt[E],
+  read .get(i: UInt): mut Opt[read E],
+  imm  .get(i: UInt): iso Opt[imm E],
+  mut .append(e: E): Void,
+  }

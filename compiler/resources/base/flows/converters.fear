@@ -1,0 +1,85 @@
+package base.flows
+
+// Prevents any issues arising from someone mutating the thing the flow is going over
+// from within the flow itself. This is prevented by collecting the flow-source into a list and then
+// flowing on that instead.
+_MutSourceCollection[E]: {
+  #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#
+    .var[mut Ref[mut Opt[mut FlowOp[E]]]] cloned = {Ref#[mut Opt[mut FlowOp[E]]]{}}
+    .return{{
+      .isRunning -> this.get(cloned, source).isRunning,
+      .stop -> this.get(cloned, source).stop,
+      .step(downstream) -> this.get(cloned, source).step(downstream),
+      }}),
+  .get(cloned: mut Ref[mut Opt[mut FlowOp[E]]], original: mut FlowOp[E]): mut FlowOp[E] -> cloned.get.match{
+     .some(cloned') -> cloned',
+     .empty -> Block#
+       .var[mut List[E]] dup = {Flow.fromOp(original).list}
+       .do {cloned := (Opt#(Block#[mut FlowOp[E]]
+         .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+         .return {{'self
+           .isRunning -> cursor* < (dup.size),
+           .stop -> cursor := (dup.size),
+           // TODO: also add .forRemaining
+           .step(downstream) -> dup.get(cursor++).match{
+             .some(x) -> downstream#x,
+             .empty -> Block#(downstream.stop, self.stop),
+             },
+           }}))}
+       .return{cloned.get!},
+     },
+  }
+
+_FlowConverters: Sealed{
+  .range(start: Int, end: Int): mut Flow[Int] -> _PipelineParallelFlow.fromOp[Int](this.range'(start, end), Opt#((end - start).uint)),
+  .range'(start: Int, end: Int): mut FlowOp[Int] -> Block#
+    .var cursor = {Count.int(start)}
+    .return {{'self
+      .isRunning -> cursor* < end,
+      .stop -> cursor := end,
+      .step(downstream) -> Block#
+        .do {downstream#(cursor <- {n -> n + 1})}
+        .if {cursor* >= end} .do {Block#(downstream.stop, self.stop)}
+        .return {{}},
+      .forRemaining(downstream) -> Block#
+        .loop {Block#
+          .if {cursor* >= end} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+          .do {downstream#(cursor <- {n -> n + 1})}
+          .return {ControlFlow.continue}
+          }
+        .return {{}},
+      }}
+  }
+
+// Variants of the converter methods that do not clone if is safe to do so. Invoked by magic
+_SafeSource: {
+//  .fromIter[E](iter: mut base.iter.Iter[E]): mut Flow[E] -> Flow.fromOp[E](this.fromIter'[E](iter)),
+//  .fromIter'[E](iter: mut base.iter.Iter[E]): mut FlowOp[E] -> Block#
+//    .var[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+//    .return {{'op
+//      .stop -> isRunning := False,
+//      .isRunning -> isRunning*,
+//      .step(downstream) -> isRunning* ? {
+//        .then -> iter.next.match{
+//          .some(x) -> downstream#x,
+//          .empty -> Block#(downstream.stop, op.stop),
+//          },
+//        .else -> op.stop,
+//        }
+//      }},
+
+  .fromList[E](list: mut List[E]): mut Flow[E] -> Flow.fromOp[E](this.fromList'[E](list), list.size),
+  .fromList'[E](list: mut List[E]): mut FlowOp[E] -> Block#
+    .var[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .return {{'self
+      .isRunning -> cursor* < (list.size),
+      .stop -> cursor := (list.size),
+      .step(downstream) -> list.get(cursor++).match{
+        .some(x) -> Block#
+          .do {downstream#x}
+          .if {cursor.get >= (list.size)} .do {Block#(downstream.stop, self.stop)}
+          .return {{}},
+        .empty -> Block#(downstream.stop, self.stop),
+        },
+      }},
+  }

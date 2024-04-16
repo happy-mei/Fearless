@@ -1,0 +1,21 @@
+package base
+
+Opt:{ #[T: imm](x: T): Opt[T] -> { .match(m) -> m.some(x) } }
+Opt[T: imm]:{
+  .match[R:imm](m: OptMatch[T, R]): R -> m.none,
+  .map[R:imm](f: OptMap[T,R]): Opt[R] -> this.match(f),
+  .do(f: OptDo[T]): Opt[T] -> this.match(f),
+  .flatMap[R:imm](f: OptFlatMap[T, R]): Opt[R] ->this.match(f),
+  ||(alt: T): T -> this.match{ .some(x) -> x, .none -> alt },
+  .isEmpty: Bool -> this.match{ .none -> True, .some(_) -> False },
+  .isSome: Bool -> this.match{ .none -> False, .some(_) -> True },
+  }
+OptMatch[T: imm,R: imm]:{ .some(x:T): R, .none: R }
+OptFlatMap[T: imm,R: imm]:OptMatch[T,Opt[R]]{ .none -> {} }
+OptMap[T:imm,R:imm]:OptMatch[T,Opt[R]]{ #(t:T):R, .some(x) -> Opt#(this#x), .none -> {} }
+OptDo[T:imm]:OptMatch[T,Opt[T]]{
+  #(t:T):Void,   //#[R](t:T):R,
+  .some(x) -> Opt#(this._doRes(this#x, x)),
+  .none->{},
+  ._doRes(y:Void,x:T):T -> x
+  }

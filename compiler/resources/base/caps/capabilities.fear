@@ -1,0 +1,7 @@
+package base.caps
+
+System:Sealed{
+  mut .clone: iso System -> { _System },
+  ._preventCreation: _System,
+  }
+_System:Sealed,System{ _System }

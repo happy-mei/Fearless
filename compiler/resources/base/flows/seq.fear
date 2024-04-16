@@ -1,0 +1,97 @@
+package base.flows
+
+_SeqFlow: {
+  .fromOp[E](source: mut FlowOp[E], size: Opt[UInt]): mut Flow[E] -> {'self
+    // non-terminals
+    .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
+    .map(f) -> this.fromOp(_Map#(_Sink, source, f), size),
+    .flatMap(f) -> this.fromOp(_FlatMap#(_Sink, source, f), {}),
+    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[imm R] ->
+      this.fromOp(_Actor#[S,E,R](_Sink, source, state, f, onComplete), {}),
+    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut Flow[R] ->
+      this.fromOp(_Actor.anyRet[S,E,R](_Sink, source, state, f, onComplete), {}),
+    .limit(n) -> this.fromOp(_Limit#(_Sink, source, n), size),
+
+    // terminals
+    mut .first: mut Opt[E] -> Block#
+      .var[mut Ref[mut Opt[E]]] res = {Ref#mut Opt[E]}
+      .do {source.forRemaining(mut _Sink[E]{'runner
+        .stop -> source.stop,
+        #(e) -> res.get.isEmpty ? {
+          .then -> Block#
+            .do {res := (Opt#e)}
+            .return {runner.stop},
+          .else -> {},
+          },
+        })}
+      .do {source.stop}
+      .return {res.get},
+
+    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
+      .var[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
+      .do {source.forRemaining(mut _Sink[E]{'runner
+        .stop -> source.stop,
+        #(e) -> res.get.isEmpty ? {
+          .then -> f#e.match{
+            .some(e') -> Block#
+              .do{res := (Opt#e')}
+              .return {runner.stop},
+            .empty -> {},
+            },
+          .else -> {},
+          },
+        })}
+      .do {source.stop}
+      .return {res.get},
+
+    .find(p) -> self.findMap{e -> p#e ? {.then -> Opt#e, .else -> {}}},
+    .any(p) -> self
+      .findMap{e -> p#e ? {.then -> Opt#True, .else -> {}}}
+      .isSome,
+    .all(p) -> self
+      .findMap{e -> p#e ? {.then -> {}, .else -> Opt#False}}
+      .isEmpty,
+
+    mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
+      .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
+      .var[mut Ref[S]] acc' = {Ref#acc}
+      .do {source.forRemaining(mut _Sink[E]{
+        .stop -> {},
+        #(e) -> acc' := (f#(acc'.get, e)),
+        })}
+      .do {source.stop}
+      .return {acc'.get},
+    // Seq flows do not split so no combine is needed
+    .fold(acc, f, combine) -> self.fold(acc, f),
+//      .return{self.forRemainingSeq[S] mut _Sink[E, S]{
+//        mut #(e: E): mut ControlFlow[S] -> Block#(acc' := (f#(acc'.get, e)), ControlFlow.continue[S]),
+//        read #(e: E): mut ControlFlow[S] -> Error.str "unreachable",
+//        }.match[S]{
+//          .continue -> acc'.get,
+//          .break -> acc'.get,
+//          .return(_) -> acc'.get,
+//          }},
+
+    .size -> size.match[UInt]{
+      .some(n) -> n,
+      .empty -> self.fold[UInt](0u, {acc, _ -> acc + 1u}),
+      },
+    },
+
+  #[E](e: E): mut Flow[E] -> Block#
+    .var[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
+    .var[mut FlowOp[E]] source = {{ 'self
+      .isRunning -> seq.get.isSome,
+      .stop -> seq := {},
+      .step(downstream) -> seq.swap(mut Opt[E]).match{
+        .some(x) -> downstream#x,
+        .empty -> Block#(downstream.stop, self.stop),
+        },
+      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+        .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
+        .empty -> Block#(downstream.stop, self.stop),
+        },
+      }}
+    .return {this.fromOp(source, Opt#[UInt]1u)},
+//    .return {this.fromOp(source, Opt#1u)},
+  }

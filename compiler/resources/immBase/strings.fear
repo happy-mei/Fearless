@@ -1,0 +1,18 @@
+package base
+
+Str:Sealed{
+  .size: UInt,
+  // Str is not Stringable due to limitations of the Java codegen target
+  .str: Str,
+  +(other: Str): Str,
+  ==(other: readOnly Str): Bool,
+  }
+Stringable:{
+  .str: Str,
+  }
+_StrInstance:Str{
+  .size -> this.size,
+  .str -> this.str,
+  +(other) -> this + other,
+  ==(other) -> this == other,
+  }

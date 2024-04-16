@@ -1,0 +1,16 @@
+package base
+
+Main:{ #(args: LList[Str]): Str }
+Sealed:{}
+Void:{}
+
+Abort:{ ![R:imm]: R -> this! } // can be optimised to just terminate (goes stuck)
+Magic:{ ![R:imm]: R -> this! } // can be optimised to just terminate (goes stuck)
+
+Let:{ #[V:imm,R:imm](l: Let[V, R]): R -> l.in(l.var) }
+Let[V:imm,R:imm]:{ .var: V, .in(v: V): R }
+
+F[R:imm]:{ #: R }
+F[A:imm,R:imm]:{ #(a: A): R }
+F[A:imm,B:imm,R:imm]:{ #(a: A, b: B): R }
+F[A:imm,B:imm,C:imm,R:imm]:{ #(a: A, b: B, c: C): R }
