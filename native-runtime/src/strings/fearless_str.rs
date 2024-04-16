@@ -30,6 +30,8 @@ impl<'a, 'local, 'array_local, 'array> FearlessStr<'a, 'local, 'array_local, 'ar
         std::str::from_utf8_unchecked(raw_str)
     }
     pub fn as_bytes(&'a self) -> &'a [u8] {
+        assert!(!self.array_ref.as_ptr().is_null());
+        
         // Safety:
         // - The JNI guarantees that there is data here with the provided length.
         // - i8 and u8 are safely interchangeable for the bytes here
