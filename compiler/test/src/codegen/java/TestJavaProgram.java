@@ -1329,7 +1329,7 @@ public class TestJavaProgram {
   @Test void codegenCloneMethodBodiesForAbstractMdfOverloadsRead() { ok(new Res(), """
     package test
     alias base.Void as Void, alias base.Main as Main,
-    Ex:Main { _ -> Void }
+    Test: Main { _ -> Void }
     
     OhNo: { #: Void -> Fun#{v -> v} }
     Fun: { #(s: read _Sink[Void, Void]): Void -> s#Void }

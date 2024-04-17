@@ -99,42 +99,43 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   private String castX(MIR.X x){
     return "("+getTName(x.t(),false)+") "+id.varName(x.name());
   }
-  public String visitMeth(
-      MIR.Meth meth, MethExprKind kind,
-      Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
-    
+  public String visitMeth(MIR.Meth meth, MethExprKind kind, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
     var overriddenSig = this.overriddenSig(meth.sig(), leastSpecific);
+
     var toSkip = overriddenSig.isPresent();
     var deleMeth = meth;
-    if (toSkip){ deleMeth = meth.withSig(overriddenSig.get()); }
-    var canSkip = toSkip && kind.kind() == Unreachable;
-    if (canSkip){return visitMeth(meth, Unreachable, Map.of());}
     if (toSkip){
-      var d= new MethExprKind.Delegator(meth.sig(),deleMeth.sig());
+      deleMeth = meth.withSig(overriddenSig.get());
+      var canSkip = kind.kind() == Unreachable;
+      if (canSkip) {
+        return visitMeth(deleMeth, Unreachable, Map.of());
+      }
+      var d = new MethExprKind.Delegator(meth.sig(), deleMeth.sig());
       var delegator = visitMeth(deleMeth, d, Map.of());
       var delegate = visitMeth(meth, Delegate, Map.of());
       return delegator+"\n"+delegate+"\n";
     }
-    var methName = id.getMName(meth.sig().mdf(), meth.sig().name())
-      +(kind.kind() == Delegate ? "$Delegate" : "");
+
+    var nameSuffix = kind.kind() == Delegate ? "$Delegate" : "";
+    var methName = id.getMName(meth.sig().mdf(), meth.sig().name())+nameSuffix;
     var args = seq(meth.sig().xs(),this::typePair,", ");
     var funArgs = Streams.of(
       meth.sig().xs().stream().map(MIR.X::name).map(id::varName),
       meth.capturesSelf() ? Stream.of("this") : Stream.of(),
       meth.captures().stream().map(id::varName).map(x->"this."+x)
-      )
-      .collect(Collectors.joining(", "));
+      ).collect(Collectors.joining(", "));
     var mustCast = meth.fName().isPresent() 
       && this.funMap.get(meth.fName().get()).ret() instanceof MIR.MT.Any
       && !(meth.sig().rt() instanceof MIR.MT.Any);
     var cast = mustCast ? "("+getTName(meth.sig().rt(),true)+")" : "";
 
-    var realBody="return %s %s.%s(%s);".formatted(
-      cast, id.getFullName(meth.origin()),
-      getFName(meth.fName().orElseThrow()), funArgs);
     var realExpr = switch (kind) {
       case MethExprKind.Kind k -> switch (k.kind()) {
-        case RealExpr, Delegate -> realBody;
+        case RealExpr, Delegate -> "return %s %s.%s(%s);".formatted(
+          cast,
+          id.getFullName(meth.origin()),
+          getFName(meth.fName().orElseThrow()),
+          funArgs);
         case Unreachable -> "throw new java.lang.Error(\"Unreachable code\");";
         case Delegator -> throw Bug.unreachable();
       };
