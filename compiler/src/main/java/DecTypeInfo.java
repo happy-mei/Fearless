@@ -71,13 +71,13 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     int i= n.indexOf("/");
     assert i>0;
     String nn=n.substring(0,i);
-    if(!mapGX.values().contains(nn)){
+    if(!mapGX.containsValue(nn)){
       mapGX.put(n,nn); 
       return;        
     }
     int j=1;
     String nj=nn+j;
-    while(mapGX.values().contains(nj)){ j++; nj = nn + j; }
+    while(mapGX.containsValue(nj)){ j++; nj = nn + j; }
     mapGX.put(n,nj); 
   }
   void stringGXDec(GX<T> gx,Map<Id.GX<T>, Set<Mdf>> bounds){
@@ -199,7 +199,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
 
   @Override public Void visitMCall(MCall e) {
     e.receiver().accept(this);
-    e.es().stream().forEach(ei->ei.accept(this));
+    e.es().forEach(ei->ei.accept(this));
     return null;
   }
 

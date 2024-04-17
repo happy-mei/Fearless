@@ -28,6 +28,7 @@ public interface LogicMain<Exe> {
   InputOutput io();
   HashSet<String> cachedPkg();
   CompilerFrontEnd.Verbosity verbosity();
+
   default astFull.Program parse() {
     var cache = load(io().cachedFiles());
     cachedPkg().addAll(cache.keySet());
@@ -70,13 +71,8 @@ public interface LogicMain<Exe> {
   }
   MIR.Program lower(ast.Program program, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls);
   void cachePackageTypes(MIR.Program program);
-
   Exe codeGeneration(MIR.Program program);
-  ProcessBuilder execution(
-    MIR.Program program,
-    Exe exe,
-    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
-  );
+  ProcessBuilder execution(MIR.Program program, Exe exe, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls);
   default ProcessBuilder run(){
     var fullProgram= parse();
     wellFormednessFull(fullProgram);

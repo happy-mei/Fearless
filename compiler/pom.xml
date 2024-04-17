@@ -165,6 +165,9 @@
             <resource>
                 <directory>../artefacts</directory>
             </resource>
+            <resource>
+                <directory>../assets</directory>
+            </resource>
         </resources>
         <testSourceDirectory>test/src</testSourceDirectory>
 <!--        <testResources>-->

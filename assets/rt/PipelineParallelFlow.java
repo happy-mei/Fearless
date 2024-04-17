@@ -1,6 +1,5 @@
-package base;
+package rt;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /*
@@ -32,10 +31,10 @@ public interface PipelineParallelFlow {
 //      System.out.println("SPAWNING SUBJ: "+subjectId);
 //      this.subject = spawn(msg -> {
 //        System.out.println("SUBJ: "+subjectId+", Message received: "+msg);
-//        original.$hash$mut(msg);
+//        original.$35$mut$(msg);
 //      }, () -> {
 //        System.out.println("Stop received (SUBJ "+subjectId+")");
-//        original.stop$mut();
+//        original.stop$mut$();
 //      });
       this.subject = spawn(original::$hash$mut, original::stop$mut);
     }
@@ -50,7 +49,7 @@ public interface PipelineParallelFlow {
           })
           .join();
         if (exception != null) {
-          var message = exception.getLocalizedMessage();
+          var message = exception.getMessage();
           if (exception instanceof StackOverflowError) { message = "Stack overflowed"; }
           throw new RuntimeException(message, exception);
         }
@@ -114,13 +113,13 @@ public interface PipelineParallelFlow {
 //    return new FlowRuntime.Subject<E>(self, self.consume(msg->{
 //      System.out.println("Message received: "+msg);
 //      switch (msg) {
-//        case FlowRuntime.Message.Data<E> data -> subscriber.apply(self, state, downstream, data).match$imm(new base.flows.ActorResMatch_1(){
+//        case FlowRuntime.Message.Data<E> data -> subscriber.apply(self, state, downstream, data).match$imm$(new base.flows.ActorResMatch_1(){
 //          @SuppressWarnings("unchecked")
-//          public Object stop$mut() {
+//          public Object stop$mut$() {
 //            self.submit(FlowRuntime.Message.Stop.INSTANCE);
 //            return null;
 //          }
-//          public Object continue$mut() {
+//          public Object continue$mut$() {
 //            return null;
 //          }
 //        });

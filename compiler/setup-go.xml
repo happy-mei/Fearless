@@ -36,7 +36,7 @@
                         <configuration>
                             <url>https://go.dev/dl/go1.22.0.linux-amd64.tar.gz</url>
                             <unpack>true</unpack>
-                            <outputDirectory>resources/go-compilers/go-linux-amd64</outputDirectory>
+                            <outputDirectory>../assets/go-compilers/go-linux-amd64</outputDirectory>
                             <unpack>true</unpack>
                             <sha256>f6c8a87aa03b92c4b0bf3d558e28ea03006eb29db78917daec5cfb6ec1046265</sha256>
                         </configuration>
@@ -50,7 +50,7 @@
                         <configuration>
                             <url>https://go.dev/dl/go1.22.0.linux-arm64.tar.gz</url>
                             <unpack>true</unpack>
-                            <outputDirectory>resources/go-compilers/go-linux-arm64</outputDirectory>
+                            <outputDirectory>../assets/go-compilers/go-linux-arm64</outputDirectory>
                             <unpack>true</unpack>
                             <sha256>6a63fef0e050146f275bf02a0896badfe77c11b6f05499bb647e7bd613a45a10</sha256>
                         </configuration>
@@ -64,7 +64,7 @@
                         <configuration>
                             <url>https://go.dev/dl/go1.22.0.darwin-amd64.tar.gz</url>
                             <unpack>true</unpack>
-                            <outputDirectory>resources/go-compilers/go-macos-amd64</outputDirectory>
+                            <outputDirectory>../assets/go-compilers/go-macos-amd64</outputDirectory>
                             <unpack>true</unpack>
                             <sha256>ebca81df938d2d1047cc992be6c6c759543cf309d401b86af38a6aed3d4090f4</sha256>
                         </configuration>
@@ -78,7 +78,7 @@
                         <configuration>
                             <url>https://go.dev/dl/go1.22.0.darwin-arm64.tar.gz</url>
                             <unpack>true</unpack>
-                            <outputDirectory>resources/go-compilers/go-macos-arm64</outputDirectory>
+                            <outputDirectory>../assets/go-compilers/go-macos-arm64</outputDirectory>
                             <unpack>true</unpack>
                             <sha256>bf8e388b09134164717cd52d3285a4ab3b68691b80515212da0e9f56f518fb1e</sha256>
                         </configuration>
@@ -92,7 +92,7 @@
                         <configuration>
                             <url>https://go.dev/dl/go1.22.0.windows-amd64.zip</url>
                             <unpack>true</unpack>
-                            <outputDirectory>resources/go-compilers/go-windows-amd64</outputDirectory>
+                            <outputDirectory>../assets/go-compilers/go-windows-amd64</outputDirectory>
                             <unpack>true</unpack>
                             <sha256>78b3158fe3aa358e0b6c9f26ecd338f9a11441e88bc434ae2e9f0ca2b0cc4dd3</sha256>
                         </configuration>
