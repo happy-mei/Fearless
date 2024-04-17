@@ -53,8 +53,8 @@ record ToJavaProgram(LogicMainJava main, MIR.Program program){
       if (main.cachedPkg().contains(pkg.name())){ continue; }
       for (MIR.TypeDef def : pkg.defs().values()) {
         var funs= pkg.funs().stream()
-                .filter(f->f.name().d().equals(def.name()))
-                .toList();
+          .filter(f->f.name().d().equals(def.name()))
+          .toList();
         String typeDefContent= gen.visitTypeDef(pkg.name(), def, funs);
         if(typeDefContent.isEmpty()){ continue; }
         String name= gen.id.getSimpleName(def.name());
