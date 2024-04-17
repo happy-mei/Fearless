@@ -5,6 +5,7 @@ import codegen.MIR;
 import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import failure.Fail;
+import files.Pos;
 import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
@@ -31,9 +32,13 @@ public interface LogicMain<Exe> {
     var cache = load(io().cachedFiles());
     cachedPkg().addAll(cache.keySet());
     var app = load(io().inputFiles());
-    var standardLibOverriden = app.keySet().stream()
-      .filter(s->s.startsWith("base.") || s.equals("base") || s.startsWith("rt.") || s.equals("rt"))
-      .toList();
+    var standardLibOverriden = app.entrySet().stream()
+      .filter(s->s.getKey().startsWith("base.") || s.getKey().equals("base") || s.getKey().startsWith("rt.") || s.getKey().equals("rt"))
+      .flatMap(s->s.getValue().stream()
+        .flatMap(pkg->pkg.ps().stream())
+        .map(path->new Pos(path.toUri(), 0, 0))
+        .map(pos->new Fail.Conflict(pos, s.getKey()))
+      ).toList();
     if (!standardLibOverriden.isEmpty()) {
       throw Fail.specialPackageConflict(standardLibOverriden);
     }
@@ -42,6 +47,7 @@ public interface LogicMain<Exe> {
       packages.putAll(load(io().baseFiles()));
     }
     packages.putAll(cache);//Purposely overriding any app also in cache
+    // TODO: ^ should we show a warning if we do this?
     return Parser.parseAll(packages, new TypeSystemFeatures());
   }
   default void wellFormednessFull(astFull.Program fullProgram){
