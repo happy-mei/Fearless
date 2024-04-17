@@ -7,13 +7,14 @@ import java.lang.reflect.Field;
 
 public class FearlessMain {
   public static void main(String[] args) {
-    Main_0 myMain = null; try {myMain = getMain(args[0]);
+    var entryPoint = args[0];
+    Main_0 myMain = null; try {myMain = getMain(entryPoint);
     } catch (NoSuchFieldException e) {
-      fatal("The provided entry-point '%s' was not a singleton.".formatted(e));
+      fatal("The provided entry-point '%s' was not a singleton.".formatted(entryPoint));
     } catch (ClassNotFoundException e) {
-      fatal("The provided entry-point '%s' does not exist.".formatted(e));
+      fatal("The provided entry-point '%s' does not exist.".formatted(entryPoint));
     } catch (ClassCastException e) {
-      fatal("The provided entry-point '%s' does not implement base.Main/0.".formatted(e));
+      fatal("The provided entry-point '%s' does not implement base.Main/0.".formatted(entryPoint));
     } catch (IllegalAccessException e) {
       throw new RuntimeException(e);
     }
@@ -36,7 +37,7 @@ public class FearlessMain {
   }
   private static LList_1 buildArgList(String[] args, int offset) {
     var res = LList_1.$self;
-    for (int i = offset; i < args.length; ++i) {
+    for (int i = args.length - 1; i >= offset; --i) {
       res = res.pushFront$mut(Str.fromJavaStr(args[i]));
     }
     return res;
@@ -45,5 +46,5 @@ public class FearlessMain {
     System.err.println(message);
     System.exit(1);
   }
-  public static class FAux { static base.LList_1 LAUNCH_ARGS; }
+  public static class FAux { public static base.LList_1 LAUNCH_ARGS; }
 }

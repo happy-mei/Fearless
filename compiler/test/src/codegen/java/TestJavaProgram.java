@@ -340,7 +340,7 @@ public class TestJavaProgram {
 
   static String cliArgsOrElseGet = """
     package test
-    MyApp:Main{ s -> Block#
+    Test :Main{ s -> Block#
       .let io = { FIO#s }
       .let env = { FEnv.io(io) }
       .return{ io.println(ImmMain#(env.launchArgs)) }
@@ -369,7 +369,7 @@ public class TestJavaProgram {
   ), cliArgsOrElseGet, Base.mutBaseAliases); }
   String getCliArgsOrElse = """
     package test
-    MyApp:Main{ s -> Block#
+    Test: Main{ s -> Block#
       .let io = { FIO#s }
       .let env = { FEnv#s }
       .return{ io.println(ImmMain#(env.launchArgs)) }
@@ -619,7 +619,7 @@ public class TestJavaProgram {
     alias base.List as List, alias base.Block as Block,
     alias base.caps.FIO as FIO, alias base.caps.IO as IO,
     
-    IterFind:base.Main{ sys -> Block#
+    Test :base.Main{ sys -> Block#
         .let l1 = { List#[Int](35, 52, 84, 14) }
         .assert{l1.iter
           .map{n -> n * 10}
@@ -641,8 +641,8 @@ public class TestJavaProgram {
     alias base.List as List, alias base.Block as Block,
     alias base.caps.FIO as FIO, alias base.caps.IO as IO,
     alias base.flows.Flow as Flow,
-        
-    IterFind:base.Main{ sys -> Block#
+    
+    Test: base.Main{ sys -> Block#
         .let l1 = { List#[Int](35, 52, 84, 14) }
         .assert{l1.iter
           .map{n -> n * 10}
@@ -1318,7 +1318,7 @@ public class TestJavaProgram {
       .name: Str -> name,
       .age: UInt -> age,
       }}
-    Ex:Main{
+    Test: Main{
       #(sys) -> FIO#sys.println(this.name(this.create)),
     
       .create: Person -> FPerson#("Bob", 24u),
@@ -1342,7 +1342,7 @@ public class TestJavaProgram {
   @Test void codegenCloneMethodBodiesForAbstractMdfOverloadsMut() { ok(new Res(), """
     package test
     alias base.Void as Void, alias base.Main as Main,
-    Ex:Main { _ -> Void }
+    Test:Main { _ -> Void }
     
     OhNo: { #: Void -> Fun#{v -> v} }
     Fun: { #(s: mut _Sink[Void, Void]): Void -> s#Void }
