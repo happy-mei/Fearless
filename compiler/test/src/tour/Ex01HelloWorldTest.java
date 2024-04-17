@@ -1,9 +1,8 @@
 package tour;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import static tour.TourHelper.*;
+import static tour.TourHelper.run;
 public class Ex01HelloWorldTest {
 /*
 # A tour of Fearless standard library
@@ -86,8 +85,7 @@ is quite verbose.
 We do not expect this code to be very common in Fearless.
 If someone is printing just because they want a debugging printout, the can use
 -------------------------*/@Test void helloWorldDebug() { run("""
-    package test
-    Test:Main {sys -> Debug#("Hello, World!")}
+    Test:Main {sys -> Block#(base.Debug#("Hello, World!"))}
     //prints Hello, World!
     """); }/*--------------------------------------------
 

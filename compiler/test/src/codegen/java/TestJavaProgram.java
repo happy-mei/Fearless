@@ -1263,25 +1263,6 @@ public class TestJavaProgram {
         }
       }
     """, Base.mutBaseAliases);}
-  @Disabled // TODO: cannot wrap this because try can't capture System right now
-  @Test void emptyOptErrWrapped() { ok(new Res("", """
-    Exception in thread "main" FearlessError
-    	at FProgram$base$Error_0.str$imm(FProgram.java:[###])
-    	at FProgram$base$Opt_1$2.empty$mut(FProgram.java:[###])
-    	at FProgram$base$Opt_1.match$imm(FProgram.java:[###])
-    	at FProgram$base$Opt_1.$33$imm(FProgram.java:[###])
-    	at FProgram$test$Test_0.$hash$imm(FProgram.java:[###])
-    	at FProgram.main(FProgram.java:[###])""", 1), """
-    package test
-    SMain:Main{
-      #(s) -> Try#[Void]{this.realMain(s)}.resMatch{
-        .ok(void) -> void,
-        .err(info) -> FIO#s.printlnErr(info.str)
-        },
-      .realMain(s: mut System): Void,
-      }
-    Test:SMain{s -> Block#(Opt[Str]!) }
-    """, Base.mutBaseAliases);}
 
   @Test void optWithExtensionMethodOrElse() { ok(new Res(), """
     package test

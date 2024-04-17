@@ -22,10 +22,10 @@ public class TourHelper {
 
   public static void run(String content){
     var last= lastLine(content);
-    var aliases = Base.mutBaseAliases;
+    var aliases = "package test\n";
     if (!content.startsWith("package")){
       content = "package test\n" + content;
-      aliases = "package test\n";
+      aliases = Base.mutBaseAliases;
     }
     String expectedPrint= "";
     if (last.startsWith("//prints ")){
@@ -36,7 +36,7 @@ public class TourHelper {
     }
     /*ok(new Res(expectedPrint,"",0), "test.Test",
       content, Base.mutBaseAliases);*/
-    runCode(List.of(content),expectedPrint);
+    runCode(List.of(content, aliases),expectedPrint);
     //TODO: add case for errs?
   }
   static void checker(Process p,String expectedIO){
