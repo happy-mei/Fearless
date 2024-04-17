@@ -37,7 +37,7 @@ public class FearlessMain {
   }
   private static LList_1 buildArgList(String[] args, int offset) {
     var res = LList_1.$self;
-    for (int i = args.length - 1; i >= offset; --i) {
+    for (int i = args.length - 1; i > offset; --i) {
       res = res.pushFront$imm(Str.fromJavaStr(args[i]));
     }
     return res;
