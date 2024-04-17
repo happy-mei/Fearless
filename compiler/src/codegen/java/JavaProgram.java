@@ -9,6 +9,7 @@ import java.util.List;
 
 import codegen.MIR;
 import main.java.LogicMainJava;
+import utils.DeleteOnExit;
 import utils.IoErr;
 import utils.ResolveResource;
 
@@ -23,9 +24,8 @@ public record JavaProgram(List<JavaFile> files){
   //Just to help testing
   public void writeJavaFiles(Path output){IoErr.of(()->_writeJavaFiles(output));}
   private void _writeJavaFiles(Path output) throws IOException{
-    ResolveResource.deleteOldFiles(output);
+    DeleteOnExit.of(output);
     for(var fi:files) {
-      var pi= Path.of(fi.toUri());
       var line1 = fi.code().lines().limit(1).findFirst().orElseThrow();
       var pkgName = line1
               .substring("package ".length(), line1.length() - 1)

@@ -10,7 +10,7 @@ import java.nio.file.StandardCopyOption;
 
 public interface CopyRuntimeLibs {
 	static void of(Path workingDir) {
-		var resourceLibPath = ResolveResource.of("/rt/libnative");
+		var resourceLibPath = ResolveResource.artefact("/rt/libnative");
 		try(var tree = IoErr.of(()-> Files.walk(resourceLibPath))) {
 			tree.forEach(ThrowingConsumer.of(p->{
 				var dest = workingDir.resolve(Path.of("rt", "libnative")).resolve(p.getFileName());

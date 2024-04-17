@@ -17,7 +17,7 @@ public final class NativeRuntime {
       default -> throw new IllegalStateException("Unsupported architecture: "+System.getProperty(arch));
     };
     var libName = System.mapLibraryName("native_rt");
-    var resourceLibPath = ResolveResource.of("/rt/libnative/"+arch+"-"+libName);
+    var resourceLibPath = ResolveResource.artefact("/rt/libnative/"+arch+"-"+libName);
     // This is a little sad but Windows, Mac, and Linux all will refuse to dynamically link to a file that does not
     // exist in the "real" filesystem. So, we need to copy our library to load it into memory.
     try {

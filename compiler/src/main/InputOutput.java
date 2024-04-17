@@ -49,8 +49,8 @@ public interface InputOutput{
     return new FieldsInputOutput(
             entry,
             commandLineArguments,
-            ResolveResource.of("/base"),
-            ResolveResource.of("/rt"),
+            ResolveResource.asset("/base"),
+            ResolveResource.asset("/rt"),
             inputFiles,
             output,
             output,
@@ -70,8 +70,8 @@ public interface InputOutput{
     return new FieldsInputOutput(
             entry,
             commandLineArguments,
-            ResolveResource.of("/base"),
-            ResolveResource.of("/rt"),
+            ResolveResource.asset("/base"),
+            ResolveResource.asset("/rt"),
             inputFiles,
             output,
             cachedBase,//ResolveResource.of("/cachedBase"),
@@ -91,8 +91,8 @@ public interface InputOutput{
     return new FieldsInputOutput(
             entry,
             commandLineArguments,
-            ResolveResource.of("/immBase"),
-            ResolveResource.of("/immRt"),
+            ResolveResource.asset("/immBase"),
+            ResolveResource.asset("/immRt"),
             inputFiles,
             output,
             cachedBase,//ResolveResource.of("/cachedImmBase"),
@@ -103,12 +103,12 @@ public interface InputOutput{
   static InputOutput programmaticAuto(List<String> files){
     return programmatic("test.Test", List.of(),files,
             ResolveResource.freshTmpPath(),
-            ResolveResource.of("/cachedBase"));
+            ResolveResource.artefact("/cachedBase"));
   }
   static InputOutput programmaticAuto(List<String> files, List<String> args){
     return programmatic("test.Test", args, files,
         ResolveResource.freshTmpPath(),
-        ResolveResource.of("/cachedBase"));
+        ResolveResource.artefact("/cachedBase"));
   }
 }
 class InputOutputHelper{

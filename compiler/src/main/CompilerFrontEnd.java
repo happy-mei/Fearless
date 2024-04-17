@@ -94,9 +94,9 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     Path root = Path.of("docs");
     try { Files.createDirectory(root); } catch (FileAlreadyExistsException ignored) {}
     Files.writeString(root.resolve(docs.fileName()), docs.index());
-    var styleCss = ResolveResource.getAndRead("/style.css");
+    var styleCss = ResolveResource.getAndReadAsset("/style.css");
     Files.writeString(root.resolve("style.css"), styleCss);
-    var highlightingJs = ResolveResource.getAndRead("/highlighting.js");
+    var highlightingJs = ResolveResource.getAndReadAsset("/highlighting.js");
     Files.writeString(root.resolve("highlighting.js"), highlightingJs);
     for (var pkg : docs.docs()) {
       var links = pkg.links();
@@ -210,7 +210,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       case Std -> "/default-aliases.fear";
       case Imm -> "/default-imm-aliases.fear";
     };
-    return ResolveResource.getAndRead(path);
+    return ResolveResource.getAndReadAsset(path);
   }
 
 
@@ -220,12 +220,12 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       switch (bv) {
         case Std -> {
           var res = baseLib.get();
-          if (res == null) { res = load(ResolveResource.of("/base")); baseLib.set(res); }
+          if (res == null) { res = load(ResolveResource.asset("/base")); baseLib.set(res); }
           yield res;
         }
         case Imm -> {
           var res = immBaseLib.get();
-          if (res == null) { res = load(ResolveResource.of("/immBase")); immBaseLib.set(res); }
+          if (res == null) { res = load(ResolveResource.asset("/immBase")); immBaseLib.set(res); }
           yield res;
         }
       };

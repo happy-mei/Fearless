@@ -11,7 +11,6 @@ import javax.tools.Diagnostic;
 import javax.tools.ToolProvider;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -48,7 +47,7 @@ public class ImmJavaProgram extends JavaFile {
       "ResolveResource",
       "NativeRuntime",
       "FearlessError"
-    ).map(name->new JavaFile(name, ResolveResource.getAndRead("/rt/"+name+".java")));
+    ).map(name->new JavaFile(name, ResolveResource.getAndReadAsset("/rt/"+name+".java")));
     var userFiles = Arrays.stream(files);
     var codegenUnits = Stream.concat(userFiles, runtimeFiles);
 

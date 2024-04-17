@@ -1,2 +1,8 @@
 !rt/libnative/*.so
 !rt/libnative/*.dylib
+
+cachedBase/*
+!cachedBase/.gitkeep
+
+tempFiles/*
+!tempFiles/.gitkeep

@@ -7,16 +7,11 @@ import utils.ResolveResource;
 import utils.DeleteOnExit;
 import utils.IoErr;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Stream;
@@ -35,7 +30,7 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
 		}
 		record Runtime(String name) implements Unit {
 			@Override public String src() {
-				return ResolveResource.getAndRead("/rt/" +name);
+				return ResolveResource.getAndReadAsset("/rt/" +name);
 			}
 		}
 	}
@@ -52,7 +47,7 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
 		for (var unit : this.units()) { unit.write(workingDir); }
 		for (var unit : this.rt()) { unit.write(workingDir); }
 
-		var compilerPath = ResolveResource.of(GoVersion.path());
+		var compilerPath = ResolveResource.asset(GoVersion.path());
 		var canExecute = compilerPath.toFile().setExecutable(true);
 		if (!canExecute) {
 			System.err.println("Warning: Could not make the Go compiler executable");
@@ -75,7 +70,7 @@ public record GoCompiler(Unit entry, List<? extends Unit> rt, List<? extends Uni
 	}
 
 	Process goProcess(Path workingDir, String[] args) {
-		var compiler = ResolveResource.of(GoVersion.path());
+		var compiler = ResolveResource.asset(GoVersion.path());
 		String[] command = Stream.concat(Stream.of(compiler.toString()), Arrays.stream(args)).toArray(String[]::new);
 		var pb = new ProcessBuilder(command).directory(workingDir.toFile());
 		var inheritIO = verbosity.progress() == CompilerFrontEnd.ProgressVerbosity.Full;

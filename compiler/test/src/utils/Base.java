@@ -20,7 +20,7 @@ public interface Base {
   }
 
   static String load(String file) {
-    return ResolveResource.getAndRead("/base/"+file);
+    return ResolveResource.getAndReadAsset("/base/"+file);
   }
   static String read(Path path) {
     return IoErr.of(()->Files.readString(path, StandardCharsets.UTF_8));
@@ -28,7 +28,7 @@ public interface Base {
 
   static String[] readAll(String prefix) {
     return IoErr.of(()->{
-      var root = ResolveResource.of(prefix);
+      var root = ResolveResource.asset(prefix);
       try(var fs = Files.walk(root)) {
         return fs
           .filter(Files::isRegularFile)
