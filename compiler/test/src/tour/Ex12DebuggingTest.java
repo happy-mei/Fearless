@@ -7,18 +7,18 @@ import utils.RunOutput;
 import static codegen.java.RunJavaProgramTests.ok;
 
 public class Ex12DebuggingTest {
-  @Test void debugPrintNumber() { ok(new RunOutput.Res("30", "", 0), "test.Test", """
+  @Test void debugPrintNumber() { ok(new RunOutput.Res("30", "", 0), """
     package test
     alias base.Debug as Debug,
     Test:Main {sys -> Block#(Debug#30)}
     """, Base.mutBaseAliases);}
-  @Test void debugPrintStringable() { ok(new RunOutput.Res("hi!", "", 0), "test.Test", """
+  @Test void debugPrintStringable() { ok(new RunOutput.Res("hi!", "", 0), """
     package test
     alias base.Debug as Debug,
     Test:Main {sys -> Block#(Debug#(Foo))}
     Foo: {read .str: Str -> "hi!"}
     """, Base.mutBaseAliases);}
-  @Test void debugPrintNonStringable() { ok(new RunOutput.Res("test$Foo_0Impl[]", "", 0), "test.Test", """
+  @Test void debugPrintNonStringable() { ok(new RunOutput.Res("test$Foo_0Impl[]", "", 0), """
     package test
     alias base.Debug as Debug,
     Test:Main {sys -> Block#(Debug#(Foo))}

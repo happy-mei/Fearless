@@ -1,8 +1,8 @@
 package codegen.java;
 
-import rt.ThrowingConsumer;
 import utils.IoErr;
 import utils.ResolveResource;
+import utils.ThrowingConsumer;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

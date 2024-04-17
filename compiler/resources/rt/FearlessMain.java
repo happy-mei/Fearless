@@ -1,32 +1,49 @@
 package base;
 
+import base.caps._System_0;
+import rt.Str;
+
 import java.lang.reflect.Field;
-import java.util.List;
+
 public class FearlessMain {
   public static void main(String[] args) {
-    try {_main(args);}
-    catch(Throwable t) { t.printStackTrace(System.out); }
-    //TODO: somehow now the system hides all exceptions
-   /*try {_main(args);}
-      //System.out.println(entry.$hash$imm(FAux.LAUNCH_ARGS));
-    catch (StackOverflowError e) {
-      System.err.println(
-        "Program crashed with Stack overflow");
-      System.exit(1);
+    Main_0 myMain = null; try {myMain = getMain(args[0]);
+    } catch (NoSuchFieldException e) {
+      fatal("The provided entry-point '%s' was not a singleton.".formatted(e));
+    } catch (ClassNotFoundException e) {
+      fatal("The provided entry-point '%s' does not exist.".formatted(e));
+    } catch (ClassCastException e) {
+      fatal("The provided entry-point '%s' does not implement base.Main/0.".formatted(e));
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+    assert myMain != null;
+
+    FAux.LAUNCH_ARGS = buildArgList(args, 1);
+    try {
+      myMain.$hash$imm(_System_0.$self);
+    } catch (StackOverflowError e) {
+      fatal("Program crashed with Stack overflow");
     }
     catch (Throwable t) {
-      System.err.println(
-        "Program crashed with: "+t.getLocalizedMessage());
-      System.exit(1);
-    }*/
+      fatal("Program crashed with: "+t.getMessage());
+    }
   }
-  public static void _main(String[] args) throws NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalArgumentException, IllegalAccessException {
-    //System.out.println("Command is \n"+List.of(args));
-    String mainName= args[0];
-    Class<?> clazz= Class.forName(mainName+"_0Impl");
-    //TODO: what about generic mains?
-    Field f= clazz.getField("$self");
-    var myMain=(base.Main_0)f.get(null);
-    myMain.$hash$imm(base.caps._System_0.$self);
+  public static Main_0 getMain(String mainName) throws NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalArgumentException, IllegalAccessException, ClassCastException {
+    Class<?> clazz = Class.forName(mainName+"_0Impl");
+    Field f = clazz.getField("$self");
+    return (Main_0) f.get(null);
   }
+  private static LList_1 buildArgList(String[] args, int offset) {
+    var res = LList_1.$self;
+    for (int i = offset; i < args.length; ++i) {
+      res = res.pushFront$mut(Str.fromJavaStr(args[i]));
+    }
+    return res;
+  }
+  private static void fatal(String message) {
+    System.err.println(message);
+    System.exit(1);
+  }
+  public static class FAux { static base.LList_1 LAUNCH_ARGS; }
 }

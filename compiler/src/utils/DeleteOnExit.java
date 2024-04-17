@@ -1,7 +1,5 @@
 package utils;
 
-import rt.ThrowingConsumer;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;

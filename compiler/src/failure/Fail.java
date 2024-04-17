@@ -348,7 +348,8 @@ enum ErrorCode {
   invalidLambdaNameMdfBounds,
   mismatchedMethodGens,
   syntaxError,
-  specialPackageConflict;
+  specialPackageConflict,
+  reservedPackageName;
   private static final ErrorCode[] values = values();
   int code() {
     return this.ordinal() + 1;

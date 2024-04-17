@@ -1,11 +1,13 @@
 package rt;
 
-import userCode.FProgram;
+import base.False_0;
+import base.True_0;
+import base._StrHelpers_0;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public interface Str extends FProgram.base.Str_0 {
+public interface Str extends base.Str_0 {
 	byte[] utf8();
 	int[] graphemes();
 
@@ -28,13 +30,13 @@ public interface Str extends FProgram.base.Str_0 {
 		};
 	}
 
-	@Override default Str str$read$() {
+	@Override default Str str$read() {
 		return this;
 	}
-	@Override default FProgram.base.Bool_0 $61$61$readOnly$(Str other$) {
-		return Arrays.equals(this.utf8(), other$.utf8()) ? FProgram.base.True_0._$self : FProgram.base.False_0._$self;
+	@Override default base.Bool_0 $equals$equals$readOnly(Str other$) {
+		return Arrays.equals(this.utf8(), other$.utf8()) ? True_0.$self : False_0.$self;
 	}
-	@Override default Str $43$readOnly$(Str other$) {
+	@Override default Str $plus$readOnly(Str other$) {
 		var a = this.utf8();
 		var b = other$.utf8();
 		var res = new byte[a.length + b.length];
@@ -42,16 +44,16 @@ public interface Str extends FProgram.base.Str_0 {
 		System.arraycopy(b, 0, res, a.length, b.length);
 		return fromTrustedUtf8(res);
 	}
-	@Override default Long size$readOnly$() {
+	@Override default Long size$readOnly() {
 		return (long) this.graphemes().length;
 	}
-	@Override default FProgram.base.Void_0 assertEq$readOnly$(Str other$) {
-		return FProgram.base.$95StrHelpers_0._$self.assertEq$imm$(this, other$);
+	@Override default base.Void_0 assertEq$readOnly(Str other$) {
+		return _StrHelpers_0.$self.assertEq$imm(this, other$);
 	}
-	@Override default FProgram.base.Bool_0 isEmpty$readOnly$() {
-		return this.utf8().length == 0 ? FProgram.base.True_0._$self : FProgram.base.False_0._$self;
+	@Override default base.Bool_0 isEmpty$readOnly() {
+		return this.utf8().length == 0 ? True_0.$self : False_0.$self;
 	}
-	@Override default Str toImm$readOnly$() {
-		return this.str$read$();
+	@Override default Str toImm$readOnly() {
+		return this.str$read();
 	}
 }

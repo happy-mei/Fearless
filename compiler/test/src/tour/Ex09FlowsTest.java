@@ -17,7 +17,7 @@ import static codegen.java.RunJavaProgramTests.*;
  */
 
 public class Ex09FlowsTest {
-  @Test void flowSumStr() { ok(new Res("30", "", 0), "test.Test", """
+  @Test void flowSumStr() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
@@ -25,7 +25,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void immFlowSumStr() { ok(new Res("30", "", 0), "test.Test", """
+  @Test void immFlowSumStr() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       As[imm List[Int]]#(List#[Int](5, 10, 15)).flow
@@ -33,7 +33,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowFilterSumStr() { ok(new Res("25", "", 0), "test.Test", """
+  @Test void flowFilterSumStr() { ok(new Res("25", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
@@ -43,7 +43,7 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases); }
   @Disabled
-  @Test void flowSumAssert() { ok(new Res(), "test.Test", """
+  @Test void flowSumAssert() { ok(new Res(), """
     package test
     // We cannot have Assert.eq without a magic equality (HasEq)
     // and magic toString (which would help us provide a better error message)
@@ -52,7 +52,7 @@ public class Ex09FlowsTest {
       30
       )}
     """, Base.mutBaseAliases);}
-  @Test void flowSumAssertNoEq() { ok(new Res(), "test.Test", """
+  @Test void flowSumAssertNoEq() { ok(new Res(), """
     package test
     // We cannot have Assert.eq without a magic equality and magic toString (which would help us provide a better
     // error message)
@@ -62,7 +62,7 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases);}
 
-  @Test void flowMap() { ok(new Res("300", "", 0), "test.Test", """
+  @Test void flowMap() { ok(new Res("300", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
@@ -71,7 +71,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowMapWithListConstructor() { ok(new Res("300", "", 0), "test.Test", """
+  @Test void flowMapWithListConstructor() { ok(new Res("300", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       List#[Int](5, 10, 15).flow
@@ -81,7 +81,7 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases); }
 
-  @Test void flowFlatMap() { ok(new Res("50, 50, 100, 100, 150", "", 0), "test.Test", """
+  @Test void flowFlatMap() { ok(new Res("50, 50, 100, 100, 150", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
@@ -92,7 +92,7 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases); }
 
-  @Test void flowGetFirst() { ok(new Res("100", "", 0), "test.Test", """
+  @Test void flowGetFirst() { ok(new Res("100", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
@@ -103,7 +103,7 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases); }
 
-  @Test void flowGetFirstDifferentApproaches() { ok(new Res("", "", 0), "test.Test", """
+  @Test void flowGetFirstDifferentApproaches() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> Block#
       .assert({Trick.find == (Trick.findAndLimit)}, "find == findAndLimit ("+(Trick.find.str)+" == "+(Trick.findAndLimit.str)+")")
@@ -136,7 +136,7 @@ public class Ex09FlowsTest {
         .match{.some(n) -> n, .empty -> Error.msg ".firstAndLimit was empty"},
       }
     """, Base.mutBaseAliases); }
-  @Test void flowGetFirstDifferentApproachesSeq() { ok(new Res("", "", 0), "test.Test", """
+  @Test void flowGetFirstDifferentApproachesSeq() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> Block#
       .assert({Trick.find == (Trick.findAndLimit)}, "find == findAndLimit ("+(Trick.find.str)+" == "+(Trick.findAndLimit.str)+")")
@@ -177,7 +177,7 @@ public class Ex09FlowsTest {
       }}
     """, Base.mutBaseAliases); }
 
-  @Test void optFlow() { ok(new Res(), "test.Test", """
+  @Test void optFlow() { ok(new Res(), """
     package test
     Test:Main {sys -> Block#
       .let f1 = {(Opt#[Int]5).flow
@@ -194,7 +194,7 @@ public class Ex09FlowsTest {
       }
     """, Base.mutBaseAliases); }
 
-  @Test void flowLimit0() { ok(new Res("0", "", 0), "test.Test", """
+  @Test void flowLimit0() { ok(new Res("0", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
@@ -203,7 +203,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowLimit1() { ok(new Res("5", "", 0), "test.Test", """
+  @Test void flowLimit1() { ok(new Res("5", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
@@ -212,7 +212,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowLimit2() { ok(new Res("15", "", 0), "test.Test", """
+  @Test void flowLimit2() { ok(new Res("15", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
@@ -221,7 +221,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowLimit2List() { ok(new Res("15", "", 0), "test.Test", """
+  @Test void flowLimit2List() { ok(new Res("15", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       List#[Int](5, 10, 15).flow
@@ -230,7 +230,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowLimit3() { ok(new Res("30", "", 0), "test.Test", """
+  @Test void flowLimit3() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
@@ -239,7 +239,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowLimit3List() { ok(new Res("30", "", 0), "test.Test", """
+  @Test void flowLimit3List() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       List#[Int](5, 10, 15).flow
@@ -248,7 +248,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowLimit4() { ok(new Res("30", "", 0), "test.Test", """
+  @Test void flowLimit4() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](5, 10, 15)
@@ -260,21 +260,21 @@ public class Ex09FlowsTest {
 
   // Attempting to do a terminal operation on an infinite flow is always an exception.
   // The flow must be bounded by an intermediate operation before a terminal operation can be performed.
-  @Test void flowFilter() { ok(new Res(), "test.Test", """
+  @Test void flowFilter() { ok(new Res(), """
     package test
     Test:Main {sys -> Assert!(
       Flow#[Int](5, 10, 15).filter{n -> n > 5}.size
       == 2u
       )}
     """, Base.mutBaseAliases);}
-  @Test void flowFilterPrintSize() { ok(new Res("2", "", 0), "test.Test", """
+  @Test void flowFilterPrintSize() { ok(new Res("2", "", 0), """
     package test
     Test:Main {sys -> Block#
       .let size = {Flow#[Int](5, 10, 15).filter{n -> n > 5}.size}
       .return {FIO#sys.println(size.str)}
       }
     """, Base.mutBaseAliases);}
-  @Test void flowFilterMap() { ok(new Res(), "test.Test", """
+  @Test void flowFilterMap() { ok(new Res(), """
     package test
     Test:Main {sys -> Assert!(
       Flow#[Int](5, 10, 15)
@@ -284,7 +284,7 @@ public class Ex09FlowsTest {
       == 150
       )}
     """, Base.mutBaseAliases);}
-  @Test void flowFilterMapIntEq1() { ok(new Res(), "test.Test", """
+  @Test void flowFilterMapIntEq1() { ok(new Res(), """
     package test
     Test:Main {sys -> 150.assertEq("max assert failed",
       Flow#[Int](5, 10, 15)
@@ -294,7 +294,7 @@ public class Ex09FlowsTest {
       )}
     """, Base.mutBaseAliases);}
   // We prefer flowFilterMapIntEq1 because it is more clear that this test is of an assertion rather than of a flow.
-  @Test void flowFilterMapIntEq2() { ok(new Res(), "test.Test", """
+  @Test void flowFilterMapIntEq2() { ok(new Res(), """
     package test
     Test:Main {sys -> Flow#[Int](5, 10, 15)
       .filter{n -> n > 5}
@@ -304,7 +304,7 @@ public class Ex09FlowsTest {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void flowDuplicate() { ok(new Res("35 40 45", "", 0), "test.Test", """
+  @Test void flowDuplicate() { ok(new Res("35 40 45", "", 0), """
     package test
     Test:Main {sys -> Flow#[Int](5, 10, 15)
       .duplicate f2 = {f1 -> f1#(Flow.sum)}
@@ -314,7 +314,7 @@ public class Ex09FlowsTest {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void mutExtensionMethod() { ok(new Res("20 30", "", 0), "test.Test", """
+  @Test void mutExtensionMethod() { ok(new Res("20 30", "", 0), """
     package test
     Test:Main {sys -> Block#
       .let[List[Int]] list = {List#[Int](1, 2, 3)}
@@ -328,7 +328,7 @@ public class Ex09FlowsTest {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void flowActor() { ok(new Res("31", "", 0), "test.Test", """
+  @Test void flowActor() { ok(new Res("31", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](5, 10, 15)
@@ -344,7 +344,7 @@ public class Ex09FlowsTest {
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
-  @Disabled @Test void flowActorMutRet() { ok(new Res("31", "", 0), "test.Test", """
+  @Disabled @Test void flowActorMutRet() { ok(new Res("31", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](5, 10, 15)
@@ -365,7 +365,7 @@ public class Ex09FlowsTest {
   // This is because the limit runs in parallel with the actor, the actor won't submit any messages incorrectly
   // but it may run needlessly :(
   // This is because the STOP message is queued behind any prior messages.
-  @Test void limitedFlowActorAfter() { ok(new Res("6", "", 0), "test.Test", """
+  @Test void limitedFlowActorAfter() { ok(new Res("6", "", 0), """
     package test
     Test:Main {sys -> "42 5".assertEq(
       Flow#[Int](5, 10, 15)
@@ -380,7 +380,7 @@ public class Ex09FlowsTest {
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
-  @Test void limitedFlowActorBefore() { ok(new Res("16", "", 0), "test.Test", """
+  @Test void limitedFlowActorBefore() { ok(new Res("16", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10".assertEq(
       Flow#[Int](5, 10, 15)
@@ -395,7 +395,7 @@ public class Ex09FlowsTest {
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
-  @Test void flowActorNoConsumer() { ok(new Res(), "test.Test", """
+  @Test void flowActorNoConsumer() { ok(new Res(), """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](5, 10, 15)
@@ -411,7 +411,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases);}
 
   // We have this as a specialisation of .actor
-  @Test void flowScan() { ok(new Res(), "test.Test", """
+  @Test void flowScan() { ok(new Res(), """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
       Flow#[Int](5, 10, 15)
@@ -420,7 +420,7 @@ public class Ex09FlowsTest {
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
-  @Test void flowScan2() { ok(new Res(), "test.Test", """
+  @Test void flowScan2() { ok(new Res(), """
     package test
     Test:Main {sys -> "5 20 50".assertEq(
       Flow#[Int](5, 10, 15)
@@ -432,7 +432,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases);}
 
   // TODO: fix top level dec issue when wanting a mut instance of a top level lambda
-  @Test void flowSimpleActorMutRet() { ok(new Res(), "test.Test", """
+  @Test void flowSimpleActorMutRet() { ok(new Res(), """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
       Flow#[Int](5, 10, 15)
@@ -492,7 +492,7 @@ public class Ex09FlowsTest {
 //    """, Base.mutBaseAliases);}
 
   // TODO: The error that this generates without the .toImm on the list item is _terrible_ (and takes like 1 and a half minutes)
-  @Test void flowActorMultiParallel() { ok(new Res(), "test.Test", """
+  @Test void flowActorMultiParallel() { ok(new Res(), """
     package test
     Test:Main {sys -> Block#
       .let[mut List[Int]] someMutList = {List#[Int](30)}
@@ -511,7 +511,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
 
   // If we do not offer any mapMut/mut lambdas, we can have parallelised read lambdas
-  @Disabled @Test void mapAndMapMut() { ok(new Res(), "test.Test", """
+  @Disabled @Test void mapAndMapMut() { ok(new Res(), """
     package test
     Test:Main {sys -> "5 10 500".assertEq(
       Flow#[Int](5, 10, 15)
@@ -524,7 +524,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases);}
 
   // TODO: Do we want .split?
-  @Disabled @Test void flowSplit() { ok(new Res(), "test.Test", """
+  @Disabled @Test void flowSplit() { ok(new Res(), """
     package test
     Test: Main{sys -> "5 10 15".assertEq(
       Flow#[Int](5, 10, 15)

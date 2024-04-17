@@ -288,7 +288,7 @@ public record JavaMagicImpls(
               public Object peek$readOnly(base.caps.IsoViewer_2 f) { return this.isAlive ? ((base.caps.IsoViewer_2)f).some$mut(this.x) : ((base.caps.IsoViewer_2)f).empty$mut(); }
               public Object $exclamation$mut() {
                 if (!this.isAlive) {
-                  base.Error_0._$self.msg$imm(rt.Str.fromJavaStr("Cannot consume an empty IsoPod."));
+                  base.Error_0.$self.msg$imm(rt.Str.fromJavaStr("Cannot consume an empty IsoPod."));
                   return null;
                 }
                 this.isAlive = false;
@@ -343,7 +343,7 @@ public record JavaMagicImpls(
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName("!", 1))) {
-          return Optional.of("base.Error.throwFearlessError(%s)".formatted(args.getFirst().accept(gen, true)));
+          return Optional.of("rt.Error.throwFearlessError(%s)".formatted(args.getFirst().accept(gen, true)));
         }
         return Optional.empty();
       }
@@ -353,7 +353,7 @@ public record JavaMagicImpls(
   @Override public MagicTrait<MIR.E,String> tryCatch(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
-        return Optional.of("base.Try.$self");
+        return Optional.of("rt.Try.$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
@@ -364,7 +364,7 @@ public record JavaMagicImpls(
   @Override public MagicTrait<MIR.E, String> capTryCatch(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
-        return Optional.of("base.CapTry.$self");
+        return Optional.of("rt.CapTry.$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
@@ -376,7 +376,7 @@ public record JavaMagicImpls(
     return new MagicTrait<>() {
 
       @Override public Optional<String> instantiate() {
-        return Optional.of("base.PipelineParallelFlow.WrappedSinkK.$self");
+        return Optional.of("rt.PipelineParallelFlow.WrappedSinkK.$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
@@ -407,7 +407,7 @@ public record JavaMagicImpls(
           if (m.equals(new Id.MethName("#", 1)) || m.equals(new Id.MethName(".io", 1))) {
             return """
               new base.caps.Env_0(){
-                public base.LList_1 launchArgs$mut() { return FAux.LAUNCH_ARGS; }
+                public base.LList_1 launchArgs$mut() { return base.FearlessMain.FAux.LAUNCH_ARGS; }
               }
               """;
           }
@@ -418,7 +418,7 @@ public record JavaMagicImpls(
       private ObjCapImpl io() {
         return (ctx, m, args) ->{
           if (m.equals(new Id.MethName("#", 1))) {
-            return "base.IO.$self";
+            return "rt.IO.$self";
           }
           return null;
         };
@@ -427,7 +427,7 @@ public record JavaMagicImpls(
       private ObjCapImpl randomSeed() {
         return (ctx, m, args) ->{
           if (m.equals(new Id.MethName("#", 1))) {
-            return "base.Random.SeedGenerator.$self";
+            return "rt.Random.SeedGenerator.$self";
           }
           return null;
         };

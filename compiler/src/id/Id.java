@@ -42,7 +42,8 @@ public class Id {
     * The first group captures the package name (excluding the last dot).
     * The second group captures the class name.*/
     static Pattern pkgRegex = Pattern.compile("(.+\\.)+([A-Za-z0-9_'$]+)\\$?$");
-    public String pkg() {
+    public String pkg() { return _pkg(name); }
+    private static String _pkg(String name) {
       var pkg = OneOr.of("Malformed package: "+name, pkgRegex.matcher(name).results()).group(1);
       return pkg.substring(0, pkg.length() - 1);
     }
