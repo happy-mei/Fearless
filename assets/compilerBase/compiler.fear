@@ -1,9 +1,25 @@
 package base
-Compiler: Sealed{
-  ._preventCreation: _Compiler,
+CompilerMain: {
+  .main(compiler: mut Compiler): mut Compiler,
   }
-_Compiler:Sealed,Compiler{ _Compiler }
 
-CompilerBuilder: {
+Compiler: Sealed{
+  mut .sourceDir(path: List[Str]): mut Compiler -> Magic!,
+  mut .tempDir(path: List[Str]): mut Compiler -> Magic!,
+  mut .cacheDir(path: List[Str]): mut Compiler -> Magic!,
+  mut .skipCache(pkgName: Str): mut Compiler -> Magic!,
+  mut .makeStdLibImmutable: mut Compiler -> Magic!,
+  mut .compile: mut Compiler -> Magic!,
+  mut .run: mut Compiler -> Magic!,
+  /// Deletes all caches and temporary working directories
+  mut .clean: mut Compiler -> Magic!,
+  /// Clears all prior configuration on the compilation object
+  mut .reset: mut Compiler -> Magic!,
+  mut ._preventCreation: _Compiler,
+  }
 
+_Compilers: F[mut Compiler]{Block#
+  .return{{
+    ._preventCreation -> _Compiler,
+    }}
   }
