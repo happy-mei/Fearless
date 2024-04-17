@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import ast.Program;
+import codegen.MIR;
 import codegen.MIRInjectionVisitor;
 import codegen.java.JavaCompiler;
 import codegen.java.JavaProgram;
@@ -18,26 +20,28 @@ import program.typesystem.EMethTypeSystem;
 import utils.IoErr;
 
 public interface LogicMainJava extends LogicMain<JavaProgram>{
-  default void cachePackageTypes(ast.Program program) {
+  default void cachePackageTypes(MIR.Program program) {
     HDCache.cachePackageTypes(this, program);
   }
+
+  @Override default MIR.Program lower(Program program, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
+    return new MIRInjectionVisitor(cachedPkg(),program, resolvedCalls).visitProgram();
+  }
   default JavaProgram codeGeneration(
-          ast.Program program,
-          ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
+          MIR.Program mir
   ){
-    var mir = new MIRInjectionVisitor(cachedPkg(),program, resolvedCalls).visitProgram();
     var c= new JavaCompiler(verbosity(),io());
     var res= new JavaProgram(this,mir);
 
-    var tmp = IoErr.of(()->Files.createTempDirectory("fgen"));
-    res.writeJavaFiles(tmp);
-    System.out.println("saved to "+tmp);
+//    var tmp = IoErr.of(()->Files.createTempDirectory("fgen"));
+//    res.writeJavaFiles(tmp);
+//    System.out.println("saved to "+tmp);
 
     c.compile(res.files());
     return res;
   }
   default ProcessBuilder execution(
-          ast.Program program,
+          MIR.Program program,
           JavaProgram exe,
           ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
   ){

@@ -1,6 +1,8 @@
 package main;
 
 import astFull.Package;
+import codegen.MIR;
+import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import failure.Fail;
 import parser.Parser;
@@ -60,26 +62,25 @@ public interface LogicMain<Exe> {
     program.typeCheck(acc);
     return acc;
   }
-  void cachePackageTypes(ast.Program program);
+  MIR.Program lower(ast.Program program, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls);
+  void cachePackageTypes(MIR.Program program);
 
-  Exe codeGeneration(
-          ast.Program program,
-          ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
-  );
+  Exe codeGeneration(MIR.Program program);
   ProcessBuilder execution(
-          ast.Program program,
-          Exe exe,
-          ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
+    MIR.Program program,
+    Exe exe,
+    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
   );
   default ProcessBuilder run(){
     var fullProgram= parse();
     wellFormednessFull(fullProgram);
-    var program= inference(fullProgram);
+    var program = inference(fullProgram);
     wellFormednessCore(program);
-    var resolvedCalls= typeSystem(program);
-    var code= codeGeneration(program,resolvedCalls);
-    var process= execution(program,code,resolvedCalls);
-    cachePackageTypes(program);
+    var resolvedCalls = typeSystem(program);
+    var mir = lower(program,resolvedCalls);
+    var code = codeGeneration(mir);
+    var process = execution(mir,code,resolvedCalls);
+    cachePackageTypes(mir);
     return process;
   }
 

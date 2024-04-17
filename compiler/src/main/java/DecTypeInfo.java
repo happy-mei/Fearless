@@ -1,23 +1,21 @@
 package main.java;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import ast.E;
 import ast.T;
 import ast.E.Lambda;
 import ast.E.MCall;
 import ast.E.X;
 import ast.E.Lambda.LambdaId;
 import ast.T.Dec;
+import codegen.MIR;
 import id.Id;
 import id.Mdf;
-import utils.Push;
+import utils.OneOr;
 import id.Id.DecId;
 import id.Id.GX;
 
@@ -34,6 +32,12 @@ class DecTypeInfo implements visitors.Visitor<Void>{
   Map<String,String> mapGXType=new HashMap<>();
   StringBuilder res= new StringBuilder();
   List<Lambda> nested= new ArrayList<>();
+
+  private final MIR.Program p;
+  DecTypeInfo(MIR.Program p) {
+    this.p = p;
+  }
+
   String get() { 
     var tmp= res.toString();
     res.setLength(0);
@@ -88,8 +92,8 @@ class DecTypeInfo implements visitors.Visitor<Void>{
   }
   public void stringLambda(Lambda l) {
     l.meths().stream()
-    .flatMap(m->m.body().stream())
-    .forEach(e->e.accept(this));
+      .flatMap(m->m.body().stream())
+      .forEach(e->e.accept(this));
     if(l.name().id().name().contains("$")){ return; }
     if(l.name().id().name().startsWith("_")){ return; }
     mapGXType.clear();
@@ -102,7 +106,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     mapGXType.putAll(mapGX);
     stringImplements(l);
     c("{\n");
-    l.meths().stream().forEach(this::stringMeth);
+    l.meths().forEach(m->stringMeth(m, getSelfCapture(l.name().id(), m)));
     c("}\n");
   }
   private void stringImplements(Lambda l) {
@@ -144,7 +148,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     var fresh= x.contains("$");
     c(fresh?"_":x);
   }
-  public void stringMeth(ast.E.Meth m) {
+  public void stringMeth(ast.E.Meth m, Optional<String> selfCapture) {
     mapGX.clear();
     mapGX.putAll(mapGXType);
     var s=m.sig();
@@ -165,7 +169,8 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     c("):");
     stringType(s.ret());
     if(m.isAbs()) {c(",\n");return;}
-    c("->base.Todo!,\n");
+    var body = selfCapture.map(selfName->"->base.Block#("+selfName+", base.Abort!),\n").orElse("->base.Abort!,\n");
+    c(body);
   }
   public String stringLambdaGet(Lambda l) {
     stringLambda(l);
@@ -180,10 +185,10 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     String main= stringLambdaGet(dec.lambda());
     outerMost=false;
     StringBuilder res=new StringBuilder(main);
-    for(int i=0;i<nested.size();i++){//Yes, this is needed here,
+    for (int i=0;i<nested.size();i++) {//Yes, this is needed here,
       //since we add to nested while we read from it.
-      String resi= stringLambdaGet(nested.get(i));
-      if(!resi.isBlank()) { res.append(resi+"\n"); }
+      String resi = stringLambdaGet(nested.get(i));
+      if (!resi.isBlank()) { res.append(resi).append('\n'); }
     }
     return res.toString();
     //return main+nested.stream()//concurrent modification exception
@@ -209,5 +214,13 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     nested.add(e);
     return null;
   }
-  
+
+  private Optional<String> getSelfCapture(DecId id, E.Meth m) {
+    if (m.isAbs()) { return Optional.empty(); }
+    var fun = OneOr.of("More than one implementation found for "+m+" (in "+id+")", p.pkgs().stream()
+      .filter(pkg->pkg.name().equals(id.pkg()))
+      .flatMap(pkg->pkg.funs().stream())
+      .filter(f->f.name().d().equals(id) && f.name().m().equals(m.name())));
+    return fun.name().capturesSelf() ? Optional.of("this") : Optional.empty();
+  }
 }
