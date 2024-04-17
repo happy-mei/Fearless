@@ -1,0 +1,9 @@
+package base
+Compiler: Sealed{
+  ._preventCreation: _Compiler,
+  }
+_Compiler:Sealed,Compiler{ _Compiler }
+
+CompilerBuilder: {
+
+  }
