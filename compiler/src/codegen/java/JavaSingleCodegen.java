@@ -251,17 +251,12 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   public String visitStringLiteral(MIR.CreateObj k) {
     var id = k.concreteT().id();
     var javaStr = getLiteral(p.p(), id).map(l->l.substring(1, l.length() - 1)).orElseThrow();
-    var recordName = ("str$"+javaStr.hashCode()+"$str$").replace("-", "m");
+    // We parse literal \n, unicode escapes as if this was a Java string literal.
+    var utf8 = StringEscapeUtils.unescapeJava(javaStr).getBytes(StandardCharsets.UTF_8);
+    var recordName = ("str$"+Arrays.hashCode(utf8)+"$str$").replace("-", "m");
     if (!this.freshRecords.containsKey(id)) {
-      // We parse literal \n, unicode escapes as if this was a Java string literal.
-      var utf8 = StringEscapeUtils.unescapeJava(javaStr).getBytes(StandardCharsets.UTF_8);
-      try {
-        NativeRuntime.validateStringOrThrow(utf8);
-      } catch (NativeRuntime.StringEncodingError err) {
-        // TODO: throw a nice Fail...
-        throw Bug.of(err);
-      }
       var utf8Array = IntStream.range(0, utf8.length).mapToObj(i->Byte.toString(utf8[i])).collect(Collectors.joining(","));
+      // We do not need to run validateStringOrThrow because Java will never produce an invalid UTF-8 str with getBytes.
       var graphemes = Arrays.stream(NativeRuntime.indexString(utf8)).mapToObj(Integer::toString).collect(Collectors.joining(","));
 
       this.freshRecords.put(new DecId(this.pkg+"."+recordName, 0), """
