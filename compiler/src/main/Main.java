@@ -81,20 +81,8 @@ public class Main {
 //          frontEnd.newPkg(res.getOptionValue("new"));
 //          return;
 //        }
-//        if (res.hasOption("check")) {
-//          frontEnd.check(res.getOptionValues("check"));
-//          return;
-//        }
-//        if (res.hasOption("run")) {
-//          frontEnd.run(res.getOptionValue("entry-point"), res.getOptionValues("run"), res.getArgList());
-//          return;
-//        }
 //        if (res.hasOption("generate-docs")) {
 //          frontEnd.generateDocs(res.getOptionValues("generate-docs"));
-//          return;
-//        }
-//        if (res.hasOption("regenerate-aliases")) {
-//          System.out.println(frontEnd.regenerateAliases());
 //          return;
 //        }
         throw Bug.unreachable();

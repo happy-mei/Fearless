@@ -305,8 +305,14 @@ public interface Program {
     //standardNames(n)->List.of(Par1..Parn)
     var gx=cm.sig().gens();
     List<Id.GX<ast.T>> names = new Refresher<ast.T>(0).freshNames(gx.size());
-    Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gx.size()).boxed()
-      .collect(Collectors.toMap(gx::get, names::get));
+    Map<Id.GX<T>,Id.GX<T>> subst = Mapper.of(res->{
+      for (int i = 0; i < gx.size(); i++) {
+        res.put(gx.get(i), names.get(i));
+      }
+    });
+    // ^ this was the stream below but .boxed was bad enough for perf in this hot path to go old-school
+//    Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gx.size()).boxed()
+//      .collect(Collectors.toMap(gx::get, names::get));
     var newSig=new RenameGens(subst).visitSig(cm.sig());
     return cm.withSig(newSig);
   }
@@ -317,8 +323,11 @@ public interface Program {
   default CM freshenMethGens(CM cm, int depth) {
     var gxs=cm.sig().gens();
     var names = new Refresher<T>(depth).freshNames(gxs.size());
-    Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gxs.size()).boxed()
-      .collect(Collectors.toMap(gxs::get, names::get));
+    Map<Id.GX<T>,Id.GX<T>> subst = Mapper.of(res->{
+      for (int i = 0; i < gxs.size(); i++) {
+        res.put(gxs.get(i), names.get(i));
+      }
+    });
     var newSig=new RenameGens(subst).visitSig(cm.sig());
     return cm.withSig(newSig);
   }
