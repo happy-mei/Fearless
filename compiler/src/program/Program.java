@@ -177,7 +177,7 @@ public interface Program {
 //    return e.accept(v);
 //  }
 
-  default Optional<Supplier<? extends CompileError>> isType(Gamma g, XBs xbs, ast.E e, ast.T expected) {
+  default Optional<Supplier<CompileError>> isType(Gamma g, XBs xbs, ast.E e, ast.T expected) {
 //    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
     var v = ETypeSystem.of(this, g, xbs, Optional.of(expected), new ConcurrentHashMap<>(), 0);
     var res = e.accept(v);

@@ -12,14 +12,14 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public interface ETypeSystem extends Visitor<Optional<Supplier<? extends CompileError>>> {
+public interface ETypeSystem extends Visitor<Optional<Supplier<CompileError>>> {
   Program p();
   Gamma g();
   XBs xbs();
   ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls();
   Optional<T> expectedT();
   int depth();
-  default Optional<Supplier<? extends CompileError>> visitX(E.X e){
+  default Optional<Supplier<CompileError>> visitX(E.X e){
     var expected = expectedT().orElseThrow();
     T res; try { res = g().get(e);
     } catch (CompileError err) {
