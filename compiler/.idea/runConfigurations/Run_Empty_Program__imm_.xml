@@ -2,7 +2,7 @@
   <configuration default="false" name="Run Empty Program (imm)" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="main.Main" />
     <module name="fearless" />
-    <option name="PROGRAM_PARAMETERS" value="--show-internal-stack-traces --show-full-progress -i -e simple.Nothing --run examples/immBase/simple.fear" />
+    <option name="PROGRAM_PARAMETERS" value="--show-internal-stack-traces --show-full-progress -i -e simple.Nothing --run examples/immBase" />
     <option name="VM_PARAMETERS" value="-ea" />
     <extension name="coverage">
       <pattern>

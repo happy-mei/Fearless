@@ -300,12 +300,6 @@ List[E]: Collection,Sealed{
 //  // TODO: only for testing this, pls ignore this method
 //  imm .iter2: base.iter.par.Iter[E] -> _ListParIter#(this, 0u),
   }
-_ListParIter:{
-  #[E](l: List[imm E], i: UInt): base.iter.par.Iter[imm E] -> {
-    .cur -> l.get(i),
-    .next -> this#(l, i + 1u),
-    }
-  }
 _ListState[E]:{
   read .size: UInt,
   mut .inner: mut LList[E],
