@@ -10,6 +10,7 @@
     <content url="file://$MODULE_DIR$" dumb="true">
       <excludeFolder url="file://$MODULE_DIR$/examples/immBase/out" />
       <excludeFolder url="file://$MODULE_DIR$/examples/mutBase/closest/out" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/mutBase/flows/out" />
     </content>
   </component>
   <component name="Go" enabled="true" />
