@@ -33,11 +33,6 @@ class DecTypeInfo implements visitors.Visitor<Void>{
   StringBuilder res= new StringBuilder();
   List<Lambda> nested= new ArrayList<>();
 
-  private final MIR.Program p;
-  DecTypeInfo(MIR.Program p) {
-    this.p = p;
-  }
-
   String get() { 
     var tmp= res.toString();
     res.setLength(0);
@@ -106,7 +101,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     mapGXType.putAll(mapGX);
     stringImplements(l);
     c("{\n");
-    l.meths().forEach(m->stringMeth(m, getSelfCapture(l.name().id(), m)));
+    l.meths().forEach(this::stringMeth);
     c("}\n");
   }
   private void stringImplements(Lambda l) {
@@ -148,7 +143,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     var fresh= x.contains("$");
     c(fresh?"_":x);
   }
-  public void stringMeth(ast.E.Meth m, Optional<String> selfCapture) {
+  public void stringMeth(ast.E.Meth m) {
     mapGX.clear();
     mapGX.putAll(mapGXType);
     var s=m.sig();
@@ -169,8 +164,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     c("):");
     stringType(s.ret());
     if(m.isAbs()) {c(",\n");return;}
-    var body = selfCapture.map(selfName->"->base.Block#("+selfName+", base.Abort!),\n").orElse("->base.Abort!,\n");
-    c(body);
+    c("->base.Abort!,\n");
   }
   public String stringLambdaGet(Lambda l) {
     stringLambda(l);
@@ -213,14 +207,5 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     //}
     nested.add(e);
     return null;
-  }
-
-  private Optional<String> getSelfCapture(DecId id, E.Meth m) {
-    if (m.isAbs()) { return Optional.empty(); }
-    var fun = OneOr.of("More than one implementation found for "+m+" (in "+id+")", p.pkgs().stream()
-      .filter(pkg->pkg.name().equals(id.pkg()))
-      .flatMap(pkg->pkg.funs().stream())
-      .filter(f->f.name().d().equals(id) && f.name().m().equals(m.name())));
-    return fun.name().capturesSelf() ? Optional.of("this") : Optional.empty();
   }
 }

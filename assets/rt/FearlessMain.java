@@ -7,6 +7,9 @@ import java.lang.reflect.Field;
 
 public class FearlessMain {
   public static void main(String[] args) {
+    if (args.length == 0) {
+      fatal("Missing entry-point. Please type in the name of a type that implements base.Main/0 after the command to launch Fearless.");
+    }
     var entryPoint = args[0];
     Main_0 myMain = null; try {myMain = getMain(entryPoint);
     } catch (NoSuchFieldException e) {
@@ -27,7 +30,8 @@ public class FearlessMain {
       fatal("Program crashed with Stack overflow");
     }
     catch (Throwable t) {
-      fatal("Program crashed with: "+t.getMessage());
+      var msg = t.getMessage() == null ? t.getCause() : t.getMessage();
+      fatal("Program crashed with: "+msg);
     }
   }
   public static Main_0 getMain(String mainName) throws NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalArgumentException, IllegalAccessException, ClassCastException {
@@ -37,7 +41,7 @@ public class FearlessMain {
   }
   private static LList_1 buildArgList(String[] args, int offset) {
     var res = LList_1.$self;
-    for (int i = args.length - 1; i > offset; --i) {
+    for (int i = args.length - 1; i >= offset; --i) {
       res = res.pushFront$mut(Str.fromJavaStr(args[i]));
     }
     return res;

@@ -4,9 +4,7 @@ import ast.Program;
 import astFull.Package;
 import codegen.MIRInjectionVisitor;
 import codegen.html.HtmlDocgen;
-import codegen.java.ImmJavaCodegen;
-import codegen.java.JavaCodegen;
-import codegen.java.JavaCompiler;
+ import codegen.java.JavaCompiler;
 import codegen.java.JavaFile;
 import failure.CompileError;
 import failure.Fail;
@@ -194,15 +192,15 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
   }
   private List<JavaFile> toJava(Id.DecId entry, Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
     var mir = new MIRInjectionVisitor(List.of(),p, resolvedCalls).visitProgram();
-    var codegen = switch (bv) {
-      case Std -> new JavaCodegen(mir);
-      case Imm -> new ImmJavaCodegen(mir);
-    };
-    var src = codegen.visitProgram(entry);
-    if (v.printCodegen) {
-      System.out.println(src);
-    }
-    return List.of(new JavaFile(Bug.<String>err(),src));//TODO: this code should all die anyway
+//    var codegen = switch (bv) {
+//      case Std -> new JavaCodegen(mir);
+//      case Imm -> new ImmJavaCodegen(mir);
+//    };
+//    var src = codegen.visitProgram(entry);
+//    if (v.printCodegen) {
+//      System.out.println(src);
+//    }
+    throw Bug.of("Dead code");
   }
 
   String regenerateAliases() {

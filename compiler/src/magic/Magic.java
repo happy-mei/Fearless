@@ -21,7 +21,7 @@ public class Magic {
   public static final Id.DecId Block = new Id.DecId("base.Block", 1);
   public static final Id.DecId ReturnStmt = new Id.DecId("base.ReturnStmt", 1);
   public static final Id.DecId Condition = new Id.DecId("base.Condition", 0);
-  public static final Id.DecId VarContinuation = new Id.DecId("base.VarContinuation", 2);
+  public static final Id.DecId Continuation = new Id.DecId("base.Continuation", 3);
 
 
   public static final Id.DecId RefK = new Id.DecId("base._MagicRefImpl", 0);

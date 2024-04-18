@@ -12,12 +12,13 @@ import ast.Program;
 import codegen.MIR;
 import codegen.MIRInjectionVisitor;
 import codegen.java.JavaCompiler;
+import codegen.java.JavaMagicImpls;
 import codegen.java.JavaProgram;
+import codegen.optimisations.OptimisationBuilder;
 import main.CompilerFrontEnd.Verbosity;
 import main.InputOutput;
 import main.LogicMain;
 import program.typesystem.EMethTypeSystem;
-import utils.IoErr;
 
 public interface LogicMainJava extends LogicMain<JavaProgram>{
   default void cachePackageTypes(MIR.Program program) {
@@ -25,7 +26,12 @@ public interface LogicMainJava extends LogicMain<JavaProgram>{
   }
 
   @Override default MIR.Program lower(Program program, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
-    return new MIRInjectionVisitor(cachedPkg(),program, resolvedCalls).visitProgram();
+    var mir = new MIRInjectionVisitor(cachedPkg(),program, resolvedCalls).visitProgram();
+    var magic = new JavaMagicImpls(null, null, mir.p());
+    return new OptimisationBuilder(magic)
+      .withBoolIfOptimisation()
+      .withBlockOptimisation()
+      .run(mir);
   }
   default JavaProgram codeGeneration(
           MIR.Program mir

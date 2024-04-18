@@ -111,7 +111,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
   private record VarContinuation(MIR.X var, MIR.X selfVar, MIR.MCall continuationCall) {}
   private Optional<VarContinuation> visitVarContinuation(MIR.E fn) {
     if (!(fn instanceof MIR.CreateObj k)) { return Optional.empty(); }
-    if (!this.magic.isMagic(Magic.VarContinuation, k)) { return Optional.empty(); }
+    if (!this.magic.isMagic(Magic.Continuation, k)) { return Optional.empty(); }
     if (k.meths().size() != 1) { return Optional.empty(); }
     var m = k.meths().getFirst();
     assert m.sig().name().equals(new Id.MethName("#", 2));

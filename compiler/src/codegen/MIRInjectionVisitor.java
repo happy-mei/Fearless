@@ -158,7 +158,8 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     }));
 
     var x = ctx.xXs().get(selfNameOf(cm.c().name()));
-    Stream<MIR.X> selfArg = captures.contains(x) ? Stream.of(x) : Stream.of();
+    // We always produce a self-arg even if it is not captured to keep the function signatures consistent
+    Stream<MIR.X> selfArg =Stream.of(x);
     var args = Streams.of(sig.xs().stream(), selfArg, captures.stream().filter(xi->!xi.name().equals(x.name()))).toList();
 
     var rawBody = cm.m().body().orElseThrow();

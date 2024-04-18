@@ -35,10 +35,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   private String pkg;
   public JavaSingleCodegen(MIR.Program p) {
     magic= new JavaMagicImpls(this, t->getTName(t,false), p.p());
-    this.p= new OptimisationBuilder(this.magic)
-      .withBoolIfOptimisation()
-      .withBlockOptimisation()
-      .run(p);
+    this.p = p;
     this.funMap = p.pkgs().stream()
       .flatMap(pkg->pkg.funs().stream())
       .collect(Collectors.toMap(MIR.Fun::name, f->f));
@@ -121,7 +118,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     var args = seq(meth.sig().xs(),this::typePair,", ");
     var funArgs = Streams.of(
       meth.sig().xs().stream().map(MIR.X::name).map(id::varName),
-      meth.capturesSelf() ? Stream.of("this") : Stream.of(),
+      Stream.of("this"),
       meth.captures().stream().map(id::varName).map(x->"this."+x)
       ).collect(Collectors.joining(", "));
     var mustCast = meth.fName().isPresent() 
@@ -192,7 +189,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
             if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
             if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut(); }
           }
-          """.formatted(
+        """.formatted(
         loop.e().accept(this, true),
         getTName(expr.expectedT(),false));
       case MIR.Block.BlockStmt.If if_ -> {
@@ -303,20 +300,23 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     var mustCast = !this.funMap.get(expr.then()).ret().equals(this.funMap.get(expr.else_()).ret());
     var cast = mustCast ? "(%s)".formatted(getTName(expr.t(),true)) : "";
 
-    return "(%s(%s == base.True_0.$self ? %s : %s))".formatted(cast, recv, this.funMap.get(expr.then()).body().accept(this, true), this.funMap.get(expr.else_()).body().accept(this, true));
+    var thenBody = switch (this.funMap.get(expr.then()).body()) {
+      case MIR.Block b -> this.inlineBlock(b);
+      case MIR.E e -> e.accept(this, checkMagic);
+    };
+    var elseBody = switch (this.funMap.get(expr.else_()).body()) {
+      case MIR.Block b -> this.inlineBlock(b);
+      case MIR.E e -> e.accept(this, checkMagic);
+    };
+    return "(%s(%s == base.True_0.$self ? %s : %s))".formatted(cast, recv, thenBody, elseBody);
   }
-
-  @Override public String visitStaticCall(MIR.StaticCall call, boolean checkMagic) {
-    var cast = call.castTo().map(t->"(("+getTName(t,false)+")").orElse("");
-    var castEnd = cast.isEmpty() ? "" : ")";
-
-    var args = call.args().stream()
-      .map(a->a.accept(this, checkMagic))
-      .collect(Collectors.joining(","));
-    return "%s %s.%s(%s)%s"
-      .formatted(cast, 
-          id.getFullName(call.fun().d()),
-          getFName(call.fun()), args, castEnd);
+  private String inlineBlock(MIR.Block block) {
+    var blockCode = block.accept(this, true);
+    return """
+      ((java.util.function.Supplier<%s>)()->{
+        %s;
+      }).get()
+      """.formatted(getTName(block.t(), true), blockCode);
   }
 
   private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
@@ -331,11 +331,9 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     return getTName(x.t(),false)+" "+id.varName(x.name());
   }
   public String getFName(MIR.FName name) {
-    var capturesSelf = name.capturesSelf() ? "selfCap" : "noSelfCap";
-    return 
+    return
       //id.getFullName(name.d()).replace(".","$")+"$"+
-      id.getMName(name.mdf(), name.m())
-      +"$"+capturesSelf;
+      id.getMName(name.mdf(), name.m())+"$fun";
   }
   public String getTName(MIR.MT t, boolean isRet) {
     return new TypeIds(magic,id).getTName(t,isRet);

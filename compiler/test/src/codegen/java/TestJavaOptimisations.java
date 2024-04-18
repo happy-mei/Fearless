@@ -1,57 +1,47 @@
 package codegen.java;
 
-import codegen.MIRInjectionVisitor;
-import id.Id;
+import main.CompilerFrontEnd;
 import main.Main;
+import main.java.LogicMainJava;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import parser.Parser;
-import program.TypeSystemFeatures;
-import program.inference.InferBodies;
-import program.typesystem.EMethTypeSystem;
 import utils.Base;
 import utils.Err;
-import wellFormedness.WellFormednessFullShortCircuitVisitor;
-import wellFormedness.WellFormednessShortCircuitVisitor;
 
-import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
-@Disabled
 public class TestJavaOptimisations {
-  void ok(String expected, String entry, boolean loadBase, String... content) {
+  void ok(String expected, String fileName, String... content) {
     assert content.length > 0;
     Main.resetAll();
-    AtomicInteger pi = new AtomicInteger();
-    String[] baseLibs = loadBase ? Base.baseLib : new String[0];
-    var ps = Stream.concat(Arrays.stream(content), Arrays.stream(baseLibs))
-      .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
-      .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
-    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
-      throw err;
-    });
-    var inferred = InferBodies.inferAll(p);
-    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
-    inferred.typeCheck(resolvedCalls);
-    var mir = new MIRInjectionVisitor(List.of(),inferred, resolvedCalls).visitProgram();
-    var java = new JavaCodegen(mir).visitProgram(new Id.DecId(entry, 0));
-    Err.strCmpFormat(expected, java);
+    var vb = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
+    var main = LogicMainJava.of(TestInputOutputs.explicit(Arrays.asList(content), "test.Test"), vb);
+    var fullProgram = main.parse();
+    main.wellFormednessFull(fullProgram);
+    var program = main.inference(fullProgram);
+    main.wellFormednessCore(program);
+    var resolvedCalls = main.typeSystem(program);
+    var mir = main.lower(program,resolvedCalls);
+    var code = main.codeGeneration(mir);
+    var fileCode = code.files().stream()
+      .filter(f->f.toUri().toString().endsWith(fileName))
+      .map(JavaFile::code)
+      .findFirst().orElseThrow();
+    Err.strCmp(expected, fileCode);
   }
 
   @Test void blockVarDoRet() { ok("""
-    [###]static base.Void_0 test$Test_0$$hash$imm$noSelfCap(base.caps.System_0 fear5$$) {
-      var n$ = 5L;
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 fear5$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear5$, test.Test_0 $this) {
+      var n = 5L;
     var doRes1 = test.ForceGen_0.$self.$hash$imm();
     return base.Void_0.$self;
     }
-    [###]
-    """, "test.Test", true, """
+    }
+    """, "/test/Test_0.java", """
     package test
     alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
     Test:base.Main {_ -> Block#
@@ -63,31 +53,39 @@ public class TestJavaOptimisations {
     """);}
 
   @Test void blockRet() { ok("""
-    [###]static base.Void_0 test$Test_0$$hash$imm$noSelfCap(base.caps.System_0 fear5$$) {
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 fear5$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear5$, test.Test_0 $this) {
       return base.Void_0.$self;
     }
-    [###]
-    """, "test.Test", true, """
+    }
+    """, "test/Test_0.java", """
     package test
     alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
-    Test:base.Main{ _ -> Block#
+    Test: base.Main{_ -> Block#
      .return {Void}
      }
     """);}
 
   @Test void incrementLoop() { ok("""
-    [###]static base.Void_0 test$Test_0$$hash$imm$noSelfCap(base.caps.System_0 sys$) {
-      var n$ = base.Count_0.$self.int$imm(0L);
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 sys);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 sys, test.Test_0 $this) {
+      var n = base.Count_0.$self.int$imm(0L);
     while (true) {
-      var res = new test$Fear61$36_0Impl(n$).$hash$mut();
+      var res = new Fear61$_0Impl(n).$hash$mut();
       if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
-      if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-      if (res instanceof base.ControlFlowReturn_1 rv) { return (base.Void_0) rv.value$mut(); }
-    }
+        if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
+        if (res instanceof base.ControlFlowReturn_1 rv) { return (base.Void_0) rv.value$mut(); }
+      }
     return base.Void_0.$self;
     }
-    [###]
-    """, "test.Test", true, """
+    }
+    """, "test/Test_0.java", """
     package test
     Test:Main {sys -> Block#
       .let n = {Count.int(0)}
@@ -102,18 +100,22 @@ public class TestJavaOptimisations {
     """, Base.mutBaseAliases);}
 
   @Test void earlyReturnLoop() { ok("""
-    [###]static String test$Foo_0$$hash$imm$noSelfCap() {
-      var n$ = base.Count_0.$self.int$imm(0L);
+    package test;
+    public interface Foo_0{
+    Foo_0 $self = new Foo_0Impl();
+    rt.Str $hash$imm();
+    static rt.Str $hash$imm$fun(test.Foo_0 $this) {
+      var n = base.Count_0.$self.int$imm(0L);
     while (true) {
-     var res = new test$Fear63$36_0Impl(n$).$hash$mut();
-     if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
-     if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-     if (res instanceof base.ControlFlowReturn_1 rv) { return (String) rv.value$mut(); }
-   }
-   return "Boo :(";
-   }
-    [###]
-    """, "test.Test", true, """
+      var res = new Fear63$_0Impl(n).$hash$mut();
+      if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
+        if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
+        if (res instanceof base.ControlFlowReturn_1 rv) { return (rt.Str) rv.value$mut(); }
+      }
+    return str$m1412089427$str$.$self;
+    }
+    }
+    """, "test/Foo_0.java", """
     package test
     Test:Main {sys -> (FIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
@@ -128,19 +130,22 @@ public class TestJavaOptimisations {
     """, Base.mutBaseAliases);}
 
   @Test void earlyReturnLoopEarlyExit() { ok("""
-    [###]
-    static String test$Foo_0$$hash$imm$noSelfCap() {
-      var n$ = base.Count_0.$self.int$imm(0L);
-      while (true) {
-        var res = new test$Fear63$36_0Impl(n$).$hash$mut();
-        if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
+    package test;
+    public interface Foo_0{
+    Foo_0 $self = new Foo_0Impl();
+    rt.Str $hash$imm();
+    static rt.Str $hash$imm$fun(test.Foo_0 $this) {
+      var n = base.Count_0.$self.int$imm(0L);
+    while (true) {
+      var res = new Fear63$_0Impl(n).$hash$mut();
+      if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
         if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-        if (res instanceof base.ControlFlowReturn_1 rv) { return (String) rv.value$mut(); }
+        if (res instanceof base.ControlFlowReturn_1 rv) { return (rt.Str) rv.value$mut(); }
       }
-      return "Boo :(";
+    return str$m1412089427$str$.$self;
     }
-    [###]
-    """, "test.Test", true, """
+    }
+    """, "test/Foo_0.java", """
     package test
     Test:Main{sys -> (FIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
@@ -154,8 +159,9 @@ public class TestJavaOptimisations {
       }
     """, Base.mutBaseAliases);}
 
-  @Disabled @Test void methodChainDevirtualisation() { ok("""
-    """, "test.Test", true, """
+  @Disabled
+  @Test void methodChainDevirtualisation() { ok("""
+    """, "", """
     package test
     A: {.m1(a: A): A}
     B: {.m1: A -> A{a0 -> a0}.m1(A{.m1(a1) -> A{.m1(a2) -> a1}})}

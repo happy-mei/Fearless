@@ -38,7 +38,7 @@ public record HDCache(Path code, MIR.Program program) {
   public void cacheTypeInfo(String pkgName, List<Dec> decs) {
     var pkg = code.resolve(pkgName.replace(".","/"));
     assert Files.exists(pkg) && Files.isDirectory(pkg):pkg;
-    var file=decs.stream().map(d->new DecTypeInfo(program).visitDec(d)).toList();
+    var file=decs.stream().map(d->new DecTypeInfo().visitDec(d)).toList();
     String tot="package "+pkgName+"\n"+String.join("", file);
     IoErr.of(()->Files.writeString(pkg.resolve("pkgInfo.txt"),tot));
   }
