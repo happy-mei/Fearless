@@ -4,5 +4,4 @@
 cachedBase/*
 !cachedBase/.gitkeep
 
-tempFiles/*
-!tempFiles/.gitkeep
+.tmp/

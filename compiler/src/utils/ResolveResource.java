@@ -69,7 +69,7 @@ public final class ResolveResource {
     /*var res= Paths.get(
       System.getProperty("java.io.tmpdir"),
       "fearOut"+UUID.randomUUID());*/
-    var res = ResolveResource.artefact("/tempFiles")
+    var res = ResolveResource.artefact("/.tmp")
       .resolve("fearOut"+UUID.randomUUID());
     IoErr.of(()->Files.createDirectories(res));
     DeleteOnExit.of(res);

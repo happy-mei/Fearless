@@ -1,11 +1,9 @@
 package main.java;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import ast.Program;
@@ -17,10 +15,10 @@ import codegen.java.JavaProgram;
 import codegen.optimisations.OptimisationBuilder;
 import main.CompilerFrontEnd.Verbosity;
 import main.InputOutput;
-import main.LogicMain;
+import main.FullLogicMain;
 import program.typesystem.EMethTypeSystem;
 
-public interface LogicMainJava extends LogicMain<JavaProgram>{
+public interface LogicMainJava extends FullLogicMain<JavaProgram> {
   default void cachePackageTypes(MIR.Program program) {
     HDCache.cachePackageTypes(this, program);
   }

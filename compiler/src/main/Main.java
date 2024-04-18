@@ -4,9 +4,12 @@ import astFull.E;
 import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
 import failure.CompileError;
 import id.Id;
+import org.apache.commons.cli.CommandLine;
 import program.TypeSystemFeatures;
 import utils.Box;
 import utils.Bug;
+
+import java.util.List;
 
 public class Main {
   private static CompilerFrontEnd frontEnd = null;
@@ -40,8 +43,6 @@ public class Main {
       .withFlag("show-full-progress", "sfp", "Print progress messages showing the current task and all sub-tasks the compiler is performing.")
       .withAtLeastOneRequiredOption("help", "new", "check", "run", "regenerate-aliases", "generate-docs")
       .withEntryPoint(res->{
-        var bv = res.hasOption("imm-base") ? CompilerFrontEnd.BaseVariant.Imm : CompilerFrontEnd.BaseVariant.Std;
-
         CompilerFrontEnd.ProgressVerbosity pv = CompilerFrontEnd.ProgressVerbosity.None;
         if (res.hasOption("show-tasks")) { pv = CompilerFrontEnd.ProgressVerbosity.Tasks; }
         if (res.hasOption("show-full-progress")) { pv = CompilerFrontEnd.ProgressVerbosity.Full; }
@@ -50,28 +51,38 @@ public class Main {
           res.hasOption("print-codegen"),
           pv
         ));
-        frontEnd = new CompilerFrontEnd(bv, verbosity.get(), new TypeSystemFeatures());
+
+        if (res.hasOption("regenerate-aliases")) {
+          var trashIO = InputOutput.trash(res.hasOption("imm-base"));
+          new GenerateAliases(trashIO).printAliases();
+          return;
+        }
 
         if (res.hasOption("new")) {
-          frontEnd.newPkg(res.getOptionValue("new"));
-          return;
+          throw Bug.todo();
         }
-        if (res.hasOption("check")) {
-          frontEnd.check(res.getOptionValues("check"));
-          return;
-        }
-        if (res.hasOption("run")) {
-          frontEnd.run(res.getOptionValue("entry-point"), res.getOptionValues("run"), res.getArgList());
-          return;
-        }
-        if (res.hasOption("generate-docs")) {
-          frontEnd.generateDocs(res.getOptionValues("generate-docs"));
-          return;
-        }
-        if (res.hasOption("regenerate-aliases")) {
-          System.out.println(frontEnd.regenerateAliases());
-          return;
-        }
+
+//        frontEnd = new CompilerFrontEnd(bv, verbosity.get(), new TypeSystemFeatures());
+//        if (res.hasOption("new")) {
+//          frontEnd.newPkg(res.getOptionValue("new"));
+//          return;
+//        }
+//        if (res.hasOption("check")) {
+//          frontEnd.check(res.getOptionValues("check"));
+//          return;
+//        }
+//        if (res.hasOption("run")) {
+//          frontEnd.run(res.getOptionValue("entry-point"), res.getOptionValues("run"), res.getArgList());
+//          return;
+//        }
+//        if (res.hasOption("generate-docs")) {
+//          frontEnd.generateDocs(res.getOptionValues("generate-docs"));
+//          return;
+//        }
+//        if (res.hasOption("regenerate-aliases")) {
+//          System.out.println(frontEnd.regenerateAliases());
+//          return;
+//        }
         throw Bug.unreachable();
       });
 
@@ -94,30 +105,4 @@ public class Main {
       throw Bug.of(e);
     }
   }
-
-//  private static Options buildCli() {
-//    var res = new Options();
-//    res.addOption(Option.builder()
-//      .desc("Create a new Fearless package")
-//      .longOpt("new")
-//      .hasArg().numberOfArgs(1)
-//      .argName("package name")
-//      .optionalArg(false)
-//      .build()
-//    );
-//    res.addOption(Option.builder()
-//      .desc("Generate aliases for the standard library")
-//      .longOpt("gen-aliases")
-//      .optionalArg(true)
-//      .argName("output path")
-//      .build()
-//    );
-//    res.addOption(Option.builder()
-//      .desc("Compile and run the provided fearless files")
-//      .hasArgs()
-//      .longOpt("run")
-//    )
-//
-//    return res;
-//  }
 }

@@ -1,8 +1,6 @@
 package main;
 
 import astFull.Package;
-import codegen.MIR;
-import codegen.MIRInjectionVisitor;
 import failure.CompileError;
 import failure.Fail;
 import files.Pos;
@@ -10,13 +8,10 @@ import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
-import utils.IoErr;
 import utils.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,11 +19,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public interface LogicMain<Exe> {
+public interface LogicMain {
   InputOutput io();
   HashSet<String> cachedPkg();
-  CompilerFrontEnd.Verbosity verbosity();
 
+  default String generateAliases() {
+    return ResolveResource.read(io().defaultAliases());
+  }
   default astFull.Program parse() {
     var cache = load(io().cachedFiles());
     cachedPkg().addAll(cache.keySet());
@@ -61,39 +58,16 @@ public interface LogicMain<Exe> {
   }
   default void wellFormednessCore(ast.Program program){
     new WellFormednessShortCircuitVisitor(program)
-            .visitProgram(program)
-            .ifPresent(err->{ throw err; });
+      .visitProgram(program)
+      .ifPresent(err->{ throw err; });
   }
   default ConcurrentHashMap<Long, EMethTypeSystem.TsT> typeSystem(ast.Program program){
     var acc= new ConcurrentHashMap<Long, EMethTypeSystem.TsT>();
     program.typeCheck(acc);
     return acc;
   }
-  MIR.Program lower(ast.Program program, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls);
-  void cachePackageTypes(MIR.Program program);
-  Exe codeGeneration(MIR.Program program);
-  ProcessBuilder execution(MIR.Program program, Exe exe, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls);
-  default ProcessBuilder run(){
-    var fullProgram= parse();
-    wellFormednessFull(fullProgram);
-    var program = inference(fullProgram);
-    wellFormednessCore(program);
-    var resolvedCalls = typeSystem(program);
-    var mir = lower(program,resolvedCalls);
-    var code = codeGeneration(mir);
-    var process = execution(mir,code,resolvedCalls);
-    cachePackageTypes(mir);
-    return process;
-  }
 
-  default List<Parser> loadFiles(Path root) {
-    return IoErr.of(()->{try(var fs = Files.walk(root)) {
-      return fs
-        .filter(Files::isRegularFile)
-        .map(p->new Parser(p, ResolveResource.read(p)))
-        .toList();
-    }});
-  }
+
   default Map<String, List<Package>> load(List<Parser> files) {
     return files.stream()
       .map(p->p.parseFile(CompileError::err))
