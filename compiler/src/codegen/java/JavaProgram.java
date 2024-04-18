@@ -24,7 +24,6 @@ public record JavaProgram(List<JavaFile> files){
   //Just to help testing
   public void writeJavaFiles(Path output){IoErr.of(()->_writeJavaFiles(output));}
   private void _writeJavaFiles(Path output) throws IOException{
-    DeleteOnExit.of(output);
     for(var fi:files) {
       var line1 = fi.code().lines().limit(1).findFirst().orElseThrow();
       var pkgName = line1

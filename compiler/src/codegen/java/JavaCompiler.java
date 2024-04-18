@@ -23,6 +23,8 @@ public record JavaCompiler(Verbosity verbosity, InputOutput io){
       System.err.println("Java codegen working dir: " 
         +io.output().toAbsolutePath());
     }//should not this be a method of verbosity?
+
+    CopyRuntimeLibs.of(io.output().toAbsolutePath());
     
     var options = List.of(
       "-d", io.output().toAbsolutePath().toString(),
@@ -38,8 +40,6 @@ public record JavaCompiler(Verbosity verbosity, InputOutput io){
       null,
       (Iterable<JavaFile>) files::iterator
       ).call();
-
-    CopyRuntimeLibs.of(io.output().toAbsolutePath());
   
     if (success){ return; }
     var diagnostic = errors.get();

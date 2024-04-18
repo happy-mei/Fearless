@@ -1,13 +1,9 @@
 package main;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import codegen.java.JavaFile;
 import parser.Parser;
@@ -75,6 +71,22 @@ public interface InputOutput{
       ResolveResource.asset("/default-aliases.fear")
     );
   }
+  static InputOutput userFolderImm(String entry, List<String> commandLineArguments, Path userFolder) {
+    Path output= userFolder.resolve("out");
+    List<Parser> inputFiles= InputOutputHelper.loadInputFiles(userFolder);
+    List<Parser> cachedFiles= InputOutputHelper.loadCachedFiles(output);
+    return new FieldsInputOutput(
+      entry,
+      commandLineArguments,
+      ResolveResource.asset("/immBase"),
+      ResolveResource.asset("/immRt"),
+      inputFiles,
+      output,
+      output,
+      cachedFiles,
+      ResolveResource.asset("/default-imm-aliases.fear")
+    );
+  }
   static InputOutput programmatic(
     String entry,
     List<String> commandLineArguments,
@@ -138,6 +150,7 @@ class InputOutputHelper{
     return loadFiles(root,".fear");
   }
   static List<Parser> loadCachedFiles(Path root) {
+    IoErr.of(()->Files.createDirectories(root));
     return loadFiles(root,"pkgInfo.txt");
   }
   static List<Parser> loadFiles(Path root,String endsWith) {

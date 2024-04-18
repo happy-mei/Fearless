@@ -164,7 +164,9 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     c("):");
     stringType(s.ret());
     if(m.isAbs()) {c(",\n");return;}
-    c("->base.Abort!,\n");
+    c("->base.Abort![");
+    stringType(m.sig().ret());
+    c("],\n");
   }
   public String stringLambdaGet(Lambda l) {
     stringLambda(l);

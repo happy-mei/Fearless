@@ -95,10 +95,10 @@ class StringIds{
     "this", "throw", "throws", "transient", "try", "void", "volatile",
     "while", "true", "false", "null"
     };
-  private static final Map<String,String> keywordsMap= Stream.of(keywords)
+  private static final Map<String,String> keywordsMap = Stream.of(keywords)
     .collect(Collectors.toMap(e->e,e->"$"+e));
   public String varName(String name){
     return Optional.ofNullable(keywordsMap.get(name))
-      .orElse(name.replace("'","$"));
+      .orElse(name.replace("'","$")+"_m$");
   }
 }

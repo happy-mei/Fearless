@@ -4,19 +4,14 @@ import astFull.E;
 import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
 import failure.CompileError;
 import id.Id;
-import org.apache.commons.cli.CommandLine;
-import program.TypeSystemFeatures;
+import main.java.LogicMainJava;
 import utils.Box;
 import utils.Bug;
 
-import java.util.List;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
 
 public class Main {
-  private static CompilerFrontEnd frontEnd = null;
-  public static boolean isUserInvoked() {
-    return frontEnd != null;
-  }
-
   public static void resetAll(){
     E.X.reset();
     Id.GX.reset();
@@ -29,15 +24,15 @@ public class Main {
      var cli = new CmdLineAppBuilder(args)
       .withJarName("fearless")
       .withDescription("The compiler for the Fearless programming language. See https://fearlang.org for more information.")
-      .withArg("new", "Create a new package")
-      .withArg("check", "c", "Check that the given Fearless program is valid")
-      .withArg("run", "r", "Compile and run the given Fearless program")
+      .withFlag("new", "Create a new package")
+      .withFlag("check", "c", "Check that the given Fearless program is valid")
+      .withFlag("run", "r", "Compile and run the given Fearless program")
         .withArg("entry-point", "The qualified name for the entry-trait that implements base.Main")
         .withDependencies("run", "entry-point")
       .withFlag("regenerate-aliases", "ra", "Print the default alias file for a new package to standard output")
       .withFlag("generate-docs", "d", "Generate documentation for the given Fearless program")
       .withFlag("imm-base", "Use a pure version of the Fearless standard library")
-      .withFlag("show-internal-stack-traces", "Show stack traces within the compiler on errors for debugging purposes")
+      .withFlag("show-internal-stack-traces", "di", "Show stack traces within the compiler on errors for debugging purposes")
       .withFlag("print-codegen", "pc", "Print the output of the codegen stage to standard output")
       .withFlag("show-tasks", "sct", "Print progress messages showing the current task the compiler is performing.")
       .withFlag("show-full-progress", "sfp", "Print progress messages showing the current task and all sub-tasks the compiler is performing.")
@@ -58,8 +53,27 @@ public class Main {
           return;
         }
 
+        if (res.getArgList().isEmpty()) {
+          throw Bug.todo("good error about no project path existing");
+        }
+        var projectPath = Path.of(res.getArgList().getFirst());
+        var extraArgs = res.getArgList().subList(1, res.getArgList().size());
+        var io = res.hasOption("imm-base")
+          ? InputOutput.userFolderImm(res.getOptionValue("entry-point"), extraArgs, projectPath)
+          : InputOutput.userFolder(res.getOptionValue("entry-point"), extraArgs, projectPath);
+        var main = LogicMainJava.of(io, verbosity.get());
+
         if (res.hasOption("new")) {
           throw Bug.todo();
+        }
+        if (res.hasOption("check")) {
+          CheckMain.of(main);
+          return;
+        }
+        if (res.hasOption("run")) {
+          var p = main.run().inheritIO().start().onExit().join();
+          System.exit(p.exitValue());
+          return;
         }
 
 //        frontEnd = new CompilerFrontEnd(bv, verbosity.get(), new TypeSystemFeatures());
@@ -89,12 +103,6 @@ public class Main {
 
     try {
       cli.build().run();
-    } catch (CompileError | IllegalStateException e) {
-      if (verbosity.get().showInternalStackTraces()) {
-        throw e;
-      }
-      System.err.println(e);
-      System.exit(1);
     } catch (RuntimeException e) {
       if (verbosity.get().showInternalStackTraces()) {
         throw e;

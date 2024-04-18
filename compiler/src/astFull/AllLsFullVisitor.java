@@ -1,26 +1,24 @@
 package astFull;
 
 import failure.Fail;
+import id.Id;
 import visitors.FullCollectorVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-public class AllLsFullVisitor implements FullCollectorVisitor<List<T.Dec>> {
-  private final List<T.Dec> ds = new ArrayList<>();
-  @Override public List<T.Dec> res() {
-    return Collections.unmodifiableList(ds);
+public class AllLsFullVisitor implements FullCollectorVisitor<Collection<T.Dec>> {
+  private final Map<Id.DecId, T.Dec> ds = new HashMap<>();
+  @Override public Collection<T.Dec> res() {
+    return ds.values();
   }
 
   @Override public Void visitLambda(E.Lambda e) {
     var dec = new T.Dec(e.name().id(), e.name().gens(), e.name().bounds(), e, e.pos());
-    var idx = ds.indexOf(dec);
-    if (idx != -1) {
-      var conflict = ds.get(idx);
+    var conflict = ds.get(dec.name());
+    if (conflict != null) {
       throw Fail.conflictingDecl(dec.name(), List.of(new Fail.Conflict(conflict.posOrUnknown(), conflict.name().toString()))).pos(e.pos());
     }
-    ds.add(dec);
+    ds.put(dec.name(), dec);
     return FullCollectorVisitor.super.visitLambda(e);
   }
   public Void visitTrait(E.Lambda e) {

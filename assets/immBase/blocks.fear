@@ -52,7 +52,7 @@ BlockIf[R:imm]:{
   .error(info: ReturnStmt[Info]): Block[R],
   }
 _DecidedBlock:{
-  #[R:imm](res: R): mut Block[R] -> { 'self
+  #[R:imm](res: R): Block[R] -> { 'self
     .return(_) -> res,
     .do(_) -> self,
     .let(_, _) -> res,

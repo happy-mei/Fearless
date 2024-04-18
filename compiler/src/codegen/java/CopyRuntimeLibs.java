@@ -12,8 +12,9 @@ public interface CopyRuntimeLibs {
 	static void of(Path workingDir) {
 		var resourceLibPath = ResolveResource.artefact("/rt/libnative");
 		try(var tree = IoErr.of(()-> Files.walk(resourceLibPath))) {
-			tree.forEach(ThrowingConsumer.of(p->{
+			tree.filter(Files::isRegularFile).forEach(ThrowingConsumer.of(p->{
 				var dest = workingDir.resolve(Path.of("rt", "libnative")).resolve(p.getFileName());
+				if (Files.exists(dest)) { return; }
 				Files.createDirectories(dest);
 				Files.copy(p, dest, StandardCopyOption.REPLACE_EXISTING);
 			}));

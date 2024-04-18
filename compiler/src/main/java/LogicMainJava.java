@@ -37,7 +37,7 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
     var c= new JavaCompiler(verbosity(),io());
     var res= new JavaProgram(this,mir);
 
-//    var tmp = IoErr.of(()->Files.createTempDirectory("fgen"));
+//    var tmp = utils.IoErr.of(()->java.nio.file.Files.createTempDirectory("fgen"));
 //    res.writeJavaFiles(tmp);
 //    System.out.println("saved to "+tmp);
 
