@@ -58,8 +58,9 @@ public interface EMethTypeSystem extends ETypeSystem {
     List<E> es = Push.of(e.receiver(),e.es());
     var nestedErrors = new ArrayDeque<ArrayList<Supplier<CompileError>>>(tsts.size());
     var methArgCache = IntStream.range(0, es.size()).mapToObj(i_->new HashMap<T, Res>()).toList();
+    var guessType = new GuessITX(p(), g(), xbs(), depth());
     for (var tst : tsts) {
-      var errors = new ArrayList<Supplier<? extends CompileError>>();
+      var errors = new ArrayList<Supplier<CompileError>>();
       nestedErrors.add(errors);
       if (okAll(es, tst.ts(), errors, methArgCache, guessType)) {
         //note: the receiver can be a subtype of the declaration point like all the other
