@@ -11,20 +11,21 @@ import visitors.Visitor;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public record GuessITX(Program p, Gamma g, XBs xbs, int depth) implements Visitor<Set<Id.RT<T>>> {
-  @Override public Set<Id.RT<T>> visitX(E.X e) {
-    return Set.of(g().get(e).rt());
+public record GuessIT(Program p, Gamma g, XBs xbs, int depth) implements Visitor<Set<Id.IT<T>>> {
+  @Override public Set<Id.IT<T>> visitX(E.X e) {
+    return g().get(e).match(gx->Set.of(), Set::of);
   }
-  @Override public Set<Id.RT<T>> visitLambda(E.Lambda e) {
+  @Override public Set<Id.IT<T>> visitLambda(E.Lambda e) {
     return Set.copyOf(e.its());
   }
-  @Override public Set<Id.RT<T>> visitMCall(E.MCall e) {
+  @Override public Set<Id.IT<T>> visitMCall(E.MCall e) {
     var renamer = TypeRename.core(p());
     return e.receiver().accept(this).stream()
-      .flatMap(recv->p().meths(xbs(), Mdf.recMdf, (Id.IT<T>) recv, depth()).stream())
+      .flatMap(recv->p().meths(xbs(), Mdf.recMdf, recv, depth()).stream())
       .filter(cm->cm.name().nameArityEq(e.name()))
       .map(cm->renamer.renameSigOnMCall(cm.sig(), xbs().addBounds(cm.sig().gens(), cm.bounds()), renamer.renameFun(e.ts(), cm.sig().gens())))
-      .map(sig->sig.ret().rt())
+      .filter(sig->sig.ret().isIt())
+      .map(sig->sig.ret().itOrThrow())
       .collect(Collectors.toSet());
   }
 }

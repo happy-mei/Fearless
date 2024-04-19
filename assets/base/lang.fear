@@ -5,9 +5,9 @@ Main: { #(s: mut System): Void }
 Sealed: {}
 Void: Sealed{}
 
-Abort: Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: R -> this! } // can be optimised to just terminate (goes stuck)
-Magic: Sealed{ ![R:readOnly,lent,read,mut,imm,iso]: R -> this! } // magic'd out to tell us what we forgot to implement
-Debug: Sealed{ #[T](x: T): T -> x }
+Abort: Sealed{![R:readOnly,lent,read,mut,imm,iso]: R -> this!} // can be optimised to just terminate (goes stuck)
+Magic: Sealed{![R:readOnly,lent,read,mut,imm,iso]: R -> this!} // magic'd out to tell us what we forgot to implement
+Debug: Sealed{#[T](x: T): T -> x}
 HasIdentity: { mut .idEq(other: readOnly HasIdentity): Bool -> Magic! } // TODO: magic
 
 As[X:imm,mut,read,iso]: Sealed{ #(x: X): X -> x }

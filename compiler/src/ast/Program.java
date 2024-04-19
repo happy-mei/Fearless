@@ -63,7 +63,7 @@ public class Program implements program.Program  {
       @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
         return subTypeCache;
       }
-      @Override public HashMap<MethsCacheKey, List<CM>> methsCache() {
+      @Override public HashMap<MethsCacheKey, List<NormResult>> methsCache() {
         return methsCache;
       }
     };
@@ -78,8 +78,8 @@ public class Program implements program.Program  {
     return subTypeCache;
   }
 
-  private final HashMap<MethsCacheKey, List<CM>> methsCache = new HashMap<>();
-  @Override public HashMap<MethsCacheKey, List<CM>> methsCache() {
+  private final HashMap<MethsCacheKey, List<NormResult>> methsCache = new HashMap<>();
+  @Override public HashMap<MethsCacheKey, List<NormResult>> methsCache() {
     return methsCache;
   }
 
@@ -105,8 +105,7 @@ public class Program implements program.Program  {
       .map(ti->TypeRename.core(this).renameIT(ti,f))
       .toList();
   }
-  @Override
-  public List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t) {
+  @Override public List<NormResult> cMsOf(Mdf recvMdf, Id.IT<T> t) {
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), d.gxs());
@@ -159,15 +158,17 @@ public class Program implements program.Program  {
 
   @Override public String toString() { return this.ds.toString(); }
 
-  private CM cm(Mdf recvMdf, Id.IT<ast.T> t, E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
+  private NormResult cm(Mdf recvMdf, Id.IT<ast.T> t, E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
-    var cm = norm(CM.of(t, mi, mi.sig()));
+    var normed = norm(CM.of(t, mi, mi.sig()));
+    var cm = normed.cm();
     var normedMeth = new E.Meth(cm.sig(), cm.name(), cm.xs(), mi.body(), mi.pos());
-    return CM.of(cm.c(), normedMeth, TypeRename.coreRec(this, recvMdf).renameSig(cm.sig(), xbs, f));
+    return new NormResult(CM.of(cm.c(), normedMeth, TypeRename.coreRec(this, recvMdf).renameSig(cm.sig(), xbs, f)), normed.restoreSubst());
   }
   private CM cmCore(Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
-    var cm = norm(CM.of(t, mi, mi.sig()));
+    var normed = norm(CM.of(t, mi, mi.sig()));
+    var cm = normed.cm();
     var normedMeth = new E.Meth(cm.sig(), cm.name(), cm.xs(), mi.body(), mi.pos());
     return CM.of(cm.c(), normedMeth, TypeRename.core(this).renameSig(cm.sig(), XBs.empty(), f));
   }
