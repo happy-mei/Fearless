@@ -300,6 +300,9 @@ public interface Program {
   record NormResult(CM cm, Map<Id.GX<T>,Id.GX<T>> restoreSubst) {
     public CM restoreMethodGens() {
       var newSig = new RenameGens(restoreSubst).visitSig(cm.sig());
+      if (newSig.gens().equals(List.of(new Id.GX<>("R"))) && newSig.ts().size() == 1 && newSig.ts().getFirst().toString().equals("mut base.ControlFlowMatch[R, R]")){
+        System.out.println(newSig);
+      }
       return cm.withSig(newSig);
     }
   }
@@ -311,7 +314,8 @@ public interface Program {
     var normedNames = normaliser.normalisedNames(gxs.size());
     Streams.zip(gxs, normedNames).forEach((original,normed)->{
       subst.put(original, normed);
-      restore.put(normed, original);
+      var plain = original.name().endsWith("$") ? original : new Id.GX<T>(original.name()+"$0");
+      restore.put(normed, plain);
     });
     var newSig = new RenameGens(subst).visitSig(cm.sig());
     return new NormResult(cm.withSig(newSig), Collections.unmodifiableMap(restore));

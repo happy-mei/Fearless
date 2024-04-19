@@ -14,6 +14,7 @@ public class Refresher<TT extends Id.Ty> {
     if (originalName.contains("$")) {
       originalName = originalName.split("\\$")[0];
     }
+//    assert !originalName.contains("$") : originalName;
     return new Id.GX<>(originalName+"$"+depth);
   }
   public Map<Id.GX<TT>,Id.GX<TT>> substitutes(List<Id.GX<TT>> gxs) {
