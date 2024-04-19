@@ -25,24 +25,29 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface EMethTypeSystem extends ETypeSystem {
-  //priority for overloading over receiver modifier
+  // TODO: we have to be more permissive first (i.e. mut before read/imm) because e0.accept(v) will work until the final step and then fail, at which point we cannot backtrack.
   List<Mdf> recvPriority = List.of(Mdf.iso, Mdf.mut, Mdf.imm, Mdf.recMdf, Mdf.read, Mdf.lent, Mdf.readOnly);
+//  List<Mdf> recvPriority = List.of(Mdf.readOnly, Mdf.imm, Mdf.read, Mdf.recMdf, Mdf.iso, Mdf.lent, Mdf.mut);
+//  List<Mdf> inferPriority = recvPriority;
   static List<Mdf> inferPriority(Mdf recvMdf) {
     var base = recvPriority.stream().filter(mdf->mdf != recvMdf).collect(Collectors.toCollection(ArrayList::new));
     return Push.of(recvMdf, base);
   }
 
-  default Optional<Supplier<CompileError>> visitMCall(E.MCall e) {
-    //this method just add the expected type for the receiver
-    var expectedRecv= e.receiver()
-      .accept(new GuessIT(p(), g(), xbs(), depth()));
-    return visitMCall(e, expectedRecv);
+  default Optional<Supplier<? extends CompileError>> visitMCall(E.MCall e) {
+    var guessType = new GuessIT(p(), g(), xbs(), depth());
+    Optional<Supplier<? extends CompileError>> error = Optional.empty();
+    for (var expectedRecv : e.receiver().accept(guessType)) {
+      var res = visitMCall(e, expectedRecv);
+      if (res.isEmpty()) { return res; }
+      if (error.isEmpty()) { error = res; }
+    }
+    return error;
   }
-  private Optional<Supplier<CompileError>> visitMCall(E.MCall e, Id.IT<T> recvIT) {
+  default Optional<Supplier<? extends CompileError>> visitMCall(E.MCall e, Id.IT<T> recvIT) {
+    var guessType = new GuessITX(p(), g(), xbs(), depth());
     var guessFullType = new GuessT(p(), g(), xbs(), depth());
-    var recvMdf = e.receiver().accept(guessFullType).stream()
-      .map(T::mdf)
-      .findFirst().orElse(Mdf.recMdf);
+    var recvMdf = e.receiver().accept(guessFullType).stream().map(T::mdf).findFirst().orElse(Mdf.recMdf);
     var optTst=multiMeth(recvIT, recvMdf, e.name(), e.ts());
     if (optTst.isEmpty()) {
       return Optional.of(()->Fail.undefinedMethod(e.name(), new T(recvMdf, recvIT), p().meths(xbs(), Mdf.recMdf, recvIT, depth()).stream()));
@@ -50,20 +55,18 @@ public interface EMethTypeSystem extends ETypeSystem {
     List<TsT> tsts = optTst.stream()
       .filter(this::filterOnRes)
       .toList();
-    //-----------------------------------
+
     if (tsts.isEmpty()) {
       return Optional.of(()->Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.stream().distinct().toList()).pos(e.pos()));
     }
 
     List<E> es = Push.of(e.receiver(),e.es());
-    var nestedErrors = new ArrayDeque<ArrayList<Supplier<CompileError>>>(tsts.size());
+    var nestedErrors = new ArrayDeque<ArrayList<Supplier<? extends CompileError>>>(tsts.size());
     var methArgCache = IntStream.range(0, es.size()).mapToObj(i_->new HashMap<T, Res>()).toList();
     for (var tst : tsts) {
       var errors = new ArrayList<Supplier<? extends CompileError>>();
       nestedErrors.add(errors);
       if (okAll(es, tst.ts(), errors, methArgCache, guessType)) {
-        //note: the receiver can be a subtype of the declaration point like all the other
-        //when 'fetching' the method, we need to have the receiver of the most specific type
         var recvT = tst.ts().get(0);
         var invalidBounds = GenericBounds.validGenericMeth(p(), xbs(), recvT.mdf(), recvT.itOrThrow(), depth(), tst.original(), e.ts());
         if (invalidBounds.isPresent()) {
@@ -112,12 +115,12 @@ public interface EMethTypeSystem extends ETypeSystem {
     if(expectedT().isEmpty()){ return true; }
     return p().isSubType(xbs(), tst.t(), expectedT().get());
   }
-  default boolean okAll(List<E> es, List<T> ts, ArrayList<Supplier<CompileError>> errors, List<HashMap<T, Res>> caches, GuessITX guessType) {
+  default boolean okAll(List<E> es, List<T> ts, ArrayList<Supplier<? extends CompileError>> errors, List<HashMap<T, Res>> caches, GuessITX guessType) {
     assert es.size() == ts.size() && caches.size() == es.size();
     return IntStream.range(0, es.size())
       .allMatch(i->ok(es.get(i), ts.get(i), errors, caches.get(i), guessType));
   }
-  default boolean ok(E e, T t, ArrayList<Supplier<CompileError>> errors, HashMap<T, Res> cache, GuessITX guessType) {
+  default boolean ok(E e, T t, ArrayList<Supplier<? extends CompileError>> errors, HashMap<T, Res> cache, GuessITX guessType) {
 //    var res = cache.computeIfAbsent(t, t_->e.accept(this.withT(Optional.of(t_))));
     // TODO: cache res based on the same visitor hashcode
     /*

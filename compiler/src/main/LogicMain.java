@@ -45,6 +45,7 @@ public interface LogicMain {
       packages.putAll(load(io().baseFiles()));
     }
     packages.putAll(cache);//Purposely overriding any app also in cache
+    // TODO: ^ should we show a warning if we do this?
     return Parser.parseAll(packages, new TypeSystemFeatures());
   }
   default void wellFormednessFull(astFull.Program fullProgram){
