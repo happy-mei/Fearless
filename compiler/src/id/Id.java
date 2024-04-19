@@ -25,7 +25,7 @@ public class Id {
   public static boolean validGX(String name){ 
     assert name!=null && !name.isEmpty();
     // Compiler-inserted names are valid
-    if (name.endsWith("$")) { return true; }
+    if (name.contains("$")) { return true; }
     if (name.equals("interface{}")) { return true; }
     return new parser.Parser(Parser.dummy,name).parseGX();
   }

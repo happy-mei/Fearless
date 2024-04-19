@@ -59,7 +59,7 @@ public class Program implements program.Program{
       @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
         return subTypeCache;
       }
-      @Override public HashMap<MethsCacheKey, List<CM>> methsCache() {
+      @Override public HashMap<MethsCacheKey, List<NormResult>> methsCache() {
         return methsCache;
       }
     };
@@ -74,8 +74,8 @@ public class Program implements program.Program{
     return subTypeCache;
   }
 
-  private final HashMap<MethsCacheKey, List<CM>> methsCache = new HashMap<>();
-  @Override public HashMap<MethsCacheKey, List<CM>> methsCache() {
+  private final HashMap<MethsCacheKey, List<NormResult>> methsCache = new HashMap<>();
+  @Override public HashMap<MethsCacheKey, List<NormResult>> methsCache() {
     return methsCache;
   }
 
@@ -103,7 +103,7 @@ public class Program implements program.Program{
     return d.lambda().its().stream().map(ti->TypeRename.core(this).renameIT(liftIT(ti),f)).toList();
   }
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
-  @Override public List<CM> cMsOf(Mdf recvMdf, Id.IT<ast.T> t){
+  @Override public List<NormResult> cMsOf(Mdf recvMdf, Id.IT<ast.T> t){
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
@@ -130,7 +130,7 @@ public class Program implements program.Program{
     return of(t).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
   }
 
-  private CM cm(Mdf recvMdf, Id.IT<ast.T> t, astFull.E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
+  private NormResult cm(Mdf recvMdf, Id.IT<ast.T> t, astFull.E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
     var cm = CM.of(t, mi, TypeRename.coreRec(this, recvMdf).renameSig(new InjectionVisitor().visitSig(sig), xbs, f));
@@ -140,7 +140,7 @@ public class Program implements program.Program{
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
     var cm = CM.of(t, mi, TypeRename.core(this).renameSig(new InjectionVisitor().visitSig(sig), xbs, f));
-    return norm(cm);
+    return norm(cm).cm();
   }
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
   public Map<Id.DecId, T.Dec> inlineDs() { return this.inlineDs; }

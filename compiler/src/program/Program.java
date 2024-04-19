@@ -7,6 +7,7 @@ import failure.Fail;
 import files.Pos;
 import id.Id;
 import id.Mdf;
+import id.Normaliser;
 import id.Refresher;
 import program.inference.RefineTypes;
 import program.typesystem.EMethTypeSystem;
@@ -29,7 +30,7 @@ public interface Program {
   boolean isInlineDec(Id.DecId d);
   List<Id.IT<T>> itsOf(Id.IT<T> t);
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
-  List<CM> cMsOf(Mdf recvMdf, Id.IT<T> t);
+  List<NormResult> cMsOf(Mdf recvMdf, Id.IT<T> t);
   CM plainCM(CM fancyCM);
   Set<Id.GX<ast.T>> gxsOf(Id.IT<T> t);
   Program withDec(T.Dec d);
@@ -234,13 +235,13 @@ public interface Program {
     return methsAux(xbs, recvMdf, it).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
   record MethsCacheKey(XBs xbs, Mdf recvMdf, Id.IT<T> it){}
-  HashMap<MethsCacheKey, List<CM>> methsCache();
-  default List<CM> methsAux(XBs xbs, Mdf recvMdf, Id.IT<T> it) {
+  HashMap<MethsCacheKey, List<NormResult>> methsCache();
+  default List<NormResult> methsAux(XBs xbs, Mdf recvMdf, Id.IT<T> it) {
     var methsCache = this.methsCache();
     var cacheKey = new MethsCacheKey(xbs, recvMdf, it);
     // Can't use computeIfAbsent here because concurrent modification thanks to mutual recursion :-(
     if (methsCache.containsKey(cacheKey)) { return methsCache.get(cacheKey); }
-    List<CM> cms = Stream.concat(
+    List<NormResult> cms = Stream.concat(
       cMsOf(recvMdf, it).stream(),
       itsOf(it).stream().flatMap(iti->methsAux(xbs, recvMdf, iti).stream())
     ).toList();
@@ -292,63 +293,60 @@ public interface Program {
       );
     }
   }
-  default CM norm(CM cm) {
-    /*
-    norm(CM) = CM' // Note: the (optional) body is not affected
-    //Note, in CM ::= C[Ts].sig the class Xs are already replaced with Ts
-    norm(C[Ts].m[X1..Xn](xTs):T->e) = C[Ts] (.m[](xTs):T->e)[X1=Par1..Xn=Parn]
-      where we consistently select Par1..Parn globally so that
-      it never happens that the current Ds contains Par1..Parn anywhere as a nested X
-      Note: to compile with a pre compiled program we must add that
-    norm(C[Ts].m[Par1 Xs](xTs):T->e) = C[Ts].m[Par1 Xs](xTs):T->e
-     */
-    //standardNames(n)->List.of(Par1..Parn)
-    var gx=cm.sig().gens();
-    List<Id.GX<ast.T>> names = new Refresher<ast.T>(0).freshNames(gx.size());
-    Map<Id.GX<T>,Id.GX<T>> subst = Mapper.of(res->{
-      for (int i = 0; i < gx.size(); i++) {
-        res.put(gx.get(i), names.get(i));
-      }
+
+  /**
+   * This norm makes sure that all
+   */
+  record NormResult(CM cm, Map<Id.GX<T>,Id.GX<T>> restoreSubst) {
+    public CM restoreMethodGens() {
+      var newSig = new RenameGens(restoreSubst).visitSig(cm.sig());
+      return cm.withSig(newSig);
+    }
+  }
+  default NormResult norm(CM cm) {
+    var gxs=cm.sig().gens();
+    var normaliser = new Normaliser<T>(0);
+    Map<Id.GX<T>,Id.GX<T>> subst = new HashMap<>();
+    Map<Id.GX<T>,Id.GX<T>> restore = new HashMap<>();
+    var normedNames = normaliser.normalisedNames(gxs.size());
+    Streams.zip(gxs, normedNames).forEach((original,normed)->{
+      subst.put(original, normed);
+      restore.put(normed, original);
     });
-    // ^ this was the stream below but .boxed was bad enough for perf in this hot path to go old-school
-//    Map<Id.GX<T>,Id.GX<T>> subst=IntStream.range(0,gx.size()).boxed()
-//      .collect(Collectors.toMap(gx::get, names::get));
-    var newSig=new RenameGens(subst).visitSig(cm.sig());
-    return cm.withSig(newSig);
+    var newSig = new RenameGens(subst).visitSig(cm.sig());
+    return new NormResult(cm.withSig(newSig), Collections.unmodifiableMap(restore));
   }
 
   /**
    * Normalised CMs are required for 5a, but the rest of the type system needs fresh names.
    */
-  default CM freshenMethGens(CM cm, int depth) {
+  default CM freshenMethGens(NormResult normedCM, int depth) {
+    var cm = normedCM.restoreMethodGens();
     var gxs=cm.sig().gens();
-    var names = new Refresher<T>(depth).freshNames(gxs.size());
-    Map<Id.GX<T>,Id.GX<T>> subst = Mapper.of(res->{
-      for (int i = 0; i < gxs.size(); i++) {
-        res.put(gxs.get(i), names.get(i));
-      }
-    });
+    var refresher = new Refresher<T>(depth);
+    Map<Id.GX<T>,Id.GX<T>> subst = refresher.substitutes(gxs);
     var newSig=new RenameGens(subst).visitSig(cm.sig());
     return cm.withSig(newSig);
   }
 
-  default List<CM> prune(XBs xbs, List<CM> cms, Optional<Pos> lambdaPos) {
+  default List<NormResult> prune(XBs xbs, List<NormResult> normed, Optional<Pos> lambdaPos) {
     /*
     prune(CMs) = pruneAux(CMs1)..pruneAux(CMsn)
       where CMs1..CMsn = groupByM(norm(CMs)) //groupByM(CMs)=CMss groups for the same m,n
      */
-    var cmsMap = cms.stream()
-      .distinct()
-      .collect(Collectors.groupingBy(CM::name));
+    var seen = new HashSet<CM>();
+    var cmsMap = normed.stream()
+      .filter(n->seen.add(n.cm()))
+      .collect(Collectors.groupingBy(n->n.cm().name()));
     return cmsMap.values().stream()
-      .map(cmsi->pruneAux(xbs, cmsi, lambdaPos, cmsi.size()+1))
+      .map(ns->pruneAux(xbs, ns, lambdaPos, ns.size()+1))
       .toList();
   }
 
-  default CM pruneAux(XBs xbs, List<CM> cms, Optional<Pos> lambdaPos, int limit) {
+  default NormResult pruneAux(XBs xbs, List<NormResult> normedCMs, Optional<Pos> lambdaPos, int limit) {
     if(limit==0){
-      throw Fail.uncomposableMethods(cms.stream()
-        .map(cm->Fail.conflict(cm.pos(), cm.toStringSimplified()))
+      throw Fail.uncomposableMethods(normedCMs.stream()
+        .map(ncm->Fail.conflict(ncm.cm.pos(), ncm.restoreMethodGens().toStringSimplified()))
         .toList()
       ).pos(lambdaPos);
     }
@@ -359,21 +357,22 @@ public interface Program {
       n > 0
       CMs.size < n //else error
      */
-    assert !cms.isEmpty();
-    var first=cms.get(0);
-    if (cms.size() == 1) { return first; }
-    var nextCms=cms.stream().skip(1)
+    assert !normedCMs.isEmpty();
+    var first=normedCMs.get(0);
+    if (normedCMs.size() == 1) { return first; }
+    var nextCms=normedCMs.stream().skip(1)
       .peek(cmi->{
-        var sameGens = first.sig().gens().equals(cmi.sig().gens());
-        var sameBounds = first.sig().bounds().equals(cmi.sig().bounds());
+        var sameGens = first.cm.sig().gens().equals(cmi.cm.sig().gens());
+        var sameBounds = first.cm.sig().bounds().equals(cmi.cm.sig().bounds());
         if (!sameGens || !sameBounds) {
+          System.out.println("hmm "+first+"\nand "+cmi);
           throw Fail.uncomposableMethods(List.of(
-            Fail.conflict(first.pos(), first.toStringSimplified()),
-            Fail.conflict(cmi.pos(), cmi.toStringSimplified())
+            Fail.conflict(first.cm.pos(), first.restoreMethodGens().toStringSimplified()),
+            Fail.conflict(cmi.cm.pos(), cmi.restoreMethodGens().toStringSimplified())
           )).pos(lambdaPos);
         }
       })
-      .filter(cmi->!firstIsMoreSpecific(xbs, first, cmi) && !firstIsMoreSpecific(xbs, plainCM(first), plainCM(cmi)))
+      .filter(cmi->!firstIsMoreSpecific(xbs, first.cm, cmi.cm) && !firstIsMoreSpecific(xbs, plainCM(first.cm), plainCM(cmi.cm)))
       .toList();
 
     return pruneAux(xbs, Push.of(nextCms,first), lambdaPos, limit - 1);

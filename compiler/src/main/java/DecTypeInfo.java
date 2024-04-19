@@ -62,8 +62,8 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     if(!n.contains("$")){
       mapGX.put(n,n); 
       return;
-    }
-    int i= n.indexOf("/");
+    }//OriginalName$n
+    int i= n.indexOf("$");
     assert i>0;
     String nn=n.substring(0,i);
     if(!mapGX.containsValue(nn)){

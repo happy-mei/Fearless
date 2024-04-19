@@ -149,12 +149,12 @@ public class TestSigInference {
 
   @Test void oneParentImplGens() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
-      .fullType/1([x]):Sig[mdf=imm,gens=[X0/0$],ts=[immX0/0$],ret=immX0/0$]->x:infer}],
+      .fullType/1([x]):Sig[mdf=imm,gens=[G$0],ts=[immG$0],ret=immG$0]->x:infer}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
-      .fullType/1([a]):Sig[mdf=imm,gens=[X],ts=[immX],ret=immX]->[-]}]}
+      .fullType/1([a]):Sig[mdf=imm,gens=[G],ts=[immG],ret=immG]->[-]}]}
     """, """
     package base
-    A:{ .fullType[X](a: imm X): imm X }
+    A:{ .fullType[G](a: imm G): imm G }
     B:A{ x -> x }
     """);}
 
