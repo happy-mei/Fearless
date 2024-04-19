@@ -35,31 +35,106 @@ public interface EMethTypeSystem extends ETypeSystem {
   default Optional<Supplier<CompileError>> visitMCall(E.MCall e) {
     //this method just add the expected type for the receiver
     var expectedRecv= e.receiver()
-      .accept(new GuessIT(p(), g(), xbs(), depth()));
+      .accept(new GuessT(p(), g(), xbs(), depth()));
     return visitMCall(e, expectedRecv);
   }
-  private Optional<Supplier<CompileError>> visitMCall(E.MCall e, Id.IT<T> recvIT) {
-    var guessFullType = new GuessT(p(), g(), xbs(), depth());
-    var recvMdf = e.receiver().accept(guessFullType).stream()
-      .map(T::mdf)
-      .findFirst().orElse(Mdf.recMdf);
-    var optTst=multiMeth(recvIT, recvMdf, e.name(), e.ts());
+  private Optional<Supplier<CompileError>> candidateMultiMeth(E.MCall e, T recvT,List<TsT> acc){
+    var optTst= multiMeth(recvT, e.name(), e.ts());
     if (optTst.isEmpty()) {
-      return Optional.of(()->Fail.undefinedMethod(e.name(), new T(recvMdf, recvIT), p().meths(xbs(), Mdf.recMdf, recvIT, depth()).stream()));
+      return Optional.of(()->Fail.undefinedMethod(e.name(), recvT, p().meths(xbs(), Mdf.recMdf, recvT.itOrThrow(), depth()).stream()));
     }
-    List<TsT> tsts = optTst.stream()
+    optTst.stream()
       .filter(this::filterOnRes)
-      .toList();
-    //-----------------------------------
-    if (tsts.isEmpty()) {
+      .forEach(acc::add);
+    if (acc.isEmpty()) {
       return Optional.of(()->Fail.noCandidateMeths(e, expectedT().orElseThrow(), optTst.stream().distinct().toList()).pos(e.pos()));
     }
+    return Optional.empty();
+  }
+  private Optional<Supplier<CompileError>> visitMCall(E.MCall e, T recvT) {
+    List<TsT> tsTs= new ArrayList<>();
+    var err= candidateMultiMeth(e,recvT,tsTs);
 
+    /*
+    on no overloading
+      -one error
+    on mut,read, ...imm
+
+Harder to call
+sig[mut=iso, read=imm, readonly=imm]
+sig[mut=iso, read=imm]
+sig
+sig[result=hygienic][mut=iso, read=readonly] //ignoring the mut/iso
+sig[result=hygenic][1_mut=lent, other_muts=iso, read=imm ] //if only 1 mut exists
+easier to call
+---
+typing G|- e.m(es):Tr expected Ts
+type G|-e:T expected empty
+select the overloading:
+  use expected types and T
+multiSig: filter on type T, and the expected return types
+use multisig to select sets of expected types for the arguments
+for each es
+we type with set of expected types and get ts
+  ei.accept(this)->ti
+we use ts to match the first multiSig that works and return that Tr
+---
+  Ls; Xs; G; empty |- e0 : T0
+  sigs= meth(Ls,T0,m/n)//overloaded
+  sig= selectOverload(sigs,T0,Ts)
+  Ts1..Tsn -> Ts'= multiMeth(sig,T0,m/n,Ts)
+  Ls; Xs; G; Ts1 |- e1 : T1 ... Ls; Xs; G; Tsn |- en : Tn
+  T= selectResult(T1..Tn,Ts1..Tsn -> Ts')
+-----------------------------------
+  Xs; G; Ts |- e0 m(e1..en) : T
+
+meth(..) as before but return set in overloading
+
+selectOverload(..) filters an overloaded version using T0,Ts
+
+multiMeth with new order, and return ListListT->ListT, pre filtered by T0,Ts
+
+Xs',G |- e0 : RC0 D[Ts0]
+RC0 in {imm, iso}
+RC0 <= RC
+Xs' disjoint Xs
+RC m[Xs](x1:T1, .., xn:Tn):T -> e, in meths(RC0 D[Ts0])
+Xs',G |- e1 : T1[Xs=Ts][⇑P] ... Xs',G |- en : Tn[Xs=Ts][⇑P]
+-------------------------------------------------------------(Prom-Call-T)
+      Xs',G |- e0 m[Ts](e1,...en): T[Xs=Ts][⇑r]
+
+c.d :T
+(b.c).d :T
+((a.b).c).d :T
+
+phase 1:
+//add to syntax [mdf]
+
+
+ bar(list.get)
+ list.get.foo.beer
+ mut List[mut Ch] list
+ list.get.eatMe
+ mut .get Bar
+ imm .get Beer
+
+ e.[mdf]m[Ts](es)
+
+ As#[T](list.get).foo
+
+ .let[T] x={list.get}
+ x.foo
+
+ --how method body promotion
+
+
+     */
+    if(err.isPresent()){ return err; }
     List<E> es = Push.of(e.receiver(),e.es());
-    var nestedErrors = new ArrayDeque<ArrayList<Supplier<CompileError>>>(tsts.size());
+    var nestedErrors = new ArrayDeque<ArrayList<Supplier<CompileError>>>(tsTs.size());
     var methArgCache = IntStream.range(0, es.size()).mapToObj(i_->new HashMap<T, Res>()).toList();
     var guessType = new GuessITX(p(), g(), xbs(), depth());
-    for (var tst : tsts) {
+    for (var tst : tsTs) {
       var errors = new ArrayList<Supplier<CompileError>>();
       nestedErrors.add(errors);
       if (okAll(es, tst.ts(), errors, methArgCache, guessType)) {
@@ -81,7 +156,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     }
 
     return Optional.of(()->{
-      var calls1 = tsts.stream()
+      var calls1 = tsTs.stream()
         .map(tst1->{
           var call = CompletableFuture.supplyAsync(()->Streams.zip(es, tst1.ts()).map((e1,t1)->guessToStr(e1.accept(guessFullType)))
               .collect(Collectors.joining(", ")))
@@ -138,7 +213,9 @@ public interface EMethTypeSystem extends ETypeSystem {
 //    return p().tryIsSubType(xbs(), res.tOrThrow(), t);
   }
 
-  default List<TsT> multiMeth(Id.IT<T> recIT, Mdf recvMdf, MethName m, List<T> ts) {
+  default List<TsT> multiMeth(T recT, MethName m, List<T> ts) {
+    Id.IT<T> recIT=recT.itOrThrow();
+    Mdf recvMdf=recT.mdf();
     // TODO: throw error (no invoking methods on GXs)
     return p().meths(xbs(), Mdf.recMdf, recIT, depth()).stream()
       .filter(cm->cm.name().nameArityEq(m))
