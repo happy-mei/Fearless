@@ -129,30 +129,30 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   private Optional<CompileError> noImplInlineDec(E.Lambda e) {
-    if (e.its().stream().noneMatch(it->p.isInlineDec(it.name()) && !e.name().id().equals(it.name()))) {
+    if (e.its().stream().noneMatch(it->p.isInlineDec(it.name()) && !e.id().id().equals(it.name()))) {
       return Optional.empty();
     }
     return Optional.of(Fail.implInlineDec(
-      e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.name().id().equals(d)).toList()
+      e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.id().id().equals(d)).toList()
     ));
   }
 
   private Optional<CompileError> noFreeGensInLambda(E.Lambda e) {
     if (this.env.gxs().isEmpty()) { return Optional.empty(); }
-    var visitor = new UndefinedGXsVisitor(Set.copyOf(e.name().gens()));
+    var visitor = new UndefinedGXsVisitor(Set.copyOf(e.id().gens()));
     visitor.visitLambda(e);
     if (visitor.res().isEmpty()) { return Optional.empty(); }
-    return Optional.of(Fail.freeGensInLambda(e.name(), visitor.res()).pos(e.pos()));
+    return Optional.of(Fail.freeGensInLambda(e.id(), visitor.res()).pos(e.pos()));
   }
 
   private Optional<CompileError> validBoundsForLambdaGens(E.Lambda e) {
-    if (e.name().gens().isEmpty()) { return Optional.empty(); }
+    if (e.id().gens().isEmpty()) { return Optional.empty(); }
     List<String> invalidBounds = new ArrayList<>();
-    for (var gx : e.name().gens()) {
+    for (var gx : e.id().gens()) {
       var boundsOpt = env.xbs().getO(gx);
       if (boundsOpt.isEmpty()) { continue; }
       var bounds = boundsOpt.get();
-      if (!bounds.equals(e.name().bounds().get(gx))) {
+      if (!bounds.equals(e.id().bounds().get(gx))) {
         invalidBounds.add(gx+": "+bounds.stream().map(Mdf::toString).collect(Collectors.joining(", ")));
       }
     }

@@ -24,14 +24,14 @@ public interface E extends HasPos {
   // TODO: we could cache lambda's type checking like so:
   // - map from a pair (or a composed string of the two) of a string of gamma AND an expected T to a Res
   // could use newline as a delimiter. Could filter gamma to only include what is actually captured in the lambda
-  record Lambda(LambdaId name, Mdf mdf, List<Id.IT<T>> its, String selfName, List<Meth> meths, Optional<Pos> pos) implements E {
+  record Lambda(LambdaId id, Mdf mdf, List<Id.IT<T>> its, String selfName, List<Meth> meths, Optional<Pos> pos) implements E {
     public Lambda {
       assert mdf != null;
       assert !its.isEmpty();
       assert X.validId(selfName);
       assert meths != null;
-      if (name.id().isFresh()) {
-        name = LambdaId.computeId(name.id.name(), name.bounds, meths, its);
+      if (id.id().isFresh()) {
+        id = LambdaId.computeId(id.id.name(), id.bounds, meths, its);
       }
     }
 
@@ -59,16 +59,16 @@ public interface E extends HasPos {
       return v.visitLambda(this, ctx);
     }
     public ast.E.Lambda withMeths(List<Meth> meths) {
-      return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
+      return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
     public ast.E.Lambda withITs(List<Id.IT<T>> its) {
-      return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
+      return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
     public ast.E.Lambda withSelfName(String selfName) {
-      return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
+      return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
     public ast.E.Lambda withMdf(Mdf mdf) {
-      return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
+      return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
     @Override
     public String toString() {

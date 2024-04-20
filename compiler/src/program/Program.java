@@ -228,7 +228,7 @@ public interface Program {
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, ast.E.Lambda l, int depth) {
-    return methsAux(xbs, recvMdf, l.name().toIT()).stream().map(cm->freshenMethGens(cm, depth)).toList();
+    return methsAux(xbs, recvMdf, l.id().toIT()).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, int depth) {

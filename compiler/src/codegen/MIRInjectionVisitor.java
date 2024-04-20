@@ -127,7 +127,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       .toList();
 
     return new MIR.CreateObj(
-      MIR.MT.of(new T(e.mdf(), e.name().toIT())),
+      MIR.MT.of(new T(e.mdf(), e.id().toIT())),
       e.selfName(),
       ms,
       uncallableMs,
@@ -215,9 +215,9 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
   }
 
   @Override public Res<MIR.CreateObj> visitLambda(E.Lambda e, Ctx ctx) {
-    var dec = p.of(e.name().id());
+    var dec = p.of(e.id().id());
     assert dec.lambda() == e;
-    var transparentSource = getTransparentSource(p.of(e.name().id()));
+    var transparentSource = getTransparentSource(p.of(e.id().id()));
     if (transparentSource.isPresent()) {
       var realDec = transparentSource.get();
       var k = new MIR.CreateObj(

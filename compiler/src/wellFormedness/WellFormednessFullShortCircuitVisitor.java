@@ -224,11 +224,11 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   }
 
   private Optional<CompileError> noImplInlineDec(E.Lambda e) {
-    if (e.its().stream().noneMatch(it->p.isInlineDec(it.name()) && !e.name().id().equals(it.name()))) {
+    if (e.its().stream().noneMatch(it->p.isInlineDec(it.name()) && !e.id().id().equals(it.name()))) {
       return Optional.empty();
     }
     return Optional.of(Fail.implInlineDec(
-      e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.name().id().equals(d)).toList()
+      e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.id().id().equals(d)).toList()
     ));
   }
 

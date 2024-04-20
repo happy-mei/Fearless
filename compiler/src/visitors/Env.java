@@ -43,7 +43,7 @@ public record Env(List<String> xs, List<T> ts, List<Id.GX<T>> gxs, XBs xbs, T de
       Push.of(xs,l.selfName()),
       Push.of(ts,new T(l.mdf(), new Id.IT<>(Id.GX.fresh().name(), List.of()))),
       gxs,
-      xbs.addBounds(l.name().gens(), l.name().bounds()),
+      xbs.addBounds(l.id().gens(), l.id().bounds()),
       decT,
       Push.of(this.ms, ms),
       new HashMap<>()

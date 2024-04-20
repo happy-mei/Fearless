@@ -5,7 +5,6 @@ import astFull.E;
 import failure.Fail;
 import id.Id;
 import id.Mdf;
-import utils.Bug;
 import utils.Mapper;
 import utils.Push;
 
@@ -48,9 +47,9 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
 
     return new ast.E.Lambda(
       new ast.E.Lambda.LambdaId(
-        e.name().id(),
-        e.name().gens().stream().map(this::visitGX).toList(),
-        Mapper.of(xbs->e.name().bounds().forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs)))
+        e.id().id(),
+        e.id().gens().stream().map(this::visitGX).toList(),
+        Mapper.of(xbs->e.id().bounds().forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs)))
       ),
       e.mdf().orElse(Mdf.mdf),
       its.stream().map(this::visitIT).toList(),
