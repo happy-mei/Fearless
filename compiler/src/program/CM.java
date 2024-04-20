@@ -22,7 +22,7 @@ public interface CM {
   default Mdf mdf(){ return name().mdf().orElseThrow(); }
   default T ret(){ return sig().ret(); }
   default String qualifiedName() {
-    return c().name()+"$"+name();
+    return c().id()+"$"+name();
   }
   default String toStringSimplified(){ return c() + ", " + name()+"["+ sig().gens().stream().map(Id.GX::toString).collect(Collectors.joining(", "))+"]"+"("+sig().ts().stream().map(T::toString).collect(Collectors.joining(", "))+"): "+ sig().ret(); }
   static CM of(Id.IT<T> c, ast.E.Meth m, ast.E.Sig sig){ return new CoreCM(c,m,sig); }

@@ -15,8 +15,8 @@ import ast.T;
 public record HDCache(Path code, MIR.Program program) {
   public static void cachePackageTypes(LogicMainJava main, MIR.Program program) {
     Map<String,List<T.Dec>> mapped= program.p().ds().values().stream()
-     .filter(d->!main.cachedPkg().contains(d.name().pkg()))
-     .collect(Collectors.groupingBy(d->d.name().pkg()));
+     .filter(d->!main.cachedPkg().contains(d.id().pkg()))
+     .collect(Collectors.groupingBy(d->d.id().pkg()));
     mapped.forEach((key, value)->new HDCache(main.io().output(), program).cacheTypeInfo(key, value));
     new HDCache(main.io().output(), program).cacheBase(main.io().cachedBase());
   }

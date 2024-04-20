@@ -30,7 +30,7 @@ public class Program implements program.Program{
     this.inlineDs = Mapper.of(ds_->{
       var visitor = new AllLsFullVisitor();
       ds.values().forEach(dec->visitor.visitTrait(dec.lambda()));
-      visitor.res().forEach(dec->ds_.put(dec.name(), dec));
+      visitor.res().forEach(dec->ds_.put(dec.id(), dec));
     });
   }
   public Program(TypeSystemFeatures tsf, Map<Id.DecId, T.Dec> ds, Map<Id.DecId, T.Dec> inlineDs) {
@@ -39,7 +39,7 @@ public class Program implements program.Program{
     this.inlineDs = inlineDs.isEmpty() ? Mapper.of(ds_->{
       var visitor = new AllLsFullVisitor();
       ds.values().forEach(dec->visitor.visitTrait(dec.lambda()));
-      visitor.res().forEach(dec->ds_.put(dec.name(), dec));
+      visitor.res().forEach(dec->ds_.put(dec.id(), dec));
     }) : inlineDs;
   }
 
@@ -88,7 +88,7 @@ public class Program implements program.Program{
   }
 
   public T.Dec of(Id.IT<ast.T> t) {
-    return of(t.name());
+    return of(t.id());
   }
 
   public boolean isInlineDec(Id.DecId d) {
@@ -96,7 +96,7 @@ public class Program implements program.Program{
   }
 
   @Override public List<Id.IT<ast.T>> itsOf(Id.IT<ast.T> t){
-    var d=of(t.name());
+    var d=of(t.id());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
@@ -104,7 +104,7 @@ public class Program implements program.Program{
   }
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   @Override public List<NormResult> cMsOf(Mdf recvMdf, Id.IT<ast.T> t){
-    var d=of(t.name());
+    var d=of(t.id());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
@@ -115,7 +115,7 @@ public class Program implements program.Program{
       .toList();
   }
   @Override public CM plainCM(CM fancyCM){
-    var d=of(fancyCM.c().name());
+    var d=of(fancyCM.c().id());
     assert fancyCM.c().ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(fancyCM.c().ts(), gxs);
@@ -164,9 +164,9 @@ public class Program implements program.Program{
 
     var currentDec = of(current);
     for(var it : currentDec.lambda().its()) {
-      var novel=visited.add(it.name());
+      var novel=visited.add(it.id());
       try {
-        if(novel){ superDecIds(visited, it.name()); }
+        if(novel){ superDecIds(visited, it.id()); }
       } catch (CompileError err) {
         throw err.parentPos(currentDec.pos());
       }
@@ -199,27 +199,27 @@ public class Program implements program.Program{
     InferSignatures(Program p){
       this.p=p;
       this.decs = orderDecs(p.ds().values());
-      this.inlineDecs = p.inlineDs().values().stream().filter(dec->!dec.name().isFresh()).collect(Collectors.toCollection(ArrayList::new));
+      this.inlineDecs = p.inlineDs().values().stream().filter(dec->!dec.id().isFresh()).collect(Collectors.toCollection(ArrayList::new));
     }
     private List<T.Dec> orderDecs(Collection<T.Dec> ds){
       // Do a topological sort on the dep graph (should be a DAG) so we infer parents before children.
       // Just using Kahn's algorithm here
       var sorted = new ArrayList<T.Dec>();
       var roots = ds.stream().filter(d->d.lambda().its().isEmpty()).collect(Collectors.toCollection(ArrayDeque::new));
-      var unvisited = roots.stream().map(T.Dec::name).collect(Collectors.toCollection(HashSet::new));
+      var unvisited = roots.stream().map(T.Dec::id).collect(Collectors.toCollection(HashSet::new));
       var visited = new HashSet<Id.DecId>(ds.size());
       while (!roots.isEmpty()) {
         var dec = roots.pop();
-        unvisited.remove(dec.name());
+        unvisited.remove(dec.id());
         sorted.add(dec);
         ds.stream()
           .filter(d->{
-            var its = d.lambda().its().stream().filter(it->!visited.contains(it.name())).toList();
-            return !its.isEmpty() && its.stream().allMatch(it->it.name().equals(dec.name()));
+            var its = d.lambda().its().stream().filter(it->!visited.contains(it.id())).toList();
+            return !its.isEmpty() && its.stream().allMatch(it->it.id().equals(dec.id()));
           })
-          .filter(d->unvisited.add(d.name()))
+          .filter(d->unvisited.add(d.id()))
           .forEach(roots::add);
-        visited.add(dec.name());
+        visited.add(dec.id());
       }
 
       assert unvisited.isEmpty();
@@ -228,11 +228,11 @@ public class Program implements program.Program{
     }
     private void updateDec(T.Dec d, int i) {
       decs.set(i,d);
-      p=new Program(p.tsf, decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)), inlineDecs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
+      p=new Program(p.tsf, decs.stream().collect(Collectors.toMap(T.Dec::id, di->di)), inlineDecs.stream().collect(Collectors.toMap(T.Dec::id, di->di)));
     }
     private void updateInlineDec(T.Dec d, int i) {
       inlineDecs.set(i,d);
-      p=new Program(p.tsf, decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)), inlineDecs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
+      p=new Program(p.tsf, decs.stream().collect(Collectors.toMap(T.Dec::id, di->di)), inlineDecs.stream().collect(Collectors.toMap(T.Dec::id, di->di)));
     }
 
     private T.Dec inferSignatures(T.Dec d) {
@@ -250,7 +250,7 @@ public class Program implements program.Program{
     }
     Id.MethName onlyAbs(XBs xbs, T.Dec dec){
       // depth doesn't matter here because we just extract the name
-      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), p.meths(xbs, Mdf.recMdf, dec.toAstT(), -1).stream().filter(CM::isAbs));
+      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.id()), p.meths(xbs, Mdf.recMdf, dec.toAstT(), -1).stream().filter(CM::isAbs));
       return m.name();
     }
     List<E.Meth> inferSignature(T.Dec dec, E.Meth m) {
@@ -262,7 +262,7 @@ public class Program implements program.Program{
         );
         var name=m.name().orElseGet(()->onlyAbs(xbs, dec));
         if (m.xs().size() != name.num()) {
-          throw Fail.cannotInferSig(dec.name(), name);
+          throw Fail.cannotInferSig(dec.id(), name);
         }
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();
@@ -270,7 +270,7 @@ public class Program implements program.Program{
           .map(inferred->namedMeth.withSig(inferred.sig().toAstFullSig()).withName(name.withMdf(Optional.of(inferred.mdf()))))
           .toList();
         if (res.isEmpty()) {
-          throw Fail.cannotInferSig(dec.name(), name);
+          throw Fail.cannotInferSig(dec.id(), name);
         }
         return res;
       } catch (CompileError e) {

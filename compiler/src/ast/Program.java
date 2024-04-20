@@ -30,7 +30,7 @@ public class Program implements program.Program  {
       ds_.putAll(inlineDs);
       var visitor = new AllLsVisitor();
       ds.values().forEach(dec->visitor.visitTrait(dec.lambda()));
-      visitor.res().forEach(dec->ds_.put(dec.name(), dec));
+      visitor.res().forEach(dec->ds_.put(dec.id(), dec));
     }) : inlineDs;
   }
 
@@ -47,13 +47,13 @@ public class Program implements program.Program  {
 
   public Program withDec(T.Dec d) {
     var ds = new HashMap<>(ds());
-    assert !ds.containsKey(d.name());
-    ds.put(d.name(), d);
+    assert !ds.containsKey(d.id());
+    ds.put(d.id(), d);
     return new Program(tsf, Collections.unmodifiableMap(ds), inlineDs);
   }
 
   public Optional<Pos> posOf(Id.IT<ast.T> t) {
-    return of(t.name()).pos();
+    return of(t.id()).pos();
   }
 
   @Override public Program shallowClone() {
@@ -96,17 +96,17 @@ public class Program implements program.Program  {
   }
 
   @Override public List<Id.IT<T>> itsOf(Id.IT<T> t) {
-    var d=of(t.name());
+    var d=of(t.id());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
     Function<Id.GX<T>, T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
-    return d.lambda().its().stream()
-      .filter(ti->!ti.name().equals(t.name()))
+    return d.lambda().types().stream()
+      .filter(ti->!ti.id().equals(t.id()))
       .map(ti->TypeRename.core(this).renameIT(ti,f))
       .toList();
   }
   @Override public List<NormResult> cMsOf(Mdf recvMdf, Id.IT<T> t) {
-    var d=of(t.name());
+    var d=of(t.id());
     assert t.ts().size()==d.gxs().size();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), d.gxs());
     return d.lambda().meths().stream()
@@ -114,7 +114,7 @@ public class Program implements program.Program  {
       .toList();
   }
   public CM plainCM(CM fancyCM) {
-    var d=of(fancyCM.c().name());
+    var d=of(fancyCM.c().id());
     assert fancyCM.c().ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(fancyCM.c().ts(), gxs);
@@ -125,7 +125,7 @@ public class Program implements program.Program  {
       .orElseThrow();
   }
   @Override public Set<Id.GX<T>> gxsOf(Id.IT<T> t) {
-    return of(t.name()).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
+    return of(t.id()).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
   }
 
   private final HashMap<Id.DecId, Set<Id.DecId>> superDecIdsCache = new HashMap<>();
@@ -146,10 +146,10 @@ public class Program implements program.Program  {
     }
 
     var currentDec = of(current);
-    for(var it : currentDec.lambda().its()) {
-      var novel=visited.add(it.name());
+    for(var it : currentDec.lambda().types()) {
+      var novel=visited.add(it.id());
       try {
-        if(novel){ superDecIds(visited, it.name()); }
+        if(novel){ superDecIds(visited, it.id()); }
       } catch (CompileError err) {
         throw err.parentPos(currentDec.pos());
       }

@@ -35,6 +35,7 @@ public sealed interface E extends HasPos {
       }
 
       assert mdf.isPresent() == it.isPresent();
+      assert its.stream().noneMatch(iti->iti.id().equals(id.id));
     }
 
     public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {}
@@ -70,7 +71,9 @@ public sealed interface E extends HasPos {
       var selfName = Optional.ofNullable(selfName()).map(sn->"'"+sn).orElse("");
       return String.format("[-%s %s-]%s{%s %s}", mdf, type, its(), selfName, meths);
     }
-
+    public Lambda withMdfAndIT(Optional<Mdf> mdf, Optional<Id.IT<T>> it) {
+      return new Lambda(id, mdf, its, selfName, meths, it, pos);
+    }
     public Lambda withSelfName(String selfName) {
       return new Lambda(id, mdf, its, selfName, meths, it, pos);
     }

@@ -21,9 +21,9 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   public WellFormednessShortCircuitVisitor(Program p) { super(p); }
 
   @Override public Optional<CompileError> visitDec(T.Dec d) {
-    pkg = Optional.of(d.name().pkg());
+    pkg = Optional.of(d.id().pkg());
     return ShortCircuitVisitor.visitAll(
-        d.lambda().its(),
+        d.lambda().types(),
         it->noRecMdfInImpls(it).map(err->err.pos(d.lambda().pos()))
         )
       .or(()->super.visitDec(d))
@@ -31,7 +31,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   @Override public Optional<CompileError> visitLambda(E.Lambda e) {
-    return ShortCircuitVisitor.visitAll(e.its(), it->noPrivateTraitOutsidePkg(it.name()))
+    return ShortCircuitVisitor.visitAll(e.types(), it->noPrivateTraitOutsidePkg(it.id()))
       .or(()->noSealedOutsidePkg(e))
       .or(()->noImplInlineDec(e))
       .or(()->noFreeGensInLambda(e))
@@ -116,25 +116,25 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   private Optional<CompileError> noSealedOutsidePkg(E.Lambda e) {
     if (e.meths().isEmpty()) { return Optional.empty(); }
     var pkg = this.pkg.orElseThrow();
-    return getSealedDec(e.its()).filter(dec->!dec.pkg().equals(pkg)).map(dec->Fail.sealedCreation(dec, pkg).pos(e.pos()));
+    return getSealedDec(e.types()).filter(dec->!dec.pkg().equals(pkg)).map(dec->Fail.sealedCreation(dec, pkg).pos(e.pos()));
   }
 
   private Optional<Id.DecId> getSealedDec(List<Id.IT<T>> its) {
     if (its.isEmpty()) { return Optional.empty(); }
     return its.stream()
 //      .map(Id.IT::name)
-      .filter(it->p.itsOf(it).stream().anyMatch(it1->it1.name().equals(Magic.Sealed)))
-      .map(Id.IT::name)
+      .filter(it->p.itsOf(it).stream().anyMatch(it1->it1.id().equals(Magic.Sealed)))
+      .map(Id.IT::id)
       .findFirst()
       .or(()->getSealedDec(its.stream().flatMap(it->p.itsOf(it).stream()).toList()));
   }
 
   private Optional<CompileError> noImplInlineDec(E.Lambda e) {
-    if (e.its().stream().noneMatch(it->p.isInlineDec(it.name()) && !e.id().id().equals(it.name()))) {
+    if (e.types().stream().noneMatch(it->p.isInlineDec(it.id()) && !e.id().id().equals(it.id()))) {
       return Optional.empty();
     }
     return Optional.of(Fail.implInlineDec(
-      e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.id().id().equals(d)).toList()
+      e.types().stream().map(Id.IT::id).filter(d->p.isInlineDec(d) && !e.id().id().equals(d)).toList()
     ));
   }
 

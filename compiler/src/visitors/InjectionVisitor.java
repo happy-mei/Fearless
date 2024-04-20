@@ -37,11 +37,8 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   public ast.E.Lambda visitLambda(E.Lambda e){
-    var base = e.it().map(List::of).orElseGet(List::of);
-    var its = Push.of(base, e.its().stream().filter(it->{
-      if (base.isEmpty()) { return true; }
-      return !it.name().equals(base.get(0).name());
-    }).toList());
+    var base = e.it().filter(it->!e.id().id().equals(it.id())).map(List::of).orElseGet(List::of);
+    var its = Push.of(base, e.its());
 
     // TODO: throw if no ITs (i.e. cannot infer type of lambda)
 
@@ -60,11 +57,12 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   public ast.T.Dec visitDec(astFull.T.Dec d){
+    var lambda = this.visitLambda(d.lambda().withMdfAndIT(d.lambda().mdf().or(()->Optional.of(Mdf.mdf)), Optional.of(d.toIT())));
     return new ast.T.Dec(
-      d.name(),
-      d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList(),
-      Mapper.of(xbs->d.bounds().forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs))),
-      this.visitLambda(d.lambda().withITs(Push.of(d.toIT(), d.lambda().its()))),
+      lambda.id().id(),
+      lambda.id().gens().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList(),
+      Mapper.of(xbs->lambda.id().bounds().forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs))),
+      lambda,
       d.pos()
     );
   }
@@ -85,7 +83,7 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
 
   public Id.IT<ast.T> visitIT(Id.IT<astFull.T> t){
     return new Id.IT<>(
-      t.name(),
+      t.id(),
       t.ts().stream().map(this::visitTInGens).toList()
     );
   }

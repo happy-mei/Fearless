@@ -5,7 +5,6 @@ import ast.T;
 import ast.T.Dec;
 import failure.CompileError;
 import failure.Fail;
-import failure.Res;
 import failure.TypeSystemErrors;
 import id.Id;
 import id.Mdf;
@@ -21,7 +20,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static program.Program.filterByMdf;
@@ -69,7 +67,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
   default Optional<Supplier<? extends CompileError>> bothT(Dec d) {
     var b = d.lambda();
     if (expectedT().map(t->t.rt() instanceof Id.GX<T>).orElse(false)) {
-      return Optional.of(()->Fail.bothTExpectedGens(expectedT().orElseThrow(), d.name()).pos(b.pos()));
+      return Optional.of(()->Fail.bothTExpectedGens(expectedT().orElseThrow(), d.id()).pos(b.pos()));
     }
     var xbs = xbs();
     for (var gx : d.gxs()) {
@@ -91,7 +89,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .findFirst();
     T retT = expectedT //TOP LEVEL = declared type
       .map(t->t.withMdf(b.mdf()))
-      .orElseGet(()->new T(b.mdf(), b.its().getFirst()));
+      .orElseGet(()->new T(b.mdf(), b.types().getFirst()));
     T selfT = new T(b.mdf(), d.toIT());
     var selfName=b.selfName();
     List<Supplier<? extends CompileError>> mRes = b.meths().parallelStream().flatMap(mi->{

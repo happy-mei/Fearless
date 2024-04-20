@@ -7,6 +7,7 @@ import id.Id.MethName;
 import id.Mdf;
 import parser.Parser;
 import utils.Mapper;
+import utils.Push;
 import visitors.CloneVisitor;
 import visitors.CtxVisitor;
 import visitors.Visitor;
@@ -27,12 +28,13 @@ public interface E extends HasPos {
   record Lambda(LambdaId id, Mdf mdf, List<Id.IT<T>> its, String selfName, List<Meth> meths, Optional<Pos> pos) implements E {
     public Lambda {
       assert mdf != null;
-      assert !its.isEmpty();
       assert X.validId(selfName);
-      assert meths != null;
       if (id.id().isFresh()) {
         id = LambdaId.computeId(id.id.name(), id.bounds, meths, its);
       }
+      assert meths != null;
+      final var id_ = id;
+      assert its.stream().noneMatch(iti->iti.id().equals(id_.id));
     }
 
     public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {
@@ -70,8 +72,10 @@ public interface E extends HasPos {
     public ast.E.Lambda withMdf(Mdf mdf) {
       return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
-    @Override
-    public String toString() {
+    public List<Id.IT<T>> types() {
+      return Push.of(id.toIT(), its);
+    }
+    @Override public String toString() {
       var meths = meths().stream().map(Meth::toString).collect(Collectors.joining(",\n"));
       var selfName = Optional.ofNullable(selfName()).map(sn->"'" + sn).orElse("");
       return String.format("[-%s-]%s{%s %s}", mdf, its, selfName, meths);

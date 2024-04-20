@@ -3,6 +3,7 @@ package visitors;
 import astFull.E;
 import astFull.T;
 import id.Id;
+import utils.Mapper;
 
 import java.util.List;
 import java.util.Map;
@@ -26,10 +27,14 @@ public class ShallowInjectionVisitor extends InjectionVisitor implements FullVis
   }
 
   @Override public ast.Program visitProgram(astFull.Program p){
-    Map<Id.DecId, ast.T.Dec> coreDs = p.ds().entrySet().stream()
-      .collect(Collectors.toMap(Map.Entry::getKey, kv->visitDec(kv.getValue())));
-    Map<Id.DecId, ast.T.Dec> inlineDs = p.inlineDs().entrySet().stream()
-      .collect(Collectors.toMap(Map.Entry::getKey, kv->visitDec(removeInlineMs(kv.getValue()))));
+    Map<Id.DecId, ast.T.Dec> coreDs = Mapper.of(res->p.ds().forEach((key, value) -> {
+      var dec = visitDec(value);
+      res.put(dec.id(), dec);
+    }));
+    Map<Id.DecId, ast.T.Dec> inlineDs = Mapper.of(res->p.inlineDs().forEach((key, value) -> {
+      var dec = visitDec(removeInlineMs(value));
+      res.put(dec.id(), dec);
+    }));
     return new ast.Program(p.tsf(), coreDs, inlineDs);
   }
 

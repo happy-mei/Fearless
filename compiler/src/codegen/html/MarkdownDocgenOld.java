@@ -25,14 +25,14 @@ public class MarkdownDocgenOld {
   }
   public List<TraitDoc> visitProgram() {
     return p.ds().values().stream()
-      .collect(Collectors.groupingBy(d->d.name().pkg()))
+      .collect(Collectors.groupingBy(d->d.id().pkg()))
       .entrySet().stream()
       .map(pkg->TraitDoc.fromPkg(pkg.getKey(), visitPackage(pkg.getKey(), pkg.getValue())))
       .toList();
   }
   public String visitPackage(String name, List<T.Dec> traits) {
     var ts = traits.stream()
-      .filter(d->d.name().shortName().charAt(0) != '_')
+      .filter(d->d.id().shortName().charAt(0) != '_')
       .map(this::visitTrait)
       .collect(Collectors.joining("\n\n"));
     return """
@@ -46,11 +46,11 @@ public class MarkdownDocgenOld {
     if (!typeParams.isEmpty()) { typeParams = "**Type parameters**:\n" + typeParams+"\n"; }
 
     var impls = p.itsOf(dec.toIT()).stream()
-      .map(it->"[`%s`](%s)".formatted(it.toString(), toURLPath(it.name().pkg(), fragment(it.name()))))
+      .map(it->"[`%s`](%s)".formatted(it.toString(), toURLPath(it.id().pkg(), fragment(it.id()))))
       .collect(Collectors.joining(", "));
     if (!impls.isEmpty()) { impls = "**Implements**: " + impls; }
 
-    var fragment = fragment(dec.name());
+    var fragment = fragment(dec.id());
     return """
       <h2 id="%s"><a href="#%s"><code>%s</code></a></h2>
       
@@ -60,10 +60,10 @@ public class MarkdownDocgenOld {
       """.formatted(
         fragment,
         fragment,
-        dec.name().toString(),
+        dec.id().toString(),
         impls,
         typeParams,
-        visitLambda(dec.name().pkg(), dec.name(), dec.lambda())
+        visitLambda(dec.id().pkg(), dec.id(), dec.lambda())
         ).stripIndent().strip();
   }
 
@@ -73,7 +73,7 @@ public class MarkdownDocgenOld {
     var args = Streams.zip(m.xs(), m.sig().ts())
       .map((x, t)->t.match(
         gx->"- `%s: %s`".formatted(x, gx),
-        it->"- [`%s: %s`](%s)".formatted(x, it, toURLPath(it.name().pkg(), fragment(it.name())))
+        it->"- [`%s: %s`](%s)".formatted(x, it, toURLPath(it.id().pkg(), fragment(it.id())))
         ))
       .collect(Collectors.joining("\n"));
     if (!args.isEmpty()) { args = "**Parameters**:\n" + args; }
@@ -83,7 +83,7 @@ public class MarkdownDocgenOld {
     var url = toURLPath(pkg, fragment);
     var header = (m.isAbs() ? "<h3 id=\"%s\"><a href=\"#%s\"><em><code>%s</code></em></a></h3>\n\n*Abstract*\n" : "<h3 id=\"#%s\"><a href=\"#%s\"><code>%s</code></a></h3>")
       .formatted(url, fragment, name);
-    var ret = m.sig().ret().match(gx->"`"+gx+"`", it->"[`"+it+"`]("+toURLPath(it.name().pkg(), fragment(it.name()))+")");
+    var ret = m.sig().ret().match(gx->"`"+gx+"`", it->"[`"+it+"`]("+toURLPath(it.id().pkg(), fragment(it.id()))+")");
     return """
       %s
       

@@ -19,7 +19,7 @@ public interface CollectorVisitor<C extends Collection<?>> extends Visitor<Void>
   default Void visitX(E.X e) { return null; }
   default Void visitLambda(E.Lambda e) {
     visitMdf(e.mdf());
-    e.its().forEach(this::visitIT);
+    e.types().forEach(this::visitIT);
     e.meths().forEach(this::visitMeth);
     return null;
   }
@@ -40,7 +40,7 @@ public interface CollectorVisitor<C extends Collection<?>> extends Visitor<Void>
     t.match(this::visitGX, this::visitIT);
   }
   default Void visitIT(Id.IT<T> it) {
-    visitDecId(it.name());
+    visitDecId(it.id());
     it.ts().forEach(this::visitT);
     return null;
   }

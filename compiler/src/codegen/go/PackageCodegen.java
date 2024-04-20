@@ -304,14 +304,14 @@ public class PackageCodegen implements MIRVisitor<String> {
     return switch (t) {
       case MIR.MT.Any ignored -> "interface{}";
       case MIR.MT.Plain plain -> getName(plain.id(), false);
-      case MIR.MT.Usual usual -> getName(usual.it().name(), false);
+      case MIR.MT.Usual usual -> getName(usual.it().id(), false);
     };
   }
   public String getRetName(MIR.MT t) {
     return switch (t) {
       case MIR.MT.Any ignored -> "interface{}";
       case MIR.MT.Plain plain -> getName(plain.id(), true);
-      case MIR.MT.Usual usual -> getName(usual.it().name(), true);
+      case MIR.MT.Usual usual -> getName(usual.it().id(), true);
     };
   }
   public String getName(Id.DecId name, boolean isRet) {

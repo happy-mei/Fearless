@@ -52,7 +52,7 @@ public record RedexTermGenerator(ArrayList<String> tops, List<Id.GX<T>> inScopeG
   public String visitDec(T.Dec top, boolean isTop) {
     var e = top.lambda();
     var visitor = new RedexTermGenerator(tops, Push.of(inScopeGXs, top.gxs()));
-    var its = e.its().stream().filter(it->!it.name().equals(top.name())).map(visitor::visitIT).collect(Collectors.joining(" "));
+    var its = e.types().stream().filter(it->!it.id().equals(top.id())).map(visitor::visitIT).collect(Collectors.joining(" "));
     var meths = e.meths().stream().map(visitor::visitMeth).collect(Collectors.joining(" "));
     var res = "("+visitor.visitIT(top.toIT())+" : ("+its+" {\\' "+e.selfName().replace("$", "N")+" "+meths+"}))";
     if (isTop) {
@@ -75,7 +75,7 @@ public record RedexTermGenerator(ArrayList<String> tops, List<Id.GX<T>> inScopeG
   }
   public String visitIT(Id.IT<T> it) {
     var gens = "("+it.ts().stream().map(this::visitT).collect(Collectors.joining(" "))+")";
-    return "("+it.name().shortName()+" "+gens+")";
+    return "("+it.id().shortName()+" "+gens+")";
   }
   public String visitGX(Id.GX<T> gx) {
     return gx.name().replace("/","Dth").replace("$", "N");

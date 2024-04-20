@@ -16,7 +16,7 @@ public record GuessIT(Program p, Gamma g, XBs xbs, int depth) implements Visitor
     return g().get(e).match(gx->Set.of(), Set::of);
   }
   @Override public Set<Id.IT<T>> visitLambda(E.Lambda e) {
-    return Set.copyOf(e.its());
+    return Set.copyOf(e.types());
   }
   @Override public Set<Id.IT<T>> visitMCall(E.MCall e) {
     var renamer = TypeRename.core(p());

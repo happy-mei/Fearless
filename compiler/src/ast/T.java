@@ -35,7 +35,7 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res, Id.Ty {
       gx->new astFull.T(mdf(), new Id.GX<>(gx.name())),
       it->{
         var ts = it.ts().stream().map(T::toAstFullT).toList();
-        return new astFull.T(mdf(), new Id.IT<>(it.name(), ts));
+        return new astFull.T(mdf(), new Id.IT<>(it.id(), ts));
       });
   }
   public Stream<Id.GX<T>> deepGXs() {
@@ -50,27 +50,27 @@ public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res, Id.Ty {
 
   public T withMdf(Mdf mdf){ return new T(mdf,rt); }
 
-  public record Dec(DecId name, List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos, Id.Dec {
-    public Dec{ assert gxs.size()==name.gen() && lambda!=null; }
+  public record Dec(DecId id, List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos, Id.Dec {
+    public Dec{ assert gxs.size() == id.gen() && lambda!=null; }
     public ast.T.Dec withName(Id.DecId name) { return new ast.T.Dec(name,gxs,bounds,lambda,pos); }
-    public ast.T.Dec withSelfName(String selfName) { return new ast.T.Dec(name,gxs,bounds,lambda.withSelfName(selfName),pos); }
-    public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(name,gxs,bounds,lambda,pos); }
+    public ast.T.Dec withSelfName(String selfName) { return new ast.T.Dec(id,gxs,bounds,lambda.withSelfName(selfName),pos); }
+    public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(id,gxs,bounds,lambda,pos); }
 
     public Id.IT<T> toIT(){
       return new Id.IT<>(//AstFull.T || Ast.T
-        this.name(),
+        this.id(),
         this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
       );
     }
     @Override public String toString() {
       if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
-        return "Dec[name="+name+",gxs=["+gxs.stream().map(Id.GX::toString).collect(Collectors.joining(","))+"],lambda="+lambda+"]";
+        return "Dec[name="+ id +",gxs=["+gxs.stream().map(Id.GX::toString).collect(Collectors.joining(","))+"],lambda="+lambda+"]";
       }
       var boundsStr = bounds.entrySet().stream()
         .sorted(Comparator.comparing(a->a.getKey().name()))
         .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
         .collect(Collectors.joining(","));
-      return "Dec[name="+name+",gxs=["+gxs.stream().map(Id.GX::toString).collect(Collectors.joining(","))+"],bounds={"+boundsStr+"},lambda="+lambda+"]";
+      return "Dec[name="+ id +",gxs=["+gxs.stream().map(Id.GX::toString).collect(Collectors.joining(","))+"],bounds={"+boundsStr+"},lambda="+lambda+"]";
     }
   }
 }

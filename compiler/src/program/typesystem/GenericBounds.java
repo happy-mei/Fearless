@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 public interface GenericBounds {
   static Optional<? extends Supplier<? extends CompileError>> validGenericLambda(Program p, XBs xbs, E.Lambda l) {
-    return l.its().stream()
+    return l.types().stream()
       .map(it->validGenericIT(p, xbs, it))
       .filter(Optional::isPresent)
       .map(Optional::get)
@@ -52,7 +52,7 @@ public interface GenericBounds {
       .findAny();
     if (innerInvalid.isPresent()) { return innerInvalid; }
 
-    var dec = p.of(it.name());
+    var dec = p.of(it.id());
     var gxs = switch (dec) {
       case T.Dec d -> d.gxs();
       case astFull.T.Dec d -> d.gxs();

@@ -170,7 +170,7 @@ public class JsCodegen implements MIRVisitor<String> {
     return switch (t) {
       case MIR.MT.Any ignored -> throw Bug.unreachable();
       case MIR.MT.Plain plain -> getName(plain.id());
-      case MIR.MT.Usual usual -> getName(usual.it().name());
+      case MIR.MT.Usual usual -> getName(usual.it().id());
     };
   }
   public String getName(Id.DecId d) {

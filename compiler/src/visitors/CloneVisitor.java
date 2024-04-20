@@ -32,7 +32,7 @@ public interface CloneVisitor{
   );}
   default E.X visitX(E.X e){return e;}
   default E.Lambda visitLambda(E.Lambda e){
-    Supplier<Stream<T>> its = ()->e.its().stream().map(it->new T(e.mdf(), it)).map(this::visitT);
+    Supplier<Stream<T>> its = ()->e.types().stream().map(it->new T(e.mdf(), it)).map(this::visitT);
     return new E.Lambda(
       e.id(),
       its.get().map(T::mdf).findFirst().orElseThrow(),
@@ -65,12 +65,12 @@ public interface CloneVisitor{
     );
   }
   default Id.IT<T> visitIT(Id.IT<T> t){ return new Id.IT<>(
-    t.name(),
+    t.id(),
     t.ts().stream().map(this::visitT).toList()
   );}
   default Id.GX<T> visitGX(Id.GX<T> t){ return t; }
   default T.Dec visitDec(T.Dec d) { return new T.Dec(
-    visitDecId(d.name()),
+    visitDecId(d.id()),
     d.gxs().stream().map(this::visitGX).toList(),
     Mapper.of(acc->d.bounds().forEach((key, value)->{
       var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());
