@@ -17,7 +17,6 @@ import id.Id.DecId;
 import id.Id.GX;
 
 //TODO: refactoring
-//-remove mdf from name
 //-remove ciclyic impl and the 3 extra ifs about it
 //  one in this file, one in subtyping, one in Java generation
 
@@ -143,7 +142,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     mapGX.putAll(mapGXType);
     var s=m.sig();
     c("  ");
-    stringMdf(s.mdf());
+    stringMdf(m.mdf());
     c(" ");
     c(m.name().name());
     c("[");

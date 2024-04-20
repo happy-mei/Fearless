@@ -200,18 +200,19 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   }
 
   private Optional<CompileError> validMethMdf(E.Meth e) {
-    return e.sig().flatMap(m->{
-      if (!m.mdf().isMdf()) { return Optional.empty(); }
+    return e.sig().flatMap(sig->e.mdf().flatMap(mdf->{
+      if (!mdf.isMdf()) { return Optional.empty(); }
       return Optional.of(Fail.invalidMethMdf(e.sig().get(), e.name().orElseThrow()));
-    });
+    }));
   }
 
   private Optional<CompileError> noRecMdfInNonRecMdf(E.Sig s, Id.MethName name) {
-    if (s.mdf().isRecMdf()) { return Optional.empty(); }
+    var mdf = name.mdf().orElseThrow();
+    if (mdf.isRecMdf()) { return Optional.empty(); }
     return new FullShortCircuitVisitor<CompileError>(){
       @Override public Optional<CompileError> visitT(T t) {
         if (t.mdf().isRecMdf()) {
-          return Optional.of(Fail.recMdfInNonRecMdf(s.mdf(), name, t).pos(s.pos()));
+          return Optional.of(Fail.recMdfInNonRecMdf(mdf, name, t).pos(s.pos()));
         }
         return FullShortCircuitVisitor.super.visitT(t);
       }

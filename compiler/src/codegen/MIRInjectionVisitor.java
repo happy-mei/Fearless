@@ -91,7 +91,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       .filter(m->!m.isAbs())
       .map(m->{
         var g = new HashMap<>(ctx.xXs());
-        g.put(dec.lambda().selfName(), new MIR.X(dec.lambda().selfName(), MIR.MT.of(new T(m.sig().mdf(), it))));
+        g.put(dec.lambda().selfName(), new MIR.X(dec.lambda().selfName(), MIR.MT.of(new T(m.mdf(), it))));
         var ctx_ = ctx.withXXs(g);
         return function(new CM.CoreCM(it, m, m.sig()), ctx_);
       })
@@ -138,7 +138,6 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
   public MIR.Sig visitSig(CM.CoreCM cm) {
     return new MIR.Sig(
       cm.name(),
-      cm.mdf(),
       Streams.zip(cm.xs(), cm.sig().ts()).map((x,t)->{
         if (x.equals("_")) { x = astFull.E.X.freshName(); }
         return new MIR.X(x, MIR.MT.of(t));

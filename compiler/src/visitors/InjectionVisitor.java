@@ -109,7 +109,6 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
 
   public ast.E.Sig visitSig(E.Sig s){
     return new ast.E.Sig(
-      s.mdf(),
       s.gens().stream().map(this::visitGX).toList(),
       Mapper.of(bounds->s.bounds().forEach((gx,bs)->bounds.put(visitGX(gx), bs))),
       s.ts().stream().map(this::visitT).toList(),

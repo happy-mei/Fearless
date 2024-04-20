@@ -139,10 +139,10 @@ public interface Program {
     var it2 = t2.itOrThrow();
     assert it1.name().equals(it2.name());
     List<CM> cms1 = meths(xbs, mdf, it1, 0).stream()
-      .filter(cm->filterByMdf(mdf, cm.sig().mdf()))
+      .filter(cm->filterByMdf(mdf, cm.mdf()))
       .toList();
     List<CM> cms2 = meths(xbs, mdf, it2, 0).stream()
-      .filter(cm->filterByMdf(mdf, cm.sig().mdf()))
+      .filter(cm->filterByMdf(mdf, cm.mdf()))
       .toList();
 
     var methsByName = Stream.concat(cms1.stream(), cms2.stream())
@@ -213,12 +213,11 @@ public interface Program {
       .sorted(Comparator.comparingInt(cm->EMethTypeSystem.inferPriority(recvMdf).indexOf(cm.mdf())))
       .map(m->{
         var sig = m.sig().toAstFullSig();
-        var name = m.name().withMdf(Optional.of(sig.mdf()));
         var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
         var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(this, freshGXsSet, t)).toList();
         var restoredRt = RefineTypes.regenerateInfers(this, freshGXsSet, sig.ret());
-        var restoredSig = new E.Sig(sig.mdf(), sig.gens(), sig.bounds(), restoredArgs, restoredRt, sig.pos());
-        return new FullMethSig(name, restoredSig);
+        var restoredSig = new E.Sig(sig.gens(), sig.bounds(), restoredArgs, restoredRt, sig.pos());
+        return new FullMethSig(m.name(), restoredSig);
       })
       .toList();
   }
@@ -284,7 +283,6 @@ public interface Program {
         Map.Entry::getValue
       ));
       return new ast.E.Sig(
-        visitMdf(e.mdf()),
         e.gens().stream().map(this::visitGX).toList(),
         xbs,
         e.ts().stream().map(this::visitT).toList(),
@@ -294,9 +292,6 @@ public interface Program {
     }
   }
 
-  /**
-   * This norm makes sure that all
-   */
   record NormResult(CM cm, Map<Id.GX<T>,Id.GX<T>> restoreSubst) {
     public CM restoreMethodGens() {
       var newSig = new RenameGens(restoreSubst).visitSig(cm.sig());

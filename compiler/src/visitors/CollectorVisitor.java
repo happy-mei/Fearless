@@ -30,7 +30,6 @@ public interface CollectorVisitor<C extends Collection<?>> extends Visitor<Void>
     return null;
   }
   default Void visitSig(E.Sig s) {
-    visitMdf(s.mdf());
     s.gens().forEach(this::visitGX);
     s.ts().forEach(this::visitT);
     visitT(s.ret());
@@ -46,6 +45,9 @@ public interface CollectorVisitor<C extends Collection<?>> extends Visitor<Void>
     return null;
   }
   default Void visitGX(Id.GX<T> gx) { return null; }
-  default Void visitMethName(Id.MethName m) { return null; }
+  default Void visitMethName(Id.MethName m) {
+    m.mdf().ifPresent(this::visitMdf);
+    return null;
+  }
   default Void visitDecId(Id.DecId d) { return null; }
 }

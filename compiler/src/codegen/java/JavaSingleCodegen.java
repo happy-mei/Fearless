@@ -2,13 +2,12 @@ package codegen.java;
 
 import codegen.MIR;
 import codegen.MethExprKind;
-import rt.NativeRuntime;
 import codegen.ParentWalker;
-import codegen.optimisations.OptimisationBuilder;
 import id.Id;
 import id.Id.DecId;
 import magic.Magic;
 import org.apache.commons.text.StringEscapeUtils;
+import rt.NativeRuntime;
 import utils.Box;
 import utils.Bug;
 import utils.Streams;
@@ -21,9 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static codegen.MethExprKind.Kind.RealExpr;
-import static codegen.MethExprKind.Kind.Unreachable;
-import static codegen.MethExprKind.Kind.Delegate;
+import static codegen.MethExprKind.Kind.*;
 import static magic.MagicImpls.getLiteral;
 
 public class JavaSingleCodegen implements MIRVisitor<String> {
@@ -83,7 +80,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       + singletonGet + sigs + staticFuns + "}";
   }
   public String visitSig(
-      MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
+      MIR.Sig sig, Map<Id.MethName, MIR.Sig> leastSpecific) {
     // If params are different in my parent, we need to objectify
     var overriddenSig= this.overriddenSig(sig, leastSpecific);
     if (overriddenSig.isPresent()) {
@@ -96,7 +93,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   private String castX(MIR.X x){
     return "("+getTName(x.t(),false)+") "+id.varName(x.name());
   }
-  public String visitMeth(MIR.Meth meth, MethExprKind kind, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
+  public String visitMeth(MIR.Meth meth, MethExprKind kind, Map<Id.MethName, MIR.Sig> leastSpecific) {
     var overriddenSig = this.overriddenSig(meth.sig(), leastSpecific);
 
     var toSkip = overriddenSig.isPresent();
@@ -319,8 +316,8 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       """.formatted(getTName(block.t(), true), blockCode);
   }
 
-  private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
-    var leastSpecificSig = leastSpecific.get(ParentWalker.FullMethId.of(sig));
+  private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<Id.MethName, MIR.Sig> leastSpecific) {
+    var leastSpecificSig = leastSpecific.get(sig.name());
     if (leastSpecificSig != null && Streams.zip(sig.xs(),leastSpecificSig.xs()).anyMatch((a,b)->!a.t().equals(b.t()))) {
       return Optional.of(leastSpecificSig.withRT(sig.rt()));
     }

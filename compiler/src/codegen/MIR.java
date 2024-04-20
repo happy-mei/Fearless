@@ -73,12 +73,13 @@ public sealed interface MIR {
       return this.withSig(this.sig.withName(name));
     }
   }
-  record Sig(Id.MethName name, Mdf mdf, List<X> xs, MT rt) implements MIR {
+  record Sig(Id.MethName name, List<X> xs, MT rt) implements MIR {
+    public Mdf mdf() { return name.mdf().orElseThrow(); }
     public Sig withName(Id.MethName name) {
-      return new Sig(name, mdf, xs, rt);
+      return new Sig(name, xs, rt);
     }
     public Sig withRT(MT rt) {
-      return new Sig(name, mdf, xs, rt);
+      return new Sig(name, xs, rt);
     }
   }
   record X(String name, MT t) implements E {

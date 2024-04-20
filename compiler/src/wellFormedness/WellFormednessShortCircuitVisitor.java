@@ -78,11 +78,12 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   private Optional<CompileError> norecMdfInNonRecMdf(E.Sig s, Id.MethName name) {
-    if (s.mdf().isRecMdf()) { return Optional.empty(); }
+    var mdf = name.mdf().orElseThrow();
+    if (mdf.isRecMdf()) { return Optional.empty(); }
     return new ShortCircuitVisitor<CompileError>(){
       @Override public Optional<CompileError> visitT(T t) {
         if (t.mdf().isRecMdf()) {
-          return Optional.of(Fail.recMdfInNonRecMdf(s.mdf(), name, t).pos(s.pos()));
+          return Optional.of(Fail.recMdfInNonRecMdf(mdf, name, t).pos(s.pos()));
         }
         return ShortCircuitVisitor.super.visitT(t);
       }

@@ -39,7 +39,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     }
 
     var validMethods = b.meths().stream()
-      .filter(m->filterByMdf(mdf, m.sig().mdf()))
+      .filter(m->filterByMdf(mdf, m.mdf()))
       .toList();
 
     var validMethNames = validMethods.stream().map(E.Meth::name).collect(Collectors.toSet());
@@ -51,7 +51,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     }
 
     var filtered=p0.meths(xbs(), Mdf.recMdf, d.toIT(), depth()+1).stream()
-      .filter(cmi->filterByMdf(mdf, cmi.sig().mdf()))
+      .filter(cmi->filterByMdf(mdf, cmi.mdf()))
       .toList();
     var sadlyAbs=filtered.stream()
       .filter(CM::isAbs)
@@ -136,7 +136,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
 
   default Optional<Supplier<? extends CompileError>> mOkEntry(String selfName, T selfT, E.Meth m, E.Sig sig) {
     var e   = m.body().orElseThrow();
-    var mMdf = sig.mdf();
+    var mMdf = m.mdf();
 
     var args = sig.ts();
     var ret = sig.ret();
@@ -174,7 +174,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       }
       @Override public List<String> dom() { return g().dom(); }
     };
-    var mMdf = sig.mdf();
+    var mMdf = m.mdf();
     var g0 = readOnlyAsReadG.captureSelf(xbs(), selfName, selfT, mMdf.isReadOnly() ? Mdf.read : mMdf);
     var gg  = Streams.zip(
       m.xs(),
@@ -195,7 +195,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       }
       @Override public List<String> dom() { return g().dom(); }
     };
-    var mMdf = mdfTransform.apply(selfT.withMdf(sig.mdf())).mdf();
+    var mMdf = mdfTransform.apply(selfT.withMdf(m.mdf())).mdf();
     var g0 = mutAsLentG.captureSelf(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.lent : mMdf);
     var gg  = Streams.zip(
       m.xs(),
@@ -211,7 +211,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       }
       @Override public List<String> dom() { return g().dom(); }
     };
-    var mMdf = sig.mdf();
+    var mMdf = m.mdf();
     var g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(xbs(), selfName, selfT, mMdf);
     var gg = Streams.zip(m.xs(), sig.ts()).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isMdf() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
     return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.readOnly));

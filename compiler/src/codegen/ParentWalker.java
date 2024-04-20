@@ -1,8 +1,10 @@
 package codegen;
 
+import id.Id;
 import id.Mdf;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -13,7 +15,7 @@ public interface ParentWalker {
    */
   static Stream<MIR.TypeDef> of(MIR.Program p, MIR.TypeDef root) {
     var spliterator = Spliterators.spliteratorUnknownSize(new Iterator<MIR.TypeDef>() {
-      private Deque<MIR.TypeDef> q = new ArrayDeque<>();
+      private final Deque<MIR.TypeDef> q = new ArrayDeque<>();
       { q.offer(root); }
       @Override public boolean hasNext() {
         return !q.isEmpty();
@@ -31,21 +33,6 @@ public interface ParentWalker {
     return StreamSupport.stream(spliterator, false);
   }
 
-  // TODO: write tests to check how this works when multiple candidates at the same level exist
-  static MIR.Sig leastSpecificSig(MIR.Program p, MIR.TypeDef root, FullMethId name) {
-    return of(p, root)
-      .flatMap(def->def.sigs().stream())
-      .filter(sig->FullMethId.of(sig).equals(name))
-      .toList()
-      .getLast();
-  }
-
-  // TODO: write tests to check how this works when multiple candidates at the same level exist
-  record FullMethId(Mdf mdf, String name, int args) {
-    public static FullMethId of(MIR.Sig sig) {
-      return new FullMethId(sig.mdf(), sig.name().name(), sig.name().num());
-    }
-  }
   /**
    * 
    * @param p
@@ -53,9 +40,10 @@ public interface ParentWalker {
    * @return the most generic signature of all the super
    *  signatures for a give type (root)
    */
-  static Map<FullMethId, MIR.Sig> leastSpecificSigs(MIR.Program p, MIR.TypeDef root) {
+  static Map<Id.MethName, MIR.Sig> leastSpecificSigs(MIR.Program p, MIR.TypeDef root) {
+    // TODO: write tests to check how this works when multiple candidates at the same level exist
     return ParentWalker.of(p, root)
       .flatMap(def->def.sigs().stream())
-      .collect(Collectors.toMap(FullMethId::of, sig->sig, (sigA, sigB)->sigB));
+      .collect(Collectors.toMap(MIR.Sig::name, sig->sig, (sigA, sigB)->sigB));
   }
 }

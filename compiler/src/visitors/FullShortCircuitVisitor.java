@@ -42,10 +42,11 @@ public interface FullShortCircuitVisitor<R> extends FullVisitor<Optional<R>> {
       .or(()->e.it().flatMap(this::visitIT));
   }
   default Optional<R> visitMdf(Mdf mdf){return Optional.empty();}
-  default Optional<R> visitMethName(MethName e){ return Optional.empty(); }
+  default Optional<R> visitMethName(MethName e){
+    return e.mdf().flatMap(this::visitMdf);
+  }
   default Optional<R> visitSig(E.Sig e){
-    return visitMdf(e.mdf())
-      .or(()->visitAll(e.gens(),this::visitGX))
+    return visitAll(e.gens(),this::visitGX)
       .or(()->visitAll(e.ts(),this::visitT))
       .or(()->visitT(e.ret()));
   }

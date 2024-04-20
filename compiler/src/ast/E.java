@@ -116,15 +116,15 @@ public interface E extends HasPos {
     public ast.E.Meth withSig(Sig sig) {
       return new ast.E.Meth(sig, name, xs, body, pos);
     }
+    public Mdf mdf() { return name.mdf().orElseThrow(); }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name, xs, sig, body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds,  List<T> ts, T ret, Optional<Pos> pos) implements HasPos {
-    public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
+  record Sig(List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds, List<T> ts, T ret, Optional<Pos> pos) implements HasPos {
+    public Sig{ assert gens!=null && ts!=null && ret!=null; }
     public astFull.E.Sig toAstFullSig() {
       return new astFull.E.Sig(
-        mdf,
         gens.stream().map(gx->new Id.GX<astFull.T>(gx.name())).toList(),
         Mapper.of(xbs->bounds.forEach((k,v)->xbs.put(k.toFullAstGX(), v))),
         ts.stream().map(T::toAstFullT).toList(),
@@ -132,20 +132,16 @@ public interface E extends HasPos {
         pos
       );
     }
-    public E.Sig withPos(Optional<Pos> pos) { return new Sig(mdf, gens, bounds, ts, ret, pos); }
-    public boolean sigEqualIgnoringMdf(ast.E.Sig s2) {
-      var sameMdfS1 = new E.Sig(s2.mdf(), this.gens(), this.bounds(), this.ts(), this.ret(), Optional.empty());
-      return sameMdfS1.equals(s2.withPos(Optional.empty()));
-    }
+
     @Override public String toString() {
       if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
-        return "Sig[mdf="+mdf+",gens="+gens+",ts="+ts+",ret="+ret+"]";
+        return "Sig[gens="+gens+",ts="+ts+",ret="+ret+"]";
       }
       var boundsStr = bounds.entrySet().stream()
         .sorted(Comparator.comparing(a->a.getKey().name()))
         .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
         .collect(Collectors.joining(","));
-      return "Sig[mdf="+mdf+",gens="+gens+",bounds={"+boundsStr+"},ts="+ts+",ret="+ret+"]";
+      return "Sig[gens="+gens+",bounds={"+boundsStr+"},ts="+ts+",ret="+ret+"]";
     }
   }
 }

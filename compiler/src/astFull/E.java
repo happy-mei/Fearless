@@ -157,33 +157,34 @@ public sealed interface E extends HasPos {
     public Meth withBody(Optional<E> body) {
       return new Meth(sig, name, xs, body, pos);
     }
+    public Optional<Mdf> mdf() { return name.flatMap(MethName::mdf); }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<astFull.T>, Set<Mdf>> bounds, List<T> ts, T ret, Optional<Pos> pos) {
-    public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
+  record Sig(List<Id.GX<T>> gens, Map<Id.GX<astFull.T>, Set<Mdf>> bounds, List<T> ts, T ret, Optional<Pos> pos) {
+    public Sig{ assert gens!=null && ts!=null && ret!=null; }
     public Sig withGens(List<Id.GX<T>> gens){
-      return new Sig(mdf, gens, bounds, ts, ret, pos);
+      return new Sig(gens, bounds, ts, ret, pos);
     }
     public Sig withRet(T ret){
-      return new Sig(mdf, gens, bounds, ts, ret, pos);
+      return new Sig(gens, bounds, ts, ret, pos);
     }
     public Sig withTs(List<T> ts){
-      return new Sig(mdf, gens, bounds, ts, ret, pos);
+      return new Sig(gens, bounds, ts, ret, pos);
     }
     public ast.E.Sig accept(InjectionVisitor visitor) {
       return visitor.visitSig(this);
     }
     @Override public String toString() {
       if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
-        return "Sig[mdf="+mdf+",gens="+gens+",ts="+ts+",ret="+ret+"]";
+        return "Sig[gens="+gens+",ts="+ts+",ret="+ret+"]";
       }
       var boundsStr = bounds.entrySet().stream()
         .sorted(Comparator.comparing(a->a.getKey().name()))
         .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
         .collect(Collectors.joining(","));
-      return "Sig[mdf="+mdf+",gens="+gens+",bounds={"+boundsStr+"},ts="+ts+",ret="+ret+"]";
+      return "Sig[gens="+gens+",bounds={"+boundsStr+"},ts="+ts+",ret="+ret+"]";
     }
   }
 }

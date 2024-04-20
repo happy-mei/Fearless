@@ -19,7 +19,7 @@ public interface CM {
   Id.IT<T> c();
   ast.E.Sig sig();
   <TT extends Id.Ty> Map<Id.GX<TT>, Set<Mdf>> bounds();
-  default Mdf mdf(){ return sig().mdf(); }
+  default Mdf mdf(){ return name().mdf().orElseThrow(); }
   default T ret(){ return sig().ret(); }
   default String qualifiedName() {
     return c().name()+"$"+name();

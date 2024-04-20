@@ -85,7 +85,7 @@ public class PackageCodegen implements MIRVisitor<String> {
     // Go does not support return type refinement, so we just always want to grab the least specific sig
     var leastSpecific = ParentWalker.leastSpecificSigs(p, def);
     var ms = def.sigs().stream()
-      .map(sig->leastSpecific.get(ParentWalker.FullMethId.of(sig)))
+      .map(sig->leastSpecific.get(sig.name()))
       .map(this::visitSig)
       .collect(Collectors.joining("\n"));
 
@@ -107,7 +107,7 @@ public class PackageCodegen implements MIRVisitor<String> {
     return name(getName(sig.mdf(), sig.name()))+"("+args+") "+getRetName(sig.rt());
   }
 
-  public String visitMeth(MIR.Meth meth, Id.DecId associated, MethExprKind kind, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
+  public String visitMeth(MIR.Meth meth, Id.DecId associated, MethExprKind kind, Map<Id.MethName, MIR.Sig> leastSpecific) {
     var overriddenSig = this.overriddenSig(meth.sig(), leastSpecific);
     if (overriddenSig.isPresent()) {
       if (kind.kind() == MethExprKind.Kind.Unreachable) {
@@ -205,11 +205,11 @@ public class PackageCodegen implements MIRVisitor<String> {
     var structName = getName(name)+"Impl";
     if (!this.freshStructs.containsKey(name)) {
       var ms = createObj.meths().stream()
-//        .map(m->m.withSig(leastSpecific.get(ParentWalker.FullMethId.of(m.sig()))))
+//        .map(m->m.withSig(leastSpecific.get(Id.MethName.of(m.sig()))))
         .map(m->this.visitMeth(m, name, MethExprKind.Kind.RealExpr, leastSpecific))
         .collect(Collectors.joining("\n"));
       var unreachableMs = createObj.unreachableMs().stream()
-        .map(m->m.withSig(leastSpecific.get(ParentWalker.FullMethId.of(m.sig()))))
+        .map(m->m.withSig(leastSpecific.get(m.sig().name())))
         .map(m->this.visitMeth(m, name, MethExprKind.Kind.Unreachable, leastSpecific))
         .collect(Collectors.joining("\n"));
 
@@ -278,8 +278,8 @@ public class PackageCodegen implements MIRVisitor<String> {
       """.formatted(getName(expr.t()), recv,  this.funMap.get(expr.then()).body().accept(this, true), cast, this.funMap.get(expr.else_()).body().accept(this, true), cast);
   }
 
-  private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<ParentWalker.FullMethId, MIR.Sig> leastSpecific) {
-    var leastSpecificSig = leastSpecific.get(ParentWalker.FullMethId.of(sig));
+  private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<Id.MethName, MIR.Sig> leastSpecific) {
+    var leastSpecificSig = leastSpecific.get(sig.name());
     if (leastSpecificSig != null
       && (Streams.zip(sig.xs(),leastSpecificSig.xs()).anyMatch((a,b)->!a.t().equals(b.t()))
           || !sig.rt().equals(leastSpecificSig.rt()))) {
