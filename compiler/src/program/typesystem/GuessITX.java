@@ -16,7 +16,7 @@ public record GuessITX(Program p, Gamma g, XBs xbs, int depth) implements Visito
     return Set.of(g().get(e).rt());
   }
   @Override public Set<Id.RT<T>> visitLambda(E.Lambda e) {
-    return Set.copyOf(e.types());
+    return Set.copyOf(e.its());
   }
   @Override public Set<Id.RT<T>> visitMCall(E.MCall e) {
     var renamer = TypeRename.core(p());

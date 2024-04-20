@@ -110,7 +110,7 @@ public interface Program {
       if (isTransitiveSubType(xbs, t1_, t2_)) { return true; }
 
       if (t1_.mdf() != t2_.mdf()) { return false; }
-      if (t1_.itOrThrow().id().equals(t2_.itOrThrow().id())) {
+      if (t1_.itOrThrow().name().equals(t2_.itOrThrow().name())) {
         return isAdaptSubType(xbs, t1_, t2_);
       }
       return false;
@@ -137,7 +137,7 @@ public interface Program {
      */
     var it1 = t1.itOrThrow();
     var it2 = t2.itOrThrow();
-    assert it1.id().equals(it2.id());
+    assert it1.name().equals(it2.name());
     List<CM> cms1 = meths(xbs, mdf, it1, 0).stream()
       .filter(cm->filterByMdf(mdf, cm.mdf()))
       .toList();
@@ -198,15 +198,14 @@ public interface Program {
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
     var freshName = new Id.DecId(Id.GX.fresh().name(), 0);
-    var freshLambda = new ast.E.Lambda(
+    var dec = new T.Dec(freshName, List.of(), Map.of(), new ast.E.Lambda(
       new ast.E.Lambda.LambdaId(freshName, List.of(), Map.of()),
       Mdf.mdf,
       coreIts,
       "fearTmp$",
       List.of(),
       Optional.empty()
-    );
-    var dec = new T.Dec(freshLambda.id().id(), freshLambda.id().gens(),freshLambda.id().bounds(), freshLambda, Optional.empty());
+    ), Optional.empty());
     var p = this.withDec(dec);
     return p.meths(xbs, recvMdf, dec.toIT(), depth).stream()
       .filter(cm->filterByMdf(recvMdf, cm.mdf()))
@@ -267,7 +266,7 @@ public interface Program {
         Map.Entry::getValue
       ));
       return new T.Dec(
-        visitDecId(d.id()),
+        visitDecId(d.name()),
         d.gxs().stream().map(this::visitGX).toList(),
         xbs,
         visitLambda(d.lambda()),
@@ -453,7 +452,7 @@ public interface Program {
 
   default Id.IT<ast.T> liftIT(Id.IT<astFull.T>it){
     var ts = it.ts().stream().map(astFull.T::toAstT).toList();
-    return new Id.IT<>(it.id(), ts);
+    return new Id.IT<>(it.name(), ts);
   }
 }
 //----

@@ -60,7 +60,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
 
   public MIR.Program visitProgram() {
     var pkgs = p.ds().values().stream()
-      .collect(Collectors.groupingBy(t->t.id().pkg()))
+      .collect(Collectors.groupingBy(t->t.name().pkg()))
       .entrySet().stream()
       //.filter(kv->!cached.contains(kv.getKey()))//uncomment when cached TODO is sorted
       .map(kv->visitPackage(kv.getKey(), kv.getValue()))
@@ -104,10 +104,10 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       })
       .map(cm->visitSig((CM.CoreCM)cm))
       .toList();
-    var impls = dec.lambda().types().stream().map(it_->new MIR.MT.Plain(Mdf.mdf, it_.id())).toList();
+    var impls = dec.lambda().its().stream().map(it_->new MIR.MT.Plain(Mdf.mdf, it_.name())).toList();
     var canSingleton = allConcrete.get() && freeVariables(dec.lambda()).isEmpty();
     var singleton = canSingleton ? Optional.of(constr(dec.lambda(), ctx)) : Optional.<MIR.CreateObj>empty();
-    var tDef = new MIR.TypeDef(dec.id(), impls, sigs, singleton);
+    var tDef = new MIR.TypeDef(dec.name(), impls, sigs, singleton);
 
     return freshTops.merge(new TopLevelRes(List.of(tDef), List.of()));
   }
@@ -156,7 +156,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       captures.forEach(x->xXs.put(x.name(), x));
     }));
 
-    var x = ctx.xXs().get(selfNameOf(cm.c().id()));
+    var x = ctx.xXs().get(selfNameOf(cm.c().name()));
     // We always produce a self-arg even if it is not captured to keep the function signatures consistent
     Stream<MIR.X> selfArg =Stream.of(x);
     var args = Streams.of(sig.xs().stream(), selfArg, captures.stream().filter(xi->!xi.name().equals(x.name()))).toList();
@@ -169,17 +169,17 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
   public MIR.Meth visitMeth(CM.CoreCM cm, MIR.Sig sig) {
     // uncallable meths can be abstract
     if (cm.isAbs()) {
-      return new MIR.Meth(cm.c().id(), sig, false, Collections.emptySortedSet(), Optional.empty());
+      return new MIR.Meth(cm.c().name(), sig, false, Collections.emptySortedSet(), Optional.empty());
     }
     assert !cm.isAbs();
-    var x = selfNameOf(cm.c().id());
+    var x = selfNameOf(cm.c().name());
 
     var fv = new FreeVariables();
     fv.visitMeth(cm.m());
     var xs = fv.res();
     var capturesSelf = xs.remove(x);
 
-    return new MIR.Meth(cm.c().id(), sig, capturesSelf, Collections.unmodifiableSortedSet(xs), Optional.of(new MIR.FName(cm, capturesSelf)));
+    return new MIR.Meth(cm.c().name(), sig, capturesSelf, Collections.unmodifiableSortedSet(xs), Optional.of(new MIR.FName(cm, capturesSelf)));
   }
 
   @Override public Res<MIR.MCall> visitMCall(E.MCall e, Ctx ctx) {
@@ -235,11 +235,11 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
   }
 
   private Optional<T.Dec> getTransparentSource(T.Dec d) {
-    if (d.id().isFresh() && d.lambda().meths().isEmpty()) {
-      var nonSelfImpls = d.lambda().types().stream().filter(it->!it.id().equals(d.id())).toList();
+    if (d.name().isFresh() && d.lambda().meths().isEmpty()) {
+      var nonSelfImpls = d.lambda().its().stream().filter(it->!it.name().equals(d.name())).toList();
       if (nonSelfImpls.size() != 1) { return Optional.empty(); }
       var realIT = nonSelfImpls.getFirst();
-      return Optional.of(p.of(realIT.id()));
+      return Optional.of(p.of(realIT.name()));
     }
     return Optional.empty();
   }
@@ -253,12 +253,12 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     var recvT = (MIR.MT.Usual) recv.t();
     var recvIT = recvT.it();
     if (e.name().name().equals(".flow")) {
-      if (recvIT.id().equals(new Id.DecId("base.LList", 1))) {
+      if (recvIT.name().equals(new Id.DecId("base.LList", 1))) {
         var flowElem = recvIT.ts().getFirst();
 //        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow); }
         return EnumSet.of(MIR.MCall.CallVariant.Standard);
       }
-      if (recvIT.id().equals(Magic.FList)) {
+      if (recvIT.name().equals(Magic.FList)) {
         var flowElem = recvIT.ts().getFirst();
         if (recvT.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow); }
         if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow); }
@@ -266,7 +266,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
         return EnumSet.of(MIR.MCall.CallVariant.Standard);
       }
     }
-    if (recvIT.id().equals(Magic.FlowK) && e.name().name().equals("#")) {
+    if (recvIT.name().equals(Magic.FlowK) && e.name().name().equals("#")) {
       var flowElem = e.ts().getFirst();
       if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow); }
     }

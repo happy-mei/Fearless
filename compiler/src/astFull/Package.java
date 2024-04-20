@@ -2,6 +2,7 @@ package astFull;
 
 import failure.CompileError;
 import failure.ParserErrors;
+import failure.PlainError;
 import generated.FearlessParser.TopDecContext;
 import id.Id;
 import magic.Magic;
@@ -36,7 +37,7 @@ public record Package(
     var extraAliases = new ArrayList<T.Alias>();
     IntStream.range(0, this.ds().size()).forEach(i->this.acc(res, extraAliases, i, true));
     var resTopLevel = res.values().stream()
-      .map(T.Dec::id)
+      .map(T.Dec::name)
       .map(n->{
         assert n.name().startsWith(this.name());
         var shortName = n.name().substring(this.name().length()+1);
@@ -54,7 +55,7 @@ public record Package(
     TopDecContext di=this.ds().get(i);
     var visitor = new FullEAntlrVisitor(pi,this::resolve);
     T.Dec dec = visitor.visitTopDec(di, this.name(), shallow);
-    acc.put(dec.id(), dec);
+    acc.put(dec.name(), dec);
     extraAliases.addAll(visitor.inlineNames);
   }
   Optional<Id.IT<T>> resolve(String base){

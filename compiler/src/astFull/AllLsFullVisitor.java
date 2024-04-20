@@ -14,11 +14,11 @@ public class AllLsFullVisitor implements FullCollectorVisitor<Collection<T.Dec>>
 
   @Override public Void visitLambda(E.Lambda e) {
     var dec = new T.Dec(e.id().id(), e.id().gens(), e.id().bounds(), e, e.pos());
-    var conflict = ds.get(dec.id());
+    var conflict = ds.get(dec.name());
     if (conflict != null) {
-      throw Fail.conflictingDecl(dec.id(), List.of(new Fail.Conflict(conflict.posOrUnknown(), conflict.id().toString()))).pos(e.pos());
+      throw Fail.conflictingDecl(dec.name(), List.of(new Fail.Conflict(conflict.posOrUnknown(), conflict.name().toString()))).pos(e.pos());
     }
-    ds.put(dec.id(), dec);
+    ds.put(dec.name(), dec);
     return FullCollectorVisitor.super.visitLambda(e);
   }
   public Void visitTrait(E.Lambda e) {

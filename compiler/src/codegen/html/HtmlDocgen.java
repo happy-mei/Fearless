@@ -50,8 +50,8 @@ public class HtmlDocgen {
   }
 
   public ProgramDocs visitProgram() {
-    Map<String, List<TraitDoc>> docs = Stream.concat(this.p.ds().values().stream(), this.p.inlineDs().values().stream().filter(d->!d.id().isFresh()))
-      .filter(t->!t.id().shortName().startsWith("_"))
+    Map<String, List<TraitDoc>> docs = Stream.concat(this.p.ds().values().stream(), this.p.inlineDs().values().stream().filter(d->!d.name().isFresh()))
+      .filter(t->!t.name().shortName().startsWith("_"))
       .map(this::visitTrait)
       .sorted(Comparator.comparing(doc->doc.traitName.toString()))
       .collect(Collectors.groupingBy(doc->doc.traitName().pkg()));
@@ -72,7 +72,7 @@ public class HtmlDocgen {
       .map(cm->visitMeth(trait, cm))
       .collect(Collectors.joining("\n"));
 
-    return new TraitDoc(trait.id(), new T(trait.lambda().mdf(), trait.toIT()), "<pre><code class=\"language-fearless code-block\">"+sigs+"</code></pre>");
+    return new TraitDoc(trait.name(), new T(trait.lambda().mdf(), trait.toIT()), "<pre><code class=\"language-fearless code-block\">"+sigs+"</code></pre>");
   }
 
   public String visitMeth(T.Dec parent, CM cm) {
@@ -90,7 +90,7 @@ public class HtmlDocgen {
       body
     );
 
-    var attribution = parent.id().equals(cm.c().id()) ? "" : " // from "+cm.c().id();
+    var attribution = parent.name().equals(cm.c().name()) ? "" : " // from "+cm.c().name();
 
     return "%s%s".formatted(
       sig,
@@ -108,7 +108,7 @@ public class HtmlDocgen {
   private static String formatT(T t) {
     var body = t.rt().match(
       Id.GX::name,
-      it->it.id().name()+"["+it.ts().stream().map(HtmlDocgen::formatT).collect(Collectors.joining(","))+"]"
+      it->it.name().name()+"["+it.ts().stream().map(HtmlDocgen::formatT).collect(Collectors.joining(","))+"]"
     );
     return formatMdf(t.mdf())+body;
   }

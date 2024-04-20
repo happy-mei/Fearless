@@ -47,7 +47,7 @@ public sealed interface MIR {
       return switch (t) {
         case MT.Any ignored -> throw Bug.unreachable();
         case MT.Plain plain -> plain;
-        case MT.Usual usual -> new MT.Plain(usual.mdf(), usual.it().id());
+        case MT.Usual usual -> new MT.Plain(usual.mdf(), usual.it().name());
       };
     }
 
@@ -113,7 +113,7 @@ public sealed interface MIR {
 
   record FName(Id.DecId d, Id.MethName m, boolean capturesSelf, Mdf mdf) {
     public FName(CM cm, boolean capturesSelf) {
-      this(cm.c().id(), cm.name(), capturesSelf, cm.mdf());
+      this(cm.c().name(), cm.name(), capturesSelf, cm.mdf());
     }
   }
 
@@ -196,16 +196,16 @@ public sealed interface MIR {
       public Id.IT<T> it() {
         return (Id.IT<T>) t.rt();
       }
-      public Optional<Id.DecId> name() { return Optional.of(it().id()); }
+      public Optional<Id.DecId> name() { return Optional.of(it().name()); }
 
       @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof MT mt)) { return false; }
         if (mt.name().isEmpty()) { return false; }
-        return this.t().mdf().equals(mt.mdf()) && this.it().id().equals(mt.name().get());
+        return this.t().mdf().equals(mt.mdf()) && this.it().name().equals(mt.name().get());
       }
       @Override public int hashCode() {
-        return Objects.hash(this.t.mdf(), this.it().id());
+        return Objects.hash(this.t.mdf(), this.it().name());
       }
     }
     record Plain(Mdf mdf, Id.DecId id) implements MT {

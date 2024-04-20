@@ -130,7 +130,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
       throw Fail.incompatibleGenerics(iT1.gxOrThrow(), iT2.gxOrThrow());
     }
 
-    var notMatch=!c1.id().equals(c2.id()); //name includes gen size
+    var notMatch=!c1.name().equals(c2.name()); //name includes gen size
     if(notMatch){
       var t1 = new T(Mdf.mdf, c1);
       var t2 = new T(Mdf.mdf, c2);
@@ -211,7 +211,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     List<List<Id.GX<ast.T>>> methGens = sigs.stream()
       .map(s->s.gens().stream().map(gx->freshGXsQueue.poll()).toList())
       .toList();
-    var cTs = new Id.IT<>(c.id(), ts);
+    var cTs = new Id.IT<>(c.name(), ts);
     var cT = new astFull.T(mdf, cTs.toFullAstIT(ast.T::toAstFullT));
     var cTOriginal = new T(mdf, c);
     List<List<RP>> rpsSigs = Streams.zip(sigs,methGens)
@@ -284,7 +284,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var rp = rps.get(i);
     if (rp.t1().isInfer() || rp.t2().isInfer()) { return false; }
     if ((rp.t1().rt() instanceof Id.IT<T> t1) && (rp.t2().rt() instanceof Id.IT<T> t2)) {
-      return t1.id().equals(t2.id());
+      return t1.name().equals(t2.name());
     }
     return false;
   }
@@ -340,12 +340,12 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
   boolean isSameXC(RP rp1, RP rp2) {
     Id.GX<?> x1 = rp1.t1().match(gx->gx,it->rp1.t2().gxOrThrow());
-    Id.DecId c1 =  rp1.t1().match(gx->rp1.t2().itOrThrow(),it->it).id();
+    Id.DecId c1 =  rp1.t1().match(gx->rp1.t2().itOrThrow(),it->it).name();
     Optional<Id.IT<?>> c21 = rp2.t1().match(gx->Optional.empty(), Optional::of);
     Optional<Id.IT<?>> c22 = rp2.t2().match(gx->Optional.empty(), Optional::of);
     if(c21.isPresent() && c22.isPresent()){ return false; }
     if(c21.isEmpty() && c22.isEmpty()){ return false; }
-    Id.DecId c2=c21.or(()->c22).get().id();
+    Id.DecId c2=c21.or(()->c22).get().name();
     if(!c1.equals(c2)){ return false; }
     return rp2.t1().match(
       x2->x1.equals(x2),

@@ -12,7 +12,7 @@ record TypeIds(JavaMagicImpls magic, StringIds id){
     var res= switch (t) {
       case MIR.MT.Any ignored -> "Object";
       case MIR.MT.Plain plain -> auxGetTName(plain.id());
-      case MIR.MT.Usual usual -> auxGetTName(usual.it().id());
+      case MIR.MT.Usual usual -> auxGetTName(usual.it().name());
     };
     return isRet?boxOf(res):res;
   }

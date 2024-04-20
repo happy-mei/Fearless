@@ -42,7 +42,7 @@ public interface FullCollectorVisitor<C extends Collection<?>> extends FullVisit
     t.match(this::visitGX, this::visitIT);
   }
   default Void visitIT(Id.IT<astFull.T> it) {
-    visitDecId(it.id());
+    visitDecId(it.name());
     it.ts().forEach(this::visitT);
     return null;
   }

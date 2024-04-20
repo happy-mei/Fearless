@@ -39,7 +39,7 @@ public interface ShortCircuitVisitor<R> extends Visitor<Optional<R>> {
   default Optional<R> visitX(E.X e){ return Optional.empty(); }
   default Optional<R> visitLambda(E.Lambda e){
     return visitMdf(e.mdf())
-      .or(()->visitAll(e.types(),this::visitIT))
+      .or(()->visitAll(e.its(),this::visitIT))
       .or(()->visitAll(e.meths(),this::visitMeth));
   }
   default Optional<R> visitMdf(Mdf mdf){return Optional.empty();}

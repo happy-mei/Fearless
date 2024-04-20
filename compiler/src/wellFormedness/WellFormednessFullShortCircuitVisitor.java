@@ -225,11 +225,11 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   }
 
   private Optional<CompileError> noImplInlineDec(E.Lambda e) {
-    if (e.its().stream().noneMatch(it->p.isInlineDec(it.id()) && !e.id().id().equals(it.id()))) {
+    if (e.its().stream().noneMatch(it->p.isInlineDec(it.name()) && !e.id().id().equals(it.name()))) {
       return Optional.empty();
     }
     return Optional.of(Fail.implInlineDec(
-      e.its().stream().map(Id.IT::id).filter(d->p.isInlineDec(d) && !e.id().id().equals(d)).toList()
+      e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.id().id().equals(d)).toList()
     ));
   }
 
@@ -245,7 +245,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
     allConflicts.retainAll(topLevel);
     var conflicts = allConflicts.stream()
       .map(p::of)
-      .map(d->new Fail.Conflict(d.posOrUnknown(), d.id().toString()))
+      .map(d->new Fail.Conflict(d.posOrUnknown(), d.name().toString()))
       .toList();
     return Optional.of(Fail.conflictingDecls(conflicts));
   }

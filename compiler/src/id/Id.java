@@ -138,19 +138,19 @@ public class Id {
     }
     public GX<TT> withName(String name) { return new GX<>(name); }
   }
-  public record IT<TT extends Ty>(Id.DecId id, List<TT> ts)implements RT<TT>{
+  public record IT<TT extends Ty>(Id.DecId name, List<TT> ts)implements RT<TT>{
     public IT{
-      assert ts.size()== id.gen();
+      assert ts.size()==name.gen();
     }
     public IT(String name,List<TT> ts){ this(new Id.DecId(name,ts.size()),ts); }
     public <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it){ return it.apply(this); }
-    public IT<TT> withTs(List<TT>ts){ return new IT<>(new DecId(id.name,ts.size()), ts); }
-    @Override public String toString(){ return id.name()+ts; }
+    public IT<TT> withTs(List<TT>ts){ return new IT<>(new DecId(name.name,ts.size()), ts); }
+    @Override public String toString(){ return name.name()+ts; }
     public IT<ast.T> toAstIT(Function<TT, ast.T> transform) {
-      return new IT<>(id, ts.stream().map(transform).toList());
+      return new IT<>(name, ts.stream().map(transform).toList());
     }
     public IT<astFull.T> toFullAstIT(Function<TT, astFull.T> transform) {
-      return new IT<>(id, ts.stream().map(transform).toList());
+      return new IT<>(name, ts.stream().map(transform).toList());
     }
   }
 }

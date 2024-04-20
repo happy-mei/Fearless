@@ -2,6 +2,7 @@ package program.typesystem;
 
 import ast.E;
 import ast.T;
+import id.Id;
 import id.Mdf;
 import program.Program;
 import program.TypeRename;
@@ -15,7 +16,7 @@ public record GuessT(Program p, Gamma g, XBs xbs, int depth) implements Visitor<
     return Set.of(g().get(e));
   }
   @Override public Set<T> visitLambda(E.Lambda e) {
-    return e.types().stream().map(it->new T(e.mdf(), it)).collect(Collectors.toSet());
+    return e.its().stream().map(it->new T(e.mdf(), it)).collect(Collectors.toSet());
   }
   @Override public Set<T> visitMCall(E.MCall e) {
     var renamer = TypeRename.core(p());

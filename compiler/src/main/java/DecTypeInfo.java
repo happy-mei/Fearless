@@ -99,16 +99,16 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     c("}\n");
   }
   private void stringImplements(Lambda l) {
-    var its= new ArrayList<>(l.types());
+    var its= new ArrayList<>(l.its());
     var sealedId= new Id.IT<ast.T>(new DecId("base.Sealed",0),List.of());
-    its.removeIf(it->it.id().equals(l.id().id()));
+    its.removeIf(it->it.name().equals(l.id().id()));
     if(!outerMost && !its.contains(sealedId)){
       its.add(sealedId);
     }
     seq(its,it->{it.match(
       gx->{stringGX(gx); return null;},
       t->{
-        stringName(t.id());
+        stringName(t.name());
         c("[");
         seq(t.ts(),this::stringType,", ");
         c("]");
@@ -126,7 +126,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     t.match(
       gx->{stringGX(gx);return null;},
       it->{
-        stringName(it.id());
+        stringName(it.name());
         c("[");
         seq(it.ts(),this::stringType,", ");
         c("]");
@@ -170,7 +170,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     assert outerMost;
     LambdaId id= dec.lambda().id();
     assert id.bounds().equals(dec.bounds());
-    assert id.id().equals(dec.id());
+    assert id.id().equals(dec.name());
     assert id.gens().equals(dec.gxs());
     String main= stringLambdaGet(dec.lambda());
     outerMost=false;

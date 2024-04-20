@@ -63,12 +63,12 @@ public interface FullCloneVisitor {
     t.rt().match(this::visitGX,this::visitIT)
   );}
   default Id.IT<T> visitIT(Id.IT<T> t){ return new Id.IT<>(
-    t.id(),
+    t.name(),
     t.ts().stream().map(this::visitT).toList()
   );}
   default Id.GX<T> visitGX(Id.GX<T> t){ return t; }
   default T.Dec visitDec(T.Dec d) { return new T.Dec(
-    d.id(),
+    d.name(),
     d.gxs().stream().map(this::visitGX).toList(),
     Mapper.of(acc->d.bounds().forEach((key, value)->{
       var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());

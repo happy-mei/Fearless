@@ -33,10 +33,10 @@ public record InferBodies(ast.Program p) {
 //      .collect(Collectors.toMap(ast.T.Dec::name, d->d));
     return fullProgram.ds().values().parallelStream()
       .map(dec->new InferBodies(p.shallowClone()).inferDec(dec))
-      .collect(Collectors.toConcurrentMap(ast.T.Dec::id, d->d));
+      .collect(Collectors.toConcurrentMap(ast.T.Dec::name, d->d));
   }
   ast.T.Dec inferDec(astFull.T.Dec d){
-    var coreDecl = p.ds().get(d.id());
+    var coreDecl = p.ds().get(d.name());
     var l = coreDecl.lambda();
     return coreDecl.withLambda(l.withMeths(
       Streams.zip(d.lambda().meths(),l.meths())
@@ -243,7 +243,7 @@ public record InferBodies(ast.Program p) {
     if (user.isInfer()) { return inferred; }
     if (!(user.rt() instanceof Id.IT<T> userIT
       && inferred.rt() instanceof Id.IT<T> inferredIT)) { return user; }
-    if (!userIT.id().equals(inferredIT.id())) { return user; }
+    if (!userIT.name().equals(inferredIT.name())) { return user; }
     return new T(user.mdf(), userIT.withTs(replaceOnlyInfers(userIT.ts(), inferredIT.ts())));
   }
   public static List<T> replaceOnlyInfers(List<T> userGens, List<T> inferredGens) {

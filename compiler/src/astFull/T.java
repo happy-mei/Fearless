@@ -42,7 +42,7 @@ public final class T implements Id.Ty {
       gx->new ast.T(mdf(), new Id.GX<>(gx.name())),
       it->{
         var ts = it.ts().stream().map(T::toAstT).toList();
-        return new ast.T(mdf(), new Id.IT<>(it.id(), ts));
+        return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
       });
   }
   public ast.T toAstTFreshenInfers(Box<Integer> nFresh) {
@@ -55,7 +55,7 @@ public final class T implements Id.Ty {
       gx->new ast.T(mdf(), new Id.GX<>(gx.name())),
       it->{
         var ts = it.ts().stream().map(t->t.toAstTFreshenInfers(nFresh)).toList();
-        return new ast.T(mdf(), new Id.IT<>(it.id(), ts));
+        return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
       });
   }
   /**Note: this is not considering Mdf.mdf specially.
@@ -108,9 +108,9 @@ public final class T implements Id.Ty {
     }
   }
 
-  public record Dec(Id.DecId id, List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos, Id.Dec {
+  public record Dec(Id.DecId name, List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos, Id.Dec {
     public Dec {
-      assert id.gen() == gxs.size();
+      assert name.gen() == gxs.size();
     }
 
     public Dec accept(FullCloneVisitor v) {
@@ -123,19 +123,19 @@ public final class T implements Id.Ty {
 
     public T.Dec withName(Id.DecId name) { return new T.Dec(name, gxs, bounds, lambda, pos); }
     public Dec withLambda(E.Lambda lambda) {
-      return new Dec(id, gxs, bounds, lambda, pos);
+      return new Dec(name, gxs, bounds, lambda, pos);
     }
 
     public Id.IT<ast.T> toAstT() {
       return new Id.IT<>(//AstFull.T || Ast.T
-        this.id(),
+        this.name(),
         this.gxs().stream().map(gx->new ast.T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
       );
     }
 
     public Id.IT<T> toIT() {
       return new Id.IT<>(//AstFull.T || Ast.T
-        this.id(),
+        this.name(),
         this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
       );
     }
@@ -143,13 +143,13 @@ public final class T implements Id.Ty {
     @Override
     public String toString() {
       if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
-        return "Dec[name=" + id + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],lambda=" + lambda.toStringNoName() + "]";
+        return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],lambda=" + lambda.toStringNoName() + "]";
       }
       var boundsStr = bounds.entrySet().stream()
         .sorted(Comparator.comparing(a->a.getKey().name()))
         .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
         .collect(Collectors.joining(","));
-      return "Dec[name=" + id + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],bounds={"+boundsStr+"},lambda=" + lambda.toStringNoName() + "]";
+      return "Dec[name=" + name + ",gxs=[" + gxs.stream().map(Id.GX::toString).collect(Collectors.joining(",")) + "],bounds={"+boundsStr+"},lambda=" + lambda.toStringNoName() + "]";
     }
   }
 
