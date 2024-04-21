@@ -8,6 +8,7 @@ import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
+import program.typesystem.TsT;
 import utils.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
@@ -60,8 +61,8 @@ public interface LogicMain {
       .visitProgram(program)
       .ifPresent(err->{ throw err; });
   }
-  default ConcurrentHashMap<Long, EMethTypeSystem.TsT> typeSystem(ast.Program program){
-    var acc= new ConcurrentHashMap<Long, EMethTypeSystem.TsT>();
+  default ConcurrentHashMap<Long, TsT> typeSystem(ast.Program program){
+    var acc= new ConcurrentHashMap<Long, TsT>();
     program.typeCheck(acc);
     return acc;
   }

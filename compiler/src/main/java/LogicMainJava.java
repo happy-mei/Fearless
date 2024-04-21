@@ -16,14 +16,14 @@ import codegen.optimisations.OptimisationBuilder;
 import main.CompilerFrontEnd.Verbosity;
 import main.InputOutput;
 import main.FullLogicMain;
-import program.typesystem.EMethTypeSystem;
+import program.typesystem.TsT;
 
 public interface LogicMainJava extends FullLogicMain<JavaProgram> {
   default void cachePackageTypes(MIR.Program program) {
     HDCache.cachePackageTypes(this, program);
   }
 
-  @Override default MIR.Program lower(Program program, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
+  @Override default MIR.Program lower(Program program, ConcurrentHashMap<Long, TsT> resolvedCalls) {
     var mir = new MIRInjectionVisitor(cachedPkg(),program, resolvedCalls).visitProgram();
     var magic = new JavaMagicImpls(null, null, mir.p());
     return new OptimisationBuilder(magic)
@@ -47,7 +47,7 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
   default ProcessBuilder execution(
           MIR.Program program,
           JavaProgram exe,
-          ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls
+          ConcurrentHashMap<Long, TsT> resolvedCalls
   ){
     return MakeJavaProcess.of(io());
   }

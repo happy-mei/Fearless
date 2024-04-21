@@ -6,7 +6,7 @@ import files.Pos;
 import id.Id;
 import id.Mdf;
 import program.CM;
-import program.typesystem.EMethTypeSystem;
+import program.typesystem.TsT;
 import utils.Bug;
 
 import java.io.IOException;
@@ -25,10 +25,11 @@ public class Fail{
       .filter(m-> Modifier.isStatic(m.getModifiers()) && Modifier.isPublic(m.getModifiers()))
       .filter(m->!m.getName().equals("conflict"))
       .forEach(m->{
-        try {
-          ErrorCode.valueOf(m.getName());
-        } catch (IllegalArgumentException e) {
-          throw Bug.of("ICE: ErrorCode enum is not complete. Missing: " + m.getName());
+        try { ErrorCode.valueOf(m.getName());}
+        catch (IllegalArgumentException e) {
+          throw Bug.of(
+            "ICE: ErrorCode enum is not complete. Missing: "
+            + m.getName());
         }
       });
   }
@@ -113,7 +114,8 @@ public class Fail{
     var msg = "Expected the lambda here to implement "+expected+".";
     return of(msg);
   }
-  public static CompileError unimplementedInLambda(List<CM> ms){
+  //TODO: was List<CM>, if all work remove todo
+  public static CompileError unimplementedInLambda(List<ast.E.Meth> ms){
     var unimplemented = ms.stream()
       .map(m->"("+m.pos()+") "+m.name())
       .collect(Collectors.joining("\n"));
@@ -151,10 +153,15 @@ public class Fail{
   public static CompileError invalidNum(String n, String kind) {
     return of("The number "+n+" is not a valid "+kind);
   }
-
-  public static CompileError noCandidateMeths(ast.E.MCall e, ast.T expected, List<EMethTypeSystem.TsT> candidates) {
+  public static CompileError noMethOnX(ast.E.MCall e, ast.T found) {
+    return of("Method "+e.name()+" can not be called on generic type "+found);
+  }
+  public static CompileError invalidMethodArgumentTypes() {
+    return of("TODO BETTER");//TODO:
+  }
+  public static CompileError noCandidateMeths(ast.E.MCall e, ast.T expected, List<TsT> candidates) {
     String tsts = candidates.stream()
-      .map(EMethTypeSystem.TsT::toString)
+      .map(TsT::toString)
       .collect(Collectors.joining("\n"));
     return of("When attempting to type check the method call: "+e+", no candidates for "+e.name()+" returned the expected type "+expected+". The candidates were:\n"+tsts);
   }
@@ -189,7 +196,7 @@ public class Fail{
     return of(name+" does not exist in "+recv+". The following methods exist on that type: "+callableMs);
   }
 
-  public static CompileError noSubTypingRelationship(Id.IT<T> it1, Id.IT<T> it2){
+  public static CompileError noSubTypingRelationship(ast.T it1, ast.T it2){
     return of("There is no sub-typing relationship between "+it1+" and "+it2+".");
   }
 

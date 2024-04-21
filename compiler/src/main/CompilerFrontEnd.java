@@ -15,6 +15,7 @@ import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
+import program.typesystem.TsT;
 import program.typesystem.XBs;
 import utils.Box;
 import utils.Bug;
@@ -86,7 +87,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
 
   void generateDocs(String[] files) throws IOException, URISyntaxException {
     if (files == null) { files = new String[0]; }
-    var p = generateProgram(files, new ConcurrentHashMap<>());
+    ast.Program p = generateProgram(files, new ConcurrentHashMap<>());
     var docgen = new HtmlDocgen(p);
     var docs = docgen.visitProgram();
     Path root = Path.of("docs");
@@ -107,7 +108,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
 
   void run(String entryPoint, String[] files, List<String> cliArgs) {
     var entry = new Id.DecId(entryPoint, 0);
-    ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls = new ConcurrentHashMap<>();
+    ConcurrentHashMap<Long, TsT> resolvedCalls = new ConcurrentHashMap<>();
     var p = compile(files, resolvedCalls);
 
     var main = p.of(Magic.Main).toIT();
@@ -148,7 +149,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     compile(files, new ConcurrentHashMap<>());
   }
 
-  Program generateProgram(String[] files, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
+  Program generateProgram(String[] files, ConcurrentHashMap<Long, TsT> resolvedCalls) {
     var base = parseBase();
     Map<String, List<Package>> ps = new HashMap<>(base);
     Arrays.stream(files)
@@ -182,7 +183,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     return inferred;
   }
 
-  Program compile(String[] files, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
+  Program compile(String[] files, ConcurrentHashMap<Long, TsT> resolvedCalls) {
     var inferred = generateProgram(files, resolvedCalls);
     var timer = new Timer();
     v.progress.printTask("Checking types \uD83E\uDD14");
@@ -190,7 +191,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     v.progress.printTask("Types look all good \uD83E\uDD73 ("+timer.duration()+"ms)");
     return inferred;
   }
-  private List<JavaFile> toJava(Id.DecId entry, Program p, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
+  private List<JavaFile> toJava(Id.DecId entry, Program p, ConcurrentHashMap<Long, TsT> resolvedCalls) {
     var mir = new MIRInjectionVisitor(List.of(),p, resolvedCalls).visitProgram();
 //    var codegen = switch (bv) {
 //      case Std -> new JavaCodegen(mir);

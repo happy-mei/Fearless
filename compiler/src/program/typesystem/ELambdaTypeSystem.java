@@ -1,13 +1,16 @@
 package program.typesystem;
 
 import ast.E;
+import ast.E.Sig;
 import ast.T;
 import ast.T.Dec;
 import failure.CompileError;
 import failure.Fail;
-import failure.Res;
+import failure.FailOr;
 import failure.TypeSystemErrors;
+import files.Pos;
 import id.Id;
+import id.Id.GX;
 import id.Mdf;
 import program.CM;
 import program.Program;
@@ -18,6 +21,7 @@ import visitors.ShortCircuitVisitor;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -26,115 +30,97 @@ import java.util.stream.Stream;
 
 import static program.Program.filterByMdf;
 
+//TODO:
+//Fail.bothTExpectedGens must be in well formedness?
+//also check Toplas
+//TODO:
+//at top level when we call the type system, we should do something like this
+//.map(rawErr->()->TypeSystemErrors.fromMethodError(rawErr.get()));
+//or 
+//var rawError = err.parentPos(mi.pos()); //why it was only in one place?
+//return TypeSystemErrors.fromMethodError(rawError);
+//to let the student twist the errors. Note, we need to add plenty more info.
 interface ELambdaTypeSystem extends ETypeSystem{
-  default Optional<Supplier<? extends CompileError>> visitLambda(E.Lambda b){
-    Mdf mdf=b.mdf();
-    Id.DecId fresh = new Id.DecId(Id.GX.fresh().name(), 0);
-    Dec d=new Dec(fresh, List.of(),Map.of(),b,b.pos());
-    Program p0=p().withDec(d);
-
-    var expected = expectedT().orElseThrow();
-    if (!p0.isSubType(xbs(), new T(b.mdf(), d.toIT()), expected)) {
-      return Optional.of(()->Fail.lambdaTypeError(expected).pos(b.pos()));
-    }
-
-    var validMethods = b.meths().stream()
-      .filter(m->filterByMdf(mdf, m.sig().mdf()))
-      .toList();
-
-    var validMethNames = validMethods.stream().map(E.Meth::name).collect(Collectors.toSet());
-    if (b.meths().stream().anyMatch(m -> !validMethNames.contains(m.name()))) {
-      throw Fail.uncallableMeths(
-        mdf,
-        b.meths().stream().filter(m->!validMethods.contains(m)).toList()
-      ).pos(b.pos());
-    }
-
-    var filtered=p0.meths(xbs(), Mdf.recMdf, d.toIT(), depth()+1).stream()
-      .filter(cmi->filterByMdf(mdf, cmi.sig().mdf()))
-      .toList();
-    var sadlyAbs=filtered.stream()
-      .filter(CM::isAbs)
-      .toList();
-    if (!sadlyAbs.isEmpty()) {
-      return Optional.of(()->Fail.unimplementedInLambda(sadlyAbs).pos(b.pos()));
-    }
-    var sadlyExtra=b.meths().stream()
-      .filter(m->filtered.stream().noneMatch(cm->cm.name().equals(m.name())))
-      .toList();
-    assert sadlyExtra.isEmpty();//TODO: can we break this assertion? We think no.
-    return ((ELambdaTypeSystem)withProgram(p0)).bothT(d);
+  default FailOr<T> visitLambda(E.Lambda b){
+    Id.DecId fresh= new Id.DecId(Id.GX.fresh().name(), 0);
+    Dec d= new Dec(fresh, List.of(),Map.of(),b,b.pos());
+    var self= (ELambdaTypeSystem)withProgram(p().withDec(d));
+    var err1= self.implMethErrors(d,b);
+    return err1.flatMap(unused->self.bothT(d));
   }
-
-  default Optional<Supplier<? extends CompileError>> bothT(Dec d) {
-    var b = d.lambda();
-    if (expectedT().map(t->t.rt() instanceof Id.GX<T>).orElse(false)) {
-      return Optional.of(()->Fail.bothTExpectedGens(expectedT().orElseThrow(), d.name()).pos(b.pos()));
+  private List<E.Meth> filteredByMdf(E.Lambda b){
+    return b.meths().stream()
+    .filter(m->filterByMdf(b.mdf(), m.sig().mdf()))
+    .toList();
+  }
+  private List<E.Meth> excludedByMdf(E.Lambda b){
+    return b.meths().stream()
+    .filter(m->!filterByMdf(b.mdf(), m.sig().mdf()))
+    .toList();
+  }
+  private FailOr<Void> implMethErrors(Dec d,E.Lambda b){
+    Mdf mdf= b.mdf();
+    var validMethods = filteredByMdf(b);
+    var validMethNames = validMethods.stream()
+      .map(E.Meth::name).collect(Collectors.toSet());
+    var hasUncallable= b.meths().stream()
+      .anyMatch(m -> !validMethNames.contains(m.name()));
+    if (hasUncallable) { return FailOr.err(()->
+      Fail.uncallableMeths(mdf,excludedByMdf(b)).pos(b.pos()));
     }
+    var sadlyAbs= validMethods.stream().filter(E.Meth::isAbs).toList();
+    if (!sadlyAbs.isEmpty()) { return FailOr.err(()->
+      Fail.unimplementedInLambda(sadlyAbs).pos(b.pos()));
+    }
+    return FailOr.ok();
+  }
+  private XBs addBounds(List<GX<T>> gxs,Map<Id.GX<T>, Set<Mdf>> bounds) {
     var xbs = xbs();
-    for (var gx : d.gxs()) {
-      var bounds = d.bounds().get(gx);
-      if (bounds == null || bounds.isEmpty()) { continue; }
-      xbs = xbs.add(gx.name(), bounds);
+    for (var gx : gxs) {
+      var boundsi = bounds.get(gx);
+      assert boundsi!=null;
+      if (boundsi.isEmpty()) { continue; }
+      xbs = xbs.add(gx.name(), boundsi);
     }
+    return xbs;
+  }
+  default FailOr<T> bothT(Dec d){
+    var b = d.lambda();
+    var xbs = addBounds(d.gxs(),d.bounds());
     var invalidGens = GenericBounds.validGenericLambda(p(), xbs, b);
-    XBs finalXbs = xbs;
-    Supplier<ELambdaTypeSystem> boundedTypeSys = ()->(ELambdaTypeSystem) ETypeSystem.of(p().shallowClone(), g(), finalXbs, expectedT(), resolvedCalls(), depth());
     if (invalidGens.isPresent()) {
-      return Optional.of(()->invalidGens.get().get().pos(b.pos()));
+      return FailOr.err(()->invalidGens.get().get().pos(b.pos()));
     }
-    //var errMdf = expectedT.map(ti->!p().isSubType(ti.mdf(),b.mdf())).orElse(false);
-    //after discussion, line above not needed
-    var its = p().itsOf(d.toIT());
-    var expectedT=expectedT().stream()
-      .filter(ti->ti.match(gx->false, its::contains))
-      .findFirst();
-    T retT = expectedT //TOP LEVEL = declared type
-      .map(t->t.withMdf(b.mdf()))
-      .orElseGet(()->new T(b.mdf(), b.its().getFirst()));
-    T selfT = new T(b.mdf(), d.toIT());
+    T selfT= new T(b.mdf(), d.toIT());
     var selfName=b.selfName();
-    List<Supplier<? extends CompileError>> mRes = b.meths().parallelStream().flatMap(mi->{
-      try {
-        return boundedTypeSys.get()
-          .mOk(selfName, selfT, mi)
-          .stream()
-          .map(rawError->()->TypeSystemErrors.fromMethodError(rawError.get()));
-      } catch (CompileError err) {
-        return Optional.<Supplier<? extends CompileError>>of(()->{
-          var rawError = err.parentPos(mi.pos());
-          return TypeSystemErrors.fromMethodError(rawError);
-        }).stream();
-      }
-    }).toList();
-    if(mRes.isEmpty()){ return Optional.empty(); }
-    return Optional.of(mRes.getFirst());
+    var mRes= FailOr.fold(b.meths(),
+      mi->methOkCath(xbs, selfT, selfName, mi));
+    return mRes.map(unused->selfT);
   }
-  default Optional<Supplier<? extends CompileError>> mOk(String selfName, T selfT, E.Meth m){
-    var xbs_ = xbs();
-    for (var gx : m.sig().gens()) {
-      var bounds = m.sig().bounds().get(gx);
-      if (bounds == null || bounds.isEmpty()) { continue; }
-      xbs_ = xbs_.add(gx.name(), bounds);
-    }
-    final var xbs = xbs_;
-    var typeSysBounded = (ELambdaTypeSystem) withXBs(xbs);
-
-    var sigInvalid = Stream.concat(m.sig().ts().stream(), Stream.of(m.sig().ret()))
-      .map(t->GenericBounds.validGenericT(p(), xbs, t))
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .<Supplier<? extends CompileError>>map(errorSupplier->()->errorSupplier.get().pos(m.pos()))
-      .findAny();
-    if (sigInvalid.isPresent()) { return sigInvalid; }
-    if(m.isAbs()){
-      return Optional.empty();
-    }
-
-    return typeSysBounded.mOkEntry(selfName, selfT, m, m.sig());
+  private FailOr<Void> sigOk(Sig sig,Optional<Pos> p){
+    var ts= Stream.concat(sig.ts().stream(),Stream.of(sig.ret()));
+    var bad= ts.map(t->GenericBounds.validGenericT(p(), xbs(), t))
+      .flatMap(Optional::stream)
+      .findFirst();
+    return FailOr.opt(bad.map(s->()->s.get().pos(p)));
   }
-
-  default Optional<Supplier<? extends CompileError>> mOkEntry(String selfName, T selfT, E.Meth m, E.Sig sig) {
+  private FailOr<Void> mOk(String selfName, T selfT, E.Meth m){
+    var xbs = addBounds(m.sig().gens(),m.sig().bounds());
+    var withXBs = (ELambdaTypeSystem) withXBs(xbs);
+    withXBs.sigOk(m.sig(),m.pos());
+    if(m.isAbs()){ return FailOr.ok(); }
+    return withXBs.mOkEntry(selfName, selfT, m, m.sig());
+  }
+  private FailOr<Void> methOkCath(
+      XBs xbs, T selfT, String selfName, E.Meth mi) {
+    var boundedTypeSys =(ELambdaTypeSystem) ETypeSystem.of(
+        p().shallowClone(), g(), xbs,
+        expectedT(), resolvedCalls(), depth());
+    try { return boundedTypeSys.mOk(selfName, selfT, mi); }
+    catch (CompileError err) { return err.fail(); }
+    //TODO: will die soon since we avoid all the throws?
+  }
+  default FailOr<Void> mOkEntry(String selfName, T selfT, E.Meth m, E.Sig sig) {
     var e   = m.body().orElseThrow();
     var mMdf = sig.mdf();
 
@@ -147,24 +133,25 @@ interface ELambdaTypeSystem extends ETypeSystem{
 
     var baseCase = topLevelIso(gg, m, e, ret);
     var baseDestiny = baseCase.isEmpty() || ret.mdf().is(Mdf.mut, Mdf.read);
-    if (baseDestiny) { return baseCase; }
+    if (baseDestiny) { return FailOr.opt(baseCase); }
     //res is iso or imm, thus is promotable
 
     var criticalFailure = topLevelIso(gg, m, e, ret.withMdf(Mdf.readOnly));
-    if (criticalFailure.isPresent()) { return baseCase; }
+    if (criticalFailure.isPresent()) { return FailOr.opt(baseCase); }
 
     var readPromotion = mOkReadPromotion(selfName, selfT, m, sig);
     if (readPromotion.isEmpty() || !ret.mdf().is(Mdf.imm, Mdf.iso)) {
-      return readPromotion.flatMap(ignored->baseCase);
+      return FailOr.opt(readPromotion.flatMap(ignored->baseCase));
     }
 
     var isoPromotion = mOkIsoPromotion(selfName, selfT, m, sig);
-    if(ret.mdf().isIso() || isoPromotion.isEmpty()){ return isoPromotion; }
+    if(ret.mdf().isIso() || isoPromotion.isEmpty()){ return FailOr.opt(isoPromotion); }
 
-    return mOkImmPromotion(selfName, selfT, m, sig, selfTMdf).flatMap(ignored->baseCase);
+    return FailOr.opt(mOkImmPromotion(selfName, selfT, m, sig, selfTMdf)
+      .flatMap(ignored->baseCase));
   }
 
-  default Optional<Supplier<? extends CompileError>> mOkReadPromotion(String selfName, T selfT, E.Meth m, E.Sig sig) {
+  default Optional<Supplier<CompileError>> mOkReadPromotion(String selfName, T selfT, E.Meth m, E.Sig sig) {
     var readOnlyAsReadG = new Gamma() {
       @Override public Optional<T> getO(String x) {
         return g().getO(x).map(t->{
@@ -183,7 +170,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret());
   }
 
-  default Optional<Supplier<? extends CompileError>> mOkIsoPromotion(String selfName, T selfT, E.Meth m, E.Sig sig) {
+  default Optional<Supplier<CompileError>> mOkIsoPromotion(String selfName, T selfT, E.Meth m, E.Sig sig) {
     Function<T, T> mdfTransform = t->{
       if (t.mdf().isMut()) { return t.withMdf(Mdf.lent); }
       if (t.mdf().isRead()) { return t.withMdf(Mdf.readOnly); }
@@ -204,7 +191,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.mut));
   }
 
-  default Optional<Supplier<? extends CompileError>> mOkImmPromotion(String selfName, T selfT, E.Meth m, E.Sig sig, Mdf selfTMdf) {
+  default Optional<Supplier<CompileError>> mOkImmPromotion(String selfName, T selfT, E.Meth m, E.Sig sig, Mdf selfTMdf) {
     var noMutyG = new Gamma() {
       @Override public Optional<T> getO(String x) {
         return g().getO(x).filter(t->!(t.mdf().isLikeMut() || t.mdf().isRecMdf() || t.mdf().isMdf()));
@@ -222,7 +209,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
    *   where
    *   G1,x:mut ITX,G2;XBs |= e : T
    */
-  default Optional<Supplier<? extends CompileError>> topLevelIso(Gamma g, E.Meth m, E e, T expected) {
+  default Optional<Supplier<CompileError>> topLevelIso(Gamma g, E.Meth m, E e, T expected) {
     var res = isoAwareJudgment(g, m, e, expected);
     if (res.isEmpty()) { return res; }
     var isoNames = g.dom().stream().filter(x->{
@@ -242,8 +229,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
   }
 
   /** G;XBs |= e : T */
-  default Optional<Supplier<? extends CompileError>> isoAwareJudgment(Gamma g, E.Meth m, E e, T expected) {
-    return okWithSubType(g, m, e, expected).or(()->g.dom().stream()
+  default Optional<Supplier<CompileError>> isoAwareJudgment(Gamma g, E.Meth m, E e, T expected) {//TODO: below is terrible and needs refactoring
+    var res1= okWithSubType(g, m, e, expected).asOpt();
+    return res1.or(()->g.dom().stream()
       .filter(x->{
         try {
           var xT = g.get(x);
@@ -256,11 +244,11 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .map(x->{
         var nUsages = new Box<>(0);
         var hasCapturedX = new Box<>(false);
-        return e.accept(new ShortCircuitVisitor<Supplier<? extends CompileError>>(){
-          @Override public Optional<Supplier<? extends CompileError>> visitLambda(E.Lambda e) {
+        return e.accept(new ShortCircuitVisitor<Supplier<CompileError>>(){
+          @Override public Optional<Supplier<CompileError>> visitLambda(E.Lambda e) {
             if (hasCapturedX.get()) { return Optional.empty(); }
-            return new ShortCircuitVisitor<Supplier<? extends CompileError>>(){
-              @Override public Optional<Supplier<? extends CompileError>> visitX(E.X e) {
+            return new ShortCircuitVisitor<Supplier<CompileError>>(){
+              @Override public Optional<Supplier<CompileError>> visitX(E.X e) {
                 if (!e.name().equals(x)) { return ShortCircuitVisitor.super.visitX(e); }
                 hasCapturedX.set(true);
                 if (nUsages.get() > 0) { return Optional.of(()->Fail.multipleIsoUsage(e).pos(e.pos())); }
@@ -269,7 +257,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
             }.visitLambda(e);
           }
 
-          @Override public Optional<Supplier<? extends CompileError>> visitX(E.X e) {
+          @Override public Optional<Supplier<CompileError>> visitX(E.X e) {
             if (!e.name().equals(x)) { return ShortCircuitVisitor.super.visitX(e); }
             if (hasCapturedX.get()) {
               return Optional.of(()->Fail.multipleIsoUsage(e).pos(e.pos()));
@@ -285,9 +273,17 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .flatMap(opt->opt)
     );
   }
-
-  default Optional<Supplier<? extends CompileError>> okWithSubType(Gamma g, E.Meth m, E e, T expected) {
-    var res = e.accept(ETypeSystem.of(p(), g, xbs(), Optional.of(expected), resolvedCalls(), depth()+1));
-    return res.map(err->()->err.get().parentPos(m.pos()));
+  private FailOr<Void> okWithSubType(Gamma g, E.Meth m, E e, T expected) {
+    FailOr<T> res = e.accept(
+      ETypeSystem.of(p(), g, xbs(), List.of(expected), resolvedCalls(), depth()+1));
+    return res.flatMap(t->methSubType(t,expected));
+    //TODO: why pass expected? is it not in 'this'?
+    //TODO: why this parent pos was here?    
+    //  res.map(err->()->err.get().parentPos(m.pos()));
+  }
+  private FailOr<Void> methSubType(T t, T expected){
+    var resOk= p().isSubType(xbs(), expected, expected);
+    if (resOk){ return FailOr.ok(); }
+    return FailOr.err(()->Fail.noSubTypingRelationship(t, expected));
   }
 }

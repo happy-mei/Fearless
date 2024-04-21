@@ -5,7 +5,7 @@ import utils.Bug;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
+/*
 public interface Res {
   default Res or(Supplier<Res> r) { return resMatch(e->this, i->r.get()); }
   default T orElse(Function<CompileError, T> f) { return resMatch(e->e, f); }
@@ -15,3 +15,4 @@ public interface Res {
   default Optional<T> t(){ return resMatch(Optional::of, i->Optional.empty()); }
   default Optional<CompileError> err(){ return resMatch(i->Optional.empty(),Optional::of); }
 }
+*/

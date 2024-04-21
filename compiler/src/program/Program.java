@@ -178,11 +178,11 @@ public interface Program {
 //    return e.accept(v);
 //  }
 
-  default Optional<Supplier<? extends CompileError>> isType(Gamma g, XBs xbs, ast.E e, ast.T expected) {
-//    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
-    var v = ETypeSystem.of(this, g, xbs, Optional.of(expected), new ConcurrentHashMap<>(), 0);
+  default Optional<Supplier<CompileError>> isType(Gamma g, XBs xbs, ast.E e, ast.T expected) {
+    var v = ETypeSystem.of(this, g, xbs, List.of(expected), new ConcurrentHashMap<>(), 0);
     var res = e.accept(v);
-    return res;
+    assert false: "is this actually used?";//TODO: if so, we need to reanable the
+    return res.asOpt();//subtype check below
 //    return res.resMatch(t->isSubType(xbs,t,expected),err->false);
   }
 

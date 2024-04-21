@@ -26,6 +26,8 @@ public enum Mdf{
     assert !(this.isRecMdf() && t.mdf().isMdf() && !t.isGX());
     return this.adapt(t.mdf());
   }
+  //TODO: add readImm to the list when available
+  public boolean isSyntaxMdf(){ return this!=Mdf.recMdf && this!=Mdf.mdf; }
 
   /**
    * How we see the type 'other' from the receiver 'this'

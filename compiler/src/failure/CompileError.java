@@ -1,17 +1,15 @@
 package failure;
 
-import ast.T;
 import files.HasPos;
 import files.Pos;
 
 import java.io.Serial;
 import java.util.Optional;
-import java.util.function.Function;
 
-public class CompileError extends RuntimeException implements Res,HasPos {
+public class CompileError extends RuntimeException implements HasPos {
+  public <Any> FailOr<Any> fail(){ return new FailOr.Fail<Any>(()->this); }
   @Serial private static final long serialVersionUID = 1L;
   private static final String UNKNOWN_ERROR_MSG = "Unknown Error";
-  public <R> R resMatch(Function<T, R> ok, Function<CompileError, R> err){ return err.apply(this); }
   private Pos pos;
   private int code = -1;
   private String name = null;
@@ -21,7 +19,7 @@ public class CompileError extends RuntimeException implements Res,HasPos {
   CompileError(String msg) {super(msg);}
   public static CompileError of(Throwable cause){ return new CompileError(cause); }
   public static CompileError of(String msg){ return new CompileError(msg); }
-  public static <T> T err(String msg){ throw new CompileError(msg); }
+  public static <Any> Any err(String msg){ throw new CompileError(msg); }
 
   public Optional<Pos> pos() {
     return Optional.ofNullable(this.pos);

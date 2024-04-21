@@ -1,6 +1,5 @@
 package ast;
 
-import failure.CompileError;
 import files.HasPos;
 import files.Pos;
 import id.Id;
@@ -13,8 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public record T(Mdf mdf, Id.RT<T> rt) implements failure.Res, Id.Ty {
-  public <R> R resMatch(Function<T,R> ok, Function<CompileError,R> err){ return ok.apply(this); }
+public record T(Mdf mdf, Id.RT<T> rt) implements Id.Ty {
   @Override public String toString(){
     if (mdf.isMdf()) { return rt.toString(); }
     return mdf+" "+rt;

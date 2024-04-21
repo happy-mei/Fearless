@@ -11,6 +11,7 @@ import program.TypeRename;
 import program.TypeSystemFeatures;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.TraitTypeSystem;
+import program.typesystem.TsT;
 import program.typesystem.XBs;
 import utils.Mapper;
 
@@ -38,7 +39,7 @@ public class Program implements program.Program  {
   public Map<Id.DecId, T.Dec> inlineDs() { return Collections.unmodifiableMap(this.inlineDs); }
   public List<ast.E.Lambda> lambdas() { return this.ds().values().stream().map(T.Dec::lambda).toList(); }
 
-  public void typeCheck(ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls) {
+  public void typeCheck(ConcurrentHashMap<Long, TsT> resolvedCalls) {
     var errors = new StringBuilder();
     TraitTypeSystem.dsOk(tsf, this.ds.values(), resolvedCalls)
       .forEach(err->errors.append(err.toString()).append("\n\n"));
