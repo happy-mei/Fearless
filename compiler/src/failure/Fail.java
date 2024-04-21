@@ -27,9 +27,10 @@ public class Fail{
       .forEach(m->{
         try { ErrorCode.valueOf(m.getName());}
         catch (IllegalArgumentException e) {
+          var mm=m;//JVM bug? was printing empty name with no local vars
+          String name= mm.getName();
           throw Bug.of(
-            "ICE: ErrorCode enum is not complete. Missing: "
-            + m.getName());
+            "ICE: ErrorCode enum is not complete. Missing: ["+name+"]");
         }
       });
   }
@@ -351,7 +352,9 @@ enum ErrorCode {
   mismatchedMethodGens,
   syntaxError,
   specialPackageConflict,
-  reservedPackageName;
+  reservedPackageName,
+  noMethOnX,
+  invalidMethodArgumentTypes;
   private static final ErrorCode[] values = values();
   int code() {
     return this.ordinal() + 1;

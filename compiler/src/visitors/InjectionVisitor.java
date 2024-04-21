@@ -12,6 +12,7 @@ import utils.Push;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class InjectionVisitor implements FullVisitor<ast.E>{
@@ -59,12 +60,19 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
       e.pos()
     );
   }
-
+  //TODO: below must be duplicated code. Find the place where they exists already
+  private static final Set<Mdf> defaultBounds= Set.of(Mdf.mut,Mdf.imm,Mdf.read);
   public ast.T.Dec visitDec(astFull.T.Dec d){
+    var xs= d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
+    Map<Id.GX<T>, Set<Mdf>> boundsGiven= Mapper.of(xbs->
+      d.bounds().forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs)));
+    Map<Id.GX<T>, Set<Mdf>> bounds= Mapper.of(xbs->xs.forEach(xi->{
+      var currentB= boundsGiven.getOrDefault(xi,defaultBounds);
+      xbs.put(xi,currentB);
+      }));
     return new ast.T.Dec(
       d.name(),
-      d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList(),
-      Mapper.of(xbs->d.bounds().forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs))),
+      xs,bounds,
       this.visitLambda(d.lambda().withITs(Push.of(d.toIT(), d.lambda().its()))),
       d.pos()
     );

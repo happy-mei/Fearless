@@ -49,10 +49,15 @@ public record T(Mdf mdf, Id.RT<T> rt) implements Id.Ty {
   public T withMdf(Mdf mdf){ return new T(mdf,rt); }
 
   public record Dec(DecId name, List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos, Id.Dec {
-    public Dec{ assert gxs.size()==name.gen() && lambda!=null; }
-    public ast.T.Dec withName(Id.DecId name) { return new ast.T.Dec(name,gxs,bounds,lambda,pos); }
-    public ast.T.Dec withSelfName(String selfName) { return new ast.T.Dec(name,gxs,bounds,lambda.withSelfName(selfName),pos); }
-    public ast.T.Dec withLambda(ast.E.Lambda lambda) { return new ast.T.Dec(name,gxs,bounds,lambda,pos); }
+    public Dec{
+      assert gxs.size()==name.gen() && lambda!=null;
+      //assert gxs.stream().allMatch(gx->bounds.containsKey(gx));
+      //stronger below should be sufficient
+      assert gxs.stream().allMatch(gx->bounds.get(gx)!=null);
+      }
+    public Dec withName(Id.DecId name){ return new Dec(name,gxs,bounds,lambda,pos); }
+    public Dec withSelfName(String selfName){ return new Dec(name,gxs,bounds,lambda.withSelfName(selfName),pos); }
+    public Dec withLambda(ast.E.Lambda lambda){ return new Dec(name,gxs,bounds,lambda,pos); }
 
     public Id.IT<T> toIT(){
       return new Id.IT<>(//AstFull.T || Ast.T

@@ -15,9 +15,9 @@ public record ResolveResource(
     Path assetRoot, Path artefactRoot, FileSystem virtualFs
     ){
   static private final ResolveResource instance= 
-      ResolveResource.infer();
-      //ResolveResource.of(Paths.get("C:/")
-      //  .resolve("Users/sonta/Documents/GitHub/Fearless"));
+    //ResolveResource.infer();
+    ResolveResource.of(Paths.get("C:/")
+      .resolve("Users/sonta/Documents/GitHub/Fearless"));
 
   public ResolveResource{
     assert Files.exists(assetRoot):assetRoot;
