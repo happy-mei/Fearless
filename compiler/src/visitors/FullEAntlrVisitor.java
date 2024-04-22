@@ -261,14 +261,17 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
 
   @Override public Mdf visitMdf(MdfContext ctx) {
     if(ctx.getText().isEmpty()){ return Mdf.imm; }
+    if (ctx.getText().equals("read/imm")) { return Mdf.readImm; }
     return Mdf.valueOf(ctx.getText());
   }
   public Mdf visitExplicitMdf(MdfContext ctx) {
     if(ctx.getText().isEmpty()){ return null; }
+    if (ctx.getText().equals("read/imm")) { return Mdf.readImm; }
     return Mdf.valueOf(ctx.getText());
   }
   public Mdf visitGenMdf(MdfContext ctx) {
     if(ctx.getText().isEmpty()){ return Mdf.mdf; }
+    if (ctx.getText().equals("read/imm")) { return Mdf.readImm; }
     return Mdf.valueOf(ctx.getText());
   }
 
@@ -326,7 +329,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var name = mh.map(MethHeader::name)
         .orElseGet(()->new MethName(mh.map(MethHeader::mdf), ctx.m().getText(),xs.size()));
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
-    var sig = mh.map(h->new E.Sig(h.mdf(), h.gens(), h.bounds(), xs.stream().map(E.X::t).toList(), h.ret(), Optional.of(pos(ctx))));
+    var sig = mh.map(h->new E.Sig(h.gens(), h.bounds(), xs.stream().map(E.X::t).toList(), h.ret(), Optional.of(pos(ctx))));
     var res = new E.Meth(sig, Optional.of(name), xs.stream().map(E.X::name).toList(), body, Optional.of(pos(ctx)));
     this.xbs = oldXbs;
     return res;

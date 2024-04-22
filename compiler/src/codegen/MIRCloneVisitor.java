@@ -29,7 +29,6 @@ public interface MIRCloneVisitor extends MIRVisitor<MIR.E> {
   default MIR.Sig visitSig(MIR.Sig sig) {
     return new MIR.Sig(
       sig.name(),
-      sig.mdf(),
       sig.xs().stream().map(x->(MIR.X)this.visitX(x, true)).toList(),
       this.visitMT(sig.rt())
     );

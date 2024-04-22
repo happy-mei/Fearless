@@ -24,14 +24,14 @@ public interface E extends HasPos {
   // TODO: we could cache lambda's type checking like so:
   // - map from a pair (or a composed string of the two) of a string of gamma AND an expected T to a Res
   // could use newline as a delimiter. Could filter gamma to only include what is actually captured in the lambda
-  record Lambda(LambdaId name, Mdf mdf, List<Id.IT<T>> its, String selfName, List<Meth> meths, Optional<Pos> pos) implements E {
+  record Lambda(LambdaId id, Mdf mdf, List<Id.IT<T>> its, String selfName, List<Meth> meths, Optional<Pos> pos) implements E {
     public Lambda {
       assert mdf != null;
       assert !its.isEmpty();
       assert X.validId(selfName);
       assert meths != null;
-      if (name.id().isFresh()) {
-        name = LambdaId.computeId(name.id.name(), name.bounds, meths, its);
+      if (id.id().isFresh()) {
+        id = LambdaId.computeId(id.id.name(), id.bounds, meths, its);
       }
     }
 
@@ -59,16 +59,16 @@ public interface E extends HasPos {
       return v.visitLambda(this, ctx);
     }
     public ast.E.Lambda withMeths(List<Meth> meths) {
-      return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
+      return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
     public ast.E.Lambda withITs(List<Id.IT<T>> its) {
-      return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
+      return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
     public ast.E.Lambda withSelfName(String selfName) {
-      return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
+      return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
     public ast.E.Lambda withMdf(Mdf mdf) {
-      return new ast.E.Lambda(name, mdf, its, selfName, meths, pos);
+      return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
     @Override
     public String toString() {
@@ -116,15 +116,15 @@ public interface E extends HasPos {
     public ast.E.Meth withSig(Sig sig) {
       return new ast.E.Meth(sig, name, xs, body, pos);
     }
+    public Mdf mdf() { return name.mdf().orElseThrow(); }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name, xs, sig, body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds,  List<T> ts, T ret, Optional<Pos> pos) implements HasPos {
-    public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
+  record Sig(List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds, List<T> ts, T ret, Optional<Pos> pos) implements HasPos {
+    public Sig{ assert gens!=null && ts!=null && ret!=null; }
     public astFull.E.Sig toAstFullSig() {
       return new astFull.E.Sig(
-        mdf,
         gens.stream().map(gx->new Id.GX<astFull.T>(gx.name())).toList(),
         Mapper.of(xbs->bounds.forEach((k,v)->xbs.put(k.toFullAstGX(), v))),
         ts.stream().map(T::toAstFullT).toList(),
@@ -132,20 +132,16 @@ public interface E extends HasPos {
         pos
       );
     }
-    public E.Sig withPos(Optional<Pos> pos) { return new Sig(mdf, gens, bounds, ts, ret, pos); }
-    public boolean sigEqualIgnoringMdf(ast.E.Sig s2) {
-      var sameMdfS1 = new E.Sig(s2.mdf(), this.gens(), this.bounds(), this.ts(), this.ret(), Optional.empty());
-      return sameMdfS1.equals(s2.withPos(Optional.empty()));
-    }
+
     @Override public String toString() {
       if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
-        return "Sig[mdf="+mdf+",gens="+gens+",ts="+ts+",ret="+ret+"]";
+        return "Sig[gens="+gens+",ts="+ts+",ret="+ret+"]";
       }
       var boundsStr = bounds.entrySet().stream()
         .sorted(Comparator.comparing(a->a.getKey().name()))
         .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
         .collect(Collectors.joining(","));
-      return "Sig[mdf="+mdf+",gens="+gens+",bounds={"+boundsStr+"},ts="+ts+",ret="+ret+"]";
+      return "Sig[gens="+gens+",bounds={"+boundsStr+"},ts="+ts+",ret="+ret+"]";
     }
   }
 }

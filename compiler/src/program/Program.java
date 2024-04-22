@@ -32,10 +32,10 @@ public interface Program {
   /** with t=C[Ts]  we do  C[Ts]<<Ms[Xs=Ts],*/
   List<NormResult> cMsOf(Mdf recvMdf, Id.IT<T> t);
   CM plainCM(CM fancyCM);
-  Set<Id.GX<ast.T>> gxsOf(Id.IT<T> t);
+  Set<Id.GX<T>> gxsOf(Id.IT<T> t);
   Program withDec(T.Dec d);
   List<ast.E.Lambda> lambdas();
-  Optional<Pos> posOf(Id.IT<ast.T> t);
+  Optional<Pos> posOf(Id.IT<T> t);
   /** Produce a clone of Program without any cached data */
   Program shallowClone();
   TypeSystemFeatures tsf();
@@ -49,10 +49,10 @@ public interface Program {
     if(m1 == m2){ return true; }
     if (m2.is(Mdf.readOnly)) { return true; }
     return switch(m1){
-      case mut -> m2.isLikeMut() || m2.isRead();
-      case imm -> m2.is(Mdf.read);
+      case mut -> m2.isLikeMut();
+      case imm -> m2.is(Mdf.read, Mdf.readImm);
       case iso -> true;
-      case readOnly, mdf, recMdf, read, lent -> false;
+      case readOnly, mdf, recMdf, read, readImm, lent -> false;
     };
   }
   default boolean isSubType(XBs xbs, astFull.T t1, astFull.T t2) { return isSubType(xbs, t1.toAstT(), t2.toAstT()); }
@@ -139,10 +139,10 @@ public interface Program {
     var it2 = t2.itOrThrow();
     assert it1.name().equals(it2.name());
     List<CM> cms1 = meths(xbs, mdf, it1, 0).stream()
-      .filter(cm->filterByMdf(mdf, cm.sig().mdf()))
+      .filter(cm->filterByMdf(mdf, cm.mdf()))
       .toList();
     List<CM> cms2 = meths(xbs, mdf, it2, 0).stream()
-      .filter(cm->filterByMdf(mdf, cm.sig().mdf()))
+      .filter(cm->filterByMdf(mdf, cm.mdf()))
       .toList();
 
     var methsByName = Stream.concat(cms1.stream(), cms2.stream())
@@ -178,7 +178,7 @@ public interface Program {
 //    return e.accept(v);
 //  }
 
-  default Optional<Supplier<CompileError>> isType(Gamma g, XBs xbs, ast.E e, ast.T expected) {
+  default Optional<Supplier<CompileError>> isType(Gamma g, XBs xbs, ast.E e, T expected) {
     var v = ETypeSystem.of(this, g, xbs, List.of(expected), new ConcurrentHashMap<>(), 0);
     var res = e.accept(v);
     assert false: "is this actually used?";//TODO: if so, we need to reanable the
@@ -190,7 +190,7 @@ public interface Program {
     assert !mdf.isMdf();
     if (mdf.is(Mdf.iso, Mdf.mut, Mdf.recMdf, Mdf.mdf)) { return true; }
     if (mdf.isLent() && !mMdf.isIso()) { return true; }
-    return mdf.is(Mdf.imm, Mdf.read, Mdf.readOnly) && mMdf.is(Mdf.imm, Mdf.read, Mdf.readOnly, Mdf.recMdf);
+    return mdf.is(Mdf.imm, Mdf.read, Mdf.readImm, Mdf.readOnly) && mMdf.is(Mdf.imm, Mdf.read, Mdf.readOnly, Mdf.recMdf);
   }
 
   record FullMethSig(Id.MethName name, E.Sig sig){}
@@ -213,12 +213,11 @@ public interface Program {
       .sorted(Comparator.comparingInt(cm->EMethTypeSystem.inferPriority(recvMdf).indexOf(cm.mdf())))
       .map(m->{
         var sig = m.sig().toAstFullSig();
-        var name = m.name().withMdf(Optional.of(sig.mdf()));
         var freshGXsSet = IntStream.range(0, nFresh.get()).mapToObj(n->new Id.GX<T>("FearTmp"+n+"$")).collect(Collectors.toSet());
         var restoredArgs = sig.ts().stream().map(t->RefineTypes.regenerateInfers(this, freshGXsSet, t)).toList();
         var restoredRt = RefineTypes.regenerateInfers(this, freshGXsSet, sig.ret());
-        var restoredSig = new E.Sig(sig.mdf(), sig.gens(), sig.bounds(), restoredArgs, restoredRt, sig.pos());
-        return new FullMethSig(name, restoredSig);
+        var restoredSig = new E.Sig(sig.gens(), sig.bounds(), restoredArgs, restoredRt, sig.pos());
+        return new FullMethSig(m.name(), restoredSig);
       })
       .toList();
   }
@@ -228,7 +227,7 @@ public interface Program {
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, ast.E.Lambda l, int depth) {
-    return methsAux(xbs, recvMdf, l.name().toIT()).stream().map(cm->freshenMethGens(cm, depth)).toList();
+    return methsAux(xbs, recvMdf, l.id().toIT()).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, int depth) {
@@ -284,7 +283,6 @@ public interface Program {
         Map.Entry::getValue
       ));
       return new ast.E.Sig(
-        visitMdf(e.mdf()),
         e.gens().stream().map(this::visitGX).toList(),
         xbs,
         e.ts().stream().map(this::visitT).toList(),
@@ -294,9 +292,6 @@ public interface Program {
     }
   }
 
-  /**
-   * This norm makes sure that all
-   */
   record NormResult(CM cm, Map<Id.GX<T>,Id.GX<T>> restoreSubst) {
     public CM restoreMethodGens() {
       var newSig = new RenameGens(restoreSubst).visitSig(cm.sig());
@@ -455,7 +450,7 @@ public interface Program {
       .anyMatch(t2->isSubType(xbs, new T(mdf, t2), t3));
   }
 
-  default Id.IT<ast.T> liftIT(Id.IT<astFull.T>it){
+  default Id.IT<T> liftIT(Id.IT<astFull.T>it){
     var ts = it.ts().stream().map(astFull.T::toAstT).toList();
     return new Id.IT<>(it.name(), ts);
   }

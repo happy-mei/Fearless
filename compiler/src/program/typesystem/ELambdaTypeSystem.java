@@ -7,13 +7,10 @@ import ast.T.Dec;
 import failure.CompileError;
 import failure.Fail;
 import failure.FailOr;
-import failure.TypeSystemErrors;
 import files.Pos;
 import id.Id;
 import id.Id.GX;
 import id.Mdf;
-import program.CM;
-import program.Program;
 import utils.Box;
 import utils.Streams;
 import visitors.ShortCircuitVisitor;
@@ -25,10 +22,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static program.Program.filterByMdf;
 
 //TODO:
 //Fail.bothTExpectedGens must be in well formedness?
@@ -36,7 +30,7 @@ import static program.Program.filterByMdf;
 //TODO:
 //at top level when we call the type system, we should do something like this
 //.map(rawErr->()->TypeSystemErrors.fromMethodError(rawErr.get()));
-//or 
+//or
 //var rawError = err.parentPos(mi.pos()); //why it was only in one place?
 //return TypeSystemErrors.fromMethodError(rawError);
 //to let the student twist the errors. Note, we need to add plenty more info.
@@ -122,7 +116,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
   }
   default FailOr<Void> mOkEntry(String selfName, T selfT, E.Meth m, E.Sig sig) {
     var e   = m.body().orElseThrow();
-    var mMdf = sig.mdf();
+    var mMdf = m.mdf();
 
     var args = sig.ts();
     var ret = sig.ret();
@@ -161,7 +155,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       }
       @Override public List<String> dom() { return g().dom(); }
     };
-    var mMdf = sig.mdf();
+    var mMdf = m.mdf();
     var g0 = readOnlyAsReadG.captureSelf(xbs(), selfName, selfT, mMdf.isReadOnly() ? Mdf.read : mMdf);
     var gg  = Streams.zip(
       m.xs(),
@@ -173,7 +167,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
   default Optional<Supplier<CompileError>> mOkIsoPromotion(String selfName, T selfT, E.Meth m, E.Sig sig) {
     Function<T, T> mdfTransform = t->{
       if (t.mdf().isMut()) { return t.withMdf(Mdf.lent); }
-      if (t.mdf().isRead()) { return t.withMdf(Mdf.readOnly); }
+      if (t.mdf().is(Mdf.read, Mdf.readImm)) { return t.withMdf(Mdf.readOnly); }
       return t;
     };
     var mutAsLentG = new Gamma() {
@@ -182,7 +176,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       }
       @Override public List<String> dom() { return g().dom(); }
     };
-    var mMdf = mdfTransform.apply(selfT.withMdf(sig.mdf())).mdf();
+    var mMdf = mdfTransform.apply(selfT.withMdf(m.mdf())).mdf();
     var g0 = mutAsLentG.captureSelf(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.lent : mMdf);
     var gg  = Streams.zip(
       m.xs(),
@@ -198,7 +192,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       }
       @Override public List<String> dom() { return g().dom(); }
     };
-    var mMdf = sig.mdf();
+    var mMdf = m.mdf();
     var g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(xbs(), selfName, selfT, mMdf);
     var gg = Streams.zip(m.xs(), sig.ts()).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isMdf() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
     return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.readOnly));
@@ -278,7 +272,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       ETypeSystem.of(p(), g, xbs(), List.of(expected), resolvedCalls(), depth()+1));
     return res.flatMap(t->methSubType(t,expected));
     //TODO: why pass expected? is it not in 'this'?
-    //TODO: why this parent pos was here?    
+    //TODO: why this parent pos was here?
     //  res.map(err->()->err.get().parentPos(m.pos()));
   }
   private FailOr<Void> methSubType(T t, T expected){

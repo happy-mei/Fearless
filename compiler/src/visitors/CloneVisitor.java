@@ -34,7 +34,7 @@ public interface CloneVisitor{
   default E.Lambda visitLambda(E.Lambda e){
     Supplier<Stream<T>> its = ()->e.its().stream().map(it->new T(e.mdf(), it)).map(this::visitT);
     return new E.Lambda(
-      e.name(),
+      e.id(),
       its.get().map(T::mdf).findFirst().orElseThrow(),
       its.get().map(T::itOrThrow).toList(),
       e.selfName(),
@@ -43,10 +43,11 @@ public interface CloneVisitor{
     );
   }
   default Mdf visitMdf(Mdf mdf){return mdf;}
-  default MethName visitMethName(MethName e){ return e; }
+  default MethName visitMethName(MethName e){
+    return e.withMdf(e.mdf().map(this::visitMdf));
+  }
   default E.Sig visitSig(E.Sig e){
     return new E.Sig(
-      visitMdf(e.mdf()),
       e.gens().stream().map(this::visitGX).toList(),
       Mapper.of(acc->e.bounds().forEach((key, value)->{
         var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());

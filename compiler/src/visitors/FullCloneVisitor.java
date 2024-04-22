@@ -30,9 +30,9 @@ public interface FullCloneVisitor {
   default E visitLambda(E.Lambda e){ return visitLLambda(e); }
   default E.Lambda visitLLambda(E.Lambda e){ return new E.Lambda(
     new E.Lambda.LambdaId(
-      e.name().id(),
-      e.name().gens().stream().map(this::visitGX).toList(),
-      Mapper.of(acc->e.name().bounds().forEach((key, value)->{
+      e.id().id(),
+      e.id().gens().stream().map(this::visitGX).toList(),
+      Mapper.of(acc->e.id().bounds().forEach((key, value)->{
         var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());
         acc.put(key, res);
       }))
@@ -45,9 +45,10 @@ public interface FullCloneVisitor {
     e.pos()
   ); }
   default Mdf visitMdf(Mdf mdf){return mdf;}
-  default MethName visitMethName(MethName e){ return e; }
+  default MethName visitMethName(MethName e){
+    return e.withMdf(e.mdf().map(this::visitMdf));
+  }
   default E.Sig visitSig(E.Sig e){return new E.Sig(
-    visitMdf(e.mdf()),
     e.gens().stream().map(this::visitGX).toList(),
     Mapper.of(acc->e.bounds().forEach((key, value)->{
       var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());

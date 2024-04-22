@@ -1,13 +1,12 @@
 package astFull;
 
+import failure.Fail;
 import files.HasPos;
 import files.Pos;
 import id.Id;
 import id.Id.MethName;
 import id.Mdf;
 import utils.Bug;
-import utils.Mapper;
-import visitors.FreeGensFullVisitor;
 import visitors.FullCloneVisitor;
 import visitors.FullVisitor;
 import visitors.InjectionVisitor;
@@ -26,14 +25,14 @@ public sealed interface E extends HasPos {
   E withPos(Optional<Pos> pos);
   E withT(T t);
 
-  record Lambda(LambdaId name, Optional<Mdf> mdf, List<Id.IT<T>>its, String selfName, List<Meth> meths, Optional<Id.IT<T>> it, Optional<Pos> pos) implements E {
+  record Lambda(LambdaId id, Optional<Mdf> mdf, List<Id.IT<T>>its, String selfName, List<Meth> meths, Optional<Id.IT<T>> it, Optional<Pos> pos) implements E {
     public Lambda {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
 
-      if (it.isEmpty() && mdf.isPresent() && !name.id.isFresh()) {
-        it = Optional.of(new Id.IT<>(name.id, name.gens.stream().map(gx->new T(Mdf.mdf, gx)).toList()));
+      if (it.isEmpty() && mdf.isPresent() && !id.id.isFresh()) {
+        it = Optional.of(new Id.IT<>(id.id, id.gens.stream().map(gx->new T(Mdf.mdf, gx)).toList()));
       }
 
       assert mdf.isPresent() == it.isPresent();
@@ -51,15 +50,18 @@ public sealed interface E extends HasPos {
 
     @Override public Lambda withT(T t) {
       var mdf = Optional.ofNullable(t.isInfer() ? null:t.mdf());
+      if (!t.isInfer() && t.match(gx->true, it->false)) {
+        throw Fail.lambdaImplementsGeneric(t).pos(pos);
+      }
       Optional<Id.IT<T>> it = Optional.ofNullable(t.isInfer() ? null : t.match(gx->null, iti->iti));
-      return new Lambda(name, mdf, its, selfName, meths, it, pos);
+      return new Lambda(id, mdf, its, selfName, meths, it, pos);
     }
 
     @Override public E accept(FullCloneVisitor v){return v.visitLambda(this);}
     @Override public <R> R accept(FullVisitor<R> v){return v.visitLambda(this);}
     @Override public String toString() {
       var mdf = this.mdf().map(Mdf::toString).orElse("");
-      var name = this.name.id.isFresh() ? "" : this.name+":";
+      var name = this.id.id.isFresh() ? "" : this.id +":";
       var type = mdf().isEmpty() && it().isEmpty() ? "infer" : it().map(Id.IT::toString).orElse("infer");
       var meths = meths().stream().map(Meth::toString).collect(Collectors.joining(",\n"));
       var selfName = Optional.ofNullable(selfName()).map(sn->"'"+sn).orElse("");
@@ -74,22 +76,22 @@ public sealed interface E extends HasPos {
     }
 
     public Lambda withSelfName(String selfName) {
-      return new Lambda(name, mdf, its, selfName, meths, it, pos);
+      return new Lambda(id, mdf, its, selfName, meths, it, pos);
     }
     public Lambda withT(Optional<T> t) {
-      return new Lambda(name, t.map(T::mdf), its, selfName, meths, t.map(T::itOrThrow), pos);
+      return new Lambda(id, t.map(T::mdf), its, selfName, meths, t.map(T::itOrThrow), pos);
     }
     public Lambda withITs(List<Id.IT<T>> its) {
-      return new Lambda(name, mdf, its, selfName, meths, it, pos);
+      return new Lambda(id, mdf, its, selfName, meths, it, pos);
     }
     public Lambda withMdf(Mdf mdf) {
-      return new Lambda(name, Optional.of(mdf), its, selfName, meths, it, pos);
+      return new Lambda(id, Optional.of(mdf), its, selfName, meths, it, pos);
     }
     public Lambda withMeths(List<Meth> meths) {
-      return new Lambda(name, mdf, its, selfName, meths, it, pos);
+      return new Lambda(id, mdf, its, selfName, meths, it, pos);
     }
     public Lambda withPos(Optional<Pos> pos) {
-      return new Lambda(name, mdf, its, selfName, meths, it, pos);
+      return new Lambda(id, mdf, its, selfName, meths, it, pos);
     }
   }
   record MCall(E receiver,MethName name,Optional<List<T>>ts,List<E>es, T t, Optional<Pos> pos) implements E{
@@ -159,33 +161,34 @@ public sealed interface E extends HasPos {
     public Meth withBody(Optional<E> body) {
       return new Meth(sig, name, xs, body, pos);
     }
+    public Optional<Mdf> mdf() { return name.flatMap(MethName::mdf); }
     @Override public String toString() {
       return String.format("%s(%s): %s -> %s", name.map(Object::toString).orElse("[-]"), xs, sig.map(Object::toString).orElse("[-]"), body.map(Object::toString).orElse("[-]"));
     }
   }
-  record Sig(Mdf mdf, List<Id.GX<T>> gens, Map<Id.GX<astFull.T>, Set<Mdf>> bounds, List<T> ts, T ret, Optional<Pos> pos) {
-    public Sig{ assert mdf!=null && gens!=null && ts!=null && ret!=null; }
+  record Sig(List<Id.GX<T>> gens, Map<Id.GX<astFull.T>, Set<Mdf>> bounds, List<T> ts, T ret, Optional<Pos> pos) {
+    public Sig{ assert gens!=null && ts!=null && ret!=null; }
     public Sig withGens(List<Id.GX<T>> gens){
-      return new Sig(mdf, gens, bounds, ts, ret, pos);
+      return new Sig(gens, bounds, ts, ret, pos);
     }
     public Sig withRet(T ret){
-      return new Sig(mdf, gens, bounds, ts, ret, pos);
+      return new Sig(gens, bounds, ts, ret, pos);
     }
     public Sig withTs(List<T> ts){
-      return new Sig(mdf, gens, bounds, ts, ret, pos);
+      return new Sig(gens, bounds, ts, ret, pos);
     }
     public ast.E.Sig accept(InjectionVisitor visitor) {
       return visitor.visitSig(this);
     }
     @Override public String toString() {
       if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
-        return "Sig[mdf="+mdf+",gens="+gens+",ts="+ts+",ret="+ret+"]";
+        return "Sig[gens="+gens+",ts="+ts+",ret="+ret+"]";
       }
       var boundsStr = bounds.entrySet().stream()
         .sorted(Comparator.comparing(a->a.getKey().name()))
         .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
         .collect(Collectors.joining(","));
-      return "Sig[mdf="+mdf+",gens="+gens+",bounds={"+boundsStr+"},ts="+ts+",ret="+ret+"]";
+      return "Sig[gens="+gens+",bounds={"+boundsStr+"},ts="+ts+",ret="+ret+"]";
     }
   }
 }

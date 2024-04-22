@@ -19,8 +19,7 @@ public interface ShortCircuitVisitor<R> extends Visitor<Optional<R>> {
       .or(()->e.body().flatMap(b->b.accept(this)));
   }
   default Optional<R> visitSig(E.Sig e){
-    return visitMdf(e.mdf())
-      .or(()->visitAll(e.gens(),this::visitGX))
+    return visitAll(e.gens(),this::visitGX)
       .or(()->visitAll(e.ts(),this::visitT))
       .or(()->visitT(e.ret()));
   }
@@ -44,7 +43,9 @@ public interface ShortCircuitVisitor<R> extends Visitor<Optional<R>> {
       .or(()->visitAll(e.meths(),this::visitMeth));
   }
   default Optional<R> visitMdf(Mdf mdf){return Optional.empty();}
-  default Optional<R> visitMethName(MethName e){ return Optional.empty(); }
+  default Optional<R> visitMethName(MethName e){
+    return e.mdf().flatMap(this::visitMdf);
+  }
   default Optional<R> visitT(T t){
     return visitMdf(t.mdf())
       .or(()->t.rt().match(this::visitGX,this::visitIT));

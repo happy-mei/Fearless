@@ -3,7 +3,6 @@ package visitors;
 import astFull.E;
 import id.Id;
 import id.Mdf;
-import program.inference.RefineTypes;
 
 import java.util.Collection;
 
@@ -31,19 +30,12 @@ public interface FullCollectorVisitor<C extends Collection<?>> extends FullVisit
     return null;
   }
   default Void visitSig(E.Sig s) {
-    visitMdf(s.mdf());
     s.gens().forEach(this::visitGX);
     s.ts().forEach(this::visitT);
     visitT(s.ret());
     return null;
   }
-  default Void visitRefinedSig(RefineTypes.RefinedSig s) {
-    visitMdf(s.mdf());
-    s.gens().forEach(this::visitT);
-    s.args().forEach(this::visitT);
-    visitT(s.rt());
-    return null;
-  }
+
   default void visitMdf(Mdf mdf) {}
   default void visitT(astFull.T t) {
     if (t.isInfer()) { return; }
@@ -54,7 +46,9 @@ public interface FullCollectorVisitor<C extends Collection<?>> extends FullVisit
     it.ts().forEach(this::visitT);
     return null;
   }
+  default void visitMethName(Id.MethName m) {
+    m.mdf().ifPresent(this::visitMdf);
+  }
   default Void visitGX(Id.GX<astFull.T> gx) { return null; }
-  default Void visitMethName(Id.MethName m) { return null; }
   default Void visitDecId(Id.DecId d) { return null; }
 }

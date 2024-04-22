@@ -7,6 +7,7 @@ import id.Id;
 import failure.CompileError;
 import failure.Fail;
 import astFull.Program;
+import id.Mdf;
 import visitors.FullShortCircuitVisitor;
 import visitors.FullShortCircuitVisitorWithEnv;
 
@@ -84,6 +85,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
         noExplicitThis(List.of(x))
         .or(()->noShadowingVar(List.of(x)))
       )
+      .or(()->validLambdaMdf(e))
       .or(()->noImplInlineDec(e))
       .or(()->hasNonDisjointMs(e))
       .or(()->super.visitLambda(e))
@@ -200,18 +202,26 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   }
 
   private Optional<CompileError> validMethMdf(E.Meth e) {
-    return e.sig().flatMap(m->{
-      if (!m.mdf().isMdf()) { return Optional.empty(); }
+    return e.sig().flatMap(sig->e.mdf().flatMap(mdf->{
+      if (!mdf.is(Mdf.mdf, Mdf.readImm)) { return Optional.empty(); }
       return Optional.of(Fail.invalidMethMdf(e.sig().get(), e.name().orElseThrow()));
+    }));
+  }
+
+  private Optional<CompileError> validLambdaMdf(E.Lambda e) {
+    return e.mdf().flatMap(mdf->{
+      if (mdf.is(Mdf.readImm, Mdf.lent, Mdf.readOnly)) { return Optional.of(Fail.invalidLambdaMdf(mdf)); }
+      return Optional.empty();
     });
   }
 
   private Optional<CompileError> noRecMdfInNonRecMdf(E.Sig s, Id.MethName name) {
-    if (s.mdf().isRecMdf()) { return Optional.empty(); }
+    var mdf = name.mdf().orElseThrow();
+    if (mdf.isRecMdf()) { return Optional.empty(); }
     return new FullShortCircuitVisitor<CompileError>(){
       @Override public Optional<CompileError> visitT(T t) {
         if (t.mdf().isRecMdf()) {
-          return Optional.of(Fail.recMdfInNonRecMdf(s.mdf(), name, t).pos(s.pos()));
+          return Optional.of(Fail.recMdfInNonRecMdf(mdf, name, t).pos(s.pos()));
         }
         return FullShortCircuitVisitor.super.visitT(t);
       }
@@ -224,11 +234,11 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   }
 
   private Optional<CompileError> noImplInlineDec(E.Lambda e) {
-    if (e.its().stream().noneMatch(it->p.isInlineDec(it.name()) && !e.name().id().equals(it.name()))) {
+    if (e.its().stream().noneMatch(it->p.isInlineDec(it.name()) && !e.id().id().equals(it.name()))) {
       return Optional.empty();
     }
     return Optional.of(Fail.implInlineDec(
-      e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.name().id().equals(d)).toList()
+      e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.id().id().equals(d)).toList()
     ));
   }
 
@@ -249,19 +259,3 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
     return Optional.of(Fail.conflictingDecls(conflicts));
   }
 }
-
-/*
-//TODO: move it in a better place
-For the standard library
-we need an input format
-
-precompiled Opt
-package base
-Opt[X]{
-  .match(..):T->this
-  }
-
-HasId:{  .same[X](mut X x, read X y):Bool Native["java{ return x==y; }"]
-
-Native:{ .get[T](name: Str): T }
- */

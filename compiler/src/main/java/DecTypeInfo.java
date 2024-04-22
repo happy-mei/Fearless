@@ -5,26 +5,20 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import ast.E;
 import ast.T;
 import ast.E.Lambda;
 import ast.E.MCall;
 import ast.E.X;
 import ast.E.Lambda.LambdaId;
 import ast.T.Dec;
-import codegen.MIR;
 import id.Id;
 import id.Mdf;
-import utils.OneOr;
 import id.Id.DecId;
 import id.Id.GX;
 
 //TODO: refactoring
-//-remove mdf from name
 //-remove ciclyic impl and the 3 extra ifs about it
 //  one in this file, one in subtyping, one in Java generation
-//-remove X0/0$ and use better algorithm like here. 
-//  Then here can just print the name
 
 class DecTypeInfo implements visitors.Visitor<Void>{
   boolean outerMost= true;
@@ -53,7 +47,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     var bounds= map.get(gx);
     if(bounds==null){ return ""; }
     return ":"+bounds.stream()
-      .map(m->m.toString())
+      .map(Mdf::toString)
       .collect(Collectors.joining(", "));
   }
   void registerGX(GX<T> gx){
@@ -89,11 +83,11 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     l.meths().stream()
       .flatMap(m->m.body().stream())
       .forEach(e->e.accept(this));
-    if(l.name().id().name().contains("$")){ return; }
-    if(l.name().id().name().startsWith("_")){ return; }
+    if(l.id().id().name().contains("$")){ return; }
+    if(l.id().id().name().startsWith("_")){ return; }
     mapGXType.clear();
     mapGX.clear();
-    LambdaId id= l.name();
+    LambdaId id= l.id();
     c(id.id().shortName());
     c("[");
     seq(id.gens(),gx->stringGXDec(gx,id.bounds()),", ");
@@ -107,7 +101,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
   private void stringImplements(Lambda l) {
     var its= new ArrayList<>(l.its());
     var sealedId= new Id.IT<ast.T>(new DecId("base.Sealed",0),List.of());
-    its.removeIf(it->it.name().equals(l.name().id()));
+    its.removeIf(it->it.name().equals(l.id().id()));
     if(!outerMost && !its.contains(sealedId)){
       its.add(sealedId);
     }
@@ -148,7 +142,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
     mapGX.putAll(mapGXType);
     var s=m.sig();
     c("  ");
-    stringMdf(s.mdf());
+    stringMdf(m.mdf());
     c(" ");
     c(m.name().name());
     c("[");
@@ -174,7 +168,7 @@ class DecTypeInfo implements visitors.Visitor<Void>{
   }
   public String visitDec(Dec dec) {
     assert outerMost;
-    LambdaId id= dec.lambda().name();
+    LambdaId id= dec.lambda().id();
     assert id.bounds().equals(dec.bounds());
     assert id.id().equals(dec.name());
     assert id.gens().equals(dec.gxs());

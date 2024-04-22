@@ -30,7 +30,7 @@ public record Env(List<String> xs, List<T> ts, List<Id.GX<T>> gxs, XBs xbs, T de
       Push.of(ts,m.sig().ts()),
       Push.of(gxs, m.sig().gens()),
       xbs.addBounds(m.sig().gens(), m.sig().bounds()),
-      decT.withMdf(m.sig().mdf()),
+      decT.withMdf(m.mdf()),
       Push.of(ms, m.name()),
       Mapper.ofMut(c->{
         c.putAll(usages);
@@ -43,7 +43,7 @@ public record Env(List<String> xs, List<T> ts, List<Id.GX<T>> gxs, XBs xbs, T de
       Push.of(xs,l.selfName()),
       Push.of(ts,new T(l.mdf(), new Id.IT<>(Id.GX.fresh().name(), List.of()))),
       gxs,
-      xbs.addBounds(l.name().gens(), l.name().bounds()),
+      xbs.addBounds(l.id().gens(), l.id().bounds()),
       decT,
       Push.of(this.ms, ms),
       new HashMap<>()

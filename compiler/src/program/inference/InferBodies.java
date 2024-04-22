@@ -16,7 +16,6 @@ import visitors.InjectionVisitor;
 import visitors.ShallowInjectionVisitor;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,7 +54,7 @@ public record InferBodies(ast.Program p) {
 
   private Map<String, astFull.T> iGOf(ast.T.Dec dec, ast.E.Meth m) {
     assert dec.lambda().selfName() != null;
-    var t = new astFull.T(m.sig().mdf(), dec.toIT().toFullAstIT(ast.T::toAstFullT));
+    var t = new astFull.T(m.mdf(), dec.toIT().toFullAstIT(ast.T::toAstFullT));
     return iGOf(dec.lambda().selfName(), t, m);
   }
 
@@ -122,7 +121,7 @@ public record InferBodies(ast.Program p) {
     if(m.sig().isEmpty()){ return Optional.empty(); }
     var sig = m.sig().orElseThrow();
     Map<String, T> richGamma = new HashMap<>(gamma);
-    richGamma.put(e.selfName(),new T(sig.mdf(), e.it().orElseThrow()));
+    richGamma.put(e.selfName(),new T(m.mdf().orElseThrow(), e.it().orElseThrow()));
     Streams.zip(m.xs(), sig.ts()).forEach(richGamma::put);
     richGamma = Collections.unmodifiableMap(richGamma);
     var refiner = new RefineTypes(p);
@@ -217,7 +216,7 @@ public record InferBodies(ast.Program p) {
 
     try {
       var refiner = new RefineTypes(p);
-      var baseSig = new RefineTypes.RefinedSig(Mdf.mdf, e.name(), gens, Map.of(), iTs, e.t());
+      var baseSig = new RefineTypes.RefinedSig(e.name(), gens, Map.of(), iTs, e.t());
       // TODO: this doesn't consider narrowing down to gens on ITs (i.e. FIO:FCap[...] does not help refine FCap[...] because this only uses FIO)
       var refined = refiner.refineSig(c.mdf(), recv, List.of(baseSig), depth);
       var refinedSig = refined.sigs().getFirst();
