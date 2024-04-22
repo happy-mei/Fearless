@@ -27,7 +27,7 @@ public interface E extends HasPos {
   record Lambda(LambdaId id, Mdf mdf, List<Id.IT<T>> its, String selfName, List<Meth> meths, Optional<Pos> pos) implements E {
     public Lambda {
       assert mdf != null;
-      assert !its.isEmpty();
+      //assert !its.isEmpty();//Why it was asserted?
       assert X.validId(selfName);
       assert meths != null;
       if (id.id().isFresh()) {

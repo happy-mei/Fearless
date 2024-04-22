@@ -38,19 +38,17 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   public ast.E.Lambda visitLambda(E.Lambda e){
-    var base = e.it().map(List::of).orElseGet(List::of);
+    var base = e.it().map(List::of).orElse(List.of());
     var its = Push.of(base, e.its().stream().filter(it->{
       if (base.isEmpty()) { return true; }
       return !it.name().equals(base.get(0).name());
-    }).toList());
-
-    // TODO: throw if no ITs (i.e. cannot infer type of lambda)
-
+    }).toList());//TODO: why the base could already be
+    //in the its and not in the first place?
+    var gxs= e.id().gens().stream().map(this::visitGX).toList();
     return new ast.E.Lambda(
       new ast.E.Lambda.LambdaId(
         e.id().id(),
-        e.id().gens().stream().map(this::visitGX).toList(),
-        Mapper.of(xbs->e.id().bounds().forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs)))
+        gxs,completeBounds(gxs,e.id().bounds())
       ),
       e.mdf().orElse(Mdf.mdf),
       its.stream().map(this::visitIT).toList(),
@@ -59,20 +57,29 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
       e.pos()
     );
   }
+  
+  Map<Id.GX<T>, Set<Mdf>> completeBounds(List<Id.GX<T>> gxs, Map<Id.GX<astFull.T>, Set<Mdf>> bounds){
+    //TODO: when it works, remove comment below
+    //gxs= gxs.stream().map(gx->new Id.GX<T>(gx.name())).toList();
+    //Map<Id.GX<T>, Set<Mdf>> boundsGiven= Mapper.of(xbs->
+    //  bounds.forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs)));
+    return Mapper.of(xbs->gxs.forEach(xi->{
+      var currentB= bounds.getOrDefault(xi,defaultBounds);
+      //yes it works across generic Id.GX<astFull.T> vs Id.GX<ast.T>
+      //because of erasure + legacy get(Object)
+      xbs.put(xi,currentB);
+      }));
+  }
   //TODO: below must be duplicated code. Find the place where they exists already
   private static final Set<Mdf> defaultBounds= Set.of(Mdf.mut,Mdf.imm,Mdf.read);
   public ast.T.Dec visitDec(astFull.T.Dec d){
-    var xs= d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
-    Map<Id.GX<T>, Set<Mdf>> boundsGiven= Mapper.of(xbs->
-      d.bounds().forEach((gx, bs)->xbs.put(new Id.GX<>(gx.name()), bs)));
-    Map<Id.GX<T>, Set<Mdf>> bounds= Mapper.of(xbs->xs.forEach(xi->{
-      var currentB= boundsGiven.getOrDefault(xi,defaultBounds);
-      xbs.put(xi,currentB);
-      }));
+    var gxs= d.gxs().stream().map(this::visitGX).toList();
+    var lambda= this.visitLambda(d.lambda()//TODO: remove the line below when removing mess with its?
+        .withITs(Push.of(d.toIT(), d.lambda().its())));
     return new ast.T.Dec(
       d.name(),
-      xs,bounds,
-      this.visitLambda(d.lambda().withITs(Push.of(d.toIT(), d.lambda().its()))),
+      gxs,completeBounds(gxs,d.bounds()),
+      lambda,
       d.pos()
     );
   }
