@@ -17,7 +17,7 @@ public record GuessT(Program p, Gamma g, XBs xbs, int depth) implements Visitor<
     return g().get(e);
   }
   @Override public T visitLambda(E.Lambda e) {
-    return new T(e.mdf(), e.name().toIT());
+    return new T(e.mdf(), e.id().toIT());
   }
   @Override public T visitMCall(E.MCall e) {
     var renamer = TypeRename.core(p());

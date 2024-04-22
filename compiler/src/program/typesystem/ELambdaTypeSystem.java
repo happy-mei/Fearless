@@ -24,6 +24,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static program.Program.filterByMdf;
+
 //TODO:
 //Fail.bothTExpectedGens must be in well formedness?
 //also check Toplas
@@ -44,12 +46,12 @@ interface ELambdaTypeSystem extends ETypeSystem{
   }
   private List<E.Meth> filteredByMdf(E.Lambda b){
     return b.meths().stream()
-    .filter(m->filterByMdf(b.mdf(), m.sig().mdf()))
+    .filter(m->filterByMdf(b.mdf(), m.mdf()))
     .toList();
   }
   private List<E.Meth> excludedByMdf(E.Lambda b){
     return b.meths().stream()
-    .filter(m->!filterByMdf(b.mdf(), m.sig().mdf()))
+    .filter(m->!filterByMdf(b.mdf(), m.mdf()))
     .toList();
   }
   private FailOr<Void> implMethErrors(Dec d,E.Lambda b){
