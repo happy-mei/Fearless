@@ -13,7 +13,9 @@ public interface CopyRuntimeLibs {
 		var resourceLibPath = ResolveResource.artefact("/rt/libnative");
 		try(var tree = IoErr.of(()-> Files.walk(resourceLibPath))) {
 			tree.filter(Files::isRegularFile).forEach(ThrowingConsumer.of(p->{
-				var dest = workingDir.resolve(Path.of("rt", "libnative")).resolve(p.getFileName());
+				// The toString is important here because it may be from a different FS than the other paths,
+				// and if it is, Java will throw a ProviderMismatchException.
+				var dest = workingDir.resolve(Path.of("rt", "libnative")).resolve(p.getFileName().toString());
 				if (Files.exists(dest)) { return; }
 				Files.createDirectories(dest);
 				Files.copy(p, dest, StandardCopyOption.REPLACE_EXISTING);

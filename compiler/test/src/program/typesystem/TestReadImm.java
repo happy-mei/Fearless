@@ -2,7 +2,6 @@ package program.typesystem;
 
 import id.Mdf;
 import net.jqwik.api.*;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static program.typesystem.RunTypeSystem.fail;

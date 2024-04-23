@@ -8,7 +8,6 @@ import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
-import utils.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -23,9 +22,6 @@ public interface LogicMain {
   InputOutput io();
   HashSet<String> cachedPkg();
 
-  default String generateAliases() {
-    return ResolveResource.read(io().defaultAliases());
-  }
   default astFull.Program parse() {
     var cache = load(io().cachedFiles());
     cachedPkg().addAll(cache.keySet());
@@ -64,6 +60,13 @@ public interface LogicMain {
     var acc= new ConcurrentHashMap<Long, EMethTypeSystem.TsT>();
     program.typeCheck(acc);
     return acc;
+  }
+  default void check() {
+    var parsed = this.parse();
+    this.wellFormednessFull(parsed);
+    var inferred = this.inference(parsed);
+    this.wellFormednessCore(inferred);
+    this.typeSystem(inferred);
   }
 
 

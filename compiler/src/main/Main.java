@@ -49,7 +49,7 @@ public class Main {
 
         if (res.hasOption("regenerate-aliases")) {
           var trashIO = InputOutput.trash(res.hasOption("imm-base"));
-          new GenerateAliases(trashIO).printAliases();
+          System.out.println(trashIO.generateAliases());
           return;
         }
 
@@ -67,7 +67,8 @@ public class Main {
           throw Bug.todo();
         }
         if (res.hasOption("check")) {
-          CheckMain.of(main);
+          main.check();
+          System.out.println("All checks passed");
           return;
         }
         if (res.hasOption("run")) {
