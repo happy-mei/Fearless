@@ -242,7 +242,9 @@ An optional is the simplest form of collection, and it is basically
 a collection of zero or one element.
 An empty optional it is not representing a mistake/error/problem.
 
--------------------------*/@Test void optional() { run("""
+-------------------------*/
+  // TODO: try this with out read/imm (no imm case)
+  @Test void optional() { run("""
   Opts:{
     #[T](x: T): mut Opt[T] -> {.match(m) -> m.some(x)}
     }
@@ -267,7 +269,7 @@ An empty optional it is not representing a mistake/error/problem.
     read .flow: mut Flow[read/imm T],
     imm  .flow: mut Flow[imm T],
     }
-  Opt[T]:,_Opt[T]{
+  Opt[T]: _Opt[T]{
     .match(m) -> m.empty,
       
     .map(f) -> this.match(f),

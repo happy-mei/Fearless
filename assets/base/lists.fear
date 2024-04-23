@@ -303,7 +303,7 @@ List[E]: Collection,Sealed{
 _ListState[E]:{
   read .size: UInt,
   mut .inner: mut LList[E],
-  read .inner: read LList[read E],
+  read .inner: read LList[E],
   }
 _ListState:{
   #[E](len: UInt, inner: mut LList[E]): mut _ListState[E] -> {

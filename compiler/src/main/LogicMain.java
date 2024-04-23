@@ -8,7 +8,6 @@ import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
-import utils.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -22,6 +21,11 @@ import java.util.stream.Collectors;
 public interface LogicMain {
   InputOutput io();
   HashSet<String> cachedPkg();
+  default TypeSystemFeatures typeSystemFeatures() {
+    return new TypeSystemFeatures.TypeSystemFeaturesBuilder()
+      .allowAdapterSubtyping(true)
+      .build();
+  }
 
   default astFull.Program parse() {
     var cache = load(io().cachedFiles());
@@ -42,7 +46,7 @@ public interface LogicMain {
       packages.putAll(load(io().baseFiles()));
     }
     packages.putAll(cache);//Purposely overriding any app also in cache
-    return Parser.parseAll(packages, new TypeSystemFeatures());
+    return Parser.parseAll(packages, typeSystemFeatures());
   }
   default void wellFormednessFull(astFull.Program fullProgram){
     new WellFormednessFullShortCircuitVisitor()

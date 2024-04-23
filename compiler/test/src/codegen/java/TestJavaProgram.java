@@ -1331,4 +1331,12 @@ public class TestJavaProgram {
       }
     Rez: {}
     """, Base.mutBaseAliases); }
+
+  @Test void readImmOpt() {ok(new Res(), """
+    package test
+    
+    Test: Main{sys -> Block#
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
 }
