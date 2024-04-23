@@ -76,7 +76,7 @@ public interface RunOutput {
     var proc = IoErr.of(pb::start);
     var res = proc.onExit().join();
     Err.strCmp(expected.stdErr, res.errorReader().lines().collect(Collectors.joining("\n")));
-    assertEquals(expected.exitCode, res.exitValue());
+    assertEquals(expected.exitCode, res.exitValue(), "Expected exit code did not match");
     Err.strCmp(expected.stdOut, res.inputReader().lines().collect(Collectors.joining("\n")));
   }
 }

@@ -41,7 +41,7 @@ public class TourHelper {
   }
   static void checker(Process p,String expectedIO){
     Err.strCmp("", p.errorReader().lines().collect(Collectors.joining("\n")));
-    Assertions.assertEquals(0, p.exitValue());
+    Assertions.assertEquals(0, p.exitValue(), "Expected exit code did not match");
     Err.strCmp(expectedIO, p.inputReader().lines().collect(Collectors.joining("\n")));
   }
   static void runCode(List<String> files, String expectedIO){
