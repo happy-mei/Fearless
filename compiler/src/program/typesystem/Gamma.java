@@ -61,6 +61,8 @@ public interface Gamma {
     return g.add(x,t.withMdf(selfMdf));
   }
   static T xT(String x, XBs xbs, Mdf self, T captured, Mdf mMdf){
+    // TODO: see where the self == iso is handled, should preferably happen here
+    assert !self.isReadImm() && !mMdf.isReadImm() && !self.isLent() && !self.isReadOnly() && !self.isRecMdf();
     var bounds = captured.isMdfX() ? xbs.get(captured.gxOrThrow()) : null;
     assert !captured.isMdfX() || Objects.nonNull(bounds);
     if (captured.isMdfX() && of(imm, iso).containsAll(bounds)) { return captured.withMdf(imm); }
@@ -71,6 +73,8 @@ public interface Gamma {
       if (captured.isMdfX()) {
         if (mMdf.isMut() && of(imm, mut, read).containsAll(bounds)) { return captured; }
         if (mMdf.isImm() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(imm); }
+        // TODO: check formalism
+        // TODO: add tests
         if (mMdf.isRead() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readImm); }
         if (mMdf.isLent() && of(imm, mut, read).containsAll(bounds)) { return captured.withMdf(lent); }
         if (mMdf.isLent() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
@@ -79,55 +83,18 @@ public interface Gamma {
       }
       if (mMdf.isMut() && captured.mdf().is(mut, read, readImm)) { return captured; }
       if (mMdf.isImm() && captured.mdf().is(mut, read, readImm)) { return captured.withMdf(imm); }
-      if (mMdf.isRead() && captured.mdf().is(mut, read, readImm)) { return captured.withMdf(read); }
-      if (mMdf.isLent() && captured.mdf().is(mut, read, readImm)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
+      if (mMdf.isRead() && captured.mdf().is(mut, read)) { return captured.withMdf(read); }
+      if (mMdf.isRead() && captured.mdf().is(readImm)) { return captured.withMdf(readImm); } // TODO: update formalism
+      if (mMdf.isLent() && captured.mdf().is(mut)) { return captured.withMdf(lent); }
+      if (mMdf.isLent() && captured.mdf().is(read, readImm)) { return captured; }
       if (mMdf.isReadOnly() && captured.mdf().isMut()) { return captured.withMdf(readOnly); }
-      if (mMdf.isRecMdf() && captured.mdf().isMut()) { return captured.withMdf(recMdf); }
+      if (mMdf.isRecMdf()) {
+        throw Bug.of("no more recMdf (ﾉಥ益ಥ)ﾉ");
+      }
     }
 
     if (self.isRead()) {
       return xT(x, xbs, mut, captured, mMdf);
-    }
-
-    if (self.isLent()) {
-      if (captured.isMdfX()) {
-        if (mMdf.isMut()) { return captured.withMdf(readOnly); }
-        if (mMdf.isImm()) { return captured.withMdf(imm); }
-        if (mMdf.isRead()) { return captured.withMdf(readOnly); }
-        if (mMdf.isLent() && of(mut,lent,iso).containsAll(bounds)) { return captured.withMdf(lent); }
-        if (mMdf.isLent()) { return captured.withMdf(readOnly); }
-        if (mMdf.isReadOnly()) { return captured.withMdf(readOnly); }
-        if (mMdf.isRecMdf() && of(mut, imm, lent, readOnly).containsAll(bounds)) { return captured.withMdf(recMdf); }
-      }
-      if (mMdf.isMut() && captured.mdf().is(mut, lent)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
-      if (mMdf.isMut() && captured.mdf().is(read, readImm)) { return captured.withMdf(readOnly); }
-      if (mMdf.isImm() && captured.mdf().is(mut, lent, read, readImm, readOnly, recMdf)) { return captured.withMdf(imm); }
-      if (mMdf.isRead()) { return captured.withMdf(readOnly); }
-      if (mMdf.isLent() && captured.mdf().is(mut, lent, readOnly)) { return captured.mdf().isMut() ? captured.withMdf(lent) : captured; }
-      if (mMdf.isReadOnly() && captured.mdf().is(mut, lent, readOnly)) { return captured.withMdf(readOnly); }
-      if (mMdf.isRecMdf() && captured.mdf().is(mut, lent)) { return captured.withMdf(recMdf); }
-      if (captured.mdf().is(readOnly, read, readImm, recMdf)) { return captured.withMdf(readOnly); }
-    }
-
-    if (self.isReadOnly()) {
-      if (captured.isMdfX()) {
-        if (mMdf.isImm()) { return captured.withMdf(imm); }
-        if (mMdf.isRead()) { return captured.withMdf(readOnly); }
-        if (mMdf.isReadOnly()) { return captured.withMdf(readOnly); }
-        if (mMdf.isRecMdf()) { return captured.withMdf(recMdf); }
-      }
-      if (mMdf.isImm()) { return captured.withMdf(imm); }
-      if (mMdf.isReadOnly()) { return captured.withMdf(readOnly); }
-      if (mMdf.isRecMdf()) { return captured.withMdf(recMdf); }
-    }
-
-    if (self.isRecMdf()) {
-      throw Bug.of("no more recMdf (ﾉಥ益ಥ)ﾉ");
-//      if (captured.isMdfX()) {
-//        if (mMdf.isMut() && of(imm, mut, iso).containsAll(bounds)) { return captured; }
-//      }
-//      if (mMdf.isMut() && captured.mdf().isMut()) { return captured; }
-//      if (mMdf.isRecMdf() && captured.mdf().isRecMdf()) { return captured; }
     }
     throw Fail.badCapture(x, captured, self, mMdf);
   }
