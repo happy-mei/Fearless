@@ -51,8 +51,9 @@ public interface Program {
     return switch(m1){
       case mut -> m2.isLikeMut();
       case imm -> m2.is(Mdf.read, Mdf.readImm);
+      case readImm -> m2.is(Mdf.read);
       case iso -> true;
-      case readOnly, mdf, recMdf, read, readImm, lent -> false;
+      case readOnly, mdf, recMdf, read, lent -> false;
     };
   }
   default boolean isSubType(XBs xbs, astFull.T t1, astFull.T t2) { return isSubType(xbs, t1.toAstT(), t2.toAstT()); }

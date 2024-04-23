@@ -21,25 +21,50 @@ public class TestReadImm {
 
   @Test void box() { ok(BOX); }
 
-  @Test void canCallReadFromReadImm() { ok("""
+  @Test void captureAsImmMutGet() { ok("""
     package test
-    A: {read .foo: B -> {}}
+    A: {#(b: imm B): imm B -> Box#b.get }
     B: {}
-    Test: {#(a: read/imm A): B -> a.foo}
-    """); }
+    """, BOX); }
+  @Test void captureAsImmReadImmGet() { ok("""
+    package test
+    A: {#(b: imm B): imm B -> Box#b.riget }
+    B: {}
+    """, BOX); }
+  @Test void captureAsImmMutGetGen() { ok("""
+    package test
+    A: {#[B](b: imm B): imm B -> Box#b.get }
+    """, BOX); }
+  @Test void captureAsImmReadImmGetGen() { ok("""
+    package test
+    A: {#[B](b: imm B): imm B -> Box#b.riget }
+    """, BOX); }
+
+  @Test void immFromReadBox() { ok("""
+    package test
+    A: {#(b: read Box[imm B]): imm B -> b.riget }
+    B: {}
+    """, BOX); }
+  @Test void immFromReadBoxMethGen() { ok("""
+    package test
+    A: {#[B](b: read Box[imm B]): imm B -> b.riget }
+    """, BOX); }
+  @Test void immFromReadBoxTypeGen() { ok("""
+    package test
+    A[B]: {#(b: read Box[imm B]): imm B -> b.riget }
+    """, BOX); }
+
+
+//  @Test void canCallReadFromReadImm() { ok("""
+//    package test
+//    A: {read .foo: B -> {}}
+//    B: {}
+//    Test: {#(a: read/imm A): B -> a.foo}
+//    """); }
 
   @Test void boxIsoPromotionExplicit() { ok("""
     package test
     A: {#[S](s: imm S): iso Box[imm S] -> Box#s}
-    """, BOX); }
-  @Test void boxIsoPromotionBounds() { ok("""
-    package test
-    A: {#[S:imm](s: S): iso Box[S] -> Box#s}
-    """, BOX); }
-  @Test void boxIsoPromotionCall() { ok("""
-    package test
-    B:{#[Y](b: iso Y): mut B -> {}}
-    A: {#[S:imm](s: S): mut B -> B#[mut Box[S]](Box#[S]s)}
     """, BOX); }
   @Test void boxIsoPromotionWrong() { fail("""
     In position [###]/Dummy0.fear:2:33
@@ -67,34 +92,31 @@ public class TestReadImm {
     return Arbitraries.of(Mdf.imm, Mdf.read, Mdf.readImm, Mdf.mut, Mdf.mdf);
   }
   @Provide Arbitrary<Mdf> recvMdf() {
-    return Arbitraries.of(Mdf.imm, Mdf.read, Mdf.readImm, Mdf.mut, Mdf.recMdf, Mdf.readOnly, Mdf.lent, Mdf.iso);
+    return Arbitraries.of(Mdf.imm, Mdf.read, Mdf.mut, Mdf.readOnly, Mdf.lent, Mdf.iso);
   }
   @Property void shouldGetAsIsForMut(@ForAll("capturableMdf") Mdf mdf) { ok("""
     package test
-    A: {#(box: mut Box[%s B]): %s B -> box.get}
-    B: {}
+    A: {#[X](box: mut Box[%s X]): %s X -> box.get}
     """.formatted(mdf, mdf), BOX); }
   @Property void shouldGetAsReadForRead(@ForAll("capturableMdf") Mdf mdf) { ok("""
     package test
-    A: {#(box: read Box[%s B]): read B -> box.rget}
-    B: {}
+    A: {#[X](box: read Box[%s X]): read X -> box.rget}
     """.formatted(mdf), BOX); }
 
   @Property void shouldGetAsReadOrImmForReadImm(@ForAll("capturableMdf") Mdf mdf) {
-    var expected = mdf.isImm() ? "imm" : "read/imm";
+    var expected = mdf.isImm() ? "imm" : "read";
     ok("""
     package test
-    A: {#(box: read Box[%s B]): %s B -> box.riget}
-    B: {}
+    A: {#[X](box: read Box[%s X]): %s X -> box.riget}
     """.formatted(mdf, expected), BOX);
   }
   @Property void shouldGetAsReadOrImmForReadImmArbitraryRecvMdf(@ForAll("recvMdf") Mdf recvMdf, @ForAll("capturableMdf") Mdf mdf) {
-    var expected = mdf.isImm() ? "imm" : "read/imm";
-    var mMdf = recvMdf.isRecMdf() ? "recMdf" : "imm";
+    var expected = mdf.isImm() ? "imm" : "read";
+    if (recvMdf.isHyg() && !mdf.isImm()) { expected = "readOnly"; }
     ok("""
     package test
-    A: {%s #(box: %s Box[%s B]): %s B -> box.riget}
+    A: {#[X](box: %s Box[%s X]): %s X -> box.riget}
     B: {}
-    """.formatted(mMdf, recvMdf, mdf, expected), BOX);
+    """.formatted(recvMdf, mdf, expected), BOX);
   }
 }

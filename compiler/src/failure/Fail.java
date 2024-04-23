@@ -83,7 +83,7 @@ public class Fail{
   public static CompileError cyclicImplRelation(Id.DecId baseClass){
     return of(String.format("Implements relations must be acyclic. There is a cycle on the trait %s.", baseClass));
   }
-  public static CompileError invalidMdf(T t){return of("The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type "+t);}
+  public static CompileError invalidMdf(T t){return of("The modifier '%s' can only be used on generic type variables. '%s' found on type %s".formatted(t.mdf(), t.mdf(), t));}
   public static CompileError invalidMdf(Id.IT<T> it){return of("The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type "+it);}
 
   public static CompileError expectedConcreteType(T t){ return of("A concrete type was expected but the following generic type was given:\n" + t); }

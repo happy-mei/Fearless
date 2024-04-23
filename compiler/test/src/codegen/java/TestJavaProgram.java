@@ -277,6 +277,7 @@ public class TestJavaProgram {
       #(io: lent IO): Void -> io.println("Hello, World!"),
       }
     """); }
+  @Disabled // TODO: no lent lambdas, refactor for the new approach
   @Test void printlnShareLentCapture() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
@@ -985,13 +986,7 @@ public class TestJavaProgram {
             .empty -> {},
             .some(n) -> (target - n).abs < ((target - (closest*[])).abs) ? {
               .then -> closest := n,
-              .else -> self#(
-              As[Opt[Int]]#(
-                As[Opt[read Int]]#(
-                  As[iso Opt[read Int]]#(
-                    As[LList[Int]]#(t)
-                      .head))),
-                t.tail)
+              .else -> self#(t.head, t.tail)
               }
             }
           }#(ns.head, ns.tail) }
@@ -1005,50 +1000,12 @@ public class TestJavaProgram {
     MutLList:{ #: mut base.LList[base.Int] -> mut base.LList[base.Int] +[] 35 +[] 52 +[] 84 +[] 14 }
     """); }
 
-  @Test void immFromRefImm() { ok(new Res("5", "", 0), """
-    package test
-    Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: read RefImm[Int]): Int -> r.get,
-      .m2: Int -> this.m1(Ref#[Int]5),
-      }
-    """, Base.mutBaseAliases); }
-  @Test void immFromRefImmRecover() { ok(new Res("5", "", 0), """
-    package test
-    Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: read Ref[Int]): Int -> r.getImm!,
-      .m2: Int -> this.m1(Ref.ofImm[Int]5),
-      }
-    """, Base.mutBaseAliases); }
   @Test void immFromRefImmPrimitive() { ok(new Res("5", "", 0), """
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
       .m1(r: read Ref[Int]): Int -> r.get.toImm,
       .m2: Int -> this.m1(Ref#[Int]5),
-      }
-    """, Base.mutBaseAliases); }
-  @Test void updateRefImm() { ok(new Res("12", "", 0), """
-    package test
-    Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: mut RefImm[Int]): Int -> Block#
-        .do{ r := 12 }
-        .let[read RefImm[Int]] rr = { r }
-        .return{ rr.get },
-      .m2: Int -> this.m1(Ref#[Int]5),
-      }
-    """, Base.mutBaseAliases); }
-  @Test void updateRefImmRecover() { ok(new Res("12", "", 0), """
-    package test
-    Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: mut Ref[Int]): Int -> Block#
-        .do{ r := 12 }
-        .let[read Ref[Int]] rr = { r }
-        .return{ rr.getImm! },
-      .m2: Int -> this.m1(Ref.ofImm[Int]5),
       }
     """, Base.mutBaseAliases); }
 

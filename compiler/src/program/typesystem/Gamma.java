@@ -4,6 +4,7 @@ import ast.T;
 import failure.CompileError;
 import failure.Fail;
 import id.Mdf;
+import utils.Bug;
 import utils.Push;
 
 import java.util.List;
@@ -70,7 +71,7 @@ public interface Gamma {
       if (captured.isMdfX()) {
         if (mMdf.isMut() && of(imm, mut, read).containsAll(bounds)) { return captured; }
         if (mMdf.isImm() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(imm); }
-        if (mMdf.isRead() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(read); }
+        if (mMdf.isRead() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readImm); }
         if (mMdf.isLent() && of(imm, mut, read).containsAll(bounds)) { return captured.withMdf(lent); }
         if (mMdf.isLent() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
         if (mMdf.isReadOnly() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readOnly); }
@@ -121,13 +122,13 @@ public interface Gamma {
     }
 
     if (self.isRecMdf()) {
-      if (captured.isMdfX()) {
-        if (mMdf.isMut() && of(imm, mut, iso).containsAll(bounds)) { return captured; }
-      }
-      if (mMdf.isMut() && captured.mdf().isMut()) { return captured; }
-      if (mMdf.isRecMdf() && captured.mdf().isRecMdf()) { return captured; }
+      throw Bug.of("no more recMdf (ﾉಥ益ಥ)ﾉ");
+//      if (captured.isMdfX()) {
+//        if (mMdf.isMut() && of(imm, mut, iso).containsAll(bounds)) { return captured; }
+//      }
+//      if (mMdf.isMut() && captured.mdf().isMut()) { return captured; }
+//      if (mMdf.isRecMdf() && captured.mdf().isRecMdf()) { return captured; }
     }
-
     throw Fail.badCapture(x, captured, self, mMdf);
   }
 }

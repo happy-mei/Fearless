@@ -368,8 +368,18 @@ public class TestFullWellFormedness {
     read/imm is not a valid modifier for a lambda.
     """, """
     package test
-    A: {#: read/imm A -> read/imm A}
+    A: {#: Void -> Void.eat(read/imm A)}
+    Void: {.eat[X](a: X): Void -> {}}
     """); }
+
+  @Test void noReadImmOnIT() {fail("""
+    In position [###]/Dummy0.fear:2:4
+    [E11 invalidMdf]
+    The modifier 'read/imm' can only be used on generic type variables. 'read/imm' found on type read/imm test.A[]
+    """, """
+     package test
+    A: {#: read/imm A -> this#}
+    """);}
 
   @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {
     var code = String.format("""

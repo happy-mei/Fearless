@@ -357,12 +357,4 @@ public class TestWellFormedness {
     package test
     A: {#: readOnly A -> {}}
     """); }
-  @Test void noReadImmLambdaCreation() { fail("""
-    In position [###]/Dummy0.fear:2:21
-    [E62 invalidLambdaMdf]
-    read/imm is not a valid modifier for a lambda.
-    """, """
-    package test
-    A: {#: read/imm A -> {}}
-    """); }
 }

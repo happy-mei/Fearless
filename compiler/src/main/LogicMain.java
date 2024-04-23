@@ -8,6 +8,7 @@ import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.EMethTypeSystem;
+import utils.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
