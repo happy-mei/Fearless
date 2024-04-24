@@ -347,7 +347,7 @@ public class TestJavaProgram {
       .return{ io.println(ImmMain#(env.launchArgs)) }
       }
     ImmMain:{
-      #(args: LList[Str]): Str -> args.get(1u).match{.some(arg) -> arg, .empty -> this.errMsg(args.head.isSome).get},
+      #(args: LList[Str]): Str -> args.tryGet(1u).match{.some(arg) -> arg, .empty -> this.errMsg(args.head.isSome).get},
       .errMsg(retCounter: Bool): mut Ref[Str] -> Block#
         .let res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
         .let counter = { Count.int(42) }
@@ -433,7 +433,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let[Int] closest' = { ns.get(0u)! }
+        .let[Int] closest' = { ns.get(0u) }
         .let closest = { Ref#[Int](closest') }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
@@ -480,7 +480,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let[mut Ref[Int]] closest = { Ref#[Int]((ns.get(0u))!) }
+        .let[mut Ref[Int]] closest = { Ref#[Int](ns.get(0u)) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -503,7 +503,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: mut LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let closest = { Ref#[Int](ns.get(0u)!) }
+        .let closest = { Ref#[Int](ns.get(0u)) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -526,9 +526,9 @@ public class TestJavaProgram {
     Closest:{
       #(ns: mut List[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let closest = { Ref#[Int](ns.get(0u)!) }
+        .let closest = { Ref#[Int](ns.get(0u)) }
         .do{ mut Closest'{ 'self
-          i -> ns.get(i).match{
+          i -> ns.tryGet(i).match{
             .empty -> {},
             .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
@@ -576,7 +576,7 @@ public class TestJavaProgram {
     alias base.iter.Sum as Sum,
     Test:Main{ _ -> Block#
       .let[mut List[Int]] l1 = { (mut LList[Int] + 35 + 52 + 84 + 14).list }
-      .assert({ l1.get(0u)! == (l1.iter.next!) }, "sanity") // okay, time to use this for new tests
+      .assert({ l1.get(0u) == (l1.iter.next!) }, "sanity") // okay, time to use this for new tests
       .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert!((l1.iter.find{n -> n > 100}).isEmpty, "find empty", {{}}) }
       .do{ Assert!(l1.iter
@@ -965,7 +965,7 @@ public class TestJavaProgram {
     MakeList:{ #: LList[Int] -> LList[Int] + 12 + 34 + 56 }
     Test:Main{ _ -> Block#
       .let myList = { MakeList# }
-      .let[Opt[read Int]] opt = { myList.head }
+      .let[Opt[Int]] opt = { myList.head }
       .let[Int] i1 = { opt! }
       .let[Int] i2 = { myList.head! }
       .return{Void}
