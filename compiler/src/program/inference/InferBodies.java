@@ -4,6 +4,7 @@ import astFull.E;
 import astFull.T;
 import failure.CompileError;
 import failure.Fail;
+import failure.TypingAndInferenceErrors;
 import id.Id;
 import id.Mdf;
 import program.CM;
@@ -267,7 +268,7 @@ public record InferBodies(ast.Program p) {
       cm = !res.isEmpty() ? Optional.of(res.get(0)) : Optional.empty();
     } catch (CompileError err) { throw err.parentPos(e.pos()); }
     if (cm.isEmpty()) {
-      throw Fail.undefinedMethod(e.name(), c).pos(e.pos());
+      throw TypingAndInferenceErrors.fromInference(Fail.undefinedMethod(e.name(), c).pos(e.pos()));
     }
     var sig = cm.get().sig();
     var k = sig.gens().size();

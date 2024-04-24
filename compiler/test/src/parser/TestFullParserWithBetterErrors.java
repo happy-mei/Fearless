@@ -180,7 +180,7 @@ class TestFullParserWithBetterErrors {
   );}
   @Test void baseLoop(){ ok("""
     {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=
-      [-infer-][]{!/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
+      [-infer-][]{!/0([]):Sig[gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
     """, """
     package base
     alias base.Void as Void,
@@ -188,7 +188,7 @@ class TestFullParserWithBetterErrors {
     """
   );}
   @Test void baseLoopExplicit(){ ok("""
-    {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=[-infer-][]{!/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
+    {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=[-infer-][]{!/0([]):Sig[gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
     """, """
     package base
     alias base.Void as Void,
@@ -196,7 +196,7 @@ class TestFullParserWithBetterErrors {
     """
   );}
   @Test void baseLoopMoreExplicit(){ ok("""
-    {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=[-infer-][]{ !/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
+    {base.Loop/0=Dec[name=base.Loop/0,gxs=[],lambda=[-infer-][]{ !/0([]):Sig[gens=[],ts=[],ret=immbase.Void[]]->this:infer!/0[-]([]):infer}]}
     """, """
     package base
     alias base.Void as Void,
@@ -204,42 +204,42 @@ class TestFullParserWithBetterErrors {
     """
   );}
   @Test void baseLoopAbs(){ ok("""
-    {base.AbsLoop/0=Dec[name=base.AbsLoop/0,gxs=[],lambda=[-infer-][]{ !/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.Void[]]->[-]}]}
+    {base.AbsLoop/0=Dec[name=base.AbsLoop/0,gxs=[],lambda=[-infer-][]{ !/0([]):Sig[gens=[],ts=[],ret=immbase.Void[]]->[-]}]}
     """, """
     package base
     AbsLoop:{!:base.Void}
     """
   );}
   @Test void methWithArgs(){ ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/1([a]):Sig[mdf=imm,gens=[],ts=[immbase.A[]],ret=immbase.A[]]->[-]}]}
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/1([a]):Sig[gens=[],ts=[immbase.A[]],ret=immbase.A[]]->[-]}]}
     """, """
     package base
     A:{.foo(a: A): A,}
     """
   );}
   @Test void methWith2Args(){ ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[imm base.A[],imm base.A[]],ret=imm base.A[]]->[-]}]}
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[gens=[],ts=[imm base.A[],imm base.A[]],ret=imm base.A[]]->[-]}]}
     """, """
     package base
     A:{.foo(a: A, b: A): A,}
     """
   );}
   @Test void methWith2ArgsAndMdf(){ ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[imm base.A[],read base.A[]],ret=imm base.A[]]->[-]}]}
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[gens=[],ts=[imm base.A[],read base.A[]],ret=imm base.A[]]->[-]}]}
     """, """
     package base
     A:{.foo(a: A, b: read A): A,}
     """
     );}
     @Test void methWithGens1(){ ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[B],ts=[imm base.A[],readB],ret=imm base.A[]]->[-]}]}
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[gens=[B],ts=[imm base.A[],readB],ret=imm base.A[]]->[-]}]}
     """, """
     package base
     A:{.foo[B](a: A, b: read B): A,}
     """
     );}
   @Test void methWithGens2(){ ok("""
-    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[mdf=imm,gens=[B],ts=[imm base.A[],read B],ret=read B]->[-]}]}
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{.foo/2([a,b]):Sig[gens=[B],ts=[imm base.A[],read B],ret=read B]->[-]}]}
     """, """
     package base
     A:{.foo[B](a: A, b: read B): read B,}
@@ -257,7 +257,7 @@ class TestFullParserWithBetterErrors {
     """
   );}
   @Test void extendsNewDec(){ ok("""
-    {base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{.name/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm base.String[]]->[-]}],
+    {base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{.name/0([]):Sig[gens=[],ts=[],ret=imm base.String[]]->[-]}],
     base.Dog/0=Dec[name=base.Dog/0,gxs=[],lambda=[-infer-][base.HasName[]]{}]}
     """, """
     package base
@@ -267,8 +267,8 @@ class TestFullParserWithBetterErrors {
     """
   );}
   @Test void multipleExtends(){ ok("""
-    {base.HasHunger/0=Dec[name=base.HasHunger/0,gxs=[],lambda=[-infer-][]{.hunger/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.UInt[]]->[-]}],
-    base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{.name/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immbase.String[]]->[-]}],
+    {base.HasHunger/0=Dec[name=base.HasHunger/0,gxs=[],lambda=[-infer-][]{.hunger/0([]):Sig[gens=[],ts=[],ret=immbase.UInt[]]->[-]}],
+    base.HasName/0=Dec[name=base.HasName/0,gxs=[],lambda=[-infer-][]{.name/0([]):Sig[gens=[],ts=[],ret=immbase.String[]]->[-]}],
     base.Dog/0=Dec[name=base.Dog/0,gxs=[],lambda=[-infer-][base.HasHunger[],base.HasName[]]{}]}
     """, """
     package base
@@ -282,17 +282,17 @@ class TestFullParserWithBetterErrors {
       {base.B/0=Dec[
         name=base.B/0,
         gxs=[],
-        lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm 5[]]->[-imm base.A[]-][base.A[]]{}.foo/2[-]([
+        lambda=[-infer-][]{#/0([]):Sig[gens=[],ts=[],ret=imm 5[]]->[-imm base.A[]-][base.A[]]{}.foo/2[-]([
           [-imm 5[]-][5[]]{},[-infer-][]{[-]([lol,fear0$]):[-]->fear0$:infer}
         ]):infer}
       ],base.Cont/2=Dec[
         name=base.Cont/2,
         gxs=[X,R],
-        lambda=[-infer-][]{#/2([x,self]):Sig[mdf=mut,gens=[],ts=[X,immbase.A[]],ret=R]->[-]}],
+        lambda=[-infer-][]{#/2([x,self]):Sig[gens=[],ts=[X,immbase.A[]],ret=R]->[-]}],
       base.A/0=Dec[
         name=base.A/0,
         gxs=[],
-        lambda=[-infer-][]{.foo/2([x,cont]):Sig[mdf=imm,gens=[T],ts=[T,mutbase.Cont[T,T]],ret=T]->
+        lambda=[-infer-][]{.foo/2([x,cont]):Sig[gens=[T],ts=[T,mutbase.Cont[T,T]],ret=T]->
           cont:infer#/2[-]([x:infer,cont:infer]):infer}]}
     """, """
     package base
@@ -304,17 +304,17 @@ class TestFullParserWithBetterErrors {
     """
   );}
   @Test void equalsSugar2() { ok("""
-    {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-infer-][]{#/2([x,cont]):Sig[mdf=mut,gens=[],ts=[X,muttest.Candy[R]],ret=R]->[-]}],
-    test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-infer-][]{#/0([]):Sig[mdf=mut,gens=[],ts=[],ret=R]->[-]}],
+    {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-infer-][]{#/2([x,cont]):Sig[gens=[],ts=[X,muttest.Candy[R]],ret=R]->[-]}],
+    test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-infer-][]{#/0([]):Sig[gens=[],ts=[],ret=R]->[-]}],
     test.Candy/1=Dec[name=test.Candy/1,gxs=[R],lambda=[-infer-][]{
-      .sugar/2([x,cont]):Sig[mdf=mut,gens=[X],ts=[X,muttest.Cont[X,R]],ret=R]->cont:infer#/2[-]([x:infer,this:infer]):infer,
-      .return/1([a]):Sig[mdf=mut,gens=[],ts=[muttest.ReturnStmt[R]],ret=R]->a:infer#/0[-]([]):infer}],
+      .sugar/2([x,cont]):Sig[gens=[X],ts=[X,muttest.Cont[X,R]],ret=R]->cont:infer#/2[-]([x:infer,this:infer]):infer,
+      .return/1([a]):Sig[gens=[],ts=[muttest.ReturnStmt[R]],ret=R]->a:infer#/0[-]([]):infer}],
     test.Usage/0=Dec[name=test.Usage/0,gxs=[],lambda=[-infer-][]{
-      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
+      .foo/0([]):Sig[gens=[],ts=[],ret=immtest.Void[]]->
         [-imm test.Candy[immtest.Void[]]-][test.Candy[immtest.Void[]]]{}
           .sugar/2[immtest.Foo[]]([[-imm test.Foo[]-][test.Foo[]]{},[-infer-][]{[-]([f,fear0$]):[-]->
             fear0$:infer.return/1[-]([[-infer-][]{[-]([]):[-]->f:infer.v/0[-]([]):infer}]):infer}]):infer}],
-    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-infer-][]{.v/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-infer-][]{}}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-infer-][]{.v/0([]):Sig[gens=[],ts=[],ret=immtest.Void[]]->[-infer-][]{}}],
     test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-infer-][]{}]}
     """, """
     package test
@@ -333,17 +333,17 @@ class TestFullParserWithBetterErrors {
       }
     """); }
   @Test void equalsSugar2a() { ok("""
-    {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-infer-][]{#/2([x,cont]):Sig[mdf=mut,gens=[],ts=[X,muttest.Candy[R]],ret=R]->[-]}],
-    test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-infer-][]{#/0([]):Sig[mdf=mut,gens=[],ts=[],ret=R]->[-]}],
+    {test.Cont/2=Dec[name=test.Cont/2,gxs=[X,R],lambda=[-infer-][]{#/2([x,cont]):Sig[gens=[],ts=[X,muttest.Candy[R]],ret=R]->[-]}],
+    test.ReturnStmt/1=Dec[name=test.ReturnStmt/1,gxs=[R],lambda=[-infer-][]{#/0([]):Sig[gens=[],ts=[],ret=R]->[-]}],
     test.Candy/1=Dec[name=test.Candy/1,gxs=[R],lambda=[-infer-][]{
-      .sugar/2([x,cont]):Sig[mdf=mut,gens=[X],ts=[X,muttest.Cont[X,R]],ret=R]->cont:infer#/2[-]([x:infer,this:infer]):infer,
-      .return/1([a]):Sig[mdf=mut,gens=[],ts=[muttest.ReturnStmt[R]],ret=R]->a:infer#/0[-]([]):infer}],
+      .sugar/2([x,cont]):Sig[gens=[X],ts=[X,muttest.Cont[X,R]],ret=R]->cont:infer#/2[-]([x:infer,this:infer]):infer,
+      .return/1([a]):Sig[gens=[],ts=[muttest.ReturnStmt[R]],ret=R]->a:infer#/0[-]([]):infer}],
     test.Usage/0=Dec[name=test.Usage/0,gxs=[],lambda=[-infer-][]{
-      .foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->
+      .foo/0([]):Sig[gens=[],ts=[],ret=immtest.Void[]]->
         [-imm test.Candy[immtest.Void[]]-][test.Candy[immtest.Void[]]]{}
           .sugar/2[immtest.Foo[]]([[-imm test.Foo[]-][test.Foo[]]{},[-infer-][]{[-]([f,fear0$]):[-]->
             fear0$:infer.return/1[-]([[-infer-][]{[-]([]):[-]->f:infer.v/0[-]([]):infer}]):infer}]):infer}],
-    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-infer-][]{.v/0([]):Sig[mdf=imm,gens=[],ts=[],ret=immtest.Void[]]->[-infer-][]{}}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[-infer-][]{.v/0([]):Sig[gens=[],ts=[],ret=immtest.Void[]]->[-infer-][]{}}],
     test.Void/0=Dec[name=test.Void/0,gxs=[],lambda=[-infer-][]{}]}
     """, """
     package test
@@ -367,29 +367,29 @@ class TestFullParserWithBetterErrors {
       name=base.Let/2,
       gxs=[V,R],
       lambda=[-infer-][]{
-        .var/0([]):Sig[mdf=imm,gens=[],ts=[],ret=V]->[-],
-        .in/1([v]):Sig[mdf=imm ,gens=[],ts=[V],ret=R]->[-]
+        .var/0([]):Sig[gens=[],ts=[],ret=V]->[-],
+        .in/1([v]):Sig[gens=[],ts=[V],ret=R]->[-]
       }],
     base.Ref/1=Dec[
       name=base.Ref/1,
       gxs=[X],
       lambda=[-infer-][base.NoMutHyg[X],base.Sealed[]]{
-        */0([]):Sig[mdf=read,gens=[],ts=[],ret=recMdfX]->[-],
-        .swap/1([x]):Sig[mdf=mut,gens=[],ts=[X],ret=X]->[-],
-        :=/1([x]):Sig[mdf=mut,gens=[],ts=[X],ret=imm base.Void[]]->
+        */0([]):Sig[gens=[],ts=[],ret=recMdfX]->[-],
+        .swap/1([x]):Sig[gens=[],ts=[X],ret=X]->[-],
+        :=/1([x]):Sig[gens=[],ts=[X],ret=imm base.Void[]]->
           [-imm base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
             .var/0([]):[-]->this:infer.swap/1[-]([x:infer]):infer,
             .in/1([fear0$]):[-]->[-imm base.Void[]-][base.Void[]]{}
           }]):infer,
-          <-/1([f]):Sig[mdf=mut,gens=[],ts=[imm base.UpdateRef[X]], ret=X]->
+          <-/1([f]):Sig[gens=[],ts=[imm base.UpdateRef[X]], ret=X]->
             this:infer.swap/1[-]([f:infer#/1[-]([this:infer*/0[-]([]):infer]):infer]):infer
       }],
     base.Sealed/0=Dec[name=base.Sealed/0,gxs=[],lambda=[-infer-][]{}],
-    base.Ref/0=Dec[name=base.Ref/0,gxs=[],lambda=[-infer-][]{#/1([x]):Sig[mdf=imm,gens=[X],ts=[X],ret=mut base.Ref[X]]->this:infer#/1[-]([x:infer]):infer}],
-    base.Let/0=Dec[name=base.Let/0,gxs=[],lambda=[-infer-][]{#/1([l]):Sig[mdf=imm,gens=[V,R],ts=[imm base.Let[V,R]],ret=R]->l:infer.in/1[-]([l:infer.var/0[-]([]):infer]):infer}],
+    base.Ref/0=Dec[name=base.Ref/0,gxs=[],lambda=[-infer-][]{#/1([x]):Sig[gens=[X],ts=[X],ret=mut base.Ref[X]]->this:infer#/1[-]([x:infer]):infer}],
+    base.Let/0=Dec[name=base.Let/0,gxs=[],lambda=[-infer-][]{#/1([l]):Sig[gens=[V,R],ts=[imm base.Let[V,R]],ret=R]->l:infer.in/1[-]([l:infer.var/0[-]([]):infer]):infer}],
     base.NoMutHyg/1=Dec[name=base.NoMutHyg/1,gxs=[X],lambda=[-infer-][]{}],
     base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{}],
-    base.UpdateRef/1=Dec[name=base.UpdateRef/1,gxs=[X],lambda=[-infer-][]{#/1([x]):Sig[mdf=mut,gens=[],ts=[X],ret=X]->[-]}]}
+    base.UpdateRef/1=Dec[name=base.UpdateRef/1,gxs=[X],lambda=[-infer-][]{#/1([x]):Sig[gens=[],ts=[X],ret=X]->[-]}]}
     """, """
     package base
     NoMutHyg[X]:{}
@@ -407,7 +407,7 @@ class TestFullParserWithBetterErrors {
     """);}
 
   @Test void magicIntbers() { ok("""
-    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{.foo/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm5[]]->[-imm 5[]-][5[]]{}}]}
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{.foo/0([]):Sig[gens=[],ts=[],ret=imm5[]]->[-imm 5[]-][5[]]{}}]}
     """, """
     package test
     A:{ .foo: 5 -> 5 }
@@ -417,7 +417,7 @@ class TestFullParserWithBetterErrors {
     {test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-infer-][test.A[]]{
       .foo/2([a,b]):[-]->b:infer}],
     test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{
-      .foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[immtest.A[],immtest.A[]],ret=immtest.A[]]->[-]}]}
+      .foo/2([a,b]):Sig[gens=[],ts=[immtest.A[],immtest.A[]],ret=immtest.A[]]->[-]}]}
     """, """
     package test
     A:{ .foo(a: A, b: A): A }
@@ -427,7 +427,7 @@ class TestFullParserWithBetterErrors {
     {test.B/0=Dec[name=test.B/0,gxs=[],lambda=[-infer-][test.A[]]{
       [-]([a,b]):[-]->b:infer}],
     test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{
-      .foo/2([a,b]):Sig[mdf=imm,gens=[],ts=[immtest.A[],immtest.A[]],ret=immtest.A[]]->[-]}]}
+      .foo/2([a,b]):Sig[gens=[],ts=[immtest.A[],immtest.A[]],ret=immtest.A[]]->[-]}]}
     """, """
     package test
     A:{ .foo(a: A, b: A): A }
@@ -484,7 +484,7 @@ class TestFullParserWithBetterErrors {
   @Test void ForGensRet() { ok("""
     {test.G/1=Dec[name=test.G/1,gxs=[X],lambda=[-infer-][]{}],
     test.B/1=Dec[name=test.B/1,gxs=[Y],lambda=[-infer-][]{
-      .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=Y]->[-]}]}
+      .m1/0([]):Sig[gens=[],ts=[],ret=Y]->[-]}]}
     """, """
     package test
     B[Y]:{ .m1: Y }
@@ -492,7 +492,7 @@ class TestFullParserWithBetterErrors {
     """); }
 
   @Test void namedInline() { ok("""
-    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{#/0([]):Sig[mdf=imm,gens=[],ts=[],ret=imm test.B[]]->
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{#/0([]):Sig[gens=[],ts=[],ret=imm test.B[]]->
       LambdaId[id=test.B/0,gens=[],bounds={}]:[-infer-][]{}}]}
     """, """
     package test
@@ -500,9 +500,9 @@ class TestFullParserWithBetterErrors {
     """); }
   @Test void namedInlineGens() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-infer-][]{
-      #/1([x]):Sig[mdf=imm,gens=[],ts=[X],ret=immtest.B[X]]->
+      #/1([x]):Sig[gens=[],ts=[X],ret=immtest.B[X]]->
         LambdaId[id=test.B/1,gens=[X],bounds={}]:[-infer-][]{
-          .m1/0([]):Sig[mdf=imm,gens=[],ts=[],ret=X]->x:infer}}]}
+          .m1/0([]):Sig[gens=[],ts=[],ret=X]->x:infer}}]}
     """, """
     package test
     A[X]:{ #(x: X): B[X] -> B[X]:{ .m1: X -> x } }
