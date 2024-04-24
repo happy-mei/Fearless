@@ -5,6 +5,7 @@ import java.net.URI;
 
 public record TypingAndInferenceErrors(URI fileName) {
   public static CompileError fromInference(CompileError error) {
+    if (error.code() == 0) { return error; }
     var errorProcessor = new TypingAndInferenceErrors(error.posOrUnknown().fileName());
     return switch (ErrorCode.fromCode(error.code())) {
       // TODO: match on error types you want to improve
@@ -14,6 +15,7 @@ public record TypingAndInferenceErrors(URI fileName) {
   }
 
   public static CompileError fromMethodError(CompileError error) {
+    if (error.code() == 0) { return error; }
     var errorProcessor = new TypingAndInferenceErrors(error.posOrUnknown().fileName());
     return switch (ErrorCode.fromCode(error.code())) {
       // TODO: match on error types you want to improve

@@ -21,7 +21,7 @@ _MutSourceCollection[E]: {
            .isRunning -> cursor* < (dup.size),
            .stop -> cursor := (dup.size),
            // TODO: also add .forRemaining
-           .step(downstream) -> dup.get(cursor++).match{
+           .step(downstream) -> dup.tryGet(cursor++).match{
              .some(x) -> downstream#x,
              .empty -> Block#(downstream.stop, self.stop),
              },
@@ -74,7 +74,7 @@ _SafeSource: {
     .return {{'self
       .isRunning -> cursor* < (list.size),
       .stop -> cursor := (list.size),
-      .step(downstream) -> list.get(cursor++).match{
+      .step(downstream) -> list.tryGet(cursor++).match{
         .some(x) -> Block#
           .do {downstream#x}
           .if {cursor.get >= (list.size)} .do {Block#(downstream.stop, self.stop)}

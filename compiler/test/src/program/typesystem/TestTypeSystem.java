@@ -1884,10 +1884,12 @@ public class TestTypeSystem {
   @Test void inlineLambdaMethodCopying() {ok("""
     package test
     A[E]: {
-      mut  .get(v: V): E -> this.get,
-      read .get(v: V): read/imm E -> this.get,
-      .nest(e: E): A[E] -> {
-        .get(v) -> v#e,
+      mut  .get(v: V): E -> this.get(v),
+      read .get(v: V): read/imm E -> this.get(v),
+      mut .nest(e: E): mut A[E] -> {
+//        .get(v) -> v#e,
+        mut  .get(v: V): E -> v#e,
+        read .get(v: V): read/imm E -> v#[read/imm E]e,
         },
       }
     V: {#[X](x: X): X -> x}

@@ -16,6 +16,7 @@ import utils.Streams;
 import visitors.InjectionVisitor;
 import visitors.ShallowInjectionVisitor;
 
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,6 +62,7 @@ public record InferBodies(ast.Program p) {
 
   private Map<String, astFull.T> iGOf(String selfName, astFull.T lambdaT, ast.E.Meth m) {
     Map<String, astFull.T> gamma = new HashMap<>();
+    assert selfName != null;
     gamma.put(selfName, lambdaT);
     var sig = m.sig();
 //    var sig = p.fullSig(lambdaT.itOrThrow(), cm->cm.name().equals(m.name())).orElseThrow();
@@ -122,6 +124,7 @@ public record InferBodies(ast.Program p) {
     if(m.sig().isEmpty()){ return Optional.empty(); }
     var sig = m.sig().orElseThrow();
     Map<String, T> richGamma = new HashMap<>(gamma);
+    assert e.selfName() != null;
     richGamma.put(e.selfName(),new T(m.mdf().orElseThrow(), e.it().orElseThrow()));
     Streams.zip(m.xs(), sig.ts()).forEach(richGamma::put);
     richGamma = Collections.unmodifiableMap(richGamma);
@@ -143,7 +146,7 @@ public record InferBodies(ast.Program p) {
     if(m.name().isPresent()){ return Optional.empty(); }
     var res = onlyAbs(e, depth).stream()
       .filter(fullSig->fullSig.sig().ts().size() == m.xs().size())
-      .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()))
+      .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()).makeBodyUnique())
       .toList();
     assert res.stream().noneMatch(m::equals);
     return Optional.of(res);
@@ -153,22 +156,22 @@ public record InferBodies(ast.Program p) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isEmpty()){ return Optional.empty(); }
-    List<Program.FullMethSig> sigs; try { sigs = onlyMName(e, m.name().get(), depth); }
+    List<FullMethSig> sigs; try { sigs = onlyMName(e, m.name().get(), depth); }
     catch (CompileError err) { throw err.parentPos(m.pos()); }
     // e.pos().isPresent() && e.pos().get().fileName.toString().endsWith("lists.fear") && m.name().get().name().equals("++")
     if(sigs.isEmpty()){ return Optional.empty(); }
-    var res = sigs.stream().map(s->m.withName(s.name()).withSig(s.sig())).toList();
+    var res = sigs.stream().map(s->m.withName(s.name()).withSig(s.sig()).makeBodyUnique()).toList();
     assert res.stream().noneMatch(m::equals);
     return Optional.of(res);
   }
 
-  List<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
+  List<FullMethSig> onlyAbs(E.Lambda e, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
+    return FullMethSig.of(p, XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
   }
-  List<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
+  List<FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, cm->cm.name().nameArityEq(name));
+    return FullMethSig.of(p, XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, cm->cm.name().nameArityEq(name));
   }
 
   Optional<E> methCall(Map<String, T> gamma, E.MCall e, int depth) {
@@ -262,10 +265,10 @@ public record InferBodies(ast.Program p) {
       its = recv.its();
     }
 
-    Optional<Program.FullMethSig> cm;
+    Optional<FullMethSig> cm;
     try {
-      var res = p.fullSig(XBs.empty(), c.mdf(), its, depth, cm1->cm1.name().nameArityEq(e.name()));
-      cm = !res.isEmpty() ? Optional.of(res.get(0)) : Optional.empty();
+      var res = FullMethSig.of(p, XBs.empty(), c.mdf(), its, depth, cm1->cm1.name().nameArityEq(e.name()));
+      cm = !res.isEmpty() ? Optional.of(res.getFirst()) : Optional.empty();
     } catch (CompileError err) { throw err.parentPos(e.pos()); }
     if (cm.isEmpty()) {
       throw TypingAndInferenceErrors.fromInference(Fail.undefinedMethod(e.name(), c).pos(e.pos()));

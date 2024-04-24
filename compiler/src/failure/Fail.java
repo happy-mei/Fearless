@@ -351,7 +351,8 @@ enum ErrorCode {
   specialPackageConflict,
   reservedPackageName,
   lambdaImplementsGeneric,
-  invalidLambdaMdf;
+  invalidLambdaMdf,
+  Unknown;
   private static final ErrorCode[] values = values();
   int code() {
     return this.ordinal() + 1;
