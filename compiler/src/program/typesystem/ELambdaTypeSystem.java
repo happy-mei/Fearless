@@ -5,8 +5,7 @@ import ast.T;
 import ast.T.Dec;
 import failure.CompileError;
 import failure.Fail;
-import failure.Res;
-import failure.TypeSystemErrors;
+import failure.TypingAndInferenceErrors;
 import id.Id;
 import id.Mdf;
 import program.CM;
@@ -21,7 +20,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static program.Program.filterByMdf;
@@ -99,11 +97,11 @@ interface ELambdaTypeSystem extends ETypeSystem{
         return boundedTypeSys.get()
           .mOk(selfName, selfT, mi)
           .stream()
-          .map(rawError->()->TypeSystemErrors.fromMethodError(rawError.get()));
+          .map(rawError->()-> TypingAndInferenceErrors.fromMethodError(rawError.get()));
       } catch (CompileError err) {
         return Optional.<Supplier<? extends CompileError>>of(()->{
           var rawError = err.parentPos(mi.pos());
-          return TypeSystemErrors.fromMethodError(rawError);
+          return TypingAndInferenceErrors.fromMethodError(rawError);
         }).stream();
       }
     }).toList();
