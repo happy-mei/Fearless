@@ -1894,4 +1894,20 @@ public class TestTypeSystem {
       }
     V: {#[X](x: X): X -> x}
     """);}
+
+  @Test void sameGenImpl() {ok("""
+    package test
+    A[X]: {}
+    Foo:{} Bar:{}
+    B: A[Foo],A[Bar]{}
+    Caller: {
+      .m1: Void -> CallMe.m1(B),
+      .m2: Void -> CallMe.m2(B),
+      }
+    CallMe: {
+      .m1(a: A[Foo]): Void -> {},
+      .m2(a: A[Bar]): Void -> {},
+      }
+    Void: {}
+    """);}
 }
