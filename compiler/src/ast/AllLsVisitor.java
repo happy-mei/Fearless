@@ -16,7 +16,10 @@ public class AllLsVisitor implements CollectorVisitor<Collection<T.Dec>> {
     var dec = new T.Dec(e.id().id(), e.id().gens(), e.id().bounds(), e, e.pos());
     var conflict = ds.get(dec.name());
     if (conflict != null) {
-      throw Fail.conflictingDecl(dec.name(), List.of(new Fail.Conflict(conflict.posOrUnknown(), conflict.name().toString()))).pos(e.pos());
+      throw Fail.conflictingDecl(dec.name(), List.of(
+        new Fail.Conflict(dec.posOrUnknown(), dec.name().toString()),
+        new Fail.Conflict(conflict.posOrUnknown(), conflict.name().toString()))
+      ).pos(e.pos());
     }
     ds.put(dec.name(), dec);
     return CollectorVisitor.super.visitLambda(e);

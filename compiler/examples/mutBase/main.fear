@@ -5,7 +5,7 @@ MyApp:Main{ s -> Block#
   .return{ io.println(ImmMain#args) }
   }
 ImmMain:{
-  #(args: LList[Str]): Str -> args.get(1u).match{
+  #(args: LList[Str]): Str -> args.tail.head.match{
     .some(res) -> res,
     .empty -> this.errMsg(args.head.isSome)*
     },
