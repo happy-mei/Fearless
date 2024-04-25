@@ -1,16 +1,19 @@
 package ast;
 
-import files.HasPos;
-import files.Pos;
 import id.Id;
 import id.Id.DecId;
 import id.Mdf;
 import utils.Bug;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import files.HasPos;
+import files.Pos;
 
 public record T(Mdf mdf, Id.RT<T> rt) implements Id.Ty {
   @Override public String toString(){
@@ -47,42 +50,19 @@ public record T(Mdf mdf, Id.RT<T> rt) implements Id.Ty {
   }
 
   public T withMdf(Mdf mdf){ return new T(mdf,rt); }
-/*TODO: Refactoring plan:
- * 1 assert all duplicated fields are equal
- * 2 delegate all the fields (update all the news)
- * 3 remove Dec (update many types)
- */
-  public record Dec(DecId name, List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds, E.Lambda lambda, Optional<Pos> pos) implements HasPos, Id.Dec {
-    public Dec{
-      assert gxs.size()==name.gen() && lambda!=null;
-      assert gxs.stream().allMatch(gx->bounds.get(gx)!=null);
-      DecId nameL= lambda.id().id();
-      List<Id.GX<T>> gxsL= lambda.id().gens();
-      Map<Id.GX<T>, Set<Mdf>> boundsL= lambda.id().bounds();
-      //assert nameL.equals(name): nameL+" "+name;//relaxed below waiting for it to be fixed
-      //assert nameL.name().equals(name.name()): "["+nameL.name()+"] not equal to  ["+name.name()+"]";
-      //assert gxsL.equals(gxs): gxsL+" "+gxs;
-      //assert boundsL.equals(bounds);
-      }
-    public Dec withName(Id.DecId name){ return new Dec(name,gxs,bounds,lambda,pos); }
-    public Dec withSelfName(String selfName){ return new Dec(name,gxs,bounds,lambda.withSelfName(selfName),pos); }
-    public Dec withLambda(ast.E.Lambda lambda){ return new Dec(name,gxs,bounds,lambda,pos); }
+  public record Dec(E.Lambda lambda) implements HasPos, Id.Dec {
+    public DecId name() { return lambda.id().id(); }
+    public List<Id.GX<T>> gxs(){ return lambda.id().gens(); }
+    public Map<Id.GX<T>, Set<Mdf>> bounds(){ return lambda.id().bounds(); }
+    public Optional<Pos> pos(){ return lambda.pos(); }
 
+    public Dec withLambda(ast.E.Lambda lambda){ return new Dec(lambda); }
     public Id.IT<T> toIT(){
-      return new Id.IT<>(//AstFull.T || Ast.T
-        this.name(),
-        this.gxs().stream().map(gx->new T(Mdf.mdf, new Id.GX<>(gx.name()))).toList()
-      );
-    }
-    @Override public String toString() {
-      if (bounds.values().stream().mapToLong(Collection::size).sum() == 0) {
-        return "Dec[name="+name+",gxs=["+gxs.stream().map(Id.GX::toString).collect(Collectors.joining(","))+"],lambda="+lambda+"]";
-      }
-      var boundsStr = bounds.entrySet().stream()
-        .sorted(Comparator.comparing(a->a.getKey().name()))
-        .map(kv->kv.getKey()+"="+kv.getValue().stream().sorted(Comparator.comparing(Enum::toString)).toList())
-        .collect(Collectors.joining(","));
-      return "Dec[name="+name+",gxs=["+gxs.stream().map(Id.GX::toString).collect(Collectors.joining(","))+"],bounds={"+boundsStr+"},lambda="+lambda+"]";
+      return new Id.IT<>(
+        this.lambda().id().id(),
+        this.lambda().id().gens().stream()
+          .map(gx->new T(Mdf.mdf, gx)).toList()
+        );
     }
   }
 }

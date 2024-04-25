@@ -198,14 +198,14 @@ public interface Program {
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
     var freshName = new Id.DecId(Id.GX.fresh().name(), 0);
-    var dec = new T.Dec(freshName, List.of(), Map.of(), new ast.E.Lambda(
+    var dec = new T.Dec(new ast.E.Lambda(
       new ast.E.Lambda.LambdaId(freshName, List.of(), Map.of()),
       Mdf.mdf,
       coreIts,
       "fearTmp$",
       List.of(),
       Optional.empty()
-    ), Optional.empty());
+    ));
     var p = this.withDec(dec);
     return p.meths(xbs, recvMdf, dec.toIT(), depth).stream()
       .filter(cm->filterByMdf(recvMdf, cm.mdf()))
@@ -257,21 +257,7 @@ public interface Program {
     }
 
     @Override public T.Dec visitDec(T.Dec d) {
-      var xbs = d.bounds().entrySet().stream().collect(Collectors.toMap(
-        kv->{
-          var thisSubst = subst.get(kv.getKey());
-          if (thisSubst != null) { return thisSubst; }
-          return kv.getKey();
-        },
-        Map.Entry::getValue
-      ));
-      return new T.Dec(
-        visitDecId(d.name()),
-        d.gxs().stream().map(this::visitGX).toList(),
-        xbs,
-        visitLambda(d.lambda()),
-        d.pos()
-      );
+      return new T.Dec(visitLambda(d.lambda()));
     }
     @Override public ast.E.Sig visitSig(ast.E.Sig e) {
       var xbs = e.bounds().entrySet().stream().collect(Collectors.toMap(

@@ -39,7 +39,7 @@ import static program.Program.filterByMdf;
 interface ELambdaTypeSystem extends ETypeSystem{
   default FailOr<T> visitLambda(E.Lambda b){
     Id.DecId fresh= new Id.DecId(Id.GX.fresh().name(), 0);
-    Dec d= new Dec(fresh, List.of(),Map.of(),b,b.pos());
+    Dec d= new Dec(b);
     var self= (ELambdaTypeSystem)withProgram(p().withDec(d));
     var err1= self.implMethErrors(d,b);
     return err1.flatMap(unused->self.bothT(d));

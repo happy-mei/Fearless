@@ -3,6 +3,7 @@ package program.typesystem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -51,8 +52,33 @@ record MultiSigBuilder(ast.E.Sig s, int size, List<ArrayList<T>> tss,ArrayList<T
   
   T fixP(T t,Function<Mdf,Mdf> f){
     if(t.mdf().isMdf()){ return t.withMdf(Mdf.iso); }
+    //t.isMdfX() == t.mdf().isMdf()
+    //if(t.mdf().isReadImm()) {..}
     return t.withMdf(f.apply(t.mdf()));
     }
+  /* TODO:
+   with Bounds, take all RC of X, if single bounds, apply bounds and delegate  X == imm X
+   If multiple bounds read, imm 
+     select the worst and apply transformation?
+     P mut,imm,read =>iso because mut is present
+     R mut,imm,read =>imm because read is present
+     what if iso/readH/mutH in bounds
+     1-apply the transformation for all the bounds (include the read imm transformation. DO formalis?
+     2-P- select the most specific
+     2-R- select the most general
+     Do we have a 'most specific/most general MDF function'? -NO
+     
+     -well formedness?
+       read/imm X only well formed if
+         X bounds contains imm? may be not needed?
+         
+         A[X:read,imm]:{}
+         B[Y:read]:A[Y]{}
+     location of default XBs.defaultBounds
+     options for Toplas:
+     -well formedness: no iso,readH,mutH to instantiate an X
+     -have bounds
+   */
   T fixR(T t,Function<Mdf,Mdf> f){
     if(t.mdf().isMdf()){ return t.withMdf(Mdf.imm); }
     return t.withMdf(f.apply(t.mdf()));

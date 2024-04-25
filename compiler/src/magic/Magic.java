@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import ast.E.Lambda;
+import ast.T.Dec;
+
 public class Magic {
   public static final Id.DecId Main = new Id.DecId("base.Main", 0);
   public static final Id.DecId Sealed = new Id.DecId("base.Sealed", 0);
@@ -70,16 +73,17 @@ public class Magic {
     var base = _getDec(resolve, id);
     return base.map(b->b.withName(id)).orElse(null);
   }
-
-  public static ast.T.Dec getDec(Function<Id.DecId, ast.T.Dec> resolve, Id.DecId id) {
+  public static Dec getDecMap(Dec b, Id.DecId id){
+    Lambda l= b.lambda();
+    assert l.its().size() == 2 : l; // instance, kind
+    l = l.withITs(List.of(
+      new Id.IT<>(id, List.of()),
+      l.its().get(1)));
+    return b.withLambda(l);    
+  }
+  public static Dec getDec(Function<Id.DecId, Dec> resolve, Id.DecId id) {
     var base = _getDec(resolve, id);
-    return base.map(b->{
-      assert b.lambda().its().size() == 2 : b.lambda(); // instance, kind
-      return b.withName(id).withLambda(b.lambda().withITs(List.of(
-        new Id.IT<>(id, List.of()),
-        b.lambda().its().get(1)
-      )));
-    }).orElse(null);
+    return base.map(b->getDecMap(b,id)).orElse(null);
   }
 
   private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {

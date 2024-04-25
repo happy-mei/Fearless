@@ -13,7 +13,7 @@ public class AllLsVisitor implements CollectorVisitor<Collection<T.Dec>> {
   }
 
   @Override public Void visitLambda(E.Lambda e) {
-    var dec = new T.Dec(e.id().id(), e.id().gens(), e.id().bounds(), e, e.pos());
+    var dec = new T.Dec(e);
     var conflict = ds.get(dec.name());
     if (conflict != null) {
       throw Fail.conflictingDecl(dec.name(), List.of(new Fail.Conflict(conflict.posOrUnknown(), conflict.name().toString()))).pos(e.pos());

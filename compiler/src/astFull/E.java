@@ -30,11 +30,6 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
-
-      if (it.isEmpty() && mdf.isPresent() && !id.id.isFresh()) {
-        it = Optional.of(new Id.IT<>(id.id, id.gens.stream().map(gx->new T(Mdf.mdf, gx)).toList()));
-      }
-
       assert mdf.isPresent() == it.isPresent();
     }
 

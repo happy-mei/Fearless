@@ -30,7 +30,9 @@ public interface E extends HasPos {
       //assert !its.isEmpty();//Why it was asserted?
       assert X.validId(selfName);
       assert meths != null;
-      if (id.id().isFresh()) {
+      if (id.id().isFresh()) {//This is computing Xs for inferred lambdas.
+        assert false;
+        //TODO: this logic needs to go in the desugaring
         id = LambdaId.computeId(id.id.name(), id.bounds, meths, its);
       }
     }
@@ -39,7 +41,9 @@ public interface E extends HasPos {
       public Id.IT<T> toIT() {
         return new Id.IT<>(id, gens.stream().map(gx->new T(Mdf.mdf, gx)).toList());
       }
-      private static E.Lambda.LambdaId computeId(String id, Map<Id.GX<T>, Set<Mdf>> bounds, List<E.Meth> meths, List<Id.IT<T>> its) {
+      private static E.Lambda.LambdaId computeId(
+          String id, Map<Id.GX<T>, Set<Mdf>> bounds,
+          List<E.Meth> meths, List<Id.IT<T>> its) {
         var visitor = new UndefinedGXsVisitor(List.of());
         its.forEach(visitor::visitIT);
         meths.forEach(visitor::visitMeth);

@@ -18,6 +18,7 @@ public record ResolveResource(
     //ResolveResource.infer();
     ResolveResource.of(Paths.get("C:/")
       .resolve("Users/sonta/Documents/GitHub/Fearless"));
+  //TODO: test what happens if I put the two data folders in the class path
 
   public ResolveResource{
     assert Files.exists(assetRoot):assetRoot;

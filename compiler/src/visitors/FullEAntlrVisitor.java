@@ -14,6 +14,8 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+
+import astFull.E.Lambda.LambdaId;
 import utils.*;
 
 import java.nio.file.Path;
@@ -23,6 +25,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("serial")
 class ParserFailed extends RuntimeException{}
 
 public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
@@ -251,9 +254,18 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
     var meths = mms;
-
-//    var topName = name.orElseGet(()->E.Lambda.nameFromLambda(Map.copyOf(this.xbs), meths, its));
-    return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, _n, meths, rt, Optional.of(pos(ctx)));
+    LambdaId id= name.orElseGet(emptyTopName);
+    var inferredOpt= rt;
+    boolean givenName= mdf.isPresent() && !id.id().isFresh();    
+    if(givenName){
+      Id.IT<astFull.T> nameId= new Id.IT<>(id.id(),
+          id.gens().stream().map(gx->new T(Mdf.mdf, gx)).toList());
+      assert rt.isEmpty() || rt.get().equals(nameId)
+        : rt.get() +" // "+nameId;
+      inferredOpt= Optional.of(nameId);
+    }
+    return new E.Lambda(id, mdf, its, _n,
+      meths,inferredOpt, Optional.of(pos(ctx)));
   }
   @Override public String visitFullCN(FullCNContext ctx) {
     return ctx.getText();
@@ -307,7 +319,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override
   public E.Meth visitSingleM(SingleMContext ctx) {
     check(ctx);
-    var _xs = opt(ctx.x(), xs->xs.stream().map(this::visitX).map(E.X::name).toList());
+    var _xs = opt(ctx.x(), xs->xs.stream()
+      .map(this::visitX).map(E.X::name).toList());
     _xs = _xs==null?List.of():_xs;
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
     return new E.Meth(Optional.empty(), Optional.empty(), _xs, body, Optional.of(pos(ctx)));
