@@ -75,7 +75,7 @@ public class Magic {
   }
   public static Dec getDecMap(Dec b, Id.DecId id){
     Lambda l= b.lambda();
-    assert l.its().size() == 2 : l; // instance, kind
+    assert l.its().size() == 2 : l; // instance, kind   0.5  anon:base._FloatInstance, base.Float
     l = l.withITs(List.of(
       new Id.IT<>(id, List.of()),
       l.its().get(1)));

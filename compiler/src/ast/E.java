@@ -27,29 +27,13 @@ public interface E extends HasPos {
   record Lambda(LambdaId id, Mdf mdf, List<Id.IT<T>> its, String selfName, List<Meth> meths, Optional<Pos> pos) implements E {
     public Lambda {
       assert mdf != null;
-      //assert !its.isEmpty();//Why it was asserted?
       assert X.validId(selfName);
       assert meths != null;
-      if (id.id().isFresh()) {//This is computing Xs for inferred lambdas.
-        assert false;
-        //TODO: this logic needs to go in the desugaring
-        id = LambdaId.computeId(id.id.name(), id.bounds, meths, its);
-      }
     }
 
     public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {
       public Id.IT<T> toIT() {
         return new Id.IT<>(id, gens.stream().map(gx->new T(Mdf.mdf, gx)).toList());
-      }
-      private static E.Lambda.LambdaId computeId(
-          String id, Map<Id.GX<T>, Set<Mdf>> bounds,
-          List<E.Meth> meths, List<Id.IT<T>> its) {
-        var visitor = new UndefinedGXsVisitor(List.of());
-        its.forEach(visitor::visitIT);
-        meths.forEach(visitor::visitMeth);
-        var gens = visitor.res().stream().sorted(Comparator.comparing(Id.GX::name)).toList();
-        Map<Id.GX<T>, Set<Mdf>> xbs = Mapper.of(xbs_->gens.stream().filter(bounds::containsKey).forEach(gx->xbs_.put(gx, bounds.get(gx))));
-        return new E.Lambda.LambdaId(new Id.DecId(id, gens.size()), gens, xbs);
       }
     }
 

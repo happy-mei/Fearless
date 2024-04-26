@@ -33,7 +33,7 @@ public interface TraitTypeSystem {
     var xbs = XBs.empty().addBounds(d.gxs(), d.bounds());
     try{ p().meths(xbs, Mdf.recMdf, cT,0); }
     catch(CompileError ce){ return Optional.of(()->ce); }
-    assert d.lambda().mdf()==Mdf.mdf;
+    assert d.lambda().mdf()==Mdf.mdf: d.lambda().mdf();
     var self= (ELambdaTypeSystem) ETypeSystem.of(
       p(), Gamma.empty(), xbs, List.of(), resolvedCalls, 0);
     return self.bothT(d).asOpt();

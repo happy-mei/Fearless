@@ -7,14 +7,21 @@ import id.Id;
 import id.Mdf;
 import program.typesystem.XBs;
 import utils.Mapper;
+import wellFormedness.UndefinedGXsVisitor;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class InjectionVisitor implements FullVisitor<ast.E>{
+public record InjectionVisitor(Map<Id.GX<T>, Set<Mdf>> allBounds) implements FullVisitor<ast.E>{
+  InjectionVisitor(){this(Map.of());}
+  InjectionVisitor withMoreBounds(Map<Id.GX<T>, Set<Mdf>> moreBounds){
+    assert Collections.disjoint(allBounds.keySet(),moreBounds.keySet());
+    Map<Id.GX<T>, Set<Mdf>> map= Mapper.of(bs->{
+      bs.putAll(allBounds);
+      bs.putAll(moreBounds);
+    });
+    return new InjectionVisitor(map);
+  }
   public ast.E.MCall visitMCall(E.MCall e) {
     var recv = e.receiver().accept(this);
     if (e.ts().isEmpty()) {
@@ -33,16 +40,22 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     return new ast.E.X(e.name(), e.pos());
   }
   public ast.E.Lambda visitLambda(E.Lambda e){
+    var gxs= e.id().gens().stream().map(this::visitGX).toList();
+    var bounds= completeBounds(gxs,e.id().bounds());
+    return visitLambda(e,gxs,bounds);
+  }
+  public ast.E.Lambda visitLambda(E.Lambda e,List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds){
     var inferredType= e.it().map(List::of).orElse(List.of());
     var its= e.its().isEmpty() ? inferredType : e.its();
-    var gxs= e.id().gens().stream().map(this::visitGX).toList();
-    var lambdaId= new ast.E.Lambda.LambdaId(
-        e.id().id(),
-        gxs,completeBounds(gxs,e.id().bounds())
-      );
-    Mdf lambdaMdf=e.mdf()
-      //.or(()->e.it().map(..)) TODO: No mdf in e.it(). Where do we infer it? 
-      .orElse(Mdf.imm); 
+    var lambdaId= new ast.E.Lambda.LambdaId(e.id().id(),gxs,bounds);
+    Mdf lambdaMdf= e.mdf().orElse(Mdf.imm);
+    var resIts= its.stream().map(this::visitIT).toList();
+    var resMeths= e.meths().stream().map(this::visitMeth).toList();
+    boolean inferredName= lambdaId.id().isFresh();
+    if (inferredName) {
+      var freeGx= freeGx(resMeths,resIts);
+      lambdaId = computeId(lambdaId.id().name(), freeGx);
+    }
     return new ast.E.Lambda(
       lambdaId, lambdaMdf,
       its.stream().map(this::visitIT).toList(),
@@ -50,7 +63,20 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
       e.meths().stream().map(this::visitMeth).toList(),
       e.pos()
     );
-  }  
+  }
+  private static List<Id.GX<T>> freeGx(List<ast.E.Meth> meths, List<Id.IT<T>> its){
+    var visitor = new UndefinedGXsVisitor(List.of());//Find all the free type variables
+    its.forEach(visitor::visitIT);
+    meths.forEach(visitor::visitMeth);
+    return visitor.res().stream()
+      .sorted(Comparator.comparing(Id.GX::name)).toList();
+  }
+  private ast.E.Lambda.LambdaId computeId(String id, List<Id.GX<T>> gens) {
+    assert allBounds.keySet().containsAll(gens): allBounds.keySet()+" "+gens;
+    Map<Id.GX<T>, Set<Mdf>> xbs = Mapper.of(xbs_->gens.stream()
+      .filter(allBounds::containsKey).forEach(gx->xbs_.put(gx, allBounds.get(gx))));
+    return new ast.E.Lambda.LambdaId(new Id.DecId(id, gens.size()), gens, xbs);
+  }
   Map<Id.GX<T>, Set<Mdf>> completeBounds(
       List<Id.GX<T>> gxs, Map<Id.GX<astFull.T>, Set<Mdf>> bounds){
     return Mapper.of(xbs->gxs.forEach(xi->
@@ -59,7 +85,12 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     //because of erasure + legacy get(Object)
   }
   public ast.T.Dec visitDec(astFull.T.Dec d){
-    var lambda= this.visitLambda(d.lambda());
+    var e=d.lambda();
+    var gxs= e.id().gens().stream().map(this::visitGX).toList();
+    var bounds= completeBounds(gxs,e.id().bounds());
+    var vBounds=this.withMoreBounds(bounds);
+    var lambda= vBounds.visitLambda(d.lambda(),gxs,bounds);
+    lambda= lambda.withMdf(Mdf.mdf);
     return new ast.T.Dec(lambda);
   }
 
@@ -86,11 +117,12 @@ public class InjectionVisitor implements FullVisitor<ast.E>{
     catch (astFull.T.MatchOnInfer err) {
       throw Fail.inferFailed(m.toString()).pos(m.pos());
     }
+    var vBounds=this.withMoreBounds(sig.bounds());
     return new ast.E.Meth(
       sig,
       m.name().orElseThrow(),
       m.xs(),
-      m.body().map(b->b.accept(this)),
+      m.body().map(b->b.accept(vBounds)),
       m.pos()
     );
   }
