@@ -231,21 +231,26 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     check(ctx);
     var _its = Optional.ofNullable(ctx.t())
       .map(its->its.stream().map(this::visitIT).toList());
-    var rt = _its.flatMap(its->GetO.of(its,0));
     var its = _its.orElse(List.of());
-    if (rt.isEmpty() && name.isEmpty() && mdf.isPresent()) {
+    if (name.isEmpty() && mdf.isPresent()) {
       throw Fail.mustProvideImplsIfMdfProvided().pos(pos(ctx));
     }
-    if (rt.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }
-    mdf.filter(Mdf::isMdf).ifPresent(mdf1->{ throw Fail.invalidMdf(rt.get()); });
-
+    if (name.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }
+    assert mdf.filter(Mdf::isMdf).isEmpty();
     Supplier<E.Lambda.LambdaId> emptyTopName = ()->new E.Lambda.LambdaId(Id.DecId.fresh(pkg, 0), List.of(), this.xbs);
-    if(ctx.bblock()==null){
-      return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, null, List.of(), rt, Optional.of(pos(ctx)));
+    LambdaId id= name.orElseGet(emptyTopName);
+    boolean givenName= mdf.isPresent() && !id.id().isFresh();
+    var inferredOpt= Optional.<Id.IT<T>>empty();
+    if(givenName){
+      Id.IT<astFull.T> nameId= new Id.IT<>(id.id(),
+        id.gens().stream().map(gx->new T(Mdf.mdf, gx)).toList());
+      inferredOpt= Optional.of(nameId);
     }
+    //TODO: inferredOpt may itself disappear since we have nameId in id.
     var bb = ctx.bblock();
-    if(bb.children==null){
-      return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, null, List.of(), rt, Optional.of(pos(ctx)));
+    if(bb==null || bb.children==null){
+      return new E.Lambda(name.orElseGet(emptyTopName),
+        mdf, its, null, List.of(), inferredOpt, Optional.of(pos(ctx)));
     }
     var _x=bb.SelfX();
     var _n=_x==null?null:_x.getText().substring(1);
@@ -254,16 +259,6 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
     var meths = mms;
-    LambdaId id= name.orElseGet(emptyTopName);
-    var inferredOpt= rt;
-    boolean givenName= mdf.isPresent() && !id.id().isFresh();    
-    if(givenName){
-      Id.IT<astFull.T> nameId= new Id.IT<>(id.id(),
-          id.gens().stream().map(gx->new T(Mdf.mdf, gx)).toList());
-      assert rt.isEmpty() || rt.get().equals(nameId)
-        : rt.get() +" // "+nameId;
-      inferredOpt= Optional.of(nameId);
-    }
     return new E.Lambda(id, mdf, its, _n,
       meths,inferredOpt, Optional.of(pos(ctx)));
   }

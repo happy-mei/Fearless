@@ -79,7 +79,7 @@ public class Magic {
     l = l.withITs(List.of(
       new Id.IT<>(id, List.of()),
       l.its().get(1)));
-    return b.withLambda(l);    
+    return b.withLambda(l);
   }
   public static Dec getDec(Function<Id.DecId, Dec> resolve, Id.DecId id) {
     var base = _getDec(resolve, id);
