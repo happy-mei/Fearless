@@ -94,27 +94,27 @@ public record InferBodies(ast.Program p) {
     if(anyNoSig){ return Optional.of(baseLambda); }
     return Optional.of(new RefineTypes(p).fixLambda(baseLambda, depth));
   }
-
   Optional<E> bProp(Map<String, T> gamma, E.Lambda e, int depth) {
     if (e.it().isEmpty()) { return Optional.empty(); }
     var fixedLambda = (E.Lambda) refineLambda(e, e, depth).orElse(e);
-    boolean[] done = {false};
-    List<E.Meth> newMs = fixedLambda.meths()
-      .stream().flatMap(mi->done[0]
-        ? Stream.of(mi)
-        : bProp(gamma,mi,fixedLambda,depth)
-          .map(mj->{
-            done[0]=true;
-            return mj.stream();
-            })
-          .orElseGet(()->Stream.of(mi)))
-    .toList();
-    if(!done[0]){ return Optional.empty(); }
-    if (newMs.size() < e.meths().size()) {
-      throw Fail.inferFailed("Could not infer all methods on:\n"+e).pos(e.pos());
+    List<E.Meth> oldMs= fixedLambda.meths();
+    List<E.Meth> newMs= new ArrayList<>();
+    boolean done= false;
+    for (E.Meth mi : oldMs) {
+      Optional<List<E.Meth>> bProp= bProp(gamma, mi, fixedLambda, depth);
+      if (bProp.isEmpty()) { newMs.add(mi); continue; }
+      var err= bProp.get().isEmpty();
+      if(err){ throw Fail.inferFailed("Could not infer method "+
+        mi.name().map(n->n.name()).orElse("-name to infer-")
+        +" on:\n"+e).pos(e.pos()); }
+      newMs.addAll(bProp.get());
+      done= true;
     }
-    var res = refineLambda(e, e.withMeths(newMs), depth); // TODO: why can't we get rid of this?
-//    var res = Optional.of(e.withMeths(newMs));
+    if (!done) { return Optional.empty(); }
+    newMs = Collections.unmodifiableList(newMs);
+    var res = refineLambda(e, e.withMeths(newMs), depth);
+    // TODO: why can't we get rid of this?
+    // var res = Optional.of(e.withMeths(newMs));
     return res.flatMap(e1->!e1.equals(e) ? res : Optional.empty());
   }
   Optional<List<E.Meth>> bProp(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
@@ -142,19 +142,24 @@ public record InferBodies(ast.Program p) {
     var finalRes = res.or(()->e1==e2
       ? Optional.empty()
       : Optional.of(m.withBody(Optional.of(e2)).withSig(refiner.fixSig(sig, e2.t()))));
-    return finalRes.map(m1->!m.equals(m1)).orElse(true) ? finalRes : Optional.empty();
+    return finalRes.map(m1->!m.equals(m1)).orElse(true) 
+      ? finalRes : Optional.empty();
 //    assert finalRes.map(m1->!m.equals(m1)).orElse(true);
 //    return finalRes;
   }
   Optional<List<E.Meth>> bPropGetSigM(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
     assert !e.it().isEmpty();
+    assert m.sig().isEmpty() || m.name().isPresent();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isPresent()){ return Optional.empty(); }
+    //TODO: here is where we need to check the method name is the same.
     var res = onlyAbs(e, depth).stream()
       .filter(fullSig->fullSig.sig().ts().size() == m.xs().size())
       .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()))
       .toList();
     assert res.stream().noneMatch(m::equals);
+    assert !res.isEmpty():
+      onlyAbs(e, depth);
     return Optional.of(res);
   }
 

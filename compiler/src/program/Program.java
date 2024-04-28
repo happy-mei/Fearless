@@ -207,7 +207,8 @@ public interface Program {
       Optional.empty()
     ));
     var p = this.withDec(dec);
-    return p.meths(xbs, recvMdf, dec.toIT(), depth).stream()
+    var meths= p.meths(xbs, recvMdf, dec.toIT(), depth); 
+    return meths.stream()
       .filter(cm->filterByMdf(recvMdf, cm.mdf()))
       .filter(pred)
       .sorted(Comparator.comparingInt(cm->EMethTypeSystem.inferPriority(recvMdf).indexOf(cm.mdf())))
