@@ -232,9 +232,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var _its = Optional.ofNullable(ctx.t())
       .map(its->its.stream().map(this::visitIT).toList());
     var its = _its.orElse(List.of());
-    if (name.isEmpty() && mdf.isPresent()) {
-      throw Fail.mustProvideImplsIfMdfProvided().pos(pos(ctx));
-    }
+    boolean nakedMdf= mdf.isPresent() && name.isEmpty() && its.isEmpty();
+    if (nakedMdf){ throw Fail.mustProvideImplsIfMdfProvided().pos(pos(ctx)); }
     if (name.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }
     assert mdf.filter(Mdf::isMdf).isEmpty();
     Supplier<E.Lambda.LambdaId> emptyTopName = ()->new E.Lambda.LambdaId(Id.DecId.fresh(pkg, 0), List.of(), this.xbs);
@@ -244,7 +243,11 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(givenName){
       Id.IT<astFull.T> nameId= new Id.IT<>(id.id(),
         id.gens().stream().map(gx->new T(Mdf.mdf, gx)).toList());
-      inferredOpt= Optional.of(nameId);
+      inferredOpt = Optional.of(nameId);
+    }
+    if(inferredOpt.isEmpty()&& !its.isEmpty()) {
+      inferredOpt = Optional.of(its.get(0));
+      if(mdf.isEmpty()){ mdf = Optional.of(Mdf.imm); }
     }
     //TODO: inferredOpt may itself disappear since we have nameId in id.
     var bb = ctx.bblock();
@@ -379,9 +382,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
 
     var oldXbs = this.xbs;
     this.xbs = Map.copyOf(mGen.bounds);
-    var body = shallow ? null : visitBlock(ctx.block(), Optional.empty(), Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds)));
+    var body = shallow ? null
+      : visitBlock(ctx.block(), Optional.empty(),
+          Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds)));
     if (body != null) {
-//      assert body.it().isEmpty();
       body = body.withT(Optional.empty());
     }
     this.xbs = oldXbs;

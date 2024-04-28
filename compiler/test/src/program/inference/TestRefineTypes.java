@@ -2,7 +2,6 @@ package program.inference;
 
 import astFull.T;
 import main.Main;
-import net.jqwik.api.Example;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.TypeSystemFeatures;
@@ -29,7 +28,7 @@ public class TestRefineTypes {
     var pT2 = addInfers(new Parser(Parser.dummy, t2).parseFullT());
     var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)), new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = new ShallowInjectionVisitor().visitProgram(p.inferSignatures());
+    var inferredSigs = ShallowInjectionVisitor.of().visitProgram(p.inferSignatures());
 
     var e1 = new RefineTypes(inferredSigs).fixType(e, pT1);
     var e2 = new RefineTypes(inferredSigs).fixType(e1, pT2);

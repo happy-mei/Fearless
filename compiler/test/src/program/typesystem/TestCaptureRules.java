@@ -86,7 +86,8 @@ public class TestCaptureRules {
     var exceptions = new ConcurrentLinkedQueue<>();
     var templateA = codeGen3a;
     var templateB = codeGen3b;
-    permutations.parallelStream().forEach(c->{
+    permutations.stream()//.parallelStream()TODO: to ease debugging
+      .forEach(c->{
       var codeA = templateA.formatted(method, c.capAs, captured, lambda, c.capAsG, lambda, c.capAsG);
 //      System.out.println(codeA);
       var codeB = templateB.formatted(method, c.capAs, c.capAsG, captured, lambda, lambda);

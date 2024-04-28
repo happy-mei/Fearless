@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 public record InferBodies(ast.Program p) {
   public static ast.Program inferAll(astFull.Program fullProgram){
     var inferredSigs = fullProgram.inferSignatures();
-    var coreP = new ShallowInjectionVisitor().visitProgram(inferredSigs);
+    var coreP = ShallowInjectionVisitor.of().visitProgram(inferredSigs);
     return new ast.Program(inferredSigs.tsf(), inferDecs(coreP, inferredSigs), Map.of());
   }
 
@@ -31,7 +31,7 @@ public record InferBodies(ast.Program p) {
 //    return fullProgram.ds().values().stream()
 //      .map(inferBodies::inferDec)
 //      .collect(Collectors.toMap(ast.T.Dec::name, d->d));
-    return fullProgram.ds().values().parallelStream()
+    return fullProgram.ds().values().stream()//TODO: to ease debugging.parallelStream()
       .map(dec->new InferBodies(p.shallowClone()).inferDec(dec))
       .collect(Collectors.toConcurrentMap(ast.T.Dec::name, d->d));
   }
@@ -46,7 +46,11 @@ public record InferBodies(ast.Program p) {
   }
   ast.E.Meth inferMethBody(ast.T.Dec dec, E e, ast.E.Meth coreMeth) {
     var refiner = new RefineTypes(p);
-    var iV = new InjectionVisitor();
+    assert dec.bounds().keySet().containsAll(dec.gxs());
+    assert coreMeth.sig().bounds().keySet()
+      .containsAll(coreMeth.sig().gens());
+    var iV = InjectionVisitor.of(dec.bounds())
+      .withMoreBounds(coreMeth.sig().bounds());
     var type = refiner.fixType(e, coreMeth.sig().toAstFullSig().ret());
     var newBody = fixInferStep(iGOf(dec, coreMeth), type, 0).accept(iV);
     return coreMeth.withBody(Optional.of(newBody));
@@ -95,9 +99,15 @@ public record InferBodies(ast.Program p) {
     if (e.it().isEmpty()) { return Optional.empty(); }
     var fixedLambda = (E.Lambda) refineLambda(e, e, depth).orElse(e);
     boolean[] done = {false};
-    List<E.Meth> newMs = fixedLambda.meths().stream().flatMap(mi->done[0]
-      ? Stream.of(mi)
-      : bProp(gamma,mi,fixedLambda,depth).map(mj->{done[0]=true;return mj.stream();}).orElseGet(()->Stream.of(mi)))
+    List<E.Meth> newMs = fixedLambda.meths()
+      .stream().flatMap(mi->done[0]
+        ? Stream.of(mi)
+        : bProp(gamma,mi,fixedLambda,depth)
+          .map(mj->{
+            done[0]=true;
+            return mj.stream();
+            })
+          .orElseGet(()->Stream.of(mi)))
     .toList();
     if(!done[0]){ return Optional.empty(); }
     if (newMs.size() < e.meths().size()) {

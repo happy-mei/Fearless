@@ -4,6 +4,7 @@ import ast.T;
 import astFull.E;
 import failure.Fail;
 import id.Id;
+import id.Id.GX;
 import id.Mdf;
 import program.typesystem.XBs;
 import utils.Mapper;
@@ -12,16 +13,26 @@ import wellFormedness.UndefinedGXsVisitor;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public record InjectionVisitor(Map<Id.GX<T>, Set<Mdf>> allBounds) implements FullVisitor<ast.E>{
-  InjectionVisitor(){this(Map.of());}
-  InjectionVisitor withMoreBounds(Map<Id.GX<T>, Set<Mdf>> moreBounds){
+public abstract class InjectionVisitor implements FullVisitor<ast.E>{
+  private final Map<Id.GX<T>, Set<Mdf>> allBounds; 
+  static public InjectionVisitor of(){ return of(Map.of()); } 
+  static public InjectionVisitor of(Map<Id.GX<T>, Set<Mdf>> allBounds){
+    return new InjectionVisitor(allBounds){
+      InjectionVisitor renew(Map<GX<T>, Set<Mdf>> allBounds) {
+        return of(allBounds);
+      }};
+  }
+  protected InjectionVisitor(Map<Id.GX<T>, Set<Mdf>> allBounds){this.allBounds= allBounds;}
+  
+  public InjectionVisitor withMoreBounds(Map<Id.GX<T>, Set<Mdf>> moreBounds){
     assert Collections.disjoint(allBounds.keySet(),moreBounds.keySet());
     Map<Id.GX<T>, Set<Mdf>> map= Mapper.of(bs->{
       bs.putAll(allBounds);
       bs.putAll(moreBounds);
     });
-    return new InjectionVisitor(map);
+    return renew(map);
   }
+  abstract InjectionVisitor renew(Map<Id.GX<T>, Set<Mdf>> allBounds);
   public ast.E.MCall visitMCall(E.MCall e) {
     var recv = e.receiver().accept(this);
     if (e.ts().isEmpty()) {
@@ -54,6 +65,10 @@ public record InjectionVisitor(Map<Id.GX<T>, Set<Mdf>> allBounds) implements Ful
     boolean inferredName= lambdaId.id().isFresh();
     if (inferredName) {
       var freeGx= freeGx(resMeths,resIts);
+      assert allBounds.keySet().containsAll(freeGx):
+        allBounds.keySet()+" "+freeGx;
+        //Where is the type error blocking this from happening
+        //in the first place?
       lambdaId = computeId(lambdaId.id().name(), freeGx);
     }
     return new ast.E.Lambda(
@@ -72,7 +87,6 @@ public record InjectionVisitor(Map<Id.GX<T>, Set<Mdf>> allBounds) implements Ful
       .sorted(Comparator.comparing(Id.GX::name)).toList();
   }
   private ast.E.Lambda.LambdaId computeId(String id, List<Id.GX<T>> gens) {
-    assert allBounds.keySet().containsAll(gens): allBounds.keySet()+" "+gens;
     Map<Id.GX<T>, Set<Mdf>> xbs = Mapper.of(xbs_->gens.stream()
       .filter(allBounds::containsKey).forEach(gx->xbs_.put(gx, allBounds.get(gx))));
     return new ast.E.Lambda.LambdaId(new Id.DecId(id, gens.size()), gens, xbs);

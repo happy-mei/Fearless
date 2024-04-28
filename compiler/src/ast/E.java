@@ -35,6 +35,13 @@ public interface E extends HasPos {
       public Id.IT<T> toIT() {
         return new Id.IT<>(id, gens.stream().map(gx->new T(Mdf.mdf, gx)).toList());
       }
+      public LambdaId withId(Id.DecId id){
+        return new LambdaId(id,gens,bounds); }
+      public LambdaId withGens(List<Id.GX<T>> gens){
+        return new LambdaId(id,gens,bounds); }
+      public LambdaId withBounds(Map<Id.GX<T>, Set<Mdf>> bounds){
+        return new LambdaId(id,gens,bounds); }
+
     }
 
     @Override public E accept(CloneVisitor v) {
@@ -47,6 +54,9 @@ public interface E extends HasPos {
       return v.visitLambda(this, ctx);
     }
     public ast.E.Lambda withMeths(List<Meth> meths) {
+      return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
+    }
+    public ast.E.Lambda withId(LambdaId id) {
       return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
     public ast.E.Lambda withITs(List<Id.IT<T>> its) {

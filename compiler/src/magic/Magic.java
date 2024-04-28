@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import ast.E.Lambda;
+import ast.E.Lambda.LambdaId;
 import ast.T.Dec;
 
 public class Magic {
@@ -75,10 +76,12 @@ public class Magic {
   }
   public static Dec getDecMap(Dec b, Id.DecId id){
     Lambda l= b.lambda();
-    assert l.its().size() == 2 : l; // instance, kind   0.5  anon:base._FloatInstance, base.Float
-    l = l.withITs(List.of(
-      new Id.IT<>(id, List.of()),
-      l.its().get(1)));
+    LambdaId lid= l.id();
+    assert lid.id().name().endsWith("Instance");
+    assert l.its().size() == 1 : l; 
+    // instance, kind   0.5  anon:base._FloatInstance, base.Float
+    var its= List.of(lid.toIT(),l.its().get(0));
+    l = l.withId(lid.withId(id)).withITs(its);
     return b.withLambda(l);
   }
   public static Dec getDec(Function<Id.DecId, Dec> resolve, Id.DecId id) {
@@ -86,23 +89,33 @@ public class Magic {
     return base.map(b->getDecMap(b,id)).orElse(null);
   }
 
-  private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
-    if ((Character.isDigit(id.name().charAt(0)) || id.name().startsWith("-")) && id.gen() == 0) {
-      T baseDec;
-      var nDots = id.name().chars().filter(c->c=='.').limit(2).count();
-      if (nDots > 0) {
-        if (nDots > 1) { throw Fail.invalidNum(id.name(), "Float"); }
-        baseDec = resolve.apply(new Id.DecId("base._FloatInstance", 0));
-      } else if (id.name().endsWith("u")) {
-        baseDec = resolve.apply(new Id.DecId("base._UIntInstance", 0));
-      } else {
-        baseDec = resolve.apply(new Id.DecId("base._IntInstance", 0));
-      }
-      return Optional.of(baseDec);
-    }
-    if (id.name().charAt(0) == '"') {
+  //TODO: refactor for mandatory +/- and no 'u'.
+  private static boolean nameIsNumber(String name){
+    return Character.isDigit(name.charAt(0)) || name.startsWith("-");
+  }
+  private static boolean nameIsString(String name){
+    return name.charAt(0) == '"';
+  }
+
+  private static <T> Optional<T> _getDec(Function<Id.DecId,T> resolve, Id.DecId id) {
+    if(id.gen() != 0){ return Optional.empty(); }
+    if(nameIsString(id.name())){ 
       return Optional.of(resolve.apply(new Id.DecId("base._StrInstance", 0)));
     }
-    return Optional.empty();
+    if (!nameIsNumber(id.name())){ return Optional.empty(); }
+    T baseDec= null;
+    var nDots = id.name().chars().filter(c->c=='.').limit(2).count();
+    if (nDots > 1) { throw Fail.invalidNum(id.name(), "Float"); }
+    if (id.name().endsWith("u")) {
+      assert nDots==0; //u implies no dots
+      baseDec = resolve.apply(new Id.DecId("base._UIntInstance", 0));
+    }    
+    if (nDots > 0) {
+      baseDec = resolve.apply(new Id.DecId("base._FloatInstance", 0));
+    } 
+    if(baseDec == null){
+      baseDec = resolve.apply(new Id.DecId("base._IntInstance", 0));
+    }
+    return Optional.of(baseDec);
   }
 }

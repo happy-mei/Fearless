@@ -237,7 +237,7 @@ public class Fail{
 
   public static CompileError mustProvideImplsIfMdfProvided() {
     // TODO wording of this message
-    return of("At least one trait must be listed for a lambda to implement if a modifier for the lambda is provided.");
+    return of("An unnamed lambda with explicit modifier need to provide at least one implemented trait.");
   }
 
   public static CompileError namedTopLevelLambda() {
