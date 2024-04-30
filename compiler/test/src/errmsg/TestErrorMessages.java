@@ -40,7 +40,13 @@ public class TestErrorMessages {
 
   @Test void failBasicCurly() { fail(
     """
-    
+    [###]Dummy0.fear:2:5
+    [E59 syntaxError]
+    Error: mismatched closing parenthesis ')' at 2:5
+    2: Bar:{)
+           ^^ mismatched close, is it meant to be '}'?
+           |
+           unclosed open
     """,
     """
     package pkg1
@@ -50,12 +56,45 @@ public class TestErrorMessages {
 
   @Test void failMultiLineCurly() { fail(
   """
-    
+    [###]Dummy0.fear:4:0
+    [E59 syntaxError]
+    Error: mismatched closing parenthesis ')' at 4:0
+    2  : Bar:{
+             ^ unclosed open
+    3  :   Hello:{}
+    4  : )
+         ^ mismatched close, is it meant to be '}'?
     """,
   """
     package pkg1
     Bar:{
       Hello:{}
+    )
+    """
+  );}
+
+  @Test void failLongMultiLineCurly() { fail(
+    """
+    [###]Dummy0.fear:9:0
+    [E59 syntaxError]
+    Error: mismatched closing parenthesis ')' at 9:0
+    2  : Bar:{
+             ^ unclosed open
+    3  :   // Show this line
+    4-7: ... ... ...
+    8  :   Hello:{}  // Show this line
+    9  : )
+         ^ mismatched close, is it meant to be '}'?
+    """,
+  """
+    package pkg1
+    Bar:{
+      // Show this line
+      // Hide these lines
+      //
+      //
+      //
+      Hello:{}  // Show this line
     )
     """
   );}

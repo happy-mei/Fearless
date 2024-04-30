@@ -28,8 +28,8 @@ public record ParserErrors(URI fileName) implements ANTLRErrorListener {
 
   public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
     TokenStream input = ((Parser) recognizer).getInputStream();
-    msg = new BetterErrMsgs(input.getText(), offendingSymbol, line, charPositionInLine).syntaxError();
-    throw Fail.syntaxError(msg).pos(Pos.of(this.fileName, line, charPositionInLine));
+    String betterMsg = new BetterErrMsgs(input.getText(), offendingSymbol, msg).syntaxError();
+    throw Fail.syntaxError(betterMsg).pos(Pos.of(this.fileName, line, charPositionInLine));
   }
 
   public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {}

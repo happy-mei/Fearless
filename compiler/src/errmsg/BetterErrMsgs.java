@@ -6,14 +6,12 @@ import org.antlr.v4.runtime.Token;
 public class BetterErrMsgs {
   private final String input;
   Object offendingSymbol;
-  int line;
-  int pos;
+  private final String msg;
 
-  public BetterErrMsgs(String input, Object offendingSymbol, int line, int pos) {
+  public BetterErrMsgs(String input, Object offendingSymbol, String msg) {
     this.input = input;
     this.offendingSymbol = offendingSymbol;
-    this.line = line;
-    this.pos = pos;
+    this.msg = msg;
   }
 
   public String syntaxError() {
@@ -24,6 +22,6 @@ public class BetterErrMsgs {
         }
       }
     }
-    return "";
+    return this.msg;
   }
 }
