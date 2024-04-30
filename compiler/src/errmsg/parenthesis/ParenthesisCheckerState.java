@@ -60,7 +60,7 @@ public enum ParenthesisCheckerState {
     private String getSingleUnclosed(Parenthesis open, String input) {
       String prefix = open.line() + ": ";
       String message = String.format("Error: unclosed opening parenthesis '%s' at %d:%d\n", open.type().symbol, open.line(), open.pos());
-      message += prefix + input.lines().toList().get(open.line()-1);
+      message += prefix + input.lines().toList().get(open.line()-1) + "\n";
       message += " ".repeat(open.pos()-1 + prefix.length()) + "^ unclosed parenthesis\n";
       return message;
     }
@@ -74,7 +74,12 @@ public enum ParenthesisCheckerState {
   },
   ERR_EXTRA {
     @Override public String getErrorMessage(ParenthesisChecker checker, String input) {
-      return "EXTRA CLOSE";
+      Parenthesis close = checker.getStack().pop();
+      String prefix = close.line() + ": ";
+      String message = String.format("Error: unexpected closing parenthesis '%s' at %d:%d", close.type().symbol, close.line(), close.pos());
+      message += prefix + input.lines().toList().get(close.line()-1) + "\n";
+      message += " ".repeat(close.pos()-1 + prefix.length()) + "^ unexpected close\n";
+      return message;
     }
   },
   ERR_WRONG{
