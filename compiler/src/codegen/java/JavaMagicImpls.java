@@ -44,7 +44,7 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".uint", 0))) {
           return instantiate().orElseThrow(); // only different at type level
         }
-        if (m.equals(new Id.MethName(".toImm", 0))) {
+        if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".float", 0))) {
@@ -67,11 +67,11 @@ public record JavaMagicImpls(
             }})
           """, instantiate().orElseThrow(), args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return "Math.abs("+instantiate().orElseThrow()+")"; }
-        if (m.equals(new Id.MethName(">>", 1))) { return instantiate().orElseThrow()+">>"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName("<<", 1))) { return instantiate().orElseThrow()+"<<"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName("^", 1))) { return instantiate().orElseThrow()+"^"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName("&", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName("|", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".shiftRight", 1))) { return instantiate().orElseThrow()+">>"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".shiftLeft", 1))) { return instantiate().orElseThrow()+"<<"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".xor", 1))) { return instantiate().orElseThrow()+"^"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".and", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".or", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate().orElseThrow()+">"+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate().orElseThrow()+"<"+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate().orElseThrow()+">="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
@@ -103,7 +103,7 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate().orElseThrow(); // only different at type level
         }
-        if (m.equals(new Id.MethName(".toImm", 0))) {
+        if (m.equals(new Id.MethName(".uint", 0))) {
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".float", 0))) {
@@ -126,11 +126,11 @@ public record JavaMagicImpls(
             }})
           """, instantiate().orElseThrow(), args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(".abs", 0))) { return instantiate().orElseThrow(); } // no-op for unsigned
-        if (m.equals(new Id.MethName(">>", 1))) { return instantiate().orElseThrow()+">>>"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName("<<", 1))) { return instantiate().orElseThrow()+"<<<"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName("^", 1))) { return instantiate().orElseThrow()+"^"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName("&", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName("|", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".shiftRight", 1))) { return instantiate().orElseThrow()+">>>"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".shiftLeft", 1))) { return instantiate().orElseThrow()+"<<<"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".xor", 1))) { return instantiate().orElseThrow()+"^"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".and", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".or", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName(">", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")>0?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("<", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")<0?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName(">=", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")>=0?base.True_0.$self:base.False_0.$self)"; }
@@ -161,7 +161,7 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".int", 0)) || m.equals(new Id.MethName(".uint", 0))) {
           return "("+"(long)"+instantiate().orElseThrow()+")";
         }
-        if (m.equals(new Id.MethName(".toImm", 0))) {
+        if (m.equals(new Id.MethName(".float", 0))) {
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".str", 0))) {

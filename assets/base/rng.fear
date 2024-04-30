@@ -14,7 +14,7 @@ FRandom: F[UInt, mut Random]{seed -> Block#
   .let prev = {Ref#seed}
   .return {{
     .uint -> Block#
-      .do {prev := ((prev.get) * 6364136223846793005u + 1u >> 33u)}
+      .do {prev := ((prev.get) * 6364136223846793005u + 1u .shiftRight 33u)}
       .return {prev.get},
     }}
   }
