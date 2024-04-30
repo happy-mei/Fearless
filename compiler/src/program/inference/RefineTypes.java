@@ -8,6 +8,7 @@ import failure.Fail;
 import files.Pos;
 import id.Id;
 import id.Mdf;
+import magic.MagicImpls;
 import program.CM;
 import program.TypeRename;
 import program.typesystem.EMethTypeSystem;
@@ -216,6 +217,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var cTOriginal = new T(mdf, c);
     List<List<RP>> rpsSigs = Streams.zip(sigs,methGens)
       .map((sig,mGens)->pairUp(mdf, mGens, cTs, sig, depth))
+      .map(this::deprioritiseLiterals)
       .toList();
     List<RP> rpsAll = Stream.concat(
       Stream.of(new RP(cT, cTOriginal)),
@@ -431,9 +433,6 @@ collect(empty) = empty
   */
 
   Map<Id.GX<T>, T> refineSubs(List<Sub> subs) {
-    /* TODO: For inferring things like .fold where we have FearX1$ = 0 and FearX1$ = Int in the same rps
-     we actually want the supertype concrete type if possible */
-
     Map<Id.GX<T>, List<Sub>> res = subs.stream()
       .filter(si->!si.isCircular())
       .filter(si->!si.x().equals(si.t().rt()))
@@ -452,5 +451,17 @@ collect(empty) = empty
     var t1 = rename.renameT(rp.t1(),map::get);
     var t2 = rename.renameT(rp.t2(),map::get);
     return new RP(t1, t2);
+  }
+
+  private List<RP> deprioritiseLiterals(List<RP> rps) {
+    return rps.stream().map(rp->{
+      if (!rp.t1().isInfer() && rp.t1().rt() instanceof Id.IT<T> it && MagicImpls.getLiteral(p, it.name()).isPresent()) {
+        return new RP(rp.t2, rp.t2);
+      }
+      if (!rp.t2().isInfer() && rp.t2().rt() instanceof Id.IT<T> it && MagicImpls.getLiteral(p, it.name()).isPresent()) {
+        return new RP(rp.t1, rp.t1);
+      }
+      return rp;
+    }).toList();
   }
 }
