@@ -1873,7 +1873,7 @@ public class TestTypeSystem {
     """); }
 
   @Test void noImpossibleLambda() {fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:2:15
+    In position file:///[###]/Dummy0.fear:2:15
     [E61 lambdaImplementsGeneric]
     A lambda may not implement a generic type parameter 'X'
     """, """
