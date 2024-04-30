@@ -39,7 +39,7 @@ public class TestGoProgramImm {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.immBaseLib))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
@@ -68,7 +68,7 @@ public class TestGoProgramImm {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.immBaseLib))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });

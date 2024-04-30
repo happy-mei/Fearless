@@ -10,12 +10,9 @@ Ref:{
   }
 Ref[X:imm,mut,read]: Sealed{
   mut  .get: X,
-  read .get: read X,
-  // TODO: this will be unneeded if we add read/imm
-  read .getImm(f: mut Freezer[read X, imm X]): imm X -> f#(this.get),
-  read .getImm: Opt[imm X] -> {},
+  read .get: read/imm X,
   mut  *: X -> this.get,
-  read *: read X -> this.get,
+  read *: read/imm X -> this.get,
 
   mut .swap(x: X): X,
   mut :=(x: X): Void -> Block#(this.swap(x)),
@@ -65,6 +62,6 @@ Count:{
 _MagicRefImpl: {#[X](x: X): mut _MagicRefImpl[X] -> Magic!}
 _MagicRefImpl[X]: {
   mut  .get: X,
-  read .get: read X,
+  read .get: read/imm X,
   mut .swap(x: X): X,
   }

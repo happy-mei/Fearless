@@ -444,9 +444,9 @@ public class Ex09FlowsTest {
     package test
     FPerson:{
       #(age: UInt): mut Person -> Block#
-        .let[mut Ref[UInt]] age' = {Ref.ofImm(age)}
+        .let[mut Ref[UInt]] age' = {Ref#age}
         .return mut base.ReturnStmt[mut Person]{mut Person: Person{
-          read .age: UInt -> age'.getImm!,
+          read .age: UInt -> age'.get,
           mut .age(n: UInt): Void -> age' := n,
           }}
       }

@@ -277,6 +277,7 @@ public class TestJavaProgram {
       #(io: lent IO): Void -> io.println("Hello, World!"),
       }
     """); }
+  @Disabled // TODO: no lent lambdas, refactor for the new approach
   @Test void printlnShareLentCapture() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
@@ -346,7 +347,7 @@ public class TestJavaProgram {
       .return{ io.println(ImmMain#(env.launchArgs)) }
       }
     ImmMain:{
-      #(args: LList[Str]): Str -> args.get(1u).match{.some(arg) -> arg, .empty -> this.errMsg(args.head.isSome).get},
+      #(args: LList[Str]): Str -> args.tryGet(1u).match{.some(arg) -> arg, .empty -> this.errMsg(args.head.isSome).get},
       .errMsg(retCounter: Bool): mut Ref[Str] -> Block#
         .let res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
         .let counter = { Count.int(42) }
@@ -432,7 +433,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let[Int] closest' = { ns.get(0u)! }
+        .let[Int] closest' = { ns.get(0u) }
         .let closest = { Ref#[Int](closest') }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
@@ -479,7 +480,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let[mut Ref[Int]] closest = { Ref#[Int]((ns.get(0u))!) }
+        .let[mut Ref[Int]] closest = { Ref#[Int](ns.get(0u)) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -502,7 +503,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: mut LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let closest = { Ref#[Int](ns.get(0u)!) }
+        .let closest = { Ref#[Int](ns.get(0u)) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -525,9 +526,9 @@ public class TestJavaProgram {
     Closest:{
       #(ns: mut List[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let closest = { Ref#[Int](ns.get(0u)!) }
+        .let closest = { Ref#[Int](ns.get(0u)) }
         .do{ mut Closest'{ 'self
-          i -> ns.get(i).match{
+          i -> ns.tryGet(i).match{
             .empty -> {},
             .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
@@ -575,7 +576,7 @@ public class TestJavaProgram {
     alias base.iter.Sum as Sum,
     Test:Main{ _ -> Block#
       .let[mut List[Int]] l1 = { (mut LList[Int] + 35 + 52 + 84 + 14).list }
-      .assert({ l1.get(0u)! == (l1.iter.next!) }, "sanity") // okay, time to use this for new tests
+      .assert({ l1.get(0u) == (l1.iter.next!) }, "sanity") // okay, time to use this for new tests
       .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
       .do{ Assert!((l1.iter.find{n -> n > 100}).isEmpty, "find empty", {{}}) }
       .do{ Assert!(l1.iter
@@ -964,7 +965,7 @@ public class TestJavaProgram {
     MakeList:{ #: LList[Int] -> LList[Int] + 12 + 34 + 56 }
     Test:Main{ _ -> Block#
       .let myList = { MakeList# }
-      .let[Opt[read Int]] opt = { myList.head }
+      .let[Opt[Int]] opt = { myList.head }
       .let[Int] i1 = { opt! }
       .let[Int] i2 = { myList.head! }
       .return{Void}
@@ -985,13 +986,7 @@ public class TestJavaProgram {
             .empty -> {},
             .some(n) -> (target - n).abs < ((target - (closest*[])).abs) ? {
               .then -> closest := n,
-              .else -> self#(
-              As[Opt[Int]]#(
-                As[Opt[read Int]]#(
-                  As[iso Opt[read Int]]#(
-                    As[LList[Int]]#(t)
-                      .head))),
-                t.tail)
+              .else -> self#(t.head, t.tail)
               }
             }
           }#(ns.head, ns.tail) }
@@ -1005,50 +1000,12 @@ public class TestJavaProgram {
     MutLList:{ #: mut base.LList[base.Int] -> mut base.LList[base.Int] +[] 35 +[] 52 +[] 84 +[] 14 }
     """); }
 
-  @Test void immFromRefImm() { ok(new Res("5", "", 0), """
-    package test
-    Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: read RefImm[Int]): Int -> r.get,
-      .m2: Int -> this.m1(Ref#[Int]5),
-      }
-    """, Base.mutBaseAliases); }
-  @Test void immFromRefImmRecover() { ok(new Res("5", "", 0), """
-    package test
-    Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: read Ref[Int]): Int -> r.getImm!,
-      .m2: Int -> this.m1(Ref.ofImm[Int]5),
-      }
-    """, Base.mutBaseAliases); }
   @Test void immFromRefImmPrimitive() { ok(new Res("5", "", 0), """
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
       .m1(r: read Ref[Int]): Int -> r.get.toImm,
       .m2: Int -> this.m1(Ref#[Int]5),
-      }
-    """, Base.mutBaseAliases); }
-  @Test void updateRefImm() { ok(new Res("12", "", 0), """
-    package test
-    Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: mut RefImm[Int]): Int -> Block#
-        .do{ r := 12 }
-        .let[read RefImm[Int]] rr = { r }
-        .return{ rr.get },
-      .m2: Int -> this.m1(Ref#[Int]5),
-      }
-    """, Base.mutBaseAliases); }
-  @Test void updateRefImmRecover() { ok(new Res("12", "", 0), """
-    package test
-    Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: mut Ref[Int]): Int -> Block#
-        .do{ r := 12 }
-        .let[read Ref[Int]] rr = { r }
-        .return{ rr.getImm! },
-      .m2: Int -> this.m1(Ref.ofImm[Int]5),
       }
     """, Base.mutBaseAliases); }
 
@@ -1374,4 +1331,12 @@ public class TestJavaProgram {
       }
     Rez: {}
     """, Base.mutBaseAliases); }
+
+  @Test void readImmOpt() {ok(new Res(), """
+    package test
+    
+    Test: Main{sys -> Block#
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
 }

@@ -5,6 +5,7 @@ import astFull.E;
 import astFull.T;
 import failure.CompileError;
 import failure.Fail;
+import failure.TypingAndInferenceErrors;
 import files.Pos;
 import id.Id;
 import id.Mdf;
@@ -30,18 +31,22 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
 
   E.Lambda fixLambda(E.Lambda lambda, int depth) {
-    if (lambda.meths().stream().anyMatch(m->m.sig().isEmpty())) {
-      return lambda;
+    if (lambda.selfName() == null) {
+      lambda = lambda.withSelfName(E.X.freshName());
+    }
+    var lambda_ = lambda;
+    if (lambda_.meths().stream().anyMatch(m->m.sig().isEmpty())) {
+      return lambda_;
     }
 
-    var c = lambda.it().orElseThrow();
+    var c = lambda_.it().orElseThrow();
 
-    List<E.Meth> lambdaOnlyMeths = lambda.meths().stream()
+    List<E.Meth> lambdaOnlyMeths = lambda_.meths().stream()
       .filter(m->{
         try {
           return m.name().isPresent() && p().meths(
             XBs.empty(),
-            lambda.mdf().orElse(Mdf.imm), c.toAstIT(it->it.toAstTFreshenInfers(new Box<>(0))),
+            lambda_.mdf().orElse(Mdf.imm), c.toAstIT(it->it.toAstTFreshenInfers(new Box<>(0))),
             m.name().get(),
             depth
           ).isEmpty();
@@ -49,22 +54,22 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
           return false;
         }
       }).toList();
-    List<E.Meth> traitMeths = lambda.meths().stream()
+    List<E.Meth> traitMeths = lambda_.meths().stream()
       .filter(m->!lambdaOnlyMeths.contains(m))
       .toList();
     List<RefinedSig> sigs = traitMeths.stream()
       .map(this::tSigOf)
       .toList();
-    RefinedLambda res; try { res = refineSig(lambda.mdf().orElse(Mdf.imm), c, sigs, depth);
+    RefinedLambda res; try { res = refineSig(lambda_.mdf().orElse(Mdf.imm), c, sigs, depth);
     } catch (CompileError err) {
-      throw err.parentPos(lambda.pos());
+      throw err.parentPos(lambda_.pos());
     }
     var ms = Stream.concat(
       Streams.zip(traitMeths, res.sigs()).map(this::tM),
       lambdaOnlyMeths.stream()
     ).toList();
     var newIT = replaceOnlyInfers(lambda.t(), new T(lambda.t().mdf(), res.c()));
-    return lambda.withMeths(ms).withT(Optional.ofNullable(newIT.itOrThrow()).map(it->new T(lambda.t().mdf(), it)));
+    return lambda_.withMeths(ms).withT(Optional.ofNullable(newIT.itOrThrow()).map(it->new T(lambda_.t().mdf(), it)));
   }
 
   E.Meth tM(E.Meth m, RefinedSig refined) {
@@ -246,7 +251,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 //      throw Fail.ambiguousMethodName(sig.name());
 //    }
     if (ms.isEmpty()) {
-      throw Fail.undefinedMethod(sig.name(), new ast.T(lambdaMdf, c), p.meths(XBs.empty(), lambdaMdf, c, depth).stream());
+      throw TypingAndInferenceErrors.fromInference(Fail.undefinedMethod(sig.name(), new ast.T(lambdaMdf, c), p.meths(XBs.empty(), lambdaMdf, c, depth).stream()));
     }
     var freshSig = freshXs(ms.getFirst(), sig.name(), gxs);
     var freshGens = freshSig.gens();

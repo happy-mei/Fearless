@@ -1873,11 +1873,41 @@ public class TestTypeSystem {
     """); }
 
   @Test void noImpossibleLambda() {fail("""
-    In position file:///home/nick/Programming/uni/fearless/Dummy0.fear:2:15
+    In position file:///[###]/Dummy0.fear:2:15
     [E61 lambdaImplementsGeneric]
     A lambda may not implement a generic type parameter 'X'
     """, """
     package test
     A[X]: {#: X -> {}}
+    """);}
+
+  @Test void inlineLambdaMethodCopying() {ok("""
+    package test
+    A[E]: {
+      mut  .get(v: V): E -> this.get(v),
+      read .get(v: V): read/imm E -> this.get(v),
+      mut .nest(e: E): mut A[E] -> {
+//        .get(v) -> v#e,
+        mut  .get(v: V): E -> v#e,
+        read .get(v: V): read/imm E -> v#[read/imm E]e,
+        },
+      }
+    V: {#[X](x: X): X -> x}
+    """);}
+
+  @Test void sameGenImpl() {ok("""
+    package test
+    A[X]: {}
+    Foo:{} Bar:{}
+    B: A[Foo],A[Bar]{}
+    Caller: {
+      .m1: Void -> CallMe.m1(B),
+      .m2: Void -> CallMe.m2(B),
+      }
+    CallMe: {
+      .m1(a: A[Foo]): Void -> {},
+      .m2(a: A[Bar]): Void -> {},
+      }
+    Void: {}
     """);}
 }

@@ -14,6 +14,7 @@ import java.util.BitSet;
 
 public record ParserErrors(URI fileName) implements ANTLRErrorListener {
   public static CompileError fromCompileError(CompileError error) {
+    if (error.code() == 0) { return error; }
     var errorProcessor = new ParserErrors(error.posOrUnknown().fileName());
     return switch (ErrorCode.fromCode(error.code())) {
       // TODO: match on error types you want to improve

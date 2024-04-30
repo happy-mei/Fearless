@@ -27,7 +27,7 @@ public class TestWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
     var res = new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
@@ -40,7 +40,7 @@ public class TestWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
 
@@ -356,13 +356,5 @@ public class TestWellFormedness {
     """, """
     package test
     A: {#: readOnly A -> {}}
-    """); }
-  @Test void noReadImmLambdaCreation() { fail("""
-    In position [###]/Dummy0.fear:2:21
-    [E62 invalidLambdaMdf]
-    read/imm is not a valid modifier for a lambda.
-    """, """
-    package test
-    A: {#: read/imm A -> {}}
     """); }
 }

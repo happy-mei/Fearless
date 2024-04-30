@@ -23,7 +23,7 @@ public class TestFullWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     var res = new WellFormednessFullShortCircuitVisitor().visitProgram(p);
     var isWellFormed = res.isEmpty();
     assertTrue(isWellFormed, res.map(Object::toString).orElse(""));
@@ -36,7 +36,7 @@ public class TestFullWellFormedness {
       .toList();
 
     try {
-      var p = Parser.parseAll(ps, new TypeSystemFeatures());
+      var p = Parser.parseAll(ps, TypeSystemFeatures.of());
       var error = new WellFormednessFullShortCircuitVisitor().visitProgram(p);
       if (error.isEmpty()) { Assertions.fail("Did not fail"); }
       Err.strCmp(expectedErr, error.map(Object::toString).orElseThrow());
@@ -368,8 +368,18 @@ public class TestFullWellFormedness {
     read/imm is not a valid modifier for a lambda.
     """, """
     package test
-    A: {#: read/imm A -> read/imm A}
+    A: {#: Void -> Void.eat(read/imm A)}
+    Void: {.eat[X](a: X): Void -> {}}
     """); }
+
+  @Test void noReadImmOnIT() {fail("""
+    In position [###]/Dummy0.fear:2:4
+    [E11 invalidMdf]
+    The modifier 'read/imm' can only be used on generic type variables. 'read/imm' found on type read/imm test.A[]
+    """, """
+     package test
+    A: {#: read/imm A -> this#}
+    """);}
 
   @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {
     var code = String.format("""

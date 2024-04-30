@@ -39,7 +39,6 @@ alias base.Count as Count,
 alias base.RefImm as RefImm,
 
 alias base.Opt as Opt,
-alias base.OptMap as OptMap,
 
 alias base.Int as Int,
 alias base.Float as Float,

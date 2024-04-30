@@ -108,7 +108,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       .map(err->err.parentPos(e.pos()));
   }
   @Override public Optional<CompileError> visitT(T t){
-    return mdfOnlyOnGX(t)
+    return GXOnlyRCs(t)
       .or(()->super.visitT(t));
   }
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
@@ -152,8 +152,8 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
 //      .allMatch(t->t.match(gx->env.has(gx), it->hasUndeclaredXs(List.of(it))));
 //  }
 
-  private Optional<CompileError> mdfOnlyOnGX(T t) {
-    if(t.isInfer() || !t.mdf().isMdf()){ return Optional.empty(); }
+  private Optional<CompileError> GXOnlyRCs(T t) {
+    if(t.isInfer() || !t.mdf().is(Mdf.mdf, Mdf.readImm)){ return Optional.empty(); }
     return t.match(gx->Optional.empty(), it->Optional.of(Fail.invalidMdf(t)));
   }
   private Optional<CompileError> noExplicitThis(List<String> xs) {
