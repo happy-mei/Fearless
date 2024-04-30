@@ -1013,7 +1013,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .let[LList[Int]] l = { LList#[Int] + 12 + 13 + 14 }
+      .let[LList[Int]] l = { LList# + 12 + 13 + 14 }
       .do { io.println(A.m1(l)) }
       .return {{}}
       }
@@ -1027,7 +1027,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .let[List[Int]] l = { List#[Int](12, 13, 14) }
+      .let[List[Int]] l = { List#(12, 13, 14) }
       .do { io.println(A.m1(l)) }
       .return {{}}
       }
@@ -1042,7 +1042,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .let[mut LList[Int]] l = { LList#[Int] + 12 + 13 + 14 }
+      .let[mut LList[Int]] l = { LList# + 12 + 13 + 14 }
       .do { io.println(A.m1(l)) }
       .return {{}}
       }

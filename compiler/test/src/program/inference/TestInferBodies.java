@@ -1327,20 +1327,93 @@ public class TestInferBodies {
     Abort: { ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
     """); }
 
-  @Test void literalVsITLeft() {ok("""
+  @Test void literalVsIT() {ok("""
     {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[--][test.A[]]{'this
       #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.Int[]]]->
-        [-imm-][test.Box[]]{'fear6$}#/1[imm base.Int[]]([[-imm-][5[]]{'fear7$}])}],
+        [-imm-][test.Box[]]{'fear[###]$}#/1[imm base.Int[]]([[-imm-][5[]]{'fear[###]$}])}],
     
     test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[--][test.Box[T]]{'this
       .get/0([]):Sig[gens=[],ts=[],ret=T]->[-]}],
     
     test.Box/0=Dec[name=test.Box/0,gxs=[],lambda=[--][test.Box[]]{'this
       #/1([t]):Sig[gens=[T],ts=[T],ret=mut test.Box[T]]->
-        [-mut-][test.Box[T]]{'fear8$.get/0([]):Sig[gens=[],ts=[],ret=T]->t}}]}
+        [-mut-][test.Box[T]]{'fear[###]$.get/0([]):Sig[gens=[],ts=[],ret=T]->t}}]}
     """, """
     package test
     A: {#: mut Box[base.Int] -> Box#5}
+    """, """
+    package test
+    Box: {#[T](t: T): mut Box[T] -> {t}}
+    Box[T]: {mut .get: T}
+    """, """
+    package base
+    Int: {}
+    _IntInstance: Int{}
+    """);}
+  @Test void explicitLiteralGen() {ok("""
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[--][test.A[]]{'this
+      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.Int[]]]->
+        [-imm-][test.Box[]]{'fear[###]$}#/1[imm 5[]]([[-imm-][5[]]{'fear[###]$}])}],
+    
+    test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[--][test.Box[T]]{'this
+      .get/0([]):Sig[gens=[],ts=[],ret=T]->[-]}],
+    
+    test.Box/0=Dec[name=test.Box/0,gxs=[],lambda=[--][test.Box[]]{'this
+      #/1([t]):Sig[gens=[T],ts=[T],ret=mut test.Box[T]]->
+        [-mut-][test.Box[T]]{'fear[###]$.get/0([]):Sig[gens=[],ts=[],ret=T]->t}}]}
+    """, """
+    package test
+    A: {#: mut Box[base.Int] -> Box#[5]5}
+    """, """
+    package test
+    Box: {#[T](t: T): mut Box[T] -> {t}}
+    Box[T]: {mut .get: T}
+    """, """
+    package base
+    Int: {}
+    _IntInstance: Int{}
+    """);}
+  @Test void literalGenInference() {ok("""
+    {test.B/0=Dec[name=test.B/0,gxs=[],lambda=[--][test.B[]]{'this
+      #/1([b]):Sig[gens=[],ts=[mut test.Box[imm5[]]],ret=mut test.Box[imm5[]]] -> b}],
+    test.A/0=Dec[name=test.A/0,gxs=[],lambda=[--][test.A[]]{'this
+      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.Int[]]]->
+        [-imm-][test.B[]]{'fear26$}#/1[]([[-imm-][test.Box[]]{'fear27$}#/1[imm 5[]]([[-imm-][5[]]{'fear28$}])])}],
+
+    test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[--][test.Box[T]]{'this
+      .get/0([]):Sig[gens=[],ts=[],ret=T]->[-]}],
+    test.Box/0=Dec[name=test.Box/0,gxs=[],lambda=[--][test.Box[]]{'this
+      #/1([t]):Sig[gens=[T],ts=[T],ret=muttest.Box[T]]->
+        [-mut-][test.Box[T]]{'fear30$.get/0([]):Sig[gens=[],ts=[],ret=T]->t}}]}
+    """, """
+    package test
+    A: {#: mut Box[base.Int] -> B#(Box#5)}
+    B: {#(b: mut Box[5]): mut Box[5] -> b}
+    """, """
+    package test
+    Box: {#[T](t: T): mut Box[T] -> {t}}
+    Box[T]: {mut .get: T}
+    """, """
+    package base
+    Int: {}
+    _IntInstance: Int{}
+    """);}
+  @Test void nonLiteralGenInference() {ok("""
+    {test.B/0=Dec[name=test.B/0,gxs=[],lambda=[--][test.B[]]{'this
+      #/1([b]):Sig[gens=[],ts=[mut test.Box[imm base.Int[]]],ret=mut test.Box[imm base.Int[]]] -> b}],
+    test.A/0=Dec[name=test.A/0,gxs=[],lambda=[--][test.A[]]{'this
+      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.Int[]]]->
+        [-imm-][test.B[]]{'fear26$}#/1[]([[-imm-][test.Box[]]{'fear27$}#/1[imm base.Int[]]([[-imm-][5[]]{'fear28$}])])}],
+
+    test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[--][test.Box[T]]{'this
+      .get/0([]):Sig[gens=[],ts=[],ret=T]->[-]}],
+    test.Box/0=Dec[name=test.Box/0,gxs=[],lambda=[--][test.Box[]]{'this
+      #/1([t]):Sig[gens=[T],ts=[T],ret=muttest.Box[T]]->
+        [-mut-][test.Box[T]]{'fear30$.get/0([]):Sig[gens=[],ts=[],ret=T]->t}}]}
+    """, """
+    package test
+    A: {#: mut Box[base.Int] -> B#(Box#5)}
+    B: {#(b: mut Box[base.Int]): mut Box[base.Int] -> b}
     """, """
     package test
     Box: {#[T](t: T): mut Box[T] -> {t}}
