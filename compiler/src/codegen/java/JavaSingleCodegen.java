@@ -21,7 +21,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static codegen.MethExprKind.Kind.*;
-import static magic.MagicImpls.getLiteral;
+import static magic.Magic.getLiteral;
 
 public class JavaSingleCodegen implements MIRVisitor<String> {
   protected final MIR.Program p;

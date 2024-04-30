@@ -8,7 +8,6 @@ import failure.Fail;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
-import magic.MagicImpls;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
 
@@ -17,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static magic.Magic.isLiteral;
 
 // TODO: Sealed and _C/_m restrictions
 public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEnv<CompileError> {
@@ -110,7 +111,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   private Optional<CompileError> noPrivateTraitOutsidePkg(Id.DecId dec) {
-    if (MagicImpls.isLiteral(dec.name()) || !dec.shortName().startsWith("_")) { return Optional.empty(); }
+    if (isLiteral(dec.name()) || !dec.shortName().startsWith("_")) { return Optional.empty(); }
     var pkg = this.pkg.orElseThrow();
     if (dec.pkg().equals(pkg)) { return Optional.empty(); }
     return Optional.of(Fail.privateTraitImplementation(dec));

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static magic.MagicImpls.getLiteral;
+import static magic.Magic.getLiteral;
 
 public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.MagicImpls<GoMagicImpls.Res> {
   public record Res(String output, Set<String> imports) {

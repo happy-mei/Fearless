@@ -9,12 +9,15 @@ import failure.TypingAndInferenceErrors;
 import files.Pos;
 import id.Id;
 import id.Mdf;
-import magic.MagicImpls;
+import magic.Magic;
 import program.CM;
 import program.TypeRename;
 import program.typesystem.EMethTypeSystem;
 import program.typesystem.XBs;
-import utils.*;
+import utils.Box;
+import utils.Push;
+import utils.Range;
+import utils.Streams;
 import visitors.FullShortCircuitVisitor;
 
 import java.util.*;
@@ -460,10 +463,10 @@ collect(empty) = empty
 
   private List<RP> deprioritiseLiterals(List<RP> rps) {
     return rps.stream().map(rp->{
-      if (!rp.t1().isInfer() && rp.t1().rt() instanceof Id.IT<T> it && MagicImpls.getLiteral(p, it.name()).isPresent()) {
+      if (!rp.t1().isInfer() && rp.t1().rt() instanceof Id.IT<T> it && Magic.getLiteral(p, it.name()).isPresent()) {
         return new RP(rp.t2, rp.t2);
       }
-      if (!rp.t2().isInfer() && rp.t2().rt() instanceof Id.IT<T> it && MagicImpls.getLiteral(p, it.name()).isPresent()) {
+      if (!rp.t2().isInfer() && rp.t2().rt() instanceof Id.IT<T> it && Magic.getLiteral(p, it.name()).isPresent()) {
         return new RP(rp.t1, rp.t1);
       }
       return rp;

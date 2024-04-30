@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static magic.MagicImpls.getLiteral;
+import static magic.Magic.getLiteral;
 
 public record JavaMagicImpls(
     MIRVisitor<String> gen,

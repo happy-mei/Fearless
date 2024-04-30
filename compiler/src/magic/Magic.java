@@ -1,7 +1,9 @@
 package magic;
 
+import ast.Program;
 import failure.Fail;
 import id.Id;
+import utils.Bug;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,7 +59,7 @@ public class Magic {
   );
 
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
-    var isLiteral  = !name.isEmpty() && MagicImpls.isLiteral(name);
+    var isLiteral  = !name.isEmpty() && isLiteral(name);
     if(isLiteral){ return Optional.of(new Id.IT<>(name, List.of())); }
     return Optional.empty();
 //    return switch(name){
@@ -82,22 +84,41 @@ public class Magic {
     }).orElse(null);
   }
 
+  public static Optional<String> getLiteral(Program p, Id.DecId d) {
+    if (isLiteral(d.name())) { return Optional.of(d.name()); }
+    var supers = p.superDecIds(d);
+    return supers.stream().filter(dec->{
+      var name = dec.name();
+      return isLiteral(name);
+    }).map(Id.DecId::name).findFirst();
+  }
+
+  public static boolean isLiteral(String name) {
+    return Character.isDigit(name.charAt(0)) || isNumberLiteral(name);
+  }
+  public static boolean isStringLiteral(String name) {
+    return name.startsWith("\"");
+  }
+  public static boolean isNumberLiteral(String name) {
+    return Character.isDigit(name.charAt(0)) || name.startsWith("-") || name.startsWith("+");
+  }
+
   private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
-    if ((Character.isDigit(id.name().charAt(0)) || id.name().startsWith("-")) && id.gen() == 0) {
-      T baseDec;
+    if (isNumberLiteral(id.name())) {
       var nDots = id.name().chars().filter(c->c=='.').limit(2).count();
       if (nDots > 0) {
         if (nDots > 1) { throw Fail.invalidNum(id.name(), "Float"); }
-        baseDec = resolve.apply(new Id.DecId("base._FloatInstance", 0));
-      } else if (id.name().endsWith("u")) {
-        baseDec = resolve.apply(new Id.DecId("base._UIntInstance", 0));
-      } else {
-        baseDec = resolve.apply(new Id.DecId("base._IntInstance", 0));
+        return Optional.of(resolve.apply(new Id.DecId("base._FloatInstance", 0)));
+      } else if (id.name().startsWith("+") || id.name().startsWith("-")) {
+        return Optional.of(resolve.apply(new Id.DecId("base._IntInstance", 0)));
       }
-      return Optional.of(baseDec);
+      return Optional.of(resolve.apply(new Id.DecId("base._UIntInstance", 0)));
     }
-    if (id.name().charAt(0) == '"') {
+    if (isStringLiteral(id.name())) {
       return Optional.of(resolve.apply(new Id.DecId("base._StrInstance", 0)));
+    }
+    if (isLiteral(id.name())) {
+      throw Bug.of("Unknown literal: "+id);
     }
     return Optional.empty();
   }

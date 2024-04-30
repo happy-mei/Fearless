@@ -1,31 +1,11 @@
 package magic;
 
-import ast.Program;
-import ast.T;
 import codegen.MIR;
 import id.Id;
-import id.Mdf;
-import program.typesystem.XBs;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface MagicImpls<R> {
-  static Optional<String> getLiteral(Program p, Id.DecId d) {
-    if (isLiteral(d.name())) { return Optional.of(d.name()); }
-    var supers = p.superDecIds(d);
-    return supers.stream().filter(dec->{
-      var name = dec.name();
-      return isLiteral(name);
-    }).map(Id.DecId::name).findFirst();
-  }
-  static boolean isLiteral(String name) {
-    return Character.isDigit(name.charAt(0)) || isStringLiteral(name) || name.startsWith("-");
-  }
-  static boolean isStringLiteral(String name) {
-    return name.startsWith("\"");
-  }
-
   default Optional<MagicTrait<MIR.E,R>> get(MIR.E e) {
     if (isMagic(Magic.Int, e)) { return Optional.ofNullable(int_(e)); }
     if (isMagic(Magic.UInt, e)) { return Optional.ofNullable(uint(e)); }

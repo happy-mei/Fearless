@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 
 import static codegen.go.GoCodegen.getBase;
 import static codegen.go.GoCodegen.getPkgFileName;
-import static magic.MagicImpls.getLiteral;
+import static magic.Magic.getLiteral;
 
 public class PackageCodegen implements MIRVisitor<String> {
   public record GoPackage(String pkg, String src) implements GoCompiler.Unit {
