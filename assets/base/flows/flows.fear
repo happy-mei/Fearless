@@ -76,13 +76,13 @@ _TerminalOps[E]: Sealed{
   }
 
 _FlowExtensions: {
-  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold[Str]("", {acc, str -> acc.size == 0u ? {
+  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold[Str]("", {acc, str -> acc.size == 0 ? {
     .then -> acc + str,
     .else -> acc + separator + str,
     }})},
 
-  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int](0, {acc, e -> acc + e})},
-  .uSum: mut Extension[mut Flow[UInt], UInt] -> {flow -> flow.fold[UInt](0u, {acc, e -> acc + e})},
+  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int](+0, {acc, e -> acc + e})},
+  .uSum: mut Extension[mut Flow[UInt], UInt] -> {flow -> flow.fold[UInt](0, {acc, e -> acc + e})},
   .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> flow.fold[Float](0.0, {acc, e -> acc + e})},
   }
 
@@ -104,7 +104,7 @@ EmptyFlow[E]: Flow[E]{
   .all(p) -> False,
   .fold(acc, _) -> acc,
   .fold(acc, _, _) -> acc,
-  .size -> 0u,
+  .size -> 0,
   }
 
-TerminalOnInfiniteError: { #: Info -> FInfo.msg "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5u) to bound the flow." }
+TerminalOnInfiniteError: { #: Info -> FInfo.msg "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5) to bound the flow." }

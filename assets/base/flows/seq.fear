@@ -74,7 +74,7 @@ _SeqFlow: {
 
     .size -> size.match[UInt]{
       .some(n) -> n,
-      .empty -> self.fold[UInt](0u, {acc, _ -> acc + 1u}),
+      .empty -> self.fold[UInt](0, {acc, _ -> acc + 1}),
       },
     },
 
@@ -92,6 +92,6 @@ _SeqFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opt#[UInt]1u)},
-//    .return {this.fromOp(source, Opt#1u)},
+    .return {this.fromOp(source, Opt#[UInt]1)},
+//    .return {this.fromOp(source, Opt#1)},
   }

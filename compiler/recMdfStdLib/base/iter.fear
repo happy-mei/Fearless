@@ -39,17 +39,17 @@ Iter[E:imm,mut]:{
     .none -> {}
     },
 
-  mut .count: UInt -> this.fold[UInt](0u, mut IterFolder[mdf E, UInt]{ acc, _ -> acc + 1u }),
+  mut .count: UInt -> this.fold[UInt](0, mut IterFolder[mdf E, UInt]{ acc, _ -> acc + 1 }),
   mut .list: mut List[mdf E] -> this.fold(List#[mdf E], { acc, e -> Block#(acc.add(e), acc) }),
   mut .llist: mut LList[mdf E] -> this.fold(mut LList[mdf E], { acc, e -> mut LList.cons(e, acc) }),
   mut .str(toStr: mut IterMapper[mdf E, Str], joining: Str): Str -> this.map(toStr)
     .fold[Str]("", mut IterFolder[Str, Str]{ acc, e ->
-      acc.size == 0u ? { .then -> acc + e, .else -> acc + joining + e } })
+      acc.size == 0 ? { .then -> acc + e, .else -> acc + joining + e } })
   }
 
 Sum:{
   .int(ns: mut Iter[Int]): Int -> ns.fold[Int](0, mut IterFolder[Int, Int]{ acc, n -> acc + n }),
-  .uint(ns: mut Iter[UInt]): UInt -> ns.fold[UInt](0u, mut IterFolder[UInt, UInt]{ acc, n -> acc + n }),
+  .uint(ns: mut Iter[UInt]): UInt -> ns.fold[UInt](0, mut IterFolder[UInt, UInt]{ acc, n -> acc + n }),
   .float(ns: mut Iter[Float]): Float -> ns.fold[Float](0.0, mut IterFolder[Float, Float]{ acc, n -> acc + n }),
   }
 

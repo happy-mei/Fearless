@@ -7,10 +7,10 @@ LList:{
     .head -> recMdf Opt#[recMdf E](head),
     .tail -> tail,
     .isEmpty -> False,
-    .len -> tail.len + 1u,
-    .get(i) -> (i == 0u).look(recMdf BoolView[recMdf Opt[recMdf E]]{
+    .len -> tail.len + 1,
+    .get(i) -> (i == 0).look(recMdf BoolView[recMdf Opt[recMdf E]]{
       .then -> recMdf Opt#head,
-      .else -> tail.get(i - 1u)
+      .else -> tail.get(i - 1)
       }),
 //    recMdf .run[R](automaton: recMdf Automaton[recMdf E, mdf R]): recMdf Opt[recMdf R] ->
 //      l._run[mdf R](automaton, automaton.step(head)),
@@ -31,7 +31,7 @@ LList[E]:Sealed{
   recMdf .head: recMdf Opt[recMdf E] -> {},
   recMdf .tail: recMdf LList[mdf E] -> {},
   readOnly .isEmpty: Bool -> True,
-  recMdf .len: UInt -> 0u,
+  recMdf .len: UInt -> 0,
   recMdf .get(i: UInt): recMdf Opt[recMdf E] -> {},
   recMdf ++(l1: recMdf LList[recMdf E]): recMdf LList[recMdf E] -> this.head.match{
     .some(h) -> recMdf LList.cons(h, this.tail ++ l1),

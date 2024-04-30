@@ -7,7 +7,7 @@ Test:Main{ _ -> Block#
 Closest:{
   #(ns: LList[Int], target: Int): Int -> Block#
     .assert({ns.isEmpty.not}, "empty list :-(")
-    .let[Int] closest' = {ns.get(0u)}
+    .let[Int] closest' = {ns.get(0)}
     .let[mut Ref[Int]] closest = { Ref#closest' }
     .do{ mut Closest'{ 'self
       h, t -> h.match{

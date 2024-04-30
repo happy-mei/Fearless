@@ -94,7 +94,7 @@ public class Magic {
   }
 
   public static boolean isLiteral(String name) {
-    return Character.isDigit(name.charAt(0)) || isNumberLiteral(name);
+    return isStringLiteral(name) || isNumberLiteral(name);
   }
   public static boolean isStringLiteral(String name) {
     return name.startsWith("\"");

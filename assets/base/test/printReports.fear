@@ -1,7 +1,7 @@
 package base.test
 
 ResultPrinters: F[mut IO, mut ResultPrinter]{io -> mut ResultPrinter: ResultReporter{#(results) -> Block#
-  .let[Str] resultsMsg = {results.flow.map{suite -> _TextUtils.suite(suite, 1)}#(Flow.str "\n\n")}
+  .let[Str] resultsMsg = {results.flow.map{suite -> _TextUtils.suite(suite, +1)}#(Flow.str "\n\n")}
   .do {io.printlnErr("# Test Results\n" + resultsMsg)}
   .return {Void}
   }}
@@ -15,11 +15,11 @@ _TextUtils: {
     + "\n"
     + (this.results(suite.results)#(Flow.str "\n\n"))
     + (suite.nestedResults.isEmpty ?[Str] {.then -> "", .else -> "\n\n"})
-    + (suite.nestedResults.flow.map{nested -> this.suite(nested, depth + 1)}#(Flow.str "\n")),
+    + (suite.nestedResults.flow.map{nested -> this.suite(nested, depth + +1)}#(Flow.str "\n")),
 
   .heading(title: Str, depth: Int): Str -> Block#
-    .if {depth > 5} .return {"**"+title+"**  "}
-    .return {Flow.range(0, depth + 1).map[Str]{_ -> "#"}#(Flow.str "") + " " + title},
+    .if {depth > +5} .return {"**"+title+"**  "}
+    .return {Flow.range(+0, depth + +1).map[Str]{_ -> "#"}#(Flow.str "") + " " + title},
 
   .status(kind: TestResultKind): Str -> kind.match{
     .passed -> "PASSED",

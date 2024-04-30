@@ -30,7 +30,7 @@ public record JavaMagicImpls(
         var lit = getLiteral(p, name);
         try {
           return lit
-            .map(lambdaName->Long.parseLong(lambdaName.replace("_", ""), 10)+"L")
+            .map(lambdaName->Long.parseLong(lambdaName.substring(1).replace("_", ""), 10)+"L")
             .orElseGet(()->"((long)"+e.accept(gen, true)+")").describeConstable();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "Int");
@@ -89,7 +89,7 @@ public record JavaMagicImpls(
         var lit = getLiteral(p, name);
         try {
           return lit
-            .map(lambdaName->Long.parseUnsignedLong(lambdaName.substring(0, lambdaName.length()-1).replace("_", ""), 10)+"L")
+            .map(lambdaName->Long.parseUnsignedLong(lambdaName.replace("_", ""), 10)+"L")
             .orElseGet(()->"((long)"+e.accept(gen, true)+")").describeConstable();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "UInt");

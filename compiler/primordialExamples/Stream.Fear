@@ -23,7 +23,7 @@ Map[A,B]:OpOnStream[A,B]{
   .handle(s)-> Stream.of(Let#{
     .var -> List[A]#,
     .in(res) -> Let#{
-      .var -> this.handle'(s.toList, res, 0u),
+      .var -> this.handle'(s.toList, res, 0),
       .in(_) -> res
       }
     }),
@@ -33,7 +33,7 @@ Map[A,B]:OpOnStream[A,B]{
       .none -> Void,
       .some(r) -> Let#{
         .var -> res.add(r),
-        .in(_) -> this.handle'(l, res, i + 1u),
+        .in(_) -> this.handle'(l, res, i + 1),
         },
       }
   }

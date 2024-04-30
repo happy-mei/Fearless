@@ -25,7 +25,7 @@ App:Main{ sys -> Block#
 //  .do{ io.println(FlowEx.fromIter.str) }
 //  .do{ io.println(Flow.fromIter((mut LList[mut LList[Int]] + {}).iter).size.str) }
   .do {io.println(FlowEx.somePipelineParallelThing)}
-//  .do {io.println((Fib#50u).str)}
+//  .do {io.println((Fib#50).str)}
   .return{{}}
   }
 
@@ -52,8 +52,8 @@ FlowEx:{
   }
 
 Fib: {
-  #(n: UInt): UInt -> n <= 1u ? {
+  #(n: UInt): UInt -> n <= 1 ? {
     .then -> n,
-    .else -> this#(n - 1u) + (this#(n - 2u))
+    .else -> this#(n - 1) + (this#(n - 2))
     }
   }

@@ -18,7 +18,7 @@ LListMut[E]:Sealed,NoMutHyg[mdf E]{
   mut .headRaw: mut Opt[mdf E] -> {},
   readOnly .tail: recMdf LListMut[mdf E] -> {},
   readOnly .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
-  readOnly .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
+  readOnly .len: UInt -> this.match{ .empty -> 0, .elem(_,t) -> t.len + 1, },
   mut ++(l1: mut LListMut[mdf E]): mut LListMut[mdf E] -> this.headRaw.map{ h -> LListMut.cons(h, this.tail ++ l1) } | l1,
   mut +(e: mdf E): mut LListMut[mdf E] -> this ++ (LListMut#e),
   }
