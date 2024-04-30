@@ -15,10 +15,16 @@ public class BetterErrMsgs {
   }
 
   public String syntaxError() {
+    System.out.println(input);
     if (offendingSymbol instanceof Token token) {
       switch(token.getText()) {
         case "(", ")", "[", "]", "{", "}" -> {
           return new ParenthesisChecker(input).compute();
+        }
+        default -> {
+          if(this.msg.matches("missing '([(){}\\[\\]])'.*")) {
+            return new ParenthesisChecker(input).compute();
+          }
         }
       }
     }

@@ -13,16 +13,6 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestErrorMessages {
-  void ok(String expected, String... content){
-    Main.resetAll();
-    AtomicInteger pi = new AtomicInteger();
-    var ps = Arrays.stream(content)
-      .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
-      .toList();
-    String res = Parser.parseAll(ps, TypeSystemFeatures.of()).toString();
-    Err.strCmpFormat(expected,res);
-  }
-
   void fail(String expectedErr, String... content){
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
@@ -38,7 +28,7 @@ public class TestErrorMessages {
     }
   }
 
-  @Test void failBasicCurly() { fail(
+  @Test void failBasicMismatch() { fail(
     """
     [###]Dummy0.fear:2:5
     [E59 syntaxError]
@@ -51,6 +41,34 @@ public class TestErrorMessages {
     """
     package pkg1
     Bar:{)
+    """
+  );}
+
+  @Test void failSingleUnclosed() {fail(
+    """
+    [###]Dummy0.fear:3:0
+    [E59 syntaxError]
+    Error: unclosed opening parenthesis '{' at 2:4
+    2: Bar:{
+           ^ unclosed parenthesis
+    """,
+    """
+    package pkg1
+    Bar:{
+    """
+  );}
+
+  @Test void failSingleUnopened() {fail(
+    """
+    [###]Dummy0.fear:2:4
+    [E59 syntaxError]
+    Error: unexpected closing parenthesis '}' at 2:4
+    2: Bar:}
+           ^ unexpected close
+    """,
+    """
+    package pkg1
+    Bar:}
     """
   );}
 
@@ -96,6 +114,117 @@ public class TestErrorMessages {
       //
       Hello:{}  // Show this line
     )
+    """
+  );}
+
+  @Test void failIgnoreComment() {fail(
+    """
+    [###]Dummy0.fear:3:5
+    [E59 syntaxError]
+    Error: mismatched closing parenthesis ')' at 3:5
+    3: Bar:{)
+           ^^ mismatched close, is it meant to be '}'?
+           |
+           unclosed open
+    """,
+    """
+    package pkg1
+    // This should not be the error {()[}}{
+    Bar:{)
+    """
+  );}
+
+  @Test void failIgnoreMultiComment() {fail(
+    """
+    [###]Dummy0.fear:4:5
+    [E59 syntaxError]
+    Error: mismatched closing parenthesis ')' at 4:5
+    4: Bar:{)
+           ^^ mismatched close, is it meant to be '}'?
+           |
+           unclosed open
+    """,
+    """
+    package pkg1
+    /* This should not be the error {()[}}{
+        and this ({]}}}()) */
+    Bar:{)
+    """
+  );}
+
+  @Test void failIgnoreString() {fail(
+    """
+    [###]
+    [E59 syntaxError]
+    Error: mismatched closing parenthesis ')' at 2:50
+    2: Hello: Main{ s -> s.println("Hello World [)]((]") )
+                  ^--------------------------------------^ mismatched close, is it meant to be '}'?
+                  |
+                  unclosed open
+    """,
+    """
+    package pkg1
+    Hello: Main{ s -> s.println("Hello World [)]((]") )
+    """
+  );}
+
+  @Test void failIgnoreStringEscape() {fail(
+    """
+    [###]
+    [E59 syntaxError]
+    Error: mismatched closing parenthesis ')' at 2:52
+    2: Hello: Main{ s -> s.println("Hello World \\"[)]((]") )
+                  ^----------------------------------------^ mismatched close, is it meant to be '}'?
+                  |
+                  unclosed open
+    """,
+    """
+    package pkg1
+    Hello: Main{ s -> s.println("Hello World \\"[)]((]") )
+    """
+  );}
+
+  @Test void failIgnoreMultiString() {fail(
+    """
+    [###]
+    [E59 syntaxError]
+    Error: mismatched closing parenthesis ')' at 5:6
+    2  : Hello: Main{ s -> s.println( ""\"
+                    ^ unclosed open
+    3  :  | Hello World
+    4  :  | [)]((]
+    5  : ""\" ) )
+               ^ mismatched close, is it meant to be '}'?
+    """,
+    """
+    package pkg1
+    Hello: Main{ s -> s.println( \"""
+     | Hello World
+     | [)]((]
+    \""" ) )
+    """
+  );}
+
+  @Test void failIgnoreEscapeMultiString() {fail(
+    """
+    [###]
+    [E59 syntaxError]
+    Error: mismatched closing parenthesis ')' at 6:6
+    2  : Hello: Main{ s -> s.println( ""\"
+                    ^ unclosed open
+    3  :  | Hello World
+    4-4: ... ... ...
+    5  :  | asd \\""\"
+    6  : ""\" ) )
+               ^ mismatched close, is it meant to be '}'?
+    """,
+    """
+    package pkg1
+    Hello: Main{ s -> s.println( \"""
+     | Hello World
+     | [)]((]
+     | asd \\"\""
+    \""" ) )
     """
   );}
 }
