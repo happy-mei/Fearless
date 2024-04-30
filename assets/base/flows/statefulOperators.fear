@@ -5,7 +5,7 @@ package base.flows
 _Limit: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
     .let[mut Count[UInt]] remaining = {Count.uint(n)}
-    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return {{ 'runner
       .stop -> Block#(remaining := 0u, upstream.stop),
       .isRunning -> remaining* > 0u && (upstream.isRunning),
@@ -44,8 +44,8 @@ _Actor: {
   }
 _InternalActor: {
   #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] -> Block#
-    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return {{'op
       .stop -> op.isRunning ? {
        .then -> Block#(isRunning := False, upstream.stop, onComplete#state),
@@ -70,8 +70,8 @@ _InternalActor: {
       }},
 
   .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] -> Block#
-    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return {{'op
       .stop -> op.isRunning ? {
        .then -> Block#(isRunning := False, upstream.stop, onComplete#state),

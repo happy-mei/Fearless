@@ -37,7 +37,7 @@ _NonTerminalOps[E]: {
   mut .limit(n: UInt): mut Flow[E],
 
   // TODO: this can keep size if it is known
-  mut .scan[S:imm](acc: imm S, f: read F[S,E,S]): mut Flow[imm S] -> this.actor[mut Ref[imm S], imm S](Ref#[imm S]acc, {downstream, acc', e -> Block#(
+  mut .scan[S:imm](acc: imm S, f: read F[S,E,S]): mut Flow[imm S] -> this.actor[mut Var[imm S], imm S](Var#[imm S]acc, {downstream, acc', e -> Block#(
     acc' := (f#(acc'.get, e)),
     downstream#(acc'.get),
     ActorRes.continue

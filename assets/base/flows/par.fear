@@ -19,7 +19,7 @@ _PipelineParallelFlow: {
 
     // terminals
     mut .first: mut Opt[E] -> Block#
-      .let[mut Ref[mut Opt[E]]] res = {Ref#mut Opt[E]}
+      .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
         .stop -> source.stop,
         #(e) -> res.get.isEmpty ? {
@@ -33,7 +33,7 @@ _PipelineParallelFlow: {
       .return {res.get},
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
-      .let[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
+      .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
         .stop -> source.stop,
         #(e) -> res.get.isEmpty ? {
@@ -59,7 +59,7 @@ _PipelineParallelFlow: {
 
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .let[mut Ref[S]] acc' = {Ref#acc}
+      .let[mut Var[S]] acc' = {Var#acc}
       .do {source.forRemaining(_PipelineParallelSink#[E]{
         .stop -> {},
 //        .stop -> source.stop,
@@ -77,7 +77,7 @@ _PipelineParallelFlow: {
     },
 
   #[E](e: E): mut Flow[E] -> Block#
-    .let[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
+    .let[mut Var[mut Opt[E]]] seq = { Var#(Opt#e) }
     .let[mut FlowOp[E]] source = {{ 'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},

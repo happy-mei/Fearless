@@ -5,13 +5,13 @@ package base.flows
 // flowing on that instead.
 _MutSourceCollection[E]: {
   #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#[mut FlowOp[E]]
-    .let[mut Ref[mut Opt[mut FlowOp[E]]]] cloned = {Ref#[mut Opt[mut FlowOp[E]]]{}}
+    .let[mut Var[mut Opt[mut FlowOp[E]]]] cloned = {Var#[mut Opt[mut FlowOp[E]]]{}}
     .return{{
       .isRunning -> this.get(cloned, source).isRunning,
       .stop -> this.get(cloned, source).stop,
       .step(downstream) -> this.get(cloned, source).step(downstream),
       }}),
-  .get(cloned: mut Ref[mut Opt[mut FlowOp[E]]], original: mut FlowOp[E]): mut FlowOp[E] -> cloned.get.match{
+  .get(cloned: mut Var[mut Opt[mut FlowOp[E]]], original: mut FlowOp[E]): mut FlowOp[E] -> cloned.get.match{
      .some(cloned') -> cloned',
      .empty -> Block#
        .let[mut List[E]] dup = {Flow.fromOp(original).list}
@@ -55,7 +55,7 @@ _FlowConverters: Sealed{
 _SafeSource: {
 //  .fromIter[E](iter: mut base.iter.Iter[E]): mut Flow[E] -> Flow.fromOp[E](this.fromIter'[E](iter)),
 //  .fromIter'[E](iter: mut base.iter.Iter[E]): mut FlowOp[E] -> Block#
-//    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
+//    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
 //    .return {{'op
 //      .stop -> isRunning := False,
 //      .isRunning -> isRunning*,

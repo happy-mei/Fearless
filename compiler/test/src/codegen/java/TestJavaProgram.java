@@ -315,24 +315,24 @@ public class TestJavaProgram {
     @Test void ref1() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
-    alias base.Ref as Ref, alias base.Int as Int,
-    Test:Main{ _ -> Assert!((GetRef#5)* == 5, { Void }) }
-    GetRef:{ #(n: Int): mut Ref[Int] -> Ref#n }
+    alias base.Var as Var, alias base.Int as Int,
+    Test:Main{ _ -> Assert!((GetVar#5)* == 5, { Void }) }
+    GetVar:{ #(n: Int): mut Var[Int] -> Var#n }
     """); }
   @Test void ref2() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
-    alias base.Ref as Ref, alias base.Int as Int,
-    Test:Main{ _ -> Assert!((GetRef#5).swap(6) == 5, { Void }) }
-    GetRef:{ #(n: Int): mut Ref[Int] -> Ref#n }
+    alias base.Var as Var, alias base.Int as Int,
+    Test:Main{ _ -> Assert!((GetVar#5).swap(6) == 5, { Void }) }
+    GetVar:{ #(n: Int): mut Var[Int] -> Var#n }
     """); }
-  // TODO: loops if we give a broken value like `.let[mut Ref[Int]](n = Ref#5)` (not a ReturnStmt)
+  // TODO: loops if we give a broken value like `.let[mut Var[Int]](n = Var#5)` (not a ReturnStmt)
   @Test void ref3() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert, alias base.Block as Block,
-    alias base.Ref as Ref, alias base.Int as Int, alias base.ReturnStmt as ReturnStmt,
+    alias base.Var as Var, alias base.Int as Int, alias base.ReturnStmt as ReturnStmt,
     Test:Main{ _ -> mut Block[Void]
-      .let(n = { Ref#[Int]5 })
+      .let(n = { Var#[Int]5 })
       .do{ Assert!(n.swap(6) == 5) }
       .do{ Assert!(n* == 6) }
       .return{{}}
@@ -348,16 +348,16 @@ public class TestJavaProgram {
       }
     ImmMain:{
       #(args: LList[Str]): Str -> args.tryGet(1u).match{.some(arg) -> arg, .empty -> this.errMsg(args.head.isSome).get},
-      .errMsg(retCounter: Bool): mut Ref[Str] -> Block#
-        .let res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
+      .errMsg(retCounter: Bool): mut Var[Str] -> Block#
+        .let res = { Var#[mut Var[Str]](Var#[Str]"Sad") }
         .let counter = { Count.int(42) }
         .do{ res* := "mutability!" }
         .do{ Block#(counter++) }
-        .if{ False }.return{ Ref#[Str]"Short cut" }
+        .if{ False }.return{ Var#[Str]"Short cut" }
         .if{ True }.do{ Block#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
         .if{ True }.do{ res* := "moar mutability" }
         .if{ retCounter.not }.return{ res* }
-        .return{ Ref#(counter*.str) }
+        .return{ Var#(counter*.str) }
       }
     """;
   @Test void cliArgs1a() { okWithArgs(new Res("moar mutability", "", 0), List.of(), cliArgsOrElseGet, Base.mutBaseAliases); }
@@ -377,16 +377,16 @@ public class TestJavaProgram {
       }
     ImmMain:{
       #(args: LList[Str]): Str -> args.get(1u) | (this.errMsg(args.head.isSome)*),
-      .errMsg(retCounter: Bool): mut Ref[Str] -> Block#
-        .let res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
+      .errMsg(retCounter: Bool): mut Var[Str] -> Block#
+        .let res = { Var#[mut Var[Str]](Var#[Str]"Sad") }
         .let counter = { Count.int(42) }
         .do{ res* := "mutability!" }
         .do{ Block#(counter++) }
-        .if{ False }.return{ Ref#[Str]"Short cut" }
+        .if{ False }.return{ Var#[Str]"Short cut" }
         .if{ True }.do{ Block#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
         .if{ True }.do{ res* := "moar mutability" }
         .if{ retCounter.not }.return{ res* }
-        .return{ Ref#(counter*.str) }
+        .return{ Var#(counter*.str) }
       }
     """;
   @Disabled
@@ -410,7 +410,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let[mut Ref[Int]] closest = { Ref#(ns.head!) }
+        .let[mut Var[Int]] closest = { Var#(ns.head!) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -434,7 +434,7 @@ public class TestJavaProgram {
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
         .let[Int] closest' = { ns.get(0u) }
-        .let closest = { Ref#[Int](closest') }
+        .let closest = { Var#[Int](closest') }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -457,7 +457,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let[mut Ref[Int]] closest = { Ref#[Int](ns.head!) }
+        .let[mut Var[Int]] closest = { Var#[Int](ns.head!) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -480,7 +480,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let[mut Ref[Int]] closest = { Ref#[Int](ns.get(0u)) }
+        .let[mut Var[Int]] closest = { Var#[Int](ns.get(0u)) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -503,7 +503,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: mut LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let closest = { Ref#[Int](ns.get(0u)) }
+        .let closest = { Var#[Int](ns.get(0u)) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -526,7 +526,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: mut List[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let closest = { Ref#[Int](ns.get(0u)) }
+        .let closest = { Var#[Int](ns.get(0u)) }
         .do{ mut Closest'{ 'self
           i -> ns.tryGet(i).match{
             .empty -> {},
@@ -729,7 +729,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Block#
       .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
-      .let[Int] ok = { a.peek[Int]{ .some(m) -> m.rn*.toImm + 0, .empty -> base.Abort! } }
+      .let[Int] ok = { a.peek[Int]{ .some(m) -> m.rn* + 0, .empty -> base.Abort! } }
       .return{Void}
       }
     MutThingy:{ mut .n: mut Count[Int], read .rn: read Count[Int] }
@@ -980,7 +980,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let[mut Ref[Int]] closest = { Ref#[Int](ns.head!) }
+        .let[mut Var[Int]] closest = { Var#[Int](ns.head!) }
         .do{ mut Closest'{ 'self
           h, t -> h.match[Void] mut base.OptMatch[Int,Void]{
             .empty -> {},
@@ -1000,12 +1000,12 @@ public class TestJavaProgram {
     MutLList:{ #: mut base.LList[base.Int] -> mut base.LList[base.Int] +[] 35 +[] 52 +[] 84 +[] 14 }
     """); }
 
-  @Test void immFromRefImmPrimitive() { ok(new Res("5", "", 0), """
+  @Test void immFromVarImmPrimitive() { ok(new Res("5", "", 0), """
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: read Ref[Int]): Int -> r.get.toImm,
-      .m2: Int -> this.m1(Ref#[Int]5),
+      .m1(r: read Var[Int]): Int -> r.get,
+      .m2: Int -> this.m1(Var#[Int]5),
       }
     """, Base.mutBaseAliases); }
 
@@ -1077,8 +1077,8 @@ public class TestJavaProgram {
       }
     A:{
       .m1(l: read LList[Int]): Str -> l.iter
-                                      .filter{n -> n.toImm >= (12.5 .round)}
-                                      .str({n -> n.toImm.str}, ", ")
+                                      .filter{n -> n >= (12.5 .round)}
+                                      .str({n -> n.str}, ", ")
       }
     """, Base.mutBaseAliases);}
   @Test void listFilterMultiMdfRead() { ok(new Res("13, 14", "", 0), """
@@ -1091,8 +1091,8 @@ public class TestJavaProgram {
       }
     A:{
       .m1(l: read List[Int]): Str -> l.iter
-                                      .filter{n -> n.toImm >= (12.5 .round)}
-                                      .str({n -> n.toImm.str}, ", ")
+                                     .filter{n -> n >= (12.5 .round)}
+                                     .str({n -> n.str}, ", ")
       }
     """, Base.mutBaseAliases);}
 
@@ -1100,16 +1100,16 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Ref[mut LinkedLens[Str, Int]]] m = { Ref#[mut LinkedLens[Str, Int]](mut StrMap[Int]) }
+      .let[mut Var[mut LinkedLens[Str, Int]]] m = { Var#[mut LinkedLens[Str, Int]](mut StrMap[Int]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
       .do{ io.println(m*.get("Bob")!.str) }
       .assert{ m*.get("nobody").isEmpty }
-      .let[mut Ref[mut LinkedLens[Str, Str]]] tm = { Ref#[mut LinkedLens[Str, Str]](m*.map(
+      .let[mut Var[mut LinkedLens[Str, Str]]] tm = { Var#[mut LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
         {k, v -> (v * 10).str },
-        {k, v -> (v.toImm * 10).str }
+        {k, v -> (v.int * 10).str }
         )) }
       .do{ io.println(tm*.get("Nick")!) }
       .do{ tm := (tm*.put("Nick", "hi")) }
@@ -1121,15 +1121,15 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Ref[LinkedLens[Str, Int]]] m = { Ref#[LinkedLens[Str, Int]](StrMap[Int]) }
+      .let[mut Var[LinkedLens[Str, Int]]] m = { Var#[LinkedLens[Str, Int]](StrMap[Int]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
       .do{ io.println(m*.get("Bob")!.str) }
       .assert{ m*.get("nobody").isEmpty }
-      .let[mut Ref[LinkedLens[Str, Str]]] tm = { Ref#[LinkedLens[Str, Str]](m*.map(
+      .let[mut Var[LinkedLens[Str, Str]]] tm = { Var#[LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
-        {k, v -> (v.toImm * 10).str }
+        {k, v -> (v.int * 10).str }
         )) }
       .do{ io.println(tm*.get("Nick")!) }
       .do{ tm := (tm*.put("Nick", "hi")) }
@@ -1141,19 +1141,19 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Ref[read LinkedLens[Str, Int]]] m = { Ref#[read LinkedLens[Str, Int]]({k1,k2 -> k1 == k2}) }
+      .let[mut Var[read LinkedLens[Str, Int]]] m = { Var#[read LinkedLens[Str, Int]]({k1,k2 -> k1 == k2}) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
-      .do{ io.println(m*.get("Nick")!.toImm.str) }
-      .do{ io.println(m*.get("Bob")!.toImm.str) }
+      .do{ io.println(m*.get("Nick")!.str) }
+      .do{ io.println(m*.get("Bob")!.str) }
       .assert{ m*.get("nobody").isEmpty }
-      .let[mut Ref[read LinkedLens[Str, Str]]] tm = { Ref#[read LinkedLens[Str, Str]](m*.map(
+      .let[mut Var[read LinkedLens[Str, Str]]] tm = { Var#[read LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
-        {k, v -> (v.toImm * 10).str }
+        {k, v -> (v.int * 10).str }
         )) }
-      .do{ io.println(tm*.get("Nick")!.toImm) }
+      .do{ io.println(tm*.get("Nick")! .str) }
       .do{ tm := (tm*.put("Nick", "hi")) }
-      .do{ io.println(tm*.get("Nick")!.toImm) }
+      .do{ io.println(tm*.get("Nick")! .str) }
       .return{Void}
       }
     """, Base.mutBaseAliases);}
@@ -1162,13 +1162,13 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Ref[Lens[Str, Int]]] m = { Ref#[Lens[Str, Int]]({k1,k2 -> k1 == k2}) }
+      .let[mut Var[Lens[Str, Int]]] m = { Var#[Lens[Str, Int]]({k1,k2 -> k1 == k2}) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
       .do{ io.println(m*.get("Bob")!.str) }
       .assert{ m*.get("nobody").isEmpty }
-      .let[mut Ref[Lens[Str, Str]]] tm = { Ref#[Lens[Str, Str]](m*.map{k, v -> (v * 10).str }) }
+      .let[mut Var[Lens[Str, Str]]] tm = { Var#[Lens[Str, Str]](m*.map{k, v -> (v * 10).str }) }
       .do{ io.println(tm*.get("Nick")!) }
       .do{ tm := (tm*.put("Nick", "hi")) }
       .do{ io.println(tm*.get("Nick")!) }

@@ -29,14 +29,14 @@ Person:{
   }
 FPerson:F[Str, UInt, mut Person]{
   name, age -> Block#
-    .let _age = { Ref#[UInt](age) }
+    .let _age = { Var#[UInt](age) }
     .return{{
       .name -> name,
       .age -> _age*,
       .age(n) -> _age := n,
       }}
     }
-//  .build(name: Str, age: mut Ref[UInt]): mut MPerson -> {
+//  .build(name: Str, age: mut Var[UInt]): mut MPerson -> {
 //    .name -> name,
 //    .age -> age*,
 //    .setAge(n) -> age := n,
