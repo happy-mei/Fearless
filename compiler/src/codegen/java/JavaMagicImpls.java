@@ -30,7 +30,8 @@ public record JavaMagicImpls(
         var lit = getLiteral(p, name);
         try {
           return lit
-            .map(lambdaName->Long.parseLong(lambdaName.substring(1).replace("_", ""), 10)+"L")
+            .map(lambdaName->lambdaName.startsWith("+") ? lambdaName.substring(1) : lambdaName)
+            .map(lambdaName->Long.parseLong(lambdaName.replace("_", ""), 10)+"L")
             .orElseGet(()->"((long)"+e.accept(gen, true)+")").describeConstable();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "Int");

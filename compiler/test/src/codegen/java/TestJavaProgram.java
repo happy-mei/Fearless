@@ -112,7 +112,7 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!("hi".size > 9000u, { Void }) }
+    Test:Main{ _ -> Assert!("hi".size > 9000, { Void }) }
     """);}
 
   @Test void longToStr() { ok(new Res("", "123456789", 1), """
@@ -132,25 +132,25 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, 9223372036854775808u .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, 9223372036854775808 .str, { Void }) }
     """);}
   @Test void veryLongLongIntFail() { fail("""
     [E31 invalidNum]
-    The number 9223372036854775808 is not a valid Int
+    The number +9223372036854775808 is not a valid Int
     """, """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, 9223372036854775808 .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, +9223372036854775808 .str, { Void }) }
     """);}
   @Test void veryLongLongUIntFail() { fail("""
     [E31 invalidNum]
-    The number 10000000000000000000000u is not a valid UInt
+    The number 10000000000000000000000 is not a valid UInt
     """, """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, 10000000000000000000000u .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, 10000000000000000000000 .str, { Void }) }
     """);}
   @Test void negativeToStr() { ok(new Res("", "-123456789", 1), """
     package test
@@ -175,7 +175,7 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (5_00_000u + 2u) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (5_00_000 + 2) .str, { Void }) }
     """);}
   @Test void addWithUnderscoreFloat() { ok(new Res("", "500002.6", 1), """
     package test
@@ -199,7 +199,7 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (0 - 2) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (-0 - +2) .str, { Void }) }
     """);}
   @Test void subtractionUnderflow() { ok(new Res("", "9223372036854775807", 1), """
     package test
@@ -347,7 +347,7 @@ public class TestJavaProgram {
       .return{ io.println(ImmMain#(env.launchArgs)) }
       }
     ImmMain:{
-      #(args: LList[Str]): Str -> args.tryGet(1u).match{.some(arg) -> arg, .empty -> this.errMsg(args.head.isSome).get},
+      #(args: LList[Str]): Str -> args.tryGet(1).match{.some(arg) -> arg, .empty -> this.errMsg(args.head.isSome).get},
       .errMsg(retCounter: Bool): mut Ref[Str] -> Block#
         .let res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
         .let counter = { Count.int(42) }
@@ -376,7 +376,7 @@ public class TestJavaProgram {
       .return{ io.println(ImmMain#(env.launchArgs)) }
       }
     ImmMain:{
-      #(args: LList[Str]): Str -> args.get(1u) | (this.errMsg(args.head.isSome)*),
+      #(args: LList[Str]): Str -> args.get(1) | (this.errMsg(args.head.isSome)*),
       .errMsg(retCounter: Bool): mut Ref[Str] -> Block#
         .let res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
         .let counter = { Count.int(42) }
@@ -433,7 +433,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let[Int] closest' = { ns.get(0u) }
+        .let[Int] closest' = { ns.get(0) }
         .let closest = { Ref#[Int](closest') }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
@@ -480,7 +480,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let[mut Ref[Int]] closest = { Ref#[Int](ns.get(0u)) }
+        .let[mut Ref[Int]] closest = { Ref#[Int](ns.get(0)) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -503,7 +503,7 @@ public class TestJavaProgram {
     Closest:{
       #(ns: mut LList[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let closest = { Ref#[Int](ns.get(0u)) }
+        .let closest = { Ref#[Int](ns.get(0)) }
         .do{ mut Closest'{ 'self
           h, t -> h.match{
             .empty -> {},
@@ -526,16 +526,16 @@ public class TestJavaProgram {
     Closest:{
       #(ns: mut List[Int], target: Int): Int -> Block#
         .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
-        .let closest = { Ref#[Int](ns.get(0u)) }
+        .let closest = { Ref#[Int](ns.get(0)) }
         .do{ mut Closest'{ 'self
           i -> ns.tryGet(i).match{
             .empty -> {},
             .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
               .then -> closest := n,
-              .else -> self#(i + 1u)
+              .else -> self#(i + 1)
               }
             }
-          }#(1u) }
+          }#(1) }
         .return{ closest* }
       }
     Closest':{ mut #(i: UInt): Void }
@@ -575,40 +575,40 @@ public class TestJavaProgram {
     package test
     alias base.iter.Sum as Sum,
     Test:Main{ _ -> Block#
-      .let[mut List[Int]] l1 = { (mut LList[Int] + 35 + 52 + 84 + 14).list }
-      .assert({ l1.get(0u) == (l1.iter.next!) }, "sanity") // okay, time to use this for new tests
-      .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((l1.iter.find{n -> n > 100}).isEmpty, "find empty", {{}}) }
+      .let[mut List[Int]] l1 = { (mut LList[Int] + +35 + +52 + +84 + +14).list }
+      .assert({ l1.get(0) == (l1.iter.next!) }, "sanity") // okay, time to use this for new tests
+      .do{ Assert!((l1.iter.find{n -> n > +60})! == +84, "find some", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > +100}).isEmpty, "find empty", {{}}) }
       .do{ Assert!(l1.iter
-                      .map{n -> n * 10}
-                      .find{n -> n == 140}
+                      .map{n -> n * +10}
+                      .find{n -> n == +140}
                       .isSome,
         "map", {{}})}
       .do{ Assert!(l1.iter
-                      .filter{n -> n > 50}
-                      .find{n -> n == 84}
+                      .filter{n -> n > +50}
+                      .find{n -> n == +84}
                       .isSome,
         "filter", {{}})}
       .do{ Assert!(l1.iter
-                      .filter{n -> n > 50}
-                      .count == 2u,
+                      .filter{n -> n > +50}
+                      .count == 2,
         "count", {{}})}
       .do{ Assert!(l1.iter
-                      .filter{n -> n > 50}
-                      .list.size == 2u,
+                      .filter{n -> n > +50}
+                      .list.size == 2,
         "toList", {{}})}
       .do{ Assert!(l1.iter
-                      .filter{n -> n > 50}
+                      .filter{n -> n > +50}
                       .llist
-                      .size == 2u,
+                      .size == 2,
         "to mut LList", {{}})}
       .do{ Assert!(l1.iter
                     .flatMap{n -> List#(n, n, n).iter}
-                    .map{n -> n * 10}
+                    .map{n -> n * +10}
                     .str({n -> n.str}, ";") == "350;350;350;520;520;520;840;840;840;140;140;140",
         "flatMap", {{}})}
-      .do{ Assert!(Sum.int(l1.iter) == 185, "sum int", {{}})}
-      .do{ Assert!(Sum.uint(l1.iter.map{n -> n.uint}) == 185u, "sum uint", {{}})}
+      .do{ Assert!(Sum.int(l1.iter) == +185, "sum int", {{}})}
+      .do{ Assert!(Sum.uint(l1.iter.map{n -> n.uint}) == 185, "sum uint", {{}})}
       .do{ Assert!(Sum.float(l1.iter.map{n -> n.float}) == 185.0, "sum float", {{}})}
       .return{{}}
       }
@@ -616,12 +616,12 @@ public class TestJavaProgram {
 
   @Test void paperExamplePrintIter() { ok(new Res("350,350,350,140,140,140", "", 0), """
     package test
-    alias base.Int as Int, alias base.Str as Str,
+    alias base.UInt as UInt, alias base.Str as Str,
     alias base.List as List, alias base.Block as Block,
     alias base.caps.FIO as FIO, alias base.caps.IO as IO,
     
     Test :base.Main{ sys -> Block#
-        .let l1 = { List#[Int](35, 52, 84, 14) }
+        .let l1 = { List#[UInt](35, 52, 84, 14) }
         .assert{l1.iter
           .map{n -> n * 10}
           .find{n -> n == 140}
@@ -638,13 +638,13 @@ public class TestJavaProgram {
     """);}
   @Test void paperExamplePrintFlow() { ok(new Res("350,350,350,140,140,140", "", 0), """
     package test
-    alias base.Int as Int, alias base.Str as Str,
+    alias base.UInt as UInt, alias base.Str as Str,
     alias base.List as List, alias base.Block as Block,
     alias base.caps.FIO as FIO, alias base.caps.IO as IO,
     alias base.flows.Flow as Flow,
     
     Test: base.Main{ sys -> Block#
-        .let l1 = { List#[Int](35, 52, 84, 14) }
+        .let l1 = { List#[UInt](35, 52, 84, 14) }
         .assert{l1.iter
           .map{n -> n * 10}
           .find{n -> n == 140}
@@ -676,11 +676,11 @@ public class TestJavaProgram {
 
   @Test void absUIntPos() { ok(new Res("", "", 0), """
     package test
-    Test:Main{ _ -> Assert!(5u .abs == 5u) }
+    Test:Main{ _ -> Assert!(5 .abs == 5) }
     """, Base.mutBaseAliases); }
   @Test void absUIntZero() { ok(new Res("", "", 0), """
     package test
-    Test:Main{ _ -> Assert!(0u .abs == 0u) }
+    Test:Main{ _ -> Assert!(0 .abs == 0) }
     """, Base.mutBaseAliases); }
 
   @Test void isoPod1() { ok(new Res("", "", 0), """
@@ -729,7 +729,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Block#
       .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
-      .let[Int] ok = { a.peek[Int]{ .some(m) -> m.rn*.toImm + 0, .empty -> base.Abort! } }
+      .let[Int] ok = { a.peek[Int]{ .some(m) -> m.rn*.int + 0, .empty -> base.Abort! } }
       .return{Void}
       }
     MutThingy:{ mut .n: mut Count[Int], read .rn: read Count[Int] }
@@ -756,14 +756,14 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .return{ io.println(5 ** 5u .str) }
+      .return{ io.println(5 ** 5 .str) }
       }
     """, Base.mutBaseAliases); }
   @Test void uintExp() { ok(new Res("3125", "", 0), """
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .return{ io.println(5u ** 5u .str) }
+      .return{ io.println(5 ** 5 .str) }
       }
     """, Base.mutBaseAliases); }
 
@@ -974,7 +974,7 @@ public class TestJavaProgram {
   @Test void findClosestIntMultiMdf() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
+      .let[Int] closest = { Closest#(LList[Int] + +35 + +52 + +84 + +14, +49) }
       .return{ Assert!(closest == 52, closest.str, {{}}) }
       }
     Closest:{
@@ -1004,8 +1004,8 @@ public class TestJavaProgram {
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: read Ref[Int]): Int -> r.get.toImm,
-      .m2: Int -> this.m1(Ref#[Int]5),
+      .m1(r: read Ref[Int]): Int -> r.get,
+      .m2: Int -> this.m1(Ref#(+5)),
       }
     """, Base.mutBaseAliases); }
 
@@ -1109,7 +1109,7 @@ public class TestJavaProgram {
       .let[mut Ref[mut LinkedLens[Str, Str]]] tm = { Ref#[mut LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
         {k, v -> (v * 10).str },
-        {k, v -> (v.toImm * 10).str }
+        {k, v -> (v.str * 10).str }
         )) }
       .do{ io.println(tm*.get("Nick")!) }
       .do{ tm := (tm*.put("Nick", "hi")) }
@@ -1259,7 +1259,7 @@ public class TestJavaProgram {
     Test: Main{
       #(sys) -> FIO#sys.println(this.name(this.create)),
     
-      .create: Person -> FPerson#("Bob", 24u),
+      .create: Person -> FPerson#("Bob", 24),
       .name(p: Person): Str -> p.name,
       }
     """, Base.mutBaseAliases);}
