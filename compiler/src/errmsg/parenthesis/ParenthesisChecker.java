@@ -23,7 +23,7 @@ public class ParenthesisChecker {
 
   public void incrementLine() {
     this.line++;
-    this.pos = 0;
+    this.pos = -1;
   }
 
   public void addToStack(ParenthesisType parenthesisType) {

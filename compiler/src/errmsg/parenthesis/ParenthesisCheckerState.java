@@ -115,11 +115,15 @@ public enum ParenthesisCheckerState {
       boolean flag = false;
       for(int i=open.line(); i<=close.line(); i++) {
         if(i > open.line()+1 && i < close.line()-1) {
-          if(!flag) {message.append("... ...");}
+          if(!flag) {
+            String range = (open.line()+2) + "-" + (close.line()-2) + ": ";
+            message.append(range);
+            message.append("... ... ...\n");
+            flag = true;}
           continue;
         }
-        String prefix = i+1 + ": ";
-        message.append(prefix).append(lines.get(i)).append("\n");
+        String prefix = i + "  : ";
+        message.append(prefix).append(lines.get(i-1)).append("\n");
         if(i == open.line()) {
           message.append(" ".repeat(open.pos() + prefix.length())).append("^ unclosed open\n");
         }
