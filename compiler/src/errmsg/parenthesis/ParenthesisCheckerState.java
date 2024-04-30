@@ -1,5 +1,8 @@
 package errmsg.parenthesis;
 
+import java.util.List;
+import java.util.Stack;
+
 public enum ParenthesisCheckerState {
   DEFAULT {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
@@ -46,17 +49,36 @@ public enum ParenthesisCheckerState {
       return this;
     }
 
-    @Override public String getErrorMessage() {
-      return "MISSING CLOSE";
+    @Override public String getErrorMessage(ParenthesisChecker checker, String input) {
+      Stack<Parenthesis> stack = checker.getStack();
+      assert !stack.isEmpty();
+      String message = stack.size() == 1 ? getSingleUnclosed(stack.pop(), input) :
+        "Error: multiple unclosed opening parenthesis\n";
+      return message;
+    }
+
+    private String getSingleUnclosed(Parenthesis open, String input) {
+      String prefix = open.line() + ": ";
+      String message = String.format("Error: unclosed opening parenthesis '%s' at %d:%d\n", open.type().symbol, open.line(), open.pos());
+      message += prefix + input.lines().toList().get(open.line()-1);
+      message += " ".repeat(open.pos()-1 + prefix.length()) + "^ unclosed parenthesis\n";
+      return message;
+    }
+
+    private String getMultiUnclosed(Stack<Parenthesis> stack, String input) {
+      String message = "Error: multiple unclosed opening parenthesis\n";
+      // TODO: Point out multiple opening parenthesis if possible?
+      // This is a placeholder
+      return getSingleUnclosed(stack.pop(), input);
     }
   },
   ERR_EXTRA {
-    @Override public String getErrorMessage() {
+    @Override public String getErrorMessage(ParenthesisChecker checker, String input) {
       return "EXTRA CLOSE";
     }
   },
   ERR_WRONG{
-    @Override public String getErrorMessage() {
+    @Override public String getErrorMessage(ParenthesisChecker checker, String input) {
       return "WRONG CLOSE";
     }
   },
@@ -165,7 +187,7 @@ public enum ParenthesisCheckerState {
 
   // Enum Methods
   public ParenthesisCheckerState process(ParenthesisChecker checker, String str){return this;}
-  public String getErrorMessage() {
+  public String getErrorMessage(ParenthesisChecker checker, String input) {
     throw new IllegalStateException("No parenthesis error was found");
   }
 }

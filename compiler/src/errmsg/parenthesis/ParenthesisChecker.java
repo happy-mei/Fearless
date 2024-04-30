@@ -1,6 +1,5 @@
 package errmsg.parenthesis;
 
-import java.util.Map;
 import java.util.Stack;
 
 public class ParenthesisChecker {
@@ -19,7 +18,7 @@ public class ParenthesisChecker {
       state = state.process(this, Character.toString(chr));
       pos++;
     }
-    return "";
+    return state.getErrorMessage(this, input);
   }
 
   public void incrementLine() {
