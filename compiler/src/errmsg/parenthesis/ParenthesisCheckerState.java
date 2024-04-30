@@ -84,7 +84,51 @@ public enum ParenthesisCheckerState {
   },
   ERR_WRONG{
     @Override public String getErrorMessage(ParenthesisChecker checker, String input) {
-      return "WRONG CLOSE";
+      Stack<Parenthesis> stack = checker.getStack();
+      Parenthesis close = stack.pop();
+      Parenthesis open = stack.pop();
+      return close.line() != open.line() ? getMultiLine(open, close, input) : getSingleLine(open, close, input);
+    }
+
+    private String getSingleLine(Parenthesis open, Parenthesis close, String input) {
+      String line = input.lines().toList().get(open.line()-1);
+      String prefix = open.line() + ": ";
+      String whitespace = " ".repeat(open.pos() + prefix.length());
+      String suggestion = "is it meant to be '" + open.type().pair + "'?";
+      String indicator = whitespace + "^" + "-".repeat(close.pos()-open.pos()-1) + "^ mismatched close, " + suggestion;
+//      String message = String.format("Error: mismatched closing parenthesis '%s' at %d:%d\n", close.type().symbol, close.line(), close.pos());
+//      message += prefix + line + "\n" + indicator + "\n" + whitespace + "|\n" + whitespace + "unclosed open\n";
+      return """
+        Error: mismatched closing parenthesis '%s' at %d:%d
+        %s%s
+        %s
+        %s|
+        %sunclosed open
+        
+        """.formatted(close.type().symbol, close.line(), close.pos(), prefix, line, indicator, whitespace, whitespace);
+    }
+
+    private String getMultiLine(Parenthesis open, Parenthesis close, String input) {
+      List<String> lines = input.lines().toList();
+      StringBuilder message = new StringBuilder(
+        String.format("Error: mismatched closing parenthesis '%s' at %d:%d\n", close.type().symbol, close.line(), close.pos()));
+      boolean flag = false;
+      for(int i=open.line(); i<=close.line(); i++) {
+        if(i > open.line()+1 && i < close.line()-1) {
+          if(!flag) {message.append("... ...");}
+          continue;
+        }
+        String prefix = i+1 + ": ";
+        message.append(prefix).append(lines.get(i)).append("\n");
+        if(i == open.line()) {
+          message.append(" ".repeat(open.pos() + prefix.length())).append("^ unclosed open\n");
+        }
+        if(i == close.line()) {
+          String suggestion = "is it meant to be '" + open.type().pair + "'?";
+          message.append(" ".repeat(close.pos() + prefix.length())).append("^ mismatched close, ").append(suggestion).append("\n");
+        }
+      }
+      return message.toString();
     }
   },
 
