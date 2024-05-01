@@ -61,7 +61,7 @@ public class Ex16ErrorsTest {
     Loop: {![R]: R -> this!}
     """, Base.mutBaseAliases); }
 
-  @Test void capabilityCatchStackOverflow() { ok(new RunOutput.Res("Stack overflowed", "", 0), """
+  @Test void capabilityCatchStackOverflow() { ok(new RunOutput.Res("\"Stack overflowed\"", "", 0), """
     package test
     Test:Main{s -> Block#
       .let io = {FIO#s}

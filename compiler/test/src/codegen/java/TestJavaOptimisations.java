@@ -1,6 +1,7 @@
 package codegen.java;
 
 import main.CompilerFrontEnd;
+import main.InputOutput;
 import main.Main;
 import main.java.LogicMainJava;
 import org.junit.jupiter.api.Disabled;
@@ -15,7 +16,7 @@ public class TestJavaOptimisations {
     assert content.length > 0;
     Main.resetAll();
     var vb = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
-    var main = LogicMainJava.of(TestInputOutputs.explicit(Arrays.asList(content), "test.Test"), vb);
+    var main = LogicMainJava.of(InputOutput.programmaticAuto(Arrays.asList(content)), vb);
     var fullProgram = main.parse();
     main.wellFormednessFull(fullProgram);
     var program = main.inference(fullProgram);
@@ -34,8 +35,8 @@ public class TestJavaOptimisations {
     package test;
     public interface Test_0 extends base.Main_0{
     Test_0 $self = new Test_0Impl();
-    base.Void_0 $hash$imm(base.caps.System_0 fear5$_m$);
-    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear5$_m$, test.Test_0 $this) {
+    base.Void_0 $hash$imm(base.caps.System_0 fear[###]$_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear[###]$_m$, test.Test_0 $this) {
       var n_m$ = 5L;
     var doRes1 = test.ForceGen_0.$self.$hash$imm();
     return base.Void_0.$self;
@@ -56,8 +57,8 @@ public class TestJavaOptimisations {
     package test;
     public interface Test_0 extends base.Main_0{
     Test_0 $self = new Test_0Impl();
-    base.Void_0 $hash$imm(base.caps.System_0 fear5$_m$);
-    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear5$_m$, test.Test_0 $this) {
+    base.Void_0 $hash$imm(base.caps.System_0 fear[###]$_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear[###]$_m$, test.Test_0 $this) {
       return base.Void_0.$self;
     }
     }
@@ -77,7 +78,7 @@ public class TestJavaOptimisations {
     static base.Void_0 $hash$imm$fun(base.caps.System_0 sys_m$, test.Test_0 $this) {
       var n_m$ = base.Count_0.$self.int$imm(0L);
     while (true) {
-      var res = new Fear61$_0Impl(n_m$).$hash$mut();
+      var res = new Fear[###]$_0Impl(n_m$).$hash$mut();
       if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
         if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
         if (res instanceof base.ControlFlowReturn_1 rv) { return (base.Void_0) rv.value$mut(); }
@@ -107,7 +108,7 @@ public class TestJavaOptimisations {
     static rt.Str $hash$imm$fun(test.Foo_0 $this) {
       var n_m$ = base.Count_0.$self.int$imm(0L);
     while (true) {
-      var res = new Fear63$_0Impl(n_m$).$hash$mut();
+      var res = new Fear[###]$_0Impl(n_m$).$hash$mut();
       if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
         if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
         if (res instanceof base.ControlFlowReturn_1 rv) { return (rt.Str) rv.value$mut(); }
@@ -137,7 +138,7 @@ public class TestJavaOptimisations {
     static rt.Str $hash$imm$fun(test.Foo_0 $this) {
       var n_m$ = base.Count_0.$self.int$imm(0L);
     while (true) {
-      var res = new Fear63$_0Impl(n_m$).$hash$mut();
+      var res = new Fear[###]$_0Impl(n_m$).$hash$mut();
       if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
         if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
         if (res instanceof base.ControlFlowReturn_1 rv) { return (rt.Str) rv.value$mut(); }
