@@ -70,7 +70,7 @@ public class TestReadImm {
     In position [###]/Dummy0.fear:2:33
     [E33 callTypeError]
     Type error: None of the following candidates (returning the expected type "mut test.Box[S]") for this method call:
-    [-imm-][test.Box[]]{'fear2$ } #/1[S]([s])
+    [-imm-][test.Box[]]{'fear[###]$ } #/1[S]([s])
     were valid:
     ([E28 undefinedName]) <= (imm test.Box[], S): mut test.Box[S]
       The following errors were found when checking this sub-typing:

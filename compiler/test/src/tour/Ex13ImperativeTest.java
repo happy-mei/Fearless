@@ -26,7 +26,7 @@ public class Ex13ImperativeTest {
   @Test void refIsMutable() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let[mut Ref[Int]] n = {Ref#[Int] 5}
+      .let[mut Var[Int]] n = {Var#[Int] 5}
       .assert {n.get == 5}
       .do {n := 10}
       .assert {n.get == 10}
