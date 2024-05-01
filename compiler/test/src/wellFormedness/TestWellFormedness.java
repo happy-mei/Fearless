@@ -343,7 +343,7 @@ public class TestWellFormedness {
 
   @Test void noLentLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:17
-    [E62 invalidLambdaMdf]
+    [E63 invalidLambdaMdf]
     lent is not a valid modifier for a lambda.
     """, """
     package test
@@ -351,7 +351,7 @@ public class TestWellFormedness {
     """); }
   @Test void noReadOnlyLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:21
-    [E62 invalidLambdaMdf]
+    [E63 invalidLambdaMdf]
     readOnly is not a valid modifier for a lambda.
     """, """
     package test

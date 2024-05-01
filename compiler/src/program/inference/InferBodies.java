@@ -245,6 +245,9 @@ public record InferBodies(ast.Program p) {
   }
   public static T replaceOnlyInfers(T user, T inferred) {
     if (user.isInfer()) { return inferred; }
+    if (inferred.isInfer()) {
+      return user;
+    }
     if (!(user.rt() instanceof Id.IT<T> userIT
       && inferred.rt() instanceof Id.IT<T> inferredIT)) { return user; }
     if (!userIT.name().equals(inferredIT.name())) { return user; }

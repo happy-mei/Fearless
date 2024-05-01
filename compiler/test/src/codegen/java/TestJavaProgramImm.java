@@ -302,7 +302,7 @@ public class TestJavaProgramImm {
     package test
     alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
     Test:base.Main { _ -> Block#
-     .let n = {5}
+     .let[Int] n = {5}
      .do {ForceGen#}
      .return {n .str}
      }

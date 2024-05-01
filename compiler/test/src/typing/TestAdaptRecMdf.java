@@ -4,6 +4,7 @@ import failure.CompileError;
 import id.Mdf;
 import net.jqwik.api.*;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
@@ -14,6 +15,7 @@ import utils.FromContent;
 import java.util.Arrays;
 
 /** Tests for the T[[MDF; Xs=Ts]] logic done in TypeRename via cmsOf **/
+@Disabled // No more recMdf
 public class TestAdaptRecMdf {
   void ok(String expected, String type, Mdf lambdaMdf, String ...code){
     var it = new Parser(Parser.dummy, type).parseFullT();

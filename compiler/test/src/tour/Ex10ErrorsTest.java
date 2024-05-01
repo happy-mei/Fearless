@@ -14,18 +14,18 @@ public class Ex10ErrorsTest {
     """, Base.mutBaseAliases); }
   @Test void caughtStackOverflow() { ok(new Res("", "Stack overflowed", 0), """
     package test
-    Test:Main {sys -> FIO#sys.printlnErr(Try#[Void]{Loop!}.err!.str)}
+    Test:Main {sys -> FIO#sys.printlnErr(CapTries#sys#[Void]{Loop!}.err!.msg)}
     Loop: { ![R]: R -> this! }
     """, Base.mutBaseAliases); }
   @Test void caughtDivByZero() { ok(new Res("", "/ by zero", 0), """
     package test
-    Test:Main {sys -> FIO#sys.printlnErr(Try#[Int]{12 / 0}.err!.str)}
+    Test:Main {sys -> FIO#sys.printlnErr(Try#[Int]{12 / 0}.err!.msg)}
     """, Base.mutBaseAliases); }
-  @Test void caughtFearlessError() { ok(new Res("", "oh no", 0), """
+  @Test void caughtFearlessError() { ok(new Res("", "\"oh no\"", 0), """
     package test
     Test:Main {sys -> FIO#sys.printlnErr(Try#[Int]{Error.msg "oh no"}.err!.str)}
     """, Base.mutBaseAliases); }
-  @Test void uncaughtFearlessError() { ok(new Res("", "Program crashed with: oh no", 1), """
+  @Test void uncaughtFearlessError() { ok(new Res("", "Program crashed with: \"oh no\"", 1), """
     package test
     Test:Main {sys -> Error.msg "oh no"}
     """, Base.mutBaseAliases); }
