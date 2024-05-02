@@ -329,7 +329,6 @@ public interface Program {
         var sameGens = first.cm.sig().gens().equals(cmi.cm.sig().gens());
         var sameBounds = first.cm.sig().bounds().equals(cmi.cm.sig().bounds());
         if (!sameGens || !sameBounds) {
-          System.out.println("hmm "+first+"\nand "+cmi);
           throw Fail.uncomposableMethods(List.of(
             Fail.conflict(first.cm.pos(), first.restoreMethodGens().toStringSimplified()),
             Fail.conflict(cmi.cm.pos(), cmi.restoreMethodGens().toStringSimplified())

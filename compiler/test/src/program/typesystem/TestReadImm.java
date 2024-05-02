@@ -8,10 +8,13 @@ import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
 
 public class TestReadImm {
-  // TODO: uhhhhhh this is copying the body for ALL abstract methods, not just picking one if it has the same name. I mean, it works but uhhhhhh
   private static final String BOX = """
     package test
-    Box: {#[T](t: T): mut Box[T] -> {t}}
+    Box: {#[T](t: T): mut Box[T] -> {
+      .get   -> t,
+      .rget  -> t,
+      .riget -> t,
+      }}
     Box[T]: {
       mut .get: T,
       read .rget: read T,

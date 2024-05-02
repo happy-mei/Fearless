@@ -13,7 +13,7 @@ public class OneOr{
   }
   public static <T> T of(Supplier<? extends CompileError> err, Stream<T> ts){
     return ts
-      .reduce( (a,b)->{throw new RuntimeException(err.get());})
+      .reduce((a,b)->{throw err.get();})
       .orElseThrow(err);
   }
 

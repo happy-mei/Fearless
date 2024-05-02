@@ -476,6 +476,67 @@ public class TestSigInference {
     False:Bool{ .and(b) -> this, .or(b) -> b, .not -> True, ?(f) -> f.else() }
     ThenElse[R]:{ mut .then: R, mut .else: R, }
     """); }
+
+  @Test void shouldInferOverloads() {ok("""
+    {test.ABox/0=Dec[name=test.ABox/0,gxs=[],lambda=[-infer-][test.Box[immtest.A[]]]{'this
+      .get/0([]):Sig[gens=[],ts=[],ret=immtest.A[]]->[-immtest.A[]-][test.A[]]{},
+      .get/0([]):Sig[gens=[],ts=[],ret=immtest.A[]]->[-immtest.A[]-][test.A[]]{}}],
+    test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{'this}],
+    test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[-infer-][]{'this
+      .get/0([]):Sig[gens=[],ts=[],ret=T]->[-],
+      .get/0([]):Sig[gens=[],ts=[],ret=read/immT]->[-]}]}
+    """, """
+    package test
+    A:{}
+    ABox: Box[A]{A}
+    Box[T]: {
+      mut .get: T,
+      read .get: read/imm T,
+      }
+    """);}
+
+  @Test void shouldInferOverloadsGeneric() {ok("""
+    {test.ABox/1=Dec[name=test.ABox/1,gxs=[A],lambda=[-infer-][test.Box[A]]{'this
+      .get/0([]):Sig[gens=[],ts=[],ret=A]->this:infer.get/0[-]([]):infer,
+      .get/0([]):Sig[gens=[],ts=[],ret=read/immA]->this:infer.get/0[-]([]):infer}],
+    test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[-infer-][]{'this
+      .get/0([]):Sig[gens=[],ts=[],ret=T]->[-],
+      .get/0([]):Sig[gens=[],ts=[],ret=read/immT]->[-]}]}
+    """, """
+    package test
+    ABox[A]: Box[A]{this.get}
+    Box[T]: {
+      mut .get: T,
+      read .get: read/imm T,
+      }
+    """);}
+  @Test void shouldNotInferAbsMethodsWithDifferentNames() {fail("""
+    In position [###]/Dummy0.fear:3:13
+    [E22 cannotInferAbsSig]
+    Could not infer the signature for the abstract lambda in test.ABox/0. There must be one abstract lambda in the trait.
+    """, """
+    package test
+    A:{}
+    ABox: Box[A]{A}
+    Box[T]: {
+      mut .get: T,
+      read .rget: read T,
+      read .riget: read/imm T,
+      }
+    """);}
+  @Test void shouldRejectAbstractInferenceWithMoreThanOneMethOnNamedLambda() {fail("""
+    In position [###]/Dummy0.fear:2:41
+    [E22 cannotInferAbsSig]
+    Could not infer the signature for the abstract lambda in test.Ayo/1. There must be one abstract lambda in the trait.
+    """, """
+    package test
+    Box: {#[T](t: T): mut Box[T] -> Ayo[T]: {t}}
+    Box[T]: {
+      mut .get: T,
+      read .rget: read T,
+      read .riget: read/imm T,
+      }
+    """);}
 }
 
 

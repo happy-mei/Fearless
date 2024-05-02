@@ -20,22 +20,22 @@ import java.util.stream.Stream;
 public class TestInferBodies {
   void ok(String expected, String... content){
     var parsed = parseProgram(content);
-    var inferred = new InferBodies(parsed.core).inferAll(parsed.full);
+    var inferred = InferBodies.inferAll(parsed.full);
     var cleaned = Base.ignoreBase(inferred);
     Err.strCmpFormat(expected, cleaned.toString());
   }
   void same(String programA, String programB, String... extras){
     var a = parseProgram(programA, extras);
-    var aCleaned = Base.ignoreBase(new InferBodies(a.core).inferAll(a.full));
+    var aCleaned = Base.ignoreBase(InferBodies.inferAll(a.full));
     var b = parseProgram(programB, extras);
-    var bCleaned = Base.ignoreBase(new InferBodies(b.core).inferAll(b.full));
+    var bCleaned = Base.ignoreBase(InferBodies.inferAll(b.full));
     Err.strCmpFormat(aCleaned.toString(), bCleaned.toString());
   }
   void fail(String expectedErr, String... content){
     var parsed = parseProgram(content);
 
     try {
-      var inferred = new InferBodies(parsed.core).inferAll(parsed.full);
+      var inferred = InferBodies.inferAll(parsed.full);
       Assertions.fail("Did not fail, got:\n" + Base.ignoreBase(inferred));
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
@@ -1422,5 +1422,19 @@ public class TestInferBodies {
     package base
     Int: {}
     _IntInstance: Int{}
+    """);}
+
+  @Test void shouldRejectAbstractInferenceWithMoreThanOneMeth() {fail("""
+    In position [###]/Dummy1.fear:2:32
+    [E22 cannotInferAbsSig]
+    Could not infer the signature for the abstract lambda in test.Fear0$/0. There must be one abstract lambda in the trait.
+    """, """
+    package test
+    Box: {#[T](t: T): mut Box[T] -> {t}}
+    Box[T]: {
+      mut .get: T,
+      read .rget: read T,
+      read .riget: read/imm T,
+      }
     """);}
 }
