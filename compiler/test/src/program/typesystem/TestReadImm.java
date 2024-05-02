@@ -8,10 +8,13 @@ import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
 
 public class TestReadImm {
-  // TODO: uhhhhhh this is copying the body for ALL abstract methods, not just picking one if it has the same name. I mean, it works but uhhhhhh
   private static final String BOX = """
     package test
-    Box: {#[T](t: T): mut Box[T] -> {t}}
+    Box: {#[T](t: T): mut Box[T] -> {
+      .get   -> t,
+      .rget  -> t,
+      .riget -> t,
+      }}
     Box[T]: {
       mut .get: T,
       read .rget: read T,
@@ -70,7 +73,7 @@ public class TestReadImm {
     In position [###]/Dummy0.fear:2:33
     [E33 callTypeError]
     Type error: None of the following candidates (returning the expected type "mut test.Box[S]") for this method call:
-    [-imm-][test.Box[]]{'fear2$ } #/1[S]([s])
+    [-imm-][test.Box[]]{'fear[###]$ } #/1[S]([s])
     were valid:
     ([E28 undefinedName]) <= (imm test.Box[], S): mut test.Box[S]
       The following errors were found when checking this sub-typing:

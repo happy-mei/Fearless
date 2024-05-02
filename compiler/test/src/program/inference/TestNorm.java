@@ -44,7 +44,7 @@ public class TestNorm {
     OptOrElse[R]:{ mut #: R }
     OptMap[T,R]:OptMatch[T, mut Opt[R]]{
       mut #(t: T): R,
-      .some(x) -> Opt#(this#x),
+      .some(x) -> Opts#(this#x),
       .empty -> {}
       }
     """);}

@@ -13,15 +13,16 @@ public class AllLsVisitor implements CollectorVisitor<Collection<T.Dec>> {
   }
 
   @Override public Void visitLambda(E.Lambda e) {
-    var dec = new T.Dec(e.id().id(), e.id().gens(), e.id().bounds(), e, e.pos());
-    var conflict = ds.get(dec.name());
+    var name = e.id().id();
+    var conflict = ds.get(name);
     if (conflict != null) {
-      throw Fail.conflictingDecl(dec.name(), List.of(
-        new Fail.Conflict(dec.posOrUnknown(), dec.name().toString()),
+      throw Fail.conflictingDecl(name, List.of(
+        new Fail.Conflict(e.posOrUnknown(), name.toString()),
         new Fail.Conflict(conflict.posOrUnknown(), conflict.name().toString()))
       ).pos(e.pos());
     }
-    ds.put(dec.name(), dec);
+    var dec = new T.Dec(e.id().id(), e.id().gens(), e.id().bounds(), e, e.pos());
+    ds.put(name, dec);
     return CollectorVisitor.super.visitLambda(e);
   }
   public void visitTrait(E.Lambda e) {

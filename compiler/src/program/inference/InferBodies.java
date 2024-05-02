@@ -11,6 +11,7 @@ import program.CM;
 import program.Program;
 import program.typesystem.XBs;
 import utils.Box;
+import utils.DistinctBy;
 import utils.Push;
 import utils.Streams;
 import visitors.InjectionVisitor;
@@ -167,7 +168,14 @@ public record InferBodies(ast.Program p) {
 
   List<FullMethSig> onlyAbs(E.Lambda e, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return FullMethSig.of(p, XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
+    var sigs = FullMethSig.of(p, XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
+    @SuppressWarnings("preview")
+    var nUniqueSigs = sigs.stream()
+      .gather(DistinctBy.of(sig->sig.name().withMdf(Optional.empty())))
+      .limit(2)
+      .count();
+    if (nUniqueSigs > 1) { throw Fail.cannotInferAbsSig(e.id().id()).pos(e.pos()); }
+    return sigs;
   }
   List<FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
@@ -245,6 +253,9 @@ public record InferBodies(ast.Program p) {
   }
   public static T replaceOnlyInfers(T user, T inferred) {
     if (user.isInfer()) { return inferred; }
+    if (inferred.isInfer()) {
+      return user;
+    }
     if (!(user.rt() instanceof Id.IT<T> userIT
       && inferred.rt() instanceof Id.IT<T> inferredIT)) { return user; }
     if (!userIT.name().equals(inferredIT.name())) { return user; }

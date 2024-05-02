@@ -90,10 +90,10 @@ public interface Base {
     alias base.StrMap as StrMap,
     alias base.Stringable as Stringable,
     
-    alias base.Ref as Ref,
+    alias base.Var as Var,
     alias base.Count as Count,
-    alias base.RefImm as RefImm,
     
+    alias base.Opts as Opts,
     alias base.Opt as Opt,
     alias base.OptMap as OptMap,
     

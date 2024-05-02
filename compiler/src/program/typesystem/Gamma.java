@@ -84,7 +84,7 @@ public interface Gamma {
       if (mMdf.isMut() && captured.mdf().is(mut, read, readImm)) { return captured; }
       if (mMdf.isImm() && captured.mdf().is(mut, read, readImm)) { return captured.withMdf(imm); }
       if (mMdf.isRead() && captured.mdf().is(mut, read)) { return captured.withMdf(read); }
-      if (mMdf.isRead() && captured.mdf().is(readImm)) { return captured.withMdf(readImm); } // TODO: update formalism
+      if (mMdf.isRead() && captured.mdf().is(readImm)) { return captured.withMdf(readImm); }
       if (mMdf.isLent() && captured.mdf().is(mut)) { return captured.withMdf(lent); }
       if (mMdf.isLent() && captured.mdf().is(read, readImm)) { return captured; }
       if (mMdf.isReadOnly() && captured.mdf().isMut()) { return captured.withMdf(readOnly); }

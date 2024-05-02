@@ -18,7 +18,7 @@ EmptyMap[K:imm,V]:Map[K, V]{
 Lens[K: imm, V]:Map[K, imm V]{
   .put(k: K, v: imm V): mut Lens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
-    .get(k') -> next.keyEq(k, k') ? {.then -> Opt#v, .else -> this.get(k')},
+    .get(k') -> next.keyEq(k, k') ? {.then -> Opts#v, .else -> this.get(k')},
     .isEmpty -> False,
     },
   .map[R](f: MapMapImm[K, imm V, imm R]): Lens[K, imm R] -> {
@@ -36,15 +36,15 @@ LinkedLens[K:imm, V]:Map[K, V]{
 
   mut  .put(k: K, v: V): mut LinkedLens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
-    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opt#[imm V]v, .else -> this.get(k')},
-    mut  .get(k': K): mut Opt[V] -> next.keyEq(k, k') ? {.then -> Opt#v, .else -> this.get(k')},
-    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opt#[read V]v, .else -> this.get(k')},
+    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
+    mut  .get(k': K): mut Opt[V] -> next.keyEq(k, k') ? {.then -> Opts#v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
     .isEmpty -> False,
     },
   read .put(k: K, v: read V): read LinkedLens[K, read V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
-    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opt#[imm V]v, .else -> this.get(k')},
-    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opt#[read V]v, .else -> this.get(k')},
+    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
     .isEmpty -> False,
     },
 

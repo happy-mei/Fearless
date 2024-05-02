@@ -29,7 +29,7 @@ public class TestInlineDecs {
       .age: imm N -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#(Bob, TwentyFour),
+      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
       .name(p: Person[UInt]): Str -> p.name,
       }
     """, """
@@ -44,7 +44,7 @@ public class TestInlineDecs {
       .age: imm N -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#(Bob, TwentyFour),
+      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
       .name(p: Person[UInt]): Str -> p.name,
       }
     """, """
@@ -97,7 +97,7 @@ public class TestInlineDecs {
       .age -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#(Bob, TwentyFour),
+      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
       .name(p: Person[UInt]): Str -> p.name,
       }
     """, """
@@ -117,7 +117,7 @@ public class TestInlineDecs {
       .age -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#(Bob, TwentyFour),
+      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
       .name(p: Person[UInt]): Str -> p.name,
       }
     """, """
@@ -133,7 +133,7 @@ public class TestInlineDecs {
       .age -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#(Bob, TwentyFour),
+      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
       .name(p: Person[UInt]): Str -> p.name,
       }
     """, """
@@ -149,7 +149,7 @@ public class TestInlineDecs {
       .age -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#(Bob, TwentyFour),
+      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
       .name(p: Person[UInt]): Str -> p.name,
       }
     """, """
@@ -157,6 +157,7 @@ public class TestInlineDecs {
     Str:{} Bob:Str{}
     UInt:{} TwentyFour:UInt{}
     """); }
+  // TODO: some bounds forwarding logic is broken. I think this should really be failing at like well-formedness, but is not.
   @Test void boundsForwardingExplicit() { fail("""
     In position [###]/Dummy0.fear:3:65
     [E5 invalidMdfBound]
@@ -164,13 +165,13 @@ public class TestInlineDecs {
     """, """
     package test
     Person[N: imm]:{ .name: Str, .age: N }
-    FPerson:{ #[N](name: Str, age: imm N): Person[imm N] -> Fresh[N]:Person[N]{
+    FPerson:{ #[N](name: Str, age: imm N): Person[imm N] -> Fresh[N]:Person[imm N]{
       .name -> name,
       .age -> age,
       }}
     Break:{ #: Fresh[mut UInt], }
     Ex:{
-      .create: Person[UInt] -> FPerson#(Bob, TwentyFour),
+      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
       .name(p: Person[UInt]): Str -> p.name,
       }
     """, """

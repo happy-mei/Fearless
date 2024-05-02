@@ -243,7 +243,6 @@ a collection of zero or one element.
 An empty optional it is not representing a mistake/error/problem.
 
 -------------------------*/
-  // TODO: try this with out read/imm (no imm case)
   @Test void optional() { run("""
   Opts:{
     #[T](x: T): mut Opt[T] -> {.match(m) -> m.some(x)}
@@ -291,7 +290,7 @@ An empty optional it is not representing a mistake/error/problem.
   OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
   OptMap[T,R]:OptMatch[T, mut Opt[R]]{
     mut #(t: T): R,
-    .some(x) -> Opt#(this#x),
+    .some(x) -> Opts#(this#x),
     .empty -> {}
     }
   """); }/*--------------------------------------------

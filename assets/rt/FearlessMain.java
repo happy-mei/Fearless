@@ -27,7 +27,7 @@ public class FearlessMain {
     try {
       myMain.$hash$imm(_System_0.$self);
     } catch (StackOverflowError e) {
-      fatal("Program crashed with Stack overflow");
+      fatal("Program crashed with: Stack overflowed");
     }
     catch (Throwable t) {
       var msg = t.getMessage() == null ? t.getCause() : t.getMessage();

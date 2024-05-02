@@ -179,7 +179,7 @@ public class TestFullWellFormedness {
     Opt:{ #[T](x: T): mut Opt[T] -> { .match(m) -> m.some(x) } }
     Opt[T]:NoMutHyg[T]{
       recMdf .match[R](m: mut OptMatch[recMdf T, R]): R -> m.none,
-      recMdf .map[R](f: mut OptMap[recMdf T, R]): mut Opt[R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
+      recMdf .map[R](f: mut OptMap[recMdf T, R]): mut Opt[R] -> this.match{ .some(x) -> Opts#(f#x), .none -> {} },
       recMdf .flatMap[R](f: mut OptMap[recMdf T, recMdf Opt[R]]): mut Opt[R] -> this.match{
         .some(x) -> f#x,
         .none -> {}
@@ -348,7 +348,7 @@ public class TestFullWellFormedness {
 
   @Test void noLentLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:22
-    [E62 invalidLambdaMdf]
+    [E63 invalidLambdaMdf]
     lent is not a valid modifier for a lambda.
     """, """
     package test
@@ -356,15 +356,15 @@ public class TestFullWellFormedness {
     """); }
   @Test void noReadOnlyLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:30
-    [E62 invalidLambdaMdf]
+    [E63 invalidLambdaMdf]
     readOnly is not a valid modifier for a lambda.
     """, """
     package test
     A: {#: readOnly A -> readOnly A}
     """); }
   @Test void noReadImmLambdaCreation() { fail("""
-    In position [###]/Dummy0.fear:2:30
-    [E62 invalidLambdaMdf]
+    In position [###]/Dummy0.fear:2:19
+    [E63 invalidLambdaMdf]
     read/imm is not a valid modifier for a lambda.
     """, """
     package test

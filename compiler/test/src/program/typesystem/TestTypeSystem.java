@@ -458,9 +458,9 @@ public class TestTypeSystem {
       // (Void is the wrong R and this returns Opt[Opt[T]] instead of Opt[T] or the written Void.
         OptDo[T]:OptMatch[T,Void]{
         #(t:T):Void,   //#[R](t:T):R,
-        .some(x) -> Opt#this._doRes(this#x, x),
+        .some(x) -> Opts#this._doRes(this#x, x),
         .none->{},
-        ._doRes(y:Void,x:T):T -> Opt#x
+        ._doRes(y:Void,x:T):T -> Opts#x
         }
    */
 
@@ -983,11 +983,11 @@ public class TestTypeSystem {
       +(e: E): List[E] -> this ++ (Cons#(e, {})),
       .get(i: UInt) : Opt[E] -> this.match{
         .empty -> {},
-        .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
+        .elem(h, t) -> (i == 0u) ? { .then -> Opts#h, .else -> t.get(i - 1u) }
         },
       .head: Opt[E] -> this.match{
         .empty -> {},
-        .elem(h,_) -> Opt#h,
+        .elem(h,_) -> Opts#h,
         },
       .tail: List[E] -> this.match{
         .empty -> {},
@@ -1008,10 +1008,10 @@ public class TestTypeSystem {
       }
     OptMatch[T:imm,R:imm]:{ .some(x:T): R, .none: R }
     OptFlatMap[T:imm,R:imm]:OptMatch[T,Opt[R]]{ .none -> {} }
-    OptMap[T:imm,R:imm]:OptMatch[T,Opt[R]]{ #(t:T):R, .some(x) -> Opt#(this#x), .none -> {} }
+    OptMap[T:imm,R:imm]:OptMatch[T,Opt[R]]{ #(t:T):R, .some(x) -> Opts#(this#x), .none -> {} }
     OptDo[T:imm]:OptMatch[T,Opt[T]]{
       #(t:T):Void,   //#[R](t:T):R,
-      .some(x) -> Opt#(this._doRes(this#x, x)),
+      .some(x) -> Opts#(this._doRes(this#x, x)),
       .none->{},
       ._doRes(y:Void,x:T):T -> x
       }

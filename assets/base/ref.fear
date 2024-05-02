@@ -1,14 +1,14 @@
 package base
 
-Ref:{
-  #[X](x: X): mut Ref[X] -> Block#
-    .let[mut _MagicRefImpl[X]] inner = {_MagicRefImpl#x}
+Var:{
+  #[X](x: X): mut Var[X] -> Block#
+    .let[mut _MagicVarImpl[X]] inner = {_MagicVarImpl#x}
     .return {{
       .get -> inner.get,
       .swap(x') -> inner.swap(x'),
       }},
   }
-Ref[X:imm,mut,read]: Sealed{
+Var[X:imm,mut,read]: Sealed{
   mut  .get: X,
   read .get: read/imm X,
   mut  *: X -> this.get,
@@ -17,12 +17,12 @@ Ref[X:imm,mut,read]: Sealed{
   mut .swap(x: X): X,
   mut :=(x: X): Void -> Block#(this.swap(x)),
   mut .set(x: X): Void -> this := x,
-  mut <-(f: mut UpdateRef[X]): X -> this.swap(f#(this*)),
-  mut .update(f: mut UpdateRef[X]): X -> this <- f,
+  mut <-(f: mut UpdateVar[X]): X -> this.swap(f#(this*)),
+  mut .update(f: mut UpdateVar[X]): X -> this <- f,
   }
-UpdateRef[X]: { mut #(x: X): X }
+UpdateVar[X]: { mut #(x: X): X }
 
-Count[N:imm]: Ref[N]{
+Count[N:imm]: Var[N]{
   mut ++: N,
   mut --: N,
   mut +=(n: N): N,
@@ -32,7 +32,7 @@ Count[N:imm]: Ref[N]{
 Count:{
   #(n: Int): mut Count[Int] -> this.int(n),
   .int(n: Int): mut Count[Int] -> Let#({
-    .var -> Ref#n,
+    .var -> Var#n,
     .in(c) -> {
       .get -> c.get,
       .swap(x) -> c.swap(x),
@@ -44,7 +44,7 @@ Count:{
       }
     }),
   .uint(n: UInt): mut Count[UInt] -> Let#({
-    .var -> Ref#n,
+    .var -> Var#n,
     .in(c) -> {
       .get -> c.get,
       .swap(x) -> c.swap(x),
@@ -57,10 +57,10 @@ Count:{
     })
   }
 
-// Ref as defined in the formal reduction of Fearless.
-// We capture this in the richer Ref.
-_MagicRefImpl: {#[X](x: X): mut _MagicRefImpl[X] -> Magic!}
-_MagicRefImpl[X]: {
+// Var as defined in the formal reduction of Fearless.
+// We capture this in the richer Var.
+_MagicVarImpl: {#[X](x: X): mut _MagicVarImpl[X] -> Magic!}
+_MagicVarImpl[X]: {
   mut  .get: X,
   read .get: read/imm X,
   mut .swap(x: X): X,

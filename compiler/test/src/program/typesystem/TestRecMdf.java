@@ -284,14 +284,14 @@ public class TestRecMdf {
 //
 //    Foo:{}
 //    Usage:{
-//      .immOpt(x: imm Foo): imm Opt[imm Foo] -> Opt#x,
-//      .mutOpt(x: mut Foo): mut Opt[mut Foo] -> mut Opt#x,
-//      .readOnlyOpt(x: readOnly Foo): readOnly Opt[readOnly Foo] -> readOnly Opt#x,
-//      .readOpt(x: readOnly Foo): readOnly Opt[readOnly Foo] -> readOnly Opt#x,
-//      .lentOpt(x: lent Foo): lent Opt[lent Foo] -> lent Opt#x,
-//      //.isoOpt(x: iso Foo): iso Opt[iso Foo] -> iso Opt#x,
-//      recMdf .recMdfOpt(x: recMdf Foo): recMdf Opt[recMdf Foo] -> recMdf Opt#x,
-//      .mdfOptMut[X](x: mut X): mut Opt[mut X] -> mut Opt#x,
+//      .immOpt(x: imm Foo): imm Opt[imm Foo] -> Opts#x,
+//      .mutOpt(x: mut Foo): mut Opt[mut Foo] -> mut Opts#x,
+//      .readOnlyOpt(x: readOnly Foo): readOnly Opt[readOnly Foo] -> readOnly Opts#x,
+//      .readOpt(x: readOnly Foo): readOnly Opt[readOnly Foo] -> readOnly Opts#x,
+//      .lentOpt(x: lent Foo): lent Opt[lent Foo] -> lent Opts#x,
+//      //.isoOpt(x: iso Foo): iso Opt[iso Foo] -> iso Opts#x,
+//      recMdf .recMdfOpt(x: recMdf Foo): recMdf Opt[recMdf Foo] -> recMdf Opts#x,
+//      .mdfOptMut[X](x: mut X): mut Opt[mut X] -> mut Opts#x,
 //      }
 //    """); }
   @Test void shouldApplyRecMdfInTypeParams1bRecMdf2() { ok("""
@@ -342,7 +342,7 @@ public class TestRecMdf {
     OptMatch[T,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     OptMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{
       mut #(x: mdf T): mdf R,
-      .some(x) -> mut Opt#(this#x),
+      .some(x) -> mut Opts#(this#x),
       .none -> {},
       }
     OptFlatMap[T,R]:OptMatch[mdf T, mut Opt[mdf R]]{

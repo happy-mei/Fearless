@@ -23,6 +23,12 @@ F[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b:
 F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B, c: C): R }
 F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, D:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B, c: C, d: D): R }
 
+MF[R:read,mut,imm,iso]: { read #: R }
+MF[A:read,mut,imm,iso,R:read,mut,imm,iso]: { mut #(a: A): R }
+MF[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]: { mut #(a: A, b: B): R }
+MF[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]: { mut #(a: A, b: B, c: C): R }
+MF[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, D:read,mut,imm,iso, R:read,mut,imm,iso]: { mut #(a: A, b: B, c: C, d: D): R }
+
 Consumer[A:read,mut,imm,iso]: { mut #(a: A): Void }
 Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso]: { mut #(a: A, b: B): Void }
 Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso]: { mut #(a: A, b: B, c: C): Void }

@@ -180,7 +180,7 @@ public class Ex09FlowsTest {
   @Test void optFlow() { ok(new Res(), """
     package test
     Test:Main {sys -> Block#
-      .let f1 = {(Opt#[Int]5).flow
+      .let f1 = {(Opts#[Int]5).flow
         .map{n -> n * 10}
         .list
         }
@@ -188,7 +188,7 @@ public class Ex09FlowsTest {
         .map{n -> n * 10}
         .list
         }
-      .assert{f1.get(0u)! == 50}
+      .assert{f1.get(0u) == 50}
       .assert{f2.size == 0u}
       .return {{}}
       }
@@ -334,12 +334,12 @@ public class Ex09FlowsTest {
       Flow#[Int](5, 10, 15)
         // .actor requires an iso S for its initial value
         // The 3rd argument is optional
-        .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+        .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
           .do {downstream#n}
-          .return {{}}}, mut Consumer[mut Ref[Int]]{state -> FIO#sys.println(state.get.str)})
+          .return {{}}}, mut Consumer[mut Var[Int]]{state -> FIO#sys.println(state.get.str)})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
@@ -350,12 +350,12 @@ public class Ex09FlowsTest {
       Flow#[Int](5, 10, 15)
         // .actor requires an iso S for its initial value
         // The 3rd argument is optional
-        .actorMut[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+        .actorMut[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
           .do {downstream#n}
-          .return {{}}}, mut Consumer[mut Ref[Int]]{state -> FIO#sys.println(state.get.str)})
+          .return {{}}}, mut Consumer[mut Var[Int]]{state -> FIO#sys.println(state.get.str)})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
@@ -369,7 +369,7 @@ public class Ex09FlowsTest {
     package test
     Test:Main {sys -> "42 5".assertEq(
       Flow#[Int](5, 10, 15)
-        .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+        .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
@@ -385,7 +385,7 @@ public class Ex09FlowsTest {
     Test:Main {sys -> "42 5 42 10".assertEq(
       Flow#[Int](5, 10, 15)
         .limit(2u)
-        .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+        .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
@@ -399,7 +399,7 @@ public class Ex09FlowsTest {
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](5, 10, 15)
-        .actor[mut Ref[Int], Int](Ref#[Int]1, {downstream, state, n -> Block#
+        .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
@@ -444,7 +444,7 @@ public class Ex09FlowsTest {
     package test
     FPerson:{
       #(age: UInt): mut Person -> Block#
-        .let[mut Ref[UInt]] age' = {Ref#age}
+        .let[mut Var[UInt]] age' = {Var#age}
         .return mut base.ReturnStmt[mut Person]{mut Person: Person{
           read .age: UInt -> age'.get,
           mut .age(n: UInt): Void -> age' := n,
@@ -458,11 +458,11 @@ public class Ex09FlowsTest {
 //      Flow#[Int](5, 10, 15)
 //        // .actor requires an iso S for its initial value
 //        // This lambda has the type read ActorImpl[mut IsoPod[S], ... E, R]
-//        .actor(Ref#1, mut Consume[mut Ref[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
+//        .actor(Var#1, mut Consume[mut Var[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
 //          .do {state.set(someMutList.get(0u)!)}
 //          .if {state.get > 10} .return {500}
 //          .return {n})
-//        .actor(Ref#1, mut Consume[mut Ref[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
+//        .actor(Var#1, mut Consume[mut Var[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
 //          .do {state.set(someMutList.get(0u)!)}
 //          .if {state.get > 10} .return {500}
 //          .return {n})
@@ -482,7 +482,7 @@ public class Ex09FlowsTest {
 //        // - mut flow of imm values with an readH lambda
 //        // - mut flow of mut values with an readH lambda
 //
-//        .actor(Ref#1, {state, n -> Block#
+//        .actor(Var#1, {state, n -> Block#
 //          .if {state.get > 10} .return {500}
 //          .do {state.put(n + state.get)}
 //          .return {n})
@@ -498,8 +498,8 @@ public class Ex09FlowsTest {
       .let[mut List[Int]] someMutList = {List#[Int](30)}
       .return {"500 5 500 10".assertEq(
         Flow#[Int](5, 10)
-          .actor[mut Ref[Int],Int](Ref#[Int]1, {next, state, n -> Block#
-            .do {state.set(someMutList.get(0u)!.toImm)}
+          .actor[mut Var[Int],Int](Var#[Int]1, {next, state, n -> Block#
+            .do {state.set(someMutList.get(0u))}
             .if {state.get > 10} .do {next#500}
             .do {next#n}
             .return {{}}
@@ -553,7 +553,7 @@ public class Ex09FlowsTest {
           // or
         .spawnSystemOf3(...., {
           .recvActor(state, msg, downstream) -> ...,
-          .actor2(state, msg, actorRef3, downstream) -> ...,
+          .actor2(state, msg, actorVa3, downstream) -> ...,
           .actor3(state, msg, actorRef2, downstream) -> ...,
           } // has to internally represent the result as three downstream lists to have a deterministic ordering
         .map{n -> n + 5}

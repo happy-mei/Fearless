@@ -5,7 +5,7 @@ package base.flows
 _Limit: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
     .let[mut Count[UInt]] remaining = {Count.uint(n)}
-    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return {{ 'runner
       .stop -> Block#(remaining := 0, upstream.stop),
       .isRunning -> remaining* > 0 && (upstream.isRunning),
@@ -16,7 +16,7 @@ _Limit: {
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
           .if {n == 0} .return {runner.stop}
-          .do {sink := (Opt#(sinkFactory#[E]{
+          .do {sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> remaining* == 0 || (remaining-- == 0) ? {
               .then -> runner.stop,
@@ -44,8 +44,8 @@ _Actor: {
   }
 _InternalActor: {
   #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] -> Block#
-    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return {{'op
       .stop -> op.isRunning ? {
        .then -> Block#(isRunning := False, upstream.stop, onComplete#state),
@@ -55,7 +55,7 @@ _InternalActor: {
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
-          .do {sink := (Opt#(sinkFactory#[E]{
+          .do {sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(downstream.stop, op.stop),
             #(e) -> isRunning.get ? {
               .then -> f#(downstream, state, e).match{
@@ -70,8 +70,8 @@ _InternalActor: {
       }},
 
   .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] -> Block#
-    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return {{'op
       .stop -> op.isRunning ? {
        .then -> Block#(isRunning := False, upstream.stop, onComplete#state),
@@ -81,7 +81,7 @@ _InternalActor: {
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
-          .do {sink := (Opt#(sinkFactory#[E]{
+          .do {sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(downstream.stop, op.stop),
             #(e) -> f#(downstream, state, e).match{
               .continue -> {},

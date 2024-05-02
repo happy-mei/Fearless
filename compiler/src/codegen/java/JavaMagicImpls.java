@@ -255,7 +255,7 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
           var x = args.getFirst();
           return Optional.of(String.format("""
-            new base._MagicRefImpl_1(){
+            new base._MagicVarImpl_1(){
               private Object x$ = %s;
               public Object get$mut() { return this.x$; }
               public Object get$read() { return this.x$; }
