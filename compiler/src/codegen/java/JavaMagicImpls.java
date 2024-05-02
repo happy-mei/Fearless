@@ -374,9 +374,18 @@ public record JavaMagicImpls(
 
   @Override public MagicTrait<MIR.E,String> pipelineParallelSinkK(MIR.E e) {
     return new MagicTrait<>() {
-
       @Override public Optional<String> instantiate() {
         return Optional.of("rt.PipelineParallelFlow.WrappedSinkK.$self");
+      }
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        return Optional.empty();
+      }
+    };
+  }
+  @Override public MagicTrait<MIR.E,String> seqSinkK(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        return Optional.of("rt.SeqSinkK.$self");
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         return Optional.empty();
