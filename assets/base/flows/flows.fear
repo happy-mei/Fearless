@@ -11,7 +11,7 @@ Flow: Sealed, _FlowExtensions, _FlowConverters{
   // These fromOp calls will always be sequential. Only flows made from specific standard library types
   // could have a parallel constructor.
   .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> _SeqFlow.fromOp(source, {}),
-  .fromOp[E](source: mut FlowOp[E], size: UInt): mut Flow[E] -> _SeqFlow.fromOp(source, Opt#size),
+  .fromOp[E](source: mut FlowOp[E], size: UInt): mut Flow[E] -> _SeqFlow.fromOp(source, Opts#size),
 
   // This variant of fromOp asks the compiler to emit code that collects the source into an intermediary list to
   // avoid any concurrent modification issues if they would be possible during the execution of the flow.
@@ -56,9 +56,9 @@ _TerminalOps[E]: Sealed{
   mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
   mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> Block#(acc.add(e), acc)}),
   mut .max(compare: read F[E, E, Ordering]): mut Opt[E] -> this.fold[mut Opt[E]]({}, {max, b -> max.match{
-    .empty -> Opt#b,
+    .empty -> Opts#b,
     .some(a) -> compare#(a, b).match{
-      .less -> Opt#b,
+      .less -> Opts#b,
       .equal -> max,
       .greater -> max,
       }

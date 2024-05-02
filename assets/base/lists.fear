@@ -97,13 +97,13 @@ LList[E]:Collection,Sealed{
       read .get(i: UInt): read/imm E -> (i == 0u) ?[read/imm E] { .then -> e, .else -> this.get[](i - 1u) },
       imm  .get(i: UInt): imm E -> (i  == 0u) ?[imm E] { .then -> e, .else -> this.get[](i - 1u) },
 
-      mut  .tryGet(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.tryGet(i - 1u) },
-      read .tryGet(i: UInt): mut Opt[read/imm E] -> (i == 0u) ? { .then -> Opt#[read/imm E]e, .else -> this.tryGet(i - 1u) },
-      imm  .tryGet(i: UInt): mut Opt[imm E] -> (i  == 0u) ? { .then -> Opt#[imm E]e, .else -> this.tryGet(i - 1u) },
+      mut  .tryGet(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opts#e, .else -> this.tryGet(i - 1u) },
+      read .tryGet(i: UInt): mut Opt[read/imm E] -> (i == 0u) ? { .then -> Opts#[read/imm E]e, .else -> this.tryGet(i - 1u) },
+      imm  .tryGet(i: UInt): mut Opt[imm E] -> (i  == 0u) ? { .then -> Opts#[imm E]e, .else -> this.tryGet(i - 1u) },
 
-      mut  .head: mut Opt[E] -> Opt#e,
-      read .head: mut Opt[read/imm E] -> Opt#[read/imm E]e,
-      imm  .head: mut Opt[imm E] -> Opt#[imm E]e,
+      mut  .head: mut Opt[E] -> Opts#e,
+      read .head: mut Opt[read/imm E] -> Opts#[read/imm E]e,
+      imm  .head: mut Opt[imm E] -> Opts#[imm E]e,
 
       .tail -> this,
       ++(l1) -> (this ++ l1).pushFront(e),
@@ -120,11 +120,11 @@ LList[E]:Collection,Sealed{
       read .get(i: UInt): read/imm E -> (i == 0u) ?[read/imm E] { .then -> e, .else -> this.get(i - 1u) },
       imm  .get(i: UInt): imm E -> (i  == 0u) ?[imm E] { .then -> e, .else -> this.get(i - 1u) },
 
-      read .tryGet(i: UInt): mut Opt[read/imm E] -> (i == 0u) ? { .then -> Opt#[read/imm E]e, .else -> this.tryGet(i - 1u) },
-      imm  .tryGet(i: UInt): mut Opt[imm E] -> (i  == 0u) ? { .then -> Opt#[imm E]e, .else -> this.tryGet(i - 1u) },
+      read .tryGet(i: UInt): mut Opt[read/imm E] -> (i == 0u) ? { .then -> Opts#[read/imm E]e, .else -> this.tryGet(i - 1u) },
+      imm  .tryGet(i: UInt): mut Opt[imm E] -> (i  == 0u) ? { .then -> Opts#[imm E]e, .else -> this.tryGet(i - 1u) },
 
-      read .head: mut Opt[read/imm E] -> Opt#[read/imm E]e,
-      imm  .head: mut Opt[imm E] -> Opt#[imm E]e,
+      read .head: mut Opt[read/imm E] -> Opts#[read/imm E]e,
+      imm  .head: mut Opt[imm E] -> Opts#[imm E]e,
       .tail -> this,
       ++(l1) -> (this ++ l1).pushFront(e),
       .isEmpty -> False,
@@ -137,11 +137,11 @@ LList[E]:Collection,Sealed{
 //        imm  .match[R](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
 //        read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
 //
-//        imm  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opt#[E]e, .else -> this.get[](i - 1u) },
-//        read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#[read E]e, .else -> this.get[](i - 1u) },
+//        imm  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opts#[E]e, .else -> this.get[](i - 1u) },
+//        read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opts#[read E]e, .else -> this.get[](i - 1u) },
 //
-//        imm  .head: mut Opt[E] -> Opt#e,
-//        read .head: mut Opt[read E] -> Opt#[read E]e,
+//        imm  .head: mut Opt[E] -> Opts#e,
+//        read .head: mut Opt[read E] -> Opts#[read E]e,
 //
 //        .tail -> this,
 //        ++(l1) -> (this ++ l1).pushFront[](e),

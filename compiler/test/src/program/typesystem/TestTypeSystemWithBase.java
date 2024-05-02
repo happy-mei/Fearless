@@ -585,7 +585,7 @@ public class TestTypeSystemWithBase {
     package test
     Test:Main{ s -> Block#
       .let[Opt[Int]] res = { Opt[Int]
-        #{opt -> opt.match{.some(_) -> opt, .empty -> Opt#[Int]9001}}
+        #{opt -> opt.match{.some(_) -> opt, .empty -> Opts#[Int]9001}}
         }
       .assert{res! == 9001}
       .return {{}}

@@ -1,86 +1,51 @@
 package base
 
-Opt:{ #[T](x: T): mut Opt[T] -> {
-   .match(m) -> m.some(x),
-//  mut .match[R](m: mut OptMatch[T, R]): R -> m.some(x),
-//  read .match[R](m: mut OptMatch[read T, R]): R -> m.some(x),
-//  // imm case is needed because the read one will return read E even if E is imm
-//  imm  .match[R](m: mut OptMatch[T, R]): R -> m.some(x),
-  }}
-Opt[T]:Extensible[Opt[T]]{
-  .self -> this,
-  mut  .match[R](m: mut OptMatch[T, R]): R -> m.empty,
-  read .match[R](m: mut OptMatch[read/imm T, R]): R -> m.empty,
+Opts: {
+  #[T](x: T): mut Opt[T] -> {.match(m) -> m.some(x)},
+  }
+Opt[T]: _Opt[T],Extensible[Opt[T]]{
+  .self     -> this,
+  .match(m) -> m.empty,
+  .map(f)   -> this.match(f),
+  ||(f)     -> this.match{.some(x) -> x, .empty -> f#},
+  |(f)      -> this.match{.some(x) -> x, .empty -> f},
+  !         -> this.match{.some(x) -> x, .empty -> Error.msg "Opt was empty"},
+  .flow     -> this.match{.empty -> Flow#, .some(x) -> Flow#(x)},
 
-  mut  !: T -> this.match[T](mut OptMatch[T, T]{ .some(x) -> x, .empty -> Error.msg "Opt was empty" }),
-  read !: read/imm T -> this.match[read/imm T](mut OptMatch[read/imm T, read/imm T]{ .some(x) -> x, .empty -> Error.msg "Opt was empty" }),
+  read .isEmpty: Bool ->
+    this.match{.empty -> True, .some(_) -> False},
+  read .isSome: Bool ->
+    this.match{.empty -> False, .some(_) -> True},
+  }
+_Opt[T]: Sealed{ // Sealed because potential magic on .flow
+  mut  .match[R](m: mut OptMatch[T, R]): R,
+  read .match[R](m: mut OptMatch[read/imm T, R]): R,
+  imm  .match[R](m: mut OptMatch[imm T, R]): R,
 
-  mut .map[R](f: mut OptMap[T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
-  read .map[R](f: mut OptMap[read/imm T, R]): mut Opt[R] -> this.match[mut Opt[R]](f),
+  mut  .map[R](f: mut OptMap[T, R]):          mut Opt[R],
+  read .map[R](f: mut OptMap[read/imm T, R]): mut Opt[R],
+  imm  .map[R](f: mut OptMap[imm T, R]):      mut Opt[R],
 
-//  mut |(alt: T): T -> this.match[T](mut OptMatch[T, T]{
-//    .some(x) -> x,
-//    .empty -> alt
-//    }),
-//  read |(alt: read T): read T -> this.match[read T](mut OptMatch[read T, read T]{
-//    .some(x) -> x,
-//    .empty -> alt
-//    }),
-//  imm  |(alt: T): T -> this.match[T](mut OptMatch[T, T]{
-//      .some(x) -> x,
-//      .empty -> alt
-//      }),
-//
-//  mut  ||(alt: mut OptOrElse[T]): T -> this.match[T](mut OptMatch[T, T]{
-//    .some(x) -> x,
-//    .empty -> alt#
-//    }),
-//  read ||(alt: mut OptOrElse[read T]): read T -> this.match[read T](mut OptMatch[read T, read T]{
-//    .some(x) -> x,
-//    .empty -> alt#
-//    }),
-//  imm ||(alt: mut OptOrElse[T]): T -> this.match[T](mut OptMatch[T, T]{
-//    .some(x) -> x,
-//    .empty -> alt#
-//    }),
-//
-//  mut .or(f: mut OptOrElse[mut Opt[T]]): mut Opt[T] -> this.match[mut Opt[T]](mut OptMatch[T, mut Opt[T]]{
-//    .some(x) -> this,
-//    .empty -> f#
-//    }),
-////   TODO: this is the method that breaks the adapter ok check for imm Opt[read T] < imm Opt[imm T]
-//  read .or(f: mut OptOrElse[read Opt[T]]): read Opt[T] -> this.match[read Opt[T]](mut OptMatch[read T, read Opt[T]]{
-//    .some(x) -> this,
-//    .empty -> f#
-//    }),
-//  imm .or(f: mut OptOrElse[Opt[T]]): Opt[T] -> this.match[Opt[T]](mut OptMatch[T, Opt[T]]{
-//      .some(x) -> this,
-//      .empty -> f#
-//      }),
+  mut  ||(default: mut MF[T]):          T,
+  read ||(default: mut MF[read/imm T]): read/imm T,
+  imm  ||(default: mut MF[imm T]):      imm T,
 
-  read .isEmpty: Bool -> this.match[Bool](mut OptMatch[read/imm T, Bool]{ .empty -> True, .some(_) -> False }),
-  read .isSome: Bool -> this.match[Bool](mut OptMatch[read/imm T, Bool]{ .empty -> False, .some(_) -> True }),
+  mut  |(default: T):          T,
+  read |(default: read/imm T): read/imm T,
+  imm  |(default: imm T):      imm T,
 
-  mut  .flow: mut Flow[T] -> this.match{
-    .empty -> Flow#,
-    .some(x) -> Flow#(x)
-    },
-  read .flow: mut Flow[read/imm T] -> this.match{
-    .empty -> Flow#,
-    .some(x) -> Flow#(x)
-    },
+  mut  !: T,
+  read !: read/imm T,
+  imm  !: imm T,
+
+  mut  .flow: mut Flow[T],
+  read .flow: mut Flow[read/imm T],
+  imm  .flow: mut Flow[imm T],
   }
 
 OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
-OptOrElse[R]:{ mut #: R }
 OptMap[T,R]:OptMatch[T, mut Opt[R]]{
   mut #(t: T): R,
-  .some(x) -> Opt#(this#x),
+  .some(x) -> Opts#(this#x),
   .empty -> {}
-  }
-
-// TODO: proof of concept for extension methods
-OptOrElseExt[T]:Extension[mut Opt[T], T]{
-  mut .alt: T,
-  #(opt) -> opt.match{ .some(x) -> x, .empty -> this.alt }
   }

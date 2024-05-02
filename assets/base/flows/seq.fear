@@ -19,7 +19,7 @@ _SeqFlow: {
         .stop -> source.stop,
         #(e) -> res.get.isEmpty ? {
           .then -> Block#
-            .do {res := (Opt#e)}
+            .do {res := (Opts#e)}
             .return {runner.stop},
           .else -> {},
           },
@@ -34,7 +34,7 @@ _SeqFlow: {
         #(e) -> res.get.isEmpty ? {
           .then -> f#e.match{
             .some(e') -> Block#
-              .do{res := (Opt#e')}
+              .do{res := (Opts#e')}
               .return {runner.stop},
             .empty -> {},
             },
@@ -44,12 +44,12 @@ _SeqFlow: {
       .do {source.stop}
       .return {res.get},
 
-    .find(p) -> self.findMap{e -> p#e ? {.then -> Opt#e, .else -> {}}},
+    .find(p) -> self.findMap{e -> p#e ? {.then -> Opts#e, .else -> {}}},
     .any(p) -> self
-      .findMap{e -> p#e ? {.then -> Opt#True, .else -> {}}}
+      .findMap{e -> p#e ? {.then -> Opts#True, .else -> {}}}
       .isSome,
     .all(p) -> self
-      .findMap{e -> p#e ? {.then -> {}, .else -> Opt#False}}
+      .findMap{e -> p#e ? {.then -> {}, .else -> Opts#False}}
       .isEmpty,
 
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
@@ -79,7 +79,7 @@ _SeqFlow: {
     },
 
   #[E](e: E): mut Flow[E] -> Block#
-    .let[mut Var[mut Opt[E]]] seq = { Var#(Opt#e) }
+    .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
     .let[mut FlowOp[E]] source = {{ 'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},
@@ -92,6 +92,6 @@ _SeqFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opt#[UInt]1u)},
-//    .return {this.fromOp(source, Opt#1u)},
+    .return {this.fromOp(source, Opts#[UInt]1u)},
+//    .return {this.fromOp(source, Opts#1u)},
   }

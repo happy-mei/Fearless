@@ -179,7 +179,7 @@ public class TestFullWellFormedness {
     Opt:{ #[T](x: T): mut Opt[T] -> { .match(m) -> m.some(x) } }
     Opt[T]:NoMutHyg[T]{
       recMdf .match[R](m: mut OptMatch[recMdf T, R]): R -> m.none,
-      recMdf .map[R](f: mut OptMap[recMdf T, R]): mut Opt[R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
+      recMdf .map[R](f: mut OptMap[recMdf T, R]): mut Opt[R] -> this.match{ .some(x) -> Opts#(f#x), .none -> {} },
       recMdf .flatMap[R](f: mut OptMap[recMdf T, recMdf Opt[R]]): mut Opt[R] -> this.match{
         .some(x) -> f#x,
         .none -> {}

@@ -16,7 +16,7 @@ _Limit: {
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
           .if {n == 0u} .return {runner.stop}
-          .do {sink := (Opt#(sinkFactory#[E]{
+          .do {sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> remaining* == 0u || (remaining-- == 0u) ? {
               .then -> runner.stop,
@@ -55,7 +55,7 @@ _InternalActor: {
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
-          .do {sink := (Opt#(sinkFactory#[E]{
+          .do {sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(downstream.stop, op.stop),
             #(e) -> isRunning.get ? {
               .then -> f#(downstream, state, e).match{
@@ -81,7 +81,7 @@ _InternalActor: {
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
-          .do {sink := (Opt#(sinkFactory#[E]{
+          .do {sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(downstream.stop, op.stop),
             #(e) -> f#(downstream, state, e).match{
               .continue -> {},

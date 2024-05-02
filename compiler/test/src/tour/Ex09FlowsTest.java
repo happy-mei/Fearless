@@ -180,7 +180,7 @@ public class Ex09FlowsTest {
   @Test void optFlow() { ok(new Res(), """
     package test
     Test:Main {sys -> Block#
-      .let f1 = {(Opt#[Int]5).flow
+      .let f1 = {(Opts#[Int]5).flow
         .map{n -> n * 10}
         .list
         }

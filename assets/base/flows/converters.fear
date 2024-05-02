@@ -15,7 +15,7 @@ _MutSourceCollection[E]: {
      .some(cloned') -> cloned',
      .empty -> Block#
        .let[mut List[E]] dup = {Flow.fromOp(original).list}
-       .do {cloned := (Opt#(Block#[mut FlowOp[E]]
+       .do {cloned := (Opts#(Block#[mut FlowOp[E]]
          .let[mut Count[UInt]] cursor = {Count.uint(0u)}
          .return {{'self
            .isRunning -> cursor* < (dup.size),
@@ -31,7 +31,7 @@ _MutSourceCollection[E]: {
   }
 
 _FlowConverters: Sealed{
-  .range(start: Int, end: Int): mut Flow[Int] -> _PipelineParallelFlow.fromOp[Int](this.range'(start, end), Opt#((end - start).uint)),
+  .range(start: Int, end: Int): mut Flow[Int] -> _PipelineParallelFlow.fromOp[Int](this.range'(start, end), Opts#((end - start).uint)),
   .range'(start: Int, end: Int): mut FlowOp[Int] -> Block#
     .let cursor = {Count.int(start)}
     .return {{'self

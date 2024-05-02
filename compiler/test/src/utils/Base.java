@@ -93,6 +93,7 @@ public interface Base {
     alias base.Var as Var,
     alias base.Count as Count,
     
+    alias base.Opts as Opts,
     alias base.Opt as Opt,
     alias base.OptMap as OptMap,
     

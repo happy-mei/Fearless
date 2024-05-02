@@ -3,7 +3,7 @@ package base.iter
 Iter[E]:{
   mut .next: mut Opt[E],
   mut .find(p: mut IterPredicate[E]): mut Opt[E] -> this.next.match[mut Opt[E]]{
-    .some(x) -> p#x ? { .then -> Opt#x, .else -> this.find(p) },
+    .some(x) -> p#x ? { .then -> Opts#x, .else -> this.find(p) },
     .empty -> {}
     },
   mut .allMatch(p: mut IterPredicate[E]): Bool -> this.find{x -> p#x .not}.match[Bool]{
@@ -22,7 +22,7 @@ Iter[E]:{
     .return(mut ReturnStmt[mut Iter[R]]{ mut Iter[R]{ 'self
       .next -> optCurIter*[].match[mut Opt[R]]{
         .some(curIter) -> curIter.next.match[mut Opt[R]]{
-          .some(next) -> Opt#next,
+          .some(next) -> Opts#next,
           .empty -> Block#(optCurIter := (mapIter.next), self.next)
           },
         .empty -> {}

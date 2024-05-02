@@ -847,7 +847,7 @@ public class TestJavaProgram {
     ok(new Res("", "", 0), """
       package test
       Test:Main{ _ -> Block#
-        .let[Opt[Int]] i = { Opt#[Int]16 }
+        .let[Opt[Int]] i = { Opts#[Int]16 }
         .let[Opt[Int]] ix10 = { i.map{n -> n * 10} }
         .return{{}}
         }
@@ -945,7 +945,7 @@ public class TestJavaProgram {
     alias base.Void as Void,
     A:{}
     Test:base.Main{
-      #(s) -> (base.Opt#Void).match[base.Void](mut base.OptMatch[Void,Void]{ .some(x) -> x, .empty -> {} }),
+      #(s) -> (base.Opts#Void).match[base.Void](mut base.OptMatch[Void,Void]{ .some(x) -> x, .empty -> {} }),
       }
     """); }
   @Test void canGetImmIntFromImmListOfImmInt() { ok(new Res("", "", 0), """
@@ -1243,7 +1243,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[Opt[Int]] res = { Opt[Int]
-        #{opt -> opt.match{.some(_) -> opt, .empty -> Opt#[Int]9001}}
+        #{opt -> opt.match{.some(_) -> opt, .empty -> Opts#[Int]9001}}
         }
       .assert{res! == 9001}
       .return {{}}
