@@ -18,15 +18,15 @@ public class TestFlowSemantics {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void flowReuse() {ok(new RunOutput.Res("", "....", 0), """
+  @Test void flowReuse() {ok(new RunOutput.Res("60", "Program crashed with: \"This flow cannot be reused.\"", 1), """
     package test
     Test: Main{sys -> Block#
       .let[mut Flow[Int]] x = {Flow#[Int](1,2,3).map{x->x * 10}}
       .let[Int] sum = {x#(Flow.sum)}
-      .let[Int] bigSum = {x.map{y->y * 10}#(Flow.sum)}
+      .let[mut Flow[Int]] bigSum = {x.map{y->y * 10}}
       .let[mut IO] io = {FIO#sys}
       .do {io.println(sum.str)}
-      .do {io.println(bigSum.str)}
+      .do {io.println(bigSum#(Flow.sum).str)}
       .return {{}}
       }
     """, Base.mutBaseAliases);}

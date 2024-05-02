@@ -80,7 +80,7 @@ _SeqFlow: {
 
   #[E](e: E): mut Flow[E] -> Block#
     .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
-    .let[mut FlowOp[E]] source = {{ 'self
+    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},
       .step(downstream) -> seq.swap(mut Opt[E]).match{
