@@ -20,27 +20,27 @@ Opt[T]: _Opt[T],Extensible[Opt[T]]{
 _Opt[T]: Sealed{ // Sealed because potential magic on .flow
   mut  .match[R](m: mut OptMatch[T, R]): R,
   read .match[R](m: mut OptMatch[read/imm T, R]): R,
-  imm  .match[R](m: mut OptMatch[imm T, R]): R,
+//  imm  .match[R](m: mut OptMatch[imm T, R]): R,
 
   mut  .map[R](f: mut OptMap[T, R]):          mut Opt[R],
   read .map[R](f: mut OptMap[read/imm T, R]): mut Opt[R],
-  imm  .map[R](f: mut OptMap[imm T, R]):      mut Opt[R],
+//  imm  .map[R](f: mut OptMap[imm T, R]):      mut Opt[R],
 
   mut  ||(default: mut MF[T]):          T,
   read ||(default: mut MF[read/imm T]): read/imm T,
-  imm  ||(default: mut MF[imm T]):      imm T,
+//  imm  ||(default: mut MF[imm T]):      imm T,
 
   mut  |(default: T):          T,
   read |(default: read/imm T): read/imm T,
-  imm  |(default: imm T):      imm T,
+//  imm  |(default: imm T):      imm T,
 
   mut  !: T,
   read !: read/imm T,
-  imm  !: imm T,
+//  imm  !: imm T,
 
   mut  .flow: mut Flow[T],
   read .flow: mut Flow[read/imm T],
-  imm  .flow: mut Flow[imm T],
+//  imm  .flow: mut Flow[imm T],
   }
 
 OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }

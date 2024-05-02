@@ -1230,15 +1230,6 @@ public class TestJavaProgram {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
-  @Test void optWithExtensionMethodOrElseLib() { ok(new Res(), """
-    package test
-    Test:Main{ s -> Block#
-      .let[Int] res = {mut Opt[Int]
-                       # mut base.OptOrElseExt[Int]{9001}}
-      .assert{res == 9001}
-      .return {{}}
-      }
-    """, Base.mutBaseAliases);}
   @Test void extensionMethodMdfDispatch() { ok(new Res(), """
     package test
     Test:Main{ s -> Block#
@@ -1332,10 +1323,12 @@ public class TestJavaProgram {
     Rez: {}
     """, Base.mutBaseAliases); }
 
-  @Test void readImmOpt() {ok(new Res(), """
+  @Test void immOptOfMut() {ok(new Res(), """
     package test
-    
+    A:{}
     Test: Main{sys -> Block#
+      .let[Opt[mut A]] opt = {Opts#mut A}
+      .let[imm A] a = {opt!}
       .return {{}}
       }
     """, Base.mutBaseAliases);}
