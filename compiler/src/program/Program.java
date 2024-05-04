@@ -4,6 +4,7 @@ import ast.T;
 import astFull.E;
 import failure.CompileError;
 import failure.Fail;
+import failure.FailOr;
 import files.Pos;
 import id.Id;
 import id.Mdf;
@@ -162,12 +163,11 @@ public interface Program {
 
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m2.name(), gxs, m2.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
-        var res = isType(g, bounds, e, m2.sig().ret());
+        return  isType(g, bounds, e, m2.sig().ret());
         // TODO: automate this into some error logging for when adapt fails and it is the ultimate cause of a failed compilation
 //        if (t1.toString().equals("read base.LList[mdf E]") && t2.toString().equals("read base.LList[read E]") && res.isPresent()) {
 //          System.out.println("hdfgh");
 //        }
-        return res.isEmpty();
       });
   }
 
@@ -178,12 +178,11 @@ public interface Program {
 //    return e.accept(v);
 //  }
 
-  default Optional<Supplier<CompileError>> isType(Gamma g, XBs xbs, ast.E e, T expected) {
+  default boolean isType(Gamma g, XBs xbs, ast.E e, T expected) {
     var v = ETypeSystem.of(this, g, xbs, List.of(expected), new ConcurrentHashMap<>(), 0);
-    var res = e.accept(v);
-    assert false: "is this actually used?";//TODO: if so, we need to reanable the
-    return res.asOpt();//subtype check below
-//    return res.resMatch(t->isSubType(xbs,t,expected),err->false);
+    FailOr<T> res = e.accept(v);
+    if(!res.isRes()){ return false; }
+    return isSubType(xbs,res.get(),expected);
   }
 
   static boolean filterByMdf(Mdf mdf, Mdf mMdf) {

@@ -158,8 +158,10 @@ public class Fail{
   public static CompileError noMethOnX(ast.E.MCall e, ast.T found) {
     return of("Method "+e.name()+" can not be called on generic type "+found);
   }
-  public static CompileError invalidMethodArgumentTypes() {
-    return of("TODO BETTER");//TODO:
+  public static CompileError invalidMethodArgumentTypes(ast.E.MCall e, List<ast.T> t1n,String extra) {
+    var msg= "Method "+e.name()+" called in position "+e.pos()+
+      " can not be called with current parameters of types: "+t1n;
+    return of(msg+"\n"+extra);
   }
   public static CompileError noCandidateMeths(ast.E.MCall e, ast.T expected, List<TsT> candidates) {
     String tsts = candidates.stream()

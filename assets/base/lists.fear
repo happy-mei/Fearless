@@ -188,7 +188,11 @@ _List:{
     .size -> s*.size,
     .isEmpty -> s*.inner.isEmpty,
     .get(i) -> s*.inner.get(i),
-    .add(e) -> s := (_ListState#[E](s*.size + 1u, s*.inner + e)),
+    .add(e) -> s := (
+      _ListState#[E](
+        s*.size + 1u,
+        s*.inner + e)
+      ),
     }
   }
 List[E]: Collection,Sealed{

@@ -7,9 +7,12 @@ import failure.FailOr;
 import id.Id.IT;
 import id.Mdf;
 import program.CM;
+import program.TypeRename;
 import utils.Push;
+import utils.Range;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /*//as in the paper
@@ -55,11 +58,16 @@ public interface EMethTypeSystem extends ETypeSystem {
   private FailOr<T> visitMCall(Mdf mdf0, IT<T> it0, E.MCall e) {
     var sigs= p().meths(xbs(),mdf0,it0, e.name(),depth());
     var sig= selectOverload(sigs,mdf0);
-    var multi= MultiSigBuilder.of(sig,mdf0,it0,e.name(),e.ts());
+    var renamer = TypeRename.core(p());
+    var gens= sig.sig().gens();
+    var xbs= xbs().addBounds(gens, sig.bounds());
+    var transformer= renamer.renameFun(e.ts(), gens);
+    sig= sig.withSig(renamer.renameSigOnMCall(sig.sig(),xbs,transformer));    
+    var multi= MultiSigBuilder.of(sig,mdf0,it0,e.name());
     Iterable<Integer> is= IntStream.range(0, e.es().size())::iterator;
     FailOr<List<T>> ft1n= FailOr.fold(is,
       i-> e.es().get(i).accept(multi.expectedT(this, i)));
-    return ft1n.flatMap(t1n->selectResult(multi,t1n));
+    return ft1n.flatMap(t1n->selectResult(e,multi,t1n));
   }
   private CM selectOverload(List<CM> sigs,Mdf mdf0){
     return sigs.stream()
@@ -71,14 +79,14 @@ public interface EMethTypeSystem extends ETypeSystem {
     if (!p().isSubType(cm.mdf(), mdf0)){ return false; }
     return expectedT().stream().anyMatch(t->p().isSubType(xbs(),cm.ret(),t));
   }
-  private FailOr<T> selectResult(MultiSig multi,List<T> t1n){
+  private FailOr<T> selectResult(E.MCall e, MultiSig multi,List<T> t1n){
     var sel= IntStream.range(0, multi.rets().size())
       .filter(i->ok(multi,i,t1n))
       .boxed()
       .findFirst();
    return sel
      .map(i->(FailOr<T>)FailOr.res(multi.rets().get(i)))
-     .orElse(FailOr.err(()->Fail.invalidMethodArgumentTypes()));
+     .orElse(FailOr.err(()->Fail.invalidMethodArgumentTypes(e,t1n,multi.toString())));
   }
   private boolean ok(MultiSig multi,int i,List<T> t1n){
     return IntStream.range(0, t1n.size()).allMatch(j->{
@@ -89,14 +97,26 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
 
 }
-record MultiSig(List<List<T>> tss,List<T> rets){
+record MultiSig(List<List<T>> tss, List<T> rets){
   MultiSig{
     int size= rets.size();
     assert size > 1;
-    assert tss.stream().allMatch(ts->ts.size() == size);
+    assert tss.stream().allMatch(ts->ts.size() == size):
+      tss+" "+rets;
   }
   ETypeSystem expectedT(ETypeSystem self, int i) {
     return self.withExpectedTs(tss.get(i));      
+  }
+  @Override public String toString(){
+    String res="Attempted signatures:\n";
+    for(var i:Range.of(rets)) {
+      var ps= tss.stream()
+        .map(ts->ts.get(i))
+        .map(Object::toString)
+        .collect(Collectors.joining(", "));
+      res+="("+ps+"):"+rets.get(i)+"\n";
+    }
+    return res;
   }
 }
   

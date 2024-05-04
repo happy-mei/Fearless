@@ -3,19 +3,20 @@ package program.typesystem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 
+import ast.E;
 import ast.T;
 import id.Mdf;
 import id.Id.IT;
 import id.Id.MethName;
 import program.CM;
+import utils.Range;
 
 record MultiSigBuilder(ast.E.Sig s, int size, List<ArrayList<T>> tss,ArrayList<T> rets){
   //TODO: ignoring bounds now, we may need to add them as a field
-  static MultiSig of(CM cm,Mdf mdf0,IT<T> it0, MethName m,List<T> ts1){
+  static MultiSig of(CM cm,Mdf mdf0,IT<T> it0, MethName m){
     var res= new MultiSigBuilder(
       cm.sig(), cm.sig().ts().size(),
       cm.sig().ts().stream().map(t->new ArrayList<T>()).toList(),
@@ -46,7 +47,9 @@ record MultiSigBuilder(ast.E.Sig s, int size, List<ArrayList<T>> tss,ArrayList<T
     //fillMutHProm still missing
   */
   void fillProm(Function<T,T> p,Function<T,T> r){
-    IntStream.range(0, size).forEach(i->p.apply(s.ts().get(i)));
+    for(var i : Range.of(0,size)){
+      tss.get(i).add(p.apply(s.ts().get(i)));
+    }
     rets.add(r.apply(s.ret()));    
   }
   

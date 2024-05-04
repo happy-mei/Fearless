@@ -1,7 +1,8 @@
 package program;
 
 public record TypeSystemFeatures(boolean recMdf, boolean adapterSubtyping, boolean hygienics) {
-  public TypeSystemFeatures() { this(true, true, true); }
+  //TODO: note: I disabled the adapt subtyping it was going in stack overflow
+  public TypeSystemFeatures() { this(true, false, true); }
   public static class TypeSystemFeaturesBuilder {
     boolean recMdf = true;
     boolean adapterSubTyping = true;

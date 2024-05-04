@@ -177,7 +177,19 @@ public record InferBodies(ast.Program p) {
   }
 
   List<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
-    var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
+    //var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
+    //Above is older version. This worked if e had no user defined name;
+    //in that case the inferred name was added to the (probably empty) list of
+    //user defined implements.
+    //Now that 5a sees the user defined name, it also sees the method added
+    //by the user, so 'it' would contain the user defined name and that type
+    //has no abs methods. 
+    //New way:
+    //-if its is not empty, just use its.
+    //-if its is empty, then use it.
+    var its= e.its().isEmpty()
+      ?e.it().stream().toList()
+      :e.its();
     return p.fullSig(XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
   }
   List<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
