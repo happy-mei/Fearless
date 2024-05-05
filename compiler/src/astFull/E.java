@@ -6,6 +6,7 @@ import files.Pos;
 import id.Id;
 import id.Id.MethName;
 import id.Mdf;
+import program.inference.FreshenDuplicatedNames;
 import utils.Box;
 import utils.Bug;
 import visitors.FullCloneVisitor;
@@ -167,7 +168,7 @@ public sealed interface E extends HasPos {
       return new Meth(sig, name, xs, body, pos);
     }
     public Meth makeBodyUnique() {
-      var newBody = body.map(e->e.accept(LambdaUniquer.get()));
+      var newBody = body.map(e->e.accept(new FreshenDuplicatedNames()));
       return this.withBody(newBody);
     }
     public Optional<Mdf> mdf() { return name.flatMap(MethName::mdf); }

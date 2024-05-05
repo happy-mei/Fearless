@@ -7,6 +7,7 @@ import failure.FailOr;
 import id.Id.IT;
 import id.Mdf;
 import program.CM;
+import program.Program;
 import program.TypeRename;
 import utils.Push;
 import utils.Range;
@@ -76,7 +77,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       .orElse(sigs.get(0));
   }
   private boolean selectOverload(CM cm,Mdf mdf0){
-    if (!p().isSubType(cm.mdf(), mdf0)){ return false; }
+    if (!Program.isSubType(cm.mdf(), mdf0)){ return false; }
     return expectedT().stream().anyMatch(t->p().isSubType(xbs(),cm.ret(),t));
   }
   private FailOr<T> selectResult(E.MCall e, MultiSig multi,List<T> t1n){
