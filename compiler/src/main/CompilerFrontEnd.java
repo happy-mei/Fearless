@@ -14,7 +14,6 @@ import magic.Magic;
 import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
-import program.typesystem.EMethTypeSystem;
 import program.typesystem.TsT;
 import program.typesystem.XBs;
 import utils.Box;

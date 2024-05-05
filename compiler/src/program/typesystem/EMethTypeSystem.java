@@ -80,6 +80,8 @@ public interface EMethTypeSystem extends ETypeSystem {
     return expectedT().stream().anyMatch(t->p().isSubType(xbs(),cm.ret(),t));
   }
   private FailOr<T> selectResult(E.MCall e, MultiSig multi,List<T> t1n){
+    assert multi.tss().size()!=t1n.size();
+    assert multi.tss().size()==t1n.size();//will fail since tss has 'this'?
     var sel= IntStream.range(0, multi.rets().size())
       .filter(i->ok(multi,i,t1n))
       .boxed()

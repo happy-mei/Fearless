@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import ast.E;
+import ast.Program;
 import ast.T;
 import id.Mdf;
 import id.Id.IT;
@@ -14,10 +15,13 @@ import id.Id.MethName;
 import program.CM;
 import utils.Range;
 
-record MultiSigBuilder(ast.E.Sig s, int size, List<ArrayList<T>> tss,ArrayList<T> rets){
+record MultiSigBuilder(
+    Mdf mdf0, List<T> expectedRes,
+    ast.E.Sig s, int size, List<ArrayList<T>> tss,ArrayList<T> rets){
   //TODO: ignoring bounds now, we may need to add them as a field
   static MultiSig of(CM cm,Mdf mdf0,IT<T> it0, MethName m,List<T> expectedRes){
     var res= new MultiSigBuilder(
+      mdf0,expectedRes,
       cm.sig(), cm.sig().ts().size(),
       cm.sig().ts().stream().map(t->new ArrayList<T>()).toList(),
       new ArrayList<T>());
@@ -31,12 +35,26 @@ record MultiSigBuilder(ast.E.Sig s, int size, List<ArrayList<T>> tss,ArrayList<T
       res.tss.stream().map(a->Collections.unmodifiableList(a)).toList(),
       Collections.unmodifiableList(res.rets));
   }
-  void fillBase(){ fillProm(t->t,t->t); }
-  void fillIsoProm(){ fillProm(
-    t->fixP(t,this::mutIsoReadImm),
-    t->fixR(t,this::mutIsoReadImm));
+  boolean filterMdf(Function<Mdf,Mdf> f) {
+    Mdf limit= f.apply(s.ts().get(0).mdf());
+    return program.Program.isSubType(mdf0, limit);
   }
-  void fillIsoHProm(){ fillProm(
+  boolean filterRes() {
+    return false;
+  }
+  void fillBase(){
+    if(!filterMdf(this::mutIsoReadImm)){ return; }
+    fillProm(t->t,t->t); 
+  }
+  void fillIsoProm(){
+    if(!filterMdf(this::mutIsoReadImm)){ return; }
+    fillProm(
+      t->fixP(t,this::mutIsoReadImm),
+      t->fixR(t,this::mutIsoReadImm));
+  }
+  void fillIsoHProm(){
+    if(!filterMdf(this::mutIsoReadImmReadHImm)){ return; }
+    fillProm(
       t->fixP(t,this::mutIsoReadImmReadHImm),
       t->fixR(t,this::mutIsoReadImmReadHImm));
     }
@@ -49,7 +67,7 @@ record MultiSigBuilder(ast.E.Sig s, int size, List<ArrayList<T>> tss,ArrayList<T
   */
   void fillProm(Function<T,T> p,Function<T,T> r){
     for(var i : Range.of(0,size)){
-      tss.get(i).add(p.apply(s.ts().get(i)));
+      tss.get(i).add(p.apply(s.ts().get(i)));//wrong use of s?
     }
     rets.add(r.apply(s.ret()));    
   }

@@ -1,7 +1,6 @@
 package program;
 
 import ast.T;
-import astFull.E;
 import failure.CompileError;
 import failure.Fail;
 import failure.FailOr;
@@ -10,8 +9,6 @@ import id.Id;
 import id.Mdf;
 import id.Normaliser;
 import id.Refresher;
-import program.inference.RefineTypes;
-import program.typesystem.EMethTypeSystem;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
 import program.typesystem.XBs;
@@ -20,10 +17,7 @@ import visitors.CloneVisitor;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface Program {
@@ -46,7 +40,7 @@ public interface Program {
     this.subTypeCache().clear();
   }
 
-  default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
+  static boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1 == m2){ return true; }
     if (m2.is(Mdf.readOnly)) { return true; }
     return switch(m1){
