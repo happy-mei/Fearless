@@ -15,7 +15,8 @@ public interface PipelineParallelFlow {
     public static WrappedSinkK $self = new WrappedSinkK();
     // TODO: sink id is not actually used, just here to make debugging easier during development
     static long SINK_ID = 0;
-    @Override public base.flows._PipelineParallelSink_1 $hash$imm(base.flows._Sink_1 original) {
+    @Override public base.flows._Sink_1 $hash$imm(base.flows._Sink_1 original) {
+//      return original;
       return new WrappedSink(SINK_ID++, original);
     }
   }
@@ -40,6 +41,7 @@ public interface PipelineParallelFlow {
     }
 
     @Override public base.Void_0 stop$mut() {
+//      System.out.println("Stopping subj "+subjectId);
       if (!subject.ref().isClosed()) {
         subject.stop();
         subject.signal()
@@ -92,9 +94,18 @@ public interface PipelineParallelFlow {
 
   static <E> FlowRuntime.Subject<E> spawn(Consumer<E> subscriber, Runnable stop) {
     var self = FlowRuntime.<E>spawnWorker();
-    return new FlowRuntime.Subject<>(self, self.consume(msg->{
+    return new FlowRuntime.Subject<>(self, subject->self.consume(msg->{
       switch (msg) {
-        case FlowRuntime.Message.Data<E> data -> subscriber.accept(data.data());
+        case FlowRuntime.Message.Data<E> data -> {
+          if (subject.hasThrown()) {
+            return;
+          }
+          try {
+            subscriber.accept(data.data());
+          } catch (Throwable t) {
+            subject.hasThrown(t);
+          }
+        }
         case FlowRuntime.Message.Stop<E> ignored -> {
           stop.run();
           self.close();

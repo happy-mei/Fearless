@@ -1332,4 +1332,18 @@ public class TestJavaProgram {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+
+  @Test void shadowingErr() {fail("""
+    In position [###]/Dummy0.fear:5:4
+    [E9 shadowingX]
+    'foo' is shadowing another variable in scope.
+    """, """
+    package test
+    Test: base.Main{_ -> {}}
+    A:{
+      .m1(foo: A): B -> B:{
+        .m2(foo: B): B -> foo,
+        }
+      }
+    """);}
 }
