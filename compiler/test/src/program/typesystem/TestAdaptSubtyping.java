@@ -1,10 +1,12 @@
 package program.typesystem;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
 
+@Disabled // No more adapterOk
 public class TestAdaptSubtyping {
   @Test void contravarianceBoxMatcher() { fail("""
     In position [###]/Dummy0.fear:12:41

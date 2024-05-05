@@ -1,7 +1,7 @@
 package base.flows
 
 _PipelineParallelSink: _Sink{
-  #[T](s: mut _Sink[T]): mut _PipelineParallelSink[T] -> Magic!,
+  #[T](s: mut _Sink[T]): mut _Sink[T] -> Magic!,
   }
 _PipelineParallelSink[T]: _Sink[T]
 
@@ -19,12 +19,12 @@ _PipelineParallelFlow: {
 
     // terminals
     mut .first: mut Opt[E] -> Block#
-      .let[mut Ref[mut Opt[E]]] res = {Ref#mut Opt[E]}
+      .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
         .stop -> source.stop,
         #(e) -> res.get.isEmpty ? {
           .then -> Block#
-            .do {res := (Opt#e)}
+            .do {res := (Opts#e)}
             .return {runner.stop},
           .else -> {},
           },
@@ -33,13 +33,13 @@ _PipelineParallelFlow: {
       .return {res.get},
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
-      .let[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
+      .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
         .stop -> source.stop,
         #(e) -> res.get.isEmpty ? {
           .then -> f#e.match{
             .some(e') -> Block#
-              .do{res := (Opt#e')}
+              .do{res := (Opts#e')}
               .return {runner.stop},
             .empty -> {},
             },
@@ -49,17 +49,17 @@ _PipelineParallelFlow: {
       .do {source.stop}
       .return {res.get},
 
-    .find(p) -> self.findMap{e -> p#e ? {.then -> Opt#e, .else -> {}}},
+    .find(p) -> self.findMap{e -> p#e ? {.then -> Opts#e, .else -> {}}},
     .any(p) -> self
-      .findMap{e -> p#e ? {.then -> Opt#True, .else -> {}}}
+      .findMap{e -> p#e ? {.then -> Opts#True, .else -> {}}}
       .isSome,
     .all(p) -> self
-      .findMap{e -> p#e ? {.then -> {}, .else -> Opt#False}}
+      .findMap{e -> p#e ? {.then -> {}, .else -> Opts#False}}
       .isEmpty,
 
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .let[mut Ref[S]] acc' = {Ref#acc}
+      .let[mut Var[S]] acc' = {Var#acc}
       .do {source.forRemaining(_PipelineParallelSink#[E]{
         .stop -> {},
 //        .stop -> source.stop,
@@ -77,8 +77,8 @@ _PipelineParallelFlow: {
     },
 
   #[E](e: E): mut Flow[E] -> Block#
-    .let[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
-    .let[mut FlowOp[E]] source = {{ 'self
+    .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
+    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},
       .step(downstream) -> seq.swap(mut Opt[E]).match{
@@ -90,6 +90,6 @@ _PipelineParallelFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opt#[UInt]1u)},
-//    .return {this.fromOp(source, Opt#1u)},
+    .return {this.fromOp(source, Opts#[UInt]1u)},
+//    .return {this.fromOp(source, Opts#1u)},
   }

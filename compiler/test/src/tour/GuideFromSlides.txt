@@ -169,7 +169,7 @@ Opt: {
   }
 
 //usage example
-Opt#bob //Bob is here
+Opts#bob //Bob is here
 Opt[Person] //no one is here (empty optional)
 ```
 Note how the empty optional and the `Opt[T]` type are the same concept.
@@ -206,7 +206,7 @@ ListMatch[T,R]: {
   }
 //usage examples
 List[Num]+1+2+3 //list with 1,2,3
-List[Opt[Num]]+{}+{}+(Opt#3) //list with two empty optionals and an optional of 3
+List[Opt[Num]]+{}+{}+(Opts#3) //list with two empty optionals and an optional of 3
 List[List[Num]]+{}+{}+(List[Num]+3)//list with two empty lists and a list of 3
 
 //example method summing all the elements
@@ -1166,7 +1166,7 @@ _MutSourceCollection[E]: {
      .some(cloned') -> cloned',
      .empty -> Block#
        .let[mut List[E]] dup = {Flow.fromOp(original).list}
-       .do {cloned := (Opt#(Block#[mut FlowOp[E]]
+       .do {cloned := (Opts#(Block#[mut FlowOp[E]]
          .let[mut Count[UInt]] cursor = {Count.uint(0u)}
          .return {{'self
            .isRunning -> cursor* < (dup.size),
@@ -1213,7 +1213,7 @@ Flow: Sealed, _FlowExtensions, _FlowConverters{
   #[E](e1: E, e2: E, e3: E, e4: E): mut Flow[E] -> List#(e1, e2, e3, e4).flow,
 
   .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> _SeqFlow.fromOp(source, {}),
-  .fromOp[E](source: mut FlowOp[E], size: UInt): mut Flow[E] -> _SeqFlow.fromOp(source, Opt#size),
+  .fromOp[E](source: mut FlowOp[E], size: UInt): mut Flow[E] -> _SeqFlow.fromOp(source, Opts#size),
 
   .fromMutSource[E](source: mut FlowOp[E]): mut Flow[E] -> _MutSourceCollection[E]#source,
   .fromMutSource[E](source: mut FlowOp[E], size: UInt): mut Flow[E] -> _MutSourceCollection[E]#source,
@@ -1253,9 +1253,9 @@ _TerminalOps[E]: Sealed{
   mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
   mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> Block#(acc.add(e), acc)}),
   mut .max(compare: read F[E, E, Ordering]): mut Opt[E] -> this.fold[mut Opt[E]]({}, {max, b -> max.match{
-    .empty -> Opt#b,
+    .empty -> Opts#b,
     .some(a) -> compare#(a, b).match{
-      .less -> Opt#b,
+      .less -> Opts#b,
       .equal -> max,
       .greater -> max,
       }
@@ -1338,7 +1338,7 @@ _Filter: {
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#(
-          sink := (Opt#(sinkFactory#[E]{
+          sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
             })),
@@ -1356,7 +1356,7 @@ _Map: {
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#(
-          sink := (Opt#(sinkFactory#[E]{
+          sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> downstream#(f#e),
             })),
@@ -1375,7 +1375,7 @@ _FlatMap: {
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#(
-          sink := (Opt#(sinkFactory#[E]{
+          sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(isRunning := False, downstream.stop),
             #(e) -> f#e.list.iter.filter{_ -> op.isRunning}.for{e' -> downstream#e'},
             })),
@@ -1411,17 +1411,17 @@ _PipelineParallelFlow: {
       .let[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
         .stop -> source.stop,
-        #(e) -> f#e.match{.some(e') -> Block#(res := (Opt#e'), runner.stop), .empty -> {}},
+        #(e) -> f#e.match{.some(e') -> Block#(res := (Opts#e'), runner.stop), .empty -> {}},
         })}
       .do {source.stop}
       .return {res.get},
 
-    .find(p) -> self.findMap{e -> p#e ? {.then -> Opt#e, .else -> {}}},
+    .find(p) -> self.findMap{e -> p#e ? {.then -> Opts#e, .else -> {}}},
     .any(p) -> self
-      .findMap{e -> p#e ? {.then -> Opt#True, .else -> {}}}
+      .findMap{e -> p#e ? {.then -> Opts#True, .else -> {}}}
       .isSome,
     .all(p) -> self
-      .findMap{e -> p#e ? {.then -> {}, .else -> Opt#False}}
+      .findMap{e -> p#e ? {.then -> {}, .else -> Opts#False}}
       .isEmpty,
 
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
@@ -1442,7 +1442,7 @@ _PipelineParallelFlow: {
     },
 
   #[E](e: E): mut Flow[E] -> Block#
-    .let[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
+    .let[mut Ref[mut Opt[E]]] seq = { Ref#(Opts#e) }
     .let[mut FlowOp[E]] source = {{ 'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},
@@ -1455,7 +1455,7 @@ _PipelineParallelFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opt#[UInt]1u)},
+    .return {this.fromOp(source, Opts#[UInt]1u)},
   }
 
 //---File flows\pkg.fear
@@ -1497,17 +1497,17 @@ _SeqFlow: {
       .let[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
       .do {source.forRemaining(mut _Sink[E]{'runner
         .stop -> {},
-        #(e) -> f#e.match{.some(e') -> Block#(res := (Opt#e'), runner.stop), .empty -> {}},
+        #(e) -> f#e.match{.some(e') -> Block#(res := (Opts#e'), runner.stop), .empty -> {}},
         })}
       .do {source.stop}
       .return {res.get},
 
-    .find(p) -> self.findMap{e -> p#e ? {.then -> Opt#e, .else -> {}}},
+    .find(p) -> self.findMap{e -> p#e ? {.then -> Opts#e, .else -> {}}},
     .any(p) -> self
-      .findMap{e -> p#e ? {.then -> Opt#True, .else -> {}}}
+      .findMap{e -> p#e ? {.then -> Opts#True, .else -> {}}}
       .isSome,
     .all(p) -> self
-      .findMap{e -> p#e ? {.then -> {}, .else -> Opt#False}}
+      .findMap{e -> p#e ? {.then -> {}, .else -> Opts#False}}
       .isEmpty,
 
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
@@ -1528,7 +1528,7 @@ _SeqFlow: {
     },
 
   #[E](e: E): mut Flow[E] -> Block#
-    .let[mut Ref[mut Opt[E]]] seq = { Ref#(Opt#e) }
+    .let[mut Ref[mut Opt[E]]] seq = { Ref#(Opts#e) }
     .let[mut FlowOp[E]] source = {{ 'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},
@@ -1541,7 +1541,7 @@ _SeqFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opt#[UInt]1u)},
+    .return {this.fromOp(source, Opts#[UInt]1u)},
   }
 
 //---File flows\statefulOperators.fear
@@ -1559,7 +1559,7 @@ _Limit: {
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
           .if {n == 0u} .return {runner.stop}
-          .do {sink := (Opt#(sinkFactory#[E]{
+          .do {sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> remaining* == 0u || (remaining-- == 0u) ? {
               .then -> runner.stop,
@@ -1657,7 +1657,7 @@ package base.iter
 Iter[E]:{
   mut .next: mut Opt[E],
   mut .find(p: mut IterPredicate[E]): mut Opt[E] -> this.next.match[mut Opt[E]]{
-    .some(x) -> p#x ? { .then -> Opt#x, .else -> this.find(p) },
+    .some(x) -> p#x ? { .then -> Opts#x, .else -> this.find(p) },
     .empty -> {}
     },
   mut .allMatch(p: mut IterPredicate[E]): Bool -> this.find{x -> p#x .not}.match[Bool]{
@@ -1676,7 +1676,7 @@ Iter[E]:{
     .return(mut ReturnStmt[mut Iter[R]]{ mut Iter[R]{ 'self
       .next -> optCurIter*[].match[mut Opt[R]]{
         .some(curIter) -> curIter.next.match[mut Opt[R]]{
-          .some(next) -> Opt#next,
+          .some(next) -> Opts#next,
           .empty -> Block#(optCurIter := (mapIter.next), self.next)
           },
         .empty -> {}
@@ -1721,7 +1721,7 @@ Iter[E]:{
   .cur: Opt[imm E],
   .next: Iter[imm E],
   .find(p: IterPredicate[imm E]): Opt[imm E] -> this.cur.match[Opt[imm E]]{
-    .some(x) -> p#x ? { .then -> Opt#x, .else -> this.next.find(p) },
+    .some(x) -> p#x ? { .then -> Opts#x, .else -> this.next.find(p) },
     .empty -> {}
     },
   .allMatch(p: IterPredicate[imm E]): Bool -> this.find{x -> p#x .not}.match[Bool]{
@@ -1780,7 +1780,7 @@ _FlatMap[R]:Sealed{
     .empty -> _Empty[R]
     },
   .inner(mapIter: Iter[Iter[R]], curIter: Iter[R]): Iter[R] -> curIter.cur.match{
-    .some(cur) -> { .cur ->  Opt#cur, .next -> this.inner(mapIter, curIter.next) },
+    .some(cur) -> { .cur ->  Opts#cur, .next -> this.inner(mapIter, curIter.next) },
     .empty -> this.outer(mapIter.next),
     }
 }
@@ -1945,13 +1945,13 @@ LList[E]:Collection,Sealed{
       read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
       imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
 
-      mut  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
-      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#[read E]e, .else -> this.get[](i - 1u) },
-      imm  .get(i: UInt): iso Opt[imm E] -> (i  == 0u) ? { .then -> Opt#[imm E]e, .else -> this.get[](i - 1u) },
+      mut  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opts#e, .else -> this.get[](i - 1u) },
+      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opts#[read E]e, .else -> this.get[](i - 1u) },
+      imm  .get(i: UInt): iso Opt[imm E] -> (i  == 0u) ? { .then -> Opts#[imm E]e, .else -> this.get[](i - 1u) },
 
-      mut  .head: mut Opt[E] -> Opt#e,
-      read .head: mut Opt[read E] -> Opt#[read E]e,
-      imm  .head: iso Opt[imm E] -> Opt#[imm E]e,
+      mut  .head: mut Opt[E] -> Opts#e,
+      read .head: mut Opt[read E] -> Opts#[read E]e,
+      imm  .head: iso Opt[imm E] -> Opts#[imm E]e,
 
       .tail -> this,
       ++(l1) -> (this ++ l1).pushFront[](e),
@@ -1965,11 +1965,11 @@ LList[E]:Collection,Sealed{
       read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
       imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
 
-      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opt#e, .else -> this.get[](i - 1u) },
-      imm  .get(i: UInt): iso Opt[imm E] -> (i == 0u) ? { .then -> Opt#[imm E]e, .else -> this.get[](i - 1u) },
+      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opts#e, .else -> this.get[](i - 1u) },
+      imm  .get(i: UInt): iso Opt[imm E] -> (i == 0u) ? { .then -> Opts#[imm E]e, .else -> this.get[](i - 1u) },
 
-      read .head: mut Opt[read E] -> Opt#e,
-      imm  .head: iso Opt[imm E] -> Opt#[imm E]e,
+      read .head: mut Opt[read E] -> Opts#e,
+      imm  .head: iso Opt[imm E] -> Opts#[imm E]e,
       .tail -> this,
       ++(l1) -> (this ++ l1).pushFront[](e),
       .isEmpty -> False,
@@ -2106,7 +2106,7 @@ EmptyMap[K:imm,V]:Map[K, V]{
 Lens[K: imm, V]:Map[K, imm V]{
   .put(k: K, v: imm V): mut Lens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
-    .get(k') -> next.keyEq(k, k') ? {.then -> Opt#v, .else -> this.get(k')}
+    .get(k') -> next.keyEq(k, k') ? {.then -> Opts#v, .else -> this.get(k')}
     },
   .map[R](f: MapMapImm[K, imm V, imm R]): Lens[K, imm R] -> {
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
@@ -2121,14 +2121,14 @@ LinkedLens[K:imm, V]:Map[K, V]{
 
   mut  .put(k: K, v: V): mut LinkedLens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
-    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opt#[imm V]v, .else -> this.get(k')},
-    mut  .get(k': K): mut Opt[V] -> next.keyEq(k, k') ? {.then -> Opt#v, .else -> this.get(k')},
-    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opt#[read V]v, .else -> this.get(k')},
+    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
+    mut  .get(k': K): mut Opt[V] -> next.keyEq(k, k') ? {.then -> Opts#v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
     },
   read .put(k: K, v: read V): read LinkedLens[K, read V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
-    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opt#[imm V]v, .else -> this.get(k')},
-    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opt#[read V]v, .else -> this.get(k')},
+    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
     },
 
   imm .map[R](fImm: MapMapImm[K, imm V, imm R], fRead: MapMapRead[K, V, R]): LinkedLens[K, R] -> {
@@ -2323,7 +2323,7 @@ OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
 OptOrElse[R]:{ mut #: R }
 OptMap[T,R]:OptMatch[T, mut Opt[R]]{
   mut #(t: T): R,
-  .some(x) -> Opt#(this#x),
+  .some(x) -> Opts#(this#x),
   .empty -> {}
   }
 
@@ -2370,7 +2370,7 @@ RefImm[X:imm]:Ref[X]{
   read .get: X,
   read *: X -> this.get,
   .getImm(f) -> this.get,
-  .getImm -> Opt#(this.get),
+  .getImm -> Opts#(this.get),
   }
 
 Count[N:imm]:RefImm[imm N]{
@@ -2467,13 +2467,13 @@ Res[T,E]:Either[T, E]{
   read .mapErr[R](f: mut ResMapErr[read T, read E, R]): mut Res[read T, R] -> this.match(f),
   imm  .mapErr[R](f: mut ResMapErr[imm T, imm E, R]): mut Res[imm T, R] -> this.match(f),
 
-  mut  .ok: mut Opt[T] -> this.resMatch{ .ok(x) -> Opt#x, .err(_) -> {} },
-  read .ok: mut Opt[read T] -> this.resMatch{ .ok(x) -> Opt#x, .err(_) -> {} },
-  imm  .ok: iso Opt[imm T] -> this.resMatch[mut Opt[imm T]]{ .ok(x) -> Opt#x, .err(_) -> {} },
+  mut  .ok: mut Opt[T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
+  read .ok: mut Opt[read T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
+  imm  .ok: iso Opt[imm T] -> this.resMatch[mut Opt[imm T]]{ .ok(x) -> Opts#x, .err(_) -> {} },
 
-  mut  .err: mut Opt[E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opt#e },
-  read .err: mut Opt[read E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opt#e },
-  imm  .err: iso Opt[imm E] -> this.resMatch[mut Opt[imm E]]{ .ok(_) -> {}, .err(e) -> Opt#e },
+  mut  .err: mut Opt[E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
+  read .err: mut Opt[read E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
+  imm  .err: iso Opt[imm E] -> this.resMatch[mut Opt[imm E]]{ .ok(_) -> {}, .err(e) -> Opts#e },
 
   read .isErr: Bool -> this.resMatch{ .err(_) -> True, .ok(_) -> False },
   read .isOk: Bool -> this.resMatch{ .err(_) -> False, .ok(_) -> True },
@@ -2527,8 +2527,8 @@ _StrHelpers: {
 StrMap[V]:LinkedLens[Str, V] { k1, k2 -> k1 == k2 }
 edLens[K, read V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
-    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opt#[imm V]v, .else -> this.get(k')},
-    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opt#[read V]v, .else -> this.get(k')},
+    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
     },
 
   imm .map[R](fImm: MapMapImm[K, imm V, imm R], fRead: MapMapRead[K, V, R]): LinkedLens[K, R] -> {
@@ -2777,7 +2777,7 @@ OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
 OptOrElse[R]:{ mut #: R }
 OptMap[T,R]:OptMatch[T, mut Opt[R]]{
   mut #(t: T): R,
-  .some(x) -> Opt#(this#x),
+  .some(x) -> Opts#(this#x),
   .empty -> {}
   }
 
@@ -2826,7 +2826,7 @@ RefImm[X:imm]:Ref[X]{
   read .get: X,
   read *: X -> this.get,
   .getImm(f) -> this.get,
-  .getImm -> Opt#(this.get),
+  .getImm -> Opts#(this.get),
   }
 
 Count[N:imm]:RefImm[imm N]{
@@ -2932,13 +2932,13 @@ Res[T,E]:Either[T, E]{
   read .mapErr[R](f: mut ResMapErr[read T, read E, R]): mut Res[read T, R] -> this.match(f),
   imm  .mapErr[R](f: mut ResMapErr[imm T, imm E, R]): mut Res[imm T, R] -> this.match(f),
 
-  mut  .ok: mut Opt[T] -> this.resMatch{ .ok(x) -> Opt#x, .err(_) -> {} },
-  read .ok: mut Opt[read T] -> this.resMatch{ .ok(x) -> Opt#x, .err(_) -> {} },
-  imm  .ok: iso Opt[imm T] -> this.resMatch[mut Opt[imm T]]{ .ok(x) -> Opt#x, .err(_) -> {} },
+  mut  .ok: mut Opt[T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
+  read .ok: mut Opt[read T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
+  imm  .ok: iso Opt[imm T] -> this.resMatch[mut Opt[imm T]]{ .ok(x) -> Opts#x, .err(_) -> {} },
 
-  mut  .err: mut Opt[E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opt#e },
-  read .err: mut Opt[read E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opt#e },
-  imm  .err: iso Opt[imm E] -> this.resMatch[mut Opt[imm E]]{ .ok(_) -> {}, .err(e) -> Opt#e },
+  mut  .err: mut Opt[E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
+  read .err: mut Opt[read E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
+  imm  .err: iso Opt[imm E] -> this.resMatch[mut Opt[imm E]]{ .ok(_) -> {}, .err(e) -> Opts#e },
 
   read .isErr: Bool -> this.resMatch{ .err(_) -> True, .ok(_) -> False },
   read .isOk: Bool -> this.resMatch{ .err(_) -> False, .ok(_) -> True },

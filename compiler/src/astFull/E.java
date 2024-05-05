@@ -77,6 +77,9 @@ public sealed interface E extends HasPos {
       return String.format("[-%s %s-]%s{%s %s}", mdf, type, its(), selfName, meths);
     }
 
+    public Lambda withLambdaId(LambdaId id) {
+      return new Lambda(id, mdf, its, selfName, meths, it, pos);
+    }
     public Lambda withSelfName(String selfName) {
       return new Lambda(id, mdf, its, selfName, meths, it, pos);
     }
@@ -162,6 +165,10 @@ public sealed interface E extends HasPos {
     }
     public Meth withBody(Optional<E> body) {
       return new Meth(sig, name, xs, body, pos);
+    }
+    public Meth makeBodyUnique() {
+      var newBody = body.map(e->e.accept(LambdaUniquer.get()));
+      return this.withBody(newBody);
     }
     public Optional<Mdf> mdf() { return name.flatMap(MethName::mdf); }
     @Override public String toString() {

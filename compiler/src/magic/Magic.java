@@ -28,7 +28,7 @@ public class Magic {
   public static final Id.DecId Continuation = new Id.DecId("base.Continuation", 3);
 
 
-  public static final Id.DecId RefK = new Id.DecId("base._MagicRefImpl", 0);
+  public static final Id.DecId RefK = new Id.DecId("base._MagicVarImpl", 0);
   public static final Id.DecId IsoPodK = new Id.DecId("base.caps._MagicIsoPodImpl", 0);
   public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);
   public static final Id.DecId Abort = new Id.DecId("base.Abort", 0);
@@ -40,6 +40,7 @@ public class Magic {
   public static final Id.DecId FlowK = new Id.DecId("base.flows.Flow", 0);
   public static final Id.DecId FlowOp = new Id.DecId("base.flows.FlowOp", 1);
   public static final Id.DecId PipelineParallelSinkK = new Id.DecId("base.flows._PipelineParallelSink", 0);
+  public static final Id.DecId SeqSinkK = new Id.DecId("base.flows._Sink", 0);
   public static final Id.DecId PipelineParallelFlowK = new Id.DecId("base.flows._PipelineParallelFlow", 0);
   public static final Id.DecId FList = new Id.DecId("base.List", 1);
   public static final Id.DecId ListK = new Id.DecId("base.List", 0);

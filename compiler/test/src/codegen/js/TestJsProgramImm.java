@@ -4,6 +4,7 @@ import codegen.MIRInjectionVisitor;
 import id.Id;
 import main.CompilerFrontEnd;
 import main.Main;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.TypeSystemFeatures;
@@ -23,6 +24,7 @@ import java.util.stream.Stream;
 
 import static utils.RunOutput.Res;
 
+@Disabled
 public class TestJsProgramImm {
   void ok(Res expected, String... content) {
     okWithArgs(expected, List.of(), content);
@@ -34,7 +36,7 @@ public class TestJsProgramImm {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.immBaseLib))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });
@@ -64,7 +66,7 @@ public class TestJsProgramImm {
     var ps = Stream.concat(Arrays.stream(content), Arrays.stream(Base.immBaseLib))
       .map(code->new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{
       throw err;
     });

@@ -23,7 +23,7 @@ public class TestFullWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     var res = new WellFormednessFullShortCircuitVisitor().visitProgram(p);
     var isWellFormed = res.isEmpty();
     assertTrue(isWellFormed, res.map(Object::toString).orElse(""));
@@ -36,7 +36,7 @@ public class TestFullWellFormedness {
       .toList();
 
     try {
-      var p = Parser.parseAll(ps, new TypeSystemFeatures());
+      var p = Parser.parseAll(ps, TypeSystemFeatures.of());
       var error = new WellFormednessFullShortCircuitVisitor().visitProgram(p);
       if (error.isEmpty()) { Assertions.fail("Did not fail"); }
       Err.strCmp(expectedErr, error.map(Object::toString).orElseThrow());
@@ -179,7 +179,7 @@ public class TestFullWellFormedness {
     Opt:{ #[T](x: T): mut Opt[T] -> { .match(m) -> m.some(x) } }
     Opt[T]:NoMutHyg[T]{
       recMdf .match[R](m: mut OptMatch[recMdf T, R]): R -> m.none,
-      recMdf .map[R](f: mut OptMap[recMdf T, R]): mut Opt[R] -> this.match{ .some(x) -> Opt#(f#x), .none -> {} },
+      recMdf .map[R](f: mut OptMap[recMdf T, R]): mut Opt[R] -> this.match{ .some(x) -> Opts#(f#x), .none -> {} },
       recMdf .flatMap[R](f: mut OptMap[recMdf T, recMdf Opt[R]]): mut Opt[R] -> this.match{
         .some(x) -> f#x,
         .none -> {}
@@ -348,7 +348,7 @@ public class TestFullWellFormedness {
 
   @Test void noLentLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:22
-    [E62 invalidLambdaMdf]
+    [E63 invalidLambdaMdf]
     lent is not a valid modifier for a lambda.
     """, """
     package test
@@ -356,20 +356,30 @@ public class TestFullWellFormedness {
     """); }
   @Test void noReadOnlyLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:30
-    [E62 invalidLambdaMdf]
+    [E63 invalidLambdaMdf]
     readOnly is not a valid modifier for a lambda.
     """, """
     package test
     A: {#: readOnly A -> readOnly A}
     """); }
   @Test void noReadImmLambdaCreation() { fail("""
-    In position [###]/Dummy0.fear:2:30
-    [E62 invalidLambdaMdf]
+    In position [###]/Dummy0.fear:2:19
+    [E63 invalidLambdaMdf]
     read/imm is not a valid modifier for a lambda.
     """, """
     package test
-    A: {#: read/imm A -> read/imm A}
+    A: {#: Void -> Void.eat(read/imm A)}
+    Void: {.eat[X](a: X): Void -> {}}
     """); }
+
+  @Test void noReadImmOnIT() {fail("""
+    In position [###]/Dummy0.fear:2:4
+    [E11 invalidMdf]
+    The modifier 'read/imm' can only be used on generic type variables. 'read/imm' found on type read/imm test.A[]
+    """, """
+     package test
+    A: {#: read/imm A -> this#}
+    """);}
 
   @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {
     var code = String.format("""

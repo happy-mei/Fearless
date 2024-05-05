@@ -23,7 +23,7 @@ public interface RunTypeSystem {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
     new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
@@ -37,7 +37,7 @@ public interface RunTypeSystem {
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
     try {
-      var p = Parser.parseAll(ps, new TypeSystemFeatures());
+      var p = Parser.parseAll(ps, TypeSystemFeatures.of());
       new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
       var inferred = InferBodies.inferAll(p);
       new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
@@ -56,7 +56,7 @@ public interface RunTypeSystem {
       var ps = Arrays.stream(content)
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
         .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
       new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
       var inferred = InferBodies.inferAll(p);
       new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });

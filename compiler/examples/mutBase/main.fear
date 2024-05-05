@@ -5,7 +5,7 @@ MyApp:Main{ s -> Block#
   .return{ io.println(ImmMain#args) }
   }
 ImmMain:{
-  #(args: LList[Str]): Str -> args.get(1u).match{
+  #(args: LList[Str]): Str -> args.tail.head.match{
     .some(res) -> res,
     .empty -> this.errMsg(args.head.isSome)*
     },
@@ -19,14 +19,14 @@ ImmMain:{
   // TODO: this promotion should work:
 //  #(args: LList[Str]): Str -> args.get 0u || (Box#"Sad"),
 
-  .errMsg(retCounter: Bool): mut Ref[Str] -> Block#
-    .let res = { Ref#[mut Ref[Str]](Ref#[Str]"Sad") }
+  .errMsg(retCounter: Bool): mut Var[Str] -> Block#
+    .let res = { Var#[mut Var[Str]](Var#[Str]"Sad") }
     .let counter = { Count.int(42) }
     .do{ res* := "mutability!" }
     .do{ Block#(counter++) }
-    .if{ False }.return{ Ref#[Str]"Short cut" }
+    .if{ False }.return{ Var#[Str]"Short cut" }
     .if{ True }.do{ Block#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
     .if{ True }.do{ res* := "moar mutability" }
     .if{ retCounter.not }.return{ res* }
-    .return{ Ref#(counter*.str) }
+    .return{ Var#(counter*.str) }
   }

@@ -8,7 +8,6 @@ import parser.Parser;
 import program.TypeSystemFeatures;
 import program.inference.InferBodies;
 import program.typesystem.TsT;
-import utils.ResolveResource;
 import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
@@ -22,10 +21,12 @@ import java.util.stream.Collectors;
 public interface LogicMain {
   InputOutput io();
   HashSet<String> cachedPkg();
-
-  default String generateAliases() {
-    return ResolveResource.read(io().defaultAliases());
+  default TypeSystemFeatures typeSystemFeatures() {
+    return new TypeSystemFeatures.TypeSystemFeaturesBuilder()
+      .allowAdapterSubtyping(false)
+      .build();
   }
+
   default astFull.Program parse() {
     var cache = load(io().cachedFiles());
     cachedPkg().addAll(cache.keySet());
@@ -45,7 +46,7 @@ public interface LogicMain {
       packages.putAll(load(io().baseFiles()));
     }
     packages.putAll(cache);//Purposely overriding any app also in cache
-    return Parser.parseAll(packages, new TypeSystemFeatures());
+    return Parser.parseAll(packages, typeSystemFeatures());
   }
   default void wellFormednessFull(astFull.Program fullProgram){
     new WellFormednessFullShortCircuitVisitor()
@@ -64,6 +65,13 @@ public interface LogicMain {
     var acc= new ConcurrentHashMap<Long, TsT>();
     program.typeCheck(acc);
     return acc;
+  }
+  default void check() {
+    var parsed = this.parse();
+    this.wellFormednessFull(parsed);
+    var inferred = this.inference(parsed);
+    this.wellFormednessCore(inferred);
+    this.typeSystem(inferred);
   }
 
 

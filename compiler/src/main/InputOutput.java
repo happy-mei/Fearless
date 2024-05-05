@@ -30,6 +30,10 @@ public interface InputOutput{
     return InputOutputHelper.readMagicFiles(magicDir());
   }
 
+  default String generateAliases() {
+    return ResolveResource.read(this.defaultAliases());
+  }
+
   record FieldsInputOutput(
     String entry,
     List<String> commandLineArguments,

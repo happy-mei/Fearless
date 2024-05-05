@@ -21,7 +21,9 @@ FlowOp[E]: {
 
 
 _Sink: {
-  #[T](s: mut _Sink[T]): mut _Sink[T] -> s,
+  // Magic to swallow all exceptions, matching the parallel implementation.
+  // This could be non-magical and return `s` if those semantics were not important.
+  #[T](s: mut _Sink[T]): mut _Sink[T] -> Magic!,
   }
 _Sink[T]: {
   mut #(x: T): Void,
@@ -32,13 +34,13 @@ _Sink[T]: {
 
 _Filter: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
-//    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+//    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return{{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#(
-          sink := (Opt#(sinkFactory#[E]{
+          sink := (Opts#(sinkFactory#[E]{
 //            .stop -> Block#(downstream.stop, isRunning := False),
             .stop -> downstream.stop,
             #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
@@ -53,13 +55,13 @@ _Filter: {
   }
 _Map: {
   #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
-//    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+//    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return  {{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#(
-          sink := (Opt#(sinkFactory#[E]{
+          sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> downstream#(f#e),
             })),
@@ -74,13 +76,13 @@ _Map: {
   }
 _FlatMap: {
   #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
-    .let[mut Ref[Bool]] isRunning = {Ref#[Bool]True}
-    .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
+    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return{{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#(
-          sink := (Opt#(sinkFactory#[E]{
+          sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(isRunning := False, downstream.stop),
             #(e) -> f#e.list.iter.filter{_ -> op.isRunning}.for{e' -> downstream#e'},
             })),

@@ -1,50 +1,31 @@
 package program.typesystem;
 
 import failure.CompileError;
+import main.CompilerFrontEnd;
+import main.InputOutput;
 import main.Main;
+import main.java.LogicMainJava;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import parser.Parser;
-import program.TypeSystemFeatures;
-import program.inference.InferBodies;
 import utils.Base;
 import utils.Err;
-import wellFormedness.WellFormednessFullShortCircuitVisitor;
-import wellFormedness.WellFormednessShortCircuitVisitor;
 
-import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 public class TestTypeSystemWithBase {
   void ok(String... content){
     Main.resetAll();
-    AtomicInteger pi = new AtomicInteger();
-    String[] baseLibs = Base.baseLib;
-    var ps = Stream.concat(Arrays.stream(content), Arrays.stream(baseLibs))
-      .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
-      .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
-    new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferred = InferBodies.inferAll(p);
-    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-    inferred.typeCheck(new ConcurrentHashMap<>());
+    var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
+    var logicMain = LogicMainJava.of(InputOutput.programmaticAuto(Arrays.asList(content)), verbosity);
+    logicMain.check();
   }
   void fail(String expectedErr, String... content){
     Main.resetAll();
-    AtomicInteger pi = new AtomicInteger();
-    String[] baseLibs = Base.baseLib;
-    var ps = Stream.concat(Arrays.stream(content), Arrays.stream(baseLibs))
-      .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
-      .toList();
+    var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
+    var logicMain = LogicMainJava.of(InputOutput.programmaticAuto(Arrays.asList(content)), verbosity);
     try {
-      var p = Parser.parseAll(ps, new TypeSystemFeatures());
-      new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-      var inferred = InferBodies.inferAll(p);
-      new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred).ifPresent(err->{ throw err; });
-      inferred.typeCheck(new ConcurrentHashMap<>());
+      logicMain.check();
       Assertions.fail("Did not fail!\n");
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
@@ -237,10 +218,10 @@ public class TestTypeSystemWithBase {
 
   @Test void mutateInPlace() { ok("""
     package test
-    Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
+    Person:{ mut .name: mut Var[Str], mut .friends: mut List[Person] }
     Person':{
-      #(name: Str): mut Person -> this.new(Ref#name, List#),
-      .new(name: mut Ref[Str], friends: mut List[Person]): mut Person ->
+      #(name: Str): mut Person -> this.new(Var#name, List#),
+      .new(name: mut Var[Str], friends: mut List[Person]): mut Person ->
         { .name -> name, .friends -> friends },
       }
     
@@ -253,10 +234,10 @@ public class TestTypeSystemWithBase {
     """, Base.mutBaseAliases); }
   @Test void mutateHyg() { ok("""
     package test
-    Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
+    Person:{ mut .name: mut Var[Str], mut .friends: mut List[Person] }
     Person':{
-      #(name: Str): mut Person -> this.new(Ref#name, List#),
-      .new(name: mut Ref[Str], friends: mut List[Person]): mut Person ->
+      #(name: Str): mut Person -> this.new(Var#name, List#),
+      .new(name: mut Var[Str], friends: mut List[Person]): mut Person ->
         { .name -> name, .friends -> friends },
       }
     Usage:{
@@ -266,33 +247,33 @@ public class TestTypeSystemWithBase {
   @Test void mutateHyg2() { fail("""
     In position [###]/Dummy0.fear:9:48
     [E33 callTypeError]
-    Type error: None of the following candidates (returning the expected type "mut base.Ref[imm base.Str[]]") for this method call:
+    Type error: None of the following candidates (returning the expected type "mut base.Var[imm base.Str[]]") for this method call:
     p .name/0[]([])
     were valid:
-    (lent test.Person[]) <= (mut test.Person[]): mut base.Ref[imm base.Str[]]
+    (lent test.Person[]) <= (mut test.Person[]): mut base.Var[imm base.Str[]]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:9:47
         [E53 xTypeError]
         Expected 'p' to be mut test.Person[], got lent test.Person[].
         
-    (lent test.Person[]) <= (iso test.Person[]): iso base.Ref[imm base.Str[]]
+    (lent test.Person[]) <= (iso test.Person[]): iso base.Var[imm base.Str[]]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:9:47
         [E53 xTypeError]
         Expected 'p' to be iso test.Person[], got lent test.Person[].
     """, """
     package test
-    Person:{ mut .name: mut Ref[Str], mut .friends: mut List[Person] }
+    Person:{ mut .name: mut Var[Str], mut .friends: mut List[Person] }
     Person':{
-      #(name: Str): mut Person -> this.new(Ref#name, List#),
-      .new(name: mut Ref[Str], friends: mut List[Person]): mut Person ->
+      #(name: Str): mut Person -> this.new(Var#name, List#),
+      .new(name: mut Var[Str], friends: mut List[Person]): mut Person ->
         { .name -> name, .friends -> friends },
       }
     Usage:{
-      .mutate(p: lent Person): iso Ref[Str] -> p.name,
+      .mutate(p: lent Person): iso Var[Str] -> p.name,
 //      .break: Void -> Block#
 //        .let[mut Person] p = { Person'#"Alice" }
-//        .let[imm Ref[Str]] illegal = { this.mutate(p) }
+//        .let[imm Var[Str]] illegal = { this.mutate(p) }
 //        .do{ p.name := "Charles" }
 //        .return
       }
@@ -309,7 +290,7 @@ public class TestTypeSystemWithBase {
     Test:Main{ s -> Block#
       .let[mut Person] p = { FPerson#24u }
       .let[imm List[read Person]] unsound = { A#(iso List#[read Person], p) }
-      .let[imm Person] uhOh = { unsound.get(0u)! }
+      .let[imm Person] uhOh = { unsound.get(0u) }
       .do{ p.age(25u) }
       .assert({ uhOh.age == 24u }, uhOh.age.str)
       .return{{}}
@@ -330,7 +311,7 @@ public class TestTypeSystemWithBase {
     Test:Main{ s -> Block#
       .let[mut Person] p = { FPerson#24u }
       .let[imm LList[read Person]] unsound = { A#(iso LList[read Person]{}, p) }
-      .let[imm Person] uhOh = { unsound.get(0u)! }
+      .let[imm Person] uhOh = { unsound.get(0u) }
       .do{ p.age(25u) }
       .assert({ uhOh.age == 24u }, uhOh.age.str)
       .return{{}}
@@ -366,7 +347,7 @@ public class TestTypeSystemWithBase {
     Test:Main{ s -> Block#
       .let[mut Person] p = { FPerson#24u }
       .let[imm LList[read Person]] unsound = { A#(iso LList[read Person]{}, p) }
-      .let[imm Person] uhOh = { unsound.get(0u)! }
+      .let[imm Person] uhOh = { unsound.get(0u) }
       .do{ p.age(25u) }
       .assert({ uhOh.age == 24u }, uhOh.age.str)
       .return{{}}
@@ -376,6 +357,7 @@ public class TestTypeSystemWithBase {
       }
     """, Base.mutBaseAliases); }
 
+  @Disabled // Requires AdapterOK
   @Test void adaptFails() { fail("""
     In position [###]/Dummy0.fear:6:47
     [E53 xTypeError]
@@ -410,7 +392,7 @@ public class TestTypeSystemWithBase {
   ImmBox[T]:ReadBox[T]{ set goes loop }
   MutBox[T]:ReadBox[T]{ set goes loop }
   FReadBox:{#[T](t:mut T):mut ReadBox[T]->
-    Ref[ReadBox[T]] state=MutBox[T]{t}
+    Var[ReadBox[T]] state=MutBox[T]{t}
     return { get->state*, setImm->state*.. setMut->state*}
     }
    */
@@ -432,7 +414,7 @@ public class TestTypeSystemWithBase {
       }
     FReadBox:{
       #[T](t: mut T): mut ReadBox[T] -> Block#
-        .let[mut Ref[mut ReadBox[T]]] state = { Ref#[mut ReadBox[T]](mut _MutBox[T]{ t }) }
+        .let[mut Var[mut ReadBox[T]]] state = { Var#[mut ReadBox[T]](mut _MutBox[T]{ t }) }
         .return{{
           .get -> state*.get,
           .setImm(x) -> state := mut _ImmBox[T]{ x },
@@ -531,49 +513,24 @@ public class TestTypeSystemWithBase {
     MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { .n -> n, .rn -> n }  }
     """, Base.mutBaseAliases); }
 
-  @Test void noImmFromRef() { fail("""
-    In position [###]/Dummy0.fear:3:32
-    [E28 undefinedName]
-    The identifier "r" is undefined or cannot be [###]ured.
-    """, """
+  @Test void immFromVar() { ok("""
     package test
     Test:{
-      .m1(r: read Ref[Int]): Int -> r*,
-      .m2: Int -> this.m1(Ref#5),
+      .m1(r: read Var[Int]): Int -> r.get,
+      .m2: Int -> this.m1(Var#5),
       }
     """, Base.mutBaseAliases); }
-  @Test void immFromRefImm() { ok("""
-    package test
-    Test:{
-      .m1(r: read RefImm[Int]): Int -> r*,
-      .m2: Int -> this.m1(Ref#[Int]5),
-      }
-    """, Base.mutBaseAliases); }
-  @Test void immFromRefImmRecover() { ok("""
-    package test
-    Test:{
-      .m1(r: read Ref[Int]): Int -> r.getImm!,
-      .m2: Int -> this.m1(Ref.ofImm[Int]5),
-      }
-    """, Base.mutBaseAliases); }
-  @Test void immFromRefImmRecoverFreezer() { ok("""
-    package test
-    Test:{
-      .m1(r: read Ref[Int]): Int -> r.getImm{ _ -> Abort! },
-      .m2: Int -> this.m1(Ref.ofImm[Int]5),
-      }
-    """, Base.mutBaseAliases); }
-  @Test void updateRefImmRecoverFail() { fail("""
+  @Test void updateVarImmRecoverFail() { fail("""
     [###]
     """, """
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: mut Ref[Int]): Int -> Block#
+      .m1(r: mut Var[Int]): Int -> Block#
         .do{ r := 12 }
-        .let[read Ref[Int]] rr = { r }
+        .let[read Var[Int]] rr = { r }
         .return{ rr.get },
-      .m2: Int -> this.m1(Ref.ofImm[Int]5),
+      .m2: Int -> this.m1(Var.ofImm[Int]5),
       }
     """, Base.mutBaseAliases); }
 
@@ -585,6 +542,8 @@ public class TestTypeSystemWithBase {
       .nums(o: Box[Student]): Box[Person] -> o,
       }
     """, Base.mutBaseAliases); }
+
+  @Disabled // Requires AdapterOK
   @Test void contravarianceOpt() { ok("""
     package test
     Person:{ read .name: Str, read .age: UInt, }
@@ -593,6 +552,7 @@ public class TestTypeSystemWithBase {
       .nums(o: Opt[Student]): Opt[Person] -> o,
       }
     """, Base.mutBaseAliases); }
+  @Disabled // Requires AdapterOK
   @Test void covarianceContravariance() { ok("""
     package test
     Person:{ read .name: Str, read .age: UInt, }
@@ -602,6 +562,7 @@ public class TestTypeSystemWithBase {
 //      .addStudent(l: LList[Person], s: Student): LList[Person] -> l + s,
       }
     """, Base.mutBaseAliases); }
+  @Disabled // Requires AdapterOK
   @Test void covarianceContravarianceList() { ok("""
     package test
     Person:{ read .name: Str, read .age: UInt, }
@@ -611,6 +572,7 @@ public class TestTypeSystemWithBase {
 //      .addStudent(l: LList[Person], s: Student): LList[Person] -> l + s,
       }
     """, Base.mutBaseAliases); }
+
   @Test void covarianceContravarianceListMdf() { ok("""
     package test
     Person:{ read .name: Str, read .age: UInt, }
@@ -623,18 +585,26 @@ public class TestTypeSystemWithBase {
     package test
     Test:Main{ s -> Block#
       .let[Opt[Int]] res = { Opt[Int]
-        #{opt -> opt.match{.some(_) -> opt, .empty -> Opt#[Int]9001}}
+        #{opt -> opt.match{.some(_) -> opt, .empty -> Opts#[Int]9001}}
         }
       .assert{res! == 9001}
       .return {{}}
       }
     """, Base.mutBaseAliases);}
 
-  @Test void inferListWithDifferentNums() { ok("""
+  @Test void inferListWithDifferentNumsExplicit() { ok("""
     package test
     Test: Main{s -> Block#
       .let myList = {List#[Int](5, 10, -15)}
-      .do {FIO#s.println(myList.get(0u)! .str)}
+      .do {FIO#s.println(myList.get(0u) .str)}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void inferListWithDifferentNums() { ok("""
+    package test
+    Test: Main{s -> Block#
+      .let[List[Int]] myList = {List#(5, 10, -15)}
+      .do {FIO#s.println(myList.get(0u) .str)}
       .return {Void}
       }
     """, Base.mutBaseAliases); }

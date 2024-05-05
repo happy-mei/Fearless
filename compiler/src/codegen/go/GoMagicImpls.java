@@ -41,7 +41,7 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         if (m.equals(new Id.MethName(".uint", 0))) {
           return new Res("uint64("+instantiate().orElseThrow()+")");
         }
-        if (m.equals(new Id.MethName(".toImm", 0))) {
+        if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".float", 0))) {
@@ -57,11 +57,11 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         if (m.equals(new Id.MethName("%", 1))) { return new Res(instantiate().orElseThrow().output()+"%"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("**", 1))) { return new Res(String.format("baseφrtφPow(%s, %s)", instantiate().orElseThrow().output(), args.getFirst().accept(gen, true)), Set.of()); }
         if (m.equals(new Id.MethName(".abs", 0))) { return new Res("baseφrtφAbs("+instantiate().orElseThrow().output()+")", Set.of("rt/rt/baseφrt")); }
-        if (m.equals(new Id.MethName(">>", 1))) { return new Res(instantiate().orElseThrow().output()+">>"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName("<<", 1))) { return new Res(instantiate().orElseThrow().output()+"<<"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName("^", 1))) { return new Res(instantiate().orElseThrow().output()+"^"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName("&", 1))) { return new Res(instantiate().orElseThrow().output()+"&"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName("|", 1))) { return new Res(instantiate().orElseThrow().output()+"|"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".shiftRight", 1))) { return new Res(instantiate().orElseThrow().output()+">>"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".shiftLeft", 1))) { return new Res(instantiate().orElseThrow().output()+"<<"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".xor", 1))) { return new Res(instantiate().orElseThrow().output()+"^"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".and", 1))) { return new Res(instantiate().orElseThrow().output()+"&"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".or", 1))) { return new Res(instantiate().orElseThrow().output()+"|"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(">", 1))) { return new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+">"+args.getFirst().accept(gen, true)+")", Set.of()); }
         if (m.equals(new Id.MethName("<", 1))) { new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+"<"+args.getFirst().accept(gen, true)+")", Set.of()); }
         if (m.equals(new Id.MethName(">=", 1))) { new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+">="+args.getFirst().accept(gen, true)+")", Set.of()); }
@@ -95,7 +95,7 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         if (m.equals(new Id.MethName(".int", 0))) {
           return new Res("uint64("+instantiate().orElseThrow().output()+")");
         }
-        if (m.equals(new Id.MethName(".toImm", 0))) {
+        if (m.equals(new Id.MethName(".uint", 0))) {
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".float", 0))) {
@@ -111,11 +111,11 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         if (m.equals(new Id.MethName("%", 1))) { return new Res(instantiate().orElseThrow().output()+"%"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName("**", 1))) { return new Res(String.format("baseφrtφPow(%s, %s)", instantiate().orElseThrow().output(), args.getFirst().accept(gen, true)), Set.of()); }
         if (m.equals(new Id.MethName(".abs", 0))) { return new Res("baseφrtφAbs("+instantiate().orElseThrow().output()+")", Set.of("rt/rt/baseφrt")); }
-        if (m.equals(new Id.MethName(">>", 1))) { return new Res(instantiate().orElseThrow().output()+">>"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName("<<", 1))) { return new Res(instantiate().orElseThrow().output()+"<<"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName("^", 1))) { return new Res(instantiate().orElseThrow().output()+"^"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName("&", 1))) { return new Res(instantiate().orElseThrow().output()+"&"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName("|", 1))) { return new Res(instantiate().orElseThrow().output()+"|"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".shiftRight", 1))) { return new Res(instantiate().orElseThrow().output()+">>"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".shiftLeft", 1))) { return new Res(instantiate().orElseThrow().output()+"<<"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".xor", 1))) { return new Res(instantiate().orElseThrow().output()+"^"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".and", 1))) { return new Res(instantiate().orElseThrow().output()+"&"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".or", 1))) { return new Res(instantiate().orElseThrow().output()+"|"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(">", 1))) { return new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+">"+args.getFirst().accept(gen, true)+")", Set.of()); }
         if (m.equals(new Id.MethName("<", 1))) { return new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+"<"+args.getFirst().accept(gen, true)+")", Set.of()); }
         if (m.equals(new Id.MethName(">=", 1))) { return new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+">="+args.getFirst().accept(gen, true)+")", Set.of()); }

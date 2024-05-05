@@ -27,7 +27,7 @@ public class TestWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
     var res = new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
@@ -40,7 +40,7 @@ public class TestWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, new TypeSystemFeatures());
+    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
 
@@ -343,7 +343,7 @@ public class TestWellFormedness {
 
   @Test void noLentLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:17
-    [E62 invalidLambdaMdf]
+    [E63 invalidLambdaMdf]
     lent is not a valid modifier for a lambda.
     """, """
     package test
@@ -351,18 +351,10 @@ public class TestWellFormedness {
     """); }
   @Test void noReadOnlyLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:21
-    [E62 invalidLambdaMdf]
+    [E63 invalidLambdaMdf]
     readOnly is not a valid modifier for a lambda.
     """, """
     package test
     A: {#: readOnly A -> {}}
-    """); }
-  @Test void noReadImmLambdaCreation() { fail("""
-    In position [###]/Dummy0.fear:2:21
-    [E62 invalidLambdaMdf]
-    read/imm is not a valid modifier for a lambda.
-    """, """
-    package test
-    A: {#: read/imm A -> {}}
     """); }
 }

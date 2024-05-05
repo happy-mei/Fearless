@@ -5,9 +5,11 @@ import astFull.E;
 import astFull.T;
 import failure.CompileError;
 import failure.Fail;
+import failure.TypingAndInferenceErrors;
 import files.Pos;
 import id.Id;
 import id.Mdf;
+import magic.MagicImpls;
 import program.CM;
 import program.TypeRename;
 import program.typesystem.EMethTypeSystem;
@@ -29,18 +31,22 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   }
 
   E.Lambda fixLambda(E.Lambda lambda, int depth) {
-    if (lambda.meths().stream().anyMatch(m->m.sig().isEmpty())) {
-      return lambda;
+    if (lambda.selfName() == null) {
+      lambda = lambda.withSelfName(E.X.freshName());
+    }
+    var lambda_ = lambda;
+    if (lambda_.meths().stream().anyMatch(m->m.sig().isEmpty())) {
+      return lambda_;
     }
 
-    var c = lambda.it().orElseThrow();
+    var c = lambda_.it().orElseThrow();
 
-    List<E.Meth> lambdaOnlyMeths = lambda.meths().stream()
+    List<E.Meth> lambdaOnlyMeths = lambda_.meths().stream()
       .filter(m->{
         try {
           return m.name().isPresent() && p().meths(
             XBs.empty(),
-            lambda.mdf().orElse(Mdf.imm), c.toAstIT(it->it.toAstTFreshenInfers(new Box<>(0))),
+            lambda_.mdf().orElse(Mdf.imm), c.toAstIT(it->it.toAstTFreshenInfers(new Box<>(0))),
             m.name().get(),
             depth
           ).isEmpty();
@@ -48,22 +54,22 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
           return false;
         }
       }).toList();
-    List<E.Meth> traitMeths = lambda.meths().stream()
+    List<E.Meth> traitMeths = lambda_.meths().stream()
       .filter(m->!lambdaOnlyMeths.contains(m))
       .toList();
     List<RefinedSig> sigs = traitMeths.stream()
       .map(this::tSigOf)
       .toList();
-    RefinedLambda res; try { res = refineSig(lambda.mdf().orElse(Mdf.imm), c, sigs, depth);
+    RefinedLambda res; try { res = refineSig(lambda_.mdf().orElse(Mdf.imm), c, sigs, depth);
     } catch (CompileError err) {
-      throw err.parentPos(lambda.pos());
+      throw err.parentPos(lambda_.pos());
     }
     var ms = Stream.concat(
       Streams.zip(traitMeths, res.sigs()).map(this::tM),
       lambdaOnlyMeths.stream()
     ).toList();
     var newIT = replaceOnlyInfers(lambda.t(), new T(lambda.t().mdf(), res.c()));
-    return lambda.withMeths(ms).withT(Optional.ofNullable(newIT.itOrThrow()).map(it->new T(lambda.t().mdf(), it)));
+    return lambda_.withMeths(ms).withT(Optional.ofNullable(newIT.itOrThrow()).map(it->new T(lambda_.t().mdf(), it)));
   }
 
   E.Meth tM(E.Meth m, RefinedSig refined) {
@@ -216,6 +222,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var cTOriginal = new T(mdf, c);
     List<List<RP>> rpsSigs = Streams.zip(sigs,methGens)
       .map((sig,mGens)->pairUp(mdf, mGens, cTs, sig, depth))
+      .map(this::deprioritiseLiterals)
       .toList();
     List<RP> rpsAll = Stream.concat(
       Stream.of(new RP(cT, cTOriginal)),
@@ -244,7 +251,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 //      throw Fail.ambiguousMethodName(sig.name());
 //    }
     if (ms.isEmpty()) {
-      throw Fail.undefinedMethod(sig.name(), new ast.T(lambdaMdf, c), p.meths(XBs.empty(), lambdaMdf, c, depth).stream());
+      throw TypingAndInferenceErrors.fromInference(Fail.undefinedMethod(sig.name(), new ast.T(lambdaMdf, c), p.meths(XBs.empty(), lambdaMdf, c, depth).stream()));
     }
     var freshSig = freshXs(ms.getFirst(), sig.name(), gxs);
     var freshGens = freshSig.gens();
@@ -431,9 +438,6 @@ collect(empty) = empty
   */
 
   Map<Id.GX<T>, T> refineSubs(List<Sub> subs) {
-    /* TODO: For inferring things like .fold where we have FearX1$ = 0 and FearX1$ = Int in the same rps
-     we actually want the supertype concrete type if possible */
-
     Map<Id.GX<T>, List<Sub>> res = subs.stream()
       .filter(si->!si.isCircular())
       .filter(si->!si.x().equals(si.t().rt()))
@@ -452,5 +456,17 @@ collect(empty) = empty
     var t1 = rename.renameT(rp.t1(),map::get);
     var t2 = rename.renameT(rp.t2(),map::get);
     return new RP(t1, t2);
+  }
+
+  private List<RP> deprioritiseLiterals(List<RP> rps) {
+    return rps.stream().map(rp->{
+      if (!rp.t1().isInfer() && rp.t1().rt() instanceof Id.IT<T> it && MagicImpls.getLiteral(p, it.name()).isPresent()) {
+        return new RP(rp.t2, rp.t2);
+      }
+      if (!rp.t2().isInfer() && rp.t2().rt() instanceof Id.IT<T> it && MagicImpls.getLiteral(p, it.name()).isPresent()) {
+        return new RP(rp.t1, rp.t1);
+      }
+      return rp;
+    }).toList();
   }
 }

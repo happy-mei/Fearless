@@ -23,7 +23,7 @@ public record RedexTermGenerator(ArrayList<String> tops, List<Id.GX<T>> inScopeG
     Main.resetAll();
     var path = Path.of(args[0]);
     var code = Parser.codeFromPath(path);
-    var p = Parser.parseAll(List.of(new Parser(path, code)), new TypeSystemFeatures());
+    var p = Parser.parseAll(List.of(new Parser(path, code)), TypeSystemFeatures.of());
     var inferred = InferBodies.inferAll(p);
     var tops = new ArrayList<String>();
     var visitor = new RedexTermGenerator(tops, List.of());

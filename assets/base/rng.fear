@@ -4,17 +4,17 @@ alias base.UInt as UInt, alias base.Float as Float,
 alias base.F as F,
 alias base.FInfo as FInfo,
 alias base.Sealed as Sealed,
-alias base.Ref as Ref, alias base.RefImm as RefImm,
+alias base.Var as Var, alias base.VarImm as VarImm,
 
 /// https://en.wikipedia.org/wiki/Linear_congruential_generator,
 /// parameters from musl (https://git.musl-libc.org/cgit/musl/tree/src/prng/rand.c)
 /// We actually only take the highest half of the bits because the low order bits have poor randomness
 FRandom: F[UInt, mut Random]{seed -> Block#
   .if {seed == 0u} .error {FInfo.msg "Seed may not be zero"}
-  .let prev = {Ref#seed}
+  .let prev = {Var#seed}
   .return {{
     .uint -> Block#
-      .do {prev := ((prev.get) * 6364136223846793005u + 1u >> 33u)}
+      .do {prev := ((prev.get) * 6364136223846793005u + 1u .shiftRight 33u)}
       .return {prev.get},
     }}
   }

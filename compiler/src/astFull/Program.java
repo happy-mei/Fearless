@@ -9,16 +9,15 @@ import failure.Fail;
 import program.CM;
 import program.TypeRename;
 import program.TypeSystemFeatures;
+import program.inference.FreshenDuplicatedNames;
 import program.typesystem.XBs;
-import utils.Bug;
-import utils.Mapper;
-import utils.OneOr;
-import utils.Range;
+import utils.*;
 import visitors.InjectionVisitor;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Gatherer;
 
 public class Program implements program.Program{
   private final Map<Id.DecId, T.Dec> ds;
@@ -250,7 +249,12 @@ public class Program implements program.Program{
     }
     Id.MethName onlyAbs(XBs xbs, T.Dec dec){
       // depth doesn't matter here because we just extract the name
-      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), p.meths(xbs, Mdf.recMdf, dec.toAstT(), -1).stream().filter(CM::isAbs));
+      @SuppressWarnings("preview")
+      var abstractLambda = p.meths(xbs, Mdf.recMdf, dec.toAstT(), -1).stream()
+        .filter(CM::isAbs)
+        .gather(DistinctBy.of(cm->cm.name().withMdf(Optional.empty())));
+
+      var m = OneOr.of(()->Fail.cannotInferAbsSig(dec.name()), abstractLambda);
       return m.name();
     }
     List<E.Meth> inferSignature(T.Dec dec, E.Meth m) {
@@ -266,8 +270,10 @@ public class Program implements program.Program{
         }
         var namedMeth = m.withName(name);
         assert name.num()==namedMeth.xs().size();
+        var freshener = new FreshenDuplicatedNames();
         var res = p.meths(xbs, Mdf.recMdf, dec.toAstT(), name, 0).stream()
           .map(inferred->namedMeth.withSig(inferred.sig().toAstFullSig()).withName(name.withMdf(Optional.of(inferred.mdf()))))
+          .map(freshener::visitMeth)
           .toList();
         if (res.isEmpty()) {
           throw Fail.cannotInferSig(dec.name(), name);

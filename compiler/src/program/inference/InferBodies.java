@@ -4,17 +4,20 @@ import astFull.E;
 import astFull.T;
 import failure.CompileError;
 import failure.Fail;
+import failure.TypingAndInferenceErrors;
 import id.Id;
 import id.Mdf;
 import program.CM;
 import program.Program;
 import program.typesystem.XBs;
 import utils.Box;
+import utils.DistinctBy;
 import utils.Push;
 import utils.Streams;
 import visitors.InjectionVisitor;
 import visitors.ShallowInjectionVisitor;
 
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -64,6 +67,7 @@ public record InferBodies(ast.Program p) {
 
   private Map<String, astFull.T> iGOf(String selfName, astFull.T lambdaT, ast.E.Meth m) {
     Map<String, astFull.T> gamma = new HashMap<>();
+    assert selfName != null;
     gamma.put(selfName, lambdaT);
     var sig = m.sig();
 //    var sig = p.fullSig(lambdaT.itOrThrow(), cm->cm.name().equals(m.name())).orElseThrow();
@@ -131,6 +135,7 @@ public record InferBodies(ast.Program p) {
     if(m.sig().isEmpty()){ return Optional.empty(); }
     var sig = m.sig().orElseThrow();
     Map<String, T> richGamma = new HashMap<>(gamma);
+    assert e.selfName() != null;
     richGamma.put(e.selfName(),new T(m.mdf().orElseThrow(), e.it().orElseThrow()));
     Streams.zip(m.xs(), sig.ts()).forEach(richGamma::put);
     richGamma = Collections.unmodifiableMap(richGamma);
@@ -142,7 +147,7 @@ public record InferBodies(ast.Program p) {
     var finalRes = res.or(()->e1==e2
       ? Optional.empty()
       : Optional.of(m.withBody(Optional.of(e2)).withSig(refiner.fixSig(sig, e2.t()))));
-    return finalRes.map(m1->!m.equals(m1)).orElse(true) 
+    return finalRes.map(m1->!m.equals(m1)).orElse(true)
       ? finalRes : Optional.empty();
 //    assert finalRes.map(m1->!m.equals(m1)).orElse(true);
 //    return finalRes;
@@ -155,7 +160,7 @@ public record InferBodies(ast.Program p) {
     //TODO: here is where we need to check the method name is the same.
     var res = onlyAbs(e, depth).stream()
       .filter(fullSig->fullSig.sig().ts().size() == m.xs().size())
-      .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()))
+      .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()).makeBodyUnique())
       .toList();
     assert res.stream().noneMatch(m::equals);
     assert !res.isEmpty():
@@ -167,34 +172,31 @@ public record InferBodies(ast.Program p) {
     assert !e.it().isEmpty();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isEmpty()){ return Optional.empty(); }
-    List<Program.FullMethSig> sigs; try { sigs = onlyMName(e, m.name().get(), depth); }
+    List<FullMethSig> sigs; try { sigs = onlyMName(e, m.name().get(), depth); }
     catch (CompileError err) { throw err.parentPos(m.pos()); }
     // e.pos().isPresent() && e.pos().get().fileName.toString().endsWith("lists.fear") && m.name().get().name().equals("++")
     if(sigs.isEmpty()){ return Optional.empty(); }
-    var res = sigs.stream().map(s->m.withName(s.name()).withSig(s.sig())).toList();
+    var res = sigs.stream().map(s->m.withName(s.name()).withSig(s.sig()).makeBodyUnique()).toList();
     assert res.stream().noneMatch(m::equals);
     return Optional.of(res);
   }
 
-  List<Program.FullMethSig> onlyAbs(E.Lambda e, int depth){
-    //var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    //Above is older version. This worked if e had no user defined name;
-    //in that case the inferred name was added to the (probably empty) list of
-    //user defined implements.
-    //Now that 5a sees the user defined name, it also sees the method added
-    //by the user, so 'it' would contain the user defined name and that type
-    //has no abs methods. 
-    //New way:
-    //-if its is not empty, just use its.
-    //-if its is empty, then use it.
+  List<FullMethSig> onlyAbs(E.Lambda e, int depth){
     var its= e.its().isEmpty()
       ?e.it().stream().toList()
       :e.its();
-    return p.fullSig(XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
+    var sigs = FullMethSig.of(p, XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
+    @SuppressWarnings("preview")
+    var nUniqueSigs = sigs.stream()
+      .gather(DistinctBy.of(sig->sig.name().withMdf(Optional.empty())))
+      .limit(2)
+      .count();
+    if (nUniqueSigs > 1) { throw Fail.cannotInferAbsSig(e.id().id()).pos(e.pos()); }
+    return sigs;
   }
-  List<Program.FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
+  List<FullMethSig> onlyMName(E.Lambda e, Id.MethName name, int depth){
     var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
-    return p.fullSig(XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, cm->cm.name().nameArityEq(name));
+    return FullMethSig.of(p, XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, cm->cm.name().nameArityEq(name));
   }
 
   Optional<E> methCall(Map<String, T> gamma, E.MCall e, int depth) {
@@ -268,6 +270,9 @@ public record InferBodies(ast.Program p) {
   }
   public static T replaceOnlyInfers(T user, T inferred) {
     if (user.isInfer()) { return inferred; }
+    if (inferred.isInfer()) {
+      return user;
+    }
     if (!(user.rt() instanceof Id.IT<T> userIT
       && inferred.rt() instanceof Id.IT<T> inferredIT)) { return user; }
     if (!userIT.name().equals(inferredIT.name())) { return user; }
@@ -288,13 +293,13 @@ public record InferBodies(ast.Program p) {
       its = recv.its();
     }
 
-    Optional<Program.FullMethSig> cm;
+    Optional<FullMethSig> cm;
     try {
-      var res = p.fullSig(XBs.empty(), c.mdf(), its, depth, cm1->cm1.name().nameArityEq(e.name()));
-      cm = !res.isEmpty() ? Optional.of(res.get(0)) : Optional.empty();
+      var res = FullMethSig.of(p, XBs.empty(), c.mdf(), its, depth, cm1->cm1.name().nameArityEq(e.name()));
+      cm = !res.isEmpty() ? Optional.of(res.getFirst()) : Optional.empty();
     } catch (CompileError err) { throw err.parentPos(e.pos()); }
     if (cm.isEmpty()) {
-      throw Fail.undefinedMethod(e.name(), c).pos(e.pos());
+      throw TypingAndInferenceErrors.fromInference(Fail.undefinedMethod(e.name(), c).pos(e.pos()));
     }
     var sig = cm.get().sig();
     var k = sig.gens().size();

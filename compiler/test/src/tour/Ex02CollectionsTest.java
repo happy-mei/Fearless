@@ -105,7 +105,7 @@ Many maps are on Str or Int types
     Persons.compare //accepted
     Ints
     Opts#bob
-    NewOpt#foo
+    NewOpts#foo
     FIO#sys
     IOs#sys //
     Opt[T]

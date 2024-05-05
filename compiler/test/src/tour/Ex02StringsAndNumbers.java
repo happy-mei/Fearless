@@ -242,7 +242,8 @@ An optional is the simplest form of collection, and it is basically
 a collection of zero or one element.
 An empty optional it is not representing a mistake/error/problem.
 
--------------------------*/@Test void optional() { run("""
+-------------------------*/
+  @Test void optional() { run("""
   Opts:{
     #[T](x: T): mut Opt[T] -> {.match(m) -> m.some(x)}
     }
@@ -267,7 +268,7 @@ An empty optional it is not representing a mistake/error/problem.
     read .flow: mut Flow[read/imm T],
     imm  .flow: mut Flow[imm T],
     }
-  Opt[T]:,_Opt[T]{
+  Opt[T]: _Opt[T]{
     .match(m) -> m.empty,
       
     .map(f) -> this.match(f),
@@ -289,7 +290,7 @@ An empty optional it is not representing a mistake/error/problem.
   OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
   OptMap[T,R]:OptMatch[T, mut Opt[R]]{
     mut #(t: T): R,
-    .some(x) -> Opt#(this#x),
+    .some(x) -> Opts#(this#x),
     .empty -> {}
     }
   """); }/*--------------------------------------------
