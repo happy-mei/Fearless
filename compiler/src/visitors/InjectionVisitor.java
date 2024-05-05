@@ -65,10 +65,9 @@ public abstract class InjectionVisitor implements FullVisitor<ast.E>{
     boolean inferredName= lambdaId.id().isFresh();
     if (inferredName) {
       var freeGx= freeGx(resMeths,resIts);
-      assert allBounds.keySet().containsAll(freeGx):
-        allBounds.keySet()+" "+freeGx;
-        //Where is the type error blocking this from happening
-        //in the first place?
+      assert e.id().id().isFresh() || allBounds.keySet().containsAll(freeGx):
+        allBounds.keySet()+" "+freeGx+" "+e;
+        //TODO: it is quite ugly that fresh lambdas can be malformed in this sense
       lambdaId = computeId(lambdaId.id().name(), freeGx);
     }
     return new ast.E.Lambda(

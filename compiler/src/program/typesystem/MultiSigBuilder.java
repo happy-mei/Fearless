@@ -16,11 +16,12 @@ import utils.Range;
 
 record MultiSigBuilder(ast.E.Sig s, int size, List<ArrayList<T>> tss,ArrayList<T> rets){
   //TODO: ignoring bounds now, we may need to add them as a field
-  static MultiSig of(CM cm,Mdf mdf0,IT<T> it0, MethName m){
+  static MultiSig of(CM cm,Mdf mdf0,IT<T> it0, MethName m,List<T> expectedRes){
     var res= new MultiSigBuilder(
       cm.sig(), cm.sig().ts().size(),
       cm.sig().ts().stream().map(t->new ArrayList<T>()).toList(),
       new ArrayList<T>());
+    //TODO: not just add all of them, but filter by mdf0 and expectedRes
     res.fillIsoHProm();
     res.fillIsoProm();
     res.fillBase();

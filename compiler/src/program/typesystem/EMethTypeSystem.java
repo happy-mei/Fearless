@@ -57,13 +57,13 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
   private FailOr<T> visitMCall(Mdf mdf0, IT<T> it0, E.MCall e) {
     var sigs= p().meths(xbs(),mdf0,it0, e.name(),depth());
-    var sig= selectOverload(sigs,mdf0);
+    CM sig= selectOverload(sigs,mdf0);
     var renamer = TypeRename.core(p());
     var gens= sig.sig().gens();
     var xbs= xbs().addBounds(gens, sig.bounds());
     var transformer= renamer.renameFun(e.ts(), gens);
     sig= sig.withSig(renamer.renameSigOnMCall(sig.sig(),xbs,transformer));    
-    var multi= MultiSigBuilder.of(sig,mdf0,it0,e.name());
+    var multi= MultiSigBuilder.of(sig,mdf0,it0,e.name(),this.expectedT());
     Iterable<Integer> is= IntStream.range(0, e.es().size())::iterator;
     FailOr<List<T>> ft1n= FailOr.fold(is,
       i-> e.es().get(i).accept(multi.expectedT(this, i)));

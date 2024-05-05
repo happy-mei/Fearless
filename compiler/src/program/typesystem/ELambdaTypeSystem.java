@@ -12,6 +12,7 @@ import id.Id;
 import id.Id.GX;
 import id.Mdf;
 import utils.Box;
+import utils.Bug;
 import utils.Streams;
 import visitors.ShortCircuitVisitor;
 
@@ -156,6 +157,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
         });
       }
       @Override public List<String> dom() { return g().dom(); }
+      @Override public String toString() { return "readOnlyAsReadG"+g().toString(); }
+      @Override public String toStr(){ throw Bug.unreachable(); }
+
     };
     var mMdf = m.mdf();
     var g0 = readOnlyAsReadG.captureSelf(xbs(), selfName, selfT, mMdf.isReadOnly() ? Mdf.read : mMdf);
@@ -177,6 +181,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
         return g().getO(x).filter(t->!t.mdf().isMdf()).map(mdfTransform);
       }
       @Override public List<String> dom() { return g().dom(); }
+      @Override public String toString() { return "readOnlyAsReadG"+g().toString(); }
+      @Override public String toStr(){ throw Bug.unreachable(); }
     };
     var mMdf = mdfTransform.apply(selfT.withMdf(m.mdf())).mdf();
     var g0 = mutAsLentG.captureSelf(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.lent : mMdf);
@@ -193,6 +199,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
         return g().getO(x).filter(t->!(t.mdf().isLikeMut() || t.mdf().isRecMdf() || t.mdf().isMdf()));
       }
       @Override public List<String> dom() { return g().dom(); }
+      @Override public String toString() { return "noMutyG"+g().toString(); }
+      @Override public String toStr(){ throw Bug.unreachable(); }
     };
     var mMdf = m.mdf();
     var g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(xbs(), selfName, selfT, mMdf);

@@ -9,7 +9,6 @@ import magic.Magic;
 import program.CM;
 import program.TypeRename;
 import program.TypeSystemFeatures;
-import program.typesystem.EMethTypeSystem;
 import program.typesystem.TraitTypeSystem;
 import program.typesystem.TsT;
 import program.typesystem.XBs;
