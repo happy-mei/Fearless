@@ -16,14 +16,17 @@ public class ParenthesisChecker {
     for(int i=0; i<length; i++) {
       int chr = input.codePointAt(input.offsetByCodePoints(0, i));
       state = state.process(this, Character.toString(chr));
-      pos++;
     }
     return state.getErrorMessage(this, input);
   }
 
   public void incrementLine() {
     this.line++;
-    this.pos = -1;
+    this.pos = 0;
+  }
+
+  public void incrementPos() {
+    this.pos++;
   }
 
   public void addToStack(ParenthesisType parenthesisType) {

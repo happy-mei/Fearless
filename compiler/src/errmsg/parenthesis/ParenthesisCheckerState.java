@@ -9,7 +9,9 @@ public enum ParenthesisCheckerState {
       ParenthesisType pt = ParenthesisType.getBySymbol(str);
       // Parenthesis character
       if(pt != null) {
-        return processParenthesis(checker, pt);
+        ParenthesisCheckerState newState = processParenthesis(checker, pt);
+        checker.incrementPos();
+        return newState;
       }
       // Not a parenthesis character
       switch (str) {
@@ -18,12 +20,17 @@ public enum ParenthesisCheckerState {
           return this;
         }
         case "/" -> {
+          checker.incrementPos();
           return SLASH;
         }
         case "\"" -> {
+          checker.incrementPos();
           return Q1;
         }
-        default -> {return this;}
+        default -> {
+          checker.incrementPos();
+          return this;
+        }
       }
     }
 
@@ -141,6 +148,7 @@ public enum ParenthesisCheckerState {
         checker.incrementLine();
         return DEFAULT;
       }
+      checker.incrementPos();
       return switch(str) {
         case "/" -> COMM;
         case "*" -> MULTI_COMM;
@@ -154,27 +162,30 @@ public enum ParenthesisCheckerState {
         checker.incrementLine();
         return DEFAULT;
       }
+      checker.incrementPos();
       return this;
     }
   },
   MULTI_COMM {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
-      if(str.equals("*")) {return STAR;}
       if(str.equals("\n")) {checker.incrementLine();}
+      else {checker.incrementPos();}
+      if(str.equals("*")) {return STAR;}
       return this;
     }
   },
   STAR {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
-      if(str.equals("/")) {return DEFAULT;}
       if(str.equals("\n")) {checker.incrementLine();}
+      else {checker.incrementPos();}
+      if(str.equals("/")) {return DEFAULT;}
       return MULTI_COMM;
     }
   },
   Q1 {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
+      checker.incrementPos();
       if(str.equals("\"")) {return Q2;}
-      if(str.equals("\n")) {checker.incrementLine();}
       return STRING;
     }
   },
@@ -182,62 +193,65 @@ public enum ParenthesisCheckerState {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
       if(str.equals("\"")) {return MULTI_STRING;}
       if(str.equals("\n")) {checker.incrementLine();}
+      else {checker.incrementPos();}
       return DEFAULT;
     }
   },
   MULTI_STRING {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
       switch(str) {
-        case "\\" -> {return ESCAPE_MULTI;}
-        case "\"" -> {return E1;}
+        case "\\" -> {checker.incrementPos();return ESCAPE_MULTI;}
+        case "\"" -> {checker.incrementPos();return E1;}
         case "\n" -> {checker.incrementLine(); return this;}
-        default -> {return this;}
+        default -> {checker.incrementPos();return this;}
       }
     }
   },
   STRING {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
       switch(str) {
-        case "\"" -> {return DEFAULT;}
-        case "\\" -> {return ESCAPE;}
+        case "\"" -> {checker.incrementPos();return DEFAULT;}
+        case "\\" -> {checker.incrementPos();return ESCAPE;}
         case "\n" -> {checker.incrementLine(); return this;}
-        default -> {return this;}
+        default -> {checker.incrementPos();return this;}
       }
     }
   },
   E1 {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
       switch(str) {
-        case "\"" -> {return E2;}
-        case "\\" -> {return ESCAPE_MULTI;}
+        case "\"" -> {checker.incrementPos();return E2;}
+        case "\\" -> {checker.incrementPos();return ESCAPE_MULTI;}
         case "\n" -> {checker.incrementLine(); return MULTI_STRING;}
-        default -> {return MULTI_STRING;}
+        default -> {checker.incrementPos();return MULTI_STRING;}
       }
     }
   },
   E2 {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
       switch(str) {
-        case "\"" -> {return DEFAULT;}
-        case "\\" -> {return ESCAPE_MULTI;}
+        case "\"" -> {checker.incrementPos();return DEFAULT;}
+        case "\\" -> {checker.incrementPos();return ESCAPE_MULTI;}
         case "\n" -> {checker.incrementLine(); return MULTI_STRING;}
-        default -> {return MULTI_STRING;}
+        default -> {checker.incrementPos();return MULTI_STRING;}
       }
     }
   },
   ESCAPE {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
+      checker.incrementPos();
       return STRING;
     }
   },
   ESCAPE_MULTI {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, String str) {
+      checker.incrementPos();
       return MULTI_STRING;
     }
   };
 
   // Enum Methods
-  public ParenthesisCheckerState process(ParenthesisChecker checker, String str){return this;}
+  public ParenthesisCheckerState process(ParenthesisChecker checker, String str){checker.incrementPos();return this;}
   public String getErrorMessage(ParenthesisChecker checker, String input) {
     throw new IllegalStateException("No parenthesis error was found");
   }
