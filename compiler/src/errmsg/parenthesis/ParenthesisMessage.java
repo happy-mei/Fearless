@@ -14,12 +14,24 @@ public class ParenthesisMessage {
     };
   }
 
+  /**
+   * Get error message for unclosed opening parenthesis
+   * @param checker checker
+   * @param input input
+   * @return message
+   */
   private static String getUnclosedErrorMessage(ParenthesisChecker checker, String input) {
     Stack<Parenthesis> stack = checker.getStack();
     assert !stack.isEmpty();
     return stack.size() == 1 ? getSingleUnclosed(stack.pop(), input) : getMultiUnclosed(stack, input);
   }
 
+  /**
+   * Helper for getUnclosedErrorMessage()
+   * @param open opening parenthesis
+   * @param input input
+   * @return message
+   */
   private static String getSingleUnclosed(Parenthesis open, String input) {
     String prefix = open.line() + ": ";
     String message = String.format("Error: unclosed opening parenthesis '%s' at %d:%d\n", open.type().symbol, open.line(), open.pos());
@@ -28,6 +40,12 @@ public class ParenthesisMessage {
     return message;
   }
 
+  /**
+   * Helper for getUnclosedErrorMessage()
+   * @param stack stack of parenthesis
+   * @param input input
+   * @return message
+   */
   private static String getMultiUnclosed(Stack<Parenthesis> stack, String input) {
     String message = "Error: multiple unclosed opening parenthesis\n";
     // TODO: Point out multiple opening parenthesis if possible?
@@ -35,6 +53,12 @@ public class ParenthesisMessage {
     return getSingleUnclosed(stack.pop(), input);
   }
 
+  /**
+   * Get error message for extra closing parenthesis
+   * @param checker checker
+   * @param input input
+   * @return message
+   */
   private static String getUnexpectedErrorMessage(ParenthesisChecker checker, String input) {
     Parenthesis close = checker.getStack().pop();
     String prefix = close.line() + ": ";
@@ -44,6 +68,12 @@ public class ParenthesisMessage {
     return message;
   }
 
+  /**
+   * Get error message for mismatched closing parenthesis
+   * @param checker checker
+   * @param input input
+   * @return message
+   */
   private static String getMismatchErrorMessage(ParenthesisChecker checker, String input) {
     Stack<Parenthesis> stack = checker.getStack();
     Parenthesis close = stack.pop();
@@ -51,6 +81,13 @@ public class ParenthesisMessage {
     return close.line() != open.line() ? getMultiLineMismatch(open, close, input) : getSingleLineMismatch(open, close, input);
   }
 
+  /**
+   * Helper for getMismatchErrorMessage()
+   * @param open opening parenthesis
+   * @param close closing parenthesis
+   * @param input input
+   * @return message
+   */
   private static String getSingleLineMismatch(Parenthesis open, Parenthesis close, String input) {
     String line = input.lines().toList().get(open.line()-1);
     String prefix = open.line() + ": ";
@@ -67,6 +104,13 @@ public class ParenthesisMessage {
         """.formatted(close.type().symbol, close.line(), close.pos(), prefix, line, indicator, whitespace, whitespace);
   }
 
+  /**
+   * Helper for getMismatchErrorMessage()
+   * @param open opening parenthesis
+   * @param close closing parenthesis
+   * @param input input
+   * @return message
+   */
   private static String getMultiLineMismatch(Parenthesis open, Parenthesis close, String input) {
     List<String> lines = input.lines().toList();
     StringBuilder message = new StringBuilder(
