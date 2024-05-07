@@ -89,6 +89,7 @@ public enum ParenthesisCheckerState {
     @Override public ParenthesisCheckerState process(ParenthesisChecker checker, int i) {
       String str = checker.getStringValue(i, 1);
       switch(str) {
+        case "|" -> {checker.incrementPos();return MULTI_STRING_LINE;}
         case "\\" -> {checker.incrementPos();return ESCAPE_MULTI;}
         case "\"" -> {
           checker.incrementPos();
@@ -99,6 +100,14 @@ public enum ParenthesisCheckerState {
         case "\n" -> {checker.incrementLine(); return this;}
         default -> {checker.incrementPos();return this;}
       }
+    }
+  },
+  MULTI_STRING_LINE {
+    @Override public ParenthesisCheckerState process(ParenthesisChecker checker, int i) {
+      String str = checker.getStringValue(i, 1);
+      if (!str.equals("\n")) {return this;}
+      checker.incrementLine();
+      return MULTI_STRING;
     }
   },
   STRING {

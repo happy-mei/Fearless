@@ -205,6 +205,27 @@ public class TestErrorMessages {
     """
   );}
 
+  @Test void failIgnoreMultiStringLine() {fail(
+    """
+    [###]
+    [E59 syntaxError]
+    Error: mismatched closing parenthesis ')' at 5:6
+    2  : Hello: Main{ s -> s.println( ""\"
+                    ^ unclosed open
+    3  :  | Hello World
+    4  :  | [)]((] \"""
+    5  : ""\" ) )
+               ^ mismatched close, is it meant to be '}'?
+    """,
+    """
+    package pkg1
+    Hello: Main{ s -> s.println( \"""
+     | Hello World
+     | [)]((] \"""
+    \""" ) )
+    """
+  );}
+
   @Test void failIgnoreEscapeMultiString() {fail(
     """
     [###]
