@@ -47,8 +47,9 @@ public class ParenthesisMessage {
    * @return message
    */
   private static String getMultiUnclosed(Stack<Parenthesis> stack, String input) {
-    String message = "Error: multiple unclosed opening parenthesis\n";
     // TODO: Point out multiple opening parenthesis if possible?
+    List<String> lines = input.lines().toList();
+    StringBuilder message = new StringBuilder("Error: multiple unclosed opening parenthesis\n");
     // This is a placeholder
     return getSingleUnclosed(stack.pop(), input);
   }
@@ -115,26 +116,35 @@ public class ParenthesisMessage {
     List<String> lines = input.lines().toList();
     StringBuilder message = new StringBuilder(
       String.format("Error: mismatched closing parenthesis '%s' at %d:%d\n", close.type().symbol, close.line(), close.pos()));
-    boolean flag = false;
+    boolean skipped = false;
     for(int i=open.line(); i<=close.line(); i++) {
       if(i > open.line()+1 && i < close.line()-1) {
-        if(!flag) {
-          String range = (open.line()+2) + "-" + (close.line()-2) + ": ";
-          message.append(range);
-          message.append("... ... ...\n");
-          flag = true;}
-        continue;
-      }
+        if(!skipped) {
+        skipLines(message, open.line(), close.line());
+        skipped = true;
+        }
+      } else {
       String prefix = i + "  : ";
-      message.append(prefix).append(lines.get(i-1)).append("\n");
-      if(i == open.line()) {
-        message.append(" ".repeat(open.pos() + prefix.length())).append("^ unclosed open\n");
-      }
-      if(i == close.line()) {
-        String suggestion = "is it meant to be '" + open.type().pair + "'?";
-        message.append(" ".repeat(close.pos() + prefix.length())).append("^ mismatched close, ").append(suggestion).append("\n");
+      addMarkers(message, i, prefix, lines.get(i-1), open, close);
       }
     }
     return message.toString();
+  }
+
+  private static void skipLines(StringBuilder message, int start, int end) {
+    String range = (start+2) + "-" + (end-2) + ": ";
+    message.append(range);
+    message.append("... ... ...\n");
+  }
+
+  private static void addMarkers(StringBuilder message, int i, String prefix, String line, Parenthesis open, Parenthesis close) {
+    message.append(prefix).append(line).append("\n");
+    if(i == open.line()) {
+      message.append(" ".repeat(open.pos() + prefix.length())).append("^ unclosed open\n");
+    }
+    if(i == close.line()) {
+      String suggestion = "is it meant to be '" + open.type().pair + "'?";
+      message.append(" ".repeat(close.pos() + prefix.length())).append("^ mismatched close, ").append(suggestion).append("\n");
+    }
   }
 }
