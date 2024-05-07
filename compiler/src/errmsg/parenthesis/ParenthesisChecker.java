@@ -1,6 +1,8 @@
 package errmsg.parenthesis;
 
+import java.util.Iterator;
 import java.util.Stack;
+import java.util.stream.IntStream;
 
 public class ParenthesisChecker {
   private Stack<Parenthesis> stack = new Stack<>();
@@ -11,11 +13,10 @@ public class ParenthesisChecker {
   public ParenthesisChecker(String input) {this.input = input;}
 
   public String compute() {
-    int length = input.codePointCount(0, input.length());
+    IntStream codePointsStream = input.codePoints();
     ParenthesisCheckerState state = ParenthesisCheckerState.DEFAULT;
-    for(int i=0; i<length; i++) {
-      int chr = input.codePointAt(input.offsetByCodePoints(0, i));
-      state = state.process(this, Character.toString(chr));
+    for(int codePoint: (Iterable<Integer>)codePointsStream::iterator) {
+      state = state.process(this, Character.toString(codePoint));
     }
     return state.getErrorMessage(this, input);
   }
