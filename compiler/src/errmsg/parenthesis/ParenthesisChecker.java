@@ -1,14 +1,10 @@
 package errmsg.parenthesis;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class ParenthesisChecker {
-  private Stack<Parenthesis> stack = new Stack<>();
+  private final Stack<Parenthesis> stack = new Stack<>();
   private final String input;
   private final List<Integer> codePointList;
   private int line = 1;
@@ -24,7 +20,7 @@ public class ParenthesisChecker {
     for(int i=0; i<codePointList.size(); i++) {
       state = state.process(this, i);
     }
-    return state.getErrorMessage(this, input);
+    return ParenthesisMessage.getErrorMessage(this, input, state);
   }
 
   public String getStringValue(int index, int length) {
