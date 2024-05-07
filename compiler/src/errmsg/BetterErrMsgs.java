@@ -16,18 +16,23 @@ public class BetterErrMsgs {
 
   public String syntaxError() {
     System.out.println(input);
-    if (offendingSymbol instanceof Token token) {
-      switch(token.getText()) {
-        case "(", ")", "[", "]", "{", "}" -> {
-          return new ParenthesisChecker(input).compute();
-        }
-        default -> {
-          if(this.msg.matches("missing '([(){}\\[\\]])'.*")) {
-            return new ParenthesisChecker(input).compute();
-          }
-        }
+    try {
+      return new ParenthesisChecker(input).compute();
+    } catch (IllegalStateException e) {
+      assert e.getMessage().equals("No parenthesis error was found");
+      if (isParenthesisError()) {
+        return "Parenthesis checker could not find the error";
       }
     }
     return this.msg;
+  }
+
+  private boolean isParenthesisError() {
+    if(offendingSymbol instanceof Token token) {
+      if(token.getText().matches("[(){}\\[\\]]")) {
+        return true;
+      }
+    }
+    return this.msg.matches("missing '([(){}\\[\\]])'.*");
   }
 }
