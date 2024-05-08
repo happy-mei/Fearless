@@ -20,7 +20,7 @@ CompareInts: F[Int, Int, Ordering]{
     .if {a < b} .return {FOrdering.less}
     .return {FOrdering.equal}
   }
-CompareUInts: F[UInt, UInt, Ordering]{
+CompareNats: F[Nat, Nat, Ordering]{
   a, b -> Block#
     .if {a > b} .return {FOrdering.greater}
     .if {a < b} .return {FOrdering.less}

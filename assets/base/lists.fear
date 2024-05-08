@@ -1,7 +1,7 @@
 package base
 
 Collection:{
-  read .size: UInt,
+  read .size: Nat,
   read .isEmpty: Bool,
   // I might make this generic and have a .iter method on this
   // just need to think more about string representations first.
@@ -14,13 +14,13 @@ LList[E]:Collection,Sealed{
   mut  .match[R](m: mut LListMatch[E, R]): R -> m.empty,
   read .match[R](m: mut LListMatchRead[E, R]): R -> m.empty,
 
-  mut  .get(i: UInt): E -> Error.msg ("The index "+(i.str)+" is out of bounds for this list"),
-  read .get(i: UInt): read/imm E -> Error.msg ("The index "+(i.str)+" is out of bounds for this list"),
-  imm  .get(i: UInt): imm E -> Error.msg ("The index "+(i.str)+" is out of bounds for this list"),
+  mut  .get(i: Nat): E -> Error.msg ("The index "+(i.str)+" is out of bounds for this list"),
+  read .get(i: Nat): read/imm E -> Error.msg ("The index "+(i.str)+" is out of bounds for this list"),
+  imm  .get(i: Nat): imm E -> Error.msg ("The index "+(i.str)+" is out of bounds for this list"),
 
-  mut  .tryGet(i: UInt): mut Opt[E] -> {},
-  read .tryGet(i: UInt): mut Opt[read/imm E] -> {},
-  imm  .tryGet(i: UInt): mut Opt[imm E] -> {},
+  mut  .tryGet(i: Nat): mut Opt[E] -> {},
+  read .tryGet(i: Nat): mut Opt[read/imm E] -> {},
+  imm  .tryGet(i: Nat): mut Opt[imm E] -> {},
 
   mut  .head: mut Opt[E] -> {},
   read .head: mut Opt[read/imm E] -> {},
@@ -86,7 +86,7 @@ LList[E]:Collection,Sealed{
       }},
 
   read .isEmpty: Bool -> True,
-  read .size: UInt -> 0,
+  read .size: Nat -> 0,
 
   mut .list: mut List[E] -> List.fromLList[E](this),
 
@@ -97,13 +97,13 @@ LList[E]:Collection,Sealed{
       read .match[R](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
       imm  .match[R](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
 
-      mut  .get(i: UInt): E -> (i == 0) ? { .then -> e, .else -> this.get[](i - 1) },
-      read .get(i: UInt): read/imm E -> (i == 0) ?[read/imm E] { .then -> e, .else -> this.get[](i - 1) },
-      imm  .get(i: UInt): imm E -> (i  == 0) ?[imm E] { .then -> e, .else -> this.get[](i - 1) },
+      mut  .get(i: Nat): E -> (i == 0) ? { .then -> e, .else -> this.get[](i - 1) },
+      read .get(i: Nat): read/imm E -> (i == 0) ?[read/imm E] { .then -> e, .else -> this.get[](i - 1) },
+      imm  .get(i: Nat): imm E -> (i  == 0) ?[imm E] { .then -> e, .else -> this.get[](i - 1) },
 
-      mut  .tryGet(i: UInt): mut Opt[E] -> (i == 0) ? { .then -> Opts#e, .else -> this.tryGet(i - 1) },
-      read .tryGet(i: UInt): mut Opt[read/imm E] -> (i == 0) ? { .then -> Opts#[read/imm E]e, .else -> this.tryGet(i - 1) },
-      imm  .tryGet(i: UInt): mut Opt[imm E] -> (i  == 0) ? { .then -> Opts#[imm E]e, .else -> this.tryGet(i - 1) },
+      mut  .tryGet(i: Nat): mut Opt[E] -> (i == 0) ? { .then -> Opts#e, .else -> this.tryGet(i - 1) },
+      read .tryGet(i: Nat): mut Opt[read/imm E] -> (i == 0) ? { .then -> Opts#[read/imm E]e, .else -> this.tryGet(i - 1) },
+      imm  .tryGet(i: Nat): mut Opt[imm E] -> (i  == 0) ? { .then -> Opts#[imm E]e, .else -> this.tryGet(i - 1) },
 
       mut  .head: mut Opt[E] -> Opts#e,
       read .head: mut Opt[read/imm E] -> Opts#[read/imm E]e,
@@ -121,11 +121,11 @@ LList[E]:Collection,Sealed{
       read .match[R](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
       imm  .match[R](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
 
-      read .get(i: UInt): read/imm E -> (i == 0) ?[read/imm E] { .then -> e, .else -> this.get(i - 1) },
-      imm  .get(i: UInt): imm E -> (i  == 0) ?[imm E] { .then -> e, .else -> this.get(i - 1) },
+      read .get(i: Nat): read/imm E -> (i == 0) ?[read/imm E] { .then -> e, .else -> this.get(i - 1) },
+      imm  .get(i: Nat): imm E -> (i  == 0) ?[imm E] { .then -> e, .else -> this.get(i - 1) },
 
-      read .tryGet(i: UInt): mut Opt[read/imm E] -> (i == 0) ? { .then -> Opts#[read/imm E]e, .else -> this.tryGet(i - 1) },
-      imm  .tryGet(i: UInt): mut Opt[imm E] -> (i  == 0) ? { .then -> Opts#[imm E]e, .else -> this.tryGet(i - 1) },
+      read .tryGet(i: Nat): mut Opt[read/imm E] -> (i == 0) ? { .then -> Opts#[read/imm E]e, .else -> this.tryGet(i - 1) },
+      imm  .tryGet(i: Nat): mut Opt[imm E] -> (i  == 0) ? { .then -> Opts#[imm E]e, .else -> this.tryGet(i - 1) },
 
       read .head: mut Opt[read/imm E] -> Opts#[read/imm E]e,
       imm  .head: mut Opt[imm E] -> Opts#[imm E]e,
@@ -141,8 +141,8 @@ LList[E]:Collection,Sealed{
 //        imm  .match[R](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
 //        read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
 //
-//        imm  .get(i: UInt): mut Opt[E] -> (i == 0) ? { .then -> Opts#[E]e, .else -> this.get[](i - 1) },
-//        read .get(i: UInt): mut Opt[read E] -> (i == 0) ? { .then -> Opts#[read E]e, .else -> this.get[](i - 1) },
+//        imm  .get(i: Nat): mut Opt[E] -> (i == 0) ? { .then -> Opts#[E]e, .else -> this.get[](i - 1) },
+//        read .get(i: Nat): mut Opt[read E] -> (i == 0) ? { .then -> Opts#[read E]e, .else -> this.get[](i - 1) },
 //
 //        imm  .head: mut Opt[E] -> Opts#e,
 //        read .head: mut Opt[read E] -> Opts#[read E]e,
@@ -182,19 +182,19 @@ _List:{
     }
   }
 List[E]: Collection,Sealed{
-  mut  .get(i: UInt): E,
-  read .get(i: UInt): read/imm E,
-  imm  .get(i: UInt): imm E,
+  mut  .get(i: Nat): E,
+  read .get(i: Nat): read/imm E,
+  imm  .get(i: Nat): imm E,
 
-  mut  .tryGet(i: UInt): mut Opt[E],
-  read .tryGet(i: UInt): mut Opt[read/imm E],
-  imm  .tryGet(i: UInt): mut Opt[imm E],
+  mut  .tryGet(i: Nat): mut Opt[E],
+  read .tryGet(i: Nat): mut Opt[read/imm E],
+  imm  .tryGet(i: Nat): mut Opt[imm E],
 
   mut .add(e: E): Void,
   mut .addAll(other: mut List[E]): Void -> other.iter.for{e -> this.add(e)},
 
   mut .flow: mut Flow[E] -> Block#
-    .let[mut Count[UInt]] cursor = {Count.uint(0)}
+    .let[mut Count[Nat]] cursor = {Count.nat(0)}
     .return {Flow.fromMutSource(RestrictFlowReuse#[E]{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -208,7 +208,7 @@ List[E]: Collection,Sealed{
       }, this.size)},
   read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread), this.size),
   read ._flowread: mut FlowOp[read/imm E] -> Block#
-    .let[mut Count[UInt]] cursor = {Count.uint(0)}
+    .let[mut Count[Nat]] cursor = {Count.nat(0)}
     .return {{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -222,7 +222,7 @@ List[E]: Collection,Sealed{
       }},
   imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm), this.size),
   imm ._flowimm: mut FlowOp[imm E] -> Block#
-    .let[mut Count[UInt]] cursor = {Count.uint(0)}
+    .let[mut Count[Nat]] cursor = {Count.nat(0)}
     .return {{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -236,25 +236,25 @@ List[E]: Collection,Sealed{
       }},
 
   mut .iter: mut Iter[E] -> Let#{
-    .var -> Count.uint(0),
+    .var -> Count.nat(0),
     .in(cursor) -> { .next -> this.tryGet(cursor++) }
     },
   read .iter: mut Iter[read/imm E] -> Let#{
-    .var -> Count.uint(0),
+    .var -> Count.nat(0),
     .in(cursor) -> { .next -> this.tryGet(cursor++) }
     },
   imm .iter: mut Iter[imm E] -> Let#{
-    .var -> Count.uint(0),
+    .var -> Count.nat(0),
     .in(cursor) -> { .next -> this.tryGet(cursor++) }
     },
   }
 _ListState[E]:{
-  read .size: UInt,
+  read .size: Nat,
   mut .inner: mut LList[E],
   read .inner: read LList[E],
   }
 _ListState:{
-  #[E](len: UInt, inner: mut LList[E]): mut _ListState[E] -> {
+  #[E](len: Nat, inner: mut LList[E]): mut _ListState[E] -> {
     .size -> len,
     .inner -> inner
     }
@@ -264,8 +264,8 @@ _ListState:{
 /// After the list is built, it may no longer be modified. This data structure is equivalent to
 /// Java's SpinedBuffer.
 AppendList[E]: Collection{
-  mut  .get(i: UInt): mut Opt[E],
-  read .get(i: UInt): mut Opt[read E],
-  imm  .get(i: UInt): iso Opt[imm E],
+  mut  .get(i: Nat): mut Opt[E],
+  read .get(i: Nat): mut Opt[read E],
+  imm  .get(i: Nat): iso Opt[imm E],
   mut .append(e: E): Void,
   }

@@ -4,7 +4,7 @@ Int:Sealed,_MathOps[imm Int],_IntOps[imm Int]{
   // not Stringable due to limitations of the Java codegen target
   read .str: Str,
   }
-UInt:Sealed,_MathOps[imm UInt],_IntOps[imm UInt]{
+Nat:Sealed,_MathOps[imm Nat],_IntOps[imm Nat]{
   // not Stringable due to limitations of the Java codegen target
   read .str: Str,
   }
@@ -23,7 +23,7 @@ Float:Sealed,_MathOps[imm Float]{
 
 _MathOps[T]:Sealed{
   readOnly .int: Int,
-  readOnly .uint: UInt,
+  readOnly .nat: Nat,
   readOnly .float: Float,
   +(n: T): T,
   -(n: T): T,
@@ -47,13 +47,13 @@ _IntOps[T]:Sealed{
   .and(n: T): T,
   .or(n: T): T,
 
-  **(n: UInt): T, // pow
+  **(n: Nat): T, // pow
   }
 
 // Fake concrete type for all numbers. The real implementation is generated at code-gen.
 _IntInstance:Int{
   .int -> Magic!,
-  .uint -> Magic!,
+  .nat -> Magic!,
   .float -> Magic!,
   .str -> Magic!,
   +(n) -> Magic!,
@@ -78,9 +78,9 @@ _IntInstance:Int{
   <=n -> Magic!,
   ==n -> Magic!,
   }
-_UIntInstance:UInt{
+_NatInstance:Nat{
   .int -> Magic!,
-  .uint -> Magic!,
+  .nat -> Magic!,
   .float -> Magic!,
   .str -> Magic!,
   +(n) -> Magic!,
@@ -107,7 +107,7 @@ _UIntInstance:UInt{
   }
 _FloatInstance:Float{
   .int -> Magic!,
-  .uint -> Magic!,
+  .nat -> Magic!,
   .float -> Magic!,
   .str -> Magic!,
   .round -> Magic!,

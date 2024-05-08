@@ -1,7 +1,7 @@
 package base.flows
 
 _SeqFlow: {
-  .fromOp[E](source: mut FlowOp[E], size: Opt[UInt]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
     .map(f) -> this.fromOp(_Map#(_Sink, source, f), size),
@@ -72,9 +72,9 @@ _SeqFlow: {
 //          .return(_) -> acc'.get,
 //          }},
 
-    .size -> size.match[UInt]{
+    .size -> size.match[Nat]{
       .some(n) -> n,
-      .empty -> self.fold[UInt](0, {acc, _ -> acc + 1}),
+      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
       },
     },
 
@@ -92,6 +92,6 @@ _SeqFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opts#[UInt]1)},
+    .return {this.fromOp(source, Opts#[Nat]1)},
 //    .return {this.fromOp(source, Opts#1)},
   }

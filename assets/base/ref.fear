@@ -43,7 +43,7 @@ Count:{
       *=(n2) -> c <- { c' -> c' * n2 },
       }
     }),
-  .uint(n: UInt): mut Count[UInt] -> Let#({
+  .nat(n: Nat): mut Count[Nat] -> Let#({
     .var -> Var#n,
     .in(c) -> {
       .get -> c.get,

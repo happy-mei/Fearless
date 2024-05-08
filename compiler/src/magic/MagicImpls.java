@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface MagicImpls<R> {
   default Optional<MagicTrait<MIR.E,R>> get(MIR.E e) {
     if (isMagic(Magic.Int, e)) { return Optional.ofNullable(int_(e)); }
-    if (isMagic(Magic.UInt, e)) { return Optional.ofNullable(uint(e)); }
+    if (isMagic(Magic.Nat, e)) { return Optional.ofNullable(uint(e)); }
     if (isMagic(Magic.Float, e)) { return Optional.ofNullable(float_(e)); }
     if (isMagic(Magic.Str, e)) { return Optional.ofNullable(str(e)); }
     if (isMagic(Magic.Bool, e)) { return Optional.ofNullable(bool(e)); }

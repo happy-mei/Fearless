@@ -13,7 +13,7 @@ import java.util.function.Function;
 public class Magic {
   public static final Id.DecId Main = new Id.DecId("base.Main", 0);
   public static final Id.DecId Sealed = new Id.DecId("base.Sealed", 0);
-  public static final Id.DecId UInt = new Id.DecId("base.UInt", 0);
+  public static final Id.DecId Nat = new Id.DecId("base.Nat", 0);
   public static final Id.DecId Int = new Id.DecId("base.Int", 0);
   public static final Id.DecId Bool = new Id.DecId("base.Bool", 0);
   public static final Id.DecId Float = new Id.DecId("base.Float", 0);
@@ -128,7 +128,7 @@ public class Magic {
         return Optional.of(resolve.apply(new Id.DecId("base._FloatInstance", 0)));
       }
       if (lit.matches("[\\d_]*\\d+$")) {
-        return Optional.of(resolve.apply(new Id.DecId("base._UIntInstance", 0)));
+        return Optional.of(resolve.apply(new Id.DecId("base._NatInstance", 0)));
       }
       return Optional.empty();
     }

@@ -1329,8 +1329,8 @@ public class TestInferBodies {
 
   @Test void literalVsIT() {ok("""
     {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[--][test.A[]]{'this
-      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.UInt[]]]->
-        [-imm-][test.Box[]]{'fear[###]$}#/1[imm base.UInt[]]([[-imm-][5[]]{'fear[###]$}])}],
+      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.Nat[]]]->
+        [-imm-][test.Box[]]{'fear[###]$}#/1[imm base.Nat[]]([[-imm-][5[]]{'fear[###]$}])}],
     
     test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[--][test.Box[T]]{'this
       .get/0([]):Sig[gens=[],ts=[],ret=T]->[-]}],
@@ -1340,19 +1340,19 @@ public class TestInferBodies {
         [-mut-][test.Box[T]]{'fear[###]$.get/0([]):Sig[gens=[],ts=[],ret=T]->t}}]}
     """, """
     package test
-    A: {#: mut Box[base.UInt] -> Box#5}
+    A: {#: mut Box[base.Nat] -> Box#5}
     """, """
     package test
     Box: {#[T](t: T): mut Box[T] -> {t}}
     Box[T]: {mut .get: T}
     """, """
     package base
-    UInt: {}
-    _UIntInstance: UInt{}
+    Nat: {}
+    _NatInstance: Nat{}
     """);}
   @Test void explicitLiteralGen() {ok("""
     {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[--][test.A[]]{'this
-      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.UInt[]]]->
+      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.Nat[]]]->
         [-imm-][test.Box[]]{'fear[###]$}#/1[imm 5[]]([[-imm-][5[]]{'fear[###]$}])}],
     
     test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[--][test.Box[T]]{'this
@@ -1363,21 +1363,21 @@ public class TestInferBodies {
         [-mut-][test.Box[T]]{'fear[###]$.get/0([]):Sig[gens=[],ts=[],ret=T]->t}}]}
     """, """
     package test
-    A: {#: mut Box[base.UInt] -> Box#[5]5}
+    A: {#: mut Box[base.Nat] -> Box#[5]5}
     """, """
     package test
     Box: {#[T](t: T): mut Box[T] -> {t}}
     Box[T]: {mut .get: T}
     """, """
     package base
-    UInt: {}
-    _UIntInstance: UInt{}
+    Nat: {}
+    _NatInstance: Nat{}
     """);}
   @Test void literalGenInference() {ok("""
     {test.B/0=Dec[name=test.B/0,gxs=[],lambda=[--][test.B[]]{'this
       #/1([b]):Sig[gens=[],ts=[mut test.Box[imm5[]]],ret=mut test.Box[imm5[]]] -> b}],
     test.A/0=Dec[name=test.A/0,gxs=[],lambda=[--][test.A[]]{'this
-      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.UInt[]]]->
+      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.Nat[]]]->
         [-imm-][test.B[]]{'fear26$}#/1[]([[-imm-][test.Box[]]{'fear27$}#/1[imm 5[]]([[-imm-][5[]]{'fear28$}])])}],
 
     test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[--][test.Box[T]]{'this
@@ -1387,7 +1387,7 @@ public class TestInferBodies {
         [-mut-][test.Box[T]]{'fear30$.get/0([]):Sig[gens=[],ts=[],ret=T]->t}}]}
     """, """
     package test
-    A: {#: mut Box[base.UInt] -> B#(Box#5)}
+    A: {#: mut Box[base.Nat] -> B#(Box#5)}
     B: {#(b: mut Box[5]): mut Box[5] -> b}
     """, """
     package test
@@ -1395,15 +1395,15 @@ public class TestInferBodies {
     Box[T]: {mut .get: T}
     """, """
     package base
-    UInt: {}
-    _UIntInstance: UInt{}
+    Nat: {}
+    _NatInstance: Nat{}
     """);}
   @Test void nonLiteralGenInference() {ok("""
     {test.B/0=Dec[name=test.B/0,gxs=[],lambda=[--][test.B[]]{'this
-      #/1([b]):Sig[gens=[],ts=[mut test.Box[imm base.UInt[]]],ret=mut test.Box[imm base.UInt[]]] -> b}],
+      #/1([b]):Sig[gens=[],ts=[mut test.Box[imm base.Nat[]]],ret=mut test.Box[imm base.Nat[]]] -> b}],
     test.A/0=Dec[name=test.A/0,gxs=[],lambda=[--][test.A[]]{'this
-      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.UInt[]]]->
-        [-imm-][test.B[]]{'fear26$}#/1[]([[-imm-][test.Box[]]{'fear27$}#/1[imm base.UInt[]]([[-imm-][5[]]{'fear28$}])])}],
+      #/0([]):Sig[gens=[],ts=[],ret=mut test.Box[imm base.Nat[]]]->
+        [-imm-][test.B[]]{'fear26$}#/1[]([[-imm-][test.Box[]]{'fear27$}#/1[imm base.Nat[]]([[-imm-][5[]]{'fear28$}])])}],
 
     test.Box/1=Dec[name=test.Box/1,gxs=[T],lambda=[--][test.Box[T]]{'this
       .get/0([]):Sig[gens=[],ts=[],ret=T]->[-]}],
@@ -1412,16 +1412,16 @@ public class TestInferBodies {
         [-mut-][test.Box[T]]{'fear30$.get/0([]):Sig[gens=[],ts=[],ret=T]->t}}]}
     """, """
     package test
-    A: {#: mut Box[base.UInt] -> B#(Box#5)}
-    B: {#(b: mut Box[base.UInt]): mut Box[base.UInt] -> b}
+    A: {#: mut Box[base.Nat] -> B#(Box#5)}
+    B: {#(b: mut Box[base.Nat]): mut Box[base.Nat] -> b}
     """, """
     package test
     Box: {#[T](t: T): mut Box[T] -> {t}}
     Box[T]: {mut .get: T}
     """, """
     package base
-    UInt: {}
-    _UIntInstance: UInt{}
+    Nat: {}
+    _NatInstance: Nat{}
     """);}
 
   @Test void shouldRejectAbstractInferenceWithMoreThanOneMeth() {fail("""

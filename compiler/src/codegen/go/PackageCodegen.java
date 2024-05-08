@@ -317,12 +317,12 @@ public class PackageCodegen implements MIRVisitor<String> {
   public String getName(Id.DecId name, boolean isRet) {
     return switch (name.name()) {
       case "base.Int" -> "int64";
-      case "base.UInt" -> "uint64";
+      case "base.Nat" -> "uint64";
       case "base.Float" -> "float64";
       case "base.Str" -> "string";
       default -> {
         if (magic.isMagic(Magic.Int, name)) { yield "int64"; }
-        if (magic.isMagic(Magic.UInt, name)) { yield "uint64"; }
+        if (magic.isMagic(Magic.Nat, name)) { yield "uint64"; }
         if (magic.isMagic(Magic.Float, name)) { yield "float64"; }
         if (magic.isMagic(Magic.Str, name)) { yield "string"; }
         yield getName(name);

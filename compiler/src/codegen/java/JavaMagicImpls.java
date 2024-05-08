@@ -42,7 +42,7 @@ public record JavaMagicImpls(
       }
       private String _call(Id.MethName m, List<? extends MIR.E> args) {
         // _NumInstance
-        if (m.equals(new Id.MethName(".uint", 0))) {
+        if (m.equals(new Id.MethName(".nat", 0))) {
           return instantiate().orElseThrow(); // only different at type level
         }
         if (m.equals(new Id.MethName(".int", 0))) {
@@ -93,7 +93,7 @@ public record JavaMagicImpls(
             .map(lambdaName->Long.parseUnsignedLong(lambdaName.replace("_", ""), 10)+"L")
             .orElseGet(()->"((long)"+e.accept(gen, true)+")").describeConstable();
         } catch (NumberFormatException ignored) {
-          throw Fail.invalidNum(lit.orElse(name.toString()), "UInt");
+          throw Fail.invalidNum(lit.orElse(name.toString()), "Nat");
         }
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
@@ -104,7 +104,7 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate().orElseThrow(); // only different at type level
         }
-        if (m.equals(new Id.MethName(".uint", 0))) {
+        if (m.equals(new Id.MethName(".nat", 0))) {
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".float", 0))) {
@@ -159,7 +159,7 @@ public record JavaMagicImpls(
         return Optional.of(_call(m, args));
       }
       private String _call(Id.MethName m, List<? extends MIR.E> args) {
-        if (m.equals(new Id.MethName(".int", 0)) || m.equals(new Id.MethName(".uint", 0))) {
+        if (m.equals(new Id.MethName(".int", 0)) || m.equals(new Id.MethName(".nat", 0))) {
           return "("+"(long)"+instantiate().orElseThrow()+")";
         }
         if (m.equals(new Id.MethName(".float", 0))) {

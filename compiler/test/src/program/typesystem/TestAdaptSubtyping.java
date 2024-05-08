@@ -14,9 +14,9 @@ public class TestAdaptSubtyping {
     Expected 'o' to be imm test.Box[imm test.Person[]], got imm test.Box[imm test.Student[]].
     """, """
     package test
-    UInt:{} Str:{}
-    Person:{ read .name: Str, read .age: UInt, }
-    Student:Person{ read .grades: Box[UInt] }
+    Nat:{} Str:{}
+    Person:{ read .name: Str, read .age: Nat, }
+    Student:Person{ read .grades: Box[Nat] }
     BoxMatcher[T,R]:{ mut #: R }
     Box[T]:{
       .match[R](m: mut BoxMatcher[T, R]): R -> m#,
@@ -29,9 +29,9 @@ public class TestAdaptSubtyping {
     """); }
   @Test void contravarianceBoxMatcherNoAdapt() { ok("""
     package test
-    UInt:{} Str:{}
-    Person:{ read .name: Str, read .age: UInt, }
-    Student:Person{ read .grades: UInt }
+    Nat:{} Str:{}
+    Person:{ read .name: Str, read .age: Nat, }
+    Student:Person{ read .grades: Nat }
     BoxMatcher[T,R]:{ mut #: R }
     BoxPerson:{
       .match[R](m: mut BoxMatcher[Person, R]): R -> m#,
@@ -51,8 +51,8 @@ public class TestAdaptSubtyping {
     """); }
   @Test void contravarianceBoxMatcherNoAdaptMdf() { ok("""
     package test
-    UInt:{} Str:{}
-    Person:{ read .name: Str, read .age: UInt, }
+    Nat:{} Str:{}
+    Person:{ read .name: Str, read .age: Nat, }
     BoxMatcher[T,R]:{ mut #: R }
     BoxImmPerson:{
       .match[R](m: mut BoxMatcher[Person, R]): R -> m#,
@@ -73,9 +73,9 @@ public class TestAdaptSubtyping {
     """); }
   @Test void contravarianceBoxMatcherNoAdaptExtensionMethod() { ok("""
     package test
-    UInt:{} Str:{}
-    Person:{ read .name: Str, read .age: UInt, }
-    Student:Person{ read .grades: UInt }
+    Nat:{} Str:{}
+    Person:{ read .name: Str, read .age: Nat, }
+    Student:Person{ read .grades: Nat }
     BoxMatcher[T,R]:{ mut #: R }
     BoxExtension[T,R]:{ mut #(self: T): R }
     

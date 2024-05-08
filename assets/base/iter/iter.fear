@@ -39,7 +39,7 @@ Iter[E]:{
     .empty -> {}
     },
 
-  mut .count: UInt -> this.fold[UInt](0, mut IterFolder[E, UInt]{ acc, _ -> acc + 1 }),
+  mut .count: Nat -> this.fold[Nat](0, mut IterFolder[E, Nat]{ acc, _ -> acc + 1 }),
   mut .list: mut List[E] -> this.fold(List#[E], { acc, e -> Block#(acc.add(e), acc) }),
   mut .llist: mut LList[E] -> this.fold(mut LList[E], { acc, e -> acc +[] e }),
   mut .str(toStr: mut IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
@@ -60,7 +60,7 @@ Iter[E]:{
 
 Sum:{
   .int(ns: mut Iter[Int]): Int -> ns.fold[Int](+0, mut IterFolder[Int, Int]{ acc, n -> acc + n }),
-  .uint(ns: mut Iter[UInt]): UInt -> ns.fold[UInt](0, mut IterFolder[UInt, UInt]{ acc, n -> acc + n }),
+  .nat(ns: mut Iter[Nat]): Nat -> ns.fold[Nat](0, mut IterFolder[Nat, Nat]{ acc, n -> acc + n }),
   .float(ns: mut Iter[Float]): Float -> ns.fold[Float](0.0, mut IterFolder[Float, Float]{ acc, n -> acc + n }),
   }
 

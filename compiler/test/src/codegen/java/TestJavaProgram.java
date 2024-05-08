@@ -143,9 +143,9 @@ public class TestJavaProgram {
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, +9223372036854775808 .str, { Void }) }
     """);}
-  @Test void veryLongLongUIntFail() { fail("""
+  @Test void veryLongLongNatFail() { fail("""
     [E31 invalidNum]
-    The number 10000000000000000000000 is not a valid UInt
+    The number 10000000000000000000000 is not a valid Nat
     """, """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
@@ -171,7 +171,7 @@ public class TestJavaProgram {
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5_00_000 + 2) .str, { Void }) }
     """);}
-  @Test void addWithUnderscoreUInt() { ok(new Res("", "500002", 1), """
+  @Test void addWithUnderscoreNat() { ok(new Res("", "500002", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
@@ -538,7 +538,7 @@ public class TestJavaProgram {
           }#(1) }
         .return{ closest* }
       }
-    Closest':{ mut #(i: UInt): Void }
+    Closest':{ mut #(i: Nat): Void }
     """, Base.mutBaseAliases); }
 
   @Test void LListItersIterImm() { ok(new Res("", "", 0), """
@@ -608,7 +608,7 @@ public class TestJavaProgram {
                     .str({n -> n.str}, ";") == "350;350;350;520;520;520;840;840;840;140;140;140",
         "flatMap", {{}})}
       .do{ Assert!(Sum.int(l1.iter) == +185, "sum int", {{}})}
-      .do{ Assert!(Sum.uint(l1.iter.map{n -> n.uint}) == 185, "sum uint", {{}})}
+      .do{ Assert!(Sum.nat(l1.iter.map{n -> n.nat}) == 185, "sum uint", {{}})}
       .do{ Assert!(Sum.float(l1.iter.map{n -> n.float}) == 185.0, "sum float", {{}})}
       .return{{}}
       }
@@ -616,12 +616,12 @@ public class TestJavaProgram {
 
   @Test void paperExamplePrintIter() { ok(new Res("350,350,350,140,140,140", "", 0), """
     package test
-    alias base.UInt as UInt, alias base.Str as Str,
+    alias base.Nat as Nat, alias base.Str as Str,
     alias base.List as List, alias base.Block as Block,
     alias base.caps.FIO as FIO, alias base.caps.IO as IO,
     
     Test :base.Main{ sys -> Block#
-        .let l1 = { List#[UInt](35, 52, 84, 14) }
+        .let l1 = { List#[Nat](35, 52, 84, 14) }
         .assert{l1.iter
           .map{n -> n * 10}
           .find{n -> n == 140}
@@ -638,13 +638,13 @@ public class TestJavaProgram {
     """);}
   @Test void paperExamplePrintFlow() { ok(new Res("350,350,350,140,140,140", "", 0), """
     package test
-    alias base.UInt as UInt, alias base.Str as Str,
+    alias base.Nat as Nat, alias base.Str as Str,
     alias base.List as List, alias base.Block as Block,
     alias base.caps.FIO as FIO, alias base.caps.IO as IO,
     alias base.flows.Flow as Flow,
     
     Test: base.Main{ sys -> Block#
-        .let l1 = { List#[UInt](35, 52, 84, 14) }
+        .let l1 = { List#[Nat](35, 52, 84, 14) }
         .assert{l1.iter
           .map{n -> n * 10}
           .find{n -> n == 140}
@@ -674,11 +674,11 @@ public class TestJavaProgram {
     Test:Main{ _ -> Assert!(-5 .abs == +5) }
     """, Base.mutBaseAliases); }
 
-  @Test void absUIntPos() { ok(new Res("", "", 0), """
+  @Test void absNatPos() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Assert!(5 .abs == 5) }
     """, Base.mutBaseAliases); }
-  @Test void absUIntZero() { ok(new Res("", "", 0), """
+  @Test void absNatZero() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Assert!(0 .abs == 0) }
     """, Base.mutBaseAliases); }
@@ -1100,7 +1100,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Var[mut LinkedLens[Str, UInt]]] m = { Var#[mut LinkedLens[Str, UInt]](mut StrMap[UInt]) }
+      .let[mut Var[mut LinkedLens[Str, Nat]]] m = { Var#[mut LinkedLens[Str, Nat]](mut StrMap[Nat]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
@@ -1109,7 +1109,7 @@ public class TestJavaProgram {
       .let[mut Var[mut LinkedLens[Str, Str]]] tm = { Var#[mut LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
         {k, v -> (v * 10).str },
-        {k, v -> (v.uint * 10).str }
+        {k, v -> (v.nat * 10).str }
         )) }
       .do{ io.println(tm*.get("Nick")!) }
       .do{ tm := (tm*.put("Nick", "hi")) }
@@ -1121,7 +1121,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Var[LinkedLens[Str, UInt]]] m = { Var#[LinkedLens[Str, UInt]](StrMap[UInt]) }
+      .let[mut Var[LinkedLens[Str, Nat]]] m = { Var#[LinkedLens[Str, Nat]](StrMap[Nat]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
@@ -1129,7 +1129,7 @@ public class TestJavaProgram {
       .assert{ m*.get("nobody").isEmpty }
       .let[mut Var[LinkedLens[Str, Str]]] tm = { Var#[LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
-        {k, v -> (v.uint * 10).str }
+        {k, v -> (v.nat * 10).str }
         )) }
       .do{ io.println(tm*.get("Nick")!) }
       .do{ tm := (tm*.put("Nick", "hi")) }
@@ -1162,7 +1162,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Var[Lens[Str, UInt]]] m = { Var#[Lens[Str, UInt]]({k1,k2 -> k1 == k2}) }
+      .let[mut Var[Lens[Str, Nat]]] m = { Var#[Lens[Str, Nat]]({k1,k2 -> k1 == k2}) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
@@ -1243,9 +1243,9 @@ public class TestJavaProgram {
 
   @Test void personFactory() { ok(new Res("Bob", "", 0), """
     package test
-    FPerson:F[Str,UInt,Person]{ name, age -> Person:{
+    FPerson:F[Str,Nat,Person]{ name, age -> Person:{
       .name: Str -> name,
-      .age: UInt -> age,
+      .age: Nat -> age,
       }}
     Test: Main{
       #(sys) -> FIO#sys.println(this.name(this.create)),

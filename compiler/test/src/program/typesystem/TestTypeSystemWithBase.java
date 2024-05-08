@@ -282,9 +282,9 @@ public class TestTypeSystemWithBase {
     [###]Expected 'p' to be imm test.Person[], got mut test.Person[].[###]
     """, """
     package test
-    Person:{ read .age: UInt, mut .age(n: UInt): Void }
-    FPerson:F[UInt,mut Person]{ age -> Block#
-      .let[mut Count[UInt]] age' = { Count.uint(age) }
+    Person:{ read .age: Nat, mut .age(n: Nat): Void }
+    FPerson:F[Nat,mut Person]{ age -> Block#
+      .let[mut Count[Nat]] age' = { Count.nat(age) }
       .return{{ .age -> age'*, .age(n) -> age' := n }}
       }
     Test:Main{ s -> Block#
@@ -303,9 +303,9 @@ public class TestTypeSystemWithBase {
     [###]Expected 'p' to be imm test.Person[], got mut test.Person[].[###]
     """, """
     package test
-    Person:{ readOnly .age: UInt, mut .age(n: UInt): Void }
-    FPerson:F[UInt,mut Person]{ age -> Block#
-      .let[mut Count[UInt]] age' = { Count.uint(age) }
+    Person:{ readOnly .age: Nat, mut .age(n: Nat): Void }
+    FPerson:F[Nat,mut Person]{ age -> Block#
+      .let[mut Count[Nat]] age' = { Count.nat(age) }
       .return{{ .age -> age'*, .age(n) -> age' := n }}
       }
     Test:Main{ s -> Block#
@@ -339,9 +339,9 @@ public class TestTypeSystemWithBase {
         Expected 'l' to be iso base.LList[read test.Person[]], got lent base.LList[read test.Person[]].
     """, """
     package test
-    Person:{ read .age: UInt, mut .age(n: UInt): Void }
-    FPerson:F[UInt,mut Person]{ age -> Block#
-      .let[mut Count[UInt]] age' = { Count.uint(age) }
+    Person:{ read .age: Nat, mut .age(n: Nat): Void }
+    FPerson:F[Nat,mut Person]{ age -> Block#
+      .let[mut Count[Nat]] age' = { Count.nat(age) }
       .return{{ .age -> age'*, .age(n) -> age' := n }}
       }
     Test:Main{ s -> Block#
@@ -536,8 +536,8 @@ public class TestTypeSystemWithBase {
 
   @Test void contravarianceBox() { ok("""
     package test
-    Person:{ read .name: Str, read .age: UInt, }
-    Student:Person{ read .grades: LList[UInt] }
+    Person:{ read .name: Str, read .age: Nat, }
+    Student:Person{ read .grades: LList[Nat] }
     Ex:{
       .nums(o: Box[Student]): Box[Person] -> o,
       }
@@ -546,8 +546,8 @@ public class TestTypeSystemWithBase {
   @Disabled // Requires AdapterOK
   @Test void contravarianceOpt() { ok("""
     package test
-    Person:{ read .name: Str, read .age: UInt, }
-    Student:Person{ read .grades: LList[UInt] }
+    Person:{ read .name: Str, read .age: Nat, }
+    Student:Person{ read .grades: LList[Nat] }
     Ex:{
       .nums(o: Opt[Student]): Opt[Person] -> o,
       }
@@ -555,8 +555,8 @@ public class TestTypeSystemWithBase {
   @Disabled // Requires AdapterOK
   @Test void covarianceContravariance() { ok("""
     package test
-    Person:{ read .name: Str, read .age: UInt, }
-    Student:Person{ read .grades: LList[UInt] }
+    Person:{ read .name: Str, read .age: Nat, }
+    Student:Person{ read .grades: LList[Nat] }
     Ex:{
       .nums(l: LList[Student]): LList[Person] -> l,
 //      .addStudent(l: LList[Person], s: Student): LList[Person] -> l + s,
@@ -565,8 +565,8 @@ public class TestTypeSystemWithBase {
   @Disabled // Requires AdapterOK
   @Test void covarianceContravarianceList() { ok("""
     package test
-    Person:{ read .name: Str, read .age: UInt, }
-    Student:Person{ read .grades: List[UInt] }
+    Person:{ read .name: Str, read .age: Nat, }
+    Student:Person{ read .grades: List[Nat] }
     Ex:{
       .nums(l: List[Student]): List[Person] -> l,
 //      .addStudent(l: LList[Person], s: Student): LList[Person] -> l + s,
@@ -575,7 +575,7 @@ public class TestTypeSystemWithBase {
 
   @Test void covarianceContravarianceListMdf() { ok("""
     package test
-    Person:{ read .name: Str, read .age: UInt, }
+    Person:{ read .name: Str, read .age: Nat, }
     Ex:{
       .nums(l: mut List[mut Person]): read List[read Person] -> l,
       }

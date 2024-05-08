@@ -10,7 +10,7 @@ public class Ex12DebuggingTest {
   @Test void debugPrintNumber() { ok(new RunOutput.Res("30", "", 0), """
     package test
     alias base.Debug as Debug,
-    Test:Main {sys -> Block#(Debug#[UInt]30)}
+    Test:Main {sys -> Block#(Debug#[Nat]30)}
     """, Base.mutBaseAliases);}
   @Test void debugPrintStringable() { ok(new RunOutput.Res("hi!", "", 0), """
     package test

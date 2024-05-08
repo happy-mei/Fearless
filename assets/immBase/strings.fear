@@ -2,7 +2,7 @@ package base
 Str:Sealed {
   // Str is not Stringable due to limitations of the Java codegen target
   read .str: Str,
-  readOnly .size: UInt,
+  readOnly .size: Nat,
   readOnly .isEmpty: Bool,
   readOnly +(other: readOnly Str): Str,
   readOnly ==(other: readOnly Str): Bool,

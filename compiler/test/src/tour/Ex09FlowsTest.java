@@ -112,23 +112,23 @@ public class Ex09FlowsTest {
       .return{Void}
       }
     Trick: {
-      .find: UInt -> Flow#[UInt](5, 10, 15)
+      .find: Nat -> Flow#[Nat](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
         .find{n -> True}
         .match{.some(n) -> n, .empty -> Error.msg ".find was empty"},
-      .findAndLimit: UInt -> Flow#[UInt](5, 10, 15)
+      .findAndLimit: Nat -> Flow#[Nat](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
         .limit(1)
         .find{n -> True}
         .match{.some(n) -> n, .empty -> Error.msg ".findAndLimit was empty"},
-      .first: UInt -> Flow#[UInt](5, 10, 15)
+      .first: Nat -> Flow#[Nat](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
         .first
         .match{.some(n) -> n, .empty -> Error.msg ".first was empty"},
-      .firstAndLimit: UInt -> Flow#[UInt](5, 10, 15)
+      .firstAndLimit: Nat -> Flow#[Nat](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
         .limit(1)
@@ -170,8 +170,8 @@ public class Ex09FlowsTest {
       }
     """, """
     package test
-    FPerson: { #(age: UInt): mut Person -> mut Person: {'self
-      read .age: UInt -> age,
+    FPerson: { #(age: Nat): mut Person -> mut Person: {'self
+      read .age: Nat -> age,
       read .str: Str -> "Person that is "+(self.age.str)+" years old",
       read ==(other: read Person): Bool -> self.age == (other.age),
       }}
@@ -270,7 +270,7 @@ public class Ex09FlowsTest {
   @Test void flowFilterPrintSize() { ok(new Res("2", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let size = {Flow#[UInt](5, 10, 15).filter{n -> n > 5}.size}
+      .let size = {Flow#[Nat](5, 10, 15).filter{n -> n > 5}.size}
       .return {FIO#sys.println(size.str)}
       }
     """, Base.mutBaseAliases);}
@@ -368,8 +368,8 @@ public class Ex09FlowsTest {
   @Test void limitedFlowActorAfter() { ok(new Res("6", "", 0), """
     package test
     Test:Main {sys -> "42 5".assertEq(
-      Flow#[UInt](5, 10, 15)
-        .actor[mut Var[UInt], UInt](Var#[UInt]1, {downstream, state, n -> Block#
+      Flow#[Nat](5, 10, 15)
+        .actor[mut Var[Nat], Nat](Var#[Nat]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
@@ -414,7 +414,7 @@ public class Ex09FlowsTest {
   @Test void flowScan() { ok(new Res(), """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
-      Flow#[UInt](5, 10, 15)
+      Flow#[Nat](5, 10, 15)
         .scan[Str]("!", {acc, n -> acc + (n.str)})
         .map{n -> n.str}
         #(Flow.str " ")
@@ -435,7 +435,7 @@ public class Ex09FlowsTest {
   @Test void flowSimpleActorMutRet() { ok(new Res(), """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
-      Flow#[UInt](5, 10, 15)
+      Flow#[Nat](5, 10, 15)
         .scan[Str]("!", {acc, n -> acc + (n.str)})
         .map{n -> n.str}
         #(Flow.str " ")
@@ -443,11 +443,11 @@ public class Ex09FlowsTest {
     """, """
     package test
     FPerson:{
-      #(age: UInt): mut Person -> Block#
-        .let[mut Var[UInt]] age' = {Var#age}
+      #(age: Nat): mut Person -> Block#
+        .let[mut Var[Nat]] age' = {Var#age}
         .return mut base.ReturnStmt[mut Person]{mut Person: Person{
-          read .age: UInt -> age'.get,
-          mut .age(n: UInt): Void -> age' := n,
+          read .age: Nat -> age'.get,
+          mut .age(n: Nat): Void -> age' := n,
           }}
       }
     """, Base.mutBaseAliases);}

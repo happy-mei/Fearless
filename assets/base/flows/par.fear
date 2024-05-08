@@ -6,7 +6,7 @@ _PipelineParallelSink: _Sink{
 _PipelineParallelSink[T]: _Sink[T]
 
 _PipelineParallelFlow: {
-  .fromOp[E](source: mut FlowOp[E], size: Opt[UInt]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
     .map(f) -> this.fromOp(_Map#(_PipelineParallelSink, source, f), size),
@@ -70,9 +70,9 @@ _PipelineParallelFlow: {
     // Pipeline parallel flows do not split so no combine is needed
     .fold(acc, f, combine) -> self.fold(acc, f),
 
-    .size -> size.match[UInt]{
+    .size -> size.match[Nat]{
       .some(n) -> n,
-      .empty -> self.fold[UInt](0, {acc, _ -> acc + 1}),
+      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
       },
     },
 
@@ -90,6 +90,6 @@ _PipelineParallelFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opts#[UInt]1)},
+    .return {this.fromOp(source, Opts#[Nat]1)},
 //    .return {this.fromOp(source, Opts#1)},
   }

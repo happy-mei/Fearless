@@ -102,10 +102,10 @@ public class TestGoProgramImm {
 
   @Test void fib43() { ok(new Res("433494437", "", 0), """
     package test
-    alias base.Main as Main, alias base.UInt as UInt,
+    alias base.Main as Main, alias base.Nat as Nat,
     Test:Main{ _ -> Fib#(43).str }
     Fib: {
-      #(n: UInt): UInt -> n <= 1 ? {
+      #(n: Nat): Nat -> n <= 1 ? {
         .then -> n,
         .else -> this#(n - 1) + (this#(n - 2))
         }
@@ -247,9 +247,9 @@ public class TestGoProgramImm {
     Void:{}
     Test:Main{ _ -> Assert!(False, +9223372036854775808 .str, { "" }) }
     """);}
-  @Test void veryLongLongUIntFail() { fail("""
+  @Test void veryLongLongNatFail() { fail("""
     [E31 invalidNum]
-    The number 10000000000000000000000 is not a valid UInt
+    The number 10000000000000000000000 is not a valid Nat
     """, """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,

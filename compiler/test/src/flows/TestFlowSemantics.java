@@ -10,8 +10,8 @@ public class TestFlowSemantics {
   @Test void flowSum() {ok(new RunOutput.Res("60", "", 0), """
     package test
     Test: Main{sys -> Block#
-      .let[mut Flow[UInt]] x = {Flow#[UInt](1,2,3).map{x->x * 10}}
-      .let[UInt] sum = {x#(Flow.uSum)}
+      .let[mut Flow[Nat]] x = {Flow#[Nat](1,2,3).map{x->x * 10}}
+      .let[Nat] sum = {x#(Flow.uSum)}
       .let[mut IO] io = {FIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
@@ -21,9 +21,9 @@ public class TestFlowSemantics {
   @Test void flowReuse() {ok(new RunOutput.Res("60", "Program crashed with: \"This flow cannot be reused.\"", 1), """
     package test
     Test: Main{sys -> Block#
-      .let[mut Flow[UInt]] x = {Flow#[UInt](1,2,3).map{x->x * 10}}
-      .let[UInt] sum = {x#(Flow.uSum)}
-      .let[mut Flow[UInt]] bigSum = {x.map{y->y * 10}}
+      .let[mut Flow[Nat]] x = {Flow#[Nat](1,2,3).map{x->x * 10}}
+      .let[Nat] sum = {x#(Flow.uSum)}
+      .let[mut Flow[Nat]] bigSum = {x.map{y->y * 10}}
       .let[mut IO] io = {FIO#sys}
       .do {io.println(sum.str)}
       .do {io.println(bigSum#(Flow.uSum).str)}
@@ -42,14 +42,14 @@ public class TestFlowSemantics {
   @Test void throwInAFlowBeforeStopPar() {ok(new RunOutput.Res("10", "", 0), """
     package test
     Test: Main{sys -> Block#
-      .let x = {Flow#[UInt](1, 2, 3)
+      .let x = {Flow#[Nat](1, 2, 3)
         .map{x->Block#
-          .if {x.uint == 2} .do {Error.msg (x.str)}
-          .return {x.uint * 10}
+          .if {x.nat == 2} .do {Error.msg (x.str)}
+          .return {x.nat * 10}
           }
         .limit(1)
         }
-      .let[UInt] sum = {x#(Flow.uSum)}
+      .let[Nat] sum = {x#(Flow.uSum)}
       .let[mut IO] io = {FIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
@@ -58,14 +58,14 @@ public class TestFlowSemantics {
   @Test void throwInAFlowAfterStopPar() {ok(new RunOutput.Res("10", "", 0), """
     package test
     Test: Main{sys -> Block#
-      .let x = {Flow#[UInt](1, 2, 3)
+      .let x = {Flow#[Nat](1, 2, 3)
         .map{x->Block#
-          .if {x.uint == 2} .do {Error.msg (x.str)}
-          .return {x.uint * 10}
+          .if {x.nat == 2} .do {Error.msg (x.str)}
+          .return {x.nat * 10}
           }
         .limit(1)
         }
-      .let[UInt] sum = {x#(Flow.uSum)}
+      .let[Nat] sum = {x#(Flow.uSum)}
       .let[mut IO] io = {FIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
@@ -75,14 +75,14 @@ public class TestFlowSemantics {
   @Test void throwInAFlowBeforeStopSeq() {ok(new RunOutput.Res("10", "", 0), """
     package test
     Test: Main{sys -> Block#
-      .let x = {Flow#[mut UInt](mut 1, mut 2, mut 3)
+      .let x = {Flow#[mut Nat](mut 1, mut 2, mut 3)
         .map{x->Block#
-          .if {x.uint == 2} .do {Error.msg (x.str)}
-          .return {x.uint * 10}
+          .if {x.nat == 2} .do {Error.msg (x.str)}
+          .return {x.nat * 10}
           }
         .limit(1)
         }
-      .let[UInt] sum = {x#(Flow.uSum)}
+      .let[Nat] sum = {x#(Flow.uSum)}
       .let[mut IO] io = {FIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
@@ -91,14 +91,14 @@ public class TestFlowSemantics {
   @Test void throwInAFlowAfterStopSeq() {ok(new RunOutput.Res("10", "", 0), """
     package test
     Test: Main{sys -> Block#
-      .let x = {Flow#[mut UInt](mut 1, mut 2, mut 3)
+      .let x = {Flow#[mut Nat](mut 1, mut 2, mut 3)
         .map{x->Block#
-          .if {x.uint == 2} .do {Error.msg (x.str)}
-          .return {x.uint * 10}
+          .if {x.nat == 2} .do {Error.msg (x.str)}
+          .return {x.nat * 10}
           }
         .limit(2)
         }
-      .let[UInt] sum = {x#(Flow.uSum)}
+      .let[Nat] sum = {x#(Flow.uSum)}
       .let[mut IO] io = {FIO#sys}
       .do {io.println(sum.str)}
       .return {{}}

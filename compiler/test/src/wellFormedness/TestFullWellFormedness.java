@@ -247,9 +247,9 @@ public class TestFullWellFormedness {
 
   @Test void allowTopLevelDecl() { ok("""
     package test
-    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+    FPerson:{ #(name: Str, age: Nat): Person -> Person:{
       .name: Str -> name,
-      .age: UInt -> age,
+      .age: Nat -> age,
       }}
     Ex:{
       .create: Person -> FPerson#(Bob, TwentyFour),
@@ -258,7 +258,7 @@ public class TestFullWellFormedness {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void failTopLevelDeclImpl() { fail("""
     In position [###]/Dummy0.fear:6:4
@@ -266,9 +266,9 @@ public class TestFullWellFormedness {
     Traits declared within expressions cannot be implemented. This lambda has the following invalid implementations: test.Person/0
     """, """
     package test
-    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+    FPerson:{ #(name: Str, age: Nat): Person -> Person:{
       .name: Str -> name,
-      .age: UInt -> age,
+      .age: Nat -> age,
       }}
     Bad:Person{}
     Ex:{
@@ -278,7 +278,7 @@ public class TestFullWellFormedness {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
 
   @Test void disjointDecsInline1() { fail("""
@@ -392,10 +392,10 @@ public class TestFullWellFormedness {
     Int: {}
     """); }
 
-  @Test void validPosUInt(){ ok("""
+  @Test void validPosNat(){ ok("""
     package a
-    A: {#: UInt -> 5}
-    UInt: {}
+    A: {#: Nat -> 5}
+    Nat: {}
     """); }
   @Test void invalidDecimalInt(){ fail("""
     In position [###]/Dummy0.fear:2:15
@@ -404,8 +404,8 @@ public class TestFullWellFormedness {
     """,
     """
     package a
-    A: {#: UInt -> +5.556}
-    UInt: {}
+    A: {#: Nat -> +5.556}
+    Nat: {}
     """); }
   @Test void validString(){ ok("""
     package a

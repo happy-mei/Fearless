@@ -39,7 +39,7 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
       }
       private Res _call(Id.MethName m, List<? extends MIR.E> args) {
         // _NumInstance
-        if (m.equals(new Id.MethName(".uint", 0))) {
+        if (m.equals(new Id.MethName(".nat", 0))) {
           return new Res("uint64("+instantiate().orElseThrow()+")");
         }
         if (m.equals(new Id.MethName(".int", 0))) {
@@ -73,7 +73,7 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
     };
   }
 
-  // TODO: golang computes constant arithmetic at compile-time and will throw for invalid UInts in that case, which is annoyingly different behaviour than Java
+  // TODO: golang computes constant arithmetic at compile-time and will throw for invalid Nats in that case, which is annoyingly different behaviour than Java
   @Override public MagicTrait<MIR.E, Res> uint(MIR.E e) {
     var name = e.t().name().orElseThrow();
     return new MagicTrait<>() {
@@ -84,7 +84,7 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
             .map(lambdaName->"uint64("+Long.parseUnsignedLong(lambdaName.replace("_", ""), 10)+")")
             .orElseGet(()->"uint64("+e.accept(gen, true)+")")).opt();
         } catch (NumberFormatException ignored) {
-          throw Fail.invalidNum(lit.orElse(name.toString()), "UInt");
+          throw Fail.invalidNum(lit.orElse(name.toString()), "Nat");
         }
       }
 
@@ -96,7 +96,7 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         if (m.equals(new Id.MethName(".int", 0))) {
           return new Res("uint64("+instantiate().orElseThrow().output()+")");
         }
-        if (m.equals(new Id.MethName(".uint", 0))) {
+        if (m.equals(new Id.MethName(".nat", 0))) {
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".float", 0))) {
