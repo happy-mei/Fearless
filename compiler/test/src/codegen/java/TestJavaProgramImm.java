@@ -196,12 +196,12 @@ public class TestJavaProgramImm {
     """);}
   @Test void veryLongLongIntFail() { fail("""
     [E31 invalidNum]
-    The number 9223372036854775808 is not a valid Int
+    The number +9223372036854775808 is not a valid Int
     """, """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!(False, 9223372036854775808 .str, { "" }) }
+    Test:Main{ _ -> Assert!(False, +9223372036854775808 .str, { "" }) }
     """);}
   @Test void veryLongLongNatFail() { fail("""
     [E31 invalidNum]
