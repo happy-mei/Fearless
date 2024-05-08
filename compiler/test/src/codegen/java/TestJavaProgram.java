@@ -316,14 +316,14 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
     alias base.Var as Var, alias base.Int as Int,
-    Test:Main{ _ -> Assert!((GetVar#5)* == 5, { Void }) }
+    Test:Main{ _ -> Assert!((GetVar#(+5))* == +5, { Void }) }
     GetVar:{ #(n: Int): mut Var[Int] -> Var#n }
     """); }
   @Test void ref2() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
     alias base.Var as Var, alias base.Int as Int,
-    Test:Main{ _ -> Assert!((GetVar#5).swap(6) == 5, { Void }) }
+    Test:Main{ _ -> Assert!((GetVar#(+5)).swap(+6) == +5, { Void }) }
     GetVar:{ #(n: Int): mut Var[Int] -> Var#n }
     """); }
   // TODO: loops if we give a broken value like `.let[mut Var[Int]](n = Var#5)` (not a ReturnStmt)
@@ -332,9 +332,9 @@ public class TestJavaProgram {
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert, alias base.Block as Block,
     alias base.Var as Var, alias base.Int as Int, alias base.ReturnStmt as ReturnStmt,
     Test:Main{ _ -> mut Block[Void]
-      .let(n = { Var#[Int]5 })
-      .do{ Assert!(n.swap(6) == 5) }
-      .do{ Assert!(n* == 6) }
+      .let(n = { Var#[Int]+5 })
+      .do{ Assert!(n.swap(+6) == +5) }
+      .do{ Assert!(n* == +6) }
       .return{{}}
       }
     """); }
@@ -350,11 +350,11 @@ public class TestJavaProgram {
       #(args: LList[Str]): Str -> args.tryGet(1).match{.some(arg) -> arg, .empty -> this.errMsg(args.head.isSome).get},
       .errMsg(retCounter: Bool): mut Var[Str] -> Block#
         .let res = { Var#[mut Var[Str]](Var#[Str]"Sad") }
-        .let counter = { Count.int(42) }
+        .let counter = { Count.int(+42) }
         .do{ res* := "mutability!" }
         .do{ Block#(counter++) }
         .if{ False }.return{ Var#[Str]"Short cut" }
-        .if{ True }.do{ Block#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
+        .if{ True }.do{ Block#[Int](counter *= +9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
         .if{ True }.do{ res* := "moar mutability" }
         .if{ retCounter.not }.return{ res* }
         .return{ Var#(counter*.str) }
@@ -379,11 +379,11 @@ public class TestJavaProgram {
       #(args: LList[Str]): Str -> args.get(1) | (this.errMsg(args.head.isSome)*),
       .errMsg(retCounter: Bool): mut Var[Str] -> Block#
         .let res = { Var#[mut Var[Str]](Var#[Str]"Sad") }
-        .let counter = { Count.int(42) }
+        .let counter = { Count.int(+42) }
         .do{ res* := "mutability!" }
         .do{ Block#(counter++) }
         .if{ False }.return{ Var#[Str]"Short cut" }
-        .if{ True }.do{ Block#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
+        .if{ True }.do{ Block#[Int](counter *= +9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
         .if{ True }.do{ res* := "moar mutability" }
         .if{ retCounter.not }.return{ res* }
         .return{ Var#(counter*.str) }
@@ -404,8 +404,8 @@ public class TestJavaProgram {
   @Test void findClosestInt() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
-      .return{ Assert!(closest == 52, closest.str, {{}}) }
+      .let[Int] closest = { Closest#(LList[Int] + +35 + +52 + +84 + +14, +49) }
+      .return{ Assert!(closest == +52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
@@ -427,8 +427,8 @@ public class TestJavaProgram {
   @Test void findClosestIntMut1() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
-      .return{ Assert!(closest == 52, closest.str, {{}}) }
+      .let[Int] closest = { Closest#(LList[Int] + +35 + +52 + +84 + +14, +49) }
+      .return{ Assert!(closest == +52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
@@ -451,8 +451,8 @@ public class TestJavaProgram {
   @Test void findClosestIntMut2() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
-      .return{ Assert!(closest == 52, closest.str, {{}}) }
+      .let[Int] closest = { Closest#(LList[Int] + +35 + +52 + +84 + +14, +49) }
+      .return{ Assert!(closest == +52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
@@ -474,8 +474,8 @@ public class TestJavaProgram {
   @Test void findClosestIntMut3() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[Int] closest = { Closest#(LList[Int] + 35 + 52 + 84 + 14, 49) }
-      .return{ Assert!(closest == 52, closest.str, {{}}) }
+      .let[Int] closest = { Closest#(LList[Int] + +35 + +52 + +84 + +14, +49) }
+      .return{ Assert!(closest == +52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
@@ -497,8 +497,8 @@ public class TestJavaProgram {
   @Test void findClosestIntMutWithMutLList() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[Int] closest = { Closest#(mut LList[Int] + 35 + 52 + 84 + 14, 49) }
-      .return{ Assert!(closest == 52, closest.str, {{}}) }
+      .let[Int] closest = { Closest#(mut LList[Int] + +35 + +52 + +84 + +14, +49) }
+      .return{ Assert!(closest == +52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: mut LList[Int], target: Int): Int -> Block#
@@ -520,8 +520,8 @@ public class TestJavaProgram {
   @Test void findClosestIntMutWithMutList() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[Int] closest = { Closest#(mut LList[Int] + 35 + 52 + 84 + 14 .list, 49) }
-      .return{ Assert!(closest == 52, closest.str, {{}}) }
+      .let[Int] closest = { Closest#(mut LList[Int] + +35 + +52 + +84 + +14 .list, +49) }
+      .return{ Assert!(closest == +52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: mut List[Int], target: Int): Int -> Block#
@@ -544,13 +544,13 @@ public class TestJavaProgram {
   @Test void LListItersIterImm() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[LList[Int]] l1 = { LList[Int] + 35 + 52 + 84 + 14 }
+      .let[LList[Int]] l1 = { LList[Int] + +35 + +52 + +84 + +14 }
       .do{ Assert!(l1.head! == (l1.iter.next!), "sanity", {{}}) }
-      .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((l1.iter.find{n -> n > 100}).isEmpty, "find empty", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > +60})! == +84, "find some", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > +100}).isEmpty, "find empty", {{}}) }
       .do{ Assert!((l1.iter
-                      .map{n -> n * 10}
-                      .find{n -> n == 140})
+                      .map{n -> n * +10}
+                      .find{n -> n == +140})
                       .isSome,
         "map", {{}})}
       .return{{}}
@@ -559,13 +559,13 @@ public class TestJavaProgram {
   @Test void LListItersIterMut() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut LList[Int]] l1 = { mut LList[Int] +[] 35 +[] 52 +[] 84 +[] 14 }
+      .let[mut LList[Int]] l1 = { mut LList[Int] +[] +35 +[] +52 +[] +84 +[] +14 }
       .do{ Assert!(l1.head! == (l1.iter.next!), "sanity", {{}}) }
-      .do{ Assert!((l1.iter.find{n -> n > 60})! == 84, "find some", {{}}) }
-      .do{ Assert!((l1.iter.find{n -> n > 100}).isEmpty, "find empty", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > +60})! == +84, "find some", {{}}) }
+      .do{ Assert!((l1.iter.find{n -> n > +100}).isEmpty, "find empty", {{}}) }
       .do{ Assert!(l1.iter
-                      .map{n -> n * 10}
-                      .find{n -> n == 140}
+                      .map{n -> n * +10}
+                      .find{n -> n == +140}
                       .isSome,
         "map", {{}})}
       .return{{}}
@@ -663,15 +663,15 @@ public class TestJavaProgram {
 
   @Test void absIntPos() { ok(new Res("", "", 0), """
     package test
-    Test:Main{ _ -> Assert!(5 .abs == 5) }
+    Test:Main{ _ -> Assert!(+5 .abs == +5) }
     """, Base.mutBaseAliases); }
   @Test void absIntZero() { ok(new Res("", "", 0), """
     package test
-    Test:Main{ _ -> Assert!(0 .abs == 0) }
+    Test:Main{ _ -> Assert!(+0 .abs == +0) }
     """, Base.mutBaseAliases); }
   @Test void absIntNeg() { ok(new Res("", "", 0), """
     package test
-    Test:Main{ _ -> Assert!(-5 .abs == 5) }
+    Test:Main{ _ -> Assert!(-5 .abs == +5) }
     """, Base.mutBaseAliases); }
 
   @Test void absUIntPos() { ok(new Res("", "", 0), """
@@ -686,8 +686,8 @@ public class TestJavaProgram {
   @Test void isoPod1() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
-      .return{ Assert!(Usage#(a!) == 0) }
+      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
+      .return{ Assert!(Usage#(a!) == +0) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
     MutThingy:{ mut .n: mut Count[Int] }
@@ -696,8 +696,8 @@ public class TestJavaProgram {
   @Test void isoPod1Consume() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
-      .return{ Assert!(a.consume{.some(n) -> Usage#n, .empty -> 500} == 0) }
+      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
+      .return{ Assert!(a.consume{.some(n) -> Usage#n, .empty -> +500} == +0) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
     MutThingy:{ mut .n: mut Count[Int] }
@@ -706,9 +706,9 @@ public class TestJavaProgram {
   @Test void isoPod2() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
-      .do{ a.next(MutThingy'#(Count.int(5))) }
-      .return{ Assert!(Usage#(a!) == 5) }
+      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
+      .do{ a.next(MutThingy'#(Count.int(+5))) }
+      .return{ Assert!(Usage#(a!) == +5) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
     MutThingy:{ mut .n: mut Count[Int] }
@@ -717,9 +717,9 @@ public class TestJavaProgram {
   @Test void isoPod3() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
+      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
       .do{ Block#(a.mutate{ mt -> Block#(mt.n++) }) }
-      .return{ Assert!(Usage#(a!) == 1) }
+      .return{ Assert!(Usage#(a!) == +1) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
     MutThingy:{ mut .n: mut Count[Int] }
@@ -728,8 +728,8 @@ public class TestJavaProgram {
   @Test void isoPodNoImmFromPeekOk() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
-      .let[Int] ok = { a.peek[Int]{ .some(m) -> m.rn*.int + 0, .empty -> base.Abort! } }
+      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
+      .let[Int] ok = { a.peek[Int]{ .some(m) -> m.rn*.int + +0, .empty -> base.Abort! } }
       .return{Void}
       }
     MutThingy:{ mut .n: mut Count[Int], read .rn: read Count[Int] }
@@ -771,11 +771,11 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Block#
       .do{ Assert!(-5 == -5, "id", {{}}) }
-      .do{ Assert!((-5 - -5) == 0, "subtraction 1", {{}}) }
-      .do{ Assert!((-5 - 5) == -10, "subtraction 2", {{}}) }
-      .do{ Assert!((-5 + 3) == -2, "addition 1", {{}}) }
-      .do{ Assert!((-5 + 7) == 2, "addition 2", {{}}) }
-      .do{ Assert!((5 + -7) == -2, "addition 3", {{}}) }
+      .do{ Assert!((-5 - -5) == +0, "subtraction 1", {{}}) }
+      .do{ Assert!((-5 - +5) == -10, "subtraction 2", {{}}) }
+      .do{ Assert!((-5 + +3) == -2, "addition 1", {{}}) }
+      .do{ Assert!((-5 + +7) == +2, "addition 2", {{}}) }
+      .do{ Assert!((+5 + -7) == -2, "addition 3", {{}}) }
       .return{{}}
       }
     """, Base.mutBaseAliases); }
@@ -858,11 +858,11 @@ public class TestJavaProgram {
     ok(new Res("", "", 0), """
       package test
       Test:Main{ _ -> Block#
-        .let[Shape] s1 = {{ .x -> 5, .y -> 6 }}
-        .let[Shape] s1' = {{ .x -> 5, .y -> 6 }}
+        .let[Shape] s1 = {{ .x -> +5, .y -> +6 }}
+        .let[Shape] s1' = {{ .x -> +5, .y -> +6 }}
         .assert({ s1 == s1 }, "shape eq same id")
         .assert({ s1 == s1' }, "shape same structure")
-        .let[Shape] s2 = {{ .x -> 7, .y -> 6 }}
+        .let[Shape] s2 = {{ .x -> +7, .y -> +6 }}
         .assert({ s1 != s2 }, "shape neq")
         .return{{}}
         }
@@ -878,9 +878,9 @@ public class TestJavaProgram {
     ok(new Res("", "", 0), """
       package test
       Test:Main{ _ -> Block#
-        .let[Shape] s1 = {{ .x -> 5, .y -> 6 }}
-        .let[Square] sq1 = {{ .x -> 5, .y -> 6, .size -> 12 }}
-        .let[Square] sq1' = {{ .x -> 5, .y -> 6, .size -> 12 }}
+        .let[Shape] s1 = {{ .x -> +5, .y -> +6 }}
+        .let[Square] sq1 = {{ .x -> +5, .y -> +6, .size -> +12 }}
+        .let[Square] sq1' = {{ .x -> +5, .y -> +6, .size -> +12 }}
         .assert({ sq1 == sq1' }, "square eq same structure")
         .assert({ s1 == sq1 }, "shape eq")
         .return{{}}
@@ -1027,7 +1027,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .let[List[Int]] l = { List#(12, 13, 14) }
+      .let[List[Int]] l = { List#(+12, +13, +14) }
       .do { io.println(A.m1(l)) }
       .return {{}}
       }
@@ -1042,7 +1042,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .let[mut LList[Int]] l = { LList# + 12 + 13 + 14 }
+      .let[mut LList[Int]] l = { LList# + +12 + +13 + +14 }
       .do { io.println(A.m1(l)) }
       .return {{}}
       }
@@ -1056,7 +1056,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .let[mut List[Int]] l = { List#[Int](12, 13, 14) }
+      .let[mut List[Int]] l = { List#[Int](+12, +13, +14) }
       .do { io.println(A.m1(l)) }
       .return {{}}
       }
@@ -1071,7 +1071,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .let[mut LList[Int]] l = { LList#[Int] + 12 + 13 + 14 }
+      .let[mut LList[Int]] l = { LList#[Int] + +12 + +13 + +14 }
       .do { io.println(A.m1(l)) }
       .return {{}}
       }
@@ -1085,7 +1085,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .let[mut List[Int]] l = { List#[Int](12, 13, 14) }
+      .let[mut List[Int]] l = { List#[Int](+12, +13, +14) }
       .do { io.println(A.m1(l)) }
       .return {{}}
       }
@@ -1100,7 +1100,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Var[mut LinkedLens[Str, Int]]] m = { Var#[mut LinkedLens[Str, Int]](mut StrMap[Int]) }
+      .let[mut Var[mut LinkedLens[Str, UInt]]] m = { Var#[mut LinkedLens[Str, UInt]](mut StrMap[UInt]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
@@ -1109,7 +1109,7 @@ public class TestJavaProgram {
       .let[mut Var[mut LinkedLens[Str, Str]]] tm = { Var#[mut LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
         {k, v -> (v * 10).str },
-        {k, v -> (v.int * 10).str }
+        {k, v -> (v.uint * 10).str }
         )) }
       .do{ io.println(tm*.get("Nick")!) }
       .do{ tm := (tm*.put("Nick", "hi")) }
@@ -1162,7 +1162,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Var[Lens[Str, Int]]] m = { Var#[Lens[Str, Int]]({k1,k2 -> k1 == k2}) }
+      .let[mut Var[Lens[Str, UInt]]] m = { Var#[Lens[Str, UInt]]({k1,k2 -> k1 == k2}) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
@@ -1225,8 +1225,8 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[Int] res = {Opt[Int]
-                       #{opt -> opt.match{.some(x) -> x, .empty -> 9001}}}
-      .assert{res == 9001}
+                       #{opt -> opt.match{.some(x) -> x, .empty -> +9001}}}
+      .assert{res == +9001}
       .return {{}}
       }
     """, Base.mutBaseAliases);}
