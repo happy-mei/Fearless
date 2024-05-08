@@ -19,7 +19,7 @@ public class Ex10ErrorsTest {
     """, Base.mutBaseAliases); }
   @Test void caughtDivByZero() { ok(new Res("", "/ by zero", 0), """
     package test
-    Test:Main {sys -> FIO#sys.printlnErr(Try#[Int]{12 / 0}.err!.msg)}
+    Test:Main {sys -> FIO#sys.printlnErr(Try#[Int]{+12 / +0}.err!.msg)}
     """, Base.mutBaseAliases); }
   @Test void caughtFearlessError() { ok(new Res("", "\"oh no\"", 0), """
     package test

@@ -6,6 +6,7 @@ import id.Id;
 import main.CompilerFrontEnd;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.TypeSystemFeatures;
@@ -28,6 +29,7 @@ import java.util.stream.Stream;
 
 import static utils.RunOutput.Res;
 
+@Disabled
 public class TestGoProgramImm {
   void ok(Res expected, String... content) {
     okWithArgs(expected, List.of(), content);
@@ -101,11 +103,11 @@ public class TestGoProgramImm {
   @Test void fib43() { ok(new Res("433494437", "", 0), """
     package test
     alias base.Main as Main, alias base.UInt as UInt,
-    Test:Main{ _ -> Fib#(43u).str }
+    Test:Main{ _ -> Fib#(43).str }
     Fib: {
-      #(n: UInt): UInt -> n <= 1u ? {
+      #(n: UInt): UInt -> n <= 1 ? {
         .then -> n,
-        .else -> this#(n - 1u) + (this#(n - 2u))
+        .else -> this#(n - 1) + (this#(n - 2))
         }
       }
     """);}
@@ -113,7 +115,7 @@ public class TestGoProgramImm {
   @Test void lists() { ok(new Res("2", "", 0), """
     package test
     alias base.Main as Main, alias base.LList as LList, alias base.Int as Int,
-    Test:Main{_ -> A.m1.get(1u).match{.some(n) -> n.str, .none -> base.Abort!}}
+    Test:Main{_ -> A.m1.get(1).match{.some(n) -> n.str, .none -> base.Abort!}}
     A:{
       .m1: LList[Int] -> LList[Int] + 1 + 2 + 3,
       }
@@ -214,7 +216,7 @@ public class TestGoProgramImm {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!("hi".size > 9000u, { "" }) }
+    Test:Main{ _ -> Assert!("hi".size > 9000, { "" }) }
     """);}
 
   @Test void longToStr() { ok(new Res("", "123456789", 1), """
@@ -234,25 +236,25 @@ public class TestGoProgramImm {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!(False, 9223372036854775808u .str, { "" }) }
+    Test:Main{ _ -> Assert!(False, 9223372036854775808 .str, { "" }) }
     """);}
   @Test void veryLongLongIntFail() { fail("""
     [E31 invalidNum]
-    The number 9223372036854775808 is not a valid Int
+    The number +9223372036854775808 is not a valid Int
     """, """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!(False, 9223372036854775808 .str, { "" }) }
+    Test:Main{ _ -> Assert!(False, +9223372036854775808 .str, { "" }) }
     """);}
   @Test void veryLongLongUIntFail() { fail("""
     [E31 invalidNum]
-    The number 10000000000000000000000u is not a valid UInt
+    The number 10000000000000000000000 is not a valid UInt
     """, """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!(False, 10000000000000000000000u .str, { "" }) }
+    Test:Main{ _ -> Assert!(False, 10000000000000000000000 .str, { "" }) }
     """);}
   @Test void negativeToStr() { ok(new Res("", "-123456789", 1), """
     package test

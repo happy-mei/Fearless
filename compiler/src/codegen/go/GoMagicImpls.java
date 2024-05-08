@@ -26,8 +26,9 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         var lit = getLiteral(p, name);
         try {
           return new Res(lit
-            .map(lambdaName->"int64("+Long.parseLong(lambdaName.replace("_", ""), 10)+")")
-            .orElseGet(()->"int64("+e.accept(gen, true)+")")).opt();
+            .map(lambdaName->lambdaName.startsWith("+") ? lambdaName.substring(1) : lambdaName)
+            .map(lambdaName->Long.parseLong(lambdaName.replace("_", ""), 10)+"L")
+            .orElseGet(()->"((long)"+e.accept(gen, true)+")")).opt();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "Int");
         }
@@ -80,7 +81,7 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         var lit = getLiteral(p, name);
         try {
           return new Res(lit
-            .map(lambdaName->"uint64("+Long.parseUnsignedLong(lambdaName.substring(0, lambdaName.length()-1).replace("_", ""), 10)+")")
+            .map(lambdaName->"uint64("+Long.parseUnsignedLong(lambdaName.replace("_", ""), 10)+")")
             .orElseGet(()->"uint64("+e.accept(gen, true)+")")).opt();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "UInt");

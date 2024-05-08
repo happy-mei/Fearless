@@ -14,12 +14,12 @@ public class Ex14RandomTest {
     """;
   @Test void generatesNumber() { ok(new RunOutput.Res("570564682", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println((FRandom#1337u).uint.str)}
+    Test:Main {sys -> FIO#sys.println((FRandom#1337).uint.str)}
     """, Base.mutBaseAliases, RNG_ALIASES); }
 
   @Test void generatesFloat() { ok(new RunOutput.Res("0.26568988443617236", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println((FRandom#1337u).float.str)}
+    Test:Main {sys -> FIO#sys.println((FRandom#1337).float.str)}
     """, Base.mutBaseAliases, RNG_ALIASES); }
 
   @Test void generatesNumberWithRandomSeed() { ok(new RunOutput.Res("", "", 0), """
@@ -37,18 +37,18 @@ public class Ex14RandomTest {
 
   @Test void generatesMultipleNumbers() { ok(new RunOutput.Res("570564682\n1499355484\n1372376065\n1209872585\n241596240", "", 0), """
     package test
-    Test:Main {sys -> Rng#(FRandom#1337u, FIO#sys, Count.uint(5u))}
+    Test:Main {sys -> Rng#(FRandom#1337, FIO#sys, Count.uint(5))}
     Rng: {#(rng: mut Random, io: mut IO, n: mut Count[UInt]): Void -> Block#
-      .loop {n.get == 0u ? {.then -> ControlFlow.break, .else -> Block#(io.println(rng.uint.str), n--, ControlFlow.continue)}}
+      .loop {n.get == 0 ? {.then -> ControlFlow.break, .else -> Block#(io.println(rng.uint.str), n--, ControlFlow.continue)}}
       .return {{}}
       }
     """, Base.mutBaseAliases, RNG_ALIASES); }
 
   @Test void generatesMultipleNumbersInRange() { ok(new RunOutput.Res("10 18 17 16 7 14 15 18 17 6", "", 0), """
     package test
-    Test:Main {sys -> Rng#(FRandom#1337u, FIO#sys, Count.uint(10u))}
+    Test:Main {sys -> Rng#(FRandom#1337, FIO#sys, Count.uint(10))}
     Rng: {#(rng: mut Random, io: mut IO, n: mut Count[UInt]): Void -> Block#
-      .loop {n.get == 0u ? {.then -> ControlFlow.break, .else -> Block#(io.print(rng.uint(5u, 25u).str+" "), n--, ControlFlow.continue)}}
+      .loop {n.get == 0 ? {.then -> ControlFlow.break, .else -> Block#(io.print(rng.uint(5, 25).str+" "), n--, ControlFlow.continue)}}
       .return {{}}
       }
     """, Base.mutBaseAliases, RNG_ALIASES); }
@@ -56,8 +56,8 @@ public class Ex14RandomTest {
   @Test void generatesNumberDifferentSeed() { ok(new RunOutput.Res("570564682\n1717387703", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .do {FIO#sys.println((FRandom#1337u).uint.str)}
-      .do {FIO#sys.println((FRandom#50000000u).uint.str)}
+      .do {FIO#sys.println((FRandom#1337).uint.str)}
+      .do {FIO#sys.println((FRandom#50000000).uint.str)}
       .return {{}}
       }
     """, Base.mutBaseAliases, RNG_ALIASES); }

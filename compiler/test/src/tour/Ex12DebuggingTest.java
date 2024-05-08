@@ -10,7 +10,7 @@ public class Ex12DebuggingTest {
   @Test void debugPrintNumber() { ok(new RunOutput.Res("30", "", 0), """
     package test
     alias base.Debug as Debug,
-    Test:Main {sys -> Block#(Debug#30)}
+    Test:Main {sys -> Block#(Debug#[UInt]30)}
     """, Base.mutBaseAliases);}
   @Test void debugPrintStringable() { ok(new RunOutput.Res("hi!", "", 0), """
     package test
@@ -18,7 +18,7 @@ public class Ex12DebuggingTest {
     Test:Main {sys -> Block#(Debug#(Foo))}
     Foo: {read .str: Str -> "hi!"}
     """, Base.mutBaseAliases);}
-  @Test void debugPrintNonStringable() { ok(new RunOutput.Res("test$Foo_0Impl[]", "", 0), """
+  @Test void debugPrintNonStringable() { ok(new RunOutput.Res("Foo_0Impl[]", "", 0), """
     package test
     alias base.Debug as Debug,
     Test:Main {sys -> Block#(Debug#(Foo))}
