@@ -119,22 +119,23 @@ public class Magic {
   }
 
   private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
-    if (isNumberLiteral(id.name())) {
-      var nDots = id.name().chars().filter(c->c=='.').limit(2).count();
-      if (id.name().startsWith("+") || id.name().startsWith("-")) {
-        if (nDots > 0) {
-          if (id.name().startsWith("+")) { throw Fail.invalidNum(id.name(), "Int"); }
-          if (nDots > 1) { throw Fail.invalidNum(id.name(), "Float"); }
-          return Optional.of(resolve.apply(new Id.DecId("base._FloatInstance", 0)));
-        }
+    var lit = id.name();
+    if (isNumberLiteral(lit)) {
+      if (lit.matches("[+-][\\d_]*\\d+$")) {
         return Optional.of(resolve.apply(new Id.DecId("base._IntInstance", 0)));
       }
-      return Optional.of(resolve.apply(new Id.DecId("base._UIntInstance", 0)));
+      if (lit.matches("-?[\\d_]*\\d+\\.[\\d_]*\\d+$")) {
+        return Optional.of(resolve.apply(new Id.DecId("base._FloatInstance", 0)));
+      }
+      if (lit.matches("[\\d_]*\\d+$")) {
+        return Optional.of(resolve.apply(new Id.DecId("base._UIntInstance", 0)));
+      }
+      return Optional.empty();
     }
-    if (isStringLiteral(id.name())) {
+    if (isStringLiteral(lit)) {
       return Optional.of(resolve.apply(new Id.DecId("base._StrInstance", 0)));
     }
-    assert !isLiteral(id.name());
+    assert !isLiteral(lit);
     return Optional.empty();
   }
 }

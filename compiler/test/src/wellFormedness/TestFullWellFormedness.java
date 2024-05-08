@@ -399,8 +399,8 @@ public class TestFullWellFormedness {
     """); }
   @Test void invalidDecimalInt(){ fail("""
     In position [###]/Dummy0.fear:2:15
-    [E31 invalidNum]
-    The number +5.556 is not a valid Int
+    [E59 syntaxError]
+    +5.556/0 is not a valid type name.
     """,
     """
     package a

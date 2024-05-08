@@ -847,8 +847,8 @@ public class TestJavaProgram {
     ok(new Res("", "", 0), """
       package test
       Test:Main{ _ -> Block#
-        .let[Opt[Int]] i = { Opts#[Int]16 }
-        .let[Opt[Int]] ix10 = { i.map{n -> n * 10} }
+        .let[Opt[Int]] i = { Opts#[Int]+16 }
+        .let[Opt[Int]] ix10 = { i.map{n -> n * +10} }
         .return{{}}
         }
       """, Base.mutBaseAliases);
@@ -950,19 +950,19 @@ public class TestJavaProgram {
     """); }
   @Test void canGetImmIntFromImmListOfImmInt() { ok(new Res("", "", 0), """
     package test
-    MakeList:{ #: LList[Int] -> LList[Int] + 12 + 34 + 56 }
+    MakeList:{ #: LList[Int] -> LList[Int] + +12 + +34 + +56 }
     Test:Main{ _ -> Block#
       .let myList = { MakeList# }
-      .assert({ As[Int]#(myList.head!) == 12 }, myList.head!.str)
-      .assert({ As[Int]#(myList.tail.head!) == 34 }, "can get 2nd tail el")
-      .assert({ myList.head! == 12 }, "can get head el without cast")
-      .assert({ myList.tail.head! == 34 }, "can get 2nd tail el without cast")
+      .assert({ As[Int]#(myList.head!) == +12 }, myList.head!.str)
+      .assert({ As[Int]#(myList.tail.head!) == +34 }, "can get 2nd tail el")
+      .assert({ myList.head! == +12 }, "can get head el without cast")
+      .assert({ myList.tail.head! == +34 }, "can get 2nd tail el without cast")
       .return{Void}
       }
     """, Base.mutBaseAliases); }
   @Test void canGetImmOptFromImmListOfImmInt() { ok(new Res("", "", 0), """
     package test
-    MakeList:{ #: LList[Int] -> LList[Int] + 12 + 34 + 56 }
+    MakeList:{ #: LList[Int] -> LList[Int] + +12 + +34 + +56 }
     Test:Main{ _ -> Block#
       .let myList = { MakeList# }
       .let[Opt[Int]] opt = { myList.head }
@@ -975,7 +975,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Block#
       .let[Int] closest = { Closest#(LList[Int] + +35 + +52 + +84 + +14, +49) }
-      .return{ Assert!(closest == 52, closest.str, {{}}) }
+      .return{ Assert!(closest == +52, closest.str, {{}}) }
       }
     Closest:{
       #(ns: LList[Int], target: Int): Int -> Block#
@@ -997,7 +997,7 @@ public class TestJavaProgram {
   @Test void canCreateMutLList() { ok(new Res("", "", 0), """
     package test
     Test:base.Main{ _ -> {} }
-    MutLList:{ #: mut base.LList[base.Int] -> mut base.LList[base.Int] +[] 35 +[] 52 +[] 84 +[] 14 }
+    MutLList:{ #: mut base.LList[base.Int] -> mut base.LList[base.Int] + +35 + +52 + +84 + +14 }
     """); }
 
   @Test void immFromVarImmPrimitive() { ok(new Res("5", "", 0), """
@@ -1013,7 +1013,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let io = { FIO#s }
-      .let[LList[Int]] l = { LList# + 12 + 13 + 14 }
+      .let[LList[Int]] l = { LList# + +12 + +13 + +14 }
       .do { io.println(A.m1(l)) }
       .return {{}}
       }
@@ -1121,7 +1121,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Var[LinkedLens[Str, Int]]] m = { Var#[LinkedLens[Str, Int]](StrMap[Int]) }
+      .let[mut Var[LinkedLens[Str, UInt]]] m = { Var#[LinkedLens[Str, UInt]](StrMap[UInt]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
       .do{ io.println(m*.get("Nick")!.str) }
@@ -1129,7 +1129,7 @@ public class TestJavaProgram {
       .assert{ m*.get("nobody").isEmpty }
       .let[mut Var[LinkedLens[Str, Str]]] tm = { Var#[LinkedLens[Str, Str]](m*.map(
         {k, v -> (v * 10).str },
-        {k, v -> (v.int * 10).str }
+        {k, v -> (v.uint * 10).str }
         )) }
       .do{ io.println(tm*.get("Nick")!) }
       .do{ tm := (tm*.put("Nick", "hi")) }
@@ -1142,14 +1142,14 @@ public class TestJavaProgram {
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
       .let[mut Var[read LinkedLens[Str, Int]]] m = { Var#[read LinkedLens[Str, Int]]({k1,k2 -> k1 == k2}) }
-      .do{ m := (m*.put("Nick", 23)) }
-      .do{ m := (m*.put("Bob", 32)) }
+      .do{ m := (m*.put("Nick", +23)) }
+      .do{ m := (m*.put("Bob", +32)) }
       .do{ io.println(m*.get("Nick")!.str) }
       .do{ io.println(m*.get("Bob")!.str) }
       .assert{ m*.get("nobody").isEmpty }
       .let[mut Var[read LinkedLens[Str, Str]]] tm = { Var#[read LinkedLens[Str, Str]](m*.map(
-        {k, v -> (v * 10).str },
-        {k, v -> (v.int * 10).str }
+        {k, v -> (v * +10).str },
+        {k, v -> (v.int * +10).str }
         )) }
       .do{ io.println(tm*.get("Nick")! .str) }
       .do{ tm := (tm*.put("Nick", "hi")) }
@@ -1234,9 +1234,9 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[Opt[Int]] res = { Opt[Int]
-        #{opt -> opt.match{.some(_) -> opt, .empty -> Opts#[Int]9001}}
+        #{opt -> opt.match{.some(_) -> opt, .empty -> Opts#[Int]+9001}}
         }
-      .assert{res! == 9001}
+      .assert{res! == +9001}
       .return {{}}
       }
     """, Base.mutBaseAliases);}
