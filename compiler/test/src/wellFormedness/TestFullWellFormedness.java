@@ -176,7 +176,7 @@ public class TestFullWellFormedness {
   @Test void complexValidRecMdf() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: T): mut Opt[T] -> { .match(m) -> m.some(x) } }
+    Opts:{ #[T](x: T): mut Opt[T] -> { .match(m) -> m.some(x) } }
     Opt[T]:NoMutHyg[T]{
       recMdf .match[R](m: mut OptMatch[recMdf T, R]): R -> m.none,
       recMdf .map[R](f: mut OptMap[recMdf T, R]): mut Opt[R] -> this.match{ .some(x) -> Opts#(f#x), .none -> {} },
@@ -380,6 +380,38 @@ public class TestFullWellFormedness {
      package test
     A: {#: read/imm A -> this#}
     """);}
+
+  @Test void validPosInt(){ ok("""
+    package a
+    A: {#: Int -> +5}
+    Int: {}
+    """); }
+  @Test void validNegInt(){ ok("""
+    package a
+    A: {#: Int -> -5}
+    Int: {}
+    """); }
+
+  @Test void validPosUInt(){ ok("""
+    package a
+    A: {#: UInt -> 5}
+    UInt: {}
+    """); }
+  @Test void invalidDecimalInt(){ fail("""
+    In position [###]/Dummy0.fear:2:15
+    [E31 invalidNum]
+    The number +5.556 is not a valid Int
+    """,
+    """
+    package a
+    A: {#: UInt -> +5.556}
+    UInt: {}
+    """); }
+  @Test void validString(){ ok("""
+    package a
+    A: {#: Str -> "Hello"}
+    Str: {}
+    """); }
 
   @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {
     var code = String.format("""

@@ -1,6 +1,7 @@
 package magic;
 
 import ast.Program;
+import failure.CompileError;
 import failure.Fail;
 import id.Id;
 import utils.Bug;
@@ -104,23 +105,36 @@ public class Magic {
     return Character.isDigit(name.charAt(0)) || name.startsWith("-") || name.startsWith("+");
   }
 
+  public static Optional<CompileError> validateLiteral(Id.DecId id) {
+    assert isLiteral(id.name());
+    try {
+      var res = _getDec(_->0, id);
+      if (res.isEmpty()) {
+        return Optional.of(Fail.syntaxError(id+" is not a valid type name."));
+      }
+    } catch (CompileError err) {
+      return Optional.of(err);
+    }
+    return Optional.empty();
+  }
+
   private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
     if (isNumberLiteral(id.name())) {
       var nDots = id.name().chars().filter(c->c=='.').limit(2).count();
+      if (id.name().startsWith("+") || id.name().startsWith("-")) {
+        if (nDots >= 1) { throw Fail.invalidNum(id.name(), "Int"); }
+        return Optional.of(resolve.apply(new Id.DecId("base._IntInstance", 0)));
+      }
       if (nDots > 0) {
         if (nDots > 1) { throw Fail.invalidNum(id.name(), "Float"); }
         return Optional.of(resolve.apply(new Id.DecId("base._FloatInstance", 0)));
-      } else if (id.name().startsWith("+") || id.name().startsWith("-")) {
-        return Optional.of(resolve.apply(new Id.DecId("base._IntInstance", 0)));
       }
       return Optional.of(resolve.apply(new Id.DecId("base._UIntInstance", 0)));
     }
     if (isStringLiteral(id.name())) {
       return Optional.of(resolve.apply(new Id.DecId("base._StrInstance", 0)));
     }
-    if (isLiteral(id.name())) {
-      throw Bug.of("Unknown literal: "+id);
-    }
+    assert !isLiteral(id.name());
     return Optional.empty();
   }
 }

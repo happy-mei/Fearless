@@ -1,6 +1,7 @@
 package visitors;
 
 import astFull.T;
+import failure.Fail;
 import generated.FearlessBaseVisitor;
 import generated.FearlessParser;
 import id.Id;
@@ -24,7 +25,7 @@ public class InlineDecNamesAntlrVisitor extends FearlessBaseVisitor<Void> {
       .map(decCtx->{
         String cName = parser.visitFullCN(decCtx.fullCN());
         if (cName.contains(".")) {
-          throw Bug.of("You may not declare a trait in a different package than the package the declaration is in.");
+          throw Fail.crossPackageDeclaration().pos(parser.pos(ctx));
         }
         var longName = pkg + "." +cName;
 
