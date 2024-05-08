@@ -58,7 +58,7 @@ public class Ex09FlowsTest {
     // error message)
     Test:Main {sys -> Assert!(
       Flow#[Int](+5, +10, +15)#(Flow.sum)
-      == 30
+      == +30
       )}
     """, Base.mutBaseAliases);}
 
@@ -242,7 +242,7 @@ public class Ex09FlowsTest {
   @Test void flowLimit3List() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      List#[Int](+5, v10, +15).flow
+      List#[Int](+5, +10, +15).flow
         .limit(3)
         #(Flow.sum)
         .str
@@ -286,7 +286,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases);}
   @Test void flowFilterMapIntEq1() { ok(new Res(), """
     package test
-    Test:Main {sys -> +150.assertEq("max assert failed",
+    Test:Main {sys -> (+150).assertEq("max assert failed",
       Flow#[Int](+5, +10, +15)
         .filter{n -> n > +5}
         .map{n -> n * +10}
@@ -368,8 +368,8 @@ public class Ex09FlowsTest {
   @Test void limitedFlowActorAfter() { ok(new Res("6", "", 0), """
     package test
     Test:Main {sys -> "42 5".assertEq(
-      Flow#[Int](5, 10, 15)
-        .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
+      Flow#[UInt](5, 10, 15)
+        .actor[mut Var[UInt], UInt](Var#[UInt]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
@@ -383,12 +383,12 @@ public class Ex09FlowsTest {
   @Test void limitedFlowActorBefore() { ok(new Res("16", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10".assertEq(
-      Flow#[Int](5, 10, 15)
+      Flow#[Int](+5, +10, +15)
         .limit(2)
-        .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
+        .actor[mut Var[Int], Int](Var#[Int]+1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
-          .if {state.get > 16} .return{Block#(downstream#500, {})}
-          .do {downstream#42}
+          .if {state.get > +16} .return{Block#(downstream#(+500), {})}
+          .do {downstream#(+42)}
           .do {downstream#n}
           .return {{}}}, {state -> FIO#sys.println(state.get.str)})
         .map{n -> n.str}
@@ -414,7 +414,7 @@ public class Ex09FlowsTest {
   @Test void flowScan() { ok(new Res(), """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
-      Flow#[Int](5, 10, 15)
+      Flow#[UInt](5, 10, 15)
         .scan[Str]("!", {acc, n -> acc + (n.str)})
         .map{n -> n.str}
         #(Flow.str " ")
@@ -435,7 +435,7 @@ public class Ex09FlowsTest {
   @Test void flowSimpleActorMutRet() { ok(new Res(), """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
-      Flow#[Int](5, 10, 15)
+      Flow#[UInt](5, 10, 15)
         .scan[Str]("!", {acc, n -> acc + (n.str)})
         .map{n -> n.str}
         #(Flow.str " ")
