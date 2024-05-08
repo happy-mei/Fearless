@@ -46,7 +46,7 @@ public class TestJavaOptimisations {
     package test
     alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
     Test:base.Main {_ -> Block#
-     .let[Int] n = {5}
+     .let[Int] n = {+5}
      .do {ForceGen#}
      .return {Void}
      }
@@ -89,13 +89,13 @@ public class TestJavaOptimisations {
     """, "test/Test_0.java", """
     package test
     Test:Main {sys -> Block#
-      .let n = {Count.int(0)}
+      .let n = {Count.int(+0)}
       .loop {Block#
-        .if {n.get == 10} .return {ControlFlow.break}
+        .if {n.get == +10} .return {ControlFlow.break}
         .do {Block#(n++)}
         .return {ControlFlow.continue}
         }
-//      .assert {n.get == 10}
+//      .assert {n.get == +10}
       .return {Void}
       }
     """, Base.mutBaseAliases);}
@@ -120,9 +120,9 @@ public class TestJavaOptimisations {
     package test
     Test:Main {sys -> (FIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
-      .let n = {Count.int(0)}
+      .let n = {Count.int(+0)}
       .loop {Block#
-        .if {n.get == 10} .return {ControlFlow.return[Str](n.get.str)}
+        .if {n.get == +10} .return {ControlFlow.return[Str](n.get.str)}
         .do {Block#(n++)}
         .return {ControlFlow.continueWith[Str]}
         }
@@ -150,9 +150,9 @@ public class TestJavaOptimisations {
     package test
     Test:Main{sys -> (FIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
-      .let n = {Count.int(0)}
+      .let n = {Count.int(+0)}
       .loop {Block#
-        .if {n.get == 10} .return {ControlFlow.return[Str](n.get.str)}
+        .if {n.get == +10} .return {ControlFlow.return[Str](n.get.str)}
         .do {Block#(n++)}
         .return {ControlFlow.breakWith[Str]}
         }
