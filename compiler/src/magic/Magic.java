@@ -4,7 +4,6 @@ import ast.Program;
 import failure.CompileError;
 import failure.Fail;
 import id.Id;
-import utils.Bug;
 
 import java.util.List;
 import java.util.Optional;
@@ -107,13 +106,9 @@ public class Magic {
 
   public static Optional<CompileError> validateLiteral(Id.DecId id) {
     assert isLiteral(id.name());
-    try {
-      var res = _getDec(_->0, id);
-      if (res.isEmpty()) {
-        return Optional.of(Fail.syntaxError(id+" is not a valid type name."));
-      }
-    } catch (CompileError err) {
-      return Optional.of(err);
+    var res = _getDec(_->0, id);
+    if (res.isEmpty()) {
+      return Optional.of(Fail.syntaxError(id+" is not a valid type name."));
     }
     return Optional.empty();
   }

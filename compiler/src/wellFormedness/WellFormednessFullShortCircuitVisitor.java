@@ -1,15 +1,14 @@
 package wellFormedness;
 
 import astFull.E;
+import astFull.Program;
 import astFull.T;
-import files.HasPos;
-import id.Id;
 import failure.CompileError;
 import failure.Fail;
-import astFull.Program;
+import files.HasPos;
+import id.Id;
 import id.Mdf;
 import magic.Magic;
-import utils.Push;
 import visitors.FullShortCircuitVisitor;
 import visitors.FullShortCircuitVisitorWithEnv;
 
