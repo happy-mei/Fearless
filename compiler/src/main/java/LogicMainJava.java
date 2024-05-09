@@ -19,7 +19,7 @@ import main.FullLogicMain;
 import program.typesystem.EMethTypeSystem;
 
 public interface LogicMainJava extends FullLogicMain<JavaProgram> {
-  default void cachePackageTypes(MIR.Program program) {
+  @Override default void cachePackageTypes(ast.Program program) {
     HDCache.cachePackageTypes(this, program);
   }
 

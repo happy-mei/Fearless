@@ -71,7 +71,7 @@ public class Ex15TestsTest {
         
     test2 - ERRORED
     ```
-    sad
+    "sad"
     ```
         
     ##### more nested
@@ -85,7 +85,7 @@ public class Ex15TestsTest {
     **more nested** \s
     test6 - ERRORED
     ```
-    another one
+    "another one"
     ```
         
     **more nested** \s

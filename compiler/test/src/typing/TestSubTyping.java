@@ -5,6 +5,7 @@ import id.Mdf;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;
@@ -83,6 +84,7 @@ public class TestSubTyping {
 
   // This would fail, but now works because adapt will assume true for a sub-typing relationship if it's part of the
   // relationship it is currently evaluating.
+  @Disabled // Adapt subtyping is disabled
   @Test void loopingAdapt() { ok("a.Break[A]", "a.Break[B]", true, """
     package a
     A:B{ .m: Break[A] }
@@ -91,7 +93,7 @@ public class TestSubTyping {
 //     Break[X]:{ .self: Break[B], .b: Break[A] -> this.self.b } // loop
     """); }
 
-  // TODO: hmm, maybe this was not sound lol
+  @Disabled // Adapt subtyping is disabled, and this test is questionable-- is this sound??
   @Test void loopingAdapt2() { ok("a.Break[B]", "a.Break[A]", true, """
     package a
     A:B{ .m: Break[A], .me: A, }

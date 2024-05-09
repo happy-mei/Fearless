@@ -975,7 +975,7 @@ public class TestTypeSystem {
     List[E:imm]:{
       .match[R:imm](m: ListMatch[E, R]): R -> m.empty,
       .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
-      .len: Nat -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
+      .len: Nat -> this.match{ .empty -> 0, .elem(_,t) -> t.len + 1, },
       ++(l1: List[E]): List[E] -> this.match{
         .empty -> l1,
         .elem(h, t) -> Cons#(h, t ++ l1)
@@ -983,7 +983,7 @@ public class TestTypeSystem {
       +(e: E): List[E] -> this ++ (Cons#(e, {})),
       .get(i: Nat) : Opt[E] -> this.match{
         .empty -> {},
-        .elem(h, t) -> (i == 0u) ? { .then -> Opts#h, .else -> t.get(i - 1u) }
+        .elem(h, t) -> (i == 0) ? { .then -> Opts#h, .else -> t.get(i - 1) }
         },
       .head: Opt[E] -> this.match{
         .empty -> {},

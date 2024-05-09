@@ -18,7 +18,8 @@ public class TestNorm {
 
   @Test void shouldWorkWithOptional() {ok("""
     package test
-    alias base.Opt as Opts,
+    alias base.Opt as Opt,
+    alias base.Opts as Opts,
     A:{mut .b: mut B} B:{}
     
     Foo: {#(optA: mut Opt[mut A]): mut B -> optA.map{a->a.b}.match{

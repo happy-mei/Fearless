@@ -60,7 +60,7 @@ public class TestInlineDecs {
       .age: imm N -> age,
       }}
     Ex:{
-      .create: Person[Nat] -> FPerson#(Bob, TwentyFour),
+      .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour),
       .name(p: Person[Nat]): Str -> p.name,
       }
     """, """

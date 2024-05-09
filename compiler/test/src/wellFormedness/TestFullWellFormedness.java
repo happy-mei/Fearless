@@ -398,7 +398,7 @@ public class TestFullWellFormedness {
     Nat: {}
     """); }
   @Test void invalidDecimalInt(){ fail("""
-    In position [###]/Dummy0.fear:2:15
+    In position [###]/Dummy0.fear:2:14
     [E59 syntaxError]
     +5.556/0 is not a valid type name.
     """,
@@ -407,6 +407,15 @@ public class TestFullWellFormedness {
     A: {#: Nat -> +5.556}
     Nat: {}
     """); }
+  @Test void noMultiplePointsInFloat() {fail("""
+    In position [###]/Dummy0.fear:2:16
+    [E59 syntaxError]
+    1.2.4/0 is not a valid type name.
+    """, """
+    package a
+    A: {#: Float -> 1.2.4}
+    Float: {}
+    """);}
   @Test void validString(){ ok("""
     package a
     A: {#: Str -> "Hello"}

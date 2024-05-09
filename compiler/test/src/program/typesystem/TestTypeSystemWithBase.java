@@ -53,46 +53,46 @@ public class TestTypeSystemWithBase {
 
   @Test void numbersSubTyping1(){ ok("""
     package test
-    alias base.Int as Int,
-    A:{ .m(a: 42): Int -> a }
+    alias base.Nat as Nat,
+    A:{ .m(a: 42): Nat -> a }
     """); }
   @Test void numbersSubTyping2(){ fail("""
     In position [###]/Dummy0.fear:3:22
     [E53 xTypeError]
-    Expected 'a' to be imm 42[], got imm base.Int[].
+    Expected 'a' to be imm 42[], got imm base.Nat[].
     """, """
     package test
-    alias base.Int as Int,
-    A:{ .m(a: Int): 42 -> a }
+    alias base.Nat as Nat,
+    A:{ .m(a: Nat): 42 -> a }
     """); }
   @Test void numbersSubTyping3(){ ok("""
     package test
-    alias base.Int as Int,
-    A:{ .a: Int }
+    alias base.Nat as Nat,
+    A:{ .a: Nat }
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
     """); }
   @Test void numbersSubTyping4(){ ok("""
     package test
-    alias base.Int as Int,
-    A:{ .a: Int }
+    alias base.Nat as Nat,
+    A:{ .a: Nat }
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
-    D:B{ .b: Int -> this.a }
+    D:B{ .b: Nat -> this.a }
     """); }
   @Test void numbersGenericTypes1(){ ok("""
     package test
-    alias base.Int as Int,
+    alias base.Nat as Nat,
     A[N]:{ .count: N }
     B:A[42]{ 42 }
-    C:A[Int]{ 42 }
+    C:A[Nat]{ 42 }
     """); }
   @Test void numbersGenericTypes2(){ ok("""
     package test
-    alias base.Int as Int,
+    alias base.Nat as Nat,
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 42 }
-    C:A[Int]{ .count -> 56, .sum -> 3001 }
+    C:A[Nat]{ .count -> 56, .sum -> 3001 }
     """); }
   @Test void numbersGenericTypes2a(){ fail("""
     In position [###]/Dummy0.fear:4:31
@@ -100,7 +100,7 @@ public class TestTypeSystemWithBase {
     Expected the lambda here to implement imm 42[].
     """, """
     package test
-    alias base.Int as Int,
+    alias base.Nat as Nat,
     A[N]:{ .count: N, .sum: N }
     B:A[42]{ .count -> 42, .sum -> 43 }
     """); }
@@ -108,31 +108,31 @@ public class TestTypeSystemWithBase {
     In position [###]/Dummy0.fear:6:19
     [E32 noCandidateMeths]
     When attempting to type check the method call: this .a/0[]([]), no candidates for .a/0 returned the expected type imm 42[]. The candidates were:
-    (imm test.D[]): imm base.Int[]
+    (imm test.D[]): imm base.Nat[]
     """, """
     package test
-    alias base.Int as Int,
-    A:{ .a: Int }
+    alias base.Nat as Nat,
+    A:{ .a: Nat }
     B:A{ .a -> 42 }
     C:A{ .a -> 420 }
     D:B{ .b: 42 -> this.a }
     """); }
-  @Test void twoInts(){ ok("""
+  @Test void twoNats(){ ok("""
     package test
-    alias base.Int as Int,
-    A:{ .m(a: 56, b: 12): Int -> b+a }
+    alias base.Nat as Nat,
+    A:{ .m(a: 56, b: 12): Nat -> b+a }
     """); }
 
-  @Test void boolIntRet() { ok("""
+  @Test void boolNatRet() { ok("""
     package test
-    alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
+    alias base.Main as Main, alias base.Nat as Nat, alias base.False as False, alias base.True as True,
     Test:{
-      #: Int -> False.or(True)?{.then->42,.else->0}
+      #: Nat -> False.or(True)?{.then->42,.else->0}
     }
     """); }
   @Test void boolSameRet() { ok("""
     package test
-    alias base.Main as Main, alias base.Int as Int, alias base.False as False, alias base.True as True,
+    alias base.Main as Main, alias base.Nat as Nat, alias base.False as False, alias base.True as True,
     Foo:{}
     Test:{
       #: Foo -> False.or(True)?{.then->Foo,.else->Foo}
@@ -141,69 +141,69 @@ public class TestTypeSystemWithBase {
 
   @Test void numImpls1() { ok("""
     package test
-    alias base.Int as Int,
+    alias base.Nat as Nat,
     Foo:{ .bar: 5 -> 5 }
     Bar:{
-      .nm(n: Int): Int -> n,
-      .check: Int -> this.nm(Foo.bar)
+      .nm(n: Nat): Nat -> n,
+      .check: Nat -> this.nm(Foo.bar)
       }
     """);}
 
   @Test void numImpls2() { ok("""
     package test
-    alias base.Int as Int,
+    alias base.Nat as Nat,
     Bar:{
-      .nm(n: Int): Int -> n,
-      .check: Int -> this.nm(5)
+      .nm(n: Nat): Nat -> n,
+      .check: Nat -> this.nm(5)
       }
     """);}
 
   @Test void numImpls3() { fail("""
     In position [###]/Dummy0.fear:5:21
     [E33 callTypeError]
-    Type error: None of the following candidates (returning the expected type "imm base.Int[]") for this method call:
+    Type error: None of the following candidates (returning the expected type "imm base.Nat[]") for this method call:
     this .nm/1[]([[-imm-][5[]]{'fear[###]$ }])
     were valid:
-    (imm test.Bar[], imm 5[]) <= (imm test.Bar[], imm base.Float[]): imm base.Int[]
+    (imm test.Bar[], imm 5[]) <= (imm test.Bar[], imm base.Float[]): imm base.Nat[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:5:25
         [E54 lambdaTypeError]
         Expected the lambda here to implement imm base.Float[].
     """, """
     package test
-    alias base.Int as Int, alias base.Float as Float,
+    alias base.Nat as Nat, alias base.Float as Float,
     Bar:{
-      .nm(n: Float): Int -> 12,
-      .check: Int -> this.nm(5)
+      .nm(n: Float): Nat -> 12,
+      .check: Nat -> this.nm(5)
       }
     """);}
 
   @Test void numImpl4() { fail("""
     In position [###]/Dummy0.fear:5:21
     [E33 callTypeError]
-    Type error: None of the following candidates (returning the expected type "imm base.Int[]") for this method call:
+    Type error: None of the following candidates (returning the expected type "imm base.Nat[]") for this method call:
     this .nm/1[]([[-imm-][5[]]{'fear[###]$ }])
     were valid:
-    (imm test.Bar[], imm 5[]) <= (imm test.Bar[], imm 6[]): imm base.Int[]
+    (imm test.Bar[], imm 5[]) <= (imm test.Bar[], imm 6[]): imm base.Nat[]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:5:25
         [E54 lambdaTypeError]
         Expected the lambda here to implement imm 6[].
     """, """
     package test
-    alias base.Int as Int,
+    alias base.Nat as Nat,
     Bar:{
-      .nm(n: 6): Int -> 12,
-      .check: Int -> this.nm(5)
+      .nm(n: 6): Nat -> 12,
+      .check: Nat -> this.nm(5)
       }
     """);}
 
   @Test void shouldPromoteList() { ok("""
     package test
     Foo:{
-      .toMut: mut List[Int] -> (mut LList[Int] + 35 + 52 + 84 + 14).list,
-      .toIso: iso List[Int] -> (mut LList[Int] + 35 + 52 + 84 + 14).list,
-      .toImm: List[Int] -> (mut LList[Int] + 35 + 52 + 84 + 14).list
+      .toMut: mut List[Nat] -> (mut LList[Nat] + 35 + 52 + 84 + 14).list,
+      .toIso: iso List[Nat] -> (mut LList[Nat] + 35 + 52 + 84 + 14).list,
+      .toImm: List[Nat] -> (mut LList[Nat] + 35 + 52 + 84 + 14).list
       }
     """, Base.mutBaseAliases);}
 
@@ -288,11 +288,11 @@ public class TestTypeSystemWithBase {
       .return{{ .age -> age'*, .age(n) -> age' := n }}
       }
     Test:Main{ s -> Block#
-      .let[mut Person] p = { FPerson#24u }
+      .let[mut Person] p = { FPerson#24 }
       .let[imm List[read Person]] unsound = { A#(iso List#[read Person], p) }
-      .let[imm Person] uhOh = { unsound.get(0u) }
-      .do{ p.age(25u) }
-      .assert({ uhOh.age == 24u }, uhOh.age.str)
+      .let[imm Person] uhOh = { unsound.get(0) }
+      .do{ p.age(25) }
+      .assert({ uhOh.age == 24 }, uhOh.age.str)
       .return{{}}
       }
     A:{
@@ -309,11 +309,11 @@ public class TestTypeSystemWithBase {
       .return{{ .age -> age'*, .age(n) -> age' := n }}
       }
     Test:Main{ s -> Block#
-      .let[mut Person] p = { FPerson#24u }
+      .let[mut Person] p = { FPerson#24 }
       .let[imm LList[read Person]] unsound = { A#(iso LList[read Person]{}, p) }
-      .let[imm Person] uhOh = { unsound.get(0u) }
-      .do{ p.age(25u) }
-      .assert({ uhOh.age == 24u }, uhOh.age.str)
+      .let[imm Person] uhOh = { unsound.get(0) }
+      .do{ p.age(25) }
+      .assert({ uhOh.age == 24 }, uhOh.age.str)
       .return{{}}
       }
     A:{
@@ -345,11 +345,11 @@ public class TestTypeSystemWithBase {
       .return{{ .age -> age'*, .age(n) -> age' := n }}
       }
     Test:Main{ s -> Block#
-      .let[mut Person] p = { FPerson#24u }
+      .let[mut Person] p = { FPerson#24 }
       .let[imm LList[read Person]] unsound = { A#(iso LList[read Person]{}, p) }
-      .let[imm Person] uhOh = { unsound.get(0u) }
-      .do{ p.age(25u) }
-      .assert({ uhOh.age == 24u }, uhOh.age.str)
+      .let[imm Person] uhOh = { unsound.get(0) }
+      .do{ p.age(25) }
+      .assert({ uhOh.age == 24 }, uhOh.age.str)
       .return{{}}
       }
     A:{
@@ -423,49 +423,49 @@ public class TestTypeSystemWithBase {
       }
     """, Base.mutBaseAliases); }
 
-  @Test void canGetImmIntFromImmListOfImmInt() { ok("""
+  @Test void canGetImmNatFromImmListOfImmNat() { ok("""
     package test
-    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
+    MakeList:{ #: LList[Nat] -> LList[Nat] + 12 }
     Test:{ #: Bool -> (MakeList#).head! == 12 }
     """, Base.mutBaseAliases); }
-  @Test void canGetImmIntFromImmListOfImmIntCast() { ok("""
+  @Test void canGetImmNatFromImmListOfImmNatCast() { ok("""
     package test
-    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
-    Test:{ #: Bool -> As[Int]#((MakeList#).head!) == 12 }
+    MakeList:{ #: LList[Nat] -> LList[Nat] + 12 }
+    Test:{ #: Bool -> As[Nat]#((MakeList#).head!) == 12 }
     """, Base.mutBaseAliases); }
 
-  @Test void canGetImmIntFromImmListOfImmIntTail() { ok("""
+  @Test void canGetImmNatFromImmListOfImmNatTail() { ok("""
     package test
-    MakeList:{ #: LList[Int] -> LList[Int] + 12 + 24 }
+    MakeList:{ #: LList[Nat] -> LList[Nat] + 12 + 24 }
     Test:{ #: Bool -> (MakeList#).tail.head! == 24 }
     """, Base.mutBaseAliases); }
-  @Test void canGetImmIntFromImmListOfImmIntTailArg() { ok("""
+  @Test void canGetImmNatFromImmListOfImmNatTailArg() { ok("""
     package test
-    Test:{ #(l: LList[Int]): Bool -> l.tail.head! == 24 }
+    Test:{ #(l: LList[Nat]): Bool -> l.tail.head! == 24 }
     """, Base.mutBaseAliases); }
 
-  @Test void canGetImmIntFromImmListOfImmIntMatchInferFail() { ok("""
+  @Test void canGetImmNatFromImmListOfImmNatMatchInferFail() { ok("""
     package test
-    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
+    MakeList:{ #: LList[Nat] -> LList[Nat] + 12 }
     Test:{ #: Bool -> (MakeList#).head.match { .some(x) -> x, .empty -> 0 } == 12  }
     """, Base.mutBaseAliases); }
-  @Test void canGetImmIntFromImmListOfImmIntMatch() { ok("""
+  @Test void canGetImmNatFromImmListOfImmNatMatch() { ok("""
     package test
-    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
-    Test:{ #: Bool -> (MakeList#).head.match mut base.OptMatch[Int,Int]{ .some(x) -> x, .empty -> 0 } == 12  }
+    MakeList:{ #: LList[Nat] -> LList[Nat] + 12 }
+    Test:{ #: Bool -> (MakeList#).head.match mut base.OptMatch[Nat,Nat]{ .some(x) -> x, .empty -> 0 } == 12  }
     """, Base.mutBaseAliases); }
-  @Test void canGetImmIntFromImmListOfImmIntMatchExplicitGens() { ok("""
+  @Test void canGetImmNatFromImmListOfImmNatMatchExplicitGens() { ok("""
     package test
-    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
-    Test:{ #: Bool -> (MakeList#).head.match[Int]{ .some(x) -> x, .empty -> 0 } == 12  }
+    MakeList:{ #: LList[Nat] -> LList[Nat] + 12 }
+    Test:{ #: Bool -> (MakeList#).head.match[Nat]{ .some(x) -> x, .empty -> 0 } == 12  }
     """, Base.mutBaseAliases); }
-  @Test void canGetImmIntFromImmListOfImmIntMatchCast() { ok("""
+  @Test void canGetImmNatFromImmListOfImmNatMatchCast() { ok("""
     package test
-    MakeList:{ #: LList[Int] -> LList[Int] + 12 }
-    Test1:{ #: Bool -> As[Opt[Int]]#((MakeList#).head).match{ .some(x) -> x, .empty -> 0 } == 12  } // works
-    // imm Opt[read Int] fails to become imm Opt[imm Int] because of adapterOk
-//    Test2:{ #: Bool -> As[Opt[Int]]#(
-//       As[Opt[read Int]]#((MakeList#).head))
+    MakeList:{ #: LList[Nat] -> LList[Nat] + 12 }
+    Test1:{ #: Bool -> As[Opt[Nat]]#((MakeList#).head).match{ .some(x) -> x, .empty -> 0 } == 12  } // works
+    // imm Opt[read Nat] fails to become imm Opt[imm Nat] because of adapterOk
+//    Test2:{ #: Bool -> As[Opt[Nat]]#(
+//       As[Opt[read Nat]]#((MakeList#).head))
 //        .match{ .some(x) -> x, .empty -> 0 } == 12  }
     """, Base.mutBaseAliases); }
 
@@ -506,18 +506,18 @@ public class TestTypeSystemWithBase {
     package test
     Test:Main{ _ -> Block#
       .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(0))) }
-      .let[imm Count[Int]] ok = { a.peek[Count[Int]]{ .some(m) -> m.rn, .empty -> base.Abort! } }
+      .let[imm Count[Nat]] ok = { a.peek[Count[Nat]]{ .some(m) -> m.rn, .empty -> base.Abort! } }
       .return{Void}
       }
-    MutThingy:{ mut .n: mut Count[Int], read .rn: read Count[Int] }
-    MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { .n -> n, .rn -> n }  }
+    MutThingy:{ mut .n: mut Count[Nat], read .rn: read Count[Nat] }
+    MutThingy':{ #(n: mut Count[Nat]): mut MutThingy -> { .n -> n, .rn -> n }  }
     """, Base.mutBaseAliases); }
 
   @Test void immFromVar() { ok("""
     package test
     Test:{
-      .m1(r: read Var[Int]): Int -> r.get,
-      .m2: Int -> this.m1(Var#5),
+      .m1(r: read Var[Nat]): Nat -> r.get,
+      .m2: Nat -> this.m1(Var#5),
       }
     """, Base.mutBaseAliases); }
   @Test void updateVarImmRecoverFail() { fail("""
@@ -526,11 +526,11 @@ public class TestTypeSystemWithBase {
     package test
     Test:Main{
       #(s) -> FIO#s.println(this.m2.str),
-      .m1(r: mut Var[Int]): Int -> Block#
+      .m1(r: mut Var[Nat]): Nat -> Block#
         .do{ r := 12 }
-        .let[read Var[Int]] rr = { r }
+        .let[read Var[Nat]] rr = { r }
         .return{ rr.get },
-      .m2: Int -> this.m1(Var.ofImm[Int]5),
+      .m2: Nat -> this.m1(Var.ofImm[Nat]5),
       }
     """, Base.mutBaseAliases); }
 
@@ -584,8 +584,8 @@ public class TestTypeSystemWithBase {
   @Test void extensionMethodMdfDispatch() { ok("""
     package test
     Test:Main{ s -> Block#
-      .let[Opt[Int]] res = { Opt[Int]
-        #{opt -> opt.match{.some(_) -> opt, .empty -> Opts#[Int]9001}}
+      .let[Opt[Nat]] res = { Opt[Nat]
+        #{opt -> opt.match{.some(_) -> opt, .empty -> Opts#[Nat]9001}}
         }
       .assert{res! == 9001}
       .return {{}}
@@ -595,16 +595,16 @@ public class TestTypeSystemWithBase {
   @Test void inferListWithDifferentNumsExplicit() { ok("""
     package test
     Test: Main{s -> Block#
-      .let myList = {List#[Int](5, 10, -15)}
-      .do {FIO#s.println(myList.get(0u) .str)}
+      .let myList = {List#[Int](+5, +10, -15)}
+      .do {FIO#s.println(myList.get(0) .str)}
       .return {Void}
       }
     """, Base.mutBaseAliases); }
   @Test void inferListWithDifferentNums() { ok("""
     package test
     Test: Main{s -> Block#
-      .let[List[Int]] myList = {List#(5, 10, -15)}
-      .do {FIO#s.println(myList.get(0u) .str)}
+      .let[List[Int]] myList = {List#(+5, +10, -15)}
+      .do {FIO#s.println(myList.get(0) .str)}
       .return {Void}
       }
     """, Base.mutBaseAliases); }

@@ -12,9 +12,9 @@ import codegen.MIR;
 import utils.IoErr;
 import ast.T;
 
-public record HDCache(Path code, MIR.Program program) {
-  public static void cachePackageTypes(LogicMainJava main, MIR.Program program) {
-    Map<String,List<T.Dec>> mapped= program.p().ds().values().stream()
+public record HDCache(Path code, ast.Program program) {
+  public static void cachePackageTypes(LogicMainJava main, ast.Program program) {
+    Map<String,List<T.Dec>> mapped= program.ds().values().stream()
      .filter(d->!main.cachedPkg().contains(d.name().pkg()))
      .collect(Collectors.groupingBy(d->d.name().pkg()));
     mapped.forEach((key, value)->new HDCache(main.io().output(), program).cacheTypeInfo(key, value));

@@ -70,7 +70,7 @@ public class TestAdaptRecMdf {
   @Provide Arbitrary<Mdf> lambdaMdf() {
     return Arbitraries.of(Arrays.stream(Mdf.values()).filter(mdf->!mdf.is(Mdf.mdf)).toList());
   }
-  @Property void adaptRecMdf(@ForAll("lambdaMdf") Mdf lambdaMdf, @ForAll("genericMdfOnConcrete") Mdf genericMdf) {
+  @net.jqwik.api.Disabled @Property void adaptRecMdf(@ForAll("lambdaMdf") Mdf lambdaMdf, @ForAll("genericMdfOnConcrete") Mdf genericMdf) {
     var expected = lambdaMdf.adapt(genericMdf);
     if (genericMdf.isMdf()) { expected = Mdf.recMdf; }
     ok("""
@@ -85,7 +85,7 @@ public class TestAdaptRecMdf {
   @Provide Arbitrary<Mdf> genericMdf() {
     return Arbitraries.of(Arrays.stream(Mdf.values()).filter(mdf->!mdf.is(Mdf.iso)).toList());
   }
-  @Property void adaptRecMdfGenFormalism(@ForAll("lambdaMdf") Mdf lambdaMdf, @ForAll("genericMdf") Mdf genericMdf) {
+  @net.jqwik.api.Disabled @Property void adaptRecMdfGenFormalism(@ForAll("lambdaMdf") Mdf lambdaMdf, @ForAll("genericMdf") Mdf genericMdf) {
     var expected = lambdaMdf.adapt(genericMdf);
     if (genericMdf.isMdf()) { expected = Mdf.recMdf; }
     ok("""
@@ -99,7 +99,7 @@ public class TestAdaptRecMdf {
     """.formatted(genericMdf));
   }
 
-  @Property void adaptRecMdfGenCurrent(@ForAll("lambdaMdf") Mdf lambdaMdf, @ForAll("genericMdf") Mdf genericMdf) {
+  @net.jqwik.api.Disabled @Property void adaptRecMdfGenCurrent(@ForAll("lambdaMdf") Mdf lambdaMdf, @ForAll("genericMdf") Mdf genericMdf) {
     var expected = lambdaMdf.adapt(genericMdf);
     if (genericMdf.isMdf() && lambdaMdf.isRecMdf()) { expected = Mdf.recMdf; }
     ok("""

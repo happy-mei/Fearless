@@ -253,9 +253,6 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
   @Test void precedenceMCall2Arg() { same("(a - b).m(c,d)", "a - b.m(c,d)"); }
   @Test void precedenceMCallPlus1() { same("a + b.foo()", "(a + b).foo"); }
   @Test void precedenceMCallPlus2() { same("a + b.foo()", "a + b.foo"); }
-
-  @Test void noMultiplePointsInFloat() {fail("""
-    """, "1.2.4");}
-  @Test void noPointInUnsigned() {fail("""
+  @Test void invalidNumberSyntax() {fail("""
     """, "1.2u");}
 }

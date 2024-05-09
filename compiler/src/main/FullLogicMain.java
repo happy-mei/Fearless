@@ -9,7 +9,6 @@ public interface FullLogicMain<Exe> extends LogicMain {
   CompilerFrontEnd.Verbosity verbosity();
 
   MIR.Program lower(ast.Program program, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls);
-  void cachePackageTypes(MIR.Program program);
   Exe codeGeneration(MIR.Program program);
   ProcessBuilder execution(MIR.Program program, Exe exe, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls);
   default ProcessBuilder run(){
@@ -21,7 +20,7 @@ public interface FullLogicMain<Exe> extends LogicMain {
     var mir = lower(program,resolvedCalls);
     var code = codeGeneration(mir);
     var process = execution(mir,code,resolvedCalls);
-    cachePackageTypes(mir);
+    cachePackageTypes(program);
     return process;
   }
 }

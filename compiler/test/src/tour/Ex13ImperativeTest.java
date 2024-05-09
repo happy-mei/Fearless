@@ -26,32 +26,32 @@ public class Ex13ImperativeTest {
   @Test void refIsMutable() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let[mut Var[Int]] n = {Var#[Int] 5}
-      .assert {n.get == 5}
-      .do {n := 10}
-      .assert {n.get == 10}
+      .let[mut Var[Int]] n = {Var#[Int] +5}
+      .assert {n.get == +5}
+      .do {n := +10}
+      .assert {n.get == +10}
       .return {Void}
       }
     """, Base.mutBaseAliases); }
   @Test void incrementLoop() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let n = {Count.int(0)}
+      .let n = {Count.int(+0)}
       .loop {Block#
-        .if {n.get == 10} .return {ControlFlow.break}
+        .if {n.get == +10} .return {ControlFlow.break}
         .do {Block#(n++)}
         .return {ControlFlow.continue}
         }
-      .assert {n.get == 10}
+      .assert {n.get == +10}
       .return {Void}
       }
     """, Base.mutBaseAliases); }
   @Test void incrementLoopNoVar() { ok(new Res("", "", 0), """
     package test
-    Test:Main {sys -> Foo#(Count.int(0)) }
+    Test:Main {sys -> Foo#(Count.int(+0)) }
     Foo: {#(n: mut Count[Int]): Void -> Block#
       .loop {Block#
-        .if {n.get == 10} .return {ControlFlow.break}
+        .if {n.get == +10} .return {ControlFlow.break}
         .do {Block#(n++)}
         .return {ControlFlow.continue}
         }
@@ -62,9 +62,9 @@ public class Ex13ImperativeTest {
     package test
     Test:Main {sys -> (FIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
-      .let n = {Count.int(0)}
+      .let n = {Count.int(+0)}
       .loop {Block#
-        .if {n.get == 10} .return {ControlFlow.return[Str](n.get.str)}
+        .if {n.get == +10} .return {ControlFlow.return[Str](n.get.str)}
         .do {Block#(n++)}
         .return {ControlFlow.continueWith[Str]}
         }
@@ -75,9 +75,9 @@ public class Ex13ImperativeTest {
     package test
     Test:Main {sys -> (FIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
-      .let n = {Count.int(0)}
+      .let n = {Count.int(+0)}
       .loop {Block#
-        .if {n.get == 10} .return {ControlFlow.return[Str](n.get.str)}
+        .if {n.get == +10} .return {ControlFlow.return[Str](n.get.str)}
         .do {Block#(n++)}
         .return {ControlFlow.breakWith[Str]}
         }
