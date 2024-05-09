@@ -51,37 +51,37 @@ public class TestJavaProgramImm {
 
   @Test void lists() { ok(new Res("2", "", 0), """
     package test
-    alias base.Main as Main, alias base.LList as LList, alias base.Int as Int,
-    Test:Main{_ -> A.m1.get(1u).match{.some(n) -> n.str, .none -> base.Abort!}}
+    alias base.Main as Main, alias base.LList as LList, alias base.Nat as Nat,
+    Test:Main{_ -> A.m1.get(1).match{.some(n) -> n.str, .none -> base.Abort!}}
     A:{
-      .m1: LList[Int] -> LList[Int] + 1 + 2 + 3,
+      .m1: LList[Nat] -> LList[Nat] + 1 + 2 + 3,
       }
     """);}
 
   @Test void inheritedFnNoSingleton() { ok(new Res("5", "", 0), """
     package test
-    alias base.Main as Main, alias base.Int as Int,
-    A: {.m1: Int -> 5, .unrelated: Int,}
-    B: A{.m2: Int -> this.m1, .unrelated -> 123}
+    alias base.Main as Main, alias base.Nat as Nat,
+    A: {.m1: Nat -> 5, .unrelated: Nat,}
+    B: A{.m2: Nat -> this.m1, .unrelated -> 123}
     Test: Main{_ -> B.m2.str}
     """);}
 
   @Test void fib43() { ok(new Res("433494437", "", 0), """
     package test
     alias base.Main as Main, alias base.Nat as Nat,
-    Test:Main{ _ -> Fib#(43u).str }
+    Test:Main{ _ -> Fib#(43).str }
     Fib: {
-      #(n: Nat): Nat -> n <= 1u ? {
+      #(n: Nat): Nat -> n <= 1 ? {
         .then -> n,
-        .else -> this#(n - 1u) + (this#(n - 2u))
+        .else -> this#(n - 1) + (this#(n - 2))
         }
       }
     """);}
 
   @Test void nestedConditional() { ok(new Res("2", "", 0), """
     package test
-    alias base.Main as Main, alias base.True as True, alias base.False as False, alias base.Int as Int,
-    Test:Main {l -> True ?[Int] {.then -> False ?[Int] {.then -> 1, .else -> Block#(l, 2)}, .else -> 3}.str}
+    alias base.Main as Main, alias base.True as True, alias base.False as False, alias base.Nat as Nat,
+    Test:Main {l -> True ?[Nat] {.then -> False ?[Nat] {.then -> 1, .else -> Block#(l, 2)}, .else -> 3}.str}
     Block:{#[A:imm,R:imm](_: A, r: R): R -> r}
     """); }
 
@@ -172,7 +172,7 @@ public class TestJavaProgramImm {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!("hi".size > 9000u, { "" }) }
+    Test:Main{ _ -> Assert!("hi".size > 9000, { "" }) }
     """);}
 
   @Test void longToStr() { ok(new Res("", "123456789", 1), """
@@ -192,7 +192,7 @@ public class TestJavaProgramImm {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!(False, 9223372036854775808u .str, { "" }) }
+    Test:Main{ _ -> Assert!(False, 9223372036854775808 .str, { "" }) }
     """);}
   @Test void veryLongLongIntFail() { fail("""
     [E31 invalidNum]
@@ -205,12 +205,12 @@ public class TestJavaProgramImm {
     """);}
   @Test void veryLongLongNatFail() { fail("""
     [E31 invalidNum]
-    The number 10000000000000000000000u is not a valid Nat
+    The number 10000000000000000000000 is not a valid Nat
     """, """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!(False, 10000000000000000000000u .str, { "" }) }
+    Test:Main{ _ -> Assert!(False, 10000000000000000000000 .str, { "" }) }
     """);}
   @Test void negativeToStr() { ok(new Res("", "-123456789", 1), """
     package test
@@ -235,13 +235,13 @@ public class TestJavaProgramImm {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!(False, (0 - 2) .str, { "" }) }
+    Test:Main{ _ -> Assert!(False, (+0 - +2) .str, { "" }) }
     """);}
   @Test void subtractionUnderflow() { ok(new Res("", "9223372036854775807", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     Void:{}
-    Test:Main{ _ -> Assert!(False, ((0 - 2) - 9223372036854775807) .str, { "" }) }
+    Test:Main{ _ -> Assert!(False, ((+0 - +2) - +9223372036854775807) .str, { "" }) }
     """);}
 
   @Test void launchArg() { okWithArgs(new Res("yeet", "", 0), List.of("yeet"), """
@@ -261,8 +261,8 @@ public class TestJavaProgramImm {
 
   @Test void gens() { ok(new Res("132", "", 0), """
     package test
-    alias base.Int as Int, alias base.Str as Str,
-    Test:base.Main[]{ _ -> F[Int,Str]{n -> n.str}#132 }
+    alias base.Nat as Nat, alias base.Str as Str,
+    Test:base.Main[]{ _ -> F[Nat,Str]{n -> n.str}#132 }
     F[A,R]:{ #(a: A): R }
     """); }
   @Test void methodGens() { ok(new Res("hi", "", 0), """
@@ -278,7 +278,7 @@ public class TestJavaProgramImm {
     package test
 //    Test: base.Main{_ -> (Break# #(L{#(z) -> z, .n -> 4})#(L{#(z) -> z, .n -> 5})).n.str}
     Test: base.Main{_ -> (Break# #(L{#(z) -> z, .n -> 4})).n.str}
-    L: {#(l: L): L, .n: base.Int}
+    L: {#(l: L): L, .n: base.Nat}
     Break: {#: L -> L{#(x) -> L{#(y) -> x, .n -> 2}, .n -> 1}#(L{#(y) -> y, .n -> 3})}
     """); }
 
@@ -300,9 +300,9 @@ public class TestJavaProgramImm {
     """);}
   @Test void blockVarDoRet() { ok(new Res("5", "", 0), """
     package test
-    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    alias base.Nat as Nat, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
     Test:base.Main { _ -> Block#
-     .let[Int] n = {5}
+     .let[Nat] n = {5}
      .do {ForceGen#}
      .return {n .str}
      }
@@ -323,12 +323,12 @@ public class TestJavaProgramImm {
       .pred -> this.pred,
       +(b) -> b,
       *(b) -> this,
-      .int -> 0,
+      .int -> +0,
       }
     S: Num{
       +(b) -> S{this.pred + b},
       *(b) -> b + (b * (this.pred)),
-      .int -> this.pred.int + 1,
+      .int -> this.pred.int + +1,
       }
     """;
   @Test void peanoAdd() { ok(new Res("6", "", 0), """
