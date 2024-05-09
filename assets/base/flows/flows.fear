@@ -75,6 +75,7 @@ _TerminalOps[E]: Sealed{
       }})
   }
 
+// TODO: move all of these extension methods onto the data-types, i.e. myflow#"," to join with "," or myflow#(Int.sum) for summing
 _FlowExtensions: {
   .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold[Str]("", {acc, str -> acc.size == 0 ? {
     .then -> acc + str,
