@@ -811,7 +811,7 @@ public class TestJavaProgram {
       }
     PrintMsg:{
       #(io: mut IO, msg: read IsoPod[iso Str]): Void -> msg.peek{
-        .some(str) -> io.println("peek: " + str),
+        .some(str) -> io.println("peek: " + (str.str)),
         .empty -> Void
         }
       }

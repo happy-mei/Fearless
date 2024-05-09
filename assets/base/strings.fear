@@ -2,12 +2,11 @@ package base
 Str:Sealed {
   // Str is not Stringable due to limitations of the Java codegen target
   read .str: Str,
-  readOnly .size: Nat,
-  readOnly .isEmpty: Bool,
-  readOnly +(other: readOnly Str): Str,
-  readOnly ==(other: readOnly Str): Bool,
-  readOnly .toImm: Str,
-  readOnly .assertEq(other: readOnly Str): Void,
+  .size: Nat,
+  .isEmpty: Bool,
+  +(other: Str): Str,
+  ==(other: Str): Bool,
+  .assertEq(other: Str): Void,
   }
 Stringable: {
   read .str: Str,
@@ -18,12 +17,11 @@ _StrInstance:Str {
   .str -> Magic!,
   +(other) -> Magic!,
   ==(other) -> Magic!,
-  .toImm -> Magic!,
   .assertEq(other) -> Magic!,
   }
 
 _StrHelpers: {
-  .assertEq(expected: readOnly Str, actual: readOnly Str): Void ->
+  .assertEq(expected: Str, actual: Str): Void ->
     Assert!(expected == actual, "Expected: "+expected+"\nActual: "+actual, {{}}),
   }
 
