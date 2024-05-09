@@ -1346,4 +1346,70 @@ public class TestJavaProgram {
         }
       }
     """);}
+
+  @Test void intAssertions() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Void as Void,
+    
+    Test: Main{_ -> Yeet#((+5).assertEq(+5))}
+    Yeet: {#[X](x: X): Void -> {}}
+    """);}
+  @Test void intAssertionsFail() { ok(new Res("", """
+    Expected: 5
+    Actual: 10
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Void as Void,
+    
+    Test: Main{_ -> Yeet#((+5).assertEq(+10))}
+    Yeet: {#[X](x: X): Void -> {}}
+    """);}
+
+  @Test void natAssertions() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Void as Void,
+    
+    Test: Main{_ -> Yeet#((5).assertEq(5))}
+    Yeet: {#[X](x: X): Void -> {}}
+    """);}
+  @Test void natAssertionsFail() { ok(new Res("", """
+    Expected: 5
+    Actual: 10
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Void as Void,
+    
+    Test: Main{_ -> Yeet#((5).assertEq(10))}
+    Yeet: {#[X](x: X): Void -> {}}
+    """);}
+
+  @Test void floatAssertions() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Void as Void,
+    
+    Test: Main{_ -> Yeet#((5.23).assertEq(5.23))}
+    Yeet: {#[X](x: X): Void -> {}}
+    """);}
+  @Test void floatAssertionsFail() { ok(new Res("", """
+    Expected: 5.23
+    Actual: 5.64
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Void as Void,
+    
+    Test: Main{_ -> Yeet#((5.23).assertEq(5.64))}
+    Yeet: {#[X](x: X): Void -> {}}
+    """);}
 }

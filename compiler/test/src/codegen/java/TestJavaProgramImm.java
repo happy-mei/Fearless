@@ -343,4 +343,70 @@ public class TestJavaProgramImm {
     package test
     Test: base.Main{_ -> ((Zero.succ.succ.succ.succ) * (Zero.succ.succ)).int.str}
     """, PEANO);}
+
+  @Test void intAssertions() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#((+5).assertEq(+5))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
+  @Test void intAssertionsFail() { ok(new Res("", """
+    Expected: 5
+    Actual: 10
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#((+5).assertEq(+10))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
+
+  @Test void natAssertions() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#((5).assertEq(5))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
+  @Test void natAssertionsFail() { ok(new Res("", """
+    Expected: 5
+    Actual: 10
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#((5).assertEq(10))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
+
+  @Test void floatAssertions() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#((5.23).assertEq(5.23))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
+  @Test void floatAssertionsFail() { ok(new Res("", """
+    Expected: 5.23
+    Actual: 5.64
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#((5.23).assertEq(5.64))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
 }
