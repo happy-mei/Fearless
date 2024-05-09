@@ -306,11 +306,13 @@ public class Ex09FlowsTest {
 
   @Test void flowDuplicate() { ok(new Res("35 40 45", "", 0), """
     package test
-    Test:Main {sys -> Flow#[Int](+5, +10, +15)
-      .duplicate f2 = {f1 -> f1#(Flow.sum)}
-      .map{n -> n + f2}
-      .map{n -> n.str}
-      #(Flow.str " ")
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](+5, +10, +15)
+        .duplicate[Int,Str] f2 = {f1 -> f1#(Flow.sum)}
+        .map{n -> n + f2}
+        .map{n -> n.str}
+        #(Flow.str " ")
+        )
       }
     """, Base.mutBaseAliases);}
 

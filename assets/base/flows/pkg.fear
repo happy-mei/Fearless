@@ -1,6 +1,6 @@
 package base.flows
 
-alias base.Block as Block,
+alias base.Block as Block, alias base.Continuation as Continuation,
 alias base.Sealed as Sealed,
 alias base.Void as Void,
 alias base.Bool as Bool, alias base.True as True, alias base.False as False,

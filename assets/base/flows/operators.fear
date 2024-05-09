@@ -55,7 +55,6 @@ _Filter: {
   }
 _Map: {
   #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
-//    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return  {{'op
       .step(downstream) -> sink.get.match{
@@ -68,8 +67,6 @@ _Map: {
           upstream.step(sink.get!)
           )
         },
-//    .stop -> Block#(isRunning := False, upstream.stop),
-//    .isRunning -> (isRunning*) && (upstream.isRunning),
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
     }}
@@ -93,4 +90,22 @@ _FlatMap: {
 //      .isRunning -> (isRunning*) && (upstream.isRunning),
       .isRunning -> isRunning*,
       }}
+  }
+_Duplicate: {
+  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E,R]): mut FlowOp[R] -> Block#
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .return  {{'op
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> downstream#(f#e),
+            })),
+          upstream.step(sink.get!)
+          )
+        },
+      .stop -> upstream.stop,
+      .isRunning -> upstream.isRunning,
+    }}
   }

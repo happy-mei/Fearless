@@ -21,6 +21,9 @@ Flow: Sealed, _FlowExtensions, _FlowConverters{
 
 Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
   .self -> this,
+  mut .duplicate[DR,R](x: read F[mut Flow[E],DR], cont: mut Continuation[DR,mut Flow[E],R]): R -> Block#
+    .let collected = {this.list}
+    .return {cont#(x#(collected.flow), collected.flow)},
   }
 
 _NonTerminalOps[E]: {
