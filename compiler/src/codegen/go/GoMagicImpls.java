@@ -26,8 +26,8 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         var lit = getLiteral(p, name);
         try {
           return new Res(lit
-            .map(lambdaName->lambdaName.startsWith("+") ? lambdaName.substring(1) : lambdaName)
-            .map(lambdaName->Long.parseLong(lambdaName.replace("_", ""), 10)+"L")
+            .map(lambdaName->"int64("+(lambdaName.startsWith("+") ? lambdaName.substring(1) : lambdaName)+")")
+            .map(lambdaName->"int64("+Long.parseLong(lambdaName.replace("_", ""), 10)+"L)")
             .orElseGet(()->"((long)"+e.accept(gen, true)+")")).opt();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "Int");
