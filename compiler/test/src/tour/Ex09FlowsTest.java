@@ -330,7 +330,7 @@ public class Ex09FlowsTest {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void flowActor() { ok(new Res("31", "", 0), """
+  @Test void flowActor() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](+5, +10, +15)
@@ -341,12 +341,12 @@ public class Ex09FlowsTest {
           .if {state.get > +16} .return{Block#(downstream#(+500), {})}
           .do {downstream#(+42)}
           .do {downstream#n}
-          .return {{}}}, mut Consumer[mut Var[Int]]{state -> FIO#sys.println(state.get.str)})
+          .return {{}}})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
-  @Disabled @Test void flowActorMutRet() { ok(new Res("31", "", 0), """
+  @Disabled @Test void flowActorMutRet() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](5, 10, 15)
@@ -357,17 +357,13 @@ public class Ex09FlowsTest {
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
           .do {downstream#n}
-          .return {{}}}, mut Consumer[mut Var[Int]]{state -> FIO#sys.println(state.get.str)})
+          .return {{}}})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
 
-  // TODO: right now it is possible to observe pipeline parallelism with the consumer and a limit + actor
-  // This is because the limit runs in parallel with the actor, the actor won't submit any messages incorrectly
-  // but it may run needlessly :(
-  // This is because the STOP message is queued behind any prior messages.
-  @Test void limitedFlowActorAfter() { ok(new Res("6", "", 0), """
+  @Test void limitedFlowActorAfter() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> "42 5".assertEq(
       Flow#[Nat](5, 10, 15)
@@ -376,13 +372,13 @@ public class Ex09FlowsTest {
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
           .do {downstream#n}
-          .return {{}}}, {state -> FIO#sys.println(state.get.str)})
+          .return {{}}})
         .limit(2)
         .map{n -> n.str}
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
-  @Test void limitedFlowActorBefore() { ok(new Res("16", "", 0), """
+  @Test void limitedFlowActorBefore() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10".assertEq(
       Flow#[Int](+5, +10, +15)
@@ -392,7 +388,7 @@ public class Ex09FlowsTest {
           .if {state.get > +16} .return{Block#(downstream#(+500), {})}
           .do {downstream#(+42)}
           .do {downstream#n}
-          .return {{}}}, {state -> FIO#sys.println(state.get.str)})
+          .return {{}}})
         .map{n -> n.str}
         #(Flow.str " ")
       )}

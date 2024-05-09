@@ -36,19 +36,19 @@ _Limit: {
 
 _Actor: {
   // Delegates to _InternalActor to unwrap the iso state so it can be captured as whatever the user wants.
-  #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] ->
-    _InternalActor#[S,E,R](sinkFactory, upstream, state, f, onComplete),
+  #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] ->
+    _InternalActor#[S,E,R](sinkFactory, upstream, state, f),
 
-  .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] ->
-    _InternalActor.anyRet[S,E,R](sinkFactory, upstream, state, f, onComplete),
+  .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: iso S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] ->
+    _InternalActor.anyRet[S,E,R](sinkFactory, upstream, state, f),
   }
 _InternalActor: {
-  #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut FlowOp[imm R] -> Block#
+  #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] -> Block#
     .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return {{'op
       .stop -> op.isRunning ? {
-       .then -> Block#(isRunning := False, upstream.stop, onComplete#state),
+       .then -> Block#(isRunning := False, upstream.stop),
        .else -> {}
        },
       .isRunning -> isRunning*,
@@ -60,7 +60,7 @@ _InternalActor: {
             #(e) -> isRunning.get ? {
               .then -> f#(downstream, state, e).match{
                 .continue -> {},
-                .stop -> Block#(downstream.stop, isRunning := False, onComplete#state),
+                .stop -> Block#(downstream.stop, isRunning := False),
                 },
               .else -> op.stop,
               },
@@ -69,12 +69,12 @@ _InternalActor: {
         },
       }},
 
-  .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut FlowOp[R] -> Block#
+  .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] -> Block#
     .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return {{'op
       .stop -> op.isRunning ? {
-       .then -> Block#(isRunning := False, upstream.stop, onComplete#state),
+       .then -> Block#(isRunning := False, upstream.stop),
        .else -> {}
        },
       .isRunning -> isRunning*,
@@ -85,7 +85,7 @@ _InternalActor: {
             .stop -> Block#(downstream.stop, op.stop),
             #(e) -> f#(downstream, state, e).match{
               .continue -> {},
-              .stop -> Block#(downstream.stop, isRunning := False, onComplete#state),
+              .stop -> Block#(downstream.stop, isRunning := False),
               },
             }))}
           .return {upstream.step(sink.get!)}

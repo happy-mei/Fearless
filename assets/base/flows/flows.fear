@@ -32,10 +32,8 @@ _NonTerminalOps[E]: {
   mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R],
 //  mut .chain(other: mut Flow[R]): mut Flow[R], // TODO: maybe
 
-  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] -> this.actor[S,R](state, f, {_ -> {}}),
-  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[imm R],
-  mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] -> this.actorMut[S,R](state, f, {_ -> {}}),
-  mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut Flow[R],
+  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R],
+  mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R],
 
   mut .limit(n: Nat): mut Flow[E],
 
@@ -94,12 +92,8 @@ EmptyFlow[E]: Flow[E]{
   .filter(p) -> this,
   mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
   mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R] -> mut EmptyFlow[R],
-  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[imm R] -> Block#(
-    onComplete#state,
-    mut EmptyFlow[imm R]),
-  mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut Flow[R] -> Block#(
-    onComplete#state,
-    mut EmptyFlow[R]),
+  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] -> mut EmptyFlow[imm R],
+  mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] -> mut EmptyFlow[R],
   .limit(_) -> this,
   .first -> {},
   .findMap(_) -> {},
