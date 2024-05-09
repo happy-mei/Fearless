@@ -21,12 +21,11 @@ FlowOp[E]: {
 
 
 _Sink: {
-  // Magic to swallow all exceptions, matching the parallel implementation.
-  // This could be non-magical and return `s` if those semantics were not important.
-  #[T](s: mut _Sink[T]): mut _Sink[T] -> Magic!,
+  #[T](s: mut _Sink[T]): mut _Sink[T] -> s,
   }
 _Sink[T]: {
-  mut #(x: T): Void,
+  mut .pushData(x: T): Void,
+  mut .pushError(info: Info): Void,
   mut .stop: Void,
   }
 
