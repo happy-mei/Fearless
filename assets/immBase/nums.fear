@@ -32,6 +32,7 @@ _MathOps[T]: Sealed{
   <=(n: T): Bool,
   ==(n: T): Bool,
   .assertEq(actual: T): Void,
+  .assertEq(message: Str, actual: T): Void,
   }
 _IntOps[T]: Sealed{
   // bitwise
@@ -72,6 +73,7 @@ _IntInstance: Int{
   <=n -> Magic!,
   ==n -> Magic!,
   .assertEq(actual) -> Magic!,
+  .assertEq(message, actual) -> Magic!,
   }
 _NatInstance: Nat{
   .int -> Magic!,
@@ -100,6 +102,7 @@ _NatInstance: Nat{
   <=n -> Magic!,
   ==n -> Magic!,
   .assertEq(actual) -> Magic!,
+  .assertEq(message, actual) -> Magic!,
   }
 _FloatInstance: Float{
   .int -> Magic!,
@@ -127,18 +130,28 @@ _FloatInstance: Float{
   <=n -> Magic!,
   ==n -> Magic!,
   .assertEq(actual) -> Magic!,
+  .assertEq(message, actual) -> Magic!,
   }
 
-_NumsAssertionHelper[T]: {.assertEq(expected: T, actual: T): Void}
+_NumsAssertionHelper[T]: {
+  .assertEq(expected: T, actual: T): Void,
+  .assertEq(message: Str, expected: T, actual: T): Void,
+  }
 _IntAssertionHelper: _NumsAssertionHelper[Int]{
   .assertEq(expected, actual) ->
     Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  .assertEq(message, expected, actual) ->
+    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
   }
 _NatAssertionHelper: _NumsAssertionHelper[Nat]{
   .assertEq(expected, actual) ->
     Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  .assertEq(message, expected, actual) ->
+    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
   }
 _FloatAssertionHelper: _NumsAssertionHelper[Float]{
   .assertEq(expected, actual) ->
     Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  .assertEq(message, expected, actual) ->
+    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
   }

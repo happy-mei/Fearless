@@ -24,7 +24,7 @@ public record MagicImpls(JsCodegen gen, ast.Program p) implements magic.MagicImp
   }
 
   // sign-extension "myNumber >>> 0" to get a 32-bit unsigned integer from a JS double
-  @Override public MagicTrait<MIR.E, String> uint(MIR.E e) {
+  @Override public MagicTrait<MIR.E, String> nat(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
         return Optional.of("\""+e.toString()+"\"");

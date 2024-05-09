@@ -81,12 +81,15 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".assertEq", 1))) {
           return STR."base._IntAssertionHelper_0.assertEq$imm$fun(\{instantiate().orElseThrow()},\{args.getFirst().accept(gen, true)},null)";
         }
+        if (m.equals(new Id.MethName(".assertEq", 2))) {
+          return STR."base._IntAssertionHelper_0.assertEq$imm$fun(\{args.getFirst().accept(gen, true)},\{instantiate().orElseThrow()},\{args.get(1).accept(gen, true)},null)";
+        }
         throw Bug.unreachable();
       }
     };
   }
 
-  @Override public MagicTrait<MIR.E,String> uint(MIR.E e) {
+  @Override public MagicTrait<MIR.E,String> nat(MIR.E e) {
     var name = e.t().name().orElseThrow();
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
@@ -143,6 +146,9 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".assertEq", 1))) {
           return STR."base._NatAssertionHelper_0.assertEq$imm$fun(\{instantiate().orElseThrow()},\{args.getFirst().accept(gen, true)},null)";
         }
+        if (m.equals(new Id.MethName(".assertEq", 2))) {
+          return STR."base._NatAssertionHelper_0.assertEq$imm$fun(\{args.getFirst().accept(gen, true)},\{instantiate().orElseThrow()},\{args.get(1).accept(gen, true)},null)";
+        }
         throw Bug.unreachable();
       }
     };
@@ -190,6 +196,9 @@ public record JavaMagicImpls(
         }
         if (m.equals(new Id.MethName(".assertEq", 1))) {
           return STR."base._FloatAssertionHelper_0.assertEq$imm$fun(\{instantiate().orElseThrow()},\{args.getFirst().accept(gen, true)},null)";
+        }
+        if (m.equals(new Id.MethName(".assertEq", 2))) {
+          return STR."base._FloatAssertionHelper_0.assertEq$imm$fun(\{args.getFirst().accept(gen, true)},\{instantiate().orElseThrow()},\{args.get(1).accept(gen, true)},null)";
         }
         //Float specifics
         if (m.equals(new Id.MethName(".round", 0))) { return "Math.round("+instantiate().orElseThrow()+")"; }

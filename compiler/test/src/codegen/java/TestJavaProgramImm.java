@@ -344,6 +344,42 @@ public class TestJavaProgramImm {
     Test: base.Main{_ -> ((Zero.succ.succ.succ.succ) * (Zero.succ.succ)).int.str}
     """, PEANO);}
 
+  @Test void strAssertions() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#("a".assertEq("a"))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
+  @Test void strAssertionsFail() { ok(new Res("", """
+    Expected: a
+    Actual: b
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#("a".assertEq("b"))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
+  @Test void strAssertionsFailWithMessage() { ok(new Res("", """
+    oh no
+    Expected: a
+    Actual: b
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#("a".assertEq("oh no", "b"))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
+
+
   @Test void intAssertions() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main,
@@ -363,6 +399,19 @@ public class TestJavaProgramImm {
     alias base.Str as Str,
     
     Test: Main{_ -> Yeet#((+5).assertEq(+10))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
+  @Test void intAssertionsFailWithMessage() { ok(new Res("", """
+    oh no
+    Expected: 5
+    Actual: 10
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#((+5).assertEq("oh no", +10))}
     Yeet: {#[X](x: X): Str -> ""}
     """);}
 
@@ -387,6 +436,19 @@ public class TestJavaProgramImm {
     Test: Main{_ -> Yeet#((5).assertEq(10))}
     Yeet: {#[X](x: X): Str -> ""}
     """);}
+  @Test void natAssertionsFailWithMessage() { ok(new Res("", """
+    oh no
+    Expected: 5
+    Actual: 10
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#((5).assertEq("oh no", 10))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
 
   @Test void floatAssertions() { ok(new Res("", "", 0), """
     package test
@@ -407,6 +469,19 @@ public class TestJavaProgramImm {
     alias base.Str as Str,
     
     Test: Main{_ -> Yeet#((5.23).assertEq(5.64))}
+    Yeet: {#[X](x: X): Str -> ""}
+    """);}
+  @Test void floatAssertionsFailWithMessage() { ok(new Res("", """
+    oh no
+    Expected: 5.23
+    Actual: 5.64
+    """, 1), """
+    package test
+    alias base.Main as Main,
+    alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
+    alias base.Str as Str,
+    
+    Test: Main{_ -> Yeet#((5.23).assertEq("oh no", 5.64))}
     Yeet: {#[X](x: X): Str -> ""}
     """);}
 }

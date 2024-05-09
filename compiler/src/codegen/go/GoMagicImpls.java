@@ -74,7 +74,7 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
   }
 
   // TODO: golang computes constant arithmetic at compile-time and will throw for invalid Nats in that case, which is annoyingly different behaviour than Java
-  @Override public MagicTrait<MIR.E, Res> uint(MIR.E e) {
+  @Override public MagicTrait<MIR.E, Res> nat(MIR.E e) {
     var name = e.t().name().orElseThrow();
     return new MagicTrait<>() {
       @Override public Optional<Res> instantiate() {
