@@ -3,8 +3,7 @@ package main;
 import ast.Program;
 import astFull.Package;
 import codegen.MIRInjectionVisitor;
-import codegen.html.HtmlDocgen;
- import codegen.java.JavaCompiler;
+import codegen.java.JavaCompiler;
 import codegen.java.JavaFile;
 import failure.CompileError;
 import failure.Fail;
@@ -25,7 +24,6 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URISyntaxException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
@@ -81,27 +79,6 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
     } catch (IOException err) {
       System.err.println("Error creating package structure: "+ err);
       System.exit(1);
-    }
-  }
-
-  void generateDocs(String[] files) throws IOException, URISyntaxException {
-    if (files == null) { files = new String[0]; }
-    var p = generateProgram(files, new ConcurrentHashMap<>());
-    var docgen = new HtmlDocgen(p);
-    var docs = docgen.visitProgram();
-    Path root = Path.of("docs");
-    try { Files.createDirectory(root); } catch (FileAlreadyExistsException ignored) {}
-    Files.writeString(root.resolve(docs.fileName()), docs.index());
-    var styleCss = ResolveResource.getAndReadAsset("/style.css");
-    Files.writeString(root.resolve("style.css"), styleCss);
-    var highlightingJs = ResolveResource.getAndReadAsset("/highlighting.js");
-    Files.writeString(root.resolve("highlighting.js"), highlightingJs);
-    for (var pkg : docs.docs()) {
-      var links = pkg.links();
-      Files.writeString(root.resolve(pkg.fileName()), pkg.index(links));
-      for (var trait : pkg.traits()) {
-        Files.writeString(root.resolve(trait.fileName()), trait.html(links));
-      }
     }
   }
 

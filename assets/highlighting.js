@@ -11,6 +11,7 @@ hljs.registerLanguage('fearless', _ => ({
 			'readOnly',
 			'lent',
 			'recMdf',
+			'read/imm',
 		],
 	},
 	contains: [
