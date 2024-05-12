@@ -558,4 +558,13 @@ public class Ex09FlowsTest {
         .to list..
       )}
     """, Base.mutBaseAliases);}
+
+  @Test void cannotUnwrapFlow() {fail("""
+    In position [###]/Dummy0.fear:2:56
+    [E48 privateTraitImplementation]
+    The private trait base.flows._UnwrapFlowToken/0 cannot be implemented outside of its package.
+    """, """
+    package test
+    Test:Main {sys -> Block#(Flow#[Int](5, 10, 15).unwrapOp({}))}
+    """, Base.mutBaseAliases);}
 }
