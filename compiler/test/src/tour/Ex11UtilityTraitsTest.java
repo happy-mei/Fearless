@@ -21,7 +21,7 @@ public class Ex11UtilityTraitsTest {
     FPerson:{ #(name: Str): mut Person -> Block#
       .let nameRef = {Var#name}
       .return {mut Person:{
-        read .name: Str -> nameRef.get.toImm,
+        read .name: Str -> nameRef.get,
         mut .name(newName: Str): Void -> nameRef.set(newName),
         }}
       }
