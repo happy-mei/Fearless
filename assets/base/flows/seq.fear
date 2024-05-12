@@ -2,6 +2,7 @@ package base.flows
 
 _SeqFlow: {
   .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
+    .unwrapOp(_) -> source,
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
     .map(f) -> this.fromOp(_Map#(_Sink, source, f), size),

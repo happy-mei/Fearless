@@ -7,6 +7,7 @@ _PipelineParallelSink[T]: _Sink[T]
 
 _PipelineParallelFlow: {
   .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
+    .unwrapOp(_) -> source,
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
     .map(f) -> this.fromOp(_Map#(_PipelineParallelSink, source, f), size),
