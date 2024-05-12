@@ -20,8 +20,12 @@ _Limit: {
             .stop -> downstream.stop,
             #(e) -> remaining* == 0 || (remaining-- == 0) ? {
               .then -> runner.stop,
-              .else -> downstream#e
-              }
+              .else -> downstream#e,
+              },
+            .pushError(info) -> remaining* == 0 ? {
+              .then -> {},
+              .else -> downstream.pushError(info),
+              },
             }))}
           .return {upstream.step(sink.get!)}
         },
@@ -64,6 +68,10 @@ _InternalActor: {
                 },
               .else -> op.stop,
               },
+            .pushError(info) -> isRunning.get ? {
+              .then -> downstream.pushError(info),
+              .else -> {},
+              },
             }))}
           .return {upstream.step(sink.get!)}
         },
@@ -86,6 +94,10 @@ _InternalActor: {
             #(e) -> f#(downstream, state, e).match{
               .continue -> {},
               .stop -> Block#(downstream.stop, isRunning := False),
+              },
+            .pushError(info) -> isRunning.get ? {
+              .then -> downstream.pushError(info),
+              .else -> {},
               },
             }))}
           .return {upstream.step(sink.get!)}

@@ -37,7 +37,7 @@ public interface PipelineParallelFlow {
 //        System.out.println("Stop received (SUBJ "+subjectId+")");
 //        original.stop$mut$();
 //      });
-      this.subject = spawn(original::$hash$mut, original::stop$mut);
+      this.subject = spawn(original::$hash$mut, original::pushError$mut, original::stop$mut);
     }
 
     @Override public base.Void_0 stop$mut() {
@@ -63,48 +63,27 @@ public interface PipelineParallelFlow {
       this.subject.ref().submit(new FlowRuntime.Message.Data<>(x$));
       return base.Void_0.$self;
     }
+    @Override public base.Void_0 pushError$mut(base.Info_0 info$) {
+      this.subject.ref().submit(new FlowRuntime.Message.Error<>(info$));
+      return base.Void_0.$self;
+    }
   }
 
-//  interface ActorImpl<S,E> {
-//    base.flows.ActorRes_0 apply(
-//      SubmissionPublisher<FlowRuntime.Message<E>> self,
-//      S state,
-//      base.flows._Sink_1 downstream,
-//      FlowRuntime.Message.Data<E> msg
-//    );
-//  }
-
-
-//  static <S,E> FlowRuntime.Subject<E> getActor(
-//    long subjectId,
-//    base.flows._Sink_1 downstream,
-//    S state,
-//    ActorImpl<S,E> subscriber,
-//    Runnable stop
-//  ) {
-//    return FlowRuntime.<E>getSubject(subjectId)
-//      .orElseGet(() -> spawnActor(
-//        FlowRuntime.spawnWorker(),
-//        downstream,
-//        state,
-//        subscriber,
-//        stop
-//      ));
-//  }
-
-  static <E> FlowRuntime.Subject<E> spawn(Consumer<E> subscriber, Runnable stop) {
+  static <E> FlowRuntime.Subject<E> spawn(Consumer<E> downstreamData, Consumer<base.Info_0> downstreamErrors, Runnable stop) {
     var self = FlowRuntime.<E>spawnWorker();
-    return new FlowRuntime.Subject<>(self, subject->self.consume(msg->{
+    return new FlowRuntime.Subject<>(self, self.consume(msg->{
       switch (msg) {
         case FlowRuntime.Message.Data<E> data -> {
-          if (subject.hasThrown()) {
-            return;
-          }
           try {
-            subscriber.accept(data.data());
+            downstreamData.accept(data.data());
+          } catch (FearlessError err) {
+            downstreamErrors.accept(err.info);
           } catch (Throwable t) {
-            subject.hasThrown(t);
+            throw t;
           }
+        }
+        case FlowRuntime.Message.Error<E> info -> {
+          downstreamErrors.accept(info.info());
         }
         case FlowRuntime.Message.Stop<E> ignored -> {
           stop.run();
@@ -113,29 +92,4 @@ public interface PipelineParallelFlow {
       }
     }));
   }
-
-//  static <S,E,R> FlowRuntime.Subject<E> spawnActor(
-//    SubmissionPublisher<FlowRuntime.Message<E>> self,
-//    base.flows._Sink_1 downstream,
-//    S state,
-//    ActorImpl<S,E> subscriber,
-//    Runnable stop
-//  ) {
-//    return new FlowRuntime.Subject<E>(self, self.consume(msg->{
-//      System.out.println("Message received: "+msg);
-//      switch (msg) {
-//        case FlowRuntime.Message.Data<E> data -> subscriber.apply(self, state, downstream, data).match$imm$(new base.flows.ActorResMatch_1(){
-//          @SuppressWarnings("unchecked")
-//          public Object stop$mut$() {
-//            self.submit(FlowRuntime.Message.Stop.INSTANCE);
-//            return null;
-//          }
-//          public Object continue$mut$() {
-//            return null;
-//          }
-//        });
-//        case FlowRuntime.Message.Stop<E> ignored -> self.close();
-//      }
-//    }));
-//  }
 }

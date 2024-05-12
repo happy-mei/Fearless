@@ -17,6 +17,7 @@ _SeqFlow: {
       .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
       .do {source.forRemaining(mut _Sink[E]{'runner
         .stop -> source.stop,
+        .pushError(info) -> Error!info,
         #(e) -> res.get.isEmpty ? {
           .then -> Block#
             .do {res := (Opts#e)}
@@ -31,6 +32,7 @@ _SeqFlow: {
       .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
       .do {source.forRemaining(mut _Sink[E]{'runner
         .stop -> source.stop,
+        .pushError(info) -> Error!info,
         #(e) -> res.get.isEmpty ? {
           .then -> f#e.match{
             .some(e') -> Block#
@@ -57,6 +59,7 @@ _SeqFlow: {
       .let[mut Var[S]] acc' = {Var#acc}
       .do {source.forRemaining(mut _Sink[E]{
         .stop -> {},
+        .pushError(info) -> Error!info,
         #(e) -> acc' := (f#(acc'.get, e)),
         })}
       .do {source.stop}

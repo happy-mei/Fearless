@@ -20,8 +20,15 @@ _PipelineParallelFlow: {
     // terminals
     mut .first: mut Opt[E] -> Block#
       .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
+      .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
-        .stop -> source.stop,
+        .stop -> Block#
+          .do {stopped := True}
+          .return {source.stop},
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
         #(e) -> res.get.isEmpty ? {
           .then -> Block#
             .do {res := (Opts#e)}
@@ -34,8 +41,15 @@ _PipelineParallelFlow: {
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
+      .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
-        .stop -> source.stop,
+        .stop -> Block#
+          .do {stopped := True}
+          .return {source.stop},
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
         #(e) -> res.get.isEmpty ? {
           .then -> f#e.match{
             .some(e') -> Block#
@@ -60,10 +74,14 @@ _PipelineParallelFlow: {
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .let[mut Var[S]] acc' = {Var#acc}
+      .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(_PipelineParallelSink#[E]{
-        .stop -> {},
-//        .stop -> source.stop,
         #(e) -> acc' := (f#(acc'.get, e)),
+        .stop -> stopped := True,
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
         })}
       .do {source.stop}
       .return {acc'.get},

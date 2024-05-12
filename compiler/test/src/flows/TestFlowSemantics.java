@@ -32,14 +32,9 @@ public class TestFlowSemantics {
     """, Base.mutBaseAliases);}
 
   /*
-   * When a flow has an uncaught error, it goes "stuck". The error is not accessible by the outside world and that
-   * step will not process any new elements. This observable behaviour is the same in parallel and sequential flows.
-   * It is quite sad to have flows not reveal any exceptions or even if one occurred. But I think it's the most sound
-   * approach for now.
-   *
-   * Effectively, any error in a flow can be seen as non-termination. (TODO: is this true? I think I can collect it to a list still and it'll work because I just skip all elements after the failure instead of truly going stuck)
+   * Fearless errors in flow before a stop are propagated. Fearless errors after the "stop" are ignored.
    */
-  @Test void throwInAFlowBeforeStopPar() {ok(new RunOutput.Res("10", "", 0), """
+  @Test void throwInAFlowBeforeStopPar() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[Nat](1, 2, 3)
@@ -47,7 +42,6 @@ public class TestFlowSemantics {
           .if {x.nat == 2} .do {Error.msg (x.str)}
           .return {x.nat * 10}
           }
-        .limit(1)
         }
       .let[Nat] sum = {x#(Flow.uSum)}
       .let[mut IO] io = {FIO#sys}
@@ -72,7 +66,7 @@ public class TestFlowSemantics {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void throwInAFlowBeforeStopSeq() {ok(new RunOutput.Res("10", "", 0), """
+  @Test void throwInAFlowBeforeStopSeq() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[mut Nat](mut 1, mut 2, mut 3)
@@ -80,7 +74,6 @@ public class TestFlowSemantics {
           .if {x.nat == 2} .do {Error.msg (x.str)}
           .return {x.nat * 10}
           }
-        .limit(1)
         }
       .let[Nat] sum = {x#(Flow.uSum)}
       .let[mut IO] io = {FIO#sys}
@@ -96,12 +89,84 @@ public class TestFlowSemantics {
           .if {x.nat == 2} .do {Error.msg (x.str)}
           .return {x.nat * 10}
           }
-        .limit(2)
+        .limit(1)
         }
       .let[Nat] sum = {x#(Flow.uSum)}
       .let[mut IO] io = {FIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
       }
+    """, Base.mutBaseAliases);}
+
+  /*
+   * Non-deterministic errors bubble up, even if the flow isn't listening anymore because they're only catchable
+   * in Fearless code with a capability anyway.
+   */
+  @Test void throwInAFlowBeforeStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
+    package test
+    Test: Main{sys -> Block#
+      .let x = {Flow#[Nat](1, 2, 3)
+        .map{x->Block#
+          .if {x.nat == 2} .do {StackOverflow#}
+          .return {x.nat * 10}
+          }
+        }
+      .let[Nat] sum = {x#(Flow.uSum)}
+      .let[mut IO] io = {FIO#sys}
+      .do {io.println(sum.str)}
+      .return {{}}
+      }
+    StackOverflow: {#[R]: R -> this#}
+    """, Base.mutBaseAliases);}
+  @Test void throwInAFlowAfterStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
+    package test
+    Test: Main{sys -> Block#
+      .let x = {Flow#[Nat](1, 2, 3)
+        .map{x->Block#
+          .if {x.nat == 2} .do {StackOverflow#}
+          .return {x.nat * 10}
+          }
+        .limit(1)
+        }
+      .let[Nat] sum = {x#(Flow.uSum)}
+      .let[mut IO] io = {FIO#sys}
+      .do {io.println(sum.str)}
+      .return {{}}
+      }
+    StackOverflow: {#[R]: R -> this#}
+    """, Base.mutBaseAliases);}
+
+  @Test void throwInAFlowBeforeStopSeqND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
+    package test
+    Test: Main{sys -> Block#
+      .let x = {Flow#[mut Nat](mut 1, mut 2, mut 3)
+        .map{x->Block#
+          .if {x.nat == 2} .do {StackOverflow#}
+          .return {x.nat * 10}
+          }
+        }
+      .let[Nat] sum = {x#(Flow.uSum)}
+      .let[mut IO] io = {FIO#sys}
+      .do {io.println(sum.str)}
+      .return {{}}
+      }
+    StackOverflow: {#[R]: R -> this#}
+    """, Base.mutBaseAliases);}
+  @Test void throwInAFlowAfterStopSeqND() {ok(new RunOutput.Res("10", "", 0), """
+    package test
+    Test: Main{sys -> Block#
+      .let x = {Flow#[mut Nat](mut 1, mut 2, mut 3)
+        .map{x->Block#
+          .if {x.nat == 2} .do {StackOverflow#}
+          .return {x.nat * 10}
+          }
+        .limit(1)
+        }
+      .let[Nat] sum = {x#(Flow.uSum)}
+      .let[mut IO] io = {FIO#sys}
+      .do {io.println(sum.str)}
+      .return {{}}
+      }
+    StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
 }

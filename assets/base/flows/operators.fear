@@ -24,12 +24,12 @@ _Sink: {
   #[T](s: mut _Sink[T]): mut _Sink[T] -> s,
   }
 _Sink[T]: {
-  mut .pushData(x: T): Void,
+  mut #(x: T): Void,
   mut .pushError(info: Info): Void,
   mut .stop: Void,
   }
 
-// TODO: REUSE SINK OBJECTS! THE IDENTITY IS IMPORTANT FOR WHEN THEY ARE RAN IN PARALLEL!!!!!!!
+// IMPORTANT NOTE: REUSE SINK OBJECTS! THE IDENTITY IS IMPORTANT FOR WHEN THEY ARE RAN IN PARALLEL!!!!!
 
 _Filter: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
@@ -43,6 +43,7 @@ _Filter: {
 //            .stop -> Block#(downstream.stop, isRunning := False),
             .stop -> downstream.stop,
             #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
+            .pushError(info) -> downstream.pushError(info),
             })),
           upstream.step(sink.get!)
           )
@@ -62,6 +63,7 @@ _Map: {
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> downstream#(f#e),
+            .pushError(info) -> downstream.pushError(info),
             })),
           upstream.step(sink.get!)
           )
@@ -81,6 +83,7 @@ _FlatMap: {
           sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(isRunning := False, downstream.stop),
             #(e) -> f#e.list.iter.filter{_ -> op.isRunning}.for{e' -> downstream#e'},
+            .pushError(info) -> downstream.pushError(info),
             })),
           upstream.step(sink.get!)
           )
@@ -89,22 +92,4 @@ _FlatMap: {
 //      .isRunning -> (isRunning*) && (upstream.isRunning),
       .isRunning -> isRunning*,
       }}
-  }
-_Duplicate: {
-  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E,R]): mut FlowOp[R] -> Block#
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
-    .return  {{'op
-      .step(downstream) -> sink.get.match{
-        .some(sink') -> upstream.step(sink'),
-        .empty -> Block#(
-          sink := (Opts#(sinkFactory#[E]{
-            .stop -> downstream.stop,
-            #(e) -> downstream#(f#e),
-            })),
-          upstream.step(sink.get!)
-          )
-        },
-      .stop -> upstream.stop,
-      .isRunning -> upstream.isRunning,
-    }}
   }
