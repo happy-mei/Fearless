@@ -304,12 +304,35 @@ public class Ex09FlowsTest {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void flowDuplicate() { ok(new Res("35 40 45", "", 0), """
+  @Test void flowLet() { ok(new Res("35 40 45", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       Flow#[Int](+5, +10, +15)
-        .duplicate[Int,Str] f2 = {f1 -> f1#(Flow.sum)}
+        .let[Int,Str] f2 = {f1 -> f1# #(Flow.sum)}
         .map{n -> n + f2}
+        .map{n -> n.str}
+        #(Flow.str " ")
+        )
+      }
+    """, Base.mutBaseAliases);}
+  @Test void flowLetMultiple() { ok(new Res("65 70 75", "", 0), """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](+5, +10, +15)
+        .let[Int,Str] f2 = {f1 -> (f1# #(Flow.sum)) + (f1# #(Flow.sum))}
+        .map{n -> n + f2}
+        .map{n -> n.str}
+        #(Flow.str " ")
+        )
+      }
+    """, Base.mutBaseAliases);}
+  @Test void flowLetNoCollect() { ok(new Res("135 140 145", "", 0), """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](+5, +10, +15)
+        .let[Int,Str] f2 = {f -> f# #(Flow.sum)}
+        .let[Int,Str] f3 = {_ -> +100}
+        .map{n -> n + f2 + f3}
         .map{n -> n.str}
         #(Flow.str " ")
         )
@@ -489,7 +512,6 @@ public class Ex09FlowsTest {
 //      )}
 //    """, Base.mutBaseAliases);}
 
-  // TODO: The error that this generates without the .toImm on the list item is _terrible_ (and takes like 1 and a half minutes)
   @Test void flowActorMultiParallel() { ok(new Res(), """
     package test
     Test:Main {sys -> Block#

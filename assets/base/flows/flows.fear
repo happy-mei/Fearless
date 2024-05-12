@@ -21,10 +21,14 @@ Flow: Sealed, _FlowExtensions, _FlowConverters{
 
 Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
   .self -> this,
-  mut .duplicate[DR,R](x: read F[mut Flow[E],DR], cont: mut Continuation[DR,mut Flow[E],R]): R -> Block#
-    .let collected = {this.list}
-    .let splitResult = {x#(collected.flow)}
-    .return {cont#(splitResult, collected.flow)},
+  mut .let[DR,R](x: read F[mut MF[mut Flow[E]],DR], cont: mut Continuation[DR,mut Flow[E],R]): R -> Block#
+    .let duplicator = {_LazyFlowDuplicators#this}
+    .let splitResult = {x#duplicator}
+    .let[mut Flow[E]] selfFlow = {duplicator.collected.match{
+      .some(collected) -> collected.flow,
+      .empty -> this,
+      }}
+    .return {cont#(splitResult, selfFlow)},
   mut .unwrapOp(unwrap: mut _UnwrapFlowToken): mut FlowOp[E],
   }
 _UnwrapFlowToken: {}
