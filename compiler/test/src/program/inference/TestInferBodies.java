@@ -1437,4 +1437,16 @@ public class TestInferBodies {
       read .riget: read/imm T,
       }
     """);}
+
+  @Test void namedLiteral() {ok("""
+    {a.Bob/0=Dec[name=a.Bob/0,gxs=[],lambda=[--][a.Bob[]]{'this}],
+    a.Bar/1=Dec[name=a.Bar/1,gxs=[X],lambda=[--][a.Bar[X]]{'thi
+      .m/0([]):Sig[gens=[],ts=[],ret=imma.Foo[X]]->
+        [-imm-][a.Foo[X]]{'fear3$}}],
+    a.List/1=Dec[name=a.List/1,gxs=[T],lambda=[--][a.List[T]]{'this}]}
+    ""","""
+    package a
+    List[T]:{} Bob:{}
+    Bar[X]: {.m(): Foo[X] -> Foo[X]:{}}
+    """);}
 }

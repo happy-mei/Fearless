@@ -603,4 +603,12 @@ public class TestMethsPost5a {
   @Test void bool5() { ok("""
     [bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X0/0$][mutbools.ThenElse[X0/0$]]:X0/0$impl]
     """, "bools.Fresh2", boolPkg); }
+
+  @Test void namedLiteral() {ok("""
+    [a.Bar[imma.List[imma.Bob[]]],imm.m/0()[][]:imma.Foo[imma.List[imma.Bob[]]]impl]
+    """, "a.Bar[a.List[a.Bob]]", """
+    package a
+    List[T]:{} Bob:{}
+    Bar[X]: {.m(): Foo[X] -> Foo[X]:{}}
+    """);}
 }

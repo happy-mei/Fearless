@@ -1346,4 +1346,15 @@ public class TestJavaProgram {
         }
       }
     """);}
+
+  @Test void namedLiteral() {ok(new Res("Bob", "", 0), """
+    package test
+    Test: Main{sys -> FIO#sys.println(CanCall# .str)}
+    
+    Bob:{read .str: Str -> "Bob"}
+    Bar[X]: {.m(x: X): mut Foo[X] -> mut Foo[X]:{
+      mut .get: X -> x
+      }}
+    CanCall: {#: Bob -> Bar[Bob].m(Bob).get}
+    """, Base.mutBaseAliases);}
 }
