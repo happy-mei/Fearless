@@ -19,18 +19,18 @@ record MultiSigBuilder(
     Mdf mdf0, List<T> expectedRes,
     ast.E.Sig s, int size, List<ArrayList<T>> tss,ArrayList<T> rets){
   //TODO: ignoring bounds now, we may need to add them as a field
-  static MultiSig of(CM cm,Mdf mdf0,IT<T> it0, MethName m,List<T> expectedRes){
+  static MultiSig multiMethod(CM cm,Mdf mdf0,IT<T> it0, MethName m,List<T> expectedRes){
     var res= new MultiSigBuilder(
       mdf0,expectedRes,
       cm.sig(), cm.sig().ts().size(),
       cm.sig().ts().stream().map(t->new ArrayList<T>()).toList(),
       new ArrayList<T>());
-    //TODO: not just add all of them, but filter by mdf0 and expectedRes
     res.fillIsoHProm();
     res.fillIsoProm();
     res.fillBase();
-    //res.fillReadHProm();
-    //res.fillMutHProm();    
+    res.fillReadHProm();
+    res.fillMutHPromRec();
+    res.fillMutHPromPar();
     return new MultiSig(
       res.tss.stream().map(a->Collections.unmodifiableList(a)).toList(),
       Collections.unmodifiableList(res.rets));
@@ -39,39 +39,56 @@ record MultiSigBuilder(
     Mdf limit= f.apply(s.ts().get(0).mdf());
     return program.Program.isSubType(mdf0, limit);
   }
+  boolean filterExpectedRes(Mdf retMdf) {
+    return rets.stream().map(T::mdf).anyMatch(expectedMdf->
+      program.Program.isSubType(retMdf, expectedMdf));
+  }
+
   boolean filterRes() {
     return false;
   }
-  void fillBase(){
-    if(!filterMdf(this::mutIsoReadImm)){ return; }
-    fillProm(t->t,t->t); 
-  }
-  void fillIsoProm(){
-    if(!filterMdf(this::mutIsoReadImm)){ return; }
-    fillProm(
-      t->fixP(t,this::mutIsoReadImm),
-      t->fixR(t,this::mutIsoReadImm));
-  }
-  void fillIsoHProm(){
-    if(!filterMdf(this::mutIsoReadImmReadHImm)){ return; }
-    fillProm(
-      t->fixP(t,this::mutIsoReadImmReadHImm),
-      t->fixR(t,this::mutIsoReadImmReadHImm));
+  void fillBase(){ fillProm(m->m); }
+  void fillIsoProm(){ fillProm(this::mutIsoReadImm); }
+  void fillIsoHProm(){ fillProm(this::mutIsoReadImmReadHImm); }  
+  void fillReadHProm(){
+    fillProm(this::mutIsoReadReadH,this::mutIsoReadReadH,this::toHyg);
     }
-  /* TODO: not sure how fixP/fixR should work here.
-  void fillReadHProm(){ fillProm(
-      t->fixP(t,this::mutIsoReadReadH),
-      t->fixR(t,this::toHyg));
+  void fillMutHPromRec(){//two version: one for receiver mut <->mutH
+    if(!s.ts().get(0).mdf().isMut()){ return; }
+    fillProm(this::mutMutH,this::mutIso,this::toHyg);
     }
-    //fillMutHProm still missing
-  */
-  void fillProm(Function<T,T> p,Function<T,T> r){
+  void fillMutHPromPar(){//one for parameter mut <->mutH
+    int countMut= (int)s.ts().stream()
+      .skip(1).filter(t->t.mdf().isMut()).count();
+    for(int i:Range.of(0,countMut)){ fillMutHPromPar(i); }
+    }
+  void fillMutHPromPar(int specialMut){//one for parameter mut <->mutH
+    if(!filterMdf(this::mutIso)){ return; }
+    assert size == s.ts().size();//suspect is size+1 == s.ts().size()
+    var addRet= fixR(s.ret(),this::toHyg);
+    if(!filterExpectedRes(addRet.mdf())){ return; }
+    rets.add(addRet);
+    int count= 0;    
     for(var i : Range.of(0,size)){
-      tss.get(i).add(p.apply(s.ts().get(i)));//wrong use of s?
+      T currT= s.ts().get(i);//wrong use of s?
+      var special= currT.mdf().isMut() && i==count;
+      if(special){ count++; }
+      var addT= fixP(currT,special?this::mutMutH:this::mutIso);
+      tss.get(i).add(addT);
     }
-    rets.add(r.apply(s.ret()));    
   }
+  void fillProm(Function<Mdf,Mdf> f){ fillProm(f,f,f); }  
   
+  void fillProm(Function<Mdf,Mdf> rec,Function<Mdf,Mdf> p,Function<Mdf,Mdf> r){
+    if(!filterMdf(rec)){ return; }
+    assert size == s.ts().size();//suspect is size+1 == s.ts().size()
+    var addRet= fixR(s.ret(),r);
+    if(!filterExpectedRes(addRet.mdf())){ return; }
+    rets.add(addRet);
+    for(var i : Range.of(0,size)){
+      tss.get(i).add(fixP(s.ts().get(i),p));//wrong use of s?
+    }
+  }
   T fixP(T t,Function<Mdf,Mdf> f){
     if(t.mdf().isMdf()){ return t.withMdf(Mdf.iso); }
     //t.isMdfX() == t.mdf().isMdf()
@@ -105,6 +122,21 @@ record MultiSigBuilder(
     if(t.mdf().isMdf()){ return t.withMdf(Mdf.imm); }
     return t.withMdf(f.apply(t.mdf()));
     }
+  Mdf mutIso(Mdf m){
+    assert m.isSyntaxMdf();
+    return switch(m){
+      case mut->Mdf.iso;
+      default ->m;
+    };
+  }
+  Mdf mutMutH(Mdf m){
+    assert m.isSyntaxMdf();
+    return switch(m){
+      case mut->Mdf.lent;
+      default ->m;
+    };
+  }
+
   Mdf mutIsoReadImm(Mdf m){
     assert m.isSyntaxMdf();
     return switch(m){

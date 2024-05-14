@@ -44,6 +44,9 @@ public interface EMethTypeSystem extends ETypeSystem {
   T= selectResult(T1..Tn, Ts1..Tsn -> Ts0)
 ---------------------------------------------------------------
   Ls; Xs'; G; Ts' |- e0 m[Ts](e1..en) : T
+  
+  |mut A|,|read B| ->|mut C|
+  |iso A| |imm B |   |iso C|
 */
   default FailOr<T> visitMCall(E.MCall e) {
     var recV= this.withExpectedTs(List.of());
@@ -64,7 +67,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     var xbs= xbs().addBounds(gens, sig.bounds());
     var transformer= renamer.renameFun(e.ts(), gens);
     sig= sig.withSig(renamer.renameSigOnMCall(sig.sig(),xbs,transformer));    
-    var multi= MultiSigBuilder.of(sig,mdf0,it0,e.name(),this.expectedT());
+    var multi= MultiSigBuilder.multiMethod(sig,mdf0,it0,e.name(),this.expectedT());
     Iterable<Integer> is= IntStream.range(0, e.es().size())::iterator;
     FailOr<List<T>> ft1n= FailOr.fold(is,
       i-> e.es().get(i).accept(multi.expectedT(this, i)));
