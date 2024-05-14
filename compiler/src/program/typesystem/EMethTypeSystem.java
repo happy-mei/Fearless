@@ -9,6 +9,7 @@ import id.Mdf;
 import program.CM;
 import program.Program;
 import program.TypeRename;
+import utils.Bug;
 import utils.Push;
 import utils.Range;
 
@@ -59,33 +60,48 @@ public interface EMethTypeSystem extends ETypeSystem {
       it->visitMCall(t0.mdf(),it,e)
       );
   }
-  private FailOr<T> visitMCall(Mdf mdf0, IT<T> it0, E.MCall e) {
-    var sigs= p().meths(xbs(),mdf0,it0, e.name(),depth());
-    CM sig= selectOverload(sigs,mdf0);
+  private CM applyGenerics(CM sig, List<T> ts){
     var renamer = TypeRename.core(p());
     var gens= sig.sig().gens();
-    var xbs= xbs().addBounds(gens, sig.bounds());
-    var transformer= renamer.renameFun(e.ts(), gens);
-    sig= sig.withSig(renamer.renameSigOnMCall(sig.sig(),xbs,transformer));    
-    var multi= MultiSigBuilder.multiMethod(sig,mdf0,it0,e.name(),this.expectedT());
-    Iterable<Integer> is= IntStream.range(0, e.es().size())::iterator;
-    FailOr<List<T>> ft1n= FailOr.fold(is,
+    //var xbs= xbs().addBounds(gens, sig.bounds());//No? from 2 different scopes?
+    var transformer= renamer.renameFun(ts, gens);
+    return sig.withSig(renamer.renameSigOnMCall(sig.sig(),xbs(),transformer));    
+  }
+  private FailOr<T> visitMCall(Mdf mdf0, IT<T> it0, E.MCall e) {
+    var sigs= p().meths(xbs(),mdf0,it0, e.name(),depth()).stream()
+      .map(s->applyGenerics(s,e.ts()))
+      .sorted(Comparator.comparingInt(cm->
+          EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
+      .toList();
+    CM sig= selectOverload(sigs,mdf0);
+    var multi= MultiSigBuilder
+      .multiMethod(xbs(),sig,mdf0,it0,e.name(),this.expectedT());
+    FailOr<List<T>> ft1n= FailOr.fold(Range.of(e.es()),
       i-> e.es().get(i).accept(multi.expectedT(this, i)));
     return ft1n.flatMap(t1n->selectResult(e,multi,t1n));
   }
   private CM selectOverload(List<CM> sigs,Mdf mdf0){
+    if(sigs.size()==1){ return sigs.get(0); }
     return sigs.stream()
       .filter(cm->selectOverload(cm, mdf0))
-      .findFirst()
-      .orElse(sigs.get(0));
+      .findFirst()//Note: ok find first since ordered by mdf before
+      .orElseThrow(Bug::of);
   }
   private boolean selectOverload(CM cm,Mdf mdf0){
-    if (!Program.isSubType(cm.mdf(), mdf0)){ return false; }
-    return expectedT().stream().anyMatch(t->p().isSubType(xbs(),cm.ret(),t));
+    if (!Program.isSubType(mdf0,cm.mdf())){ return false; }
+    if(expectedT().isEmpty()){ return true; }
+    //TODO: What about promotions? 
+    //readH could be passed to a read for example.
+    //Full check. Too strict, promotions
+    //return expectedT().stream()
+    //  .anyMatch(t->p().isSubType(xbs(),cm.ret(),t));
+    //Weaker check. Too strict, consider mut Opt[E] vs mut Opt[read/imm E]
+    //return expectedT().stream().map(t->t.withMdf(Mdf.imm))
+    //  .anyMatch(t->p().isSubType(xbs(),cm.ret().withMdf(Mdf.imm),t));
+    return true;
   }
   private FailOr<T> selectResult(E.MCall e, MultiSig multi,List<T> t1n){
-    assert multi.tss().size()!=t1n.size();
-    assert multi.tss().size()==t1n.size();//will fail since tss has 'this'?
+    assert multi.tss().size()==t1n.size();//That is, tss does not have 'this'?
     var sel= IntStream.range(0, multi.rets().size())
       .filter(i->ok(multi,i,t1n))
       .boxed()
@@ -106,7 +122,8 @@ public interface EMethTypeSystem extends ETypeSystem {
 record MultiSig(List<List<T>> tss, List<T> rets){
   MultiSig{
     int size= rets.size();
-    assert size > 1;
+    assert size >= 1:
+      "No, this should become a type error since we filter on recMdf and expected results";
     assert tss.stream().allMatch(ts->ts.size() == size):
       tss+" "+rets;
   }
@@ -132,7 +149,7 @@ record MultiSig(List<List<T>> tss, List<T> rets){
 
   * selectOverload(..) filters an overloaded version using T0,Ts
 
-  * multiMeth with new order, and return ListListT->ListT, pre filtered by T0,Ts
+  * multiMeth with new order, and return ListListT->ListT, pre filtered by T0,Ts. If empty expected types Ts, we do not filter by Ts.
     sig[mut=iso, read=imm, readonly=imm]
     sig[mut=iso, read=imm]
     sig

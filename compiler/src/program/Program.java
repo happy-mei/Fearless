@@ -51,7 +51,9 @@ public interface Program {
       case readOnly, mdf, recMdf, read, lent -> false;
     };
   }
-  default boolean isSubType(XBs xbs, astFull.T t1, astFull.T t2) { return isSubType(xbs, t1.toAstT(), t2.toAstT()); }
+  default boolean isSubType(XBs xbs, astFull.T t1, astFull.T t2) {
+    return isSubType(xbs, t1.toAstT(), t2.toAstT());
+    }
   record SubTypeQuery(XBs xbs, T t1, T t2){}
   enum SubTypeResult { Yes, No, Adapting, Unknown }
   HashMap<SubTypeQuery, SubTypeResult> subTypeCache();

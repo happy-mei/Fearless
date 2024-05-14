@@ -2,27 +2,38 @@ package program.typesystem;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import ast.E;
-import ast.Program;
 import ast.T;
 import id.Mdf;
+import id.Id.GX;
 import id.Id.IT;
 import id.Id.MethName;
 import program.CM;
+import utils.Bug;
 import utils.Range;
 
 record MultiSigBuilder(
-    Mdf mdf0, List<T> expectedRes,
-    ast.E.Sig s, int size, List<ArrayList<T>> tss,ArrayList<T> rets){
-  //TODO: ignoring bounds now, we may need to add them as a field
-  static MultiSig multiMethod(CM cm,Mdf mdf0,IT<T> it0, MethName m,List<T> expectedRes){
+    Mdf mdf0,//actual receiver modifier
+    List<T> expectedRes,
+    Mdf formalRecMdf,
+    ast.E.Sig s, //meth signature (needed for ret and ts)
+    int size, //parameter count (no this)
+    XBs bounds,
+    List<ArrayList<T>> tss, //parameter types (no this)
+    ArrayList<T> rets //return types
+    ){
+  static MultiSig multiMethod(XBs bounds,CM cm,Mdf mdf0,IT<T> it0, MethName m,List<T> expectedRes){
     var res= new MultiSigBuilder(
-      mdf0,expectedRes,
+      mdf0,expectedRes,cm.mdf(),
       cm.sig(), cm.sig().ts().size(),
+      bounds,
       cm.sig().ts().stream().map(t->new ArrayList<T>()).toList(),
       new ArrayList<T>());
     res.fillIsoHProm();
@@ -35,11 +46,16 @@ record MultiSigBuilder(
       res.tss.stream().map(a->Collections.unmodifiableList(a)).toList(),
       Collections.unmodifiableList(res.rets));
   }
-  boolean filterMdf(Function<Mdf,Mdf> f) {
-    Mdf limit= f.apply(s.ts().get(0).mdf());
+  boolean filterMdf(Function<Mdf,Mdf> f) {    
+    Mdf limit= f.apply(formalRecMdf());
     return program.Program.isSubType(mdf0, limit);
   }
-  boolean filterExpectedRes(Mdf retMdf) {
+  boolean filterExpectedRes(Mdf retMdf){
+    assert !retMdf.isMdf():
+      "";
+    if(rets.isEmpty()){ return true; }
+    assert !rets.stream().map(T::mdf).anyMatch(Mdf::isMdf):
+      "";
     return rets.stream().map(T::mdf).anyMatch(expectedMdf->
       program.Program.isSubType(retMdf, expectedMdf));
   }
@@ -54,8 +70,8 @@ record MultiSigBuilder(
     fillProm(this::mutIsoReadReadH,this::mutIsoReadReadH,this::toHyg);
     }
   void fillMutHPromRec(){//two version: one for receiver mut <->mutH
-    if(!s.ts().get(0).mdf().isMut()){ return; }
-    fillProm(this::mutMutH,this::mutIso,this::toHyg);
+    if(!formalRecMdf().isMut()){ return; }
+    fillProm(this::mutMutH,this::mutIsoReadImm,this::toHyg);
     }
   void fillMutHPromPar(){//one for parameter mut <->mutH
     int countMut= (int)s.ts().stream()
@@ -63,8 +79,7 @@ record MultiSigBuilder(
     for(int i:Range.of(0,countMut)){ fillMutHPromPar(i); }
     }
   void fillMutHPromPar(int specialMut){//one for parameter mut <->mutH
-    if(!filterMdf(this::mutIso)){ return; }
-    assert size == s.ts().size();//suspect is size+1 == s.ts().size()
+    if(!filterMdf(this::mutIsoReadImm)){ return; }
     var addRet= fixR(s.ret(),this::toHyg);
     if(!filterExpectedRes(addRet.mdf())){ return; }
     rets.add(addRet);
@@ -73,7 +88,7 @@ record MultiSigBuilder(
       T currT= s.ts().get(i);//wrong use of s?
       var special= currT.mdf().isMut() && i==count;
       if(special){ count++; }
-      var addT= fixP(currT,special?this::mutMutH:this::mutIso);
+      var addT= fixP(currT,special?this::mutMutH:this::mutIsoReadImm);
       tss.get(i).add(addT);
     }
   }
@@ -81,21 +96,82 @@ record MultiSigBuilder(
   
   void fillProm(Function<Mdf,Mdf> rec,Function<Mdf,Mdf> p,Function<Mdf,Mdf> r){
     if(!filterMdf(rec)){ return; }
-    assert size == s.ts().size();//suspect is size+1 == s.ts().size()
     var addRet= fixR(s.ret(),r);
     if(!filterExpectedRes(addRet.mdf())){ return; }
     rets.add(addRet);
     for(var i : Range.of(0,size)){
-      tss.get(i).add(fixP(s.ts().get(i),p));//wrong use of s?
+      tss.get(i).add(fixP(s.ts().get(i),p));//ok receiver is not in s.ts
     }
   }
   T fixP(T t,Function<Mdf,Mdf> f){
     if(t.mdf().isMdf()){ return t.withMdf(Mdf.iso); }
     //t.isMdfX() == t.mdf().isMdf()
     //if(t.mdf().isReadImm()) {..}
+    
     return t.withMdf(f.apply(t.mdf()));
     }
+  
+  Mdf mostSpecific(Set<Mdf> options){
+    return mostSpecGen(options,this::mostSpecWin,Mdf.iso,Mdf.mut,Mdf.imm);
+  }
+  Mdf mostGeneral(Set<Mdf> options){
+    return mostSpecGen(options,this::mostGenWin,Mdf.readOnly,Mdf.lent,Mdf.read);
+  }
+  boolean mostSpecWin(Mdf mi, Mdf mj){ return program.Program.isSubType(mi, mj); }
+  boolean mostGenWin(Mdf mi, Mdf mj){ return program.Program.isSubType(mj, mi); }
+  Mdf mostSpecGen(Set<Mdf> options, BiPredicate<Mdf,Mdf> test,Mdf top, Mdf a, Mdf b){
+    assert !options.isEmpty();
+    List<Mdf> res= new ArrayList<>(Stream.of(Mdf.values())
+      .filter(Mdf::isSyntaxMdf)
+      .filter(mi->options.stream()
+        .allMatch(mj->test.test(mi,mj)))
+      .toList());
+    assert !res.isEmpty();
+    res.stream().max(Comparator.comparingInt(//TODO:can chain above
+      EMethTypeSystem.recvPriority::indexOf
+      ));
+    if(res.size()>1) { res.remove(top); }//TODO: remove
+    if(res.size()>1) { 
+      res.remove(a);
+      res.remove(b); 
+    }
+    assert res.size() == 1;
+    return res.get(0);
+    /* Examples, and what to remove and why
+    options= {mut,read}
+    res= {mut,iso}      
+    
+    options= {mut,imm}
+    res= {iso}
+    
+    options= {mutH,readH}
+    res= {iso,mut,mutH}
+    */
+  }
+  T fix(boolean isRet, Function<Mdf,Mdf> f,T t) {
+    var mdf=t.mdf();
+    if(mdf.isSyntaxMdf()){ return t.withMdf(f.apply(mdf)); }
+    GX<T> gx= t.gxOrThrow();
+    Set<Mdf> xb= bounds.get(gx); //May be convert to lists to ensure 
+    Set<Mdf> options= xb.stream()//one to one kept same?
+        .map(mi->f.apply(mi))
+        .collect(Collectors.toSet());
+    if(xb.equals(options)){ return t; }
+    //we return t if the transformation does not change any information about mdf X. 
+    //It also works for read/imm X
+    //X:imm,read mdf X[mutToIso]=mdf X
+    //X:mut,iso mdf X[mutToIsoAndIsoToMut]=mdf X //is this really ok since swap?
+    Mdf goodMdf= isRet?mostGeneral(options):mostSpecific(options);
+    if(mdf.isMdf()){ return t.withMdf(goodMdf); }
+    assert mdf.isReadImm();
+    return Bug.err();
+  }
+  
   /* TODO:
+    
+   X:imm, mut   |- mdf X
+   
+   
    with Bounds, take all RC of X, if single bounds, apply bounds and delegate  X == imm X
    If multiple bounds read, imm 
      select the worst and apply transformation?
@@ -114,6 +190,7 @@ record MultiSigBuilder(
          A[X:read,imm]:{}
          B[Y:read]:A[Y]{}
      location of default XBs.defaultBounds
+     -------------------
      options for Toplas:
      -well formedness: no iso,readH,mutH to instantiate an X
      -have bounds
@@ -122,19 +199,9 @@ record MultiSigBuilder(
     if(t.mdf().isMdf()){ return t.withMdf(Mdf.imm); }
     return t.withMdf(f.apply(t.mdf()));
     }
-  Mdf mutIso(Mdf m){
-    assert m.isSyntaxMdf();
-    return switch(m){
-      case mut->Mdf.iso;
-      default ->m;
-    };
-  }
   Mdf mutMutH(Mdf m){
-    assert m.isSyntaxMdf();
-    return switch(m){
-      case mut->Mdf.lent;
-      default ->m;
-    };
+    assert m.isMut();
+    return Mdf.lent;
   }
 
   Mdf mutIsoReadImm(Mdf m){
@@ -146,7 +213,8 @@ record MultiSigBuilder(
     };
   }
   Mdf mutIsoReadImmReadHImm(Mdf m){
-    assert m.isSyntaxMdf();
+    assert m.isSyntaxMdf():
+      "["+m+"]";
     return switch(m){
       case mut->Mdf.iso;
       case read,readOnly->Mdf.imm;
