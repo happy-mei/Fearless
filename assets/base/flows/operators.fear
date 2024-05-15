@@ -16,6 +16,11 @@ FlowOp[E]: {
     .if {this.isRunning.not} .return {{}}
     .return {this.forRemaining(downstream)},
   mut .isFinite: Bool -> True,
+  /// Mutates the data source for this flow to be a sub-section of the original input. This is useful for fork-join
+  /// data-parallelism. Returning an empty optional either means that there is no data left to split, the
+  /// data source does not think splitting further would be beneficial for parallelism, or that the data source
+  /// does not wish to be run in data parallel. On the other side, implementing this method does not guarantee that
+  /// this flow operator will be run in data parallel. That decision is up to the compiler and runtime.
   mut .split: mut Opt[mut FlowOp[E]] -> {},
   }
 
@@ -51,6 +56,7 @@ _Filter: {
 //    .stop -> Block#(isRunning := False, upstream.stop),
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
+      .split -> upstream.split.map{right -> this#(sinkFactory, right, predicate)},
       }}
   }
 _Map: {
@@ -70,6 +76,7 @@ _Map: {
         },
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
+      .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},
     }}
   }
 _FlatMap: {
@@ -97,5 +104,6 @@ _FlatMap: {
       .stop -> upstream.stop,
 //      .isRunning -> (isRunning*) && (upstream.isRunning),
       .isRunning -> isRunning*,
+      .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},
       }}
   }
