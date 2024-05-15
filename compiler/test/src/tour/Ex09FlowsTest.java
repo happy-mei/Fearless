@@ -71,6 +71,17 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
+  @Test void flowMapMapMap() { ok(new Res("30000", "", 0), """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      As[List[Nat]]#(List#(5, 10, 15)).flow
+        .map{n -> n * 10}
+        .map{n -> n * 10}
+        .map{n -> n * 10}
+        #(Flow.uSum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
   @Test void flowMapWithListConstructor() { ok(new Res("300", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
