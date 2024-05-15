@@ -1910,4 +1910,13 @@ public class TestTypeSystem {
       }
     Void: {}
     """);}
+
+  @Test void namedLiteral() {ok("""
+    package a
+    List[T]:{} Bob:{}
+    Bar[X]: {.m(x: X): mut Foo[X] -> mut Foo[X]:{
+      mut .get: X -> x
+      }}
+    CanCall: {#: Bob -> Bar[Bob].m(Bob).get}
+    """);}
 }
