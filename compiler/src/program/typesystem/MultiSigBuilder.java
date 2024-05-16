@@ -29,7 +29,7 @@ record MultiSigBuilder(
     List<ArrayList<T>> tss, //parameter types (no this)
     ArrayList<T> rets //return types
     ){
-  static MultiSig multiMethod(XBs bounds,CM cm,Mdf mdf0,IT<T> it0, MethName m,List<T> expectedRes){
+  static MultiSig multiMethod(XBs bounds,CM cm,Mdf mdf0, List<T> expectedRes){
     var res= new MultiSigBuilder(
       mdf0,expectedRes,cm.mdf(),
       cm.sig(), cm.sig().ts().size(),
@@ -53,10 +53,10 @@ record MultiSigBuilder(
   boolean filterExpectedRes(Mdf retMdf){
     assert !retMdf.isMdf():
       "";
-    if(rets.isEmpty()){ return true; }
-    assert !rets.stream().map(T::mdf).anyMatch(Mdf::isMdf):
+    if(expectedRes.isEmpty()){ return true; }
+    assert !expectedRes.stream().map(T::mdf).anyMatch(Mdf::isMdf):
       "";
-    return rets.stream().map(T::mdf).anyMatch(expectedMdf->
+    return expectedRes.stream().map(T::mdf).anyMatch(expectedMdf->
       program.Program.isSubType(retMdf, expectedMdf));
   }
 

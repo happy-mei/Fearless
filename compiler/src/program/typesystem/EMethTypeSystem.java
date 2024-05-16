@@ -40,7 +40,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   Ls; Xs'; G; empty |- e0 : T0
   sigs= meth(Ls,T0,m/n,Ts)//overloaded
   sig= selectOverload(sigs,T0,Ts')
-  Ts1..Tsn -> Ts0= multiMeth(sig,T0,m/n,Ts')
+  Ts1..Tsn -> Ts0= multiMeth(sig,T0,Ts')
   Ls; Xs'; G; Tsi |- ei : Ti  forall i in 1..n
   T= selectResult(T1..Tn, Ts1..Tsn -> Ts0)
 ---------------------------------------------------------------
@@ -75,7 +75,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       .toList();
     CM sig= selectOverload(sigs,mdf0);
     var multi= MultiSigBuilder
-      .multiMethod(xbs(),sig,mdf0,it0,e.name(),this.expectedT());
+      .multiMethod(xbs(),sig,mdf0,this.expectedT());
     FailOr<List<T>> ft1n= FailOr.fold(Range.of(e.es()),
       i-> e.es().get(i).accept(multi.expectedT(this, i)));
     return ft1n.flatMap(t1n->selectResult(e,multi,t1n));
@@ -90,7 +90,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   private boolean selectOverload(CM cm,Mdf mdf0){
     if (!Program.isSubType(mdf0,cm.mdf())){ return false; }
     if(expectedT().isEmpty()){ return true; }
-    //TODO: What about promotions? 
+    //TODO: What about promotions?
     //readH could be passed to a read for example.
     //Full check. Too strict, promotions
     //return expectedT().stream()
