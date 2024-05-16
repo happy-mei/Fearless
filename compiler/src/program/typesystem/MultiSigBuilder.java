@@ -111,43 +111,7 @@ record MultiSigBuilder(
     return t.withMdf(f.apply(t.mdf()));
     }
   
-  Mdf mostSpecific(Set<Mdf> options){
-    return mostSpecGen(options,this::mostSpecWin,Mdf.iso,Mdf.mut,Mdf.imm);
-  }
-  Mdf mostGeneral(Set<Mdf> options){
-    return mostSpecGen(options,this::mostGenWin,Mdf.readOnly,Mdf.lent,Mdf.read);
-  }
-  boolean mostSpecWin(Mdf mi, Mdf mj){ return program.Program.isSubType(mi, mj); }
-  boolean mostGenWin(Mdf mi, Mdf mj){ return program.Program.isSubType(mj, mi); }
-  Mdf mostSpecGen(Set<Mdf> options, BiPredicate<Mdf,Mdf> test,Mdf top, Mdf a, Mdf b){
-    assert !options.isEmpty();
-    List<Mdf> res= new ArrayList<>(Stream.of(Mdf.values())
-      .filter(Mdf::isSyntaxMdf)
-      .filter(mi->options.stream()
-        .allMatch(mj->test.test(mi,mj)))
-      .toList());
-    assert !res.isEmpty();
-    res.stream().max(Comparator.comparingInt(//TODO:can chain above
-      EMethTypeSystem.recvPriority::indexOf
-      ));
-    if(res.size()>1) { res.remove(top); }//TODO: remove
-    if(res.size()>1) { 
-      res.remove(a);
-      res.remove(b); 
-    }
-    assert res.size() == 1;
-    return res.get(0);
-    /* Examples, and what to remove and why
-    options= {mut,read}
-    res= {mut,iso}      
-    
-    options= {mut,imm}
-    res= {iso}
-    
-    options= {mutH,readH}
-    res= {iso,mut,mutH}
-    */
-  }
+
   T fix(boolean isRet, Function<Mdf,Mdf> f,T t) {
     var mdf=t.mdf();
     if(mdf.isSyntaxMdf()){ return t.withMdf(f.apply(mdf)); }
@@ -161,7 +125,7 @@ record MultiSigBuilder(
     //It also works for read/imm X
     //X:imm,read mdf X[mutToIso]=mdf X
     //X:mut,iso mdf X[mutToIsoAndIsoToMut]=mdf X //is this really ok since swap?
-    Mdf goodMdf= isRet?mostGeneral(options):mostSpecific(options);
+    Mdf goodMdf= isRet?MdfLubGlb.lub(options):MdfLubGlb.glb(options);
     if(mdf.isMdf()){ return t.withMdf(goodMdf); }
     assert mdf.isReadImm();
     return Bug.err();
