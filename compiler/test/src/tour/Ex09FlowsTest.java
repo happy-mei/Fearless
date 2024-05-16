@@ -71,10 +71,10 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowMapMapMap() { ok(new Res("30000", "", 0), """
+  @Test void flowMapMapMap() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      As[List[Nat]]#(List#(5, 10, 15)).flow
+      As[List[Nat]]#(List#(5, 10, 15, 50)).flow
         .map{n -> n * 10}
         .map{n -> n * 10}
         .map{n -> n * 10}

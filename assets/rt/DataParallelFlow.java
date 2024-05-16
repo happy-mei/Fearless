@@ -1,8 +1,6 @@
 package rt;
 
-import base.OptMatch_2;
-import base.Opt_1;
-import base.Todo_0;
+import base.*;
 import base.flows.*;
 
 public record DataParallelFlow(base.flows.FlowOp_1 source_m$, base.Opt_1 size_m$, DataParallelFlowK $this) implements base.flows.Flow_1 {
@@ -63,7 +61,31 @@ public record DataParallelFlow(base.flows.FlowOp_1 source_m$, base.Opt_1 size_m$
   }
 
   public Object fold$mut(Object acc_m$, base.F_3 f_m$, base.F_3 combine_m$) {
+    if (source_m$.isFinite$mut() == False_0.$self) {
+      return rt.Error.throwFearlessError(TerminalOnInfiniteError_0.$self.$hash$imm());
+    }
+//    var split = _SeqFlow_0.$self.fromOp$imm((FlowOp_1) source_m$.split$mut().$exclamation$mut(), Opt_1.$self);
+//    var s = split.size$mut();
+//    var s2 = _SeqFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).size$mut();
+    var res1 = splitFold((FlowOp_1) source_m$.split$mut().$exclamation$mut(), acc_m$, f_m$);
+    var res2 = splitFold(source_m$, acc_m$, f_m$);
     return Todo_0.$self.$exclamation$imm(Str.fromJavaStr("DP .fold/3"));
+  }
+  private Object splitFold(FlowOp_1 op, Object initial, base.F_3 f) {
+    var acc = new Object[]{initial};
+    op.forRemaining$mut(new _Sink_1() {
+      @Override public Void_0 stop$mut() {
+        return Void_0.$self;
+      }
+      @Override public Void_0 pushError$mut(Info_0 info_m$) {
+        return rt.Error.throwFearlessError(info_m$);
+      }
+      @Override public Void_0 $hash$mut(Object x_m$) {
+        acc[0] = f.$hash$read(acc[0], x_m$);
+        return Void_0.$self;
+      }
+    });
+    return acc[0];
   }
 
   public base.flows.Flow_1 map$mut(base.F_2 f_m$) {
