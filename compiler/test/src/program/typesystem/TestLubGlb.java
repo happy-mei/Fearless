@@ -36,14 +36,14 @@ class TestLubGlb {
     }
   }
   Mdf mostSpecific(Set<Mdf> options){
-    return mostSpecGen(options,this::mostSpecWin);
+    return mostSpecGen(options,this::mostSpecWin,true);
   }
   Mdf mostGeneral(Set<Mdf> options){
-    return mostSpecGen(options,this::mostGenWin);
+    return mostSpecGen(options,this::mostGenWin,false);
   }
   boolean mostSpecWin(Mdf mi, Mdf mj){ return program.Program.isSubType(mi, mj); }
   boolean mostGenWin(Mdf mi, Mdf mj){ return program.Program.isSubType(mj, mi); }
-  Mdf mostSpecGen(Set<Mdf> options, BiPredicate<Mdf,Mdf> test){
+  Mdf mostSpecGen(Set<Mdf> options, BiPredicate<Mdf,Mdf> test, boolean max){
     assert !options.isEmpty();
     List<Mdf> res= new ArrayList<>(Stream.of(Mdf.values())
       .filter(Mdf::isSyntaxMdf)
@@ -51,8 +51,13 @@ class TestLubGlb {
         .allMatch(mj->test.test(mi,mj)))
       .toList());
     assert !res.isEmpty();
-    return res.stream().max(Comparator.comparingInt(
-      EMethTypeSystem.recvPriority::indexOf
-      )).get();
+    if(max){ 
+      return res.stream().max(Comparator.comparingInt(
+        EMethTypeSystem.recvPriority::indexOf
+        )).get();
+    }//could avoid this duplication, but it is now just test code
+    return res.stream().min(Comparator.comparingInt(
+        EMethTypeSystem.recvPriority::indexOf
+        )).get();    
   }
 }
