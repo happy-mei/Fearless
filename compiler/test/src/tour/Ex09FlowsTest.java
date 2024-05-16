@@ -78,7 +78,8 @@ public class Ex09FlowsTest {
         .map{n -> n * 10}
         .map{n -> n * 10}
         .map{n -> n * 10}
-        #(Flow.uSum)
+        .fold[Nat](0, {acc, n -> acc + n}, {a, b -> a + b})
+//        #(Flow.uSum)
         .str
       )}
     """, Base.mutBaseAliases); }

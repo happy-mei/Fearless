@@ -206,9 +206,9 @@ List[E]: Collection,Sealed{
         .empty -> Block#(downstream.stop, self.stop),
         },
       }, this.size)},
-  read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread), this.size),
-  read ._flowread: mut FlowOp[read/imm E] -> Block#
-    .let[mut Count[Nat]] cursor = {Count.nat(0)}
+  read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread(0)), this.size),
+  read ._flowread(start: Nat): mut FlowOp[read/imm E] -> Block#
+    .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .return {{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -220,9 +220,9 @@ List[E]: Collection,Sealed{
         .empty -> Block#(downstream.stop, self.stop),
         },
       }},
-  imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm), this.size),
-  imm ._flowimm: mut FlowOp[imm E] -> Block#
-    .let[mut Count[Nat]] cursor = {Count.nat(0)}
+  imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm(0)), this.size),
+  imm ._flowimm(start: Nat): mut FlowOp[imm E] -> Block#
+    .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .return {{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -236,7 +236,10 @@ List[E]: Collection,Sealed{
       // TODO: I could have a larger threshold check and refuse to split for lists that are too small here if I want
       .split -> this.size - (cursor.get) > 1 ? {
         .else -> {},
-        .then -> Todo!,
+        .then -> Block#
+          .let cur = {cursor.get}
+          .let[Nat] mid = {cur + (this.size - cur) / 2}
+          .return {Opts#(this._flowimm(mid))},
         },
       }},
 

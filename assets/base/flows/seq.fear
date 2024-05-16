@@ -1,6 +1,6 @@
 package base.flows
 
-_SeqFlow: {
+_SeqFlow: _FlowFactory{
   .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
     .unwrapOp(_) -> source,
     // non-terminals
@@ -47,14 +47,6 @@ _SeqFlow: {
       .do {source.stop}
       .return {res.get},
 
-    .find(p) -> self.findMap{e -> p#e ? {.then -> Opts#e, .else -> {}}},
-    .any(p) -> self
-      .findMap{e -> p#e ? {.then -> Opts#True, .else -> {}}}
-      .isSome,
-    .all(p) -> self
-      .findMap{e -> p#e ? {.then -> {}, .else -> Opts#False}}
-      .isEmpty,
-
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .let[mut Var[S]] acc' = {Var#acc}
@@ -76,7 +68,7 @@ _SeqFlow: {
 //          .return(_) -> acc'.get,
 //          }},
 
-    .size -> size.match[Nat]{
+    .size -> size.match{
       .some(n) -> n,
       .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
       },
