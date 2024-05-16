@@ -1423,6 +1423,49 @@ public class TestInferBodies {
     Nat: {}
     _NatInstance: Nat{}
     """);}
+  @Test void doNotReplaceInlineReturnTypes() {ok("""
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[--][test.A[]]{'this
+      .m1/0([]):Sig[gens=[],ts=[],ret=immtest.B[]]->
+        [-imm-][test.B[]]{'self.foo/0([]):Sig[gens=[],ts=[],ret=immtest.B[]]->self,
+      .bar/0([]):Sig[gens=[],ts=[],ret=immtest.B[]]->
+        self.foo/0[]([]),
+      .str/0([]):Sig[gens=[],ts=[],ret=imm base.Str[]]->[-imm-]["cool"[]]{'fear2$}}}]}
+    """, """
+    package test
+    alias base.Str as Str,
+    
+    A: {.m1: imm B -> B: {'self
+      imm .foo: B -> self,
+      read .bar: B -> self.foo,
+      imm .str: Str -> "cool",
+      }}
+    """, """
+    package base
+    Str: {}
+    _StrInstance: Str{}
+    """);}
+
+  @Test void doNotReplaceInlineReturnTypes2() {ok("""
+    {test.Bar/0=Dec[name=test.Bar/0,gxs=[],lambda=[--][test.Bar[],test.Foo[]]{'this}],
+    test.Foo/0=Dec[name=test.Foo/0,gxs=[],lambda=[--][test.Foo[]]{'this}],
+    test.A/0=Dec[name=test.A/0,gxs=[],lambda=[--][test.A[]]{'this
+      .m1/0([]):Sig[gens=[],ts=[],ret=immtest.B[]]->
+        [-imm-][test.B[]]{'self.foo/0([]):Sig[gens=[],ts=[],ret=immtest.B[]]->self,
+      .bar/0([]):Sig[gens=[],ts=[],ret=immtest.B[]]->self.foo/0[]([]),
+      .str/0([]):Sig[gens=[],ts=[],ret=imm test.Foo[]]->[-imm-][test.Bar[]]{'fear2$}}}]}
+    """, """
+    package test
+    alias base.Str as Str,
+    
+    Foo: {}
+    Bar: Foo{}
+    
+    A: {.m1: imm B -> B: {'self
+      imm .foo: B -> self,
+      read .bar: B -> self.foo,
+      imm .str: Foo -> Bar,
+      }}
+    """);}
 
   @Test void shouldRejectAbstractInferenceWithMoreThanOneMeth() {fail("""
     In position [###]/Dummy1.fear:2:32

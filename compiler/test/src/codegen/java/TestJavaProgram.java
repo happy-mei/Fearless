@@ -1357,4 +1357,14 @@ public class TestJavaProgram {
       }}
     CanCall: {#: Bob -> Bar[Bob].m(Bob).get}
     """, Base.mutBaseAliases);}
+
+  @Test void immThisAsImmInReadMethod() { ok(new Res("cool", "", 0), """
+    package test
+    Test: Main{sys -> FIO#sys.println(A.m1.str)}
+    A: {.m1: imm B -> B: {'self
+      imm .foo: B -> self,
+      read .bar: B -> self.foo,
+      imm .str: "cool" -> "cool",
+      }}
+    """, Base.mutBaseAliases); }
 }

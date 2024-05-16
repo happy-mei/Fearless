@@ -50,13 +50,10 @@ LList[E]:Collection,Sealed{
 
   mut  .flow: mut Flow[E] -> Block#
     .let cursor = {Var#this}
-    .var[Bool] hasStarted = {False}
     .return {Flow.fromMutSource(RestrictFlowReuse#{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> Block#
-        .if {hasStarted.get} .return {Error.msg "LList flows cannot be reused."}
-        .do {hasStarted := True}
         .return {(cursor.swap(cursor*.tail)).head.match{
           .some(x) -> downstream#x,
           .empty -> Block#(downstream.stop, op.stop),
@@ -179,6 +176,7 @@ _List:{
     .get(i) -> s*.inner.get(i),
     .tryGet(i) -> s*.inner.tryGet(i),
     .add(e) -> s := (_ListState#[E](s*.size + 1, s*.inner + e)),
+    .clear -> s := (_ListState#[E](0, {})),
     }
   }
 List[E]: Collection,Sealed{
@@ -192,6 +190,8 @@ List[E]: Collection,Sealed{
 
   mut .add(e: E): Void,
   mut .addAll(other: mut List[E]): Void -> other.iter.for{e -> this.add(e)},
+
+  mut .clear: Void,
 
   mut .flow: mut Flow[E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(0)}

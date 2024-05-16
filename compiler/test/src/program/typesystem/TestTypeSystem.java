@@ -1919,4 +1919,12 @@ public class TestTypeSystem {
       }}
     CanCall: {#: Bob -> Bar[Bob].m(Bob).get}
     """);}
+
+  @Test void immThisAsImmInReadMethod() { ok("""
+    package test
+    A: {.m1: imm B -> B: {'self
+      imm .foo: B -> self,
+      read .bar: B -> self.foo,
+      }}
+    """); }
 }
