@@ -1,7 +1,11 @@
-package rt;
+package rt.dataParallel;
 
 import base.*;
 import base.flows.*;
+
+import java.util.ArrayList;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
 
 public record DataParallelFlow(base.flows.FlowOp_1 source_m$, base.Opt_1 size_m$, DataParallelFlowK $this) implements base.flows.Flow_1 {
   public base.flows.Flow_1 self$mut() {
@@ -29,7 +33,7 @@ public record DataParallelFlow(base.flows.FlowOp_1 source_m$, base.Opt_1 size_m$
   }
 
   public base.Opt_1 first$mut() {
-    return (base.Opt_1) Todo_0.$self.$exclamation$imm(Str.fromJavaStr("DP .first/0"));
+    return _SeqFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).first$mut();
   }
 
   public base.List_1 list$mut() {
@@ -57,19 +61,13 @@ public record DataParallelFlow(base.flows.FlowOp_1 source_m$, base.Opt_1 size_m$
   }
 
   public Object fold$mut(Object acc_m$, base.F_3 f_m$) {
-    return Todo_0.$self.$exclamation$imm(Str.fromJavaStr("DP .fold/2"));
+
+    return _SeqFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).fold$mut(acc_m$, f_m$);
+//    return splitFold(source_m$, acc_m$, f_m$);
   }
 
   public Object fold$mut(Object acc_m$, base.F_3 f_m$, base.F_3 combine_m$) {
-    if (source_m$.isFinite$mut() == False_0.$self) {
-      return rt.Error.throwFearlessError(TerminalOnInfiniteError_0.$self.$hash$imm());
-    }
-//    var split = _SeqFlow_0.$self.fromOp$imm((FlowOp_1) source_m$.split$mut().$exclamation$mut(), Opt_1.$self);
-//    var s = split.size$mut();
-//    var s2 = _SeqFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).size$mut();
-    var res1 = splitFold((FlowOp_1) source_m$.split$mut().$exclamation$mut(), acc_m$, f_m$);
-    var res2 = splitFold(source_m$, acc_m$, f_m$);
-    return Todo_0.$self.$exclamation$imm(Str.fromJavaStr("DP .fold/3"));
+    return _SeqFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).fold$mut(acc_m$, f_m$, combine_m$);
   }
   private Object splitFold(FlowOp_1 op, Object initial, base.F_3 f) {
     var acc = new Object[]{initial};
@@ -89,7 +87,28 @@ public record DataParallelFlow(base.flows.FlowOp_1 source_m$, base.Opt_1 size_m$
   }
 
   public base.flows.Flow_1 map$mut(base.F_2 f_m$) {
-    return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, source_m$, f_m$), Opt_1.$self);
+    FlowOp_1 parallelSource = new FlowOp_1() {
+      @Override public Bool_0 isFinite$mut() {
+        return source_m$.isFinite$mut();
+      }
+      @Override public Void_0 step$mut(_Sink_1 sink_m$) {
+        return source_m$.step$mut(sink_m$);
+      }
+      @Override public Void_0 stop$mut() {
+        return source_m$.stop$mut();
+      }
+      @Override public Bool_0 isRunning$mut() {
+        return source_m$.isRunning$mut();
+      }
+      @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
+        new ForRemaining(source_m$, downstream_m$).forRemaining();
+        return Void_0.$self;
+      }
+      @Override public Opt_1 split$mut() {
+        return source_m$.split$mut();
+      }
+    };
+    return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, parallelSource, f_m$), Opt_1.$self);
   }
 
   public base.Bool_0 any$mut(base.F_2 predicate_m$) {

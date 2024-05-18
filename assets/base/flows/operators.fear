@@ -45,7 +45,6 @@ _Filter: {
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
-//            .stop -> Block#(downstream.stop, isRunning := False),
             .stop -> downstream.stop,
             #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
             .pushError(info) -> downstream.pushError(info),
@@ -53,7 +52,17 @@ _Filter: {
           upstream.step(sink.get!)
           )
         },
-//    .stop -> Block#(isRunning := False, upstream.stop),
+      .forRemaining(downstream) -> sink.get.match{
+        .some(sink') -> upstream.forRemaining(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.forRemaining(sink.get!)
+          )
+        },
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
       .split -> upstream.split.map{right -> this#(sinkFactory, right, predicate)},
@@ -72,6 +81,17 @@ _Map: {
             .pushError(info) -> downstream.pushError(info),
             })),
           upstream.step(sink.get!)
+          )
+        },
+      .forRemaining(downstream) -> sink.get.match{
+        .some(sink') -> upstream.forRemaining(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> downstream#(f#e),
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.forRemaining(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -102,7 +122,6 @@ _FlatMap: {
           )
         },
       .stop -> upstream.stop,
-//      .isRunning -> (isRunning*) && (upstream.isRunning),
       .isRunning -> isRunning*,
       .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},
       }}

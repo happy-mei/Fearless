@@ -206,8 +206,9 @@ List[E]: Collection,Sealed{
         .empty -> Block#(downstream.stop, self.stop),
         },
       }, this.size)},
-  read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread(0, this.size)), this.size),
-  read ._flowread(start: Nat, end: Nat): mut FlowOp[read/imm E] -> Block#
+  read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread(0)), this.size),
+  read ._flowread(start: Nat): mut FlowOp[read/imm E] -> this._flowread'(start, this.size),
+  read ._flowread'(start: Nat, end: Nat): mut FlowOp[read/imm E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .return {{'self
       .isRunning -> cursor* < (end),
@@ -220,8 +221,9 @@ List[E]: Collection,Sealed{
         .empty -> Block#(downstream.stop, self.stop),
         },
       }},
-  imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm(0, this.size)), this.size),
-  imm ._flowimm(start: Nat, end: Nat): mut FlowOp[imm E] -> Block#
+  imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm(0)), this.size),
+  imm ._flowimm(start: Nat): mut FlowOp[imm E] -> this._flowimm'(start, this.size),
+  imm ._flowimm'(start: Nat, end: Nat): mut FlowOp[imm E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {{'self
@@ -239,9 +241,9 @@ List[E]: Collection,Sealed{
         .else -> {},
         .then -> Block#
           .let cur = {cursor.get}
-          .let[Nat] mid = {cur + (endCursor.get - cur) / 2}
+          .let[Nat] mid = {cur + ((endCursor.get - cur) / 2)}
           .let[Nat] end' = {endCursor.swap(mid)}
-          .return {Opts#(this._flowimm(mid, end'))},
+          .return {Opts#(this._flowimm'(mid, end'))},
         },
       }},
 

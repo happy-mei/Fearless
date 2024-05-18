@@ -532,18 +532,8 @@ public record JavaMagicImpls(
               List.of(
                 new MIR.MCall(
                   call.recv(),
-                  new Id.MethName(call.name().mdf(), "._flow"+call.mdf(), 2),
-                  List.of(
-                    new MIR.CreateObj(Mdf.imm, new Id.DecId("0", 0)),
-                    new MIR.MCall(
-                      call.recv(),
-                      new Id.MethName(".size", 0),
-                      List.of(),
-                      new MIR.MT.Plain(Mdf.imm, new Id.DecId("base.Nat", 0)),
-                      Mdf.read,
-                      EnumSet.of(MIR.MCall.CallVariant.Standard)
-                    )
-                  ),
+                  new Id.MethName(call.name().mdf(), "._flow"+call.mdf(), 1),
+                  List.of(new MIR.CreateObj(Mdf.imm, new Id.DecId("0", 0))),
                   new MIR.MT.Plain(Mdf.mut, Magic.FlowOp),
                   call.mdf(),
                   EnumSet.of(MIR.MCall.CallVariant.Standard)
@@ -564,17 +554,7 @@ public record JavaMagicImpls(
                 new MIR.MCall(
                   call.recv(),
                   new Id.MethName(call.name().mdf(), "._flow"+call.mdf(), 1),
-                  List.of(
-                    new MIR.CreateObj(Mdf.imm, new Id.DecId("0", 0)),
-                    new MIR.MCall(
-                      call.recv(),
-                      new Id.MethName(".size", 0),
-                      List.of(),
-                      new MIR.MT.Plain(Mdf.imm, new Id.DecId("base.Nat", 0)),
-                      Mdf.read,
-                      EnumSet.of(MIR.MCall.CallVariant.Standard)
-                    )
-                  ),
+                  List.of(new MIR.CreateObj(Mdf.imm, new Id.DecId("0", 0))),
                   new MIR.MT.Plain(Mdf.mut, Magic.FlowOp),
                   call.mdf(),
                   EnumSet.of(MIR.MCall.CallVariant.Standard)
@@ -618,7 +598,7 @@ public record JavaMagicImpls(
       if (isMagic(Magic.DataParallelFlowK, call.recv())) {
         if (m.name().equals(".fromOp")) {
           return Optional.of(
-            STR."rt.DataParallelFlowK.$self.fromOp$imm(\{args.get(0).accept(gen, true)}, \{args.get(1).accept(gen, true)})"
+            STR."rt.dataParallel.DataParallelFlowK.$self.fromOp$imm(\{args.get(0).accept(gen, true)}, \{args.get(1).accept(gen, true)})"
           );
         }
         return Optional.empty();
