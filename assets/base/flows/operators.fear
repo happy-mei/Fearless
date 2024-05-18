@@ -121,6 +121,23 @@ _FlatMap: {
           upstream.step(sink.get!)
           )
         },
+      .forRemaining(downstream) -> sink.get.match{
+        .some(sink') -> upstream.forRemaining(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> Block#(isRunning := False, downstream.stop),
+            #(e) -> Block#
+              .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
+              .return {nestedOp.forRemaining{
+                #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
+                .stop -> {},
+                .pushError(info) -> downstream.pushError(info),
+                }},
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.forRemaining(sink.get!)
+          )
+        },
       .stop -> upstream.stop,
       .isRunning -> isRunning*,
       .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},

@@ -77,11 +77,32 @@ public class Ex09FlowsTest {
       As[List[Nat]]#(List#(5, 10, 15, 50)).flow
         .map{n -> n * 10}
         .map{n -> n * 10}
+        .flatMap{n ->As[List[Nat]]#(List#(n + 1, n + 2, n + 3, n + 4)).flow}
         .map{n -> n * 10}
 //        .fold[Nat](0, {acc, n -> acc + n})
 //        #(Flow.uSum)
         .map{n -> n.str}
         #(Flow.str ", ")
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+  @Test void flowFib() { ok(new Res("55", "", 0), """
+    package test
+    Fib: {
+      #(n: Nat): Nat -> this.flow(n).fold[Nat](0, {a,b -> a + b}),
+//      #(n: Nat): Nat -> this.seq(n),
+      .seq(n: Nat): Nat -> Block#
+        .if {n <= 1} .return {n}
+        .return {Fib.seq(n - 1) + (Fib.seq(n - 2))},
+      .flow(n: Nat): mut Flow[Nat] -> Flow#n
+        .flatMap{n' -> Block#
+          .if {n' <= 40} .return {Flow#(this.seq(n'))}
+          .return {As[List[Nat]]#(List#(n' - 1, n' - 2)).flow.flatMap{n'' -> Fib.flow(n'')}}
+          },
+      }
+    
+    Test:Main {sys -> FIO#sys.println(
+        Fib#(50)
         .str
       )}
     """, Base.mutBaseAliases); }
