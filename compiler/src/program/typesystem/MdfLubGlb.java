@@ -1,5 +1,6 @@
 package program.typesystem;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -26,8 +27,14 @@ public class MdfLubGlb {
   public static final Set<Set<Mdf>> domain(){
     return Collections.unmodifiableSet(lubMap.keySet());
   }
-  public static Mdf lub(Set<Mdf> options) { return lubMap.get(options); }
-  public static Mdf glb(Set<Mdf> options) { return glbMap.get(options); }
+  public static Mdf lub(Collection<Mdf> options) {
+    var o= EnumSet.copyOf(options);
+    return lubMap.get(o);
+  }
+  public static Mdf glb(Collection<Mdf> options) {
+    var o= EnumSet.copyOf(options);
+    return glbMap.get(o); 
+  }
   static boolean isUb(EnumSet<Mdf> options,Mdf ub){
     return options.stream().allMatch(x -> isSubType(ub,x));
   }

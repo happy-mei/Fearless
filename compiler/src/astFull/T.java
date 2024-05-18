@@ -174,6 +174,7 @@ public final class T implements Id.Ty {
     return Objects.hash(mdf, rt);
   }
 
+  @SuppressWarnings("serial")
   public static class MatchOnInfer extends RuntimeException{
     public MatchOnInfer() { super("Cannot match on infer."); }
   }

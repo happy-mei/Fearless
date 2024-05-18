@@ -1,10 +1,13 @@
 package program.typesystem;
 
 import ast.E;
+import ast.E.Sig;
 import ast.T;
 import failure.Fail;
 import failure.FailOr;
+import files.Pos;
 import id.Id.IT;
+import id.Id;
 import id.Mdf;
 import program.CM;
 import program.Program;
@@ -60,22 +63,29 @@ public interface EMethTypeSystem extends ETypeSystem {
       it->visitMCall(t0.mdf(),it,e)
       );
   }
-  private CM applyGenerics(CM sig, List<T> ts){
+  private CM applyGenerics(CM cm, List<T> ts){
     var renamer = TypeRename.core(p());
-    var gens= sig.sig().gens();
+    var gens= cm.sig().gens();
     //var xbs= xbs().addBounds(gens, sig.bounds());//No? from 2 different scopes?
     var transformer= renamer.renameFun(ts, gens);
-    return sig.withSig(renamer.renameSigOnMCall(sig.sig(),xbs(),transformer));    
+    Sig res=renamer.renameSigOnMCall(cm.sig(),xbs(),transformer);
+    //Note: from this point on sig have 'generics' that have
+    //already been replaced. Removed for clarity.
+    res= new Sig(List.of(),Map.of(),res.ts(),res.ret(),res.pos());
+    return cm.withSig(res);
   }
   private FailOr<T> visitMCall(Mdf mdf0, IT<T> it0, E.MCall e) {
     var sigs= p().meths(xbs(),mdf0,it0, e.name(),depth()).stream()
       .map(s->applyGenerics(s,e.ts()))
       .sorted(Comparator.comparingInt(cm->
           EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
-      .toList();
-    CM sig= selectOverload(sigs,mdf0);
-    var multi= MultiSigBuilder
-      .multiMethod(xbs(),sig,mdf0,this.expectedT());
+      .toList();    
+    CM selected= selectOverload(sigs,mdf0);
+    MultiSig multi= MultiSigBuilder.multiMethod(
+      xbs(),selected.mdf(),//bounds,formalMdf
+      selected.sig().ts(),//formalTs
+      selected.sig().ret(),//formalRet,
+      mdf0,this.expectedT());//mdf0,expectedRes
     FailOr<List<T>> ft1n= FailOr.fold(Range.of(e.es()),
       i-> e.es().get(i).accept(multi.expectedT(this, i)));
     return ft1n.flatMap(t1n->selectResult(e,multi,t1n));
@@ -119,11 +129,11 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
 
 }
-record MultiSig(List<List<T>> tss, List<T> rets){
+record MultiSig(List<List<T>> tss, List<T> rets, List<String> kind){
   MultiSig{
     int size= rets.size();
     assert size >= 1:
-      "No, this should become a type error since we filter on recMdf and expected results";
+      "No, this should become a type error since we filter on the receiver modifier and expected results";
     assert tss.stream().allMatch(ts->ts.size() == size):
       tss+" "+rets;
   }
@@ -137,7 +147,7 @@ record MultiSig(List<List<T>> tss, List<T> rets){
         .map(ts->ts.get(i))
         .map(Object::toString)
         .collect(Collectors.joining(", "));
-      res+="("+ps+"):"+rets.get(i)+"\n";
+      res+="("+ps+"):"+rets.get(i)+" kind: "+kind.get(i)+"\n";
     }
     return res;
   }

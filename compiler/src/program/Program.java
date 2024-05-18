@@ -85,21 +85,25 @@ public interface Program {
     subTypeCache.put(q, result);
     return isSubType;
   }
-  default boolean isSubTypeAux(XBs xbs, T t1, T t2) {
+  static public boolean isSubTypeGX(XBs xbs, T t1, T t2) {//t1<=t2
+    var gx1= t1.gxOrThrow();
+    var gx2= t2.gxOrThrow();
+    if(!gx1.equals(gx2)){ return false; }
+    var mdf1 = t1.mdf();
+    var mdf2 = t2.mdf();
+    var bothSyntax= mdf1.isSyntaxMdf() && mdf2.isSyntaxMdf();
+    if (bothSyntax){ return isSubType(mdf1,mdf2); }
+    var bounds = xbs.get(gx1); //since gx1==gx2
+    return bounds.stream().allMatch(mi->{
+      Mdf a1= mdf1.absorb(mi);
+      Mdf a2= mdf2.absorb(mi);
+      return isSubType(a1,a2);
+    });
+  }
+  default boolean isSubTypeAux(XBs xbs, T t1, T t2) {//t1<=t2
     if (t1.equals(t2)) { return true; }
-    if (t1.isMdfX()) {
-      var bounds = xbs.get(t1.gxOrThrow());
-      var mdf = t2.mdf();
-      return bounds.stream().allMatch(mdfi->isSubType(mdfi, mdf));
-    }
-    if (t2.isMdfX()) {
-      var bounds = xbs.get(t2.gxOrThrow());
-      var mdf = t1.mdf();
-      return bounds.stream().allMatch(mdfi->isSubType(mdf, mdfi));
-    }
-    if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
-//    t1 = t1.withMdf(t1.mdf()); t2 = t2.withMdf(t1.mdf());
-    // There is a subtyping relationship with the MDFs so use either
+    if (t1.isGX() && t2.isGX()){ return isSubTypeGX(xbs, t1, t2); }
+    if (t1.isGX()!=t2.isGX()){ return false; }
     return Stream.of(t1.mdf(), t2.mdf()).distinct().anyMatch(mdf->{
       T t1_ = t1.withMdf(mdf); T t2_ = t2.withMdf(mdf);
       if(t1_.rt().equals(t2_.rt())){ return true; }
