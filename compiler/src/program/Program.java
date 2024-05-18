@@ -91,11 +91,13 @@ public interface Program {
   default boolean isSubTypeAux(XBs xbs, T t1, T t2) {
     if (t1.equals(t2)) { return true; }
     if (t1.isMdfX()) {
+      if (!t2.isGX()) { return false; }
       var bounds = xbs.get(t1.gxOrThrow());
       var mdf = t2.mdf();
       return bounds.stream().allMatch(mdfi->isSubType(mdfi, mdf));
     }
     if (t2.isMdfX()) {
+      if (!t1.isGX()) { return false; }
       var bounds = xbs.get(t2.gxOrThrow());
       var mdf = t1.mdf();
       return bounds.stream().allMatch(mdfi->isSubType(mdf, mdfi));

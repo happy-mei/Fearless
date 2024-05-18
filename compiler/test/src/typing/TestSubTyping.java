@@ -144,4 +144,9 @@ public class TestSubTyping {
   @Test void sortedListOfTExtendsListTOfNot32() { ok("a.SortedList[X]","a.List[a.List[a.Int]]",false,pointEx2); }
   @Test void sortedListMixedGens2() { ok("a.SortedList[a.ColouredPoint]","a.SortedList[a.Point]",true,pointEx2); }
   @Test void inverseSortedListMixedGens2() { ok("a.SortedList[a.Point]","a.SortedList[a.ColouredPoint]",false,pointEx2); }
+
+  @Test void mdfXNotSubtypeOfIT() {ok("X", "read a.Foo", false, """
+    package a
+    Foo: {}
+    """);}
 }
