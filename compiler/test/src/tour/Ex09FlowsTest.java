@@ -86,7 +86,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowFib() { ok(new Res("55", "", 0), """
+  @Test void flowFib() { ok(new Res("12586269025", "", 0), """
     package test
     Fib: {
       #(n: Nat): Nat -> this.flow(n).fold[Nat](0, {a,b -> a + b}),
@@ -99,10 +99,16 @@ public class Ex09FlowsTest {
           .if {n' <= 40} .return {Flow#(this.seq(n'))}
           .return {As[List[Nat]]#(List#(n' - 1, n' - 2)).flow.flatMap{n'' -> Fib.flow(n'')}}
           },
+      .flow2(n: Nat): Nat -> Block#
+        .if {n <= 35} .return {this.seq(n)}
+        .return {As[List[Nat]]#(List#(n - 1, n - 2)).flow
+          .map{n' -> Fib.flow2(n')}
+          .fold[Nat](0, {a,b -> a + b})
+          },
       }
     
     Test:Main {sys -> FIO#sys.println(
-        Fib#(50)
+        Fib.flow2(50)
         .str
       )}
     """, Base.mutBaseAliases); }
