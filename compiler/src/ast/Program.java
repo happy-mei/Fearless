@@ -133,6 +133,7 @@ public class Program implements program.Program  {
     if (superDecIdsCache.containsKey(start)) { return superDecIdsCache.get(start); }
 
     HashSet<Id.DecId> visited = new HashSet<>();
+    visited.add(start);
     superDecIds(visited, start);
     var res = Collections.unmodifiableSet(visited);
     superDecIdsCache.put(start, res);

@@ -6,6 +6,7 @@ import id.Id;
 import main.java.LogicMainJava;
 import utils.Box;
 import utils.Bug;
+import main.html.LogicMainHtml;
 
 import java.nio.file.Path;
 

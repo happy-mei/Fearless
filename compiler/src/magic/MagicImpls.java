@@ -4,6 +4,7 @@ import codegen.MIR;
 import id.Id;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface MagicImpls<R> {
   default Optional<MagicTrait<MIR.E,R>> get(MIR.E e) {
