@@ -10,7 +10,6 @@ import id.Mdf;
 import program.CM;
 import program.Program;
 import program.TypeRename;
-import utils.Bug;
 import utils.Push;
 import utils.Range;
 
@@ -72,13 +71,13 @@ public interface EMethTypeSystem extends ETypeSystem {
     res= new Sig(List.of(),Map.of(),res.ts(),res.ret(),res.pos());
     return cm.withSig(res);
   }
-  private FailOr<T> visitMCall(Mdf mdf0, IT<T> it0, E.MCall e) {
-    var sigs= p().meths(xbs(),mdf0,it0, e.name(),depth()).stream()
+  private FailOr<T> visitMCall(Mdf mdf0, IT<T> recvIT, E.MCall e) {
+    var sigs= p().meths(xbs(),mdf0,recvIT, e.name(),depth()).stream()
       .map(s->applyGenerics(s,e.ts()))
       .sorted(Comparator.comparingInt(cm->
           EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
       .toList();    
-    CM selected= selectOverload(sigs,mdf0);
+    CM selected= selectOverload(e,sigs,mdf0,recvIT);
     List<T> ts= selected.sig().ts();
     TsT tst=new TsT(ts,selected.ret(),selected);
     resolvedCalls().put(e.callId(), tst);
@@ -92,14 +91,14 @@ public interface EMethTypeSystem extends ETypeSystem {
       i-> e.es().get(i).accept(multi.expectedT(this, i)));
     return ft1n.flatMap(t1n->selectResult(e,multi,t1n));
   }
-  private CM selectOverload(List<CM> sigs,Mdf mdf0){
-    if(sigs.size()==1){ return sigs.get(0); }
+  private CM selectOverload(E.MCall e, List<CM> sigs, Mdf mdf0, IT<T> recvIT){
+    if(sigs.size()==1){ return sigs.getFirst(); }
     return sigs.stream()
       .filter(cm->selectOverload(cm, mdf0))
       .findFirst()//Note: ok find first since ordered by mdf before
-      .orElseThrow(Bug::of);
+      .orElseThrow(()->Fail.undefinedMethod(e.name(), new T(mdf0, recvIT), sigs.stream()).pos(e.pos()));
   }
-  private boolean selectOverload(CM cm,Mdf mdf0){
+  private boolean selectOverload(CM cm, Mdf mdf0){
     if (!Program.isSubType(mdf0,cm.mdf())){ return false; }
     if(expectedT().isEmpty()){ return true; }
     //TODO: What about promotions?

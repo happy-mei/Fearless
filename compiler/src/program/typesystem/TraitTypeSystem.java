@@ -4,6 +4,7 @@ import ast.Program;
 import ast.T;
 import ast.T.Dec;
 import failure.CompileError;
+import failure.TypingAndInferenceErrors;
 import id.Id;
 import id.Id.IT;
 import id.Mdf;
@@ -22,6 +23,8 @@ public interface TraitTypeSystem {
     TraitTypeSystem ttt = ()->new Program(tsf, pDs, Map.of());
     return ds.stream()
       .flatMap(di->ttt.dOk(di, resolvedCalls).stream())
+      .map(errorSupplier->
+        (Supplier<CompileError>)()->TypingAndInferenceErrors.fromMethodError(ttt.p(), errorSupplier.get()))
       .toList();
   }
   default Optional<Supplier<CompileError>> dOk(Dec d, ConcurrentHashMap<Long, TsT> resolvedCalls){

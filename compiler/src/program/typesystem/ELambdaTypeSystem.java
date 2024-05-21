@@ -28,11 +28,8 @@ import java.util.stream.Stream;
 import static program.Program.filterByMdf;
 
 //TODO:
-//Fail.bothTExpectedGens must be in well formedness?
-//also check Toplas
-//TODO:
 //at top level when we call the type system, we should do something like this
-//.map(rawErr->()->TypeSystemErrors.fromMethodError(rawErr.get()));
+//.map(rawErr->()->TypingAndInferenceErrors.fromMethodError(rawErr.get()));
 //or
 //var rawError = err.parentPos(mi.pos()); //why it was only in one place?
 //return TypeSystemErrors.fromMethodError(rawError);

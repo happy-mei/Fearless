@@ -4,6 +4,8 @@ import files.HasPos;
 import files.Pos;
 
 import java.io.Serial;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 public class CompileError extends RuntimeException implements HasPos {
@@ -15,11 +17,24 @@ public class CompileError extends RuntimeException implements HasPos {
   private String name = null;
   public CompileError pos(Pos pos){ this.pos=pos; return this; }
   public CompileError pos(Optional<Pos> pos){ return pos.map(this::pos).orElse(this); }
-  CompileError(Throwable cause) {super(cause);}
-  CompileError(String msg) {super(msg);}
+  CompileError(Throwable cause) {
+    super(cause);
+    this.attributes = Map.of();
+  }
+  CompileError(String msg) {
+    this(msg, Map.of());
+  }
+  CompileError(String msg, Map<String, Object> attributes) {
+    super(msg);
+    this.attributes = Map.copyOf(attributes);
+  }
   public static CompileError of(Throwable cause){ return new CompileError(cause); }
   public static CompileError of(String msg){ return new CompileError(msg); }
+  public static CompileError of(String msg, Map<String, Object> attributes){ return new CompileError(msg, attributes); }
   public static <Any> Any err(String msg){ throw new CompileError(msg); }
+  public static <Any> Any err(String msg, Map<String, Object> attributes){ throw new CompileError(msg, attributes); }
+
+  public final Map<String, Object> attributes;
 
   public Optional<Pos> pos() {
     return Optional.ofNullable(this.pos);

@@ -296,7 +296,7 @@ public record InferBodies(ast.Program p) {
       cm = !res.isEmpty() ? Optional.of(res.getFirst()) : Optional.empty();
     } catch (CompileError err) { throw err.parentPos(e.pos()); }
     if (cm.isEmpty()) {
-      throw TypingAndInferenceErrors.fromInference(Fail.undefinedMethod(e.name(), c).pos(e.pos()));
+      throw TypingAndInferenceErrors.fromInference(p(), Fail.undefinedMethod(e.name(), c).pos(e.pos()));
     }
     var sig = cm.get().sig();
     var k = sig.gens().size();

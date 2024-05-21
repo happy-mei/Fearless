@@ -19,6 +19,8 @@ public class TestMethodLookupErrors {
     In position [###]/Dummy0.fear:6:26
     [E36 undefinedMethod]
     .meh1/0 does not exist in imm test.A[].
+    extra info for experts:
+    [test.A[],imm .meth1/0()[][]:imm test.A[] impl]
     """, """
     package test
     A: {
@@ -29,9 +31,11 @@ public class TestMethodLookupErrors {
       }
     """);}
   @Test void nonExistentMethodTypeSystem() {fail("""
-    In position [###]/Dummy0.fear:6:2
+    In position [###]/Dummy0.fear:6:26
     [E36 undefinedMethod]
-    .meh1/0 does not exist in imm test.A[]. The following methods exist on that type: imm .meth1/0
+    .meh1/0 does not exist in imm test.Fear1$[]. The following methods exist on that type: N/A
+    extra info for experts:
+    [test.A[],imm .meth1/0()[][]:imm test.A[] impl]
     """, """
     package test
     A: {

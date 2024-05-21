@@ -6,7 +6,6 @@ import files.Pos;
 import id.Id;
 import id.Mdf;
 import program.CM;
-import program.typesystem.TsT;
 import utils.Bug;
 
 import java.io.IOException;
@@ -46,6 +45,9 @@ public class Fail{
     }
   private static CompileError of(String msg){
     return new CompileError(msg);
+  }
+  private static CompileError of(String msg, Map<String, Object> attributes){
+    return new CompileError(msg, attributes);
   }
 
   //ALL OUR ERRORS
@@ -163,20 +165,24 @@ public class Fail{
       " can not be called with current parameters of types: "+t1n;
     return of(msg+"\n"+extra);
   }
-  public static CompileError noCandidateMeths(ast.E.MCall e, ast.T expected, List<TsT> candidates) {
-    String tsts = candidates.stream()
-      .map(TsT::toString)
-      .collect(Collectors.joining("\n"));
-    return of("When attempting to type check the method call: "+e+", no candidates for "+e.name()+" returned the expected type "+expected+". The candidates were:\n"+tsts);
+
+  /** This error is for when a method call is made to a method that *does* exist, but there is no return type that
+   * satisfies any expected types.
+   */
+  public static CompileError noCandidateMeths(ast.E.MCall e, List<ast.T> expected, List<CM> candidates) {
+    var attributes = Map.of(
+      "mCall", e,
+      "candidates", candidates
+    );
+    return of(
+      "When attempting to type check the method call: "+e+",\nno candidates for "+e.name()+" returned the expected type "+expected+". The candidates were: "+candidates,
+      attributes
+    );
   }
 
   public static CompileError callTypeError(ast.E.MCall e, Optional<ast.T> expected, String calls) {
     var expected_ = expected.map(ast.T::toString).orElse("?");
     return of("Type error: None of the following candidates (returning the expected type \""+expected_+"\") for this method call:\n"+e+"\nwere valid:\n"+calls);
-  }
-
-  public static CompileError bothTExpectedGens(ast.T expected, Id.DecId dec) {
-    return of("Type error: the generic type "+expected+" cannot be a super-type of any concrete type, like "+dec+".");
   }
 
   public static CompileError sealedCreation(Id.DecId sealedDec, String pkg) {
@@ -190,14 +196,26 @@ public class Fail{
     return of("The private trait "+dec+" cannot be implemented outside of its package.");
   }
 
+  /** This method is for when in inference we cannot extract a method's signature from meths because nothing with
+   * that name exists on the currently inferred type. */
   public static CompileError undefinedMethod(Id.MethName name, astFull.T recv){
-    return of(name+" does not exist in "+recv+".");
+    var attributes = Map.of(
+      "name", name,
+      "recvT", recv
+    );
+    return of(name+" does not exist in "+recv+".", attributes);
   }
 
+  /** This method is for when in inference, no method with the provided name exists on the inferred type. */
   public static CompileError undefinedMethod(Id.MethName name, ast.T recv, Stream<CM> callableMethods){
+    var attributes = Map.of(
+      "name", name,
+      "recvT", recv,
+      "callable", callableMethods
+    );
     var callableMs = callableMethods.map(cm->cm.mdf()+" "+cm.name()).collect(Collectors.joining(", "));
     if (callableMs.isEmpty()) { callableMs = "N/A"; }
-    return of(name+" does not exist in "+recv+". The following methods exist on that type: "+callableMs);
+    return of(name+" does not exist in "+recv+". The following methods exist on that type: "+callableMs, attributes);
   }
 
   public static CompileError noSubTypingRelationship(ast.T it1, ast.T it2){
@@ -336,7 +354,7 @@ enum ErrorCode {
   invalidNum,
   noCandidateMeths,
   callTypeError,
-  bothTExpectedGens,
+  UNUSED1,
   sealedCreation,
   undefinedMethod,
   noSubTypingRelationship,
