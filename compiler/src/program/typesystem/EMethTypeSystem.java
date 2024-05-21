@@ -5,9 +5,7 @@ import ast.E.Sig;
 import ast.T;
 import failure.Fail;
 import failure.FailOr;
-import files.Pos;
 import id.Id.IT;
-import id.Id;
 import id.Mdf;
 import program.CM;
 import program.Program;
@@ -81,6 +79,10 @@ public interface EMethTypeSystem extends ETypeSystem {
           EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
       .toList();    
     CM selected= selectOverload(sigs,mdf0);
+    List<T> ts= selected.sig().ts();
+    TsT tst=new TsT(ts,selected.ret(),selected);
+    resolvedCalls().put(e.callId(), tst);
+
     MultiSig multi= MultiSigBuilder.multiMethod(
       xbs(),selected.mdf(),//bounds,formalMdf
       selected.sig().ts(),//formalTs
@@ -117,8 +119,15 @@ public interface EMethTypeSystem extends ETypeSystem {
       .boxed()
       .findFirst();
    return sel
-     .map(i->(FailOr<T>)FailOr.res(multi.rets().get(i)))
+     .map(i->successType(e,i,multi))
      .orElse(FailOr.err(()->Fail.invalidMethodArgumentTypes(e,t1n,multi.toString())));
+  }
+  private FailOr<T> successType(E.MCall e, int i, MultiSig multi){
+    T ret= multi.rets().get(i);
+//    List<T> ts= multi.tss().stream().map(tsj->tsj.get(i)).toList();
+//    TsT tst=new TsT(ts,ret,null);
+//    resolvedCalls().put(e.callId(), tst);
+    return FailOr.res(ret);
   }
   private boolean ok(MultiSig multi,int i,List<T> t1n){
     return IntStream.range(0, t1n.size()).allMatch(j->{
