@@ -7,36 +7,36 @@ MyApp:Main{ s -> s
 
 Logic:{
   .peopleList: mut List[mut Person] -> List#(
-    FPerson#("Alice", 150u),
-    FPerson#("Bob", 30u),
-    FPerson#("The Wizard in the tower", 456u)
+    FPerson#("Alice", 150),
+    FPerson#("Bob", 30),
+    FPerson#("The Wizard in the tower", 456)
     ),
   .list2: mut List[mut Person] -> Block#
     .let myList = { this.peopleList }
-    .do{ myList.add(FPerson#("Eve", 21u)) }
+    .do{ myList.add(FPerson#("Eve", 21)) }
     .return{ myList },
   .list4: List[mut Person] -> this.list2,
   .list5: List[Person] -> this.list4,
   }
 
-IPerson:{ .name: Str, .age: UInt }
-IPerson':F[Str, UInt, IPerson]{ name, age -> { .name -> name, .age -> age } }
+IPerson:{ .name: Str, .age: Nat }
+IPerson':F[Str, Nat, IPerson]{ name, age -> { .name -> name, .age -> age } }
 Person:{
   readOnly .name: Str,
-  readOnly .age: UInt,
-  mut .age(n: UInt): Void,
+  readOnly .age: Nat,
+  mut .age(n: Nat): Void,
   readOnly .str: Str -> "Person[name="+(this.name)+", age="+(this.age.str)+"]",
   }
-FPerson:F[Str, UInt, mut Person]{
+FPerson:F[Str, Nat, mut Person]{
   name, age -> Block#
-    .let _age = { Var#[UInt](age) }
+    .let _age = { Var#[Nat](age) }
     .return{{
       .name -> name,
       .age -> _age*,
       .age(n) -> _age := n,
       }}
     }
-//  .build(name: Str, age: mut Var[UInt]): mut MPerson -> {
+//  .build(name: Str, age: mut Var[Nat]): mut MPerson -> {
 //    .name -> name,
 //    .age -> age*,
 //    .setAge(n) -> age := n,

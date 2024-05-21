@@ -176,7 +176,7 @@ public class TestFullWellFormedness {
   @Test void complexValidRecMdf() { ok("""
     package test
     alias base.NoMutHyg as NoMutHyg,
-    Opt:{ #[T](x: T): mut Opt[T] -> { .match(m) -> m.some(x) } }
+    Opts:{ #[T](x: T): mut Opt[T] -> { .match(m) -> m.some(x) } }
     Opt[T]:NoMutHyg[T]{
       recMdf .match[R](m: mut OptMatch[recMdf T, R]): R -> m.none,
       recMdf .map[R](f: mut OptMap[recMdf T, R]): mut Opt[R] -> this.match{ .some(x) -> Opts#(f#x), .none -> {} },
@@ -247,9 +247,9 @@ public class TestFullWellFormedness {
 
   @Test void allowTopLevelDecl() { ok("""
     package test
-    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+    FPerson:{ #(name: Str, age: Nat): Person -> Person:{
       .name: Str -> name,
-      .age: UInt -> age,
+      .age: Nat -> age,
       }}
     Ex:{
       .create: Person -> FPerson#(Bob, TwentyFour),
@@ -258,7 +258,7 @@ public class TestFullWellFormedness {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void failTopLevelDeclImpl() { fail("""
     In position [###]/Dummy0.fear:6:4
@@ -266,9 +266,9 @@ public class TestFullWellFormedness {
     Traits declared within expressions cannot be implemented. This lambda has the following invalid implementations: test.Person/0
     """, """
     package test
-    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+    FPerson:{ #(name: Str, age: Nat): Person -> Person:{
       .name: Str -> name,
-      .age: UInt -> age,
+      .age: Nat -> age,
       }}
     Bad:Person{}
     Ex:{
@@ -278,7 +278,7 @@ public class TestFullWellFormedness {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
 
   @Test void disjointDecsInline1() { fail("""
@@ -380,6 +380,47 @@ public class TestFullWellFormedness {
      package test
     A: {#: read/imm A -> this#}
     """);}
+
+  @Test void validPosInt(){ ok("""
+    package a
+    A: {#: Int -> +5}
+    Int: {}
+    """); }
+  @Test void validNegInt(){ ok("""
+    package a
+    A: {#: Int -> -5}
+    Int: {}
+    """); }
+
+  @Test void validPosNat(){ ok("""
+    package a
+    A: {#: Nat -> 5}
+    Nat: {}
+    """); }
+  @Test void invalidDecimalInt(){ fail("""
+    In position [###]/Dummy0.fear:2:14
+    [E59 syntaxError]
+    +5.556/0 is not a valid type name.
+    """,
+    """
+    package a
+    A: {#: Nat -> +5.556}
+    Nat: {}
+    """); }
+  @Test void noMultiplePointsInFloat() {fail("""
+    In position [###]/Dummy0.fear:2:16
+    [E59 syntaxError]
+    1.2.4/0 is not a valid type name.
+    """, """
+    package a
+    A: {#: Float -> 1.2.4}
+    Float: {}
+    """);}
+  @Test void validString(){ ok("""
+    package a
+    A: {#: Str -> "Hello"}
+    Str: {}
+    """); }
 
   @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {
     var code = String.format("""

@@ -20,7 +20,7 @@ public class Ex09FlowsTest {
   @Test void flowSumStr() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      Flow#[Int](5, 10, 15)
+      Flow#[Int](+5, +10, +15)
         #(Flow.sum)
         .str
       )}
@@ -28,7 +28,7 @@ public class Ex09FlowsTest {
   @Test void immFlowSumStr() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      As[imm List[Int]]#(List#[Int](5, 10, 15)).flow
+      As[imm List[Int]]#(List#[Int](+5, +10, +15)).flow
         #(Flow.sum)
         .str
       )}
@@ -36,8 +36,8 @@ public class Ex09FlowsTest {
   @Test void flowFilterSumStr() { ok(new Res("25", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      Flow#[Int](5, 10, 15)
-        .filter{n -> n > 5}
+      Flow#[Int](+5, +10, +15)
+        .filter{n -> n > +5}
         #(Flow.sum)
         .str
       )}
@@ -48,7 +48,7 @@ public class Ex09FlowsTest {
     // We cannot have Assert.eq without a magic equality (HasEq)
     // and magic toString (which would help us provide a better error message)
     Test:Main {sys -> Assert.eq({n1, n2 -> n1 == n2},
-      Flow#[Int](5, 10, 15)#(Flow.sum),
+      Flow#[Int](+5, +10, +15)#(Flow.sum),
       30
       )}
     """, Base.mutBaseAliases);}
@@ -57,25 +57,36 @@ public class Ex09FlowsTest {
     // We cannot have Assert.eq without a magic equality and magic toString (which would help us provide a better
     // error message)
     Test:Main {sys -> Assert!(
-      Flow#[Int](5, 10, 15)#(Flow.sum)
-      == 30
+      Flow#[Int](+5, +10, +15)#(Flow.sum)
+      == +30
       )}
     """, Base.mutBaseAliases);}
 
   @Test void flowMap() { ok(new Res("300", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      Flow#[Int](5, 10, 15)
-        .map{n -> n * 10}
+      Flow#[Int](+5, +10, +15)
+        .map{n -> n * +10}
         #(Flow.sum)
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+  @Test void flowMapMapMap() { ok(new Res("30000", "", 0), """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      As[List[Nat]]#(List#(5, 10, 15)).flow
+        .map{n -> n * 10}
+        .map{n -> n * 10}
+        .map{n -> n * 10}
+        #(Flow.uSum)
         .str
       )}
     """, Base.mutBaseAliases); }
   @Test void flowMapWithListConstructor() { ok(new Res("300", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      List#[Int](5, 10, 15).flow
-        .map{n -> n * 10}
+      List#[Int](+5, +10, +15).flow
+        .map{n -> n * +10}
         #(Flow.sum)
         .str
       )}
@@ -84,9 +95,9 @@ public class Ex09FlowsTest {
   @Test void flowFlatMap() { ok(new Res("50, 50, 100, 100, 150", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      Flow#[Int](5, 10, 15)
-        .flatMap{n -> Flow#[Int](n, n, n).limit(2u).map{n' -> n' * 10}}
-        .limit(5u)
+      Flow#[Int](+5, +10, +15)
+        .flatMap{n -> Flow#[Int](n, n, n).limit(2).map{n' -> n' * +10}}
+        .limit(5)
         .map{n -> n.str}
         #(Flow.str ", ")
       )}
@@ -95,9 +106,9 @@ public class Ex09FlowsTest {
   @Test void flowGetFirst() { ok(new Res("100", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      Flow#[Int](5, 10, 15)
-        .map{n -> n * 10}
-        .filter{n -> n > 50}
+      Flow#[Int](+5, +10, +15)
+        .map{n -> n * +10}
+        .filter{n -> n > +50}
         .find{n -> True}!
         .str
       )}
@@ -112,26 +123,26 @@ public class Ex09FlowsTest {
       .return{Void}
       }
     Trick: {
-      .find: Int -> Flow#[Int](5, 10, 15)
+      .find: Nat -> Flow#[Nat](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
         .find{n -> True}
         .match{.some(n) -> n, .empty -> Error.msg ".find was empty"},
-      .findAndLimit: Int -> Flow#[Int](5, 10, 15)
+      .findAndLimit: Nat -> Flow#[Nat](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
-        .limit(1u)
+        .limit(1)
         .find{n -> True}
         .match{.some(n) -> n, .empty -> Error.msg ".findAndLimit was empty"},
-      .first: Int -> Flow#[Int](5, 10, 15)
+      .first: Nat -> Flow#[Nat](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
         .first
         .match{.some(n) -> n, .empty -> Error.msg ".first was empty"},
-      .firstAndLimit: Int -> Flow#[Int](5, 10, 15)
+      .firstAndLimit: Nat -> Flow#[Nat](5, 10, 15)
         .map{n -> n * 10}
         .filter{n -> n > 50}
-        .limit(1u)
+        .limit(1)
         .first
         .match{.some(n) -> n, .empty -> Error.msg ".firstAndLimit was empty"},
       }
@@ -145,33 +156,33 @@ public class Ex09FlowsTest {
       .return{Void}
       }
     Trick: {
-      .find: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
-        .map{p -> FPerson#(p.age * 10u)}
-        .filter{p -> p.age > 50u}
+      .find: mut Person -> Flow#[mut Person](FPerson#24, FPerson#60, FPerson#75)
+        .map{p -> FPerson#(p.age * 10)}
+        .filter{p -> p.age > 50}
         .find{n -> True}
         .match{.some(n) -> n, .empty -> Error.msg ".find was empty"},
-      .findAndLimit: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
-        .map{p -> FPerson#(p.age * 10u)}
-        .filter{p -> p.age > 50u}
-        .limit(1u)
+      .findAndLimit: mut Person -> Flow#[mut Person](FPerson#24, FPerson#60, FPerson#75)
+        .map{p -> FPerson#(p.age * 10)}
+        .filter{p -> p.age > 50}
+        .limit(1)
         .find{n -> True}
         .match{.some(n) -> n, .empty -> Error.msg ".findAndLimit was empty"},
-      .first: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
-        .map{p -> FPerson#(p.age * 10u)}
-        .filter{p -> p.age > 50u}
+      .first: mut Person -> Flow#[mut Person](FPerson#24, FPerson#60, FPerson#75)
+        .map{p -> FPerson#(p.age * 10)}
+        .filter{p -> p.age > 50}
         .first
         .match{.some(n) -> n, .empty -> Error.msg ".first was empty"},
-      .firstAndLimit: mut Person -> Flow#[mut Person](FPerson#24u, FPerson#60u, FPerson#75u)
-        .map{p -> FPerson#(p.age * 10u)}
-        .filter{p -> p.age > 50u}
-        .limit(1u)
+      .firstAndLimit: mut Person -> Flow#[mut Person](FPerson#24, FPerson#60, FPerson#75)
+        .map{p -> FPerson#(p.age * 10)}
+        .filter{p -> p.age > 50}
+        .limit(1)
         .first
         .match{.some(n) -> n, .empty -> Error.msg ".firstAndLimit was empty"},
       }
     """, """
     package test
-    FPerson: { #(age: UInt): mut Person -> mut Person: {'self
-      read .age: UInt -> age,
+    FPerson: { #(age: Nat): mut Person -> mut Person: {'self
+      read .age: Nat -> age,
       read .str: Str -> "Person that is "+(self.age.str)+" years old",
       read ==(other: read Person): Bool -> self.age == (other.age),
       }}
@@ -180,16 +191,16 @@ public class Ex09FlowsTest {
   @Test void optFlow() { ok(new Res(), """
     package test
     Test:Main {sys -> Block#
-      .let f1 = {(Opts#[Int]5).flow
-        .map{n -> n * 10}
+      .let f1 = {(Opts#[Int]+5).flow
+        .map{n -> n * +10}
         .list
         }
       .let f2 = {mut Opt[Int].flow
-        .map{n -> n * 10}
+        .map{n -> n * +10}
         .list
         }
-      .assert{f1.get(0u) == 50}
-      .assert{f2.size == 0u}
+      .assert{f1.get(0) == +50}
+      .assert{f2.size == 0}
       .return {{}}
       }
     """, Base.mutBaseAliases); }
@@ -197,8 +208,8 @@ public class Ex09FlowsTest {
   @Test void flowLimit0() { ok(new Res("0", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      Flow#[Int](5, 10, 15)
-        .limit(0u)
+      Flow#[Int](+5, +10, +15)
+        .limit(0)
         #(Flow.sum)
         .str
       )}
@@ -206,8 +217,8 @@ public class Ex09FlowsTest {
   @Test void flowLimit1() { ok(new Res("5", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      Flow#[Int](5, 10, 15)
-        .limit(1u)
+      Flow#[Int](+5, +10, +15)
+        .limit(1)
         #(Flow.sum)
         .str
       )}
@@ -215,8 +226,8 @@ public class Ex09FlowsTest {
   @Test void flowLimit2() { ok(new Res("15", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      Flow#[Int](5, 10, 15)
-        .limit(2u)
+      Flow#[Int](+5, +10, +15)
+        .limit(2)
         #(Flow.sum)
         .str
       )}
@@ -224,8 +235,8 @@ public class Ex09FlowsTest {
   @Test void flowLimit2List() { ok(new Res("15", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      List#[Int](5, 10, 15).flow
-        .limit(2u)
+      List#[Int](+5, +10, +15).flow
+        .limit(2)
         #(Flow.sum)
         .str
       )}
@@ -233,8 +244,8 @@ public class Ex09FlowsTest {
   @Test void flowLimit3() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      Flow#[Int](5, 10, 15)
-        .limit(3u)
+      Flow#[Int](+5, +10, +15)
+        .limit(3)
         #(Flow.sum)
         .str
       )}
@@ -242,8 +253,8 @@ public class Ex09FlowsTest {
   @Test void flowLimit3List() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      List#[Int](5, 10, 15).flow
-        .limit(3u)
+      List#[Int](+5, +10, +15).flow
+        .limit(3)
         #(Flow.sum)
         .str
       )}
@@ -251,8 +262,8 @@ public class Ex09FlowsTest {
   @Test void flowLimit4() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
-      Flow#[Int](5, 10, 15)
-        .limit(4u)
+      Flow#[Int](+5, +10, +15)
+        .limit(4)
         #(Flow.sum)
         .str
       )}
@@ -263,64 +274,89 @@ public class Ex09FlowsTest {
   @Test void flowFilter() { ok(new Res(), """
     package test
     Test:Main {sys -> Assert!(
-      Flow#[Int](5, 10, 15).filter{n -> n > 5}.size
-      == 2u
+      Flow#[Int](+5, +10, +15).filter{n -> n > +5}.size
+      == 2
       )}
     """, Base.mutBaseAliases);}
   @Test void flowFilterPrintSize() { ok(new Res("2", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let size = {Flow#[Int](5, 10, 15).filter{n -> n > 5}.size}
+      .let size = {Flow#[Nat](5, 10, 15).filter{n -> n > 5}.size}
       .return {FIO#sys.println(size.str)}
       }
     """, Base.mutBaseAliases);}
   @Test void flowFilterMap() { ok(new Res(), """
     package test
     Test:Main {sys -> Assert!(
-      Flow#[Int](5, 10, 15)
-        .filter{n -> n > 5}
-        .map{n -> n * 10}
+      Flow#[Int](+5, +10, +15)
+        .filter{n -> n > +5}
+        .map{n -> n * +10}
         .max(base.CompareInts)!
-      == 150
+      == +150
       )}
     """, Base.mutBaseAliases);}
   @Test void flowFilterMapIntEq1() { ok(new Res(), """
     package test
-    Test:Main {sys -> 150.assertEq("max assert failed",
-      Flow#[Int](5, 10, 15)
-        .filter{n -> n > 5}
-        .map{n -> n * 10}
+    Test:Main {sys -> (+150).assertEq("max assert failed",
+      Flow#[Int](+5, +10, +15)
+        .filter{n -> n > +5}
+        .map{n -> n * +10}
         .max(base.CompareInts)!
       )}
     """, Base.mutBaseAliases);}
   // We prefer flowFilterMapIntEq1 because it is more clear that this test is of an assertion rather than of a flow.
   @Test void flowFilterMapIntEq2() { ok(new Res(), """
     package test
-    Test:Main {sys -> Flow#[Int](5, 10, 15)
-      .filter{n -> n > 5}
-      .map{n -> n * 10}
+    Test:Main {sys -> Flow#[Int](+5, +10, +15)
+      .filter{n -> n > +5}
+      .map{n -> n * +10}
       .max(base.CompareInts)!
-      .assertEq(150)
+      .assertEq(+150)
       }
     """, Base.mutBaseAliases);}
 
-  @Test void flowDuplicate() { ok(new Res("35 40 45", "", 0), """
+  @Test void flowLet() { ok(new Res("35 40 45", "", 0), """
     package test
-    Test:Main {sys -> Flow#[Int](5, 10, 15)
-      .duplicate f2 = {f1 -> f1#(Flow.sum)}
-      .map{n -> n + f2}
-      .map{n -> n.str}
-      #(Flow.str " ")
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](+5, +10, +15)
+        .let[Int,Str] f2 = {f1 -> f1# #(Flow.sum)}
+        .map{n -> n + f2}
+        .map{n -> n.str}
+        #(Flow.str " ")
+        )
+      }
+    """, Base.mutBaseAliases);}
+  @Test void flowLetMultiple() { ok(new Res("65 70 75", "", 0), """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](+5, +10, +15)
+        .let[Int,Str] f2 = {f1 -> (f1# #(Flow.sum)) + (f1# #(Flow.sum))}
+        .map{n -> n + f2}
+        .map{n -> n.str}
+        #(Flow.str " ")
+        )
+      }
+    """, Base.mutBaseAliases);}
+  @Test void flowLetNoCollect() { ok(new Res("135 140 145", "", 0), """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      Flow#[Int](+5, +10, +15)
+        .let[Int,Str] f2 = {f -> f# #(Flow.sum)}
+        .let[Int,Str] f3 = {_ -> +100}
+        .map{n -> n + f2 + f3}
+        .map{n -> n.str}
+        #(Flow.str " ")
+        )
       }
     """, Base.mutBaseAliases);}
 
   @Test void mutExtensionMethod() { ok(new Res("20 30", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let[List[Int]] list = {List#[Int](1, 2, 3)}
+      .let[List[Int]] list = {List#[Int](+1, +2, +3)}
       .let[Str] myFlow = {list.flow
-        .filter{n -> n > 1}
-        #{f -> f.map{n -> n*10}}
+        .filter{n -> n > +1}
+        #{f -> f.map{n -> n * +10}}
         .map{n -> n.str}
         #(Flow.str " ")
         }
@@ -328,23 +364,23 @@ public class Ex09FlowsTest {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void flowActor() { ok(new Res("31", "", 0), """
+  @Test void flowActor() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
-      Flow#[Int](5, 10, 15)
+      Flow#[Int](+5, +10, +15)
         // .actor requires an iso S for its initial value
         // The 3rd argument is optional
-        .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
+        .actor[mut Var[Int], Int](Var#[Int]+1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
-          .if {state.get > 16} .return{Block#(downstream#500, {})}
-          .do {downstream#42}
+          .if {state.get > +16} .return{Block#(downstream#(+500), {})}
+          .do {downstream#(+42)}
           .do {downstream#n}
-          .return {{}}}, mut Consumer[mut Var[Int]]{state -> FIO#sys.println(state.get.str)})
+          .return {{}}})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
-  @Disabled @Test void flowActorMutRet() { ok(new Res("31", "", 0), """
+  @Disabled @Test void flowActorMutRet() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](5, 10, 15)
@@ -355,42 +391,38 @@ public class Ex09FlowsTest {
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
           .do {downstream#n}
-          .return {{}}}, mut Consumer[mut Var[Int]]{state -> FIO#sys.println(state.get.str)})
+          .return {{}}})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
 
-  // TODO: right now it is possible to observe pipeline parallelism with the consumer and a limit + actor
-  // This is because the limit runs in parallel with the actor, the actor won't submit any messages incorrectly
-  // but it may run needlessly :(
-  // This is because the STOP message is queued behind any prior messages.
-  @Test void limitedFlowActorAfter() { ok(new Res("6", "", 0), """
+  @Test void limitedFlowActorAfter() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> "42 5".assertEq(
-      Flow#[Int](5, 10, 15)
-        .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
+      Flow#[Nat](5, 10, 15)
+        .actor[mut Var[Nat], Nat](Var#[Nat]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
           .do {downstream#n}
-          .return {{}}}, {state -> FIO#sys.println(state.get.str)})
-        .limit(2u)
+          .return {{}}})
+        .limit(2)
         .map{n -> n.str}
         #(Flow.str " ")
       )}
     """, Base.mutBaseAliases);}
-  @Test void limitedFlowActorBefore() { ok(new Res("16", "", 0), """
+  @Test void limitedFlowActorBefore() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10".assertEq(
-      Flow#[Int](5, 10, 15)
-        .limit(2u)
-        .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
+      Flow#[Int](+5, +10, +15)
+        .limit(2)
+        .actor[mut Var[Int], Int](Var#[Int]+1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
-          .if {state.get > 16} .return{Block#(downstream#500, {})}
-          .do {downstream#42}
+          .if {state.get > +16} .return{Block#(downstream#(+500), {})}
+          .do {downstream#(+42)}
           .do {downstream#n}
-          .return {{}}}, {state -> FIO#sys.println(state.get.str)})
+          .return {{}}})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
@@ -398,11 +430,11 @@ public class Ex09FlowsTest {
   @Test void flowActorNoConsumer() { ok(new Res(), """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
-      Flow#[Int](5, 10, 15)
-        .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
+      Flow#[Int](+5, +10, +15)
+        .actor[mut Var[Int], Int](Var#[Int]+1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
-          .if {state.get > 16} .return{Block#(downstream#500, {})}
-          .do {downstream#42}
+          .if {state.get > +16} .return{Block#(downstream#(+500), {})}
+          .do {downstream#(+42)}
           .do {downstream#n}
           .return {{}}})
         .map{n -> n.str}
@@ -414,7 +446,7 @@ public class Ex09FlowsTest {
   @Test void flowScan() { ok(new Res(), """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
-      Flow#[Int](5, 10, 15)
+      Flow#[Nat](5, 10, 15)
         .scan[Str]("!", {acc, n -> acc + (n.str)})
         .map{n -> n.str}
         #(Flow.str " ")
@@ -423,9 +455,9 @@ public class Ex09FlowsTest {
   @Test void flowScan2() { ok(new Res(), """
     package test
     Test:Main {sys -> "5 20 50".assertEq(
-      Flow#[Int](5, 10, 15)
-        .scan[Int](0, {acc, n -> acc + n})
-        .scan[Int](0, {acc, n -> acc + n})
+      Flow#[Int](+5, +10, +15)
+        .scan[Int](+0, {acc, n -> acc + n})
+        .scan[Int](+0, {acc, n -> acc + n})
         .map{n -> n.str}
         #(Flow.str " ")
       )}
@@ -435,7 +467,7 @@ public class Ex09FlowsTest {
   @Test void flowSimpleActorMutRet() { ok(new Res(), """
     package test
     Test:Main {sys -> "!5 !510 !51015".assertEq(
-      Flow#[Int](5, 10, 15)
+      Flow#[Nat](5, 10, 15)
         .scan[Str]("!", {acc, n -> acc + (n.str)})
         .map{n -> n.str}
         #(Flow.str " ")
@@ -443,11 +475,11 @@ public class Ex09FlowsTest {
     """, """
     package test
     FPerson:{
-      #(age: UInt): mut Person -> Block#
-        .let[mut Var[UInt]] age' = {Var#age}
+      #(age: Nat): mut Person -> Block#
+        .let[mut Var[Nat]] age' = {Var#age}
         .return mut base.ReturnStmt[mut Person]{mut Person: Person{
-          read .age: UInt -> age'.get,
-          mut .age(n: UInt): Void -> age' := n,
+          read .age: Nat -> age'.get,
+          mut .age(n: Nat): Void -> age' := n,
           }}
       }
     """, Base.mutBaseAliases);}
@@ -459,11 +491,11 @@ public class Ex09FlowsTest {
 //        // .actor requires an iso S for its initial value
 //        // This lambda has the type read ActorImpl[mut IsoPod[S], ... E, R]
 //        .actor(Var#1, mut Consume[mut Var[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
-//          .do {state.set(someMutList.get(0u)!)}
+//          .do {state.set(someMutList.get(0)!)}
 //          .if {state.get > 10} .return {500}
 //          .return {n})
 //        .actor(Var#1, mut Consume[mut Var[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
-//          .do {state.set(someMutList.get(0u)!)}
+//          .do {state.set(someMutList.get(0)!)}
 //          .if {state.get > 10} .return {500}
 //          .return {n})
 //        // Actors on:
@@ -491,16 +523,15 @@ public class Ex09FlowsTest {
 //      )}
 //    """, Base.mutBaseAliases);}
 
-  // TODO: The error that this generates without the .toImm on the list item is _terrible_ (and takes like 1 and a half minutes)
   @Test void flowActorMultiParallel() { ok(new Res(), """
     package test
     Test:Main {sys -> Block#
-      .let[mut List[Int]] someMutList = {List#[Int](30)}
+      .let[mut List[Int]] someMutList = {List#[Int](+30)}
       .return {"500 5 500 10".assertEq(
-        Flow#[Int](5, 10)
-          .actor[mut Var[Int],Int](Var#[Int]1, {next, state, n -> Block#
-            .do {state.set(someMutList.get(0u))}
-            .if {state.get > 10} .do {next#500}
+        Flow#[Int](+5, +10)
+          .actor[mut Var[Int],Int](Var#[Int]+1, {next, state, n -> Block#
+            .do {state.set(someMutList.get(0))}
+            .if {state.get > +10} .do {next#(+500)}
             .do {next#n}
             .return {{}}
             })
@@ -559,5 +590,14 @@ public class Ex09FlowsTest {
         .map{n -> n + 5}
         .to list..
       )}
+    """, Base.mutBaseAliases);}
+
+  @Test void cannotUnwrapFlow() {fail("""
+    In position [###]/Dummy0.fear:2:56
+    [E48 privateTraitImplementation]
+    The private trait base.flows._UnwrapFlowToken/0 cannot be implemented outside of its package.
+    """, """
+    package test
+    Test:Main {sys -> Block#(Flow#[Int](5, 10, 15).unwrapOp({}))}
     """, Base.mutBaseAliases);}
 }

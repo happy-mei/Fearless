@@ -9,6 +9,7 @@ import id.Id;
 import id.Id.MethName;
 import id.Mdf;
 import failure.Fail;
+import magic.Magic;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -207,17 +208,22 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     E.Lambda res;
     if (ctx.topDec() != null) {
       String cName = visitFullCN(ctx.topDec().fullCN());
+      if (Magic.isLiteral(cName)) {
+        throw Fail.syntaxError(STR."\{pkg}.\{cName} is not a valid type name.").pos(pos(ctx));
+      }
       if (cName.contains(".")) {
-        throw Bug.of("You may not declare a trait in a different package than the package the declaration is in.");
+        throw Fail.crossPackageDeclaration().pos(pos(ctx));
       }
       assert this.pkg != null;
-      cName = this.pkg + "." + cName;
+      cName = this.pkg+"."+cName;
 
       var mGen = Optional.ofNullable(ctx.topDec().mGen())
         .flatMap(this::visitMGenParams)
         .orElse(new GenericParams(List.of(), Map.of()));
       this.xbs = mGen.bounds;
-      var name = Optional.of(new E.Lambda.LambdaId(new Id.DecId(cName, mGen.gxs.size()), mGen.gxs, mGen.bounds));
+      var id = new Id.DecId(cName, mGen.gxs.size());
+
+      var name = Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds));
       res = visitBlock(ctx.topDec().block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), name);
     } else {
       res = visitBlock(ctx.block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), Optional.empty());
@@ -365,10 +371,13 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public T.Dec visitTopDec(TopDecContext ctx, String pkg, boolean shallow) {
     check(ctx);
     String cName = visitFullCN(ctx.fullCN());
-    if (cName.contains(".")) {
-      throw Bug.of("You may not declare a trait in a different package than the package the declaration is in.");
+    if (Magic.isLiteral(cName)) {
+      throw Fail.syntaxError(STR."\{pkg}.\{cName} is not a valid type name.").pos(pos(ctx));
     }
-    cName = pkg + "." + cName;
+    if (cName.contains(".")) {
+      throw Fail.crossPackageDeclaration().pos(pos(ctx));
+    }
+    cName = pkg+"."+cName;
     this.pkg = pkg;
 
     var mGen = Optional.ofNullable(ctx.mGen())

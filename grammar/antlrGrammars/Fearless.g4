@@ -46,7 +46,7 @@ fragment StringMultiLine:(' ')* '|' CHARInStringMulti* '\n';
 fragment FStringMulti: StringMultiOpen StringMultiLine+ StringMultiClose;
 fragment FStringSingle: '"' (CHARInStringSingle* | ) '"';
 // TODO: ensure we throw an error in the parser for malformed nums (i.e. u in the middle)
-fragment FNumber: '-'? '0'..'9' ('.'|'_'|'u'|'0'..'9')*; //flexible for more error messages
+fragment FNumber: ('+'|'-')? '0'..'9' ('.'|'_'|'0'..'9')*; //flexible for more error messages
 fragment FIdLow:IdLow IdChar* ('\'')*;
 fragment FIdUp:IdUp IdChar* ('\'')*;
 X:FIdLow;

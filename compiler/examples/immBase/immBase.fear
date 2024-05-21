@@ -1,6 +1,6 @@
 package examples
 MyApp:Main{
 // todo: long cannot be Stringable (will probably need to use full objs to wrap all of these :-( )
-  args -> args.get 0u || "Sad"
-//  Cons#[Str]("Hello, World!", Cons#[Str]("Bye, World!", {})).get 3u || "Sad"
+  args -> args.get 0 || "Sad"
+//  Cons#[Str]("Hello, World!", Cons#[Str]("Bye, World!", {})).get 3 || "Sad"
   }

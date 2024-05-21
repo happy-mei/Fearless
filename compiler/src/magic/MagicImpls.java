@@ -1,34 +1,14 @@
 package magic;
 
-import ast.Program;
-import ast.T;
 import codegen.MIR;
 import id.Id;
-import id.Mdf;
-import program.typesystem.XBs;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface MagicImpls<R> {
-  static Optional<String> getLiteral(Program p, Id.DecId d) {
-    if (isLiteral(d.name())) { return Optional.of(d.name()); }
-    var supers = p.superDecIds(d);
-    return supers.stream().filter(dec->{
-      var name = dec.name();
-      return isLiteral(name);
-    }).map(Id.DecId::name).findFirst();
-  }
-  static boolean isLiteral(String name) {
-    return Character.isDigit(name.charAt(0)) || isStringLiteral(name) || name.startsWith("-");
-  }
-  static boolean isStringLiteral(String name) {
-    return name.startsWith("\"");
-  }
-
   default Optional<MagicTrait<MIR.E,R>> get(MIR.E e) {
     if (isMagic(Magic.Int, e)) { return Optional.ofNullable(int_(e)); }
-    if (isMagic(Magic.UInt, e)) { return Optional.ofNullable(uint(e)); }
+    if (isMagic(Magic.Nat, e)) { return Optional.ofNullable(nat(e)); }
     if (isMagic(Magic.Float, e)) { return Optional.ofNullable(float_(e)); }
     if (isMagic(Magic.Str, e)) { return Optional.ofNullable(str(e)); }
     if (isMagic(Magic.Bool, e)) { return Optional.ofNullable(bool(e)); }
@@ -42,7 +22,6 @@ public interface MagicImpls<R> {
     if (isMagic(Magic.Try, e)) { return Optional.ofNullable(tryCatch(e)); }
     if (isMagic(Magic.CapTry, e)) { return Optional.ofNullable(capTryCatch(e)); }
     if (isMagic(Magic.PipelineParallelSinkK, e)) { return Optional.ofNullable(pipelineParallelSinkK(e)); }
-    if (isMagic(Magic.SeqSinkK, e)) { return Optional.ofNullable(seqSinkK(e)); }
     return Magic.ObjectCaps.stream()
       .filter(target->isMagic(target, e))
       .map(target->Optional.ofNullable(objCap(target, e)))
@@ -62,7 +41,7 @@ public interface MagicImpls<R> {
   }
 
   MagicTrait<MIR.E,R> int_(MIR.E e);
-  MagicTrait<MIR.E,R> uint(MIR.E e);
+  MagicTrait<MIR.E,R> nat(MIR.E e);
   MagicTrait<MIR.E,R> float_(MIR.E e);
   MagicTrait<MIR.E,R> str(MIR.E e);
   MagicTrait<MIR.E,R> debug(MIR.E e);
@@ -76,7 +55,6 @@ public interface MagicImpls<R> {
   default MagicTrait<MIR.E,R> tryCatch(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> capTryCatch(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> pipelineParallelSinkK(MIR.E e) { return null; }
-  default MagicTrait<MIR.E,R> seqSinkK(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> objCap(Id.DecId magicTrait, MIR.E e) { return null; }
   default MagicCallable<MIR.E,R> variantCall(MIR.E e) { return null; }
   ast.Program p();

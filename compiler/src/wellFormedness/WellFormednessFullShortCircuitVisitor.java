@@ -1,13 +1,14 @@
 package wellFormedness;
 
 import astFull.E;
+import astFull.Program;
 import astFull.T;
-import files.HasPos;
-import id.Id;
 import failure.CompileError;
 import failure.Fail;
-import astFull.Program;
+import files.HasPos;
+import id.Id;
 import id.Mdf;
+import magic.Magic;
 import visitors.FullShortCircuitVisitor;
 import visitors.FullShortCircuitVisitorWithEnv;
 
@@ -112,7 +113,8 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       .or(()->super.visitT(t));
   }
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
-    return super.visitIT(t);
+    return noInvalidLiterals(t)
+      .or(()->super.visitIT(t));
   }
 
   @Override
@@ -240,6 +242,11 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
     return Optional.of(Fail.implInlineDec(
       e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.id().id().equals(d)).toList()
     ));
+  }
+
+  private Optional<CompileError> noInvalidLiterals(Id.IT<T> it) {
+    if (!Magic.isLiteral(it.name().name())) { return Optional.empty(); }
+    return Magic.validateLiteral(it.name());
   }
 
   private Optional<CompileError> disjointDecls(Program p) {

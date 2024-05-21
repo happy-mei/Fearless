@@ -1,9 +1,11 @@
 package stdLibFormatting;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.*;
-  import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 public class CollectAllBaseInFile {
@@ -15,10 +17,11 @@ public class CollectAllBaseInFile {
     }
   }
   public static void main(String[] args) throws IOException, URISyntaxException {
-    Path startDir= Paths.get("resources/base");
+    var workingDir = Path.of("");
+    Path startDir= workingDir.toAbsolutePath().getParent().resolve("assets", "base");
     //IntelliJ is opinionated in the wrong way
     //Path outputFile= Paths.get(Objects.requireNonNull(CollectAllBaseInFile.class.getResource("allBase.txt")).toURI());
-    Path outputFile= Paths.get("resources/allBase/allBase.txt");
+    Path outputFile= workingDir.toAbsolutePath().getParent().resolve("artefacts", "allBase", "allBase.txt");
 
     try (var writer = Files.newBufferedWriter(outputFile, StandardCharsets.UTF_8, StandardOpenOption.CREATE)) {
         for (Path file : allFiles(startDir)) {

@@ -33,10 +33,10 @@ public interface Str extends base.Str_0 {
 	@Override default Str str$read() {
 		return this;
 	}
-	@Override default base.Bool_0 $equals$equals$readOnly(Str other$) {
+	@Override default base.Bool_0 $equals$equals$imm(Str other$) {
 		return Arrays.equals(this.utf8(), other$.utf8()) ? True_0.$self : False_0.$self;
 	}
-	@Override default Str $plus$readOnly(Str other$) {
+	@Override default Str $plus$imm(Str other$) {
 		var a = this.utf8();
 		var b = other$.utf8();
 		var res = new byte[a.length + b.length];
@@ -44,16 +44,16 @@ public interface Str extends base.Str_0 {
 		System.arraycopy(b, 0, res, a.length, b.length);
 		return fromTrustedUtf8(res);
 	}
-	@Override default Long size$readOnly() {
+	@Override default Long size$imm() {
 		return (long) this.graphemes().length;
 	}
-	@Override default base.Void_0 assertEq$readOnly(Str other$) {
+	@Override default base.Void_0 assertEq$imm(Str other$) {
 		return _StrHelpers_0.$self.assertEq$imm(this, other$);
 	}
-	@Override default base.Bool_0 isEmpty$readOnly() {
-		return this.utf8().length == 0 ? True_0.$self : False_0.$self;
+	@Override default base.Void_0 assertEq$imm(Str message$, Str other$) {
+		return _StrHelpers_0.$self.assertEq$imm(message$, this, other$);
 	}
-	@Override default Str toImm$readOnly() {
-		return this.str$read();
+	@Override default base.Bool_0 isEmpty$imm() {
+		return this.utf8().length == 0 ? True_0.$self : False_0.$self;
 	}
 }

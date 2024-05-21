@@ -17,8 +17,8 @@ LList[E]:NoMutHyg[E],Sealed,Iterable[recMdf E]{
     .elem(_,_) -> False
     },
   readOnly .size: UNum -> this.match{
-    .empty -> 0u,
-    .elem(_,t) -> t.size+1u,
+    .empty -> 0,
+    .elem(_,t) -> t.size+1,
     },
   readOnly ++(l1: recMdf LList[mdf E]): recMdf LList[mdf E] -> this.match{
     .empty -> l1,
@@ -27,7 +27,7 @@ LList[E]:NoMutHyg[E],Sealed,Iterable[recMdf E]{
   readOnly +(e: mdf E): recMdf LList[mdf E] -> this ++ Cons#(e, {}),
   readOnly .get(i: UNum) : recMdf Opt[recMdf E] -> this.match{// or recMdf Opt[mdf E] depending on inference
     .empty -> {},
-    .elem(h, t) -> (i == 0) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
+    .elem(h, t) -> (i == 0) ? { .then -> Opt#h, .else -> t.get(i - 1) }
     },
   readOnly head: recMdf Opt[recMdf E] -> this.match{
     .empty -> {},
@@ -44,7 +44,7 @@ LList[E]:NoMutHyg[E],Sealed,Iterable[recMdf E]{
 LListMatch[E,L,R]:{ mut .elem(head: mdf E, tail: mdf L): mdf R, mut .empty: mdf R }
 
 ListState[E]:NoMutHyg[E],Sealed{
-  readOnly .size: UNum -> 0u,
+  readOnly .size: UNum -> 0,
   readOnly .inner: recMdf LList[mdf E] -> {}
   }
 ListState:{
@@ -75,9 +75,9 @@ List{
     .isEmpty -> s*.inner.isEmpty,
     .get(i) -> s*.inner.get(i),
     .iter -> iter={ // readOnly .iter: lent Iter[mdf E]
-      .next: list.get(iter.cur.swap(iter.cur* + 1u)),
+      .next: list.get(iter.cur.swap(iter.cur* + 1)),
       },
-    .add(e) -> s := ListState#(s*.size + 1u, s*.inner + e),
+    .add(e) -> s := ListState#(s*.size + 1, s*.inner + e),
     .addAll(l1) -> l1.iter.forEach{ e -> list.add(e) }
     }
   }
@@ -103,6 +103,6 @@ CourseK:{
   }
 Main { Block
   .var{course = CourseK#}
-  .do{ course.addStudent(Ref#"Nick", Count#u(22u)) }
+  .do{ course.addStudent(Ref#"Nick", Count#u(22)) }
   .do{ course.students.get(0).do{ s -> s.age++ } }
   }

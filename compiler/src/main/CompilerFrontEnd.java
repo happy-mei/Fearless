@@ -4,7 +4,7 @@ import ast.Program;
 import astFull.Package;
 import codegen.MIRInjectionVisitor;
 import codegen.html.HtmlDocgen;
- import codegen.java.JavaCompiler;
+import codegen.java.JavaCompiler;
 import codegen.java.JavaFile;
 import failure.CompileError;
 import failure.Fail;

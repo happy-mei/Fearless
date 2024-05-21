@@ -1064,7 +1064,7 @@ CompareInts: F[Int, Int, Ordering]{
     .if {a < b} .return {FOrdering.less}
     .return {FOrdering.equal}
   }
-CompareUInts: F[UInt, UInt, Ordering]{
+CompareNats: F[Nat, Nat, Ordering]{
   a, b -> Block#
     .if {a > b} .return {FOrdering.greater}
     .if {a < b} .return {FOrdering.less}
@@ -1167,7 +1167,7 @@ _MutSourceCollection[E]: {
      .empty -> Block#
        .let[mut List[E]] dup = {Flow.fromOp(original).list}
        .do {cloned := (Opts#(Block#[mut FlowOp[E]]
-         .let[mut Count[UInt]] cursor = {Count.uint(0u)}
+         .let[mut Count[Nat]] cursor = {Count.nat(0u)}
          .return {{'self
            .isRunning -> cursor* < (dup.size),
            .stop -> cursor := (dup.size),
@@ -1187,7 +1187,7 @@ _SafeSource: {
 
   .fromList[E](list: mut List[E]): mut Flow[E] -> Flow.fromOp[E](this.fromList'[E](list), list.size),
   .fromList'[E](list: mut List[E]): mut FlowOp[E] -> Block#
-    .let[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .let[mut Count[Nat]] cursor = {Count.nat(0u)}
     .return {{'self
       .isRunning -> cursor* < (list.size),
       .stop -> cursor := (list.size),
@@ -1213,10 +1213,10 @@ Flow: Sealed, _FlowExtensions, _FlowConverters{
   #[E](e1: E, e2: E, e3: E, e4: E): mut Flow[E] -> List#(e1, e2, e3, e4).flow,
 
   .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> _SeqFlow.fromOp(source, {}),
-  .fromOp[E](source: mut FlowOp[E], size: UInt): mut Flow[E] -> _SeqFlow.fromOp(source, Opts#size),
+  .fromOp[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _SeqFlow.fromOp(source, Opts#size),
 
   .fromMutSource[E](source: mut FlowOp[E]): mut Flow[E] -> _MutSourceCollection[E]#source,
-  .fromMutSource[E](source: mut FlowOp[E], size: UInt): mut Flow[E] -> _MutSourceCollection[E]#source,
+  .fromMutSource[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _MutSourceCollection[E]#source,
   }
 
 Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
@@ -1233,7 +1233,7 @@ _NonTerminalOps[E]: {
   mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] -> this.actorMut[S,R](state, f, {_ -> {}}),
   mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut Flow[R],
 
-  mut .limit(n: UInt): mut Flow[E],
+  mut .limit(n: Nat): mut Flow[E],
 
   mut .scan[S:imm](acc: S, f: read F[S,E,S]): mut Flow[S] -> this.actor[mut Ref[S], S](Ref#[S]acc, {downstream, acc', e -> Block#(
     acc' := (f#(acc'.get, e)),
@@ -1248,7 +1248,7 @@ _TerminalOps[E]: Sealed{
   mut .all(predicate: read F[E, Bool]): Bool,
   mut .fold[S](acc: S, f: read F[S,E,S]): S,
   mut .fold[S](acc: S, f: read F[S,E,S], combine: read F[S, S, S]): S,
-  mut .size: UInt,
+  mut .size: Nat,
 
   mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
   mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> Block#(acc.add(e), acc)}),
@@ -1279,7 +1279,7 @@ _FlowExtensions: {
     }})},
 
   .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int](0, {acc, e -> acc + e})},
-  .uSum: mut Extension[mut Flow[UInt], UInt] -> {flow -> flow.fold[UInt](0u, {acc, e -> acc + e})},
+  .uSum: mut Extension[mut Flow[Nat], Nat] -> {flow -> flow.fold[Nat](0u, {acc, e -> acc + e})},
   .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> flow.fold[Float](0.0, {acc, e -> acc + e})},
   }
 
@@ -1396,7 +1396,7 @@ _PipelineParallelSink: _Sink{
 _PipelineParallelSink[T]: _Sink[T]
 
 _PipelineParallelFlow: {
-  .fromOp[E](source: mut FlowOp[E], size: Opt[UInt]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
     .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
     .map(f) -> this.fromOp(_Map#(_PipelineParallelSink, source, f), size),
     .flatMap(f) -> this.fromOp(_FlatMap#(_PipelineParallelSink, source, f), {}),
@@ -1435,9 +1435,9 @@ _PipelineParallelFlow: {
       .return {acc'.get},
     .fold(acc, f, combine) -> self.fold(acc, f),
 
-    .size -> size.match[UInt]{
+    .size -> size.match[Nat]{
       .some(n) -> n,
-      .empty -> self.fold[UInt](0u, {acc, _ -> acc + 1u}),
+      .empty -> self.fold[Nat](0u, {acc, _ -> acc + 1u}),
       },
     },
 
@@ -1455,7 +1455,7 @@ _PipelineParallelFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opts#[UInt]1u)},
+    .return {this.fromOp(source, Opts#[Nat]1u)},
   }
 
 //---File flows\pkg.fear
@@ -1465,7 +1465,7 @@ alias base.Block as Block,
 alias base.Sealed as Sealed,
 alias base.Void as Void,
 alias base.Bool as Bool, alias base.True as True, alias base.False as False,
-alias base.UInt as UInt, alias base.Int as Int, alias base.Float as Float,
+alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float,
 alias base.Str as Str,
 alias base.F as F, alias base.Consumer as Consumer,
 alias base.Extensible as Extensible, alias base.Extension as Extension,
@@ -1482,7 +1482,7 @@ alias base.IsoPod as IsoPod,
 package base.flows
 
 _SeqFlow: {
-  .fromOp[E](source: mut FlowOp[E], size: Opt[UInt]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
     .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
     .map(f) -> this.fromOp(_Map#(_Sink, source, f), size),
     .flatMap(f) -> this.fromOp(_FlatMap#(_Sink, source, f), {}),
@@ -1521,9 +1521,9 @@ _SeqFlow: {
       .return {acc'.get},
     .fold(acc, f, combine) -> self.fold(acc, f),
 
-    .size -> size.match[UInt]{
+    .size -> size.match[Nat]{
       .some(n) -> n,
-      .empty -> self.fold[UInt](0u, {acc, _ -> acc + 1u}),
+      .empty -> self.fold[Nat](0u, {acc, _ -> acc + 1u}),
       },
     },
 
@@ -1541,15 +1541,15 @@ _SeqFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opts#[UInt]1u)},
+    .return {this.fromOp(source, Opts#[Nat]1u)},
   }
 
 //---File flows\statefulOperators.fear
 package base.flows
 
 _Limit: {
-  #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: UInt): mut FlowOp[E] -> Block#
-    .let[mut Count[UInt]] remaining = {Count.uint(n)}
+  #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: Nat): mut FlowOp[E] -> Block#
+    .let[mut Count[Nat]] remaining = {Count.nat(n)}
     .let[mut Ref[mut Opt[mut _Sink[E]]]] sink = {Ref#{}}
     .return {{ 'runner
       .stop -> Block#(remaining := 0u, upstream.stop),
@@ -1693,7 +1693,7 @@ Iter[E]:{
     .empty -> {}
     },
 
-  mut .count: UInt -> this.fold[UInt](0u, mut IterFolder[E, UInt]{ acc, _ -> acc + 1u }),
+  mut .count: Nat -> this.fold[Nat](0u, mut IterFolder[E, Nat]{ acc, _ -> acc + 1u }),
   mut .list: mut List[E] -> this.fold(List#[E], { acc, e -> Block#(acc.add(e), acc) }),
   mut .llist: mut LList[E] -> this.fold(mut LList[E], { acc, e -> acc +[] e }),
   mut .str(toStr: mut IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
@@ -1703,7 +1703,7 @@ Iter[E]:{
 
 Sum:{
   .int(ns: mut Iter[Int]): Int -> ns.fold[Int](0, mut IterFolder[Int, Int]{ acc, n -> acc + n }),
-  .uint(ns: mut Iter[UInt]): UInt -> ns.fold[UInt](0u, mut IterFolder[UInt, UInt]{ acc, n -> acc + n }),
+  .nat(ns: mut Iter[Nat]): Nat -> ns.fold[Nat](0u, mut IterFolder[Nat, Nat]{ acc, n -> acc + n }),
   .float(ns: mut Iter[Float]): Float -> ns.fold[Float](0.0, mut IterFolder[Float, Float]{ acc, n -> acc + n }),
   }
 
@@ -1755,7 +1755,7 @@ Iter[E]:{
     .empty -> {}
     },
 
-  .count: UInt -> this.fold[UInt](0u, IterFolder[imm E, UInt]{ acc, _ -> acc + 1u }),
+  .count: Nat -> this.fold[Nat](0u, IterFolder[imm E, Nat]{ acc, _ -> acc + 1u }),
   .list: mut List[imm E] -> this.fold(List#[imm E], { acc, e -> Block#(acc.add(e), acc) }),
   .llist: mut LList[imm E] -> this.fold(mut LList[imm E], { acc, e -> acc +[] e }),
   .str(toStr: IterMapper[imm E, Str], joining: Str): Str -> this.map(toStr)
@@ -1765,7 +1765,7 @@ Iter[E]:{
 
 Sum:{
   .int(ns: Iter[Int]): Int -> ns.fold[Int](0, IterFolder[Int, Int]{ acc, n -> acc + n }),
-  .uint(ns: Iter[UInt]): UInt -> ns.fold[UInt](0u, IterFolder[UInt, UInt]{ acc, n -> acc + n }),
+  .nat(ns: Iter[Nat]): Nat -> ns.fold[Nat](0u, IterFolder[Nat, Nat]{ acc, n -> acc + n }),
   .float(ns: Iter[Float]): Float -> ns.fold[Float](0.0, IterFolder[Float, Float]{ acc, n -> acc + n }),
   }
 
@@ -1792,7 +1792,7 @@ alias base.LList as LList, alias base.List as List,
 alias base.Opt as Opt, alias base.OptMap as OptMap, alias base.OptMatch as OptMatch,
 alias base.Void as Void,
 alias base.Bool as Bool, alias base.True as True, alias base.False as False,
-alias base.UInt as UInt, alias base.Int as Int, alias base.Float as Float,
+alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float,
 alias base.Str as Str,
 alias base.Let as Let,
 alias base.Block as Block, alias base.ReturnStmt as ReturnStmt,
@@ -1808,7 +1808,7 @@ alias base.LList as LList, alias base.List as List,
 alias base.Opt as Opt, alias base.OptMap as OptMap, alias base.OptMatch as OptMatch,
 alias base.Void as Void,
 alias base.Bool as Bool, alias base.True as True, alias base.False as False,
-alias base.UInt as UInt, alias base.Int as Int, alias base.Float as Float,
+alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float,
 alias base.Str as Str,
 alias base.Let as Let,
 alias base.Block as Block, alias base.ReturnStmt as ReturnStmt,
@@ -1858,7 +1858,7 @@ Box[T]: {
 package base
 
 Collection:{
-  read .size: UInt,
+  read .size: Nat,
   read .isEmpty: Bool,
   }
 
@@ -1867,9 +1867,9 @@ LList[E]:Collection,Sealed{
   mut  .match[R](m: mut LListMatch[E, R]): R -> m.empty,
   read .match[R](m: mut LListMatchRead[read E, R]): R -> m.empty,
 
-  mut  .get(i: UInt): mut Opt[E] -> {},
-  read .get(i: UInt): mut Opt[read E] -> {},
-  imm  .get(i: UInt): iso Opt[imm E] -> {},
+  mut  .get(i: Nat): mut Opt[E] -> {},
+  read .get(i: Nat): mut Opt[read E] -> {},
+  imm  .get(i: Nat): iso Opt[imm E] -> {},
 
   mut  .head: mut Opt[E] -> {},
   read .head: mut Opt[read E] -> {},
@@ -1934,7 +1934,7 @@ LList[E]:Collection,Sealed{
       }},
 
   read .isEmpty: Bool -> True,
-  read .size: UInt -> 0u,
+  read .size: Nat -> 0u,
 
   mut .list: mut List[E] -> List.fromLList[E](this),
 
@@ -1945,9 +1945,9 @@ LList[E]:Collection,Sealed{
       read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
       imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
 
-      mut  .get(i: UInt): mut Opt[E] -> (i == 0u) ? { .then -> Opts#e, .else -> this.get[](i - 1u) },
-      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opts#[read E]e, .else -> this.get[](i - 1u) },
-      imm  .get(i: UInt): iso Opt[imm E] -> (i  == 0u) ? { .then -> Opts#[imm E]e, .else -> this.get[](i - 1u) },
+      mut  .get(i: Nat): mut Opt[E] -> (i == 0u) ? { .then -> Opts#e, .else -> this.get[](i - 1u) },
+      read .get(i: Nat): mut Opt[read E] -> (i == 0u) ? { .then -> Opts#[read E]e, .else -> this.get[](i - 1u) },
+      imm  .get(i: Nat): iso Opt[imm E] -> (i  == 0u) ? { .then -> Opts#[imm E]e, .else -> this.get[](i - 1u) },
 
       mut  .head: mut Opt[E] -> Opts#e,
       read .head: mut Opt[read E] -> Opts#[read E]e,
@@ -1965,8 +1965,8 @@ LList[E]:Collection,Sealed{
       read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
       imm  .match[R](m: mut LListMatchRead[imm E, R]): R -> m.elem(e, this),
 
-      read .get(i: UInt): mut Opt[read E] -> (i == 0u) ? { .then -> Opts#e, .else -> this.get[](i - 1u) },
-      imm  .get(i: UInt): iso Opt[imm E] -> (i == 0u) ? { .then -> Opts#[imm E]e, .else -> this.get[](i - 1u) },
+      read .get(i: Nat): mut Opt[read E] -> (i == 0u) ? { .then -> Opts#e, .else -> this.get[](i - 1u) },
+      imm  .get(i: Nat): iso Opt[imm E] -> (i == 0u) ? { .then -> Opts#[imm E]e, .else -> this.get[](i - 1u) },
 
       read .head: mut Opt[read E] -> Opts#e,
       imm  .head: iso Opt[imm E] -> Opts#[imm E]e,
@@ -2003,14 +2003,14 @@ _List:{
     }
   }
 List[E]: Collection,Sealed{
-  mut  .get(i: UInt): mut Opt[E],
-  read .get(i: UInt): mut Opt[read E],
-  imm  .get(i: UInt): iso Opt[imm E],
+  mut  .get(i: Nat): mut Opt[E],
+  read .get(i: Nat): mut Opt[read E],
+  imm  .get(i: Nat): iso Opt[imm E],
   mut .add(e: E): Void,
   mut .addAll(other: mut List[E]): Void -> other.iter.for{ e -> this.add(e) },
 
   mut .flow: mut Flow[E] -> Block#
-    .let[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .let[mut Count[Nat]] cursor = {Count.nat(0u)}
     .return {Flow.fromMutSource({'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -2024,7 +2024,7 @@ List[E]: Collection,Sealed{
       }, this.size)},
   read .flow: mut Flow[read E] -> Flow.fromOp(this._flowread, this.size),
   read ._flowread: mut FlowOp[read E] -> Block#
-    .let[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .let[mut Count[Nat]] cursor = {Count.nat(0u)}
     .return {{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -2038,7 +2038,7 @@ List[E]: Collection,Sealed{
       }},
   imm .flow: mut Flow[imm E] -> Flow.fromOp(this._flowimm, this.size),
   imm ._flowimm: mut FlowOp[imm E] -> Block#
-    .let[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .let[mut Count[Nat]] cursor = {Count.nat(0u)}
     .return {{'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
@@ -2053,40 +2053,40 @@ List[E]: Collection,Sealed{
 
 
   mut .iter: mut Iter[E] -> Let#{
-    .var -> Count.uint(0u),
+    .var -> Count.nat(0u),
     .in(cursor) -> { .next -> this.get(cursor++) }
     },
   read .iter: mut Iter[read E] -> Let#{
-    .var -> Count.uint(0u),
+    .var -> Count.nat(0u),
     .in(cursor) -> { .next -> this.get(cursor++) }
     },
   imm .iter: mut Iter[imm E] -> Let#{
-    .var -> Count.uint(0u),
+    .var -> Count.nat(0u),
     .in(cursor) -> { .next -> this.get(cursor++) }
     },
   }
 _ListParIter:{
-  #[E](l: List[imm E], i: UInt): base.iter.par.Iter[imm E] -> {
+  #[E](l: List[imm E], i: Nat): base.iter.par.Iter[imm E] -> {
     .cur -> l.get(i),
     .next -> this#(l, i + 1u),
     }
   }
 _ListState[E]:{
-  read .size: UInt,
+  read .size: Nat,
   mut .inner: mut LList[E],
   read .inner: read LList[read E],
   }
 _ListState:{
-  #[E](len: UInt, inner: mut LList[E]): mut _ListState[E] -> {
+  #[E](len: Nat, inner: mut LList[E]): mut _ListState[E] -> {
     .size -> len,
     .inner -> inner
     }
   }
 
 AppendList[E]: Collection{
-  mut  .get(i: UInt): mut Opt[E],
-  read .get(i: UInt): mut Opt[read E],
-  imm  .get(i: UInt): iso Opt[imm E],
+  mut  .get(i: Nat): mut Opt[E],
+  read .get(i: Nat): mut Opt[read E],
+  imm  .get(i: Nat): iso Opt[imm E],
   mut .append(e: E): Void,
   }
 
@@ -2157,18 +2157,18 @@ MapMapRead[K:imm,V,R]:{ read #(k: K, v: read V): read R }
 package base
 
 Int:Sealed,_MathOps[imm Int],_IntOps[imm Int]{
-  readOnly .uint: UInt,
+  readOnly .nat: Nat,
   readOnly .float: Float,
   read .str: Str,
   }
-UInt:Sealed,_MathOps[imm UInt],_IntOps[imm UInt]{
+Nat:Sealed,_MathOps[imm Nat],_IntOps[imm Nat]{
   readOnly .int: Int,
   readOnly .float: Float,
   read .str: Str,
   }
 Float:Sealed,_MathOps[imm Float]{
   readOnly .int: Int,
-  readOnly .uint: UInt,
+  readOnly .nat: Nat,
   readOnly .round: Int,
   readOnly .ceil: Int,
   readOnly .floor: Int,
@@ -2202,11 +2202,11 @@ _IntOps[T]:Sealed{
   readOnly &(n: readOnly T): T,
   readOnly |(n: readOnly T): T,
 
-  readOnly **(n: readOnly UInt): T, // pow
+  readOnly **(n: readOnly Nat): T, // pow
   }
 
 _IntInstance:Int{
-  .uint -> Magic!,
+  .nat -> Magic!,
   .float -> Magic!,
   .str -> Magic!,
   +(n) -> Magic!,
@@ -2230,7 +2230,7 @@ _IntInstance:Int{
   <=n -> Magic!,
   ==n -> Magic!,
   }
-_UIntInstance:UInt{
+_NatInstance:Nat{
   .int -> Magic!,
   .float -> Magic!,
   .str -> Magic!,
@@ -2257,7 +2257,7 @@ _UIntInstance:UInt{
   }
 _FloatInstance:Float{
   .int -> Magic!,
-  .uint -> Magic!,
+  .nat -> Magic!,
   .str -> Magic!,
   .round -> Magic!,
   .ceil -> Magic!,
@@ -2394,7 +2394,7 @@ Count:{
       *=(n2) -> c <- { c' -> c' * n2 },
       }
     }),
-  .uint(n: UInt): mut Count[UInt] -> Let#({
+  .nat(n: Nat): mut Count[Nat] -> Let#({
     .var -> Ref.ofImm n,
     .in(c) -> {
       .get -> c.get,
@@ -2499,7 +2499,7 @@ ResMapErr[T,E,R]:ResMatch[T, E, mut Res[T, R]]{
 package base
 Str:Sealed {
   read .str: Str,
-  readOnly .size: UInt,
+  readOnly .size: Nat,
   readOnly .isEmpty: Bool,
   readOnly +(other: readOnly Str): Str,
   readOnly ==(other: readOnly Str): Bool,
@@ -2557,12 +2557,12 @@ MapMapRead[K:imm,V,R]:{ read #(k: K, v: read V): read R }
 package base
 
 Int:Sealed,_MathOps[imm Int],_IntOps[imm Int]{
-  readOnly .uint: UInt,
+  readOnly .nat: Nat,
   readOnly .float: Float,
   // not Stringable due to limitations of the Java codegen target
   read .str: Str,
   }
-UInt:Sealed,_MathOps[imm UInt],_IntOps[imm UInt]{
+Nat:Sealed,_MathOps[imm Nat],_IntOps[imm Nat]{
   readOnly .int: Int,
   readOnly .float: Float,
   // not Stringable due to limitations of the Java codegen target
@@ -2570,7 +2570,7 @@ UInt:Sealed,_MathOps[imm UInt],_IntOps[imm UInt]{
   }
 Float:Sealed,_MathOps[imm Float]{
   readOnly .int: Int,
-  readOnly .uint: UInt,
+  readOnly .nat: Nat,
   readOnly .round: Int,
   readOnly .ceil: Int,
   readOnly .floor: Int,
@@ -2607,12 +2607,12 @@ _IntOps[T]:Sealed{
   readOnly &(n: readOnly T): T,
   readOnly |(n: readOnly T): T,
 
-  readOnly **(n: readOnly UInt): T, // pow
+  readOnly **(n: readOnly Nat): T, // pow
   }
 
 // Fake concrete type for all numbers. The real implementation is generated at code-gen.
 _IntInstance:Int{
-  .uint -> Magic!,
+  .nat -> Magic!,
   .float -> Magic!,
   .str -> Magic!,
   +(n) -> Magic!,
@@ -2638,7 +2638,7 @@ _IntInstance:Int{
   <=n -> Magic!,
   ==n -> Magic!,
   }
-_UIntInstance:UInt{
+_NatInstance:Nat{
   .int -> Magic!,
   .float -> Magic!,
   .str -> Magic!,
@@ -2667,7 +2667,7 @@ _UIntInstance:UInt{
   }
 _FloatInstance:Float{
   .int -> Magic!,
-  .uint -> Magic!,
+  .nat -> Magic!,
   .str -> Magic!,
   .round -> Magic!,
   .ceil -> Magic!,
@@ -2850,7 +2850,7 @@ Count:{
       *=(n2) -> c <- { c' -> c' * n2 },
       }
     }),
-  .uint(n: UInt): mut Count[UInt] -> Let#({
+  .nat(n: Nat): mut Count[Nat] -> Let#({
     .var -> Ref.ofImm n,
     .in(c) -> {
       .get -> c.get,
@@ -2965,7 +2965,7 @@ package base
 Str:Sealed {
   // Str is not Stringable due to limitations of the Java codegen target
   read .str: Str,
-  readOnly .size: UInt,
+  readOnly .size: Nat,
   readOnly .isEmpty: Bool,
   readOnly +(other: readOnly Str): Str,
   readOnly ==(other: readOnly Str): Bool,

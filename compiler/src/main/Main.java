@@ -2,13 +2,11 @@ package main;
 
 import astFull.E;
 import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
-import failure.CompileError;
 import id.Id;
 import main.java.LogicMainJava;
 import utils.Box;
 import utils.Bug;
 
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 
 public class Main {
@@ -61,8 +59,15 @@ public class Main {
         var io = res.hasOption("imm-base")
           ? InputOutput.userFolderImm(res.getOptionValue("entry-point"), extraArgs, projectPath)
           : InputOutput.userFolder(res.getOptionValue("entry-point"), extraArgs, projectPath);
-        var main = LogicMainJava.of(io, verbosity.get());
 
+        if (res.hasOption("generate-docs")) {
+          var main = LogicMainHtml.of(io);
+          main.writeDocs();
+          System.out.println("Documentation written to: "+io.output());
+          return;
+        }
+
+        var main = LogicMainJava.of(io, verbosity.get());
         if (res.hasOption("new")) {
           throw Bug.todo();
         }

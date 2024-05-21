@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static magic.MagicImpls.getLiteral;
+import static magic.Magic.getLiteral;
 
 public record JavaMagicImpls(
     MIRVisitor<String> gen,
@@ -30,6 +30,7 @@ public record JavaMagicImpls(
         var lit = getLiteral(p, name);
         try {
           return lit
+            .map(lambdaName->lambdaName.startsWith("+") ? lambdaName.substring(1) : lambdaName)
             .map(lambdaName->Long.parseLong(lambdaName.replace("_", ""), 10)+"L")
             .orElseGet(()->"((long)"+e.accept(gen, true)+")").describeConstable();
         } catch (NumberFormatException ignored) {
@@ -41,7 +42,7 @@ public record JavaMagicImpls(
       }
       private String _call(Id.MethName m, List<? extends MIR.E> args) {
         // _NumInstance
-        if (m.equals(new Id.MethName(".uint", 0))) {
+        if (m.equals(new Id.MethName(".nat", 0))) {
           return instantiate().orElseThrow(); // only different at type level
         }
         if (m.equals(new Id.MethName(".int", 0))) {
@@ -77,22 +78,28 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate().orElseThrow()+">="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate().orElseThrow()+"<="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("==", 1))) { return "("+instantiate().orElseThrow()+"=="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName(".assertEq", 1))) {
+          return STR."base._IntAssertionHelper_0.assertEq$imm$fun(\{instantiate().orElseThrow()},\{args.getFirst().accept(gen, true)},null)";
+        }
+        if (m.equals(new Id.MethName(".assertEq", 2))) {
+          return STR."base._IntAssertionHelper_0.assertEq$imm$fun(\{args.getFirst().accept(gen, true)},\{instantiate().orElseThrow()},\{args.get(1).accept(gen, true)},null)";
+        }
         throw Bug.unreachable();
       }
     };
   }
 
-  @Override public MagicTrait<MIR.E,String> uint(MIR.E e) {
+  @Override public MagicTrait<MIR.E,String> nat(MIR.E e) {
     var name = e.t().name().orElseThrow();
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
         var lit = getLiteral(p, name);
         try {
           return lit
-            .map(lambdaName->Long.parseUnsignedLong(lambdaName.substring(0, lambdaName.length()-1).replace("_", ""), 10)+"L")
+            .map(lambdaName->Long.parseUnsignedLong(lambdaName.replace("_", ""), 10)+"L")
             .orElseGet(()->"((long)"+e.accept(gen, true)+")").describeConstable();
         } catch (NumberFormatException ignored) {
-          throw Fail.invalidNum(lit.orElse(name.toString()), "UInt");
+          throw Fail.invalidNum(lit.orElse(name.toString()), "Nat");
         }
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
@@ -103,7 +110,7 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".int", 0))) {
           return instantiate().orElseThrow(); // only different at type level
         }
-        if (m.equals(new Id.MethName(".uint", 0))) {
+        if (m.equals(new Id.MethName(".nat", 0))) {
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".float", 0))) {
@@ -136,6 +143,12 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(">=", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")>=0?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("<=", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")<=0?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("==", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")==0?base.True_0.$self:base.False_0.$self)"; }
+        if (m.equals(new Id.MethName(".assertEq", 1))) {
+          return STR."base._NatAssertionHelper_0.assertEq$imm$fun(\{instantiate().orElseThrow()},\{args.getFirst().accept(gen, true)},null)";
+        }
+        if (m.equals(new Id.MethName(".assertEq", 2))) {
+          return STR."base._NatAssertionHelper_0.assertEq$imm$fun(\{args.getFirst().accept(gen, true)},\{instantiate().orElseThrow()},\{args.get(1).accept(gen, true)},null)";
+        }
         throw Bug.unreachable();
       }
     };
@@ -158,7 +171,7 @@ public record JavaMagicImpls(
         return Optional.of(_call(m, args));
       }
       private String _call(Id.MethName m, List<? extends MIR.E> args) {
-        if (m.equals(new Id.MethName(".int", 0)) || m.equals(new Id.MethName(".uint", 0))) {
+        if (m.equals(new Id.MethName(".int", 0)) || m.equals(new Id.MethName(".nat", 0))) {
           return "("+"(long)"+instantiate().orElseThrow()+")";
         }
         if (m.equals(new Id.MethName(".float", 0))) {
@@ -180,6 +193,12 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate().orElseThrow()+"<="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("==", 1))) {
           return "("+instantiate().orElseThrow()+"=="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)";
+        }
+        if (m.equals(new Id.MethName(".assertEq", 1))) {
+          return STR."base._FloatAssertionHelper_0.assertEq$imm$fun(\{instantiate().orElseThrow()},\{args.getFirst().accept(gen, true)},null)";
+        }
+        if (m.equals(new Id.MethName(".assertEq", 2))) {
+          return STR."base._FloatAssertionHelper_0.assertEq$imm$fun(\{args.getFirst().accept(gen, true)},\{instantiate().orElseThrow()},\{args.get(1).accept(gen, true)},null)";
         }
         //Float specifics
         if (m.equals(new Id.MethName(".round", 0))) { return "Math.round("+instantiate().orElseThrow()+")"; }
@@ -382,16 +401,6 @@ public record JavaMagicImpls(
       }
     };
   }
-  @Override public MagicTrait<MIR.E,String> seqSinkK(MIR.E e) {
-    return new MagicTrait<>() {
-      @Override public Optional<String> instantiate() {
-        return Optional.of("rt.SeqSinkK.$self");
-      }
-      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
-        return Optional.empty();
-      }
-    };
-  }
 
   @Override public MagicTrait<MIR.E,String> objCap(Id.DecId target, MIR.E e) {
     var _this = this;
@@ -468,7 +477,33 @@ public record JavaMagicImpls(
           return Optional.of(gen.visitMCall(listFlowCall, true));
         }
         if (m.name().equals(".range")) {
+          return Optional.empty();
+        }
+      }
 
+      if (isMagic(Magic.LList, call.recv())) {
+        if (m.name().equals(".flow")) {
+          if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
+            var parFlow = gen.visitMCall(new MIR.MCall(
+              new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK),
+              new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
+              List.of(
+                new MIR.MCall(
+                  call.recv(),
+                  new Id.MethName(call.name().mdf(), "._flow"+call.mdf(), 0),
+                  List.of(),
+                  new MIR.MT.Plain(Mdf.mut, Magic.FlowOp),
+                  call.mdf(),
+                  EnumSet.of(MIR.MCall.CallVariant.Standard)
+                ),
+                new MIR.CreateObj(Mdf.imm, new Id.DecId("base.Opt", 1)) // TODO: list size
+              ),
+              MIR.MT.of(new T(Mdf.mut, new Id.IT<>("base.flows.Flow", ((MIR.MT.Usual)call.t()).it().ts()))),
+              Mdf.imm,
+              variants
+            ), true);
+            return Optional.of(parFlow);
+          }
         }
       }
 

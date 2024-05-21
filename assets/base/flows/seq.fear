@@ -1,15 +1,16 @@
 package base.flows
 
 _SeqFlow: {
-  .fromOp[E](source: mut FlowOp[E], size: Opt[UInt]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
+    .unwrapOp(_) -> source,
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
     .map(f) -> this.fromOp(_Map#(_Sink, source, f), size),
     .flatMap(f) -> this.fromOp(_FlatMap#(_Sink, source, f), {}),
-    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[imm R] ->
-      this.fromOp(_Actor#[S,E,R](_Sink, source, state, f, onComplete), {}),
-    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut Flow[R] ->
-      this.fromOp(_Actor.anyRet[S,E,R](_Sink, source, state, f, onComplete), {}),
+    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+      this.fromOp(_Actor#[S,E,R](_Sink, source, state, f), {}),
+    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+      this.fromOp(_Actor.anyRet[S,E,R](_Sink, source, state, f), {}),
     .limit(n) -> this.fromOp(_Limit#(_Sink, source, n), size),
 
     // terminals
@@ -17,6 +18,7 @@ _SeqFlow: {
       .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
       .do {source.forRemaining(mut _Sink[E]{'runner
         .stop -> source.stop,
+        .pushError(info) -> Error!info,
         #(e) -> res.get.isEmpty ? {
           .then -> Block#
             .do {res := (Opts#e)}
@@ -31,6 +33,7 @@ _SeqFlow: {
       .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
       .do {source.forRemaining(mut _Sink[E]{'runner
         .stop -> source.stop,
+        .pushError(info) -> Error!info,
         #(e) -> res.get.isEmpty ? {
           .then -> f#e.match{
             .some(e') -> Block#
@@ -57,6 +60,7 @@ _SeqFlow: {
       .let[mut Var[S]] acc' = {Var#acc}
       .do {source.forRemaining(mut _Sink[E]{
         .stop -> {},
+        .pushError(info) -> Error!info,
         #(e) -> acc' := (f#(acc'.get, e)),
         })}
       .do {source.stop}
@@ -72,9 +76,9 @@ _SeqFlow: {
 //          .return(_) -> acc'.get,
 //          }},
 
-    .size -> size.match[UInt]{
+    .size -> size.match[Nat]{
       .some(n) -> n,
-      .empty -> self.fold[UInt](0u, {acc, _ -> acc + 1u}),
+      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
       },
     },
 
@@ -92,6 +96,6 @@ _SeqFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opts#[UInt]1u)},
-//    .return {this.fromOp(source, Opts#1u)},
+    .return {this.fromOp(source, Opts#[Nat]1)},
+//    .return {this.fromOp(source, Opts#1)},
   }

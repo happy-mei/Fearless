@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
 
+@Disabled // recMdf is disabled
 public class TestRecMdf {
   @Test void shouldCollapseWhenCalled1() { ok("""
     package test

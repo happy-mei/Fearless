@@ -1,7 +1,7 @@
 package base
 
 Collection: {
-  .size: UInt,
+  .size: Nat,
   .isEmpty: Bool,
   }
 
@@ -9,20 +9,20 @@ LList: {#[E:imm]: LList[E] -> LList[E]}
 LList[E:imm]: Collection,Sealed{
   .match[R:imm](m: LListMatch[E, R]): R -> m.empty,
   .isEmpty: Bool -> True,
-  .size: UInt -> 0u,
-  .get(i: UInt): Opt[E] -> {},
+  .size: Nat -> 0,
+  .get(i: Nat): Opt[E] -> {},
   .head: Opt[E] -> {},
   .tail: LList[E] -> this,
   ++(l1: LList[E]): LList[E] -> l1,
   +(e: E): LList[E] -> this ++ (LList[E].pushFront(e)),
 //  .pushFront(e: E): LList[E] -> _LListCons#(this, e),
   .pushFront(e: E): LList[E] -> Let#{
-    .var -> this.size + 1u,
+    .var -> this.size + 1,
     .in(len) -> {'l
       .match(m) -> m.elem(e, this),
       .isEmpty -> False,
       .size -> len,
-      .get(i) -> (i == 0u) ? {.then -> Opt#e, .else -> this.get(i - 1u)},
+      .get(i) -> (i == 0) ? {.then -> Opt#e, .else -> this.get(i - 1)},
       .head -> Opt#e,
       .tail -> this,
       ++(l1) -> (this ++ l1).pushFront(e),
@@ -33,12 +33,12 @@ LListMatch[E:imm,R:imm]: {.elem(head: E, tail: LList[E]): R, .empty: R}
 
 _LListCons: {
   #[E:imm](tail: LList[E], e: E): LList[E] -> Let#{
-    .var -> tail.size + 1u,
+    .var -> tail.size + 1,
     .in(len) -> {
       .match(m) -> m.elem(e, tail),
       .isEmpty -> False,
       .size -> len,
-      .get(i) -> (i == 0u) ? {.then -> Opt#e, .else -> tail.get(i - 1u)},
+      .get(i) -> (i == 0) ? {.then -> Opt#e, .else -> tail.get(i - 1)},
       .head -> Opt#e,
       .tail -> tail,
       ++(l1) -> (tail ++ l1).pushFront(e),
@@ -54,15 +54,15 @@ _LListCons: {
 //LList[E:imm]:Sealed{
 //  .match[R:imm](m: LListMatch[E, R]): R -> m.empty,
 //  .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
-//  .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
+//  .len: Nat -> this.match{ .empty -> 0, .elem(_,t) -> t.len + 1, },
 //  ++(l1: LList[E]): LList[E] -> this.match{
 //    .empty -> l1,
 //    .elem(h, t) -> Cons#(h, t ++ l1)
 //    },
 //  +(e: E): LList[E] -> this ++ (Cons#(e, {})),
-//  .get(i: UInt) : Opt[E] -> this.match{
+//  .get(i: Nat) : Opt[E] -> this.match{
 //    .empty -> {},
-//    .elem(h, t) -> (i == 0u) ? { .then -> Opt#h, .else -> t.get(i - 1u) }
+//    .elem(h, t) -> (i == 0) ? { .then -> Opt#h, .else -> t.get(i - 1) }
 //    },
 //  .head: Opt[E] -> this.match{
 //    .empty -> {},

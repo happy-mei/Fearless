@@ -27,6 +27,7 @@ public interface LogicMain {
       .build();
   }
 
+  void cachePackageTypes(ast.Program program);
   default astFull.Program parse() {
     var cache = load(io().cachedFiles());
     cachedPkg().addAll(cache.keySet());

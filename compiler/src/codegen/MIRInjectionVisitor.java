@@ -256,7 +256,8 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     if (e.name().name().equals(".flow")) {
       if (recvIT.name().equals(new Id.DecId("base.LList", 1))) {
         var flowElem = recvIT.ts().getFirst();
-//        if (flowElem.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow); }
+        if (recvT.mdf().is(Mdf.read, Mdf.imm)) { return EnumSet.of(MIR.MCall.CallVariant.PipelineParallelFlow); }
+        if (flowElem.mdf().is(Mdf.read, Mdf.imm, Mdf.readImm)) { return EnumSet.of(MIR.MCall.CallVariant.PipelineParallelFlow); }
         return EnumSet.of(MIR.MCall.CallVariant.Standard);
       }
       if (recvIT.name().equals(Magic.FList)) {

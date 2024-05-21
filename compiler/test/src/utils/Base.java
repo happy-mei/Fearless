@@ -99,7 +99,7 @@ public interface Base {
     
     alias base.Int as Int,
     alias base.Float as Float,
-    alias base.UInt as UInt,
+    alias base.Nat as Nat,
     
     alias base.LList as LList,
     alias base.List as List,

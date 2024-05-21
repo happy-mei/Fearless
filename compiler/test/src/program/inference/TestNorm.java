@@ -19,6 +19,7 @@ public class TestNorm {
   @Test void shouldWorkWithOptional() {ok("""
     package test
     alias base.Opt as Opt,
+    alias base.Opts as Opts,
     A:{mut .b: mut B} B:{}
     
     Foo: {#(optA: mut Opt[mut A]): mut B -> optA.map{a->a.b}.match{
@@ -28,7 +29,7 @@ public class TestNorm {
     """, """
     package base
     Abort: {![R:readOnly,lent,read,mut,imm,iso]: R -> this!}
-    Opt: {#[T](x: T): mut Opt[T] -> {
+    Opts: {#[T](x: T): mut Opt[T] -> {
        .match(m) -> m.some(x),
       }}
     Opt[T]: {

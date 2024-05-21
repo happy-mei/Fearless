@@ -1,7 +1,7 @@
 package base.caps
 
 RandomSeed: {
-  mut #: UInt,
+  mut #: Nat,
   }
 FRandomSeed: F[mut System, mut RandomSeed]{s -> {
   # -> Magic!

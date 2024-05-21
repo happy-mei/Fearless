@@ -291,6 +291,10 @@ public class Fail{
     return of("A lambda may not implement a generic type parameter '%s'".formatted(t));
   }
 
+  public static CompileError crossPackageDeclaration() {
+    return of("You may not declare a trait in a different package than the package the declaration is in.");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -364,7 +368,8 @@ enum ErrorCode {
   invalidLambdaMdf,
   Unknown,
   noMethOnX,
-  invalidMethodArgumentTypes;
+  invalidMethodArgumentTypes,
+  crossPackageDeclaration;
   private static final ErrorCode[] values = values();
   int code() {
     return this.ordinal() + 1;

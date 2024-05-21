@@ -2,7 +2,7 @@
   <configuration default="false" name="Generate docs" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="main.Main" />
     <module name="fearless" />
-    <option name="PROGRAM_PARAMETERS" value="--show-internal-stack-traces --generate-docs" />
+    <option name="PROGRAM_PARAMETERS" value="--show-internal-stack-traces --generate-docs examples/mutBase/fully-empty" />
     <option name="VM_PARAMETERS" value="-ea" />
     <extension name="coverage">
       <pattern>

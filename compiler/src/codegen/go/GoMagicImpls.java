@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static magic.MagicImpls.getLiteral;
+import static magic.Magic.getLiteral;
 
 public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.MagicImpls<GoMagicImpls.Res> {
   public record Res(String output, Set<String> imports) {
@@ -26,8 +26,9 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         var lit = getLiteral(p, name);
         try {
           return new Res(lit
-            .map(lambdaName->"int64("+Long.parseLong(lambdaName.replace("_", ""), 10)+")")
-            .orElseGet(()->"int64("+e.accept(gen, true)+")")).opt();
+            .map(lambdaName->"int64("+(lambdaName.startsWith("+") ? lambdaName.substring(1) : lambdaName)+")")
+            .map(lambdaName->"int64("+Long.parseLong(lambdaName.replace("_", ""), 10)+"L)")
+            .orElseGet(()->"((long)"+e.accept(gen, true)+")")).opt();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "Int");
         }
@@ -38,7 +39,7 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
       }
       private Res _call(Id.MethName m, List<? extends MIR.E> args) {
         // _NumInstance
-        if (m.equals(new Id.MethName(".uint", 0))) {
+        if (m.equals(new Id.MethName(".nat", 0))) {
           return new Res("uint64("+instantiate().orElseThrow()+")");
         }
         if (m.equals(new Id.MethName(".int", 0))) {
@@ -72,18 +73,18 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
     };
   }
 
-  // TODO: golang computes constant arithmetic at compile-time and will throw for invalid UInts in that case, which is annoyingly different behaviour than Java
-  @Override public MagicTrait<MIR.E, Res> uint(MIR.E e) {
+  // TODO: golang computes constant arithmetic at compile-time and will throw for invalid Nats in that case, which is annoyingly different behaviour than Java
+  @Override public MagicTrait<MIR.E, Res> nat(MIR.E e) {
     var name = e.t().name().orElseThrow();
     return new MagicTrait<>() {
       @Override public Optional<Res> instantiate() {
         var lit = getLiteral(p, name);
         try {
           return new Res(lit
-            .map(lambdaName->"uint64("+Long.parseUnsignedLong(lambdaName.substring(0, lambdaName.length()-1).replace("_", ""), 10)+")")
+            .map(lambdaName->"uint64("+Long.parseUnsignedLong(lambdaName.replace("_", ""), 10)+")")
             .orElseGet(()->"uint64("+e.accept(gen, true)+")")).opt();
         } catch (NumberFormatException ignored) {
-          throw Fail.invalidNum(lit.orElse(name.toString()), "UInt");
+          throw Fail.invalidNum(lit.orElse(name.toString()), "Nat");
         }
       }
 
@@ -95,7 +96,7 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         if (m.equals(new Id.MethName(".int", 0))) {
           return new Res("uint64("+instantiate().orElseThrow().output()+")");
         }
-        if (m.equals(new Id.MethName(".uint", 0))) {
+        if (m.equals(new Id.MethName(".nat", 0))) {
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".float", 0))) {

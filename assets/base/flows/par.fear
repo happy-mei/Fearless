@@ -6,22 +6,30 @@ _PipelineParallelSink: _Sink{
 _PipelineParallelSink[T]: _Sink[T]
 
 _PipelineParallelFlow: {
-  .fromOp[E](source: mut FlowOp[E], size: Opt[UInt]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
+    .unwrapOp(_) -> source,
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
     .map(f) -> this.fromOp(_Map#(_PipelineParallelSink, source, f), size),
     .flatMap(f) -> this.fromOp(_FlatMap#(_PipelineParallelSink, source, f), {}),
-    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R], onComplete: mut Consumer[S]): mut Flow[imm R] ->
-      this.fromOp(_Actor#[S,E,R](_PipelineParallelSink, source, state, f, onComplete), {}),
-    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R], onComplete: mut Consumer[mut S]): mut Flow[R] ->
-      this.fromOp(_Actor.anyRet[S,E,R](_PipelineParallelSink, source, state, f, onComplete), {}),
+    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+      this.fromOp(_Actor#[S,E,R](_PipelineParallelSink, source, state, f), {}),
+    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+      this.fromOp(_Actor.anyRet[S,E,R](_PipelineParallelSink, source, state, f), {}),
     .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), size),
 
     // terminals
     mut .first: mut Opt[E] -> Block#
       .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
+      .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
-        .stop -> source.stop,
+        .stop -> Block#
+          .do {stopped := True}
+          .return {source.stop},
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
         #(e) -> res.get.isEmpty ? {
           .then -> Block#
             .do {res := (Opts#e)}
@@ -34,8 +42,15 @@ _PipelineParallelFlow: {
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
+      .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
-        .stop -> source.stop,
+        .stop -> Block#
+          .do {stopped := True}
+          .return {source.stop},
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
         #(e) -> res.get.isEmpty ? {
           .then -> f#e.match{
             .some(e') -> Block#
@@ -60,19 +75,23 @@ _PipelineParallelFlow: {
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .let[mut Var[S]] acc' = {Var#acc}
+      .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(_PipelineParallelSink#[E]{
-        .stop -> {},
-//        .stop -> source.stop,
         #(e) -> acc' := (f#(acc'.get, e)),
+        .stop -> stopped := True,
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
         })}
       .do {source.stop}
       .return {acc'.get},
     // Pipeline parallel flows do not split so no combine is needed
     .fold(acc, f, combine) -> self.fold(acc, f),
 
-    .size -> size.match[UInt]{
+    .size -> size.match[Nat]{
       .some(n) -> n,
-      .empty -> self.fold[UInt](0u, {acc, _ -> acc + 1u}),
+      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
       },
     },
 
@@ -90,6 +109,6 @@ _PipelineParallelFlow: {
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opts#[UInt]1u)},
-//    .return {this.fromOp(source, Opts#1u)},
+    .return {this.fromOp(source, Opts#[Nat]1)},
+//    .return {this.fromOp(source, Opts#1)},
   }

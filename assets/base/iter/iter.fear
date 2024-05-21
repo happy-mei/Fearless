@@ -39,11 +39,11 @@ Iter[E]:{
     .empty -> {}
     },
 
-  mut .count: UInt -> this.fold[UInt](0u, mut IterFolder[E, UInt]{ acc, _ -> acc + 1u }),
+  mut .count: Nat -> this.fold[Nat](0, mut IterFolder[E, Nat]{ acc, _ -> acc + 1 }),
   mut .list: mut List[E] -> this.fold(List#[E], { acc, e -> Block#(acc.add(e), acc) }),
   mut .llist: mut LList[E] -> this.fold(mut LList[E], { acc, e -> acc +[] e }),
   mut .str(toStr: mut IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
-    .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.size == 0u ? { .then -> acc + e,
+    .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.size == 0 ? { .then -> acc + e,
                                                                           .else -> acc + joining + e }}),
 //  Flow.fromOp{'op
 //    .step(sink) -> this.next.match{
@@ -59,8 +59,8 @@ Iter[E]:{
   }
 
 Sum:{
-  .int(ns: mut Iter[Int]): Int -> ns.fold[Int](0, mut IterFolder[Int, Int]{ acc, n -> acc + n }),
-  .uint(ns: mut Iter[UInt]): UInt -> ns.fold[UInt](0u, mut IterFolder[UInt, UInt]{ acc, n -> acc + n }),
+  .int(ns: mut Iter[Int]): Int -> ns.fold[Int](+0, mut IterFolder[Int, Int]{ acc, n -> acc + n }),
+  .nat(ns: mut Iter[Nat]): Nat -> ns.fold[Nat](0, mut IterFolder[Nat, Nat]{ acc, n -> acc + n }),
   .float(ns: mut Iter[Float]): Float -> ns.fold[Float](0.0, mut IterFolder[Float, Float]{ acc, n -> acc + n }),
   }
 

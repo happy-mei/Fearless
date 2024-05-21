@@ -42,7 +42,7 @@ Iter[E]:{
       },
   mut .forEach(f: mut ForEacher[mdf E]): Void ->
     this.fold(Void, { (_, e) -> f#e }),
-  mut .count: UNum -> this.fold(0u, { (acc, _) -> acc + 1u }),
+  mut .count: UNum -> this.fold(0, { (acc, _) -> acc + 1 }),
   mut .toList: mut List[mdf E] -> Let#{
     .var -> List#,
     .in(res) -> Let#{
@@ -72,9 +72,9 @@ UNumIterS:{
   #[T](inner: mut Iter[T]): mut UNumIter -> {
     ...
     .next -> inner.next
-    .sum: UNum -> inner.fold(0u, { (acc, e) -> acc + e }),
+    .sum: UNum -> inner.fold(0, { (acc, e) -> acc + e }),
     .impSum: UNum -> Block
-      .var{ total = Ref#0u }
+      .var{ total = Ref#0 }
       .do { inner.forEach{ e -> total := total* + e } }
       .return { total* },
     }

@@ -1,5 +1,7 @@
 package magic;
 
+import ast.Program;
+import failure.CompileError;
 import failure.Fail;
 import id.Id;
 
@@ -14,7 +16,7 @@ import ast.T.Dec;
 public class Magic {
   public static final Id.DecId Main = new Id.DecId("base.Main", 0);
   public static final Id.DecId Sealed = new Id.DecId("base.Sealed", 0);
-  public static final Id.DecId UInt = new Id.DecId("base.UInt", 0);
+  public static final Id.DecId Nat = new Id.DecId("base.Nat", 0);
   public static final Id.DecId Int = new Id.DecId("base.Int", 0);
   public static final Id.DecId Bool = new Id.DecId("base.Bool", 0);
   public static final Id.DecId Float = new Id.DecId("base.Float", 0);
@@ -40,7 +42,6 @@ public class Magic {
   public static final Id.DecId FlowK = new Id.DecId("base.flows.Flow", 0);
   public static final Id.DecId FlowOp = new Id.DecId("base.flows.FlowOp", 1);
   public static final Id.DecId PipelineParallelSinkK = new Id.DecId("base.flows._PipelineParallelSink", 0);
-  public static final Id.DecId SeqSinkK = new Id.DecId("base.flows._Sink", 0);
   public static final Id.DecId PipelineParallelFlowK = new Id.DecId("base.flows._PipelineParallelFlow", 0);
   public static final Id.DecId FList = new Id.DecId("base.List", 1);
   public static final Id.DecId ListK = new Id.DecId("base.List", 0);
@@ -62,8 +63,8 @@ public class Magic {
   );
 
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
-    var isLiteral  = !name.isEmpty() && MagicImpls.isLiteral(name);
-    if(isLiteral){ return Optional.of(new Id.IT<>(name, List.of())); }
+    var isLiteral = !name.isEmpty() && isLiteral(name);
+    if (isLiteral) {return Optional.of(new Id.IT<>(name, List.of()));}
     return Optional.empty();
 //    return switch(name){
 //      case noMutHygName -> Optional.of(new Id.IT<>(new Id.DecId(noMutHygName, 0), List.of()));
@@ -73,50 +74,73 @@ public class Magic {
 
   public static astFull.T.Dec getFullDec(Function<Id.DecId, astFull.T.Dec> resolve, Id.DecId id) {
     var base = _getDec(resolve, id);
-    return base.map(b->b.withName(id)).orElse(null);
+    return base.map(b -> b.withName(id)).orElse(null);
   }
-  public static Dec getDecMap(Dec b, Id.DecId id){
-    Lambda l= b.lambda();
-    LambdaId lid= l.id();
+
+  public static Dec getDecMap(Dec b, Id.DecId id) {
+    Lambda l = b.lambda();
+    LambdaId lid = l.id();
     assert lid.id().name().endsWith("Instance");
-    assert l.its().size() == 1 : l; 
+    assert l.its().size() == 1 : l;
     // instance, kind   0.5  anon:base._FloatInstance, base.Float
-    var its= List.of(lid.toIT(),l.its().get(0));
+    var its = List.of(lid.toIT(), l.its().get(0));
     l = l.withId(lid.withId(id)).withITs(its);
     return b.withLambda(l);
   }
+
   public static Dec getDec(Function<Id.DecId, Dec> resolve, Id.DecId id) {
     var base = _getDec(resolve, id);
-    return base.map(b->getDecMap(b,id)).orElse(null);
+    return base.map(b -> getDecMap(b, id)).orElse(null);
   }
 
-  //TODO: refactor for mandatory +/- and no 'u'.
-  private static boolean nameIsNumber(String name){
-    return Character.isDigit(name.charAt(0)) || name.startsWith("-");
-  }
-  private static boolean nameIsString(String name){
-    return name.charAt(0) == '"';
+  public static Optional<String> getLiteral(Program p, Id.DecId d) {
+    if (isLiteral(d.name())) {return Optional.of(d.name());}
+    var supers = p.superDecIds(d);
+    return supers.stream().filter(dec -> {
+      var name = dec.name();
+      return isLiteral(name);
+    }).map(Id.DecId::name).findFirst();
   }
 
-  private static <T> Optional<T> _getDec(Function<Id.DecId,T> resolve, Id.DecId id) {
-    if(id.gen() != 0){ return Optional.empty(); }
-    if(nameIsString(id.name())){ 
+  public static boolean isLiteral(String name) {
+    return isStringLiteral(name) || isNumberLiteral(name);
+  }
+
+  public static boolean isStringLiteral(String name) {
+    return name.startsWith("\"");
+  }
+
+  public static boolean isNumberLiteral(String name) {
+    return Character.isDigit(name.charAt(0)) || name.startsWith("-") || name.startsWith("+");
+  }
+
+  public static Optional<CompileError> validateLiteral(Id.DecId id) {
+    assert isLiteral(id.name());
+    var res = _getDec(_ -> 0, id);
+    if (res.isEmpty()) {
+      return Optional.of(Fail.syntaxError(id + " is not a valid type name."));
+    }
+    return Optional.empty();
+  }
+
+  private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
+    var lit = id.name();
+    if (isNumberLiteral(lit)) {
+      if (lit.matches("[+-][\\d_]*\\d+$")) {
+        return Optional.of(resolve.apply(new Id.DecId("base._IntInstance", 0)));
+      }
+      if (lit.matches("-?[\\d_]*\\d+\\.[\\d_]*\\d+$")) {
+        return Optional.of(resolve.apply(new Id.DecId("base._FloatInstance", 0)));
+      }
+      if (lit.matches("[\\d_]*\\d+$")) {
+        return Optional.of(resolve.apply(new Id.DecId("base._NatInstance", 0)));
+      }
+      return Optional.empty();
+    }
+    if (isStringLiteral(lit)) {
       return Optional.of(resolve.apply(new Id.DecId("base._StrInstance", 0)));
     }
-    if (!nameIsNumber(id.name())){ return Optional.empty(); }
-    T baseDec= null;
-    var nDots = id.name().chars().filter(c->c=='.').limit(2).count();
-    if (nDots > 1) { throw Fail.invalidNum(id.name(), "Float"); }
-    if (id.name().endsWith("u")) {
-      assert nDots==0; //u implies no dots
-      baseDec = resolve.apply(new Id.DecId("base._UIntInstance", 0));
-    }    
-    if (nDots > 0) {
-      baseDec = resolve.apply(new Id.DecId("base._FloatInstance", 0));
-    } 
-    if(baseDec == null){
-      baseDec = resolve.apply(new Id.DecId("base._IntInstance", 0));
-    }
-    return Optional.of(baseDec);
+    assert !isLiteral(lit);
+    return Optional.empty();
   }
 }

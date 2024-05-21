@@ -95,12 +95,12 @@ Many maps are on Str or Int types
 -------------------------*/@Test void mapOfNameToAge() {run("""
     package test
     Person:Ordered[Person]{
-      .name:Str, .age:UInt
+      .name:Str, .age:Nat
       .order-> CPerson.with this
       }
-    FPerson:F[Str,UInt,Person]{n,a->{.name->n,.age->a}}
+    FPerson:F[Str,Nat,Person]{n,a->{.name->n,.age->a}}
     
-    PersonF:F[Str,UInt,Person]{n,a->{.name->n,.age->a}}
+    PersonF:F[Str,Nat,Person]{n,a->{.name->n,.age->a}}
     Persons#(a,b) //accepted
     Persons.compare //accepted
     Ints
@@ -110,13 +110,13 @@ Many maps are on Str or Int types
     IOs#sys //
     Opt[T]
     NewHtml.a
-    //Unsign instead of UInt accepted
+    //Unsign instead of Nat accepted
     //Compare instead of Comparator accepted
     //CompareUnsign   accepted
-    UInt
+    Nat
     ComparePerson
     //CPerson:Compare[Person]{ p1,p2->p1.age>p2.age }
-    CPerson:Comparator[Person]{ p1,p2->CUInt#{p->p.age}#(p1,p2) }
+    CPerson:Comparator[Person]{ p1,p2->CNat#{p->p.age}#(p1,p2) }
     CPerson:Comparator[Person]{ p1,p2->
       p1.age.compareWith(p2.age)//better
       .and{p1.name.compareWith(p2.name)}

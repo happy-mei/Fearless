@@ -25,7 +25,7 @@ App:Main{ sys -> Block#
 //  .do{ io.println(FlowEx.fromIter.str) }
 //  .do{ io.println(Flow.fromIter((mut LList[mut LList[Int]] + {}).iter).size.str) }
   .do {io.println(FlowEx.somePipelineParallelThing)}
-//  .do {io.println((Fib#50u).str)}
+//  .do {io.println((Fib#50).str)}
   .return{{}}
   }
 
@@ -43,17 +43,17 @@ FlowEx:{
 //
 //  .fromIter: Bool -> Flow.fromIter((LList[Int] + 10 + 1 + 5).iter.filter{e -> (e == 897897).not})
 //    .any{e -> e == 1 ? {.then -> Error.msg "not filtering", .else -> e == 5}},
-  .somePipelineParallelThing: Str -> List#[Int](5, 10, 15).flow
-    .filter{n -> (n == 10).not}
-    .map{n -> n.uint}
+  .somePipelineParallelThing: Str -> List#[Int](+5, +10, +15).flow
+    .filter{n -> (n == +10).not}
+    .map{n -> n.nat}
     .map{n -> Fib#n}
     #(Flow.uSum)
     .str
   }
 
 Fib: {
-  #(n: UInt): UInt -> n <= 1u ? {
+  #(n: Nat): Nat -> n <= 1 ? {
     .then -> n,
-    .else -> this#(n - 1u) + (this#(n - 2u))
+    .else -> this#(n - 1) + (this#(n - 2))
     }
   }

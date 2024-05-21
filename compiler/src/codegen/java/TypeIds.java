@@ -18,7 +18,7 @@ record TypeIds(JavaMagicImpls magic, StringIds id){
   }
   public String auxGetTName(Id.DecId name) {
     return switch (name.name()) {
-      case "base.Int", "base.UInt" -> "long";
+      case "base.Int", "base.Nat" -> "long";
       case "base.Float" -> "double";
       case "base.Str" -> "rt.Str";
       default -> magicName(name);
@@ -26,7 +26,7 @@ record TypeIds(JavaMagicImpls magic, StringIds id){
     }
   private String magicName(Id.DecId name){
     if (magic.isMagic(Magic.Int, name)) { return "long"; }
-    if (magic.isMagic(Magic.UInt, name)) { return "long"; }
+    if (magic.isMagic(Magic.Nat, name)) { return "long"; }
     if (magic.isMagic(Magic.Float, name)) { return "double"; }
     if (magic.isMagic(Magic.Float, name)) { return "double"; }
     if (magic.isMagic(Magic.Str, name)) { return "rt.Str"; }

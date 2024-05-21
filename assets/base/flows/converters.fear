@@ -40,7 +40,7 @@ _MutSourceCollection[E]: {
      .empty -> Block#
        .let[mut List[E]] dup = {Flow.fromOp(original).list}
        .do {cloned := (Opts#(Block#[mut FlowOp[E]]
-         .let[mut Count[UInt]] cursor = {Count.uint(0u)}
+         .let[mut Count[Nat]] cursor = {Count.nat(0)}
          .return {RestrictFlowReuse#{'self
            .isRunning -> cursor* < (dup.size),
            .stop -> cursor := (dup.size),
@@ -55,20 +55,20 @@ _MutSourceCollection[E]: {
   }
 
 _FlowConverters: Sealed{
-  .range(start: Int, end: Int): mut Flow[Int] -> _PipelineParallelFlow.fromOp[Int](this.range'(start, end), Opts#((end - start).uint)),
+  .range(start: Int, end: Int): mut Flow[Int] -> _PipelineParallelFlow.fromOp[Int](this.range'(start, end), Opts#((end - start).nat)),
   .range'(start: Int, end: Int): mut FlowOp[Int] -> Block#
     .let cursor = {Count.int(start)}
     .return {RestrictFlowReuse#{'self
       .isRunning -> cursor* < end,
       .stop -> cursor := end,
       .step(downstream) -> Block#
-        .do {downstream#(cursor <- {n -> n + 1})}
+        .do {downstream#(cursor <- {n -> n + +1})}
         .if {cursor* >= end} .do {Block#(downstream.stop, self.stop)}
         .return {{}},
       .forRemaining(downstream) -> Block#
         .loop {Block#
           .if {cursor* >= end} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
-          .do {downstream#(cursor <- {n -> n + 1})}
+          .do {downstream#(cursor <- {n -> n + +1})}
           .return {ControlFlow.continue}
           }
         .return {{}},
@@ -94,7 +94,7 @@ _SafeSource: {
 
   .fromList[E](list: mut List[E]): mut Flow[E] -> Flow.fromOp[E](this.fromList'[E](list), list.size),
   .fromList'[E](list: mut List[E]): mut FlowOp[E] -> Block#
-    .let[mut Count[UInt]] cursor = {Count.uint(0u)}
+    .let[mut Count[Nat]] cursor = {Count.nat(0)}
     .return {RestrictFlowReuse#{'self
       .isRunning -> cursor* < (list.size),
       .stop -> cursor := (list.size),

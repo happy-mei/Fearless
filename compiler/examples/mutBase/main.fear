@@ -9,23 +9,23 @@ ImmMain:{
     .some(res) -> res,
     .empty -> this.errMsg(args.head.isSome)*
     },
-  // #(args: LList[Str]): Str -> args.get(1u) || { ((this.errMsg((args.head).isSome)) *) },
+  // #(args: LList[Str]): Str -> args.get(1) || { ((this.errMsg((args.head).isSome)) *) },
     // simpler version of above:
-//  #(args: LList[Str]): Str -> args.get(1u).match{
+//  #(args: LList[Str]): Str -> args.get(1).match{
 //    .some(x) -> x,
 //    .none -> (this.errMsg((args.head).isSome)) *,
 //    },
 //  #(args: LList[Str]): Str -> (this.errMsg(True))*,
   // TODO: this promotion should work:
-//  #(args: LList[Str]): Str -> args.get 0u || (Box#"Sad"),
+//  #(args: LList[Str]): Str -> args.get 0 || (Box#"Sad"),
 
   .errMsg(retCounter: Bool): mut Var[Str] -> Block#
     .let res = { Var#[mut Var[Str]](Var#[Str]"Sad") }
-    .let counter = { Count.int(42) }
+    .let counter = { Count.int(+42) }
     .do{ res* := "mutability!" }
     .do{ Block#(counter++) }
     .if{ False }.return{ Var#[Str]"Short cut" }
-    .if{ True }.do{ Block#[Int](counter *= 9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
+    .if{ True }.do{ Block#[Int](counter *= +9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
     .if{ True }.do{ res* := "moar mutability" }
     .if{ retCounter.not }.return{ res* }
     .return{ Var#(counter*.str) }

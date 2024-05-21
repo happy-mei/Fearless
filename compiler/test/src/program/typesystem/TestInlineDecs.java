@@ -8,9 +8,9 @@ import static program.typesystem.RunTypeSystem.ok;
 public class TestInlineDecs {
   @Test void personFactory() { ok("""
     package test
-    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+    FPerson:{ #(name: Str, age: Nat): Person -> Person:{
       .name: Str -> name,
-      .age: UInt -> age,
+      .age: Nat -> age,
       }}
     Ex:{
       .create: Person -> FPerson#(Bob, TwentyFour),
@@ -19,7 +19,7 @@ public class TestInlineDecs {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void genericPerson() { ok("""
     package test
@@ -29,13 +29,13 @@ public class TestInlineDecs {
       .age: imm N -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
-      .name(p: Person[UInt]): Str -> p.name,
+      .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour),
+      .name(p: Person[Nat]): Str -> p.name,
       }
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void genericPersonInline() { ok("""
     package test
@@ -44,13 +44,13 @@ public class TestInlineDecs {
       .age: imm N -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
-      .name(p: Person[UInt]): Str -> p.name,
+      .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour),
+      .name(p: Person[Nat]): Str -> p.name,
       }
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void inlineBoundsForwarding() { ok("""
     package test
@@ -60,13 +60,13 @@ public class TestInlineDecs {
       .age: imm N -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#(Bob, TwentyFour),
-      .name(p: Person[UInt]): Str -> p.name,
+      .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour),
+      .name(p: Person[Nat]): Str -> p.name,
       }
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void inlineBoundsForwardingMethodSig() { fail("""
     In position [###]/Dummy0.fear:3:67
@@ -81,13 +81,13 @@ public class TestInlineDecs {
       .age: imm N -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#(Bob, TwentyFour),
-      .name(p: Person[UInt]): Str -> p.name,
+      .create: Person[Nat] -> FPerson#(Bob, TwentyFour),
+      .name(p: Person[Nat]): Str -> p.name,
       }
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void boundsForwardingImplicit() { ok("""
     package test
@@ -97,13 +97,13 @@ public class TestInlineDecs {
       .age -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
-      .name(p: Person[UInt]): Str -> p.name,
+      .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour),
+      .name(p: Person[Nat]): Str -> p.name,
       }
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void boundsForwardingImplicitBreak() { fail("""
     In position [###]/Dummy0.fear:3:10
@@ -117,13 +117,13 @@ public class TestInlineDecs {
       .age -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
-      .name(p: Person[UInt]): Str -> p.name,
+      .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour),
+      .name(p: Person[Nat]): Str -> p.name,
       }
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void boundsForwardingImplicit2() { ok("""
     package test
@@ -133,13 +133,13 @@ public class TestInlineDecs {
       .age -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
-      .name(p: Person[UInt]): Str -> p.name,
+      .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour),
+      .name(p: Person[Nat]): Str -> p.name,
       }
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void boundsForwardingImplicit3() { ok("""
     package test
@@ -149,13 +149,13 @@ public class TestInlineDecs {
       .age -> age,
       }}
     Ex:{
-      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
-      .name(p: Person[UInt]): Str -> p.name,
+      .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour),
+      .name(p: Person[Nat]): Str -> p.name,
       }
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   // TODO: some bounds forwarding logic is broken. I think this should really be failing at like well-formedness, but is not.
   @Test void boundsForwardingExplicit() { fail("""
@@ -169,14 +169,14 @@ public class TestInlineDecs {
       .name -> name,
       .age -> age,
       }}
-    Break:{ #: Fresh[mut UInt], }
+    Break:{ #: Fresh[mut Nat], }
     Ex:{
-      .create: Person[UInt] -> FPerson#[UInt](Bob, TwentyFour),
-      .name(p: Person[UInt]): Str -> p.name,
+      .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour),
+      .name(p: Person[Nat]): Str -> p.name,
       }
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
 }

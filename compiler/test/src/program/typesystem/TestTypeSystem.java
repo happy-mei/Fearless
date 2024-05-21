@@ -955,7 +955,7 @@ public class TestTypeSystem {
     package test
     alias base.Str as Str,
     alias base.Void as Void,
-    alias base.UInt as UInt,
+    alias base.Nat as Nat,
     alias base.Int as Int,
     Bool:{
       .and(b: Bool): Bool,
@@ -975,15 +975,15 @@ public class TestTypeSystem {
     List[E:imm]:{
       .match[R:imm](m: ListMatch[E, R]): R -> m.empty,
       .isEmpty: Bool -> this.match{ .empty -> True, .elem(_,_) -> False },
-      .len: UInt -> this.match{ .empty -> 0u, .elem(_,t) -> t.len + 1u, },
+      .len: Nat -> this.match{ .empty -> 0, .elem(_,t) -> t.len + 1, },
       ++(l1: List[E]): List[E] -> this.match{
         .empty -> l1,
         .elem(h, t) -> Cons#(h, t ++ l1)
         },
       +(e: E): List[E] -> this ++ (Cons#(e, {})),
-      .get(i: UInt) : Opt[E] -> this.match{
+      .get(i: Nat) : Opt[E] -> this.match{
         .empty -> {},
-        .elem(h, t) -> (i == 0u) ? { .then -> Opts#h, .else -> t.get(i - 1u) }
+        .elem(h, t) -> (i == 0) ? { .then -> Opts#h, .else -> t.get(i - 1) }
         },
       .head: Opt[E] -> this.match{
         .empty -> {},
@@ -1026,12 +1026,12 @@ public class TestTypeSystem {
     package base
     Sealed:{}
     Int:Sealed,MathOps[Int],IntOps[Int]{
-      readOnly .uint: UInt,
+      readOnly .nat: Nat,
       readOnly .float: Float,
       // not Stringable due to limitations of the Java codegen target
       readOnly .str: Str,
       }
-    UInt:Sealed,MathOps[UInt],IntOps[UInt]{
+    Nat:Sealed,MathOps[Nat],IntOps[Nat]{
       readOnly .int: Int,
       readOnly .float: Float,
       // not Stringable due to limitations of the Java codegen target
@@ -1039,7 +1039,7 @@ public class TestTypeSystem {
       }
     Float:Sealed,MathOps[Float]{
       readOnly .int: Int,
-      readOnly .uint: UInt,
+      readOnly .nat: Nat,
       readOnly .round: Int,
       readOnly .ceil: Int,
       readOnly .floor: Int,
@@ -1074,12 +1074,12 @@ public class TestTypeSystem {
       readOnly &(n: readOnly T): T,
       readOnly |(n: readOnly T): T,
         
-      readOnly **(n: readOnly UInt): T, // pow
+      readOnly **(n: readOnly Nat): T, // pow
       }
         
     // Fake concrete type for all numbers. The real implementation is generated at code-gen.
     _IntInstance:Int{
-      .uint -> Abort!,
+      .nat -> Abort!,
       .float -> Abort!,
       .str -> Abort!,
       +(n) -> Abort!,
@@ -1104,7 +1104,7 @@ public class TestTypeSystem {
       <=n -> Abort!,
       ==n -> Abort!,
       }
-    _UIntInstance:UInt{
+    _NatInstance:Nat{
       .int -> Abort!,
       .float -> Abort!,
       .str -> Abort!,
@@ -1132,7 +1132,7 @@ public class TestTypeSystem {
       }
     _FloatInstance:Float{
       .int -> Abort!,
-      .uint -> Abort!,
+      .nat -> Abort!,
       .str -> Abort!,
       .round -> Abort!,
       .ceil -> Abort!,
@@ -1600,9 +1600,9 @@ public class TestTypeSystem {
 
   @Test void contravarianceBox() { ok("""
     package test
-    UInt:{} Str:{}
-    Person:{ read .name: Str, read .age: UInt, }
-    Student:Person{ read .grades: Box[UInt] }
+    Nat:{} Str:{}
+    Person:{ read .name: Str, read .age: Nat, }
+    Student:Person{ read .grades: Box[Nat] }
     Box[T]:{
       mut .get: T,
       read .get: read T,
@@ -1618,9 +1618,9 @@ public class TestTypeSystem {
 
   @Test void contravarianceBoxMatcherExtensionMethod() { ok("""
     package test
-    UInt:{} Str:{}
-    Person:{ read .name: Str, read .age: UInt, }
-    Student:Person{ read .grades: Box[UInt] }
+    Nat:{} Str:{}
+    Person:{ read .name: Str, read .age: Nat, }
+    Student:Person{ read .grades: Box[Nat] }
     BoxMatcher[T,R]:{ mut #: R }
     BoxExtension[T,R]:{ mut #(self: T): R }
     Box[T]:{
@@ -1918,4 +1918,21 @@ public class TestTypeSystem {
       }
     Void: {}
     """);}
+
+  @Test void namedLiteral() {ok("""
+    package a
+    List[T]:{} Bob:{}
+    Bar[X]: {.m(x: X): mut Foo[X] -> mut Foo[X]:{
+      mut .get: X -> x
+      }}
+    CanCall: {#: Bob -> Bar[Bob].m(Bob).get}
+    """);}
+
+  @Test void immThisAsImmInReadMethod() { ok("""
+    package test
+    A: {.m1: imm B -> B: {'self
+      imm .foo: B -> self,
+      read .bar: B -> self.foo,
+      }}
+    """); }
 }

@@ -256,9 +256,9 @@ public class TestWellFormedness {
 
   @Test void allowTopLevelDecl() { ok("""
     package test
-    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+    FPerson:{ #(name: Str, age: Nat): Person -> Person:{
       .name: Str -> name,
-      .age: UInt -> age,
+      .age: Nat -> age,
       }}
     Ex:{
       .create: Person -> FPerson#(Bob, TwentyFour),
@@ -267,7 +267,7 @@ public class TestWellFormedness {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void failTopLevelDeclImplInfer() { fail("""
     In position [###]/Dummy0.fear:7:15
@@ -275,9 +275,9 @@ public class TestWellFormedness {
     Traits declared within expressions cannot be implemented. This lambda has the following invalid implementations: test.Person/0
     """, """
     package test
-    FPerson:{ #(name: Str, age: UInt): Person -> Person:{
+    FPerson:{ #(name: Str, age: Nat): Person -> Person:{
       .name: Str -> name,
-      .age: UInt -> age,
+      .age: Nat -> age,
       }}
     Bad:{
       #: Person -> {}
@@ -289,7 +289,7 @@ public class TestWellFormedness {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
 
   @Test void genericFunnelling() { ok("""
@@ -301,7 +301,7 @@ public class TestWellFormedness {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void genericFunnellingFresh() { ok("""
     package test
@@ -313,7 +313,7 @@ public class TestWellFormedness {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void genericFunnellingFreshNoBody() { ok("""
     package test
@@ -323,7 +323,7 @@ public class TestWellFormedness {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
   @Test void noFreeGensFunnelling() { fail("""
     In position [###]/Dummy0.fear:2:52
@@ -338,7 +338,7 @@ public class TestWellFormedness {
     """, """
     package test
     Str:{} Bob:Str{}
-    UInt:{} TwentyFour:UInt{}
+    Nat:{} TwentyFour:Nat{}
     """); }
 
   @Test void noLentLambdaCreation() { fail("""

@@ -139,13 +139,17 @@ public interface InputOutput{
   }
   //This will only work outside of the jar
   static InputOutput programmaticAuto(List<String> files){
+    var workingDir = ResolveResource.freshTmpPath();
+    IoErr.of(()->Files.createDirectories(workingDir));
     return programmatic("test.Test", List.of(),files,
-      ResolveResource.freshTmpPath(),
+      workingDir,
       ResolveResource.artefact("/cachedBase"));
   }
   static InputOutput programmaticAuto(List<String> files, List<String> args){
+    var workingDir = ResolveResource.freshTmpPath();
+    IoErr.of(()->Files.createDirectories(workingDir));
     return programmatic("test.Test", args, files,
-      ResolveResource.freshTmpPath(),
+      workingDir,
       ResolveResource.artefact("/cachedBase"));
   }
 }
