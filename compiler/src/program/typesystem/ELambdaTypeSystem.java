@@ -27,13 +27,6 @@ import java.util.stream.Stream;
 
 import static program.Program.filterByMdf;
 
-//TODO:
-//at top level when we call the type system, we should do something like this
-//.map(rawErr->()->TypingAndInferenceErrors.fromMethodError(rawErr.get()));
-//or
-//var rawError = err.parentPos(mi.pos()); //why it was only in one place?
-//return TypeSystemErrors.fromMethodError(rawError);
-//to let the student twist the errors. Note, we need to add plenty more info.
 interface ELambdaTypeSystem extends ETypeSystem{
   default FailOr<T> visitLambda(E.Lambda b){
     Id.DecId fresh= new Id.DecId(Id.GX.fresh().name(), 0);
@@ -242,45 +235,48 @@ interface ELambdaTypeSystem extends ETypeSystem{
           return false;
         }
       })
-      .map(x->{
-        var nUsages = new Box<>(0);
-        var hasCapturedX = new Box<>(false);
-        return e.accept(new ShortCircuitVisitor<Supplier<CompileError>>(){
-          @Override public Optional<Supplier<CompileError>> visitLambda(E.Lambda e) {
-            if (hasCapturedX.get()) { return Optional.empty(); }
-            return new ShortCircuitVisitor<Supplier<CompileError>>(){
-              @Override public Optional<Supplier<CompileError>> visitX(E.X e) {
-                if (!e.name().equals(x)) { return ShortCircuitVisitor.super.visitX(e); }
-                hasCapturedX.set(true);
-                if (nUsages.get() > 0) { return Optional.of(()->Fail.multipleIsoUsage(e).pos(e.pos())); }
-                return Optional.empty();
-              }
-            }.visitLambda(e);
-          }
-
-          @Override public Optional<Supplier<CompileError>> visitX(E.X e) {
-            if (!e.name().equals(x)) { return ShortCircuitVisitor.super.visitX(e); }
-            if (hasCapturedX.get()) {
-              return Optional.of(()->Fail.multipleIsoUsage(e).pos(e.pos()));
-            }
-            int n = nUsages.update(usages->usages+1);
-            if (n > 1) { return Optional.of(()->Fail.multipleIsoUsage(e).pos(e.pos())); }
-            return Optional.empty();
-          }
-        });
-      })
+      .map(x -> countIsoUsages(e,x))
       .filter(Optional::isPresent)
       .findFirst()
       .flatMap(opt->opt)
     );
   }
+
+  private static Optional<Supplier<CompileError>> countIsoUsages(E e, String x) {
+    var nUsages = new Box<>(0);
+    var hasCapturedX = new Box<>(false);
+    return e.accept(new ShortCircuitVisitor<>() {
+      @Override public Optional<Supplier<CompileError>> visitLambda(E.Lambda e) {
+        if (hasCapturedX.get()) {return Optional.empty();}
+        return new ShortCircuitVisitor<Supplier<CompileError>>() {
+          @Override public Optional<Supplier<CompileError>> visitX(E.X e) {
+            if (!e.name().equals(x)) {return ShortCircuitVisitor.super.visitX(e);}
+            hasCapturedX.set(true);
+            if (nUsages.get() > 0) {return Optional.of(() -> Fail.multipleIsoUsage(e).pos(e.pos()));}
+            return Optional.empty();
+          }
+        }.visitLambda(e);
+      }
+
+      @Override public Optional<Supplier<CompileError>> visitX(E.X e) {
+        if (!e.name().equals(x)) {return ShortCircuitVisitor.super.visitX(e);}
+        if (hasCapturedX.get()) {
+          return Optional.of(() -> Fail.multipleIsoUsage(e).pos(e.pos()));
+        }
+        int n = nUsages.update(usages -> usages + 1);
+        if (n > 1) {return Optional.of(() -> Fail.multipleIsoUsage(e).pos(e.pos()));}
+        return Optional.empty();
+      }
+    });
+  }
+
   private FailOr<Void> okWithSubType(Gamma g, E.Meth m, E e, T expected) {
     FailOr<T> res = e.accept(
       ETypeSystem.of(p(), g, xbs(), List.of(expected), resolvedCalls(), depth()+1));
-    return res.flatMap(t->methSubType(t,expected));
-    //TODO: why pass expected? is it not in 'this'?
-    //TODO: why this parent pos was here?
-    //  res.map(err->()->err.get().parentPos(m.pos()));
+    return res.flatMap(t->methSubType(t,expected)).mapErr(err->()->err.get().parentPos(e.pos()));
+    // We pass the expected type of the expression down because different method body promotions
+    // have different expected types. We could create a new type system visitor with the updated
+    // expected instead, but that feels like overkill.
   }
   private FailOr<Void> methSubType(T t, T expected){
     var resOk= p().isSubType(xbs(), expected, expected);

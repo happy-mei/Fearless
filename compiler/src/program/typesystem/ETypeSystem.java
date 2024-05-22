@@ -19,7 +19,7 @@ public interface ETypeSystem extends Visitor<FailOr<T>> {
   XBs xbs();
   ConcurrentHashMap<Long, TsT> resolvedCalls();
   List<T> expectedT();
-  int depth();//TODO: check if still needed
+  int depth(); // used to call Program.meths with normalisation done correctly
   default FailOr<T> visitX(E.X e){
     try{ return FailOr.res(g().get(e)); }
     catch (CompileError err){ return err.fail(); }

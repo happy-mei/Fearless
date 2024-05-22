@@ -28,8 +28,7 @@ import java.util.stream.IntStream;
   Ls; Xs';G; Ts' |- e0 m[Ts](e1,...en): T[Xs=Ts][⇑r]
 */
 public interface EMethTypeSystem extends ETypeSystem {
-  //priority for overloading over receiver modifier
-  //TODO: only used in Program, why it is here?
+  /** priority for overloading over receiver modifier */
   List<Mdf> recvPriority = List.of(
     Mdf.iso, Mdf.mut, Mdf.imm, Mdf.recMdf, Mdf.read, Mdf.lent, Mdf.readOnly);
   static List<Mdf> inferPriority(Mdf recvMdf) {
@@ -101,7 +100,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   private boolean selectOverload(CM cm, Mdf mdf0){
     if (!Program.isSubType(mdf0,cm.mdf())){ return false; }
     if(expectedT().isEmpty()){ return true; }
-    //TODO: What about promotions?
+    //TODO: What about promotions? This strategy as it is now, is good enough to check the standard library.
     //readH could be passed to a read for example.
     //Full check. Too strict, promotions
     //return expectedT().stream()

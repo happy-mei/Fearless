@@ -60,9 +60,6 @@ record MultiSigBuilder(
     return Program.isSubTypeGX(bounds,resToAdd,other);
   }
 
-  boolean filterRes() {
-    return false;
-  }
   void fillBase(){ fillProm("Base",m->m); }
   void fillIsoProm(){ fillProm("IsoProm",this::mutIsoReadImm); }
   void fillIsoHProm(){ fillProm("IsoHProm",this::mutIsoReadImmReadHImm); }  
@@ -113,7 +110,7 @@ record MultiSigBuilder(
     List<Mdf> xb= new ArrayList<>(bounds.get(gx));
     //converted to lists to ensure one to one correspondence
     List<Mdf> options= xb.stream()
-        .map(mi->f.apply(mi))
+        .map(f)
         .toList();
     if(xb.equals(options)){ return t; }
     //we return t if the transformation does not change any
@@ -125,35 +122,7 @@ record MultiSigBuilder(
     if(goodMdf.isImm()){ return t.withMdf(Mdf.imm); }
     return t.withMdf(Mdf.read);
   }
-  
-  /* TODO:
-    
-   X:imm, mut   |- mdf X
-   
-   
-   with Bounds, take all RC of X, if single bounds, apply bounds and delegate  X == imm X
-   If multiple bounds read, imm 
-     select the worst and apply transformation?
-     P mut,imm,read =>iso because mut is present
-     R mut,imm,read =>imm because read is present
-     what if iso/readH/mutH in bounds
-     1-apply the transformation for all the bounds (include the read imm transformation. DO formalis?
-     2-P- select the most specific
-     2-R- select the most general
-     Do we have a 'most specific/most general MDF function'? -NO
-     
-     -well formedness?
-       read/imm X only well formed if
-         X bounds contains imm? may be not needed?
-         
-         A[X:read,imm]:{}
-         B[Y:read]:A[Y]{}
-     location of default XBs.defaultBounds
-     -------------------
-     options for Toplas:
-     -well formedness: no iso,readH,mutH to instantiate an X
-     -have bounds
-   */
+
   Mdf mutMutH(Mdf m){
     assert m.isMut();
     return Mdf.lent;
@@ -185,9 +154,10 @@ record MultiSigBuilder(
     };
   }
   Mdf toHyg(Mdf m){
+    assert m.isSyntaxMdf();
     return switch(m){
       case mut->Mdf.lent;
-      case read,mdf->Mdf.readOnly;//TODO: add readImm when ready
+      case read->Mdf.readOnly;
       default ->m;
     };
   }

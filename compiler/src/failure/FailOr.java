@@ -5,11 +5,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public sealed interface FailOr<T>{
+  <R> FailOr<R> flatMap(Function<T,FailOr<R>> r);
+  <R> FailOr<R> map(Function<T,R> r);
+  FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u);
+  boolean isRes();
+  T get();
+  Optional<Supplier<CompileError>> asOpt();
+
   record Res<T>(T t) implements FailOr<T> {
     public <R> FailOr<R> flatMap(Function<T,FailOr<R>> r) { return r.apply(t); }
     public <R> FailOr<R> map(Function<T,R> r) { return new Res<>(r.apply(t)); }
+    public FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u) {return this;}
     public boolean isRes(){ return true; }
     public T get(){ return t; }
     static final private Res<Void> ok= new Res<Void>(null);
@@ -20,6 +29,7 @@ public sealed interface FailOr<T>{
     private <R> Fail<R> self(){return (Fail<R>) this;}
     public <R> FailOr<R> flatMap(Function<T,FailOr<R>> r) { return self(); }
     public <R> FailOr<R> map(Function<T,R> r) { return self(); }
+    public FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u){ return new Fail<>(u.apply(err)); }
     public boolean isRes(){ return false; }
     public T get(){ throw err.get(); }
     public Optional<Supplier<CompileError>> asOpt(){ return Optional.of(err); }
@@ -31,11 +41,6 @@ public sealed interface FailOr<T>{
     //big fail of Java inference here
     return opt.map(s->(FailOr<Void>)FailOr.<Void>err(s)).orElse(ok()); 
   }
-  <R> FailOr<R> flatMap(Function<T,FailOr<R>> r);
-  <R> FailOr<R> map(Function<T,R> r);
-  boolean isRes();
-  T get();
-  Optional<Supplier<CompileError>> asOpt();
   static <A,R> FailOr<List<R>> fold(Iterable<A> as, Function<A,FailOr<R>> f){
     List<R> res= new ArrayList<>();
     for(A a: as) {
