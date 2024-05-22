@@ -7,7 +7,6 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import program.CM;
-import program.typesystem.EMethTypeSystem;
 import program.typesystem.TsT;
 import program.typesystem.XBs;
 import utils.*;

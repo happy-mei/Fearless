@@ -30,7 +30,7 @@ import static program.inference.InferBodies.replaceOnlyInfers;
 
 public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   public RefineTypes(Program p) {
-    this(p, new TypeRename.FullTTypeRename(p));
+    this(p, new TypeRename.FullTTypeRename());
   }
 
   E.Lambda fixLambda(E.Lambda lambda, int depth) {

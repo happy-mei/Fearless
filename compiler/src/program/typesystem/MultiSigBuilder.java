@@ -28,7 +28,7 @@ record MultiSigBuilder(
       mdf0,expectedRes,formalMdf,formalTs,formalRet,
       formalTs.size(),
       bounds,
-      formalTs.stream().map(t->new ArrayList<T>()).toList(),
+      formalTs.stream().map(_->new ArrayList<T>()).toList(),
       new ArrayList<>(),
       new ArrayList<>());
     res.fillIsoHProm();
@@ -38,7 +38,7 @@ record MultiSigBuilder(
     res.fillMutHPromRec();
     res.fillMutHPromPar();
     return new MultiSig(
-      res.tss.stream().map(a->Collections.unmodifiableList(a)).toList(),
+      res.tss.stream().map(Collections::unmodifiableList).toList(),
       Collections.unmodifiableList(res.rets),
       Collections.unmodifiableList(res.kinds)
       );

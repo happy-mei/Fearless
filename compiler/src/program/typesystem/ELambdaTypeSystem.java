@@ -29,11 +29,10 @@ import static program.Program.filterByMdf;
 
 interface ELambdaTypeSystem extends ETypeSystem{
   default FailOr<T> visitLambda(E.Lambda b){
-    Id.DecId fresh= new Id.DecId(Id.GX.fresh().name(), 0);
     Dec d= new Dec(b);
     var self= (ELambdaTypeSystem)withProgram(p().withDec(d));
-    var err1= self.implMethErrors(d,b);
-    return err1.flatMap(unused->self.bothT(d));
+    var err1= self.implMethErrors(b);
+    return err1.flatMap(_ ->self.bothT(d));
   }
   private List<E.Meth> filteredByMdf(E.Lambda b){
     return b.meths().stream()
@@ -45,7 +44,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     .filter(m->!filterByMdf(b.mdf(), m.mdf()))
     .toList();
   }
-  private FailOr<Void> implMethErrors(Dec d,E.Lambda b){
+  private FailOr<Void> implMethErrors(E.Lambda b){
     Mdf mdf= b.mdf();
     var validMethods = filteredByMdf(b);
     var validMethNames = validMethods.stream()
@@ -82,7 +81,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var selfName=b.selfName();
     var mRes= FailOr.fold(b.meths(),
       mi->methOkCath(xbs, selfT, selfName, mi));
-    return mRes.map(unused->selfT);
+    return mRes.map(_ ->selfT);
   }
   private FailOr<Void> sigOk(Sig sig,Optional<Pos> p){
     var ts= Stream.concat(sig.ts().stream(),Stream.of(sig.ret()));

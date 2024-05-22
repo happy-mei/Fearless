@@ -154,7 +154,6 @@ public record InferBodies(ast.Program p) {
     assert m.sig().isEmpty() || m.name().isPresent();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isPresent()){ return Optional.empty(); }
-    //TODO: here is where we need to check the method name is the same.
     var res = onlyAbs(e, depth).stream()
       .filter(fullSig->fullSig.sig().ts().size() == m.xs().size())
       .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()).makeBodyUnique())

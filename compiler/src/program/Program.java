@@ -85,7 +85,7 @@ public interface Program {
     subTypeCache.put(q, result);
     return isSubType;
   }
-  static public boolean isSubTypeGX(XBs xbs, T t1, T t2) {//t1<=t2
+  static boolean isSubTypeGX(XBs xbs, T t1, T t2) {//t1<=t2
     var gx1= t1.gxOrThrow();
     var gx2= t2.gxOrThrow();
     if(!gx1.equals(gx2)){ return false; }
@@ -220,9 +220,6 @@ public interface Program {
       return t;
     }
 
-    @Override public T.Dec visitDec(T.Dec d) {
-      return new T.Dec(visitLambda(d.lambda()));
-    }
     @Override public ast.E.Sig visitSig(ast.E.Sig e) {
       var xbs = e.bounds().entrySet().stream().collect(Collectors.toMap(
         kv->{

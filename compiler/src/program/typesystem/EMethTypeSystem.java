@@ -60,7 +60,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       );
   }
   private CM applyGenerics(CM cm, List<T> ts){
-    var renamer = TypeRename.core(p());
+    var renamer = TypeRename.core();
     var gens= cm.sig().gens();
     //var xbs= xbs().addBounds(gens, sig.bounds());//No? from 2 different scopes?
     var transformer= renamer.renameFun(ts, gens);
@@ -99,7 +99,7 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
   private boolean selectOverload(CM cm, Mdf mdf0){
     if (!Program.isSubType(mdf0,cm.mdf())){ return false; }
-    if(expectedT().isEmpty()){ return true; }
+    if (expectedT().isEmpty()){ return true; }
     //TODO: What about promotions? This strategy as it is now, is good enough to check the standard library.
     //readH could be passed to a read for example.
     //Full check. Too strict, promotions
@@ -118,7 +118,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       .findFirst();
    return sel
      .map(i->successType(e,i,multi))
-     .orElse(FailOr.err(()->Fail.invalidMethodArgumentTypes(e,t1n,multi.toString())));
+     .orElse(FailOr.err(()->Fail.invalidMethodArgumentTypes(e,t1n,multi,expectedT())));
   }
   private FailOr<T> successType(E.MCall e, int i, MultiSig multi){
     T ret= multi.rets().get(i);
@@ -135,29 +135,6 @@ public interface EMethTypeSystem extends ETypeSystem {
     });
   }
 
-}
-record MultiSig(List<List<T>> tss, List<T> rets, List<String> kind){
-  MultiSig{
-    int size= rets.size();
-    assert size >= 1:
-      "No, this should become a type error since we filter on the receiver modifier and expected results";
-    assert tss.stream().allMatch(ts->ts.size() == size):
-      tss+" "+rets;
-  }
-  ETypeSystem expectedT(ETypeSystem self, int i) {
-    return self.withExpectedTs(tss.get(i));      
-  }
-  @Override public String toString(){
-    String res="Attempted signatures:\n";
-    for(var i:Range.of(rets)) {
-      var ps= tss.stream()
-        .map(ts->ts.get(i))
-        .map(Object::toString)
-        .collect(Collectors.joining(", "));
-      res+="("+ps+"):"+rets.get(i)+" kind: "+kind.get(i)+"\n";
-    }
-    return res;
-  }
 }
   
   

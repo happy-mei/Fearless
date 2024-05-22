@@ -6,6 +6,7 @@ import files.Pos;
 import id.Id;
 import id.Mdf;
 import program.CM;
+import program.typesystem.MultiSig;
 import utils.Bug;
 
 import java.io.IOException;
@@ -121,7 +122,7 @@ public class Fail{
   //TODO: was List<CM>, if all work remove todo
   public static CompileError unimplementedInLambda(List<ast.E.Meth> ms){
     var unimplemented = ms.stream()
-      .map(m->"("+m.pos()+") "+m.name())
+      .map(m->"("+m.posOrUnknown()+") "+m.name())
       .collect(Collectors.joining("\n"));
     return of(String.format("The lambda must implement the following methods:\n%s", unimplemented));
   }
@@ -160,10 +161,15 @@ public class Fail{
   public static CompileError noMethOnX(ast.E.MCall e, ast.T found) {
     return of("Method "+e.name()+" can not be called on generic type "+found);
   }
-  public static CompileError invalidMethodArgumentTypes(ast.E.MCall e, List<ast.T> t1n,String extra) {
-    var msg= "Method "+e.name()+" called in position "+e.pos()+
-      " can not be called with current parameters of types: "+t1n;
-    return of(msg+"\n"+extra);
+  public static CompileError invalidMethodArgumentTypes(ast.E.MCall e, List<ast.T> t1n, MultiSig sigs, List<ast.T> expected) {
+    var attributes = Map.of(
+      "mCall", e,
+      "argTypes", t1n,
+      "sigs", sigs,
+      "expected", expected
+    );
+    var msg= STR."Method \{e.name()} called in position \{e.posOrUnknown()} can not be called with current parameters of types: \{t1n}";
+    return of(msg+"\n"+sigs, attributes);
   }
 
   /** This error is for when a method call is made to a method that *does* exist, but there is no return type that

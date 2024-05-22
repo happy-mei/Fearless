@@ -2,15 +2,11 @@ package program.typesystem;
 
 import ast.E;
 import ast.T;
-import id.Id;
 import id.Mdf;
 import program.Program;
 import program.TypeRename;
 import utils.OneOr;
 import visitors.Visitor;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public record GuessT(Program p, Gamma g, XBs xbs, int depth) implements Visitor<T> {
   @Override public T visitX(E.X e) {
@@ -20,7 +16,7 @@ public record GuessT(Program p, Gamma g, XBs xbs, int depth) implements Visitor<
     return new T(e.mdf(), e.id().toIT());
   }
   @Override public T visitMCall(E.MCall e) {
-    var renamer = TypeRename.core(p());
+    var renamer = TypeRename.core();
     var recv = e.receiver().accept(this);
     return OneOr.of(
       "More than one matching method for GuessT",

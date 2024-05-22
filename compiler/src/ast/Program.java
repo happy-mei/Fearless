@@ -99,16 +99,16 @@ public class Program implements program.Program  {
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
-    Function<Id.GX<T>, T> f = TypeRename.core(this).renameFun(t.ts(), gxs);
+    Function<Id.GX<T>, T> f = TypeRename.core().renameFun(t.ts(), gxs);
     return d.lambda().its().stream()
       .filter(ti->!ti.name().equals(t.name()))
-      .map(ti->TypeRename.core(this).renameIT(ti,f))
+      .map(ti->TypeRename.core().renameIT(ti,f))
       .toList();
   }
   @Override public List<NormResult> cMsOf(Mdf recvMdf, Id.IT<T> t) {
     var d=of(t.name());
     assert t.ts().size()==d.gxs().size();
-    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(t.ts(), d.gxs());
+    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core().renameFun(t.ts(), d.gxs());
     return d.lambda().meths().stream()
       .map(mi->cm(recvMdf, t, mi, XBs.empty().addBounds(d.gxs(), d.bounds()), f))
       .toList();
@@ -117,7 +117,7 @@ public class Program implements program.Program  {
     var d=of(fancyCM.c().name());
     assert fancyCM.c().ts().size()==d.gxs().size();
     var gxs=d.gxs().stream().map(gx->new Id.GX<ast.T>(gx.name())).toList();
-    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core(this).renameFun(fancyCM.c().ts(), gxs);
+    Function<Id.GX<ast.T>, ast.T> f = TypeRename.core().renameFun(fancyCM.c().ts(), gxs);
     return d.lambda().meths().stream()
       .filter(mi->mi.name().equals(fancyCM.name()))
       .map(mi->cmCore(d.toIT(), mi, f))
@@ -164,13 +164,13 @@ public class Program implements program.Program  {
     var normed = norm(CM.of(t, mi, mi.sig()));
     var cm = normed.cm();
     var normedMeth = new E.Meth(cm.sig(), cm.name(), cm.xs(), mi.body(), mi.pos());
-    return new NormResult(CM.of(cm.c(), normedMeth, TypeRename.coreRec(this, recvMdf).renameSig(cm.sig(), xbs, f)), normed.restoreSubst());
+    return new NormResult(CM.of(cm.c(), normedMeth, TypeRename.coreRec(recvMdf).renameSig(cm.sig(), xbs, f)), normed.restoreSubst());
   }
   private CM cmCore(Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var normed = norm(CM.of(t, mi, mi.sig()));
     var cm = normed.cm();
     var normedMeth = new E.Meth(cm.sig(), cm.name(), cm.xs(), mi.body(), mi.pos());
-    return CM.of(cm.c(), normedMeth, TypeRename.core(this).renameSig(cm.sig(), XBs.empty(), f));
+    return CM.of(cm.c(), normedMeth, TypeRename.core().renameSig(cm.sig(), XBs.empty(), f));
   }
 }

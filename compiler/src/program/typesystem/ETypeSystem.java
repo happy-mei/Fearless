@@ -23,9 +23,6 @@ public interface ETypeSystem extends Visitor<FailOr<T>> {
   default FailOr<T> visitX(E.X e){
     try{ return FailOr.res(g().get(e)); }
     catch (CompileError err){ return err.fail(); }
-
-    //dead error?
-    //  return Optional.of(()->Fail.xTypeError(expected, res, e).pos(e.pos()));
   }
 
   static ETypeSystem of(Program p, Gamma g, XBs xbs, List<T> expectedT, ConcurrentHashMap<Long, TsT> resolvedCalls, int depth){

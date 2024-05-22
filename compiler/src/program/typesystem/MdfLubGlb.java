@@ -13,10 +13,10 @@ import static program.Program.isSubType;
 import static id.Mdf.*;
 import id.Mdf;
 
-//LUB (Least Upper Bound):
-//The smallest element e such that x≤e for all elements x in the set.
-//GLB (Greatest Lower Bound):
-//The largest element e such that e≤x for all elements x in the set.
+/** LUB (Least Upper Bound):
+/ * The smallest element e such that x≤e for all elements x in the set.
+/ * GLB (Greatest Lower Bound):
+/ * The largest element e such that e≤x for all elements x in the set. */
 public class MdfLubGlb {
   private static final EnumSet<Mdf> allMdf = EnumSet.copyOf(
     EnumSet.allOf(Mdf.class).stream()

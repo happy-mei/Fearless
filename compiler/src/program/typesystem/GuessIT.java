@@ -19,7 +19,7 @@ public record GuessIT(Program p, Gamma g, XBs xbs, int depth) implements Visitor
     return Set.copyOf(e.its());
   }
   @Override public Set<Id.IT<T>> visitMCall(E.MCall e) {
-    var renamer = TypeRename.core(p());
+    var renamer = TypeRename.core();
     return e.receiver().accept(this).stream()
       .flatMap(recv->p().meths(xbs(), Mdf.recMdf, recv, depth()).stream())
       .filter(cm->cm.name().nameArityEq(e.name()))

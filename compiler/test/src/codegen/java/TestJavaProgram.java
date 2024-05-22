@@ -733,7 +733,7 @@ public class TestJavaProgram {
       .return{Void}
       }
     MutThingy:{ mut .n: mut Count[Int], read .rn: read Count[Int] }
-    MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { .n -> n, .rn -> n }  }
+    MutThingy':{ #(n: mut Count[Int]): mut MutThingy -> { .n -> n, .rn -> n } }
     """, Base.mutBaseAliases); }
 
   @Test void envFromRootAuth() { okWithArgs(new Res("hi bye", "", 0), List.of("hi", "bye"), """
@@ -898,6 +898,7 @@ public class TestJavaProgram {
       """, Base.mutBaseAliases);
   }
 
+  // TODO: regression in the new type system
   @Test void callingMultiSigAmbiguousDiffRet() { ok(new Res("", "", 0), """
     package test
     alias base.Void as Void, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
@@ -1141,7 +1142,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s -> Block#
       .let[mut IO] io = { FIO#s }
-      .let[mut Var[read LinkedLens[Str, Int]]] m = { Var#[read LinkedLens[Str, Int]]({k1,k2 -> k1 == k2}) }
+      .let[mut Var[read LinkedLens[Str, read Int]]] m = { Var#[read LinkedLens[Str, read Int]]({k1,k2 -> k1 == k2}) }
       .do{ m := (m*.put("Nick", +23)) }
       .do{ m := (m*.put("Bob", +32)) }
       .do{ io.println(m*.get("Nick")!.str) }
