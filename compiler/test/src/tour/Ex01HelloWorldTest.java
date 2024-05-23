@@ -29,7 +29,7 @@ Assume in folder 'myFolder' we have a file with the following content:
     """); }/*--------------------------------------------
 To run it, we specify the fully qualified name of the runnable type `test.Test`.
   `> java -jar fearless.jar -e test.Test -r myFolder`//From nick
-  `> java -jar fearless.jar myFolder::test.Test`//marco's new favorite.
+  `> java -jar fearless.jar myFolder test.Test`//marco's new favorite.
 If we look in the folder again, we will see that there is now a subfolder `/out`
 containing the code that was compiled. (as 'myFolder.far')
 
@@ -61,7 +61,12 @@ is quite verbose.
 We do not expect this code to be very common in Fearless.
 If someone is printing just because they want a debugging printout, the can use
 -------------------------*/@Test void helloWorldDebug() { run("""
-    Test:Main {sys -> base.Debug#("Hello, World!")}
+    Test:Main {sys -> base.Debug.log("Hello, World!")}//OK
+    Test:Main {sys -> base.Debug#("Hello, World!")} //OK
+    Test:Main {sys -> Block#(base.Debug#("Hello, World!"),Void)}
+    Test:Main {sys -> Discard#(base.Debug#("Hello, World!"))}
+    Test:Main {sys -> Block#.let _={base.Debug#("Hello, World!")}.done}
+    Test:Main {sys -> Block#.debug{"Hello, World!"}.done}
     //This does not work, both for inference and because currently Debug returns the input?
     //prints Hello, World!
     """); }/*--------------------------------------------
