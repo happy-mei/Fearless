@@ -1935,4 +1935,26 @@ public class TestTypeSystem {
       read .bar: B -> self.foo,
       }}
     """); }
+
+  @Test void subtypingSoundness() {fail("""
+    """, """
+    package test
+    A: {}
+    B: {}
+    ToA: {.m1(b: B): A -> b}
+    Call: {#: A -> ToA.m1(B)}
+    """);}
+
+  @Test void magicSubtypingSoundness() {fail("""
+    """, """
+    package test
+    alias base.Str as Str,
+    A: {}
+    ToA: {.m1(s: Str): A -> s}
+    Call: {#: A -> ToA.m1("hello")}
+    """, """
+    package base
+    Str: {}
+    _StrInstance: {}
+    """);}
 }
