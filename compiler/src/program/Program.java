@@ -104,6 +104,7 @@ public interface Program {
     if (t1.equals(t2)) { return true; }
     if (t1.isGX() && t2.isGX()){ return isSubTypeGX(xbs, t1, t2); }
     if (t1.isGX()!=t2.isGX()){ return false; }
+    if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
     return Stream.of(t1.mdf(), t2.mdf()).distinct().anyMatch(mdf->{
       T t1_ = t1.withMdf(mdf); T t2_ = t2.withMdf(mdf);
       if(t1_.rt().equals(t2_.rt())){ return true; }

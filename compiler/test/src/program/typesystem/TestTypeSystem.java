@@ -1936,7 +1936,7 @@ public class TestTypeSystem {
       }}
     """); }
 
-  @Test void subtypingSoundness() {fail("""
+  @Test void retTypeSoundness() {fail("""
     """, """
     package test
     A: {}
@@ -1945,7 +1945,7 @@ public class TestTypeSystem {
     Call: {#: A -> ToA.m1(B)}
     """);}
 
-  @Test void magicSubtypingSoundness() {fail("""
+  @Test void magicRetTypeSoundness() {fail("""
     """, """
     package test
     alias base.Str as Str,
