@@ -1937,6 +1937,9 @@ public class TestTypeSystem {
     """); }
 
   @Test void retTypeSoundness() {fail("""
+    In position [###]/Dummy0.fear:4:22
+    [E37 noSubTypingRelationship]
+    There is no sub-typing relationship between imm test.B[] and imm test.A[].
     """, """
     package test
     A: {}
@@ -1946,6 +1949,9 @@ public class TestTypeSystem {
     """);}
 
   @Test void magicRetTypeSoundness() {fail("""
+    In position [###]/Dummy0.fear:4:24
+    [E37 noSubTypingRelationship]
+    There is no sub-typing relationship between imm base.Str[] and imm test.A[].
     """, """
     package test
     alias base.Str as Str,
@@ -1955,6 +1961,6 @@ public class TestTypeSystem {
     """, """
     package base
     Str: {}
-    _StrInstance: {}
+    _StrInstance: Str{}
     """);}
 }

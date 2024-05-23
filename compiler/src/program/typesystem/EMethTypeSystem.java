@@ -71,7 +71,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     return cm.withSig(res);
   }
   private FailOr<T> visitMCall(Mdf mdf0, IT<T> recvIT, E.MCall e) {
-    var sigs= p().meths(xbs(),mdf0,recvIT, e.name(),depth()).stream()
+    var sigs = p().meths(xbs(),mdf0,recvIT, e.name(),depth()).stream()
       .map(s->applyGenerics(s,e.ts()))
       .sorted(Comparator.comparingInt(cm->
           EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
