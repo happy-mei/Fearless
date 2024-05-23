@@ -3,25 +3,27 @@ package visitors;
 import astFull.E;
 import astFull.T;
 import id.Id;
+import id.Mdf;
+import id.Id.GX;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ShallowInjectionVisitor extends InjectionVisitor implements FullVisitor<ast.E> {
+public abstract class ShallowInjectionVisitor extends InjectionVisitor implements FullVisitor<ast.E> {
+  static public ShallowInjectionVisitor of(){ return of(Map.of()); } 
+  static public ShallowInjectionVisitor of(Map<Id.GX<ast.T>, Set<Mdf>> allBounds){
+    return new ShallowInjectionVisitor(allBounds){
+      ShallowInjectionVisitor renew(Map<GX<ast.T>, Set<Mdf>> allBounds) {
+        return of(allBounds);
+      }};
+  }
+  protected ShallowInjectionVisitor(Map<Id.GX<ast.T>, Set<Mdf>> allBounds){super(allBounds);}
   @Override public ast.E.Meth visitMeth(E.Meth m) {
     if (m.body().isPresent()) {
       m = m.withBody(Optional.of(new E.X("this", T.infer, m.pos())));
     }
-
-    // keep if we don't want to mess with pos for now call super
-//    return new ast.E.Meth(
-//      visitSig(m.sig().orElseThrow()),
-//      m.name().orElseThrow(),
-//      m.xs(),
-//      new ast.E.X()
-//    );
     return super.visitMeth(m);
   }
 
@@ -40,8 +42,7 @@ public class ShallowInjectionVisitor extends InjectionVisitor implements FullVis
    * @return The same declaration with all methods removed
    */
   private static T.Dec removeInlineMs(T.Dec dec) {
-//    if (!dec.name().isFresh()) { return dec; }
-//    return dec.withLambda(dec.lambda().withMeths(List.of()));
-    return dec.withLambda(dec.lambda().withMeths(dec.lambda().meths().stream().filter(m->m.sig().isPresent()).toList()));
+    return dec.withLambda(dec.lambda().withMeths(dec.lambda().meths().stream()
+      .filter(m->m.sig().isPresent()).toList()));
   }
 }

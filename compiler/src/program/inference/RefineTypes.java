@@ -30,7 +30,7 @@ import static program.inference.InferBodies.replaceOnlyInfers;
 
 public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
   public RefineTypes(Program p) {
-    this(p, new TypeRename.FullTTypeRename(p));
+    this(p, new TypeRename.FullTTypeRename());
   }
 
   E.Lambda fixLambda(E.Lambda lambda, int depth) {
@@ -254,7 +254,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
 //      throw Fail.ambiguousMethodName(sig.name());
 //    }
     if (ms.isEmpty()) {
-      throw TypingAndInferenceErrors.fromInference(Fail.undefinedMethod(sig.name(), new ast.T(lambdaMdf, c), p.meths(XBs.empty(), lambdaMdf, c, depth).stream()));
+      throw TypingAndInferenceErrors.fromInference(p(), Fail.undefinedMethod(sig.name(), new ast.T(lambdaMdf, c), p.meths(XBs.empty(), lambdaMdf, c, depth).stream()));
     }
     var freshSig = freshXs(ms.getFirst(), sig.name(), gxs);
     var freshGens = freshSig.gens();

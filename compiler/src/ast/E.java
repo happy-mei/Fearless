@@ -27,26 +27,21 @@ public interface E extends HasPos {
   record Lambda(LambdaId id, Mdf mdf, List<Id.IT<T>> its, String selfName, List<Meth> meths, Optional<Pos> pos) implements E {
     public Lambda {
       assert mdf != null;
-      assert !its.isEmpty();
       assert X.validId(selfName);
       assert meths != null;
-      if (id.id().isFresh()) {
-        id = LambdaId.computeId(id.id.name(), id.bounds, meths, its);
-      }
     }
 
     public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {
       public Id.IT<T> toIT() {
         return new Id.IT<>(id, gens.stream().map(gx->new T(Mdf.mdf, gx)).toList());
       }
-      private static E.Lambda.LambdaId computeId(String id, Map<Id.GX<T>, Set<Mdf>> bounds, List<E.Meth> meths, List<Id.IT<T>> its) {
-        var visitor = new UndefinedGXsVisitor(List.of());
-        its.forEach(visitor::visitIT);
-        meths.forEach(visitor::visitMeth);
-        var gens = visitor.res().stream().sorted(Comparator.comparing(Id.GX::name)).toList();
-        Map<Id.GX<T>, Set<Mdf>> xbs = Mapper.of(xbs_->gens.stream().filter(bounds::containsKey).forEach(gx->xbs_.put(gx, bounds.get(gx))));
-        return new E.Lambda.LambdaId(new Id.DecId(id, gens.size()), gens, xbs);
-      }
+      public LambdaId withId(Id.DecId id){
+        return new LambdaId(id,gens,bounds); }
+      public LambdaId withGens(List<Id.GX<T>> gens){
+        return new LambdaId(id,gens,bounds); }
+      public LambdaId withBounds(Map<Id.GX<T>, Set<Mdf>> bounds){
+        return new LambdaId(id,gens,bounds); }
+
     }
 
     @Override public E accept(CloneVisitor v) {
@@ -59,6 +54,9 @@ public interface E extends HasPos {
       return v.visitLambda(this, ctx);
     }
     public ast.E.Lambda withMeths(List<Meth> meths) {
+      return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
+    }
+    public ast.E.Lambda withId(LambdaId id) {
       return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
     public ast.E.Lambda withITs(List<Id.IT<T>> its) {

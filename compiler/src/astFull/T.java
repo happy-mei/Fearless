@@ -81,9 +81,7 @@ public final class T implements Id.Ty {
     });
   }
   public <R> R match(Function<Id.GX<T>, R> gx, Function<Id.IT<T>, R> it) {
-    if (this.isInfer()) {
-      throw new MatchOnInfer();
-    }
+    if (this.isInfer()) { throw new MatchOnInfer(); }
     return rt.match(gx, it);
   }
   public Stream<T> flatten() {
@@ -176,6 +174,7 @@ public final class T implements Id.Ty {
     return Objects.hash(mdf, rt);
   }
 
+  @SuppressWarnings("serial")
   public static class MatchOnInfer extends RuntimeException{
     public MatchOnInfer() { super("Cannot match on infer."); }
   }

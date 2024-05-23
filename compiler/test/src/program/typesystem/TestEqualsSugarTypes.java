@@ -7,7 +7,7 @@ import static program.typesystem.RunTypeSystem.ok;
 public class TestEqualsSugarTypes {
   private static final String LET = """
     package test
-    Continuation[T,C,R]: {mut #(x: T, self: C): R}
+    Continuation[TT,CC,RR]: {mut #(x: TT, self: CC): RR}
     Let: {#[R]: mut Let[R] -> {}}
     Let[R]: {
       mut .let[T](x: mut MF[T], c: mut Continuation[T,mut Let[R],R]): R

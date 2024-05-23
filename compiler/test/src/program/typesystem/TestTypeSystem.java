@@ -1839,6 +1839,13 @@ public class TestTypeSystem {
       }}
     """); }
 
+  @Test void genMethMini() { ok("""
+      package test
+      V:{}
+      M:{.m[X](x:X):X}
+      MV:{.mv(v:V):V->M.m[V](v)}
+      """); }
+  
   @Test void foldAccExplicit() { ok("""
     package test
     Num: { +(other: Num): Num }
@@ -1847,7 +1854,8 @@ public class TestTypeSystem {
     List[E]: { .fold[S](acc: S, f: Fold[S, E]): S -> Abort! }
     Fold[S,T]: { #(acc: S, x: T): S }
     
-    Break:{ #(l: List[Num]): Num -> l.fold[Num](Zero, Fold[Num, Num]{acc, n -> acc + n}) }
+    Break:{ #(l: List[Num]): Num 
+      -> l.fold[Num](Zero, Fold[Num, Num]{acc, n -> acc + n}) }
     
     Abort: { ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
     """); }

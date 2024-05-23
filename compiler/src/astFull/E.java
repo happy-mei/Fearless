@@ -7,10 +7,12 @@ import id.Id;
 import id.Id.MethName;
 import id.Mdf;
 import program.inference.FreshenDuplicatedNames;
+import utils.Box;
 import utils.Bug;
 import visitors.FullCloneVisitor;
 import visitors.FullVisitor;
 import visitors.InjectionVisitor;
+import wellFormedness.UndefinedGXsVisitor;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,12 +33,12 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
-
-      if (it.isEmpty() && mdf.isPresent() && !id.id.isFresh()) {
-        it = Optional.of(new Id.IT<>(id.id, id.gens.stream().map(gx->new T(Mdf.mdf, gx)).toList()));
-      }
-
       assert mdf.isPresent() == it.isPresent();
+      assert id.id.isFresh() || id.id().gen()!=0 || its.stream().allMatch(t->{
+        var fv= new UndefinedGXsVisitor(List.of());
+        fv.visitIT(t.toAstIT(ti->ti.toAstTFreshenInfers(new Box<>(0))));
+        return fv.res().isEmpty();
+      });
     }
 
     public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {}

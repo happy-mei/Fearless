@@ -34,6 +34,12 @@ LinkedLens[K:imm, V]:Map[K, V]{
   mut  .get(k: K): mut Opt[V] -> {},
   read .get(k: K): mut Opt[read V] -> {},
 
+  imm  .put(k: K, v: imm V): mut LinkedLens[K, imm V] -> {'next
+    .keyEq(k1, k2) -> this.keyEq(k1, k2),
+    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
+    .isEmpty -> False,
+    },
   mut  .put(k: K, v: V): mut LinkedLens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
@@ -41,7 +47,7 @@ LinkedLens[K:imm, V]:Map[K, V]{
     read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
     .isEmpty -> False,
     },
-  read .put(k: K, v: read V): read LinkedLens[K, read V] -> {'next
+  read .put(k: K, v: V): read LinkedLens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
     read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
@@ -71,4 +77,4 @@ LinkedLens[K:imm, V]:Map[K, V]{
 
 MapMapImm[K:imm,V,R]:{ #(k: K, v: imm V): R }
 MapMapMut[K:imm,V,R]:{ mut #(k: K, v: V): R }
-MapMapRead[K:imm,V,R]:{ read #(k: K, v: read V): read R }
+MapMapRead[K:imm,V,R]:{ read #(k: K, v: read V): R }

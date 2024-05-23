@@ -26,6 +26,7 @@ public interface Gamma {
     return getO(s).orElseThrow(()->Fail.undefinedName(s));
   }
   default Optional<T> getO(ast.E.X x){ return getO(x.name()); }
+  String toStr();
   Optional<T> getO(String s);
   List<String> dom();
   static Gamma empty(){ return new Gamma() {
@@ -35,6 +36,8 @@ public interface Gamma {
     @Override public List<String> dom() {
       return List.of();
     }
+    @Override public String toString(){ return "Gamma[]"; }
+    @Override public String toStr(){ return ""; }
   }; }
   default Gamma add(String s, T t) {
     var outer = this;
@@ -45,6 +48,8 @@ public interface Gamma {
       @Override public List<String> dom() {
         return Push.of(outer.dom(), s);
       }
+      @Override public String toString() { return "Gamma["+toStr()+"]"; }
+      @Override public String toStr(){ return s+":"+t+" "+outer.toStr(); }
     };
   }
   default Gamma captureSelf(XBs xbs, String x, T t, Mdf mMdf) {
@@ -56,6 +61,8 @@ public interface Gamma {
       @Override public List<String> dom() {
         return outer.dom();
       }
+      @Override public String toString() { throw Bug.unreachable(); }
+      @Override public String toStr(){ return "; with xbs:"+xbs; }
     };
     Mdf selfMdf = t.mdf().restrict(mMdf).orElseThrow();
     return g.add(x,t.withMdf(selfMdf));

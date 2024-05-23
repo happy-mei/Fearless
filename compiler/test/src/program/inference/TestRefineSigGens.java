@@ -37,7 +37,7 @@ public class TestRefineSigGens {
       .toList();
     var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)), TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    var inferredSigs = new ShallowInjectionVisitor().visitProgram(p.inferSignatures());
+    var inferredSigs = ShallowInjectionVisitor.of().visitProgram(p.inferSignatures());
     var freshParsed = fresh.stream().map(name->new Id.GX<ast.T>(name)).collect(Collectors.toUnmodifiableSet());
 
     var refined = new RefineTypes(inferredSigs).refineSigGens(parsed, freshParsed);

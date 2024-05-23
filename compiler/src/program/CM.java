@@ -43,7 +43,7 @@ public interface CM {
     public String toString() {
       return c + "," + mdf() + " " + name() + "(" + String.join(",", m.xs()) + ")"
         + sig.gens() + sig.ts() + ":" + ret()
-        + (isAbs() ? "abs" : "impl");
+        + (isAbs() ? " abs" : " impl");
     }
   }
   record FullCM(Id.IT<T> c, astFull.E.Meth m, ast.E.Sig sig) implements CM{

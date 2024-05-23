@@ -1,16 +1,14 @@
 package program;
 
 import ast.T;
-import astFull.E;
 import failure.CompileError;
 import failure.Fail;
+import failure.FailOr;
 import files.Pos;
 import id.Id;
 import id.Mdf;
 import id.Normaliser;
 import id.Refresher;
-import program.inference.RefineTypes;
-import program.typesystem.EMethTypeSystem;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
 import program.typesystem.XBs;
@@ -19,10 +17,7 @@ import visitors.CloneVisitor;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public interface Program {
@@ -45,7 +40,7 @@ public interface Program {
     this.subTypeCache().clear();
   }
 
-  default boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
+  static boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1 == m2){ return true; }
     if (m2.is(Mdf.readOnly)) { return true; }
     return switch(m1){
@@ -56,7 +51,9 @@ public interface Program {
       case readOnly, mdf, recMdf, read, lent -> false;
     };
   }
-  default boolean isSubType(XBs xbs, astFull.T t1, astFull.T t2) { return isSubType(xbs, t1.toAstT(), t2.toAstT()); }
+  default boolean isSubType(XBs xbs, astFull.T t1, astFull.T t2) {
+    return isSubType(xbs, t1.toAstT(), t2.toAstT());
+    }
   record SubTypeQuery(XBs xbs, T t1, T t2){}
   enum SubTypeResult { Yes, No, Adapting, Unknown }
   HashMap<SubTypeQuery, SubTypeResult> subTypeCache();
@@ -88,23 +85,25 @@ public interface Program {
     subTypeCache.put(q, result);
     return isSubType;
   }
-  default boolean isSubTypeAux(XBs xbs, T t1, T t2) {
+  static boolean isSubTypeGX(XBs xbs, T t1, T t2) {//t1<=t2
+    var gx1= t1.gxOrThrow();
+    var gx2= t2.gxOrThrow();
+    if(!gx1.equals(gx2)){ return false; }
+    var mdf1 = t1.mdf();
+    var mdf2 = t2.mdf();
+    var bothSyntax= mdf1.isSyntaxMdf() && mdf2.isSyntaxMdf();
+    if (bothSyntax){ return isSubType(mdf1,mdf2); }
+    var bounds = xbs.get(gx1); //since gx1==gx2
+    return bounds.stream().allMatch(mi->{
+      Mdf a1= mdf1.absorb(mi);
+      Mdf a2= mdf2.absorb(mi);
+      return isSubType(a1,a2);
+    });
+  }
+  default boolean isSubTypeAux(XBs xbs, T t1, T t2) {//t1<=t2
     if (t1.equals(t2)) { return true; }
-    if (t1.isMdfX()) {
-      if (!t2.isGX()) { return false; }
-      var bounds = xbs.get(t1.gxOrThrow());
-      var mdf = t2.mdf();
-      return bounds.stream().allMatch(mdfi->isSubType(mdfi, mdf));
-    }
-    if (t2.isMdfX()) {
-      if (!t1.isGX()) { return false; }
-      var bounds = xbs.get(t2.gxOrThrow());
-      var mdf = t1.mdf();
-      return bounds.stream().allMatch(mdfi->isSubType(mdf, mdfi));
-    }
-    if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
-//    t1 = t1.withMdf(t1.mdf()); t2 = t2.withMdf(t1.mdf());
-    // There is a subtyping relationship with the MDFs so use either
+    if (t1.isGX() && t2.isGX()){ return isSubTypeGX(xbs, t1, t2); }
+    if (t1.isGX()!=t2.isGX()){ return false; }
     return Stream.of(t1.mdf(), t2.mdf()).distinct().anyMatch(mdf->{
       T t1_ = t1.withMdf(mdf); T t2_ = t2.withMdf(mdf);
       if(t1_.rt().equals(t2_.rt())){ return true; }
@@ -165,21 +164,19 @@ public interface Program {
 
         var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
         var e=new ast.E.MCall(recv, m2.name(), gxs, m2.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
-        var res = isType(g, bounds, e, m2.sig().ret());
+        return  isType(g, bounds, e, m2.sig().ret());
         // TODO: automate this into some error logging for when adapt fails and it is the ultimate cause of a failed compilation
 //        if (t1.toString().equals("read base.LList[mdf E]") && t2.toString().equals("read base.LList[read E]") && res.isPresent()) {
 //          System.out.println("hdfgh");
 //        }
-        return res.isEmpty();
       });
   }
 
-  default Optional<Supplier<? extends CompileError>> isType(Gamma g, XBs xbs, ast.E e, T expected) {
-//    var g = Streams.zip(xs,ts).fold(Gamma::add, Gamma.empty());
-    var v = ETypeSystem.of(this, g, xbs, Optional.of(expected), new ConcurrentHashMap<>(), 0);
-    var res = e.accept(v);
-    return res;
-//    return res.resMatch(t->isSubType(xbs,t,expected),err->false);
+  default boolean isType(Gamma g, XBs xbs, ast.E e, T expected) {
+    var v = ETypeSystem.of(this, g, xbs, List.of(expected), new ConcurrentHashMap<>(), 0);
+    FailOr<T> res = e.accept(v);
+    if(!res.isRes()){ return false; }
+    return isSubType(xbs,res.get(),expected);
   }
 
   static boolean filterByMdf(Mdf mdf, Mdf mMdf) {
@@ -223,23 +220,6 @@ public interface Program {
       return t;
     }
 
-    @Override public T.Dec visitDec(T.Dec d) {
-      var xbs = d.bounds().entrySet().stream().collect(Collectors.toMap(
-        kv->{
-          var thisSubst = subst.get(kv.getKey());
-          if (thisSubst != null) { return thisSubst; }
-          return kv.getKey();
-        },
-        Map.Entry::getValue
-      ));
-      return new T.Dec(
-        visitDecId(d.name()),
-        d.gxs().stream().map(this::visitGX).toList(),
-        xbs,
-        visitLambda(d.lambda()),
-        d.pos()
-      );
-    }
     @Override public ast.E.Sig visitSig(ast.E.Sig e) {
       var xbs = e.bounds().entrySet().stream().collect(Collectors.toMap(
         kv->{

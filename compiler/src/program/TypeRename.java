@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.function.Function;
 
 public interface TypeRename<T extends Id.Ty>{
-  record FullTTypeRename(Program p) implements TypeRename<astFull.T> {
+  record FullTTypeRename() implements TypeRename<astFull.T> {
+    static final FullTTypeRename INSTANCE = new FullTTypeRename();
     public <R> R matchT(astFull.T t, Function<Id.GX<astFull.T>, R> gx, Function<Id.IT<astFull.T>, R> it) { return t.match(gx, it); }
     public Mdf mdf(astFull.T t) { return t.mdf(); }
     public astFull.T newT(Mdf mdf, Id.IT<astFull.T> t) {
@@ -20,8 +21,7 @@ public interface TypeRename<T extends Id.Ty>{
     public boolean isInfer(astFull.T t) { return t.isInfer(); }
   }
   class CoreTTypeRename implements TypeRename<ast.T> {
-    private final Program p;
-    public CoreTTypeRename(Program p) { this.p = p; }
+    static final CoreTTypeRename INSTANCE = new CoreTTypeRename();
     public <R> R matchT(ast.T t, Function<Id.GX<ast.T>,R>gx, Function<Id.IT<ast.T>,R>it) { return t.match(gx, it); }
     public Mdf mdf(ast.T t) { return t.mdf(); }
     public ast.T newT(Mdf mdf, Id.IT<ast.T> t) { return new ast.T(mdf, t); }
@@ -48,8 +48,8 @@ public interface TypeRename<T extends Id.Ty>{
   }
   class CoreRecMdfTypeRename extends CoreTTypeRename {
     private final Mdf recvMdf;
-    public CoreRecMdfTypeRename(Program p, Mdf recvMdf) {
-      super(p);
+    public CoreRecMdfTypeRename(Mdf recvMdf) {
+      super();
       assert !recvMdf.isMdf();
       this.recvMdf = recvMdf;
     }
@@ -80,9 +80,9 @@ public interface TypeRename<T extends Id.Ty>{
       return t.withMdf(argMdf);
     }
   }
-  static FullTTypeRename full(Program p) { return new FullTTypeRename(p); }
-  static CoreTTypeRename core(Program p) { return new CoreTTypeRename(p); }
-  static CoreRecMdfTypeRename coreRec(Program p, Mdf recvMdf) { return new CoreRecMdfTypeRename(p, recvMdf); }
+  static FullTTypeRename full(Program p) { return FullTTypeRename.INSTANCE; }
+  static CoreTTypeRename core() { return CoreTTypeRename.INSTANCE; }
+  static CoreRecMdfTypeRename coreRec(Mdf recvMdf) { return new CoreRecMdfTypeRename(recvMdf); }
 
   <R> R matchT(T t, Function<Id.GX<T>,R> gx, Function<Id.IT<T>,R> it);
   Mdf mdf(T t);
@@ -104,7 +104,7 @@ public interface TypeRename<T extends Id.Ty>{
     };
   }
   boolean isInfer(T t);
-  enum RenameKind { Arg, Return }
+
   default T renameT(T t, Function<Id.GX<T>,T> f){
     if(isInfer(t)){ return t; }
     return matchT(t,
@@ -114,9 +114,7 @@ public interface TypeRename<T extends Id.Ty>{
         if (isInfer(renamed)){ return renamed; }
         return propagateMdf(mdf(t), renamed);
       },
-      // TODO: this is new (was not going via propagateMdf before, what breaks?
       it->propagateMdf(mdf(t), newT(mdf(t), renameIT(it,f)))
-//      it->newT(mdf(t), renameIT(it,f))
     );
   }
   default T renameArgT(T t, XBs xbs, Function<Id.GX<T>,T> f){
@@ -135,14 +133,7 @@ public interface TypeRename<T extends Id.Ty>{
   }
   default T propagateMdf(Mdf mdf, T t){
     assert t!=null;
-    if(mdf.isMdf()){ return t; }
-    if (mdf.isReadImm() && mdf(t).isImm()) {
-      return withMdf(t, Mdf.imm);
-    }
-    if (mdf.isReadImm() && !mdf(t).is(Mdf.mdf, Mdf.readImm)) {
-      return withMdf(t, Mdf.read);
-    }
-    return withMdf(t,mdf);
+    return withMdf(t,mdf.absorb(mdf(t)));
   }
   default T propagateArgMdf(XBs xbs, Mdf mdf, T t){
     return propagateMdf(mdf, t);

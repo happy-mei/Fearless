@@ -26,14 +26,14 @@ record FullMethSig(Id.MethName name, E.Sig sig){
     var nFresh = new Box<>(0);
     var coreIts = its.stream().map(it->it.toAstIT(t->t.toAstTFreshenInfers(nFresh))).distinct().toList();
     var freshName = new Id.DecId(Id.GX.fresh().name(), 0);
-    var dec = new T.Dec(freshName, List.of(), Map.of(), new ast.E.Lambda(
+    var dec = new T.Dec(new ast.E.Lambda(
       new ast.E.Lambda.LambdaId(freshName, List.of(), Map.of()),
       Mdf.mdf,
       coreIts,
       "fearTmp$",
       List.of(),
       Optional.empty()
-    ), Optional.empty());
+    ));
     var p_ = p.withDec(dec);
     return p_.meths(xbs, recvMdf, dec.toIT(), depth).stream()
       .filter(cm->filterByMdf(recvMdf, cm.mdf()))

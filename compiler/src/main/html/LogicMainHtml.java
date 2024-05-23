@@ -31,7 +31,6 @@ public interface LogicMainHtml extends LogicMain {
     var docs = generateDocs();
     var styleCss = ResolveResource.getAndReadAsset("/style.css");
     var highlightingJs = ResolveResource.getAndReadAsset("/highlighting.js");
-
     var root = io().output().resolve("docs");
     IoErr.of(()->{
       Files.createDirectories(root);

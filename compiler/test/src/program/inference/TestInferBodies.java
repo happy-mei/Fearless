@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 public class TestInferBodies {
   void ok(String expected, String... content){
     var parsed = parseProgram(content);
-    var inferred = InferBodies.inferAll(parsed.full);
+    var inferred =InferBodies.inferAll(parsed.full);
     var cleaned = Base.ignoreBase(inferred);
     Err.strCmpFormat(expected, cleaned.toString());
   }
@@ -54,7 +54,7 @@ public class TestInferBodies {
       .toList();
     var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
-    return new ParsedProgram(p, new ShallowInjectionVisitor().visitProgram(p.inferSignatures()));
+    return new ParsedProgram(p,ShallowInjectionVisitor.of().visitProgram(p.inferSignatures()));
   }
 
   @Test void baseLib() {ok("""

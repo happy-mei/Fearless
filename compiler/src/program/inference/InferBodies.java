@@ -8,7 +8,6 @@ import failure.TypingAndInferenceErrors;
 import id.Id;
 import id.Mdf;
 import program.CM;
-import program.Program;
 import program.typesystem.XBs;
 import utils.Box;
 import utils.DistinctBy;
@@ -17,15 +16,13 @@ import utils.Streams;
 import visitors.InjectionVisitor;
 import visitors.ShallowInjectionVisitor;
 
-import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public record InferBodies(ast.Program p) {
   public static ast.Program inferAll(astFull.Program fullProgram){
     var inferredSigs = fullProgram.inferSignatures();
-    var coreP = new ShallowInjectionVisitor().visitProgram(inferredSigs);
+    var coreP = ShallowInjectionVisitor.of().visitProgram(inferredSigs);
     return new ast.Program(inferredSigs.tsf(), inferDecs(coreP, inferredSigs), Map.of());
   }
 
@@ -34,7 +31,7 @@ public record InferBodies(ast.Program p) {
 //    return fullProgram.ds().values().stream()
 //      .map(inferBodies::inferDec)
 //      .collect(Collectors.toMap(ast.T.Dec::name, d->d));
-    return fullProgram.ds().values().parallelStream()
+    return fullProgram.ds().values().stream()//TODO: to ease debugging.parallelStream()
       .map(dec->new InferBodies(p.shallowClone()).inferDec(dec))
       .collect(Collectors.toConcurrentMap(ast.T.Dec::name, d->d));
   }
@@ -49,7 +46,11 @@ public record InferBodies(ast.Program p) {
   }
   ast.E.Meth inferMethBody(ast.T.Dec dec, E e, ast.E.Meth coreMeth) {
     var refiner = new RefineTypes(p);
-    var iV = new InjectionVisitor();
+    assert dec.bounds().keySet().containsAll(dec.gxs());
+    assert coreMeth.sig().bounds().keySet()
+      .containsAll(coreMeth.sig().gens());
+    var iV = InjectionVisitor.of(dec.bounds())
+      .withMoreBounds(coreMeth.sig().bounds());
     var type = refiner.fixType(e, coreMeth.sig().toAstFullSig().ret());
     var newBody = fixInferStep(iGOf(dec, coreMeth), type, 0).accept(iV);
     return coreMeth.withBody(Optional.of(newBody));
@@ -94,21 +95,27 @@ public record InferBodies(ast.Program p) {
     if(anyNoSig){ return Optional.of(baseLambda); }
     return Optional.of(new RefineTypes(p).fixLambda(baseLambda, depth));
   }
-
   Optional<E> bProp(Map<String, T> gamma, E.Lambda e, int depth) {
     if (e.it().isEmpty()) { return Optional.empty(); }
     var fixedLambda = (E.Lambda) refineLambda(e, e, depth).orElse(e);
-    boolean[] done = {false};
-    List<E.Meth> newMs = fixedLambda.meths().stream().flatMap(mi->done[0]
-      ? Stream.of(mi)
-      : bProp(gamma,mi,fixedLambda,depth).map(mj->{done[0]=true;return mj.stream();}).orElseGet(()->Stream.of(mi)))
-    .toList();
-    if(!done[0]){ return Optional.empty(); }
-    if (newMs.size() < e.meths().size()) {
-      throw Fail.inferFailed("Could not infer all methods on:\n"+e).pos(e.pos());
+    List<E.Meth> oldMs= fixedLambda.meths();
+    List<E.Meth> newMs= new ArrayList<>();
+    boolean done= false;
+    for (E.Meth mi : oldMs) {
+      Optional<List<E.Meth>> bProp= bProp(gamma, mi, fixedLambda, depth);
+      if (bProp.isEmpty()) { newMs.add(mi); continue; }
+      var err= bProp.get().isEmpty();
+      if(err){ throw Fail.inferFailed("Could not infer method "+
+        mi.name().map(n->n.name()).orElse("-name to infer-")
+        +" on:\n"+e).pos(e.pos()); }
+      newMs.addAll(bProp.get());
+      done= true;
     }
-    var res = refineLambda(e, e.withMeths(newMs), depth); // TODO: why can't we get rid of this?
-//    var res = Optional.of(e.withMeths(newMs));
+    if (!done) { return Optional.empty(); }
+    newMs = Collections.unmodifiableList(newMs);
+    var res = refineLambda(e, e.withMeths(newMs), depth);
+    // TODO: why can't we get rid of this?
+    // var res = Optional.of(e.withMeths(newMs));
     return res.flatMap(e1->!e1.equals(e) ? res : Optional.empty());
   }
   Optional<List<E.Meth>> bProp(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
@@ -137,12 +144,14 @@ public record InferBodies(ast.Program p) {
     var finalRes = res.or(()->e1==e2
       ? Optional.empty()
       : Optional.of(m.withBody(Optional.of(e2)).withSig(refiner.fixSig(sig, e2.t()))));
-    return finalRes.map(m1->!m.equals(m1)).orElse(true) ? finalRes : Optional.empty();
+    return finalRes.map(m1->!m.equals(m1)).orElse(true)
+      ? finalRes : Optional.empty();
 //    assert finalRes.map(m1->!m.equals(m1)).orElse(true);
 //    return finalRes;
   }
   Optional<List<E.Meth>> bPropGetSigM(Map<String, T> gamma, E.Meth m, E.Lambda e, int depth) {
     assert !e.it().isEmpty();
+    assert m.sig().isEmpty() || m.name().isPresent();
     if(m.sig().isPresent()){ return Optional.empty(); }
     if(m.name().isPresent()){ return Optional.empty(); }
     var res = onlyAbs(e, depth).stream()
@@ -150,6 +159,8 @@ public record InferBodies(ast.Program p) {
       .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()).makeBodyUnique())
       .toList();
     assert res.stream().noneMatch(m::equals);
+    assert !res.isEmpty():
+      onlyAbs(e, depth);
     return Optional.of(res);
   }
 
@@ -167,7 +178,9 @@ public record InferBodies(ast.Program p) {
   }
 
   List<FullMethSig> onlyAbs(E.Lambda e, int depth){
-    var its = e.it().map(it->Push.of(it, e.its())).orElse(e.its());
+    var its= e.its().isEmpty()
+      ?e.it().stream().toList()
+      :e.its();
     var sigs = FullMethSig.of(p, XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
     @SuppressWarnings("preview")
     var nUniqueSigs = sigs.stream()
@@ -282,7 +295,7 @@ public record InferBodies(ast.Program p) {
       cm = !res.isEmpty() ? Optional.of(res.getFirst()) : Optional.empty();
     } catch (CompileError err) { throw err.parentPos(e.pos()); }
     if (cm.isEmpty()) {
-      throw TypingAndInferenceErrors.fromInference(Fail.undefinedMethod(e.name(), c).pos(e.pos()));
+      throw TypingAndInferenceErrors.fromInference(p(), Fail.undefinedMethod(e.name(), c).pos(e.pos()));
     }
     var sig = cm.get().sig();
     var k = sig.gens().size();

@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import ast.E.Lambda;
+import ast.E.Lambda.LambdaId;
+import ast.T.Dec;
+
 public class Magic {
   public static final Id.DecId Main = new Id.DecId("base.Main", 0);
   public static final Id.DecId Sealed = new Id.DecId("base.Sealed", 0);
@@ -60,8 +64,8 @@ public class Magic {
   );
 
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
-    var isLiteral  = !name.isEmpty() && isLiteral(name);
-    if(isLiteral){ return Optional.of(new Id.IT<>(name, List.of())); }
+    var isLiteral = !name.isEmpty() && isLiteral(name);
+    if (isLiteral) {return Optional.of(new Id.IT<>(name, List.of()));}
     return Optional.empty();
 //    return switch(name){
 //      case noMutHygName -> Optional.of(new Id.IT<>(new Id.DecId(noMutHygName, 0), List.of()));
@@ -71,24 +75,29 @@ public class Magic {
 
   public static astFull.T.Dec getFullDec(Function<Id.DecId, astFull.T.Dec> resolve, Id.DecId id) {
     var base = _getDec(resolve, id);
-    return base.map(b->b.withName(id)).orElse(null);
+    return base.map(b -> b.withName(id)).orElse(null);
   }
 
-  public static ast.T.Dec getDec(Function<Id.DecId, ast.T.Dec> resolve, Id.DecId id) {
+  public static Dec getDecMap(Dec b, Id.DecId id) {
+    Lambda l = b.lambda();
+    LambdaId lid = l.id();
+    assert lid.id().name().endsWith("Instance");
+    assert l.its().size() == 1 : l;
+    // instance, kind   0.5  anon:base._FloatInstance, base.Float
+    var its = List.of(lid.toIT(), l.its().get(0));
+    l = l.withId(lid.withId(id)).withITs(its);
+    return b.withLambda(l);
+  }
+
+  public static Dec getDec(Function<Id.DecId, Dec> resolve, Id.DecId id) {
     var base = _getDec(resolve, id);
-    return base.map(b->{
-      assert b.lambda().its().size() == 2 : b.lambda(); // instance, kind
-      return b.withName(id).withLambda(b.lambda().withITs(List.of(
-        new Id.IT<>(id, List.of()),
-        b.lambda().its().get(1)
-      )));
-    }).orElse(null);
+    return base.map(b -> getDecMap(b, id)).orElse(null);
   }
 
   public static Optional<String> getLiteral(Program p, Id.DecId d) {
-    if (isLiteral(d.name())) { return Optional.of(d.name()); }
+    if (isLiteral(d.name())) {return Optional.of(d.name());}
     var supers = p.superDecIds(d);
-    return supers.stream().filter(dec->{
+    return supers.stream().filter(dec -> {
       var name = dec.name();
       return isLiteral(name);
     }).map(Id.DecId::name).findFirst();
@@ -97,18 +106,20 @@ public class Magic {
   public static boolean isLiteral(String name) {
     return isStringLiteral(name) || isNumberLiteral(name);
   }
+
   public static boolean isStringLiteral(String name) {
     return name.startsWith("\"");
   }
+
   public static boolean isNumberLiteral(String name) {
     return Character.isDigit(name.charAt(0)) || name.startsWith("-") || name.startsWith("+");
   }
 
   public static Optional<CompileError> validateLiteral(Id.DecId id) {
     assert isLiteral(id.name());
-    var res = _getDec(_->0, id);
+    var res = _getDec(_ -> 0, id);
     if (res.isEmpty()) {
-      return Optional.of(Fail.syntaxError(id+" is not a valid type name."));
+      return Optional.of(Fail.syntaxError(id + " is not a valid type name."));
     }
     return Optional.empty();
   }

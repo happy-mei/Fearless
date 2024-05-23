@@ -1,16 +1,16 @@
 package main;
 
 import codegen.MIR;
-import program.typesystem.EMethTypeSystem;
+import program.typesystem.TsT;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface FullLogicMain<Exe> extends LogicMain {
   CompilerFrontEnd.Verbosity verbosity();
 
-  MIR.Program lower(ast.Program program, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls);
+  MIR.Program lower(ast.Program program, ConcurrentHashMap<Long, TsT> resolvedCalls);
   Exe codeGeneration(MIR.Program program);
-  ProcessBuilder execution(MIR.Program program, Exe exe, ConcurrentHashMap<Long, EMethTypeSystem.TsT> resolvedCalls);
+  ProcessBuilder execution(MIR.Program program, Exe exe, ConcurrentHashMap<Long, TsT> resolvedCalls);
   default ProcessBuilder run(){
     var fullProgram= parse();
     wellFormednessFull(fullProgram);

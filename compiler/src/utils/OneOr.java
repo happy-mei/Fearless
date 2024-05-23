@@ -11,7 +11,7 @@ public class OneOr{
       .reduce((a,b)->{ throw new OneOrException(err); })
       .orElseThrow(()-> new OneOrException(err));
   }
-  public static <T> T of(Supplier<? extends CompileError> err, Stream<T> ts){
+  public static <T> T of(Supplier<CompileError> err, Stream<T> ts){
     return ts
       .reduce((a,b)->{throw err.get();})
       .orElseThrow(err);

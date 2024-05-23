@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 
 public class HtmlDocgen {
   private final Program p;
-
   public HtmlDocgen(Program p) { this.p = p; }
 
   public record ProgramDocs(List<PackageDoc> docs) {

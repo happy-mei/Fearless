@@ -45,7 +45,8 @@ public record RedexTermGenerator(ArrayList<String> tops, List<Id.GX<T>> inScopeG
     // This is a simple version of generic parameter funneling which forwards all gens in scope
     // rather than just the ones in use.
     Id.DecId fresh = new Id.DecId("fakepkg."+Id.GX.fresh().name(), inScopeGXs.size());
-    var top = new T.Dec(fresh, inScopeGXs.stream().distinct().toList(), Map.of(), e, e.pos());
+    //var top = new T.Dec(fresh, inScopeGXs.stream().distinct().toList(), Map.of(), e, e.pos());
+    var top = new T.Dec(e);
     return visitDec(top, false);
   }
 

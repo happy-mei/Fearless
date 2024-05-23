@@ -15,6 +15,8 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+
+import astFull.E.Lambda.LambdaId;
 import utils.*;
 
 import java.nio.file.Path;
@@ -24,6 +26,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("serial")
 class ParserFailed extends RuntimeException{}
 
 public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
@@ -234,21 +237,29 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     check(ctx);
     var _its = Optional.ofNullable(ctx.t())
       .map(its->its.stream().map(this::visitIT).toList());
-    var rt = _its.flatMap(its->GetO.of(its,0));
     var its = _its.orElse(List.of());
-    if (rt.isEmpty() && name.isEmpty() && mdf.isPresent()) {
-      throw Fail.mustProvideImplsIfMdfProvided().pos(pos(ctx));
-    }
-    if (rt.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }
-    mdf.filter(Mdf::isMdf).ifPresent(mdf1->{ throw Fail.invalidMdf(rt.get()); });
-
+    boolean nakedMdf= mdf.isPresent() && name.isEmpty() && its.isEmpty();
+    if (nakedMdf){ throw Fail.mustProvideImplsIfMdfProvided().pos(pos(ctx)); }
+    if (name.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }
+    assert mdf.filter(Mdf::isMdf).isEmpty();
     Supplier<E.Lambda.LambdaId> emptyTopName = ()->new E.Lambda.LambdaId(Id.DecId.fresh(pkg, 0), List.of(), this.xbs);
-    if(ctx.bblock()==null){
-      return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, null, List.of(), rt, Optional.of(pos(ctx)));
+    LambdaId id= name.orElseGet(emptyTopName);
+    boolean givenName= mdf.isPresent() && !id.id().isFresh();
+    var inferredOpt= Optional.<Id.IT<T>>empty();
+    if(givenName){
+      Id.IT<astFull.T> nameId= new Id.IT<>(id.id(),
+        id.gens().stream().map(gx->new T(Mdf.mdf, gx)).toList());
+      inferredOpt = Optional.of(nameId);
     }
+    if(inferredOpt.isEmpty()&& !its.isEmpty()) {
+      inferredOpt = Optional.of(its.get(0));
+      if(mdf.isEmpty()){ mdf = Optional.of(Mdf.imm); }
+    }
+    //TODO: inferredOpt may itself disappear since we have nameId in id.
     var bb = ctx.bblock();
-    if(bb.children==null){
-      return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, null, List.of(), rt, Optional.of(pos(ctx)));
+    if(bb==null || bb.children==null){
+      return new E.Lambda(name.orElseGet(emptyTopName),
+        mdf, its, null, List.of(), inferredOpt, Optional.of(pos(ctx)));
     }
     var _x=bb.SelfX();
     var _n=_x==null?null:_x.getText().substring(1);
@@ -257,9 +268,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
     var meths = mms;
-
-//    var topName = name.orElseGet(()->E.Lambda.nameFromLambda(Map.copyOf(this.xbs), meths, its));
-    return new E.Lambda(name.orElseGet(emptyTopName), mdf, its, _n, meths, rt, Optional.of(pos(ctx)));
+    return new E.Lambda(id, mdf, its, _n,
+      meths,inferredOpt, Optional.of(pos(ctx)));
   }
   @Override public String visitFullCN(FullCNContext ctx) {
     return ctx.getText();
@@ -313,7 +323,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override
   public E.Meth visitSingleM(SingleMContext ctx) {
     check(ctx);
-    var _xs = opt(ctx.x(), xs->xs.stream().map(this::visitX).map(E.X::name).toList());
+    var _xs = opt(ctx.x(), xs->xs.stream()
+      .map(this::visitX).map(E.X::name).toList());
     _xs = _xs==null?List.of():_xs;
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
     return new E.Meth(Optional.empty(), Optional.empty(), _xs, body, Optional.of(pos(ctx)));
@@ -380,9 +391,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
 
     var oldXbs = this.xbs;
     this.xbs = Map.copyOf(mGen.bounds);
-    var body = shallow ? null : visitBlock(ctx.block(), Optional.empty(), Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds)));
+    var body = shallow ? null
+      : visitBlock(ctx.block(), Optional.empty(),
+          Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds)));
     if (body != null) {
-//      assert body.it().isEmpty();
       body = body.withT(Optional.empty());
     }
     this.xbs = oldXbs;

@@ -69,15 +69,6 @@ public interface CloneVisitor{
     t.ts().stream().map(this::visitT).toList()
   );}
   default Id.GX<T> visitGX(Id.GX<T> t){ return t; }
-  default T.Dec visitDec(T.Dec d) { return new T.Dec(
-    visitDecId(d.name()),
-    d.gxs().stream().map(this::visitGX).toList(),
-    Mapper.of(acc->d.bounds().forEach((key, value)->{
-      var res = value.stream().map(this::visitMdf).collect(Collectors.toSet());
-      acc.put(key, res);
-    })),
-    visitLambda(d.lambda()),
-    d.pos()
-  );}
+  default T.Dec visitDec(T.Dec d) { return new T.Dec(visitLambda(d.lambda()));}
   default DecId visitDecId(DecId di){ return di; }
 }

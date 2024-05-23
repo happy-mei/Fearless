@@ -357,4 +357,14 @@ public class TestWellFormedness {
     package test
     A: {#: readOnly A -> {}}
     """); }
+
+  @Test void noImplGeneric() {fail("""
+    In position [###]/Dummy0.fear:2:6
+    [E14 expectedConcreteType]
+    A concrete type was expected but the following generic type was given:
+    X
+    """, """
+    package a
+    A[X]: X{}
+    """);}
 }
