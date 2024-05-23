@@ -62,7 +62,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     var isMagic = pkg.equals("base")
       && def.name().name().endsWith("Instance");
     var isLiteral= isLiteral(def.name());
-    if (isMagic || isLiteral ) { return ""; }
+    if (isMagic || isLiteral) { return ""; }
 
     var fullName = id.getFullName(def.name());
     var shortName = id.getSimpleName(def.name());

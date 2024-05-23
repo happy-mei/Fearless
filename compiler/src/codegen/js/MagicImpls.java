@@ -63,6 +63,10 @@ public record MagicImpls(JsCodegen gen, ast.Program p) implements magic.MagicImp
     };
   }
 
+  @Override public MagicTrait<MIR.E, String> asciiStr(MIR.E e) {
+    throw Bug.todo();
+  }
+
   @Override public MagicTrait<MIR.E, String> debug(MIR.E e) {
     return null;
   }

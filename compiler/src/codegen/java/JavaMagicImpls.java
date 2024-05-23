@@ -224,6 +224,17 @@ public record JavaMagicImpls(
     };
   }
 
+  @Override public MagicTrait<MIR.E, String> asciiStr(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        throw Bug.todo();
+      }
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        return Optional.empty();
+      }
+    };
+  }
+
   @Override public MagicTrait<MIR.E,String> debug(MIR.E e) {
     return new MagicTrait<>() {
 

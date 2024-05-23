@@ -1,23 +1,36 @@
 package base
-Str: Sealed,Stringable{
+Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
   .size: Nat,
   .isEmpty: Bool,
   +(other: Str): Str,
   ==(other: Str): Bool,
   .assertEq(other: Str): Void,
   .assertEq(message: Str, other: Str): Void,
+  .substring(start: Nat): Str,
+  .substring(start: Nat, end: Int): Str,
+  .charAt(index: Nat): Str,
+  .flow: mut Flow[Str],
   }
+
 Stringable: {
   read .str: Str,
   }
+
+AsciiStr: Str
+
 _StrInstance: Str{
   .size -> Magic!,
   .isEmpty -> Magic!,
-  .str -> Magic!,
   +(other) -> Magic!,
   ==(other) -> Magic!,
   .assertEq(other) -> Magic!,
   .assertEq(message, other) -> Magic!,
+  .str -> Magic!,
+  .substring(_) -> Magic!,
+  .substring(_,_) -> Magic!,
+  .charAt(_) -> Magic!,
+  .flow -> Magic!,
+  .naturalFold(_) -> Magic!,
   }
 
 _StrHelpers: {
@@ -26,5 +39,3 @@ _StrHelpers: {
   .assertEq(message: Str, expected: Str, actual: Str): Void ->
     Assert!(expected == actual, message+"\nExpected: "+expected+"\nActual: "+actual, {{}}),
   }
-
-StrMap[V]: LinkedLens[Str, V]{ k1, k2 -> k1 == k2 }

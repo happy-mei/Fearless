@@ -174,6 +174,10 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
     };
   }
 
+  @Override public MagicTrait<MIR.E, Res> asciiStr(MIR.E e) {
+    throw Bug.todo();
+  }
+
   @Override public MagicTrait<MIR.E, Res> bool(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<Res> instantiate() {
