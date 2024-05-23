@@ -55,7 +55,8 @@ record MultiSigBuilder(
   }
   boolean mdfSubtypeWithBounds(Mdf expectedMdf,T resToAdd){
     if(!resToAdd.isGX()) { 
-      return Program.isSubType(resToAdd.mdf(),expectedMdf); }
+      return Program.isSubType(resToAdd.mdf(),expectedMdf);
+    }
     T other= resToAdd.withMdf(expectedMdf);
     return Program.isSubTypeGX(bounds,resToAdd,other);
   }

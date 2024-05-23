@@ -270,15 +270,15 @@ interface ELambdaTypeSystem extends ETypeSystem{
   }
 
   private FailOr<Void> okWithSubType(Gamma g, E.Meth m, E e, T expected) {
-    FailOr<T> res = e.accept(
-      ETypeSystem.of(p(), g, xbs(), List.of(expected), resolvedCalls(), depth()+1));
+    var methodBodyTypeSystem = ETypeSystem.of(p(), g, xbs(), List.of(expected), resolvedCalls(), depth()+1);
+    FailOr<T> res = e.accept(methodBodyTypeSystem);
     return res.flatMap(t->methSubType(t,expected)).mapErr(err->()->err.get().parentPos(e.pos()));
     // We pass the expected type of the expression down because different method body promotions
     // have different expected types. We could create a new type system visitor with the updated
     // expected instead, but that feels like overkill.
   }
   private FailOr<Void> methSubType(T t, T expected){
-    var resOk= p().isSubType(xbs(), expected, expected);
+    var resOk= p().isSubType(xbs(), t, expected);
     if (resOk){ return FailOr.ok(); }
     return FailOr.err(()->Fail.noSubTypingRelationship(t, expected));
   }
