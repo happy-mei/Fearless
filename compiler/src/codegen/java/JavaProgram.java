@@ -1,17 +1,16 @@
 package codegen.java;
 
+import codegen.MIR;
+import main.java.LogicMainJava;
+import utils.IoErr;
+
+import javax.tools.SimpleJavaFileObject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import codegen.MIR;
-import main.java.LogicMainJava;
-import utils.DeleteOnExit;
-import utils.IoErr;
-import utils.ResolveResource;
 
 public record JavaProgram(List<JavaFile> files){
   public JavaProgram(LogicMainJava main, MIR.Program program){

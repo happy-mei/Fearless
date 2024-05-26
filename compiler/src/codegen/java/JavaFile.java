@@ -1,13 +1,11 @@
 package codegen.java;
 
-import java.io.*;
-import java.net.URI;
-import java.nio.file.Path;
-
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject;
-import javax.tools.SimpleJavaFileObject;
+import java.io.*;
+import java.net.URI;
+import java.nio.file.Path;
 
 public record JavaFile(Path path, String code) implements JavaFileObject {
   @Override public URI toUri() {
@@ -33,12 +31,9 @@ public record JavaFile(Path path, String code) implements JavaFileObject {
   @Override public boolean delete() {return false;}
   @Override public Kind getKind() {return Kind.SOURCE;}
   @Override public boolean isNameCompatible(String simpleName, Kind kind) {
-    // This is loosely copied from javax.tools.SimpleJavaFileObject
     String baseName = simpleName + kind.extension;
-    var p = path.toString();
-    return kind.equals(getKind())
-      && (baseName.equals(p)
-      || p.endsWith("/" + baseName));
+    var p = path.getFileName().toString();
+    return kind.equals(getKind()) && baseName.equals(p);
   }
   @Override public NestingKind getNestingKind() {return null;}
   @Override public Modifier getAccessLevel() {return null;}
