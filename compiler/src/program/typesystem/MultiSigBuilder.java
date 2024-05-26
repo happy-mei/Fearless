@@ -30,7 +30,8 @@ record MultiSigBuilder(
       bounds,
       formalTs.stream().map(_->new ArrayList<T>()).toList(),
       new ArrayList<>(),
-      new ArrayList<>());
+      new ArrayList<>()
+    );
     res.fillIsoHProm();
     res.fillIsoProm();
     res.fillBase();
