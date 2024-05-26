@@ -12,6 +12,7 @@ public sealed interface FailOr<T>{
   <R> FailOr<R> map(Function<T,R> r);
   FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u);
   boolean isRes();
+  default boolean isErr() { return !this.isRes(); }
   T get();
   Optional<Supplier<CompileError>> asOpt();
 

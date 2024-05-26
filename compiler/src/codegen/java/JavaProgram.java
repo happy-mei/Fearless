@@ -41,6 +41,7 @@ record ToJavaProgram(LogicMainJava main, MIR.Program program){
   public List<JavaFile> of(){
     ArrayList<JavaFile> javaFiles= generateFiles();
     List<JavaFile> magicFiles=main.io().magicFiles();
+    assert !magicFiles.isEmpty() : "Failed to read magic files";
     javaFiles.addAll(magicFiles);
     return Collections.unmodifiableList(javaFiles);
   }

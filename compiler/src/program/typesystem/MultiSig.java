@@ -1,6 +1,7 @@
 package program.typesystem;
 
 import ast.T;
+import failure.CompileError;
 import utils.Range;
 
 import java.util.List;
@@ -9,10 +10,15 @@ import java.util.stream.Collectors;
 public record MultiSig(List<List<T>> tss, List<T> rets, List<String> kind){
   public MultiSig{
     int size= rets.size();
-    assert size >= 1:
-      "No, this should become a type error since we filter on the receiver modifier and expected results";
-    assert tss.stream().allMatch(ts->ts.size() == size):
-      tss+" "+rets;
+    // TODO: make cases in Fail.java for these, hacking them into CompileError via a try-catch to keep method promotion working for now.
+    try {
+      assert size >= 1:
+        "No, this should become a type error since we filter on the receiver modifier and expected results";
+      assert tss.stream().allMatch(ts->ts.size() == size):
+        tss+" "+rets;
+    } catch (AssertionError err) {
+      throw CompileError.of(err);
+    }
   }
   ETypeSystem expectedT(ETypeSystem self, int i) {
     return self.withExpectedTs(tss.get(i));      

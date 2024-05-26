@@ -81,13 +81,20 @@ public interface EMethTypeSystem extends ETypeSystem {
     TsT tst=new TsT(ts,selected.ret(),selected);
     resolvedCalls().put(e.callId(), tst);
 
-    MultiSig multi= MultiSigBuilder.multiMethod(
+    var multi_ = MultiSigBuilder.multiMethod(
       xbs(),selected.mdf(),//bounds,formalMdf
       selected.sig().ts(),//formalTs
       selected.sig().ret(),//formalRet,
-      mdf0,this.expectedT());//mdf0,expectedRes
-    FailOr<List<T>> ft1n= FailOr.fold(Range.of(e.es()),
-      i-> e.es().get(i).accept(multi.expectedT(this, i)));
+      mdf0,this.expectedT()//mdf0,expectedRes
+    );
+    var multiErr = multi_.asOpt();
+    if (multiErr.isPresent()) { return FailOr.err(multiErr.get()); }
+    var multi = multi_.get();
+
+    FailOr<List<T>> ft1n= FailOr.fold(
+      Range.of(e.es()),
+      i-> e.es().get(i).accept(multi.expectedT(this, i))
+    );
     return ft1n.flatMap(t1n->selectResult(e,multi,t1n));
   }
   private CM selectOverload(E.MCall e, List<CM> sigs, Mdf mdf0, IT<T> recvIT){
