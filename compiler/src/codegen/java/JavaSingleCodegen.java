@@ -263,7 +263,12 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
         }
         """.formatted(recordName, recordName, utf8Array, graphemes));
     }
-    return recordName+".$self";
+
+    var createExpr = recordName+".$self";
+    return switch (k.t().mdf()) {
+      case mut -> "new rt.MutStr("+createExpr+")";
+      default -> createExpr;
+    };
   }
 
   @Override public String visitX(MIR.X x, boolean checkMagic) {

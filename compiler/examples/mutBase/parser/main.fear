@@ -1,24 +1,39 @@
 package parser
 App:Main{ s -> Block#
   .let io = {FIO#s}
-  .let[LList[Nat]] ns = {LList#[Nat] + 1 + 2 + 3 + 0 + 6 + 7 + 8 + 0}
+//  .let[LList[Nat]] ns = {LList#[Nat] + 1 + 2 + 3 + 0 + 6 + 7 + 8 + 0}
+  .let[Str] ns = {"123\n678\n"}
   .let parsed = {Parse#(ns)}
   .return {io.println(parsed.flow
-    .map{n -> n.str}
+//    .map{n -> n.str}
     #(Flow.str ", ")
     )}
   }
 
-Parse: {#(ns: LList[Nat]): List[Nat] -> ns.flow
-  .actor[mut List[Nat],Nat](List#[Nat], {downstream, state, e -> Block#
-    .if {e == 0} .return {Block#[ActorRes]
-      .let[Nat] sum = {state.flow.fold(0, {acc, n -> acc * 10 + n})}
-      .do {downstream#sum}
-      .do {state.clear}
+Parse: {#(ns: Str): List[Str] -> ns.flow
+  .actor[mut Var[Str],Str](Var#[Str]"", {downstream, state, e -> Block#
+    .if {e == "\n"} .return {Block#[ActorRes]
+//      .let[Nat] sum = {state.flow.fold(0, {acc, n -> acc * 10 + n})}
+      .do {downstream#(state*)}
+      .do {state := ""}
       .return {ActorRes.continue}
       }
-    .do {state.add(e)}
+    .do {state := (state* + e)}
     .return {ActorRes.continue}
     })
   .list
   }
+
+//Parse: {#(ns: LList[Nat]): List[Nat] -> ns.flow
+//  .actor[mut List[Nat],Nat](List#[Nat], {downstream, state, e -> Block#
+//    .if {e == 0} .return {Block#[ActorRes]
+//      .let[Nat] sum = {state.flow.fold(0, {acc, n -> acc * 10 + n})}
+//      .do {downstream#sum}
+//      .do {state.clear}
+//      .return {ActorRes.continue}
+//      }
+//    .do {state.add(e)}
+//    .return {ActorRes.continue}
+//    })
+//  .list
+//  }

@@ -2,7 +2,8 @@ package base
 Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
   .size: Nat,
   .isEmpty: Bool,
-  +(other: Str): Str,
+  +(other: Str):     Str,
+  mut +(other: Str): mut Str,
   ==(other: Str): Bool,
   .assertEq(other: Str): Void,
   .assertEq(message: Str, other: Str): Void,
@@ -10,6 +11,7 @@ Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
   .substring(start: Nat, end: Int): Str,
   .charAt(index: Nat): Str,
   .flow: mut Flow[Str],
+  ._flow(start: Nat, end: Nat): mut FlowOp[Str],
   }
 
 Stringable: {
@@ -31,6 +33,7 @@ _StrInstance: Str{
   .charAt(_) -> Magic!,
   .flow -> Magic!,
   .naturalFold(_) -> Magic!,
+  ._flow(_,_) -> Magic!,
   }
 
 _StrHelpers: {
