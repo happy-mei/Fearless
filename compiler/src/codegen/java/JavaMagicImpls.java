@@ -79,10 +79,10 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName("<=", 1))) { return "("+instantiate().orElseThrow()+"<="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("==", 1))) { return "("+instantiate().orElseThrow()+"=="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName(".assertEq", 1))) {
-          return STR."base._IntAssertionHelper_0.assertEq$imm$fun(\{instantiate().orElseThrow()},\{args.getFirst().accept(gen, true)},null)";
+          return "base._IntAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".assertEq", 2))) {
-          return STR."base._IntAssertionHelper_0.assertEq$imm$fun(\{args.getFirst().accept(gen, true)},\{instantiate().orElseThrow()},\{args.get(1).accept(gen, true)},null)";
+          return "base._IntAssertionHelper_0.assertEq$imm$fun("+args.getFirst().accept(gen, true)+", "+instantiate().orElseThrow()+", "+args.get(1).accept(gen, true)+", null)";
         }
         throw Bug.unreachable();
       }
@@ -144,10 +144,10 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName("<=", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")<=0?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("==", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")==0?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName(".assertEq", 1))) {
-          return STR."base._NatAssertionHelper_0.assertEq$imm$fun(\{instantiate().orElseThrow()},\{args.getFirst().accept(gen, true)},null)";
+          return "base._NatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".assertEq", 2))) {
-          return STR."base._NatAssertionHelper_0.assertEq$imm$fun(\{args.getFirst().accept(gen, true)},\{instantiate().orElseThrow()},\{args.get(1).accept(gen, true)},null)";
+          return "base._NatAssertionHelper_0.assertEq$imm$fun("+args.getFirst().accept(gen, true)+", "+instantiate().orElseThrow()+", "+args.get(1).accept(gen, true)+", null)";
         }
         throw Bug.unreachable();
       }
@@ -195,10 +195,10 @@ public record JavaMagicImpls(
           return "("+instantiate().orElseThrow()+"=="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)";
         }
         if (m.equals(new Id.MethName(".assertEq", 1))) {
-          return STR."base._FloatAssertionHelper_0.assertEq$imm$fun(\{instantiate().orElseThrow()},\{args.getFirst().accept(gen, true)},null)";
+          return "base._FloatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".assertEq", 2))) {
-          return STR."base._FloatAssertionHelper_0.assertEq$imm$fun(\{args.getFirst().accept(gen, true)},\{instantiate().orElseThrow()},\{args.get(1).accept(gen, true)},null)";
+          return "base._FloatAssertionHelper_0.assertEq$imm$fun("+args.getFirst().accept(gen, true)+", "+instantiate().orElseThrow()+", "+args.get(1).accept(gen, true)+", null)";
         }
         //Float specifics
         if (m.equals(new Id.MethName(".round", 0))) { return "Math.round("+instantiate().orElseThrow()+")"; }
@@ -233,7 +233,7 @@ public record JavaMagicImpls(
 
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName("#", 1))) {
-          var x = args.getFirst();
+          MIR.E x = args.getFirst();
           return Optional.of(String.format("""
             (switch (1) { default -> {
               var x = %s;
@@ -271,7 +271,7 @@ public record JavaMagicImpls(
 
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
-          var x = args.getFirst();
+          MIR.E x = args.getFirst();
           return Optional.of(String.format("""
             new base._MagicVarImpl_1(){
               private Object x$ = %s;
@@ -297,7 +297,7 @@ public record JavaMagicImpls(
 
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
-          var x = args.getFirst();
+          MIR.E x = args.getFirst();
           return Optional.of(String.format("""
             new base.caps._MagicIsoPodImpl_1(){
               private Object x = %s;
@@ -403,7 +403,7 @@ public record JavaMagicImpls(
   }
 
   @Override public MagicTrait<MIR.E,String> objCap(Id.DecId target, MIR.E e) {
-    var _this = this;
+    JavaMagicImpls _this = this;
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
         return Optional.empty();
@@ -416,7 +416,7 @@ public record JavaMagicImpls(
         if (target == Magic.FRandomSeed) { impl = randomSeed(); }
         assert impl != null;
 
-        var res = impl.call(_this, m, args);
+        String res = impl.call(_this, m, args);
         return Optional.ofNullable(res);
       }
 
@@ -484,7 +484,7 @@ public record JavaMagicImpls(
       if (isMagic(Magic.LList, call.recv())) {
         if (m.name().equals(".flow")) {
           if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
-            var parFlow = gen.visitMCall(new MIR.MCall(
+            String parFlow = gen.visitMCall(new MIR.MCall(
               new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK),
               new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
               List.of(
@@ -547,7 +547,7 @@ public record JavaMagicImpls(
             return Optional.of(parFlow);
           }
           if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
-            var parFlow = gen.visitMCall(new MIR.MCall(
+            String parFlow = gen.visitMCall(new MIR.MCall(
               new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK),
               new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
               List.of(
@@ -572,7 +572,7 @@ public record JavaMagicImpls(
 
       if (isMagic(Magic.SafeFlowSource, call.recv())) {
         if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
-          var parFlow = gen.visitMCall(new MIR.MCall(
+          String parFlow = gen.visitMCall(new MIR.MCall(
             new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK),
             new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
             List.of(
@@ -652,7 +652,7 @@ public record JavaMagicImpls(
   }
 
   private String getJavaRet(MIR.MT expectedT) {
-    var ret = getTName.apply(expectedT);
+    String ret = getTName.apply(expectedT);
     return switch (ret) {
       default -> "(%s) null".formatted(ret);
       case "Long", "long", "Double", "double" -> "(%s) 0".formatted(ret);

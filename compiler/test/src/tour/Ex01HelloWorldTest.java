@@ -18,53 +18,29 @@ A Fearless project is a folder containing files with extension *.fear.
 Those files can be at top level or inside folders. The organization of files in folders is for the benefit of the programmers and
 has no impact on the semantics of fearless.
 Assume in folder 'myFolder' we have a file with the following content:  
--------------------------*/@Test void helloWorld() { run("""
-    package test
-    alias base.Main as Main,
-    //alias base.caps.UnrestrictedIO as UnrestrictedIO,
-    alias base.caps.FIO as UnrestrictedIO,
-    
-    Bool:{
-      //.and(other:Bool):Bool,
-      .if[R](m:ThenElse[R]):R,
-      }
-    True:Bool{
-      //.and(other)->other}
-      .if(m)->m.then
-      }
-    False:Bool{
-      //.and(other)->this
-      .if(m)->m.else
-      }
-    ThenElse[R]:{.then:R,.else:R}
-    
-    Foo:{
-      .bar(b:Bool):Bool->b.if{.then->False, .else->True}
-      }
-    
-    Test:Main {sys -> UnrestrictedIO#sys.println("Hello, World!")}
-    //prints Hello, World!
-    """); }/*--------------------------------------------
-    Again 
-    -------------------------*/@Test void helloWorld2() { run("""
+    -------------------------*/@Test void helloWorld() { run("""
     package test
     alias base.Main as Main,
     alias base.caps.FIO as UnrestrictedIO,
+    //alias base.caps.UnrestrictedIO as UnrestrictedIO,//should it be like this?
     
     Test:Main {sys -> UnrestrictedIO#sys.println("Hello, World!")}
     //prints Hello, World!
     """); }/*--------------------------------------------
 To run it, we specify the fully qualified name of the runnable type `test.Test`.
   `> java -jar fearless.jar -e test.Test -r myFolder`//From nick
-  `> java -jar fearless.jar myFolder;.test.Test`//marco's favorite. // Nick: this will not work, `;` has special meaning in shell syntax
+  `> java -jar fearless.jar myFolder test.Test`//marco's new favorite.
 If we look in the folder again, we will see that there is now a subfolder `/out`
 containing the code that was compiled. (as 'myFolder.far')
 
 That command actually runs two separate commands:
 -  `> java -jar fearless.jar myFolder` This just compiles
--  `> java -jar fearless.jar myFolder.test.Test`  This ignores the source and runs the compiled code
-
+-  `> java -jar fearless.jar myFolder test.Test`  This ignores the source and runs the compiled code
 We can re run the code without re-compiling by using the second command.
+
+Fearless attempt to be system independent with the idea that if a common system does prevent a specific thing, Fearless will conservatively prevent it too.
+For example: a fearless file can not be called aux.fear (invalid on Windows)
+Two fearless files in a fearless folder can not have equal name except case (invalid on Windows)
 
 The code above is a minimal Hello World program.
 - In the first line we declare that our file belongs to the package 'test'.
@@ -85,7 +61,13 @@ is quite verbose.
 We do not expect this code to be very common in Fearless.
 If someone is printing just because they want a debugging printout, the can use
 -------------------------*/@Test void helloWorldDebug() { run("""
-    Test:Main {sys -> Block#(base.Debug#("Hello, World!"))}
+    Test:Main {sys -> base.Debug.log("Hello, World!")}//OK
+    Test:Main {sys -> base.Debug#("Hello, World!")} //OK
+    Test:Main {sys -> Block#(base.Debug#("Hello, World!"),Void)}
+    Test:Main {sys -> Discard#(base.Debug#("Hello, World!"))}
+    Test:Main {sys -> Block#.let _={base.Debug#("Hello, World!")}.done}
+    Test:Main {sys -> Block#.debug{"Hello, World!"}.done}
+    //This does not work, both for inference and because currently Debug returns the input?
     //prints Hello, World!
     """); }/*--------------------------------------------
 
@@ -131,8 +113,12 @@ that can be useful to map strings into good error messages
 -------------------------*/@Test void blockIf() { run("""
     StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
-      .let res = {s}
-      .if {res#.contains("\\n")} .do {res := res#.replaceAll("\\n","\\\\n")}
+      .var res = {s}
+      .if {res#.contains("\\n")} .do//showing alternative below, what is better? 
+        {res := (res#.replaceAll("\\n","\\\\n"))}//but need parenthesis
+        {res.set(res#.replaceAll("\\n","\\\\n"))}        
+        {res#{si->si.replaceAll("\\n","\\\\n")}}
+        {res#{::replaceAll("\\n","\\\\n")}}
       .if {res#.size > 100} .do {Block#
         .let start = {res#.substring(0,48)}
         .let end   = {res#.substringLast(48,0)}
@@ -156,7 +142,7 @@ Note the difference between `.var` and `.let`:
 - `.let` declares a local binding.
   Note how after we declare `start`, we can directly access its value of  in the following code.
 - `.var` declares a local variable. We use `.var` to access and update the value of something.
-  In the example we use it like this: `res := res#.replaceAll(..)`
+  In the example we use it like this: `res := res#.replaceAll(..)`//Bad precedence
   As you can see, we update it with `:=` and we access it with `res#`.
   That is, `res` on its own is of type `Var[T]` and can be passed around
   directly. 
@@ -229,11 +215,11 @@ Block is much more powerful that usual statements, because each individual bit i
   Example:F[Str,Str]{//Better version, with division in parts
     #(s) -> Block#
       .let res = {s}
-      .let scope = {ExampleParts{.res->res}}
+      .let scope = {All:ExampleParts1,ExamplePart2{.res->res}}
       .part{b->scope.part1(b)}
       .part{b->scope.part2(b)}
     }
-   ExampleParts:{//could be many traits with just one part each
+   ExampleParts1:{
     .res:Var[Str],
     
     .part1(c: Block[Str]): Block[Str] -> c
@@ -241,11 +227,15 @@ Block is much more powerful that usual statements, because each individual bit i
       .if {this.res#.contains("\\n")}
         .do {this.res# := this.res#.replaceAll("\\n","\\\\n")}
       .if {this.res#.size() <= 100} .return {this.res#},
-
+    }
+   ExampleParts2:{
+    .res:Var[Str],
+       
     .part2(c: Block[Str]):Str -> c
       .let start = {this.res#.substring(0,48)}
       .let end   = {this.res#.substringLast(48,0)}
       .return start + "[..]" + end
+    }
   """); }/*--------------------------------------------
 As we can see, using `Block.part` we can divide a large block in many parts.
 - The early return feature would still work.

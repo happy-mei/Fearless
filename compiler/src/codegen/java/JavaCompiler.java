@@ -1,15 +1,15 @@
 package codegen.java;
 
-import java.nio.file.Files;
-import java.util.List;
-import javax.tools.Diagnostic;
-import javax.tools.ToolProvider;
-
 import main.CompilerFrontEnd.Verbosity;
 import main.InputOutput;
 import utils.Box;
 import utils.Bug;
 import utils.IoErr;
+
+import javax.tools.Diagnostic;
+import javax.tools.ToolProvider;
+import java.nio.file.Files;
+import java.util.List;
 
 public record JavaCompiler(Verbosity verbosity, InputOutput io){
   public void compile(List<JavaFile> files) {
@@ -17,12 +17,7 @@ public record JavaCompiler(Verbosity verbosity, InputOutput io){
     var compiler = ToolProvider.getSystemJavaCompiler();
     assert compiler != null
       :"No Java compiler could be found. Please use a JDK >= 10";
-    //TODO: are you sure this is the right message? used to be about JDK vs JRE
     IoErr.of(()->Files.createDirectories(io.output()));
-    if (verbosity.printCodegen()) {//TODO: what pattern is this???
-      System.err.println("Java codegen working dir: " 
-        +io.output().toAbsolutePath());
-    }//should not this be a method of verbosity?
 
     CopyRuntimeLibs.of(io.output().toAbsolutePath());
     
@@ -38,7 +33,7 @@ public record JavaCompiler(Verbosity verbosity, InputOutput io){
       errors::set,
       options,
       null,
-      (Iterable<JavaFile>) files::iterator
+      files
       ).call();
   
     if (success){ return; }

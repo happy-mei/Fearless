@@ -71,7 +71,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     return cm.withSig(res);
   }
   private FailOr<T> visitMCall(Mdf mdf0, IT<T> recvIT, E.MCall e) {
-    var sigs= p().meths(xbs(),mdf0,recvIT, e.name(),depth()).stream()
+    var sigs = p().meths(xbs(),mdf0,recvIT, e.name(),depth()).stream()
       .map(s->applyGenerics(s,e.ts()))
       .sorted(Comparator.comparingInt(cm->
           EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
@@ -81,13 +81,20 @@ public interface EMethTypeSystem extends ETypeSystem {
     TsT tst=new TsT(ts,selected.ret(),selected);
     resolvedCalls().put(e.callId(), tst);
 
-    MultiSig multi= MultiSigBuilder.multiMethod(
+    var multi_ = MultiSigBuilder.multiMethod(
       xbs(),selected.mdf(),//bounds,formalMdf
       selected.sig().ts(),//formalTs
       selected.sig().ret(),//formalRet,
-      mdf0,this.expectedT());//mdf0,expectedRes
-    FailOr<List<T>> ft1n= FailOr.fold(Range.of(e.es()),
-      i-> e.es().get(i).accept(multi.expectedT(this, i)));
+      mdf0,this.expectedT()//mdf0,expectedRes
+    );
+    var multiErr = multi_.asOpt();
+    if (multiErr.isPresent()) { return FailOr.err(multiErr.get()); }
+    var multi = multi_.get();
+
+    FailOr<List<T>> ft1n= FailOr.fold(
+      Range.of(e.es()),
+      i-> e.es().get(i).accept(multi.expectedT(this, i))
+    );
     return ft1n.flatMap(t1n->selectResult(e,multi,t1n));
   }
   private CM selectOverload(E.MCall e, List<CM> sigs, Mdf mdf0, IT<T> recvIT){

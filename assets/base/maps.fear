@@ -34,10 +34,13 @@ LinkedLens[K:imm, V]:Map[K, V]{
   mut  .get(k: K): mut Opt[V] -> {},
   read .get(k: K): mut Opt[read V] -> {},
 
-  imm  .put(k: K, v: imm V): mut LinkedLens[K, imm V] -> {'next
+  imm  .put(k: K, v: imm V): imm LinkedLens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
-    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {
+      .then -> Opts#[read V]v,
+      .else -> this.get(k').match{.some(v') -> Opts#[read V]v', .empty -> mut Opt[read V]},
+      },
     .isEmpty -> False,
     },
   mut  .put(k: K, v: V): mut LinkedLens[K, V] -> {'next

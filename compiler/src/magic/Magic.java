@@ -78,20 +78,20 @@ public class Magic {
     return base.map(b -> b.withName(id)).orElse(null);
   }
 
-  public static Dec getDecMap(Dec b, Id.DecId id) {
+  public static Dec getDec(Function<Id.DecId, Dec> resolve, Id.DecId id) {
+    var base = _getDec(resolve, id);
+    return base.map(b -> createMagicTrait(b, id)).orElse(null);
+  }
+
+  private static Dec createMagicTrait(Dec b, Id.DecId id) {
     Lambda l = b.lambda();
     LambdaId lid = l.id();
     assert lid.id().name().endsWith("Instance");
     assert l.its().size() == 1 : l;
     // instance, kind   0.5  anon:base._FloatInstance, base.Float
-    var its = List.of(lid.toIT(), l.its().get(0));
+    var its = List.of(lid.toIT(), l.its().getFirst());
     l = l.withId(lid.withId(id)).withITs(its);
     return b.withLambda(l);
-  }
-
-  public static Dec getDec(Function<Id.DecId, Dec> resolve, Id.DecId id) {
-    var base = _getDec(resolve, id);
-    return base.map(b -> getDecMap(b, id)).orElse(null);
   }
 
   public static Optional<String> getLiteral(Program p, Id.DecId d) {
