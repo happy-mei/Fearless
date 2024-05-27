@@ -1963,4 +1963,44 @@ public class TestTypeSystem {
     Str: {}
     _StrInstance: Str{}
     """);}
+
+  @Test void isoLiteral() {fail("""
+    In position [###]/Dummy0.fear:4:39
+    [E30 badCapture]
+    'mut a' cannot be captured by a mut method in a iso lambda.
+    """, """
+    package test
+    A: {}
+    B: {}
+    Foos: {#(a: mut A): iso Foo -> iso Foo{a}}
+    Foo: {mut #: A}
+    """);}
+
+  /* parameter of read X, pass a mdf Y --> becomes read Y */
+  @Test void readParamMdfArg() {ok("""
+    package test
+    Void: {}
+    A: {.m[X](x: read X): read X -> x}
+    B: {.m[Y](y: Y): read Y -> A.m[Y](y)}
+    C: {.m[Y](y: read Y): read Y -> A.m[Y](y)}
+    """);}
+  @Test void readParamMdfArgAIsReadImm() {fail("""
+    """, """
+    package test
+    Void: {}
+    A: {.m[X](x: read/imm X): read/imm X -> x}
+//    B: {.m[Y](y: Y): read Y -> A.m[Y](y)}
+    C: {.m[Y](y: read Y): read/imm Y -> A.m[Y](y)}
+    D: {.m(foo: read Foo): imm Foo -> C.m[imm Foo](foo)} // unsound
+    Foo: {}
+    """);}
+  @Test void readParamMdfArgAIsReadImmOnTrait() {fail("""
+    """, """
+    package test
+    Void: {}
+    A[X]: {.m(x: read/imm X): read/imm X -> x}
+    C[Y]: {.m(y: read Y): read/imm Y -> A[Y].m(y)}
+    D: {.m(foo: read Foo): imm Foo -> C[imm Foo].m(foo)} // unsound
+    Foo: {}
+    """);}
 }

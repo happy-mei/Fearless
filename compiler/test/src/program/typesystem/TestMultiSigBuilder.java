@@ -30,14 +30,16 @@ class TestMultiSigBuilder {
     T ret= dts(mut,"a.Foo",List.of());
     XBs xbs= XBs.empty();
     return MultiSigBuilder
-      .multiMethod(xbs,formalMdf,ts,ret,mdf0,expectedT);
+      .multiMethod(xbs,formalMdf,ts,ret,mdf0,expectedT)
+      .get();
   }
   MultiSig xGen(Mdf mdf0, List<T> expectedT,Mdf formalMdf){
     List<T> ts= List.of();
     T ret= x("X");
     XBs xbs= XBs.empty().add("X",Set.of(mut,imm,read));
     return MultiSigBuilder
-      .multiMethod(xbs,formalMdf,ts,ret,mdf0,expectedT);
+      .multiMethod(xbs,formalMdf,ts,ret,mdf0,expectedT)
+      .get();
   }
   @Test void justMut(){ assertEquals("""
     Attempted signatures:
@@ -78,7 +80,7 @@ class TestMultiSigBuilder {
     T ret= x("X");
     XBs xbs= XBs.empty().add("X",Set.of(imm));
     var mm= MultiSigBuilder.
-      multiMethod(xbs,imm,ts,ret,imm,List.of(mdfX(imm,"X")));    
+      multiMethod(xbs,imm,ts,ret,imm,List.of(mdfX(imm,"X"))).get();
     assertEquals("""
     Attempted signatures:
     ():X kind: IsoHProm

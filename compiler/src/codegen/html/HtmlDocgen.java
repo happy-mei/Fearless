@@ -73,7 +73,8 @@ public class HtmlDocgen {
       .map(cm->visitMeth(trait, cm))
       .collect(Collectors.joining("\n"));
 
-    return new TraitDoc(trait.name(), new T(trait.lambda().mdf(), trait.toIT()), STR."<pre><code class=\"language-fearless code-block\">\{sigs}</code></pre>");
+    String preCode= STR."<pre><code class=\"language-fearless code-block\">\{sigs}</code></pre>";
+    return new TraitDoc(trait.name(), new T(trait.lambda().mdf(), trait.toIT()), preCode);
   }
 
   public String visitMeth(T.Dec parent, CM cm) {

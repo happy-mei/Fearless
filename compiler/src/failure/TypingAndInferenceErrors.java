@@ -65,7 +65,7 @@ public record TypingAndInferenceErrors(Program p, URI fileName) {
   }
   private List<String> addImplsToArgTypes(List<T> argTypes) {
     return argTypes.stream()
-      .map(t->t.match(
+      .map(t->t.<String>match(
         _ -> t.toString(),
         it -> STR."\{t} (\{p.of(it.name()).lambda().its().stream()
           .map(iti->iti.name().toString())

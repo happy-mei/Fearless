@@ -225,12 +225,18 @@ public class Program implements program.Program{
       return sorted;
     }
     private void updateDec(T.Dec d, int i) {
+      assert !p.inlineDs().containsKey(d.name());
       decs.set(i,d);
-      p=new Program(p.tsf, decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)), inlineDecs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
+      var newDs = new HashMap<>(p.ds());
+      newDs.computeIfPresent(d.name(), (_,_)->d);
+      p=new Program(p.tsf, newDs, p.inlineDs());
     }
     private void updateInlineDec(T.Dec d, int i) {
+      assert !p.ds().containsKey(d.name());
       inlineDecs.set(i,d);
-      p=new Program(p.tsf, decs.stream().collect(Collectors.toMap(T.Dec::name, di->di)), inlineDecs.stream().collect(Collectors.toMap(T.Dec::name, di->di)));
+      var newInlineDs = new HashMap<>(p.inlineDs());
+      newInlineDs.computeIfPresent(d.name(), (_,_)->d);
+      p=new Program(p.tsf, p.ds(), newInlineDs);
     }
 
     private T.Dec inferSignatures(T.Dec d) {

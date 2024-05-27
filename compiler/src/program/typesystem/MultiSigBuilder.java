@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+import failure.CompileError;
+import failure.FailOr;
 import program.Program;
 import ast.T;
 import id.Mdf;
@@ -23,25 +25,30 @@ record MultiSigBuilder(
     ArrayList<T> rets, //return types
     ArrayList<String> kinds//debug info about applied promotion
     ){
-  static MultiSig multiMethod(XBs bounds,Mdf formalMdf,List<T> formalTs, T formalRet, Mdf mdf0, List<T> expectedRes){
+  static FailOr<MultiSig> multiMethod(XBs bounds, Mdf formalMdf, List<T> formalTs, T formalRet, Mdf mdf0, List<T> expectedRes){
     var res= new MultiSigBuilder(
       mdf0,expectedRes,formalMdf,formalTs,formalRet,
       formalTs.size(),
       bounds,
       formalTs.stream().map(_->new ArrayList<T>()).toList(),
       new ArrayList<>(),
-      new ArrayList<>());
+      new ArrayList<>()
+    );
     res.fillIsoHProm();
     res.fillIsoProm();
     res.fillBase();
     res.fillReadHProm();
     res.fillMutHPromRec();
     res.fillMutHPromPar();
-    return new MultiSig(
-      res.tss.stream().map(Collections::unmodifiableList).toList(),
-      Collections.unmodifiableList(res.rets),
-      Collections.unmodifiableList(res.kinds)
-      );
+    try {
+      return FailOr.res(new MultiSig(
+        res.tss.stream().map(Collections::unmodifiableList).toList(),
+        Collections.unmodifiableList(res.rets),
+        Collections.unmodifiableList(res.kinds)
+      ));
+    } catch (CompileError err) {
+      return FailOr.err(()->err);
+    }
   }
   boolean filterMdf(Function<Mdf,Mdf> f) {    
     Mdf limit= f.apply(formalRecMdf());

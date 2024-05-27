@@ -293,15 +293,15 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   }
 
   @Override public String visitBoolExpr(MIR.BoolExpr expr, boolean checkMagic) {
-    var recv = expr.condition().accept(this, checkMagic);
-    var mustCast = !this.funMap.get(expr.then()).ret().equals(this.funMap.get(expr.else_()).ret());
-    var cast = mustCast ? "(%s)".formatted(getTName(expr.t(),true)) : "";
+    String recv = expr.condition().accept(this, checkMagic);
+    boolean mustCast = !this.funMap.get(expr.then()).ret().equals(this.funMap.get(expr.else_()).ret());
+    String cast = mustCast ? "("+getTName(expr.t(),true)+")" : "";
 
-    var thenBody = switch (this.funMap.get(expr.then()).body()) {
+    String thenBody = switch (this.funMap.get(expr.then()).body()) {
       case MIR.Block b -> this.inlineBlock(b);
       case MIR.E e -> e.accept(this, checkMagic);
     };
-    var elseBody = switch (this.funMap.get(expr.else_()).body()) {
+    String elseBody = switch (this.funMap.get(expr.else_()).body()) {
       case MIR.Block b -> this.inlineBlock(b);
       case MIR.E e -> e.accept(this, checkMagic);
     };
