@@ -44,7 +44,7 @@ public interface Str extends base.Str_0 {
 		System.arraycopy(b, 0, res, a.length, b.length);
 		return fromTrustedUtf8(res);
 	}
-	@Override default base.Void_0 $plus$mut(Str other$) { throw new java.lang.Error("Unreachable code"); }
+	@Override default base.Void_0 add$mut(Str other$) { throw new java.lang.Error("Unreachable code"); }
 	@Override default base.Void_0 clear$mut() { throw new java.lang.Error("Unreachable code"); }
 	@Override default Long size$imm() {
 		return (long) this.graphemes().length;

@@ -2,8 +2,7 @@ package base
 Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
   .size: Nat,
   .isEmpty: Bool,
-  +(other: Str):     Str,
-  mut +(other: Str): Void,
+  +(other: Str): Str,
   ==(other: Str): Bool,
   .assertEq(other: Str): Void,
   .assertEq(message: Str, other: Str): Void,
@@ -12,6 +11,7 @@ Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
   .charAt(index: Nat): Str,
   /// Normalise using NFC. See https://www.unicode.org/reports/tr15/ for more information.
   .normalise: Str,
+  mut .add(other: Str): Void,
   mut .clear: Void,
   .flow: mut Flow[Str],
   ._flow(start: Nat, end: Nat): mut FlowOp[Str],

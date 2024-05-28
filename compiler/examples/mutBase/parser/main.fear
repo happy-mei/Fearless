@@ -13,7 +13,7 @@ Parse: {#(ns: Str): List[Str] -> ns.flow
       .do {state.clear}
       .return {ActorRes.continue}
       }
-    .do {state + e}
+    .do {state.add(e)}
     .return {ActorRes.continue}
     })
   .list

@@ -26,7 +26,7 @@ public final class MutStr implements Str {
     return immStr.graphemes();
   }
 
-  @Override public base.Void_0 $plus$mut(Str other$) {
+  @Override public base.Void_0 add$mut(Str other$) {
     buffer.add(other$);
     immStr = null;
     return base.Void_0.$self;
