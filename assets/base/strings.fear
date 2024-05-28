@@ -8,7 +8,7 @@ Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
   .assertEq(other: Str): Void,
   .assertEq(message: Str, other: Str): Void,
   .substring(start: Nat): Str,
-  .substring(start: Nat, end: Int): Str,
+  .substring(start: Nat, end: Nat): Str,
   .charAt(index: Nat): Str,
   /// Normalise using NFC. See https://www.unicode.org/reports/tr15/ for more information.
   .normalise: Str,
