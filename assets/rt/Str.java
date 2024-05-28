@@ -44,15 +44,8 @@ public interface Str extends base.Str_0 {
 		System.arraycopy(b, 0, res, a.length, b.length);
 		return fromTrustedUtf8(res);
 	}
-	@Override default Str $plus$mut(Str other$) {
-		// TODO: mut buffer
-		var a = this.utf8();
-		var b = other$.utf8();
-		var res = new byte[a.length + b.length];
-		System.arraycopy(a, 0, res, 0, a.length);
-		System.arraycopy(b, 0, res, a.length, b.length);
-		return fromTrustedUtf8(res);
-	}
+	@Override default base.Void_0 $plus$mut(Str other$) { throw new java.lang.Error("Unreachable code"); }
+	@Override default base.Void_0 clear$mut() { throw new java.lang.Error("Unreachable code"); }
 	@Override default Long size$imm() {
 		return (long) this.graphemes().length;
 	}

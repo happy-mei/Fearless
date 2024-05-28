@@ -11,14 +11,14 @@ App:Main{ s -> Block#
   }
 
 Parse: {#(ns: Str): List[Str] -> ns.flow
-  .actor[mut Var[Str],Str](Var#[Str]"", {downstream, state, e -> Block#
+  .actor[mut Str, Str](iso "", {downstream, state, e -> Block#
     .if {e == "\n"} .return {Block#[ActorRes]
 //      .let[Nat] sum = {state.flow.fold(0, {acc, n -> acc * 10 + n})}
-      .do {downstream#(state*)}
-      .do {state := ""}
+      .do {downstream#(state.str)}
+      .do {state.clear}
       .return {ActorRes.continue}
       }
-    .do {state := (state* + e)}
+    .do {state + e}
     .return {ActorRes.continue}
     })
   .list

@@ -26,10 +26,23 @@ public final class MutStr implements Str {
     return immStr.graphemes();
   }
 
-  @Override public Str $plus$mut(Str other$) {
+  @Override public base.Void_0 $plus$mut(Str other$) {
     buffer.add(other$);
     immStr = null;
-    return this;
+    return base.Void_0.$self;
+  }
+
+  @Override public base.Void_0 clear$mut() {
+    buffer.clear();
+    immStr = Str.EMPTY;
+    return base.Void_0.$self;
+  }
+
+  @Override public rt.Str str$read() {
+    if (immStr == null) {
+      immStr = freeze();
+    }
+    return immStr;
   }
 
   private Str freeze() {

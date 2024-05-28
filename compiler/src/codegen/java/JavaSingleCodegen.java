@@ -266,7 +266,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
 
     var createExpr = recordName+".$self";
     return switch (k.t().mdf()) {
-      case mut -> "new rt.MutStr("+createExpr+")";
+      case mut,iso -> "new rt.MutStr("+createExpr+")";
       default -> createExpr;
     };
   }
