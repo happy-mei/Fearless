@@ -60,7 +60,7 @@ record MultiSigBuilder(
       .map(T::mdf)
       .anyMatch(mi->mdfSubtypeWithBounds(mi,resToAdd));
   }
-  boolean mdfSubtypeWithBounds(Mdf expectedMdf,T resToAdd){
+  boolean mdfSubtypeWithBounds(Mdf expectedMdf, T resToAdd){
     if(!resToAdd.isGX()) { 
       return Program.isSubType(resToAdd.mdf(),expectedMdf);
     }
