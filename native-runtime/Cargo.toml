@@ -17,6 +17,7 @@ runtime-only = []
 # Common
 jni = { version = "0.21.1" }
 unicode-segmentation = { version = "1.11.0" }
+unicode-normalization = { version = "0.1.23" }
 # RT Only
 # Compiler Only
 seahash = { version = "4.1.0", optional = true, features = ["use_std"] }
