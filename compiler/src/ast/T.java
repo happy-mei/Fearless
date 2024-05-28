@@ -22,11 +22,12 @@ public record T(Mdf mdf, Id.RT<T> rt) implements Id.Ty {
   }
   public T{
     assert mdf!=null && rt!=null;
+//    assert rt instanceof Id.GX || !mdf.isReadImm() : mdf+" "+rt;
   }
   public <R> R match(Function<Id.GX<T>,R>gx, Function<Id.IT<T>,R>it){ return rt.match(gx, it); }
   public Id.IT<T> itOrThrow() { return this.match(gx->{ throw Bug.unreachable(); }, it->it); }
   public Id.GX<T> gxOrThrow() {
-    return match(gx->gx, it->{ throw Bug.of("Expected GX, got IT"); });
+    return match(gx->gx, it->{ throw Bug.of("Expected GX, got IT: "+it); });
   }
   public boolean isIt() { return this.match(gx->false, it->true); }
   public boolean isGX() { return this.match(gx->true, it->false); }

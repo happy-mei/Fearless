@@ -4,6 +4,7 @@ import id.Mdf;
 import net.jqwik.api.*;
 import org.junit.jupiter.api.Test;
 
+import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
 
 public class TestReadImm {
@@ -95,4 +96,34 @@ public class TestReadImm {
     B: {}
     """.formatted(recvMdf, mdf, expected), BOX);
   }
+
+  /* parameter of read X, pass a mdf Y --> becomes read Y */
+  @Test void readParamMdfArg() {ok("""
+    package test
+    A: {.m[X](x: read X): read X -> x}
+    B: {.m[Y](y: Y): read Y -> A.m[Y](y)}
+    C: {.m[Y](y: read Y): read Y -> A.m[Y](y)}
+    """);}
+  @Test void readParamMdfArgAIsReadImm() {fail("""
+    In position [###]/Dummy0.fear:2:40
+    [E37 noSubTypingRelationship]
+    There is no sub-typing relationship between read X and read/imm X.
+    """, """
+    package test
+    A: {.m[X](x: read/imm X): read/imm X -> x}
+    C: {.m[Y](y: read Y): read/imm Y -> A.m[Y](y)}
+    D: {.m(foo: read Foo): imm Foo -> C.m[imm Foo](foo)} // unsound
+    Foo: {}
+    """);}
+  @Test void readParamMdfArgAIsReadImmOnTrait() {fail("""
+    In position [###]/Dummy0.fear:2:40
+    [E37 noSubTypingRelationship]
+    There is no sub-typing relationship between read X and read/imm X.
+    """, """
+    package test
+    A[X]: {.m(x: read/imm X): read/imm X -> x}
+    C[Y]: {.m(y: read Y): read/imm Y -> A[Y].m(y)}
+    D: {.m(foo: read Foo): imm Foo -> C[imm Foo].m(foo)} // unsound
+    Foo: {}
+    """);}
 }
