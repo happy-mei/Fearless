@@ -45,5 +45,6 @@ public final class NativeRuntime {
   public static native void println(byte[] utf8Str);
   public static native void printlnErr(byte[] utf8Str);
   public static native void printErr(byte[] utf8Str);
+  public static native byte[] normaliseString(byte[] utf8Str);
   public static native long hashString(byte[] utf8Str);
 }

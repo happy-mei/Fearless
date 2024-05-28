@@ -10,6 +10,8 @@ Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
   .substring(start: Nat): Str,
   .substring(start: Nat, end: Int): Str,
   .charAt(index: Nat): Str,
+  /// Normalise using NFC. See https://www.unicode.org/reports/tr15/ for more information.
+  .normalise: Str,
   mut .clear: Void,
   .flow: mut Flow[Str],
   ._flow(start: Nat, end: Nat): mut FlowOp[Str],
@@ -32,6 +34,7 @@ _StrInstance: Str{
   .substring(_) -> Magic!,
   .substring(_,_) -> Magic!,
   .charAt(_) -> Magic!,
+  .normalise -> Magic!,
   .clear -> Magic!,
   .flow -> Magic!,
   .naturalFold(_) -> Magic!,

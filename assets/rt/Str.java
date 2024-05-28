@@ -87,6 +87,10 @@ public interface Str extends base.Str_0 {
 		return substring$imm(index_m$, index_m$ + 1);
 	}
 
+	@Override default Str normalise$imm() {
+		return fromTrustedUtf8(NativeRuntime.normaliseString(this.utf8()));
+	}
+
 	@Override default Flow_1 flow$imm() {
 		return Flow_0.$self.fromOp$imm(this._flow$imm(0, size$imm()), size$imm());
 	}
