@@ -14,6 +14,7 @@ Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
   mut .add(other: Str): Void,
   mut .clear: Void,
   .flow: mut Flow[Str],
+  ._flow: mut FlowOp[Str],
   ._flow(start: Nat, end: Nat): mut FlowOp[Str],
   }
 
@@ -38,6 +39,7 @@ _StrInstance: Str{
   .clear -> Magic!,
   .flow -> Magic!,
   .naturalFold(_) -> Magic!,
+  ._flow -> Magic!,
   ._flow(_,_) -> Magic!,
   }
 

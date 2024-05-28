@@ -492,6 +492,32 @@ public record JavaMagicImpls(
         }
       }
 
+      if (isMagic(Magic.Str, call.recv())) {
+        if (m.name().equals(".flow")) {
+          if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
+            String parFlow = gen.visitMCall(new MIR.MCall(
+              new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK),
+              new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
+              List.of(
+                new MIR.MCall(
+                  call.recv(),
+                  new Id.MethName(call.name().mdf(), "._flow", 0),
+                  List.of(),
+                  new MIR.MT.Plain(Mdf.mut, Magic.FlowOp),
+                  call.mdf(),
+                  EnumSet.of(MIR.MCall.CallVariant.Standard)
+                ),
+                new MIR.CreateObj(Mdf.imm, new Id.DecId("base.Opt", 1)) // TODO: list size
+              ),
+              MIR.MT.of(new T(Mdf.mut, new Id.IT<>("base.flows.Flow", ((MIR.MT.Usual)call.t()).it().ts()))),
+              Mdf.imm,
+              variants
+            ), true);
+            return Optional.of(parFlow);
+          }
+        }
+      }
+
       if (isMagic(Magic.LList, call.recv())) {
         if (m.name().equals(".flow")) {
           if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {

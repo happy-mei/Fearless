@@ -92,7 +92,10 @@ public interface Str extends base.Str_0 {
 	}
 
 	@Override default Flow_1 flow$imm() {
-		return Flow_0.$self.fromOp$imm(this._flow$imm(0, size$imm()), size$imm());
+		return Flow_0.$self.fromOp$imm(this._flow$imm(), size$imm());
+	}
+	@Override default FlowOp_1 _flow$imm() {
+		return this._flow$imm(0, size$imm());
 	}
 	@Override default FlowOp_1 _flow$imm(long start, long end_) {
 		return new FlowOp_1() {
