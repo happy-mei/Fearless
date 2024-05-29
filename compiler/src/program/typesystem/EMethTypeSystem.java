@@ -105,10 +105,14 @@ public interface EMethTypeSystem extends ETypeSystem {
       .orElseThrow(()->Fail.undefinedMethod(e.name(), new T(mdf0, recvIT), sigs.stream()).pos(e.pos()));
   }
   private boolean selectOverload(CM cm, Mdf mdf0){
-    if (!Program.isSubType(mdf0,cm.mdf())){ return false; }
+    if (!Program.isSubType(mdf0,cm.mdf())){
+      if (mdf0.isReadOnly() && cm.mdf().isRead()) { return true; }
+      return false;
+    }
     if (expectedT().isEmpty()){ return true; }
     //TODO: What about promotions? This strategy as it is now, is good enough to check the standard library.
     //readH could be passed to a read for example.
+    if (mdf0.isReadOnly() && cm.mdf().isRead()) { return true; }
     //Full check. Too strict, promotions
     //return expectedT().stream()
     //  .anyMatch(t->p().isSubType(xbs(),cm.ret(),t));

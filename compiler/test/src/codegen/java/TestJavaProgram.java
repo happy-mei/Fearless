@@ -686,7 +686,7 @@ public class TestJavaProgram {
   @Test void isoPod1() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
+      .let[mut IsoPod[iso MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
       .return{ Assert!(Usage#(a!) == +0) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
@@ -696,7 +696,7 @@ public class TestJavaProgram {
   @Test void isoPod1Consume() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
+      .let[mut IsoPod[iso MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
       .return{ Assert!(a.consume{.some(n) -> Usage#n, .empty -> +500} == +0) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
@@ -706,7 +706,7 @@ public class TestJavaProgram {
   @Test void isoPod2() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
+      .let[mut IsoPod[iso MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
       .do{ a.next(MutThingy'#(Count.int(+5))) }
       .return{ Assert!(Usage#(a!) == +5) }
       }
@@ -717,7 +717,7 @@ public class TestJavaProgram {
   @Test void isoPod3() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
+      .let[mut IsoPod[iso MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
       .do{ Block#(a.mutate{ mt -> Block#(mt.n++) }) }
       .return{ Assert!(Usage#(a!) == +1) }
       }
@@ -728,7 +728,7 @@ public class TestJavaProgram {
   @Test void isoPodNoImmFromPeekOk() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
-      .let[mut IsoPod[MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
+      .let[mut IsoPod[iso MutThingy]] a = { IsoPod#[iso MutThingy](MutThingy'#(Count.int(+0))) }
       .let[Int] ok = { a.peek[Int]{ .some(m) -> m.rn*.int + +0, .empty -> base.Abort! } }
       .return{Void}
       }
@@ -821,7 +821,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s ->
       Try#[Str]{ Block#
-        .let[mut IsoPod[Str]] pod = { IsoPod#[Str] iso "hi" }
+        .let[mut IsoPod[iso Str]] pod = { IsoPod#[iso Str] iso "hi" }
         .return{pod!}
         }.resMatch{
           .ok(msg) -> FIO#s.println(msg),
@@ -833,7 +833,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ s ->
       Try#[Str]{ Block#
-        .let[mut IsoPod[Str]] pod = { IsoPod#[Str] iso "hi" }
+        .let[mut IsoPod[iso Str]] pod = { IsoPod#[iso Str] iso "hi" }
         .do{ Block#(pod!) }
         .return{pod!}
         }.resMatch{
