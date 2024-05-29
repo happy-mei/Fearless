@@ -902,6 +902,7 @@ public class TestJavaProgram {
   @Test void callingMultiSigAmbiguousDiffRet() { ok(new Res("", "", 0), """
     package test
     alias base.Void as Void, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.As as As,
     A:{
       read .m1: read B -> {},
       mut .m1: mut A -> Assert!(False, {{}}),
@@ -909,7 +910,8 @@ public class TestJavaProgram {
     B:{}
     Test:base.Main{
       #(s) -> ToVoid#(this.aRead(mut A)),
-      read .aRead(a: mut A): read B -> a.m1[](),
+//      read .aRead(a: mut A): read B -> a.m1,
+      read .aRead(a: mut A): read B -> As[read A]#a.m1,
       }
     ToVoid:{ #[I](x: I): Void -> {} }
     """); }
