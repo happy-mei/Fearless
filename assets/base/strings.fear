@@ -1,25 +1,46 @@
 package base
-Str:Sealed {
-  // Str is not Stringable due to limitations of the Java codegen target
-  read .str: Str,
+Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
   .size: Nat,
   .isEmpty: Bool,
   +(other: Str): Str,
   ==(other: Str): Bool,
   .assertEq(other: Str): Void,
   .assertEq(message: Str, other: Str): Void,
+  .substring(start: Nat): Str,
+  .substring(start: Nat, end: Nat): Str,
+  .charAt(index: Nat): Str,
+  /// Normalise using NFC. See https://www.unicode.org/reports/tr15/ for more information.
+  .normalise: Str,
+  mut .add(other: Str): Void,
+  mut .clear: Void,
+  .flow: mut Flow[Str],
+  ._flow: mut FlowOp[Str],
+  ._flow(start: Nat, end: Nat): mut FlowOp[Str],
   }
+
 Stringable: {
   read .str: Str,
   }
-_StrInstance:Str {
+
+AsciiStr: Str
+
+_StrInstance: Str{
   .size -> Magic!,
   .isEmpty -> Magic!,
-  .str -> Magic!,
   +(other) -> Magic!,
   ==(other) -> Magic!,
   .assertEq(other) -> Magic!,
   .assertEq(message, other) -> Magic!,
+  .str -> Magic!,
+  .substring(_) -> Magic!,
+  .substring(_,_) -> Magic!,
+  .charAt(_) -> Magic!,
+  .normalise -> Magic!,
+  .clear -> Magic!,
+  .flow -> Magic!,
+  .naturalFold(_) -> Magic!,
+  ._flow -> Magic!,
+  ._flow(_,_) -> Magic!,
   }
 
 _StrHelpers: {
@@ -28,5 +49,3 @@ _StrHelpers: {
   .assertEq(message: Str, expected: Str, actual: Str): Void ->
     Assert!(expected == actual, message+"\nExpected: "+expected+"\nActual: "+actual, {{}}),
   }
-
-StrMap[V]:LinkedLens[Str, V] { k1, k2 -> k1 == k2 }

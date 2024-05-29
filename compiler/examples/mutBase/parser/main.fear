@@ -1,19 +1,15 @@
 package parser
 App:Main{ s -> Block#
   .let io = {FIO#s}
-  .let[LList[Nat]] ns = {LList#[Nat] + 1 + 2 + 3 + 0 + 6 + 7 + 8 + 0}
+  .let[Str] ns = {"123\n678\n"}
   .let parsed = {Parse#(ns)}
-  .return {io.println(parsed.flow
-    .map{n -> n.str}
-    #(Flow.str ", ")
-    )}
+  .return {io.println(parsed.flow#(Flow.str ", "))}
   }
 
-Parse: {#(ns: LList[Nat]): List[Nat] -> ns.flow
-  .actor[mut List[Nat],Nat](List#[Nat], {downstream, state, e -> Block#
-    .if {e == 0} .return {Block#[ActorRes]
-      .let[Nat] sum = {state.flow.fold(0, {acc, n -> acc * 10 + n})}
-      .do {downstream#sum}
+Parse: {#(ns: Str): List[Str] -> ns.flow
+  .actor[mut Str, Str](iso "", {downstream, state, e -> Block#
+    .if {e == "\n"} .return {Block#[ActorRes]
+      .do {downstream#(state.str.normalise)}
       .do {state.clear}
       .return {ActorRes.continue}
       }

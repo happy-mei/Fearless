@@ -62,7 +62,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     var isMagic = pkg.equals("base")
       && def.name().name().endsWith("Instance");
     var isLiteral= isLiteral(def.name());
-    if (isMagic || isLiteral ) { return ""; }
+    if (isMagic || isLiteral) { return ""; }
 
     var fullName = id.getFullName(def.name());
     var shortName = id.getSimpleName(def.name());
@@ -263,7 +263,12 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
         }
         """.formatted(recordName, recordName, utf8Array, graphemes));
     }
-    return recordName+".$self";
+
+    var createExpr = recordName+".$self";
+    return switch (k.t().mdf()) {
+      case mut,iso -> "new rt.MutStr("+createExpr+")";
+      default -> createExpr;
+    };
   }
 
   @Override public String visitX(MIR.X x, boolean checkMagic) {

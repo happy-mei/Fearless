@@ -12,9 +12,12 @@ FlowOp[E]: {
   mut .stop: Void,
   mut .isRunning: Bool,
   mut .forRemaining(downstream: mut _Sink[E]): Void -> Block#
-    .do{this.step(downstream)}
-    .if {this.isRunning.not} .return {{}}
-    .return {this.forRemaining(downstream)},
+    .loop {Block#
+      .if {this.isRunning.not} .return {ControlFlow.break}
+      .do {this.step(downstream)}
+      .return {ControlFlow.continue}
+      }
+    .return {Void},
   mut .isFinite: Bool -> True,
   /// Mutates the data source for this flow to be a sub-section of the original input. This is useful for fork-join
   /// data-parallelism. Returning an empty optional either means that there is no data left to split, the

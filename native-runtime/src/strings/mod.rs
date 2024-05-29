@@ -5,6 +5,7 @@ use jni::JNIEnv;
 use jni::objects::{JByteArray, JClass};
 use jni::sys::{jint, jintArray, jsize};
 use unicode_segmentation::UnicodeSegmentation;
+use unicode_normalization::UnicodeNormalization;
 
 pub use fearless_str::FearlessStr;
 
@@ -35,6 +36,21 @@ pub unsafe extern "system" fn Java_rt_NativeRuntime_indexString<'local>(mut env:
     let res = env.new_int_array(graphemes.len() as jsize).unwrap();
     env.set_int_array_region(&res, 0, &graphemes).unwrap();
     res.into_raw()
+}
+
+/// Normalise a string using NFC.
+/// # Safety
+/// You have invoked `NativeRuntime.validateStringOrThrow()` before calling this method.
+#[no_mangle]
+pub unsafe extern "system" fn Java_rt_NativeRuntime_normaliseString<'local>(mut env: JNIEnv<'local>, _class: JClass<'local>, utf8_str: JByteArray<'local>) -> JByteArray<'local> {
+    let normalised: Vec<u8> = {
+        let f_str = FearlessStr::new(&mut env, &utf8_str);
+        let str = f_str.as_str();
+        let nfc = str.nfc().collect::<String>();
+        nfc.into_bytes()
+    };
+
+    env.byte_array_from_slice(&normalised).unwrap()
 }
 
 #[no_mangle]

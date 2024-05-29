@@ -76,9 +76,9 @@ public interface EMethTypeSystem extends ETypeSystem {
       .sorted(Comparator.comparingInt(cm->
           EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
       .toList();    
-    CM selected= selectOverload(e,sigs,mdf0,recvIT);
-    List<T> ts= selected.sig().ts();
-    TsT tst=new TsT(ts,selected.ret(),selected);
+    CM selected = selectOverload(e,sigs,mdf0,recvIT);
+    List<T> ts = selected.sig().ts();
+    TsT tst = new TsT(ts,selected.ret(),selected);
     resolvedCalls().put(e.callId(), tst);
 
     var multi_ = MultiSigBuilder.multiMethod(

@@ -27,12 +27,6 @@ public enum Mdf{
     assert !(this.isRecMdf() && t.mdf().isMdf() && !t.isGX());
     return this.adapt(t.mdf());
   }
-  public Mdf absorb(Mdf other){
-    if(this.isMdf()){ return other; }
-    if (this.isReadImm() && other.isImm()){ return imm; }
-    if (this.isReadImm() && !other.is(mdf,readImm)) { return Mdf.read; }
-    return this;
-  }
   public boolean isSyntaxMdf(){
     return this!=Mdf.recMdf && this!=Mdf.mdf && this!=Mdf.readImm;
   }

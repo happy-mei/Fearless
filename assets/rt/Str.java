@@ -1,8 +1,7 @@
 package rt;
 
-import base.False_0;
-import base.True_0;
-import base._StrHelpers_0;
+import base.*;
+import base.flows.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -11,6 +10,7 @@ public interface Str extends base.Str_0 {
 	byte[] utf8();
 	int[] graphemes();
 
+	Str EMPTY = fromTrustedUtf8(new byte[0]);
 	static Str fromJavaStr(String str) {
 		var utf8 = str.getBytes(StandardCharsets.UTF_8);
 		return fromTrustedUtf8(utf8);
@@ -44,6 +44,8 @@ public interface Str extends base.Str_0 {
 		System.arraycopy(b, 0, res, a.length, b.length);
 		return fromTrustedUtf8(res);
 	}
+	@Override default base.Void_0 add$mut(Str other$) { throw new java.lang.Error("Unreachable code"); }
+	@Override default base.Void_0 clear$mut() { throw new java.lang.Error("Unreachable code"); }
 	@Override default Long size$imm() {
 		return (long) this.graphemes().length;
 	}
@@ -55,5 +57,111 @@ public interface Str extends base.Str_0 {
 	}
 	@Override default base.Bool_0 isEmpty$imm() {
 		return this.utf8().length == 0 ? True_0.$self : False_0.$self;
+	}
+	@Override default Str naturalFold$imm(Flow_1 flow_m$) {
+		return (Str) flow_m$.fold$mut(EMPTY, (_acc, _str) -> {
+			var acc = (Str) _acc;
+			var str = (Str) _str;
+			return acc.isEmpty$imm() == True_0.$self ? acc.$plus$imm(str) : acc.$plus$imm(this).$plus$imm(str);
+		});
+	}
+
+	@Override default Str substring$imm(long start_m$, long end_m$) {
+		if (start_m$ > end_m$) {
+			throw new FearlessError(base.FInfo_0.$self.msg$imm(fromJavaStr("Start index must be less than end index")));
+		}
+		if (start_m$ < 0) {
+			throw new FearlessError(base.FInfo_0.$self.msg$imm(fromJavaStr("Start index must be greater than or equal to 0")));
+		}
+		if (end_m$ > this.size$imm()) {
+			throw new FearlessError(base.FInfo_0.$self.msg$imm(fromJavaStr("End index must be less than the size of the string")));
+		}
+		return new SubStr(this, (int) start_m$, (int) end_m$);
+	}
+
+	@Override default Str substring$imm(long start_m$) {
+		return substring$imm(start_m$, this.size$imm());
+	}
+
+	@Override default Str charAt$imm(long index_m$) {
+		return substring$imm(index_m$, index_m$ + 1);
+	}
+
+	@Override default Str normalise$imm() {
+		return fromTrustedUtf8(NativeRuntime.normaliseString(this.utf8()));
+	}
+
+	@Override default Flow_1 flow$imm() {
+		return Flow_0.$self.fromOp$imm(this._flow$imm(), size$imm());
+	}
+	@Override default FlowOp_1 _flow$imm() {
+		return this._flow$imm(0, size$imm());
+	}
+	@Override default FlowOp_1 _flow$imm(long start, long end_) {
+		return new FlowOp_1() {
+			long cur = start;
+			long end = end_;
+			@Override public Bool_0 isFinite$mut() {
+				return True_0.$self;
+			}
+			@Override public Void_0 step$mut(_Sink_1 sink_m$) {
+				if (this.cur >= this.end) {
+					sink_m$.stop$mut();
+					return Void_0.$self;
+				}
+				var ch = charAt$imm(this.cur++);
+				sink_m$.$hash$mut(ch);
+				return Void_0.$self;
+			}
+			@Override public Void_0 stop$mut() {
+				this.cur = size$imm();
+				return Void_0.$self;
+			}
+			@Override public Bool_0 isRunning$mut() {
+				return cur >= end ? False_0.$self : True_0.$self;
+			}
+			@Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
+				System.out.println("yolo");
+				for (; this.cur < end; ++this.cur) {
+					downstream_m$.$hash$mut(charAt$imm(this.cur));
+				}
+				return Void_0.$self;
+			}
+			@Override public Opt_1 split$mut() {
+				var size = this.cur - this.end;
+				if (size <= 1) { return Opt_1.$self; }
+				var mid = this.cur + (size / 2);
+				var end_ = this.end;
+				this.end = mid;
+				return Opts_0.$self.$hash$imm(_flow$imm(mid, end_));
+			}
+		};
+	}
+
+	final class SubStr implements Str {
+		private int[] GRAPHEMES;
+		private final byte[] UTF8;
+		private final long size;
+		public SubStr(Str all, int start, int end) {
+			var graphemes = all.graphemes();
+			var utf8 = all.utf8();
+			var startIdx = start == graphemes.length ? utf8.length : graphemes[start];
+			var endIdx = end == graphemes.length ? utf8.length : graphemes[end];
+			this.UTF8 = Arrays.copyOfRange(utf8, startIdx, endIdx);
+			this.size = end - start;
+		}
+		@Override public byte[] utf8() {
+			return UTF8;
+		}
+		@Override public int[] graphemes() {
+			if (GRAPHEMES == null) { GRAPHEMES = NativeRuntime.indexString(UTF8); }
+			return GRAPHEMES;
+		}
+		@Override public Long size$imm() {
+			return this.size;
+		}
+		@Override public Bool_0 isEmpty$imm() {
+			return UTF8.length == 0 ? True_0.$self : False_0.$self;
+		}
 	}
 }

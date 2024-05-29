@@ -1371,8 +1371,7 @@ public class TestJavaProgram {
 
   @Test void stringableString() { ok(new Res("Hello, World!", "", 0), """
     package test
-    Test: Main{sys -> FIO#sys.println(Foo.msg(ToStringable#"hi"))}
-    ToStringable: {#(s: Str): Stringable -> s}
+    Test: Main{sys -> FIO#sys.println(Foo.msg("Hello, World"))}
     Foo: {.msg(start: Stringable): Str -> start.str + "!"}
     """, Base.mutBaseAliases); }
 }
