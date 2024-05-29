@@ -110,7 +110,7 @@ public class Program implements program.Program  {
     assert t.ts().size()==d.gxs().size();
     Function<Id.GX<ast.T>, ast.T> f = TypeRename.core().renameFun(t.ts(), d.gxs());
     return d.lambda().meths().stream()
-      .map(mi->cm(recvMdf, t, mi, XBs.empty().addBounds(d.gxs(), d.bounds()), f))
+      .map(mi->cm(t, mi, XBs.empty().addBounds(d.gxs(), d.bounds()), f))
       .toList();
   }
   public CM plainCM(CM fancyCM) {
@@ -159,12 +159,12 @@ public class Program implements program.Program  {
 
   @Override public String toString() { return this.ds.toString(); }
 
-  private NormResult cm(Mdf recvMdf, Id.IT<ast.T> t, E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
+  private NormResult cm(Id.IT<ast.T> t, E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var normed = norm(CM.of(t, mi, mi.sig()));
     var cm = normed.cm();
     var normedMeth = new E.Meth(cm.sig(), cm.name(), cm.xs(), mi.body(), mi.pos());
-    return new NormResult(CM.of(cm.c(), normedMeth, TypeRename.coreRec(recvMdf).renameSig(cm.sig(), xbs, f)), normed.restoreSubst());
+    return new NormResult(CM.of(cm.c(), normedMeth, TypeRename.core().renameSig(cm.sig(), xbs, f)), normed.restoreSubst());
   }
   private CM cmCore(Id.IT<ast.T> t, E.Meth mi, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)

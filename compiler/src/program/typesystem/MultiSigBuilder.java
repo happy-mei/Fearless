@@ -70,7 +70,7 @@ record MultiSigBuilder(
 
   void fillBase(){ fillProm("Base",m->m); }
   void fillIsoProm(){ fillProm("IsoProm",this::mutIsoReadImm); }
-  void fillIsoHProm(){ fillProm("IsoHProm",this::mutIsoReadImmReadHImm); }  
+  void fillIsoHProm(){ fillProm("IsoHProm",this::mutIsoReadImmReadHImm); }
   void fillReadHProm(){
     fillProm("ReadHProm",this::mutIsoReadReadH,this::mutIsoReadReadH,this::toHyg);
     }
@@ -127,7 +127,7 @@ record MultiSigBuilder(
     Mdf goodMdf= isRet?MdfLubGlb.glb(options):MdfLubGlb.lub(options);
     if(mdf.isMdf()){ return t.withMdf(goodMdf); }
     assert mdf.isReadImm();
-    if(goodMdf.isImm()){ return t.withMdf(Mdf.imm); }
+    if(goodMdf.is(Mdf.imm, Mdf.iso)){ return t.withMdf(Mdf.imm); }
     return t.withMdf(Mdf.read);
   }
 

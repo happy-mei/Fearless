@@ -105,9 +105,13 @@ public class TestReadImm {
     C: {.m[Y](y: read Y): read Y -> A.m[Y](y)}
     """);}
   @Test void readParamMdfArgAIsReadImm() {fail("""
-    In position [###]/Dummy0.fear:2:40
-    [E37 noSubTypingRelationship]
-    There is no sub-typing relationship between read X and read/imm X.
+    [E66 invalidMethodArgumentTypes]
+    Method .m/1 called in position [###]/Dummy0.fear:3:37 can not be called with current parameters of types:
+    [read Y]
+    Attempted signatures:
+    (imm Y):imm Y kind: IsoHProm
+    (imm Y):imm Y kind: IsoProm
+    (read/imm Y):read/imm Y kind: Base
     """, """
     package test
     A: {.m[X](x: read/imm X): read/imm X -> x}
@@ -116,14 +120,18 @@ public class TestReadImm {
     Foo: {}
     """);}
   @Test void readParamMdfArgAIsReadImmOnTrait() {fail("""
-    In position [###]/Dummy0.fear:2:40
-    [E37 noSubTypingRelationship]
-    There is no sub-typing relationship between read X and read/imm X.
+    [E66 invalidMethodArgumentTypes]
+    Method .m/1 called in position [###]/Dummy0.fear:3:52 can not be called with current parameters of types:
+    [read Y]
+    Attempted signatures:
+    (imm Y):imm Y kind: IsoHProm
+    (imm Y):imm Y kind: IsoProm
+    (read/imm Y):read/imm Y kind: Base
     """, """
     package test
     A[X]: {.m(x: read/imm X): read/imm X -> x}
-    C[Y]: {.m(y: read Y): read/imm Y -> A[Y].m(y)}
-    D: {.m(foo: read Foo): imm Foo -> C[imm Foo].m(foo)} // unsound
+    B[Y]: {.m(y: read Y): read/imm Y -> BrokenA[Y]: A[Y].m(y)}
+    C: {.m(foo: read Foo): imm Foo -> BrokenB: B[imm Foo].m(foo)} // unsound
     Foo: {}
     """);}
 }
