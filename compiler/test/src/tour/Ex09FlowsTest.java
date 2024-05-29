@@ -71,7 +71,7 @@ public class Ex09FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowMapMapMap() { ok(new Res("80000", "", 0), """
+  @Test void flowMapMapMap() { ok(new Res("320400", "", 0), """
     package test
     Test:Main {sys -> FIO#sys.println(
       As[List[Nat]]#(List#(5, 10, 15, 50)).flow
@@ -79,8 +79,21 @@ public class Ex09FlowsTest {
         .map{n -> n * 10}
         .flatMap{n ->As[List[Nat]]#(List#(n + 1, n + 2, n + 3, n + 4)).flow}
         .map{n -> n * 10}
-//        .fold[Nat](0, {acc, n -> acc + n})
-//        #(Flow.uSum)
+        .fold[Nat](0, {acc, n -> acc + n})
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+
+  @Test void flowMapMapCollect() { ok(new Res("""
+    5010, 5020, 5030, 5040, 10010, 10020, 10030, 10040, 15010, 15020, 15030, 15040, 50010, 50020, 50030, 50040
+    """, "", 0), """
+    package test
+    Test:Main {sys -> FIO#sys.println(
+      As[List[Nat]]#(List#(5, 10, 15, 50)).flow
+        .map{n -> n * 10}
+        .map{n -> n * 10}
+        .flatMap{n ->As[List[Nat]]#(List#(n + 1, n + 2, n + 3, n + 4)).flow}
+        .map{n -> n * 10}
         .map{n -> n.str}
         #(Flow.str ", ")
         .str

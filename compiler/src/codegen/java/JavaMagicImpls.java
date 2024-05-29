@@ -494,9 +494,11 @@ public record JavaMagicImpls(
 
       if (isMagic(Magic.Str, call.recv())) {
         if (m.name().equals(".flow")) {
-          if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
+          var canParallelise = variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow) || variants.contains(MIR.MCall.CallVariant.DataParallelFlow);
+          if (canParallelise) {
+            var flowConstr = variants.contains(MIR.MCall.CallVariant.DataParallelFlow) ? Magic.DataParallelFlowK : Magic.PipelineParallelFlowK;
             String parFlow = gen.visitMCall(new MIR.MCall(
-              new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK),
+              new MIR.CreateObj(Mdf.imm, flowConstr),
               new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
               List.of(
                 new MIR.MCall(
