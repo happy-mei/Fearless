@@ -2,9 +2,9 @@ package base.test
 
 Main: AppMain{
   #(sys) -> Block#
-    .do {Block#(this.testMain(sys, FTestRunner#sys))}
+    .do {Block#(this.testMain(sys.clone, FTestRunner#(sys.clone)))}
     .return {Void},
-  .testMain(system: mut System, runner: mut TestRunner): read List[read TestResults]
+  .testMain(system: iso System, runner: iso TestRunner): List[read TestResults]
   }
 
 // TODO: When we have maps support nested test suites
