@@ -36,15 +36,18 @@ public interface Str extends base.Str_0 {
 	@Override default base.Bool_0 $equals$equals$imm(Str other$) {
 		return Arrays.equals(this.utf8(), other$.utf8()) ? True_0.$self : False_0.$self;
 	}
-	@Override default Str $plus$imm(Str other$) {
+	@Override default base.Bool_0 $exclamation$equals$imm(Str other$) {
+		return Arrays.equals(this.utf8(), other$.utf8()) ? False_0.$self : True_0.$self;
+	}
+	@Override default Str $plus$imm(base.Stringable_0 other$) {
 		var a = this.utf8();
-		var b = other$.utf8();
+		var b = other$.str$read().utf8();
 		var res = new byte[a.length + b.length];
 		System.arraycopy(a, 0, res, 0, a.length);
 		System.arraycopy(b, 0, res, a.length, b.length);
 		return fromTrustedUtf8(res);
 	}
-	@Override default base.Void_0 add$mut(Str other$) { throw new java.lang.Error("Unreachable code"); }
+	@Override default base.Void_0 add$mut(base.Stringable_0 other$) { throw new java.lang.Error("Unreachable code"); }
 	@Override default base.Void_0 clear$mut() { throw new java.lang.Error("Unreachable code"); }
 	@Override default Long size$imm() {
 		return (long) this.graphemes().length;

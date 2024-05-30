@@ -1,19 +1,16 @@
 package parser
 App:Main{ s -> Block#
   .let io = {FIO#s}
-  .let[Str] ns = {"123\n678\n"}
-  .let parsed = {Parse#(ns)}
+  .let[Str] input = {"123\n678\n"}
+  .let parsed = {Parse#(input)}
   .return {io.println(parsed.flow#(Flow.str ", "))}
   }
 
-Parse: {#(ns: Str): List[Str] -> ns.flow
+Parse: {#(input: Str): List[Str] -> input.flow
   .actor[mut Str, Str](iso "", {downstream, state, e -> Block#
-    .if {e == "\n"} .return {Block#[ActorRes]
-      .do {downstream#(state.str)}
-      .do {state.clear}
-      .return {ActorRes.continue}
-      }
-    .do {state.add(e)}
+    .if {e != "\n"} .return {Block#(state.add(e), ActorRes.continue)}
+    .do {downstream#(state.str)}
+    .do {state.clear}
     .return {ActorRes.continue}
     })
   .list
