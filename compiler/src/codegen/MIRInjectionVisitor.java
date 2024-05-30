@@ -252,8 +252,9 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
     // Standard library .flow methods:
     var recvT = (MIR.MT.Usual) recv.t();
     var recvIT = recvT.it();
+    Optional<String> literal = Magic.getLiteral(p, recvIT.name());
     if (e.name().name().equals(".flow")) {
-      if (recvIT.name().equals(Magic.Str)) {
+      if (literal.map(Magic::isStringLiteral).orElse(recvIT.name().equals(Magic.Str))) {
         return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow);
       }
       if (recvIT.name().equals(new Id.DecId("base.LList", 1))) {

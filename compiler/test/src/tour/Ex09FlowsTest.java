@@ -643,4 +643,34 @@ public class Ex09FlowsTest {
     package test
     Test:Main {sys -> Block#(Flow#[Int](5, 10, 15).unwrapOp({}))}
     """, Base.mutBaseAliases);}
+
+  @Test void strFlow() {ok(new Res("Jello", "", 0), """
+    package test
+    Test: Main{sys -> FIO#sys.println("Hello".flow
+      .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
+      #(Flow.str "")
+      )}
+    """, Base.mutBaseAliases);}
+  @Test void strFlowScan() {ok(new Res("""
+    1 J
+    2 Je
+    3 Jel
+    4 Jell
+    5 Jello
+    """, "", 0), """
+    package test
+    StrInfo: Stringable{
+      .size: Nat,
+      .facts: Str -> this.size.str+" "+this.str,
+      }
+    Test: Main{sys -> FIO#sys.println("Hello".flow
+      .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
+      .scan[StrInfo](
+        {.size -> 0, .str -> ""},
+        {acc, ch -> {.size -> acc.size + 1, .str -> acc.str + ch}}
+        )
+      .map{i -> i.facts}
+      #(Flow.str "\\n")
+      )}
+    """, Base.mutBaseAliases);}
 }

@@ -124,7 +124,6 @@ public interface Str extends base.Str_0 {
 				return cur >= end ? False_0.$self : True_0.$self;
 			}
 			@Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
-				System.out.println("yolo");
 				for (; this.cur < end; ++this.cur) {
 					downstream_m$.$hash$mut(charAt$imm(this.cur));
 				}

@@ -34,7 +34,6 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
   default JavaProgram codeGeneration(
           MIR.Program mir
   ){
-    var c= new JavaCompiler(verbosity(),io());
     var res= new JavaProgram(this,mir);
 
     if (verbosity().printCodegen()) {
@@ -42,10 +41,14 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
       res.writeJavaFiles(tmp);
       System.out.println("saved to "+tmp);
     }
-
-    c.compile(res.files());
     return res;
   }
+
+  @Override default void compileBackEnd(JavaProgram src) {
+    var c= new JavaCompiler(verbosity(),io());
+    c.compile(src.files());
+  }
+
   default ProcessBuilder execution(
           MIR.Program program,
           JavaProgram exe,

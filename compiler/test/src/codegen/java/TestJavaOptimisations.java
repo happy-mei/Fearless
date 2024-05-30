@@ -168,4 +168,46 @@ public class TestJavaOptimisations {
     B: {.m1: A -> A{a0 -> a0}.m1(A{.m1(a1) -> A{.m1(a2) -> a1}})}
     Test: Main{sys -> Void}
     """, Base.mutBaseAliases); }
+
+  @Test void dataParallelFlow() { ok("""
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 sys_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 sys_m$, test.Test_0 $this) {
+      return rt.IO.$self.println$mut(((rt.Str)rt.dataParallel.DataParallelFlowK.$self.fromOp$imm(str$3297469917561599766$str$.$self._flow$imm(), base.Opt_1.$self).map$mut(test.Fear[###]_0.$self).$hash$mut(base.flows.Flow_0.$self.str$imm(str$14492805990617963705$str$.$self))));
+    }
+    }
+    """, "/test/Test_0.java", """
+    package test
+    Test: Main{sys -> FIO#sys.println("Hello".flow
+      .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
+      #(Flow.str "")
+      )}
+    """, Base.mutBaseAliases);}
+  @Test void dataParallelFlowInvalidation() { ok("""
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 sys_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 sys_m$, test.Test_0 $this) {
+      return rt.IO.$self.println$mut(((rt.Str)str$3297469917561599766$str$.$self.flow$imm().map$mut(test.Fear[###]_0.$self).scan$mut(test.Fear[###]_0.$self,test.Fear[###]_0.$self).map$mut(test.Fear[###]_0.$self).$hash$mut(base.flows.Flow_0.$self.str$imm(str$6448469143720294743$str$.$self))));
+    }
+    }
+    """, "/test/Test_0.java", """
+    package test
+    StrInfo: Stringable{
+      .size: Nat,
+      .facts: Str -> this.size.str+" "+this.str,
+      }
+    Test: Main{sys -> FIO#sys.println("Hello".flow
+      .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
+      .scan[StrInfo](
+        {.size -> 0, .str -> ""},
+        {acc, ch -> {.size -> acc.size + 1, .str -> acc.str + ch}}
+        )
+      .map{i -> i.facts}
+      #(Flow.str "\\n")
+      )}
+    """, Base.mutBaseAliases);}
 }

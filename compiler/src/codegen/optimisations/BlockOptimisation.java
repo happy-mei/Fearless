@@ -12,7 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 // TODO: also optimise Block#(...)
-public class BlockOptimisation implements MIRCloneVisitor {
+public class BlockOptimisation implements MIRCloneVisitor, FlattenChain<MIR.Block.BlockStmt, MIR.Block> {
   private final MagicImpls<?> magic;
   private Map<MIR.FName, MIR.Fun> funs;
   public BlockOptimisation(MagicImpls<?> magic) {
@@ -30,22 +30,29 @@ public class BlockOptimisation implements MIRCloneVisitor {
     if (!isBlock) {
       return MIRCloneVisitor.super.visitFun(fun);
     }
-    return this.visitBlockCall(call, List.of(MIR.Block.BlockStmt.Return.class), Optional.empty())
+    return this.visitFluentCall(call, List.of(MIR.Block.BlockStmt.Return.class), Optional.empty())
       .map(fun::withBody)
       .orElse(MIRCloneVisitor.super.visitFun(fun));
   }
 
-  private Optional<MIR.Block> visitBlockCall(MIR.MCall call, List<Class<? extends MIR.Block.BlockStmt>> validEndings, Optional<MIR.X> self) {
+  @Override public Optional<MIR.Block> visitFluentCall(
+    MIR.MCall call,
+    List<Class<? extends MIR.Block.BlockStmt>> validEndings,
+    Optional<MIR.X> self
+  ) {
     var stmts = new ArrayDeque<MIR.Block.BlockStmt>();
-    var res = flattenBlock(call, stmts, self);
+    var res = flatten(call, stmts, self);
     if (res == FlattenStatus.INVALID) { return Optional.empty(); }
     if (validEndings.stream().noneMatch(c->c.isAssignableFrom(stmts.getLast().getClass()))) { return Optional.empty(); }
     assert res == FlattenStatus.FLATTENED;
     return Optional.of(new MIR.Block(call, Collections.unmodifiableCollection(stmts), call.t()));
   }
 
-  private enum FlattenStatus { CONTINUE, INVALID, FLATTENED }
-  private FlattenStatus flattenBlock(MIR.E expr, Deque<MIR.Block.BlockStmt> stmts, Optional<MIR.X> self) {
+  @Override public FlattenStatus flatten(
+    MIR.E expr,
+    Deque<MIR.Block.BlockStmt> stmts,
+    Optional<MIR.X> self
+  ) {
     return switch (expr) {
       case MIR.MCall mCall -> {
         if (mCall.name().equals(new Id.MethName("#", 0)) && this.magic.isMagic(Magic.BlockK, mCall.recv())) {
@@ -75,7 +82,7 @@ public class BlockOptimisation implements MIRCloneVisitor {
           var variable = this.visitReturn(mCall.args().getFirst());
           var continuationCall = this.visitVarContinuation(mCall.args().get(1));
           if (variable.isEmpty() || continuationCall.isEmpty()) { yield FlattenStatus.INVALID; }
-          var continuation = this.visitBlockCall(
+          var continuation = this.visitFluentCall(
             continuationCall.get().continuationCall(),
             List.of(MIR.Block.BlockStmt.Return.class, MIR.Block.BlockStmt.Do.class), // TODO: and .error when we have that
             Optional.of(continuationCall.get().selfVar())
@@ -89,10 +96,10 @@ public class BlockOptimisation implements MIRCloneVisitor {
           // TODO: .letIso
           yield FlattenStatus.INVALID;
         }
-        yield flattenBlock(mCall.recv(), stmts, self);
+        yield flatten(mCall.recv(), stmts, self);
       }
-      case MIR.BoolExpr boolExpr -> throw Bug.todo();
-      case MIR.X x -> self.filter(x::equals).map(x_->FlattenStatus.FLATTENED).orElse(FlattenStatus.INVALID);
+      case MIR.BoolExpr _ -> throw Bug.todo();
+      case MIR.X x -> self.filter(x::equals).map(_->FlattenStatus.FLATTENED).orElse(FlattenStatus.INVALID);
       case MIR.CreateObj ignored -> FlattenStatus.INVALID;
       case MIR.StaticCall ignored -> throw Bug.unreachable();
       case MIR.Block ignored -> throw Bug.unreachable();
