@@ -29,6 +29,7 @@ Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
       .empty -> this,
       }}
     .return {cont#(splitResult, selfFlow)},
+  mut .join(separator: NaturalFold[E]): E -> separator.naturalFold(this),
   mut .unwrapOp(unwrap: mut _UnwrapFlowToken): mut FlowOp[E],
   }
 _UnwrapFlowToken: {}

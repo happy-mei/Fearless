@@ -182,7 +182,7 @@ public class TestJavaOptimisations {
     package test
     Test: Main{sys -> FIO#sys.println("Hello".flow
       .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
-      #(Flow.str "")
+      .join ""
       )}
     """, Base.mutBaseAliases);}
   @Test void dataParallelFlowInvalidation() { ok("""
@@ -207,7 +207,7 @@ public class TestJavaOptimisations {
         {acc, ch -> {.size -> acc.size + 1, .str -> acc.str + ch}}
         )
       .map{i -> i.facts}
-      #(Flow.str "\\n")
+      .join "\\n"
       )}
     """, Base.mutBaseAliases);}
 }

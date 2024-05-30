@@ -442,6 +442,7 @@ public record JavaMagicImpls(
   @Override public MagicCallable<MIR.E,String> variantCall(MIR.E e) {
     return (m, args, variants, expectedT)->{
       var call = (MIR.MCall) e;
+      assert call.variant() == variants; // TODO: if this holds remove the variants param here
       if (isMagic(Magic.FlowK, call.recv())) {
         if (m.name().equals("#")) {
           var listKCall = new MIR.MCall(
@@ -469,8 +470,7 @@ public record JavaMagicImpls(
 
       if (isMagic(Magic.Str, call.recv())) {
         if (m.name().equals(".flow")) {
-          var canParallelise = variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow) || variants.contains(MIR.MCall.CallVariant.DataParallelFlow);
-          if (canParallelise) {
+          if (call.canParallelise()) {
             var flowConstr = variants.contains(MIR.MCall.CallVariant.DataParallelFlow) ? Magic.DataParallelFlowK : Magic.PipelineParallelFlowK;
             String parFlow = gen.visitMCall(new MIR.MCall(
               new MIR.CreateObj(Mdf.imm, flowConstr),

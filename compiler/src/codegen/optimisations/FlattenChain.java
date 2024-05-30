@@ -12,9 +12,9 @@ import java.util.Optional;
  * @param <Link> A link in the chain (i.e. BlockStmt for a Block# chain)
  * @param <Res> The data-structure that will hold the flattened chain
  */
-interface FlattenChain<Link,Res> {
+interface FlattenChain<Link,Endings,Res> {
   enum FlattenStatus { INVALID, FLATTENED }
 
-  Optional<Res> visitFluentCall(MIR.MCall call, List<Class<? extends Link>> validEndings, Optional<MIR.X> self);
+  Optional<Res> visitFluentCall(MIR.MCall call, List<Endings> validEndings, Optional<MIR.X> self);
   FlattenStatus flatten(MIR.E expr, Deque<Link> stmts, Optional<MIR.X> self);
 }

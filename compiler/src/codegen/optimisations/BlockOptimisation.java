@@ -12,7 +12,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 // TODO: also optimise Block#(...)
-public class BlockOptimisation implements MIRCloneVisitor, FlattenChain<MIR.Block.BlockStmt, MIR.Block> {
+public class BlockOptimisation implements
+  MIRCloneVisitor,
+  FlattenChain<MIR.Block.BlockStmt, Class<? extends MIR.Block.BlockStmt>, MIR.Block>
+{
   private final MagicImpls<?> magic;
   private Map<MIR.FName, MIR.Fun> funs;
   public BlockOptimisation(MagicImpls<?> magic) {

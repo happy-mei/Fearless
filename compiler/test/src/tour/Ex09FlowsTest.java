@@ -648,7 +648,7 @@ public class Ex09FlowsTest {
     package test
     Test: Main{sys -> FIO#sys.println("Hello".flow
       .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
-      #(Flow.str "")
+      .join ""
       )}
     """, Base.mutBaseAliases);}
   @Test void strFlowScan() {ok(new Res("""
@@ -670,7 +670,7 @@ public class Ex09FlowsTest {
         {acc, ch -> {.size -> acc.size + 1, .str -> acc.str + ch}}
         )
       .map{i -> i.facts}
-      #(Flow.str "\\n")
+      .join "\\n"
       )}
     """, Base.mutBaseAliases);}
 }

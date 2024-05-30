@@ -99,6 +99,9 @@ public sealed interface MIR {
     @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
       return v.visitMCall(this, checkMagic);
     }
+    public MCall withVariants(EnumSet<CallVariant> variant) {
+      return new MCall(recv, name, args, t, originalRet, mdf, variant);
+    }
 
     public enum CallVariant {
       Standard,
@@ -107,7 +110,9 @@ public sealed interface MIR {
       SafeMutSourceFlow;
 
       public boolean isStandard() { return this == Standard; }
-      public boolean canParallelise() { return this == PipelineParallelFlow || this == DataParallelFlow; }
+    }
+    public boolean canParallelise() {
+      return variant.contains(CallVariant.PipelineParallelFlow) || variant.contains(CallVariant.DataParallelFlow);
     }
   }
 
