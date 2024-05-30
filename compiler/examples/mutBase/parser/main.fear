@@ -9,7 +9,7 @@ App:Main{ s -> Block#
 Parse: {#(ns: Str): List[Str] -> ns.flow
   .actor[mut Str, Str](iso "", {downstream, state, e -> Block#
     .if {e == "\n"} .return {Block#[ActorRes]
-      .do {downstream#(state.str.normalise)}
+      .do {downstream#(state.str)}
       .do {state.clear}
       .return {ActorRes.continue}
       }
