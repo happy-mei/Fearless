@@ -72,7 +72,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
 
   @Override public Optional<CompileError> visitMCall(E.MCall e) {
     return super.visitMCall(e)
-      .map(err->err.pos(e.posOrUnknown()));
+      .map(err->err.parentPos(e.pos()));
   }
 
   @Override public Optional<CompileError> visitAlias(T.Alias a) {
@@ -141,7 +141,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   @Override
   public Optional<CompileError> visitX(E.X e) {
     if (env.has(e)) { return super.visitX(e); }
-    return Optional.of(Fail.undefinedName(e.name()));
+    return Optional.of(Fail.undefinedName(e.name()).pos(e.pos()));
   }
 //  private boolean hasUndeclaredXs(List<Id.IT<T>> its) {
 //    return its.stream()

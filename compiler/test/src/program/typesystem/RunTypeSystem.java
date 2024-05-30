@@ -1,6 +1,8 @@
 package program.typesystem;
 
 import failure.CompileError;
+import id.Id;
+import id.Mdf;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
 import parser.Parser;

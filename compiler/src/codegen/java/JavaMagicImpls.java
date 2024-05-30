@@ -239,35 +239,10 @@ public record JavaMagicImpls(
     return new MagicTrait<>() {
 
       @Override public Optional<String> instantiate() {
-        return Optional.empty();
+        return Optional.of("rt.Debug.$self");
       }
 
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
-        if (m.equals(new Id.MethName("#", 1))) {
-          MIR.E x = args.getFirst();
-          return Optional.of(String.format("""
-            (switch (1) { default -> {
-              var x = %s;
-              Object xObj = x;
-              var strMethod = java.util.Arrays.stream(xObj.getClass().getMethods())
-                .filter(meth->
-                  (meth.getName().equals("str$read") || meth.getName().equals("str$readOnly"))
-                  && meth.getReturnType().equals(rt.Str.class)
-                  && meth.getParameterCount() == 0)
-                .findAny();
-              if (strMethod.isPresent()) {
-                try {
-                  rt.NativeRuntime.println(((rt.Str)strMethod.get().invoke(x)).utf8());
-                } catch(java.lang.IllegalAccessException | java.lang.reflect.InvocationTargetException err) {
-                  System.out.println(x);
-                }
-              } else {
-                System.out.println(x);
-              }
-              yield x;
-            }})
-            """, x.accept(gen, true)));
-        }
         return Optional.empty();
       }
     };
