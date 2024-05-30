@@ -117,7 +117,7 @@ public class TestFullWellFormedness {
     B:{ recMdf .argh: recMdf X } // should fail because X is not defined here
     """); }
   @Test void useUndefinedIdent() { fail("""
-    In position [###]/Dummy0.fear:2:28
+    In position [###]/Dummy0.fear:2:33
     [E28 undefinedName]
     The identifier "b" is undefined or cannot be captured.
     """, """
@@ -363,7 +363,7 @@ public class TestFullWellFormedness {
     A: {#: readOnly A -> readOnly A}
     """); }
   @Test void noReadImmLambdaCreation() { fail("""
-    In position [###]/Dummy0.fear:2:19
+    In position [###]/Dummy0.fear:2:33
     [E63 invalidLambdaMdf]
     read/imm is not a valid modifier for a lambda.
     """, """
