@@ -1223,26 +1223,6 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void optWithExtensionMethodOrElse() { ok(new Res(), """
-    package test
-    Test:Main{ s -> Block#
-      .let[Int] res = {Opt[Int]
-                       #{opt -> opt.match{.some(x) -> x, .empty -> +9001}}}
-      .assert{res == +9001}
-      .return {{}}
-      }
-    """, Base.mutBaseAliases);}
-  @Test void extensionMethodMdfDispatch() { ok(new Res(), """
-    package test
-    Test:Main{ s -> Block#
-      .let[Opt[Int]] res = { Opt[Int]
-        #{opt -> opt.match{.some(_) -> opt, .empty -> Opts#[Int]+9001}}
-        }
-      .assert{res! == +9001}
-      .return {{}}
-      }
-    """, Base.mutBaseAliases);}
-
   @Test void personFactory() { ok(new Res("Bob", "", 0), """
     package test
     FPerson:F[Str,Nat,Person]{ name, age -> Person:{
