@@ -32,7 +32,7 @@ _MathOps[T]: Sealed{
   <=(n: T): Bool,
   ==(n: T): Bool,
   .assertEq(actual: T): Void,
-  .assertEq(message: Str, actual: T): Void,
+  .assertEq(actual: T, message: Str): Void,
   }
 _IntOps[T]: Sealed{
   // bitwise

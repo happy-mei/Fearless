@@ -138,5 +138,6 @@ public interface Base {
     
     alias base.Ordering as Ordering,
     alias base.FOrdering as FOrdering,
+    alias base.Debug as Debug,
     """;
 }

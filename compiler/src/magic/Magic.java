@@ -138,7 +138,7 @@ public class Magic {
       if (lit.matches("[+-][\\d_]*\\d+$")) {
         return LiteralKind.Int;
       }
-      if (lit.matches("-?[\\d_]*\\d+\\.[\\d_]*\\d+$")) {
+      if (lit.matches("[+-]?[\\d_]*\\d+\\.[\\d_]*\\d+$")) {
         return LiteralKind.Float;
       }
       if (lit.matches("[\\d_]*\\d+$")) {

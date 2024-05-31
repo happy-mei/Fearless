@@ -82,7 +82,7 @@ public record JavaMagicImpls(
           return "base._IntAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".assertEq", 2))) {
-          return "base._IntAssertionHelper_0.assertEq$imm$fun("+args.getFirst().accept(gen, true)+", "+instantiate().orElseThrow()+", "+args.get(1).accept(gen, true)+", null)";
+          return "base._IntAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+", "+args.get(1).accept(gen, true)+", null)";
         }
         throw Bug.unreachable();
       }
@@ -147,7 +147,7 @@ public record JavaMagicImpls(
           return "base._NatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".assertEq", 2))) {
-          return "base._NatAssertionHelper_0.assertEq$imm$fun("+args.getFirst().accept(gen, true)+", "+instantiate().orElseThrow()+", "+args.get(1).accept(gen, true)+", null)";
+          return "base._NatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+", "+args.get(1).accept(gen, true)+", null)";
         }
         throw Bug.unreachable();
       }
@@ -198,7 +198,7 @@ public record JavaMagicImpls(
           return "base._FloatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".assertEq", 2))) {
-          return "base._FloatAssertionHelper_0.assertEq$imm$fun("+args.getFirst().accept(gen, true)+", "+instantiate().orElseThrow()+", "+args.get(1).accept(gen, true)+", null)";
+          return "base._FloatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+", "+args.get(1).accept(gen, true)+", null)";
         }
         //Float specifics
         if (m.equals(new Id.MethName(".round", 0))) { return "Math.round("+instantiate().orElseThrow()+")"; }

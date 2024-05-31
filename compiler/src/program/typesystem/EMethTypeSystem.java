@@ -104,19 +104,14 @@ public interface EMethTypeSystem extends ETypeSystem {
       .orElseThrow(()->Fail.undefinedMethod(e.name(), new T(mdf0, recvIT), sigs.stream()).pos(e.pos()));
   }
   private boolean selectOverload(CM cm, Mdf mdf0){
-    if (!Program.isSubType(mdf0,cm.mdf())){
-      //readH could be passed to a read for example.
-      if (mdf0.isReadH() && cm.mdf().isRead()) { return true; }
-      return false;
-    }
+    //we want possible subtypes allowing promotions
+    //mut->imm and read->imm already accounted for.
+    Mdf methMdf= cm.mdf();//however, mutH/readH are relaxing the method signature
+    if(methMdf.isRead()){ methMdf = Mdf.readH; }//not enriching the parameter type
+    if(methMdf.isMut()){ methMdf = Mdf.mutH; }
+    if (!Program.isSubType(mdf0,methMdf)){ return false; }
     if (expectedT().isEmpty()){ return true; }
-    //TODO: What about promotions? This strategy as it is now, is good enough to check the standard library.
-    //Full check. Too strict, promotions
-    //return expectedT().stream()
-    //  .anyMatch(t->p().isSubType(xbs(),cm.ret(),t));
-    //Weaker check. Too strict, consider mut Opt[E] vs mut Opt[read/imm E]
-    //return expectedT().stream().map(t->t.withMdf(Mdf.imm))
-    //  .anyMatch(t->p().isSubType(xbs(),cm.ret().withMdf(Mdf.imm),t));
+    //should we consider return types?
     return true;
   }
   private FailOr<T> selectResult(E.MCall e, MultiSig multi,List<T> t1n){

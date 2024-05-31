@@ -31,7 +31,7 @@ public class TourHelper {
     if (last.startsWith("//prints ")){
       expectedPrint = last.substring("//prints ".length());
     }
-    if(!content.contains(":Main") && !content.contains(": TestMain")){
+    if(!content.contains(":Main") && !content.contains(": Main") && !content.contains(": TestMain")){
       content += "Test:Main{s->Void}";
     }
     /*ok(new Res(expectedPrint,"",0), "test.Test",
@@ -52,6 +52,7 @@ public class TourHelper {
     ProcessBuilder proc= runner.run();
     //proc.inheritIO();//not in the tests
     Process running= IoErr.of(proc::start);
-    running.onExit().thenAccept(p->checker(p,expectedIO)).join();
+    var p = running.onExit().join();
+    checker(p,expectedIO);
   }
 }

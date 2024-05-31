@@ -7,12 +7,11 @@ Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
   !=(other: Str): Bool,
   .assertEq(other: Str): Void,
   .assertEq(message: Str, other: Str): Void,
-  .substring(start: Nat): Str,
   .substring(start: Nat, end: Nat): Str,
   .charAt(index: Nat): Str,
   /// Normalise using NFC. See https://www.unicode.org/reports/tr15/ for more information.
   .normalise: Str,
-  mut .add(other: read Stringable): Void,
+  mut .append(other: read Stringable): Void,
   mut .clear: Void,
   .flow: mut Flow[Str],
   ._flow: mut FlowOp[Str],
@@ -34,12 +33,12 @@ _StrInstance: Str{
   ==(other) -> Magic!,
   !=(other) -> Magic!,
   .assertEq(other) -> Magic!,
-  .assertEq(message, other) -> Magic!,
+  .assertEq(other, message) -> Magic!,
   .str -> Magic!,
-  .substring(_) -> Magic!,
   .substring(_,_) -> Magic!,
   .charAt(_) -> Magic!,
   .normalise -> Magic!,
+  .append(_) -> Magic!,
   .clear -> Magic!,
   .flow -> Magic!,
   .naturalFold(_) -> Magic!,
@@ -50,6 +49,6 @@ _StrInstance: Str{
 _StrHelpers: {
   .assertEq(expected: Str, actual: Str): Void ->
     Assert!(expected == actual, "Expected: "+expected+"\nActual: "+actual, {{}}),
-  .assertEq(message: Str, expected: Str, actual: Str): Void ->
+  .assertEq(expected: Str, actual: Str, message: Str): Void ->
     Assert!(expected == actual, message+"\nExpected: "+expected+"\nActual: "+actual, {{}}),
   }

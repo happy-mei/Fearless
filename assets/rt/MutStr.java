@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class MutStr implements Str {
-  private final List<Str> buffer = new ArrayList<>();
+  private List<Str> buffer = new ArrayList<>();
   private Str immStr;
 
   public MutStr(Str str) {
@@ -26,7 +26,7 @@ public final class MutStr implements Str {
     return immStr.graphemes();
   }
 
-  @Override public base.Void_0 add$mut(base.Stringable_0 other$) {
+  @Override public base.Void_0 append$mut(base.Stringable_0 other$) {
     buffer.add(other$.str$read());
     immStr = null;
     return base.Void_0.$self;
@@ -52,6 +52,8 @@ public final class MutStr implements Str {
       System.arraycopy(str.utf8(), 0, utf8, idx, str.utf8().length);
       idx = idx + str.utf8().length;
     }
-    return Str.fromTrustedUtf8(utf8);
+    var res = Str.fromTrustedUtf8(utf8);
+    buffer = null;
+    return res;
   }
 }

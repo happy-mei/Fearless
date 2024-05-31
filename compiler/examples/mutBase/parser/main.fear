@@ -8,7 +8,7 @@ App:Main{ s -> Block#
 
 Parse: {#(input: Str): List[Str] -> input.flow
   .actor[mut Str, Str](iso "", {downstream, state, e -> Block#
-    .if {e != "\n"} .return {Block#(state.add(e), ActorRes.continue)}
+    .if {e != "\n"} .return {Block#(state.append(e), ActorRes.continue)}
     .do {downstream#(state.str)}
     .do {state.clear}
     .return {ActorRes.continue}

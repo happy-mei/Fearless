@@ -47,7 +47,7 @@ public interface Str extends base.Str_0 {
 		System.arraycopy(b, 0, res, a.length, b.length);
 		return fromTrustedUtf8(res);
 	}
-	@Override default base.Void_0 add$mut(base.Stringable_0 other$) { throw new java.lang.Error("Unreachable code"); }
+	@Override default base.Void_0 append$mut(base.Stringable_0 other$) { throw new java.lang.Error("Unreachable code"); }
 	@Override default base.Void_0 clear$mut() { throw new java.lang.Error("Unreachable code"); }
 	@Override default Long size$imm() {
 		return (long) this.graphemes().length;
@@ -55,8 +55,8 @@ public interface Str extends base.Str_0 {
 	@Override default base.Void_0 assertEq$imm(Str other$) {
 		return _StrHelpers_0.$self.assertEq$imm(this, other$);
 	}
-	@Override default base.Void_0 assertEq$imm(Str message$, Str other$) {
-		return _StrHelpers_0.$self.assertEq$imm(message$, this, other$);
+	@Override default base.Void_0 assertEq$imm(Str other$, Str message$) {
+		return _StrHelpers_0.$self.assertEq$imm(this, other$, message$);
 	}
 	@Override default base.Bool_0 isEmpty$imm() {
 		return this.utf8().length == 0 ? True_0.$self : False_0.$self;
@@ -80,10 +80,6 @@ public interface Str extends base.Str_0 {
 			throw new FearlessError(base.FInfo_0.$self.msg$imm(fromJavaStr("End index must be less than the size of the string")));
 		}
 		return new SubStr(this, (int) start_m$, (int) end_m$);
-	}
-
-	@Override default Str substring$imm(long start_m$) {
-		return substring$imm(start_m$, this.size$imm());
 	}
 
 	@Override default Str charAt$imm(long index_m$) {
