@@ -1,10 +1,10 @@
 token literal names:
 null
 'mut'
-'lent'
+'mutH'
 'read'
 'read/imm'
-'readOnly'
+'readH'
 'iso'
 'recMdf'
 'mdf'
@@ -35,10 +35,10 @@ null
 token symbolic names:
 null
 Mut
-Lent
+MutH
 Read
 ReadImm
-ReadOnly
+ReadH
 Iso
 RecMdf
 Mdf

@@ -17,11 +17,10 @@ public class FearlessParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		Mut=1, Lent=2, Read=3, ReadImm=4, ReadOnly=5, Iso=6, RecMdf=7, Mdf=8, 
-		Imm=9, Eq=10, Alias=11, As=12, OC=13, CC=14, OS=15, CS=16, OR=17, CR=18, 
-		Comma=19, Colon=20, Arrow=21, Underscore=22, X=23, SelfX=24, MName=25, 
-		BlockComment=26, LineComment=27, SysInM=28, FullCN=29, Whitespace=30, 
-		Pack=31;
+		Mut=1, MutH=2, Read=3, ReadImm=4, ReadH=5, Iso=6, RecMdf=7, Mdf=8, Imm=9, 
+		Eq=10, Alias=11, As=12, OC=13, CC=14, OS=15, CS=16, OR=17, CR=18, Comma=19, 
+		Colon=20, Arrow=21, Underscore=22, X=23, SelfX=24, MName=25, BlockComment=26, 
+		LineComment=27, SysInM=28, FullCN=29, Whitespace=30, Pack=31;
 	public static final int
 		RULE_fullCN = 0, RULE_x = 1, RULE_m = 2, RULE_mdf = 3, RULE_roundE = 4, 
 		RULE_genDecl = 5, RULE_mGen = 6, RULE_lambda = 7, RULE_block = 8, RULE_bblock = 9, 
@@ -41,7 +40,7 @@ public class FearlessParser extends Parser {
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "'mut'", "'lent'", "'read'", "'read/imm'", "'readOnly'", "'iso'", 
+			null, "'mut'", "'mutH'", "'read'", "'read/imm'", "'readH'", "'iso'", 
 			"'recMdf'", "'mdf'", "'imm'", "'='", "'alias'", "'as'", "'{'", "'}'", 
 			"'['", "']'", "'('", "')'", "','", "':'", "'->'", "'_'"
 		};
@@ -49,9 +48,9 @@ public class FearlessParser extends Parser {
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
-			null, "Mut", "Lent", "Read", "ReadImm", "ReadOnly", "Iso", "RecMdf", 
-			"Mdf", "Imm", "Eq", "Alias", "As", "OC", "CC", "OS", "CS", "OR", "CR", 
-			"Comma", "Colon", "Arrow", "Underscore", "X", "SelfX", "MName", "BlockComment", 
+			null, "Mut", "MutH", "Read", "ReadImm", "ReadH", "Iso", "RecMdf", "Mdf", 
+			"Imm", "Eq", "Alias", "As", "OC", "CC", "OS", "CS", "OR", "CR", "Comma", 
+			"Colon", "Arrow", "Underscore", "X", "SelfX", "MName", "BlockComment", 
 			"LineComment", "SysInM", "FullCN", "Whitespace", "Pack"
 		};
 	}
@@ -258,8 +257,8 @@ public class FearlessParser extends Parser {
 	@SuppressWarnings("CheckReturnValue")
 	public static class MdfContext extends ParserRuleContext {
 		public TerminalNode Mut() { return getToken(FearlessParser.Mut, 0); }
-		public TerminalNode ReadOnly() { return getToken(FearlessParser.ReadOnly, 0); }
-		public TerminalNode Lent() { return getToken(FearlessParser.Lent, 0); }
+		public TerminalNode ReadH() { return getToken(FearlessParser.ReadH, 0); }
+		public TerminalNode MutH() { return getToken(FearlessParser.MutH, 0); }
 		public TerminalNode ReadImm() { return getToken(FearlessParser.ReadImm, 0); }
 		public TerminalNode Read() { return getToken(FearlessParser.Read, 0); }
 		public TerminalNode Iso() { return getToken(FearlessParser.Iso, 0); }
@@ -302,14 +301,14 @@ public class FearlessParser extends Parser {
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(63);
-				match(ReadOnly);
+				match(ReadH);
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(64);
-				match(Lent);
+				match(MutH);
 				}
 				break;
 			case 4:
@@ -553,10 +552,10 @@ public class FearlessParser extends Parser {
 			switch (_input.LA(1)) {
 			case EOF:
 			case Mut:
-			case Lent:
+			case MutH:
 			case Read:
 			case ReadImm:
-			case ReadOnly:
+			case ReadH:
 			case Iso:
 			case RecMdf:
 			case Imm:
@@ -1623,10 +1622,10 @@ public class FearlessParser extends Parser {
 				}
 				break;
 			case Mut:
-			case Lent:
+			case MutH:
 			case Read:
 			case ReadImm:
-			case ReadOnly:
+			case ReadH:
 			case Iso:
 			case RecMdf:
 			case Imm:
