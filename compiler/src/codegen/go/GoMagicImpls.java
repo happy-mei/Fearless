@@ -61,8 +61,8 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         if (m.equals(new Id.MethName(".shiftRight", 1))) { return new Res(instantiate().orElseThrow().output()+">>"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(".shiftLeft", 1))) { return new Res(instantiate().orElseThrow().output()+"<<"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(".xor", 1))) { return new Res(instantiate().orElseThrow().output()+"^"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName(".and", 1))) { return new Res(instantiate().orElseThrow().output()+"&"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName(".or", 1))) { return new Res(instantiate().orElseThrow().output()+"|"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".bitwiseAnd", 1))) { return new Res(instantiate().orElseThrow().output()+"&"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".bitwiseOr", 1))) { return new Res(instantiate().orElseThrow().output()+"|"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(">", 1))) { return new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+">"+args.getFirst().accept(gen, true)+")", Set.of()); }
         if (m.equals(new Id.MethName("<", 1))) { new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+"<"+args.getFirst().accept(gen, true)+")", Set.of()); }
         if (m.equals(new Id.MethName(">=", 1))) { new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+">="+args.getFirst().accept(gen, true)+")", Set.of()); }
@@ -115,8 +115,8 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
         if (m.equals(new Id.MethName(".shiftRight", 1))) { return new Res(instantiate().orElseThrow().output()+">>"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(".shiftLeft", 1))) { return new Res(instantiate().orElseThrow().output()+"<<"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(".xor", 1))) { return new Res(instantiate().orElseThrow().output()+"^"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName(".and", 1))) { return new Res(instantiate().orElseThrow().output()+"&"+args.getFirst().accept(gen, true)); }
-        if (m.equals(new Id.MethName(".or", 1))) { return new Res(instantiate().orElseThrow().output()+"|"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".bitwiseAnd", 1))) { return new Res(instantiate().orElseThrow().output()+"&"+args.getFirst().accept(gen, true)); }
+        if (m.equals(new Id.MethName(".bitwiseOr", 1))) { return new Res(instantiate().orElseThrow().output()+"|"+args.getFirst().accept(gen, true)); }
         if (m.equals(new Id.MethName(">", 1))) { return new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+">"+args.getFirst().accept(gen, true)+")", Set.of()); }
         if (m.equals(new Id.MethName("<", 1))) { return new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+"<"+args.getFirst().accept(gen, true)+")", Set.of()); }
         if (m.equals(new Id.MethName(">=", 1))) { return new Res("baseφrtφConvertBool("+instantiate().orElseThrow().output()+">="+args.getFirst().accept(gen, true)+")", Set.of()); }

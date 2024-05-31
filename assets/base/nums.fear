@@ -39,8 +39,8 @@ _IntOps[T]: Sealed{
   .shiftLeft(n: T): T,
   .shiftRight(n: T): T,
   .xor(n: T): T,
-  .and(n: T): T,
-  .or(n: T): T,
+  .bitwiseAnd(n: T): T,
+  .bitwiseOr(n: T): T,
 
   **(n: Nat): T, // pow
   }
@@ -63,8 +63,8 @@ _IntInstance: Int{
   .shiftLeft(n) -> Magic!,
   .shiftRight(n) -> Magic!,
   .xor(n) -> Magic!,
-  .and(n) -> Magic!,
-  .or(n) -> Magic!,
+  .bitwiseAnd(n) -> Magic!,
+  .bitwiseOr(n) -> Magic!,
 
   // Comparisons
   >n -> Magic!,
@@ -92,8 +92,8 @@ _NatInstance: Nat{
   .shiftLeft(n) -> Magic!,
   .shiftRight(n) -> Magic!,
   .xor(n) -> Magic!,
-  .and(n) -> Magic!,
-  .or(n) -> Magic!,
+  .bitwiseAnd(n) -> Magic!,
+  .bitwiseOr(n) -> Magic!,
 
   // Comparisons
   >n -> Magic!,
