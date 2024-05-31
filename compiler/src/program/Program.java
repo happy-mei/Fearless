@@ -42,13 +42,13 @@ public interface Program {
 
   static boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
     if(m1 == m2){ return true; }
-    if (m2.is(Mdf.readOnly)) { return true; }
+    if (m2.is(Mdf.readH)) { return true; }
     return switch(m1){
       case mut -> m2.isLikeMut();
       case imm -> m2.is(Mdf.read, Mdf.readImm);
       case readImm -> m2.is(Mdf.read);
       case iso -> true;
-      case readOnly, mdf, recMdf, read, lent -> false;
+      case readH, mdf, recMdf, read, mutH -> false;
     };
   }
   default boolean isSubType(XBs xbs, astFull.T t1, astFull.T t2) {
@@ -200,7 +200,7 @@ public interface Program {
     assert !mdf.isMdf();
     if (mdf.is(Mdf.iso, Mdf.mut, Mdf.recMdf, Mdf.mdf)) { return true; }
     if (mdf.isLent() && !mMdf.isIso()) { return true; }
-    return mdf.is(Mdf.imm, Mdf.read, Mdf.readImm, Mdf.readOnly) && mMdf.is(Mdf.imm, Mdf.read, Mdf.readOnly, Mdf.recMdf);
+    return mdf.is(Mdf.imm, Mdf.read, Mdf.readImm, Mdf.readH) && mMdf.is(Mdf.imm, Mdf.read, Mdf.readH, Mdf.recMdf);
   }
 
   default List<CM> meths(XBs xbs, Mdf recvMdf, Id.IT<T> it, Id.MethName name, int depth){

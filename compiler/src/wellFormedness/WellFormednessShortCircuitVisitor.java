@@ -166,7 +166,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   private Optional<CompileError> validLambdaMdf(E.Lambda e) {
-    if (e.mdf().is(Mdf.readImm, Mdf.lent, Mdf.readOnly)) { return Optional.of(Fail.invalidLambdaMdf(e.mdf())); }
+    if (e.mdf().is(Mdf.readImm, Mdf.mutH, Mdf.readH)) { return Optional.of(Fail.invalidLambdaMdf(e.mdf())); }
     return Optional.empty();
   }
 }

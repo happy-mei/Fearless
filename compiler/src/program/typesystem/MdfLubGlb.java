@@ -76,71 +76,71 @@ public class MdfLubGlb {
     init(of(iso),      iso,     iso);
     init(of(imm),      imm,     imm);
     init(of(mut),      mut,     mut);
-    init(of(lent),     lent,    lent);
+    init(of(mutH), mutH, mutH);
     init(of(read),     read,    read);
-    init(of(readOnly), readOnly,readOnly);
+    init(of(readH), readH, readH);
 
     init(of(iso,imm),        iso, imm);
     init(of(iso,mut),        iso, mut);
-    init(of(iso,lent),       iso, lent);
+    init(of(iso, mutH),       iso, mutH);
     init(of(iso, read),      iso, read);
-    init(of(iso, readOnly),  iso, readOnly);
+    init(of(iso, readH),  iso, readH);
     init(of(imm, mut),       iso, read);//is it read?//test confirms
-    init(of(imm, lent),      iso, readOnly); //accidentally wrote read
+    init(of(imm, mutH),      iso, readH); //accidentally wrote read
     init(of(imm, read),      imm, read);
-    init(of(imm, readOnly),  imm, readOnly);
-    init(of(mut, lent),      mut, lent);
+    init(of(imm, readH),  imm, readH);
+    init(of(mut, mutH),      mut, mutH);
     init(of(mut, read),      mut, read);
-    init(of(mut, readOnly),  mut, readOnly);
-    init(of(lent, read),     mut, readOnly);
-    init(of(lent, readOnly), lent,readOnly);//accidentally wrote mut
-    init(of(read, readOnly), read,readOnly);
+    init(of(mut, readH),  mut, readH);
+    init(of(mutH, read),     mut, readH);
+    init(of(mutH, readH), mutH, readH);//accidentally wrote mut
+    init(of(read, readH), read, readH);
 
     init(of(iso, imm, mut),        iso,  read);
-    init(of(iso, imm, lent),       iso,  readOnly);
+    init(of(iso, imm, mutH),       iso, readH);
     init(of(iso, imm, read),       iso,  read);
-    init(of(iso, imm, readOnly),   iso,  readOnly);
-    init(of(iso, mut, lent),       iso,  lent);
+    init(of(iso, imm, readH),   iso, readH);
+    init(of(iso, mut, mutH),       iso, mutH);
     init(of(iso, mut, read),       iso,  read);
-    init(of(iso, mut, readOnly),   iso,  readOnly);
-    init(of(iso, lent, read),      iso,  readOnly);//accidentally wrote read
-    init(of(iso, lent, readOnly),  iso,  readOnly);
-    init(of(iso, read, readOnly),  iso,  readOnly);
-    init(of(imm, mut, lent),       iso,  readOnly);//accidentally wrote read
+    init(of(iso, mut, readH),   iso, readH);
+    init(of(iso, mutH, read),      iso, readH);//accidentally wrote read
+    init(of(iso, mutH, readH),  iso, readH);
+    init(of(iso, read, readH),  iso, readH);
+    init(of(imm, mut, mutH),       iso, readH);//accidentally wrote read
     init(of(imm, mut, read),       iso,  read);
-    init(of(imm, mut, readOnly),   iso,  readOnly);
-    init(of(imm, lent, read),      iso,  readOnly);
-    init(of(imm, lent, readOnly),  iso,  readOnly);
-    init(of(imm, read, readOnly),  imm,  readOnly);
-    init(of(mut, lent, read),      mut,  readOnly);//accidentally wrote read
-    init(of(mut, lent, readOnly),  mut,  readOnly);
-    init(of(mut, read, readOnly),  mut,  readOnly);
-    init(of(lent, read, readOnly), mut, readOnly);//accidentally wrote lent instead of mut
+    init(of(imm, mut, readH),   iso, readH);
+    init(of(imm, mutH, read),      iso, readH);
+    init(of(imm, mutH, readH),  iso, readH);
+    init(of(imm, read, readH),  imm, readH);
+    init(of(mut, mutH, read),      mut, readH);//accidentally wrote read
+    init(of(mut, mutH, readH),  mut, readH);
+    init(of(mut, read, readH),  mut, readH);
+    init(of(mutH, read, readH), mut, readH);//accidentally wrote lent instead of mut
 
-    init(of(iso, imm, mut, lent),       iso, readOnly);
+    init(of(iso, imm, mut, mutH),       iso, readH);
     init(of(iso, imm, mut, read),       iso, read);
-    init(of(iso, imm, mut, readOnly),   iso, readOnly);
-    init(of(iso, imm, lent, read),      iso, readOnly);
-    init(of(iso, imm, lent, readOnly),  iso, readOnly);
-    init(of(iso, imm, read, readOnly),  iso, readOnly);
-    init(of(iso, mut, lent, read),      iso, readOnly);
-    init(of(iso, mut, lent, readOnly),  iso, readOnly);
-    init(of(iso, mut, read, readOnly),  iso, readOnly);
-    init(of(iso, lent, read, readOnly), iso, readOnly);
-    init(of(imm, mut, lent, read),      iso, readOnly);
-    init(of(imm, mut, lent, readOnly),  iso, readOnly);
-    init(of(imm, mut, read, readOnly),  iso, readOnly);
-    init(of(imm, lent, read, readOnly), iso, readOnly);
-    init(of(mut, lent, read, readOnly), mut, readOnly);
+    init(of(iso, imm, mut, readH),   iso, readH);
+    init(of(iso, imm, mutH, read),      iso, readH);
+    init(of(iso, imm, mutH, readH),  iso, readH);
+    init(of(iso, imm, read, readH),  iso, readH);
+    init(of(iso, mut, mutH, read),      iso, readH);
+    init(of(iso, mut, mutH, readH),  iso, readH);
+    init(of(iso, mut, read, readH),  iso, readH);
+    init(of(iso, mutH, read, readH), iso, readH);
+    init(of(imm, mut, mutH, read),      iso, readH);
+    init(of(imm, mut, mutH, readH),  iso, readH);
+    init(of(imm, mut, read, readH),  iso, readH);
+    init(of(imm, mutH, read, readH), iso, readH);
+    init(of(mut, mutH, read, readH), mut, readH);
 
-    init(of(iso, imm, mut, lent, read),      iso, readOnly);
-    init(of(iso, imm, mut, lent, readOnly),  iso, readOnly);
-    init(of(iso, imm, mut, read, readOnly),  iso, readOnly);
-    init(of(iso, imm, lent, read, readOnly), iso, readOnly);
-    init(of(iso, mut, lent, read, readOnly), iso, readOnly);
-    init(of(imm, mut, lent, read, readOnly), iso, readOnly);
+    init(of(iso, imm, mut, mutH, read),      iso, readH);
+    init(of(iso, imm, mut, mutH, readH),  iso, readH);
+    init(of(iso, imm, mut, read, readH),  iso, readH);
+    init(of(iso, imm, mutH, read, readH), iso, readH);
+    init(of(iso, mut, mutH, read, readH), iso, readH);
+    init(of(imm, mut, mutH, read, readH), iso, readH);
 
-    init(of(iso, imm, mut, lent, read, readOnly), iso, readOnly);
+    init(of(iso, imm, mut, mutH, read, readH), iso, readH);
     
     assert lubMap.size()==63;
     assert glbMap.size()==63;

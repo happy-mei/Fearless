@@ -100,11 +100,11 @@ public interface GenericBounds {
           if (bs.contains(Mdf.mut) || bs.contains(Mdf.iso)) {
             return bounds.containsAll(XBs.defaultBounds);
           }
-          if (!bs.contains(Mdf.mut) && !bs.contains(Mdf.iso) && bs.contains(Mdf.lent)) {
-            return bounds.containsAll(Set.of(Mdf.imm, Mdf.readOnly, Mdf.lent));
+          if (!bs.contains(Mdf.mut) && !bs.contains(Mdf.iso) && bs.contains(Mdf.mutH)) {
+            return bounds.containsAll(Set.of(Mdf.imm, Mdf.readH, Mdf.mutH));
           }
-          if (!bs.contains(Mdf.mut) && !bs.contains(Mdf.iso) && !bs.contains(Mdf.lent) && bs.contains(Mdf.readOnly)) {
-            return bounds.containsAll(Set.of(Mdf.imm, Mdf.readOnly));
+          if (!bs.contains(Mdf.mut) && !bs.contains(Mdf.iso) && !bs.contains(Mdf.mutH) && bs.contains(Mdf.readH)) {
+            return bounds.containsAll(Set.of(Mdf.imm, Mdf.readH));
           }
           if (bs.size() == 1 && bs.contains(Mdf.imm)) { return bounds.contains(Mdf.imm); }
           throw Bug.unreachable();

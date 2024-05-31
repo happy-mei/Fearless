@@ -14,7 +14,6 @@ import utils.Push;
 import utils.Range;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /*//as in the paper
@@ -30,7 +29,7 @@ import java.util.stream.IntStream;
 public interface EMethTypeSystem extends ETypeSystem {
   /** priority for overloading over receiver modifier */
   List<Mdf> recvPriority = List.of(
-    Mdf.iso, Mdf.mut, Mdf.imm, Mdf.recMdf, Mdf.read, Mdf.lent, Mdf.readOnly);
+    Mdf.iso, Mdf.mut, Mdf.imm, Mdf.recMdf, Mdf.read, Mdf.mutH, Mdf.readH);
   static List<Mdf> inferPriority(Mdf recvMdf) {
     var base = recvPriority.stream().filter(mdf->mdf != recvMdf).toList();
     return Push.of(recvMdf, base);
