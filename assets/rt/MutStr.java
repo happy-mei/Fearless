@@ -53,7 +53,8 @@ public final class MutStr implements Str {
       idx = idx + str.utf8().length;
     }
     var res = Str.fromTrustedUtf8(utf8);
-    buffer = null;
+    buffer.clear(); // cant just set to null, because we use .freeze for just normal reading too (not just for ->imm)
+    buffer.add(res);
     return res;
   }
 }

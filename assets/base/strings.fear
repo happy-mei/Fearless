@@ -1,5 +1,5 @@
 package base
-Str: Sealed,Stringable,base.flows.NaturalFold[Str]{
+Str: Sealed,Stringable,base.flows.Joinable[Str]{
   .size: Nat,
   .isEmpty: Bool,
   +(other: read Stringable): Str,
@@ -41,7 +41,7 @@ _StrInstance: Str{
   .append(_) -> Magic!,
   .clear -> Magic!,
   .flow -> Magic!,
-  .naturalFold(_) -> Magic!,
+  .join(_) -> Magic!,
   ._flow -> Magic!,
   ._flow(_,_) -> Magic!,
   }

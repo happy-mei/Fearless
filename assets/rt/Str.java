@@ -61,7 +61,7 @@ public interface Str extends base.Str_0 {
 	@Override default base.Bool_0 isEmpty$imm() {
 		return this.utf8().length == 0 ? True_0.$self : False_0.$self;
 	}
-	@Override default Str naturalFold$imm(Flow_1 flow_m$) {
+	@Override default Str join$imm(Flow_1 flow_m$) {
 		return (Str) flow_m$.fold$mut(EMPTY, (_acc, _str) -> {
 			var acc = (Str) _acc;
 			var str = (Str) _str;
