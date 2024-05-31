@@ -123,7 +123,7 @@ public class TestMethsPost5a {
    *
    * ----test two meth with mut as meth modifier can be composed
    *
-   * ----test two meths, one with mut and one with lent CAN NOT be composed
+   * ----test two meths, one with mut and one with mutH CAN NOT be composed
    *
    * ------
    * A:B{ m:A }//fails

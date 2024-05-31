@@ -199,7 +199,7 @@ public interface Program {
   static boolean filterByMdf(Mdf mdf, Mdf mMdf) {
     assert !mdf.isMdf();
     if (mdf.is(Mdf.iso, Mdf.mut, Mdf.recMdf, Mdf.mdf)) { return true; }
-    if (mdf.isLent() && !mMdf.isIso()) { return true; }
+    if (mdf.isMutH() && !mMdf.isIso()) { return true; }
     return mdf.is(Mdf.imm, Mdf.read, Mdf.readImm, Mdf.readH) && mMdf.is(Mdf.imm, Mdf.read, Mdf.readH, Mdf.recMdf);
   }
 

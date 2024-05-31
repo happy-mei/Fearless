@@ -48,13 +48,13 @@ public class TestCaptureRules {
   String codeGen2a = """
     package test
     B:{}
-    L[X:readOnly,lent,read,mut,imm]:{ %s .absMeth: %s X }
+    L[X:readH,mutH,read,mut,imm]:{ %s .absMeth: %s X }
     A:{ recMdf .m(par: %s B) : %s L[%s B] -> %s L[%s B]{.absMeth->par} }
     """;
   String codeGen2b = """
     package test
     B:{}
-    L[X:readOnly,lent,read,mut,imm]:{ %s .absMeth: %s X }
+    L[X:readH,mutH,read,mut,imm]:{ %s .absMeth: %s X }
     L:L[%s B]
     A:{ recMdf .m(par: %s B) : %s L -> %s L{.absMeth->par} }
     """;
@@ -115,13 +115,13 @@ public class TestCaptureRules {
   String codeGen3a = """
     package test
     B:{}
-    L[X:readOnly,lent,read,mut,imm]:{ %s .absMeth: %s X }
-    A:{ recMdf .m[T:readOnly,lent,read,mut,imm](par: %s T) : %s L[%s T] -> %s L[%s T]{.absMeth->par} }
+    L[X:readH,mutH,read,mut,imm]:{ %s .absMeth: %s X }
+    A:{ recMdf .m[T:readH,mutH,read,mut,imm](par: %s T) : %s L[%s T] -> %s L[%s T]{.absMeth->par} }
     """;
   String codeGen3b = """
     package test
     B:{}
-    L[X:readOnly,lent,read,mut,imm]:{ %s .absMeth: %s X }
+    L[X:readH,mutH,read,mut,imm]:{ %s .absMeth: %s X }
     L:L[%s B]
     A:{ recMdf .m(par: %s B) : %s L -> %s L{.absMeth->par} }
     """;
@@ -637,7 +637,7 @@ public class TestCaptureRules {
   @Test void t2107(){ c2(recMdf, readH, readH, of(/*impossible*/)); }
   //                     lambda, captured, method, ...capturedAs
   @Test void t2111(){ c2(imm, mutH, readH, of(/*impossible*/)); }
-  @Test void t2112(){ c2(readH, mutH, readH, of(readH)); }// captures lent as recMdf (adapt)
+  @Test void t2112(){ c2(readH, mutH, readH, of(readH)); }// captures mutH as recMdf (adapt)
   @Test void t2113(){ c2(mutH, mutH, readH, of(readH)); }//the lambda is created read, and can not become anything else but imm.
   @Test void t2114(){ c2(mut, mutH, readH, of(/*impossible*/)); }//NOT NoMutHyg
   @Test void t2115(){ c2(iso, mutH, readH, of(/*impossible*/)); }
@@ -1469,9 +1469,9 @@ public class TestCaptureRules {
 //write counterexample
 
 /*
-//NO-a mut lambda could capture a lent as iso inside an iso method?
+//NO-a mut lambda could capture a mutH as iso inside an iso method?
 A:{
-  read .foo(par: lent Break): mut BreakBox -> { par }
+  read .foo(par: mutH Break): mut BreakBox -> { par }
   }
 BreakBox:{
   iso .release: iso Break // would this be allowed?
@@ -1486,7 +1486,7 @@ similar, the A.foo(myRead) can be promoted to iso
 For the Generix X capture version:
 @Test void t051(){ c(imm,   mdf,   imm); }
 @Test void t052(){ c(read,  mdf,   imm,   of(imm,read)); }
-@Test void t053(){ c(lent,  mdf,   imm,   of(imm,read)); }
+@Test void t053(){ c(mutH,  mdf,   imm,   of(imm,read)); }
 @Test void t054(){ c(mut,   mdf,   imm); }//NOT NoMutHyg
 @Test void t055(){ c(iso,   mdf,   imm); }//NOT NoMutHyg
 @Test void t056(){ c(mdf,   mdf,   imm); }

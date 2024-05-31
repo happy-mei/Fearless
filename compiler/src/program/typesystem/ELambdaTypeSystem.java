@@ -142,7 +142,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public Optional<T> getO(String x) {
         return g().getO(x).map(t->{
           if (t.mdf().isMdf()) { return t.withMdf(Mdf.iso); }
-          return t.mdf().isReadOnly() ? t.withMdf(Mdf.read) : t;
+          return t.mdf().isReadH() ? t.withMdf(Mdf.read) : t;
         });
       }
       @Override public List<String> dom() { return g().dom(); }
@@ -151,10 +151,10 @@ interface ELambdaTypeSystem extends ETypeSystem{
 
     };
     var mMdf = m.mdf();
-    var g0 = readOnlyAsReadG.captureSelf(xbs(), selfName, selfT, mMdf.isReadOnly() ? Mdf.read : mMdf);
+    var g0 = readOnlyAsReadG.captureSelf(xbs(), selfName, selfT, mMdf.isReadH() ? Mdf.read : mMdf);
     var gg  = Streams.zip(
       m.xs(),
-      sig.ts().stream().map(t->t.mdf().isReadOnly() ? t.withMdf(Mdf.read) : t).toList()
+      sig.ts().stream().map(t->t.mdf().isReadH() ? t.withMdf(Mdf.read) : t).toList()
     ).fold(Gamma::add, g0);
     return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret());
   }

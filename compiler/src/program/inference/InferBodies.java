@@ -267,7 +267,7 @@ public record InferBodies(ast.Program p) {
   }
   public static T replaceOnlyInfers(T user, T inferred) {
     if (user.isInfer()) {
-      if (inferred.rt() instanceof Id.IT<T> inferredIT && Magic.isLiteral(inferredIT.name().name())) {
+      if (!inferred.isInfer() && inferred.rt() instanceof Id.IT<T> inferredIT && Magic.isLiteral(inferredIT.name().name())) {
           inferred = new T(inferred.mdf(), LiteralToType.of(inferredIT));
       }
       return inferred;

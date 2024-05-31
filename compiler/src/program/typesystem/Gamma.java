@@ -69,7 +69,7 @@ public interface Gamma {
   }
   static T xT(String x, XBs xbs, Mdf self, T captured, Mdf mMdf){
     // TODO: see where the self == iso is handled, should preferably happen here
-    assert !self.isReadImm() && !mMdf.isReadImm() && !self.isLent() && !self.isReadOnly() && !self.isRecMdf();
+    assert !self.isReadImm() && !mMdf.isReadImm() && !self.isMutH() && !self.isReadH() && !self.isRecMdf();
     var bounds = captured.isMdfX() ? xbs.get(captured.gxOrThrow()) : null;
     assert !captured.isMdfX() || Objects.nonNull(bounds);
     if (captured.isMdfX() && of(imm, iso).containsAll(bounds)) { return captured.withMdf(imm); }
@@ -83,18 +83,18 @@ public interface Gamma {
         // TODO: check formalism
         // TODO: add tests
         if (mMdf.isRead() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readImm); }
-        if (mMdf.isLent() && of(imm, mut, read).containsAll(bounds)) { return captured.withMdf(mutH); }
-        if (mMdf.isLent() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readH); }
-        if (mMdf.isReadOnly() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readH); }
+        if (mMdf.isMutH() && of(imm, mut, read).containsAll(bounds)) { return captured.withMdf(mutH); }
+        if (mMdf.isMutH() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readH); }
+        if (mMdf.isReadH() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readH); }
         if (mMdf.isRecMdf() && of(imm, mut, read).containsAll(bounds)) { return captured.withMdf(recMdf); }
       }
       if (mMdf.isMut() && captured.mdf().is(mut, read, readImm)) { return captured; }
       if (mMdf.isImm() && captured.mdf().is(mut, read, readImm)) { return captured.withMdf(imm); }
       if (mMdf.isRead() && captured.mdf().is(mut, read)) { return captured.withMdf(read); }
       if (mMdf.isRead() && captured.mdf().is(readImm)) { return captured.withMdf(readImm); }
-      if (mMdf.isLent() && captured.mdf().is(mut)) { return captured.withMdf(mutH); }
-      if (mMdf.isLent() && captured.mdf().is(read, readImm)) { return captured; }
-      if (mMdf.isReadOnly() && captured.mdf().isMut()) { return captured.withMdf(readH); }
+      if (mMdf.isMutH() && captured.mdf().is(mut)) { return captured.withMdf(mutH); }
+      if (mMdf.isMutH() && captured.mdf().is(read, readImm)) { return captured; }
+      if (mMdf.isReadH() && captured.mdf().isMut()) { return captured.withMdf(readH); }
       if (mMdf.isRecMdf()) {
         throw Bug.of("no more recMdf (ﾉಥ益ಥ)ﾉ");
       }

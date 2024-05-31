@@ -462,13 +462,13 @@ class TestFullParserWithBetterErrors {
     {test.A1/1=Dec[name=test.A1/1,gxs=[B],bounds={B=[imm]},lambda=[-infer-][]{}],
     test.A2/1=Dec[name=test.A2/1,gxs=[B],bounds={B=[imm,mut]},lambda=[-infer-][]{}],
     test.A3/2=Dec[name=test.A3/2,gxs=[B,C],bounds={B=[imm,mut]},lambda=[-infer-][]{}],
-    test.A4/3=Dec[name=test.A4/3,gxs=[B,C,D],bounds={B=[imm,mut],D=[lent,readOnly]},lambda=[-infer-][]{}]}
+    test.A4/3=Dec[name=test.A4/3,gxs=[B,C,D],bounds={B=[imm,mut],D=[mutH,readH]},lambda=[-infer-][]{}]}
     """, """
     package test
     A1[B: imm]:{}
     A2[B: imm,mut]:{}
     A3[B: imm,mut, C]:{}
-    A4[B: imm,mut, C, D: readOnly,lent]:{}
+    A4[B: imm,mut, C, D: readH,mutH]:{}
     """); }
 
   @Test void concreteGensImm() { ok("""

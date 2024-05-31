@@ -274,21 +274,21 @@ public class TestJavaProgram {
       .return{ Usage#io }
       }
     Usage:{
-      #(io: lent IO): Void -> io.println("Hello, World!"),
+      #(io: mutH IO): Void -> io.println("Hello, World!"),
       }
     """); }
-  @Disabled // TODO: no lent lambdas, refactor for the new approach
+  @Disabled // TODO: no mutH lambdas, refactor for the new approach
   @Test void printlnShareLentCapture() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     alias base.caps.IO as IO, alias base.caps.UnrestrictedIO as UnrestrictedIO,
     Test:Main{ s -> Block#
       .let[mut IO] io = { UnrestrictedIO#s }
-      .return{ lent Usage{ io }# }
+      .return{ mutH Usage{ io }# }
       }
     Usage:{
-      lent .io: lent IO,
-      lent #: Void -> this.io.println("Hello, World!"),
+      mutH .io: mutH IO,
+      mutH #: Void -> this.io.println("Hello, World!"),
       }
     """); }
 

@@ -105,13 +105,12 @@ public interface EMethTypeSystem extends ETypeSystem {
   }
   private boolean selectOverload(CM cm, Mdf mdf0){
     if (!Program.isSubType(mdf0,cm.mdf())){
-      if (mdf0.isReadOnly() && cm.mdf().isRead()) { return true; }
+      //readH could be passed to a read for example.
+      if (mdf0.isReadH() && cm.mdf().isRead()) { return true; }
       return false;
     }
     if (expectedT().isEmpty()){ return true; }
     //TODO: What about promotions? This strategy as it is now, is good enough to check the standard library.
-    //readH could be passed to a read for example.
-    if (mdf0.isReadOnly() && cm.mdf().isRead()) { return true; }
     //Full check. Too strict, promotions
     //return expectedT().stream()
     //  .anyMatch(t->p().isSubType(xbs(),cm.ret(),t));
@@ -157,7 +156,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     sig[mut=iso, read=imm, readonly=imm]
     sig[mut=iso, read=imm]
     sig
-    sig[result=hygienic][mut=iso, read=readonly] //ignoring the mut/iso
-    sig[result=hygenic][1_mut=lent, other_muts=iso, read=imm ] //if only 1 mut exists
+    sig[result=hygienic][mut=iso, read=readH] //ignoring the mut/iso
+    sig[result=hygenic][1_mut=mutH, other_muts=iso, read=imm ] //if only 1 mut exists
 
    */

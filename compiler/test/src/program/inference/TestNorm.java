@@ -28,7 +28,7 @@ public class TestNorm {
       }}
     """, """
     package base
-    Abort: {![R:readOnly,lent,read,mut,imm,iso]: R -> this!}
+    Abort: {![R:readH,mutH,read,mut,imm,iso]: R -> this!}
     Opts: {#[T](x: T): mut Opt[T] -> {
        .match(m) -> m.some(x),
       }}

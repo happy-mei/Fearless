@@ -66,7 +66,7 @@ Sum:{
 
 IterForEacher[E]:{ mut #(e: E): Void }
 IterFolder[E,R]:{ mut #(acc: R, e: E): R }
-IterScanner[E, R, S]:{ lent #(state: mut Var[S], e: E): S }
+IterScanner[E, R, S]:{ mutH #(state: mut Var[S], e: E): S }
 IterMapper[E,R]:OptMap[E, R]
 IterPredicate[E]:{ mut #(e: E): Bool }
 

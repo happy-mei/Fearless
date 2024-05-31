@@ -344,18 +344,18 @@ public class TestWellFormedness {
   @Test void noLentLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:17
     [E63 invalidLambdaMdf]
-    lent is not a valid modifier for a lambda.
+    mutH is not a valid modifier for a lambda.
     """, """
     package test
-    A: {#: lent A -> {}}
+    A: {#: mutH A -> {}}
     """); }
   @Test void noReadOnlyLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:21
     [E63 invalidLambdaMdf]
-    readOnly is not a valid modifier for a lambda.
+    readH is not a valid modifier for a lambda.
     """, """
     package test
-    A: {#: readOnly A -> {}}
+    A: {#: readH A -> {}}
     """); }
 
   @Test void noImplGeneric() {fail("""

@@ -22,10 +22,10 @@ Logic:{
 IPerson:{ .name: Str, .age: Nat }
 IPerson':F[Str, Nat, IPerson]{ name, age -> { .name -> name, .age -> age } }
 Person:{
-  readOnly .name: Str,
-  readOnly .age: Nat,
+  readH .name: Str,
+  readH .age: Nat,
   mut .age(n: Nat): Void,
-  readOnly .str: Str -> "Person[name="+(this.name)+", age="+(this.age.str)+"]",
+  readH .str: Str -> "Person[name="+(this.name)+", age="+(this.age.str)+"]",
   }
 FPerson:F[Str, Nat, mut Person]{
   name, age -> Block#

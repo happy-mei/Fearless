@@ -9,20 +9,20 @@ public enum Mdf{
   read,mut,mutH,readH,iso,recMdf,mdf,imm,readImm;
   public boolean is(Mdf... valid){ return Arrays.stream(valid).anyMatch(v->this==v); }
   public boolean isMut(){return this == mut;}
-  public boolean isLent(){return this == mutH;}
-  public boolean isReadOnly(){return this == readH;}
+  public boolean isMutH(){return this == mutH;}
+  public boolean isReadH(){return this == readH;}
   public boolean isRead(){return this == read;}
   public boolean isIso(){return this == iso;}
   public boolean isRecMdf(){return this == recMdf;}
   public boolean isMdf(){return this == mdf;}
   public boolean isImm(){return this == imm;}
   public boolean isReadImm(){return this == readImm;}
-  public boolean isHyg(){return isReadOnly() || isLent();}
+  public boolean isHyg(){return isReadH() || isMutH();}
   public boolean couldBeHyg(){
     return isHyg() || isMdf() || isRecMdf();
   }
-  public boolean isLikeMut(){return isReadOnly() || isLent() || isMut() || isRead() || isReadImm();}
-  public boolean isStrong(){return isImm() || isReadOnly();}
+  public boolean isLikeMut(){return isReadH() || isMutH() || isMut() || isRead() || isReadImm();}
+  public boolean isStrong(){return isImm() || isReadH();}
   public Mdf adapt(ast.T t) {
     assert !(this.isRecMdf() && t.mdf().isMdf() && !t.isGX());
     return this.adapt(t.mdf());
@@ -78,13 +78,13 @@ public enum Mdf{
 
   public Optional<Mdf> restrict(Mdf mMdf) {
     if (this == mdf) { return Optional.of(mMdf); }
-    if (mMdf.isImm() || (this.isImm() && mMdf.isReadOnly()) || (this.isImm() && mMdf.isRecMdf()) || (this.isImm() && mMdf.isRead())) { return Optional.of(imm); }
+    if (mMdf.isImm() || (this.isImm() && mMdf.isReadH()) || (this.isImm() && mMdf.isRecMdf()) || (this.isImm() && mMdf.isRead())) { return Optional.of(imm); }
     if (mMdf.isRecMdf()) { return Optional.of(recMdf); }
-    if ((isLikeMut() && mMdf.isReadOnly()) || (isRecMdf() && mMdf.isReadOnly())) { return Optional.of(readH); }
-    if ((isIso() && mMdf.isReadOnly()) || (isIso() && mMdf.isRead())) { return Optional.of(imm); }
+    if ((isLikeMut() && mMdf.isReadH()) || (isRecMdf() && mMdf.isReadH())) { return Optional.of(readH); }
+    if ((isIso() && mMdf.isReadH()) || (isIso() && mMdf.isRead())) { return Optional.of(imm); }
     if (isIso() && mMdf.is(mut, mutH, iso)) { return Optional.of(mMdf); }
-    if (isLent() && mMdf.isMut()){ return Optional.of(mutH); }
-    if (mMdf.isLent()){ return Optional.of(mutH); }
+    if (isMutH() && mMdf.isMut()){ return Optional.of(mutH); }
+    if (mMdf.isMutH()){ return Optional.of(mutH); }
     if ((isMut() && mMdf.isIso()) || (isMut() && mMdf.isMut())) { return Optional.of(mut); }
     if (isRecMdf() && mMdf.is(mutH, mut, iso)) { return Optional.of(readH); }
     if (mMdf.isRead()) { return Optional.of(read); }

@@ -369,7 +369,7 @@ public class TestSigInference {
       .m7/0([]):Sig[gens=[],ts=[],ret=imma.B[]]->this:infer.m7/0[-]([]):infer}]}
     """, """
     package a
-    A[X]:{ .m1:X,  .m2: mut X, .m3: iso X, .m4: lent X,
+    A[X]:{ .m1:X,  .m2: mut X, .m3: iso X, .m4: mutH X,
             recMdf .m5: recMdf X, .m7: imm X
           }
     B:A[B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5,

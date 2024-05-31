@@ -115,7 +115,7 @@ public class MdfLubGlb {
     init(of(mut, mutH, read),      mut, readH);//accidentally wrote read
     init(of(mut, mutH, readH),  mut, readH);
     init(of(mut, read, readH),  mut, readH);
-    init(of(mutH, read, readH), mut, readH);//accidentally wrote lent instead of mut
+    init(of(mutH, read, readH), mut, readH);//accidentally wrote mutH instead of mut
 
     init(of(iso, imm, mut, mutH),       iso, readH);
     init(of(iso, imm, mut, read),       iso, read);
