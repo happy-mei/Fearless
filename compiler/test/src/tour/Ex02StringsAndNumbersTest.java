@@ -1,10 +1,12 @@
 package tour;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import utils.Base;
+import utils.RunOutput;
 
+import static codegen.java.RunJavaProgramTests.ok;
 import static tour.TourHelper.*;
-public class Ex02StringsAndNumbers {
+public class Ex02StringsAndNumbersTest {
 /*
 # Strings and numeric types
 
@@ -34,7 +36,8 @@ With `T` in `Nat`,`Int`,`Float`,`Num`, they support the following conventional o
   >=(n: T): Bool,
   <=(n: T): Bool,
   ==(n: T): Bool,
-  // TODO: add .assertEq
+  .assertEq(actual: T): Void,
+  .assertEq(message: Str, actual: T): Void,
 ```
 This means that we can only operate on homogeneous numeric types.
 We can sum two `Int` but we can not directly sum `Int` and `Float`.
@@ -42,46 +45,39 @@ In other languages, this is allowed through a process called coercion.
 We think that coercion is the source of plenty of bugs.
 Instead, in Fearless you convert numeric types to each other manually, by using those methods:
 ```
-  readH .int: Int,
-  readH .nat: Nat,
-  readH .float: Float,
-  readH .num: Num,
+  read .nat: Nat,
+  read .int: Int,
+  read .float: Float,
+  read .num: Num,
 ```
 All numeric types support all of those methods, so `myInt.int` is just going to just return itself.
-They take a `readH` receiver, so that if somehow the type system have lost the knowledge that a numeric type is immutable, we can recover it. This is safe since all instances of numeric types are always immutable.
+They take a `read` receiver, so that if somehow the type system have lost the knowledge that a numeric type is immutable, we can recover it. This is safe since all instances of numeric types are always immutable.
 This can happen for example when generic code is used, and integers are passed to satisfy a `read` parameter.
 
 `Int` and `Nat` support also binary operations:
-```
-  >>(n: T): T, //Nick version
-  <<(n: T): T,
-  ^ (n: T): T,
-  & (n: T): T,
-  | (n: T): T,
-```  
 
 ```
-  .rightShift(n: Nat): T, //Marco version (should take an Int or a Nat, but the same for both types!)
-  .leftShift(n: Nat): T,
-  .bitwiseXor(n: T): T,
-  .bitwiseAnd(n: T): T,
-  .bitwiseOr(n: T): T,
+  .shiftRight(n: Nat): T,
+  .shiftLeft(n: Nat): T,
+  .xor(n: T): T,
+  .and(n: T): T,
+  .or(n: T): T,
 ```  
 It is however quite rare to need those operations in Fearless code.
   
 Finally, all the numeric types have a method
 ```
-  readH .str: Str,
+  read .str: Str,
 ```
 returning a string.
-// We should use `read` everywhere we used `readH` due to our read promotion rules. A readH can call a read method like this
-// (i.e. takes no args & returns an imm)
+// We are using `read` everywhere, since `readH` will transparently work too
+//due to our read promotion rules (i.e. takes no args & returns an imm)
 
 The code below shows those numeric types in action.
 -------------------------*/@Test void numericTypes() { run("""
     package test
     Test:Main {sys ->Block#
-      .let ten = {10}// the Nat 10, 32 bit unsigned
+      .let ten = {10}// the Nat 10, 64 bit unsigned
       .let pTen = {+10} //Int +10, 64 bit signed
       .let mTen = {-10} //Int -10, 64 bit signed
       .let zero = pTen + mTen
@@ -92,7 +88,7 @@ The code below shows those numeric types in action.
       //I hate this. Any better idea?
       .let ok = {+10 + -10}
     //.let err = {+10 + - 10}//error: method Int.+() does not exists
-      //this is less drammatic, since that space is really innatural
+      //this is less drammatic, since - 10 is really innatural
       .let mixTypes1 = {fTen + (ten.float)}
       .let mixTypes2 = {fTen.nat + ten} //very different results!
       .return {UnrestrictedIO#sys.println(ten.str)}
@@ -314,4 +310,22 @@ it still allows for chains like this
 //Much later,Next: importance of closing
 
 */
+
+  @Test void unsignedUnderflowOverFlow() { ok(new RunOutput.Res("45", "", 0), """
+    package test
+    Test:Main {sys -> UnrestrictedIO#sys.println(((15 - 20) + 50).str)}
+    """, Base.mutBaseAliases);}
+
+  @Test void intDivByZero() { ok(new RunOutput.Res("", "Program crashed with: / by zero", 1), """
+    package test
+    Test:Main {sys -> Block#(+5 / +0) }
+    """, Base.mutBaseAliases);}
+  @Test void uIntDivByZero() { ok(new RunOutput.Res("", "Program crashed with: / by zero", 1), """
+    package test
+    Test:Main {sys -> Block#(5 / 0) }
+    """, Base.mutBaseAliases);}
+  @Test void floatDivByZero() { ok(new RunOutput.Res("", "", 0), """
+    package test
+    Test:Main {sys -> Assert!((5.0 / 0.0).isInfinite) }
+    """, Base.mutBaseAliases);}
 }

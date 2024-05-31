@@ -398,7 +398,7 @@ public record JavaMagicImpls(
         ObjCapImpl impl = null;
         if (target == Magic.RootCap) { impl = (ctx, m1, args1) -> null; }
         if (target == Magic.FEnv) { impl = env(); }
-        if (target == Magic.FIO) { impl = io(); }
+        if (target == Magic.UnrestrictedIO) { impl = io(); }
         if (target == Magic.FRandomSeed) { impl = randomSeed(); }
         assert impl != null;
 

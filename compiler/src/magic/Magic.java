@@ -12,6 +12,7 @@ import java.util.function.Function;
 import ast.E.Lambda;
 import ast.E.Lambda.LambdaId;
 import ast.T.Dec;
+import utils.Bug;
 
 public class Magic {
   public static final Id.DecId Main = new Id.DecId("base.Main", 0);
@@ -52,12 +53,12 @@ public class Magic {
   // object capabilities
   public static final Id.DecId SystemImpl = new Id.DecId("base.caps._System", 0);
   public static final Id.DecId RootCap = new Id.DecId("base.caps.RootCap", 0);
-  public static final Id.DecId FIO = new Id.DecId("base.caps.FIO", 0);
+  public static final Id.DecId UnrestrictedIO = new Id.DecId("base.caps.UnrestrictedIO", 0);
   public static final Id.DecId FEnv = new Id.DecId("base.caps.FEnv", 0);
   public static final Id.DecId FRandomSeed = new Id.DecId("base.caps.FRandomSeed", 0);
   public static final List<Id.DecId> ObjectCaps = List.of(
     RootCap,
-    FIO,
+    UnrestrictedIO,
     FEnv,
     Debug,
     FRandomSeed
@@ -124,24 +125,40 @@ public class Magic {
     return Optional.empty();
   }
 
-  private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
+  public enum LiteralKind {
+    Str,
+    Int,
+    Nat,
+    Float,
+  }
+  public static LiteralKind getLiteralKind(Id.DecId id) {
+    assert isLiteral(id.name());
     var lit = id.name();
     if (isNumberLiteral(lit)) {
       if (lit.matches("[+-][\\d_]*\\d+$")) {
-        return Optional.of(resolve.apply(new Id.DecId("base._IntInstance", 0)));
+        return LiteralKind.Int;
       }
       if (lit.matches("-?[\\d_]*\\d+\\.[\\d_]*\\d+$")) {
-        return Optional.of(resolve.apply(new Id.DecId("base._FloatInstance", 0)));
+        return LiteralKind.Float;
       }
       if (lit.matches("[\\d_]*\\d+$")) {
-        return Optional.of(resolve.apply(new Id.DecId("base._NatInstance", 0)));
+        return LiteralKind.Nat;
       }
-      return Optional.empty();
     }
     if (isStringLiteral(lit)) {
-      return Optional.of(resolve.apply(new Id.DecId("base._StrInstance", 0)));
+      return LiteralKind.Str;
     }
-    assert !isLiteral(lit);
-    return Optional.empty();
+    throw Bug.of("Unknown literal kind: " + id);
+  }
+
+  private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
+    var lit = id.name();
+    if (!isLiteral(lit)) { return Optional.empty(); }
+    return Optional.of(switch (getLiteralKind(id)) {
+      case Str -> resolve.apply(new Id.DecId("base._StrInstance", 0));
+      case Int -> resolve.apply(new Id.DecId("base._IntInstance", 0));
+      case Nat -> resolve.apply(new Id.DecId("base._NatInstance", 0));
+      case Float -> resolve.apply(new Id.DecId("base._FloatInstance", 0));
+    });
   }
 }

@@ -8,7 +8,7 @@ import static utils.RunOutput.Res;
 import static codegen.java.RunJavaProgramTests.*;
 import static tour.TourHelper.*;
 
-public class Ex02CollectionsTest {
+public class Ex03CollectionsTest {
 /*
 ----Lists----
 Lists manipulation is crucial in most software development
@@ -27,7 +27,7 @@ the elements in strings, as shown below.
       .let myList= {List#[Int](5, 10, 15)}
       .var  myStr= {myList.str {n->n.str}}
       .var  myStr= {myList.str ::str}
-      .return{FIO#sys.println(myStr)}
+      .return{UnrestrictedIO#sys.println(myStr)}
       }
     //prints [5, 10, 15]
     """); }/*--------------------------------------------
@@ -48,7 +48,7 @@ Here we first map the elements to strings using 'number.str'
         }
       .let myStr= {myList.flow.map::str#"; "} //options
       .let myStr= {myList.flow.map{::str}#"; "}
-      .return{FIO#sys.println(myStr)}//we agreed parenthesis needed
+      .return{UnrestrictedIO#sys.println(myStr)}//we agreed parenthesis needed
       }
     //prints 5; 10; 15
     """); }/*--------------------------------------------
@@ -66,7 +66,7 @@ size of the list. In this case a dynamic error is thrown.
       .let list = {List#[Str]}//YES spaces on both sides of =?
       .do {list.add("YAY!")}
       .var  yay = {list.get(0)}
-      .return {FIO#sys.println(yay)}
+      .return {UnrestrictedIO#sys.println(yay)}
       }
     //prints YAY!
     """); }/*--------------------------------------------
@@ -106,7 +106,7 @@ Many maps are on Str or Int types
     Ints
     Opts#bob
     NewOpts#foo
-    FIO#sys
+    UnrestrictedIO#sys
     IOs#sys //
     Opt[T]
     NewHtml.a
@@ -127,8 +127,8 @@ Many maps are on Str or Int types
           .and{Unsigns.compare#{p->p.age}}
     }
     Test:Main {sys -> Block#
-      .let print= {mut _:{mut #(s:Str):Void->FIO#sys.println(s)}}
-      //.let print= {mut Fresh:{mut #(s:Str):Void->FIO#sys.println(s)}}
+      .let print= {mut _:{mut #(s:Str):Void->UnrestrictedIO#sys.println(s)}}
+      //.let print= {mut Fresh:{mut #(s:Str):Void->UnrestrictedIO#sys.println(s)}}
       .let mapStr = {Map.str(
         "Alice", 24,
         "Bob", 30)}
@@ -152,7 +152,7 @@ Many maps are on Str or Int types
       .do {map.put("Bob", 30)}
       .let bobAgeOpt = {map.get("Bob")}
       .let bobAge = {bobAgeOpt!}
-      .return {FIO#sys.println(bobAge.str)}
+      .return {UnrestrictedIO#sys.println(bobAge.str)}
       }
       //30
     """);}

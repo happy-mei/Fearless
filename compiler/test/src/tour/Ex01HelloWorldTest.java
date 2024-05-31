@@ -21,26 +21,12 @@ Assume in folder 'myFolder' we have a file with the following content:
     -------------------------*/@Test void helloWorld() { run("""
     package test
     alias base.Main as Main,
-    alias base.caps.FIO as UnrestrictedIO,
+    alias base.caps.UnrestrictedIO as UnrestrictedIO,
     //alias base.caps.UnrestrictedIO as UnrestrictedIO,//should it be like this?
     
     Test:Main {sys -> UnrestrictedIO#sys.println("Hello, World!")}
     //prints Hello, World!
     """); }/*--------------------------------------------
-To run it, we specify the fully qualified name of the runnable type `test.Test`.
-  `> java -jar fearless.jar -e test.Test -r myFolder`//From nick
-  `> java -jar fearless.jar myFolder test.Test`//marco's new favorite.
-If we look in the folder again, we will see that there is now a subfolder `/out`
-containing the code that was compiled. (as 'myFolder.far')
-
-That command actually runs two separate commands:
--  `> java -jar fearless.jar myFolder` This just compiles
--  `> java -jar fearless.jar myFolder test.Test`  This ignores the source and runs the compiled code
-We can re run the code without re-compiling by using the second command.
-
-Fearless attempt to be system independent with the idea that if a common system does prevent a specific thing, Fearless will conservatively prevent it too.
-For example: a fearless file can not be called aux.fear (invalid on Windows)
-Two fearless files in a fearless folder can not have equal name except case (invalid on Windows)
 
 The code above is a minimal Hello World program.
 - In the first line we declare that our file belongs to the package 'test'.
@@ -61,13 +47,7 @@ is quite verbose.
 We do not expect this code to be very common in Fearless.
 If someone is printing just because they want a debugging printout, the can use
 -------------------------*/@Test void helloWorldDebug() { run("""
-    Test:Main {sys -> base.Debug.log("Hello, World!")}//OK
-    Test:Main {sys -> base.Debug#("Hello, World!")} //OK
-    Test:Main {sys -> Block#(base.Debug#("Hello, World!"),Void)}
-    Test:Main {sys -> Discard#(base.Debug#("Hello, World!"))}
-    Test:Main {sys -> Block#.let _={base.Debug#("Hello, World!")}.done}
-    Test:Main {sys -> Block#.debug{"Hello, World!"}.done}
-    //This does not work, both for inference and because currently Debug returns the input?
+    Test:Main {sys -> base.Debug.println("Hello, World!")}//OK
     //prints Hello, World!
     """); }/*--------------------------------------------
 

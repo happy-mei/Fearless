@@ -6,7 +6,7 @@ import utils.RunOutput.Res;
 
 import static codegen.java.RunJavaProgramTests.ok;
 
-public class Ex17AssertionsTest {
+public class Ex25AssertionsTest {
   @Test void strAssertions() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main,

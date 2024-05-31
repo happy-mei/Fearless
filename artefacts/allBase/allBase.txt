@@ -143,7 +143,7 @@ IO: {
   mut .printErr(msg: Str): Void,
   mut .printlnErr(msg: Str): Void,
   }
-FIO:F[mut System, mut IO],Sealed{
+UnrestrictedIO:F[mut System, mut IO],Sealed{
   s -> {
     .print(msg) -> Magic!,
     .println(msg) -> Magic!,
@@ -1913,7 +1913,7 @@ alias base.Str as Str,
 alias base.F as F, alias base.Consumer as Consumer,
 alias base.Main as AppMain, alias base.caps.System as System,
 alias base.List as List,
-alias base.caps.FIO as FIO, alias base.caps.IO as IO,
+alias base.caps.UnrestrictedIO as UnrestrictedIO, alias base.caps.IO as IO,
 alias base.Opt as Opt,
 alias base.Info as Info,
 alias base.flows.Flow as Flow,

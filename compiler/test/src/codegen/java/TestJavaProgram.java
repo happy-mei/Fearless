@@ -212,26 +212,26 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
     Test:Main{ s -> Block#
-      .let({ base.caps.FIO#s }, { io, s' -> s'.return{ io.println "Hello, World!" } })
+      .let({ base.caps.UnrestrictedIO#s }, { io, s' -> s'.return{ io.println "Hello, World!" } })
       }
     """);}
   @Test void printlnSugar() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
-    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
+    alias base.caps.IO as IO, alias base.caps.UnrestrictedIO as UnrestrictedIO,
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .return{ io.println("Hello, World!") }
       }
     """); }
   @Test void printlnDeeper() { ok(new Res("IO begets IO", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
-    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
+    alias base.caps.IO as IO, alias base.caps.UnrestrictedIO as UnrestrictedIO,
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .return{ Block#
-        .let io2 = { base.caps.FIO#s }
+        .let io2 = { base.caps.UnrestrictedIO#s }
         .return{ io2.println("IO begets IO") }
         }
       }
@@ -239,9 +239,9 @@ public class TestJavaProgram {
   @Test void print() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
-    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
+    alias base.caps.IO as IO, alias base.caps.UnrestrictedIO as UnrestrictedIO,
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .do{ io.print("Hello") }
       .return{ io.print(", World!") }
       }
@@ -249,18 +249,18 @@ public class TestJavaProgram {
   @Test void printlnErr() { ok(new Res("", "Hello, World!", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
-    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
+    alias base.caps.IO as IO, alias base.caps.UnrestrictedIO as UnrestrictedIO,
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .return{ io.printlnErr("Hello, World!") }
       }
     """); }
   @Test void printErr() { ok(new Res("", "Hello, World!", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
-    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
+    alias base.caps.IO as IO, alias base.caps.UnrestrictedIO as UnrestrictedIO,
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .do{ io.printErr("Hello") }
       .return{ io.printErr(", World!") }
       }
@@ -268,9 +268,9 @@ public class TestJavaProgram {
   @Test void printlnShareLent() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
-    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
+    alias base.caps.IO as IO, alias base.caps.UnrestrictedIO as UnrestrictedIO,
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .return{ Usage#io }
       }
     Usage:{
@@ -281,9 +281,9 @@ public class TestJavaProgram {
   @Test void printlnShareLentCapture() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
-    alias base.caps.IO as IO, alias base.caps.FIO as FIO,
+    alias base.caps.IO as IO, alias base.caps.UnrestrictedIO as UnrestrictedIO,
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .return{ lent Usage{ io }# }
       }
     Usage:{
@@ -295,9 +295,9 @@ public class TestJavaProgram {
   @Test void printlnSugarInferUse() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,
-    alias base.caps.FIO as FIO,
+    alias base.caps.UnrestrictedIO as UnrestrictedIO,
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .return{ io.println("Hello, World!") }
       }
     """); }
@@ -342,7 +342,7 @@ public class TestJavaProgram {
   static String cliArgsOrElseGet = """
     package test
     Test :Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .let env = { FEnv.io(io) }
       .return{ io.println(ImmMain#(env.launchArgs)) }
       }
@@ -371,7 +371,7 @@ public class TestJavaProgram {
   String getCliArgsOrElse = """
     package test
     Test: Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .let env = { FEnv#s }
       .return{ io.println(ImmMain#(env.launchArgs)) }
       }
@@ -618,7 +618,7 @@ public class TestJavaProgram {
     package test
     alias base.Nat as Nat, alias base.Str as Str,
     alias base.List as List, alias base.Block as Block,
-    alias base.caps.FIO as FIO, alias base.caps.IO as IO,
+    alias base.caps.UnrestrictedIO as UnrestrictedIO, alias base.caps.IO as IO,
     
     Test :base.Main{ sys -> Block#
         .let l1 = { List#[Nat](35, 52, 84, 14) }
@@ -631,7 +631,7 @@ public class TestJavaProgram {
           .flatMap{n -> List#(n, n, n).iter}
           .map{n -> n * 10}
           .str({n -> n.str}, ",")}
-        .let io = {FIO#sys}
+        .let io = {UnrestrictedIO#sys}
         .return {io.println(msg)}
         // prints 350,350,350,140,140,140
     }
@@ -640,7 +640,7 @@ public class TestJavaProgram {
     package test
     alias base.Nat as Nat, alias base.Str as Str,
     alias base.List as List, alias base.Block as Block,
-    alias base.caps.FIO as FIO, alias base.caps.IO as IO,
+    alias base.caps.UnrestrictedIO as UnrestrictedIO, alias base.caps.IO as IO,
     alias base.flows.Flow as Flow,
     
     Test: base.Main{ sys -> Block#
@@ -655,7 +655,7 @@ public class TestJavaProgram {
           .map{n -> n * 10}
           .map{n -> n.str}
           #(Flow.str ",")}
-        .let io = {FIO#sys}
+        .let io = {UnrestrictedIO#sys}
         .return {io.println(msg)}
         // prints 350,350,350,140,140,140
     }
@@ -739,7 +739,7 @@ public class TestJavaProgram {
   @Test void envFromRootAuth() { okWithArgs(new Res("hi bye", "", 0), List.of("hi", "bye"), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .let env = { FEnv#s }
       .return{ io.println(env.launchArgs.iter.str({arg -> arg.str}, " ")) }
       }
@@ -747,7 +747,7 @@ public class TestJavaProgram {
   @Test void envFromIO() { okWithArgs(new Res("hi bye", "", 0), List.of("hi", "bye"), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .return{ io.println(base.caps.FEnv.io(io).launchArgs.iter.str({arg -> arg.str}, " ")) }
       }
     """, Base.mutBaseAliases); }
@@ -755,14 +755,14 @@ public class TestJavaProgram {
   @Test void intExp() { ok(new Res("3125", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .return{ io.println(5 ** 5 .str) }
       }
     """, Base.mutBaseAliases); }
   @Test void uintExp() { ok(new Res("3125", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .return{ io.println(5 ** 5 .str) }
       }
     """, Base.mutBaseAliases); }
@@ -804,7 +804,7 @@ public class TestJavaProgram {
     """.strip(), "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .let s1 = { IsoPod#[iso Str](iso "help, i'm alive") }
       .do{ PrintMsg#(io, s1) }
       .return{ io.println("consume: " + (s1!)) }
@@ -824,8 +824,8 @@ public class TestJavaProgram {
         .let[mut IsoPod[iso Str]] pod = { IsoPod#[iso Str] iso "hi" }
         .return{pod!}
         }.resMatch{
-          .ok(msg) -> FIO#s.println(msg),
-          .err(info) -> FIO#s.printlnErr(info.str),
+          .ok(msg) -> UnrestrictedIO#s.println(msg),
+          .err(info) -> UnrestrictedIO#s.printlnErr(info.str),
         }
       }
     """, Base.mutBaseAliases); }
@@ -837,8 +837,8 @@ public class TestJavaProgram {
         .do{ Block#(pod!) }
         .return{pod!}
         }.resMatch{
-          .ok(msg) -> FIO#s.println(msg),
-          .err(info) -> FIO#s.printlnErr(info.msg),
+          .ok(msg) -> UnrestrictedIO#s.println(msg),
+          .err(info) -> UnrestrictedIO#s.printlnErr(info.msg),
         }
       }
     """, Base.mutBaseAliases); }
@@ -898,7 +898,6 @@ public class TestJavaProgram {
       """, Base.mutBaseAliases);
   }
 
-  // TODO: regression in the new type system
   @Test void callingMultiSigAmbiguousDiffRet() { ok(new Res("", "", 0), """
     package test
     alias base.Void as Void, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
@@ -1006,7 +1005,7 @@ public class TestJavaProgram {
   @Test void immFromVarImmPrimitive() { ok(new Res("5", "", 0), """
     package test
     Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
+      #(s) -> UnrestrictedIO#s.println(this.m2.str),
       .m1(r: read Var[Int]): Int -> r.get,
       .m2: Int -> this.m1(Var#(+5)),
       }
@@ -1015,7 +1014,7 @@ public class TestJavaProgram {
   @Test void llistFilterMultiMdf() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .let[LList[Int]] l = { LList# + +12 + +13 + +14 }
       .do { io.println(A.m1(l)) }
       .return {{}}
@@ -1029,7 +1028,7 @@ public class TestJavaProgram {
   @Test void listFilterMultiMdf() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .let[List[Int]] l = { List#(+12, +13, +14) }
       .do { io.println(A.m1(l)) }
       .return {{}}
@@ -1044,7 +1043,7 @@ public class TestJavaProgram {
   @Test void llistFilterMultiMdfMut() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .let[mut LList[Int]] l = { LList# + +12 + +13 + +14 }
       .do { io.println(A.m1(l)) }
       .return {{}}
@@ -1058,7 +1057,7 @@ public class TestJavaProgram {
   @Test void listFilterMultiMdfMut() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .let[mut List[Int]] l = { List#[Int](+12, +13, +14) }
       .do { io.println(A.m1(l)) }
       .return {{}}
@@ -1073,7 +1072,7 @@ public class TestJavaProgram {
   @Test void llistFilterMultiMdfRead() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .let[mut LList[Int]] l = { LList#[Int] + +12 + +13 + +14 }
       .do { io.println(A.m1(l)) }
       .return {{}}
@@ -1087,7 +1086,7 @@ public class TestJavaProgram {
   @Test void listFilterMultiMdfRead() { ok(new Res("13, 14", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let io = { FIO#s }
+      .let io = { UnrestrictedIO#s }
       .let[mut List[Int]] l = { List#[Int](+12, +13, +14) }
       .do { io.println(A.m1(l)) }
       .return {{}}
@@ -1102,7 +1101,7 @@ public class TestJavaProgram {
   @Test void strMap() { ok(new Res("23\n32\n230\nhi", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .let[mut Var[mut LinkedLens[Str, Nat]]] m = { Var#[mut LinkedLens[Str, Nat]](mut StrMap[Nat]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
@@ -1123,7 +1122,7 @@ public class TestJavaProgram {
   @Test void strMapImm() { ok(new Res("23\n32\n230\nhi", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .let[mut Var[LinkedLens[Str, Nat]]] m = { Var#[LinkedLens[Str, Nat]](StrMap[Nat]) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
@@ -1143,7 +1142,7 @@ public class TestJavaProgram {
   @Test void strMapRead() { ok(new Res("23\n32\n230\nhi", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .let[mut Var[read LinkedLens[Str, read Int]]] m = { Var#[read LinkedLens[Str, read Int]]({k1,k2 -> k1 == k2}) }
       .do{ m := (m*.put("Nick", +23)) }
       .do{ m := (m*.put("Bob", +32)) }
@@ -1164,7 +1163,7 @@ public class TestJavaProgram {
   @Test void lensMap() { ok(new Res("23\n32\n230\nhi", "", 0), """
     package test
     Test:Main{ s -> Block#
-      .let[mut IO] io = { FIO#s }
+      .let[mut IO] io = { UnrestrictedIO#s }
       .let[mut Var[Lens[Str, Nat]]] m = { Var#[Lens[Str, Nat]]({k1,k2 -> k1 == k2}) }
       .do{ m := (m*.put("Nick", 23)) }
       .do{ m := (m*.put("Bob", 32)) }
@@ -1182,13 +1181,13 @@ public class TestJavaProgram {
   @Test void tryCatch1() { ok(new Res("Happy", "", 0), """
     package test
 //    Test:Main{s ->
-//      FIO#s.println(Try#[Str](
+//      UnrestrictedIO#s.println(Try#[Str](
 //        {"Happy"},
 //        {err->err.str}
 //        ))
 //      }
     Test:Main{s ->
-      FIO#s.println(Try#[Str]{"Happy"}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{"Happy"}.resMatch{
         .ok(res) -> res,
         .err(err) -> err.str,
         })
@@ -1197,13 +1196,13 @@ public class TestJavaProgram {
   @Test void tryCatch2() { ok(new Res("oof", "", 0), """
     package test
 //    Test:Main{s ->
-//      FIO#s.println(Try#[Str](
+//      UnrestrictedIO#s.println(Try#[Str](
 //        {Error.msg("oof")},
 //        {err->err.str}
 //        ))
 //      }
     Test:Main{s ->
-      FIO#s.println(Try#[Str]{Error.msg("oof")}.match{ .a(a) -> a, .b(err) -> err.msg })
+      UnrestrictedIO#s.println(Try#[Str]{Error.msg("oof")}.match{ .a(a) -> a, .b(err) -> err.msg })
       }
     """, Base.mutBaseAliases);}
   @Test void error1() { ok(new Res("", "Program crashed with: \"yolo\" ", 1), """
@@ -1219,7 +1218,7 @@ public class TestJavaProgram {
     Test:Main{s ->
       Try#{Opt[Str]!}.match{
         .a(_) -> {},
-        .b(info) -> FIO#s.printlnErr(info.msg),
+        .b(info) -> UnrestrictedIO#s.printlnErr(info.msg),
         }
       }
     """, Base.mutBaseAliases);}
@@ -1251,7 +1250,7 @@ public class TestJavaProgram {
       .age: Nat -> age,
       }}
     Test: Main{
-      #(sys) -> FIO#sys.println(this.name(this.create)),
+      #(sys) -> UnrestrictedIO#sys.println(this.name(this.create)),
     
       .create: Person -> FPerson#("Bob", 24),
       .name(p: Person): Str -> p.name,
@@ -1304,7 +1303,7 @@ public class TestJavaProgram {
   @Test void lazyCall() { ok(new Res("hey", "", 0), """
     package test
     Test: Main{sys -> Block#
-      .let[Void] x = {FIO#sys.println("hey")}
+      .let[Void] x = {UnrestrictedIO#sys.println("hey")}
       .return {Void}
       }
     """, Base.mutBaseAliases); }
@@ -1312,7 +1311,7 @@ public class TestJavaProgram {
     package test
     Test: Main{sys -> Block#
       .if {True} .return {Void}
-      .let[Void] x = {FIO#sys.println("hey")}
+      .let[Void] x = {UnrestrictedIO#sys.println("hey")}
       .return {Void}
       }
     """, Base.mutBaseAliases); }
@@ -1352,7 +1351,7 @@ public class TestJavaProgram {
 
   @Test void namedLiteral() {ok(new Res("Bob", "", 0), """
     package test
-    Test: Main{sys -> FIO#sys.println(CanCall# .str)}
+    Test: Main{sys -> UnrestrictedIO#sys.println(CanCall# .str)}
     
     Bob:{read .str: Str -> "Bob"}
     Bar[X]: {.m(x: X): mut Foo[X] -> mut Foo[X]:{
@@ -1363,7 +1362,7 @@ public class TestJavaProgram {
 
   @Test void immThisAsImmInReadMethod() { ok(new Res("cool", "", 0), """
     package test
-    Test: Main{sys -> FIO#sys.println(A.m1.str)}
+    Test: Main{sys -> UnrestrictedIO#sys.println(A.m1.str)}
     A: {.m1: imm B -> B: {'self
       imm .foo: B -> self,
       read .bar: B -> self.foo,
@@ -1373,7 +1372,7 @@ public class TestJavaProgram {
 
   @Test void stringableString() { ok(new Res("Hello, World!", "", 0), """
     package test
-    Test: Main{sys -> FIO#sys.println(Foo.msg("Hello, World"))}
+    Test: Main{sys -> UnrestrictedIO#sys.println(Foo.msg("Hello, World"))}
     Foo: {.msg(start: Stringable): Str -> start.str + "!"}
     """, Base.mutBaseAliases); }
 }

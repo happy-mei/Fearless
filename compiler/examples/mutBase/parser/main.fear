@@ -1,6 +1,6 @@
 package parser
 App:Main{ s -> Block#
-  .let io = {FIO#s}
+  .let io = {UnrestrictedIO#s}
   .let[Str] input = {"123\n678\n"}
   .let parsed = {Parse#(input)}
   .return {io.println(parsed.flow#(Flow.str ", "))}

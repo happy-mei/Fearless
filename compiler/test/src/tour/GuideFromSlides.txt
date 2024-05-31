@@ -468,7 +468,7 @@ We can obtain a `Block[T]` by calling `Block#` without parameters.
 Example:
 Fearless```
 MyApp:Main{s->Block#
-  .let[mut Fs] fs = {FIO#s}
+  .let[mut Fs] fs = {UnrestrictedIO#s}
   .var content = {fs.read("data.txt")}
   .if {content.size > 5} .return {s.println("Big")}
   .return {s.println("Small")}
@@ -480,7 +480,7 @@ This is just a layer of syntactic sugar encoding a simplified continuation passi
 Removing this layer of sugar the code would look as follow:
 Fearless```
 MyApp:Main{s->Block#
-  .let[mut Fs]({FIO#s}, {fs,self1->self1
+  .let[mut Fs]({UnrestrictedIO#s}, {fs,self1->self1
     .var({fs.read("data.txt")}, {content,self2->self2
       .if {content.size > 5} .return {s.println("Big")}
       .return{s.println("Small")}
@@ -986,7 +986,7 @@ IO:{
   mut .printErr(msg: Str): Void,
   mut .printlnErr(msg: Str): Void,
   }
-FIO:F[mut System, mut IO],Sealed{
+UnrestrictedIO:F[mut System, mut IO],Sealed{
   s -> {
     .print(msg) -> Magic!,
     .println(msg) -> Magic!,

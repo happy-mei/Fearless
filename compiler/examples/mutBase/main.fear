@@ -1,6 +1,6 @@
 package examples
 MyApp:Main{ s -> Block#
-  .let io = { FIO#s }
+  .let io = { UnrestrictedIO#s }
   .let args = { FEnv#s.launchArgs }
   .return{ io.println(ImmMain#args) }
   }

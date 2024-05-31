@@ -1,12 +1,12 @@
 package capstesting
 alias base.Block as Block,
 alias base.caps.FEnv as FEnv,
-alias base.caps.FIO as FIO,
+alias base.caps.UnrestrictedIO as UnrestrictedIO,
 
 Nothing:base.Main{ s -> Block#
   .assert({ FEnv#s
     .launchArgs.head! == "hi"
     }, FEnv#s.launchArgs.head!)
-  .do{ FIO#s.println("Hello, World!") }
+  .do{ UnrestrictedIO#s.println("Hello, World!") }
   .return{{}}
 }

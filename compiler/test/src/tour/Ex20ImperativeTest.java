@@ -6,20 +6,20 @@ import utils.Base;
 import static codegen.java.RunJavaProgramTests.ok;
 import static utils.RunOutput.Res;
 
-public class Ex13ImperativeTest {
+public class Ex20ImperativeTest {
   @Test void ifTerminatesTrue() { ok(new Res("hi\nyay", "", 0), """
     package test
     Test:Main {sys -> Block#[Void]
-      .if {True} .do {FIO#sys.println("hi")}
-      .do {FIO#sys.println("yay")}
+      .if {True} .do {UnrestrictedIO#sys.println("hi")}
+      .do {UnrestrictedIO#sys.println("yay")}
       .done
       }
     """, Base.mutBaseAliases); }
   @Test void ifTerminatesFalse() { ok(new Res("yay", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .if {False} .do {FIO#sys.println("hi")}
-      .do {FIO#sys.println("yay")}
+      .if {False} .do {UnrestrictedIO#sys.println("hi")}
+      .do {UnrestrictedIO#sys.println("yay")}
       .return {Void}
       }
     """, Base.mutBaseAliases); }
@@ -60,7 +60,7 @@ public class Ex13ImperativeTest {
     """, Base.mutBaseAliases); }
   @Test void earlyReturnLoop() { ok(new Res("10", "", 0), """
     package test
-    Test:Main {sys -> (FIO#sys).println(Foo#)}
+    Test:Main {sys -> (UnrestrictedIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
       .let n = {Count.int(+0)}
       .loop {Block#
@@ -73,7 +73,7 @@ public class Ex13ImperativeTest {
     """, Base.mutBaseAliases); }
   @Test void earlyReturnLoopEarlyExit() { ok(new Res("Boo :(", "", 0), """
     package test
-    Test:Main {sys -> (FIO#sys).println(Foo#)}
+    Test:Main {sys -> (UnrestrictedIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
       .let n = {Count.int(+0)}
       .loop {Block#

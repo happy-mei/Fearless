@@ -10,7 +10,7 @@ IO: {
   mut .printlnErr(msg: Str): Void,
 //  mut .path(path: Path): mut base.caps.fs.FS,
   }
-FIO:F[mut System, mut IO],Sealed{
+UnrestrictedIO:F[mut System, mut IO],Sealed{
   s -> {
     .print(msg) -> Magic!,
     .println(msg) -> Magic!,

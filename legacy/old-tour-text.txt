@@ -1,0 +1,14 @@
+To run it, we specify the fully qualified name of the runnable type `test.Test`.
+  `> java -jar fearless.jar -e test.Test -r myFolder`//From nick
+  `> java -jar fearless.jar myFolder test.Test`//marco's new favorite.
+If we look in the folder again, we will see that there is now a subfolder `/out`
+containing the code that was compiled. (as 'myFolder.far')
+
+That command actually runs two separate commands:
+-  `> java -jar fearless.jar myFolder` This just compiles
+-  `> java -jar fearless.jar myFolder test.Test`  This ignores the source and runs the compiled code
+We can re run the code without re-compiling by using the second command.
+
+Fearless attempt to be system independent with the idea that if a common system does prevent a specific thing, Fearless will conservatively prevent it too.
+For example: a fearless file can not be called aux.fear (invalid on Windows)
+Two fearless files in a fearless folder can not have equal name except case (invalid on Windows)

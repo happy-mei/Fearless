@@ -525,7 +525,7 @@ public class TestTypeSystemWithBase {
     """, """
     package test
     Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
+      #(s) -> UnrestrictedIO#s.println(this.m2.str),
       .m1(r: mut Var[Nat]): Nat -> Block#
         .do{ r := 12 }
         .let[read Var[Nat]] rr = { r }
@@ -596,7 +596,7 @@ public class TestTypeSystemWithBase {
     package test
     Test: Main{s -> Block#
       .let myList = {List#[Int](+5, +10, -15)}
-      .do {FIO#s.println(myList.get(0) .str)}
+      .do {UnrestrictedIO#s.println(myList.get(0) .str)}
       .return {Void}
       }
     """, Base.mutBaseAliases); }
@@ -604,7 +604,7 @@ public class TestTypeSystemWithBase {
     package test
     Test: Main{s -> Block#
       .let[List[Int]] myList = {List#(+5, +10, -15)}
-      .do {FIO#s.println(myList.get(0) .str)}
+      .do {UnrestrictedIO#s.println(myList.get(0) .str)}
       .return {Void}
       }
     """, Base.mutBaseAliases); }

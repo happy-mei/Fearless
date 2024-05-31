@@ -6,7 +6,7 @@ import utils.RunOutput;
 
 import static codegen.java.RunJavaProgramTests.ok;
 
-public class Ex14RandomTest {
+public class Ex21RandomTest {
   static final String RNG_ALIASES = """
     package test
     alias base.rng.FRandom as FRandom,
@@ -14,12 +14,12 @@ public class Ex14RandomTest {
     """;
   @Test void generatesNumber() { ok(new RunOutput.Res("570564682", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println((FRandom#1337).nat.str)}
+    Test:Main {sys -> UnrestrictedIO#sys.println((FRandom#1337).nat.str)}
     """, Base.mutBaseAliases, RNG_ALIASES); }
 
   @Test void generatesFloat() { ok(new RunOutput.Res("0.26568988443617236", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println((FRandom#1337).float.str)}
+    Test:Main {sys -> UnrestrictedIO#sys.println((FRandom#1337).float.str)}
     """, Base.mutBaseAliases, RNG_ALIASES); }
 
   @Test void generatesNumberWithRandomSeed() { ok(new RunOutput.Res("", "", 0), """
@@ -37,7 +37,7 @@ public class Ex14RandomTest {
 
   @Test void generatesMultipleNumbers() { ok(new RunOutput.Res("570564682\n1499355484\n1372376065\n1209872585\n241596240", "", 0), """
     package test
-    Test:Main {sys -> Rng#(FRandom#1337, FIO#sys, Count.nat(5))}
+    Test:Main {sys -> Rng#(FRandom#1337, UnrestrictedIO#sys, Count.nat(5))}
     Rng: {#(rng: mut Random, io: mut IO, n: mut Count[Nat]): Void -> Block#
       .loop {n.get == 0 ? {.then -> ControlFlow.break, .else -> Block#(io.println(rng.nat.str), n--, ControlFlow.continue)}}
       .return {{}}
@@ -46,7 +46,7 @@ public class Ex14RandomTest {
 
   @Test void generatesMultipleNumbersInRange() { ok(new RunOutput.Res("10 18 17 16 7 14 15 18 17 6", "", 0), """
     package test
-    Test:Main {sys -> Rng#(FRandom#1337, FIO#sys, Count.nat(10))}
+    Test:Main {sys -> Rng#(FRandom#1337, UnrestrictedIO#sys, Count.nat(10))}
     Rng: {#(rng: mut Random, io: mut IO, n: mut Count[Nat]): Void -> Block#
       .loop {n.get == 0 ? {.then -> ControlFlow.break, .else -> Block#(io.print(rng.nat(5, 25).str+" "), n--, ControlFlow.continue)}}
       .return {{}}
@@ -56,14 +56,14 @@ public class Ex14RandomTest {
   @Test void generatesNumberDifferentSeed() { ok(new RunOutput.Res("570564682\n1717387703", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .do {FIO#sys.println((FRandom#1337).nat.str)}
-      .do {FIO#sys.println((FRandom#50000000).nat.str)}
+      .do {UnrestrictedIO#sys.println((FRandom#1337).nat.str)}
+      .do {UnrestrictedIO#sys.println((FRandom#50000000).nat.str)}
       .return {{}}
       }
     """, Base.mutBaseAliases, RNG_ALIASES); }
 
   @Test void generateRandomSeed() { ok(new RunOutput.Res("[###]", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(FRandomSeed#sys#.str)}
+    Test:Main {sys -> UnrestrictedIO#sys.println(FRandomSeed#sys#.str)}
     """, Base.mutBaseAliases, RNG_ALIASES); }
 }

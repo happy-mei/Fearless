@@ -10,13 +10,13 @@ alias base.flows.Flow as Flow, alias base.Consumer as Consumer,
 //      .if {state.get > 16} .return{Block#(downstream#500, {})}
 //      .do{downstream#42}
 //      .do {downstream#n}
-//      .return {{}}}, mut Consumer[mut Var[Int]]{state->FIO#sys.println(state.get.str)})
+//      .return {{}}}, mut Consumer[mut Var[Int]]{state->UnrestrictedIO#sys.println(state.get.str)})
 //    .map{n -> n.str}
 //    #(Flow.str " ")
 //  )}
 
 App:Main{ sys -> Block#
-  .let io = { FIO#sys }
+  .let io = { UnrestrictedIO#sys }
 //  .do{ io.println(FlowEx.emptyFlow.str) }
 //  .do{ io.println(FlowEx.oneElem.str) }
 //  .do{ io.println(FlowEx.listImm.str) }
