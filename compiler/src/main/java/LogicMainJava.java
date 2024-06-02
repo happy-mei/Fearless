@@ -83,7 +83,7 @@ class MakeJavaProcess{
             + File.pathSeparator
             + io.cachedBase().toAbsolutePath();
     var baseCommand = Stream.of(
-            jrePath, "-cp", classpath, entryPoint, io.entry());
+            jrePath, "-cp", classpath, "--enable-preview", entryPoint, io.entry());
     return Stream.concat(baseCommand,
                     io.commandLineArguments().stream())
             .toArray(String[]::new);

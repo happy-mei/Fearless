@@ -185,29 +185,4 @@ public class TestJavaOptimisations {
       .join ""
       )}
     """, Base.mutBaseAliases);}
-  @Test void dataParallelFlowInvalidation() { ok("""
-    package test;
-    public interface Test_0 extends base.Main_0{
-    Test_0 $self = new Test_0Impl();
-    base.Void_0 $hash$imm(base.caps.System_0 sys_m$);
-    static base.Void_0 $hash$imm$fun(base.caps.System_0 sys_m$, test.Test_0 $this) {
-      return rt.IO.$self.println$mut(((rt.Str)str$3297469917561599766$str$.$self.flow$imm().map$mut(test.Fear36$_0.$self).scan$mut(test.Fear42$_0.$self,test.Fear47$_0.$self).map$mut(test.Fear51$_0.$self).join$mut(str$6448469143720294743$str$.$self)));
-    }
-    }
-    """, "/test/Test_0.java", """
-    package test
-    StrInfo: Stringable{
-      .size: Nat,
-      .facts: Str -> this.size.str+" "+this.str,
-      }
-    Test: Main{sys -> FIO#sys.println("Hello".flow
-      .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
-      .scan[StrInfo](
-        {.size -> 0, .str -> ""},
-        {acc, ch -> {.size -> acc.size + 1, .str -> acc.str + ch}}
-        )
-      .map{i -> i.facts}
-      .join "\\n"
-      )}
-    """, Base.mutBaseAliases);}
 }

@@ -12,8 +12,6 @@ public class OptimisationBuilder {
   private final MagicImpls<?> magic;
   public OptimisationBuilder(MagicImpls<?> magic) {
     this.magic = magic;
-    // Add required passes (i.e. unsound without them)
-    this.passes.add(new DataParallelInvalidator());
   }
   public MIR.Program run(MIR.Program p) {
     var p_ = p;

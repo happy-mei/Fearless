@@ -43,15 +43,15 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Flow_1 actorMut$mut(Object state_m$, ActorImplMut_3 f_m$) {
-    return (Flow_1) _DataParallelInvalidStateful_0.$self.$exclamation$imm();
+    return _PipelineParallelFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).actorMut$mut(state_m$, f_m$);
   }
 
   public Flow_1 actor$mut(Object state_m$, ActorImpl_3 f_m$) {
-    return (Flow_1) _DataParallelInvalidStateful_0.$self.$exclamation$imm();
+    return _PipelineParallelFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).actor$mut(state_m$, f_m$);
   }
 
   public Flow_1 limit$mut(long n_m$) {
-    return (Flow_1) _DataParallelInvalidStateful_0.$self.$exclamation$imm();
+    return _PipelineParallelFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).limit$mut(n_m$);
   }
 
   public Opt_1 first$mut() {
@@ -113,7 +113,7 @@ public final class DataParallelFlow implements Flow_1 {
       }
 
       @Override public Object empty$mut() {
-        return fold$mut(0, (acc, n) -> ((long) acc) + ((long) n), (a, b) -> ((long) a) + ((long) b));
+        return fold$mut(0L, (acc, _) -> ((long) acc) + 1);
       }
     });
   }
@@ -132,6 +132,10 @@ public final class DataParallelFlow implements Flow_1 {
 
   public Object $hash$mut(Extension_2 ext_m$) {
     return Extensible_1.$hash$mut$fun(ext_m$, this);
+  }
+
+  public Object join$mut(base.flows.NaturalFold_1 f) {
+    return Flow_1.join$mut$fun(f, this);
   }
 
   public Void_0 for$mut(F_2 f_m$) {
@@ -192,7 +196,7 @@ public final class DataParallelFlow implements Flow_1 {
     }
 
     @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
-      UnrestrictedWorker.forRemaining(source_m$, downstream_m$, size);
+      ExploitWorker.forRemaining(source_m$, downstream_m$, size);
 //      nestLevel.incrementAndGet();
 //      if (stats == null) {
 //        stats = size >= 0 ? new Stats(size) : new Stats();

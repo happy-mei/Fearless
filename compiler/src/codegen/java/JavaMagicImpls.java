@@ -1,6 +1,7 @@
 package codegen.java;
 
 import ast.T;
+import codegen.FlowSelector;
 import codegen.MIR;
 import failure.Fail;
 import id.Id;
@@ -443,6 +444,8 @@ public record JavaMagicImpls(
     return (m, args, variants, expectedT)->{
       var call = (MIR.MCall) e;
       assert call.variant() == variants; // TODO: if this holds remove the variants param here
+      var parallelConstr = FlowSelector.bestParallelConstr(call);
+
       if (isMagic(Magic.FlowK, call.recv())) {
         if (m.name().equals("#")) {
           var listKCall = new MIR.MCall(
@@ -470,10 +473,9 @@ public record JavaMagicImpls(
 
       if (isMagic(Magic.Str, call.recv())) {
         if (m.name().equals(".flow")) {
-          if (call.canParallelise()) {
-            var flowConstr = variants.contains(MIR.MCall.CallVariant.DataParallelFlow) ? Magic.DataParallelFlowK : Magic.PipelineParallelFlowK;
+          if (parallelConstr.isPresent()) {
             String parFlow = gen.visitMCall(new MIR.MCall(
-              new MIR.CreateObj(Mdf.imm, flowConstr),
+              new MIR.CreateObj(Mdf.imm, parallelConstr.get()),
               new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
               List.of(
                 new MIR.MCall(
@@ -497,9 +499,9 @@ public record JavaMagicImpls(
 
       if (isMagic(Magic.LList, call.recv())) {
         if (m.name().equals(".flow")) {
-          if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
+          if (parallelConstr.isPresent()) {
             String parFlow = gen.visitMCall(new MIR.MCall(
-              new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK),
+              new MIR.CreateObj(Mdf.imm, parallelConstr.get()),
               new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
               List.of(
                 new MIR.MCall(
@@ -538,56 +540,34 @@ public record JavaMagicImpls(
           if (variants.contains(MIR.MCall.CallVariant.Standard)) {
             return Optional.empty();
           }
-        } else if (m.name().equals(".flow")) {
-          if (variants.contains(MIR.MCall.CallVariant.DataParallelFlow)) {
-            var parFlow = gen.visitMCall(new MIR.MCall(
-              new MIR.CreateObj(Mdf.imm, Magic.DataParallelFlowK),
-              new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
-              List.of(
-                new MIR.MCall(
-                  call.recv(),
-                  new Id.MethName(call.name().mdf(), "._flow"+call.mdf(), 1),
-                  List.of(new MIR.CreateObj(Mdf.imm, new Id.DecId("0", 0))),
-                  new MIR.MT.Plain(Mdf.mut, Magic.FlowOp),
-                  call.mdf(),
-                  EnumSet.of(MIR.MCall.CallVariant.Standard)
-                ),
-                new MIR.CreateObj(Mdf.imm, new Id.DecId("base.Opt", 1)) // TODO: list size
+        }
+        if (m.name().equals(".flow") && parallelConstr.isPresent()) {
+          var parFlow = gen.visitMCall(new MIR.MCall(
+            new MIR.CreateObj(Mdf.imm, parallelConstr.get()),
+            new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
+            List.of(
+              new MIR.MCall(
+                call.recv(),
+                new Id.MethName(call.name().mdf(), "._flow"+call.mdf(), 1),
+                List.of(new MIR.CreateObj(Mdf.imm, new Id.DecId("0", 0))),
+                new MIR.MT.Plain(Mdf.mut, Magic.FlowOp),
+                call.mdf(),
+                EnumSet.of(MIR.MCall.CallVariant.Standard)
               ),
-              MIR.MT.of(new T(Mdf.mut, new Id.IT<>("base.flows.Flow", ((MIR.MT.Usual)call.t()).it().ts()))),
-              Mdf.imm,
-              variants
-            ), true);
-            return Optional.of(parFlow);
-          }
-          if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
-            String parFlow = gen.visitMCall(new MIR.MCall(
-              new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK),
-              new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
-              List.of(
-                new MIR.MCall(
-                  call.recv(),
-                  new Id.MethName(call.name().mdf(), "._flow"+call.mdf(), 1),
-                  List.of(new MIR.CreateObj(Mdf.imm, new Id.DecId("0", 0))),
-                  new MIR.MT.Plain(Mdf.mut, Magic.FlowOp),
-                  call.mdf(),
-                  EnumSet.of(MIR.MCall.CallVariant.Standard)
-                ),
-                new MIR.CreateObj(Mdf.imm, new Id.DecId("base.Opt", 1)) // TODO: list size
-              ),
-              MIR.MT.of(new T(Mdf.mut, new Id.IT<>("base.flows.Flow", ((MIR.MT.Usual)call.t()).it().ts()))),
-              Mdf.imm,
-              variants
-            ), true);
-            return Optional.of(parFlow);
-          }
+              new MIR.CreateObj(Mdf.imm, new Id.DecId("base.Opt", 1)) // TODO: list size
+            ),
+            MIR.MT.of(new T(Mdf.mut, new Id.IT<>("base.flows.Flow", ((MIR.MT.Usual)call.t()).it().ts()))),
+            Mdf.imm,
+            variants
+          ), true);
+          return Optional.of(parFlow);
         }
       }
 
       if (isMagic(Magic.SafeFlowSource, call.recv())) {
-        if (variants.contains(MIR.MCall.CallVariant.PipelineParallelFlow)) {
+        if (parallelConstr.isPresent()) {
           String parFlow = gen.visitMCall(new MIR.MCall(
-            new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK),
+            new MIR.CreateObj(Mdf.imm, parallelConstr.get()),
             new Id.MethName(Optional.of(Mdf.imm), ".fromOp", 2),
             List.of(
               new MIR.MCall(
