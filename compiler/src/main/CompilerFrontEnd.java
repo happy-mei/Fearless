@@ -70,7 +70,7 @@ public record CompilerFrontEnd(BaseVariant bv, Verbosity v, TypeSystemFeatures t
       Files.writeString(dir.resolve("lib.fear"), "package " + name + "\nGreeting:{ .get: Str -> \"Hello, World!\" }\n");
       Files.writeString(dir.resolve("main.fear"), "package " + name + "\n"+"""
         App:Main{ sys -> Block#
-          .let io = {FIO#sys}
+          .let io = {UnrestrictedIO#sys}
           .let[Str] greeting = {Greeting.get}
           .return {io.println(greeting)}
           }

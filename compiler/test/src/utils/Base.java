@@ -60,7 +60,7 @@ public interface Base {
     alias base.caps.FileHandleMode as FileHandleMode,
     alias base.caps.Create as Create,
     
-    alias base.caps.FIO as FIO,
+    alias base.caps.UnrestrictedIO as UnrestrictedIO,
     alias base.caps.IO as IO,
     alias base.caps.Env as Env,
     alias base.caps.FEnv as FEnv,
@@ -138,5 +138,6 @@ public interface Base {
     
     alias base.Ordering as Ordering,
     alias base.FOrdering as FOrdering,
+    alias base.Debug as Debug,
     """;
 }

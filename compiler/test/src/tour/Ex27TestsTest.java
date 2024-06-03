@@ -7,15 +7,15 @@ import utils.RunOutput.Res;
 import static tour.TourHelper.run;
 import static codegen.java.RunJavaProgramTests.*;
 
-public class Ex15TestsTest {
+public class Ex27TestsTest {
   @Test void runTests() { run("""
     package test
     alias base.test.Main as TestMain,
-    alias base.Void as Void, alias base.caps.FIO as FIO,
+    alias base.Void as Void, alias base.caps.UnrestrictedIO as UnrestrictedIO,
     
     Test: TestMain{_, runner -> runner
       .test("Empty test", {sys -> Void})
-      .test("Printing test", {sys -> FIO#sys.println("Hello, world!")})
+      .test("Printing test", {sys -> UnrestrictedIO#sys.println("Hello, world!")})
       .run
       }
     //prints Hello, world!
@@ -23,13 +23,13 @@ public class Ex15TestsTest {
   @Test void runTestsWithSuite() { run("""
     package test
     alias base.test.Main as TestMain,
-    alias base.Void as Void, alias base.caps.FIO as FIO,
+    alias base.Void as Void, alias base.caps.UnrestrictedIO as UnrestrictedIO,
 
     
     Test: TestMain{_, runner -> runner
       .test("Empty test", {sys -> Void})
       .suite("Printing suite", {suite -> suite
-        .test("Printing test", {sys -> FIO#sys.println("Hello, world!")})
+        .test("Printing test", {sys -> UnrestrictedIO#sys.println("Hello, world!")})
         })
       .run
       }
@@ -49,9 +49,9 @@ public class Ex15TestsTest {
     Test: TestMain{system, runner -> runner
       .test("Empty test", {sys -> Void})
       .suite("Printing suite", {suite -> suite
-        .test("Printing test", {sys -> FIO#sys.println("Hello, world!")})
+        .test("Printing test", {sys -> UnrestrictedIO#sys.println("Hello, world!")})
         })
-      .withReporter(ResultPrinters#(FIO#system))
+      .withReporter(ResultPrinters#(UnrestrictedIO#system))
       .run
       }
     """, Base.mutBaseAliases); }
@@ -102,7 +102,7 @@ public class Ex15TestsTest {
     Test: TestMain{system, runner -> runner
       .test("Empty test", {sys -> Void})
       .suite("Printing suite", {suite -> suite
-        .test("Printing test", {sys -> FIO#sys.println("Hello, world!")})
+        .test("Printing test", {sys -> UnrestrictedIO#sys.println("Hello, world!")})
         .test("non-Printing test", {sys -> Void})
         .suite("nested", {suite' -> suite'
           .test("test1", {sys -> Void})
@@ -128,7 +128,7 @@ public class Ex15TestsTest {
       .suite("top level", {suite -> suite
         .test("test1", {sys -> Void})
         })
-      .withReporter(ResultPrinters#(FIO#system))
+      .withReporter(ResultPrinters#(UnrestrictedIO#system))
       .run
       }
     """, Base.mutBaseAliases); }

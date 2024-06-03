@@ -1,6 +1,6 @@
 package base.flows
 
-NaturalFold[T]: {.naturalFold(flow: mut Flow[T]): T}
+Joinable[T]: { .join(flow: mut Flow[T]): T }
 
 RestrictFlowReuse: {
   #[E](f: mut FlowOp[E]): mut FlowOp[E] -> Block#

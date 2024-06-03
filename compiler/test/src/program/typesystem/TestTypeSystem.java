@@ -14,7 +14,7 @@ import static program.typesystem.RunTypeSystem.ok;
 
 public class TestTypeSystem {
   //  TODO: mut Box[readOnly X] is not valid even after promotion
-  // TODO: .m: mut Box[X] must return lent Box[readOnly Person] if X becomes readOnly X (same with lent)
+  // TODO: .m: mut Box[X] must return mutH Box[readOnly Person] if X becomes readH X (same with lent)
   // TODO: Factory of mutBox and immBox, what types do we get?
 
   @Test void emptyProgram(){ ok("""
@@ -110,7 +110,7 @@ public class TestTypeSystem {
   @Test void callMutFromLent() { ok("""
     package test
     A:{
-      .b: lent B -> {},
+      .b: mutH B -> {},
       .doThing: Void -> this.b.foo.ret
       }
     B:{
@@ -122,7 +122,7 @@ public class TestTypeSystem {
   @Test void callMutFromLent2() { ok("""
     package test
     A:{
-      .b: lent B -> {},
+      .b: mutH B -> {},
       .doThing: mut B -> this.b
       }
     B:{}
@@ -138,19 +138,19 @@ public class TestTypeSystem {
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:4:30
         [E53 xTypeError]
-        Expected 'this' to be imm test.A[], got readOnly test.A[].
+        Expected 'this' to be imm test.A[], got readH test.A[].
     """, """
     package test
     A:{
-      readOnly .b: lent B -> {},
-      readOnly .doThing: mut B -> this.b
+      readH .b: mutH B -> {},
+      readH .doThing: mut B -> this.b
       }
     B:{}
     """); }
   @Test void callMutFromLent3() { ok("""
     package test
     A:{
-      .b(a: mut A): lent B -> {},
+      .b(a: mut A): mutH B -> {},
       .doThing: mut B -> this.b(iso A)
       }
     B:{}
@@ -169,7 +169,7 @@ public class TestTypeSystem {
     """, """
     package test
     A:{
-      .b(a: mut A): lent B -> {},
+      .b(a: mut A): mutH B -> {},
       .doThing: mut B -> this.b({})
       }
     B:{}
@@ -178,7 +178,7 @@ public class TestTypeSystem {
   @Test void callMutFromIso() { ok("""
     package test
     A:{
-      .b: lent B -> {},
+      .b: mutH B -> {},
       .doThing: Void -> this.b.foo.ret
       }
     B:{
@@ -222,11 +222,11 @@ public class TestTypeSystem {
   @Test void noCallMutFromReadOnly() { fail("""
     In position [###]/Dummy0.fear:4:26
     [E36 undefinedMethod]
-    .foo/0 does not exist in readOnly test.B[].
+    .foo/0 does not exist in readH test.B[].
     """, """
     package test
     A:{
-      .b: readOnly B -> {},
+      .b: readH B -> {},
       .doThing: Void -> this.b.foo.ret
       }
     B:{
@@ -254,19 +254,19 @@ public class TestTypeSystem {
   @Test void readThisIsRead() { ok("""
     package test
     A:{
-      readOnly .self: readOnly A -> this,
+      readH .self: readH A -> this,
       }
     """); }
   @Test void bicycle1() { fail("""
     In position [###]/Dummy0.fear:3:51
     [E32 noCandidateMeths]
     When attempting to type check the method call: b .wheel/0[]([]), no candidates for .wheel/0 returned the expected type recMdf test.Wheel[]. The candidates were:
-    (readOnly test.Bicycle[]): readOnly test.Wheel[]
+    (readOnly test.Bicycle[]): readH test.Wheel[]
     (imm test.Bicycle[]): imm test.Wheel[]
     """, """
     package test
     A:{
-      recMdf .wheel(b: readOnly Bicycle): recMdf Wheel -> b.wheel,
+      recMdf .wheel(b: readH Bicycle): recMdf Wheel -> b.wheel,
       }
     Bicycle:{
       recMdf .wheel: recMdf Wheel -> {}
@@ -276,7 +276,7 @@ public class TestTypeSystem {
   @Test void bicycle2() { ok("""
     package test
     A:{
-      readOnly .wheel(b: readOnly Bicycle): readOnly Wheel[readOnly Bicycle] -> b.wheel,
+      readH .wheel(b: readH Bicycle): readH Wheel[readOnly Bicycle] -> b.wheel,
       }
     Bicycle:{
       recMdf .wheel: recMdf Wheel[recMdf Bicycle] -> {}
@@ -288,8 +288,8 @@ public class TestTypeSystem {
   @Test void bicycle3() { ok("""
     package test
     A:{
-      readOnly .wheel(b: readOnly Bicycle): readOnly Wheel[readOnly Bicycle] -> b.wheel,
-      readOnly .accept(b: readOnly Bicycle, w: readOnly Wheel[readOnly Bicycle]): Voodo->
+      readH .wheel(b: readH Bicycle): readH Wheel[readOnly Bicycle] -> b.wheel,
+      readH .accept(b: readH Bicycle, w: readH Wheel[readOnly Bicycle]): Voodo->
         b.acceptWheel(w),
       }
     Bicycle:{
@@ -304,9 +304,9 @@ public class TestTypeSystem {
   @Test void bicycle4() { ok("""
     package test
     A[T]:{
-      readOnly .wheel1(b: readOnly Bicycle[T]): readOnly Wheel[readOnly T] -> b.wheel,
-      readOnly .wheel2(b: readOnly Bicycle[mut T]): readOnly Wheel[readOnly T] -> b.wheel,
-      readOnly .wheel3(b: readOnly Bicycle[imm T]): readOnly Wheel[imm T] -> b.wheel,
+      readH .wheel1(b: readH Bicycle[T]): readH Wheel[readOnly T] -> b.wheel,
+      readH .wheel2(b: readH Bicycle[mut T]): readH Wheel[readOnly T] -> b.wheel,
+      readH .wheel3(b: readH Bicycle[imm T]): readH Wheel[imm T] -> b.wheel,
       }
     Bicycle[T]:{
       recMdf .wheel: recMdf Wheel[recMdf T] -> {},
@@ -319,13 +319,13 @@ public class TestTypeSystem {
   @Test void bicycle5() { ok("""
     package test
     A[T]:{
-      readOnly .wheel1(b: readOnly Bicycle[T]): readOnly T -> b.wheel,
+      readH .wheel1(b: readH Bicycle[T]): readH T -> b.wheel,
       }
     Bicycle[T]:{
       recMdf .wheel: recMdf T -> Voodo.loop,
       }
     Voodo:{
-      readOnly .loop[T]: T -> this.loop,
+      readH .loop[T]: T -> this.loop,
       }
     Wheel[T]:{
       .getBike: T -> this.getBike,
@@ -335,18 +335,18 @@ public class TestTypeSystem {
     In position [###]/Dummy0.fear:3:55
     [E32 noCandidateMeths]
     When attempting to type check the method call: b .wheel/0[]([]), no candidates for .wheel/0 returned the expected type recMdf T. The candidates were:
-    (readOnly test.Bicycle[T]): readOnly T
+    (readOnly test.Bicycle[T]): readH T
     (imm test.Bicycle[T]): imm T
     """, """
     package test
     A[T]:{
-      recMdf .wheel1(b: readOnly Bicycle[T]): recMdf T -> b.wheel,
+      recMdf .wheel1(b: readH Bicycle[T]): recMdf T -> b.wheel,
       }
     Bicycle[T]:{
       recMdf .wheel: recMdf T -> Voodo.loop,
       }
     Voodo:{
-      readOnly .loop[T]: T -> this.loop,
+      readH .loop[T]: T -> this.loop,
       }
     Wheel[T]:{
       .getBike: T -> this.getBike,
@@ -368,15 +368,15 @@ public class TestTypeSystem {
     Box:{ recMdf #[R](r: recMdf R): recMdf Box[R] -> { r } }
     Box[R]:{ recMdf #: recMdf R }
     BoxF[R]:{ recMdf #: mut F[recMdf R] }
-    F[A,B]:{ readOnly #(a: A): B }
+    F[A,B]:{ readH #(a: A): B }
     F[A]:{readOnly #:A}
-    Usage[A,B]:{ #(b: mut Box[mut F[readOnly A, readOnly B]]): mut F[readOnly A, readOnly B] -> b# }
-    Usage2[A,B]:{ readOnly #(b: mut Box[mut F[readOnly A, readOnly B]]): mut F[readOnly A, readOnly B] -> b# }
+    Usage[A,B]:{ #(b: mut Box[mut F[readOnly A, readH B]]): mut F[readOnly A, readH B] -> b# }
+    Usage2[A,B]:{ readH #(b: mut Box[mut F[readOnly A, readH B]]): mut F[readOnly A, readH B] -> b# }
     // This is okay because adapterOk works in ways that are dark and mysterious
-    Usage3[A,B]:{ recMdf #(b: recMdf Box[recMdf F[readOnly A, readOnly B]]): recMdf F[recMdf A, readOnly B] -> b# }
-    Usage4[A,B]:{ readOnly #(b: mut Box[mut F[A]]): mut F[A] -> b# }
-    Usage5[A,B]:{ readOnly #(b: mut Box[mut F[A]]): mut F[A] -> b# }
-    Usage6[A,B]:{ readOnly #(b: mut BoxF[A]): mut F[A] -> b# }
+    Usage3[A,B]:{ recMdf #(b: recMdf Box[recMdf F[readOnly A, readH B]]): recMdf F[recMdf A, readH B] -> b# }
+    Usage4[A,B]:{ readH #(b: mut Box[mut F[A]]): mut F[A] -> b# }
+    Usage5[A,B]:{ readH #(b: mut Box[mut F[A]]): mut F[A] -> b# }
+    Usage6[A,B]:{ readH #(b: mut BoxF[A]): mut F[A] -> b# }
     """, """
     package base
     NoMutHyg[X]:{}
@@ -385,27 +385,27 @@ public class TestTypeSystem {
     package test
     A:{
       recMdf .b(a: recMdf A): recMdf B -> {'b .foo -> b },
-      mut .break: readOnly B -> LetMut#[mut B, readOnly B]{ .var -> this.b(this), .in(b) -> b.foo },
+      mut .break: readH B -> LetMut#[mut B, readH B]{ .var -> this.b(this), .in(b) -> b.foo },
       }
     B:{
-      readOnly .foo(): readOnly B
+      readH .foo(): readH B
       }
     Void:{}
-    LetMut:{ #[V:read,imm,mut,lent,readOnly,R:read,imm,mut,lent,readOnly](l:mut LetMut[V, R]): R -> l.in(l.var) }
-    LetMut[V:read,imm,mut,lent,readOnly,R:read,imm,mut,lent,readOnly]:base.NoMutHyg[V]{ mut .var: V, mut .in(v: V): R }
+    LetMut:{ #[V:read,imm,mut,mutH,readH,R:read,imm,mut,mutH,readH](l:mut LetMut[V, R]): R -> l.in(l.var) }
+    LetMut[V:read,imm,mut,mutH,readH,R:read,imm,mut,mutH,readH]:base.NoMutHyg[V]{ mut .var: V, mut .in(v: V): R }
     """); }
 
   @Test void breakingEarlyFancyRename() { fail("""
     In position [###]/Dummy0.fear:3:52
     [E53 xTypeError]
-    Expected 'b' to be recMdf test.A[], got readOnly test.A[].
+    Expected 'b' to be recMdf test.A[], got readH test.A[].
     """, """
     package test
     A:{
       recMdf .foo(a:recMdf A, b:readOnly A):recMdf A -> b
       }
     B:{
-      .foo(mutR: mut A, readR: readOnly A): mut A -> mutR.foo(mutR, readR)
+      .foo(mutR: mut A, readR: readH A): mut A -> mutR.foo(mutR, readR)
       }
     """); }
 
@@ -415,9 +415,9 @@ public class TestTypeSystem {
     'readOnly this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
-    A:{ mut .prison: readOnly B }
+    A:{ mut .prison: readH B }
     B:{
-      readOnly .break: mut A -> { this }
+      readH .break: mut A -> { this }
       }
     """); }
   @Test void noCaptureMdfInMut() { fail("""
@@ -428,7 +428,7 @@ public class TestTypeSystem {
     package test
     A[X]:{ mut .prison: X }
     B:{
-      readOnly .break: mut A[B] -> { this }
+      readH .break: mut A[B] -> { this }
       }
     """); }
   @Test void noCaptureMdfInMut2() { fail("""
@@ -437,9 +437,9 @@ public class TestTypeSystem {
     'readOnly this' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
-    A[X:imm,mut,read,readOnly]:{ mut .prison: X }
+    A[X:imm,mut,read,readH]:{ mut .prison: X }
     B:{
-      readOnly .break: mut A[readOnly B] -> { this } // this capture was being allowed because this:B was adapted with readOnly to become this:recB (which can be captured by mut)
+      readH .break: mut A[readOnly B] -> { this } // this capture was being allowed because this:B was adapted with readH to become this:recB (which can be captured by mut)
       }
     """); }
   @Test void noCaptureMdfInMut4() { fail("""
@@ -448,8 +448,8 @@ public class TestTypeSystem {
     'x' cannot be captured by a mut method in a mut lambda.
     """, """
     package test
-    A[X:mut,imm,read,lent,readOnly]:{ mut .prison: X }
-    B[X:mut,imm,read,lent,readOnly]:{
+    A[X:mut,imm,read,mutH,readH]:{ mut .prison: X }
+    B[X:mut,imm,read,mutH,readH]:{
       .break(x: X): mut A[X] -> { x }
       }
     """); }
@@ -467,63 +467,63 @@ public class TestTypeSystem {
   @Test void noCaptureImmAsRecMdfCounterEx() { fail("""
     In position [###]/Dummy0.fear:5:25
     [E32 noCandidateMeths]
-    When attempting to type check the method call: [-imm-][test.A[]]{'fear[###]$ } .m/1[]([[-imm-][test.B[]]{'fear[###]$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type lent test.B[]. The candidates were:
+    When attempting to type check the method call: [-imm-][test.A[]]{'fear[###]$ } .m/1[]([[-imm-][test.B[]]{'fear[###]$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type mutH test.B[]. The candidates were:
     (lent test.L[imm test.B[]]): imm test.B[]
     (iso test.L[imm test.B[]]): imm test.B[]
     """, """
     package test
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
-    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
-    C:{ #: lent B -> (A.m(B)).absMeth }
+    A:{ readH .m(par: imm B) : mutH L[imm B] -> mutH L[imm B]{.absMeth->par} }
+    C:{ #: mutH B -> (A.m(B)).absMeth }
     """); }
 
   @Test void immToReadCapture() { ok("""
     package test
     B:{}
-    L[X]:{ imm .absMeth: readOnly X }
-    A:{ readOnly .m[T](par: imm T) : readOnly L[imm T] -> readOnly L[imm T]{.absMeth->par} }
+    L[X]:{ imm .absMeth: readH X }
+    A:{ readH .m[T](par: imm T) : readH L[imm T] -> readH L[imm T]{.absMeth->par} }
     """); }
 
   @Test void immCapture() { ok("""
     package test
     B:{}
     L[X]:{ imm .absMeth: imm X }
-    A:{ readOnly .m[T](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
+    A:{ readH .m[T](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
     """); }
 
   @Test void readMethOnImmLambdaCannotCaptureRead() { fail("""
     In position [###]/Dummy0.fear:4:69
     [E30 badCapture]
-    'readOnly par' cannot be captured by a readOnly method in an imm lambda.
+    'readOnly par' cannot be captured by a readH method in an imm lambda.
     """, """
     package test
     B:{}
-    L[X]:{ readOnly .absMeth: readOnly X }
-    A:{ readOnly .m[T](par: readOnly T) : imm L[imm T] -> imm L[imm T]{.absMeth->par} }
+    L[X]:{ readH .absMeth: readH X }
+    A:{ readH .m[T](par: readH T) : imm L[imm T] -> imm L[imm T]{.absMeth->par} }
     """);}
 
   @Test void immReturnsReadAsLent() { fail("""
     In position [###]/Dummy0.fear:4:79
     [E53 xTypeError]
-    Expected 'par' to be lent T, got imm T.
+    Expected 'par' to be mutH T, got imm T.
     """, """
     package test
     B:{}
-    L[X]:{ imm .absMeth: lent X }
-    A:{ readOnly .m[T](par: readOnly T) : lent L[imm T] -> lent L[imm T]{.absMeth->par} }
+    L[X]:{ imm .absMeth: mutH X }
+    A:{ readH .m[T](par: readH T) : mutH L[imm T] -> mutH L[imm T]{.absMeth->par} }
     """); }
 
   @Test void noMdfParamAsLent() { fail("""
     In position [###]/Dummy0.fear:4:96
     [E53 xTypeError]
-    Expected 'par' to be lent T, got readOnly T.
+    Expected 'par' to be mutH T, got readH T.
     """, """
     package test
     B:{}
-    L[X:read,mut,readOnly,imm,lent]:{ mut .absMeth: lent X }
-    A:{ readOnly .m[T:read,mut,readOnly,imm,lent](par: T): lent L[mut T] -> lent L[mut T]{.absMeth->par} }
-    C:{ #: lent L[mut B] -> A{}.m[readOnly B](B) }
+    L[X:read,mut,readH,imm,mutH]:{ mut .absMeth: mutH X }
+    A:{ readH .m[T:read,mut,readH,imm,mutH](par: T): mutH L[mut T] -> mutH L[mut T]{.absMeth->par} }
+    C:{ #: mutH L[mut B] -> A{}.m[readOnly B](B) }
     """); }
 
   @Test void noMutHygRenamedGX1() { ok("""
@@ -533,13 +533,13 @@ public class TestTypeSystem {
     
     Foo[X]:NoMH[X]{ rec.stuff: recX }
     FooP0[Y]:Foo[Y]{}
-    FooP1:{ #(p: readOnly Person): lent Foo[readOnly Person] -> { p } }
-    FooP2:{ #(p: readOnly Person): lent FooP0[readOnly Person] -> { p } }
+    FooP1:{ #(p: readH Person): mutH Foo[readOnly Person] -> { p } }
+    FooP2:{ #(p: readH Person): mutH FooP0[readOnly Person] -> { p } }
     
     Test:{
-      .t1(t: readOnly Person): lent Foo[readOnly Person] -> FooP1#t,
-      .t2(t: readOnly Person): lent FooP0[readOnly Person] -> FooP2#t,
-      .t2a(t: readOnly Person): lent Foo[readOnly Person] -> FooP2#t,
+      .t1(t: readH Person): mutH Foo[readOnly Person] -> FooP1#t,
+      .t2(t: readH Person): mutH FooP0[readOnly Person] -> FooP2#t,
+      .t2a(t: readH Person): mutH Foo[readOnly Person] -> FooP2#t,
       }
     
     //Foo[X]:NoMH[X]{stuff[X]}
@@ -567,12 +567,12 @@ public class TestTypeSystem {
     In position [###]/Dummy0.fear:5:2
     [E33 callTypeError]
     Type error: None of the following candidates for this method call:
-    s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.IO'[]]{'fear[###]$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear[###]$ #/2([io, fear1$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], lent base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear1$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear[###]$ #/0([]): Sig[mdf=lent,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear[###]$ }])}])}])
+    s .use/2[imm base.caps.IO[]]([[-imm-][base.caps.IO'[]]{'fear[###]$ }, [-mut-][base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]]{'fear[###]$ #/2([io, fear1$]): Sig[mdf=mut,gens=[],ts=[lent base.caps.IO[], mutH base.caps.System[imm base.Void[]]],ret=imm base.Void[]] -> fear1$ .return/1[]([[-lent-][base.caps.LentReturnStmt[imm base.Void[]]]{'fear[###]$ #/0([]): Sig[mdf=mutH,gens=[],ts=[],ret=imm base.Void[]] -> io .println/1[]([[-imm-]["Hello, World!"[]]{'fear[###]$ }])}])}])
     were valid:
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (iso base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
-    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (mut base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], lent base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], mutH base.caps.IO[]], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (lent base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], mutH base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (iso base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], mutH base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
+    (lent base.caps.System[imm base.Void[]], imm base.caps.IO'[], mut base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]) <= (mut base.caps.System[imm base.Void[]], imm base.caps.CapFactory[lent base.caps.NotTheRootCap[], mutH base.caps.IO[]], iso base.caps.UseCapCont[imm base.caps.IO[], imm base.Void[]]): imm base.Void[]
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
@@ -585,34 +585,34 @@ public class TestTypeSystem {
     package base.caps
     alias base.Sealed as Sealed, alias base.Void as Void, alias base.Str as Str,
     // bad version of caps.fear
-    LentReturnStmt[R]:{ lent #: R }
+    LentReturnStmt[R]:{ mutH #: R }
     System[R]:{
-      lent .use[C](c: CapFactory[lent NotTheRootCap, lent C], cont: mut UseCapCont[C, R]): R ->
+      mutH .use[C](c: CapFactory[lent NotTheRootCap, mutH C], cont: mut UseCapCont[C, R]): R ->
         cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
-      lent .return(ret: lent LentReturnStmt[R]): R -> ret#
+      mutH .return(ret: mutH LentReturnStmt[R]): R -> ret#
       }
         
     NotTheRootCap:{}
     _RootCap:IO{ .println(msg) -> this.println(msg), }
-    UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[R]): R }
+    UseCapCont[C, R]:{ mut #(cap: mutH C, self: mutH System[R]): R }
     CapFactory[C,R]:{
-      #(s: lent C): lent R,
-      .close(c: lent R): Void,
+      #(s: mutH C): mutH R,
+      .close(c: mutH R): Void,
       }
     IO:{
-      lent .print(msg: Str): Void,
-      lent .println(msg: Str): Void,
+      mutH .print(msg: Str): Void,
+      mutH .println(msg: Str): Void,
       }
-    IO':CapFactory[lent IO, lent IO]{
-      #(auth: lent IO): lent IO -> auth,
-      .close(c: lent IO): Void -> {},
+    IO':CapFactory[lent IO, mutH IO]{
+      #(auth: mutH IO): mutH IO -> auth,
+      .close(c: mutH IO): Void -> {},
       }
     """, Base.load("lang.fear"), Base.load("bools.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("optionals.fear"), Base.load("lists.fear"), Base.load("block.fear"), Base.load("ref.fear"), Base.load("iter.fear")); }
   @Disabled // TODO: Figure out better way to load the rest of the base libs
   @Test void incompatibleGens() { fail("""
     In position [###]/Dummy1.fear:7:12
     [E34 bothTExpectedGens]
-    Type error: the generic type lent C cannot be a super-type of any concrete type, like Fear[###]/0.
+    Type error: the generic type mutH C cannot be a super-type of any concrete type, like Fear[###]/0.
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
@@ -625,27 +625,27 @@ public class TestTypeSystem {
     package base.caps
     alias base.Sealed as Sealed, alias base.Void as Void, alias base.Str as Str,
     // bad version of caps.fear
-    LentReturnStmt[R]:{ lent #: R }
+    LentReturnStmt[R]:{ mutH #: R }
     System[R]:{
-      lent .use[C](c: CapFactory[lent C, lent C], cont: mut UseCapCont[C, R]): R ->
+      mutH .use[C](c: CapFactory[lent C, mutH C], cont: mut UseCapCont[C, R]): R ->
         cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
-      lent .return(ret: lent LentReturnStmt[R]): R -> ret#
+      mutH .return(ret: mutH LentReturnStmt[R]): R -> ret#
       }
         
     NotTheRootCap:{}
     _RootCap:IO{ .println(msg) -> this.println(msg), }
-    UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[R]): R }
+    UseCapCont[C, R]:{ mut #(cap: mutH C, self: mutH System[R]): R }
     CapFactory[C,R]:{
-      #(s: lent C): lent R,
-      .close(c: lent R): Void,
+      #(s: mutH C): mutH R,
+      .close(c: mutH R): Void,
       }
     IO:{
-      lent .print(msg: Str): Void,
-      lent .println(msg: Str): Void,
+      mutH .print(msg: Str): Void,
+      mutH .println(msg: Str): Void,
       }
-    IO':CapFactory[lent IO, lent IO]{
-      #(auth: lent IO): lent IO -> auth,
-      .close(c: lent IO): Void -> {},
+    IO':CapFactory[lent IO, mutH IO]{
+      #(auth: mutH IO): mutH IO -> auth,
+      .close(c: mutH IO): Void -> {},
       }
     """, Base.load("lang.fear"), Base.load("bools.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("optionals.fear"), Base.load("lists.fear"), Base.load("iter.fear"), Base.load("block.fear"), Base.load("ref.fear")); }
   @Disabled // TODO: Figure out better way to load the rest of the base libs
@@ -655,21 +655,21 @@ public class TestTypeSystem {
     Type error: None of the following candidates for this method call:
     cont #/2[]([c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }]), this])
     were valid:
-    (mut base.caps.UseCapCont[imm C, R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[R]) <= (mut base.caps.UseCapCont[imm C, R], lent C, lent base.caps.System[R]): R
+    (mut base.caps.UseCapCont[imm C, R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, mutH base.caps.System[R]) <= (mut base.caps.UseCapCont[imm C, R], mutH C, mutH base.caps.System[R]): R
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy1.fear:7:11
         [E33 callTypeError]
         Type error: None of the following candidates for this method call:
         c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])
         were valid:
-        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <= (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps._RootCap[]): lent C
-        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <= (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], iso base.caps._RootCap[]): iso C
-        (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], lent base.caps.NotTheRootCap[]) <= (imm base.caps.CapFactory[lent base.caps._RootCap[], lent C], mut base.caps._RootCap[]): lent C
+        (imm base.caps.CapFactory[lent base.caps._RootCap[], mutH C], mutH base.caps.NotTheRootCap[]) <= (imm base.caps.CapFactory[lent base.caps._RootCap[], mutH C], mutH base.caps._RootCap[]): mutH C
+        (imm base.caps.CapFactory[lent base.caps._RootCap[], mutH C], mutH base.caps.NotTheRootCap[]) <= (imm base.caps.CapFactory[lent base.caps._RootCap[], mutH C], iso base.caps._RootCap[]): iso C
+        (imm base.caps.CapFactory[lent base.caps._RootCap[], mutH C], mutH base.caps.NotTheRootCap[]) <= (imm base.caps.CapFactory[lent base.caps._RootCap[], mutH C], mut base.caps._RootCap[]): mutH C
         
-    (mut base.caps.UseCapCont[imm C, R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[R]) <= (iso base.caps.UseCapCont[imm C, R], lent C, lent base.caps.System[R]): R
-    (mut base.caps.UseCapCont[imm C, R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[R]) <= (iso base.caps.UseCapCont[imm C, R], iso C, iso base.caps.System[R]): R
-    (mut base.caps.UseCapCont[imm C, R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[R]) <= (iso base.caps.UseCapCont[imm C, R], mut C, lent base.caps.System[R]): R
-    (mut base.caps.UseCapCont[imm C, R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, lent base.caps.System[R]) <= (iso base.caps.UseCapCont[imm C, R], lent C, mut base.caps.System[R]): R
+    (mut base.caps.UseCapCont[imm C, R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, mutH base.caps.System[R]) <= (iso base.caps.UseCapCont[imm C, R], mutH C, mutH base.caps.System[R]): R
+    (mut base.caps.UseCapCont[imm C, R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, mutH base.caps.System[R]) <= (iso base.caps.UseCapCont[imm C, R], iso C, iso base.caps.System[R]): R
+    (mut base.caps.UseCapCont[imm C, R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, mutH base.caps.System[R]) <= (iso base.caps.UseCapCont[imm C, R], mut C, mutH base.caps.System[R]): R
+    (mut base.caps.UseCapCont[imm C, R], ?c #/1[]([[-lent-][base.caps.NotTheRootCap[]]{'fear[###]$ }])?, mutH base.caps.System[R]) <= (iso base.caps.UseCapCont[imm C, R], mutH C, mut base.caps.System[R]): R
     """, """
     package test
     alias base.Main as Main, alias base.Void as Void,
@@ -682,49 +682,49 @@ public class TestTypeSystem {
     package base.caps
     alias base.Sealed as Sealed, alias base.Void as Void, alias base.Str as Str,
     // bad version of caps.fear
-    LentReturnStmt[R]:{ lent #: R }
+    LentReturnStmt[R]:{ mutH #: R }
     System[R]:{
-      lent .use[C](c: CapFactory[lent _RootCap, lent C], cont: mut UseCapCont[C, R]): R ->
+      mutH .use[C](c: CapFactory[lent _RootCap, mutH C], cont: mut UseCapCont[C, R]): R ->
         cont#(c#NotTheRootCap, this), // should fail here because NotTheRootCap is not a sub-type of C
-      lent .return(ret: lent LentReturnStmt[R]): R -> ret#
+      mutH .return(ret: mutH LentReturnStmt[R]): R -> ret#
       }
         
     NotTheRootCap:{}
     _RootCap:IO{ .println(msg) -> this.println(msg), }
-    UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[R]): R }
+    UseCapCont[C, R]:{ mut #(cap: mutH C, self: mutH System[R]): R }
     CapFactory[C,R]:{
-      #(s: lent C): lent R,
-      .close(c: lent R): Void,
+      #(s: mutH C): mutH R,
+      .close(c: mutH R): Void,
       }
     IO:{
-      lent .print(msg: Str): Void,
-      lent .println(msg: Str): Void,
+      mutH .print(msg: Str): Void,
+      mutH .println(msg: Str): Void,
       }
-    IO':CapFactory[lent _RootCap, lent IO]{
-      #(auth: lent _RootCap): lent IO -> auth,
-      .close(c: lent IO): Void -> {},
+    IO':CapFactory[lent _RootCap, mutH IO]{
+      #(auth: mutH _RootCap): mutH IO -> auth,
+      .close(c: mutH IO): Void -> {},
       }
     """, Base.load("lang.fear"), Base.load("bools.fear"), Base.load("nums.fear"), Base.load("strings.fear"), Base.load("optionals.fear"), Base.load("lists.fear"), Base.load("iter.fear"), Base.load("block.fear"), Base.load("ref.fear")); }
 
-  // TODO: test lent to mut promotion
+  // TODO: test mutH to mut promotion
   @Test void minimalMatcher() { ok("""
     package test
-    //we can have lent matcher with lent cases that can capture all (but mut as lent), and can only return mut as lent :-(
+    //we can have mutH matcher with mutH cases that can capture all (but mut as lent), and can only return mut as mutH :-(
     //we can have mut matcher with mut cases that can capture mut,imm,iso, can return R
     alias base.NoMutHyg as NoMutHyg,
     Matcher[R]:{ //Look ma, no NoMutHyg
-      lent .get: R
+      mutH .get: R
       }
     PreR:{
-      readOnly .get: readOnly MyRes -> {},
+      readH .get: readH MyRes -> {},
       }
     MyRes:{}
     MatcherContainer:{
-      readOnly .match[R](m: lent Matcher[R]): R -> m.get
+      readH .match[R](m: mutH Matcher[R]): R -> m.get
       }
     Usage:{
-      .direct(preR: readOnly PreR): readOnly MyRes -> MatcherContainer.match{ preR.get },
-      .indirect(r: readOnly MyRes): readOnly MyRes -> MatcherContainer.match{ r }
+      .direct(preR: readH PreR): readH MyRes -> MatcherContainer.match{ preR.get },
+      .indirect(r: readH MyRes): readH MyRes -> MatcherContainer.match{ r }
       }
     """, """
     package base
@@ -732,7 +732,7 @@ public class TestTypeSystem {
     """); }
   @Test void minimalMatcher2() { ok("""
     package test
-    //we can have lent matcher with lent cases that can capture all (but mut as lent), and can only return mut as lent :-(
+    //we can have mutH matcher with mutH cases that can capture all (but mut as lent), and can only return mut as mutH :-(
     //we can have mut matcher with mut cases that can capture mut,imm,iso, can return R
     alias base.NoMutHyg as NoMutHyg,
     Matcher[R]:{ //Look ma, no NoMutHyg
@@ -743,7 +743,7 @@ public class TestTypeSystem {
       }
     MyRes:{}
     MatcherContainer:{
-      readOnly .match[R](m: mut Matcher[R]): R -> m.get
+      readH .match[R](m: mut Matcher[R]): R -> m.get
       }
     Usage:{
       .direct(preR: mut PreR): mut MyRes -> MatcherContainer.match{ preR.get },
@@ -795,33 +795,33 @@ public class TestTypeSystem {
   @Test void immMethodOneMutIsoPromotion_MultiArg1() { fail("""
     In [###]/Dummy0.fear:6:39
     [E53 xTypeError]
-    Expected 'a' to be mut test.A[], got lent test.A[].
+    Expected 'a' to be mut test.A[], got mutH test.A[].
     """, """
     package test
     A:{
       mut .a: iso A -> B.foo(this, this),
       }
     B:{
-      .foo(a: mut A, aa: lent A): iso A -> a,
+      .foo(a: mut A, aa: mutH A): iso A -> a,
       }
     """); }
   @Test void immMethodOneMutIsoPromotion_MultiArg2() { fail("""
     In position [###]/Dummy0.fear:6:39
     [E53 xTypeError]
-    Expected 'aa' to be mut test.A[], got lent test.A[].
+    Expected 'aa' to be mut test.A[], got mutH test.A[].
     """, """
     package test
     A:{
       mut .a: iso A -> B.foo(this, this),
       }
     B:{
-      .foo(a: mut A, aa: lent A): iso A -> aa,
+      .foo(a: mut A, aa: mutH A): iso A -> aa,
       }
     """); }
   @Test void immMethodOneMutIsoPromotion_MultiMut() { fail("""
     In position [###]/Dummy0.fear:6:2
     [E23 methTypeError]
-    Expected the method .foo/2 to return mut test.A[], got lent test.A[].
+    Expected the method .foo/2 to return mut test.A[], got mutH test.A[].
     """, """
     package test
     A:{
@@ -834,7 +834,7 @@ public class TestTypeSystem {
   @Test void immMethodOneMutIsoPromotionBad() { fail("""
     In position [###]/Dummy0.fear:6:27
     [E53 xTypeError]
-    Expected 'a' to be mut test.A[], got lent test.A[].
+    Expected 'a' to be mut test.A[], got mutH test.A[].
     """, """
     package test
     A:{
@@ -868,7 +868,7 @@ public class TestTypeSystem {
       .not: Bool,
       .if[R](f: mut ThenElse[R]): R,
       ?[R](f: mut ThenElse[R]): R -> this.if(f),
-      .look[R](f: readOnly BoolView[R]): R,
+      .look[R](f: readH BoolView[R]): R,
       }
     True:Bool{
       .and(b) -> b,
@@ -1026,55 +1026,55 @@ public class TestTypeSystem {
     package base
     Sealed:{}
     Int:Sealed,MathOps[Int],IntOps[Int]{
-      readOnly .nat: Nat,
-      readOnly .float: Float,
+      readH .nat: Nat,
+      readH .float: Float,
       // not Stringable due to limitations of the Java codegen target
-      readOnly .str: Str,
+      readH .str: Str,
       }
     Nat:Sealed,MathOps[Nat],IntOps[Nat]{
-      readOnly .int: Int,
-      readOnly .float: Float,
+      readH .int: Int,
+      readH .float: Float,
       // not Stringable due to limitations of the Java codegen target
-      readOnly .str: Str,
+      readH .str: Str,
       }
     Float:Sealed,MathOps[Float]{
-      readOnly .int: Int,
-      readOnly .nat: Nat,
-      readOnly .round: Int,
-      readOnly .ceil: Int,
-      readOnly .floor: Int,
-      readOnly **(n: readOnly Float): Float, // pow
-      readOnly .isNaN: Bool,
-      readOnly .isInfinity: Bool,
-      readOnly .isNegInfinity: Bool,
+      readH .int: Int,
+      readH .nat: Nat,
+      readH .round: Int,
+      readH .ceil: Int,
+      readH .floor: Int,
+      readH **(n: readH Float): Float, // pow
+      readH .isNaN: Bool,
+      readH .isInfinity: Bool,
+      readH .isNegInfinity: Bool,
       // not Stringable due to limitations of the Java codegen target
-      readOnly .str: Str,
+      readH .str: Str,
       }
         
     MathOps[T]:Sealed{
-      readOnly +(n: readOnly T): T,
-      readOnly -(n: readOnly T): T,
-      readOnly *(n: readOnly T): T,
-      readOnly /(n: readOnly T): T,
-      readOnly %(n: readOnly T): T,
-      readOnly .abs: T,
+      readH +(n: readH T): T,
+      readH -(n: readH T): T,
+      readH *(n: readH T): T,
+      readH /(n: readH T): T,
+      readH %(n: readH T): T,
+      readH .abs: T,
         
       // Comparisons
-      readOnly >(n: readOnly T): Bool,
-      readOnly <(n: readOnly T): Bool,
-      readOnly >=(n: readOnly T): Bool,
-      readOnly <=(n: readOnly T): Bool,
-      readOnly ==(n: readOnly T): Bool,
+      readH >(n: readH T): Bool,
+      readH <(n: readH T): Bool,
+      readH >=(n: readH T): Bool,
+      readH <=(n: readH T): Bool,
+      readH ==(n: readH T): Bool,
       }
     IntOps[T]:Sealed{
       // bitwise
-      readOnly >>(n: readOnly T): T,
-      readOnly <<(n: readOnly T): T,
-      readOnly ^(n: readOnly T): T,
-      readOnly &(n: readOnly T): T,
-      readOnly |(n: readOnly T): T,
+      readH >>(n: readH T): T,
+      readH <<(n: readH T): T,
+      readH ^(n: readH T): T,
+      readH &(n: readH T): T,
+      readH |(n: readH T): T,
         
-      readOnly **(n: readOnly Nat): T, // pow
+      readH **(n: readH Nat): T, // pow
       }
         
     // Fake concrete type for all numbers. The real implementation is generated at code-gen.
@@ -1155,21 +1155,21 @@ public class TestTypeSystem {
 
   @Test void readRecvMakesMutPromotion() { ok("""
     package test
-    A:{ readOnly .newB: mut B -> mut B }
+    A:{ readH .newB: mut B -> mut B }
     B:{}
     C:{ .promote(b: iso B): B -> b }
     Test:{ #: B -> C.promote(A.newB) }
     """); }
   @Test void readMethOnLentPromotion() { ok("""
     package test
-    A:{ readOnly .newB: mut B -> mut B }
+    A:{ readH .newB: mut B -> mut B }
     B:{}
     C:{ .promote(b: iso B): B -> b }
-    Test:{ #(a: lent A): B -> C.promote(a.newB) }
+    Test:{ #(a: mutH A): B -> C.promote(a.newB) }
     """); }
   @Test void readMethOnMutPromotion() { ok("""
     package test
-    A:{ readOnly .newB: mut B -> mut B }
+    A:{ readH .newB: mut B -> mut B }
     B:{}
     C:{ .promote(b: iso B): B -> b }
     Test:{ #(a: mut A): B -> C.promote(a.newB) }
@@ -1187,17 +1187,17 @@ public class TestTypeSystem {
     package test
     Person:{ mut .name: mut Ref[Name] }
     Usage:{
-      .mutate(p: lent Person): iso Ref[Name] -> p.name,
+      .mutate(p: mutH Person): iso Ref[Name] -> p.name,
       }
       
-    Ref[X]:{ rec.get: recX, lent .set(x: X): Void }
+    Ref[X]:{ rec.get: recX, mutH .set(x: X): Void }
     Void:{} Name:{}
     """); }
 
   @Test void invalidBoundsOnInlineLambda() { fail("""
     In position [###]/Dummy0.fear:3:6
     [E5 invalidMdfBound]
-    The type lent test.Foo[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
+    The type mutH test.Foo[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
     """, """
     package test
     A[X: imm, mut]:{}
@@ -1215,17 +1215,17 @@ public class TestTypeSystem {
       """, """
       package base
       // should also not pass with `lent Ref[lent B]`
-      A:{ lent .b: lent Ref[lent B] }
+      A:{ mutH .b: mutH Ref[lent B] }
       B:{}
       F:{
-        .ohNo(b: lent B): imm A -> F.ohNo'(F.newA, b),
-        .ohNo'(a: mut A, b: lent B): mut A -> F.ohNo''(a, F.break(a, b)),
+        .ohNo(b: mutH B): imm A -> F.ohNo'(F.newA, b),
+        .ohNo'(a: mut A, b: mutH B): mut A -> F.ohNo''(a, F.break(a, b)),
         .ohNo''(a: mut A, v: Void): mut A -> a,
         
         .works: mut A -> { .b -> Ref#[lent B]{} },
         .newA: mut A -> F.newA(Ref#[lent B]{}),
         .newA(b: mut Ref[lent B]): mut A -> { .b -> b },
-        .break(a: lent A, b: lent B): Void -> a.b := b,
+        .break(a: mutH A, b: mutH B): Void -> a.b := b,
         }
       """, """
       package base
@@ -1254,25 +1254,25 @@ public class TestTypeSystem {
     fail("""
       In position [###]/Dummy0.fear:3:4
       [E5 invalidMdfBound]
-      The type lent base.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
+      The type mutH base.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
             
       In position [###]/Dummy0.fear:10:21
       [E5 invalidMdfBound]
-      The type lent base.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
+      The type mutH base.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
       """, """
       package base
       // should also not pass with `lent Ref[lent B]`
-      A:{ lent .b: lent Ref[lent B] }
+      A:{ mutH .b: mutH Ref[lent B] }
       B:{}
       F:{
-        .ohNo(b: lent B): imm A -> F.ohNo'(F.newA, b),
-        .ohNo'(a: mut A, b: lent B): mut A -> F.ohNo''(a, F.break(a, b)),
+        .ohNo(b: mutH B): imm A -> F.ohNo'(F.newA, b),
+        .ohNo'(a: mut A, b: mutH B): mut A -> F.ohNo''(a, F.break(a, b)),
         .ohNo''(a: mut A, v: Void): mut A -> a,
         
         .works: mut A -> { .b -> Ref#[lent B]{} },
         .newA: mut A -> F.newA(Ref#[lent B]{}),
         .newA(b: mut Ref[lent B]): mut A -> { .b -> b },
-        .break(a: lent A, b: lent B): Void -> a.b := b,
+        .break(a: mutH A, b: mutH B): Void -> a.b := b,
         }
       """, """
       package base
@@ -1302,10 +1302,10 @@ public class TestTypeSystem {
     fail("""
       """, """
       package base
-      A:{ lent .b: lent Ref[lent B] }
+      A:{ mutH .b: mutH Ref[lent B] }
       B:{}
       F:{
-        .break(a: lent A, b: lent B): Void -> a.b := b,
+        .break(a: mutH A, b: mutH B): Void -> a.b := b,
         }
       """, """
       package base
@@ -1318,11 +1318,11 @@ public class TestTypeSystem {
       Ref[X]:NoMutHyg[X],Sealed{
         recMdf *: recMdf X,
         recMdf .get: recMdf X -> this*,
-        lent .swap(x: X): X,
-        lent :=(x: X): Void -> Block#(this.swap(x)),
-        lent .set(x: X): Void -> this := x,
-        lent <-(f: mut UpdateRef[X]): X -> this.swap(f#(this*)),
-        lent .update(f: mut UpdateRef[X]): X -> this <- f,
+        mutH .swap(x: X): X,
+        mutH :=(x: X): Void -> Block#(this.swap(x)),
+        mutH .set(x: X): Void -> this := x,
+        mutH <-(f: mut UpdateRef[X]): X -> this.swap(f#(this*)),
+        mutH .update(f: mut UpdateRef[X]): X -> this <- f,
         }
       UpdateRef[X]:NoMutHyg[X]{ mut #(x: X): X }
       """);
@@ -1354,8 +1354,8 @@ public class TestTypeSystem {
     """, """
     package test
     B:{}
-    L[X:mut,imm,read,readOnly,lent]:{ iso .absMeth: imm X }
-    A:{ recMdf .m[T:mut,imm,read,readOnly,lent](par: T) : recMdf L[lent T] -> recMdf L[lent T]{.absMeth->par} }
+    L[X:mut,imm,read,readH,mutH]:{ iso .absMeth: imm X }
+    A:{ recMdf .m[T:mut,imm,read,readH,mutH](par: T) : recMdf L[lent T] -> recMdf L[lent T]{.absMeth->par} }
     """); }
 
   @Test void extraMethInLambda() { ok("""
@@ -1380,7 +1380,7 @@ public class TestTypeSystem {
   @Test void lentCannotAdaptWithMut() { fail("""
     In position [###]/Dummy0.fear:4:68
     [E23 methTypeError]
-    Expected the method .absMeth/0 to return T, got readOnly T.
+    Expected the method .absMeth/0 to return T, got readH T.
         
     In position [###]/Dummy0.fear:7:36
     [E5 invalidMdfBound]
@@ -1388,12 +1388,12 @@ public class TestTypeSystem {
     """, """
     package test
     B:{}
-    L[X]:{ lent .absMeth: X }
-    A:{ recMdf .m[T: read](par: T) : lent L[T] -> lent L[T]{.absMeth->par} }
+    L[X]:{ mutH .absMeth: X }
+    A:{ recMdf .m[T: read](par: T) : mutH L[T] -> mutH L[T]{.absMeth->par} }
     
     C:{
-      .m1(b: mut B) : lent L[mut B] -> A.m(b),
-      .m2(b: lent L[mut B]): mut B -> b.absMeth,
+      .m1(b: mut B) : mutH L[mut B] -> A.m(b),
+      .m2(b: mutH L[mut B]): mut B -> b.absMeth,
       }
     """); }
 
@@ -1523,7 +1523,7 @@ public class TestTypeSystem {
 
   @Test void readToReadOnlyPromotion1() { ok("""
     package test
-    Test:{ #(r: readOnly Box[Foo]): readOnly Foo -> r.get }
+    Test:{ #(r: readH Box[Foo]): readH Foo -> r.get }
     """, """
     package test
     Foo:{}
@@ -1538,7 +1538,7 @@ public class TestTypeSystem {
     The identifier "r" is undefined or cannot be captured.
     """, """
     package test
-    Test:{ #(r: readOnly Box[Foo]): Foo -> r.get }
+    Test:{ #(r: readH Box[Foo]): Foo -> r.get }
     """, """
     package test
     Foo:{}
@@ -1549,7 +1549,7 @@ public class TestTypeSystem {
     """); }
   @Test void readToReadOnlyPromotion1ImmRetRecMdf() { ok("""
     package test
-    Test:{ #(r: readOnly Box[Foo]): Foo -> r.get }
+    Test:{ #(r: readH Box[Foo]): Foo -> r.get }
     """, """
     package test
     Foo:{}
@@ -1561,7 +1561,7 @@ public class TestTypeSystem {
     """); }
   @Test void readToReadOnlyPromotion2() { ok("""
     package test
-    Test:{ #(r: read Box[Foo]): readOnly Foo -> r.get }
+    Test:{ #(r: read Box[Foo]): readH Foo -> r.get }
     """, """
     package test
     Foo:{}
@@ -1572,7 +1572,7 @@ public class TestTypeSystem {
     """); }
   @Test void readToReadOnlyPromotion3() { ok("""
     package test
-    Test1:{ #(r: readOnly MutyBox): readOnly Foo -> r.rb.get }
+    Test1:{ #(r: readH MutyBox): readH Foo -> r.rb.get }
     Test2:{ #(r: read MutyBox): read Foo -> r.rb.get }
     MutyBox:{ mut .mb: mut Box[Foo], read .rb: read Box[Foo] }
     """, """
@@ -1665,7 +1665,7 @@ public class TestTypeSystem {
     Block:{
       #[X:read,mut,imm,iso, R:read,mut,imm,iso](_: X, res: R): R -> res,
       }
-    Abort:{ ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
+    Abort:{ ![R:readH,mutH,read,mut,imm,iso]: R -> this! }
     """); }
   @Test void badGenericPromotionImm() { fail("""
     In position [###]/Dummy0.fear:3:45
@@ -1693,7 +1693,7 @@ public class TestTypeSystem {
     Block:{
       #[X:read,mut,imm,iso, R:read,mut,imm,iso](_: X, res: R): R -> res,
       }
-    Abort:{ ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
+    Abort:{ ![R:readH,mutH,read,mut,imm,iso]: R -> this! }
     """); }
   @Test void okGenericPromotion() { ok("""
     package test
@@ -1710,7 +1710,7 @@ public class TestTypeSystem {
     Block:{
       #[X:read,mut,imm,iso, R:read,mut,imm,iso](_: X, res: R): R -> res,
       }
-    Abort:{ ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
+    Abort:{ ![R:readH,mutH,read,mut,imm,iso]: R -> this! }
     """); }
 
   @Test void superSimple() { ok("""
@@ -1857,7 +1857,7 @@ public class TestTypeSystem {
     Break:{ #(l: List[Num]): Num 
       -> l.fold[Num](Zero, Fold[Num, Num]{acc, n -> acc + n}) }
     
-    Abort: { ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
+    Abort: { ![R:readH,mutH,read,mut,imm,iso]: R -> this! }
     """); }
   @Test void foldAccInferred() { ok("""
     package test
@@ -1869,7 +1869,7 @@ public class TestTypeSystem {
     
     Break:{ #(l: List[Num]): Num -> l.fold[Num](Zero, {acc, n -> acc + n}) }
     
-    Abort: { ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
+    Abort: { ![R:readH,mutH,read,mut,imm,iso]: R -> this! }
     """); }
 
   @Test void genericSimplificationSubTyping() { ok("""

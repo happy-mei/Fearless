@@ -7,6 +7,7 @@ import failure.Fail;
 import failure.TypingAndInferenceErrors;
 import id.Id;
 import id.Mdf;
+import magic.Magic;
 import program.CM;
 import program.typesystem.XBs;
 import utils.Box;
@@ -242,7 +243,7 @@ public record InferBodies(ast.Program p) {
     try {
       var refiner = new RefineTypes(p);
       var baseSig = new RefineTypes.RefinedSig(e.name(), gens, Map.of(), iTs, e.t());
-      // TODO: this doesn't consider narrowing down to gens on ITs (i.e. FIO:FCap[...] does not help refine FCap[...] because this only uses FIO)
+      // TODO: this doesn't consider narrowing down to gens on ITs (i.e. UnrestrictedIO:FCap[...] does not help refine FCap[...] because this only uses UnrestrictedIO)
       var refined = refiner.refineSig(c.mdf(), recv, List.of(baseSig), depth);
       var refinedSig = refined.sigs().getFirst();
 //      var fixedRecvT = e.receiver().t(Mdf.imm); // default to imm if nothing was written here
@@ -265,12 +266,22 @@ public record InferBodies(ast.Program p) {
     }
   }
   public static T replaceOnlyInfers(T user, T inferred) {
-    if (user.isInfer()) { return inferred; }
+    if (user.isInfer()) {
+      if (!inferred.isInfer() && inferred.rt() instanceof Id.IT<T> inferredIT && Magic.isLiteral(inferredIT.name().name())) {
+          inferred = new T(inferred.mdf(), LiteralToType.of(inferredIT));
+      }
+      return inferred;
+    }
     if (inferred.isInfer()) {
       return user;
     }
     if (!(user.rt() instanceof Id.IT<T> userIT
       && inferred.rt() instanceof Id.IT<T> inferredIT)) { return user; }
+
+    if (Magic.isLiteral(inferredIT.name().name())) {
+      inferredIT = LiteralToType.of(inferredIT);
+    }
+
     if (!userIT.name().equals(inferredIT.name())) { return user; }
     return new T(user.mdf(), userIT.withTs(replaceOnlyInfers(userIT.ts(), inferredIT.ts())));
   }

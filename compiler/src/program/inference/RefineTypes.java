@@ -225,7 +225,6 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var cTOriginal = new T(mdf, c);
     List<List<RP>> rpsSigs = Streams.zip(sigs,methGens)
       .map((sig,mGens)->pairUp(mdf, mGens, cTs, sig, depth))
-      .map(this::deprioritiseLiterals)
       .toList();
     List<RP> rpsAll = Stream.concat(
       Stream.of(new RP(cT, cTOriginal)),
@@ -459,17 +458,5 @@ collect(empty) = empty
     var t1 = rename.renameT(rp.t1(),map::get);
     var t2 = rename.renameT(rp.t2(),map::get);
     return new RP(t1, t2);
-  }
-
-  private List<RP> deprioritiseLiterals(List<RP> rps) {
-    return rps.stream().map(rp->{
-      if (!rp.t1().isInfer() && rp.t1().rt() instanceof Id.IT<T> it && Magic.getLiteral(p, it.name()).isPresent()) {
-        return new RP(rp.t2, rp.t2);
-      }
-      if (!rp.t2().isInfer() && rp.t2().rt() instanceof Id.IT<T> it && Magic.getLiteral(p, it.name()).isPresent()) {
-        return new RP(rp.t1, rp.t1);
-      }
-      return rp;
-    }).toList();
   }
 }

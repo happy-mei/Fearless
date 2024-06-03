@@ -15,7 +15,7 @@ public class Ex99InputOutput {
 
 -------------------------*/@Disabled /*TODO: unimplemented lib code*/ @Test void fsReadHello() { run("""
     Test:Main {sys -> Block#
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .let[mut File] file = {io.file(Path#"test.txt")}
       .let content = {file.read!}
       .return {io.println(content)}
@@ -37,7 +37,7 @@ to handle operations that can fail in recoverable ways,
 that is, where the failure is not an observed bug.
 -------------------------*/@Disabled /*TODO: unimplemented lib code*/ @Test void fsWriteHello() { run("""
     Test:Main {sys -> Block#
-      .var   io = {FIO#sys}
+      .var   io = {UnrestrictedIO#sys}
       .let file = {io.file(Path#"test.txt")}
       .var    c = {"ContentOfTextDotTxt"}
       .return {file.write(c)!}

@@ -118,7 +118,7 @@ public class TestJavaOptimisations {
     }
     """, "test/Foo_0.java", """
     package test
-    Test:Main {sys -> (FIO#sys).println(Foo#)}
+    Test:Main {sys -> (UnrestrictedIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
       .let n = {Count.int(+0)}
       .loop {Block#
@@ -148,7 +148,7 @@ public class TestJavaOptimisations {
     }
     """, "test/Foo_0.java", """
     package test
-    Test:Main{sys -> (FIO#sys).println(Foo#)}
+    Test:Main{sys -> (UnrestrictedIO#sys).println(Foo#)}
     Foo: {#: Str -> Block#
       .let n = {Count.int(+0)}
       .loop {Block#

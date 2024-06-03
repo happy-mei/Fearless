@@ -14,7 +14,6 @@ import utils.Push;
 import utils.Range;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /*//as in the paper
@@ -30,7 +29,7 @@ import java.util.stream.IntStream;
 public interface EMethTypeSystem extends ETypeSystem {
   /** priority for overloading over receiver modifier */
   List<Mdf> recvPriority = List.of(
-    Mdf.iso, Mdf.mut, Mdf.imm, Mdf.recMdf, Mdf.read, Mdf.lent, Mdf.readOnly);
+    Mdf.iso, Mdf.mut, Mdf.imm, Mdf.recMdf, Mdf.read, Mdf.mutH, Mdf.readH);
   static List<Mdf> inferPriority(Mdf recvMdf) {
     var base = recvPriority.stream().filter(mdf->mdf != recvMdf).toList();
     return Push.of(recvMdf, base);
@@ -105,20 +104,14 @@ public interface EMethTypeSystem extends ETypeSystem {
       .orElseThrow(()->Fail.undefinedMethod(e.name(), new T(mdf0, recvIT), sigs.stream()).pos(e.pos()));
   }
   private boolean selectOverload(CM cm, Mdf mdf0){
-    if (!Program.isSubType(mdf0,cm.mdf())){
-      if (mdf0.isReadOnly() && cm.mdf().isRead()) { return true; }
-      return false;
-    }
+    //we want possible subtypes allowing promotions
+    //mut->imm and read->imm already accounted for.
+    Mdf methMdf= cm.mdf();//however, mutH/readH are relaxing the method signature
+    if(methMdf.isRead()){ methMdf = Mdf.readH; }//not enriching the parameter type
+    if(methMdf.isMut()){ methMdf = Mdf.mutH; }
+    if (!Program.isSubType(mdf0,methMdf)){ return false; }
     if (expectedT().isEmpty()){ return true; }
-    //TODO: What about promotions? This strategy as it is now, is good enough to check the standard library.
-    //readH could be passed to a read for example.
-    if (mdf0.isReadOnly() && cm.mdf().isRead()) { return true; }
-    //Full check. Too strict, promotions
-    //return expectedT().stream()
-    //  .anyMatch(t->p().isSubType(xbs(),cm.ret(),t));
-    //Weaker check. Too strict, consider mut Opt[E] vs mut Opt[read/imm E]
-    //return expectedT().stream().map(t->t.withMdf(Mdf.imm))
-    //  .anyMatch(t->p().isSubType(xbs(),cm.ret().withMdf(Mdf.imm),t));
+    //should we consider return types?
     return true;
   }
   private FailOr<T> selectResult(E.MCall e, MultiSig multi,List<T> t1n){
@@ -158,7 +151,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     sig[mut=iso, read=imm, readonly=imm]
     sig[mut=iso, read=imm]
     sig
-    sig[result=hygienic][mut=iso, read=readonly] //ignoring the mut/iso
-    sig[result=hygenic][1_mut=lent, other_muts=iso, read=imm ] //if only 1 mut exists
+    sig[result=hygienic][mut=iso, read=readH] //ignoring the mut/iso
+    sig[result=hygenic][1_mut=mutH, other_muts=iso, read=imm ] //if only 1 mut exists
 
    */

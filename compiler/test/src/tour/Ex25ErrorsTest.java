@@ -6,11 +6,11 @@ import utils.RunOutput;
 
 import static codegen.java.RunJavaProgramTests.ok;
 
-public class Ex16ErrorsTest {
+public class Ex25ErrorsTest {
   @Test void catchNothing() { ok(new RunOutput.Res("Happy", "", 0), """
     package test
     Test:Main{s ->
-      FIO#s.println(Try#[Str]{"Happy"}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{"Happy"}.resMatch{
         .ok(res) -> res,
         .err(err) -> err.str,
         })
@@ -20,7 +20,7 @@ public class Ex16ErrorsTest {
   @Test void catchExplicitError() { ok(new RunOutput.Res("\"Sad\"", "", 0), """
     package test
     Test:Main{s ->
-      FIO#s.println(Try#[Str]{Error.msg "Sad"}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{Error.msg "Sad"}.resMatch{
         .ok(res) -> res,
         .err(err) -> err.str,
         })
@@ -29,7 +29,7 @@ public class Ex16ErrorsTest {
   @Test void catchExplicitErrorMsg() { ok(new RunOutput.Res("Sad", "", 0), """
     package test
     Test:Main{s ->
-      FIO#s.println(Try#[Str]{Error.msg "Sad"}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{Error.msg "Sad"}.resMatch{
         .ok(res) -> res,
         .err(err) -> err.msg,
         })
@@ -40,7 +40,7 @@ public class Ex16ErrorsTest {
     """, "", 0), """
     package test
     Test:Main{s ->
-      FIO#s.println(Try#[Str]{Error!(FInfo.list(List#(
+      UnrestrictedIO#s.println(Try#[Str]{Error!(FInfo.list(List#(
         FInfo.msg "big",
         FInfo.list(List#(FInfo.msg "oof"))
       )))}.resMatch{
@@ -53,7 +53,7 @@ public class Ex16ErrorsTest {
   @Test void cannotCatchStackOverflow() { ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
     package test
     Test:Main{s ->
-      FIO#s.println(Try#[Str]{Loop!}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{Loop!}.resMatch{
         .ok(res) -> res,
         .err(err) -> err.str,
         })
@@ -64,7 +64,7 @@ public class Ex16ErrorsTest {
   @Test void capabilityCatchStackOverflow() { ok(new RunOutput.Res("\"Stack overflowed\"", "", 0), """
     package test
     Test:Main{s -> Block#
-      .let io = {FIO#s}
+      .let io = {UnrestrictedIO#s}
       .let try = {CapTries#s}
       .return {io.println(try#[Str]{Loop!}.resMatch{
         .ok(res) -> res,

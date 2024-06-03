@@ -33,7 +33,7 @@ public class TestEqualsSugarTypes {
       +(b) -> S{this.pred + b},
       *(b) -> b + (b * (this.pred)),
       }
-    Abort: { ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
+    Abort: { ![R:readH,mutH,read,mut,imm,iso]: R -> this! }
     """;
 
   @Test void let() { ok(LET); }

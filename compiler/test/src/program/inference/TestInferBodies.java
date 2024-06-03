@@ -424,7 +424,7 @@ public class TestInferBodies {
     """, """
     package base
     Sealed:{}
-    Main[R]:{ #(s: lent System): R }
+    Main[R]:{ #(s: mutH System): R }
     System:{} // Root capability
     Bool:Sealed{
     .and(b: Bool): Bool,
@@ -453,7 +453,7 @@ public class TestInferBodies {
     """, """
     package base
     Sealed:{}
-    Main[R]:{ #(s: lent System): R }
+    Main[R]:{ #(s: mutH System): R }
     System:{} // Root capability
     Bool:Sealed{
     .and(b: Bool): Bool,
@@ -484,7 +484,7 @@ public class TestInferBodies {
     """, """
     package base
     Sealed:{}
-    Main[R]:{ #(s: lent System): R }
+    Main[R]:{ #(s: mutH System): R }
     System:{} // Root capability
     Bool:Sealed{
     .and(b: Bool): Bool,
@@ -516,7 +516,7 @@ public class TestInferBodies {
     """, """
     package base
     Sealed:{}
-    Main[R]:{ #(s: lent System):  R }
+    Main[R]:{ #(s: mutH System):  R }
     System:{} // Root capability
     Bool:Sealed{
     .and(b: Bool): Bool,
@@ -548,7 +548,7 @@ public class TestInferBodies {
     """, """
     package base
     Sealed:{}
-    Main[R]:{ #(s: lent System):  R }
+    Main[R]:{ #(s: mutH System):  R }
     System:{} // Root capability
     Bool:Sealed{
     .and(b: Bool): Bool,
@@ -1034,35 +1034,35 @@ public class TestInferBodies {
     package test
     Usage:{
       .foo: Void -> System[Void]
-        .use(io = FIO)
+        .use(io = UnrestrictedIO)
         .return{ io.println(Str{}) }
       }
     """, """
     package test
     Str:{} Void:{}
-    LentReturnStmt[R]:{ lent #:  R }
+    LentReturnStmt[R]:{ mutH #:  R }
     System[R]:{
-      lent .use[C](c: FCap[lent _RootCap, lent C], cont: mut UseCapCont[C,  R]):  R ->
+      mutH .use[C](c: FCap[lent _RootCap, mutH C], cont: mut UseCapCont[C,  R]):  R ->
         cont#(c#_RootCap, this),
-      lent .return(ret: lent LentReturnStmt[ R]):  R -> ret#
+      mutH .return(ret: mutH LentReturnStmt[ R]):  R -> ret#
       }
     _RootCap:IO{
       .print(msg) -> this.print(msg),
       .println(msg) -> this.println(msg),
       }
-    UseCapCont[C, R]:{ mut #(cap: lent C, self: lent System[ R]):  R }
+    UseCapCont[C, R]:{ mut #(cap: mutH C, self: mutH System[ R]):  R }
     FCap[C,R]:{
-      #(auth: lent C): lent R,
-      .close(c: lent R): Void,
+      #(auth: mutH C): mutH R,
+      .close(c: mutH R): Void,
       }
     IO:{
-      lent .print(msg: Str): Void,
-      lent .println(msg: Str): Void,
+      mutH .print(msg: Str): Void,
+      mutH .println(msg: Str): Void,
       }
-    FIO:FCap[lent _RootCap, lent IO]{
-      #(auth: lent _RootCap): lent IO -> this.scope(auth),
-      .scope(auth: lent IO): lent IO -> auth,
-      .close(c: lent IO): Void -> {},
+    UnrestrictedIO:FCap[lent _RootCap, mutH IO]{
+      #(auth: mutH _RootCap): mutH IO -> this.scope(auth),
+      .scope(auth: mutH IO): mutH IO -> auth,
+      .close(c: mutH IO): Void -> {},
       }
     """); }
 
@@ -1085,7 +1085,7 @@ public class TestInferBodies {
       .mut2lent[X](x:  X): mut Box[ X] -> { x }
       }
     Test:{
-      #(t: read Test): lent Box[read Test] -> Box'.mut2lent(t),
+      #(t: read Test): mutH Box[read Test] -> Box'.mut2lent(t),
       }
     """, """
     package base
@@ -1313,7 +1313,7 @@ public class TestInferBodies {
           [-imm-][test.Fold[imm test.Num[], imm test.Num[]]]{'fear11$
             #/2([acc,n]):Sig[gens=[],ts=[imm test.Num[],imm test.Num[]],ret=imm test.Num[]]->acc+/1[]([n])}]
           )}],
-    test.Fold/2=Dec[name=test.Fold/2,gxs=[S,T],lambda=[--][test.Fold[S,T]]{'this#/2([acc,x]):Sig[gens=[],ts=[S,T],ret=S]->[-]}],test.Abort/0=Dec[name=test.Abort/0,gxs=[],lambda=[--][test.Abort[]]{'this!/0([]):Sig[gens=[R],bounds={R=[imm,iso,lent,mut,read,readOnly]},ts=[],ret=R]->this!/0[R]([])}],test.Zero/0=Dec[name=test.Zero/0,gxs=[],lambda=[--][test.Zero[],test.Num[]]{'this+/1([other]):Sig[gens=[],ts=[immtest.Num[]],ret=immtest.Num[]]->other}]}
+    test.Fold/2=Dec[name=test.Fold/2,gxs=[S,T],lambda=[--][test.Fold[S,T]]{'this#/2([acc,x]):Sig[gens=[],ts=[S,T],ret=S]->[-]}],test.Abort/0=Dec[name=test.Abort/0,gxs=[],lambda=[--][test.Abort[]]{'this!/0([]):Sig[gens=[R],bounds={R=[imm,iso,mutH,mut,read,readH]},ts=[],ret=R]->this!/0[R]([])}],test.Zero/0=Dec[name=test.Zero/0,gxs=[],lambda=[--][test.Zero[],test.Num[]]{'this+/1([other]):Sig[gens=[],ts=[immtest.Num[]],ret=immtest.Num[]]->other}]}
     """, """
     package test
     Num: { +(other: Num): Num }
@@ -1324,7 +1324,7 @@ public class TestInferBodies {
     
     Break:{ #(l: List[Num]): Num -> l.fold[Num](Zero, {acc, n -> acc + n}) }
     
-    Abort: { ![R:readOnly,lent,read,mut,imm,iso]: R -> this! }
+    Abort: { ![R:readH,mutH,read,mut,imm,iso]: R -> this! }
     """); }
 
   @Test void literalVsIT() {ok("""

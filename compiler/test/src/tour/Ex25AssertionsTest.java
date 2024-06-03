@@ -6,7 +6,7 @@ import utils.RunOutput.Res;
 
 import static codegen.java.RunJavaProgramTests.ok;
 
-public class Ex17AssertionsTest {
+public class Ex25AssertionsTest {
   @Test void strAssertions() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main,
@@ -36,7 +36,7 @@ public class Ex17AssertionsTest {
     alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
     alias base.Str as Str,
     
-    Test: Main{_ -> "a".assertEq("oh no", "b")}
+    Test: Main{_ -> "a".assertEq("b", "oh no")}
     """);}
 
 
@@ -69,7 +69,7 @@ public class Ex17AssertionsTest {
     alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
     alias base.Str as Str,
     
-    Test: Main{_ -> (+5).assertEq("oh no", +10)}
+    Test: Main{_ -> (+5).assertEq(+10, "oh no")}
     """);}
 
   @Test void natAssertions() { ok(new RunOutput.Res("", "", 0), """
@@ -101,7 +101,7 @@ public class Ex17AssertionsTest {
     alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
     alias base.Str as Str,
     
-    Test: Main{_ -> (5).assertEq("oh no", 10)}
+    Test: Main{_ -> (5).assertEq(10, "oh no")}
     """);}
 
   @Test void floatAssertions() { ok(new RunOutput.Res("", "", 0), """
@@ -133,6 +133,6 @@ public class Ex17AssertionsTest {
     alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
     alias base.Str as Str,
     
-    Test: Main{_ -> (5.23).assertEq("oh no", 5.64)}
+    Test: Main{_ -> (5.23).assertEq(5.64, "oh no")}
     """);}
 }

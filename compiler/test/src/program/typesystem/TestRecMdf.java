@@ -20,14 +20,14 @@ public class TestRecMdf {
     package test
     A:{
       recMdf .m1: recMdf A -> {},
-      mut .m2: readOnly A -> this.m1,
+      mut .m2: readH A -> this.m1,
       }
     """); }
   @Test void shouldCollapseWhenCalled1aa() { ok("""
     package test
     A:{
       recMdf .m1: recMdf A -> {},
-      mut .m2: readOnly A -> this.m1,
+      mut .m2: readH A -> this.m1,
       }
     """); }
   @Test void shouldCollapseWhenCalled1b() { fail("""
@@ -69,7 +69,7 @@ public class TestRecMdf {
     When attempting to type check the method call: this .m1/1[]([[-mut-][test.NoPromote[]]{'fear0$ }]), no candidates for .m1/1 returned the expected type mut test.A[]. The candidates were:
     (imm test.A[], mut test.NoPromote[]): imm test.A[]
     (imm test.A[], iso test.NoPromote[]): imm test.A[]
-    (imm test.A[], lent test.NoPromote[]): imm test.A[]
+    (imm test.A[], mutH test.NoPromote[]): imm test.A[]
     """, """
     package test
     A:{
@@ -101,25 +101,25 @@ public class TestRecMdf {
     """); }
   @Test void shouldCollapseWhenCalledGenMut2() { ok("""
     package test
-    A[X:readOnly,lent,read,mut,imm]:{
+    A[X:readH,mutH,read,mut,imm]:{
       recMdf .get: recMdf X -> this.loop,
-      readOnly .loop[T:readOnly,lent,read,mut,imm]: mdf T -> this.loop,
+      readH .loop[T:readH,mutH,read,mut,imm]: mdf T -> this.loop,
       }
     B:{
-      .m1Mut[Y:readOnly,lent,read,mut,imm](a: mut A[mut      Y]): mut Y     -> a.get,
+      .m1Mut[Y:readH,mutH,read,mut,imm](a: mut A[mut      Y]): mut Y     -> a.get,
       .m2Mut   (a: mut A[mut Person]): mut Person-> a.get,
       
-      .m1Read[Y:readOnly,lent,read,mut,imm](a: readOnly A[readOnly      Y]): readOnly Y     -> a.get,
-      .m2readOnly   (a: readOnly A[readOnly Person]): readOnly Person-> a.get,
+      .m1Read[Y:readH,mutH,read,mut,imm](a: readH A[readOnly      Y]): readH Y     -> a.get,
+      .m2readOnly   (a: readH A[readOnly Person]): readH Person-> a.get,
       
-      .m1Lent[Y:readOnly,lent,read,mut,imm](a: lent A[lent      Y]): lent Y     -> a.get,
-      .m2Lent   (a: lent A[lent Person]): lent Person-> a.get,
+      .m1Lent[Y:readH,mutH,read,mut,imm](a: mutH A[lent      Y]): mutH Y     -> a.get,
+      .m2Lent   (a: mutH A[lent Person]): mutH Person-> a.get,
       
-      .m1Mdf[Y:readOnly,lent,read,mut,imm](a: mut A[mdf      Y]): mdf Y     -> a.get,
+      .m1Mdf[Y:readH,mutH,read,mut,imm](a: mut A[mdf      Y]): mdf Y     -> a.get,
       //.m2Mdf   (a: mdf A[mdf Person]): mdf Person-> a.get,
       
-      .m1Imm[Y:readOnly,lent,read,mut,imm](a: imm A[imm      Y]): imm Y     -> a.get,
-      .m1_Imm[Y:readOnly,lent,read,mut,imm](a: mut A[imm      Y]): imm Y     -> a.get,
+      .m1Imm[Y:readH,mutH,read,mut,imm](a: imm A[imm      Y]): imm Y     -> a.get,
+      .m1_Imm[Y:readH,mutH,read,mut,imm](a: mut A[imm      Y]): imm Y     -> a.get,
       .m2Imm   (a: imm A[imm Person]): imm Person-> a.get,
       .m2_Imm   (a: mut A[imm Person]): imm Person-> a.get,
       }
@@ -137,7 +137,7 @@ public class TestRecMdf {
     package test
     A[X]:{
       recMdf .m1(_: mut NoPromote): recMdf X,
-      readOnly .m2: readOnly X -> this.m1{},
+      readH .m2: readH X -> this.m1{},
       }
     NoPromote:{}
     """); }
@@ -145,7 +145,7 @@ public class TestRecMdf {
     package test
     A[X]:{
       recMdf .m1(_: mut NoPromote): recMdf X,
-      readOnly .m2: readOnly X -> this.m1{},
+      readH .m2: readH X -> this.m1{},
       }
     NoPromote:{}
     """); }
@@ -165,7 +165,7 @@ public class TestRecMdf {
     (mut test.A[mdf X], mut test.NoPromote[]): mdf X
     (iso test.A[mdf X], iso test.NoPromote[]): mdf X
     (lent test.A[mdf X], iso test.NoPromote[]): mdf X
-    (iso test.A[mdf X], lent test.NoPromote[]): mdf X
+    (iso test.A[mdf X], mutH test.NoPromote[]): mdf X
     """, """
     package test
     A[X]:{
@@ -269,11 +269,11 @@ public class TestRecMdf {
     """); }
   @Test void shouldApplyRecMdfInTypeParams1bLent() { ok("""
     package test
-    Opt:{ #[T:readOnly,lent,imm](x: mdf T): lent Opt[mdf T] -> { .match(m) -> m.some(x) } }
-    Opt[T:readOnly,lent,imm]:{
+    Opt:{ #[T:readH,mutH,imm](x: mdf T): mutH Opt[mdf T] -> { .match(m) -> m.some(x) } }
+    Opt[T:readH,mutH,imm]:{
       recMdf .match[R](m: mut OptMatch[recMdf T, mdf R]): mdf R -> m.none,
       }
-    OptMatch[T:readOnly,lent,imm,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
+    OptMatch[T:readH,mutH,imm,R]:{ mut .some(x: mdf T): mdf R, mut .none: mdf R }
     """); }
 //  @Test void shouldApplyRecMdfInTypeParams1bRecMdf1() { ok("""
 //    package test
@@ -287,9 +287,9 @@ public class TestRecMdf {
 //    Usage:{
 //      .immOpt(x: imm Foo): imm Opt[imm Foo] -> Opts#x,
 //      .mutOpt(x: mut Foo): mut Opt[mut Foo] -> mut Opts#x,
-//      .readOnlyOpt(x: readOnly Foo): readOnly Opt[readOnly Foo] -> readOnly Opts#x,
-//      .readOpt(x: readOnly Foo): readOnly Opt[readOnly Foo] -> readOnly Opts#x,
-//      .lentOpt(x: lent Foo): lent Opt[lent Foo] -> lent Opts#x,
+//      .readOnlyOpt(x: readH Foo): readH Opt[readOnly Foo] -> readH Opts#x,
+//      .readOpt(x: readH Foo): readH Opt[readOnly Foo] -> readH Opts#x,
+//      .lentOpt(x: mutH Foo): mutH Opt[lent Foo] -> mutH Opts#x,
 //      //.isoOpt(x: iso Foo): iso Opt[iso Foo] -> iso Opts#x,
 //      recMdf .recMdfOpt(x: recMdf Foo): recMdf Opt[recMdf Foo] -> recMdf Opts#x,
 //      .mdfOptMut[X](x: mut X): mut Opt[mut X] -> mut Opts#x,
@@ -436,13 +436,13 @@ public class TestRecMdf {
     """); }
   @Test void shouldApplyRecMdfInTypeParams4aV2() { ok("""
     package test
-    A[X:readOnly,lent,read,mut,imm]:{
+    A[X:readH,mutH,read,mut,imm]:{
       recMdf .m1(a: recMdf X, b: imm F[recMdf X]): recMdf X -> b#a,
       }
-    F[X:readOnly,lent,read,mut,imm]:{ imm #(x: mdf X): mdf X -> x, }
-    B[Y:readOnly,lent,read,mut,imm]:{
+    F[X:readH,mutH,read,mut,imm]:{ imm #(x: mdf X): mdf X -> x, }
+    B[Y:readH,mutH,read,mut,imm]:{
       recMdf #(a: mut A[mut B[recMdf Y]]): mut B[recMdf Y] -> this.loop,
-      readOnly .loop[R:readOnly,lent,read,mut,imm]: mdf R -> this.loop,
+      readH .loop[R:readH,mutH,read,mut,imm]: mdf R -> this.loop,
       }
     C:{
       #(b: mut B[mut C]): mut B[mut C] -> b#(mut A[mut B[mut C]]{}),
@@ -494,34 +494,34 @@ public class TestRecMdf {
     package test
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
-    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    A:{ readH .m(par: imm B) : mutH L[imm B] -> mutH L[imm B]{.absMeth->par} }
     """); }
   @Test void noCaptureImmAsRecMdfExample() { ok("""
     package test
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
-    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
+    A:{ readH .m(par: imm B) : mutH L[imm B] -> mutH L[imm B]{.absMeth->par} }
     C:{ #: imm B -> (A.m(B)).absMeth }
     """); }
   @Test void noCaptureImmAsRecMdfCounterEx() { fail("""
     In position [###]/Dummy0.fear:5:25
     [E32 noCandidateMeths]
-    When attempting to type check the method call: [-imm-][test.A[]]{'fear1$ } .m/1[]([[-imm-][test.B[]]{'fear2$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type lent test.B[]. The candidates were:
+    When attempting to type check the method call: [-imm-][test.A[]]{'fear1$ } .m/1[]([[-imm-][test.B[]]{'fear2$ }]) .absMeth/0[]([]), no candidates for .absMeth/0 returned the expected type mutH test.B[]. The candidates were:
     (lent test.L[imm test.B[]]): imm test.B[]
     (iso test.L[imm test.B[]]): imm test.B[]
     """, """
     package test
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
-    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L[imm B]{.absMeth->par} }
-    C:{ #: lent B -> (A.m(B)).absMeth }
+    A:{ readH .m(par: imm B) : mutH L[imm B] -> mutH L[imm B]{.absMeth->par} }
+    C:{ #: mutH B -> (A.m(B)).absMeth }
     """); }
   @Test void noCaptureImmAsRecMdfTopLvl1() { ok("""
     package test
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
     L'[X]:L[imm X]{ recMdf .absMeth: imm X }
-    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
+    A:{ readH .m(par: imm B) : mutH L[imm B] -> mutH L'[imm B]{.absMeth->par} }
     """); }
   @Test void noCaptureImmAsRecMdfTopLvl2() { fail("""
     In position [###]/Dummy0.fear:4:0
@@ -535,7 +535,7 @@ public class TestRecMdf {
     B:{}
     L[X]:{ recMdf .absMeth: recMdf X }
     L'[X]:L[mdf X]{ recMdf .absMeth: imm X }
-    A:{ readOnly .m(par: imm B) : lent L[imm B] -> lent L'[imm B]{.absMeth->par} }
+    A:{ readH .m(par: imm B) : mutH L[imm B] -> mutH L'[imm B]{.absMeth->par} }
     """); }
 
   @Test void recMdfInheritance() { ok("""
@@ -544,10 +544,10 @@ public class TestRecMdf {
     A[X]:{ recMdf .m: recMdf X -> Loop# }
     B:A[imm Foo]
     C:B
-    CanPass0:{ readOnly .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
-    CanPass1:{ readOnly .m(par: mut B) : imm Foo -> par.m  }
-    CanPass2:{ readOnly .m(par: mut C) : imm Foo -> par.m  }
-//    NoCanPass:{ readOnly .m(par: mut B) : mut Foo -> par.m  }
+    CanPass0:{ readH .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
+    CanPass1:{ readH .m(par: mut B) : imm Foo -> par.m  }
+    CanPass2:{ readH .m(par: mut C) : imm Foo -> par.m  }
+//    NoCanPass:{ readH .m(par: mut B) : mut Foo -> par.m  }
     Loop:{ #[X]: mdf X -> this# }
     """); }
 
@@ -564,9 +564,9 @@ public class TestRecMdf {
     Loop:{ #[X]: mdf X -> this# }
     A[X]:{ recMdf .m: recMdf X -> Loop# }
     B:A[imm Foo]{}
-    CanPass0:{ readOnly .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
-    CanPass1:{ readOnly .m(par: mut B) : imm Foo -> par.m  }
-    NoCanPass:{ readOnly .m(par: mut B) : mut Foo -> par.m  }
+    CanPass0:{ readH .m(par: mut A[imm Foo]) : imm Foo -> par.m  }
+    CanPass1:{ readH .m(par: mut B) : imm Foo -> par.m  }
+    NoCanPass:{ readH .m(par: mut B) : mut Foo -> par.m  }
     """); }
 
   @Test void shouldBeAbleToCaptureMutInMutRecMdfSubTypeGeneric() { ok("""
@@ -604,11 +604,11 @@ public class TestRecMdf {
   @Test void methGensMismatch2() { fail("""
     In position [###]/Dummy0.fear:2:38
     [E23 methTypeError]
-    Expected the method .argh/0 to return readOnly X, got mut test.Foo[].
+    Expected the method .argh/0 to return readH X, got mut test.Foo[].
     ""","""
     package test
-    A:{ .foo(x: mut Foo): mut B -> mut B{ mut .argh[X]: readOnly X -> x } }
-    B:{ mut .argh[X]: readOnly X }
+    A:{ .foo(x: mut Foo): mut B -> mut B{ mut .argh[X]: readH X -> x } }
+    B:{ mut .argh[X]: readH X }
     Foo:{}
     """); }
   @Test void methGensMismatch3() { fail("""
@@ -624,18 +624,18 @@ public class TestRecMdf {
   /*
   -----//pass??
 AA:{
-readOnly .a(b:recMdf B):recMdf A->recMdf A{
-  readOnly .b():recMdf B ->b
+readH .a(b:recMdf B):recMdf A->recMdf A{
+  readH .b():recMdf B ->b
   }
 }
-A:{ readOnly .b():recMdf B }
+A:{ readH .b():recMdf B }
 -------//fails
 AA:{
-readOnly .a(b:recMdf B):mut A-> mut A{
-  readOnly .b():recMdf B ->b
+readH .a(b:recMdf B):mut A-> mut A{
+  readH .b():recMdf B ->b
   }
 }
-A:{ readOnly .b():recMdf B }
+A:{ readH .b():recMdf B }
 
    */
 }

@@ -69,7 +69,7 @@ public class TestReadImm {
     return Arbitraries.of(Mdf.imm, Mdf.read, Mdf.readImm, Mdf.mut, Mdf.mdf);
   }
   @Provide Arbitrary<Mdf> recvMdf() {
-    return Arbitraries.of(Mdf.imm, Mdf.read, Mdf.mut, Mdf.readOnly, Mdf.lent, Mdf.iso);
+    return Arbitraries.of(Mdf.imm, Mdf.read, Mdf.mut, Mdf.readH, Mdf.mutH, Mdf.iso);
   }
   @Property void shouldGetAsIsForMut(@ForAll("capturableMdf") Mdf mdf) { ok("""
     package test

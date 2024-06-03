@@ -1,6 +1,6 @@
 package parser
 App:Main{ s -> Block#
-  .let io = {FIO#s}
+  .let io = {UnrestrictedIO#s}
   .let[Str] input = {"123\n678\n"}
   .let parsed = {Parse#(input)}
   .return {io.println(parsed.flow.join ", ")}
@@ -8,7 +8,7 @@ App:Main{ s -> Block#
 
 Parse: {#(input: Str): List[Str] -> input.flow
   .actor[mut Str, Str](iso "", {downstream, state, e -> Block#
-    .if {e != "\n"} .return {Block#(state.add(e), ActorRes.continue)}
+    .if {e != "\n"} .return {Block#(state.append(e), ActorRes.continue)}
     .do {downstream#(state.str)}
     .do {state.clear}
     .return {ActorRes.continue}

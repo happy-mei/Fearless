@@ -3,10 +3,10 @@ grammar Fearless;
 
 //TOKENS
 Mut:'mut';
-Lent:'lent';
+MutH:'mutH';
 Read:'read';
 ReadImm:'read/imm';
-ReadOnly:'readOnly';
+ReadH:'readH';
 Iso:'iso';
 RecMdf:'recMdf';
 Mdf:'mdf';
@@ -68,7 +68,7 @@ Whitespace: ('\t' | ' ' | '\n' )-> channel(HIDDEN);
 fullCN:FullCN;
 x: X| Underscore;
 m: SysInM | MName;
-mdf: Mut | ReadOnly | Lent | ReadImm | Read | Iso | RecMdf | Imm | ;
+mdf: Mut | ReadH | MutH | ReadImm | Read | Iso | RecMdf | Imm | ;
 
 
 roundE : OR e CR;

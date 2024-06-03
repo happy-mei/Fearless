@@ -24,7 +24,7 @@ public final class Debug implements base.Debug_0 {
   private static Str toStr(Object x) {
     var strMethod = java.util.Arrays.stream(x.getClass().getMethods())
       .filter(meth->
-        (meth.getName().equals("str$read") || meth.getName().equals("str$readOnly"))
+        (meth.getName().equals("str$read") || meth.getName().equals("str$readH"))
           && meth.getReturnType().equals(rt.Str.class)
           && meth.getParameterCount() == 0)
       .findAny();

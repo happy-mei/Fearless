@@ -212,7 +212,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
 
   private Optional<CompileError> validLambdaMdf(E.Lambda e) {
     return e.mdf().flatMap(mdf->{
-      if (mdf.is(Mdf.readImm, Mdf.lent, Mdf.readOnly)) { return Optional.of(Fail.invalidLambdaMdf(mdf)); }
+      if (mdf.is(Mdf.readImm, Mdf.mutH, Mdf.readH)) { return Optional.of(Fail.invalidLambdaMdf(mdf)); }
       return Optional.empty();
     });
   }

@@ -90,7 +90,7 @@ public class TestRefineTypes {
     C:{}
     """);}
   //Yes, it should be a.A[lent a.C[],_] instead of a.A[mut a.C[],_]:
-  //We get to lent a.C[] = mut a.C[] and we take the 'best type: as specified by t1 (the user's type)
+  //We get to mutH a.C[] = mut a.C[] and we take the 'best type: as specified by t1 (the user's type)
   @Test void aGenMdf2() {ok("""
     varName:imma.A[muta.B[],reada.B[]]
     """, "varName", "a.A[mut X,read a.B[]]", "a.A[lent a.B[],Y]", """

@@ -37,6 +37,7 @@ public sealed interface E extends HasPos {
       assert id.id.isFresh() || id.id().gen()!=0 || its.stream().allMatch(t->{
         var fv= new UndefinedGXsVisitor(List.of());
         fv.visitIT(t.toAstIT(ti->ti.toAstTFreshenInfers(new Box<>(0))));
+        if (!fv.res().isEmpty()) {System.out.println(fv.res());}
         return fv.res().isEmpty();
       });
     }

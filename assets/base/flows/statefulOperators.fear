@@ -106,7 +106,7 @@ _InternalActor: {
   }
 
 ActorImpl[S,E,R]: { read #(downstream: mut _Sink[imm R], state: S, e: E): ActorRes }
-ActorImplMut[S,E,R]: { read #(downstream: mut _Sink[R], state: lent S, e: E): ActorRes }
+ActorImplMut[S,E,R]: { read #(downstream: mut _Sink[R], state: mutH S, e: E): ActorRes }
 // Alternatively, we could use an isopod and check if the isopod still has content before/after running
 // the actor. Of course, the actor could send the isopod downstream, which would enable parallelism to be observed
 // by virtue of it crashing. This could happen anyway in parallel so I think it'd be fine.

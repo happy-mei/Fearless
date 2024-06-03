@@ -133,7 +133,7 @@ record MultiSigBuilder(
 
   Mdf mutMutH(Mdf m){
     assert m.isMut();
-    return Mdf.lent;
+    return Mdf.mutH;
   }
 
   Mdf mutIsoReadImm(Mdf m){
@@ -149,7 +149,7 @@ record MultiSigBuilder(
       "["+m+"]";
     return switch(m){
       case mut->Mdf.iso;
-      case read,readOnly->Mdf.imm;
+      case read, readH ->Mdf.imm;
       default ->m;
     };
   }
@@ -157,15 +157,15 @@ record MultiSigBuilder(
     assert m.isSyntaxMdf();
     return switch(m){
       case mut->Mdf.iso;
-      case read->Mdf.readOnly;
+      case read->Mdf.readH;
       default ->m;
     };
   }
   Mdf toHyg(Mdf m){
     assert m.isSyntaxMdf();
     return switch(m){
-      case mut->Mdf.lent;
-      case read->Mdf.readOnly;
+      case mut->Mdf.mutH;
+      case read->Mdf.readH;
       default ->m;
     };
   }

@@ -241,7 +241,7 @@ public class TestTypeSystemWithBase {
         { .name -> name, .friends -> friends },
       }
     Usage:{
-      .mutate(p: lent Person): Void -> p.name := "bob",
+      .mutate(p: mutH Person): Void -> p.name := "bob",
       }
     """, Base.mutBaseAliases); }
   @Test void mutateHyg2() { fail("""
@@ -254,13 +254,13 @@ public class TestTypeSystemWithBase {
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:9:47
         [E53 xTypeError]
-        Expected 'p' to be mut test.Person[], got lent test.Person[].
+        Expected 'p' to be mut test.Person[], got mutH test.Person[].
         
     (lent test.Person[]) <= (iso test.Person[]): iso base.Var[imm base.Str[]]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:9:47
         [E53 xTypeError]
-        Expected 'p' to be iso test.Person[], got lent test.Person[].
+        Expected 'p' to be iso test.Person[], got mutH test.Person[].
     """, """
     package test
     Person:{ mut .name: mut Var[Str], mut .friends: mut List[Person] }
@@ -270,7 +270,7 @@ public class TestTypeSystemWithBase {
         { .name -> name, .friends -> friends },
       }
     Usage:{
-      .mutate(p: lent Person): iso Var[Str] -> p.name,
+      .mutate(p: mutH Person): iso Var[Str] -> p.name,
 //      .break: Void -> Block#
 //        .let[mut Person] p = { Person'#"Alice" }
 //        .let[imm Var[Str]] illegal = { this.mutate(p) }
@@ -303,7 +303,7 @@ public class TestTypeSystemWithBase {
     [###]Expected 'p' to be imm test.Person[], got mut test.Person[].[###]
     """, """
     package test
-    Person:{ readOnly .age: Nat, mut .age(n: Nat): Void }
+    Person:{ readH .age: Nat, mut .age(n: Nat): Void }
     FPerson:F[Nat,mut Person]{ age -> Block#
       .let[mut Count[Nat]] age' = { Count.nat(age) }
       .return{{ .age -> age'*, .age(n) -> age' := n }}
@@ -326,17 +326,17 @@ public class TestTypeSystemWithBase {
     Type error: None of the following candidates (returning the expected type "mut base.LList[read test.Person[]]") for this method call:
     l +/1[]([p])
     were valid:
-    (lent base.LList[read test.Person[]], readOnly test.Person[]) <= (mut base.LList[read test.Person[]], read test.Person[]): mut base.LList[read test.Person[]]
+    (lent base.LList[read test.Person[]], readH test.Person[]) <= (mut base.LList[read test.Person[]], read test.Person[]): mut base.LList[read test.Person[]]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:16:74
         [E53 xTypeError]
-        Expected 'l' to be mut base.LList[read test.Person[]], got lent base.LList[read test.Person[]].
+        Expected 'l' to be mut base.LList[read test.Person[]], got mutH base.LList[read test.Person[]].
         
-    (lent base.LList[read test.Person[]], readOnly test.Person[]) <= (iso base.LList[read test.Person[]], imm test.Person[]): iso base.LList[read test.Person[]]
+    (lent base.LList[read test.Person[]], readH test.Person[]) <= (iso base.LList[read test.Person[]], imm test.Person[]): iso base.LList[read test.Person[]]
       The following errors were found when checking this sub-typing:
         In position [###]/Dummy0.fear:16:74
         [E53 xTypeError]
-        Expected 'l' to be iso base.LList[read test.Person[]], got lent base.LList[read test.Person[]].
+        Expected 'l' to be iso base.LList[read test.Person[]], got mutH base.LList[read test.Person[]].
     """, """
     package test
     Person:{ read .age: Nat, mut .age(n: Nat): Void }
@@ -525,7 +525,7 @@ public class TestTypeSystemWithBase {
     """, """
     package test
     Test:Main{
-      #(s) -> FIO#s.println(this.m2.str),
+      #(s) -> UnrestrictedIO#s.println(this.m2.str),
       .m1(r: mut Var[Nat]): Nat -> Block#
         .do{ r := 12 }
         .let[read Var[Nat]] rr = { r }
@@ -596,7 +596,7 @@ public class TestTypeSystemWithBase {
     package test
     Test: Main{s -> Block#
       .let myList = {List#[Int](+5, +10, -15)}
-      .do {FIO#s.println(myList.get(0) .str)}
+      .do {UnrestrictedIO#s.println(myList.get(0) .str)}
       .return {Void}
       }
     """, Base.mutBaseAliases); }
@@ -604,7 +604,7 @@ public class TestTypeSystemWithBase {
     package test
     Test: Main{s -> Block#
       .let[List[Int]] myList = {List#(+5, +10, -15)}
-      .do {FIO#s.println(myList.get(0) .str)}
+      .do {UnrestrictedIO#s.println(myList.get(0) .str)}
       .return {Void}
       }
     """, Base.mutBaseAliases); }

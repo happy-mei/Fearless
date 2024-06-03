@@ -12,7 +12,7 @@ public class TestFlowSemantics {
     Test: Main{sys -> Block#
       .let[mut Flow[Nat]] x = {Flow#[Nat](1,2,3).map{x->x * 10}}
       .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
       }
@@ -24,7 +24,7 @@ public class TestFlowSemantics {
       .let[mut Flow[Nat]] x = {Flow#[Nat](1,2,3).map{x->x * 10}}
       .let[Nat] sum = {x#(Flow.uSum)}
       .let[mut Flow[Nat]] bigSum = {x.map{y->y * 10}}
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .do {io.println(bigSum#(Flow.uSum).str)}
       .return {{}}
@@ -44,7 +44,7 @@ public class TestFlowSemantics {
           }
         }
       .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
       }
@@ -60,7 +60,7 @@ public class TestFlowSemantics {
         .limit(1)
         }
       .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
       }
@@ -76,7 +76,7 @@ public class TestFlowSemantics {
           }
         }
       .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
       }
@@ -92,7 +92,7 @@ public class TestFlowSemantics {
         .limit(1)
         }
       .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
       }
@@ -112,7 +112,7 @@ public class TestFlowSemantics {
           }
         }
       .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
       }
@@ -129,7 +129,7 @@ public class TestFlowSemantics {
         .limit(1)
         }
       .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
       }
@@ -146,7 +146,7 @@ public class TestFlowSemantics {
           }
         }
       .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
       }
@@ -163,7 +163,7 @@ public class TestFlowSemantics {
         .limit(1)
         }
       .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {FIO#sys}
+      .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
       }

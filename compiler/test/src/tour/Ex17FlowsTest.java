@@ -16,10 +16,10 @@ import static codegen.java.RunJavaProgramTests.*;
  * (this is important for early exits like .limit or .find)
  */
 
-public class Ex09FlowsTest {
+public class Ex17FlowsTest {
   @Test void flowSumStr() { ok(new Res("30", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         #(Flow.sum)
         .str
@@ -27,7 +27,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
   @Test void immFlowSumStr() { ok(new Res("30", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       As[imm List[Int]]#(List#[Int](+5, +10, +15)).flow
         #(Flow.sum)
         .str
@@ -35,7 +35,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
   @Test void flowFilterSumStr() { ok(new Res("25", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .filter{n -> n > +5}
         #(Flow.sum)
@@ -64,7 +64,7 @@ public class Ex09FlowsTest {
 
   @Test void flowMap() { ok(new Res("300", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .map{n -> n * +10}
         #(Flow.sum)
@@ -73,7 +73,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
   @Test void flowMapMapMap() { ok(new Res("320400", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       As[List[Nat]]#(List#(5, 10, 15, 50)).flow
         .map{n -> n * 10}
         .map{n -> n * 10}
@@ -121,7 +121,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
   @Test void flowMapWithListConstructor() { ok(new Res("300", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       List#[Int](+5, +10, +15).flow
         .map{n -> n * +10}
         #(Flow.sum)
@@ -131,7 +131,7 @@ public class Ex09FlowsTest {
 
   @Test void flowFlatMap() { ok(new Res("50, 50, 100, 100, 150", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .flatMap{n -> Flow#[Int](n, n, n).limit(2).map{n' -> n' * +10}}
         .limit(5)
@@ -142,7 +142,7 @@ public class Ex09FlowsTest {
 
   @Test void flowGetFirst() { ok(new Res("100", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .map{n -> n * +10}
         .filter{n -> n > +50}
@@ -244,7 +244,7 @@ public class Ex09FlowsTest {
 
   @Test void flowLimit0() { ok(new Res("0", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .limit(0)
         #(Flow.sum)
@@ -253,7 +253,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
   @Test void flowLimit1() { ok(new Res("5", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .limit(1)
         #(Flow.sum)
@@ -262,7 +262,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
   @Test void flowLimit2() { ok(new Res("15", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .limit(2)
         #(Flow.sum)
@@ -271,7 +271,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
   @Test void flowLimit2List() { ok(new Res("15", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       List#[Int](+5, +10, +15).flow
         .limit(2)
         #(Flow.sum)
@@ -280,7 +280,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
   @Test void flowLimit3() { ok(new Res("30", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .limit(3)
         #(Flow.sum)
@@ -289,7 +289,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
   @Test void flowLimit3List() { ok(new Res("30", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       List#[Int](+5, +10, +15).flow
         .limit(3)
         #(Flow.sum)
@@ -298,7 +298,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases); }
   @Test void flowLimit4() { ok(new Res("30", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .limit(4)
         #(Flow.sum)
@@ -319,7 +319,7 @@ public class Ex09FlowsTest {
     package test
     Test:Main {sys -> Block#
       .let size = {Flow#[Nat](5, 10, 15).filter{n -> n > 5}.size}
-      .return {FIO#sys.println(size.str)}
+      .return {UnrestrictedIO#sys.println(size.str)}
       }
     """, Base.mutBaseAliases);}
   @Test void flowFilterMap() { ok(new Res(), """
@@ -354,7 +354,7 @@ public class Ex09FlowsTest {
 
   @Test void flowLet() { ok(new Res("35 40 45", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .let[Int,Str] f2 = {f1 -> f1# #(Flow.sum)}
         .map{n -> n + f2}
@@ -365,7 +365,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases);}
   @Test void flowLetMultiple() { ok(new Res("65 70 75", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .let[Int,Str] f2 = {f1 -> (f1# #(Flow.sum)) + (f1# #(Flow.sum))}
         .map{n -> n + f2}
@@ -376,7 +376,7 @@ public class Ex09FlowsTest {
     """, Base.mutBaseAliases);}
   @Test void flowLetNoCollect() { ok(new Res("135 140 145", "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> UnrestrictedIO#sys.println(
       Flow#[Int](+5, +10, +15)
         .let[Int,Str] f2 = {f -> f# #(Flow.sum)}
         .let[Int,Str] f3 = {_ -> +100}
@@ -397,7 +397,7 @@ public class Ex09FlowsTest {
         .map{n -> n.str}
         #(Flow.str " ")
         }
-      .return {FIO#sys.println(myFlow)}
+      .return {UnrestrictedIO#sys.println(myFlow)}
       }
     """, Base.mutBaseAliases);}
 

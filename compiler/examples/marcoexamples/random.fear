@@ -1,13 +1,13 @@
 package foo
 
 MyApp:Main{ s -> s
-  .use[IO] io = FIO
+  .use[IO] io = UnrestrictedIO
   .do{ B#io }
   .return{ Void }
   }
 
 B1:{
-  #(io: lent System[IO]): ... -> io
+  #(io: mutH System[IO]): ... -> io
     .use[File] file1 = FFile.reader("foo.txt")
     .use[File] file2 = FFile.writer("arr.txt")
     .return{ C.process(file1, file2) }
@@ -22,7 +22,7 @@ B2:{
 
 // Marco's B:
 //B:{
-//  #(io: lent IO): ... -> io
+//  #(io: mutH IO): ... -> io
 //    .use[File] file1 = FFile.reader("foo.txt")
 //    .use[File] file2 = FFile.writer("arr.txt")
 //    .return{ C.process(file1, file2) }

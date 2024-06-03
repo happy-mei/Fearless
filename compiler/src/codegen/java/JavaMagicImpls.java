@@ -72,8 +72,8 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".shiftRight", 1))) { return instantiate().orElseThrow()+">>"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName(".shiftLeft", 1))) { return instantiate().orElseThrow()+"<<"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName(".xor", 1))) { return instantiate().orElseThrow()+"^"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName(".and", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName(".or", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".bitwiseAnd", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".bitwiseOr", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName(">", 1))) { return "("+instantiate().orElseThrow()+">"+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("<", 1))) { return "("+instantiate().orElseThrow()+"<"+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName(">=", 1))) { return "("+instantiate().orElseThrow()+">="+args.getFirst().accept(gen, true)+"?base.True_0.$self:base.False_0.$self)"; }
@@ -83,7 +83,7 @@ public record JavaMagicImpls(
           return "base._IntAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".assertEq", 2))) {
-          return "base._IntAssertionHelper_0.assertEq$imm$fun("+args.getFirst().accept(gen, true)+", "+instantiate().orElseThrow()+", "+args.get(1).accept(gen, true)+", null)";
+          return "base._IntAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+", "+args.get(1).accept(gen, true)+", null)";
         }
         throw Bug.unreachable();
       }
@@ -137,8 +137,8 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".shiftRight", 1))) { return instantiate().orElseThrow()+">>>"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName(".shiftLeft", 1))) { return instantiate().orElseThrow()+"<<<"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName(".xor", 1))) { return instantiate().orElseThrow()+"^"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName(".and", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
-        if (m.equals(new Id.MethName(".or", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".bitwiseAnd", 1))) { return instantiate().orElseThrow()+"&"+args.getFirst().accept(gen, true); }
+        if (m.equals(new Id.MethName(".bitwiseOr", 1))) { return instantiate().orElseThrow()+"|"+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName(">", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")>0?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName("<", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")<0?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName(">=", 1))) { return "(Long.compareUnsigned("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+")>=0?base.True_0.$self:base.False_0.$self)"; }
@@ -148,7 +148,7 @@ public record JavaMagicImpls(
           return "base._NatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".assertEq", 2))) {
-          return "base._NatAssertionHelper_0.assertEq$imm$fun("+args.getFirst().accept(gen, true)+", "+instantiate().orElseThrow()+", "+args.get(1).accept(gen, true)+", null)";
+          return "base._NatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+", "+args.get(1).accept(gen, true)+", null)";
         }
         throw Bug.unreachable();
       }
@@ -199,7 +199,7 @@ public record JavaMagicImpls(
           return "base._FloatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+", "+args.getFirst().accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".assertEq", 2))) {
-          return "base._FloatAssertionHelper_0.assertEq$imm$fun("+args.getFirst().accept(gen, true)+", "+instantiate().orElseThrow()+", "+args.get(1).accept(gen, true)+", null)";
+          return "base._FloatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+", "+args.get(1).accept(gen, true)+", null)";
         }
         //Float specifics
         if (m.equals(new Id.MethName(".round", 0))) { return "Math.round("+instantiate().orElseThrow()+")"; }
@@ -290,8 +290,8 @@ public record JavaMagicImpls(
               private Object x = %s;
               private boolean isAlive = true;
 
-              public base.Bool_0 isAlive$readOnly() { return this.isAlive ? base.True_0.$self : base.False_0.$self; }
-              public Object peek$readOnly(base.caps.IsoViewer_2 f) { return this.isAlive ? ((base.caps.IsoViewer_2)f).some$mut(this.x) : ((base.caps.IsoViewer_2)f).empty$mut(); }
+              public base.Bool_0 isAlive$readH() { return this.isAlive ? base.True_0.$self : base.False_0.$self; }
+              public Object peek$readH(base.caps.IsoViewer_2 f) { return this.isAlive ? ((base.caps.IsoViewer_2)f).some$mut(this.x) : ((base.caps.IsoViewer_2)f).empty$mut(); }
               public Object $exclamation$mut() {
                 if (!this.isAlive) {
                   base.Error_0.$self.msg$imm(rt.Str.fromJavaStr("Cannot consume an empty IsoPod."));
@@ -399,7 +399,7 @@ public record JavaMagicImpls(
         ObjCapImpl impl = null;
         if (target == Magic.RootCap) { impl = (ctx, m1, args1) -> null; }
         if (target == Magic.FEnv) { impl = env(); }
-        if (target == Magic.FIO) { impl = io(); }
+        if (target == Magic.UnrestrictedIO) { impl = io(); }
         if (target == Magic.FRandomSeed) { impl = randomSeed(); }
         assert impl != null;
 

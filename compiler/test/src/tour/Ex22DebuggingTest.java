@@ -6,7 +6,7 @@ import utils.RunOutput.Res;
 
 import static codegen.java.RunJavaProgramTests.ok;
 
-public class Ex12DebuggingTest {
+public class Ex22DebuggingTest {
   @Test void debugPrintNumber() { ok(new Res("30", "", 0), """
     package test
     alias base.Debug as Debug,

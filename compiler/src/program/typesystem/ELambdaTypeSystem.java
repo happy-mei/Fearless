@@ -122,7 +122,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     if (baseDestiny) { return FailOr.opt(baseCase); }
     //res is iso or imm, thus is promotable
 
-    var criticalFailure = topLevelIso(gg, m, e, ret.withMdf(Mdf.readOnly));
+    var criticalFailure = topLevelIso(gg, m, e, ret.withMdf(Mdf.readH));
     if (criticalFailure.isPresent()) { return FailOr.opt(baseCase); }
 
     var readPromotion = mOkReadPromotion(selfName, selfT, m, sig);
@@ -142,7 +142,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public Optional<T> getO(String x) {
         return g().getO(x).map(t->{
           if (t.mdf().isMdf()) { return t.withMdf(Mdf.iso); }
-          return t.mdf().isReadOnly() ? t.withMdf(Mdf.read) : t;
+          return t.mdf().isReadH() ? t.withMdf(Mdf.read) : t;
         });
       }
       @Override public List<String> dom() { return g().dom(); }
@@ -151,18 +151,18 @@ interface ELambdaTypeSystem extends ETypeSystem{
 
     };
     var mMdf = m.mdf();
-    var g0 = readOnlyAsReadG.captureSelf(xbs(), selfName, selfT, mMdf.isReadOnly() ? Mdf.read : mMdf);
+    var g0 = readOnlyAsReadG.captureSelf(xbs(), selfName, selfT, mMdf.isReadH() ? Mdf.read : mMdf);
     var gg  = Streams.zip(
       m.xs(),
-      sig.ts().stream().map(t->t.mdf().isReadOnly() ? t.withMdf(Mdf.read) : t).toList()
+      sig.ts().stream().map(t->t.mdf().isReadH() ? t.withMdf(Mdf.read) : t).toList()
     ).fold(Gamma::add, g0);
     return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret());
   }
 
   default Optional<Supplier<CompileError>> mOkIsoPromotion(String selfName, T selfT, E.Meth m, E.Sig sig) {
     Function<T, T> mdfTransform = t->{
-      if (t.mdf().isMut()) { return t.withMdf(Mdf.lent); }
-      if (t.mdf().is(Mdf.read, Mdf.readImm)) { return t.withMdf(Mdf.readOnly); }
+      if (t.mdf().isMut()) { return t.withMdf(Mdf.mutH); }
+      if (t.mdf().is(Mdf.read, Mdf.readImm)) { return t.withMdf(Mdf.readH); }
       return t;
     };
     var mutAsLentG = new Gamma() {
@@ -174,7 +174,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public String toStr(){ throw Bug.unreachable(); }
     };
     var mMdf = mdfTransform.apply(selfT.withMdf(m.mdf())).mdf();
-    var g0 = mutAsLentG.captureSelf(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.lent : mMdf);
+    var g0 = mutAsLentG.captureSelf(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.mutH : mMdf);
     var gg  = Streams.zip(
       m.xs(),
       sig.ts().stream().map(mdfTransform).toList()
@@ -194,7 +194,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var mMdf = m.mdf();
     var g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(xbs(), selfName, selfT, mMdf);
     var gg = Streams.zip(m.xs(), sig.ts()).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isMdf() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
-    return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.readOnly));
+    return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.readH));
   }
 
   /**

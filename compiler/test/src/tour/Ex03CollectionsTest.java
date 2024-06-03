@@ -8,7 +8,149 @@ import static utils.RunOutput.Res;
 import static codegen.java.RunJavaProgramTests.*;
 import static tour.TourHelper.*;
 
-public class Ex02CollectionsTest {
+public class Ex03CollectionsTest {
+  /*-----
+
+Now we can show optionals: `Opt[E]`.
+`Opt[E]` is simply modeling that a value can be present or not.
+An optional is the simplest form of collection, and it is basically
+a collection of zero or one element.
+An empty optional is not representing a mistake/error/problem.
+We think that understanding the full code of optional is a great way to learn Fearless and to
+demystify fearless collections.
+-------------------------*/@Test void optional() { run("""
+  Opts: {
+    #[T](x: T): mut Opt[T] -> {.match(m) -> m.some(x)},
+    }
+  Opt[T]: _Opt[T]{
+    .match(m)       -> m.empty,
+    .map(f)         -> this.match(f),
+    ||(default)     -> this.match{.some(x) -> x, .empty -> default#},
+    |(default)      -> this.match{.some(x) -> x, .empty -> default},
+    !               -> this.match{.some(x) -> x, .empty -> Error.msg "Opt was empty"},
+    .flow           -> this.match{.empty -> Flow#, .some(x) -> Flow#x)},
+  
+    read .isEmpty: Bool -> this.match{.empty -> True,  .some(_) -> False},
+    read .isSome: Bool  -> this.match{.empty -> False, .some(_) -> True},
+    imm .imm: Opt[imm T] -> this.match{.empty -> {}, .some(x) -> Opts#x},
+    }
+  _Opt[T]: Sealed{
+    mut  .match[R](m: mut OptMatch[T, R]): R,
+    read .match[R](m: mut OptMatch[read/imm T, R]): R,
+    imm  .match[R](m: mut OptMatch[imm T, R]): R,
+  
+    mut  .map[R](f: mut OptMap[T, R]):          mut Opt[R],
+    read .map[R](f: mut OptMap[read/imm T, R]): mut Opt[R],
+    imm  .map[R](f: mut OptMap[imm T, R]):      mut Opt[R],
+  
+    mut  ||(default: mut MF[T]):          T,
+    read ||(default: mut MF[read/imm T]): read/imm T,
+    imm  ||(default: mut MF[imm T]):      imm T,
+  
+    mut  |(default: T):          T,
+    read |(default: read/imm T): read/imm T,
+    imm  |(default: imm T):      imm T,
+  
+    mut  !: T,
+    read !: read/imm T,
+    imm  !: imm T,
+  
+    mut  .flow: mut Flow[T],
+    read .flow: mut Flow[read/imm T],
+    imm  .flow: mut Flow[imm T],
+    }
+  
+  OptMatch[T,R]: { mut .some(x: T): R, mut .empty: R }
+  OptMap[T,R]: OptMatch[T, mut Opt[R]]{
+    mut #(t: T): R,
+    .some(x) -> Opts#(this#x),
+    .empty -> {}
+    }
+  """); }/*--------------------------------------------
+
+As you can see, our implementation of optionals is reasonably compact,
+but there are a lot of type signatures. In order to understand
+a library you need to understand the type signatures and the
+behavior of the methods.
+
+When writing documentation for a library, there are two main approaches: describing the behaviour of each method with
+examples, or just showing the signatures of the methods. Both approaches have their place. For code which is largely just
+a wrapper around data, where signatures clearly show the operations occurring, simply showing the code may be the best approach.
+On the other hand, if the library encodes complex behaviour, often with many different conditions on input data, etc. then
+going by examples and by the documentation of the individual methods is best.
+
+In the code above we show a very interesting pattern using `Opt` and `_Opt`.
+As you can see, `_Opt` defines three versions for many methods
+`_Opt` is never used directly by the user, but cotains th
+
+Here we show some example code using Optionals
+-------------------------*/@Test void optionalEx1() { run("""
+  Students: F[Str,Nat,Student]{name, age -> Student: {
+    .name: Str -> name,
+    .age: Nat -> age,
+    .str: Str -> "Name: "+name+", Age: "+(age.str),
+    }}
+  SchoolRoll: {
+    #(name: Str): Opt[Student] -> name == "Nick" ? {
+      .then -> Opts#(Students#("Nick", 25)),
+      .else -> {}
+      }}
+  Test: Main{sys -> Block#
+    .let[mut IO] io = {UnrestrictedIO#sys}
+    .let[Student] student = {SchoolRoll#"Marco" || {Students#("Anonymous", 0)}}
+    .return {io.println(student.str)}
+    }
+  //prints Name: Anonymous, Age: 0
+  """); }/*--------------------------------------------
+-------------------------*/@Test void optionalEx2() { run("""
+  Students: F[Str,Nat,Student]{name, age -> Student: {
+    .name: Str -> name,
+    .age: Nat -> age,
+    .str: Str -> "Name: "+name+", Age: "+(age.str),
+    }}
+  SchoolRoll: {
+    #(name: Str): Opt[Student] -> name == "Nick" ? {
+      .then -> Opts#(Students#("Nick", 25)),
+      .else -> {}
+      }}
+  Test: Main{sys -> Block#
+    .let[mut IO] io = {UnrestrictedIO#sys}
+    .let[Student] student = {SchoolRoll#"Nick" || {Students#("Anonymous", 0)}}
+    .return {io.println(student.str)}
+    }
+  //prints Name: Nick, Age: 25
+  """); }/*--------------------------------------------
+-------------------------*/@Test void optionalEx3() { run("""
+  Students: F[Str,Nat,Student]{name, age -> Student: {
+    .name: Str -> name,
+    .age: Nat -> age,
+    }}
+  SchoolRoll: {
+    #(name: Str): Opt[Student] -> name == "Nick" ? {
+      .then -> Opts#(Students#("Nick", 25)),
+      .else -> {}
+      }}
+  Test: Main{sys -> Block#
+    .let[mut IO] io = {UnrestrictedIO#sys}
+    .let sum = {SumAgeIfStudent#(SchoolRoll, List#("Marco", "Nick"))}
+    .return {io.println(sum.str)}
+    }
+  SumAgeIfStudent: {#(roll: SchoolRoll, names: List[Str]): Nat -> names.flow
+    .flatMap{name -> roll#name.flow}
+    .map{student -> student.age}
+    .fold[Nat](0, {a, b -> a + b})
+    }
+  //prints 25
+  """); }/*--------------------------------------------
+
+  o1 || {o2 || {o3 || {v}}}
+
+
+//Int,Nat,Str,Optional,HasStr,Ordered/Comparator,List,
+//Much later,Next: importance of closing
+
+*/
+
 /*
 ----Lists----
 Lists manipulation is crucial in most software development
@@ -27,7 +169,7 @@ the elements in strings, as shown below.
       .let myList= {List#[Int](5, 10, 15)}
       .var  myStr= {myList.str {n->n.str}}
       .var  myStr= {myList.str ::str}
-      .return{FIO#sys.println(myStr)}
+      .return{UnrestrictedIO#sys.println(myStr)}
       }
     //prints [5, 10, 15]
     """); }/*--------------------------------------------
@@ -48,7 +190,7 @@ Here we first map the elements to strings using 'number.str'
         }
       .let myStr= {myList.flow.map::str#"; "} //options
       .let myStr= {myList.flow.map{::str}#"; "}
-      .return{FIO#sys.println(myStr)}//we agreed parenthesis needed
+      .return{UnrestrictedIO#sys.println(myStr)}//we agreed parenthesis needed
       }
     //prints 5; 10; 15
     """); }/*--------------------------------------------
@@ -66,7 +208,7 @@ size of the list. In this case a dynamic error is thrown.
       .let list = {List#[Str]}//YES spaces on both sides of =?
       .do {list.add("YAY!")}
       .var  yay = {list.get(0)}
-      .return {FIO#sys.println(yay)}
+      .return {UnrestrictedIO#sys.println(yay)}
       }
     //prints YAY!
     """); }/*--------------------------------------------
@@ -106,7 +248,7 @@ Many maps are on Str or Int types
     Ints
     Opts#bob
     NewOpts#foo
-    FIO#sys
+    UnrestrictedIO#sys
     IOs#sys //
     Opt[T]
     NewHtml.a
@@ -127,8 +269,8 @@ Many maps are on Str or Int types
           .and{Unsigns.compare#{p->p.age}}
     }
     Test:Main {sys -> Block#
-      .let print= {mut _:{mut #(s:Str):Void->FIO#sys.println(s)}}
-      //.let print= {mut Fresh:{mut #(s:Str):Void->FIO#sys.println(s)}}
+      .let print= {mut _:{mut #(s:Str):Void->UnrestrictedIO#sys.println(s)}}
+      //.let print= {mut Fresh:{mut #(s:Str):Void->UnrestrictedIO#sys.println(s)}}
       .let mapStr = {Map.str(
         "Alice", 24,
         "Bob", 30)}
@@ -152,7 +294,7 @@ Many maps are on Str or Int types
       .do {map.put("Bob", 30)}
       .let bobAgeOpt = {map.get("Bob")}
       .let bobAge = {bobAgeOpt!}
-      .return {FIO#sys.println(bobAge.str)}
+      .return {UnrestrictedIO#sys.println(bobAge.str)}
       }
       //30
     """);}

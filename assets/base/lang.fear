@@ -5,14 +5,14 @@ Main: { #(s: mut System): Void }
 Sealed: {}
 Void: Sealed{}
 
-Abort: Sealed{![R:readOnly,lent,read,mut,imm,iso]: R -> this!} // can be optimised to just terminate (goes stuck)
-Magic: Sealed{![R:readOnly,lent,read,mut,imm,iso]: R -> this!} // magic'd out to tell us what we forgot to implement
+Abort: Sealed{![R:readH,mutH,read,mut,imm,iso]: R -> this!} // can be optimised to just terminate (goes stuck)
+Magic: Sealed{![R:readH,mutH,read,mut,imm,iso]: R -> this!} // magic'd out to tell us what we forgot to implement
 Debug: Sealed{
   #[T](x: T): T -> x,
   .println[T](x: T): Void -> {},
   .identify[T](x: T): Str -> Magic!,
   }
-HasIdentity: { mut .idEq(other: readOnly HasIdentity): Bool -> Magic! } // TODO: magic
+HasIdentity: { mut .idEq(other: readH HasIdentity): Bool -> Magic! } // TODO: magic
 
 As[X:imm,mut,read,iso]: Sealed{ #(x: X): X -> x }
 
@@ -37,9 +37,9 @@ Consumer[A:read,mut,imm,iso]: { mut #(a: A): Void }
 Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso]: { mut #(a: A, b: B): Void }
 Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso]: { mut #(a: A, b: B, c: C): Void }
 
-ToImm[R]: { readOnly .toImm: imm R, }
+ToImm[R]: { readH .toImm: imm R, }
 Freezer[T,R]: { mut #(self: T): imm R }
-Ice[T]: { readOnly .get: imm T }
+Ice[T]: { readH .get: imm T }
 
 Box[T]: {
   mut  .get: T,

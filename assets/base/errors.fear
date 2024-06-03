@@ -1,8 +1,8 @@
 package base
 
 Error: {
-  ![R:read,mut,imm,iso,lent,readOnly](info: Info): R -> Magic!,
-  .msg[R:read,mut,imm,iso,lent,readOnly](msg: Str): R -> this!{
+  ![R:read,mut,imm,iso,mutH,readH](info: Info): R -> Magic!,
+  .msg[R:read,mut,imm,iso,mutH,readH](msg: Str): R -> this!{
     .msg -> msg,
     .list -> List#,
     .map -> EmptyMap[Str, Info]
@@ -10,8 +10,8 @@ Error: {
   }
 
 Todo: {
-  ![R:read,mut,imm,iso,lent,readOnly]: R -> Error.msg[R] "TODO: Implement this code",
-  ![R:read,mut,imm,iso,lent,readOnly](msg: Str): R -> Error.msg[R]("TODO: "+msg),
+  ![R:read,mut,imm,iso,mutH,readH]: R -> Error.msg[R] "TODO: Implement this code",
+  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("TODO: "+msg),
 }
 
 /// Strong exception safety is upheld:
