@@ -88,7 +88,7 @@ public class Ex17FlowsTest {
     5010, 5020, 5030, 5040, 10010, 10020, 10030, 10040, 15010, 15020, 15030, 15040, 50010, 50020, 50030, 50040
     """, "", 0), """
     package test
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> sys.io.println(
       As[List[Nat]]#(List#(5, 10, 15, 50)).flow
         .map{n -> n * 10}
         .map{n -> n * 10}
@@ -114,7 +114,7 @@ public class Ex17FlowsTest {
           },
       }
     
-    Test:Main {sys -> FIO#sys.println(
+    Test:Main {sys -> sys.io.println(
         Fib.flow(50)
         .str
       )}
@@ -334,12 +334,10 @@ public class Ex17FlowsTest {
     """, Base.mutBaseAliases);}
   @Test void flowFilterMapIntEq1() { ok(new Res(), """
     package test
-    Test:Main {sys -> (+150).assertEq("max assert failed",
-      Flow#[Int](+5, +10, +15)
-        .filter{n -> n > +5}
-        .map{n -> n * +10}
-        .max(base.CompareInts)!
-      )}
+    Test:Main {sys -> (+150).assertEq(Flow#[Int](+5, +10, +15)
+      .filter{n -> n > +5}
+      .map{n -> n * +10}
+      .max(base.CompareInts)!, "max assert failed")}
     """, Base.mutBaseAliases);}
   // We prefer flowFilterMapIntEq1 because it is more clear that this test is of an assertion rather than of a flow.
   @Test void flowFilterMapIntEq2() { ok(new Res(), """
@@ -640,7 +638,7 @@ public class Ex17FlowsTest {
 
   @Test void strFlow() {ok(new Res("Jello", "", 0), """
     package test
-    Test: Main{sys -> FIO#sys.println("Hello".flow
+    Test: Main{sys -> sys.io.println("Hello".flow
       .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
       .join ""
       )}
@@ -657,7 +655,7 @@ public class Ex17FlowsTest {
       .size: Nat,
       .facts: Str -> this.size.str+" "+this.str,
       }
-    Test: Main{sys -> FIO#sys.println("Hello".flow
+    Test: Main{sys -> sys.io.println("Hello".flow
       .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
       .scan[StrInfo](
         {.size -> 0, .str -> ""},

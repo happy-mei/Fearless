@@ -134,7 +134,7 @@ public final class DataParallelFlow implements Flow_1 {
     return Extensible_1.$hash$mut$fun(ext_m$, this);
   }
 
-  public Object join$mut(base.flows.NaturalFold_1 f) {
+  public Object join$mut(base.flows.Joinable_1 f) {
     return Flow_1.join$mut$fun(f, this);
   }
 
