@@ -1,4 +1,4 @@
-package rt.dataParallel;
+package rt.flows.dataParallel;
 
 import base.Info_0;
 import base.OptMatch_2;
@@ -9,17 +9,17 @@ import base.flows._Sink_1;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.RecursiveAction;
 
-final class ForRemaining extends RecursiveAction {
+final class ForkJoinWorker extends RecursiveAction {
   private final FlowOp_1 source;
   private final _Sink_1 downstream;
   private final _Sink_1 original;
   private final ConcurrentLinkedQueue<Object> es;
 
-  public ForRemaining(FlowOp_1 source, _Sink_1 downstream) {
+  public ForkJoinWorker(FlowOp_1 source, _Sink_1 downstream) {
     this(source, downstream, new ConcurrentLinkedQueue<>());
   }
 
-  private ForRemaining(FlowOp_1 source, _Sink_1 downstream, ConcurrentLinkedQueue<Object> es) {
+  private ForkJoinWorker(FlowOp_1 source, _Sink_1 downstream, ConcurrentLinkedQueue<Object> es) {
     this.source = source;
     this.original = downstream;
     this.downstream = new _Sink_1() {
@@ -49,8 +49,8 @@ final class ForRemaining extends RecursiveAction {
       @Override public Object some$mut(Object split_) {
         var split = (FlowOp_1) split_;
         var rhsData = new ConcurrentLinkedQueue<>();
-        var lhs = new ForRemaining(source, downstream, es);
-        var rhs = new ForRemaining(split, downstream, rhsData);
+        var lhs = new ForkJoinWorker(source, downstream, es);
+        var rhs = new ForkJoinWorker(split, downstream, rhsData);
         rhs.fork();
         lhs.compute();
         rhs.join();

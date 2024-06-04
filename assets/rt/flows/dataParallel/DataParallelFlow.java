@@ -1,7 +1,8 @@
-package rt.dataParallel;
+package rt.flows.dataParallel;
 
 import base.*;
 import base.flows.*;
+import rt.flows.dataParallel.eod.EODWorker;
 
 import java.util.Objects;
 
@@ -9,19 +10,18 @@ public final class DataParallelFlow implements Flow_1 {
   private final FlowOp_1 source_m$;
   private final Opt_1 size_m$;
   private final DataParallelFlowK $this;
-  private final int size;
-//  private static Stats stats;
+  private final long size;
 
   public DataParallelFlow(FlowOp_1 source_m$, Opt_1 size_m$, DataParallelFlowK $this) {
     this.source_m$ = source_m$;
     this.size_m$ = size_m$;
     this.$this = $this;
-    this.size = (int) size_m$.match$mut(new OptMatch_2() {
+    this.size = (Long) size_m$.match$mut(new OptMatch_2() {
       @Override public Object some$mut(Object x_m$) {
         return x_m$;
       }
       @Override public Object empty$mut() {
-        return -1;
+        return -1L;
       }
     });
   }
@@ -79,7 +79,7 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public FlowOp_1 unwrapOp$mut(_UnwrapFlowToken_0 fear55$_m$) {
-    return source_m$;
+    return new ParallelSource();
   }
 
   public Object fold$mut(Object acc_m$, F_3 f_m$) {
@@ -196,7 +196,7 @@ public final class DataParallelFlow implements Flow_1 {
     }
 
     @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
-      ExploitWorker.forRemaining(source_m$, downstream_m$, size);
+      EODWorker.forRemaining(source_m$, downstream_m$, (int) size);
 //      nestLevel.incrementAndGet();
 //      if (stats == null) {
 //        stats = size >= 0 ? new Stats(size) : new Stats();

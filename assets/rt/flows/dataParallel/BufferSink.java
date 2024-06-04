@@ -1,4 +1,4 @@
-package rt.dataParallel;
+package rt.flows.dataParallel;
 
 import base.Info_0;
 import base.Void_0;
@@ -6,7 +6,7 @@ import base.flows._Sink_1;
 
 import java.util.List;
 
-final class BufferSink implements _Sink_1 {
+public final class BufferSink implements _Sink_1 {
   public final _Sink_1 original;
   private final List<Object> buffer;
 
