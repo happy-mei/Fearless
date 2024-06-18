@@ -1,11 +1,9 @@
 package failure;
 
 
+import errmsg.BetterErrMsgs;
 import files.Pos;
-import org.antlr.v4.runtime.ANTLRErrorListener;
-import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.dfa.DFA;
 
@@ -29,7 +27,9 @@ public record ParserErrors(URI fileName) implements ANTLRErrorListener {
   }
 
   public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-    throw Fail.syntaxError(msg).pos(Pos.of(this.fileName, line, charPositionInLine));
+    TokenStream input = ((Parser) recognizer).getInputStream();
+    String betterMsg = new BetterErrMsgs(input.getText(), offendingSymbol, msg).syntaxError();
+    throw Fail.syntaxError(betterMsg).pos(Pos.of(this.fileName, line, charPositionInLine));
   }
 
   public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs) {}
