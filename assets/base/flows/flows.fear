@@ -56,7 +56,6 @@ _TerminalOps[E]: Sealed{
   mut .first: mut Opt[E],
   mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],
   mut .fold[S](acc: S, f: read F[S,E,S]): S,
-  mut .fold[S](acc: S, f: read F[S,E,S], combine: read F[S, S, S]): S,
   mut .size: Nat,
 
   mut .find(predicate: read F[E, Bool]): mut Opt[E] -> this.findMap{e -> predicate#e ? {.then -> Opts#e, .else -> {}}},
@@ -75,17 +74,7 @@ _TerminalOps[E]: Sealed{
       .equal -> max,
       .greater -> max,
       }
-    }}, {a, b -> a.match{
-      .empty -> b,
-      .some(a') -> b.match{
-        .empty -> a,
-        .some(b') -> compare#(a', b').match{
-          .less -> b,
-          .equal -> a,
-          .greater -> a,
-          }
-        }
-      }})
+    }})
   }
 
 // TODO: move all of these extension methods onto the data-types, i.e. myflow#"," to join with "," or myflow#(Int.sum) for summing
@@ -113,7 +102,6 @@ EmptyFlow[E]: Flow[E]{
   .any(p) -> False,
   .all(p) -> False,
   .fold(acc, _) -> acc,
-  .fold(acc, _, _) -> acc,
   .size -> 0,
   .unwrapOp(_) -> {
     .step(_) -> {},

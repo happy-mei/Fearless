@@ -78,8 +78,6 @@ _PipelineParallelFlow: _FlowFactory{
         })}
       .do {source.stop}
       .return {acc'.get},
-    // Pipeline parallel flows do not split so no combine is needed
-    .fold(acc, f, combine) -> self.fold(acc, f),
 
     .size -> size.match{
       .some(n) -> n,
