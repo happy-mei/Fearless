@@ -6,7 +6,6 @@ public interface ParallelStrategies {
   void manyPar();
 
   default void run(int nTasks) {
-    System.out.println("hmm "+nTasks);
     if (nTasks == 2) {
       oneParOneSeq();
       return;

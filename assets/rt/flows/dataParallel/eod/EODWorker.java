@@ -4,6 +4,7 @@ import base.OptMatch_2;
 import base.flows.FlowOp_1;
 import base.flows._Sink_1;
 import rt.flows.dataParallel.BufferSink;
+import rt.flows.dataParallel.SplitTasks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,22 +23,9 @@ import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
  */
 public final class EODWorker implements Runnable {
   public static void forRemaining(FlowOp_1 source, _Sink_1 downstream, int size) {
-    var splitData = new FlowOp_1[PARALLELISM_POTENTIAL];
-    splitData[0] = source;
-    int i = 1;
-    for (; i < PARALLELISM_POTENTIAL; ++i) {
-      var split = (FlowOp_1) splitData[i - 1].split$mut().match$mut(new OptMatch_2() {
-        @Override public Object some$mut(Object split_) {
-          return split_;
-        }
-        @Override public Object empty$mut() {
-          return null;
-        }
-      });
-      if (split == null) { break; }
-      splitData[i] = split;
-    }
-    final var nTasks = i;
+    var splitData = SplitTasks.of(source, PARALLELISM_POTENTIAL / 2);
+    var nTasks = splitData.size();
+
     // TODO: change parallelism strategy based on nTasks (i.e. if it's 2, do a classic fork-join and only run one in parallel)
     int realSize = size >= 0 ? size : nTasks;
     new EODStrategies(downstream, realSize, splitData, nTasks).run(nTasks);

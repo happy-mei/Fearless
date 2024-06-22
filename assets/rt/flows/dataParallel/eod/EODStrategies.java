@@ -6,12 +6,13 @@ import rt.flows.dataParallel.BufferSink;
 import rt.flows.dataParallel.ParallelStrategies;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public record EODStrategies(_Sink_1 downstream, int size, FlowOp_1[] splitData, int nTasks) implements ParallelStrategies {
+public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitData, int nTasks) implements ParallelStrategies {
   private static final int TASKS_PER_CORE = 5;
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   public static final int PARALLELISM_POTENTIAL = TASKS_PER_CORE * N_CPUS;
@@ -29,11 +30,12 @@ public record EODStrategies(_Sink_1 downstream, int size, FlowOp_1[] splitData, 
   }
 
   @Override public void oneParOneSeq() {
-    int perWorkerSize = size / nTasks;
-    var lhsSink = new BufferSink(downstream, new ArrayList<>(perWorkerSize));
-    var rhsSink = new BufferSink(downstream, new ArrayList<>(perWorkerSize));
-    var lhs = Thread.ofVirtual().start(()->splitData[0].forRemaining$mut(lhsSink));
-    splitData[0].forRemaining$mut(rhsSink);
+    var lhsSink = new BufferSink(downstream, new ArrayList<>(1));
+    var rhsSink = new BufferSink(downstream, new ArrayList<>(1));
+    var lhs = Thread.ofVirtual().start(()->splitData.getFirst().forRemaining$mut(lhsSink));
+    splitData.stream()
+      .skip(1)
+      .forEachOrdered(rhs->rhs.forRemaining$mut(rhsSink));
     try {
       lhs.join();
     } catch (InterruptedException e) {
@@ -66,7 +68,7 @@ public record EODStrategies(_Sink_1 downstream, int size, FlowOp_1[] splitData, 
     var doneSignal = new CountDownLatch(nTasks);
     var workers = new EODWorker[nTasks];
     for (int j = 0; j < nTasks; ++j) {
-      var subSource = splitData[j];
+      var subSource = splitData.get(j);
       var worker = new EODWorker(subSource, downstream, perWorkerSize, doneSignal, permits);
       if (willParallelise) {
         Thread.ofVirtual().start(worker);
