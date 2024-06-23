@@ -12,12 +12,12 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TestErrorMessages {
+public class TestErrMsgSyntax {
   void fail(String expectedErr, String... content){
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
     var ps = Arrays.stream(content)
-      .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
+      .map(code -> new Parser(Path.of(STR."Dummy\{pi.getAndIncrement()}.fear"), code))
       .toList();
     try {
       var res = Parser.parseAll(ps, TypeSystemFeatures.of());

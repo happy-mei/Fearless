@@ -4,6 +4,7 @@ package failure;
 import ast.E;
 import ast.Program;
 import ast.T;
+import errmsg.typeSystem.TypeSystemMsg;
 import id.Id;
 import id.Mdf;
 import program.typesystem.MultiSig;
@@ -40,15 +41,7 @@ public record TypingAndInferenceErrors(Program p, URI fileName) {
 
   public String undefinedMeth(CompileError rawError) {
     // TODO: improve this error in some way
-    ast.T recvT = switch (rawError.attributes.get("recvT")) {
-      case astFull.T t -> t.toAstT();
-      case ast.T t -> t;
-      default -> throw Bug.unreachable();
-    };
-    var name = (Id.MethName) rawError.attributes.get("name");
-    var ms = p().meths(XBs.empty(), Mdf.recMdf, recvT.itOrThrow(), 0);
-
-    return rawError+"\nextra info for experts:\n"+ms;
+    return TypeSystemMsg.undefinedMeth(rawError, p());
   }
 
   public CompileError invalidMethodArgumentTypes(CompileError rawError) {
