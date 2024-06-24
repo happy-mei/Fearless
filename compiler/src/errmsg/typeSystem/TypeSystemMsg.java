@@ -20,10 +20,13 @@ public class TypeSystemMsg {
     };
     var name = (Id.MethName) rawError.attributes.get("name");
     var ms = p.meths(XBs.empty(), Mdf.recMdf, recvT.itOrThrow(), 0);
+    assert rawError.pos().isPresent();
 
     List<CM> sortedMs = sortSimilarity(name, ms);
 
     StringBuilder msg = new StringBuilder(STR."""
+    In position \{rawError.pos().get().toString()}
+    [E\{rawError.code()} \{rawError.name()}]
     Method \{name.name()} does not exist in \{recvT}
     Did you mean \{sortedMs.getFirst().name().name()}?
 
@@ -34,12 +37,7 @@ public class TypeSystemMsg {
                      \{meth.c()}\{meth.name().name()}
                      """);
     }
-    assert rawError.pos().isPresent();
-    String header = STR."""
-    In position \{rawError.pos().get().toString()}
-    [E\{rawError.code()} \{rawError.name()}]
-    """;
-    return header + msg;
+    return msg.toString();
   }
 
   private static List<CM> sortSimilarity(Id.MethName name, List<CM> ms) {
