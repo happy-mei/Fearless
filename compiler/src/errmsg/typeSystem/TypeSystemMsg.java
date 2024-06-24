@@ -20,26 +20,34 @@ public class TypeSystemMsg {
     };
     var name = (Id.MethName) rawError.attributes.get("name");
     var ms = p.meths(XBs.empty(), Mdf.recMdf, recvT.itOrThrow(), 0);
-    //TODO: Find method that is closest match.
+
     List<CM> sortedMs = sortSimilarity(name, ms);
-    StringBuilder msg = new StringBuilder(STR."Method \{name.name()} does not exist in \{recvT}");
-    msg.append(STR."\nDid you mean \{sortedMs.get(0).name().name()}?");
-    msg.append("\n\nOther candidates:\n");
+
+    StringBuilder msg = new StringBuilder(STR."""
+    Method \{name.name()} does not exist in \{recvT}
+    Did you mean \{sortedMs.getFirst().name().name()}?
+
+    Other candidates:
+    """);
     for(var meth : sortedMs) {
       msg.append(STR."""
                      \{meth.c()}\{meth.name().name()}
                      """);
     }
-    return msg.toString();
+    assert rawError.pos().isPresent();
+    String header = STR."""
+    In position \{rawError.pos().get().toString()}
+    [E\{rawError.code()} \{rawError.name()}]
+    """;
+    return header + msg;
   }
 
   private static List<CM> sortSimilarity(Id.MethName name, List<CM> ms) {
     HashMap<CM, Integer> similarityRankings = new HashMap<>();
-    ArrayList<CM> newList = new ArrayList<>();
+    ArrayList<CM> newList = new ArrayList<>(ms);
     for(CM meth : ms) {
       int similarity = levenshteinDist(name.name(), meth.name().name());
       similarityRankings.put(meth, similarity);
-      newList.add(meth);
     }
     newList.sort(Comparator.comparingInt(similarityRankings::get));
     return newList.reversed();
@@ -47,7 +55,6 @@ public class TypeSystemMsg {
 
   private static int levenshteinDist(String str1, String str2) {
     int[][] dp = new int[str1.length() + 1][str2.length() + 1];
-
     for(int i=0; i<=str1.length(); i++) {
       for(int j=0; j<str2.length(); j++) {
         if(i == 0) {

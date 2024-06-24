@@ -5,11 +5,7 @@ import ast.E;
 import ast.Program;
 import ast.T;
 import errmsg.typeSystem.TypeSystemMsg;
-import id.Id;
-import id.Mdf;
 import program.typesystem.MultiSig;
-import program.typesystem.XBs;
-import utils.Bug;
 
 import java.net.URI;
 import java.util.List;
@@ -23,7 +19,7 @@ public record TypingAndInferenceErrors(Program p, URI fileName) {
     var errorProcessor = new TypingAndInferenceErrors(p, error.posOrUnknown().fileName());
     return switch (ErrorCode.fromCode(error.code())) {
       // TODO: match on error types you want to improve
-      case undefinedMethod -> new PlainError(errorProcessor.undefinedMeth(error));
+      case undefinedMethod -> new PlainError(TypeSystemMsg.undefinedMeth(error, p));
       default -> error;
     };
   }
@@ -33,15 +29,10 @@ public record TypingAndInferenceErrors(Program p, URI fileName) {
     var errorProcessor = new TypingAndInferenceErrors(p, error.posOrUnknown().fileName());
     return switch (ErrorCode.fromCode(error.code())) {
       // TODO: match on error types you want to improve
-      case undefinedMethod -> new PlainError(errorProcessor.undefinedMeth(error));
+      case undefinedMethod -> new PlainError(TypeSystemMsg.undefinedMeth(error, p));
       case invalidMethodArgumentTypes -> errorProcessor.invalidMethodArgumentTypes(error);
       default -> error;
     };
-  }
-
-  public String undefinedMeth(CompileError rawError) {
-    // TODO: improve this error in some way
-    return TypeSystemMsg.undefinedMeth(rawError, p());
   }
 
   public CompileError invalidMethodArgumentTypes(CompileError rawError) {
