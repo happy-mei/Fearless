@@ -94,9 +94,10 @@ _SafeSource: {
 //        }
 //      }},
 
-  .fromList[E](list: mut List[E]): mut Flow[E] -> Flow.fromOp[E](this.fromList'[E](list), list.size),
-  .fromList'[E](list: mut List[E]): mut FlowOp[E] -> Block#
-    .let[mut Count[Nat]] cursor = {Count.nat(0)}
+  .fromList[E](list: mut List[E]): mut Flow[E] -> Flow.fromOp[E](this.fromList'[E](list, 0, list.size), list.size),
+  .fromList'[E](list: mut List[E], start: Nat, end: Nat): mut FlowOp[E] -> Block#
+    .let[mut Count[Nat]] cursor = {Count.nat(start)}
+    .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {RestrictFlowReuse#{'self
       .isRunning -> cursor* < (list.size),
       .stop -> cursor := (list.size),
@@ -107,5 +108,14 @@ _SafeSource: {
           .return {{}},
         .empty -> Block#(downstream.stop, self.stop),
         },
+      .split -> self.canSplit ? {
+        .else -> {},
+        .then -> Block#
+          .let cur = {cursor.get}
+          .let[Nat] mid = {cur + ((endCursor.get - cur) / 2)}
+          .let[Nat] end' = {endCursor.swap(mid)}
+          .return {Opts#(this.fromList'(list, mid, end'))},
+        },
+      .canSplit -> endCursor.get - (cursor.get) > 1,
       }},
   }

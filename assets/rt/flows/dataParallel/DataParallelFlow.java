@@ -207,5 +207,9 @@ public final class DataParallelFlow implements Flow_1 {
     @Override public Opt_1 split$mut() {
       return source_m$.split$mut();
     }
+
+    @Override public Bool_0 canSplit$read() {
+      return source_m$.canSplit$read();
+    }
   }
 }

@@ -126,12 +126,15 @@ public interface Str extends base.Str_0 {
 				return Void_0.$self;
 			}
 			@Override public Opt_1 split$mut() {
-				var size = this.cur - this.end;
+				var size = this.end - this.cur;
 				if (size <= 1) { return Opt_1.$self; }
 				var mid = this.cur + (size / 2);
 				var end_ = this.end;
 				this.end = mid;
 				return Opts_0.$self.$hash$imm(_flow$imm(mid, end_));
+			}
+			@Override public Bool_0 canSplit$read() {
+				return this.end - this.cur > 1 ? True_0.$self : False_0.$self;
 			}
 		};
 	}

@@ -15,6 +15,10 @@ public interface FlowCreator {
     var op = original.unwrapOp$mut(_UnwrapFlowToken_0.$self);
     Long size = original.size$mut();
     var optSize = Opts_0.$self.$hash$imm(size);
+//    if (op.canSplit$read() == base.False_0.$self && intended instanceof DataParallelFlowK) {
+//      return _SeqFlow_0.$self.fromOp$imm(op, optSize);
+//    }
+
     var couldBeForkJoinAttempt = size == 2;
     if (couldBeForkJoinAttempt) {
       return intended.fromOp$imm(op, optSize);

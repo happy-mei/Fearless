@@ -25,6 +25,7 @@ FlowOp[E]: {
   /// does not wish to be run in data parallel. On the other side, implementing this method does not guarantee that
   /// this flow operator will be run in data parallel. That decision is up to the compiler and runtime.
   mut .split: mut Opt[mut FlowOp[E]] -> {},
+  read .canSplit: Bool -> False,
   }
 
 

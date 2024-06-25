@@ -220,7 +220,7 @@ List[E]: Collection,Sealed{
           .return {{}},
         .empty -> Block#(downstream.stop, self.stop),
         },
-      .split -> endCursor.get - (cursor.get) > 1 ? {
+      .split -> self.canSplit ? {
         .else -> {},
         .then -> Block#
           .let cur = {cursor.get}
@@ -228,6 +228,7 @@ List[E]: Collection,Sealed{
           .let[Nat] end' = {endCursor.swap(mid)}
           .return {Opts#(this._flowread(mid, end'))},
         },
+      .canSplit -> endCursor.get - (cursor.get) > 1,
       }},
   imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm(0, this.size)), this.size),
   imm ._flowimm(start: Nat, end: Nat): mut FlowOp[imm E] -> Block#
@@ -244,7 +245,7 @@ List[E]: Collection,Sealed{
         .else -> Block#(downstream.stop, self.stop),
         },
       // TODO: I could have a larger threshold check and refuse to split for lists that are too small here if I want
-      .split -> endCursor.get - (cursor.get) > 1 ? {
+      .split -> self.canSplit ? {
         .else -> {},
         .then -> Block#
           .let cur = {cursor.get}
@@ -252,6 +253,7 @@ List[E]: Collection,Sealed{
           .let[Nat] end' = {endCursor.swap(mid)}
           .return {Opts#(this._flowimm(mid, end'))},
         },
+      .canSplit -> endCursor.get - (cursor.get) > 1,
       }},
 
   mut .iter: mut Iter[E] -> Let#{
