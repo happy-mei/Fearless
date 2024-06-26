@@ -1355,4 +1355,24 @@ public class TestJavaProgram {
     Test: Main{sys -> UnrestrictedIO#sys.println(Foo.msg("Hello, World"))}
     Foo: {.msg(start: Stringable): Str -> start.str + "!"}
     """, Base.mutBaseAliases); }
+
+  @Test void literalSubtypeStr() {ok(new Res("Nick", "", 0), """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(MyName)}
+    MyName: "Nick", Foo{}
+    Foo: {}
+    """, Base.mutBaseAliases);}
+  @Test void literalSubtypeStrIndirect() {ok(new Res("Nick", "", 0), """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(A)}
+    A: B
+    B: "Nick"{}
+    """, Base.mutBaseAliases);}
+  @Test void literalSubtypeNat() {ok(new Res("3", "", 0), """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println((One + Two).str)}
+    One: 1, Foo{}
+    Two: 2{}
+    Foo: {}
+    """, Base.mutBaseAliases);}
 }
