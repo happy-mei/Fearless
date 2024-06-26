@@ -1375,4 +1375,43 @@ public class TestJavaProgram {
     Two: 2{}
     Foo: {}
     """, Base.mutBaseAliases);}
+  @Test void literalSubtypeMultiDiff() {fail("""
+    In position [###]/Dummy0.fear:3:8
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]) 123[], .assertEq/2[](imm base.Nat[], imm base.Str[]): imm base.Void[]
+    ([###]) "Nick"[], .assertEq/2[](imm base.Str[], imm base.Str[]): imm base.Void[]
+    """, """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(MyName)}
+    MyName: "Nick", 123, Foo{}
+    Foo: {}
+    """, Base.mutBaseAliases);}
+  @Test void literalSubtypeMultiSameStr() {fail("""
+    In position [###]/Dummy0.fear:3:8
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]) "Marco"[], .str/0[](): imm base.Str[]
+    ([###]) "Nick"[], .str/0[](): imm base.Str[]
+    """, """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(MyName)}
+    MyName: "Nick", "Marco", Foo{}
+    Foo: {}
+    """, Base.mutBaseAliases);}
+  @Test void literalSubtypeMultiSameNat() {fail("""
+    In position [###]/Dummy0.fear:3:3
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]) 2[], .str/0[](): imm base.Str[]
+    ([###]) 1[], .str/0[](): imm base.Str[]
+    """, """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(A.str)}
+    A: 1, 2, Foo{}
+    Foo: {}
+    """, Base.mutBaseAliases);}
 }
