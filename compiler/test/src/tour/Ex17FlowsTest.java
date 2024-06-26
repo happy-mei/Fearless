@@ -643,6 +643,12 @@ public class Ex17FlowsTest {
       .join ""
       )}
     """, Base.mutBaseAliases);}
+  @Test void listToStr() {ok(new Res("abcd", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(List#("a", "b", "c", "d").flow
+      .join ""
+      )}
+    """, Base.mutBaseAliases);}
   @Test void strFlowScan() {ok(new Res("""
     1 J
     2 Je
