@@ -3,6 +3,7 @@ package codegen;
 import ast.T;
 import id.Id;
 import id.Mdf;
+import magic.Magic;
 import program.CM;
 import utils.Bug;
 import visitors.MIRVisitor;
@@ -34,7 +35,17 @@ public sealed interface MIR {
     }
   }
   record Package(String name, Map<Id.DecId, TypeDef> defs, List<Fun> funs) implements MIR {}
-  record TypeDef(Id.DecId name, List<MT.Plain> impls, List<Sig> sigs, Optional<CreateObj> singletonInstance) implements MIR {}
+  record TypeDef(Id.DecId name, List<MT.Plain> impls, List<Sig> sigs, Optional<CreateObj> singletonInstance) implements MIR {
+    public TypeDef {
+      // None of our literals should be compatible with each other due to conflicting methods, so we can rely on this
+      // in Mearless.
+      assert impls.stream()
+        .map(MT.Plain::id)
+        .map(Id.DecId::name)
+        .filter(Magic::isLiteral)
+        .count() <= 1;
+    }
+  }
   record Fun(FName name, List<X> args, MT ret, E body) implements MIR {
     public Fun withBody(E body) { return new Fun(name, args, ret, body); }
   }

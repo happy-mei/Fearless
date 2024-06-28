@@ -203,7 +203,9 @@ public class Program implements program.Program{
       // Do a topological sort on the dep graph (should be a DAG) so we infer parents before children.
       // Just using Kahn's algorithm here
       var sorted = new ArrayList<T.Dec>();
-      var roots = ds.stream().filter(d->d.lambda().its().isEmpty()).collect(Collectors.toCollection(ArrayDeque::new));
+      var roots = ds.stream()
+        .filter(InferSignatures::hasNoSuperTypeInDs)
+        .collect(Collectors.toCollection(ArrayDeque::new));
       var unvisited = roots.stream().map(T.Dec::name).collect(Collectors.toCollection(HashSet::new));
       var visited = new HashSet<Id.DecId>(ds.size());
       while (!roots.isEmpty()) {
@@ -223,6 +225,9 @@ public class Program implements program.Program{
       assert unvisited.isEmpty();
       assert sorted.size() == ds.size();
       return sorted;
+    }
+    private static boolean hasNoSuperTypeInDs(T.Dec d) {
+      return d.lambda().its().isEmpty() || d.lambda().its().stream().anyMatch(it->Magic.isLiteral(it.name().name()));
     }
     private void updateDec(T.Dec d, int i) {
       assert !p.inlineDs().containsKey(d.name());
