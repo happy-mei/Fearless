@@ -19,13 +19,19 @@ public final class SplitTasks {
     return Collections.unmodifiableList(split(List.of(task), n));
   }
 
+  /**
+   * A FlowOp that has been split up
+   * @param lhs The original (potentially mutated) flow op.
+   * @param rhs The split flow op. It will be null if the original flow op could not be split.
+   */
+  record SplitTask(FlowOp_1 lhs, FlowOp_1 rhs) {}
   private static List<FlowOp_1> split(List<FlowOp_1> res, int n) {
     assert n >= 0;
     if (n == 0) {
       return res;
     }
     var didSplit = false;
-    var splitTasks = new ArrayList<FlowOp_1>(res.size());
+    var splitTasks = new ArrayList<SplitTask>(res.size());
     for (var task : res) {
       var split = (FlowOp_1) task.split$mut().match$mut(new OptMatch_2() {
         @Override public Object some$mut(Object x_m$) {
@@ -35,25 +41,21 @@ public final class SplitTasks {
           return null;
         }
       });
-      if (split == null) {
-        continue;
-      }
+      splitTasks.add(new SplitTask(task, split));
+      if (split == null) { continue; }
       didSplit = true;
-      splitTasks.add(split);
     }
     // Exit early if there's nothing left to split
     if (!didSplit) {
       return res;
     }
 
-    var merged = new ArrayList<FlowOp_1>(res.size() + splitTasks.size());
-    assert res.size() >= splitTasks.size();
-    for (var i = 0; i < res.size(); ++i) {
-      var lhs = res.get(i);
-      merged.add(lhs);
-      if (i >= splitTasks.size()) { continue; }
-      var rhs = splitTasks.get(i);
-      merged.add(rhs);
+    assert res.size() == splitTasks.size();
+    var merged = new ArrayList<FlowOp_1>(splitTasks.size() * 2);
+    for (var task : splitTasks) {
+      merged.add(task.lhs);
+      if (task.rhs == null) { continue; }
+      merged.add(task.rhs);
     }
 
     return split(merged, n - 1);

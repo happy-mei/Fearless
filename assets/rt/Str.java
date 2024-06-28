@@ -117,7 +117,7 @@ public interface Str extends base.Str_0 {
 				return Void_0.$self;
 			}
 			@Override public Bool_0 isRunning$mut() {
-				return cur >= end ? False_0.$self : True_0.$self;
+				return this.cur >= this.end ? False_0.$self : True_0.$self;
 			}
 			@Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
 				for (; this.cur < end; ++this.cur) {

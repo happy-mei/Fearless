@@ -211,14 +211,14 @@ List[E]: Collection,Sealed{
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {{'self
-      .isRunning -> cursor* < (end),
-      .stop -> cursor := (end),
-      .step(downstream) -> this.tryGet(cursor++).match{
-        .some(x) -> Block#
-          .do {downstream#x}
-          .if {cursor.get >= (end)} .do {Block#(downstream.stop, self.stop)}
+      .isRunning -> cursor* < (endCursor.get),
+      .stop -> cursor := (endCursor.get),
+      .step(downstream) -> cursor.get < (endCursor.get) ? {
+        .then -> Block#
+          .do {downstream#(this.get(cursor++))}
+          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stop, self.stop)}
           .return {{}},
-        .empty -> Block#(downstream.stop, self.stop),
+        .else -> Block#(downstream.stop, self.stop),
         },
       .split -> self.canSplit ? {
         .else -> {},

@@ -99,14 +99,14 @@ _SafeSource: {
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {RestrictFlowReuse#{'self
-      .isRunning -> cursor* < (list.size),
-      .stop -> cursor := (list.size),
-      .step(downstream) -> list.tryGet(cursor++).match{
-        .some(x) -> Block#
-          .do {downstream#x}
-          .if {cursor.get >= (list.size)} .do {Block#(downstream.stop, self.stop)}
+      .isRunning -> cursor* < (endCursor.get),
+      .stop -> cursor := (endCursor.get),
+      .step(downstream) -> cursor.get < (endCursor.get) ? {
+        .then -> Block#
+          .do {downstream#(list.get(cursor++))}
+          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stop, self.stop)}
           .return {{}},
-        .empty -> Block#(downstream.stop, self.stop),
+        .else -> Block#(downstream.stop, self.stop),
         },
       .split -> self.canSplit ? {
         .else -> {},
