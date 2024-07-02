@@ -8,6 +8,7 @@ import failure.Fail;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
+import utils.Bug;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
 
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static magic.Magic.isLiteral;
 
@@ -120,17 +122,25 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   private Optional<CompileError> noSealedOutsidePkg(E.Lambda e) {
     if (e.meths().isEmpty()) { return Optional.empty(); }
     var pkg = this.pkg.orElseThrow();
-    return getSealedDec(e.its()).filter(dec->!dec.pkg().equals(pkg)).map(dec->Fail.sealedCreation(dec, pkg).pos(e.pos()));
+    var sealedDecs = getSealedDecs(e.id().toIT(), e.its(), pkg);
+    if (sealedDecs.isEmpty()) {
+      return Optional.empty();
+    }
+    if (e.its().size() > 1) {
+      // TODO: error about not allowing more than 1 sealed impl outside of its package
+      throw Bug.todo();
+    }
+    return Optional.of(Fail.sealedCreation(sealedDecs.getFirst(), pkg).pos(e.pos()));
   }
 
-  private Optional<Id.DecId> getSealedDec(List<Id.IT<T>> its) {
-    if (its.isEmpty()) { return Optional.empty(); }
-    return its.stream()
-//      .map(Id.IT::name)
-      .filter(it->p.itsOf(it).stream().anyMatch(it1->it1.name().equals(Magic.Sealed)))
+  private List<Id.DecId> getSealedDecs(Id.IT<T> base, List<Id.IT<T>> its, String pkg) {
+    if (its.isEmpty()) { return List.of(); }
+    return Stream.concat(its.stream(), Stream.of(base))
       .map(Id.IT::name)
-      .findFirst()
-      .or(()->getSealedDec(its.stream().flatMap(it->p.itsOf(it).stream()).toList()));
+      .filter(dec->!dec.pkg().equals(pkg))
+      .filter(dec->p.superDecIds(dec).contains(Magic.Sealed))
+      .filter(dec->!dec.equals(Magic.Sealed))
+      .toList();
   }
 
   private Optional<CompileError> noImplInlineDec(E.Lambda e) {

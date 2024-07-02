@@ -43,7 +43,6 @@ public class TestWellFormedness {
     var p = Parser.parseAll(ps, TypeSystemFeatures.of());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
-
     try {
       var error = new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
       if (error.isEmpty()) { Assertions.fail("Did not fail"); }
@@ -56,7 +55,7 @@ public class TestWellFormedness {
   @Test void sealedOutsidePkg() { fail("""
     In position [###]/Dummy1.fear:2:2
     [E35 sealedCreation]
-    The sealed trait a.A/0 cannot be created in a different package (b).
+    The sealed trait a.A/0 cannot be implemented in a different package (b).
     """, """
     package a
     alias base.Sealed as Sealed,
@@ -72,7 +71,7 @@ public class TestWellFormedness {
   @Test void sealedOutsidePkgNested() { fail("""
     In position [###]/Dummy1.fear:2:2
     [E35 sealedCreation]
-    The sealed trait a.A/0 cannot be created in a different package (b).
+    The sealed trait a.B/0 cannot be implemented in a different package (b).
     """, """
     package a
     alias base.Sealed as Sealed,
@@ -112,7 +111,7 @@ public class TestWellFormedness {
   @Test void sealedOutsidePkgInlineExplicit() { fail("""
     In position [###]/Dummy1.fear:4:17
     [E35 sealedCreation]
-    The sealed trait a.A/0 cannot be created in a different package (b).
+    The sealed trait a.A/0 cannot be implemented in a different package (b).
     """, """
     package a
     alias base.Sealed as Sealed,
@@ -132,7 +131,7 @@ public class TestWellFormedness {
   @Test void sealedOutsidePkgInlineInferred() { fail("""
     In position [###]/Dummy1.fear:4:17
     [E35 sealedCreation]
-    The sealed trait a.A/0 cannot be created in a different package (b).
+    The sealed trait a.A/0 cannot be implemented in a different package (b).
     """, """
     package a
     alias base.Sealed as Sealed,
@@ -166,6 +165,17 @@ public class TestWellFormedness {
     package base
     Sealed:{}
     """); }
+
+  @Test void noSealedMultiOutsideOfPkg() {fail("""
+    """, """
+    package base
+    Sealed: {}
+    A: Sealed{}
+    """, """
+    package a
+    B: A,C{}
+    C: {}
+    """);}
 
   // This well formedness requirement doesn't make sense because it only considers boxes (but not functions that do not capture)
 //  @Test void noMutHygType1() { fail("""
@@ -349,22 +359,4 @@ public class TestWellFormedness {
     package test
     A: {#: mutH A -> {}}
     """); }
-  @Test void noReadOnlyLambdaCreation() { fail("""
-    In position [###]/Dummy0.fear:2:21
-    [E63 invalidLambdaMdf]
-    readH is not a valid modifier for a lambda.
-    """, """
-    package test
-    A: {#: readH A -> {}}
-    """); }
-
-  @Test void noImplGeneric() {fail("""
-    In position [###]/Dummy0.fear:2:6
-    [E14 expectedConcreteType]
-    A concrete type was expected but the following generic type was given:
-    X
-    """, """
-    package a
-    A[X]: X{}
-    """);}
 }

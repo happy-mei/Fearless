@@ -192,7 +192,7 @@ public class Fail{
   }
 
   public static CompileError sealedCreation(Id.DecId sealedDec, String pkg) {
-    return of("The sealed trait "+sealedDec+" cannot be created in a different package ("+pkg+").");
+    return of("The sealed trait "+sealedDec+" cannot be implemented in a different package ("+pkg+").");
   }
 
   public static CompileError privateMethCall(Id.MethName meth) {
