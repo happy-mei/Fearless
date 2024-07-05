@@ -355,7 +355,7 @@ public class TestFullWellFormedness {
     A: {#: mutH A -> mutH A}
     """); }
   @Test void noReadOnlyLambdaCreation() { fail("""
-    In position [###]/Dummy0.fear:2:30
+    In position [###]/Dummy0.fear:2:24
     [E63 invalidLambdaMdf]
     readH is not a valid modifier for a lambda.
     """, """
@@ -397,15 +397,10 @@ public class TestFullWellFormedness {
     A: {#: Nat -> 5}
     Nat: {}
     """); }
-  @Test void invalidDecimalInt(){ fail("""
-    In position [###]/Dummy0.fear:2:14
-    [E59 syntaxError]
-    +5.556/0 is not a valid type name.
-    """,
-    """
+  @Test void invalidDecimalInt(){ ok("""
     package a
-    A: {#: Nat -> +5.556}
-    Nat: {}
+    A: {#: Float -> +5.556}
+    Float: {}
     """); }
   @Test void noMultiplePointsInFloat() {fail("""
     In position [###]/Dummy0.fear:2:16

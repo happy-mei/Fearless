@@ -84,7 +84,11 @@ public class TestWellFormedness {
     package base
     Sealed:{}
     """); }
-  @Test void sealedOutsidePkgNoOverrides() { ok("""
+  @Test void sealedOutsidePkgNoOverrides() { fail("""
+    In position [###]/Dummy1.fear:2:2
+    [E35 sealedCreation]
+    The sealed trait a.A/0 cannot be implemented in a different package (b).
+    """, """
     package a
     alias base.Sealed as Sealed,
     A:Sealed{}
@@ -96,6 +100,53 @@ public class TestWellFormedness {
     package base
     Sealed:{}
     """); }
+  @Test void sealedOutsidePkgNoOverridesInline() { ok("""
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{}
+    B:A{}
+    """, """
+    package b
+    Test: {#: C -> C:a.B{}}
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void sealedOutsidePkgInline() { fail("""
+    In position [###]/Dummy1.fear:2:18
+    [E35 sealedCreation]
+    The sealed trait a.B/0 cannot be implemented in a different package (b).
+    """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{}
+    B: A{.m1: A}
+    """, """
+    package b
+    Test: {#: C -> C: a.B{this}}
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void sealedOutsidePkgMultiImpl() { fail("""
+    In position [###]/Dummy1.fear:2:18
+    [E34 conflictingSealedImpl]
+    A sealed trait from another package may not be composed with any other traits.
+    conflicts:
+    ([###]/Dummy0.fear:3:2) a.A/0
+    ([###]/Dummy0.fear:4:3) a.B/0
+    """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{}
+    B: A{.m1: A}
+    """, """
+    package b
+    Test: {#: C -> C: a.A,a.B{}}
+    """, """
+    package base
+    Sealed:{}
+    """); }
   @Test void sealedOutsidePkgNestedNoOverrides() { ok("""
     package a
     alias base.Sealed as Sealed,
@@ -103,7 +154,7 @@ public class TestWellFormedness {
     B:A{}
     """, """
     package b
-    C:a.B{}
+    Foo: {#: C -> C:a.B{}}
     """, """
     package base
     Sealed:{}
@@ -167,13 +218,19 @@ public class TestWellFormedness {
     """); }
 
   @Test void noSealedMultiOutsideOfPkg() {fail("""
+    In position [###]/Dummy1.fear:2:14
+    [E34 conflictingSealedImpl]
+    A sealed trait from another package may not be composed with any other traits.
+    conflicts:
+    ([###]/Dummy0.fear:3:3) base.A/0
+    ([###]/Dummy1.fear:3:3) a.C/0
     """, """
     package base
     Sealed: {}
     A: Sealed{}
     """, """
     package a
-    B: A,C{}
+    Foo: {#: C -> base.A,C{}}
     C: {}
     """);}
 

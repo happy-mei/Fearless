@@ -68,6 +68,9 @@ public interface E extends HasPos {
     public ast.E.Lambda withMdf(Mdf mdf) {
       return new ast.E.Lambda(id, mdf, its, selfName, meths, pos);
     }
+    public boolean isTopLevel() {
+      return mdf.isMdf();
+    }
     @Override
     public String toString() {
       var meths = meths().stream().map(Meth::toString).collect(Collectors.joining(",\n"));

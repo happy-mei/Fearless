@@ -118,8 +118,9 @@ public class Magic {
 
   public static Optional<CompileError> validateLiteral(Id.DecId id) {
     assert isLiteral(id.name());
-    var res = _getDec(_ -> 0, id);
-    if (res.isEmpty()) {
+    try {
+      getLiteralKind(id);
+    } catch (InvalidLiteralException err) {
       return Optional.of(Fail.syntaxError(id + " is not a valid type name."));
     }
     return Optional.empty();
@@ -148,7 +149,7 @@ public class Magic {
     if (isStringLiteral(lit)) {
       return LiteralKind.Str;
     }
-    throw Bug.of("Unknown literal kind: " + id);
+    throw new InvalidLiteralException("Unknown literal kind: " + id);
   }
 
   private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {

@@ -120,16 +120,22 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   private Optional<CompileError> noSealedOutsidePkg(E.Lambda e) {
-    if (e.meths().isEmpty()) { return Optional.empty(); }
     var pkg = this.pkg.orElseThrow();
     var sealedDecs = getSealedDecs(e.id().toIT(), e.its(), pkg);
     if (sealedDecs.isEmpty()) {
       return Optional.empty();
     }
-    if (e.its().size() > 1) {
-      // TODO: error about not allowing more than 1 sealed impl outside of its package
-      throw Bug.todo();
+    if (e.isTopLevel()) {
+      return Optional.of(Fail.sealedCreation(sealedDecs.getFirst(), pkg).pos(e.pos()));
     }
+    if (e.its().size() > 1) {
+      var allSealed = Stream.concat(sealedDecs.stream(), e.its().stream().map(Id.IT::name))
+        .distinct()
+        .map(p::of)
+        .toList();
+      return Optional.of(Fail.conflictingSealedImpl(allSealed).pos(e.pos()));
+    }
+    if (e.meths().isEmpty()) { return Optional.empty(); }
     return Optional.of(Fail.sealedCreation(sealedDecs.getFirst(), pkg).pos(e.pos()));
   }
 

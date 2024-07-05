@@ -194,6 +194,12 @@ public class Fail{
   public static CompileError sealedCreation(Id.DecId sealedDec, String pkg) {
     return of("The sealed trait "+sealedDec+" cannot be implemented in a different package ("+pkg+").");
   }
+  public static CompileError conflictingSealedImpl(List<ast.T.Dec> sealedDecs) {
+    var conflicts = sealedDecs.stream()
+      .map(d->conflict(d.posOrUnknown(), d.name().toString()))
+      .toList();
+    return of(conflictingMsg("A sealed trait from another package may not be composed with any other traits.", conflicts));
+  }
 
   public static CompileError privateMethCall(Id.MethName meth) {
     return of("The private method "+meth+" cannot be called outside of a lambda that implements it.");
@@ -360,7 +366,7 @@ enum ErrorCode {
   invalidNum,
   noCandidateMeths,
   callTypeError,
-  UNUSED1,
+  conflictingSealedImpl,
   sealedCreation,
   undefinedMethod,
   noSubTypingRelationship,
