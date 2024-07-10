@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static program.typesystem.RunTypeSystem.fail;
+
 class TestFullParser {
   void ok(String expected, String... content){
     Main.resetAll();
@@ -526,5 +528,11 @@ class TestFullParser {
     """, """
     package a
     A[X]: X{}
+    """);}
+  @Test void nonExistentImplInline() {fail("""
+    """, """
+    package test
+    A[X:mut]: {}
+    BreakOuter: {#: BreakInner -> BreakInner: A[imm Break]}
     """);}
 }
