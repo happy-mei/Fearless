@@ -30,14 +30,4 @@ public interface XBs {
     }
     return xbs;
   }
-  default XBs addBounds(List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds) {
-    var xbs = this;
-    for (var gx : gxs) {
-      var boundsi = bounds.get(gx);
-      assert boundsi!=null;
-      if (boundsi.isEmpty()) { continue; }
-      xbs = xbs.add(gx.name(), boundsi);
-    }
-    return xbs;
-  }
 }
