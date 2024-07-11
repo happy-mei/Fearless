@@ -55,13 +55,16 @@ _NonTerminalOps[E]: {
 _TerminalOps[E]: Sealed{
   mut .first: mut Opt[E],
   mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],
-  mut .find(predicate: read F[E, Bool]): mut Opt[E],
-  mut .any(predicate: read F[E, Bool]): Bool,
-  mut .all(predicate: read F[E, Bool]): Bool,
   mut .fold[S](acc: S, f: read F[S,E,S]): S,
-  mut .fold[S](acc: S, f: read F[S,E,S], combine: read F[S, S, S]): S,
   mut .size: Nat,
 
+  mut .find(predicate: read F[E, Bool]): mut Opt[E] -> this.findMap{e -> predicate#e ? {.then -> Opts#e, .else -> {}}},
+  mut .any(predicate: read F[E, Bool]): Bool -> this
+    .findMap{e -> predicate#e ? {.then -> Opts#True, .else -> {}}}
+    .isSome,
+  mut .all(predicate: read F[E, Bool]): Bool -> this
+    .findMap{e -> predicate#e ? {.then -> {}, .else -> Opts#False}}
+    .isEmpty,
   mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
   mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> Block#(acc.add(e), acc)}),
   mut .max(compare: read F[E, E, Ordering]): mut Opt[E] -> this.fold[mut Opt[E]]({}, {max, b -> max.match{
@@ -71,17 +74,7 @@ _TerminalOps[E]: Sealed{
       .equal -> max,
       .greater -> max,
       }
-    }}, {a, b -> a.match{
-      .empty -> b,
-      .some(a') -> b.match{
-        .empty -> a,
-        .some(b') -> compare#(a', b').match{
-          .less -> b,
-          .equal -> a,
-          .greater -> a,
-          }
-        }
-      }})
+    }})
   }
 
 // TODO: move all of these extension methods onto the data-types, i.e. myflow#"," to join with "," or myflow#(Int.sum) for summing
@@ -109,7 +102,6 @@ EmptyFlow[E]: Flow[E]{
   .any(p) -> False,
   .all(p) -> False,
   .fold(acc, _) -> acc,
-  .fold(acc, _, _) -> acc,
   .size -> 0,
   .unwrapOp(_) -> {
     .step(_) -> {},

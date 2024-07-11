@@ -2,6 +2,7 @@ package base.caps
 
 System:Sealed{
   mut .clone: iso System -> { _System },
+  mut .io: mut IO -> UnrestrictedIO#this,
   ._preventCreation: _System,
   }
 _System:Sealed,System{ _System }

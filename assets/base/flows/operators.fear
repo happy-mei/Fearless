@@ -19,7 +19,13 @@ FlowOp[E]: {
       }
     .return {Void},
   mut .isFinite: Bool -> True,
+  /// Mutates the data source for this flow to be a sub-section of the original input. This is useful for fork-join
+  /// data-parallelism. Returning an empty optional either means that there is no data left to split, the
+  /// data source does not think splitting further would be beneficial for parallelism, or that the data source
+  /// does not wish to be run in data parallel. On the other side, implementing this method does not guarantee that
+  /// this flow operator will be run in data parallel. That decision is up to the compiler and runtime.
   mut .split: mut Opt[mut FlowOp[E]] -> {},
+  read .canSplit: Bool -> False,
   }
 
 
@@ -43,7 +49,6 @@ _Filter: {
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
-//            .stop -> Block#(downstream.stop, isRunning := False),
             .stop -> downstream.stop,
             #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
             .pushError(info) -> downstream.pushError(info),
@@ -51,9 +56,20 @@ _Filter: {
           upstream.step(sink.get!)
           )
         },
-//    .stop -> Block#(isRunning := False, upstream.stop),
+      .forRemaining(downstream) -> sink.get.match{
+        .some(sink') -> upstream.forRemaining(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.forRemaining(sink.get!)
+          )
+        },
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
+      .split -> upstream.split.map{right -> this#(sinkFactory, right, predicate)},
       }}
   }
 _Map: {
@@ -71,8 +87,20 @@ _Map: {
           upstream.step(sink.get!)
           )
         },
+      .forRemaining(downstream) -> sink.get.match{
+        .some(sink') -> upstream.forRemaining(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> downstream#(f#e),
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.forRemaining(sink.get!)
+          )
+        },
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
+      .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},
     }}
   }
 _FlatMap: {
@@ -97,8 +125,25 @@ _FlatMap: {
           upstream.step(sink.get!)
           )
         },
+      .forRemaining(downstream) -> sink.get.match{
+        .some(sink') -> upstream.forRemaining(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> Block#(isRunning := False, downstream.stop),
+            #(e) -> Block#
+              .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
+              .return {nestedOp.forRemaining{
+                #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
+                .stop -> {},
+                .pushError(info) -> downstream.pushError(info),
+                }},
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.forRemaining(sink.get!)
+          )
+        },
       .stop -> upstream.stop,
-//      .isRunning -> (isRunning*) && (upstream.isRunning),
       .isRunning -> isRunning*,
+      .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},
       }}
   }

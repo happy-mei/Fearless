@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OptimisationBuilder {
-  private List<MIRCloneVisitor> passes = new ArrayList<>();
-  private MagicImpls<?> magic;
+  private final List<MIRCloneVisitor> passes = new ArrayList<>();
+  private final MagicImpls<?> magic;
   public OptimisationBuilder(MagicImpls<?> magic) {
     this.magic = magic;
   }

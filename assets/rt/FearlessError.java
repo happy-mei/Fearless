@@ -2,7 +2,7 @@ package rt;
 
 import java.nio.charset.StandardCharsets;
 
-class FearlessError extends RuntimeException {
+public class FearlessError extends RuntimeException {
 	public base.Info_0 info;
 	public FearlessError(base.Info_0 info) {
 		super();

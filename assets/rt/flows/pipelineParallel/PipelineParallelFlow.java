@@ -1,4 +1,7 @@
-package rt;
+package rt.flows.pipelineParallel;
+
+import rt.FearlessError;
+import rt.FlowRuntime;
 
 import java.util.function.Consumer;
 
@@ -78,8 +81,6 @@ public interface PipelineParallelFlow {
             downstreamData.accept(data.data());
           } catch (FearlessError err) {
             downstreamErrors.accept(err.info);
-          } catch (Throwable t) {
-            throw t;
           }
         }
         case FlowRuntime.Message.Error<E> info -> {

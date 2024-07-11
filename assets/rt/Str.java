@@ -117,22 +117,24 @@ public interface Str extends base.Str_0 {
 				return Void_0.$self;
 			}
 			@Override public Bool_0 isRunning$mut() {
-				return cur >= end ? False_0.$self : True_0.$self;
+				return this.cur >= this.end ? False_0.$self : True_0.$self;
 			}
 			@Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
-				System.out.println("yolo");
 				for (; this.cur < end; ++this.cur) {
 					downstream_m$.$hash$mut(charAt$imm(this.cur));
 				}
 				return Void_0.$self;
 			}
 			@Override public Opt_1 split$mut() {
-				var size = this.cur - this.end;
+				var size = this.end - this.cur;
 				if (size <= 1) { return Opt_1.$self; }
 				var mid = this.cur + (size / 2);
 				var end_ = this.end;
 				this.end = mid;
 				return Opts_0.$self.$hash$imm(_flow$imm(mid, end_));
+			}
+			@Override public Bool_0 canSplit$read() {
+				return this.end - this.cur > 1 ? True_0.$self : False_0.$self;
 			}
 		};
 	}

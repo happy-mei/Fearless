@@ -1,0 +1,5 @@
+package base.flows
+
+_FlowFactory: {
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E],
+  }

@@ -71,14 +71,51 @@ public class Ex17FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
-  @Test void flowMapMapMap() { ok(new Res("30000", "", 0), """
+  @Test void flowMapMapMap() { ok(new Res("320400", "", 0), """
     package test
     Test:Main {sys -> UnrestrictedIO#sys.println(
-      As[List[Nat]]#(List#(5, 10, 15)).flow
+      As[List[Nat]]#(List#(5, 10, 15, 50)).flow
         .map{n -> n * 10}
         .map{n -> n * 10}
+        .flatMap{n ->As[List[Nat]]#(List#(n + 1, n + 2, n + 3, n + 4)).flow}
         .map{n -> n * 10}
-        #(Flow.uSum)
+        .fold[Nat](0, {acc, n -> acc + n})
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+
+  @Test void flowMapMapCollect() { ok(new Res("""
+    5010, 5020, 5030, 5040, 10010, 10020, 10030, 10040, 15010, 15020, 15030, 15040, 50010, 50020, 50030, 50040
+    """, "", 0), """
+    package test
+    Test:Main {sys -> sys.io.println(
+      As[List[Nat]]#(List#(5, 10, 15, 50)).flow
+        .map{n -> n * 10}
+        .map{n -> n * 10}
+        .flatMap{n ->As[List[Nat]]#(List#(n + 1, n + 2, n + 3, n + 4)).flow}
+        .map{n -> n * 10}
+        .map{n -> n.str}
+        #(Flow.str ", ")
+        .str
+      )}
+    """, Base.mutBaseAliases); }
+  @Disabled // disabled because this takes like 8 seconds to run
+  @Test void flowForkJoin() { ok(new Res("12586269025", "", 0), """
+    package test
+    Fib: {
+      .seq(n: Nat): Nat -> Block#
+        .if {n <= 1} .return {n}
+        .return {Fib.seq(n - 1) + (Fib.seq(n - 2))},
+      .flow(n: Nat): Nat -> Block#
+        .if {n <= 35} .return {this.seq(n)}
+        .return {As[List[Nat]]#(List#(n - 1, n - 2)).flow
+          .map{n' -> Fib.flow(n')}
+          .fold[Nat](0, {a,b -> a + b})
+          },
+      }
+    
+    Test:Main {sys -> sys.io.println(
+        Fib.flow(50)
         .str
       )}
     """, Base.mutBaseAliases); }
@@ -599,5 +636,41 @@ public class Ex17FlowsTest {
     """, """
     package test
     Test:Main {sys -> Block#(Flow#[Int](5, 10, 15).unwrapOp({}))}
+    """, Base.mutBaseAliases);}
+
+  @Test void strFlow() {ok(new Res("Jello", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println("Hello".flow
+      .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
+      .join ""
+      )}
+    """, Base.mutBaseAliases);}
+  @Test void listToStr() {ok(new Res("abcd", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(List#("a", "b", "c", "d").flow
+      .join ""
+      )}
+    """, Base.mutBaseAliases);}
+  @Test void strFlowScan() {ok(new Res("""
+    1 J
+    2 Je
+    3 Jel
+    4 Jell
+    5 Jello
+    """, "", 0), """
+    package test
+    StrInfo: Stringable{
+      .size: Nat,
+      .facts: Str -> this.size.str+" "+this.str,
+      }
+    Test: Main{sys -> sys.io.println("Hello".flow
+      .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
+      .scan[StrInfo](
+        {.size -> 0, .str -> ""},
+        {acc, ch -> {.size -> acc.size + 1, .str -> acc.str + ch}}
+        )
+      .map{i -> i.facts}
+      .join "\\n"
+      )}
     """, Base.mutBaseAliases);}
 }

@@ -10,6 +10,7 @@ public interface FullLogicMain<Exe> extends LogicMain {
 
   MIR.Program lower(ast.Program program, ConcurrentHashMap<Long, TsT> resolvedCalls);
   Exe codeGeneration(MIR.Program program);
+  void compileBackEnd(Exe exe);
   ProcessBuilder execution(MIR.Program program, Exe exe, ConcurrentHashMap<Long, TsT> resolvedCalls);
   default ProcessBuilder run(){
     var fullProgram= parse();
@@ -19,6 +20,7 @@ public interface FullLogicMain<Exe> extends LogicMain {
     var resolvedCalls = typeSystem(program);
     var mir = lower(program,resolvedCalls);
     var code = codeGeneration(mir);
+    compileBackEnd(code);
     var process = execution(mir,code,resolvedCalls);
     cachePackageTypes(program);
     return process;
