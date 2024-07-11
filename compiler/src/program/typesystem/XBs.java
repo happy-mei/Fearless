@@ -4,10 +4,7 @@ import ast.T;
 import id.Id;
 import id.Mdf;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public interface XBs {
   Set<Mdf> defaultBounds = Set.of(Mdf.mut, Mdf.imm, Mdf.read);
@@ -30,6 +27,16 @@ public interface XBs {
       var bounds = newBounds.get(gx);
       if (bounds == null || bounds.isEmpty()) { continue; }
       xbs = xbs.add(gx.name(), bounds);
+    }
+    return xbs;
+  }
+  default XBs addBounds(List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds) {
+    var xbs = this;
+    for (var gx : gxs) {
+      var boundsi = bounds.get(gx);
+      assert boundsi!=null;
+      if (boundsi.isEmpty()) { continue; }
+      xbs = xbs.add(gx.name(), boundsi);
     }
     return xbs;
   }

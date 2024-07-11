@@ -60,19 +60,9 @@ interface ELambdaTypeSystem extends ETypeSystem{
     }
     return FailOr.ok();
   }
-  private XBs addBounds(List<GX<T>> gxs,Map<Id.GX<T>, Set<Mdf>> bounds) {
-    var xbs = xbs();
-    for (var gx : gxs) {
-      var boundsi = bounds.get(gx);
-      assert boundsi!=null;
-      if (boundsi.isEmpty()) { continue; }
-      xbs = xbs.add(gx.name(), boundsi);
-    }
-    return xbs;
-  }
   default FailOr<T> bothT(Dec d){
     var b = d.lambda();
-    var xbs = addBounds(d.gxs(),d.bounds());
+    var xbs = xbs().addBounds(d.gxs(),d.bounds());
     var invalidGens = GenericBounds.validGenericLambda(p(), xbs, b);
     if (invalidGens.isPresent()) {
       return FailOr.err(()->invalidGens.get().get().pos(b.pos()));
@@ -91,7 +81,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     return FailOr.opt(bad.map(s->()->s.get().pos(p)));
   }
   private FailOr<Void> mOk(String selfName, T selfT, E.Meth m){
-    var xbs = addBounds(m.sig().gens(),m.sig().bounds());
+    var xbs = xbs().addBounds(m.sig().gens(),m.sig().bounds());
     var withXBs = (ELambdaTypeSystem) withXBs(xbs);
     withXBs.sigOk(m.sig(),m.pos());
     if(m.isAbs()){ return FailOr.ok(); }

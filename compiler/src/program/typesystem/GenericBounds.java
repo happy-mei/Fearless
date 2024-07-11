@@ -25,7 +25,7 @@ public interface GenericBounds {
       .findAny();
   }
 
-  static Optional<Supplier<CompileError>> validGenericMeth(Program p, XBs xbs, Mdf recvMdf, Id.IT<T> recvIT, int depth, CM cm, List<T> typeArgs) {
+  static Optional<Supplier<CompileError>> validGenericMeth(Program p, XBs xbs, CM cm, List<T> typeArgs) {
     var gensValid = typeArgs.stream()
       .map(t->validGenericT(p, xbs, t))
       .filter(Optional::isPresent)
@@ -33,8 +33,11 @@ public interface GenericBounds {
       .findAny();
     if (gensValid.isPresent()) { return gensValid; }
 
-    // TODO: throw error if type args.len != cm.sig.len (user code is wrong)
-    return Streams.zip(typeArgs, cm.sig().gens())
+    var typeParams = cm.sig().gens();
+    if (typeArgs.size() != typeParams.size()) {
+      return Optional.of(()->Fail.genericMismatch(typeArgs, typeParams));
+    }
+    return Streams.zip(typeArgs, typeParams)
       .map((t, gx)->{
         var bounds = cm.bounds().getOrDefault(gx, XBs.defaultBounds);
         return validGenericMdf(xbs, bounds.isEmpty() ? XBs.defaultBounds : bounds, t);

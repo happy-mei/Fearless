@@ -61,7 +61,7 @@ public class TestBounds {
     """);}
 
   @Test void invalidTraitBoundsMethodCall() {fail("""
-    In position [###]/Dummy0.fear:3:7
+    In position [###]/Dummy0.fear:3:25
     [E5 invalidMdfBound]
     The type imm test.Break[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut.
     """, """

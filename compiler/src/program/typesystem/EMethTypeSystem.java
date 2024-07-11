@@ -65,8 +65,8 @@ public interface EMethTypeSystem extends ETypeSystem {
     var transformer= renamer.renameFun(ts, gens);
     Sig res=renamer.renameSigOnMCall(cm.sig(),xbs(),transformer);
     //Note: from this point on sig have 'generics' that have
-    //already been replaced. Removed for clarity.
-    res= new Sig(List.of(),Map.of(),res.ts(),res.ret(),res.pos());
+    //already been replaced.
+    res= new Sig(res.gens(),res.bounds(),res.ts(),res.ret(),res.pos());
     return cm.withSig(res);
   }
   private FailOr<T> visitMCall(Mdf mdf0, IT<T> recvIT, E.MCall e) {
@@ -76,26 +76,38 @@ public interface EMethTypeSystem extends ETypeSystem {
           EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
       .toList();    
     CM selected = selectOverload(e,sigs,mdf0,recvIT);
+    var xbs = xbs().addBounds(selected.sig().gens(), selected.bounds());
+    var boundedTypeSystem = (EMethTypeSystem) withXBs(xbs);
+    return boundedTypeSystem.visitMCallWithBounds(mdf0, e, selected);
+  }
+
+  private FailOr<T> visitMCallWithBounds(Mdf mdf0, E.MCall e, CM selected) {
+    var boundsCheck = GenericBounds.validGenericMeth(p(), xbs(), selected, e.ts());
+    if (boundsCheck.isPresent()) {
+      return FailOr.err(boundsCheck.get());
+    }
+
     List<T> ts = selected.sig().ts();
-    TsT tst = new TsT(ts,selected.ret(),selected);
+    TsT tst = new TsT(ts, selected.ret(), selected);
     resolvedCalls().put(e.callId(), tst);
 
     var multi_ = MultiSigBuilder.multiMethod(
-      xbs(),selected.mdf(),//bounds,formalMdf
+      xbs(), selected.mdf(),//bounds,formalMdf
       selected.sig().ts(),//formalTs
       selected.sig().ret(),//formalRet,
       mdf0,this.expectedT()//mdf0,expectedRes
     );
     var multiErr = multi_.asOpt();
-    if (multiErr.isPresent()) { return FailOr.err(multiErr.get()); }
+    if (multiErr.isPresent()) {return FailOr.err(multiErr.get());}
     var multi = multi_.get();
 
     FailOr<List<T>> ft1n= FailOr.fold(
       Range.of(e.es()),
       i-> e.es().get(i).accept(multi.expectedT(this, i))
     );
-    return ft1n.flatMap(t1n->selectResult(e,multi,t1n));
+    return ft1n.flatMap(t1n -> selectResult(e, multi, t1n));
   }
+
   private CM selectOverload(E.MCall e, List<CM> sigs, Mdf mdf0, IT<T> recvIT){
     if(sigs.size()==1){ return sigs.getFirst(); }
     return sigs.stream()
@@ -114,7 +126,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     //should we consider return types?
     return true;
   }
-  private FailOr<T> selectResult(E.MCall e, MultiSig multi,List<T> t1n){
+  private FailOr<T> selectResult(E.MCall e, MultiSig multi, List<T> t1n){
     assert multi.tss().size()==t1n.size();//That is, tss does not have 'this'?
     var sel= IntStream.range(0, multi.rets().size())
       .filter(i->ok(multi,i,t1n))
@@ -138,7 +150,6 @@ public interface EMethTypeSystem extends ETypeSystem {
       return p().isSubType(xbs(),actualT,formalT); 
     });
   }
-
 }
   
   

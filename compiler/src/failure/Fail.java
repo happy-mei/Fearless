@@ -325,6 +325,10 @@ public class Fail{
     return of("You may not declare a trait in a different package than the package the declaration is in.");
   }
 
+  public static CompileError genericMismatch(List<ast.T> actualArgs, List<Id.GX<ast.T>> formalParams) {
+    return of(STR."Expected \{formalParams.size()} generic type arguments, got \{actualArgs}.");
+  }
+
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
@@ -399,7 +403,8 @@ enum ErrorCode {
   Unknown,
   noMethOnX,
   invalidMethodArgumentTypes,
-  crossPackageDeclaration;
+  crossPackageDeclaration,
+  genericMismatch;
   private static final ErrorCode[] values = values();
   int code() {
     return this.ordinal() + 1;
