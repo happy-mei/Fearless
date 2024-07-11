@@ -2,7 +2,7 @@ package base.caps
 
 // Allowing imm in the bounds for the convenience of being able to write IsoPod[Str] instead of IsoPod[iso Str]
 IsoPod:{
-  #[T:iso](val: iso T): mut IsoPod[iso T] -> _MagicIsoPodImpl.toIsoPod[iso T](_MagicIsoPodImpl#[iso T](val)),
+  #[T:imm,iso](val: iso T): mut IsoPod[iso T] -> _MagicIsoPodImpl.toIsoPod[iso T](_MagicIsoPodImpl#[iso T](val)),
   }
 IsoPod[T:imm,iso]: {
   readH .isAlive: Bool,

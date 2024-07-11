@@ -1358,60 +1358,21 @@ public class TestJavaProgram {
 
   @Test void literalSubtypeStr() {ok(new Res("Nick", "", 0), """
     package test
-    Test: Main{sys -> UnrestrictedIO#sys.println(MyName)}
-    MyName: "Nick", Foo{}
-    Foo: {}
-    """, Base.mutBaseAliases);}
-  @Test void literalSubtypeStrIndirect() {ok(new Res("Nick", "", 0), """
-    package test
-    Test: Main{sys -> UnrestrictedIO#sys.println(A)}
-    A: B
-    B: "Nick"{}
-    """, Base.mutBaseAliases);}
-  @Test void literalSubtypeNat() {ok(new Res("3", "", 0), """
-    package test
-    Test: Main{sys -> UnrestrictedIO#sys.println((One + Two).str)}
-    One: 1, Foo{}
-    Two: 2{}
-    Foo: {}
+    Test: Main{sys -> UnrestrictedIO#sys.println(MyNames#)}
+    MyNames: {#: MyName -> MyName: "Nick"{}}
     """, Base.mutBaseAliases);}
   @Test void literalSubtypeMultiDiff() {fail("""
-    In position [###]/Dummy0.fear:3:8
-    [E18 uncomposableMethods]
-    These methods could not be composed.
+    In position [###]/Dummy0.fear:3:31
+    [E34 conflictingSealedImpl]
+    A sealed trait from another package may not be composed with any other traits.
     conflicts:
-    ([###]) 123[], .assertEq/2[](imm base.Nat[], imm base.Str[]): imm base.Void[]
-    ([###]) "Nick"[], .assertEq/2[](imm base.Str[], imm base.Str[]): imm base.Void[]
+    ([###]/target/classes/cachedBase/base/pkgInfo.txt:256:15) "Nick"/0
+    ([###]/target/classes/cachedBase/base/pkgInfo.txt:510:15) 123/0
+    ([###]/Dummy0.fear:4:5) test.Foo/0
     """, """
     package test
-    Test: Main{sys -> UnrestrictedIO#sys.println(MyName)}
-    MyName: "Nick", 123, Foo{}
-    Foo: {}
-    """, Base.mutBaseAliases);}
-  @Test void literalSubtypeMultiSameStr() {fail("""
-    In position [###]/Dummy0.fear:3:8
-    [E18 uncomposableMethods]
-    These methods could not be composed.
-    conflicts:
-    ([###]) "Marco"[], .str/0[](): imm base.Str[]
-    ([###]) "Nick"[], .str/0[](): imm base.Str[]
-    """, """
-    package test
-    Test: Main{sys -> UnrestrictedIO#sys.println(MyName)}
-    MyName: "Nick", "Marco", Foo{}
-    Foo: {}
-    """, Base.mutBaseAliases);}
-  @Test void literalSubtypeMultiSameNat() {fail("""
-    In position [###]/Dummy0.fear:3:3
-    [E18 uncomposableMethods]
-    These methods could not be composed.
-    conflicts:
-    ([###]) 2[], .str/0[](): imm base.Str[]
-    ([###]) 1[], .str/0[](): imm base.Str[]
-    """, """
-    package test
-    Test: Main{sys -> UnrestrictedIO#sys.println(A.str)}
-    A: 1, 2, Foo{}
+    Test: Main{sys -> UnrestrictedIO#sys.println(MyNames#)}
+    MyNames: {#: MyName -> MyName: "Nick", 123, Foo{}}
     Foo: {}
     """, Base.mutBaseAliases);}
 }
