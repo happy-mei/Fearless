@@ -20,11 +20,11 @@ public class TestErrMsgType {
     fail("""
     In position [###]/Dummy0.fear:6:26
     [E36 undefinedMethod]
-    Method .meh1 does not exist in imm test.A[]
-    Did you mean .meth1?
+    Method ".meh1" with 0 args does not exist in "imm test.A[]"
+    Did you mean ".meth1(): imm test.A[]"
     
     Other candidates:
-    test.A[].meth1
+    test.B[].callNonExistent(): imm test.A[]
     """, """
     package test
     A: {
@@ -39,24 +39,104 @@ public class TestErrMsgType {
   @Test void multipleAlternatives() {fail("""
    In position [###]/Dummy0.fear:9:26
    [E36 undefinedMethod]
-   Method .meh1 does not exist in imm test.A[]
-   Did you mean .meth1?
+   Method ".meh1" with 0 args does not exist in "imm test.A[]"
+   Did you mean ".meth1(): imm test.A[]"
    
    Other candidates:
-   test.A[].meth1
-   test.A[].meth2
-   test.A[].randommeth
-   test.A[].k
+   test.A[].meth2(): imm test.A[]
+   test.A[].k(): imm test.A[]
+   test.A[].randommeth(): imm test.A[]
+   test.B[].callNonExistent(): imm test.A[]
    """, """
-    package test
-    A: {
-      .meth1: A -> this,
-      .randommeth: A -> this,
-      .k: A -> this,
-      .meth2: A -> this,
-      }
-    B: {
-      .callNonExistent: A -> A.meh1,
-      }
-    """);}
+   package test
+   A: {
+     .meth1: A -> this,
+     .randommeth: A -> this,
+     .k: A -> this,
+     .meth2: A -> this,
+     }
+   B: {
+     .callNonExistent: A -> A.meh1,
+     }
+   """);}
+
+  @Test void multipleAlternatives2() {fail("""
+   In position file:///C:/Users/ripti/OneDrive%20-%20Victoria%20University%20of%20Wellington%20-%20STUDENT/VUW/2024/T1/ENGR489/Fearless/Fearless/compiler/Dummy0.fear:9:26
+   [E36 undefinedMethod]
+   Method ".meh1" with 0 args does not exist in "imm test.A[]"
+   Did you mean ".meth1(): imm test.A[]"
+   
+   Other candidates:
+   test.C[].meh1(): imm test.C[]
+   test.A[].k(): imm test.A[]
+   test.A[].meth2(imm test.B[], imm test.B[]): imm test.A[]
+   test.A[].randommeth(): imm test.A[]
+   test.B[].callNonExistent(): imm test.A[]
+   """, """
+   package test
+   A: {
+     .meth1: A -> this,
+     .randommeth: A -> this,
+     .k: A -> this,
+     .meth2(a:B, b:B): A -> this,
+     }
+   B: {
+     .callNonExistent: A -> A.meh1,
+     }
+   C: {
+     .meh1: C -> this,
+   }
+   """);}
+
+  @Test void multipleAlternatives3() {fail("""
+   In position file:///C:/Users/ripti/OneDrive%20-%20Victoria%20University%20of%20Wellington%20-%20STUDENT/VUW/2024/T1/ENGR489/Fearless/Fearless/compiler/Dummy0.fear:9:26
+   [E36 undefinedMethod]
+   Method ".meh1" with 0 args does not exist in "imm test.A[]"
+   Did you mean ".meh1(): imm test.C[]"
+   
+   Other candidates:
+   test.A[].method1(): imm test.A[]
+   test.A[].k(): imm test.A[]
+   test.A[].method2(imm test.B[], imm test.B[]): imm test.A[]
+   test.A[].randommeth(): imm test.A[]
+   test.B[].callNonExistent(): imm test.A[]
+   """, """
+   package test
+   A: {
+     .method1: A -> this,
+     .randommeth: A -> this,
+     .k: A -> this,
+     .method2(a:B, b:B): A -> this,
+     }
+   B: {
+     .callNonExistent: A -> A.meh1,
+     }
+   C: {
+     .meh1: C -> this,
+   }
+   """);}
+
+  @Test void differentArguments() {fail("""
+  In position [###]/Dummy0.fear:9:24
+  [E36 undefinedMethod]
+  Method ".meth1" with 2 args does not exist in "imm test.A[]"
+  Did you mean ".meth1(imm test.B[]): imm test.A[]"
+  
+  Other candidates:
+  test.A[].meth1(imm test.B[], imm test.B[], imm test.B[], imm test.B[]): imm test.A[]
+  test.A[].meth2(): imm test.A[]
+  test.A[].anothermeth(): imm test.A[]
+  test.B[].callNonExistent(): imm test.A[]
+  """, """
+  package test
+  A: {
+  .meth1(a: B, b: B, c: B, d: B): A -> this,
+  .meth1(a: B): A -> this,
+  .meth2: A -> this,
+  .anothermeth: A -> this,
+  }
+  B: {
+  .callNonExistent: A -> A.meth1(this, this),
+  }
+  """);}
 }
