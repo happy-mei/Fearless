@@ -52,8 +52,8 @@ public interface ListK extends base.List_0 {
   }
 
   record ListImpl<E>(java.util.List<E> inner) implements base.List_1 {
-    @Override public FlowOp_1 _flowimm$imm() {
-      return base.List_1._flowimm$imm$fun(this);
+    @Override public FlowOp_1 _flowimm$imm(long start_m$, long end_m$) {
+      return List_1._flowimm$imm$fun(start_m$, end_m$, this);
     }
 
     @Override public Object get$imm(long i_m$) {
@@ -127,8 +127,8 @@ public interface ListK extends base.List_0 {
       return (long) inner.size();
     }
 
-    @Override public FlowOp_1 _flowread$read() {
-      return List_1._flowread$read$fun(this);
+    @Override public FlowOp_1 _flowread$read(long start_m$, long end_m$) {
+      return List_1._flowread$read$fun(start_m$, end_m$, this);
     }
 
     @Override public Void_0 add$mut(Object e_m$) {

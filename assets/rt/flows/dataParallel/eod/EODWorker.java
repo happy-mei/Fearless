@@ -1,6 +1,5 @@
 package rt.flows.dataParallel.eod;
 
-import base.OptMatch_2;
 import base.flows.FlowOp_1;
 import base.flows._Sink_1;
 import rt.flows.dataParallel.BufferSink;
@@ -9,9 +8,7 @@ import rt.flows.dataParallel.SplitTasks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
 

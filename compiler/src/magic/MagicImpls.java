@@ -24,6 +24,7 @@ public interface MagicImpls<R> {
     if (isMagic(Magic.PipelineParallelSinkK, e)) { return Optional.ofNullable(pipelineParallelSinkK(e)); }
     if (isMagic(Magic.DataParallelFlowK, e)) { return Optional.ofNullable(dataParallelFlowK(e)); }
     if (isMagic(Magic.ListK, e)) { return Optional.ofNullable(listK(e)); }
+    if (isMagic(Magic.FlowRange, e)) { return Optional.ofNullable(flowRange(e)); }
     return Magic.ObjectCaps.stream()
       .filter(target->isMagic(target, e))
       .map(target->Optional.ofNullable(objCap(target, e)))
@@ -58,6 +59,7 @@ public interface MagicImpls<R> {
   default MagicTrait<MIR.E,R> tryCatch(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> capTryCatch(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> listK(MIR.E e) { return null; }
+  default MagicTrait<MIR.E,R> flowRange(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> pipelineParallelSinkK(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> dataParallelFlowK(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> objCap(Id.DecId magicTrait, MIR.E e) { return null; }

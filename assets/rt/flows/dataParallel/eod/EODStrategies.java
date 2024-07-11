@@ -3,6 +3,7 @@ package rt.flows.dataParallel.eod;
 import base.flows.FlowOp_1;
 import base.flows._Sink_1;
 import rt.flows.dataParallel.BufferSink;
+import rt.flows.dataParallel.DelayedStopSink;
 import rt.flows.dataParallel.ParallelStrategies;
 
 import java.util.ArrayList;
@@ -23,10 +24,12 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
   private static final AtomicLong waitingTasks = new AtomicLong();
 
   @Override public void seqOnly() {
+    var sink = new DelayedStopSink(downstream);
     for (var data : splitData) {
       if (data == null) { break; }
-      data.forRemaining$mut(downstream);
+      data.forRemaining$mut(sink);
     }
+    sink.stop();
   }
 
   @Override public void oneParOneSeq() {
@@ -98,6 +101,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
   @SuppressWarnings("preview")
   private static void releaseParentPermit() {
     assert Thread.currentThread().isVirtual();
+    if (!INFO.isBound()) { return; }
     var info = INFO.get();
     tryReleaseAll(info);
   }

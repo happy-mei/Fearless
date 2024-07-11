@@ -384,6 +384,10 @@ public record JavaMagicImpls(
     return ()->Optional.of("rt.ListK.$self");
   }
 
+  @Override public MagicTrait<MIR.E, String> flowRange(MIR.E e) {
+    return ()->Optional.of("rt.flows.Range.$self");
+  }
+
   @Override public MagicTrait<MIR.E,String> pipelineParallelSinkK(MIR.E e) {
     return ()->Optional.of("rt.flows.pipelineParallel.PipelineParallelFlow.WrappedSinkK.$self");
   }

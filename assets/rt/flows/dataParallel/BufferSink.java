@@ -16,7 +16,8 @@ public final class BufferSink implements _Sink_1 {
   }
 
   @Override public Void_0 stop$mut() {
-    return original.stop$mut();
+//    return original.stop$mut();
+    return Void_0.$self;
   }
   @Override public Void_0 pushError$mut(Info_0 info_m$) {
     return original.pushError$mut(info_m$);
@@ -30,5 +31,6 @@ public final class BufferSink implements _Sink_1 {
     for (var e : buffer) {
       original.$hash$mut(e);
     }
+    original.stop$mut();
   }
 }
