@@ -151,33 +151,23 @@ LList[E]:Collection,Sealed{
 //        }
 //      },
   }
-LListMatch[E,R]:{
+LListMatch[E,R]: {
   mut .elem(head: E, tail: mut LList[E]): R,
   mut .empty: R,
   }
-LListMatchRead[E,R]:{
+LListMatchRead[E,R]: {
   mut .elem(head: read/imm E, tail: read LList[E]): R,
   mut .empty: R,
   }
 
-List:{
-  #[E]: mut List[E] -> _List.new(Var#(_ListState#[E](0, {}))),
-  #[E](e1: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e1)),
-  #[E](e1: E, e2: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e2).pushFront(e1)),
+List: Sealed{
+  #[E]: mut List[E] -> Magic!,
+  #[E](e1: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E): mut List[E] -> Magic!,
   // TODO: this up to 12 or something
-  #[E](e1: E, e2: E, e3: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e3).pushFront(e2).pushFront(e1)),
-  #[E](e1: E, e2: E, e3: E, e4: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e4).pushFront(e3).pushFront(e2).pushFront(e1)),
-  .fromLList[E](list: mut LList[E]): mut List[E] -> _List.new(Var#(_ListState#[E](list.size, list))),
-  }
-_List:{
-  .new[E](s: mut Var[mut _ListState[E]]): mut List[E] -> {'l
-    .size -> s*.size,
-    .isEmpty -> s*.inner.isEmpty,
-    .get(i) -> s*.inner.get(i),
-    .tryGet(i) -> s*.inner.tryGet(i),
-    .add(e) -> s := (_ListState#[E](s*.size + 1, s*.inner + e)),
-    .clear -> s := (_ListState#[E](0, {})),
-    }
+  #[E](e1: E, e2: E, e3: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E): mut List[E] -> Magic!,
+  .fromLList[E](list: mut LList[E]): mut List[E] -> Magic!,
   }
 List[E]: Collection,Sealed{
   mut  .get(i: Nat): E,
@@ -247,17 +237,6 @@ List[E]: Collection,Sealed{
     .var -> Count.nat(0),
     .in(cursor) -> { .next -> this.tryGet(cursor++) }
     },
-  }
-_ListState[E]:{
-  read .size: Nat,
-  mut .inner: mut LList[E],
-  read .inner: read LList[E],
-  }
-_ListState:{
-  #[E](len: Nat, inner: mut LList[E]): mut _ListState[E] -> {
-    .size -> len,
-    .inner -> inner
-    }
   }
 
 /// A list that can be appended to, then iterated over. Elements cannot be removed from this list.

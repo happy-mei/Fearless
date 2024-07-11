@@ -7,6 +7,7 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import magic.MagicCallable;
+import magic.MagicImpls;
 import magic.MagicTrait;
 import utils.Bug;
 import visitors.MIRVisitor;
@@ -375,6 +376,10 @@ public record JavaMagicImpls(
         return Optional.empty();
       }
     };
+  }
+
+  @Override public MagicTrait<MIR.E, String> listK(MIR.E e) {
+    return ()->Optional.of("rt.ListK.$self");
   }
 
   @Override public MagicTrait<MIR.E,String> pipelineParallelSinkK(MIR.E e) {

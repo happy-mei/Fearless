@@ -1366,8 +1366,8 @@ public class TestJavaProgram {
     [E34 conflictingSealedImpl]
     A sealed trait from another package may not be composed with any other traits.
     conflicts:
-    ([###]/target/classes/cachedBase/base/pkgInfo.txt:256:15) "Nick"/0
-    ([###]/target/classes/cachedBase/base/pkgInfo.txt:510:15) 123/0
+    ([###]) "Nick"/0
+    ([###]) 123/0
     ([###]/Dummy0.fear:4:5) test.Foo/0
     """, """
     package test
