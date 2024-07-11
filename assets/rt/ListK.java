@@ -137,5 +137,11 @@ public interface ListK extends base.List_0 {
       inner.add(e);
       return Void_0.$self;
     }
+    @Override public ListImpl<E> addAnd$mut(Object e_m$) {
+      @SuppressWarnings("unchecked") // validated by the Fearless type system
+      E e = (E) e_m$;
+      inner.add(e);
+      return this;
+    }
   }
 }

@@ -179,6 +179,7 @@ List[E]: Collection,Sealed{
   imm  .tryGet(i: Nat): mut Opt[imm E],
 
   mut .add(e: E): Void,
+  mut .addAnd(e: E): mut List[E] -> Block#(this.add(e), this),
   mut .addAll(other: mut List[E]): Void -> other.iter.for{e -> this.add(e)},
 
   mut .clear: Void,

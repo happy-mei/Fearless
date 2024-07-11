@@ -297,12 +297,12 @@ public class Ex17FlowsTest {
     """, Base.mutBaseAliases);}
   @Test void flowFilterMapIntEq1() { ok(new Res(), """
     package test
-    Test:Main {sys -> (+150).assertEq("max assert failed",
+    Test:Main {sys -> (+150).assertEq(
       Flow#[Int](+5, +10, +15)
         .filter{n -> n > +5}
         .map{n -> n * +10}
         .max(base.CompareInts)!
-      )}
+      , "max assert failed")}
     """, Base.mutBaseAliases);}
   // We prefer flowFilterMapIntEq1 because it is more clear that this test is of an assertion rather than of a flow.
   @Test void flowFilterMapIntEq2() { ok(new Res(), """
