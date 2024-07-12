@@ -24,8 +24,8 @@ public class FearlessMain {
     assert myMain != null;
 
     FAux.LAUNCH_ARGS = buildArgList(args, 1);
-    myMain.$hash$imm(_System_0.$self);
     try {
+      myMain.$hash$imm(_System_0.$self);
     } catch (StackOverflowError e) {
       fatal("Program crashed with: Stack overflowed");
     }
