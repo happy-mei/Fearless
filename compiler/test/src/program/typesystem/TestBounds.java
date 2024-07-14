@@ -74,4 +74,24 @@ public class TestBounds {
     A: {#[X: mut](x: X): X -> x}
     Break: {#: mut Break -> A#(mut Break)}
     """);}
+
+  @Test void invalidBounds() {fail("""
+    In position [###]/Dummy0.fear:3:44
+    [E5 invalidMdfBound]
+    The type Y is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut.
+    """, """
+    package a
+    Foo[X: mut]: {}
+    A: {.bar[Y:mut,read,imm]: imm Foo[Y] -> imm Foo[Y]}
+    """);}
+  @Test void validBounds() {ok("""
+    package a
+    Foo[X: mut,read]: {}
+    A: {.bar[Y:mut]: imm Foo[Y] -> imm Foo[Y]}
+    """);}
+  @Test void readImmSubsumption() {ok("""
+    package a
+    Foo[X: read,imm]: {}
+    A: {.bar[Y:mut,read,imm]: imm Foo[read/imm Y] -> imm Foo[read/imm Y]}
+    """);}
 }

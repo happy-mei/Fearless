@@ -61,12 +61,16 @@ public interface EMethTypeSystem extends ETypeSystem {
   private CM applyGenerics(CM cm, List<T> ts){
     var renamer = TypeRename.core();
     var gens= cm.sig().gens();
-    //var xbs= xbs().addBounds(gens, sig.bounds());//No? from 2 different scopes?
+    // We could do a bounds check here (like below) but we don't (see the comment later in this method)
+//    var boundsCheck = GenericBounds.validGenericMeth(p(), xbs(), cm, ts);
+//    if (boundsCheck.isPresent()) {
+//      return FailOr.err(boundsCheck.get());
+//    }
     var transformer= renamer.renameFun(ts, gens);
     Sig res=renamer.renameSigOnMCall(cm.sig(),xbs(),transformer);
-    //Note: from this point on sig have 'generics' that have
-    //already been replaced.
-    res= new Sig(res.gens(),res.bounds(),res.ts(),res.ret(),res.pos());
+    // I am keeping the original generics/bounds on this renamed sig so we can validate the replacement was valid.
+    // We need to do this later (rather than before/as part of the replacement) because we only want to check if
+    // the replacement is valid for the specific sig we are selecting in the case of an overloaded receiver RC.
     return cm.withSig(res);
   }
   private FailOr<T> visitMCall(Mdf mdf0, IT<T> recvIT, E.MCall e) {
@@ -74,14 +78,8 @@ public interface EMethTypeSystem extends ETypeSystem {
       .map(s->applyGenerics(s,e.ts()))
       .sorted(Comparator.comparingInt(cm->
           EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
-      .toList();    
+      .toList();
     CM selected = selectOverload(e,sigs,mdf0,recvIT);
-    var xbs = xbs().addBounds(selected.sig().gens(), selected.bounds());
-    var boundedTypeSystem = (EMethTypeSystem) withXBs(xbs);
-    return boundedTypeSystem.visitMCallWithBounds(mdf0, e, selected);
-  }
-
-  private FailOr<T> visitMCallWithBounds(Mdf mdf0, E.MCall e, CM selected) {
     var boundsCheck = GenericBounds.validGenericMeth(p(), xbs(), selected, e.ts());
     if (boundsCheck.isPresent()) {
       return FailOr.err(boundsCheck.get());

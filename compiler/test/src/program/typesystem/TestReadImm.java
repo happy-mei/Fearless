@@ -89,7 +89,7 @@ public class TestReadImm {
   }
   @Property void shouldGetAsReadOrImmForReadImmArbitraryRecvMdf(@ForAll("recvMdf") Mdf recvMdf, @ForAll("capturableMdf") Mdf mdf) {
     var expected = mdf.isImm() ? "imm" : "read";
-    if (recvMdf.isHyg() && !mdf.isImm()) { expected = "readOnly"; }
+    if (recvMdf.isHyg() && !mdf.isImm()) { expected = "readH"; }
     ok("""
     package test
     A: {#[X](box: %s Box[%s X]): %s X -> box.riget}
@@ -134,4 +134,11 @@ public class TestReadImm {
     C: {.m(foo: read Foo): imm Foo -> BrokenB: B[imm Foo].m(foo)} // unsound
     Foo: {}
     """);}
+
+  @Test void readImmInheritance() {ok("""
+    package a
+    B[Y:read,imm]:{.m:read/imm Y}
+    A1[X:imm]:B[X]{}
+    A2[X:imm]:B[X]{.m:read/imm X}
+    """); }
 }
