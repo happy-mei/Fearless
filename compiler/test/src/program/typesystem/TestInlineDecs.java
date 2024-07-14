@@ -106,7 +106,7 @@ public class TestInlineDecs {
     Nat:{} TwentyFour:Nat{}
     """); }
   @Test void boundsForwardingImplicitBreak() { fail("""
-    In position [###]/Dummy0.fear:3:10
+    In position [###]/Dummy0.fear:3:52
     [E5 invalidMdfBound]
     The type N is not valid because it's modifier is not in the required bounds. The allowed modifiers are: imm.
     """, """
