@@ -108,7 +108,7 @@ public class TestInlineDecs {
   @Test void boundsForwardingImplicitBreak() { fail("""
     In position [###]/Dummy0.fear:3:52
     [E5 invalidMdfBound]
-    The type N is not valid because it's modifier is not in the required bounds. The allowed modifiers are: imm.
+    The type N is not valid because its capability is not in the required bounds. The allowed modifiers are: imm.
     """, """
     package test
     Person[N: imm]:{ .name: Str, .age: N }
@@ -161,7 +161,7 @@ public class TestInlineDecs {
   @Test void boundsForwardingExplicit() { fail("""
     In position [###]/Dummy0.fear:3:65
     [E5 invalidMdfBound]
-    The type N is not valid because it's modifier is not in the required bounds. The allowed modifiers are: imm.
+    The type N is not valid because its capability is not in the required bounds. The allowed modifiers are: imm.
     """, """
     package test
     Person[N: imm]:{ .name: Str, .age: N }

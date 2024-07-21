@@ -32,7 +32,7 @@ public class TestBounds {
   @Test void invalidTraitBoundsTopLevel() {fail("""
     In position [###]/Dummy0.fear:3:7
     [E5 invalidMdfBound]
-    The type imm test.Break[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut.
+    The type imm test.Break[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut.
     """, """
     package test
     A[X:mut]: {}
@@ -41,7 +41,7 @@ public class TestBounds {
   @Test void invalidTraitBoundsInline() {fail("""
     In position [###]/Dummy0.fear:3:42
     [E5 invalidMdfBound]
-    The type imm test.Break[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut.
+    The type imm test.Break[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut.
     """, """
     package test
     A[X:mut]: {}
@@ -63,7 +63,7 @@ public class TestBounds {
   @Test void invalidTraitBoundsMethodCall() {fail("""
     In position [###]/Dummy0.fear:3:25
     [E5 invalidMdfBound]
-    The type imm test.Break[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut.
+    The type imm test.Break[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut.
     """, """
     package test
     A: {#[X: mut](x: X): X -> x}
@@ -78,7 +78,7 @@ public class TestBounds {
   @Test void invalidBounds() {fail("""
     In position [###]/Dummy0.fear:3:44
     [E5 invalidMdfBound]
-    The type Y is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut.
+    The type Y is not valid because its capability is not in the required bounds. The allowed modifiers are: mut.
     """, """
     package a
     Foo[X: mut]: {}

@@ -1,6 +1,7 @@
 package program.typesystem;
 
 import ast.E;
+import failure.FailOr;
 import program.Program;
 import ast.T;
 import failure.CompileError;
@@ -17,34 +18,40 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public interface GenericBounds {
-  static Optional<Supplier<CompileError>> validGenericLambda(Program p, XBs xbs, E.Lambda l) {
-    return l.its().stream()
-      .map(it->validGenericIT(p, xbs, it))
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .findAny();
+  Set<Mdf> ALL_RCS = Set.of(Mdf.iso, Mdf.imm, Mdf.mut, Mdf.mutH, Mdf.read, Mdf.readH);
+
+  static FailOr<Void> validGenericLambda(Program p, XBs xbs, E.Lambda l) {
+    var boundsInference = new BoundsInference(p, xbs, ALL_RCS);
+    var res = l.its().stream()
+      .map(it->it.accept(boundsInference))
+      .filter(FailOr::isErr)
+      .<FailOr<Void>>map(FailOr::cast)
+      .findFirst();
+    return res.orElseGet(FailOr::ok);
   }
 
-  static Optional<Supplier<CompileError>> validGenericMeth(Program p, XBs xbs, CM cm, List<T> typeArgs) {
+  static FailOr<Void> validGenericMeth(Program p, XBs xbs, CM cm, List<T> typeArgs) {
     var gensValid = typeArgs.stream()
       .map(t->validGenericT(p, xbs, t))
       .filter(Optional::isPresent)
       .map(Optional::get)
       .findAny();
-    if (gensValid.isPresent()) { return gensValid; }
+    assert gensValid.isEmpty(); // can I remove this check?
 
     var typeParams = cm.sig().gens();
     if (typeArgs.size() != typeParams.size()) {
-      return Optional.of(()->Fail.genericMismatch(typeArgs, typeParams));
+      return FailOr.err(()->Fail.genericMismatch(typeArgs, typeParams));
     }
-    return Streams.zip(typeArgs, typeParams)
+    var res = Streams.zip(typeArgs, typeParams)
       .map((t, gx)->{
         var bounds = cm.bounds().getOrDefault(gx, XBs.defaultBounds);
-        return validGenericMdf(xbs, bounds.isEmpty() ? XBs.defaultBounds : bounds, t);
+        var inference = new BoundsInference(p, xbs, bounds);
+        return t.accept(inference);
       })
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .findAny();
+      .filter(FailOr::isErr)
+      .<FailOr<Void>>map(FailOr::cast)
+      .findFirst();
+    return res.orElseGet(FailOr::ok);
   }
 
   static Optional<Supplier<CompileError>> validGenericIT(Program p, XBs xbs, Id.IT<T> it) {

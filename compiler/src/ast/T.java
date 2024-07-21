@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import files.HasPos;
 import files.Pos;
+import visitors.TypeVisitor;
 
 public record T(Mdf mdf, Id.RT<T> rt) implements Id.Ty {
   @Override public String toString(){
@@ -51,6 +52,16 @@ public record T(Mdf mdf, Id.RT<T> rt) implements Id.Ty {
   }
 
   public T withMdf(Mdf mdf){ return new T(mdf,rt); }
+
+  public <R> R accept(TypeVisitor<T, R> visitor) {
+    return this.match(gx->switch (mdf) {
+      case mdf -> visitor.visitX(gx);
+      case readImm -> visitor.visitReadImm(gx);
+      case iso,imm,mut,mutH,read,readH -> visitor.visitRCX(mdf, gx);
+      case recMdf -> throw Bug.unreachable();
+    }, it->visitor.visitLiteral(mdf, it));
+  }
+
   public record Dec(E.Lambda lambda) implements HasPos, Id.Dec {
     public DecId name() { return lambda.id().id(); }
     public List<Id.GX<T>> gxs(){ return lambda.id().gens(); }

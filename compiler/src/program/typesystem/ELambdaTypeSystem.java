@@ -8,8 +8,6 @@ import failure.CompileError;
 import failure.Fail;
 import failure.FailOr;
 import files.Pos;
-import id.Id;
-import id.Id.GX;
 import id.Mdf;
 import utils.Box;
 import utils.Bug;
@@ -17,9 +15,7 @@ import utils.Streams;
 import visitors.ShortCircuitVisitor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -64,8 +60,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var b = d.lambda();
     var xbs = xbs().addBounds(d.gxs(),d.bounds());
     var invalidGens = GenericBounds.validGenericLambda(p(), xbs, b);
-    if (invalidGens.isPresent()) {
-      return FailOr.err(()->invalidGens.get().get().pos(b.pos()));
+    if (invalidGens instanceof FailOr.Fail<Void> fail) {
+      return fail.mapErr(err->()->err.get().pos(b.pos())).cast();
     }
     T selfT= new T(b.mdf(), d.toIT());
     var selfName=b.selfName();
@@ -103,7 +99,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var args = sig.ts();
     var ret = sig.ret();
     assert !selfT.mdf().isMdf() || g().dom().isEmpty();
-    var g0  = g().captureSelf(xbs(), selfName, selfT, mMdf);
+    var g0  = g().ctxAwareGamma(xbs(), selfName, selfT, mMdf);
     Mdf selfTMdf = g0.get(selfName).mdf();
     var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
@@ -141,7 +137,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
 
     };
     var mMdf = m.mdf();
-    var g0 = readOnlyAsReadG.captureSelf(xbs(), selfName, selfT, mMdf.isReadH() ? Mdf.read : mMdf);
+    var g0 = readOnlyAsReadG.ctxAwareGamma(xbs(), selfName, selfT, mMdf.isReadH() ? Mdf.read : mMdf);
     var gg  = Streams.zip(
       m.xs(),
       sig.ts().stream().map(t->t.mdf().isReadH() ? t.withMdf(Mdf.read) : t).toList()
@@ -164,7 +160,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public String toStr(){ throw Bug.unreachable(); }
     };
     var mMdf = mdfTransform.apply(selfT.withMdf(m.mdf())).mdf();
-    var g0 = mutAsLentG.captureSelf(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.mutH : mMdf);
+    var g0 = mutAsLentG.ctxAwareGamma(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.mutH : mMdf);
     var gg  = Streams.zip(
       m.xs(),
       sig.ts().stream().map(mdfTransform).toList()
@@ -182,7 +178,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public String toStr(){ throw Bug.unreachable(); }
     };
     var mMdf = m.mdf();
-    var g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(xbs(), selfName, selfT, mMdf);
+    var g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.ctxAwareGamma(xbs(), selfName, selfT, mMdf);
     var gg = Streams.zip(m.xs(), sig.ts()).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isMdf() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
     return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.readH));
   }

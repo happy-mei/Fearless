@@ -13,6 +13,7 @@ public sealed interface FailOr<T>{
   FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u);
   boolean isRes();
   default boolean isErr() { return !this.isRes(); }
+  <R> FailOr<R> cast();
   T get();
   Optional<Supplier<CompileError>> asOpt();
 
@@ -21,6 +22,11 @@ public sealed interface FailOr<T>{
     public <R> FailOr<R> map(Function<T,R> r) { return new Res<>(r.apply(t)); }
     public FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u) {return this;}
     public boolean isRes(){ return true; }
+
+    @Override public <R> FailOr<R> cast() {
+      throw new UnsupportedOperationException("Only failures can be cast");
+    }
+
     public T get(){ return t; }
     static final private Res<Void> ok= new Res<Void>(null);
     public Optional<Supplier<CompileError>> asOpt(){ return Optional.empty(); }
@@ -32,6 +38,11 @@ public sealed interface FailOr<T>{
     public <R> FailOr<R> map(Function<T,R> r) { return self(); }
     public FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u){ return new Fail<>(u.apply(err)); }
     public boolean isRes(){ return false; }
+
+    @Override public <R> FailOr<R> cast() {
+      return self();
+    }
+
     public T get(){ throw err.get(); }
     public Optional<Supplier<CompileError>> asOpt(){ return Optional.of(err); }
   }

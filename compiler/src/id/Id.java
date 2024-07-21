@@ -3,6 +3,7 @@ package id;
 import parser.Parser;
 import utils.Bug;
 import utils.OneOr;
+import visitors.TypeVisitor;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -144,6 +145,9 @@ public class Id {
     }
     public IT(String name,List<TT> ts){ this(new Id.DecId(name,ts.size()),ts); }
     public <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it){ return it.apply(this); }
+    public <R> R accept(TypeVisitor<TT, R> visitor) {
+      return visitor.visitLiteral(Mdf.mdf, this);
+    }
     public IT<TT> withTs(List<TT>ts){ return new IT<>(new DecId(name.name,ts.size()), ts); }
     @Override public String toString(){ return name.name()+ts; }
     public IT<ast.T> toAstIT(Function<TT, ast.T> transform) {

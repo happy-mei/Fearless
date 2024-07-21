@@ -52,7 +52,7 @@ public interface Gamma {
       @Override public String toStr(){ return s+":"+t+" "+outer.toStr(); }
     };
   }
-  default Gamma captureSelf(XBs xbs, String x, T t, Mdf mMdf) {
+  default Gamma ctxAwareGamma(XBs xbs, String x, T t, Mdf mMdf) {
     var outer = this;
     var g = new Gamma() {
       @Override public Optional<T> getO(String xi) {
@@ -68,7 +68,6 @@ public interface Gamma {
     return g.add(x,t.withMdf(selfMdf));
   }
   static T xT(String x, XBs xbs, Mdf self, T captured, Mdf mMdf){
-    // TODO: see where the self == iso is handled, should preferably happen here
     assert !self.isReadImm() && !mMdf.isReadImm() && !self.isMutH() && !self.isReadH() && !self.isRecMdf();
     var bounds = captured.isMdfX() ? xbs.get(captured.gxOrThrow()) : null;
     assert !captured.isMdfX() || Objects.nonNull(bounds);
