@@ -105,7 +105,7 @@ public class TestFlowSemantics {
   @Test void throwInAFlowBeforeStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
     package test
     Test: Main{sys -> Block#
-      .let x = {Flow#[Nat](1, 2, 3)
+      .let x = {Flow#[Nat](1, 2, 3, 4)
         .map{x->Block#
           .if {x.nat == 2} .do {StackOverflow#}
           .return {x.nat * 10}
