@@ -1,0 +1,3 @@
+package rangeFlow
+Foo: {#: Str -> Flow.range(+500, +500001).map{n -> n.float / 10.0}.map{n -> n.str}.join " "}
+Test: Main{sys -> sys.io.println(Foo#)}

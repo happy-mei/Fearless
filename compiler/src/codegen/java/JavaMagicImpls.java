@@ -474,7 +474,13 @@ public record JavaMagicImpls(
           return Optional.of(gen.visitMCall(listFlowCall, true));
         }
         if (m.name().equals(".range")) {
-          return Optional.empty();
+          assert parallelConstr.isPresent();
+          return "rt.flows.FlowCreator.fromFlow(%s, %s)".formatted(
+//            gen.visitCreateObj(new MIR.CreateObj(Mdf.imm, new Id.DecId("base.flows._SeqFlow", 0)), true),
+//            gen.visitCreateObj(new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK), true),
+            gen.visitCreateObj(new MIR.CreateObj(Mdf.imm, Magic.DataParallelFlowK), true),
+            call.withVariants(EnumSet.of(MIR.MCall.CallVariant.Standard)).accept(gen, true)
+          ).describeConstable();
         }
       }
 

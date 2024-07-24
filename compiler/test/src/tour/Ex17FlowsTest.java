@@ -673,4 +673,10 @@ public class Ex17FlowsTest {
       .join "\\n"
       )}
     """, Base.mutBaseAliases);}
+
+  @Test void rangeFlow() {ok(new Res("", "", 0), """
+    package test
+    Foo: {#: Str -> Flow.range(+500, +5000).map{n -> n.float / 10.0}.map{n -> n.str}.join " "}
+    Test: Main{sys -> sys.io.println(Foo#)}
+    """, Base.mutBaseAliases);}
 }

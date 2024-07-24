@@ -16,7 +16,7 @@ public final class SplitTasks {
    * @return A collection of split tasks
    */
   public static List<FlowOp_1> of(FlowOp_1 task, int n) {
-    return Collections.unmodifiableList(split(List.of(task), n));
+    return Collections.unmodifiableList(split(List.of(task), n, n));
   }
 
   /**
@@ -25,9 +25,9 @@ public final class SplitTasks {
    * @param rhs The split flow op. It will be null if the original flow op could not be split.
    */
   record SplitTask(FlowOp_1 lhs, FlowOp_1 rhs) {}
-  private static List<FlowOp_1> split(List<FlowOp_1> res, int n) {
+  private static List<FlowOp_1> split(List<FlowOp_1> res, int n, int max) {
     assert n >= 0;
-    if (n == 0) {
+    if (n == 0 || res.size() >= max) {
       return res;
     }
     var didSplit = false;
@@ -58,6 +58,6 @@ public final class SplitTasks {
       merged.add(task.rhs);
     }
 
-    return split(merged, n - 1);
+    return split(merged, n - 1, max);
   }
 }

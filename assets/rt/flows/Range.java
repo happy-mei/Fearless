@@ -11,8 +11,7 @@ public interface Range extends base.flows._FlowRange_0 {
   @Override default Flow_1 $hash$imm(long start_m$, long end_m$) {
     var totalSize = end_m$ - start_m$;
 
-    var flow = DataParallelFlowK.$self.fromOp$imm(new RangeOp(start_m$, end_m$), Opts_0.$self.$hash$imm(totalSize));
-    return FlowCreator.fromFlow(DataParallelFlowK.$self, flow);
+    return _SeqFlow_0.$self.fromOp$imm(new RangeOp(start_m$, end_m$), Opts_0.$self.$hash$imm(totalSize));
   }
 
   final class RangeOp implements FlowOp_1 {
@@ -29,6 +28,7 @@ public interface Range extends base.flows._FlowRange_0 {
     }
 
     @Override public Void_0 step$mut(_Sink_1 sink_m$) {
+      System.out.println("for remaining!! " + this.cursor);
       if (!this.isRunning()) {
         sink_m$.stop$mut();
         return Void_0.$self;
@@ -53,7 +53,8 @@ public interface Range extends base.flows._FlowRange_0 {
     }
 
     @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
-      for (; isRunning(); ++this.cursor) {
+      System.out.println("for remaining!! " + this.cursor);
+      for (; this.cursor < this.end; ++this.cursor) {
         downstream_m$.$hash$mut(this.cursor);
       }
       return downstream_m$.stop$mut();
