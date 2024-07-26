@@ -84,11 +84,12 @@ record MultiSigBuilder(
     for(int i:Range.of(0,countMut)){ fillMutHPromPar(i); }
     }
   void fillMutHPromPar(int specialMut){//one for parameter mut <->mutH
+    // TODO: this method is definitely broken in some way
     if(!filterMdf(this::mutIsoReadImm)){ return; }
     var addRet= fix(true,this::toHyg,formalRet);
     if(!filterExpectedRes(addRet)){ return; }
     rets.add(addRet);
-    int count= 0;    
+    int count= 0;
     for(var i : Range.of(0,size)){
       T currT= formalTs.get(i);
       var special= currT.mdf().isMut() && i==count;
