@@ -44,7 +44,7 @@ public interface Program {
     if(m1 == m2){ return true; }
     if (m2.is(Mdf.readH)) { return true; }
     return switch(m1){
-      case mut -> m2.isLikeMut();
+      case mut -> m2.is(Mdf.mutH, Mdf.read);
       case imm -> m2.is(Mdf.read, Mdf.readImm);
       case readImm -> m2.is(Mdf.read);
       case iso -> true;
