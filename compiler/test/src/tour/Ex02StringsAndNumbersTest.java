@@ -196,4 +196,13 @@ It returns a `mut Action[Int]`. We discuss the Action type in details later, for
     package test
     Test:Main {sys -> Assert!((5.0 / 0.0).isInfinite) }
     """, Base.mutBaseAliases);}
+
+  @Test void nullByteInStr() {ok(new RunOutput.Res("Hi\u0000HelloBeer", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println("Hi\\0Hello" + "Beer")}
+    """, Base.mutBaseAliases);}
+  @Test void nullByteSize() {ok(new RunOutput.Res("8", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println("Hi\\0Hello".size.str)}
+    """, Base.mutBaseAliases);}
 }
