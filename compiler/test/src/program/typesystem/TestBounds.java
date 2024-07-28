@@ -76,7 +76,7 @@ public class TestBounds {
     """);}
 
   @Test void invalidBounds() {fail("""
-    In position [###]/Dummy0.fear:3:44
+    In position [###]/Dummy0.fear:3:4
     [E5 invalidMdfBound]
     The type Y is not valid because its capability is not in the required bounds. The allowed modifiers are: mut.
     """, """
