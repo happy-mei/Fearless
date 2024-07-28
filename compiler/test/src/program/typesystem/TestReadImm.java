@@ -124,6 +124,24 @@ public class TestReadImm {
       User: {.user[X:%s](x:read X):imm X->Caster[X].m(x)}
       """.formatted(xbs, xbs));
   }
+  @Property void shouldNeverAllowXToBecomeImm(@ForAll("bounds") Set<Mdf> bounds) {
+    var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
+    /*
+    [E66 invalidMethodArgumentTypes]
+      Method .m/1 called in position [###] can not be called with current parameters of types:
+      [read X]
+      Attempted signatures:
+      [###]
+     */
+    fail("""
+      [###]
+      """, """
+      package test
+      Caster[X:%s]: { .m(bob: read/imm X): read/imm X->bob }
+      // could try all permutations of bounds for X
+      User: {.user[X:%s](x: X):imm X->Caster[X].m(x)}
+      """.formatted(xbs, xbs));
+  }
 
   /* parameter of read X, pass a mdf Y --> becomes read Y */
   @Test void readParamMdfArg() {ok("""

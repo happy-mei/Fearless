@@ -16,6 +16,7 @@ import visitors.ShortCircuitVisitor;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -71,15 +72,20 @@ interface ELambdaTypeSystem extends ETypeSystem{
   }
   private FailOr<Void> sigOk(Sig sig,Optional<Pos> p){
     var ts= Stream.concat(sig.ts().stream(),Stream.of(sig.ret()));
-    var bad= ts.map(t->GenericBounds.validGenericT(p(), xbs(), t))
-      .flatMap(Optional::stream)
+    var typeTs = new TypeTypeSystem(p(), xbs());
+    var badBounds= ts
+      .map(t->t.accept(typeTs))
+      .filter(FailOr::isErr)
+      .<FailOr<Void>>map(FailOr::cast)
+      .map(res->res.mapErr(err->()->err.get().pos(p)))
       .findFirst();
-    return FailOr.opt(bad.map(s->()->s.get().pos(p)));
+    return badBounds.orElseGet(FailOr::ok);
   }
   private FailOr<Void> mOk(String selfName, T selfT, E.Meth m){
     var xbs = xbs().addBounds(m.sig().gens(),m.sig().bounds());
     var withXBs = (ELambdaTypeSystem) withXBs(xbs);
-    withXBs.sigOk(m.sig(),m.pos());
+    var sigOk = withXBs.sigOk(m.sig(),m.pos());
+    if (sigOk.isErr()) { return sigOk; }
     if(m.isAbs()){ return FailOr.ok(); }
     return withXBs.mOkEntry(selfName, selfT, m, m.sig());
   }

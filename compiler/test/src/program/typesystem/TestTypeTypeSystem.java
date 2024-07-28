@@ -21,12 +21,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TestBoundsInference {
+public class TestTypeTypeSystem {
   private static void ok(XBs xbs, String t, Set<Mdf> expected, String... content) {
     var fullT = new Parser(Parser.dummy, t).parseFullT();
     var coreT = fullT.toAstT();
     var p = toProgram(content);
-    var inferred = coreT.accept(new BoundsInference(p, xbs, expected)).get();
+    var inferred = coreT.accept(new TypeTypeSystem(p, xbs, expected)).get();
     Assertions.assertEquals(expected, inferred);
   }
   private static void fail(String expectedErr, XBs xbs, String t, Set<Mdf> expected, String... content) {
@@ -34,7 +34,7 @@ public class TestBoundsInference {
     var coreT = fullT.toAstT();
     var p = toProgram(content);
     try {
-      coreT.accept(new BoundsInference(p, xbs, expected)).get();
+      coreT.accept(new TypeTypeSystem(p, xbs, expected)).get();
       Assertions.fail("Did not fail!\n");
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
@@ -96,6 +96,39 @@ public class TestBoundsInference {
       .addBounds(List.of(new Id.GX<>("X")), Map.of(new Id.GX<>("X"), Set.of(Mdf.mut, Mdf.imm, Mdf.read))),
     "X",
     Set.of(Mdf.mut, Mdf.imm, Mdf.read)
+  );}
+  @Test void readImm() {ok(
+    XBs.empty()
+      .addBounds(List.of(new Id.GX<>("X")), Map.of(new Id.GX<>("X"), Set.of(Mdf.mut, Mdf.imm, Mdf.read))),
+    "read/imm X",
+    Set.of(Mdf.read, Mdf.imm)
+  );}
+  @Test void readImmImmInBounds() {ok(
+    XBs.empty()
+      .addBounds(List.of(new Id.GX<>("X")), Map.of(new Id.GX<>("X"), Set.of(Mdf.imm))),
+    "read/imm X",
+    Set.of(Mdf.imm)
+  );}
+  @Test void readImmImmAndIsoInBounds() {ok(
+    XBs.empty()
+      .addBounds(List.of(new Id.GX<>("X")), Map.of(new Id.GX<>("X"), Set.of(Mdf.imm, Mdf.iso))),
+    "read/imm X",
+    Set.of(Mdf.imm)
+  );}
+  @Test void readImmWillOnlyBeImm() {fail("""
+    [E5 invalidMdfBound]
+    The type read/imm X is not valid because its capability is not in the required bounds. The allowed modifiers are: read.
+    """,
+    XBs.empty()
+      .addBounds(List.of(new Id.GX<>("X")), Map.of(new Id.GX<>("X"), Set.of(Mdf.imm, Mdf.iso))),
+    "read/imm X",
+    Set.of(Mdf.read)
+  );}
+  @Test void readImmReadInBounds() {ok(
+    XBs.empty()
+      .addBounds(List.of(new Id.GX<>("X")), Map.of(new Id.GX<>("X"), Set.of(Mdf.mut, Mdf.read))),
+    "read/imm X",
+    Set.of(Mdf.read)
   );}
 
   @Test void immIsoLimitX() {ok(
