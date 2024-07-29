@@ -45,7 +45,7 @@ public interface Range extends base.flows._FlowRange_0 {
     }
 
     @Override public Bool_0 isRunning$mut() {
-      return this.isRunning() ? False_0.$self : True_0.$self;
+      return this.isRunning() ? True_0.$self : False_0.$self;
     }
     private boolean isRunning() {
       return this.cursor < this.end;

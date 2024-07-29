@@ -84,7 +84,7 @@ public class TestFlowSemantics {
   @Test void throwInAFlowAfterStopDP() {ok(new RunOutput.Res("10", "", 0), """
     package test
     Test: Main{sys -> Block#
-      .let x = {Flow.range(+0, +50)
+      .let x = {Flow.range(+1, +50)
         .map{n->n.nat}
         .map{x->Block#
           .if {x.nat == 2} .do {Error.msg (x.str)}
