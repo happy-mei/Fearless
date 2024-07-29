@@ -12,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitData, int nTasks) implements ParallelStrategies {
   private static final int TASKS_PER_CORE = 5;
@@ -70,11 +71,20 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
 
     var doneSignal = new CountDownLatch(nTasks);
     var workers = new EODWorker[nTasks];
+    RuntimeException[] exception = new RuntimeException[]{null};
     for (int j = 0; j < nTasks; ++j) {
+      if (exception[0] != null) {
+        throw exception[0];
+      }
       var subSource = splitData.get(j);
       var worker = new EODWorker(subSource, downstream, perWorkerSize, doneSignal, permits);
       if (willParallelise) {
-        Thread.ofVirtual().start(worker);
+        Thread.ofVirtual().uncaughtExceptionHandler((_,err) -> {
+          var message = err.getMessage();
+          if (err instanceof StackOverflowError) { message = "Stack overflowed"; }
+          // memory ordering is irrelevant here because only a capability can observe this exception
+          exception[0] = new RuntimeException(message, err);
+        }).start(worker);
       } else {
         worker.run();
       }
@@ -84,6 +94,9 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
       doneSignal.await();
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
+    }
+    if (exception[0] != null) {
+      throw exception[0];
     }
     while (permits.get() > 0) {
       tryReleaseAll(permits);

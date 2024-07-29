@@ -3,12 +3,15 @@ package rt.flows.dataParallel;
 import base.Info_0;
 import base.Void_0;
 import base.flows._Sink_1;
+import rt.FearlessError;
 
 import java.util.List;
 
 public final class BufferSink implements _Sink_1 {
   public final _Sink_1 original;
   private final List<Object> buffer;
+
+  private record Error(Info_0 info) {}
 
   public BufferSink(_Sink_1 original, List<Object> buffer) {
     this.original = original;
@@ -20,7 +23,8 @@ public final class BufferSink implements _Sink_1 {
     return Void_0.$self;
   }
   @Override public Void_0 pushError$mut(Info_0 info_m$) {
-    return original.pushError$mut(info_m$);
+    buffer.add(new Error(info_m$));
+    return Void_0.$self;
   }
   @Override public Void_0 $hash$mut(Object x_m$) {
     buffer.add(x_m$);
@@ -29,7 +33,15 @@ public final class BufferSink implements _Sink_1 {
 
   public void flush() {
     for (var e : buffer) {
-      original.$hash$mut(e);
+      if (e instanceof Error err) {
+        original.pushError$mut(err.info);
+        continue;
+      }
+      try {
+        original.$hash$mut(e);
+      } catch (FearlessError err) {
+        original.pushError$mut(err.info);
+      }
     }
     original.stop$mut();
   }

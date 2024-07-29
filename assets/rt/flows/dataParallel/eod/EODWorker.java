@@ -2,6 +2,7 @@ package rt.flows.dataParallel.eod;
 
 import base.flows.FlowOp_1;
 import base.flows._Sink_1;
+import rt.FearlessError;
 import rt.flows.dataParallel.BufferSink;
 import rt.flows.dataParallel.SplitTasks;
 
@@ -53,10 +54,19 @@ public final class EODWorker implements Runnable {
 
   @SuppressWarnings("preview")
   @Override public void run() {
-    ScopedValue
-      .where(EODStrategies.INFO, info)
-      .run(()->source.forRemaining$mut(downstream));
-    doneSignal.countDown();
+    try {
+      ScopedValue
+        .where(EODStrategies.INFO, info)
+        .run(()->{
+          try {
+            source.forRemaining$mut(downstream);
+          } catch (FearlessError err) {
+            downstream.pushError$mut(err.info);
+          }
+        });
+    } finally {
+      doneSignal.countDown();
+    }
   }
 
   public void flush() {
