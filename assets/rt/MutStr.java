@@ -1,10 +1,14 @@
 package rt;
 
+import base.Bool_0;
+import base.False_0;
+import base.True_0;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public final class MutStr implements Str {
-  private List<Str> buffer = new ArrayList<>();
+  private final List<Str> buffer = new ArrayList<>();
   private Str immStr;
 
   public MutStr(Str str) {
@@ -24,6 +28,15 @@ public final class MutStr implements Str {
       immStr = freeze();
     }
     return immStr.graphemes();
+  }
+
+  @Override public Bool_0 isEmpty$imm() {
+    for (var str : buffer) {
+      if (str.isEmpty$imm() == False_0.$self) {
+        return False_0.$self;
+      }
+    }
+    return True_0.$self;
   }
 
   @Override public MutStr append$mut(base.Stringable_0 other$) {
@@ -46,7 +59,7 @@ public final class MutStr implements Str {
   }
 
   private Str freeze() {
-    byte[] utf8 = new byte[buffer.stream().mapToInt(s -> s.utf8().length).sum()];
+    byte[] utf8 = new byte[buffer.parallelStream().mapToInt(s -> s.utf8().length).sum()];
     int idx = 0;
     for (var str : buffer) {
       System.arraycopy(str.utf8(), 0, utf8, idx, str.utf8().length);

@@ -51,11 +51,18 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Flow_1 limit$mut(long n_m$) {
-    return _PipelineParallelFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).limit$mut(n_m$);
+    return _PipelineParallelFlow_0.$self.fromOp$imm(source_m$, (Opt_1)size_m$.match$imm(new OptMatch_2() {
+      @Override public Opt_1 some$mut(Object x_m$) {
+        return Opts_0.$self.$hash$imm(Math.min(n_m$, (long) x_m$));
+      }
+      @Override public Opt_1 empty$mut() {
+        return Opt_1.$self;
+      }
+    })).limit$mut(n_m$);
   }
 
   public Opt_1 first$mut() {
-    return _SeqFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).first$mut();
+    return _SeqFlow_0.$self.fromOp$imm(source_m$, size_m$).first$mut();
   }
 
   public List_1 list$mut() {
@@ -83,11 +90,11 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Object fold$mut(Object acc_m$, F_3 f_m$) {
-    return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), Opt_1.$self).fold$mut(acc_m$, f_m$);
+    return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).fold$mut(acc_m$, f_m$);
   }
 
   public Flow_1 map$mut(F_2 f_m$) {
-    return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, source_m$, f_m$), Opt_1.$self);
+    return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, source_m$, f_m$), this.size_m$);
   }
 
   public Bool_0 any$mut(F_2 predicate_m$) {

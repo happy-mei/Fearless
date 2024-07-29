@@ -28,7 +28,6 @@ public interface Range extends base.flows._FlowRange_0 {
     }
 
     @Override public Void_0 step$mut(_Sink_1 sink_m$) {
-      System.out.println("for remaining!! " + this.cursor);
       if (!this.isRunning()) {
         sink_m$.stop$mut();
         return Void_0.$self;
@@ -53,7 +52,6 @@ public interface Range extends base.flows._FlowRange_0 {
     }
 
     @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
-      System.out.println("for remaining!! " + this.cursor);
       for (; this.cursor < this.end; ++this.cursor) {
         downstream_m$.$hash$mut(this.cursor);
       }

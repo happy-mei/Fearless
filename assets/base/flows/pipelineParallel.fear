@@ -16,7 +16,10 @@ _PipelineParallelFlow: _FlowFactory{
       this.fromOp(_Actor#[S,E,R](_PipelineParallelSink, source, state, f), {}),
     mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
       this.fromOp(_Actor.anyRet[S,E,R](_PipelineParallelSink, source, state, f), {}),
-    .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), size),
+    .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), size.map(iso base.OptMap[Nat,Nat]{beforeLimit -> beforeLimit > n ? {
+      .then -> n,
+      .else -> beforeLimit,
+      }})),
 
     // terminals
     mut .first: mut Opt[E] -> Block#

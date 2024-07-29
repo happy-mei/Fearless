@@ -21,7 +21,6 @@ import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
 public final class EODWorker implements Runnable {
   public static void forRemaining(FlowOp_1 source, _Sink_1 downstream, int size) {
     var splitData = SplitTasks.of(source, PARALLELISM_POTENTIAL / 2);
-    System.out.println(splitData.size()+" and "+PARALLELISM_POTENTIAL / 2);
     var nTasks = splitData.size();
 
     // TODO: change parallelism strategy based on nTasks (i.e. if it's 2, do a classic fork-join and only run one in parallel)

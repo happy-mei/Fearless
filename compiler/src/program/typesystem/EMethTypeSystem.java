@@ -130,9 +130,9 @@ public interface EMethTypeSystem extends ETypeSystem {
       .filter(i->ok(multi,i,t1n))
       .boxed()
       .findFirst();
-   return sel
-     .map(i->successType(e,i,multi))
-     .orElse(FailOr.err(()->Fail.invalidMethodArgumentTypes(e,t1n,multi,expectedT())));
+    return sel
+      .map(i->successType(e,i,multi))
+      .orElse(FailOr.err(()->Fail.invalidMethodArgumentTypes(e,t1n,multi,expectedT())));
   }
   private FailOr<T> successType(E.MCall e, int i, MultiSig multi){
     T ret= multi.rets().get(i);

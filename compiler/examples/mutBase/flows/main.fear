@@ -53,8 +53,14 @@ FlowEx:{
   }
 
 Fib: {
-  #(n: Nat): Nat -> n <= 1 ? {
+  #(n: Nat): Nat -> Block#
+    .if {n <= 35} .return {this.seq(n)}
+    .return {As[List[Nat]]#(List#(n - 1, n - 2)).flow
+      .map{n' -> Fib#(n')}
+      .fold[Nat](0, {a,b -> a + b})
+      },
+  .seq(n: Nat): Nat -> n <= 1 ? {
     .then -> n,
-    .else -> this#(n - 1) + (this#(n - 2))
-    }
+    .else -> this.seq(n - 1) + (this.seq(n - 2)),
+    },
   }
