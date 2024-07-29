@@ -16,7 +16,16 @@ import id.Mdf;
 /** LUB (Least Upper Bound):
 / * The smallest element e such that x≤e for all elements x in the set.
 / * GLB (Greatest Lower Bound):
-/ * The largest element e such that e≤x for all elements x in the set. */
+/ * The largest element e such that e≤x for all elements x in the set.
+
+ least upper bound lub(imm,mut)= read
+ greatest lower bound glb(imm,mut)= iso
+
+ iso    imm mut    read
+ read is greatest, read is upper, read is supertype
+ iso is least iso is lower, iso is subtype
+
+ */
 public class MdfLubGlb {
   private static final EnumSet<Mdf> allMdf = EnumSet.copyOf(
     EnumSet.allOf(Mdf.class).stream()
@@ -72,6 +81,8 @@ public class MdfLubGlb {
     assert otherGlb.isEmpty()
       :"not unique glb: "+otherGlb;
   }
+
+  // RCs | LUB | GLB
   static {
     init(of(iso),      iso,     iso);
     init(of(imm),      imm,     imm);

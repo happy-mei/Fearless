@@ -80,9 +80,9 @@ public interface EMethTypeSystem extends ETypeSystem {
           EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
       .toList();
     CM selected = selectOverload(e,sigs,mdf0,recvIT);
-    var boundsCheck = GenericBounds.validGenericMeth(p(), xbs(), selected, e.ts());
-    if (boundsCheck.isPresent()) {
-      return FailOr.err(boundsCheck.get());
+    var boundsCheck = GenericBounds.validGenericMCall(p(), xbs(), selected, e.ts());
+    if (boundsCheck instanceof FailOr.Fail<Void> fail) {
+      return fail.mapErr(err->()->err.get().pos(e.pos())).cast();
     }
 
     List<T> ts = selected.sig().ts();

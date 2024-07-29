@@ -1197,7 +1197,7 @@ public class TestTypeSystem {
   @Test void invalidBoundsOnInlineLambda() { fail("""
     In position [###]/Dummy0.fear:3:6
     [E5 invalidMdfBound]
-    The type mutH test.Foo[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
+    The type mutH test.Foo[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut, imm.
     """, """
     package test
     A[X: imm, mut]:{}
@@ -1254,11 +1254,11 @@ public class TestTypeSystem {
     fail("""
       In position [###]/Dummy0.fear:3:4
       [E5 invalidMdfBound]
-      The type mutH base.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
+      The type mutH base.B[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut, imm.
             
       In position [###]/Dummy0.fear:10:21
       [E5 invalidMdfBound]
-      The type mutH base.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut, imm.
+      The type mutH base.B[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut, imm.
       """, """
       package base
       // should also not pass with `lent Ref[lent B]`
@@ -1331,7 +1331,7 @@ public class TestTypeSystem {
   @Test void invalidTraitBounds1() { fail("""
     [###]/Dummy0.fear:3:2
     [E5 invalidMdfBound]
-    The type imm test.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut.
+    The type imm test.B[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut.
     """, """
     package test
     A[X: mut]:{}
@@ -1340,7 +1340,7 @@ public class TestTypeSystem {
   @Test void invalidTraitBounds2() { fail("""
     [###]/Dummy0.fear:3:2
     [E5 invalidMdfBound]
-    The type imm test.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: mut.
+    The type imm test.B[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut.
     """, """
     package test
     A[X: mut]:{ .a1: X }
@@ -1384,7 +1384,7 @@ public class TestTypeSystem {
         
     In position [###]/Dummy0.fear:7:36
     [E5 invalidMdfBound]
-    The type mut test.B[] is not valid because it's modifier is not in the required bounds. The allowed modifiers are: read.
+    The type mut test.B[] is not valid because its capability is not in the required bounds. The allowed modifiers are: read.
     """, """
     package test
     B:{}

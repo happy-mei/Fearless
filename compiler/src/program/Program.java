@@ -44,7 +44,7 @@ public interface Program {
     if(m1 == m2){ return true; }
     if (m2.is(Mdf.readH)) { return true; }
     return switch(m1){
-      case mut -> m2.isLikeMut();
+      case mut -> m2.is(Mdf.mutH, Mdf.read);
       case imm -> m2.is(Mdf.read, Mdf.readImm);
       case readImm -> m2.is(Mdf.read);
       case iso -> true;
@@ -174,7 +174,7 @@ public interface Program {
         var m2 = ms.get(1);
 //        var mdf_ = mdf.restrict(m1.mdf()).orElseThrow();
         var bounds = xbs.addBounds(m2.sig().gens(), m2.bounds());
-        var g = Gamma.empty().captureSelf(bounds, "this", new T(mdf, it1), m1.mdf());
+        var g = Gamma.empty().ctxAwareGamma(bounds, "this", new T(mdf, it1), m1.mdf());
         var recv = new ast.E.X("this", Optional.empty());
         g = Streams.zip(m2.xs(), m2.sig().ts()).fold(Gamma::add, g);
 //        subTypeCache().put(new SubTypeQuery(bounds, t1, t2), SubTypeResult.Adapting);
