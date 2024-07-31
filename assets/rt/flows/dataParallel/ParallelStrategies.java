@@ -7,7 +7,8 @@ public interface ParallelStrategies {
 
   default void run(int nTasks) {
     if (nTasks == 2) {
-      oneParOneSeq();
+//      oneParOneSeq();
+      manyPar();
       return;
     }
     if (nTasks <= 3) {

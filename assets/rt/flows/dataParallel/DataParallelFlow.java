@@ -3,6 +3,7 @@ package rt.flows.dataParallel;
 import base.*;
 import base.flows.*;
 import rt.flows.dataParallel.eod.EODWorker;
+import rt.flows.FlowCreator;
 
 import java.util.Objects;
 
@@ -43,22 +44,15 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Flow_1 actorMut$mut(Object state_m$, ActorImplMut_3 f_m$) {
-    return _PipelineParallelFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).actorMut$mut(state_m$, f_m$);
+    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size$mut()).actorMut$mut(state_m$, f_m$);
   }
 
   public Flow_1 actor$mut(Object state_m$, ActorImpl_3 f_m$) {
-    return _PipelineParallelFlow_0.$self.fromOp$imm(source_m$, Opt_1.$self).actor$mut(state_m$, f_m$);
+    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size$mut()).actor$mut(state_m$, f_m$);
   }
 
   public Flow_1 limit$mut(long n_m$) {
-    return _PipelineParallelFlow_0.$self.fromOp$imm(source_m$, (Opt_1)size_m$.match$imm(new OptMatch_2() {
-      @Override public Opt_1 some$mut(Object x_m$) {
-        return Opts_0.$self.$hash$imm(Math.min(n_m$, (long) x_m$));
-      }
-      @Override public Opt_1 empty$mut() {
-        return Opt_1.$self;
-      }
-    })).limit$mut(n_m$);
+    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size$mut()).limit$mut(n_m$);
   }
 
   public Opt_1 first$mut() {
@@ -86,7 +80,7 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public FlowOp_1 unwrapOp$mut(_UnwrapFlowToken_0 fear55$_m$) {
-    return new ParallelSource();
+    return source_m$;
   }
 
   public Object fold$mut(Object acc_m$, F_3 f_m$) {
@@ -110,15 +104,7 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Long size$mut() {
-    return (Long) size_m$.match$read(new OptMatch_2() {
-      @Override public Object some$mut(Object x_m$) {
-        return x_m$;
-      }
-
-      @Override public Object empty$mut() {
-        return fold$mut(0L, (acc, _) -> ((long) acc) + 1);
-      }
-    });
+    return this.size >= 0 ? this.size : (Long) fold$mut(0L, (acc, _) -> ((long) acc) + 1);
   }
 
   public Flow_1 scan$mut(Object acc_m$, F_3 f_m$) {
@@ -143,18 +129,6 @@ public final class DataParallelFlow implements Flow_1 {
 
   public Void_0 for$mut(F_2 f_m$) {
     return _TerminalOps_1.for$mut$fun(f_m$, this);
-  }
-
-  public FlowOp_1 source_m$() {
-    return source_m$;
-  }
-
-  public Opt_1 size_m$() {
-    return size_m$;
-  }
-
-  public DataParallelFlowK $this() {
-    return $this;
   }
 
   @Override

@@ -8,7 +8,6 @@ import rt.flows.dataParallel.ParallelStrategies;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,7 +17,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
   private static final int TASKS_PER_CORE = 5;
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   public static final int PARALLELISM_POTENTIAL = TASKS_PER_CORE * N_CPUS;
-  //  private static final int PARALLELISM_POTENTIAL = 4;
+//  public static final int PARALLELISM_POTENTIAL = 4;
   @SuppressWarnings("preview")
   public static final ScopedValue<AtomicInteger> INFO = ScopedValue.newInstance();
   private static final Semaphore AVAILABLE_PARALLELISM = new Semaphore(PARALLELISM_POTENTIAL);
@@ -33,6 +32,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     sink.stop();
   }
 
+  // TODO: exception handling and potentially make this bounded
   @Override public void oneParOneSeq() {
     var lhsSink = new BufferSink(downstream, new ArrayList<>(1));
     var rhsSink = new BufferSink(downstream, new ArrayList<>(1));
@@ -69,38 +69,51 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     final var parallelTasks = willParallelise ? nTasks: 0;
     var permits = new AtomicInteger(parallelTasks);
 
-    var doneSignal = new CountDownLatch(nTasks);
     var workers = new EODWorker[nTasks];
-    RuntimeException[] exception = new RuntimeException[]{null};
-    for (int j = 0; j < nTasks; ++j) {
-      if (exception[0] != null) {
-        throw exception[0];
+    var spawned = new Thread[nTasks];
+    AtomicReference<RuntimeException> exception = new AtomicReference<>();
+    for (int i = 0; i < nTasks; ++i) {
+      var actualException = exception.getAcquire();
+      if (actualException != null) {
+        throw actualException;
       }
-      var subSource = splitData.get(j);
-      var worker = new EODWorker(subSource, downstream, perWorkerSize, doneSignal, permits);
+      var subSource = splitData.get(i);
+      var worker = new EODWorker(subSource, downstream, perWorkerSize, permits);
       if (willParallelise) {
-        Thread.ofVirtual().uncaughtExceptionHandler((_,err) -> {
+        spawned[i] = Thread.ofVirtual().uncaughtExceptionHandler((_,err) -> {
           var message = err.getMessage();
           if (err instanceof StackOverflowError) { message = "Stack overflowed"; }
-          // memory ordering is irrelevant here because only a capability can observe this exception
-          exception[0] = new RuntimeException(message, err);
+          exception.set(new RuntimeException(message, err));
         }).start(worker);
       } else {
         worker.run();
       }
-      workers[j] = worker;
+      workers[i] = worker;
     }
-    try {
-      doneSignal.await();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+
+    for (int i = 0; i < nTasks; ++i) {
+      var worker = workers[i];
+      if (worker == null) { break; }
+      var thread = spawned[i];
+
+      if (thread != null) {
+        try {
+          thread.join();
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      var actualException = exception.get();
+      if (actualException != null) {
+        throw actualException;
+      }
     }
-    if (exception[0] != null) {
-      throw exception[0];
-    }
+
     while (permits.get() > 0) {
       tryReleaseAll(permits);
     }
+
     for (var worker : workers) {
       if (worker == null) { break; }
       worker.flush();

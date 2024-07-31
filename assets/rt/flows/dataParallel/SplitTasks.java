@@ -16,6 +16,10 @@ public final class SplitTasks {
    * @return A collection of split tasks
    */
   public static List<FlowOp_1> of(FlowOp_1 task, int n) {
+    assert n >= 1;
+    if (n == 1) {
+      return List.of(task);
+    }
     return Collections.unmodifiableList(split(List.of(task), n, n));
   }
 

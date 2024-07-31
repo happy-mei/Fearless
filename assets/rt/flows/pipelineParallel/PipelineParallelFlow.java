@@ -83,9 +83,7 @@ public interface PipelineParallelFlow {
             downstreamErrors.accept(err.info);
           }
         }
-        case FlowRuntime.Message.Error<E> info -> {
-          downstreamErrors.accept(info.info());
-        }
+        case FlowRuntime.Message.Error<E> info -> downstreamErrors.accept(info.info());
         case FlowRuntime.Message.Stop<E> ignored -> {
           stop.run();
           self.close();

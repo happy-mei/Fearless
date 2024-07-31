@@ -21,10 +21,9 @@ import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
  */
 public final class EODWorker implements Runnable {
   public static void forRemaining(FlowOp_1 source, _Sink_1 downstream, int size) {
-    var splitData = SplitTasks.of(source, PARALLELISM_POTENTIAL / 2);
+    var splitData = SplitTasks.of(source, Math.max(PARALLELISM_POTENTIAL / 2, 1));
     var nTasks = splitData.size();
 
-    // TODO: change parallelism strategy based on nTasks (i.e. if it's 2, do a classic fork-join and only run one in parallel)
     int realSize = size >= 0 ? size : nTasks;
     new EODStrategies(downstream, realSize, splitData, nTasks).run(nTasks);
   }
@@ -32,41 +31,34 @@ public final class EODWorker implements Runnable {
 
   private final FlowOp_1 source;
   private final BufferSink downstream;
-  private final CountDownLatch doneSignal;
   private final AtomicInteger info;
 
-  EODWorker(FlowOp_1 source, _Sink_1 downstream, int size, CountDownLatch doneSignal, AtomicInteger info) {
+  EODWorker(FlowOp_1 source, _Sink_1 downstream, int size, AtomicInteger info) {
     this(
       source,
       downstream,
-      doneSignal,
       info,
       // size isn't always going to be the correct answer here but in most cases it will be.
       size >= 0 ? new ArrayList<>(size) : new ArrayList<>()
     );
   }
-  private EODWorker(FlowOp_1 source, _Sink_1 downstream, CountDownLatch doneSignal, AtomicInteger info, List<Object> buffer) {
+  private EODWorker(FlowOp_1 source, _Sink_1 downstream, AtomicInteger info, List<Object> buffer) {
     this.source = source;
     this.info = info;
     this.downstream = new BufferSink(downstream, buffer);
-    this.doneSignal = doneSignal;
   }
 
   @SuppressWarnings("preview")
   @Override public void run() {
-    try {
-      ScopedValue
-        .where(EODStrategies.INFO, info)
-        .run(()->{
-          try {
-            source.forRemaining$mut(downstream);
-          } catch (FearlessError err) {
-            downstream.pushError$mut(err.info);
-          }
-        });
-    } finally {
-      doneSignal.countDown();
-    }
+    ScopedValue
+      .where(EODStrategies.INFO, info)
+      .run(()->{
+        try {
+          source.forRemaining$mut(downstream);
+        } catch (FearlessError err) {
+          downstream.pushError$mut(err.info);
+        }
+      });
   }
 
   public void flush() {

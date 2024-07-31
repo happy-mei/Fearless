@@ -18,6 +18,7 @@ public class TestFlowSemantics {
       }
     """, Base.mutBaseAliases);}
 
+  // TODO: currently leaving this broken because I want to change how this works
   @Test void flowReuse() {ok(new RunOutput.Res("60", "Program crashed with: \"This flow cannot be reused.\"", 1), """
     package test
     Test: Main{sys -> Block#
@@ -49,43 +50,10 @@ public class TestFlowSemantics {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
-  @Test void throwInAFlowBeforeStopDP() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
-    package test
-    Test: Main{sys -> Block#
-      .let x = {Flow.range(+0, +50)
-        .map{n->n.nat}
-        .map{x->Block#
-          .if {x.nat == 2} .do {Error.msg (x.str)}
-          .return {x.nat * 10}
-          }
-        }
-      .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {UnrestrictedIO#sys}
-      .do {io.println(sum.str)}
-      .return {{}}
-      }
-    """, Base.mutBaseAliases);}
   @Test void throwInAFlowAfterStopPar() {ok(new RunOutput.Res("10", "", 0), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[Nat](1, 2, 3)
-        .map{x->Block#
-          .if {x.nat == 2} .do {Error.msg (x.str)}
-          .return {x.nat * 10}
-          }
-        .limit(1)
-        }
-      .let[Nat] sum = {x#(Flow.uSum)}
-      .let[mut IO] io = {UnrestrictedIO#sys}
-      .do {io.println(sum.str)}
-      .return {{}}
-      }
-    """, Base.mutBaseAliases);}
-  @Test void throwInAFlowAfterStopDP() {ok(new RunOutput.Res("10", "", 0), """
-    package test
-    Test: Main{sys -> Block#
-      .let x = {Flow.range(+1, +50)
-        .map{n->n.nat}
         .map{x->Block#
           .if {x.nat == 2} .do {Error.msg (x.str)}
           .return {x.nat * 10}
@@ -131,6 +99,38 @@ public class TestFlowSemantics {
       }
     """, Base.mutBaseAliases);}
 
+  @Test void throwInAFlowBeforeStopDP() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
+    package test
+    Test: Main{sys -> Block#
+      .let x = {Flow.range(+1, +50).map{n->n.nat}.list.flow
+        .map{x->Block#
+          .if {x.nat == 2} .do {Error.msg (x.str)}
+          .return {x.nat * 10}
+          }
+        }
+      .let[Nat] sum = {x#(Flow.uSum)}
+      .let[mut IO] io = {UnrestrictedIO#sys}
+      .do {io.println(sum.str)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+  @Test void throwInAFlowAfterStopDP() {ok(new RunOutput.Res("10", "", 0), """
+    package test
+    Test: Main{sys -> Block#
+      .let x = {Flow.range(+1, +50).map{n->n.nat}.list.flow
+        .map{x->Block#
+          .if {x.nat == 2} .do {Error.msg (x.str)}
+          .return {x.nat * 10}
+          }
+        .limit(1)
+        }
+      .let[Nat] sum = {x#(Flow.uSum)}
+      .let[mut IO] io = {UnrestrictedIO#sys}
+      .do {io.println(sum.str)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+
   /*
    * Non-deterministic errors bubble up, even if the flow isn't listening anymore because they're only catchable
    * in Fearless code with a capability anyway.
@@ -138,10 +138,10 @@ public class TestFlowSemantics {
   @Test void throwInAFlowBeforeStopDP_ND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
     package test
     Test: Main{sys -> Block#
-      .let x = {Flow#[Nat](1, 2, 3, 4)
+      .let x = {Flow.range(+1, +50).map{n->n.nat}
         .map{x->Block#
-          .if {x.nat == 2} .do {StackOverflow#}
-          .return {x.nat * 10}
+          .if {x == 2} .do {StackOverflow#}
+          .return {x * 10}
           }
         }
       .let[Nat] sum = {x#(Flow.uSum)}

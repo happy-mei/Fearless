@@ -21,7 +21,7 @@ RestrictFlowReuse: {
       .isFinite -> f.isFinite,
       .split -> stopped.get ? {
         .then -> Error.msg "This flow cannot be reused.",
-        .else -> f.split,
+        .else -> f.split.map{op -> RestrictFlowReuse#op},
         },
       }}
   }
