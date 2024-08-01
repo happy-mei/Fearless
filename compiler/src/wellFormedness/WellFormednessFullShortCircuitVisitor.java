@@ -89,6 +89,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       .or(()->validLambdaMdf(e))
       .or(()->noImplInlineDec(e))
       .or(()->hasNonDisjointMs(e))
+      .or(()->noFreeGensInLambda(e))
       .or(()->super.visitLambda(e))
       .map(err->err.parentPos(e.pos()));
   }
@@ -264,5 +265,17 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       .map(d->new Fail.Conflict(d.posOrUnknown(), d.name().toString()))
       .toList();
     return Optional.of(Fail.conflictingDecls(conflicts));
+  }
+
+
+  private Optional<CompileError> noFreeGensInLambda(E.Lambda e) {
+    if (this.env.gxs().isEmpty()) { return Optional.empty(); }
+    var decId = e.id().id();
+    if (decId.isFresh() || decId.gen() != 0) { return Optional.empty(); }
+    var visitor = new FullUndefinedGXsVisitor(Set.copyOf(e.id().gens()));
+    visitor.visitLambda(e);
+    if (visitor.res().isEmpty()) { return Optional.empty(); }
+    var res = visitor.res().stream().map(Id.GX::toAstGX).collect(Collectors.toUnmodifiableSet());
+    return Optional.of(Fail.freeGensInLambda(e.id().toIT().toString(), res).pos(e.pos()));
   }
 }

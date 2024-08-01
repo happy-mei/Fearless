@@ -321,7 +321,7 @@ public interface Program {
       CMs.size < n //else error
      */
     assert !normedCMs.isEmpty();
-    var first=normedCMs.get(0);
+    var first=normedCMs.getFirst();
     if (normedCMs.size() == 1) { return first; }
     var nextCms=normedCMs.stream().skip(1)
       .peek(cmi->{

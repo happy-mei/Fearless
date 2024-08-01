@@ -251,15 +251,22 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         id.gens().stream().map(gx->new T(Mdf.mdf, gx)).toList());
       inferredOpt = Optional.of(nameId);
     }
-    if(inferredOpt.isEmpty()&& !its.isEmpty()) {
-      inferredOpt = Optional.of(its.get(0));
+    if(inferredOpt.isEmpty() && !its.isEmpty()) {
+      inferredOpt = Optional.of(its.getFirst());
       if(mdf.isEmpty()){ mdf = Optional.of(Mdf.imm); }
     }
     //TODO: inferredOpt may itself disappear since we have nameId in id.
     var bb = ctx.bblock();
-    if(bb==null || bb.children==null){
-      return new E.Lambda(name.orElseGet(emptyTopName),
-        mdf, its, null, List.of(), inferredOpt, Optional.of(pos(ctx)));
+    if (bb==null || bb.children==null) {
+      return new E.Lambda(
+        name.orElseGet(emptyTopName),
+        mdf,
+        its,
+        null,
+        List.of(),
+        inferredOpt,
+        Optional.of(pos(ctx))
+      );
     }
     var _x=bb.SelfX();
     var _n=_x==null?null:_x.getText().substring(1);
@@ -268,8 +275,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
     var meths = mms;
-    return new E.Lambda(id, mdf, its, _n,
-      meths,inferredOpt, Optional.of(pos(ctx)));
+    return new E.Lambda(id, mdf, its, _n, meths, inferredOpt, Optional.of(pos(ctx)));
   }
   @Override public String visitFullCN(FullCNContext ctx) {
     return ctx.getText();

@@ -417,6 +417,40 @@ public class TestFullWellFormedness {
     Str: {}
     """); }
 
+  @Test void noFreeGensFunnelling() { fail("""
+    In position [###]/Dummy0.fear:2:52
+    [E56 freeGensInLambda]
+    The declaration name for a lambda must include all type variables used in the lambda. The declaration name test.Person[] does not include the following type variables: N
+    """, """
+    package test
+    FPerson:{ #[N](name: Str, age: N): Person -> Person:{
+      .name: Str -> name,
+      .age: N -> age,
+      }}
+    """, """
+    package test
+    Str:{} Bob:Str{}
+    Nat:{} TwentyFour:Nat{}
+    """); }
+  @Test void nonExistentImplInline() {fail("""
+    In position [###]/Dummy0.fear:3:42
+    [E28 undefinedName]
+    The identifier "Break" is undefined or cannot be captured.
+    """, """
+    package test
+    A[X:mut]: {}
+    BreakOuter: {#: BreakInner -> BreakInner: A[imm Break]}
+    """);}
+  @Test void nonExistentGenInline() {fail("""
+    In position [###]/Dummy0.fear:3:49
+    [E56 freeGensInLambda]
+    The declaration name for a lambda must include all type variables used in the lambda. The declaration name test.BreakInner[] does not include the following type variables: Z
+    """, """
+    package test
+    A[X:mut]: {}
+    BreakOuter[Z:mut]: {#: BreakInner -> BreakInner: A[Z]}
+    """);}
+
   @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {
     var code = String.format("""
     package test

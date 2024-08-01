@@ -420,11 +420,9 @@ public class Ex17FlowsTest {
   @Disabled @Test void flowActorMutRet() { ok(new Res("", "", 0), """
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
-      Flow#[Int](5, 10, 15)
-        // .actor requires an iso S for its initial value
-        // The 3rd argument is optional
-        .actorMut[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
-          .do {state := (state* + n)}
+      Flow#[Nat](5, 10, 15)
+        .actorMut[mut Var[Nat], Nat](Var#[Nat]1, {downstream, state, n -> Block#
+          .do {state := (state.get + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
           .do {downstream#n}
@@ -432,6 +430,27 @@ public class Ex17FlowsTest {
         .map{n -> n.str}
         #(Flow.str " ")
       )}
+    """, Base.mutBaseAliases);}
+  @Disabled @Test void flowActorMutRetWorks() { ok(new Res("", "", 0), """
+    package test
+    Test:Main {sys -> "42 5 42 10 500".assertEq(
+      Flow#[Nat](5, 10, 15)
+        .actorMut[mut Var[Nat], Nat](Var#[Nat]1, {downstream, state, n -> Block#(
+          MyActorMs.addNToState(state, n),
+          {}
+          )})
+//        .actorMut[mut Var[Nat], Nat](Var#[Nat]1, {downstream, state, n -> Block#
+//          .do {state := (state.get + n)}
+//          .if {state.get > 16} .return{Block#(downstream#500, {})}
+//          .do {downstream#42}
+//          .do {downstream#n}
+//          .return {{}}})
+        .map{n -> n.str}
+        #(Flow.str " ")
+      )}
+    MyActorMs: {
+      .addNToState(state: mut Var[Nat], n: Nat): Void -> state := (state.get + n),
+      }
     """, Base.mutBaseAliases);}
 
   @Test void limitedFlowActorAfter() { ok(new Res("", "", 0), """

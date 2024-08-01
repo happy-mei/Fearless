@@ -604,8 +604,8 @@ public class TestMeths {
     """); }
 
   @Test void methGens() { ok("""
-    [base.A[],imm.m1/1(x)[X0/0$][immX0/0$]:imm base.Void[]impl,
-    base.A[],imm.m2/1(k)[X0/0$][immX0/0$]:imm base.Void[]abs]
+    [base.A[],imm.m1/1(x)[T$0][imm T$0]:imm base.Void[]impl,
+    base.A[],imm.m2/1(k)[K$0][imm K$0]:imm base.Void[]abs]
     """, "base.A", """
     package base
     A:{
@@ -655,4 +655,21 @@ public class TestMeths {
     List[X]:{ recMdf .get(): recMdf X }
     Family[P]:List[P]{}
     """); }
+
+  @Test void genericConflict() {fail("""
+    In position [###]/Dummy0.fear:7:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:4:6) a.A[imm base.Float[]], .m/1[](imm base.Float[]): imm base.Float[]
+    ([###]/Dummy0.fear:4:6) a.A[imm base.Int[]], .m/1[](imm base.Int[]): imm base.Int[]
+    """, "a.D", """
+    package a
+    alias base.Int as Int, alias base.Float as Float,
+    
+    A[X]:{.m(x:X):X->x,}
+    B:A[Int]{}
+    C:A[Float]{}
+    D:B,C{}
+    """);}
 }
