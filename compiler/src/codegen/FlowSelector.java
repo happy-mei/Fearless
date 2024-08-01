@@ -11,7 +11,6 @@ public interface FlowSelector {
     var res = call.variant().contains(MIR.MCall.CallVariant.DataParallelFlow)
       ? Magic.DataParallelFlowK
       : Magic.PipelineParallelFlowK;
-//    var res = Magic.PipelineParallelFlowK; // TODO: restore when data parallel flows are stable
     return Optional.of(res);
   }
 }
