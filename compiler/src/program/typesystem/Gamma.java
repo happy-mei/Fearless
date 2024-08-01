@@ -4,15 +4,15 @@ import ast.T;
 import failure.CompileError;
 import failure.Fail;
 import id.Mdf;
+import program.Program;
 import utils.Bug;
 import utils.Push;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import static id.Mdf.*;
-import static java.util.Set.of;
 
 public interface Gamma {
   default T get(ast.E.X x) {
@@ -52,11 +52,12 @@ public interface Gamma {
       @Override public String toStr(){ return s+":"+t+" "+outer.toStr(); }
     };
   }
-  default Gamma ctxAwareGamma(XBs xbs, String x, T t, Mdf mMdf) {
+  default Gamma ctxAwareGamma(Program p, XBs xbs, T t, Mdf mMdf) {
     var outer = this;
-    var g = new Gamma() {
+    return new Gamma() {
       @Override public Optional<T> getO(String xi) {
-        return outer.getO(xi).map(ti->xT(xi,xbs,t.mdf(),ti,mMdf));
+        return outer.getO(xi)
+          .map(ti->xT(p, xi, xbs, t.mdf(), ti, mMdf));
       }
       @Override public List<String> dom() {
         return outer.dom();
@@ -64,44 +65,49 @@ public interface Gamma {
       @Override public String toString() { throw Bug.unreachable(); }
       @Override public String toStr(){ return "; with xbs:"+xbs; }
     };
-    Mdf selfMdf = t.mdf().restrict(mMdf).orElseThrow();
-    return g.add(x,t.withMdf(selfMdf));
   }
-  static T xT(String x, XBs xbs, Mdf self, T captured, Mdf mMdf){
-    assert !self.isReadImm() && !mMdf.isReadImm() && !self.isMutH() && !self.isReadH() && !self.isRecMdf();
-    var bounds = captured.isMdfX() ? xbs.get(captured.gxOrThrow()) : null;
-    assert !captured.isMdfX() || Objects.nonNull(bounds);
-    if (captured.isMdfX() && of(imm, iso).containsAll(bounds)) { return captured.withMdf(imm); }
-    if (captured.mdf().is(imm, iso)) { return captured.withMdf(imm); }
-    if (mMdf.isIso()) { return xT(x, xbs, self, captured, mut); }
-
-    if (self.isMut()) {
-      if (captured.isMdfX()) {
-        if (mMdf.isMut() && of(imm, mut, read).containsAll(bounds)) { return captured; }
-        if (mMdf.isImm() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(imm); }
-        // TODO: check formalism
-        // TODO: add tests
-        if (mMdf.isRead() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readImm); }
-        if (mMdf.isMutH() && of(imm, mut, read).containsAll(bounds)) { return captured.withMdf(mutH); }
-        if (mMdf.isMutH() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readH); }
-        if (mMdf.isReadH() && of(imm, mut, read, iso).containsAll(bounds)) { return captured.withMdf(readH); }
-        if (mMdf.isRecMdf() && of(imm, mut, read).containsAll(bounds)) { return captured.withMdf(recMdf); }
-      }
-      if (mMdf.isMut() && captured.mdf().is(mut, read, readImm)) { return captured; }
-      if (mMdf.isImm() && captured.mdf().is(mut, read, readImm)) { return captured.withMdf(imm); }
-      if (mMdf.isRead() && captured.mdf().is(mut, read)) { return captured.withMdf(read); }
-      if (mMdf.isRead() && captured.mdf().is(readImm)) { return captured.withMdf(readImm); }
-      if (mMdf.isMutH() && captured.mdf().is(mut)) { return captured.withMdf(mutH); }
-      if (mMdf.isMutH() && captured.mdf().is(read, readImm)) { return captured; }
-      if (mMdf.isReadH() && captured.mdf().isMut()) { return captured.withMdf(readH); }
-      if (mMdf.isRecMdf()) {
-        throw Bug.of("no more recMdf (ﾉಥ益ಥ)ﾉ");
-      }
+  static T xT(Program p, String x, XBs xbs, Mdf self, T captured, Mdf mMdf){
+    assert !self.isReadImm() && !mMdf.is(mdf,readImm,iso,mutH,readH) && !self.is(mutH,readH,recMdf,iso);
+    // (x : T ) [∆, RC 0, RC] = ∅ where discard(T, ∆, RC 0 )
+    if (discard(p, captured, xbs, self)) {
+      throw Fail.badCapture(x, captured, self, mMdf);
     }
 
-    if (self.isRead()) {
-      return xT(x, xbs, mut, captured, mMdf);
+    // (x : T ) [∆, RC 0, RC] = T [imm] where ∆ ⊢ T : iso, imm
+    if (captured.accept(new TypeTypeSystem(p, xbs, Set.of(iso,imm))).isRes()) {
+      return captured.withMdf(imm);
     }
+    // (x : T ) [∆, MutRead, imm] = T [imm] where ∆ ⊢ T : iso, imm, mut, read
+    if (self.is(mut,read) && mMdf.isImm() && captured.accept(new TypeTypeSystem(p, xbs, Set.of(iso,imm,mut,read))).isRes()) {
+      return captured.withMdf(imm);
+    }
+
+    // (x : T ) [∆, RC 0, RC] = x : (T [∆, RC 0, RC]) otherwise:
+    // T [∆, MutRead, read] = T [read] where T of form {mut _, read _}
+    if (self.is(mut,read) && mMdf.is(read) && captured.mdf().is(mut, read)) {
+      return captured.withMdf(read);
+    }
+    // T [∆, MutRead, read] = read/imm X where T of form {X, read/imm X }
+    if (self.is(mut,read) && mMdf.is(read) && captured.isGX() && captured.mdf().is(mdf, readImm)) {
+      return captured.withMdf(readImm);
+    }
+    // T [∆, mut, mut] = T where ∆ ⊢ T : imm, mut, read
+    if (self.isMut() && mMdf.isMut() && captured.accept(new TypeTypeSystem(p, xbs, Set.of(imm,mut,read))).isRes()) {
+      return captured;
+    }
+    // T [∆, mut, mut] = T [read] where not ∆ ⊢ T : imm, mut, read
+    if (self.isMut() && mMdf.isMut() && !captured.accept(new TypeTypeSystem(p, xbs, Set.of(imm,mut,read))).isRes()) {
+      return captured.withMdf(read);
+    }
+
     throw Fail.badCapture(x, captured, self, mMdf);
+  }
+  static boolean discard(Program p, T t, XBs xbs, Mdf self) {
+    // discard(T, ∆, IsoImm) where not ∆ ⊢ T : iso, imm
+    if (self.is(iso,imm)) {
+      return !t.accept(new TypeTypeSystem(p, xbs, Set.of(iso,imm))).isRes();
+    }
+    // discard(T, ∆, _) where not ∆ ⊢ T : iso, imm, mut, read
+    return !t.accept(new TypeTypeSystem(p, xbs, Set.of(iso,imm,mut,read))).isRes();
   }
 }

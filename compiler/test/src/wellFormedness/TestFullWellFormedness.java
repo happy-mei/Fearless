@@ -472,6 +472,6 @@ public class TestFullWellFormedness {
   }
 
   @Provide Arbitrary<Mdf> methMdfs() {
-    return Arbitraries.of(Arrays.stream(Mdf.values()).filter(mdf->!mdf.isMdf() && !mdf.isReadImm()).toList());
+    return Arbitraries.of(Arrays.stream(Mdf.values()).filter(mdf->!mdf.is(Mdf.mdf, Mdf.iso, Mdf.mutH, Mdf.readH, Mdf.readImm)).toList());
   }
 }

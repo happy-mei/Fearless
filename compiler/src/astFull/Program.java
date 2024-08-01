@@ -109,7 +109,7 @@ public class Program implements program.Program{
     var bounds = XBs.empty().addBounds(gxs, Mapper.of(xbs->d.bounds().forEach((gx,bs)->xbs.put(new Id.GX<>(gx.name()), bs))));
     return d.lambda().meths().stream()
       .filter(mi->mi.sig().isPresent())
-      .map(mi->cm(recvMdf, t, mi, bounds, f))
+      .map(mi->cm(t, mi, bounds, f))
       .toList();
   }
   @Override public CM plainCM(CM fancyCM){
@@ -128,10 +128,10 @@ public class Program implements program.Program{
     return of(t).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
   }
 
-  private NormResult cm(Mdf recvMdf, Id.IT<ast.T> t, astFull.E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
+  private NormResult cm(Id.IT<ast.T> t, astFull.E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
-    var cm = CM.of(t, mi, TypeRename.coreRec(recvMdf).renameSig(InjectionVisitor.of().visitSig(sig), xbs, f));
+    var cm = CM.of(t, mi, TypeRename.core().renameSig(InjectionVisitor.of().visitSig(sig), xbs, f));
     return norm(cm);
   }
   private CM cmCore(Id.IT<ast.T> t, astFull.E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){

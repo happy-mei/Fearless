@@ -44,26 +44,26 @@ class TestMultiSigBuilder {
   @Test void justMut(){ assertEquals("""
     Attempted signatures:
     ():mut a.Foo[] kind: Base
-    ():lent a.Foo[] kind: MutHPromRec
+    ():mutH a.Foo[] kind: MutHPromRec
     """,base(mut,List.of(),mut).toString()); }
   @Test void justImm(){ assertEquals("""
     Attempted signatures:
     ():iso a.Foo[] kind: IsoHProm
     ():iso a.Foo[] kind: IsoProm
     ():mut a.Foo[] kind: Base
-    ():lent a.Foo[] kind: ReadHProm
+    ():mutH a.Foo[] kind: ReadHProm
     """,base(imm,List.of(),imm).toString()); }
   @Test void justIso(){ assertEquals("""
     Attempted signatures:
     ():iso a.Foo[] kind: IsoHProm
     ():iso a.Foo[] kind: IsoProm
     ():mut a.Foo[] kind: Base
-    ():lent a.Foo[] kind: ReadHProm
+    ():mutH a.Foo[] kind: ReadHProm
     """,base(iso,List.of(),iso).toString()); }
   @Test void justRead(){ assertEquals("""
     Attempted signatures:
     ():mut a.Foo[] kind: Base
-    ():lent a.Foo[] kind: ReadHProm
+    ():mutH a.Foo[] kind: ReadHProm
     """,base(read,List.of(),read).toString()); }
 //--------
   @Test void xGenImm(){ assertEquals("""
@@ -71,7 +71,7 @@ class TestMultiSigBuilder {
     ():imm X kind: IsoHProm
     ():imm X kind: IsoProm
     ():X kind: Base
-    ():readOnly X kind: ReadHProm
+    ():readH X kind: ReadHProm
     """,xGen(imm,List.of(),imm).toString()); }
 
 //--------

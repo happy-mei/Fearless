@@ -16,7 +16,6 @@ import visitors.ShortCircuitVisitor;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -90,7 +89,10 @@ interface ELambdaTypeSystem extends ETypeSystem{
     return withXBs.mOkEntry(selfName, selfT, m, m.sig());
   }
   private FailOr<Void> methOkCath(XBs xbs, T selfT, String selfName, E.Meth mi) {
-    selfT = selfT.mdf().isIso() ? selfT.withMdf(Mdf.mut) : selfT; // isoToMut
+    selfT = switch (selfT.mdf()) {
+      case mdf,iso -> selfT.withMdf(Mdf.mut);
+      default -> selfT;
+    };
     var boundedTypeSys =(ELambdaTypeSystem) ETypeSystem.of(
         p().shallowClone(), g(), xbs,
         expectedT(), resolvedCalls(), depth());
@@ -105,16 +107,15 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var args = sig.ts();
     var ret = sig.ret();
     assert !selfT.mdf().isMdf() || g().dom().isEmpty();
-    var g0  = g().ctxAwareGamma(xbs(), selfName, selfT, mMdf);
-    Mdf selfTMdf = g0.get(selfName).mdf();
+    var g0  = g().add(selfName, selfT).ctxAwareGamma(p(), xbs(), selfT, mMdf);
     var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
-    var baseCase = topLevelIso(gg, m, e, ret);
+    var baseCase = isoAwareJudgment(gg, m, e, ret);
     var baseDestiny = baseCase.isEmpty() || ret.mdf().is(Mdf.mut, Mdf.read);
     if (baseDestiny) { return FailOr.opt(baseCase); }
     //res is iso or imm, thus is promotable
 
-    var criticalFailure = topLevelIso(gg, m, e, ret.withMdf(Mdf.readH));
+    var criticalFailure = isoAwareJudgment(gg, m, e, ret.withMdf(Mdf.readH));
     if (criticalFailure.isPresent()) { return FailOr.opt(baseCase); }
 
     var readPromotion = mOkReadPromotion(selfName, selfT, m, sig);
@@ -125,6 +126,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var isoPromotion = mOkIsoPromotion(selfName, selfT, m, sig);
     if(ret.mdf().isIso() || isoPromotion.isEmpty()){ return FailOr.opt(isoPromotion); }
 
+    Mdf selfTMdf = gg.get(selfName).mdf();
     return FailOr.opt(mOkImmPromotion(selfName, selfT, m, sig, selfTMdf)
       .flatMap(ignored->baseCase));
   }
@@ -140,15 +142,14 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public List<String> dom() { return g().dom(); }
       @Override public String toString() { return "readOnlyAsReadG"+g().toString(); }
       @Override public String toStr(){ throw Bug.unreachable(); }
-
     };
-    var mMdf = m.mdf();
-    var g0 = readOnlyAsReadG.ctxAwareGamma(xbs(), selfName, selfT, mMdf.isReadH() ? Mdf.read : mMdf);
+
+    var g0 = readOnlyAsReadG.add(selfName, selfT).ctxAwareGamma(p(), xbs(), selfT, m.mdf());
     var gg  = Streams.zip(
       m.xs(),
       sig.ts().stream().map(t->t.mdf().isReadH() ? t.withMdf(Mdf.read) : t).toList()
     ).fold(Gamma::add, g0);
-    return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret());
+    return isoAwareJudgment(gg, m, m.body().orElseThrow(), sig.ret());
   }
 
   default Optional<Supplier<CompileError>> mOkIsoPromotion(String selfName, T selfT, E.Meth m, E.Sig sig) {
@@ -165,13 +166,14 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public String toString() { return "readOnlyAsReadG"+g().toString(); }
       @Override public String toStr(){ throw Bug.unreachable(); }
     };
-    var mMdf = mdfTransform.apply(selfT.withMdf(m.mdf())).mdf();
-    var g0 = mutAsLentG.ctxAwareGamma(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.mutH : mMdf);
+    // TODO: relaxation, before we captured gamma as if it were mutH, but because we don't have mutH methods we rely on an explicit gamma transform here.
+//    var mMdf = mdfTransform.apply(selfT.withMdf(m.mdf())).mdf();
+    var g0 = mutAsLentG.ctxAwareGamma(p(), xbs(), selfT, m.mdf()).add(selfName, mdfTransform.apply(selfT));
     var gg  = Streams.zip(
       m.xs(),
       sig.ts().stream().map(mdfTransform).toList()
-    ).filter((x,t)->!t.mdf().isMdf()).fold(Gamma::add, g0);
-    return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.mut));
+    ).filter((_, t)->!t.mdf().isMdf()).fold(Gamma::add, g0);
+    return isoAwareJudgment(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.mut));
   }
 
   default Optional<Supplier<CompileError>> mOkImmPromotion(String selfName, T selfT, E.Meth m, E.Sig sig, Mdf selfTMdf) {
@@ -184,33 +186,12 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public String toStr(){ throw Bug.unreachable(); }
     };
     var mMdf = m.mdf();
-    var g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.ctxAwareGamma(xbs(), selfName, selfT, mMdf);
-    var gg = Streams.zip(m.xs(), sig.ts()).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isMdf() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
-    return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.readH));
-  }
-
-  /**
-   * G1,x:iso ITX,G2;XBs |= e : T               (TopLevel-iso)
-   *   where
-   *   G1,x:mut ITX,G2;XBs |= e : T
-   */
-  default Optional<Supplier<CompileError>> topLevelIso(Gamma g, E.Meth m, E e, T expected) {
-    var res = isoAwareJudgment(g, m, e, expected);
-    if (res.isEmpty()) { return res; }
-    var isoNames = g.dom().stream().filter(x->{
-      try {
-        return g.get(x).mdf().isIso();
-      } catch (CompileError err) {
-        // we cannot capture something it's not in our domain, so skip it
-        return false;
-      }
-    }).toList();
-
-    for (var name : isoNames) {
-      var g_ = g.add(name, g.get(name).withMdf(Mdf.mut));
-      if (isoAwareJudgment(g_, m, e, expected).isEmpty()) { return Optional.empty(); }
-    }
-    return res;
+    var selfG = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.add(selfName, selfT);
+    var g0 = Streams.zip(m.xs(), sig.ts())
+      .filter((_,t)->!t.mdf().isLikeMut() && !t.mdf().isMdf() && !t.mdf().isRecMdf())
+      .fold(Gamma::add, selfG);
+    var gg = g0.ctxAwareGamma(p(), xbs(), selfT, mMdf);
+    return isoAwareJudgment(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.readH));
   }
 
   /** G;XBs |= e : T */

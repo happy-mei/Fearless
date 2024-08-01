@@ -138,55 +138,56 @@ public interface Program {
 
   default boolean isAdaptSubType(XBs xbs, T t1, T t2) {
     if (!tsf().adapterSubtyping()) { return false; }
-  /*MDF C[T1..Tn]< MDF C[T1'..Tn']
-    where
-      adapterOk(MDF,C,T1..Tn,T1'..Tn')
-  */
-    assert t1.mdf() == t2.mdf();
-    var mdf = t1.mdf();
-    if (mdf.isMdf()) { return true; }
-
-    /*
-    #Define adapterOk(MDF,C,Ts1,Ts2)
-    adapterOk(MDF0,C,Ts1,Ts2)
-      filterByMdf(MDF0, meths(C[Ts1]) = Ms1
-      filterByMdf(MDF0, meths(C[Ts2]) = Ms2
-      forall MDF m[Xs](G1):T1 _,MDF m[Xs](G2):T2 _ in mWisePairs(Ms1,Ms2)
-        G2, this:MDF0 C[Ts1] |- this.m[Xs](G2.xs) : T2
-     */
-    var it1 = t1.itOrThrow();
-    var it2 = t2.itOrThrow();
-    assert it1.name().equals(it2.name());
-    List<CM> cms1 = meths(xbs, mdf, it1, 0).stream()
-      .filter(cm->filterByMdf(mdf, cm.mdf()))
-      .toList();
-    List<CM> cms2 = meths(xbs, mdf, it2, 0).stream()
-      .filter(cm->filterByMdf(mdf, cm.mdf()))
-      .toList();
-
-    var methsByName = Stream.concat(cms1.stream(), cms2.stream())
-      .collect(Collectors.groupingBy(CM::name))
-      .values();
-    return methsByName.stream()
-      .allMatch(ms->{
-        assert ms.size() == 2;
-        var m1 = ms.get(0);
-        var m2 = ms.get(1);
-//        var mdf_ = mdf.restrict(m1.mdf()).orElseThrow();
-        var bounds = xbs.addBounds(m2.sig().gens(), m2.bounds());
-        var g = Gamma.empty().ctxAwareGamma(bounds, "this", new T(mdf, it1), m1.mdf());
-        var recv = new ast.E.X("this", Optional.empty());
-        g = Streams.zip(m2.xs(), m2.sig().ts()).fold(Gamma::add, g);
-//        subTypeCache().put(new SubTypeQuery(bounds, t1, t2), SubTypeResult.Adapting);
-
-        var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
-        var e=new ast.E.MCall(recv, m2.name(), gxs, m2.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
-        return  isType(g, bounds, e, m2.sig().ret());
-        // TODO: automate this into some error logging for when adapt fails and it is the ultimate cause of a failed compilation
-//        if (t1.toString().equals("read base.LList[mdf E]") && t2.toString().equals("read base.LList[read E]") && res.isPresent()) {
-//          System.out.println("hdfgh");
-//        }
-      });
+    throw Bug.todo();
+//  /*MDF C[T1..Tn]< MDF C[T1'..Tn']
+//    where
+//      adapterOk(MDF,C,T1..Tn,T1'..Tn')
+//  */
+//    assert t1.mdf() == t2.mdf();
+//    var mdf = t1.mdf();
+//    if (mdf.isMdf()) { return true; }
+//
+//    /*
+//    #Define adapterOk(MDF,C,Ts1,Ts2)
+//    adapterOk(MDF0,C,Ts1,Ts2)
+//      filterByMdf(MDF0, meths(C[Ts1]) = Ms1
+//      filterByMdf(MDF0, meths(C[Ts2]) = Ms2
+//      forall MDF m[Xs](G1):T1 _,MDF m[Xs](G2):T2 _ in mWisePairs(Ms1,Ms2)
+//        G2, this:MDF0 C[Ts1] |- this.m[Xs](G2.xs) : T2
+//     */
+//    var it1 = t1.itOrThrow();
+//    var it2 = t2.itOrThrow();
+//    assert it1.name().equals(it2.name());
+//    List<CM> cms1 = meths(xbs, mdf, it1, 0).stream()
+//      .filter(cm->filterByMdf(mdf, cm.mdf()))
+//      .toList();
+//    List<CM> cms2 = meths(xbs, mdf, it2, 0).stream()
+//      .filter(cm->filterByMdf(mdf, cm.mdf()))
+//      .toList();
+//
+//    var methsByName = Stream.concat(cms1.stream(), cms2.stream())
+//      .collect(Collectors.groupingBy(CM::name))
+//      .values();
+//    return methsByName.stream()
+//      .allMatch(ms->{
+//        assert ms.size() == 2;
+//        var m1 = ms.get(0);
+//        var m2 = ms.get(1);
+////        var mdf_ = mdf.restrict(m1.mdf()).orElseThrow();
+//        var bounds = xbs.addBounds(m2.sig().gens(), m2.bounds());
+//        var g = Gamma.empty().ctxAwareGamma(this, bounds, "this", new T(mdf, it1), m1.mdf());
+//        var recv = new ast.E.X("this", Optional.empty());
+//        g = Streams.zip(m2.xs(), m2.sig().ts()).fold(Gamma::add, g);
+////        subTypeCache().put(new SubTypeQuery(bounds, t1, t2), SubTypeResult.Adapting);
+//
+//        var gxs = m2.sig().gens().stream().map(gx->new T(Mdf.mdf, gx)).toList();
+//        var e=new ast.E.MCall(recv, m2.name(), gxs, m2.xs().stream().<ast.E>map(x->new ast.E.X(x, Optional.empty())).toList(), Optional.empty());
+//        return  isType(g, bounds, e, m2.sig().ret());
+//        // TODO: automate this into some error logging for when adapt fails and it is the ultimate cause of a failed compilation
+////        if (t1.toString().equals("read base.LList[mdf E]") && t2.toString().equals("read base.LList[read E]") && res.isPresent()) {
+////          System.out.println("hdfgh");
+////        }
+//      });
   }
 
   default boolean isType(Gamma g, XBs xbs, ast.E e, T expected) {
