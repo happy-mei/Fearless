@@ -205,10 +205,10 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
   }
 
   private Optional<CompileError> validMethMdf(E.Meth e) {
-    return e.sig().flatMap(sig->e.mdf().flatMap(mdf->{
-      if (!mdf.is(Mdf.mdf, Mdf.readImm)) { return Optional.empty(); }
-      return Optional.of(Fail.invalidMethMdf(e.sig().get(), e.name().orElseThrow()));
-    }));
+    return e.mdf().flatMap(mdf->{
+      if (!mdf.is(Mdf.mdf, Mdf.readImm, Mdf.iso, Mdf.mutH, Mdf.readH)) { return Optional.empty(); }
+      return Optional.of(Fail.invalidMethMdf(mdf, e.name().orElseThrow()));
+    });
   }
 
   private Optional<CompileError> validLambdaMdf(E.Lambda e) {

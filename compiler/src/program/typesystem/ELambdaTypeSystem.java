@@ -89,8 +89,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
     if(m.isAbs()){ return FailOr.ok(); }
     return withXBs.mOkEntry(selfName, selfT, m, m.sig());
   }
-  private FailOr<Void> methOkCath(
-      XBs xbs, T selfT, String selfName, E.Meth mi) {
+  private FailOr<Void> methOkCath(XBs xbs, T selfT, String selfName, E.Meth mi) {
+    selfT = selfT.mdf().isIso() ? selfT.withMdf(Mdf.mut) : selfT; // isoToMut
     var boundedTypeSys =(ELambdaTypeSystem) ETypeSystem.of(
         p().shallowClone(), g(), xbs,
         expectedT(), resolvedCalls(), depth());

@@ -292,8 +292,8 @@ public record JavaMagicImpls(
               private Object x = %s;
               private boolean isAlive = true;
 
-              public base.Bool_0 isAlive$readH() { return this.isAlive ? base.True_0.$self : base.False_0.$self; }
-              public Object peek$readH(base.caps.IsoViewer_2 f) { return this.isAlive ? ((base.caps.IsoViewer_2)f).some$mut(this.x) : ((base.caps.IsoViewer_2)f).empty$mut(); }
+              public base.Bool_0 isAlive$read() { return this.isAlive ? base.True_0.$self : base.False_0.$self; }
+              public Object peek$read(base.caps.IsoViewer_2 f) { return this.isAlive ? ((base.caps.IsoViewer_2)f).some$mut(this.x) : ((base.caps.IsoViewer_2)f).empty$mut(); }
               public Object $exclamation$mut() {
                 if (!this.isAlive) {
                   base.Error_0.$self.msg$imm(rt.Str.fromJavaStr("Cannot consume an empty IsoPod."));
