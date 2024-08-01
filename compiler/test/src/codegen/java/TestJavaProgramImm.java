@@ -81,7 +81,7 @@ public class TestJavaProgramImm {
   @Test void nestedConditional() { ok(new Res("2", "", 0), """
     package test
     alias base.Main as Main, alias base.True as True, alias base.False as False, alias base.Nat as Nat,
-    Test:Main {l -> True ?[Nat] {.then -> False ?[Nat] {.then -> 1, .else -> Block#(l, 2)}, .else -> 3}.str}
+    Test:Main {l -> True ?[Nat] {.then -> False ?[Nat] {.then -> 1, .else -> Block#[base.LList[base.Str],Nat](l, 2)}, .else -> 3}.str}
     Block:{#[A:imm,R:imm](_: A, r: R): R -> r}
     """); }
 
@@ -411,7 +411,7 @@ public class TestJavaProgramImm {
     alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
     alias base.Str as Str,
     
-    Test: Main{_ -> Yeet#((+5).assertEq("oh no", +10))}
+    Test: Main{_ -> Yeet#((+5).assertEq(+10, "oh no"))}
     Yeet: {#[X](x: X): Str -> ""}
     """);}
 
@@ -446,7 +446,7 @@ public class TestJavaProgramImm {
     alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
     alias base.Str as Str,
     
-    Test: Main{_ -> Yeet#((5).assertEq("oh no", 10))}
+    Test: Main{_ -> Yeet#((5).assertEq(10, "oh no"))}
     Yeet: {#[X](x: X): Str -> ""}
     """);}
 
@@ -481,7 +481,7 @@ public class TestJavaProgramImm {
     alias base.Int as Int, alias base.Nat as Nat, alias base.Float as Float,
     alias base.Str as Str,
     
-    Test: Main{_ -> Yeet#((5.23).assertEq("oh no", 5.64))}
+    Test: Main{_ -> Yeet#((5.23).assertEq(5.64, "oh no"))}
     Yeet: {#[X](x: X): Str -> ""}
     """);}
 }

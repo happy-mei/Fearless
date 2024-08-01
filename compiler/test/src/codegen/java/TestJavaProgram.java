@@ -312,6 +312,14 @@ public class TestJavaProgram {
     Bar:test.Foo{ .a -> this }
     """); }
 
+  @Test void nestedConditional() { ok(new Res("2", "", 0), """
+    package test
+    alias base.Main as Main, alias base.True as True, alias base.False as False, alias base.Nat as Nat,
+    Test:Main {sys -> sys.io.println(True ?[Nat] {.then -> False ?[Nat] {.then -> 1, .else -> Block#[Foo,Nat](Foo, 2)}, .else -> 3}.str)}
+    Foo: {}
+    Block:{#[A:imm,R:imm](_: A, r: R): R -> r}
+    """); }
+
     @Test void ref1() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
