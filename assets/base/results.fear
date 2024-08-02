@@ -25,11 +25,13 @@ Res[T,E]:Either[T, E]{
 
   mut  .ok: mut Opt[T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
   read .ok: mut Opt[read T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
-  imm  .ok: iso Opt[imm T] -> this.resMatch[mut Opt[imm T]]{ .ok(x) -> Opts#x, .err(_) -> {} },
+//  imm  .ok: iso Opt[imm T] -> this.resMatch[mut Opt[imm T]]{ .ok(x) -> Opts#x, .err(_) -> {} },
+  imm  .ok: iso Opt[imm T] -> Todo!"Fix mutH promotion",
 
   mut  .err: mut Opt[E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
   read .err: mut Opt[read E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
-  imm  .err: iso Opt[imm E] -> this.resMatch[mut Opt[imm E]]{ .ok(_) -> {}, .err(e) -> Opts#e },
+//  imm  .err: iso Opt[imm E] -> this.resMatch[mut Opt[imm E]]{ .ok(_) -> {}, .err(e) -> Opts#e },
+  imm  .err: iso Opt[imm E] -> Todo!"Fix mutH promotion",
 
   read .isErr: Bool -> this.resMatch{ .err(_) -> True, .ok(_) -> False },
   read .isOk: Bool -> this.resMatch{ .err(_) -> False, .ok(_) -> True },
