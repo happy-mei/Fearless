@@ -35,6 +35,7 @@ public abstract class ShallowInjectionVisitor extends InjectionVisitor implement
     return new ast.Program(p.tsf(), coreDs, inlineDs);
   }
 
+  // TODO: this is a bad assumption. We can definitely define a callable method on an inline lambda.
   /**
    * Remove all methods from fresh named lambdas because they are uncallable and may have methods
    * that do not have their signatures inferred yet.
