@@ -109,7 +109,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var ret = sig.ret();
     assert !selfT.mdf().isMdf() || g().dom().isEmpty();
     var g0  = g().add(selfName, selfT).ctxAwareGamma(p(), xbs(), litT, mMdf);
-    var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
+    var gg = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
     var baseCase = isoAwareJudgment(gg, m, e, ret);
     var baseDestiny = baseCase.isEmpty() || ret.mdf().is(Mdf.mut, Mdf.read);
@@ -169,7 +169,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
     };
     // TODO: relaxation, before we captured gamma as if it were mutH, but because we don't have mutH methods we rely on an explicit gamma transform here.
 //    var mMdf = mdfTransform.apply(selfT.withMdf(m.mdf())).mdf();
-    var g0 = mutAsLentG.ctxAwareGamma(p(), xbs(), litT, m.mdf()).add(selfName, mdfTransform.apply(selfT));
+    var methSelfT = g().add(selfName, selfT).ctxAwareGamma(p(), xbs(), litT, m.mdf()).get("this");
+    var g0 = mutAsLentG.ctxAwareGamma(p(), xbs(), litT, m.mdf()).add(selfName, mdfTransform.apply(methSelfT));
     var gg  = Streams.zip(
       m.xs(),
       sig.ts().stream().map(mdfTransform).toList()

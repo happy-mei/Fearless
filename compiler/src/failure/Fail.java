@@ -186,9 +186,15 @@ public class Fail{
     );
   }
 
-  public static CompileError callTypeError(ast.E.MCall e, Optional<ast.T> expected, String calls) {
-    var expected_ = expected.map(ast.T::toString).orElse("?");
-    return of("Type error: None of the following candidates (returning the expected type \""+expected_+"\") for this method call:\n"+e+"\nwere valid:\n"+calls);
+  public static CompileError callTypeError(Id.MethName name, Mdf mdf0, Mdf formalMdf, List<ast.T> expectedT, ast.T formalRet) {
+//    var expected_ = expected.map(ast.T::toString).orElse("?");
+    var expectedRets = expectedT.isEmpty()
+      ? ""
+      : STR."\nThe expected return types were \{expectedT}, the method's return type was \{formalRet}.";
+    return of(STR."""
+    There is no possible candidate for the method call to \{name}.
+    The receiver's reference capability was \{mdf0}, the method's reference capability was \{formalMdf}.\{expectedRets}
+    """);
   }
 
   public static CompileError sealedCreation(Id.DecId sealedDec, String pkg) {

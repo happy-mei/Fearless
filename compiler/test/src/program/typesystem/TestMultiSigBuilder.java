@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 import java.util.Set;
 
+import id.Id;
 import org.junit.jupiter.api.Test;
 
 import ast.T;
@@ -17,6 +18,7 @@ import static id.Mdf.*;
 //Any other MethName will have the mdf.
 
 class TestMultiSigBuilder {
+  private static final Id.MethName name = new Id.MethName("foo", 0);
 
   T dts(Mdf mdf, String name, List<T> ts) {
     return new T(mdf,new IT<T>(name,ts));
@@ -30,7 +32,7 @@ class TestMultiSigBuilder {
     T ret= dts(mut,"a.Foo",List.of());
     XBs xbs= XBs.empty();
     return MultiSigBuilder
-      .multiMethod(xbs,formalMdf,ts,ret,mdf0,expectedT)
+      .multiMethod(name,xbs,formalMdf,ts,ret,mdf0,expectedT)
       .get();
   }
   MultiSig xGen(Mdf mdf0, List<T> expectedT,Mdf formalMdf){
@@ -38,7 +40,7 @@ class TestMultiSigBuilder {
     T ret= x("X");
     XBs xbs= XBs.empty().add("X",Set.of(mut,imm,read));
     return MultiSigBuilder
-      .multiMethod(xbs,formalMdf,ts,ret,mdf0,expectedT)
+      .multiMethod(name,xbs,formalMdf,ts,ret,mdf0,expectedT)
       .get();
   }
   @Test void justMut(){ assertEquals("""
@@ -80,7 +82,7 @@ class TestMultiSigBuilder {
     T ret= x("X");
     XBs xbs= XBs.empty().add("X",Set.of(imm));
     var mm= MultiSigBuilder.
-      multiMethod(xbs,imm,ts,ret,imm,List.of(mdfX(imm,"X"))).get();
+      multiMethod(name,xbs,imm,ts,ret,imm,List.of(mdfX(imm,"X"))).get();
     assertEquals("""
     Attempted signatures:
     ():X kind: IsoHProm

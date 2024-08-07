@@ -90,7 +90,9 @@ public interface EMethTypeSystem extends ETypeSystem {
     resolvedCalls().put(e.callId(), tst);
 
     var multi_ = MultiSigBuilder.multiMethod(
-      xbs(), selected.mdf(),//bounds,formalMdf
+      e.name(),
+      xbs(),
+      selected.mdf(),//bounds,formalMdf
       selected.sig().ts(),//formalTs
       selected.sig().ret(),//formalRet,
       mdf0,this.expectedT()//mdf0,expectedRes

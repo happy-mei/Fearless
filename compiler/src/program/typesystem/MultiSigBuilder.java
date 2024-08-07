@@ -1,17 +1,19 @@
 package program.typesystem;
 
+import ast.T;
+import failure.Fail;
+import failure.FailOr;
+import id.Id;
+import id.Id.GX;
+import id.Mdf;
+import program.Program;
+import utils.Range;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-
-import failure.CompileError;
-import failure.FailOr;
-import program.Program;
-import ast.T;
-import id.Mdf;
-import id.Id.GX;
-import utils.Range;
+import java.util.stream.IntStream;
 
 record MultiSigBuilder(
     Mdf mdf0,//actual receiver modifier
@@ -25,7 +27,7 @@ record MultiSigBuilder(
     ArrayList<T> rets, //return types
     ArrayList<String> kinds//debug info about applied promotion
     ){
-  static FailOr<MultiSig> multiMethod(XBs bounds, Mdf formalMdf, List<T> formalTs, T formalRet, Mdf mdf0, List<T> expectedRes){
+  static FailOr<MultiSig> multiMethod(Id.MethName name, XBs bounds, Mdf formalMdf, List<T> formalTs, T formalRet, Mdf mdf0, List<T> expectedRes){
     var res= new MultiSigBuilder(
       mdf0,expectedRes,formalMdf,formalTs,formalRet,
       formalTs.size(),
@@ -40,15 +42,16 @@ record MultiSigBuilder(
     res.fillReadHProm();
     res.fillMutHPromRec();
     res.fillMutHPromPar();
-    try {
-      return FailOr.res(new MultiSig(
-        res.tss.stream().map(Collections::unmodifiableList).toList(),
-        Collections.unmodifiableList(res.rets),
-        Collections.unmodifiableList(res.kinds)
-      ));
-    } catch (CompileError err) {
-      return FailOr.err(()->err);
+
+    if (res.kinds.isEmpty()) {
+      return FailOr.err(()->Fail.callTypeError(name, mdf0, formalMdf, expectedRes, formalRet));
     }
+
+    return FailOr.res(new MultiSig(
+      res.tss.stream().map(Collections::unmodifiableList).toList(),
+      Collections.unmodifiableList(res.rets),
+      Collections.unmodifiableList(res.kinds)
+    ));
   }
   boolean filterMdf(Function<Mdf,Mdf> f) {    
     Mdf limit= f.apply(formalRecMdf());
@@ -75,30 +78,31 @@ record MultiSigBuilder(
     fillProm("ReadHProm",this::mutIsoReadReadH,this::mutIsoReadReadH,this::toHyg);
     }
   void fillMutHPromRec(){//two version: one for receiver mut <->mutH
-    if(!formalRecMdf().isMut()){ return; }
-    fillProm("MutHPromRec",this::mutMutH,this::mutIsoReadImm,this::toHyg);
-    }
+    if(!formalRecMdf().isMut()) { return; }
+    fillProm("MutHPromRec",this::toHyg,this::mutIsoReadImm,this::toHyg);
+  }
   void fillMutHPromPar(){//one for parameter mut <->mutH
-    int countMut= (int)formalTs.stream()
-      .skip(1).filter(t->t.mdf().isMut()).count();
-    for(int i:Range.of(0,countMut)){ fillMutHPromPar(i); }
-    }
-  void fillMutHPromPar(int specialMut){//one for parameter mut <->mutH
-    // TODO: this method is definitely broken in some way
     if(!filterMdf(this::mutIsoReadImm)){ return; }
     var addRet= fix(true,this::toHyg,formalRet);
     if(!filterExpectedRes(addRet)){ return; }
-    rets.add(addRet);
-    int count= 0;
-    for(var i : Range.of(0,size)){
-      T currT= formalTs.get(i);
-      var special= currT.mdf().isMut() && i==count;
-      if(special){ count++; }
-      var addT= fix(false,special?this::mutMutH:this::mutIsoReadImm,currT);
-      tss.get(i).add(addT);
+
+    var muts = IntStream.range(0, formalTs.size()).filter(i -> formalTs.get(i).mdf().isMut()).toArray();
+    for (int mutIdx : muts) {
+      rets.add(addRet);
+      transformMuts(mutIdx);
+      kinds.add(STR."MutHPromPar(\{mutIdx})");
     }
-    kinds.add("MutHPromRec");
   }
+  void transformMuts(int toTransform) {
+    for (int i = 0; i < formalTs.size(); ++i) {
+      if (i == toTransform) {
+        tss.get(i).add(fix(false, this::toHyg, formalTs.get(i)));
+      } else {
+        tss.get(i).add(fix(false, this::mutIsoReadImm, formalTs.get(i)));
+      }
+    }
+  }
+
   void fillProm(String kind,Function<Mdf,Mdf> f){ fillProm(kind,f,f,f); }  
   
   void fillProm(String kind,Function<Mdf,Mdf> rec,Function<Mdf,Mdf> p,Function<Mdf,Mdf> r){
@@ -130,11 +134,6 @@ record MultiSigBuilder(
     assert mdf.isReadImm();
     if(goodMdf.is(Mdf.imm, Mdf.iso)){ return t.withMdf(Mdf.imm); }
     return t.withMdf(Mdf.read);
-  }
-
-  Mdf mutMutH(Mdf m){
-    assert m.isMut();
-    return Mdf.mutH;
   }
 
   Mdf mutIsoReadImm(Mdf m){
