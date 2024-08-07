@@ -20,8 +20,8 @@ class TestFullParser {
     var ps = Arrays.stream(content)
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
         .toList();
-    String res = Parser.parseAll(ps, TypeSystemFeatures.of()).toString();
-    Err.strCmpFormat(expected,res);
+    var res = Parser.parseAll(ps, TypeSystemFeatures.of());
+    Err.strCmpFormat(expected,res.toString());
   }
   void fail(String expectedErr, String... content){
     Main.resetAll();
@@ -495,7 +495,7 @@ class TestFullParser {
 
   @Test void namedInline() { ok("""
     {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{#/0([]):Sig[gens=[],ts=[],ret=imm test.B[]]->
-      LambdaId[id=test.B/0,gens=[],bounds={}]:[-infer-][]{}}]}
+      LambdaId[id=test.B/0,gens=[],bounds={}]:[-imm test.B[]-][]{}}]}
     """, """
     package test
     A:{ #: B -> B:{} }
@@ -503,11 +503,28 @@ class TestFullParser {
   @Test void namedInlineGens() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-infer-][]{
       #/1([x]):Sig[gens=[],ts=[X],ret=immtest.B[X]]->
-        LambdaId[id=test.B/1,gens=[X],bounds={}]:[-infer-][]{
+        LambdaId[id=test.B/1,gens=[X],bounds={}]:[-imm test.B[X]-][]{
           .m1/0([]):Sig[gens=[],ts=[],ret=X]->x:infer}}]}
     """, """
     package test
     A[X]:{ #(x: X): B[X] -> B[X]:{ .m1: X -> x } }
+    """); }
+  @Test void namedInlineGensWithBound() { ok("""
+    {test.A/1=Dec[name=test.A/1,gxs=[X],bounds={X=[imm]},lambda=[-infer-][]{
+      #/1([x]):Sig[gens=[],ts=[X],ret=immtest.B[X]]->
+        LambdaId[id=test.B/1,gens=[X],bounds={X=[imm]}]:[-immtest.B[X]-][]{
+          .m1/0([]):Sig[gens=[],ts=[],ret=X]->x:infer}}]}
+    """, """
+    package test
+    A[X:imm]:{ #(x: X): B[X] -> B[X:imm]:{ .m1: X -> x } }
+    """); }
+  @Test void inferNameOnCall() { ok("""
+    {test.A/1=Dec[name=test.A/1,gxs=[X],bounds={X=[imm]},lambda=[-infer-][]{
+      #/1([x]):Sig[gens=[],ts=[X],ret=X]->
+        [-imm test.Fear0$[X]-][test.Fear0$[X]]{.m1/0([]):Sig[gens=[],ts=[],ret=X]->x:infer}.m1/0[-]([]):infer}]}
+    """, """
+    package test
+    A[X:imm]: {#(x: X): X -> {.m1: X -> x}.m1}
     """); }
 
   @Test void missingColonTypeDeclaration() { fail("""

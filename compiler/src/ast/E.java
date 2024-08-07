@@ -41,7 +41,13 @@ public interface E extends HasPos {
         return new LambdaId(id,gens,bounds); }
       public LambdaId withBounds(Map<Id.GX<T>, Set<Mdf>> bounds){
         return new LambdaId(id,gens,bounds); }
-
+      public astFull.E.Lambda.LambdaId toFullAst() {
+        return new astFull.E.Lambda.LambdaId(
+          id,
+          gens.stream().map(Id.GX::toFullAstGX).toList(),
+          Mapper.of(xbs->bounds.forEach((k, v)->xbs.put(k.toFullAstGX(), v)))
+        );
+      }
     }
 
     @Override public E accept(CloneVisitor v) {

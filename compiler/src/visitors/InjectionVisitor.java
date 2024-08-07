@@ -74,7 +74,7 @@ public abstract class InjectionVisitor implements FullVisitor<ast.E>{
       lambdaId, lambdaMdf,
       its.stream().map(this::visitIT).toList(),
       Optional.ofNullable(e.selfName()).orElseGet(E.X::freshName),
-      e.meths().stream().map(this::visitMeth).toList(),
+      resMeths,
       e.pos()
     );
   }

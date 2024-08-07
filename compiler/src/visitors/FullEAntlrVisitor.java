@@ -17,6 +17,7 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import astFull.E.Lambda.LambdaId;
+import parser.ParseDirectLambdaCall;
 import utils.*;
 
 import java.nio.file.Path;
@@ -125,14 +126,15 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   E desugar(E root,List<Call> tail){
     if(tail.isEmpty()){ return root; }
-    var head = tail.get(0);
+    var head = tail.getFirst();
     var newTail = Pop.left(tail);
     var m = head.m();
     var ts=head.mGen();
+    var recv = ParseDirectLambdaCall.of(root, xbs);
     if(head.x().isPresent()){
       var x = head.x().get();
       assert head.es().size() == 1;
-      var e = head.es().get(0);
+      var e = head.es().getFirst();
       var freshRoot = new E.X(T.infer);
       var rest = desugar(freshRoot, newTail);
 
@@ -146,10 +148,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         Optional.empty(),
         Optional.of(head.pos())
       );
-      return new E.MCall(root, new MethName(Optional.empty(), m.name(), 2), ts, List.of(e, cont), T.infer, Optional.of(head.pos()));
+      return new E.MCall(recv, new MethName(Optional.empty(), m.name(), 2), ts, List.of(e, cont), T.infer, Optional.of(head.pos()));
     }
     var es=head.es();
-    E res=new E.MCall(root, new MethName(Optional.empty(), m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
+    E res=new E.MCall(recv, new MethName(Optional.empty(), m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
     return desugar(res,newTail);
   }
   public Optional<List<T>> visitMGen(MGenContext ctx, boolean isDecl){
@@ -203,7 +205,6 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         .filter(Objects::nonNull));
   }
   @Override public E.Lambda visitLambda(LambdaContext ctx){
-
     var oldXbs = this.xbs;
     E.Lambda res;
     if (ctx.topDec() != null) {
