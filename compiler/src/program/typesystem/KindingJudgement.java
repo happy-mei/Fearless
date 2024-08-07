@@ -13,11 +13,11 @@ import visitors.TypeVisitor;
 import java.util.Set;
 
 /**
- * Type system for types. Used for getting potential RCs from a type and checking if a type is valid for an expected
+ * Kinded type judgements. Used for getting potential RCs from a type and checking if a type is valid for an expected
  * set of RCs.
  */
-public record TypeTypeSystem(Program p, XBs xbs, Set<Mdf> expected) implements TypeVisitor<T, FailOr<Set<Mdf>>> {
-  public TypeTypeSystem(Program p, XBs xbs) {
+public record KindingJudgement(Program p, XBs xbs, Set<Mdf> expected) implements TypeVisitor<T, FailOr<Set<Mdf>>> {
+  public KindingJudgement(Program p, XBs xbs) {
     this(p, xbs, Set.of(Mdf.iso, Mdf.imm, Mdf.mut, Mdf.mutH, Mdf.read, Mdf.readH));
   }
 
@@ -33,7 +33,7 @@ public record TypeTypeSystem(Program p, XBs xbs, Set<Mdf> expected) implements T
       case astFull.T.Dec dec_ -> dec_.lambda().id().bounds();
     };
     var res = Streams.zip(it.ts(), gens)
-      .map((t, gx)-> t.accept(new TypeTypeSystem(p, xbs, bounds.get(gx))))
+      .map((t, gx)-> t.accept(new KindingJudgement(p, xbs, bounds.get(gx))))
       .filter(FailOr::isErr)
       .findFirst();
     return res.orElseGet(()->holds(Set.of(mdf), mdf+" "+it));
@@ -49,11 +49,11 @@ public record TypeTypeSystem(Program p, XBs xbs, Set<Mdf> expected) implements T
   @Override public FailOr<Set<Mdf>> visitReadImm(Id.GX<T> x) {
     var case1 = holds(Set.of(Mdf.read, Mdf.imm), Mdf.readImm+" "+x);
     if (case1.isRes()) { return case1; }
-    if (new TypeTypeSystem(p, xbs, Set.of(Mdf.iso, Mdf.imm)).visitX(x).isRes()) {
+    if (new KindingJudgement(p, xbs, Set.of(Mdf.iso, Mdf.imm)).visitX(x).isRes()) {
       var caseImm = holds(Set.of(Mdf.imm), Mdf.readImm+" "+x);
       if (caseImm.isRes()) { return caseImm; }
     }
-    if (new TypeTypeSystem(p, xbs, Set.of(Mdf.mut, Mdf.mutH, Mdf.read, Mdf.readH)).visitX(x).isRes()) {
+    if (new KindingJudgement(p, xbs, Set.of(Mdf.mut, Mdf.mutH, Mdf.read, Mdf.readH)).visitX(x).isRes()) {
       var caseRead = holds(Set.of(Mdf.read), Mdf.readImm+" "+x);
       if (caseRead.isRes()) { return caseRead; }
     }

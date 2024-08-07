@@ -16,7 +16,7 @@ public interface GenericBounds {
   Set<Mdf> ALL_RCS = Set.of(Mdf.iso, Mdf.imm, Mdf.mut, Mdf.mutH, Mdf.read, Mdf.readH);
 
   static FailOr<Void> validGenericLambda(Program p, XBs xbs, E.Lambda l) {
-    var boundsInference = new TypeTypeSystem(p, xbs, ALL_RCS);
+    var boundsInference = new KindingJudgement(p, xbs, ALL_RCS);
     var res = l.its().stream()
       .map(it->it.accept(boundsInference))
       .filter(FailOr::isErr)
@@ -33,7 +33,7 @@ public interface GenericBounds {
     var res = Streams.zip(typeArgs, typeParams)
       .map((t, gx)->{
         var bounds = cm.bounds().getOrDefault(gx, XBs.defaultBounds);
-        var inference = new TypeTypeSystem(p, xbs, bounds);
+        var inference = new KindingJudgement(p, xbs, bounds);
         return t.accept(inference);
       })
       .filter(FailOr::isErr)

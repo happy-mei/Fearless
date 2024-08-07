@@ -74,11 +74,11 @@ public interface Gamma {
     }
 
     // (x : T ) [∆, RC 0, RC] = T [imm] where ∆ ⊢ T : iso, imm
-    if (captured.accept(new TypeTypeSystem(p, xbs, Set.of(iso,imm))).isRes()) {
+    if (captured.accept(new KindingJudgement(p, xbs, Set.of(iso,imm))).isRes()) {
       return captured.withMdf(imm);
     }
     // (x : T ) [∆, MutRead, imm] = T [imm] where ∆ ⊢ T : iso, imm, mut, read
-    if (self.is(mut,read) && mMdf.isImm() && captured.accept(new TypeTypeSystem(p, xbs, Set.of(iso,imm,mut,read))).isRes()) {
+    if (self.is(mut,read) && mMdf.isImm() && captured.accept(new KindingJudgement(p, xbs, Set.of(iso,imm,mut,read))).isRes()) {
       return captured.withMdf(imm);
     }
 
@@ -92,11 +92,11 @@ public interface Gamma {
       return captured.withMdf(readImm);
     }
     // T [∆, mut, mut] = T where ∆ ⊢ T : imm, mut, read
-    if (self.isMut() && mMdf.isMut() && captured.accept(new TypeTypeSystem(p, xbs, Set.of(imm,mut,read))).isRes()) {
+    if (self.isMut() && mMdf.isMut() && captured.accept(new KindingJudgement(p, xbs, Set.of(imm,mut,read))).isRes()) {
       return captured;
     }
     // T [∆, mut, mut] = T [read] where not ∆ ⊢ T : imm, mut, read
-    if (self.isMut() && mMdf.isMut() && !captured.accept(new TypeTypeSystem(p, xbs, Set.of(imm,mut,read))).isRes()) {
+    if (self.isMut() && mMdf.isMut() && !captured.accept(new KindingJudgement(p, xbs, Set.of(imm,mut,read))).isRes()) {
       return captured.withMdf(read);
     }
 
@@ -105,9 +105,9 @@ public interface Gamma {
   static boolean discard(Program p, T t, XBs xbs, Mdf self) {
     // discard(T, ∆, IsoImm) where not ∆ ⊢ T : iso, imm
     if (self.is(iso,imm)) {
-      return !t.accept(new TypeTypeSystem(p, xbs, Set.of(iso,imm))).isRes();
+      return !t.accept(new KindingJudgement(p, xbs, Set.of(iso,imm))).isRes();
     }
     // discard(T, ∆, _) where not ∆ ⊢ T : iso, imm, mut, read
-    return !t.accept(new TypeTypeSystem(p, xbs, Set.of(iso,imm,mut,read))).isRes();
+    return !t.accept(new KindingJudgement(p, xbs, Set.of(iso,imm,mut,read))).isRes();
   }
 }

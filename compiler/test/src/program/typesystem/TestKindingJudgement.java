@@ -21,12 +21,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TestTypeTypeSystem {
+public class TestKindingJudgement {
   private static void ok(XBs xbs, String t, Set<Mdf> expected, String... content) {
     var fullT = new Parser(Parser.dummy, t).parseFullT();
     var coreT = fullT.toAstT();
     var p = toProgram(content);
-    var inferred = coreT.accept(new TypeTypeSystem(p, xbs, expected)).get();
+    var inferred = coreT.accept(new KindingJudgement(p, xbs, expected)).get();
     Assertions.assertEquals(expected, inferred);
   }
   private static void fail(String expectedErr, XBs xbs, String t, Set<Mdf> expected, String... content) {
@@ -34,7 +34,7 @@ public class TestTypeTypeSystem {
     var coreT = fullT.toAstT();
     var p = toProgram(content);
     try {
-      coreT.accept(new TypeTypeSystem(p, xbs, expected)).get();
+      coreT.accept(new KindingJudgement(p, xbs, expected)).get();
       Assertions.fail("Did not fail!\n");
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

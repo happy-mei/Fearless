@@ -71,9 +71,8 @@ interface ELambdaTypeSystem extends ETypeSystem{
   }
   private FailOr<Void> sigOk(Sig sig,Optional<Pos> p){
     var ts= Stream.concat(sig.ts().stream(),Stream.of(sig.ret()));
-    var typeTs = new TypeTypeSystem(p(), xbs());
     var badBounds= ts
-      .map(t->t.accept(typeTs))
+      .map(t->t.accept(new KindingJudgement(p(), xbs())))
       .filter(FailOr::isErr)
       .<FailOr<Void>>map(FailOr::cast)
       .map(res->res.mapErr(err->()->err.get().pos(p)))
