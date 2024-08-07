@@ -18,6 +18,7 @@ public class TestCallSitePromotions {
     [E33 callTypeError]
     There is no possible candidate for the method call to .m1/0.
     The receiver's reference capability was mutH, the method's reference capability was mut.
+    The expected return types were [mut test.A[]], the method's return type was mut test.A[].
     """, """
     package test
     A: {
