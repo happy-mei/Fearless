@@ -1973,6 +1973,6 @@ public class TestTypeSystem {
     A: {}
     B: {}
     Foos: {#(a: mut A): iso Foo -> iso Foo{a}}
-    Foo: {mut #: A}
+    Foo: {mut #: mut A}
     """);}
 }

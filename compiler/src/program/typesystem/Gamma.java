@@ -67,7 +67,7 @@ public interface Gamma {
     };
   }
   static T xT(Program p, String x, XBs xbs, Mdf self, T captured, Mdf mMdf){
-    assert !self.isReadImm() && !mMdf.is(mdf,readImm,iso,mutH,readH) && !self.is(mutH,readH,recMdf,iso);
+    assert !self.isReadImm() && !mMdf.is(mdf,readImm,iso,mutH,readH) && !self.is(mutH,readH,recMdf,mdf);
     // (x : T ) [∆, RC 0, RC] = ∅ where discard(T, ∆, RC 0 )
     if (discard(p, captured, xbs, self)) {
       throw Fail.badCapture(x, captured, self, mMdf);
