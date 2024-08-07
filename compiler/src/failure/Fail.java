@@ -1,6 +1,5 @@
 package failure;
 
-import astFull.E;
 import astFull.T;
 import files.Pos;
 import id.Id;
@@ -72,13 +71,9 @@ public class Fail{
       +"\nAlternatively, are you attempting to shadow an existing class name?"
   );}
   public static CompileError modifierOnInferredLambda(){return of(
-    "Modifiers cannot be specified on lambdas without an explicit type."
+    "A reference capability cannot be specified on lambdas without an explicit type."
   );}
-  public static CompileError invalidMdfBound(ast.T badType, List<Mdf> bounds){
-    return of(
-      "The type "+badType+" is not valid because its capability is not in the required bounds. The allowed modifiers are: "+bounds.stream().map(Enum::toString).collect(Collectors.joining(", "))+"."
-    );
-  }
+
   public static CompileError invalidMdfBound(String badType, Stream<Mdf> bounds){
     return of(
       "The type "+badType+" is not valid because its capability is not in the required bounds. The allowed modifiers are: "+bounds.map(Enum::toString).collect(Collectors.joining(", "))+"."
