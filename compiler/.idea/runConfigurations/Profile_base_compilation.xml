@@ -2,7 +2,7 @@
   <configuration default="false" name="Profile base compilation" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="main.Main" />
     <module name="fearless" />
-    <option name="PROGRAM_PARAMETERS" value="--show-internal-stack-traces --show-full-progress -e simple.Nothing --run examples/mutBase" />
+    <option name="PROGRAM_PARAMETERS" value="--show-internal-stack-traces --show-full-progress -e simple.Nothing --run examples/mutBase/simple" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="main.*" />
