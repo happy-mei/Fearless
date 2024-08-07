@@ -154,7 +154,7 @@ public class Ex199StackTest {
     StackMatch[T:imm, R]: {
       .empty: R,
       .elem(top:T, tail: Stack[T]): R
-    }
+      }
     
     // Example: {#(ds: Stack[Dirty]): Stack[Clean] -> ds.process{::clean}}
     Example: {#(ds: Stack[Dirty]): Stack[Clean] -> ds.process{dirty -> dirty.clean}}
@@ -194,7 +194,7 @@ public class Ex199StackTest {
     StackMatch[T:imm, R]: {
       .empty: R,
       .elem(top:T, tail: Stack[T]): R
-    }
+      }
     
     // Example: {#(ds: Stack[Dirty]): Stack[Clean] -> ds.process{::clean}}
     Example: {#(ds: Stack[Dirty]): Stack[Clean] -> ds.process{dirty -> dirty.clean}}
