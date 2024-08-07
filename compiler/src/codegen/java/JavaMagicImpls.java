@@ -369,12 +369,13 @@ public record JavaMagicImpls(
     };
   }
 
-  @Override public MagicTrait<MIR.E, String> capTryCatch(MIR.E e) {
+  @Override public MagicTrait<MIR.E, String> capTryCatchK(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Optional<String> instantiate() {
-        return Optional.of("rt.CapTry.$self");
-      }
+      @Override public Optional<String> instantiate() { return Optional.empty(); }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        if (m.equals(new Id.MethName(Optional.of(Mdf.read), "#", 1))) {
+          return Optional.of("new rt.CapTry(%s)".formatted(args.getFirst().accept(gen, true)));
+        }
         return Optional.empty();
       }
     };

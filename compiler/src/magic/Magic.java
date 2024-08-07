@@ -12,7 +12,6 @@ import java.util.function.Function;
 import ast.E.Lambda;
 import ast.E.Lambda.LambdaId;
 import ast.T.Dec;
-import utils.Bug;
 
 public class Magic {
   public static final Id.DecId Main = new Id.DecId("base.Main", 0);
@@ -39,7 +38,7 @@ public class Magic {
   public static final Id.DecId MagicAbort = new Id.DecId("base.Magic", 0);
   public static final Id.DecId ErrorK = new Id.DecId("base.Error", 0);
   public static final Id.DecId Try = new Id.DecId("base.Try", 0);
-  public static final Id.DecId CapTry = new Id.DecId("base.caps.CapTry", 0);
+  public static final Id.DecId CapTryK = new Id.DecId("base.caps.CapTries", 0);
 
   public static final Id.DecId FlowK = new Id.DecId("base.flows.Flow", 0);
   public static final Id.DecId FlowOp = new Id.DecId("base.flows.FlowOp", 1);
