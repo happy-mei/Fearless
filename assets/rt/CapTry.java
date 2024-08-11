@@ -7,8 +7,8 @@ public record CapTry(base.caps.System_0 sys) implements base.caps.CapTry_0 {
 		catch(java.lang.StackOverflowError _$err) { return base.Res_0.$self.err$imm(base.FInfo_0.$self.msg$imm(StackOverflowedErrStr.$self)); }
 		catch(Throwable _$err) { return base.Res_0.$self.err$imm(base.FInfo_0.$self.msg$imm(Str.fromJavaStr(_$err.getMessage()))); }
 	}
-	@Override public base.Res_2 withSys$mut(base.caps.TryBodySys_1 try$) {
-		try { return base.Res_0.$self.ok$imm(try$.$hash$read(sys)); }
+	@Override public base.Res_2 $hash$mut(Object data, base.caps.TryBody_2 try$) {
+		try { return base.Res_0.$self.ok$imm(try$.$hash$read(data)); }
 		catch(FearlessError _$err) { return base.Res_0.$self.err$imm(_$err.info); }
 		catch(java.lang.StackOverflowError _$err) { return base.Res_0.$self.err$imm(base.FInfo_0.$self.msg$imm(StackOverflowedErrStr.$self)); }
 		catch(Throwable _$err) { return base.Res_0.$self.err$imm(base.FInfo_0.$self.msg$imm(Str.fromJavaStr(_$err.getMessage()))); }

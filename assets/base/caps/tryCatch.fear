@@ -7,8 +7,8 @@ CapTries: F[mut System, mut CapTry]{sys -> mut CapTry: {
   mut #[R](try: read TryBody[R]): mut Res[R, Info] -> Magic!,
   /// This method gets the system object capability, however any violations of strong exception safety
   /// can only be observed with an object capability because System is the only external mutable reference.
-  mut .withSys[R](try: read TryBodySys[R]): mut Res[R, Info] -> Magic!,
+  mut #[T:iso,imm,mut,read,R](data: iso T, try: read TryBody[T,R]): mut Res[R, Info] -> Magic!,
   }}
 
-TryBody[R]: {read #: R}
-TryBodySys[R]: {read #(system: mut System): R}
+TryBody[R:iso,imm,mut,mutH,read,readH]: {read #: R}
+TryBody[T:iso,imm,mut,read,R:iso,imm,mut,mutH,read,readH]: {read #(data: iso T): R}
