@@ -182,7 +182,15 @@ public record InferBodies(ast.Program p) {
     var its= e.its().isEmpty()
       ?e.it().stream().toList()
       :e.its();
-    var sigs = FullMethSig.of(p, XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
+    List<FullMethSig> sigs;try{sigs = FullMethSig.of(
+      p,
+      XBs.empty(),
+      e.mdf().orElse(Mdf.recMdf),
+      its,
+      depth,
+      CM::isAbs
+    );
+    } catch (CompileError err) { throw err.parentPos(e.pos()); }
     @SuppressWarnings("preview")
     var nUniqueSigs = sigs.stream()
       .gather(DistinctBy.of(sig->sig.name().withMdf(Optional.empty())))
