@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static program.Program.filterByMdf;
+import static program.TypeTable.filterByMdf;
 import static program.inference.InferBodies.replaceOnlyInfers;
 
 public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {

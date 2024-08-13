@@ -9,8 +9,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.EnumSet.of;
-import static program.Program.isSubType;
 import static id.Mdf.*;
+import static program.typesystem.SubTyping.isSubType;
+
 import id.Mdf;
 
 /** LUB (Least Upper Bound):

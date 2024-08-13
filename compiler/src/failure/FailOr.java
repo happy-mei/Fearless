@@ -3,6 +3,7 @@ package failure;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -11,6 +12,12 @@ public sealed interface FailOr<T>{
   <R> FailOr<R> flatMap(Function<T,FailOr<R>> r);
   <R> FailOr<R> map(Function<T,R> r);
   FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u);
+  default void ifRes(Consumer<T> r) {
+    this.<Void>map(t -> {
+      r.accept(t);
+      return null;
+    });
+  }
   boolean isRes();
   default boolean isErr() { return !this.isRes(); }
   <R> FailOr<R> cast();

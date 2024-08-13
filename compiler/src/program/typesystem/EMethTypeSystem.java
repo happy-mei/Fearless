@@ -10,11 +10,14 @@ import id.Mdf;
 import program.CM;
 import program.Program;
 import program.TypeRename;
+import program.TypeTable;
 import utils.Push;
 import utils.Range;
 
 import java.util.*;
 import java.util.stream.IntStream;
+
+import static program.typesystem.SubTyping.isSubType;
 
 /*//as in the paper
   Ls; Xs';G; empty |- e0 : RC0 D[Ts0]
@@ -90,6 +93,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     resolvedCalls().put(e.callId(), tst);
 
     var multi_ = MultiSigBuilder.multiMethod(
+      p(),
       e.name(),
       xbs(),
       selected.mdf(),//bounds,formalMdf
@@ -121,7 +125,7 @@ public interface EMethTypeSystem extends ETypeSystem {
     Mdf methMdf= cm.mdf();//however, mutH/readH are relaxing the method signature
     if(methMdf.isRead()){ methMdf = Mdf.readH; }//not enriching the parameter type
     if(methMdf.isMut()){ methMdf = Mdf.mutH; }
-    if (!Program.isSubType(mdf0,methMdf)){ return false; }
+    if (!isSubType(mdf0,methMdf)){ return false; }
     if (expectedT().isEmpty()){ return true; }
     //should we consider return types?
     return true;

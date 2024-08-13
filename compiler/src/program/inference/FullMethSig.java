@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static program.Program.filterByMdf;
+import static program.TypeTable.filterByMdf;
 
 record FullMethSig(Id.MethName name, E.Sig sig){
   public static List<FullMethSig> of(Program p, XBs xbs, Mdf recvMdf, List<Id.IT<astFull.T>> its, int depth, Predicate<CM> pred) {

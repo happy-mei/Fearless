@@ -2,6 +2,7 @@ package program.typesystem;
 
 import static id.Mdf.mut;
 import static org.junit.jupiter.api.Assertions.*;
+import static program.typesystem.SubTyping.isSubType;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -41,8 +42,8 @@ class TestLubGlb {
   Mdf mostGeneral(Set<Mdf> options){
     return mostSpecGen(options,this::mostGenWin,false);
   }
-  boolean mostSpecWin(Mdf mi, Mdf mj){ return program.Program.isSubType(mi, mj); }
-  boolean mostGenWin(Mdf mi, Mdf mj){ return program.Program.isSubType(mj, mi); }
+  boolean mostSpecWin(Mdf mi, Mdf mj){ return isSubType(mi, mj); }
+  boolean mostGenWin(Mdf mi, Mdf mj){ return isSubType(mj, mi); }
   Mdf mostSpecGen(Set<Mdf> options, BiPredicate<Mdf,Mdf> test, boolean max){
     assert !options.isEmpty();
     List<Mdf> res= new ArrayList<>(Stream.of(Mdf.values())

@@ -14,27 +14,35 @@ import wellFormedness.WellFormednessFullShortCircuitVisitor;
 import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static id.Mdf.*;
 
 public class TestKindingJudgement {
   private static void ok(XBs xbs, String t, Set<Mdf> expected, String... content) {
     var fullT = new Parser(Parser.dummy, t).parseFullT();
     var coreT = fullT.toAstT();
     var p = toProgram(content);
-    var inferred = coreT.accept(new KindingJudgement(p, xbs, expected)).get();
-    Assertions.assertEquals(expected, inferred);
+    var actualFull = coreT.accept(new KindingJudgement(p, xbs, expected, false)).get();
+    Assertions.assertTrue(actualFull.stream().anyMatch(rcs->rcs.equals(expected)));
+    var actualCheckOnly = coreT.accept(new KindingJudgement(p, xbs, expected, true)).get();
+    Assertions.assertTrue(actualCheckOnly.stream().anyMatch(rcs->rcs.equals(expected)));
+  }
+  private static void extract(XBs xbs, String t, Set<Set<Mdf>> expected, String... content) {
+    var fullT = new Parser(Parser.dummy, t).parseFullT();
+    var coreT = fullT.toAstT();
+    var p = toProgram(content);
+    var actual = new HashSet<>(coreT.accept(new KindingJudgement(p, xbs, false)).get());
+    Assertions.assertEquals(expected, actual);
   }
   private static void fail(String expectedErr, XBs xbs, String t, Set<Mdf> expected, String... content) {
     var fullT = new Parser(Parser.dummy, t).parseFullT();
     var coreT = fullT.toAstT();
     var p = toProgram(content);
     try {
-      coreT.accept(new KindingJudgement(p, xbs, expected)).get();
+      coreT.accept(new KindingJudgement(p, xbs, expected, false)).get();
       Assertions.fail("Did not fail!\n");
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());
@@ -53,6 +61,48 @@ public class TestKindingJudgement {
     return inferred;
   }
 
+  @Test void extractMut() {extract(
+    XBs.empty(),
+    "mut X",
+    Set.of(
+      Set.of(mut),
+      Set.of(iso, mut),
+      Set.of(mut, read),
+      Set.of(readH, mut),
+      Set.of(mutH, mut),
+      Set.of(mut, imm),
+      Set.of(mutH, readH, mut),
+      Set.of(mutH, mut, imm),
+      Set.of(mutH, iso, mut),
+      Set.of(mut, read, imm),
+      Set.of(readH, mut, read),
+      Set.of(iso, mut, imm),
+      Set.of(iso, readH, mut),
+      Set.of(mutH, mut, read),
+      Set.of(iso, mut, read),
+      Set.of(readH, mut, imm),
+      Set.of(readH, mut, read, imm),
+      Set.of(mutH, iso, readH, mut),
+      Set.of(iso, mut, read, imm),
+      Set.of(mutH, readH, mut, read),
+      Set.of(mutH, mut, read, imm),
+      Set.of(iso, readH, mut, imm),
+      Set.of(mutH, iso, mut, read),
+      Set.of(iso, readH, mut, read),
+      Set.of(mutH, readH, mut, imm),
+      Set.of(mutH, iso, mut, imm),
+      Set.of(mutH, iso, readH, mut, read),
+      Set.of(iso, readH, mut, read, imm),
+      Set.of(mutH, readH, mut, read, imm),
+      Set.of(mutH, iso, readH, mut, imm),
+      Set.of(mutH, iso, mut, read, imm),
+      Set.of(mutH, iso, readH, mut, read, imm)
+    ));}
+  @Test void isMut() {ok(
+    XBs.empty(),
+    "mut X",
+    Set.of(Mdf.mut)
+  );}
   @Test void mutSubsumption() {ok(
     XBs.empty(),
     "mut X",

@@ -21,7 +21,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static program.Program.filterByMdf;
+import static program.TypeTable.filterByMdf;
+
 
 interface ELambdaTypeSystem extends ETypeSystem{
   default FailOr<T> visitLambda(E.Lambda b){
@@ -72,7 +73,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
   private FailOr<Void> sigOk(Sig sig,Optional<Pos> p){
     var ts= Stream.concat(sig.ts().stream(),Stream.of(sig.ret()));
     var badBounds= ts
-      .map(t->t.accept(new KindingJudgement(p(), xbs())))
+      .map(t->t.accept(new KindingJudgement(p(), xbs(), true)))
       .filter(FailOr::isErr)
       .<FailOr<Void>>map(FailOr::cast)
       .map(res->res.mapErr(err->()->err.get().pos(p)))

@@ -7,6 +7,7 @@ import id.Id;
 import id.Id.GX;
 import id.Mdf;
 import program.Program;
+import program.TypeTable;
 import utils.Range;
 
 import java.util.ArrayList;
@@ -15,7 +16,10 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
+import static program.typesystem.SubTyping.isSubType;
+
 record MultiSigBuilder(
+    SubTyping subTyping,
     Mdf mdf0,//actual receiver modifier
     List<T> expectedRes,
     Mdf formalRecMdf,
@@ -27,8 +31,9 @@ record MultiSigBuilder(
     ArrayList<T> rets, //return types
     ArrayList<String> kinds//debug info about applied promotion
     ){
-  static FailOr<MultiSig> multiMethod(Id.MethName name, XBs bounds, Mdf formalMdf, List<T> formalTs, T formalRet, Mdf mdf0, List<T> expectedRes){
+  static FailOr<MultiSig> multiMethod(SubTyping subTyping, Id.MethName name, XBs bounds, Mdf formalMdf, List<T> formalTs, T formalRet, Mdf mdf0, List<T> expectedRes){
     var res= new MultiSigBuilder(
+      subTyping,
       mdf0,expectedRes,formalMdf,formalTs,formalRet,
       formalTs.size(),
       bounds,
@@ -55,7 +60,7 @@ record MultiSigBuilder(
   }
   boolean filterMdf(Function<Mdf,Mdf> f) {    
     Mdf limit= f.apply(formalRecMdf());
-    return program.Program.isSubType(mdf0, limit);
+    return isSubType(mdf0, limit);
   }
   boolean filterExpectedRes(T resToAdd){
     if(expectedRes.isEmpty()){ return true; }
@@ -65,10 +70,10 @@ record MultiSigBuilder(
   }
   boolean mdfSubtypeWithBounds(Mdf expectedMdf, T resToAdd){
     if(!resToAdd.isGX()) { 
-      return Program.isSubType(resToAdd.mdf(),expectedMdf);
+      return isSubType(resToAdd.mdf(),expectedMdf);
     }
     T other= resToAdd.withMdf(expectedMdf);
-    return Program.isSubTypeGX(bounds,resToAdd,other);
+    return subTyping.isSubType(bounds,resToAdd,other);
   }
 
   void fillBase(){ fillProm("Base",m->m); }
