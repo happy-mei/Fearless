@@ -104,15 +104,4 @@ public interface SubTyping extends TypeTable {
       case mdf,recMdf,readImm -> throw Bug.unreachable();
     };
   }
-//  static boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
-//    if(m1 == m2){ return true; }
-//    if (m2.is(Mdf.readH)) { return true; }
-//    return switch(m1){
-//      case mut -> m2.is(Mdf.mutH, Mdf.read);
-//      case imm -> m2.is(Mdf.read, Mdf.readImm);
-//      case readImm -> m2.is(Mdf.read);
-//      case iso -> true;
-//      case readH, mdf, recMdf, read, mutH -> false;
-//    };
-//  }
 }

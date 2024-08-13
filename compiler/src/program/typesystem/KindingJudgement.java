@@ -86,7 +86,6 @@ public record KindingJudgement(TypeTable p, XBs xbs, Set<Mdf> expected, boolean 
      * ∆ |- mut X : imm,read
      * does not hold
      */
-
     if (!visited.add(actual)) {
       return FailOr.res(Set.of());
     }
@@ -101,10 +100,8 @@ public record KindingJudgement(TypeTable p, XBs xbs, Set<Mdf> expected, boolean 
     for (var rc : untested) {
       var expandedActual = new HashSet<>(actual);
       expandedActual.add(rc);
-      holdsAux(Collections.unmodifiableSet(expandedActual), typeName, visited).ifRes(rcs->{
-        holdsFor.addAll(rcs);
-        holdsFor.add(expandedActual);
-      });
+      holdsAux(Collections.unmodifiableSet(expandedActual), typeName, visited)
+        .ifRes(holdsFor::addAll);
     }
 
     return FailOr.res(Collections.unmodifiableSet(holdsFor));
