@@ -59,7 +59,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
   }
 
   public MIR.Program visitProgram() {
-    var pkgs = p.ds().values().stream()
+    var pkgs = p.ds().values().parallelStream()
       .collect(Collectors.groupingBy(t->t.name().pkg()))
       .entrySet().stream()
       //.filter(kv->!cached.contains(kv.getKey()))//uncomment when cached TODO is sorted

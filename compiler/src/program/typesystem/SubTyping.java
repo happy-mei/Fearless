@@ -41,35 +41,22 @@ public interface SubTyping extends TypeTable {
 
   default boolean isSubTypeAux(XBs xbs, T t1, T t2) {//t1<=t2
     if (t1.equals(t2)) { return true; }
+    if (t1.isMdfX() && t2.mdf().isReadImm()) { return true; }
     if (isRCSub(xbs, t1, t2)) { return true; }
-    if (isTransitiveSubType(xbs, t1, t2)) { return true; }
-    if (t1.isMdfX() && t2.mdf().isReadImm()) {
-      return true;
-    }
-    return false;
-//    if (t1.equals(t2)) { return true; }
-//    if (t1.isGX() && t2.isGX()){ return isSubTypeGX(xbs, t1, t2); }
-//    if (t1.isGX()!=t2.isGX()){ return false; }
-//    if(!isSubType(t1.mdf(), t2.mdf())){ return false; }
-//    return Stream.of(t1.mdf(), t2.mdf()).distinct().anyMatch(mdf->{
-//      T t1_ = t1.withMdf(mdf); T t2_ = t2.withMdf(mdf);
-//      if(t1_.rt().equals(t2_.rt())){ return true; }
-//      if(!t1_.isIt() || !t2_.isIt()){ return false; }
-//
-//      if (isTransitiveSubType(xbs, t1_, t2_)) { return true; }
-//
-//      if (t1_.mdf() != t2_.mdf()) { return false; }
-//      if (t1_.itOrThrow().name().equals(t2_.itOrThrow().name())) {
-//        return isAdaptSubType(xbs, t1_, t2_);
-//      }
-//      return false;
-//    });
+    return isTransitiveSubType(xbs, t1, t2);
   }
 
   default boolean isRCSub(XBs xbs, T t1, T t2) {
     if (!t1.withMdf(Mdf.mut).equals(t2.withMdf(Mdf.mut))) {
       return false;
     }
+
+    // A cheap perf-hack that's not in the formalism that we can
+    // do for RC partial type <= RC' same partial type
+    if (t1.mdf().isSyntaxMdf() && t2.mdf().isSyntaxMdf()) {
+      return isSubType(t1.mdf(), t2.mdf());
+    }
+
     var rcs1 = t1.accept(new KindingJudgement(this, xbs, false)).get();
     var rcs2 = t2.accept(new KindingJudgement(this, xbs, false)).get();
     return isSubType(rcs1, rcs2);

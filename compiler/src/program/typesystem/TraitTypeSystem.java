@@ -21,7 +21,7 @@ public interface TraitTypeSystem {
   static List<Supplier<CompileError>> dsOk(TypeSystemFeatures tsf, Collection<Dec> ds, ConcurrentHashMap<Long, TsT> resolvedCalls){
     Map<Id.DecId, Dec> pDs = Mapper.of(c->ds.forEach(e->c.put(e.name(),e)));
     TraitTypeSystem ttt = ()->new Program(tsf, pDs, Map.of());
-    return ds.stream()
+    return ds.parallelStream()
       .flatMap(di->ttt.dOk(di, resolvedCalls).stream())
       .map(errorSupplier->
         (Supplier<CompileError>)()->TypingAndInferenceErrors.fromMethodError(ttt.p(), errorSupplier.get()))
