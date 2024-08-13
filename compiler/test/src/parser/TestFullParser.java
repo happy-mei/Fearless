@@ -376,7 +376,7 @@ class TestFullParser {
       name=base.Ref/1,
       gxs=[X],
       lambda=[-infer-][base.NoMutHyg[X],base.Sealed[]]{
-        */0([]):Sig[gens=[],ts=[],ret=recMdfX]->[-],
+        */0([]):Sig[gens=[],ts=[],ret=read/immX]->[-],
         .swap/1([x]):Sig[gens=[],ts=[X],ret=X]->[-],
         :=/1([x]):Sig[gens=[],ts=[X],ret=imm base.Void[]]->
           [-imm base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
@@ -400,7 +400,7 @@ class TestFullParser {
     Let[V,R]:{ .var: V, .in(v:V): R }
     Ref:{ #[X](x: X): mut Ref[X] -> this#(x) }
     Ref[X]:NoMutHyg[X],Sealed{
-      read * : recMdf X,
+      read * : read/imm X,
       mut .swap(x: X): X,
       mut :=(x: X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
       mut <-(f: UpdateRef[X]): X -> this.swap(f#(this*)),

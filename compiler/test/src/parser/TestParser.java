@@ -142,7 +142,6 @@ class TestParser {
   @Test void explicitMdfLambdaMut(){ ok("[-mut pkg1.L[]-][pkg1.L[]]{}", "mut pkg1.L{}"); }
   @Test void explicitMdfLambdaRead(){ ok("[-read pkg1.L[]-][pkg1.L[]]{}", "read pkg1.L{}"); }
   @Test void explicitMdfLambdaLent(){ ok("[-mutH pkg1.L[]-][pkg1.L[]]{}", "mutH pkg1.L{}"); }
-  @Test void explicitMdfLambdaRecMdf(){ ok("[-recMdf pkg1.L[]-][pkg1.L[]]{}", "recMdf pkg1.L{}"); }
   @Test void explicitMdfLambdaMdf(){ fail("""
     [E11 invalidMdf]
     The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type pkg1.L[]
