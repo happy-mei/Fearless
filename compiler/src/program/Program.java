@@ -11,6 +11,7 @@ import id.Normaliser;
 import id.Refresher;
 import program.typesystem.ETypeSystem;
 import program.typesystem.Gamma;
+import program.typesystem.SubTyping;
 import program.typesystem.XBs;
 import utils.*;
 import visitors.CloneVisitor;
@@ -20,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public interface Program {
+public interface Program extends SubTyping {
   Id.Dec of(Id.DecId dec);
   boolean isInlineDec(Id.DecId d);
   List<Id.IT<T>> itsOf(Id.IT<T> t);
@@ -56,7 +57,6 @@ public interface Program {
     }
   record SubTypeQuery(XBs xbs, T t1, T t2){}
   enum SubTypeResult { Yes, No, Adapting, Unknown }
-  HashMap<SubTypeQuery, SubTypeResult> subTypeCache();
   default boolean tryIsSubType(XBs xbs, T t1, T t2) {
     try {
       return isSubType(xbs, t1, t2);
