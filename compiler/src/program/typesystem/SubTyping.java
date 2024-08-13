@@ -2,6 +2,7 @@ package program.typesystem;
 
 import ast.T;
 import failure.CompileError;
+import id.Id;
 import id.Mdf;
 import program.TypeTable;
 import utils.Bug;
@@ -83,10 +84,12 @@ public interface SubTyping extends TypeTable {
   }
 
   default boolean isTransitiveSubType(XBs xbs, T t1, T t3) {
-    var mdf = t1.mdf();
-    if (mdf != t3.mdf()) { return false; }
-    return itsOf(t1.itOrThrow()).stream()
-      .anyMatch(t2->isSubType(xbs, new T(mdf, t2), t3));
+    // RC-Sub handles transitivity already for generics, so we can combine this with (Inst-Sub) too.
+    if (!(t1.rt() instanceof Id.IT<T> it1) || !(t3.rt() instanceof Id.IT<T>)) {
+      return false;
+    }
+    return itsOf(it1).stream()
+      .anyMatch(t2->isSubType(xbs, new T(t1.mdf(), t2), t3));
   }
 
   static boolean isSubType(Mdf m1, Mdf m2) { //m1<m2
