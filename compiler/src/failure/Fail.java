@@ -103,6 +103,7 @@ public class Fail{
     return of(String.format("The trait %s could not be found.", d));
   }
   public static CompileError inferFailed(String e){ return of(String.format("Could not infer the type for the following expression:\n%s", e)); }
+  public static CompileError inferImplementsFailed(String e){ return of(String.format("Could not infer the types this literal implements. Attempted to infer this list of types:\n%s", e)); }
 
   public static CompileError methTypeError(ast.T expected, ast.T actual, Id.MethName m){
     var msg = "Expected the method "+m+" to return "+expected+", got "+actual+".";
@@ -410,7 +411,8 @@ enum ErrorCode {
   noMethOnX,
   invalidMethodArgumentTypes,
   crossPackageDeclaration,
-  genericMismatch;
+  genericMismatch,
+  inferImplementsFailed;
   private static final ErrorCode[] values = values();
   int code() {
     return this.ordinal() + 1;
