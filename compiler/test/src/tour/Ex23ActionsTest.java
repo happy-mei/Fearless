@@ -1,15 +1,31 @@
 package tour;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import utils.Base;
+import utils.RunOutput.Res;
 
 import static tour.TourHelper.run;
+import static codegen.java.RunJavaProgramTests.*;
 
 public class Ex23ActionsTest {
+  @Test void lazyAction() {ok(new Res("hi\nyes hi", "", 0), """
+    package test
+    alias base.Action as Action,
+    
+    Test: Main{sys -> Block#
+      .do {sys.io.println("hi")}
+      .do {Block#(Actions.lazy{sys.io.println("no hi")})}
+      .do {Actions.lazy{sys.io.println("yes hi")}!}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+
   /* Method `Str.int` can be used to convert the string into an integer.
 It returns a `mut Action[Int]`.
 Actions are used to enforce that we check for an error condition.
 Action is declared as follows in the standard library:
--------------------------*/@Test void action() { run("""
+-------------------------*/@Disabled @Test void action() { run("""
   //sholuld a mut Action cache the result?
   MF[A,R]:{ mut #(a:A):R }
   Actions:{

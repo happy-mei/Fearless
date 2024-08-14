@@ -106,7 +106,7 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var res  = sig.withRet(best);
     // TODO: poorly written programs can fail this assertion, should throw a CompileError instead.
     assert res.ret().equals(ret)
-      || ret.isInfer() || ret.rt() instanceof Id.IT<?> : res.ret()+" vs. "+ret;
+      || ret.isInfer() || ret.rt() instanceof Id.IT<?> : res.ret()+" vs. "+ret+" at "+sig.pos();
     return res;
   }
   List<E> fixSig(List<E> ies, List<T> iTs) {

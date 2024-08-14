@@ -32,7 +32,7 @@ The method `!` of Action gets the string out (in the positive case),
 or throws an error in the case the file could not be read.
 A programmer expert in Java or python would have probably expected
 file.read to either return the string or throw the error.
-Returning an Action object allows to provide an uniform API
+Returning an Action object allows to provide a uniform API
 to handle operations that can fail in recoverable ways,
 that is, where the failure is not an observed bug.
 -------------------------*/@Disabled /*TODO: unimplemented lib code*/ @Test void fsWriteHello() { run("""
