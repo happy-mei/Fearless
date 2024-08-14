@@ -1,6 +1,6 @@
 package base
 
-Collection:{
+Collection: {
   read .size: Nat,
   read .isEmpty: Bool,
   // I might make this generic and have a .iter method on this

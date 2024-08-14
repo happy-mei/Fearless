@@ -1383,4 +1383,31 @@ public class TestJavaProgram {
     MyNames: {#: MyName -> MyName: "Nick", 123, Foo{}}
     Foo: {}
     """, Base.mutBaseAliases);}
+
+  @Test void testHash() {ok(new Res("115\n18446744072677519477\n18446744072677519477\n396592873", "", 0), """
+    package test
+    alias base.CheapHash as H,
+    Custom: ToHash{
+      .hash(h) -> h
+        .nat 5
+        .int +5
+        .float 5.0
+        .str "5"
+      }
+    
+    Test: Main{sys -> Block#
+      .let io = {sys.io}
+      .let h = {mut H}
+      .let _ = {h.nat 5}
+      .let _ = {h.int +5}
+      .let _ = {h.float 5.0}
+      .let _ = {h.str "5"}
+      .do {io.println("5".hash(mut H).compute.str)}
+      .do {io.println(h.compute.str)}
+      .do {io.println(Custom.hash(mut H).compute.str)}
+      .let _ = {Custom.hash(h)}
+      .do{io.println(h.compute.str)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
 }

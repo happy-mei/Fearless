@@ -223,6 +223,10 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
     return null;
   }
 
+  @Override public MagicTrait<MIR.E, Res> cheapHash(MIR.E e) {
+    throw Bug.todo();
+  }
+
   @Override public MagicCallable<MIR.E, Res> variantCall(MIR.E e) {
     return null;
   }

@@ -141,5 +141,6 @@ public interface Base {
     alias base.Debug as Debug,
     
     alias base.Actions as Actions,
+    alias base.ToHash as ToHash,
     """;
 }

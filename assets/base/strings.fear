@@ -1,5 +1,5 @@
 package base
-Str: Sealed,Stringable,base.flows.Joinable[Str]{
+Str: Sealed,Stringable,base.flows.Joinable[Str],ToHash{
   .size: Nat,
   .isEmpty: Bool,
   +(other: read Stringable): Str,
@@ -44,6 +44,7 @@ _StrInstance: Str{
   .join(_) -> Magic!,
   ._flow -> Magic!,
   ._flow(_,_) -> Magic!,
+  .hash -> Magic!,
   }
 
 _StrHelpers: {

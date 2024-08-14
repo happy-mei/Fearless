@@ -23,6 +23,7 @@ public class Magic {
   public static final Id.DecId Str = new Id.DecId("base.Str", 0);
   public static final Id.DecId AsciiStr = new Id.DecId("base.AsciiStr", 0);
   public static final Id.DecId Debug = new Id.DecId("base.Debug", 0);
+  public static final Id.DecId CheapHash = new Id.DecId("base.CheapHash", 0);
 
   public static final Id.DecId BlockK = new Id.DecId("base.Block", 0);
   public static final Id.DecId Block = new Id.DecId("base.Block", 1);

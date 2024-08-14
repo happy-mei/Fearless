@@ -82,4 +82,8 @@ public record MagicImpls(JsCodegen gen, ast.Program p) implements magic.MagicImp
   @Override public MagicTrait<MIR.E, String> assert_(MIR.E e) {
     return null;
   }
+
+  @Override public MagicTrait<MIR.E, String> cheapHash(MIR.E e) {
+    throw Bug.todo();
+  }
 }

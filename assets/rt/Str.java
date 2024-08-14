@@ -139,6 +139,11 @@ public interface Str extends base.Str_0 {
 		};
 	}
 
+	@Override default base.Hasher_0 hash$read(base.Hasher_0 hasher) {
+		hasher.str$mut(this);
+		return hasher;
+	}
+
 	final class SubStr implements Str {
 		private int[] GRAPHEMES;
 		private final byte[] UTF8;
