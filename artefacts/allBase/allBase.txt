@@ -1,248 +1,3 @@
-//---File assertions.fear
-package base
-
-Assert:Sealed{
-  !(assertion: Bool): Void -> this!(assertion, { Void }),
-  ![R](assertion: Bool, cont: mut AssertCont[R]): R -> assertion ? {
-    .then -> cont#,
-    .else -> this._fail
-    },
-  ![R](assertion: Bool, msg: Str, cont: mut AssertCont[R]): R -> assertion ? {
-      .then -> cont#,
-      .else -> this._fail(msg)
-      },
-  ._fail[R]: R -> Magic!,
-  ._fail[R](msg: Str): R -> Magic!,
-  }
-AssertCont[R]:{ mut #: R }
-
-//---File blocks.fear
-package base
-
-ReturnStmt[R]: {mut #: R}
-Condition: ReturnStmt[Bool]
-LoopBody[R]: ReturnStmt[mut ControlFlow[R]]
-Continuation[T,C,R]: {mut #(x: T, self: C): R}
-ControlFlow: {
-  .continue: mut ControlFlow[Void] -> mut ControlFlowContinue: ControlFlow[Void]{m -> m.continue},
-  .break: mut ControlFlow[Void] -> mut ControlFlowBreak: ControlFlow[Void]{m -> m.break},
-  .continueWith[T]: mut ControlFlow[T] ->  mut ControlFlowContinue[T]: ControlFlow[T]{m -> m.continue},
-  .breakWith[T]: mut ControlFlow[T] -> mut ControlFlowBreak[T]: ControlFlow[T]{m -> m.break},
-  .return[T](returnValue: T): mut ControlFlow[T] -> mut ControlFlowReturn[T]: ControlFlow[T]{
-    .match(m) -> m.return(returnValue),
-    mut .value: T -> returnValue,
-    },
-  }
-ControlFlow[T]: {
-  mut .match[R](m: mut ControlFlowMatch[T,R]): R,
-  }
-ControlFlowMatch[T,R]: {
-  mut .continue: R,
-  mut .break: R,
-  mut .return(returnValue: T): R,
-  }
-
-Block: Sealed{
-  #[R]: mut Block[R] -> {},
-  #[X:read,mut,imm,iso,readOnly,lent](x: X): Void -> this#(x, Void),
-  #[X:read,mut,imm,iso,readOnly,lent, R:read,mut,imm,iso,readOnly,lent](_: X, res: R): R -> res,
-  #[X1:read,mut,imm,iso,readOnly,lent, X2:read,mut,imm,iso,readOnly,lent, R:read,mut,imm,iso,readOnly,lent](_: X1, _: X2, res: R): R -> res,
-  #[X1:read,mut,imm,iso,readOnly,lent, X2:read,mut,imm,iso,readOnly,lent, X3:read,mut,imm,iso,readOnly,lent, R:read,mut,imm,iso,readOnly,lent](_: X1, _: X2, _: X3, res: R): R -> res,
-  #[X1:read,mut,imm,iso,readOnly,lent, X2:read,mut,imm,iso,readOnly,lent, X3:read,mut,imm,iso,readOnly,lent, X4:read,mut,imm,iso,readOnly,lent, R:read,mut,imm,iso,readOnly,lent](_: X1, _: X2, _: X3, _: X4, res: R): R -> res,
-  }
-Block[R]: Sealed{
-  mut .done: Void -> {},
-  mut .return(a: mut ReturnStmt[R]): R -> a#,
-  mut .do(r: mut ReturnStmt[Void]): mut Block[R] -> this._do(r#),
-    mut ._do(v: Void): mut Block[R] -> this,
-  mut .assert(p: mut Condition): mut Block[R] -> Assert!(p#, mut AssertCont[mut Block[R]]{this}),
-  mut .assert(p: mut Condition, failMsg: Str): mut Block[R] ->
-    Assert!(p#, failMsg, mut AssertCont[mut Block[R]]{this}),
-  mut .let[X](x: mut ReturnStmt[X], cont: mut Continuation[X, mut Block[R], R]): R -> cont#(x#, this),
-  mut .letIso[X:iso](x: X, cont: mut Continuation[mut X, mut Block[R], R]): R -> cont#(x, this),
-  mut .var[X](x: mut ReturnStmt[X], cont: mut Continuation[mut Var[X], mut Block[R], R]): R -> cont#(Var#(x#), this),
-  mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond
-    .then -> { 't
-      .return(a) -> _DecidedBlock#(a#),
-      .error(info) -> Error!(info#),
-      .do(r) -> t._do[](r#),
-        mut ._do(v: Void): mut Block[R] -> this,
-      },
-    .else -> { 'f
-      .return(_) -> this,
-      .do(_) -> this,
-      .error(_) -> this,
-      },
-    },
-  mut .loop(body: mut LoopBody[R]): mut Block[R] -> body#.match{
-    .continue -> this.loop(body),
-    .break -> this,
-    .return(rv) -> _DecidedBlock#rv,
-    },
-  }
-BlockIf[R]:{
-  mut .return(a: mut ReturnStmt[R]): mut Block[R],
-  mut .do(r: mut ReturnStmt[Void]): mut Block[R],
-  mut .error(info: mut ReturnStmt[Info]): mut Block[R],
-  }
-_DecidedBlock:{
-  #[R](res: R): mut Block[R] -> { 'self
-    .return(_) -> res,
-    .do(_) -> self,
-    .let(_, _) -> res,
-    }
-  }
-
-//---File bools.fear
-package base
-Bool: Sealed,Stringable,ToImm[Bool]{
-  .and(b: Bool): Bool,
-  &&(b: Bool): Bool -> this.and(b),
-  .or(b: Bool): Bool,
-  ||(b: Bool): Bool -> this.or(b),
-  .not: Bool,
-  .if[R:read,mut,imm,iso](f: mut ThenElse[R]): R,
-  ?[R:read,mut,imm,iso](f: mut ThenElse[R]): R -> this.if(f),
-  }
-True: Bool{ .and(b) -> b, .or(b) -> this, .not -> False, .if(f) -> f.then(), .str -> "True", .toImm -> True }
-False: Bool{ .and(b) -> this, .or(b) -> b, .not -> True, .if(f) -> f.else(), .str -> "False", .toImm -> False }
-ThenElse[R:read,mut,imm,iso]: { mut .then: R, mut .else: R, }
-
-//---File caps\capabilities.fear
-package base.caps
-
-System:Sealed{
-  mut .clone: iso System -> { _System },
-  ._preventCreation: _System,
-  }
-_System:Sealed,System{ _System }
-
-//---File caps\env.fear
-package base.caps
-
-Env:{
-  mut .launchArgs: base.LList[Str],
-  }
-
-FEnv:F[mut System, mut Env],Sealed{
-  #(s) -> {
-    .launchArgs -> Magic!
-    },
-  .io(io: mut IO): mut Env -> {
-    .launchArgs -> Magic!
-    }
-  }
-
-//---File caps\io.fear
-package base.caps
-alias base.LList[base.Str] as Path,
-
-IO: {
-  mut .print(msg: Str): Void,
-  mut .println(msg: Str): Void,
-  mut .printErr(msg: Str): Void,
-  mut .printlnErr(msg: Str): Void,
-  }
-UnrestrictedIO:F[mut System, mut IO],Sealed{
-  s -> {
-    .print(msg) -> Magic!,
-    .println(msg) -> Magic!,
-    .printErr(msg) -> Magic!,
-    .printlnErr(msg) -> Magic!,
-    }
-  }
-
-FileHandleMode:Stringable,Sealed{}
-Read:FileHandleMode{ "r" }
-Write:FileHandleMode{ "r+" }
-Create:FileHandleMode{ "w+" }
-
-//---File caps\isopod.fear
-package base.caps
-
-IsoPod:{
-  #[T:imm,iso](val: iso T): mut IsoPod[iso T] -> _MagicIsoPodImpl.toIsoPod[iso T](_MagicIsoPodImpl#[iso T](val)),
-  }
-IsoPod[T:imm,iso]: {
-  readOnly .isAlive: Bool,
-  readOnly .peek[R](f: mut IsoViewer[T, R]): R,
-  mut !: iso T,
-  mut .next(val: iso T): Void,
-  readOnly .isDead: Bool -> this.isAlive.not,
-  mut .consume[R](f: mut IsoConsumer[T, R]): R -> this.isAlive ? { .then -> f.some(this!), .else -> f.empty },
-  mut :=(val: iso T): Void -> this.next(val),
-  mut .mutate(f: F[mut T, Void]): Bool -> this.consume{
-    .some(x) -> Block#(this.next(_IsoMutator#(f, x)), True),
-    .empty -> False,
-    }
-  }
-IsoConsumer[T:imm,iso, R]:{
-  mut .some(x: iso T): R,
-  mut .empty: R,
-  }
-IsoViewer[T:imm,iso, R]:{
-  mut .some(x: readOnly T): R,
-  mut .empty: R,
-  }
-_IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Block#(f#val, val) }
-
-_MagicIsoPodImpl: {
-  #[T:iso](val: iso T): mut _MagicIsoPodImpl[iso T] -> Magic!,
-  .toIsoPod[T:iso](inner: mut _MagicIsoPodImpl[iso T]): mut IsoPod[iso T] -> {
-    readOnly .isAlive: Bool -> inner.isAlive,
-    readOnly .peek[R](f: mut IsoViewer[iso T, R]): R -> inner.peek[R](f),
-    mut !: iso T -> inner!,
-    mut .next(val: iso T): Void -> inner.next(val),
-    },
-  }
-_MagicIsoPodImpl[T:imm,iso]: {
-  readOnly .isAlive: Bool -> Magic!,
-  readOnly .peek[R](f: mut IsoViewer[T, R]): R -> Magic!,
-  mut !: iso T -> Magic!,
-  mut .next(val: iso T): Void -> Magic!,
-  }
-
-
-//---File caps\net.fear
-package base.caps.net
-alias base.Magic as Magic,
-alias base.Sealed as Sealed,
-
-
-//---File caps\pkg.fear
-package base.caps
-alias base.Abort as Abort,
-alias base.Magic as Magic,
-alias base.Void as Void,
-alias base.F as F,
-alias base.Sealed as Sealed,
-alias base.Str as Str,
-alias base.Let as Let,
-alias base.Stringable as Stringable,
-alias base.Bool as Bool, alias base.True as True, alias base.False as False,
-alias base.Block as Block,
-alias base.Nat as Nat,
-alias base.Res as Res,
-alias base.Info as Info,
-
-//---File caps\rng.fear
-package base.caps
-
-RandomSeed: {
-  mut #: Nat,
-  }
-FRandomSeed: F[mut System, mut RandomSeed]{s -> {
-  # -> Magic!
-  }}
-
-//---File caps\tryCatch.fear
-package base.caps
-
-CapTries: F[mut System, mut CapTry]{s -> mut CapTry: {
-  mut #[R](try: mut TryBody[R]): mut Res[R, Info] -> Magic!,
-  }}
-
-TryBody[R]: {mut #: R}
 
 //---File comparisons.fear
 package base
@@ -280,893 +35,61 @@ CompareFloats: F[Float, Float, Ordering]{
     .return {FOrdering.equal}
   }
 
-//---File either.fear
+//---File optionals.fear
 package base
 
-Either[A,B]:{
-  mut  .match[R](m: mut EitherMatch[A, B, R]): R,
-  read .match[R](m: mut EitherMatch[read A, read B, R]): R,
-  imm  .match[R](m: mut EitherMatch[imm A, imm B, R]): R,
+Opts: {
+  #[T](x: T): mut Opt[T] -> {.match(m) -> m.some(x)},
   }
-EitherMatch[A,B,R]:{
-  mut .a(x: A): R,
-  mut .b(x: B): R,
+Opt[T]: _Opt[T]{
+  .match(m) -> m.empty,
+  .map(f)   -> this.match(f),
+  ||(default)     -> this.match{.some(x) -> x, .empty -> default#},
+  |(default)      -> this.match{.some(x) -> x, .empty -> default},
+  !         -> this.match{.some(x) -> x, .empty -> Error.msg "Opt was empty"},
+  .flow     -> this.match{.empty -> Flow#, .some(x) -> Flow#x},
+
+  read .isEmpty: Bool -> this.match{.empty -> True,  .some(_)  -> False},
+  read .isSome: Bool  -> this.match{.empty -> False, .some(_) -> True},
+  imm .imm: Opt[imm T] -> this.match{.empty -> {}, .some(x) -> Opts#x},
   }
+_Opt[T]: Sealed{ // Sealed because potential magic on .flow
+  mut  .match[R:iso,imm,mut,mutH,read,readH](m: mut OptMatch[T, R]): R,
+  read .match[R:iso,imm,mut,mutH,read,readH](m: mut OptMatch[read/imm T, R]): R,
+  imm  .match[R:iso,imm,mut,mutH,read,readH](m: mut OptMatch[imm T, R]): R,
 
-//---File errors.fear
-package base
+  mut  .map[R](f: mut OptMap[T, R]):          mut Opt[R],
+  read .map[R](f: mut OptMap[read/imm T, R]): mut Opt[R],
+  imm  .map[R](f: mut OptMap[imm T, R]):      mut Opt[R],
 
-Error: {
-  ![R:read,mut,imm,iso,lent,readOnly](info: Info): R -> Magic!,
-  .msg[R:read,mut,imm,iso,lent,readOnly](msg: Str): R -> this!{
-    .msg -> msg,
-    .list -> List#,
-    .map -> EmptyMap[Str, Info]
-    }
-  }
+  mut  ||(default: mut MF[T]):          T,
+  read ||(default: mut MF[read/imm T]): read/imm T,
+  imm  ||(default: mut MF[imm T]):      imm T,
 
-Todo: {
-  ![R:read,mut,imm,iso,lent,readOnly]: R -> Error.msg[R] "TODO: Implement this code",
-  ![R:read,mut,imm,iso,lent,readOnly](msg: Str): R -> Error.msg[R]("TODO: "+msg),
-}
+  mut  |(default: T):          T,
+  read |(default: read/imm T): read/imm T,
+  imm  |(default: imm T):      imm T,
 
-Try: {
-  #[R](try: read Try[R]): mut Res[R,Info] -> Magic!,
-  }
-Try[R]:{ read #: R, }
+  mut  !: T,
+  read !: read/imm T,
+  imm  !: imm T,
 
-Info: Sealed,_InfoToJson{
-  .msg: Str,
-  .map: Map[Str, Info],
-  .list: List[Info],
-  .str: Str -> _InfoToJson#this,
-  }
-FInfo: {
-  .msg(msg: Str): Info -> {
-    .msg -> msg,
-    .list -> List#,
-    .map -> EmptyMap[Str, Info],
-    },
-  .list(list: List[Info]): Info -> {
-    .msg -> "",
-    .list -> list,
-    .map -> EmptyMap[Str, Info],
-    },
-  .map(map: Map[Str, Info]): Info -> {
-    .msg -> "",
-    .list -> List#,
-    .map -> map,
-    },
+  mut  .flow: mut Flow[T],
+  read .flow: mut Flow[read/imm T],
+  imm  .flow: mut Flow[imm T],
   }
 
-_InfoToJson: {#(info: Info): Str -> Block#
-  .if {info.msg.isEmpty.not} .return {"\""+(info.msg)+"\""}
-  .if {info.list.isEmpty.not} .return {"["+(this.list(info.list))+"]"}
-  .if {info.map.isEmpty.not} .return {Todo! "Flows over maps are not implemented yet"}
-  .return {Error.msg "Unreachable"},
-
-  .list(l: List[Info]): Str -> l.flow
-    .map{info->this#info}
-    #(Flow.str ","),
-  }
-
-//---File extensions.fear
-package base
-
-Extensible[S]:{
-  mut  .self: mut  S,
-  read .self: read S,
-  imm  .self: imm  S,
-
-  mut  #[R](ext: mut Extension[mut  S, R]): R -> ext#(this.self),
-  read #[R](ext: mut Extension[read S, R]): R -> ext#(this.self),
-  imm  #[R](ext: mut Extension[imm  S, R]): R -> ext#(this.self),
-  }
-Extension[S,R]:{ mut #(self: S): R }
-
-
-//---File flows\converters.fear
-package base.flows
-
-RestrictFlowReuse: {
-  #[E](f: mut FlowOp[E]): mut FlowOp[E] -> Block#
-    .var[Bool] stopped = {False}
-    .return {{
-      .isRunning -> f.isRunning,
-      .stop -> Block#
-        .do {stopped := True}
-        .return {f.stop},
-      .step(downstream) -> stopped.get ? {
-        .then -> Error.msg "This flow cannot be reused.",
-        .else -> f.step(downstream),
-        },
-      .forRemaining(downstream) -> stopped.get ? {
-        .then -> Error.msg "This flow cannot be reused.",
-        .else -> f.forRemaining(downstream),
-        },
-      .isFinite -> f.isFinite,
-      .split -> stopped.get ? {
-        .then -> Error.msg "This flow cannot be reused.",
-        .else -> f.split,
-        },
-      }}
-  }
-
-_MutSourceCollection[E]: {
-  #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#[mut FlowOp[E]]
-    .let[mut Var[mut Opt[mut FlowOp[E]]]] cloned = {Var#[mut Opt[mut FlowOp[E]]]{}}
-    .return{{
-      .isRunning -> this.get(cloned, source).isRunning,
-      .stop -> this.get(cloned, source).stop,
-      .step(downstream) -> this.get(cloned, source).step(downstream),
-      }}),
-  .get(cloned: mut Var[mut Opt[mut FlowOp[E]]], original: mut FlowOp[E]): mut FlowOp[E] -> cloned.get.match{
-     .some(cloned') -> cloned',
-     .empty -> Block#
-       .let[mut List[E]] dup = {Flow.fromOp(original).list}
-       .do {cloned := (Opts#(Block#[mut FlowOp[E]]
-         .let[mut Count[Nat]] cursor = {Count.nat(0)}
-         .return {RestrictFlowReuse#{'self
-           .isRunning -> cursor* < (dup.size),
-           .stop -> cursor := (dup.size),
-           .step(downstream) -> dup.tryGet(cursor++).match{
-             .some(x) -> downstream#x,
-             .empty -> Block#(downstream.stop, self.stop),
-             },
-           }}))}
-       .return{cloned.get!},
-     },
-  }
-
-_FlowConverters: Sealed{
-  .range(start: Int, end: Int): mut Flow[Int] -> _PipelineParallelFlow.fromOp[Int](this.range'(start, end), Opts#((end - start).nat)),
-  .range'(start: Int, end: Int): mut FlowOp[Int] -> Block#
-    .let cursor = {Count.int(start)}
-    .return {RestrictFlowReuse#{'self
-      .isRunning -> cursor* < end,
-      .stop -> cursor := end,
-      .step(downstream) -> Block#
-        .do {downstream#(cursor <- {n -> n + +1})}
-        .if {cursor* >= end} .do {Block#(downstream.stop, self.stop)}
-        .return {{}},
-      .forRemaining(downstream) -> Block#
-        .loop {Block#
-          .if {cursor* >= end} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
-          .do {downstream#(cursor <- {n -> n + +1})}
-          .return {ControlFlow.continue}
-          }
-        .return {{}},
-      }}
-  }
-
-_SafeSource: {
-
-  .fromList[E](list: mut List[E]): mut Flow[E] -> Flow.fromOp[E](this.fromList'[E](list), list.size),
-  .fromList'[E](list: mut List[E]): mut FlowOp[E] -> Block#
-    .let[mut Count[Nat]] cursor = {Count.nat(0)}
-    .return {RestrictFlowReuse#{'self
-      .isRunning -> cursor* < (list.size),
-      .stop -> cursor := (list.size),
-      .step(downstream) -> list.tryGet(cursor++).match{
-        .some(x) -> Block#
-          .do {downstream#x}
-          .if {cursor.get >= (list.size)} .do {Block#(downstream.stop, self.stop)}
-          .return {{}},
-        .empty -> Block#(downstream.stop, self.stop),
-        },
-      }},
-  }
-
-//---File flows\flowLet.fear
-package base.flows
-
-_LazyFlowDuplicators: {
-  #[E](flow: mut Flow[E]): mut _LazyFlowDuplicator[E] -> Block#
-    .var[mut Opt[mut List[E]]] collected = {mut Opt[mut List[E]]}
-    .return {_LazyFlowDuplicator[E]: MF[mut Flow[E]]{
-      # -> collected.get.match{
-        .some(collected') -> collected'.flow,
-        .empty -> Block#
-          .let collected' = {flow.list}
-          .do {collected := (Opts#collected')}
-          .return {collected'.flow}
-        },
-      mut .collected: mut Opt[mut List[E]] -> collected*,
-      }}
-  }
-
-//---File flows\flows.fear
-package base.flows
-alias base.Todo as Todo,
-
-Flow: Sealed, _FlowExtensions, _FlowConverters{
-  #[E]: mut Flow[E] -> mut EmptyFlow[E],
-  #[E](e: E): mut Flow[E] -> _SeqFlow#[E](e),
-  #[E](e1: E, e2: E): mut Flow[E] -> List#(e1, e2).flow,
-  #[E](e1: E, e2: E, e3: E): mut Flow[E] -> List#(e1, e2, e3).flow,
-  #[E](e1: E, e2: E, e3: E, e4: E): mut Flow[E] -> List#(e1, e2, e3, e4).flow,
-
-  .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> _SeqFlow.fromOp(source, {}),
-  .fromOp[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _SeqFlow.fromOp(source, Opts#size),
-
-  .fromMutSource[E](source: mut FlowOp[E]): mut Flow[E] -> _MutSourceCollection[E]#source,
-  .fromMutSource[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _MutSourceCollection[E]#source,
-  }
-
-Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
-  .self -> this,
-  mut .let[DR,R](x: read F[mut MF[mut Flow[E]],DR], cont: mut Continuation[DR,mut Flow[E],R]): R -> Block#
-    .let duplicator = {_LazyFlowDuplicators#this}
-    .let splitResult = {x#duplicator}
-    .let[mut Flow[E]] selfFlow = {duplicator.collected.match{
-      .some(collected) -> collected.flow,
-      .empty -> this,
-      }}
-    .return {cont#(splitResult, selfFlow)},
-  mut .unwrapOp(unwrap: mut _UnwrapFlowToken): mut FlowOp[E],
-  }
-_UnwrapFlowToken: {}
-
-_NonTerminalOps[E]: {
-  mut .filter(predicate: read F[E, Bool]): mut Flow[E],
-  mut .map[R](f: read F[E, R]): mut Flow[R],
-  mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R],
-
-  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R],
-  mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R],
-
-  mut .limit(n: Nat): mut Flow[E],
-
-  mut .scan[S:imm](acc: imm S, f: read F[S,E,S]): mut Flow[imm S] -> this.actor[mut Var[imm S], imm S](Var#[imm S]acc, {downstream, acc', e -> Block#(
-    acc' := (f#(acc'.get, e)),
-    downstream#(acc'.get),
-    ActorRes.continue
-    )}),
-  }
-_TerminalOps[E]: Sealed{
-  mut .first: mut Opt[E],
-  mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],
-  mut .find(predicate: read F[E, Bool]): mut Opt[E],
-  mut .any(predicate: read F[E, Bool]): Bool,
-  mut .all(predicate: read F[E, Bool]): Bool,
-  mut .fold[S](acc: S, f: read F[S,E,S]): S,
-  mut .fold[S](acc: S, f: read F[S,E,S], combine: read F[S, S, S]): S,
-  mut .size: Nat,
-
-  mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
-  mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> Block#(acc.add(e), acc)}),
-  mut .max(compare: read F[E, E, Ordering]): mut Opt[E] -> this.fold[mut Opt[E]]({}, {max, b -> max.match{
-    .empty -> Opts#b,
-    .some(a) -> compare#(a, b).match{
-      .less -> Opts#b,
-      .equal -> max,
-      .greater -> max,
-      }
-    }}, {a, b -> a.match{
-      .empty -> b,
-      .some(a') -> b.match{
-        .empty -> a,
-        .some(b') -> compare#(a', b').match{
-          .less -> b,
-          .equal -> a,
-          .greater -> a,
-          }
-        }
-      }})
-  }
-
-_FlowExtensions: {
-  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold[Str]("", {acc, str -> acc.size == 0 ? {
-    .then -> acc + str,
-    .else -> acc + separator + str,
-    }})},
-
-  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int](+0, {acc, e -> acc + e})},
-  .uSum: mut Extension[mut Flow[Nat], Nat] -> {flow -> flow.fold[Nat](0, {acc, e -> acc + e})},
-  .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> flow.fold[Float](0.0, {acc, e -> acc + e})},
-  }
-
-EmptyFlow[E]: Flow[E]{
-  .filter(p) -> this,
-  mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
-  mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R] -> mut EmptyFlow[R],
-  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] -> mut EmptyFlow[imm R],
-  mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] -> mut EmptyFlow[R],
-  .limit(_) -> this,
-  .first -> {},
-  .findMap(_) -> {},
-  .find(_) -> {},
-  .any(p) -> False,
-  .all(p) -> False,
-  .fold(acc, _) -> acc,
-  .fold(acc, _, _) -> acc,
-  .size -> 0,
-  .unwrapOp(_) -> {
-    .step(_) -> {},
-    .stop -> {},
-    .isRunning -> False,
-    },
-  }
-
-TerminalOnInfiniteError: { #: Info -> FInfo.msg "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5) to bound the flow." }
-
-//---File flows\operators.fear
-package base.flows
-
-
-FlowOp[E]: {
-  mut .step(sink: mut _Sink[E]): Void,
-  mut .stop: Void,
-  mut .isRunning: Bool,
-  mut .forRemaining(downstream: mut _Sink[E]): Void -> Block#
-    .do{this.step(downstream)}
-    .if {this.isRunning.not} .return {{}}
-    .return {this.forRemaining(downstream)},
-  mut .isFinite: Bool -> True,
-  mut .split: mut Opt[mut FlowOp[E]] -> {},
-  }
-
-
-_Sink: {
-  #[T](s: mut _Sink[T]): mut _Sink[T] -> s,
-  }
-_Sink[T]: {
-  mut #(x: T): Void,
-  mut .pushError(info: Info): Void,
-  mut .stop: Void,
-  }
-
-
-_Filter: {
-  #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
-    .return{{'op
-      .step(downstream) -> sink.get.match{
-        .some(sink') -> upstream.step(sink'),
-        .empty -> Block#(
-          sink := (Opts#(sinkFactory#[E]{
-            .stop -> downstream.stop,
-            #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
-            .pushError(info) -> downstream.pushError(info),
-            })),
-          upstream.step(sink.get!)
-          )
-        },
-      .stop -> upstream.stop,
-      .isRunning -> upstream.isRunning,
-      }}
-  }
-_Map: {
-  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
-    .return  {{'op
-      .step(downstream) -> sink.get.match{
-        .some(sink') -> upstream.step(sink'),
-        .empty -> Block#(
-          sink := (Opts#(sinkFactory#[E]{
-            .stop -> downstream.stop,
-            #(e) -> downstream#(f#e),
-            .pushError(info) -> downstream.pushError(info),
-            })),
-          upstream.step(sink.get!)
-          )
-        },
-      .stop -> upstream.stop,
-      .isRunning -> upstream.isRunning,
-    }}
-  }
-_FlatMap: {
-  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
-    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
-    .return{{'op
-      .step(downstream) -> sink.get.match{
-        .some(sink') -> upstream.step(sink'),
-        .empty -> Block#(
-          sink := (Opts#(sinkFactory#[E]{
-            .stop -> Block#(isRunning := False, downstream.stop),
-            #(e) -> Block#
-              .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
-              .return {nestedOp.forRemaining{
-                #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
-                .stop -> {},
-                .pushError(info) -> downstream.pushError(info),
-                }},
-            .pushError(info) -> downstream.pushError(info),
-            })),
-          upstream.step(sink.get!)
-          )
-        },
-      .stop -> upstream.stop,
-      .isRunning -> isRunning*,
-      }}
-  }
-
-//---File flows\par.fear
-package base.flows
-
-_PipelineParallelSink: _Sink{
-  #[T](s: mut _Sink[T]): mut _Sink[T] -> Magic!,
-  }
-_PipelineParallelSink[T]: _Sink[T]
-
-_PipelineParallelFlow: {
-  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
-    .unwrapOp(_) -> source,
-    .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
-    .map(f) -> this.fromOp(_Map#(_PipelineParallelSink, source, f), size),
-    .flatMap(f) -> this.fromOp(_FlatMap#(_PipelineParallelSink, source, f), {}),
-    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
-      this.fromOp(_Actor#[S,E,R](_PipelineParallelSink, source, state, f), {}),
-    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
-      this.fromOp(_Actor.anyRet[S,E,R](_PipelineParallelSink, source, state, f), {}),
-    .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), size),
-
-    mut .first: mut Opt[E] -> Block#
-      .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
-      .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
-        .stop -> Block#
-          .do {stopped := True}
-          .return {source.stop},
-        .pushError(info) -> stopped* ? {
-          .then -> {},
-          .else -> Error!info,
-          },
-        #(e) -> res.get.isEmpty ? {
-          .then -> Block#
-            .do {res := (Opts#e)}
-            .return {runner.stop},
-          .else -> {},
-          },
-        })}
-      .do {source.stop}
-      .return {res.get},
-
-    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
-      .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
-      .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
-        .stop -> Block#
-          .do {stopped := True}
-          .return {source.stop},
-        .pushError(info) -> stopped* ? {
-          .then -> {},
-          .else -> Error!info,
-          },
-        #(e) -> res.get.isEmpty ? {
-          .then -> f#e.match{
-            .some(e') -> Block#
-              .do{res := (Opts#e')}
-              .return {runner.stop},
-            .empty -> {},
-            },
-          .else -> {},
-          },
-        })}
-      .do {source.stop}
-      .return {res.get},
-
-    .find(p) -> self.findMap{e -> p#e ? {.then -> Opts#e, .else -> {}}},
-    .any(p) -> self
-      .findMap{e -> p#e ? {.then -> Opts#True, .else -> {}}}
-      .isSome,
-    .all(p) -> self
-      .findMap{e -> p#e ? {.then -> {}, .else -> Opts#False}}
-      .isEmpty,
-
-    mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
-      .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .let[mut Var[S]] acc' = {Var#acc}
-      .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{
-        #(e) -> acc' := (f#(acc'.get, e)),
-        .stop -> stopped := True,
-        .pushError(info) -> stopped* ? {
-          .then -> {},
-          .else -> Error!info,
-          },
-        })}
-      .do {source.stop}
-      .return {acc'.get},
-    .fold(acc, f, combine) -> self.fold(acc, f),
-
-    .size -> size.match[Nat]{
-      .some(n) -> n,
-      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
-      },
-    },
-
-  #[E](e: E): mut Flow[E] -> Block#
-    .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
-    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
-      .isRunning -> seq.get.isSome,
-      .stop -> seq := {},
-      .step(downstream) -> seq.swap(mut Opt[E]).match{
-        .some(x) -> downstream#x,
-        .empty -> Block#(downstream.stop, self.stop),
-        },
-      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
-        .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
-        .empty -> Block#(downstream.stop, self.stop),
-        },
-      }}
-    .return {this.fromOp(source, Opts#[Nat]1)},
-  }
-
-//---File flows\pkg.fear
-package base.flows
-
-alias base.Block as Block, alias base.Continuation as Continuation,
-alias base.Sealed as Sealed,
-alias base.Void as Void,
-alias base.Bool as Bool, alias base.True as True, alias base.False as False,
-alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float,
-alias base.Str as Str,
-alias base.F as F, alias base.Consumer as Consumer, alias base.MF as MF,
-alias base.Extensible as Extensible, alias base.Extension as Extension,
-alias base.Var as Var, alias base.Count as Count,
-alias base.Opts as Opts, alias base.Opt as Opt,
-alias base.Let as Let,
-alias base.List as List,
-alias base.Error as Error, alias base.FInfo as FInfo, alias base.Info as Info,
-alias base.Ordering as Ordering,
-alias base.Magic as Magic,
-alias base.IsoPod as IsoPod,
-alias base.ControlFlow as ControlFlow,
-
-//---File flows\seq.fear
-package base.flows
-
-_SeqFlow: {
-  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
-    .unwrapOp(_) -> source,
-    .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
-    .map(f) -> this.fromOp(_Map#(_Sink, source, f), size),
-    .flatMap(f) -> this.fromOp(_FlatMap#(_Sink, source, f), {}),
-    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
-      this.fromOp(_Actor#[S,E,R](_Sink, source, state, f), {}),
-    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
-      this.fromOp(_Actor.anyRet[S,E,R](_Sink, source, state, f), {}),
-    .limit(n) -> this.fromOp(_Limit#(_Sink, source, n), size),
-
-    mut .first: mut Opt[E] -> Block#
-      .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
-      .do {source.forRemaining(mut _Sink[E]{'runner
-        .stop -> source.stop,
-        .pushError(info) -> Error!info,
-        #(e) -> res.get.isEmpty ? {
-          .then -> Block#
-            .do {res := (Opts#e)}
-            .return {runner.stop},
-          .else -> {},
-          },
-        })}
-      .do {source.stop}
-      .return {res.get},
-
-    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
-      .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
-      .do {source.forRemaining(mut _Sink[E]{'runner
-        .stop -> source.stop,
-        .pushError(info) -> Error!info,
-        #(e) -> res.get.isEmpty ? {
-          .then -> f#e.match{
-            .some(e') -> Block#
-              .do{res := (Opts#e')}
-              .return {runner.stop},
-            .empty -> {},
-            },
-          .else -> {},
-          },
-        })}
-      .do {source.stop}
-      .return {res.get},
-
-    .find(p) -> self.findMap{e -> p#e ? {.then -> Opts#e, .else -> {}}},
-    .any(p) -> self
-      .findMap{e -> p#e ? {.then -> Opts#True, .else -> {}}}
-      .isSome,
-    .all(p) -> self
-      .findMap{e -> p#e ? {.then -> {}, .else -> Opts#False}}
-      .isEmpty,
-
-    mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
-      .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .let[mut Var[S]] acc' = {Var#acc}
-      .do {source.forRemaining(mut _Sink[E]{
-        .stop -> {},
-        .pushError(info) -> Error!info,
-        #(e) -> acc' := (f#(acc'.get, e)),
-        })}
-      .do {source.stop}
-      .return {acc'.get},
-    .fold(acc, f, combine) -> self.fold(acc, f),
-
-    .size -> size.match[Nat]{
-      .some(n) -> n,
-      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
-      },
-    },
-
-  #[E](e: E): mut Flow[E] -> Block#
-    .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
-    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
-      .isRunning -> seq.get.isSome,
-      .stop -> seq := {},
-      .step(downstream) -> seq.swap(mut Opt[E]).match{
-        .some(x) -> downstream#x,
-        .empty -> Block#(downstream.stop, self.stop),
-        },
-      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
-        .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
-        .empty -> Block#(downstream.stop, self.stop),
-        },
-      }}
-    .return {this.fromOp(source, Opts#[Nat]1)},
-  }
-
-//---File flows\statefulOperators.fear
-package base.flows
-
-_Limit: {
-  #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: Nat): mut FlowOp[E] -> Block#
-    .let[mut Count[Nat]] remaining = {Count.nat(n)}
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
-    .return {{ 'runner
-      .stop -> Block#(remaining := 0, upstream.stop),
-      .isRunning -> remaining* > 0 && (upstream.isRunning),
-      .isFinite -> True,
-      .step(downstream) -> sink.get.match{
-        .some(sink') -> upstream.step(sink'),
-        .empty -> Block#
-          .if {n == 0} .return {runner.stop}
-          .do {sink := (Opts#(sinkFactory#[E]{
-            .stop -> downstream.stop,
-            #(e) -> remaining* == 0 || (remaining-- == 0) ? {
-              .then -> runner.stop,
-              .else -> downstream#e,
-              },
-            .pushError(info) -> remaining* == 0 ? {
-              .then -> {},
-              .else -> downstream.pushError(info),
-              },
-            }))}
-          .return {upstream.step(sink.get!)}
-        },
-      }},
-  }
-
-_Actor: {
-  #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] ->
-    _InternalActor#[S,E,R](sinkFactory, upstream, state, f),
-
-  .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: iso S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] ->
-    _InternalActor.anyRet[S,E,R](sinkFactory, upstream, state, f),
-  }
-_InternalActor: {
-  #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] -> Block#
-    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
-    .return {{'op
-      .stop -> op.isRunning ? {
-       .then -> Block#(isRunning := False, upstream.stop),
-       .else -> {}
-       },
-      .isRunning -> isRunning*,
-      .step(downstream) -> sink.get.match{
-        .some(sink') -> upstream.step(sink'),
-        .empty -> Block#
-          .do {sink := (Opts#(sinkFactory#[E]{
-            .stop -> Block#(downstream.stop, op.stop),
-            #(e) -> isRunning.get ? {
-              .then -> f#(downstream, state, e).match{
-                .continue -> {},
-                .stop -> Block#(downstream.stop, isRunning := False),
-                },
-              .else -> op.stop,
-              },
-            .pushError(info) -> isRunning.get ? {
-              .then -> downstream.pushError(info),
-              .else -> {},
-              },
-            }))}
-          .return {upstream.step(sink.get!)}
-        },
-      }},
-
-  .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] -> Block#
-    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
-    .return {{'op
-      .stop -> op.isRunning ? {
-       .then -> Block#(isRunning := False, upstream.stop),
-       .else -> {}
-       },
-      .isRunning -> isRunning*,
-      .step(downstream) -> sink.get.match{
-        .some(sink') -> upstream.step(sink'),
-        .empty -> Block#
-          .do {sink := (Opts#(sinkFactory#[E]{
-            .stop -> Block#(downstream.stop, op.stop),
-            #(e) -> f#(downstream, state, e).match{
-              .continue -> {},
-              .stop -> Block#(downstream.stop, isRunning := False),
-              },
-            .pushError(info) -> isRunning.get ? {
-              .then -> downstream.pushError(info),
-              .else -> {},
-              },
-            }))}
-          .return {upstream.step(sink.get!)}
-        },
-      }},
-  }
-
-ActorImpl[S,E,R]: { read #(downstream: mut _Sink[imm R], state: S, e: E): ActorRes }
-ActorImplMut[S,E,R]: { read #(downstream: mut _Sink[R], state: lent S, e: E): ActorRes }
-
-ActorRes: Sealed{
-  .match[R](m: mut ActorResMatch[R]): R -> m.continue,
-  .continue: ActorRes -> {.match(m) -> m.continue},
-  .stop: ActorRes -> {.match(m) -> m.stop},
-  }
-ActorResMatch[R]: { mut .continue: R, mut .stop: R, }
-
-//---File flows.fear
-package base
-
-alias base.flows.Flow as Flow,
-alias base.flows.FlowOp as FlowOp,
-alias base.flows.ControlFlow as FlowCtrl,
-alias base.flows._Sink as FlowSink,
-alias base.flows.RestrictFlowReuse as RestrictFlowReuse,
-
-//---File iter\automatons.fear
-package base.iter.automatons
-alias base.F as F,
-alias base.Opt as Opt,
-alias base.Void as Void,
-alias base.Bool as Bool, alias base.True as True, alias base.False as False,
-alias base.Let as Let,
-alias base.Block as Block,
-
-
-
-//---File iter\flows.fear
-package base.iter
-
-alias base.flows.Flow as Flow,
-alias base.flows.FlowOp as FlowOp,
-alias base.flows.ControlFlow as FlowCtrl,
-alias base.flows._Sink as FlowSink,
-
-//---File iter\iter.fear
-package base.iter
-
-Iter[E]:{
-  mut .next: mut Opt[E],
-  mut .find(p: mut IterPredicate[E]): mut Opt[E] -> this.next.match[mut Opt[E]]{
-    .some(x) -> p#x ? { .then -> Opts#x, .else -> this.find(p) },
-    .empty -> {}
-    },
-  mut .allMatch(p: mut IterPredicate[E]): Bool -> this.find{x -> p#x .not}.match[Bool]{
-    .some(_) -> False,
-    .empty -> True
-    },
-  mut .anyMatch(p: mut IterPredicate[E]): Bool -> this.find(p).match[Bool]{
-    .some(_) -> True,
-    .empty -> False
-    },
-
-  mut .map[R](f: mut IterMapper[E, R]): mut Iter[R] -> { this.next.map[R](f) },
-  mut .flatMap[R](f: mut IterMapper[E, mut Iter[R]]): mut Iter[R] -> Block#
-    .let[mut Iter[mut Iter[R]]] mapIter = { this.map(f) }
-    .let[mut Var[mut Opt[mut Iter[R]]]] optCurIter = { Var#(mapIter.next) }
-    .return(mut ReturnStmt[mut Iter[R]]{ mut Iter[R]{ 'self
-      .next -> optCurIter*[].match[mut Opt[R]]{
-        .some(curIter) -> curIter.next.match[mut Opt[R]]{
-          .some(next) -> Opts#next,
-          .empty -> Block#(optCurIter := (mapIter.next), self.next)
-          },
-        .empty -> {}
-        }
-      }}),
-  mut .filter(p: mut IterPredicate[E]): mut Iter[E] -> { .next -> this.find(p) },
-
-  mut .fold[R](acc: R, f: mut IterFolder[E, R]): R -> this.next.match[R]{
-    .some(e) -> this.fold(f#(acc, e), f),
-    .empty -> acc
-    },
-  mut .for(f: mut IterForEacher[E]): Void -> this.next.match[Void]{
-    .some(e) -> Block#(f#e, this.for(f)),
-    .empty -> {}
-    },
-
-  mut .count: Nat -> this.fold[Nat](0, mut IterFolder[E, Nat]{ acc, _ -> acc + 1 }),
-  mut .list: mut List[E] -> this.fold(List#[E], { acc, e -> Block#(acc.add(e), acc) }),
-  mut .llist: mut LList[E] -> this.fold(mut LList[E], { acc, e -> acc +[] e }),
-  mut .str(toStr: mut IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
-    .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.size == 0 ? { .then -> acc + e,
-                                                                          .else -> acc + joining + e }}),
-  }
-
-Sum:{
-  .int(ns: mut Iter[Int]): Int -> ns.fold[Int](+0, mut IterFolder[Int, Int]{ acc, n -> acc + n }),
-  .nat(ns: mut Iter[Nat]): Nat -> ns.fold[Nat](0, mut IterFolder[Nat, Nat]{ acc, n -> acc + n }),
-  .float(ns: mut Iter[Float]): Float -> ns.fold[Float](0.0, mut IterFolder[Float, Float]{ acc, n -> acc + n }),
-  }
-
-IterForEacher[E]:{ mut #(e: E): Void }
-IterFolder[E,R]:{ mut #(acc: R, e: E): R }
-IterScanner[E, R, S]:{ lent #(state: mut Var[S], e: E): S }
-IterMapper[E,R]:OptMap[E, R]
-IterPredicate[E]:{ mut #(e: E): Bool }
-
-
-//---File iter\pkg.fear
-package base.iter
-alias base.LList as LList, alias base.List as List,
-alias base.Opts as Opts, alias base.Opt as Opt, alias base.OptMap as OptMap, alias base.OptMatch as OptMatch,
-alias base.Void as Void,
-alias base.Bool as Bool, alias base.True as True, alias base.False as False,
-alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float,
-alias base.Str as Str,
-alias base.Let as Let,
-alias base.Block as Block, alias base.ReturnStmt as ReturnStmt,
-alias base.Var as Var,
-alias base.Sealed as Sealed,
-
-//---File lang.fear
-package base
-alias base.caps.System as System,
-
-Main: { #(s: mut System): Void }
-Sealed: {}
-Void: Sealed{}
-
-Abort: Sealed{![R:readOnly,lent,read,mut,imm,iso]: R -> this!} // can be optimised to just terminate (goes stuck)
-Magic: Sealed{![R:readOnly,lent,read,mut,imm,iso]: R -> this!} // magic'd out to tell us what we forgot to implement
-Debug: Sealed{#[T](x: T): T -> x}
-HasIdentity: { mut .idEq(other: readOnly HasIdentity): Bool -> Magic! } // TODO: magic
-
-As[X:imm,mut,read,iso]: Sealed{ #(x: X): X -> x }
-
-Let: {
-  #[V,R](l: mut Let[V, R]): R -> l.in(l.var),
-  }
-Let[V,R]: { mut .var: V, mut .in(v: V): R }
-
-F[R:read,mut,imm,iso]: { read #: R }
-F[A:read,mut,imm,iso,R:read,mut,imm,iso]: { read #(a: A): R }
-F[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B): R }
-F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B, c: C): R }
-F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, D:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B, c: C, d: D): R }
-
-MF[R:read,mut,imm,iso]: { mut #: R }
-MF[A:read,mut,imm,iso,R:read,mut,imm,iso]: { mut #(a: A): R }
-MF[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]: { mut #(a: A, b: B): R }
-MF[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]: { mut #(a: A, b: B, c: C): R }
-MF[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, D:read,mut,imm,iso, R:read,mut,imm,iso]: { mut #(a: A, b: B, c: C, d: D): R }
-
-Consumer[A:read,mut,imm,iso]: { mut #(a: A): Void }
-Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso]: { mut #(a: A, b: B): Void }
-Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso]: { mut #(a: A, b: B, c: C): Void }
-
-ToImm[R]: { readOnly .toImm: imm R, }
-Freezer[T,R]: { mut #(self: T): imm R }
-Ice[T]: { readOnly .get: imm T }
-
-Box[T]: {
-  mut  .get: T,
-  read .get: read T,
-  imm  .get: imm T,
+OptMatch[T,R:iso,imm,mut,mutH,read,readH]:{ mut .some(x: T): R, mut .empty: R }
+OptMap[T,R]:OptMatch[T, mut Opt[R]]{
+  mut #(t: T): R,
+  .some(x) -> Opts#(this#x),
+  .empty -> {}
   }
 
 //---File lists.fear
 package base
 
-Collection:{
+Collection: {
   read .size: Nat,
   read .isEmpty: Bool,
   }
@@ -1295,32 +218,22 @@ LList[E]:Collection,Sealed{
       }
     },
   }
-LListMatch[E,R]:{
+LListMatch[E,R]: {
   mut .elem(head: E, tail: mut LList[E]): R,
   mut .empty: R,
   }
-LListMatchRead[E,R]:{
+LListMatchRead[E,R]: {
   mut .elem(head: read/imm E, tail: read LList[E]): R,
   mut .empty: R,
   }
 
-List:{
-  #[E]: mut List[E] -> _List.new(Var#(_ListState#[E](0, {}))),
-  #[E](e1: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e1)),
-  #[E](e1: E, e2: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e2).pushFront(e1)),
-  #[E](e1: E, e2: E, e3: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e3).pushFront(e2).pushFront(e1)),
-  #[E](e1: E, e2: E, e3: E, e4: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e4).pushFront(e3).pushFront(e2).pushFront(e1)),
-  .fromLList[E](list: mut LList[E]): mut List[E] -> _List.new(Var#(_ListState#[E](list.size, list))),
-  }
-_List:{
-  .new[E](s: mut Var[mut _ListState[E]]): mut List[E] -> {'l
-    .size -> s*.size,
-    .isEmpty -> s*.inner.isEmpty,
-    .get(i) -> s*.inner.get(i),
-    .tryGet(i) -> s*.inner.tryGet(i),
-    .add(e) -> s := (_ListState#[E](s*.size + 1, s*.inner + e)),
-    .clear -> s := (_ListState#[E](0, {})),
-    }
+List: Sealed{
+  #[E]: mut List[E] -> Magic!,
+  #[E](e1: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E): mut List[E] -> Magic!,
+  .fromLList[E](list: mut LList[E]): mut List[E] -> Magic!,
   }
 List[E]: Collection,Sealed{
   mut  .get(i: Nat): E,
@@ -1332,6 +245,7 @@ List[E]: Collection,Sealed{
   imm  .tryGet(i: Nat): mut Opt[imm E],
 
   mut .add(e: E): Void,
+  mut .addAnd(e: E): mut List[E] -> Block#(this.add(e), this),
   mut .addAll(other: mut List[E]): Void -> other.iter.for{e -> this.add(e)},
 
   mut .clear: Void,
@@ -1349,33 +263,53 @@ List[E]: Collection,Sealed{
         .empty -> Block#(downstream.stop, self.stop),
         },
       }, this.size)},
-  read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread), this.size),
-  read ._flowread: mut FlowOp[read/imm E] -> Block#
-    .let[mut Count[Nat]] cursor = {Count.nat(0)}
+  read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread(0, this.size)), this.size),
+  read ._flowread(start: Nat, end: Nat): mut FlowOp[read/imm E] -> Block#
+    .let[mut Count[Nat]] cursor = {Count.nat(start)}
+    .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {{'self
-      .isRunning -> cursor* < (this.size),
-      .stop -> cursor := (this.size),
-      .step(downstream) -> this.tryGet(cursor++).match{
-        .some(x) -> Block#
-          .do {downstream#x}
-          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+      .isRunning -> cursor* < (endCursor.get),
+      .stop -> cursor := (endCursor.get),
+      .step(downstream) -> cursor.get < (endCursor.get) ? {
+        .then -> Block#
+          .do {downstream#(this.get(cursor++))}
+          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stop, self.stop)}
           .return {{}},
-        .empty -> Block#(downstream.stop, self.stop),
+        .else -> Block#(downstream.stop, self.stop),
         },
+      .split -> self.canSplit ? {
+        .else -> {},
+        .then -> Block#
+          .let cur = {cursor.get}
+          .let[Nat] mid = {cur + ((endCursor.get - cur) / 2)}
+          .let[Nat] end' = {endCursor.swap(mid)}
+          .return {Opts#(this._flowread(mid, end'))},
+        },
+      .canSplit -> endCursor.get - (cursor.get) > 1,
       }},
-  imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm), this.size),
-  imm ._flowimm: mut FlowOp[imm E] -> Block#
-    .let[mut Count[Nat]] cursor = {Count.nat(0)}
+  imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm(0, this.size)), this.size),
+  imm ._flowimm(start: Nat, end: Nat): mut FlowOp[imm E] -> Block#
+    .let[mut Count[Nat]] cursor = {Count.nat(start)}
+    .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {{'self
-      .isRunning -> cursor* < (this.size),
-      .stop -> cursor := (this.size),
-      .step(downstream) -> this.tryGet(cursor++).match{
-        .some(x) -> Block#
-          .do {downstream#x}
-          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+      .isRunning -> cursor* < (endCursor.get),
+      .stop -> cursor := (endCursor.get),
+      .step(downstream) -> cursor.get < (endCursor.get) ? {
+        .then -> Block#
+          .do {downstream#(this.get(cursor++))}
+          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stop, self.stop)}
           .return {{}},
-        .empty -> Block#(downstream.stop, self.stop),
+        .else -> Block#(downstream.stop, self.stop),
         },
+      .split -> self.canSplit ? {
+        .else -> {},
+        .then -> Block#
+          .let cur = {cursor.get}
+          .let[Nat] mid = {cur + ((endCursor.get - cur) / 2)}
+          .let[Nat] end' = {endCursor.swap(mid)}
+          .return {Opts#(this._flowimm(mid, end'))},
+        },
+      .canSplit -> endCursor.get - (cursor.get) > 1,
       }},
 
   mut .iter: mut Iter[E] -> Let#{
@@ -1391,23 +325,150 @@ List[E]: Collection,Sealed{
     .in(cursor) -> { .next -> this.tryGet(cursor++) }
     },
   }
-_ListState[E]:{
-  read .size: Nat,
-  mut .inner: mut LList[E],
-  read .inner: read LList[E],
-  }
-_ListState:{
-  #[E](len: Nat, inner: mut LList[E]): mut _ListState[E] -> {
-    .size -> len,
-    .inner -> inner
-    }
-  }
 
 AppendList[E]: Collection{
   mut  .get(i: Nat): mut Opt[E],
   read .get(i: Nat): mut Opt[read E],
   imm  .get(i: Nat): iso Opt[imm E],
   mut .append(e: E): Void,
+  }
+
+//---File pkg.fear
+package base
+alias base.iter.Iter as Iter,
+
+//---File strings.fear
+package base
+Str: Sealed,Stringable,base.flows.Joinable[Str],ToHash{
+  .size: Nat,
+  .isEmpty: Bool,
+  +(other: read Stringable): Str,
+  ==(other: Str): Bool,
+  !=(other: Str): Bool,
+  .assertEq(other: Str): Void,
+  .assertEq(message: Str, other: Str): Void,
+  .substring(start: Nat, end: Nat): Str,
+  .charAt(index: Nat): Str,
+  .normalise: Str,
+  mut .append(other: read Stringable): mut Str,
+  mut .clear: Void,
+  .flow: mut Flow[Str],
+  ._flow: mut FlowOp[Str],
+  ._flow(start: Nat, end: Nat): mut FlowOp[Str],
+  }
+
+Stringable: {
+  read .str: Str,
+  }
+
+SimpleStr: Str
+
+StrMap[V]: LinkedLens[Str, V]{k1, k2 -> k1 == k2}
+
+_StrInstance: Str{
+  .size -> Magic!,
+  .isEmpty -> Magic!,
+  +(other) -> Magic!,
+  ==(other) -> Magic!,
+  !=(other) -> Magic!,
+  .assertEq(other) -> Magic!,
+  .assertEq(other, message) -> Magic!,
+  .str -> Magic!,
+  .substring(_,_) -> Magic!,
+  .charAt(_) -> Magic!,
+  .normalise -> Magic!,
+  .append(_) -> Magic!,
+  .clear -> Magic!,
+  .flow -> Magic!,
+  .join(_) -> Magic!,
+  ._flow -> Magic!,
+  ._flow(_,_) -> Magic!,
+  .hash -> Magic!,
+  }
+
+_StrHelpers: {
+  .assertEq(expected: Str, actual: Str): Void ->
+    Assert!(expected == actual, "Expected: "+expected+"\nActual: "+actual, {{}}),
+  .assertEq(expected: Str, actual: Str, message: Str): Void ->
+    Assert!(expected == actual, message+"\nExpected: "+expected+"\nActual: "+actual, {{}}),
+  }
+
+//---File results.fear
+package base
+
+Res:{
+  #[T](x: T): mut Res[T] -> { .match(m) -> m.a(x), },
+  .ok[T,E](x: T): mut Res[T, E] -> { .match(m) -> m.a(x), },
+  .err[T,E](x: E): mut Res[T, E] -> { .match(m) -> m.b(x), },
+  }
+Res[T]:Res[T, Info]
+Res[T,E]:Either[T, E]{
+  mut  .resMatch[R:iso,imm,mut,mutH,read,readH](m: mut ResMatch[T, E, R]): R -> this.match(m),
+  read .resMatch[R:iso,imm,mut,mutH,read,readH](m: mut ResMatch[read T, read E, R]): R -> this.match(m),
+  imm  .resMatch[R:iso,imm,mut,mutH,read,readH](m: mut ResMatch[imm T, imm E, R]): R -> this.match(m),
+
+  mut  !: T -> this.resMatch[T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
+  read !: read T -> this.resMatch[read T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
+  imm  !: imm T -> this.resMatch[imm T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
+
+  mut  .map[R](f: mut ResMap[T, E, R]): mut Res[R, E] -> this.match(f),
+  read .map[R](f: mut ResMap[read T, read E, R]): mut Res[R, read E] -> this.match(f),
+  imm  .map[R](f: mut ResMap[imm T, imm E, R]): mut Res[R, imm E] -> this.match(f),
+
+  mut  .mapErr[R](f: mut ResMapErr[T, E, R]): mut Res[T, R] -> this.match(f),
+  read .mapErr[R](f: mut ResMapErr[read T, read E, R]): mut Res[read T, R] -> this.match(f),
+  imm  .mapErr[R](f: mut ResMapErr[imm T, imm E, R]): mut Res[imm T, R] -> this.match(f),
+
+  mut  .ok: mut Opt[T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
+  read .ok: mut Opt[read T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
+  imm  .ok: iso Opt[imm T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
+
+  mut  .err: mut Opt[E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
+  read .err: mut Opt[read E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
+  imm  .err: iso Opt[imm E] -> this.resMatch[mut Opt[imm E]]{ .ok(_) -> {}, .err(e) -> Opts#e },
+
+  read .isErr: Bool -> this.resMatch{ .err(_) -> True, .ok(_) -> False },
+  read .isOk: Bool -> this.resMatch{ .err(_) -> False, .ok(_) -> True },
+  }
+
+ResMatch[T,E,R:iso,imm,mut,mutH,read,readH]:EitherMatch[T, E, R]{
+  .a(x) -> this.ok(x), .b(x) -> this.err(x),
+  mut .ok(x: T): R,
+  mut .err(x: E): R
+  }
+ResMap[T,E,R]:ResMatch[T, E, mut Res[R, E]]{
+  mut #(x: T): R,
+  .ok(x) -> Res.ok[R, E](this#x),
+  .err(x) -> Res.err[R, E](x),
+  }
+ResMapErr[T,E,R]:ResMatch[T, E, mut Res[T, R]]{
+  mut #(x: E): R,
+  .ok(x) -> Res.ok[T, R](x),
+  .err(x) -> Res.err[T, R](this#x),
+  }
+
+//---File hash.fear
+package base
+
+ToHash: {
+  read .hash(hasher: mut Hasher): mut Hasher,
+  }
+
+Hasher: {
+  mut .compute: Nat,
+
+  mut .nat(x: read Nat): mut Hasher,
+  mut .int(x: read Int): mut Hasher,
+  mut .float(x: read Float): mut Hasher,
+  mut .str(x: read Str): mut Hasher,
+  }
+
+CheapHash: Hasher{
+  .compute -> Magic!,
+  .nat(x) -> Magic!,
+  .int(x) -> Magic!,
+  .float(x) -> Magic!,
+  .str(x) -> Magic!,
   }
 
 //---File maps.fear
@@ -1442,6 +503,15 @@ LinkedLens[K:imm, V]:Map[K, V]{
   mut  .get(k: K): mut Opt[V] -> {},
   read .get(k: K): mut Opt[read V] -> {},
 
+  imm  .put(k: K, v: imm V): imm LinkedLens[K, V] -> {'next
+    .keyEq(k1, k2) -> this.keyEq(k1, k2),
+    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {
+      .then -> Opts#[read V]v,
+      .else -> this.get(k').match{.some(v') -> Opts#[read V]v', .empty -> mut Opt[read V]},
+      },
+    .isEmpty -> False,
+    },
   mut  .put(k: K, v: V): mut LinkedLens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
@@ -1449,7 +519,7 @@ LinkedLens[K:imm, V]:Map[K, V]{
     read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
     .isEmpty -> False,
     },
-  read .put(k: K, v: read V): read LinkedLens[K, read V] -> {'next
+  read .put(k: K, v: V): read LinkedLens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
     read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
@@ -1479,276 +549,42 @@ LinkedLens[K:imm, V]:Map[K, V]{
 
 MapMapImm[K:imm,V,R]:{ #(k: K, v: imm V): R }
 MapMapMut[K:imm,V,R]:{ mut #(k: K, v: V): R }
-MapMapRead[K:imm,V,R]:{ read #(k: K, v: read V): read R }
+MapMapRead[K:imm,V,R]:{ read #(k: K, v: read V): R }
 
-//---File nums.fear
+//---File actions.fear
 package base
 
-Int: Sealed,_MathOps[imm Int],_IntOps[imm Int]{}
-Nat: Sealed,_MathOps[imm Nat],_IntOps[imm Nat]{}
-Float: Sealed,_MathOps[imm Float]{
-  .round: Int,
-  .ceil: Int,
-  .floor: Int,
-  **(n: Float): Float, // pow
-  .isNaN: Bool,
-  .isInfinite: Bool,
-  .isPosInfinity: Bool,
-  .isNegInfinity: Bool,
+
+Actions: {
+  .lazy[T](f: mut MF[T]): mut Action[T] -> {m -> m.ok(f#)},
+  .ok[T](x: T): mut Action[T] -> {m -> m.ok(x)},
+  .info[T](info: Info): mut Action[T] -> {m -> m.info(info)},
+  }
+Action[T]: {
+  mut .run[R](m: mut ActionMatch[T,R]): R,
+  mut .map[R](f: mut MF[T,R]): mut Action[R] -> {m -> this.run{
+    .ok(x) -> m.ok(f#x),
+    .info(i) -> m.info(i),
+    }},
+  mut .mapInfo[R](f: mut MF[Info,Info]): mut Action[T] -> {m -> this.run{
+    .ok(x) -> m.ok(x),
+    .info(i) -> m.info(f#i),
+    }},
+  mut !: T -> this.run{.ok(x) -> x, .info(i) -> Error!i},
+  }
+ActionMatch[T,R]: {
+  mut .ok(x: T): R,
+  mut .info(info: Info): R,
   }
 
-_MathOps[T]: Sealed{
-  read .int: Int,
-  read .nat: Nat,
-  read .float: Float,
-  read .str: Str,
-  +(n: T): T,
-  -(n: T): T,
-  *(n: T): T,
-  /(n: T): T,
-  %(n: T): T,
-  .abs: T,
-
-  >(n: T): Bool,
-  <(n: T): Bool,
-  >=(n: T): Bool,
-  <=(n: T): Bool,
-  ==(n: T): Bool,
-  .assertEq(actual: T): Void,
-  .assertEq(message: Str, actual: T): Void,
-  }
-_IntOps[T]: Sealed{
-  .shiftLeft(n: T): T,
-  .shiftRight(n: T): T,
-  .xor(n: T): T,
-  .and(n: T): T,
-  .or(n: T): T,
-
-  **(n: Nat): T, // pow
-  }
-
-_IntInstance: Int{
-  .int -> Magic!,
-  .nat -> Magic!,
-  .float -> Magic!,
-  .str -> Magic!,
-  +(n) -> Magic!,
-  -(n) -> Magic!,
-  *(n) -> Magic!,
-  /(n) -> Magic!,
-  %(n) -> Magic!,
-  **(n) -> Magic!,
-  .abs -> Magic!,
-
-  .shiftLeft(n) -> Magic!,
-  .shiftRight(n) -> Magic!,
-  .xor(n) -> Magic!,
-  .and(n) -> Magic!,
-  .or(n) -> Magic!,
-
-  >n -> Magic!,
-  <n -> Magic!,
-  >=n -> Magic!,
-  <=n -> Magic!,
-  ==n -> Magic!,
-  .assertEq(actual) -> Magic!,
-  .assertEq(message, actual) -> Magic!,
-  }
-_NatInstance: Nat{
-  .int -> Magic!,
-  .nat -> Magic!,
-  .float -> Magic!,
-  .str -> Magic!,
-  +(n) -> Magic!,
-  -(n) -> Magic!,
-  *(n) -> Magic!,
-  /(n) -> Magic!,
-  %(n) -> Magic!,
-  **(n) -> Magic!,
-  .abs -> Magic!,
-
-  .shiftLeft(n) -> Magic!,
-  .shiftRight(n) -> Magic!,
-  .xor(n) -> Magic!,
-  .and(n) -> Magic!,
-  .or(n) -> Magic!,
-
-  >n -> Magic!,
-  <n -> Magic!,
-  >=n -> Magic!,
-  <=n -> Magic!,
-  ==n -> Magic!,
-  .assertEq(actual) -> Magic!,
-  .assertEq(message, actual) -> Magic!,
-  }
-_FloatInstance: Float{
-  .int -> Magic!,
-  .nat -> Magic!,
-  .float -> Magic!,
-  .str -> Magic!,
-  .round -> Magic!,
-  .ceil -> Magic!,
-  .floor -> Magic!,
-  .isNaN -> Magic!,
-  .isInfinite -> Magic!,
-  .isPosInfinity -> Magic!,
-  .isNegInfinity -> Magic!,
-  +(n) -> Magic!,
-  -(n) -> Magic!,
-  *(n) -> Magic!,
-  /(n) -> Magic!,
-  %(n) -> Magic!,
-  **(n) -> Magic!,
-  .abs -> Magic!,
-  >n -> Magic!,
-  <n -> Magic!,
-  >=n -> Magic!,
-  <=n -> Magic!,
-  ==n -> Magic!,
-  .assertEq(actual) -> Magic!,
-  .assertEq(message, actual) -> Magic!,
-  }
-
-_NumsAssertionHelper[T]: {
-  .assertEq(expected: T, actual: T): Void,
-  .assertEq(message: Str, expected: T, actual: T): Void,
-  }
-_IntAssertionHelper: _NumsAssertionHelper[Int]{
-  .assertEq(expected, actual) ->
-    Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
-  .assertEq(message, expected, actual) ->
-    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
-  }
-_NatAssertionHelper: _NumsAssertionHelper[Nat]{
-  .assertEq(expected, actual) ->
-    Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
-  .assertEq(message, expected, actual) ->
-    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
-  }
-_FloatAssertionHelper: _NumsAssertionHelper[Float]{
-  .assertEq(expected, actual) ->
-    Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
-  .assertEq(message, expected, actual) ->
-    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
-  }
-
-//---File optionals.fear
+//---File flows.fear
 package base
 
-Opts: {
-  #[T](x: T): mut Opt[T] -> {.match(m) -> m.some(x)},
-  }
-Opt[T]: _Opt[T],Extensible[Opt[T]]{
-  .self     -> this,
-  .match(m) -> m.empty,
-  .map(f)   -> this.match(f),
-  ||(f)     -> this.match{.some(x) -> x, .empty -> f#},
-  |(f)      -> this.match{.some(x) -> x, .empty -> f},
-  !         -> this.match{.some(x) -> x, .empty -> Error.msg "Opt was empty"},
-  .flow     -> this.match{.empty -> Flow#, .some(x) -> Flow#(x)},
-
-  read .isEmpty: Bool ->
-    this.match{.empty -> True, .some(_) -> False},
-  read .isSome: Bool ->
-    this.match{.empty -> False, .some(_) -> True},
-  }
-_Opt[T]: Sealed{ // Sealed because potential magic on .flow
-  mut  .match[R](m: mut OptMatch[T, R]): R,
-  read .match[R](m: mut OptMatch[read/imm T, R]): R,
-
-  mut  .map[R](f: mut OptMap[T, R]):          mut Opt[R],
-  read .map[R](f: mut OptMap[read/imm T, R]): mut Opt[R],
-
-  mut  ||(default: mut MF[T]):          T,
-  read ||(default: mut MF[read/imm T]): read/imm T,
-
-  mut  |(default: T):          T,
-  read |(default: read/imm T): read/imm T,
-
-  mut  !: T,
-  read !: read/imm T,
-
-  mut  .flow: mut Flow[T],
-  read .flow: mut Flow[read/imm T],
-  }
-
-OptMatch[T,R]:{ mut .some(x: T): R, mut .empty: R }
-OptMap[T,R]:OptMatch[T, mut Opt[R]]{
-  mut #(t: T): R,
-  .some(x) -> Opts#(this#x),
-  .empty -> {}
-  }
-
-//---File pkg.fear
-package base
-alias base.iter.Iter as Iter,
-
-//---File ref.fear
-package base
-
-Var:{
-  #[X](x: X): mut Var[X] -> Block#
-    .let[mut _MagicVarImpl[X]] inner = {_MagicVarImpl#x}
-    .return {{
-      .get -> inner.get,
-      .swap(x') -> inner.swap(x'),
-      }},
-  }
-Var[X:imm,mut,read]: Sealed{
-  mut  .get: X,
-  read .get: read/imm X,
-  mut  *: X -> this.get,
-  read *: read/imm X -> this.get,
-
-  mut .swap(x: X): X,
-  mut :=(x: X): Void -> Block#(this.swap(x)),
-  mut .set(x: X): Void -> this := x,
-  mut <-(f: mut UpdateVar[X]): X -> this.swap(f#(this*)),
-  mut .update(f: mut UpdateVar[X]): X -> this <- f,
-  }
-UpdateVar[X]: { mut #(x: X): X }
-
-Count[N:imm]: Var[N]{
-  mut ++: N,
-  mut --: N,
-  mut +=(n: N): N,
-  mut -=(n: N): N,
-  mut *=(n: N): N,
-  }
-Count:{
-  #(n: Int): mut Count[Int] -> this.int(n),
-  .int(n: Int): mut Count[Int] -> Let#({
-    .var -> Var#n,
-    .in(c) -> {
-      .get -> c.get,
-      .swap(x) -> c.swap(x),
-      ++ -> c <- { c' -> c' + +1 },
-      -- -> c <- { c' -> c' - +1 },
-      +=(n2) -> c <- { c' -> c' + n2 },
-      -=(n2) -> c <- { c' -> c' - n2 },
-      *=(n2) -> c <- { c' -> c' * n2 },
-      }
-    }),
-  .nat(n: Nat): mut Count[Nat] -> Let#({
-    .var -> Var#n,
-    .in(c) -> {
-      .get -> c.get,
-      .swap(x) -> c.swap(x),
-      ++ -> c <- { c' -> c' + 1 },
-      -- -> c <- { c' -> c' - 1 },
-      +=(n2) -> c <- { c' -> c' + n2 },
-      -=(n2) -> c <- { c' -> c' - n2 },
-      *=(n2) -> c <- { c' -> c' * n2 },
-      }
-    })
-  }
-
-_MagicVarImpl: {#[X](x: X): mut _MagicVarImpl[X] -> Magic!}
-_MagicVarImpl[X]: {
-  mut  .get: X,
-  read .get: read/imm X,
-  mut .swap(x: X): X,
-  }
+alias base.flows.Flow as Flow,
+alias base.flows.FlowOp as FlowOp,
+alias base.flows.ControlFlow as FlowCtrl,
+alias base.flows._Sink as FlowSink,
+alias base.flows.RestrictFlowReuse as RestrictFlowReuse,
 
 //---File repr.fear
 package base.repr
@@ -1783,143 +619,7 @@ FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
 
 
 
-//---File results.fear
-package base
-
-Res:{
-  #[T](x: T): mut Res[T] -> { .match(m) -> m.a(x), },
-  .ok[T,E](x: T): mut Res[T, E] -> { .match(m) -> m.a(x), },
-  .err[T,E](x: E): mut Res[T, E] -> { .match(m) -> m.b(x), },
-  }
-Res[T]:Res[T, Info]
-Res[T,E]:Either[T, E]{
-  mut  .resMatch[R](m: mut ResMatch[T, E, R]): R -> this.match(m),
-  read .resMatch[R](m: mut ResMatch[read T, read E, R]): R -> this.match(m),
-  imm  .resMatch[R](m: mut ResMatch[imm T, imm E, R]): R -> this.match(m),
-
-  mut  !: T -> this.resMatch[T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
-  read !: read T -> this.resMatch[read T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
-  imm  !: imm T -> this.resMatch[imm T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
-
-  mut  .map[R](f: mut ResMap[T, E, R]): mut Res[R, E] -> this.match(f),
-  read .map[R](f: mut ResMap[read T, read E, R]): mut Res[R, read E] -> this.match(f),
-  imm  .map[R](f: mut ResMap[imm T, imm E, R]): mut Res[R, imm E] -> this.match(f),
-
-  mut  .mapErr[R](f: mut ResMapErr[T, E, R]): mut Res[T, R] -> this.match(f),
-  read .mapErr[R](f: mut ResMapErr[read T, read E, R]): mut Res[read T, R] -> this.match(f),
-  imm  .mapErr[R](f: mut ResMapErr[imm T, imm E, R]): mut Res[imm T, R] -> this.match(f),
-
-  mut  .ok: mut Opt[T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
-  read .ok: mut Opt[read T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
-  imm  .ok: iso Opt[imm T] -> this.resMatch[mut Opt[imm T]]{ .ok(x) -> Opts#x, .err(_) -> {} },
-
-  mut  .err: mut Opt[E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
-  read .err: mut Opt[read E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
-  imm  .err: iso Opt[imm E] -> this.resMatch[mut Opt[imm E]]{ .ok(_) -> {}, .err(e) -> Opts#e },
-
-  read .isErr: Bool -> this.resMatch{ .err(_) -> True, .ok(_) -> False },
-  read .isOk: Bool -> this.resMatch{ .err(_) -> False, .ok(_) -> True },
-  }
-
-ResMatch[T,E,R]:EitherMatch[T, E, R]{
-  .a(x) -> this.ok(x), .b(x) -> this.err(x),
-  mut .ok(x: T): R,
-  mut .err(x: E): R
-  }
-ResMap[T,E,R]:ResMatch[T, E, mut Res[R, E]]{
-  mut #(x: T): R,
-  .ok(x) -> Res.ok[R, E](this#x),
-  .err(x) -> Res.err[R, E](x),
-  }
-ResMapErr[T,E,R]:ResMatch[T, E, mut Res[T, R]]{
-  mut #(x: E): R,
-  .ok(x) -> Res.ok[T, R](x),
-  .err(x) -> Res.err[T, R](this#x),
-  }
-
-//---File rng.fear
-package base.rng
-alias base.Block as Block,
-alias base.Nat as Nat, alias base.Float as Float,
-alias base.F as F,
-alias base.FInfo as FInfo,
-alias base.Sealed as Sealed,
-alias base.Var as Var, alias base.VarImm as VarImm,
-
-FRandom: F[Nat, mut Random]{seed -> Block#
-  .if {seed == 0} .error {FInfo.msg "Seed may not be zero"}
-  .let prev = {Var#seed}
-  .return {{
-    .nat -> Block#
-      .do {prev := ((prev.get) * 6364136223846793005 + 1 .shiftRight 33)}
-      .return {prev.get},
-    }}
-  }
-Random: {
-  mut .nat: Nat,
-  mut .nat(minInclusive: Nat, maxExclusive: Nat): Nat -> Block#
-     .assert({minInclusive <= maxExclusive}, "Cannot generate a random number, "+(minInclusive.str)+" is greater than "+(maxExclusive.str))
-     .return {(this.float * (maxExclusive.float - (minInclusive.float)) + (minInclusive.float)).floor.nat},
-
-  mut .float: Float -> this.nat.float / 2147483647.0,
-  }
-
-//---File strings.fear
-package base
-Str:Sealed {
-  read .str: Str,
-  .size: Nat,
-  .isEmpty: Bool,
-  +(other: Str): Str,
-  ==(other: Str): Bool,
-  .assertEq(other: Str): Void,
-  .assertEq(message: Str, other: Str): Void,
-  }
-Stringable: {
-  read .str: Str,
-  }
-_StrInstance:Str {
-  .size -> Magic!,
-  .isEmpty -> Magic!,
-  .str -> Magic!,
-  +(other) -> Magic!,
-  ==(other) -> Magic!,
-  .assertEq(other) -> Magic!,
-  .assertEq(message, other) -> Magic!,
-  }
-
-_StrHelpers: {
-  .assertEq(expected: Str, actual: Str): Void ->
-    Assert!(expected == actual, "Expected: "+expected+"\nActual: "+actual, {{}}),
-  .assertEq(message: Str, expected: Str, actual: Str): Void ->
-    Assert!(expected == actual, message+"\nExpected: "+expected+"\nActual: "+actual, {{}}),
-  }
-
-StrMap[V]:LinkedLens[Str, V] { k1, k2 -> k1 == k2 }
-
-//---File test\junitReports.fear
-package base.test
-
-
-//---File test\pkg.fear
-package base.test
-
-alias base.Block as Block,
-alias base.Sealed as Sealed,
-alias base.Void as Void,
-alias base.Bool as Bool, alias base.True as True, alias base.False as False,
-alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float,
-alias base.Str as Str,
-alias base.F as F, alias base.Consumer as Consumer,
-alias base.Main as AppMain, alias base.caps.System as System,
-alias base.List as List,
-alias base.caps.UnrestrictedIO as UnrestrictedIO, alias base.caps.IO as IO,
-alias base.Opt as Opt,
-alias base.Info as Info,
-alias base.flows.Flow as Flow,
-alias base.caps.CapTries as CapTries, alias base.caps.CapTry as CapTry,
-
-//---File test\printReports.fear
+//---File test/printReports.fear
 package base.test
 
 ResultPrinters: F[mut IO, mut ResultPrinter]{io -> mut ResultPrinter: ResultReporter{#(results) -> Block#
@@ -1951,14 +651,32 @@ _TextUtils: {
     },
   }
 
-//---File test\testRunner.fear
+//---File test/pkg.fear
+package base.test
+
+alias base.Block as Block,
+alias base.Sealed as Sealed,
+alias base.Void as Void,
+alias base.Bool as Bool, alias base.True as True, alias base.False as False,
+alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float,
+alias base.Str as Str,
+alias base.F as F, alias base.Consumer as Consumer,
+alias base.Main as AppMain, alias base.caps.System as System,
+alias base.List as List,
+alias base.caps.UnrestrictedIO as UnrestrictedIO, alias base.caps.IO as IO,
+alias base.Opt as Opt,
+alias base.Info as Info,
+alias base.flows.Flow as Flow,
+alias base.caps.CapTries as CapTries, alias base.caps.CapTry as CapTry,
+
+//---File test/testRunner.fear
 package base.test
 
 Main: AppMain{
   #(sys) -> Block#
-    .do {Block#(this.testMain(sys, FTestRunner#sys))}
+    .do {Block#(this.testMain(sys.clone, FTestRunner#(sys.clone)))}
     .return {Void},
-  .testMain(system: mut System, runner: mut TestRunner): read List[read TestResults]
+  .testMain(system: iso System, runner: iso TestRunner): List[read TestResults]
   }
 
 FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
@@ -1985,7 +703,7 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
       .return {results},
     mut .runDirectTests: mut List[TestResult] -> tests.iter
       .map{test -> Block#
-        .return {FTestResult#(test.title, try#{test.impl#sys}.resMatch{
+        .return {FTestResult#(test.title, try#(sys.clone, {sys' -> test.impl#sys'}).resMatch{
           .ok(_) -> FTestResultKind.passed,
           .err(info) -> FTestResultKind.errored(info.str)
           })}
@@ -2055,3 +773,1463 @@ TestResultKindMatcher[R]: {
 ResultReporter: {
   mut #(results: read List[read TestResults]): Void,
   }
+
+//---File test/junitReports.fear
+package base.test
+
+
+//---File assertions.fear
+package base
+
+Assert:Sealed{
+  !(assertion: Bool): Void -> this!(assertion, { Void }),
+  ![R](assertion: Bool, cont: mut AssertCont[R]): R -> assertion ? {
+    .then -> cont#,
+    .else -> this._fail
+    },
+  ![R](assertion: Bool, msg: Str, cont: mut AssertCont[R]): R -> assertion ? {
+      .then -> cont#,
+      .else -> this._fail(msg)
+      },
+  ._fail[R]: R -> Magic!,
+  ._fail[R](msg: Str): R -> Magic!,
+  }
+AssertCont[R]:{ mut #: R }
+
+//---File bools.fear
+package base
+Bool: Sealed,Stringable,ToImm[Bool]{
+  .and(b: Bool): Bool,
+  &&(b: Bool): Bool -> this.and(b),
+  .or(b: Bool): Bool,
+  ||(b: Bool): Bool -> this.or(b),
+  .not: Bool,
+  .if[R:read,mut,imm,iso](f: mut ThenElse[R]): R,
+  ?[R:read,mut,imm,iso](f: mut ThenElse[R]): R -> this.if(f),
+  }
+True: Bool{ .and(b) -> b, .or(b) -> this, .not -> False, .if(f) -> f.then(), .str -> "True", .toImm -> True }
+False: Bool{ .and(b) -> this, .or(b) -> b, .not -> True, .if(f) -> f.else(), .str -> "False", .toImm -> False }
+ThenElse[R:read,mut,imm,iso]: { mut .then: R, mut .else: R, }
+
+//---File bytes.fear
+package base
+
+Bytess: {
+  .fromList(list: read List[Byte]): Bytes -> Magic!,
+  }
+
+Bytes: Collection{
+  mut .read(i: Nat): Byte -> Error.msg ("The index "+(i.str)+" is out of bounds."),
+  mut .list: List[Byte] -> List#,
+
+  .size -> 0,
+  .isEmpty -> True,
+  }
+
+//---File either.fear
+package base
+
+Either[A,B]:{
+  mut  .match[R:iso,imm,mut,mutH,read,readH](m: mut EitherMatch[A, B, R]): R,
+  read .match[R:iso,imm,mut,mutH,read,readH](m: mut EitherMatch[read A, read B, R]): R,
+  imm  .match[R:iso,imm,mut,mutH,read,readH](m: mut EitherMatch[imm A, imm B, R]): R,
+  }
+EitherMatch[A,B,R:iso,imm,mut,mutH,read,readH]:{
+  mut .a(x: A): R,
+  mut .b(x: B): R,
+  }
+
+//---File flows/internals.fear
+package base.flows
+
+_FlowFactory: {
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E],
+  }
+
+//---File flows/dataParallel.fear
+package base.flows
+
+_DataParallelFlow: _FlowFactory{
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> Magic!,
+  }
+
+_DataParallelInvalidStateful: {![R]: R ->
+  Error.msg "Stateful operators are invalid in data-parallel flows. If you see this, there is a bug in the Fearless compiler."
+  }
+
+//---File flows/pkg.fear
+package base.flows
+
+alias base.Block as Block, alias base.Continuation as Continuation,
+alias base.Sealed as Sealed,
+alias base.Void as Void,
+alias base.Bool as Bool, alias base.True as True, alias base.False as False,
+alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float,
+alias base.Str as Str,
+alias base.F as F, alias base.Consumer as Consumer, alias base.MF as MF,
+alias base.Extensible as Extensible, alias base.Extension as Extension,
+alias base.Var as Var, alias base.Count as Count,
+alias base.Opts as Opts, alias base.Opt as Opt,
+alias base.Let as Let,
+alias base.List as List,
+alias base.Error as Error, alias base.FInfo as FInfo, alias base.Info as Info,
+alias base.Ordering as Ordering,
+alias base.Magic as Magic,
+alias base.IsoPod as IsoPod,
+alias base.ControlFlow as ControlFlow,
+
+//---File flows/flows.fear
+package base.flows
+alias base.Todo as Todo,
+
+Flow: Sealed, _FlowExtensions, _FlowConverters{
+  #[E]: mut Flow[E] -> mut EmptyFlow[E],
+  #[E](e: E): mut Flow[E] -> _SeqFlow#[E](e),
+  #[E](e1: E, e2: E): mut Flow[E] -> List#(e1, e2).flow,
+  #[E](e1: E, e2: E, e3: E): mut Flow[E] -> List#(e1, e2, e3).flow,
+  #[E](e1: E, e2: E, e3: E, e4: E): mut Flow[E] -> List#(e1, e2, e3, e4).flow,
+
+  .fromOp[E](source: mut FlowOp[E]): mut Flow[E] -> _SeqFlow.fromOp(source, {}),
+  .fromOp[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _SeqFlow.fromOp(source, Opts#size),
+
+  .fromMutSource[E](source: mut FlowOp[E]): mut Flow[E] -> _MutSourceCollection[E]#source,
+  .fromMutSource[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _MutSourceCollection[E]#source,
+  }
+
+Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
+  .self -> this,
+  mut .let[DR,R](x: read F[mut MF[mut Flow[E]],DR], cont: mut Continuation[DR,mut Flow[E],R]): R -> Block#
+    .let duplicator = {_LazyFlowDuplicators#this}
+    .let splitResult = {x#duplicator}
+    .let[mut Flow[E]] selfFlow = {duplicator.collected.match{
+      .some(collected) -> collected.flow,
+      .empty -> this,
+      }}
+    .return {cont#(splitResult, selfFlow)},
+  mut .join(j: Joinable[E]): E -> j.join(this),
+  mut .unwrapOp(unwrap: mut _UnwrapFlowToken): mut FlowOp[E],
+  }
+_UnwrapFlowToken: {}
+
+_NonTerminalOps[E]: {
+  mut .filter(predicate: read F[E, Bool]): mut Flow[E],
+  mut .map[R](f: read F[E, R]): mut Flow[R],
+  mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R],
+
+  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R],
+  mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R],
+
+  mut .limit(n: Nat): mut Flow[E],
+
+  mut .scan[S:imm](acc: imm S, f: read F[S,E,S]): mut Flow[imm S] -> this.actor[mut Var[imm S], imm S](Var#[imm S]acc, {downstream, acc', e -> Block#(
+    acc' := (f#(acc'.get, e)),
+    downstream#(acc'.get),
+    ActorRes.continue
+    )}),
+  }
+_TerminalOps[E]: Sealed{
+  mut .first: mut Opt[E],
+  mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],
+  mut .fold[S](acc: S, f: read F[S,E,S]): S,
+  mut .size: Nat,
+
+  mut .find(predicate: read F[E, Bool]): mut Opt[E] -> this.findMap{e -> predicate#e ? {.then -> Opts#e, .else -> {}}},
+  mut .any(predicate: read F[E, Bool]): Bool -> this
+    .findMap{e -> predicate#e ? {.then -> Opts#True, .else -> {}}}
+    .isSome,
+  mut .all(predicate: read F[E, Bool]): Bool -> this
+    .findMap{e -> predicate#e ? {.then -> {}, .else -> Opts#False}}
+    .isEmpty,
+  mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
+  mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> Block#(acc.add(e), acc)}),
+  mut .max(compare: read F[E, E, Ordering]): mut Opt[E] -> this.fold[mut Opt[E]]({}, {max, b -> max.match{
+    .empty -> Opts#b,
+    .some(a) -> compare#(a, b).match{
+      .less -> Opts#b,
+      .equal -> max,
+      .greater -> max,
+      }
+    }})
+  }
+
+_FlowExtensions: {
+  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold[Str]("", {acc, str -> acc.isEmpty ? {
+    .then -> acc + str,
+    .else -> acc + separator + str,
+    }})},
+
+  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int](+0, {acc, e -> acc + e})},
+  .uSum: mut Extension[mut Flow[Nat], Nat] -> {flow -> flow.fold[Nat](0, {acc, e -> acc + e})},
+  .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> flow.fold[Float](0.0, {acc, e -> acc + e})},
+  }
+
+EmptyFlow[E]: Flow[E]{
+  .filter(p) -> this,
+  mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
+  mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R] -> mut EmptyFlow[R],
+  mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] -> mut EmptyFlow[imm R],
+  mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] -> mut EmptyFlow[R],
+  .limit(_) -> this,
+  .first -> {},
+  .findMap(_) -> {},
+  .find(_) -> {},
+  .any(p) -> False,
+  .all(p) -> False,
+  .fold(acc, _) -> acc,
+  .size -> 0,
+  .unwrapOp(_) -> {
+    .step(_) -> {},
+    .stop -> {},
+    .isRunning -> False,
+    },
+  }
+
+TerminalOnInfiniteError: { #: Info -> FInfo.msg "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5) to bound the flow." }
+
+//---File flows/operators.fear
+package base.flows
+
+
+FlowOp[E]: {
+  mut .step(sink: mut _Sink[E]): Void,
+  mut .stop: Void,
+  mut .isRunning: Bool,
+  mut .forRemaining(downstream: mut _Sink[E]): Void -> Block#
+    .loop {Block#
+      .if {this.isRunning.not} .return {ControlFlow.break}
+      .do {this.step(downstream)}
+      .return {ControlFlow.continue}
+      }
+    .return {Void},
+  mut .isFinite: Bool -> True,
+  mut .split: mut Opt[mut FlowOp[E]] -> {},
+  read .canSplit: Bool -> False,
+  }
+
+
+_Sink: {
+  #[T](s: mut _Sink[T]): mut _Sink[T] -> s,
+  }
+_Sink[T]: {
+  mut #(x: T): Void,
+  mut .pushError(info: Info): Void,
+  mut .stop: Void,
+  }
+
+
+_Filter: {
+  #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .return{{'op
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.step(sink.get!)
+          )
+        },
+      .forRemaining(downstream) -> sink.get.match{
+        .some(sink') -> upstream.forRemaining(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.forRemaining(sink.get!)
+          )
+        },
+      .stop -> upstream.stop,
+      .isRunning -> upstream.isRunning,
+      .split -> upstream.split.map{right -> this#(sinkFactory, right, predicate)},
+      }}
+  }
+_Map: {
+  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .return  {{'op
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> downstream#(f#e),
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.step(sink.get!)
+          )
+        },
+      .forRemaining(downstream) -> sink.get.match{
+        .some(sink') -> upstream.forRemaining(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> downstream#(f#e),
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.forRemaining(sink.get!)
+          )
+        },
+      .stop -> upstream.stop,
+      .isRunning -> upstream.isRunning,
+      .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},
+    }}
+  }
+_FlatMap: {
+  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
+    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .return{{'op
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> Block#(isRunning := False, downstream.stop),
+            #(e) -> Block#
+              .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
+              .return {nestedOp.forRemaining{
+                #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
+                .stop -> {},
+                .pushError(info) -> downstream.pushError(info),
+                }},
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.step(sink.get!)
+          )
+        },
+      .forRemaining(downstream) -> sink.get.match{
+        .some(sink') -> upstream.forRemaining(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[E]{
+            .stop -> Block#(isRunning := False, downstream.stop),
+            #(e) -> Block#
+              .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
+              .return {nestedOp.forRemaining{
+                #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
+                .stop -> {},
+                .pushError(info) -> downstream.pushError(info),
+                }},
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.forRemaining(sink.get!)
+          )
+        },
+      .stop -> upstream.stop,
+      .isRunning -> isRunning*,
+      .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},
+      }}
+  }
+
+//---File flows/statefulOperators.fear
+package base.flows
+
+_Limit: {
+  #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: Nat): mut FlowOp[E] -> Block#
+    .let[mut Count[Nat]] remaining = {Count.nat(n)}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .return {{ 'runner
+      .stop -> Block#(remaining := 0, upstream.stop),
+      .isRunning -> remaining* > 0 && (upstream.isRunning),
+      .isFinite -> True,
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#
+          .if {n == 0} .return {runner.stop}
+          .do {sink := (Opts#(sinkFactory#[E]{
+            .stop -> downstream.stop,
+            #(e) -> Block#
+              .if {remaining* == 0} .return {runner.stop}
+              .do {downstream#e}
+              .if {remaining-- <= 1} .return {runner.stop}
+              .return {{}},
+            .pushError(info) -> remaining* == 0 ? {
+              .then -> {},
+              .else -> downstream.pushError(info),
+              },
+            }))}
+          .return {upstream.step(sink.get!)}
+        },
+      }},
+  }
+
+_Actor: {
+  #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] ->
+    _InternalActor#[S,E,R](sinkFactory, upstream, state, f),
+
+  .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: iso S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] ->
+    _InternalActor.anyRet[S,E,R](sinkFactory, upstream, state, f),
+  }
+_InternalActor: {
+  #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] -> Block#
+    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .return {{'op
+      .stop -> op.isRunning ? {
+       .then -> Block#(isRunning := False, upstream.stop),
+       .else -> {}
+       },
+      .isRunning -> isRunning*,
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#
+          .do {sink := (Opts#(sinkFactory#[E]{
+            .stop -> Block#(downstream.stop, op.stop),
+            #(e) -> isRunning.get ? {
+              .then -> f#(downstream, state, e).match{
+                .continue -> {},
+                .stop -> Block#(downstream.stop, isRunning := False),
+                },
+              .else -> op.stop,
+              },
+            .pushError(info) -> isRunning.get ? {
+              .then -> downstream.pushError(info),
+              .else -> {},
+              },
+            }))}
+          .return {upstream.step(sink.get!)}
+        },
+      }},
+
+  .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] -> Block#
+    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .return {{'op
+      .stop -> op.isRunning ? {
+       .then -> Block#(isRunning := False, upstream.stop),
+       .else -> {}
+       },
+      .isRunning -> isRunning*,
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#
+          .do {sink := (Opts#(sinkFactory#[E]{
+            .stop -> Block#(downstream.stop, op.stop),
+            #(e) -> f#(downstream, state, e).match{
+              .continue -> {},
+              .stop -> Block#(downstream.stop, isRunning := False),
+              },
+            .pushError(info) -> isRunning.get ? {
+              .then -> downstream.pushError(info),
+              .else -> {},
+              },
+            }))}
+          .return {upstream.step(sink.get!)}
+        },
+      }},
+  }
+
+ActorImpl[S,E,R]: { read #(downstream: mut _Sink[imm R], state: S, e: E): ActorRes }
+ActorImplMut[S,E,R]: { read #(downstream: mutH _Sink[R], state: mutH S, e: E): ActorRes }
+
+ActorRes: Sealed{
+  .match[R](m: mut ActorResMatch[R]): R -> m.continue,
+  .continue: ActorRes -> {.match(m) -> m.continue},
+  .stop: ActorRes -> {.match(m) -> m.stop},
+  }
+ActorResMatch[R]: { mut .continue: R, mut .stop: R, }
+
+//---File flows/pipelineParallel.fear
+package base.flows
+
+_PipelineParallelSink: _Sink{
+  #[T](s: mut _Sink[T]): mut _Sink[T] -> Magic!,
+  }
+_PipelineParallelSink[T]: _Sink[T]
+
+_PipelineParallelFlow: _FlowFactory{
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
+    .unwrapOp(_) -> source,
+    .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
+    .map(f) -> this.fromOp(_Map#(_PipelineParallelSink, source, f), size),
+    .flatMap(f) -> this.fromOp(_FlatMap#(_PipelineParallelSink, source, f), {}),
+    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+      this.fromOp(_Actor#[S,E,R](_PipelineParallelSink, source, state, f), {}),
+    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+      this.fromOp(_Actor.anyRet[S,E,R](_PipelineParallelSink, source, state, f), {}),
+    .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), size.map(iso base.OptMap[Nat,Nat]{beforeLimit -> beforeLimit > n ? {
+      .then -> n,
+      .else -> beforeLimit,
+      }})),
+
+    mut .first: mut Opt[E] -> Block#
+      .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
+      .let stopped = {Var#[Bool]False}
+      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
+        .stop -> Block#
+          .do {stopped := True}
+          .return {source.stop},
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
+        #(e) -> res.get.isEmpty ? {
+          .then -> Block#
+            .do {res := (Opts#e)}
+            .return {runner.stop},
+          .else -> {},
+          },
+        })}
+      .do {source.stop}
+      .return {res.get},
+
+    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
+      .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
+      .let stopped = {Var#[Bool]False}
+      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
+        .stop -> Block#
+          .do {stopped := True}
+          .return {source.stop},
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
+        #(e) -> res.get.isEmpty ? {
+          .then -> f#e.match{
+            .some(e') -> Block#
+              .do{res := (Opts#e')}
+              .return {runner.stop},
+            .empty -> {},
+            },
+          .else -> {},
+          },
+        })}
+      .do {source.stop}
+      .return {res.get},
+
+    mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
+      .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
+      .let[mut Var[S]] acc' = {Var#acc}
+      .let stopped = {Var#[Bool]False}
+      .do {source.forRemaining(_PipelineParallelSink#[E]{
+        #(e) -> acc' := (f#(acc'.get, e)),
+        .stop -> stopped := True,
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
+        })}
+      .do {source.stop}
+      .return {acc'.get},
+
+    .size -> size.match{
+      .some(n) -> n,
+      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
+      },
+    },
+
+  #[E](e: E): mut Flow[E] -> Error.msg "_PipelineParallelFlow# should not be reachable",
+  }
+
+//---File flows/converters.fear
+package base.flows
+
+Joinable[T]: { .join(flow: mut Flow[T]): T }
+
+RestrictFlowReuse: {
+  #[E](f: mut FlowOp[E]): mut FlowOp[E] -> Block#
+    .var[Bool] stopped = {False}
+    .return {{
+      .isRunning -> f.isRunning,
+      .stop -> Block#
+        .do {stopped := True}
+        .return {f.stop},
+      .step(downstream) -> stopped.get ? {
+        .then -> Error.msg "This flow cannot be reused.",
+        .else -> f.step(downstream),
+        },
+      .forRemaining(downstream) -> stopped.get ? {
+        .then -> Error.msg "This flow cannot be reused.",
+        .else -> f.forRemaining(downstream),
+        },
+      .isFinite -> f.isFinite,
+      .split -> stopped.get ? {
+        .then -> Error.msg "This flow cannot be reused.",
+        .else -> f.split.map{op -> RestrictFlowReuse#op},
+        },
+      }}
+  }
+
+_MutSourceCollection[E]: {
+  #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#[mut FlowOp[E]]
+    .let[mut Var[mut Opt[mut FlowOp[E]]]] cloned = {Var#[mut Opt[mut FlowOp[E]]]{}}
+    .return{{
+      .isRunning -> this.get(cloned, source).isRunning,
+      .stop -> this.get(cloned, source).stop,
+      .step(downstream) -> this.get(cloned, source).step(downstream),
+      }}),
+  .get(cloned: mut Var[mut Opt[mut FlowOp[E]]], original: mut FlowOp[E]): mut FlowOp[E] -> cloned.get.match{
+     .some(cloned') -> cloned',
+     .empty -> Block#
+       .let[mut List[E]] dup = {Flow.fromOp(original).list}
+       .do {cloned := (Opts#(Block#[mut FlowOp[E]]
+         .let[mut Count[Nat]] cursor = {Count.nat(0)}
+         .return {RestrictFlowReuse#{'self
+           .isRunning -> cursor* < (dup.size),
+           .stop -> cursor := (dup.size),
+           .step(downstream) -> dup.tryGet(cursor++).match{
+             .some(x) -> downstream#x,
+             .empty -> Block#(downstream.stop, self.stop),
+             },
+           }}))}
+       .return{cloned.get!},
+     },
+  }
+
+_FlowConverters: Sealed{
+  .range(start: Int, end: Int): mut Flow[Int] -> _FlowRange#(start, end),
+  }
+_FlowRange: {
+  #(start: Int, end: Int): mut Flow[Int] -> Magic!,
+  }
+
+_SafeSource: {
+
+  .fromList[E](list: mut List[E]): mut Flow[E] -> Flow.fromOp[E](this.fromList'[E](list, 0, list.size), list.size),
+  .fromList'[E](list: mut List[E], start: Nat, end: Nat): mut FlowOp[E] -> Block#
+    .let[mut Count[Nat]] cursor = {Count.nat(start)}
+    .let[mut Count[Nat]] endCursor = {Count.nat(end)}
+    .return {RestrictFlowReuse#{'self
+      .isRunning -> cursor* < (endCursor.get),
+      .stop -> cursor := (endCursor.get),
+      .step(downstream) -> cursor.get < (endCursor.get) ? {
+        .then -> Block#
+          .do {downstream#(list.get(cursor++))}
+          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stop, self.stop)}
+          .return {{}},
+        .else -> Block#(downstream.stop, self.stop),
+        },
+      .split -> self.canSplit ? {
+        .else -> {},
+        .then -> Block#
+          .let cur = {cursor.get}
+          .let[Nat] mid = {cur + ((endCursor.get - cur) / 2)}
+          .let[Nat] end' = {endCursor.swap(mid)}
+          .return {Opts#(this.fromList'(list, mid, end'))},
+        },
+      .canSplit -> endCursor.get - (cursor.get) > 1,
+      }},
+  }
+
+//---File flows/seq.fear
+package base.flows
+
+_SeqFlow: _FlowFactory{
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
+    .unwrapOp(_) -> source,
+    .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
+    .map(f) -> this.fromOp(_Map#(_Sink, source, f), size),
+    .flatMap(f) -> this.fromOp(_FlatMap#(_Sink, source, f), {}),
+    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+      this.fromOp(_Actor#[S,E,R](_Sink, source, state, f), {}),
+    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+      this.fromOp(_Actor.anyRet[S,E,R](_Sink, source, state, f), {}),
+    .limit(n) -> this.fromOp(_Limit#(_Sink, source, n), size.map(iso base.OptMap[Nat,Nat]{beforeLimit -> beforeLimit > n ? {
+      .then -> n,
+      .else -> beforeLimit,
+      }})),
+
+    mut .first: mut Opt[E] -> Block#
+      .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
+      .do {source.forRemaining(mut _Sink[E]{'runner
+        .stop -> source.stop,
+        .pushError(info) -> Error!info,
+        #(e) -> res.get.isEmpty ? {
+          .then -> Block#
+            .do {res := (Opts#e)}
+            .return {runner.stop},
+          .else -> {},
+          },
+        })}
+      .do {source.stop}
+      .return {res.get},
+
+    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
+      .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
+      .do {source.forRemaining(mut _Sink[E]{'runner
+        .stop -> source.stop,
+        .pushError(info) -> Error!info,
+        #(e) -> res.get.isEmpty ? {
+          .then -> f#e.match{
+            .some(e') -> Block#
+              .do{res := (Opts#e')}
+              .return {runner.stop},
+            .empty -> {},
+            },
+          .else -> {},
+          },
+        })}
+      .do {source.stop}
+      .return {res.get},
+
+    mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
+      .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
+      .let[mut Var[S]] acc' = {Var#acc}
+      .do {source.forRemaining(mut _Sink[E]{
+        .stop -> {},
+        .pushError(info) -> Error!info,
+        #(e) -> acc' := (f#(acc'.get, e)),
+        })}
+      .do {source.stop}
+      .return {acc'.get},
+
+    .size -> size.match{
+      .some(n) -> n,
+      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
+      },
+    },
+
+  #[E](e: E): mut Flow[E] -> Block#
+    .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
+    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
+      .isRunning -> seq.get.isSome,
+      .stop -> seq := {},
+      .step(downstream) -> seq.swap(mut Opt[E]).match{
+        .some(x) -> downstream#x,
+        .empty -> Block#(downstream.stop, self.stop),
+        },
+      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+        .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
+        .empty -> Block#(downstream.stop, self.stop),
+        },
+      }}
+    .return {this.fromOp(source, Opts#[Nat]1)},
+  }
+
+//---File flows/flowLet.fear
+package base.flows
+
+_LazyFlowDuplicators: {
+  #[E](flow: mut Flow[E]): mut _LazyFlowDuplicator[E] -> Block#
+    .var[mut Opt[mut List[E]]] collected = {mut Opt[mut List[E]]}
+    .return {mut _LazyFlowDuplicator[E]: MF[mut Flow[E]]{
+      # -> collected.get.match{
+        .some(collected') -> collected'.flow,
+        .empty -> Block#
+          .let collected' = {flow.list}
+          .do {collected := (Opts#collected')}
+          .return {collected'.flow}
+        },
+      mut .collected: mut Opt[mut List[E]] -> collected*,
+      }}
+  }
+
+//---File vars.fear
+package base
+
+Var:{
+  #[X](x: X): mut Var[X] -> Block#
+    .let[mut _MagicVarImpl[X]] inner = {_MagicVarImpl#x}
+    .return {{
+      .get -> inner.get,
+      .swap(x') -> inner.swap(x'),
+      }},
+  }
+Var[X:imm,mut,read]: Sealed{
+  mut  .get: X,
+  read .get: read/imm X,
+  mut  *: X -> this.get,
+  read *: read/imm X -> this.get,
+
+  mut .swap(x: X): X,
+  mut :=(x: X): Void -> Block#(this.swap(x)),
+  mut .set(x: X): Void -> this := x,
+  mut <-(f: mut UpdateVar[X]): X -> this.swap(f#(this*)),
+  mut .update(f: mut UpdateVar[X]): X -> this <- f,
+  }
+UpdateVar[X]: { mut #(x: X): X }
+
+Count[N:imm]: Var[N]{
+  mut ++: N,
+  mut --: N,
+  mut +=(n: N): N,
+  mut -=(n: N): N,
+  mut *=(n: N): N,
+  }
+Count:{
+  #(n: Int): mut Count[Int] -> this.int(n),
+  .int(n: Int): mut Count[Int] -> Let#({
+    .var -> Var#n,
+    .in(c) -> {
+      .get -> c.get,
+      .swap(x) -> c.swap(x),
+      ++ -> c <- { c' -> c' + +1 },
+      -- -> c <- { c' -> c' - +1 },
+      +=(n2) -> c <- { c' -> c' + n2 },
+      -=(n2) -> c <- { c' -> c' - n2 },
+      *=(n2) -> c <- { c' -> c' * n2 },
+      }
+    }),
+  .nat(n: Nat): mut Count[Nat] -> Let#({
+    .var -> Var#n,
+    .in(c) -> {
+      .get -> c.get,
+      .swap(x) -> c.swap(x),
+      ++ -> c <- { c' -> c' + 1 },
+      -- -> c <- { c' -> c' - 1 },
+      +=(n2) -> c <- { c' -> c' + n2 },
+      -=(n2) -> c <- { c' -> c' - n2 },
+      *=(n2) -> c <- { c' -> c' * n2 },
+      }
+    })
+  }
+
+_MagicVarImpl: {#[X](x: X): mut _MagicVarImpl[X] -> Magic!}
+_MagicVarImpl[X]: {
+  mut  .get: X,
+  read .get: read/imm X,
+  mut .swap(x: X): X,
+  }
+
+//---File nums.fear
+package base
+
+Int: Sealed,_MathOps[imm Int],_IntOps[imm Int]{}
+Nat: Sealed,_MathOps[imm Nat],_IntOps[imm Nat]{}
+Byte: Sealed,_MathOps[imm Byte],_IntOps[imm Byte]{}
+Float: Sealed,_MathOps[imm Float]{
+  .round: Int,
+  .ceil: Int,
+  .floor: Int,
+  **(n: Float): Float, // pow
+  .isNaN: Bool,
+  .isInfinite: Bool,
+  .isPosInfinity: Bool,
+  .isNegInfinity: Bool,
+  }
+
+_MathOps[T]: Sealed{
+  read .int: Int,
+  read .nat: Nat,
+  read .float: Float,
+  read .str: Str,
+  +(n: T): T,
+  -(n: T): T,
+  *(n: T): T,
+  /(n: T): T,
+  %(n: T): T,
+  .abs: T,
+
+  >(n: T): Bool,
+  <(n: T): Bool,
+  >=(n: T): Bool,
+  <=(n: T): Bool,
+  ==(n: T): Bool,
+  .assertEq(actual: T): Void,
+  .assertEq(actual: T, message: Str): Void,
+  read .hash(hasher: mut Hasher): Void,
+  }
+_IntOps[T]: Sealed{
+  .shiftLeft(n: T): T,
+  .shiftRight(n: T): T,
+  .xor(n: T): T,
+  .bitwiseAnd(n: T): T,
+  .bitwiseOr(n: T): T,
+
+  **(n: Nat): T, // pow
+  }
+
+_IntInstance: Int{
+  .int -> Magic!,
+  .nat -> Magic!,
+  .float -> Magic!,
+  .str -> Magic!,
+  +(n) -> Magic!,
+  -(n) -> Magic!,
+  *(n) -> Magic!,
+  /(n) -> Magic!,
+  %(n) -> Magic!,
+  **(n) -> Magic!,
+  .abs -> Magic!,
+
+  .shiftLeft(n) -> Magic!,
+  .shiftRight(n) -> Magic!,
+  .xor(n) -> Magic!,
+  .bitwiseAnd(n) -> Magic!,
+  .bitwiseOr(n) -> Magic!,
+
+  >n -> Magic!,
+  <n -> Magic!,
+  >=n -> Magic!,
+  <=n -> Magic!,
+  ==n -> Magic!,
+  .assertEq(actual) -> Magic!,
+  .assertEq(actual, message) -> Magic!,
+  .hash(_) -> Magic!,
+  }
+_NatInstance: Nat{
+  .int -> Magic!,
+  .nat -> Magic!,
+  .float -> Magic!,
+  .str -> Magic!,
+  +(n) -> Magic!,
+  -(n) -> Magic!,
+  *(n) -> Magic!,
+  /(n) -> Magic!,
+  %(n) -> Magic!,
+  **(n) -> Magic!,
+  .abs -> Magic!,
+
+  .shiftLeft(n) -> Magic!,
+  .shiftRight(n) -> Magic!,
+  .xor(n) -> Magic!,
+  .bitwiseAnd(n) -> Magic!,
+  .bitwiseOr(n) -> Magic!,
+
+  >n -> Magic!,
+  <n -> Magic!,
+  >=n -> Magic!,
+  <=n -> Magic!,
+  ==n -> Magic!,
+  .assertEq(actual) -> Magic!,
+  .assertEq(actual, message) -> Magic!,
+  .hash(_) -> Magic!,
+  }
+_ByteInstance: Byte{
+  .int -> Magic!,
+  .nat -> Magic!,
+  .float -> Magic!,
+  .str -> Magic!,
+  +(n) -> Magic!,
+  -(n) -> Magic!,
+  *(n) -> Magic!,
+  /(n) -> Magic!,
+  %(n) -> Magic!,
+  **(n) -> Magic!,
+  .abs -> Magic!,
+
+  .shiftLeft(n) -> Magic!,
+  .shiftRight(n) -> Magic!,
+  .xor(n) -> Magic!,
+  .bitwiseAnd(n) -> Magic!,
+  .bitwiseOr(n) -> Magic!,
+
+  >n -> Magic!,
+  <n -> Magic!,
+  >=n -> Magic!,
+  <=n -> Magic!,
+  ==n -> Magic!,
+  .assertEq(actual) -> Magic!,
+  .assertEq(actual, message) -> Magic!,
+  .hash(_) -> Magic!,
+  }
+_FloatInstance: Float{
+  .int -> Magic!,
+  .nat -> Magic!,
+  .float -> Magic!,
+  .str -> Magic!,
+  .round -> Magic!,
+  .ceil -> Magic!,
+  .floor -> Magic!,
+  .isNaN -> Magic!,
+  .isInfinite -> Magic!,
+  .isPosInfinity -> Magic!,
+  .isNegInfinity -> Magic!,
+  +(n) -> Magic!,
+  -(n) -> Magic!,
+  *(n) -> Magic!,
+  /(n) -> Magic!,
+  %(n) -> Magic!,
+  **(n) -> Magic!,
+  .abs -> Magic!,
+  >n -> Magic!,
+  <n -> Magic!,
+  >=n -> Magic!,
+  <=n -> Magic!,
+  ==n -> Magic!,
+  .assertEq(actual) -> Magic!,
+  .assertEq(actual, message) -> Magic!,
+  .hash(_) -> Magic!,
+  }
+
+_NumsAssertionHelper[T]: {
+  .assertEq(expected: T, actual: T): Void,
+  .assertEq(expected: T, actual: T, message: Str): Void,
+  }
+_IntAssertionHelper: _NumsAssertionHelper[Int]{
+  .assertEq(expected, actual) ->
+    Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  .assertEq(expected, actual, message) ->
+    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  }
+_NatAssertionHelper: _NumsAssertionHelper[Nat]{
+  .assertEq(expected, actual) ->
+    Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  .assertEq(expected, actual, message) ->
+    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  }
+_ByteAssertionHelper: _NumsAssertionHelper[Byte]{
+  .assertEq(expected, actual) ->
+    Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  .assertEq(expected, actual, message) ->
+    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  }
+_FloatAssertionHelper: _NumsAssertionHelper[Float]{
+  .assertEq(expected, actual) ->
+    Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  .assertEq(expected, actual, message) ->
+    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  }
+
+//---File iter/pkg.fear
+package base.iter
+alias base.LList as LList, alias base.List as List,
+alias base.Opts as Opts, alias base.Opt as Opt, alias base.OptMap as OptMap, alias base.OptMatch as OptMatch,
+alias base.Void as Void,
+alias base.Bool as Bool, alias base.True as True, alias base.False as False,
+alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float,
+alias base.Str as Str,
+alias base.Let as Let,
+alias base.Block as Block, alias base.ReturnStmt as ReturnStmt,
+alias base.Var as Var,
+alias base.Sealed as Sealed,
+
+//---File iter/iter.fear
+package base.iter
+
+Iter[E]:{
+  mut .next: mut Opt[E],
+  mut .find(p: mut IterPredicate[E]): mut Opt[E] -> this.next.match[mut Opt[E]]{
+    .some(x) -> p#x ? { .then -> Opts#x, .else -> this.find(p) },
+    .empty -> {}
+    },
+  mut .allMatch(p: mut IterPredicate[E]): Bool -> this.find{x -> p#x .not}.match[Bool]{
+    .some(_) -> False,
+    .empty -> True
+    },
+  mut .anyMatch(p: mut IterPredicate[E]): Bool -> this.find(p).match[Bool]{
+    .some(_) -> True,
+    .empty -> False
+    },
+
+  mut .map[R](f: mut IterMapper[E, R]): mut Iter[R] -> { this.next.map[R](f) },
+  mut .flatMap[R](f: mut IterMapper[E, mut Iter[R]]): mut Iter[R] -> Block#
+    .let[mut Iter[mut Iter[R]]] mapIter = { this.map(f) }
+    .let[mut Var[mut Opt[mut Iter[R]]]] optCurIter = { Var#(mapIter.next) }
+    .return(mut ReturnStmt[mut Iter[R]]{ mut Iter[R]{ 'self
+      .next -> optCurIter*[].match[mut Opt[R]]{
+        .some(curIter) -> curIter.next.match[mut Opt[R]]{
+          .some(next) -> Opts#next,
+          .empty -> Block#(optCurIter := (mapIter.next), self.next)
+          },
+        .empty -> {}
+        }
+      }}),
+  mut .filter(p: mut IterPredicate[E]): mut Iter[E] -> { .next -> this.find(p) },
+
+  mut .fold[R](acc: R, f: mut IterFolder[E, R]): R -> this.next.match[R]{
+    .some(e) -> this.fold(f#(acc, e), f),
+    .empty -> acc
+    },
+  mut .for(f: mut IterForEacher[E]): Void -> this.next.match[Void]{
+    .some(e) -> Block#(f#e, this.for(f)),
+    .empty -> {}
+    },
+
+  mut .count: Nat -> this.fold[Nat](0, mut IterFolder[E, Nat]{ acc, _ -> acc + 1 }),
+  mut .list: mut List[E] -> this.fold(List#[E], { acc, e -> Block#(acc.add(e), acc) }),
+  mut .llist: mut LList[E] -> this.fold(mut LList[E], { acc, e -> acc +[] e }),
+  mut .str(toStr: mut IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
+    .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.size == 0 ? { .then -> acc + e,
+                                                                          .else -> acc + joining + e }}),
+  }
+
+Sum:{
+  .int(ns: mut Iter[Int]): Int -> ns.fold[Int](+0, mut IterFolder[Int, Int]{ acc, n -> acc + n }),
+  .nat(ns: mut Iter[Nat]): Nat -> ns.fold[Nat](0, mut IterFolder[Nat, Nat]{ acc, n -> acc + n }),
+  .float(ns: mut Iter[Float]): Float -> ns.fold[Float](0.0, mut IterFolder[Float, Float]{ acc, n -> acc + n }),
+  }
+
+IterForEacher[E]:{ mut #(e: E): Void }
+IterFolder[E,R]:{ mut #(acc: R, e: E): R }
+IterScanner[E, R, S]:{ mut #(state: mut Var[S], e: E): S }
+IterMapper[E,R]:OptMap[E, R]
+IterPredicate[E]:{ mut #(e: E): Bool }
+
+
+//---File iter/flows.fear
+package base.iter
+
+alias base.flows.Flow as Flow,
+alias base.flows.FlowOp as FlowOp,
+alias base.flows.ControlFlow as FlowCtrl,
+alias base.flows._Sink as FlowSink,
+
+//---File iter/automatons.fear
+package base.iter.automatons
+alias base.F as F,
+alias base.Opt as Opt,
+alias base.Void as Void,
+alias base.Bool as Bool, alias base.True as True, alias base.False as False,
+alias base.Let as Let,
+alias base.Block as Block,
+
+
+
+//---File lang.fear
+package base
+alias base.caps.System as System,
+
+Main: { #(s: mut System): Void }
+Sealed: {}
+Void: Sealed{}
+
+Abort: Sealed{![R:readH,mutH,read,mut,imm,iso]: R -> this!} // can be optimised to just terminate (goes stuck)
+Magic: Sealed{![R:readH,mutH,read,mut,imm,iso]: R -> this!} // magic'd out to tell us what we forgot to implement
+Debug: Sealed{
+  #[T](x: T): T -> x,
+  .println[T](x: T): Void -> {},
+  .identify[T](x: T): Str -> Magic!,
+  }
+HasIdentity: { mut .idEq(other: readH HasIdentity): Bool -> Magic! } // TODO: magic
+
+As[X:imm,mut,read,iso]: Sealed{ #(x: X): X -> x }
+
+Let: {
+  #[V,R](l: mut Let[V, R]): R -> l.in(l.var),
+  }
+Let[V,R]: { mut .var: V, mut .in(v: V): R }
+
+F[R:read,mut,imm,iso]: { read #: R }
+F[A:read,mut,imm,iso,R:read,mut,imm,iso]: { read #(a: A): R }
+F[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B): R }
+F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B, c: C): R }
+F[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, D:read,mut,imm,iso, R:read,mut,imm,iso]: { read #(a: A, b: B, c: C, d: D): R }
+
+MF[R:read,mut,imm,iso]: { mut #: R }
+MF[A:read,mut,imm,iso,R:read,mut,imm,iso]: { mut #(a: A): R }
+MF[A:read,mut,imm,iso, B:read,mut,imm,iso, R:read,mut,imm,iso]: { mut #(a: A, b: B): R }
+MF[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, R:read,mut,imm,iso]: { mut #(a: A, b: B, c: C): R }
+MF[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso, D:read,mut,imm,iso, R:read,mut,imm,iso]: { mut #(a: A, b: B, c: C, d: D): R }
+
+Consumer[A:read,mut,imm,iso]: { mut #(a: A): Void }
+Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso]: { mut #(a: A, b: B): Void }
+Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso]: { mut #(a: A, b: B, c: C): Void }
+
+ToImm[R]: { read .toImm: imm R, }
+Freezer[T,R]: { mut #(self: T): imm R }
+Ice[T]: { read .get: imm T }
+
+Box[T]: {
+  mut  .get: T,
+  read .get: read T,
+  imm  .get: imm T,
+  }
+
+//---File rng.fear
+package base.rng
+alias base.Block as Block,
+alias base.Nat as Nat, alias base.Float as Float,
+alias base.F as F,
+alias base.FInfo as FInfo,
+alias base.Sealed as Sealed,
+alias base.Var as Var, alias base.VarImm as VarImm,
+
+FRandom: F[Nat, mut Random]{seed -> Block#
+  .if {seed == 0} .error {FInfo.msg "Seed may not be zero"}
+  .let prev = {Var#seed}
+  .return {{
+    .nat -> Block#
+      .do {prev := ((prev.get) * 6364136223846793005 + 1 .shiftRight 33)}
+      .return {prev.get},
+    }}
+  }
+Random: {
+  mut .nat: Nat,
+  mut .nat(minInclusive: Nat, maxExclusive: Nat): Nat -> Block#
+     .assert({minInclusive <= maxExclusive}, "Cannot generate a random number, "+(minInclusive.str)+" is greater than "+(maxExclusive.str))
+     .return {(this.float * (maxExclusive.float - (minInclusive.float)) + (minInclusive.float)).floor.nat},
+
+  mut .float: Float -> this.nat.float / 2147483647.0,
+  }
+
+//---File blocks.fear
+package base
+
+ReturnStmt[R]: {mut #: R}
+Condition: ReturnStmt[Bool]
+LoopBody[R]: ReturnStmt[mut ControlFlow[R]]
+Continuation[T,C,R]: {mut #(x: T, self: C): R}
+ControlFlow: {
+  .continue: mut ControlFlow[Void] -> mut ControlFlowContinue: ControlFlow[Void]{m -> m.continue},
+  .break: mut ControlFlow[Void] -> mut ControlFlowBreak: ControlFlow[Void]{m -> m.break},
+  .continueWith[T]: mut ControlFlow[T] ->  mut ControlFlowContinue[T]: ControlFlow[T]{m -> m.continue},
+  .breakWith[T]: mut ControlFlow[T] -> mut ControlFlowBreak[T]: ControlFlow[T]{m -> m.break},
+  .return[T](returnValue: T): mut ControlFlow[T] -> mut ControlFlowReturn[T]: ControlFlow[T]{
+    .match(m) -> m.return(returnValue),
+    mut .value: T -> returnValue,
+    },
+  }
+ControlFlow[T]: {
+  mut .match[R](m: mut ControlFlowMatch[T,R]): R,
+  }
+ControlFlowMatch[T,R]: {
+  mut .continue: R,
+  mut .break: R,
+  mut .return(returnValue: T): R,
+  }
+
+Block: Sealed{
+  #[R]: mut Block[R] -> {},
+  #[X:read,mut,imm,iso,readH,mutH](x: X): Void -> this#(x, Void),
+  #[X:read,mut,imm,iso,readH,mutH, R:read,mut,imm,iso,readH,mutH](_: X, res: R): R -> res,
+  #[X1:read,mut,imm,iso,readH,mutH, X2:read,mut,imm,iso,readH,mutH, R:read,mut,imm,iso,readH,mutH](_: X1, _: X2, res: R): R -> res,
+  #[X1:read,mut,imm,iso,readH,mutH, X2:read,mut,imm,iso,readH,mutH, X3:read,mut,imm,iso,readH,mutH, R:read,mut,imm,iso,readH,mutH](_: X1, _: X2, _: X3, res: R): R -> res,
+  #[X1:read,mut,imm,iso,readH,mutH, X2:read,mut,imm,iso,readH,mutH, X3:read,mut,imm,iso,readH,mutH, X4:read,mut,imm,iso,readH,mutH, R:read,mut,imm,iso,readH,mutH](_: X1, _: X2, _: X3, _: X4, res: R): R -> res,
+  }
+Block[R]: Sealed{
+  mut .done: Void -> {},
+  mut .return(a: mut ReturnStmt[R]): R -> a#,
+  mut .do(r: mut ReturnStmt[Void]): mut Block[R] -> this._do(r#),
+    mut ._do(v: Void): mut Block[R] -> this,
+  mut .assert(p: mut Condition): mut Block[R] -> Assert!(p#, mut AssertCont[mut Block[R]]{this}),
+  mut .assert(p: mut Condition, failMsg: Str): mut Block[R] ->
+    Assert!(p#, failMsg, mut AssertCont[mut Block[R]]{this}),
+  mut .let[X](x: mut ReturnStmt[X], cont: mut Continuation[X, mut Block[R], R]): R -> cont#(x#, this),
+  mut .letIso[X:iso](x: X, cont: mut Continuation[mut X, mut Block[R], R]): R -> cont#(x, this),
+  mut .var[X](x: mut ReturnStmt[X], cont: mut Continuation[mut Var[X], mut Block[R], R]): R -> cont#(Var#(x#), this),
+  mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond
+    .then -> { 't
+      .return(a) -> _DecidedBlock#(a#),
+      .error(info) -> Error!(info#),
+      .do(r) -> t._do[](r#),
+        mut ._do(v: Void): mut Block[R] -> this,
+      },
+    .else -> { 'f
+      .return(_) -> this,
+      .do(_) -> this,
+      .error(_) -> this,
+      },
+    },
+  mut .loop(body: mut LoopBody[R]): mut Block[R] -> body#.match{
+    .continue -> this.loop(body),
+    .break -> this,
+    .return(rv) -> _DecidedBlock#rv,
+    },
+  }
+BlockIf[R]:{
+  mut .return(a: mut ReturnStmt[R]): mut Block[R],
+  mut .do(r: mut ReturnStmt[Void]): mut Block[R],
+  mut .error(info: mut ReturnStmt[Info]): mut Block[R],
+  }
+_DecidedBlock:{
+  #[R](res: R): mut Block[R] -> { 'self
+    .return(_) -> res,
+    .do(_) -> self,
+    .let(_, _) -> res,
+    }
+  }
+
+//---File errors.fear
+package base
+
+Error: {
+  ![R:read,mut,imm,iso,mutH,readH](info: Info): R -> Magic!,
+  .msg[R:read,mut,imm,iso,mutH,readH](msg: Str): R -> this!{
+    .msg -> msg,
+    .list -> List#,
+    .map -> EmptyMap[Str, Info]
+    }
+  }
+
+Todo: {
+  ![R:read,mut,imm,iso,mutH,readH]: R -> Error.msg[R] "TODO: Implement this code",
+  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("TODO: "+msg),
+}
+
+Try: {
+  #[R](try: read Try[R]): mut Res[R,Info] -> Magic!,
+  }
+Try[R]:{ read #: R, }
+
+Info: Sealed,_InfoToJson{
+  .msg: Str,
+  .map: Map[Str, Info],
+  .list: List[Info],
+  .str: Str -> _InfoToJson#this,
+  }
+FInfo: {
+  .msg(msg: Str): Info -> {
+    .msg -> msg,
+    .list -> List#,
+    .map -> EmptyMap[Str, Info],
+    },
+  .list(list: List[Info]): Info -> {
+    .msg -> "",
+    .list -> list,
+    .map -> EmptyMap[Str, Info],
+    },
+  .map(map: Map[Str, Info]): Info -> {
+    .msg -> "",
+    .list -> List#,
+    .map -> map,
+    },
+  }
+
+_InfoToJson: {#(info: Info): Str -> Block#
+  .if {info.msg.isEmpty.not} .return {"\""+(info.msg)+"\""}
+  .if {info.list.isEmpty.not} .return {"["+(this.list(info.list))+"]"}
+  .if {info.map.isEmpty.not} .return {Todo! "Flows over maps are not implemented yet"}
+  .return {Error.msg "Unreachable"},
+
+  .list(l: List[Info]): Str -> l.flow
+    .map{info->this#info}
+    #(Flow.str ","),
+  }
+
+//---File caps/net.fear
+package base.caps.net
+alias base.Magic as Magic,
+alias base.Sealed as Sealed,
+
+
+//---File caps/env.fear
+package base.caps
+
+Env:{
+  mut .launchArgs: base.LList[Str],
+  }
+
+FEnv:F[mut System, mut Env],Sealed{
+  #(s) -> {
+    .launchArgs -> Magic!
+    },
+  .io(io: mut IO): mut Env -> {
+    .launchArgs -> Magic!
+    }
+  }
+
+//---File caps/pkg.fear
+package base.caps
+alias base.Abort as Abort,
+alias base.Magic as Magic,
+alias base.Void as Void,
+alias base.F as F,
+alias base.Sealed as Sealed,
+alias base.Str as Str,
+alias base.Let as Let,
+alias base.Stringable as Stringable,
+alias base.Bool as Bool, alias base.True as True, alias base.False as False,
+alias base.Block as Block,
+alias base.Nat as Nat,
+alias base.Res as Res,
+alias base.Info as Info,
+
+//---File caps/io.fear
+package base.caps
+alias base.LList[base.Str] as Path,
+
+IO: {
+  mut .print(msg: Str): Void,
+  mut .println(msg: Str): Void,
+  mut .printErr(msg: Str): Void,
+  mut .printlnErr(msg: Str): Void,
+  }
+UnrestrictedIO:F[mut System, mut IO],Sealed{
+  s -> {
+    .print(msg) -> Magic!,
+    .println(msg) -> Magic!,
+    .printErr(msg) -> Magic!,
+    .printlnErr(msg) -> Magic!,
+    }
+  }
+
+FileHandleMode:Stringable,Sealed{}
+Read:FileHandleMode{ "r" }
+Write:FileHandleMode{ "r+" }
+Create:FileHandleMode{ "w+" }
+
+//---File caps/capabilities.fear
+package base.caps
+
+System:Sealed{
+  mut .clone: iso System -> { _System },
+  mut .io: mut IO -> UnrestrictedIO#this,
+  ._preventCreation: _System,
+  }
+_System:Sealed,System{ _System }
+
+//---File caps/isopod.fear
+package base.caps
+
+IsoPod:{
+  #[T:imm,iso](val: iso T): mut IsoPod[iso T] -> _MagicIsoPodImpl.toIsoPod[iso T](_MagicIsoPodImpl#[iso T](val)),
+  }
+IsoPod[T:imm,iso]: {
+  read .isAlive: Bool,
+  read .peek[R](f: mut IsoViewer[T, R]): R,
+  mut !: iso T,
+  mut .next(val: iso T): Void,
+  read .isDead: Bool -> this.isAlive.not,
+  mut .consume[R](f: mut IsoConsumer[T, R]): R -> this.isAlive ? { .then -> f.some(this!), .else -> f.empty },
+  mut :=(val: iso T): Void -> this.next(val),
+  mut .mutate(f: F[mut T, Void]): Bool -> this.consume{
+    .some(x) -> Block#(this.next(_IsoMutator#(f, x)), True),
+    .empty -> False,
+    }
+  }
+IsoConsumer[T:imm,iso, R]:{
+  mut .some(x: iso T): R,
+  mut .empty: R,
+  }
+IsoViewer[T:imm,iso, R]:{
+  mut .some(x: readH T): R,
+  mut .empty: R,
+  }
+_IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Block#(f#val, val) }
+
+_MagicIsoPodImpl: {
+  #[T:iso](val: iso T): mut _MagicIsoPodImpl[iso T] -> Magic!,
+  .toIsoPod[T:iso](inner: mut _MagicIsoPodImpl[iso T]): mut IsoPod[iso T] -> {
+    read .isAlive: Bool -> inner.isAlive,
+    read .peek[R](f: mut IsoViewer[iso T, R]): R -> inner.peek[R](f),
+    mut !: iso T -> inner!,
+    mut .next(val: iso T): Void -> inner.next(val),
+    },
+  }
+_MagicIsoPodImpl[T:imm,iso]: {
+  read .isAlive: Bool -> Magic!,
+  read .peek[R](f: mut IsoViewer[T, R]): R -> Magic!,
+  mut !: iso T -> Magic!,
+  mut .next(val: iso T): Void -> Magic!,
+  }
+
+
+//---File caps/rng.fear
+package base.caps
+
+RandomSeed: {
+  mut #: Nat,
+  }
+FRandomSeed: F[mut System, mut RandomSeed]{s -> {
+  # -> Magic!
+  }}
+
+//---File caps/tryCatch.fear
+package base.caps
+
+CapTries: F[mut System, mut CapTry]{sys -> mut CapTry: {
+  mut #[R](try: read TryBody[R]): mut Res[R, Info] -> Magic!,
+  mut #[T:iso,imm,mut,read,R](data: iso T, try: read TryBody[T,R]): mut Res[R, Info] -> Magic!,
+  }}
+
+TryBody[R:iso,imm,mut,mutH,read,readH]: {read #: R}
+TryBody[T:iso,imm,mut,read,R:iso,imm,mut,mutH,read,readH]: {read #(data: iso T): R}
+
+//---File extensions.fear
+package base
+
+Extensible[S]:{
+  mut  .self: mut  S,
+  read .self: read S,
+  imm  .self: imm  S,
+
+  mut  #[R](ext: mut Extension[mut  S, R]): R -> ext#(this.self),
+  read #[R](ext: mut Extension[read S, R]): R -> ext#(this.self),
+  imm  #[R](ext: mut Extension[imm  S, R]): R -> ext#(this.self),
+  }
+Extension[S,R]:{ mut #(self: S): R }
+
