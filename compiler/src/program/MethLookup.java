@@ -14,6 +14,7 @@ import utils.Streams;
 import visitors.CloneVisitor;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,12 +33,12 @@ public interface MethLookup extends TypeTable, SubTyping {
     return methsAux(xbs, recvMdf, it).stream().map(cm->freshenMethGens(cm, depth)).toList();
   }
   record MethsCacheKey(XBs xbs, Mdf recvMdf, Id.IT<T> it){}
-  HashMap<MethsCacheKey, List<NormResult>> methsCache();
+  Map<MethsCacheKey, List<NormResult>> methsCache = new ConcurrentHashMap<>();
   default List<NormResult> methsAux(XBs xbs, Mdf recvMdf, Id.IT<T> it) {
-    var methsCache = this.methsCache();
     var cacheKey = new MethsCacheKey(xbs, recvMdf, it);
     // Can't use computeIfAbsent here because concurrent modification thanks to mutual recursion :-(
-    if (methsCache.containsKey(cacheKey)) { return methsCache.get(cacheKey); }
+    var cached = methsCache.get(cacheKey);
+    if (cached != null) { return cached; }
     List<NormResult> cms = Stream.concat(
       cMsOf(recvMdf, it).stream(),
       itsOf(it).stream().flatMap(iti->methsAux(xbs, recvMdf, iti).stream())
@@ -191,11 +192,13 @@ public interface MethLookup extends TypeTable, SubTyping {
     }
   }
   default NormResult norm(CM cm) {
-    var gxs=cm.sig().gens();
+    @SuppressWarnings("unchecked")
+    var gxs=(Id.GX<T>[]) cm.sig().gens().toArray(Id.GX[]::new);
+
     var normaliser = new Normaliser<T>(0);
     Map<Id.GX<T>,Id.GX<T>> subst = new HashMap<>();
     Map<Id.GX<T>,Id.GX<T>> restore = new HashMap<>();
-    var normedNames = normaliser.normalisedNames(gxs.size());
+    var normedNames = normaliser.normalisedNames(gxs.length);
     Streams.zip(gxs, normedNames).forEach((original, normed)->{
       subst.put(original, normed);
       var plain = original.name().endsWith("$") ? original : new Id.GX<T>(original.name()+"$0");

@@ -4,7 +4,7 @@ import program.typesystem.SubTyping;
 
 public interface Program extends TypeTable, SubTyping, MethLookup {
   default void reset() {
-    this.methsCache().clear();
-    this.subTypeCache().clear();
+    MethLookup.methsCache.clear();
+    SubTyping.subTypeCache.clear();
   }
 }

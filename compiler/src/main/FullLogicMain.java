@@ -11,18 +11,21 @@ public interface FullLogicMain<Exe> extends LogicMain {
   MIR.Program lower(ast.Program program, ConcurrentHashMap<Long, TsT> resolvedCalls);
   Exe codeGeneration(MIR.Program program);
   void compileBackEnd(Exe exe);
-  ProcessBuilder execution(MIR.Program program, Exe exe, ConcurrentHashMap<Long, TsT> resolvedCalls);
-  default ProcessBuilder run(){
+  ProcessBuilder execution(Exe exe);
+  default Exe buildAndCache() {
     var fullProgram= parse();
     wellFormednessFull(fullProgram);
     var program = inference(fullProgram);
     wellFormednessCore(program);
     var resolvedCalls = typeSystem(program);
     var mir = lower(program,resolvedCalls);
-    var code = codeGeneration(mir);
-    compileBackEnd(code);
-    var process = execution(mir,code,resolvedCalls);
+    var exe = codeGeneration(mir);
+    compileBackEnd(exe);
     cachePackageTypes(program);
-    return process;
+    return exe;
+  }
+  default ProcessBuilder run(){
+    var executable = buildAndCache();
+    return execution(executable);
   }
 }

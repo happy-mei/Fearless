@@ -50,31 +50,8 @@ public class Program implements program.Program{
     return of(t).pos();
   }
 
-  @Override public Program shallowClone() {
-    var subTypeCache = new HashMap<>(this.subTypeCache);
-    var methsCache = new HashMap<>(this.methsCache);
-    return new Program(tsf, ds){
-      @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
-        return subTypeCache;
-      }
-      @Override public HashMap<MethsCacheKey, List<NormResult>> methsCache() {
-        return methsCache;
-      }
-    };
-  }
-
   @Override public TypeSystemFeatures tsf() {
     return this.tsf;
-  }
-
-  private final HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();
-  @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
-    return subTypeCache;
-  }
-
-  private final HashMap<MethsCacheKey, List<NormResult>> methsCache = new HashMap<>();
-  @Override public HashMap<MethsCacheKey, List<NormResult>> methsCache() {
-    return methsCache;
   }
 
   public T.Dec of(Id.DecId d) {
@@ -143,7 +120,7 @@ public class Program implements program.Program{
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
   public Map<Id.DecId, T.Dec> inlineDs() { return this.inlineDs; }
 
-  private final HashMap<Id.DecId, Set<Id.DecId>> superDecIdsCache = new HashMap<>();
+  private final Map<Id.DecId, Set<Id.DecId>> superDecIdsCache = new HashMap<>();
   public Set<Id.DecId> superDecIds(Id.DecId start) {
     if (superDecIdsCache.containsKey(start)) { return superDecIdsCache.get(start); }
 
@@ -172,7 +149,7 @@ public class Program implements program.Program{
   }
 
   /**
-   * Applies inference 5a
+   * Applies inference 5a. This is not safe to parallelise.
    */
   public astFull.Program inferSignatures(){
     var is=new InferSignatures(this);

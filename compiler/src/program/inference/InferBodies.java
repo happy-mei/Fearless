@@ -28,12 +28,9 @@ public record InferBodies(ast.Program p) {
   }
 
   static Map<Id.DecId, ast.T.Dec> inferDecs(ast.Program p, astFull.Program fullProgram){
-//    var inferBodies = new InferBodies(p);
-//    return fullProgram.ds().values().stream()
-//      .map(inferBodies::inferDec)
-//      .collect(Collectors.toMap(ast.T.Dec::name, d->d));
+    var inferBodies = new InferBodies(p);
     return fullProgram.ds().values().parallelStream()
-      .map(dec->new InferBodies(p.shallowClone()).inferDec(dec))
+      .map(inferBodies::inferDec)
       .collect(Collectors.toConcurrentMap(ast.T.Dec::name, d->d));
   }
   ast.T.Dec inferDec(astFull.T.Dec d){

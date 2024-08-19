@@ -66,7 +66,7 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
       .map(kv->visitPackage(kv.getKey(), kv.getValue()))
       .toList();
 
-    return new MIR.Program(p.shallowClone(), pkgs);
+    return new MIR.Program(p, pkgs);
   }
 
   public MIR.Package visitPackage(String pkg, List<T.Dec> ds) {

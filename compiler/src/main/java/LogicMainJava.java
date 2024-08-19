@@ -49,11 +49,7 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
     c.compile(src.files());
   }
 
-  default ProcessBuilder execution(
-          MIR.Program program,
-          JavaProgram exe,
-          ConcurrentHashMap<Long, TsT> resolvedCalls
-  ){
+  default ProcessBuilder execution(JavaProgram exe){
     return MakeJavaProcess.of(io());
   }
   static LogicMainJava of(

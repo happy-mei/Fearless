@@ -87,7 +87,7 @@ interface ELambdaTypeSystem extends ETypeSystem{
     };
     litT = litT.mdf().isMdf() ? litT.withMdf(Mdf.mut) : litT;
     var boundedTypeSys =(ELambdaTypeSystem) ETypeSystem.of(
-        p().shallowClone(), g(), xbs,
+        p(), g(), xbs,
         expectedT(), resolvedCalls(), depth());
     try { return boundedTypeSys.mOk(selfName, selfT, litT, mi); }
     catch (CompileError err) { return err.fail(); }

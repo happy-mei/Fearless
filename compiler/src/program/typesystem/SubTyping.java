@@ -7,12 +7,13 @@ import id.Mdf;
 import program.TypeTable;
 import utils.Bug;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface SubTyping extends TypeTable {
-  HashMap<SubTypeQuery, SubTypeResult> subTypeCache();
+  Map<SubTypeQuery, SubTypeResult> subTypeCache = new ConcurrentHashMap<>();
   default boolean isSubType(XBs xbs, astFull.T t1, astFull.T t2) {
     return isSubType(xbs, t1.toAstT(), t2.toAstT());
   }
@@ -29,7 +30,6 @@ public interface SubTyping extends TypeTable {
   default boolean isSubType(XBs xbs, T t1, T t2) {
 //    return isSubTypeAux(xbs, t1, t2);
     var q = new SubTypeQuery(xbs, t1, t2);
-    var subTypeCache = this.subTypeCache();
     if (subTypeCache.containsKey(q)) {
       var res = subTypeCache.get(q);
       return res == SubTypeResult.Yes;

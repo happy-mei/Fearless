@@ -56,31 +56,8 @@ public class Program implements program.Program  {
     return of(t.name()).pos();
   }
 
-  @Override public Program shallowClone() {
-    var subTypeCache = new HashMap<>(this.subTypeCache);
-    var methsCache = new HashMap<>(this.methsCache);
-    return new Program(tsf, ds, inlineDs){
-      @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
-        return subTypeCache;
-      }
-      @Override public HashMap<MethsCacheKey, List<NormResult>> methsCache() {
-        return methsCache;
-      }
-    };
-  }
-
   @Override public TypeSystemFeatures tsf() {
     return this.tsf;
-  }
-
-  private final HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();
-  @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
-    return subTypeCache;
-  }
-
-  private final HashMap<MethsCacheKey, List<NormResult>> methsCache = new HashMap<>();
-  @Override public HashMap<MethsCacheKey, List<NormResult>> methsCache() {
-    return methsCache;
   }
 
   public T.Dec of(Id.DecId d) {
@@ -128,7 +105,7 @@ public class Program implements program.Program  {
     return of(t.name()).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
   }
 
-  private final HashMap<Id.DecId, Set<Id.DecId>> superDecIdsCache = new HashMap<>();
+  private final Map<Id.DecId, Set<Id.DecId>> superDecIdsCache = new ConcurrentHashMap<>();
   public Set<Id.DecId> superDecIds(Id.DecId start) {
     if (superDecIdsCache.containsKey(start)) { return superDecIdsCache.get(start); }
 

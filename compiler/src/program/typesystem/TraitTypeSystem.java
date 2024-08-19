@@ -10,9 +10,11 @@ import id.Id.IT;
 import id.Mdf;
 import program.TypeSystemFeatures;
 import utils.Mapper;
-import utils.Push;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -20,7 +22,8 @@ public interface TraitTypeSystem {
   Program p();
   static List<Supplier<CompileError>> dsOk(TypeSystemFeatures tsf, Collection<Dec> ds, ConcurrentHashMap<Long, TsT> resolvedCalls){
     Map<Id.DecId, Dec> pDs = Mapper.of(c->ds.forEach(e->c.put(e.name(),e)));
-    TraitTypeSystem ttt = ()->new Program(tsf, pDs, Map.of());
+    var program = new Program(tsf, pDs, Map.of());
+    TraitTypeSystem ttt = ()->program;
     return ds.parallelStream()
       .flatMap(di->ttt.dOk(di, resolvedCalls).stream())
       .map(errorSupplier->

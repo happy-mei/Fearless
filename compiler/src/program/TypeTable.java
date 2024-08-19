@@ -19,8 +19,7 @@ public interface TypeTable {
   Program withDec(T.Dec d);
   List<ast.E.Lambda> lambdas();
   Optional<Pos> posOf(Id.IT<T> t);
-  /** Produce a clone of Program without any cached data */
-  Program shallowClone();
+
   TypeSystemFeatures tsf();
 
   static boolean filterByMdf(Mdf mdf, Mdf mMdf) {
