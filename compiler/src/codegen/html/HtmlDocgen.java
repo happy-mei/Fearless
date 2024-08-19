@@ -134,7 +134,7 @@ public class HtmlDocgen {
   private static String generatePage(String title, Optional<String> parent, String index, String content) {
     var singleContent = content.isEmpty() ? index : content;
     var parentHtml = parent.map(p->STR."""
-      <a href="\{p}" alt="Go up one level" title="Go up one level">&#11170;</a>
+      <a href="\{p}" alt="Go up one level" title="Go up one level">&#8624;</a>
       """.stripIndent()).orElse("");
     return STR."""
       <!DOCTYPE html>
