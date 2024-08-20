@@ -37,7 +37,6 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
 
     if (verbosity().printCodegen()) {
       var tmp = utils.IoErr.of(()->java.nio.file.Files.createTempDirectory("fgen"));
-      System.out.println("writing to "+tmp);
       res.writeJavaFiles(tmp);
       System.out.println("saved to "+tmp);
     }
