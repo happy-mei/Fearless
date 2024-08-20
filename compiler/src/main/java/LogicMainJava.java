@@ -1,6 +1,7 @@
 package main.java;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,13 +32,12 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
       .withBlockOptimisation()
       .run(mir);
   }
-  default JavaProgram codeGeneration(
-          MIR.Program mir
-  ){
+  default JavaProgram codeGeneration(MIR.Program mir) {
     var res= new JavaProgram(this,mir);
 
     if (verbosity().printCodegen()) {
       var tmp = utils.IoErr.of(()->java.nio.file.Files.createTempDirectory("fgen"));
+      System.out.println("writing to "+tmp);
       res.writeJavaFiles(tmp);
       System.out.println("saved to "+tmp);
     }

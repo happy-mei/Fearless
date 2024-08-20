@@ -185,9 +185,6 @@ public interface MethLookup extends TypeTable, SubTyping {
   record NormResult(CM cm, Map<Id.GX<T>,Id.GX<T>> restoreSubst) {
     public CM restoreMethodGens() {
       var newSig = new RenameGens(restoreSubst).visitSig(cm.sig());
-      if (newSig.gens().equals(List.of(new Id.GX<>("R"))) && newSig.ts().size() == 1 && newSig.ts().getFirst().toString().equals("mut base.ControlFlowMatch[R, R]")){
-        System.out.println(newSig);
-      }
       return cm.withSig(newSig);
     }
   }
