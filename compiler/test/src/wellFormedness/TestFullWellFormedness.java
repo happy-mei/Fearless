@@ -23,7 +23,7 @@ public class TestFullWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     var res = new WellFormednessFullShortCircuitVisitor().visitProgram(p);
     var isWellFormed = res.isEmpty();
     assertTrue(isWellFormed, res.map(Object::toString).orElse(""));
@@ -36,7 +36,7 @@ public class TestFullWellFormedness {
       .toList();
 
     try {
-      var p = Parser.parseAll(ps, TypeSystemFeatures.of());
+      var p = Parser.parseAll(ps, new TypeSystemFeatures());
       var error = new WellFormednessFullShortCircuitVisitor().visitProgram(p);
       if (error.isEmpty()) { Assertions.fail("Did not fail"); }
       Err.strCmp(expectedErr, error.map(Object::toString).orElseThrow());

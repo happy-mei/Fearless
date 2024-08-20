@@ -11,6 +11,8 @@ import java.util.function.UnaryOperator;
 public sealed interface FailOr<T>{
   <R> FailOr<R> flatMap(Function<T,FailOr<R>> r);
   <R> FailOr<R> map(Function<T,R> r);
+  FailOr<T> peek(Consumer<T> r);
+  FailOr<T> or(Supplier<FailOr<T>> r);
   FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u);
   default void ifRes(Consumer<T> r) {
     this.<Void>map(t -> {
@@ -27,6 +29,12 @@ public sealed interface FailOr<T>{
   record Res<T>(T t) implements FailOr<T> {
     public <R> FailOr<R> flatMap(Function<T,FailOr<R>> r) { return r.apply(t); }
     public <R> FailOr<R> map(Function<T,R> r) { return new Res<>(r.apply(t)); }
+    public FailOr<T> peek(Consumer<T> r) {
+      r.accept(t);
+      return this;
+    }
+    @Override public FailOr<T> or(Supplier<FailOr<T>> r) { return this; }
+
     public FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u) {return this;}
     public boolean isRes(){ return true; }
 
@@ -43,6 +51,9 @@ public sealed interface FailOr<T>{
     private <R> Fail<R> self(){return (Fail<R>) this;}
     public <R> FailOr<R> flatMap(Function<T,FailOr<R>> r) { return self(); }
     public <R> FailOr<R> map(Function<T,R> r) { return self(); }
+    public FailOr<T> peek(Consumer<T> r) { return self(); }
+    @Override public FailOr<T> or(Supplier<FailOr<T>> r) { return r.get(); }
+
     public FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u){ return new Fail<>(u.apply(err)); }
     public boolean isRes(){ return false; }
 

@@ -18,7 +18,7 @@ class TestLiterals {
     var ps = Arrays.stream(content)
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
         .toList();
-    String res = Parser.parseAll(ps, TypeSystemFeatures.of()).toString();
+    String res = Parser.parseAll(ps, new TypeSystemFeatures()).toString();
     Err.strCmpFormat(expected,res);
   }
   void fail(String expectedErr, String... content){
@@ -28,7 +28,7 @@ class TestLiterals {
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
         .toList();
     try {
-      var res = Parser.parseAll(ps, TypeSystemFeatures.of());
+      var res = Parser.parseAll(ps, new TypeSystemFeatures());
       Assertions.fail("Parsing did not fail. Got: "+res);
     }
     catch (CompileError e) {

@@ -93,7 +93,7 @@ public class Main {
           return;
         }
 
-//        frontEnd = new CompilerFrontEnd(bv, verbosity.get(), TypeSystemFeatures.of());
+//        frontEnd = new CompilerFrontEnd(bv, verbosity.get(), new TypeSystemFeatures());
 //        if (res.hasOption("new")) {
 //          frontEnd.newPkg(res.getOptionValue("new"));
 //          return;

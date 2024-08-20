@@ -20,7 +20,7 @@ class TestFullParser {
     var ps = Arrays.stream(content)
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
         .toList();
-    var res = Parser.parseAll(ps, TypeSystemFeatures.of());
+    var res = Parser.parseAll(ps, new TypeSystemFeatures());
     Err.strCmpFormat(expected,res.toString());
   }
   void fail(String expectedErr, String... content){
@@ -30,7 +30,7 @@ class TestFullParser {
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
         .toList();
     try {
-      var res = Parser.parseAll(ps, TypeSystemFeatures.of());
+      var res = Parser.parseAll(ps, new TypeSystemFeatures());
       Assertions.fail("Parsing did not fail. Got: "+res);
     }
     catch (CompileError e) {

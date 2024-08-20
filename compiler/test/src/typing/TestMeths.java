@@ -30,17 +30,13 @@ public class TestMeths {
 
   void okNoAdapt(String expected, String type, String ...code){
     var it = new Parser(Parser.dummy, type).parseFullT();
-    var tsf = new TypeSystemFeatures.TypeSystemFeaturesBuilder()
-      .allowAdapterSubtyping(false)
-      .build();
+    var tsf = new TypeSystemFeatures();
     Program p = FromContent.withTsf(tsf, code);
     Err.strCmpFormat(expected, p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0).toString());
   }
   void failNoAdapt(String expected, String type, String ...code) {
     var it = new Parser(Parser.dummy, type).parseFullT();
-    var tsf = new TypeSystemFeatures.TypeSystemFeaturesBuilder()
-      .allowAdapterSubtyping(false)
-      .build();
+    var tsf = new TypeSystemFeatures();
     Program p = FromContent.withTsf(tsf, code);
     try {
       var res = p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0);

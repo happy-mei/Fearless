@@ -23,7 +23,7 @@ import static id.Mdf.*;
 
 class TestMultiSigBuilder {
   private static final Id.MethName name = new Id.MethName(".foo", 0);
-  private static final Program p = new ast.Program(TypeSystemFeatures.of(), Map.of(), Map.of());
+  private static final Program p = new ast.Program(new TypeSystemFeatures(), Map.of(), Map.of());
 
   T dts(Mdf mdf, String name, List<T> ts) {
     return new T(mdf,new IT<T>(name,ts));

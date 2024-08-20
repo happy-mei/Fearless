@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public interface Base {
   static ast.Program ignoreBase(ast.Program p) {
     return new ast.Program(
-      TypeSystemFeatures.of(),
+      new TypeSystemFeatures(),
       p.ds().entrySet().stream()
         .filter(kv->!kv.getKey().name().startsWith("base."))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),

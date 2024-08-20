@@ -25,10 +25,24 @@ import static program.TypeTable.filterByMdf;
 
 
 interface ELambdaTypeSystem extends ETypeSystem{
-  default FailOr<T> visitLambda(E.Lambda b){
-    Dec d= new Dec(b);
-    var self= (ELambdaTypeSystem)withProgram(p().withDec(d));
-    var err1= self.implMethErrors(b);
+  default FailOr<T> visitLambda(E.Lambda lit){
+    if (!p().tsf().literalPromotions()) {
+      return litT(lit);
+    }
+    if (lit.mdf().isMut()) {
+      return litT(lit.withMdf(Mdf.iso))
+        .or(()->litT(lit));
+    }
+    if (lit.mdf().isRead()) {
+      return litT(lit.withMdf(Mdf.imm))
+        .or(()->litT(lit));
+    }
+    return litT(lit);
+  }
+  private FailOr<T> litT(E.Lambda lit) {
+    Dec d= new Dec(lit);
+    var self= (ELambdaTypeSystem) withProgram(p().withDec(d));
+    var err1= self.implMethErrors(lit);
     return err1.flatMap(_ ->self.bothT(d));
   }
   private List<E.Meth> filteredByMdf(E.Lambda b){

@@ -17,8 +17,7 @@ import java.util.List;
 import static utils.RunOutput.assertResMatch;
 
 public class RunJavaProgramTests {
-  private static final TypeSystemFeatures TSF = new TypeSystemFeatures.TypeSystemFeaturesBuilder()
-    .build();
+  private static final TypeSystemFeatures TSF = new TypeSystemFeatures();
 
   public static void ok(RunOutput.Res expected, String... content) {
     okWithArgs(expected, List.of(), content);

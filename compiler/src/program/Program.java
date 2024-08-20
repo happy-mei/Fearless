@@ -7,4 +7,6 @@ public interface Program extends TypeTable, SubTyping, MethLookup {
     MethLookup.methsCache.clear();
     SubTyping.subTypeCache.clear();
   }
+
+  TypeSystemFeatures tsf();
 }

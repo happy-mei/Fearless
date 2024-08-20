@@ -23,9 +23,9 @@ public interface LogicMain {
   InputOutput io();
   HashSet<String> cachedPkg();
   default TypeSystemFeatures typeSystemFeatures() {
-    return new TypeSystemFeatures.TypeSystemFeaturesBuilder()
-      .allowAdapterSubtyping(false)
-      .build();
+    return new TypeSystemFeatures()
+      .hygienics(true)
+      .literalPromotions(true);
   }
 
   void cachePackageTypes(ast.Program program);

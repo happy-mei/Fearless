@@ -20,8 +20,6 @@ public interface TypeTable {
   List<ast.E.Lambda> lambdas();
   Optional<Pos> posOf(Id.IT<T> t);
 
-  TypeSystemFeatures tsf();
-
   static boolean filterByMdf(Mdf mdf, Mdf mMdf) {
     assert !mdf.isMdf();
     if (mdf.is(Mdf.iso, Mdf.mut, Mdf.recMdf, Mdf.mdf)) { return true; }

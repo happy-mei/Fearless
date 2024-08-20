@@ -6,8 +6,6 @@ import failure.FailOr;
 import id.Id;
 import id.Id.GX;
 import id.Mdf;
-import program.Program;
-import program.TypeTable;
 import utils.Range;
 
 import java.util.ArrayList;
@@ -27,6 +25,7 @@ record MultiSigBuilder(
     T formalRet,
     int size, //parameter count (no this)
     XBs bounds,
+    List<Mdf> recvMdfs, //receiver modifiers
     List<ArrayList<T>> tss, //parameter types (no this)
     ArrayList<T> rets, //return types
     ArrayList<String> kinds//debug info about applied promotion
@@ -37,6 +36,7 @@ record MultiSigBuilder(
       mdf0,expectedRes,formalMdf,formalTs,formalRet,
       formalTs.size(),
       bounds,
+      new ArrayList<>(),
       formalTs.stream().map(_->new ArrayList<T>()).toList(),
       new ArrayList<>(),
       new ArrayList<>()
@@ -53,6 +53,7 @@ record MultiSigBuilder(
     }
 
     return FailOr.res(new MultiSig(
+      Collections.unmodifiableList(res.recvMdfs),
       res.tss.stream().map(Collections::unmodifiableList).toList(),
       Collections.unmodifiableList(res.rets),
       Collections.unmodifiableList(res.kinds)
@@ -88,11 +89,13 @@ record MultiSigBuilder(
   }
   void fillMutHPromPar(){//one for parameter mut <->mutH
     if(!filterMdf(this::mutIsoReadImm)){ return; }
+    var recvMdf = mutIsoReadImm(formalRecMdf());
     var addRet= fix(true,this::toHyg,formalRet);
     if(!filterExpectedRes(addRet)){ return; }
 
     var muts = IntStream.range(0, formalTs.size()).filter(i -> formalTs.get(i).mdf().isMut()).toArray();
     for (int mutIdx : muts) {
+      recvMdfs.add(recvMdf);
       rets.add(addRet);
       transformMuts(mutIdx);
       kinds.add(STR."MutHPromPar(\{mutIdx})");
@@ -114,6 +117,7 @@ record MultiSigBuilder(
     if(!filterMdf(rec)){ return; }
     var addRet= fix(true,r,formalRet);
     if(!filterExpectedRes(addRet)){ return; }
+    recvMdfs.add(rec.apply(formalRecMdf()));
     rets.add(addRet);
     for(var i : Range.of(0,size)){
       tss.get(i).add(fix(false,p,formalTs.get(i)));

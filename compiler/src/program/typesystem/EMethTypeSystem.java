@@ -88,10 +88,6 @@ public interface EMethTypeSystem extends ETypeSystem {
       return fail.mapErr(err->()->err.get().pos(e.pos())).cast();
     }
 
-    List<T> ts = selected.sig().ts();
-    TsT tst = new TsT(ts, selected.ret(), selected);
-    resolvedCalls().put(e.callId(), tst);
-
     var multi_ = MultiSigBuilder.multiMethod(
       p(),
       e.name(),
@@ -109,7 +105,7 @@ public interface EMethTypeSystem extends ETypeSystem {
       Range.of(e.es()),
       i-> e.es().get(i).accept(multi.expectedT(this, i))
     );
-    return ft1n.flatMap(t1n -> selectResult(e, multi, t1n));
+    return ft1n.flatMap(t1n->selectResult(e, selected, multi, t1n));
   }
 
   private CM selectOverload(E.MCall e, List<CM> sigs, Mdf mdf0, IT<T> recvIT){
@@ -130,28 +126,29 @@ public interface EMethTypeSystem extends ETypeSystem {
     //should we consider return types?
     return true;
   }
-  private FailOr<T> selectResult(E.MCall e, MultiSig multi, List<T> t1n){
+  private FailOr<T> selectResult(E.MCall e, CM selected, MultiSig multi, List<T> t1n){
     assert multi.tss().size()==t1n.size();//That is, tss does not have 'this'?
     var sel= IntStream.range(0, multi.rets().size())
       .filter(i->ok(multi,i,t1n))
       .boxed()
       .findFirst();
     return sel
-      .map(i->successType(e,i,multi))
+      .map(i->successType(e,selected,i,multi))
       .orElse(FailOr.err(()->Fail.invalidMethodArgumentTypes(e,t1n,multi,expectedT())));
   }
-  private FailOr<T> successType(E.MCall e, int i, MultiSig multi){
+  private FailOr<T> successType(E.MCall e, CM selected, int i, MultiSig multi){
+    Mdf mdf = multi.recvMdfs().get(i);
+    List<T> ts= multi.tss().stream().map(tsj->tsj.get(i)).toList();
     T ret= multi.rets().get(i);
-//    List<T> ts= multi.tss().stream().map(tsj->tsj.get(i)).toList();
-//    TsT tst=new TsT(ts,ret,null);
-//    resolvedCalls().put(e.callId(), tst);
+    TsT tst = new TsT(mdf, ts, ret, selected);
+    resolvedCalls().put(e.callId(), tst);
     return FailOr.res(ret);
   }
   private boolean ok(MultiSig multi,int i,List<T> t1n){
     return IntStream.range(0, t1n.size()).allMatch(j->{
       var actualT= t1n.get(j);
       var formalT= multi.tss().get(j).get(i);//current par index, current attempt
-      return p().isSubType(xbs(),actualT,formalT); 
+      return p().isSubType(xbs(),actualT,formalT);
     });
   }
 }
