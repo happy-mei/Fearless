@@ -277,28 +277,28 @@ ListProxys: {
       .inner -> list,
       .size -> to - from,
       .isEmpty -> self.size == 0,
-      .expose(rawList, i) -> (i >= from) && (i < to) ? {
-        .then -> rawList.get(i),
+      .expose(rawList, i) -> i < (self.size) ? {
+        .then -> rawList.get(from + i),
         .else -> Error.msg("Index "+(i.str)+" is out of bounds for this list")
         },
-      .tryExpose(rawList, i) -> (i >= from) && (i < to) ? {
-        .then -> rawList.tryGet(i),
+      .tryExpose(rawList, i) -> i < (self.size) ? {
+        .then -> rawList.tryGet(from + i),
         .else -> {}
         },
-      read .get(i: Nat): read/imm E -> (i >= from) && (i < to) ? {
-        .then -> list.get(i),
+      read .get(i: Nat): read/imm E -> i < (self.size) ? {
+        .then -> list.get(from + i),
         .else -> Error.msg("Index "+(i.str)+" is out of bounds for this list")
         },
-      imm  .get(i: Nat): imm E -> (i >= from) && (i < to) ? {
-        .then -> list.get(i),
+      imm  .get(i: Nat): imm E -> i < (self.size) ? {
+        .then -> list.get(from + i),
         .else -> Error.msg("Index "+(i.str)+" is out of bounds for this list")
         },
-      read .tryGet(i: Nat): mut Opt[read/imm E] -> (i >= from) && (i < to) ? {
-        .then -> list.tryGet(i),
+      read .tryGet(i: Nat): mut Opt[read/imm E] -> i < (self.size) ? {
+        .then -> list.tryGet(from + i),
         .else -> {}
         },
-      imm  .tryGet(i: Nat): mut Opt[imm E] -> (i >= from) && (i < to) ? {
-        .then -> list.tryGet(i),
+      imm  .tryGet(i: Nat): mut Opt[imm E] -> i < (self.size) ? {
+        .then -> list.tryGet(from + i),
         .else -> {}
         },
       }},
