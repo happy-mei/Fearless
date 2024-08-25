@@ -9,6 +9,7 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import program.CM;
+import program.TypeTable;
 import program.typesystem.XBs;
 import utils.Bug;
 import visitors.ShortCircuitVisitor;
@@ -193,11 +194,15 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
     // Ignore top-level
     if (e.mdf().isMdf()) { return Optional.empty(); }
 
-    var implMs = e.meths().stream().map(E.Meth::name).collect(Collectors.toSet());
+    var implMs = e.meths().stream()
+      .filter(m->!m.isAbs())
+      .map(E.Meth::name)
+      .collect(Collectors.toSet());
     var unimplemented = p.meths(XBs.empty().addBounds(e.id().gens(), e.id().bounds()), e.mdf(), e, 0).stream()
       .filter(CM::isAbs)
-      .dropWhile(m->implMs.contains(m.name()))
+      .filter(m->TypeTable.filterByMdf(e.mdf(), m.mdf()))
       .map(CM::name)
+      .filter(name->!implMs.contains(name))
       .toList();
     if (!unimplemented.isEmpty()) {
       return Optional.of(Fail.noUnimplementedMethods(unimplemented));

@@ -426,4 +426,16 @@ public class TestWellFormedness {
     B: A
     Bs: {#: B -> B {}}
     """);}
+  @Test void mustImplementMethodsInLambdaEvenIfImplAbs() {fail("""
+    In position [###]/Dummy0.fear:4:13
+    [E70 noUnimplementedMethods]
+    Literals must implement all callable methods. The following methods are unimplemented: imm .foo/0.
+    """, """
+    package test
+    A: {.foo: A}
+    B: A
+    Bs: {#: B -> B {
+      .foo: A,
+      }}
+    """);}
 }
