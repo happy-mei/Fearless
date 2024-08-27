@@ -39,10 +39,15 @@ public final class MutStr implements Str {
     return True_0.$self;
   }
 
-  @Override public MutStr append$mut(base.Stringable_0 other$) {
+  @Override public MutStr $plus$mut(base.Stringable_0 other$) {
     buffer.add(other$.str$read());
     immStr = null;
     return this;
+  }
+
+  @Override public base.Void_0 append$mut(base.Stringable_0 other$) {
+    this.$plus$mut(other$);
+    return base.Void_0.$self;
   }
 
   @Override public base.Void_0 clear$mut() {

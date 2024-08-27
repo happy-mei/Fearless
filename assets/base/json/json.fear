@@ -1,0 +1,37 @@
+package base.json
+
+alias base.Todo as Todo,
+
+JsonMatch[R:iso,imm,mut,mutH,read,readH]: {
+  mut .string(s: Str): R,
+  mut .number(n: Float): R,
+  mut .object(o: Map[Str, Json]): R,
+  mut .array(a: List[Json]): R,
+  mut .null: R,
+  }
+Jsons: {
+  .string(s: Str): Json -> {m -> m.string(s)},
+  .number(n: Float): Json -> {m -> m.number(n)},
+  .object(o: Map[Str, Json]): Json -> {m -> m.object(o)},
+  .array(a: List[Json]): Json -> {m -> m.array(a)},
+  .null: Json -> {m -> m.null},
+  }
+Json: Stringable{
+  read .match[R:iso,imm,mut,mutH,read,readH](m: mut JsonMatch[R]): R,
+  .str -> Todo!
+  }
+
+_JsonToStr: {
+  #(json: Json): Str -> json.match{
+    // TODO: needs to escape contents of s
+    .string(s) -> "\""+s+"\"",
+    .number(n) -> n.str,
+    .object(o) -> Todo! "Flows over maps are not implemented yet",
+    .array(a)  -> "["+(this.array(a))+"]",
+    .null      -> "null",
+    },
+
+  .array(a: List[Json]): Str -> a.flow
+    .map{json->this#json}
+    .join ", ",
+  }

@@ -22,7 +22,7 @@ Try: {
   }
 Try[R]:{ read #: R, }
 
-Info: Sealed,_InfoToJson{
+Info: Sealed{
   .msg: Str,
   .map: Map[Str, Info],
   .list: List[Info],
@@ -46,13 +46,15 @@ Infos: {
     },
   }
 
-_InfoToJson: {#(info: Info): Str -> Block#
-  .if {info.msg.isEmpty.not} .return {"\""+(info.msg)+"\""}
-  .if {info.list.isEmpty.not} .return {"["+(this.list(info.list))+"]"}
-  .if {info.map.isEmpty.not} .return {Todo! "Flows over maps are not implemented yet"}
-  .return {Error.msg "Unreachable"},
+// TODO: needs to escape contents of info.msg
+_InfoToJson: {
+  #(info: Info): Str -> Block#
+    .if {info.msg.isEmpty.not} .return {"\""+(info.msg)+"\""}
+    .if {info.list.isEmpty.not} .return {"["+(this.list(info.list))+"]"}
+    .if {info.map.isEmpty.not} .return {Todo! "Flows over maps are not implemented yet"}
+    .return {Error.msg "Unreachable"},
 
   .list(l: List[Info]): Str -> l.flow
     .map{info->this#info}
-    #(Flow.str ","),
+    .join ", ",
   }

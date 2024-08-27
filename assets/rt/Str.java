@@ -47,7 +47,8 @@ public interface Str extends base.Str_0 {
 		System.arraycopy(b, 0, res, a.length, b.length);
 		return fromTrustedUtf8(res);
 	}
-	@Override default Str append$mut(base.Stringable_0 other$) { throw new java.lang.Error("Unreachable code"); }
+	@Override default Str $plus$mut(base.Stringable_0 other$) { throw new java.lang.Error("Unreachable code"); }
+	@Override default base.Void_0 append$mut(base.Stringable_0 other$) { throw new java.lang.Error("Unreachable code"); }
 	@Override default base.Void_0 clear$mut() { throw new java.lang.Error("Unreachable code"); }
 	@Override default Long size$imm() {
 		return (long) this.graphemes().length;
@@ -65,7 +66,7 @@ public interface Str extends base.Str_0 {
 		return (Str) flow_m$.fold$mut(new MutStr(EMPTY), (_acc, _str) -> {
 			var acc = (MutStr) _acc;
 			var str = (Str) _str;
-			return acc.isEmpty$read() == True_0.$self ? acc.append$mut(str) : acc.append$mut(this).append$mut(str);
+			return acc.isEmpty$read() == True_0.$self ? acc.$plus$mut(str) : acc.$plus$mut(this).$plus$mut(str);
 		});
 	}
 

@@ -44,8 +44,8 @@ Iter[E]:{
   mut .llist: mut LList[E] -> this.fold(mut LList[E], { acc, e -> acc +[] e }),
   mut .str(toStr: mut IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
     .fold[mut Str](mut "", mut IterFolder[Str, mut Str]{acc, e -> acc.isEmpty ? {
-      .then -> acc.append(e),
-      .else -> acc.append(joining).append(e) }
+      .then -> acc + e,
+      .else -> acc + joining + e }
       }).str,
 //  Flow.fromOp{'op
 //    .step(sink) -> this.next.match{

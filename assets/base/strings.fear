@@ -11,7 +11,8 @@ Str: Sealed,Stringable,base.flows.Joinable[Str],ToHash{
   .charAt(index: Nat): Str,
   /// Normalise using NFC. See https://www.unicode.org/reports/tr15/ for more information.
   .normalise: Str,
-  mut .append(other: read Stringable): mut Str,
+  mut .append(other: read Stringable): Void,
+  mut +(other: read Stringable): mut Str,
   mut .clear: Void,
   .flow: mut Flow[Str],
   ._flow: mut FlowOp[Str],
