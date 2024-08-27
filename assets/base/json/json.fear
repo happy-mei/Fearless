@@ -5,6 +5,7 @@ alias base.Todo as Todo,
 JsonMatch[R:iso,imm,mut,mutH,read,readH]: {
   mut .string(s: Str): R,
   mut .number(n: Float): R,
+  mut .bool(b: Bool): R,
   mut .object(o: Map[Str, Json]): R,
   mut .array(a: List[Json]): R,
   mut .null: R,
@@ -12,6 +13,7 @@ JsonMatch[R:iso,imm,mut,mutH,read,readH]: {
 Jsons: {
   .string(s: Str): Json -> {m -> m.string(s)},
   .number(n: Float): Json -> {m -> m.number(n)},
+  .bool(b: Bool): Json -> {m -> m.bool(b)},
   .object(o: Map[Str, Json]): Json -> {m -> m.object(o)},
   .array(a: List[Json]): Json -> {m -> m.array(a)},
   .null: Json -> {m -> m.null},
@@ -26,6 +28,7 @@ _JsonToStr: {
     // TODO: needs to escape contents of s
     .string(s) -> "\""+s+"\"",
     .number(n) -> n.str,
+    .bool(b)   -> b ? {.then -> "true", .else -> "false"},
     .object(o) -> Todo! "Flows over maps are not implemented yet",
     .array(a)  -> "["+(this.array(a))+"]",
     .null      -> "null",

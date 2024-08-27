@@ -2,7 +2,7 @@ package base.json
 
 // Strictly follows https://www.json.org/json-en.html
 ParseJson: {#(input: Str): Json -> input.flow
-  .actor[mut _LexerCtx, Token](_LexerCtxs#, {downstream, state, e -> Block#
+  .actor[mut _LexerCtx,Token](_LexerCtxs#, {downstream, state, e -> Block#
     .let wasEscaped = {state.isEscaped}
     .do {state.isEscaped(False)}
     .do {state.write(e)}
@@ -28,8 +28,7 @@ ParseJson: {#(input: Str): Json -> input.flow
 
 _LexerCtxs: {#: mut _LexerCtx -> Block#
   .let buffer = {mut ""}
-  .let isStrMode = {Var#[Bool]False}
-  .let isEscaped = {Var#[Bool]False}
+  .let mode = {Var#[_LexerMode]_LexeerModes.value}
   .return {mut _LexerCtx: Stringable{'state
     mut .write(e: Str): Void -> buffer.append(e),
     mut .clear: Void -> buffer.clear,
@@ -43,16 +42,21 @@ _LexerCtxs: {#: mut _LexerCtx -> Block#
     }}
   }
 
-_TokenMatch[R:iso,imm,mut,mutH,read,readH]: {
+TokenMatch[R:iso,imm,mut,mutH,read,readH]: {
   mut .null: R,
+  mut .true: R,
+  mut .false: R,
+  mut .quoted(chars: Str): R,
+  mut .numeric(chars: Str): R,
+
   mut .os: R,
   mut .cs: R,
   mut .oc: R,
   mut .cc: R,
   mut .quote: R,
   mut .comma: R,
-  mut .quoted(chars: Str): R,
-  mut .numeric(chars: Str): R,
+  mut .colon: R,
+
   // The error case:
   mut .unknownFragment(bufferContents: Str): R,
   }
@@ -68,8 +72,27 @@ Tokens: {
   .numeric(chars: Str): Token -> {m -> m.numeric(chars)},
   }
 Token: {
-  read .match[R:iso,imm,mut,mutH,read,readH](m: mut _TokenMatch[R]): R,
+  read .match[R:iso,imm,mut,mutH,read,readH](m: mut TokenMatch[R]): R,
   }
+
+_LexerModeMatch: {
+  mut .value: R,
+  mut .string: R,
+  mut .stringEscape: R,
+  mut .unicodeEscape: R,
+  mut .hex: R,
+  mut .digits: R,
+  mut .whitespace: R,
+  }
+_LexerModes: _LexerModeMatch{
+  .value -> {m -> m.value},
+  .string -> {m -> m.string},
+  .stringEscape -> {m -> m.stringEscape},
+  .unicodeEscape -> {m -> m.unicodeEscape},
+  .hex -> {m -> m.hex},
+  .digits -> {m -> m.digits},
+  }
+_LexeerMode: {.match[R:iso,imm,mut,mutH,read,readH](m: mut _LexerModeMatch[R]): R}
 
 // TODO: This should be part of the string library
 _IsNumeric: {#(c: Str): Bool -> "1234567890".flow.any{n -> n == c}}
