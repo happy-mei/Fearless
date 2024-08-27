@@ -318,9 +318,9 @@ Many maps are on Str or Int types
   @Test void subList() {ok(new Res("21 vs. 5", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let[mut List[Nat]] l = {List#[Nat](1, 2, 3, 4).addAnd(5).addAnd(6)}
+      .let[mut List[Nat]] l = {List#[Nat](1, 2, 3, 4) + 5 + 6}
       .let sum1 = {l.flow#(Flow.uSum)}
-      .let sub = {ListProxys.subList(l, 1, 3)}
+      .let sub = {ListViews.subList(l, 1, 3)}
       .let sum2 = {sub.flow#(Flow.uSum)}
       .return {sys.io.println(sum1.str + " vs. "+ (sum2.str))}
       }
@@ -329,9 +329,9 @@ Many maps are on Str or Int types
   @Test void mappedList() {ok(new Res("21 vs. 8", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let[mut List[Nat]] l = {List#[Nat](1, 2, 3, 4).addAnd(5).addAnd(6)}
+      .let[mut List[Nat]] l = {List#[Nat](1, 2, 3, 4) + 5 + 6}
       .let sum1 = {l.flow#(Flow.uSum)}
-      .let sub = {ListProxys.indexMap(l, List#[Nat].addAnd(0).addAnd(0).addAnd(1).addAnd(1).addAnd(0).addAnd(0))}
+      .let sub = {ListViews.indexMap(l, List#[Nat] + 0 + 0 + 1 + 1 + 0 + 0)}
       .let sum2 = {sub.flow#(Flow.uSum)}
       .return {sys.io.println(sum1.str + " vs. "+ (sum2.str))}
       }
