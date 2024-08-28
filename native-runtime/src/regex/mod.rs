@@ -38,7 +38,7 @@ pub unsafe extern "system" fn Java_rt_NativeRuntime_doesRegexMatch<'local>(mut e
     regex.is_match(str.as_str()).into()
 }
 
-unsafe fn from_java<'a,'local>(pattern: jlong) -> &'a Regex {
+unsafe fn from_java<'a>(pattern: jlong) -> &'a Regex {
     let ptr = pattern as *mut Regex;
     &*ptr
 }
