@@ -1,9 +1,10 @@
 package rt;
 
 import org.junit.jupiter.api.Test;
+
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.stream.Stream;
+import rt.NativeRuntime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
