@@ -35,6 +35,8 @@ public final class NativeRuntime {
     }
   }
 
+  private static final Cleaner cleaner = Cleaner.create();
+
   // Strings
   public static class StringEncodingError extends RuntimeException {
     public StringEncodingError(String message) {
@@ -52,7 +54,6 @@ public final class NativeRuntime {
 
   // Regex
   public static final class Regex {
-    private static final Cleaner cleaner = Cleaner.create();
     record CleaningState(ByteBuffer pattern) implements Runnable {
       @Override public void run() {
         assert pattern.isDirect();
