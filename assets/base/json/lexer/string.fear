@@ -1,6 +1,6 @@
 package base.json
 
-LexString: Actor[_LexerCtx,Str,Token]{downstream, state, e -> Block#
+LexString: Actor[mut _LexerCtx,Str,Token]{downstream, state, e -> Block#
   .if {e == "\""} .return {Block#(
     downstream#(Tokens.quoted(state.str)),
     state.mode(_LexerModes.value),
