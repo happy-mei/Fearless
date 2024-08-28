@@ -33,7 +33,7 @@ LexStringEscapes: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
   .return {ActorRes.stop}
   }
 
-LexUnicodeEscapes: Actor[mut _UnicodeEscapeLexerCtx,Str,Token]{downstream, ctx, e -> Block#
+LexUnicodeEscapes: {#(ctx: mut _LexerCtx, buffer: mut List[Str], e: Str): ActorRes -> Block#
   .return {Todo!"Unicode escapes"}
 //  .if {ctx.str.size == 4} .return {Block#(
 //    ctx.write(e),
@@ -41,12 +41,6 @@ LexUnicodeEscapes: Actor[mut _UnicodeEscapeLexerCtx,Str,Token]{downstream, ctx, 
 //    ctx.mode(_LexerModes.string),
 //    ActorRes.continue
 //    )}
-  }
-_UnicodeEscapeLexerCtxs: {#(parent: mut _LexerCtx): mut _UnicodeEscapeLexerCtx -> Block#
-  .let[mut List[Str]] buffer = {List.withCapacity(4)}
-  .return {mut _UnicodeEscapeLexerCtx: {'ctx
-    mut .parent: mut _LexerCtx -> parent,
-    }}
   }
 
 //LexString: base.flows.ActorImpl[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#

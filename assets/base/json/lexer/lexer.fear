@@ -15,7 +15,7 @@ LexJson: {#(input: Str): Json -> input.flow
       .return {ActorRes.stop},
     .string -> LexString#(downstream, ctx, e),
     .stringEscape -> LexStringEscapes#(downstream, ctx, e),
-    .unicodeEscape -> LexUnicodeEscapes#(downstream, _UnicodeEscapeLexerCtxs#ctx, e),
+    .unicodeEscape(buf) -> LexUnicodeEscapes#(ctx, buf, e),
     .digits -> Todo!"Digits",
     }
 
@@ -39,7 +39,7 @@ LexJson: {#(input: Str): Json -> input.flow
 
 _LexerCtxs: {#: mut _LexerCtx -> Block#
   .let buffer = {mut ""}
-  .let mode = {Var#[_LexerMode](_LexerModes.value)}
+  .let mode = {Var#[mut _LexerMode](_LexerModes.value)}
   .let isDigit = {Regexs#"[0-9]"}
   .let isWhitespace = {Regexs#"[ \\n \\r \\t]"}
   .let isChar = {Regexs#"[\\U{0020}-\\U{10FFFF}]"}
@@ -48,8 +48,8 @@ _LexerCtxs: {#: mut _LexerCtx -> Block#
     mut .write(e: Str): Void -> buffer.append(e),
     mut .clear: Void -> buffer.clear,
     .str -> buffer.str,
-    read .mode: _LexerMode -> mode.get,
-    mut .mode(next: _LexerMode): Void -> mode.set(next),
+    mut .mode: mut _LexerMode -> mode.get,
+    mut .mode(next: mut _LexerMode): Void -> mode.set(next),
     read .isDigit(ch: Str): Bool -> isDigit.isMatch(ch),
     read .isWhitespace(ch: Str): Bool -> isWhitespace.isMatch(ch),
     read .isChar(ch: Str): Bool -> isChar.isMatch(ch),
@@ -116,17 +116,19 @@ _LexerModeMatch[R:iso,imm,mut,mutH,read,readH]: {
   mut .value: R,
   mut .string: R,
   mut .stringEscape: R,
-  mut .unicodeEscape: R,
+  mut .unicodeEscape(buffer: mut List[Str]): R,
   mut .digits: R,
   }
 _LexerModes: {
-  .value: _LexerMode -> {m -> m.value},
-  .string: _LexerMode -> {m -> m.string},
-  .stringEscape: _LexerMode -> {m -> m.stringEscape},
-  .unicodeEscape: _LexerMode -> {m -> m.unicodeEscape},
-  .digits: _LexerMode -> {m -> m.digits},
+  .value: mut _LexerMode -> {m -> m.value},
+  .string: mut _LexerMode -> {m -> m.string},
+  .stringEscape: mut _LexerMode -> {m -> m.stringEscape},
+  .unicodeEscape: mut _LexerMode -> Block#
+    .let[mut List[Str]] buffer = {List.withCapacity(4)}
+    .return {{m -> m.unicodeEscape(buffer)}},
+  .digits: mut _LexerMode -> {m -> m.digits},
   }
-_LexerMode: {.match[R:iso,imm,mut,mutH,read,readH](m: mut _LexerModeMatch[R]): R}
+_LexerMode: {mut .match[R:iso,imm,mut,mutH,read,readH](m: mut _LexerModeMatch[R]): R}
 
 // TODO: This should be part of the string library
 //_IsDigit: {#(c: Str): Bool -> "0123456789".flow.any{n -> n == c}}
