@@ -11,8 +11,13 @@ Error: {
 
 Todo: {
   ![R:read,mut,imm,iso,mutH,readH]: R -> Error.msg[R] "TODO: Implement this code",
-  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("TODO: "+msg),
-}
+  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("TODO: " + msg),
+  }
+
+Unreachable: {
+  ![R:read,mut,imm,iso,mutH,readH]: R -> Error.msg[R] "Unreachable code reached",
+  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("Unreachable code reached: " + msg),
+  }
 
 /// Strong exception safety is upheld:
 /// The operation has either completed successfully or thrown an exception,
@@ -52,7 +57,7 @@ _InfoToJson: {
     .if {info.msg.isEmpty.not} .return {"\""+(info.msg)+"\""}
     .if {info.list.isEmpty.not} .return {"["+(this.list(info.list))+"]"}
     .if {info.map.isEmpty.not} .return {Todo! "Flows over maps are not implemented yet"}
-    .return {Error.msg "Unreachable"},
+    .return {Unreachable!},
 
   .list(l: List[Info]): Str -> l.flow
     .map{info->this#info}

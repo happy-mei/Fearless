@@ -1,0 +1,46 @@
+package base.json
+
+LexString: Actor[_LexerCtx,Str,Token]{downstream, state, e -> Block#
+  .if {e == "\""} .return {Block#(
+    downstream#(Tokens.quoted(state.str)),
+    state.mode(_LexerModes.value),
+    ActorRes.continue
+    )}
+  .if {e == "\\"} .return {Block#(
+    state.mode(_LexerModes.stringEscape),
+    ActorRes.continue
+    )}
+  // TODO: if between 0x20 and 0x10FFFF, then write, else error
+  .return {Block#(
+    state.write(e),
+    ActorRes.continue
+    )}
+  }
+
+//LexString: base.flows.ActorImpl[mut _LexerCtx,Str,Token]{downstream, state, e -> Block#
+//  .assert {state.isStrMode}
+////  .let wasEscaped = {}
+//  .if {state.isEscaped} .return {Block#
+//    .if {state.str == "\""} .return {ActorRes.continue}
+//    .if {state.str == "\\"} .return {ActorRes.continue}
+//    .if {state.str == "/"} .return {ActorRes.continue}
+//    .if {state.str == "\b"} .return {ActorRes.continue}
+//    .if {state.str == "\f"} .return {ActorRes.continue}
+//    .if {state.str == "\n"} .return {ActorRes.continue}
+//    .if {state.str == "\r"} .return {ActorRes.continue}
+//    .if {state.str == "\t"} .return {ActorRes.continue}
+//    .if {state.str == "\u"} .return {Block#(state.isUnicodeEscape(True), ActorRes.continue)}
+//    .return {ActorRes.continue}
+//    }
+//  .return {{}}
+//  }
+//
+//_StringLexerCtxs: {#(ctx: mut _LexerCtx): Block#
+//  .let isUnicodeEscape = {Var#[Bool]False}
+//  .return {mut _StringLexerCtx: Stringable{'state
+//    .str -> ctx.str,
+//    mut .parent: mut _LexerCtx -> ctx,
+//    read .isUnicodeEscape: Bool -> ctx.isUnicodeEscape.get,
+//    mut  .isUnicodeEscape(next: Bool): Void -> ctx.isUnicodeEscape.set(next),
+//    }}
+//  }
