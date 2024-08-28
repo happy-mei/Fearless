@@ -1,4 +1,4 @@
 pub mod strings;
 #[cfg(feature = "compiler-only")]
 pub mod compiler;
-mod regex;
+pub mod regex;

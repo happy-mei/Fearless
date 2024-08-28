@@ -3,8 +3,8 @@ package rt;
 import utils.ResolveResource;
 
 import java.io.IOException;
+import java.lang.foreign.Linker;
 import java.lang.ref.Cleaner;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 
@@ -52,25 +52,28 @@ public final class NativeRuntime {
   public static native byte[] normaliseString(byte[] utf8Str);
   public static native long hashString(byte[] utf8Str);
 
-  // Regex
   public static final class Regex {
-    record CleaningState(ByteBuffer pattern) implements Runnable {
+    record CleaningState(long pattern) implements Runnable {
       @Override public void run() {
-        assert pattern.isDirect();
         NativeRuntime.dropRegexPattern(pattern);
       }
     }
 
-    private final ByteBuffer pattern;
+    private final long patternPtr;
     public Regex(byte[] patternStr) {
-      this.pattern = NativeRuntime.compileRegexPattern(patternStr);
-      cleaner.register(this, new CleaningState(pattern));
+      this.patternPtr = NativeRuntime.compileRegexPattern(patternStr);
+      cleaner.register(this, new CleaningState(patternPtr));
     }
     public boolean doesRegexMatch(byte[] utf8Str) {
-      return NativeRuntime.doesRegexMatch(pattern, utf8Str);
+      return NativeRuntime.doesRegexMatch(patternPtr, utf8Str);
+    }
+    public static class InvalidRegexError extends RuntimeException {
+      public InvalidRegexError(String message) {
+        super(message);
+      }
     }
   }
-  public static native ByteBuffer compileRegexPattern(byte[] utf8Str);
-  public static native void dropRegexPattern(ByteBuffer pattern);
-  public static native boolean doesRegexMatch(ByteBuffer pattern, byte[] utf8Str);
+  private static native long compileRegexPattern(byte[] utf8Str);
+  private static native void dropRegexPattern(long pattern);
+  private static native boolean doesRegexMatch(long pattern, byte[] utf8Str);
 }

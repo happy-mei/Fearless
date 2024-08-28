@@ -18,4 +18,17 @@ public class TestNativeRegex {
 		Assertions.assertTrue(regex.doesRegexMatch("hello!".getBytes(StandardCharsets.UTF_8)));
 		Assertions.assertFalse(regex.doesRegexMatch("he".getBytes(StandardCharsets.UTF_8)));
 	}
+	@Test void invalidRegex() {
+		var patternStr = "[".getBytes(StandardCharsets.UTF_8);
+		try {
+			new Regex(patternStr);
+			Assertions.fail("Did not throw");
+		} catch (Regex.InvalidRegexError e) {
+			Assertions.assertEquals(e.getMessage(), """
+				regex parse error:
+				    [
+				    ^
+				error: unclosed character class""");
+		}
+	}
 }
