@@ -264,6 +264,19 @@ public record JavaMagicImpls(
     return "new rt.CheapHash()"::describeConstable;
   }
 
+  @Override public MagicTrait<MIR.E, String> regexK(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() { return Optional.empty(); }
+      @Override
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
+          return Optional.of("new rt.Regex(%s)".formatted(args.getFirst().accept(gen, true)));
+        }
+        return MagicTrait.super.call(m, args, variants, expectedT);
+      }
+    };
+  }
+
   @Override public MagicTrait<MIR.E,String> refK(MIR.E e) {
     return new MagicTrait<>() {
 

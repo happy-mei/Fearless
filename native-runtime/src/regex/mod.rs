@@ -1,16 +1,26 @@
+use std::cell::RefCell;
+use std::convert::Into;
+use std::num::NonZeroUsize;
 use crate::strings::FearlessStr;
 use jni::objects::{JByteArray, JClass};
 use jni::sys::{jboolean, jlong};
 use jni::JNIEnv;
+use lru::LruCache;
 use regex::Regex;
 
+thread_local! {
+    static REGEX_CACHE: RefCell<LruCache<u64, Regex, lru::DefaultHasher>> = RefCell::new(
+        LruCache::new(unsafe { NonZeroUsize::new_unchecked(32) })
+    );
+}
 
 /// # Safety
 /// The Fearless string is valid UTF-8.
 #[no_mangle]
 pub unsafe extern "system" fn Java_rt_NativeRuntime_compileRegexPattern<'local>(mut env: JNIEnv<'local>, _class: JClass<'local>, utf8_regex_str: JByteArray<'local>) -> jlong {
     let str = FearlessStr::new(&mut env, &utf8_regex_str);
-    match Regex::new(str.as_str()) {
+    
+    match get_regex(str.as_str()) {
         Ok(pattern) => {
             let pattern = Box::new(pattern);
             let pattern = Box::into_raw(pattern);
@@ -21,6 +31,27 @@ pub unsafe extern "system" fn Java_rt_NativeRuntime_compileRegexPattern<'local>(
             0
         }
     }
+}
+
+fn get_regex(pattern: &str) -> Result<Regex, regex::Error> {
+    let hash = seahash::hash(pattern.as_bytes());
+    REGEX_CACHE.with(|cache| {
+        let cached = cache
+            .borrow_mut()
+            .get(&hash)
+            .cloned();
+        match cached {
+            Some(regex) => Ok(regex),
+            None => {
+                let regex = Regex::new(pattern)?;
+                REGEX_CACHE.with(|cache| cache
+                    .borrow_mut()
+                    .put(hash, regex.clone())
+                );
+                Ok(regex)
+            }
+        }
+    })
 }
 
 /// # Safety

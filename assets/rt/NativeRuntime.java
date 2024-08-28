@@ -1,6 +1,7 @@
 package rt;
 
 import java.io.IOException;
+import java.lang.ref.Cleaner;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 
@@ -33,6 +34,9 @@ public final class NativeRuntime {
     }
   }
 
+  private static final Cleaner cleaner = Cleaner.create();
+
+  // Strings
   public static class StringEncodingError extends FearlessError {
     public StringEncodingError(String message) {
       super(base.Infos_0.msg$imm$fun(Str.fromJavaStr(message), null));
@@ -46,4 +50,30 @@ public final class NativeRuntime {
   public static native void printlnErr(byte[] utf8Str);
   public static native void printErr(byte[] utf8Str);
   public static native byte[] normaliseString(byte[] utf8Str);
+
+  // Regex
+  public static final class Regex {
+    record CleaningState(long pattern) implements Runnable {
+      @Override public void run() {
+        NativeRuntime.dropRegexPattern(pattern);
+      }
+    }
+
+    private final long patternPtr;
+    public Regex(byte[] patternStr) {
+      this.patternPtr = NativeRuntime.compileRegexPattern(patternStr);
+      cleaner.register(this, new CleaningState(patternPtr));
+    }
+    public boolean doesRegexMatch(byte[] utf8Str) {
+      return NativeRuntime.doesRegexMatch(patternPtr, utf8Str);
+    }
+    public static class InvalidRegexError extends FearlessError {
+      public InvalidRegexError(String message) {
+        super(base.Infos_0.msg$imm$fun(Str.fromJavaStr(message), null));
+      }
+    }
+  }
+  private static native long compileRegexPattern(byte[] utf8Str);
+  private static native void dropRegexPattern(long pattern);
+  private static native boolean doesRegexMatch(long pattern, byte[] utf8Str);
 }

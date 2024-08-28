@@ -1,35 +1,67 @@
 package base.json
 
-LexString: Actor[mut _LexerCtx,Str,Token]{downstream, state, e -> Block#
+LexString: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
   .if {e == "\""} .return {Block#(
-    downstream#(Tokens.quoted(state.str)),
-    state.mode(_LexerModes.value),
+    downstream#(Tokens.quoted(ctx.str)),
+    ctx.mode(_LexerModes.value),
     ActorRes.continue
     )}
   .if {e == "\\"} .return {Block#(
-    state.mode(_LexerModes.stringEscape),
+    ctx.mode(_LexerModes.stringEscape),
     ActorRes.continue
     )}
-  // TODO: if between 0x20 and 0x10FFFF, then write, else error
-  .return {Block#(
-    state.write(e),
+  .if {ctx.isChar(e)} .return {Block#(
+    ctx.write(e),
     ActorRes.continue
     )}
+  .do {ctx.write(e)}
+  .do {downstream#(Tokens.unknownFragment(ctx.str))}
+  .return {ActorRes.stop}
   }
 
-//LexString: base.flows.ActorImpl[mut _LexerCtx,Str,Token]{downstream, state, e -> Block#
-//  .assert {state.isStrMode}
+LexStringEscapes: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
+//  .do {base.Debug.println(e)}
+  .if {e == "\""} .return {Block#(ctx.write(e), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "\\"} .return {Block#(ctx.write(e), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "b"} .return {Block#(ctx.write("\b"), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "f"} .return {Block#(ctx.write("\f"), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "n"} .return {Block#(ctx.write("\n"), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "r"} .return {Block#(ctx.write("\r"), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "t"} .return {Block#(ctx.write("\t"), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "u"} .return {Block#(ctx.mode(_LexerModes.unicodeEscape), ActorRes.continue)}
+  .do {downstream#(Tokens.unknownFragment(ctx.str))}
+  .return {ActorRes.stop}
+  }
+
+LexUnicodeEscapes: Actor[mut _UnicodeEscapeLexerCtx,Str,Token]{downstream, ctx, e -> Block#
+  .return {Todo!"Unicode escapes"}
+//  .if {ctx.str.size == 4} .return {Block#(
+//    ctx.write(e),
+//    ctx.clear,
+//    ctx.mode(_LexerModes.string),
+//    ActorRes.continue
+//    )}
+  }
+_UnicodeEscapeLexerCtxs: {#(parent: mut _LexerCtx): mut _UnicodeEscapeLexerCtx -> Block#
+  .let[mut List[Str]] buffer = {List.withCapacity(4)}
+  .return {mut _UnicodeEscapeLexerCtx: {'ctx
+    mut .parent: mut _LexerCtx -> parent,
+    }}
+  }
+
+//LexString: base.flows.ActorImpl[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
+//  .assert {ctx.isStrMode}
 ////  .let wasEscaped = {}
-//  .if {state.isEscaped} .return {Block#
-//    .if {state.str == "\""} .return {ActorRes.continue}
-//    .if {state.str == "\\"} .return {ActorRes.continue}
-//    .if {state.str == "/"} .return {ActorRes.continue}
-//    .if {state.str == "\b"} .return {ActorRes.continue}
-//    .if {state.str == "\f"} .return {ActorRes.continue}
-//    .if {state.str == "\n"} .return {ActorRes.continue}
-//    .if {state.str == "\r"} .return {ActorRes.continue}
-//    .if {state.str == "\t"} .return {ActorRes.continue}
-//    .if {state.str == "\u"} .return {Block#(state.isUnicodeEscape(True), ActorRes.continue)}
+//  .if {ctx.isEscaped} .return {Block#
+//    .if {ctx.str == "\""} .return {ActorRes.continue}
+//    .if {ctx.str == "\\"} .return {ActorRes.continue}
+//    .if {ctx.str == "/"} .return {ActorRes.continue}
+//    .if {ctx.str == "\b"} .return {ActorRes.continue}
+//    .if {ctx.str == "\f"} .return {ActorRes.continue}
+//    .if {ctx.str == "\n"} .return {ActorRes.continue}
+//    .if {ctx.str == "\r"} .return {ActorRes.continue}
+//    .if {ctx.str == "\t"} .return {ActorRes.continue}
+//    .if {ctx.str == "\u"} .return {Block#(ctx.isUnicodeEscape(True), ActorRes.continue)}
 //    .return {ActorRes.continue}
 //    }
 //  .return {{}}
@@ -37,7 +69,7 @@ LexString: Actor[mut _LexerCtx,Str,Token]{downstream, state, e -> Block#
 //
 //_StringLexerCtxs: {#(ctx: mut _LexerCtx): Block#
 //  .let isUnicodeEscape = {Var#[Bool]False}
-//  .return {mut _StringLexerCtx: Stringable{'state
+//  .return {mut _StringLexerCtx: Stringable{'ctx
 //    .str -> ctx.str,
 //    mut .parent: mut _LexerCtx -> ctx,
 //    read .isUnicodeEscape: Bool -> ctx.isUnicodeEscape.get,

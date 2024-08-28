@@ -1,36 +1,37 @@
 package base.json
 
-// Strictly follows https://www.json.org/json-en.html
-ParseJson: {#(input: Str): Json -> input.flow
-  .actor[mut _LexerCtx,Token](_LexerCtxs#, {downstream, state, e -> state.mode.match{
+// Strictly follows ECMA-404 https://www.json.org/json-en.html
+// and the identical RFC 8259 https://tools.ietf.org/html/rfc8259
+LexJson: {#(input: Str): Json -> input.flow
+  .actor[mut _LexerCtx,Token](_LexerCtxs#, {downstream, ctx, e -> ctx.mode.match{
     .value -> Block#
-       .if {state.isEmpty} .return {_LexStartingToken#(downstream, state, e)}
-       .do {state.write(e)}
-       .if {state.str == "true"} .return {Block#(downstream#(Tokens.true), state.clear, ActorRes.continue)}
-       .if {state.str == "false"} .return {Block#(downstream#(Tokens.false), state.clear, ActorRes.continue)}
-       .if {state.str == "null"} .return {Block#(downstream#(Tokens.null), state.clear, ActorRes.continue)}
-       .do {downstream#(Tokens.unknownFragment(state.str))}
-       .return {ActorRes.stop},
-    .string -> LexString#(downstream, state, e),
-    .stringEscape -> Todo!,
-    .unicodeEscape -> Todo!,
-    .hex -> Todo!,
-    .digits -> Todo!,
+      .if {ctx.isWhitespace(e)} .return {ActorRes.continue}
+      .if {ctx.isEmpty} .return {_LexStartingToken#(downstream, ctx, e)}
+      .do {ctx.write(e)}
+      .if {ctx.str == "true"} .return {Block#(downstream#(Tokens.true), ctx.clear, ActorRes.continue)}
+      .if {ctx.str == "false"} .return {Block#(downstream#(Tokens.false), ctx.clear, ActorRes.continue)}
+      .if {ctx.str == "null"} .return {Block#(downstream#(Tokens.null), ctx.clear, ActorRes.continue)}
+      .do {downstream#(Tokens.unknownFragment(ctx.str))}
+.return {ActorRes.stop},
+    .string -> LexString#(downstream, ctx, e),
+    .stringEscape -> LexStringEscapes#(downstream, ctx, e),
+    .unicodeEscape -> LexUnicodeEscapes#(downstream, _UnicodeEscapeLexerCtxs#ctx, e),
+    .digits -> Todo!"Digits",
     }
 
 //  Block#
-//    .let wasEscaped = {state.isEscaped}
-//    .do {state.isEscaped(False)}
-//    .do {state.write(e)}
-//    .if {(state.str == "\"") && (wasEscaped.not)}
+//    .let wasEscaped = {ctx.isEscaped}
+//    .do {ctx.isEscaped(False)}
+//    .do {ctx.write(e)}
+//    .if {(ctx.str == "\"") && (wasEscaped.not)}
 //      .return {Block#
-//        .if {state.isStrMode} .do {downstream#(Tokens.quoted(state.str))}
-//        .do {state.toggleStrMode}
-//        .do {state.clear}
+//        .if {ctx.isStrMode} .do {downstream#(Tokens.quoted(ctx.str))}
+//        .do {ctx.toggleStrMode}
+//        .do {ctx.clear}
 //        .return {ActorRes.continue}
 //        }
 //    // TODO: check for control characters if in string (should terminate string mode and tokenize as an unknownFragment
-//    .if {state.isStrMode} .return {{}}
+//    .if {ctx.isStrMode} .return {{}}
 //    .return {{}}
     })
     .fold(Jsons.null, {acc, _ -> acc})
@@ -39,25 +40,31 @@ ParseJson: {#(input: Str): Json -> input.flow
 _LexerCtxs: {#: mut _LexerCtx -> Block#
   .let buffer = {mut ""}
   .let mode = {Var#[_LexerMode](_LexerModes.value)}
-  .return {mut _LexerCtx: Stringable{'state
+  .let isDigit = {Regexs#"[0-9]"}
+  .let isWhitespace = {Regexs#"[ \\n \\r \\t]"}
+  .let isChar = {Regexs#"[\\U{0020}-\\U{10FFFF}]"}
+  .return {mut _LexerCtx: Stringable{'ctx
     read .isEmpty: Bool -> buffer.isEmpty,
     mut .write(e: Str): Void -> buffer.append(e),
     mut .clear: Void -> buffer.clear,
     .str -> buffer.str,
     read .mode: _LexerMode -> mode.get,
     mut .mode(next: _LexerMode): Void -> mode.set(next),
+    read .isDigit(ch: Str): Bool -> isDigit.isMatch(ch),
+    read .isWhitespace(ch: Str): Bool -> isWhitespace.isMatch(ch),
+    read .isChar(ch: Str): Bool -> isChar.isMatch(ch),
     }}
   }
 
-_LexStartingToken: Actor[mut _LexerCtx,Str,Token]{downstream, state, e -> Block#
-  .if {_IsDigit#(e)}
+_LexStartingToken: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
+  .if {ctx.isDigit(e)}
     .return {Block#(
-      state.write(e),
-      state.mode(_LexerModes.digits),
+      ctx.write(e),
+      ctx.mode(_LexerModes.digits),
       ActorRes.continue
       )}
   .if {e == "\""} .return {Block#(
-    state.mode(_LexerModes.string),
+    ctx.mode(_LexerModes.string),
     ActorRes.continue
     )}
   .if {e == "["} .return {Block#(downstream#(Tokens.os), ActorRes.continue)}
@@ -65,7 +72,7 @@ _LexStartingToken: Actor[mut _LexerCtx,Str,Token]{downstream, state, e -> Block#
   .if {e == "{"} .return {Block#(downstream#(Tokens.oc), ActorRes.continue)}
   .if {e == "}"} .return {Block#(downstream#(Tokens.cc), ActorRes.continue)}
   .if {e == ","} .return {Block#(downstream#(Tokens.comma), ActorRes.continue)}
-  .do {state.write(e)}
+  .do {ctx.write(e)}
   .return {{}}
   }
 
@@ -110,7 +117,6 @@ _LexerModeMatch[R:iso,imm,mut,mutH,read,readH]: {
   mut .string: R,
   mut .stringEscape: R,
   mut .unicodeEscape: R,
-  mut .hex: R,
   mut .digits: R,
   }
 _LexerModes: {
@@ -118,13 +124,12 @@ _LexerModes: {
   .string: _LexerMode -> {m -> m.string},
   .stringEscape: _LexerMode -> {m -> m.stringEscape},
   .unicodeEscape: _LexerMode -> {m -> m.unicodeEscape},
-  .hex: _LexerMode -> {m -> m.hex},
   .digits: _LexerMode -> {m -> m.digits},
   }
 _LexerMode: {.match[R:iso,imm,mut,mutH,read,readH](m: mut _LexerModeMatch[R]): R}
 
 // TODO: This should be part of the string library
-_IsDigit: {#(c: Str): Bool -> "0123456789".flow.any{n -> n == c}}
+//_IsDigit: {#(c: Str): Bool -> "0123456789".flow.any{n -> n == c}}
 _IsWhitespace: {#(c: Str): Bool -> Block#
   .assert {c.size == 1}
   .return{(c == " ") || (c == "\n") || (c == "\r") || (c == "\t")}

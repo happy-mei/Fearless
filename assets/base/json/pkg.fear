@@ -84,3 +84,6 @@ alias base.flows.ActorImpl as Actor,
 alias base.Ordering as Ordering,
 alias base.FOrdering as FOrdering,
 
+alias base.Regexs as Regexs,
+alias base.Regex as Regex,
+

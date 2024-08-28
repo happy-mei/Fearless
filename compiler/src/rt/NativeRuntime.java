@@ -3,7 +3,6 @@ package rt;
 import utils.ResolveResource;
 
 import java.io.IOException;
-import java.lang.foreign.Linker;
 import java.lang.ref.Cleaner;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -52,6 +51,7 @@ public final class NativeRuntime {
   public static native byte[] normaliseString(byte[] utf8Str);
   public static native long hashString(byte[] utf8Str);
 
+  // Regex
   public static final class Regex {
     record CleaningState(long pattern) implements Runnable {
       @Override public void run() {

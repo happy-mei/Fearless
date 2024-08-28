@@ -9,7 +9,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
-public record MagicImpls(JsCodegen gen, ast.Program p) implements magic.MagicImpls<String> {
+public record JsMagicImpls(JsCodegen gen, ast.Program p) implements magic.MagicImpls<String> {
   @Override public MagicTrait<MIR.E, String> int_(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
@@ -84,6 +84,10 @@ public record MagicImpls(JsCodegen gen, ast.Program p) implements magic.MagicImp
   }
 
   @Override public MagicTrait<MIR.E, String> cheapHash(MIR.E e) {
+    throw Bug.todo();
+  }
+
+  @Override public MagicTrait<MIR.E, String> regexK(MIR.E e) {
     throw Bug.todo();
   }
 }

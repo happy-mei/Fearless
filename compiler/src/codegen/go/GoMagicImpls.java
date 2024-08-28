@@ -230,4 +230,8 @@ public record GoMagicImpls(PackageCodegen gen, ast.Program p) implements magic.M
   @Override public MagicCallable<MIR.E, Res> variantCall(MIR.E e) {
     return null;
   }
+
+  @Override public MagicTrait<MIR.E, Res> regexK(MIR.E e) {
+    throw Bug.todo();
+  }
 }
