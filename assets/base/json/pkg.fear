@@ -40,6 +40,7 @@ alias base.Count as Count,
 alias base.VarImm as VarImm,
 
 alias base.Opt as Opt,
+alias base.Opts as Opts,
 
 alias base.Int as Int,
 alias base.Float as Float,

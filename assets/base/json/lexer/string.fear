@@ -72,6 +72,7 @@ _ParseHex: {
       .return {acc + (digit * (16 ** place))}
       }),
 
+  // TODO: look into if we can make actions play nicely with flows here
   .encoding(ch: Str): Nat -> Block#
     .if {ch == "0"} .return {0}
     .if {ch == "1"} .return {1}

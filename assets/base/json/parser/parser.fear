@@ -1,45 +1,98 @@
 package base.json
 
 ParseJson: {#(input: Str): mut Action[Json] -> {res -> Try#{input.flow
-    .actor[mut _LexerCtx,Token](_LexerCtxs#, mut LexJson)
-    .actor[mut Var[mut _ParserCtx],Json](Var#(_ParserCtxs.value), {downstream, ctx, token -> ctx.get.match{
-      .value -> token.match(mut _SubMatch[ActorRes]{
-        .mode -> "value", .token -> token,
-        .quoted(str) -> Block#(downstream#(Jsons.string str), ActorRes.continue),
-        .os -> Block#(ctx.set(_ParserCtxs.array), ActorRes.continue),
-        }),
-      .array -> token.match(mut _SubMatch[ActorRes]{
+  .actor[mut _LexerCtx,Token](_LexerCtxs#, mut LexJson)
+  .actor[mut Var[mut _ParserActor],Json](
+    Var#[mut _ParserActor](mut _ValueParser),
+    {downstream, ctx, token -> ctx.get#(downstream, ctx, token)}
+    )
+//      .value -> token.match(mut _SubMatch[ActorRes]{
+//        .mode -> "value", .token -> token,
+//        .quoted(str) -> Block#(downstream#(Jsons.string str), ActorRes.continue),
+//        .os -> Block#(ctx.set(_ParserCtxs.array), ActorRes.continue),
+//        }),
+//      .array -> token.match(mut _SubMatch[ActorRes]{
+//        .mode -> "array", .token -> token,
+//        }),
+//      .object -> Todo!"objects",
+//      }})
+  .first
+  }.run{
+    .ok(optJson) -> optJson.match{
+      .some(json) -> res.ok(json),
+      .empty -> res.info(Infos.msg("Empty string found, expected JSON."))
+      },
+    .info(info) -> res.info(info),
+    }
+  }}
+
+_ParserActor: {
+  mut #(downstream: mut base.flows._Sink[imm Json], state: mut Var[mut _ParserActor], e: Token): ActorRes
+  }
+_ValueParser: _ParserActor{
+  downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+    .mode -> "value", .token -> token,
+    .quoted(str) -> Block#(downstream#(Jsons.string str), ActorRes.continue),
+    .os -> Block#(behaviour.set(_ArrayParser#this), ActorRes.continue),
+    })
+  }
+_ArrayParser: {#(old: mut _ParserActor): mut _ParserActor -> Block#
+  .let[mut IsoPod[iso List[Json]]] es = {IsoPod#(List#)}
+  .return {{'parser
+    downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+      .mode -> "array", .token -> token,
+      .cs -> Block#(downstream#(Jsons.array(es!)), behaviour.set(old), ActorRes.continue),
+      .quoted(str) -> Block#(
+        es.mutate{es' -> es'.add(Jsons.string str)},
+        behaviour.set(_ArrayCommaParser#parser),
+        ActorRes.continue
+        ),
+      })
+    }}
+  }
+_ArrayCommaParser: {#(old: mut _ParserActor): mut _ParserActor -> {downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+  .mode -> "comma or end of array", .token -> token,
+  .cs -> old#(downstream, behaviour, token),
+  .comma -> Block#(behaviour.set(old), ActorRes.continue),
+  })}}
+//_ArrayParser: _ParserActor{downstream, behaviour, token -> token.match(mut _SubMatch{
+//  .mode -> "array", .token -> token,
+//  .quoted(str) ->
+//  })}
+
+TopLevelMatch: {
+  #(downstream: mut base.flows._Sink[Json],
+    ctx: mut Var[mut Opt[mut _SubMatch[ActorRes]]],
+    token: Token
+  ): mut _SubMatch[ActorRes] -> {
+    .mode -> "value", .token -> Tokens.null(0, 0),
+    .quoted(str) -> Block#(downstream#(Jsons.string str), ActorRes.continue),
+    .os -> Block#(
+      ctx.set(Opts#{
         .mode -> "array", .token -> token,
         }),
-      .object -> Todo!"objects",
-      }})
-    .first
-    }.run{
-      .ok(optJson) -> optJson.match{
-        .some(json) -> res.ok(json),
-        .empty -> res.info(Infos.msg("Empty string found, expected JSON."))
-        },
-      .info(info) -> res.info(info),
-      }
-  }}
+      ActorRes.continue
+      )
+    }}
 
 //_ParserCtxs: {#: mut _ParserCtx -> mut _ParserCtx: {
 //
 //  }}
 
-_ParserCtxMatch[R:iso,imm,mut,mutH,read,readH]: {
-  mut .value: R,
-  mut .object: R,
-  mut .array: R,
-  }
-_ParserCtxs: {
-  .value: mut _ParserCtx -> {m -> m.value},
-  .object: mut _ParserCtx -> {m -> m.object},
-  .array: mut _ParserCtx -> {m -> m.array},
-  }
-_ParserCtx: {
-  mut .match[R:iso,imm,mut,mutH,read,readH](m: mut _ParserCtxMatch[R]): R,
-  }
+// TODO: instead of this, in the context store a "next matcher" as our context.
+//_ParserCtxMatch[R:iso,imm,mut,mutH,read,readH]: {
+//  mut .value: R,
+//  mut .object: R,
+//  mut .array: R,
+//  }
+//_ParserCtxs: {
+//  .value: mut _ParserCtx -> {m -> m.value},
+//  .object: mut _ParserCtx -> {m -> m.object},
+//  .array: mut _ParserCtx -> {m -> m.array},
+//  }
+//_ParserCtx: {
+//  mut .match[R:iso,imm,mut,mutH,read,readH](m: mut _ParserCtxMatch[R]): R,
+//  }
 
 _SubMatch[R:iso,imm,mut,mutH,read,readH]: TokenMatch[R]{
   read .mode: Str,

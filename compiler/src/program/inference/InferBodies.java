@@ -156,6 +156,8 @@ public record InferBodies(ast.Program p) {
       .filter(fullSig->fullSig.sig().ts().size() == m.xs().size())
       .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()).makeBodyUnique())
       .toList();
+
+    // TODO: this can throw if the abstract method is not callable (i.e. we're returning imm so no abstract meths exist)
     assert res.stream().noneMatch(m::equals);
     assert !res.isEmpty() : onlyAbs(e, depth);
     return Optional.of(res);
