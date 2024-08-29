@@ -1,22 +1,26 @@
 package base.json
 
-ParseJson: {#(input: Str): mut Action[Json] -> {res -> input.flow
-  .actor[mut _LexerCtx,Token](_LexerCtxs#, mut LexJson)
-  .actor[mut Var[mut _ParserCtx],Json](Var#(_ParserCtxs.value), {downstream, ctx, token -> ctx.get.match{
-    .value -> token.match(mut _SubMatch[ActorRes]{
-      .mode -> "value", .token -> token,
-      .quoted(str) -> Block#(downstream#(Jsons.string str), ActorRes.continue),
-      .os -> Block#(ctx.set(_ParserCtxs.array), ActorRes.continue),
-      }),
-    .array -> token.match(mut _SubMatch[ActorRes]{
-      .mode -> "array", .token -> token,
-      }),
-    .object -> Todo!"objects",
-    }})
-  .first.match{
-    .some(json) -> res.ok(json),
-    .empty -> res.info(Infos.msg("Empty string found, expected JSON."))
-    }
+ParseJson: {#(input: Str): mut Action[Json] -> {res -> Try#{input.flow
+    .actor[mut _LexerCtx,Token](_LexerCtxs#, mut LexJson)
+    .actor[mut Var[mut _ParserCtx],Json](Var#(_ParserCtxs.value), {downstream, ctx, token -> ctx.get.match{
+      .value -> token.match(mut _SubMatch[ActorRes]{
+        .mode -> "value", .token -> token,
+        .quoted(str) -> Block#(downstream#(Jsons.string str), ActorRes.continue),
+        .os -> Block#(ctx.set(_ParserCtxs.array), ActorRes.continue),
+        }),
+      .array -> token.match(mut _SubMatch[ActorRes]{
+        .mode -> "array", .token -> token,
+        }),
+      .object -> Todo!"objects",
+      }})
+    .first
+    }.run{
+      .ok(optJson) -> optJson.match{
+        .some(json) -> res.ok(json),
+        .empty -> res.info(Infos.msg("Empty string found, expected JSON."))
+        },
+      .info(info) -> res.info(info),
+      }
   }}
 
 //_ParserCtxs: {#: mut _ParserCtx -> mut _ParserCtx: {

@@ -157,8 +157,7 @@ public record InferBodies(ast.Program p) {
       .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()).makeBodyUnique())
       .toList();
     assert res.stream().noneMatch(m::equals);
-    assert !res.isEmpty():
-      onlyAbs(e, depth);
+    assert !res.isEmpty() : onlyAbs(e, depth);
     return Optional.of(res);
   }
 

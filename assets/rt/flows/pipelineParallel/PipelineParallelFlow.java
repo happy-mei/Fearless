@@ -88,7 +88,11 @@ public interface PipelineParallelFlow {
               downstream.pushError$mut(err.info);
             }
           }
-          case FlowRuntime.Message.Error<E> info -> downstream.pushError$mut(info.info());
+          case FlowRuntime.Message.Error<E> info -> {
+            if (softClosed) { return; }
+            softClosed = true;
+            downstream.pushError$mut(info.info());
+          }
           case FlowRuntime.Message.Stop<E> ignored -> {
             downstream.stop$mut();
             self.close();

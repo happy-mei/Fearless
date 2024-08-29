@@ -5,13 +5,20 @@ import base.False_0;
 import base.True_0;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 public final class MutStr implements Str {
   private final List<Str> buffer = new ArrayList<>();
   private Str immStr;
+  // technically this object can be promoted to iso, then sub-typed to imm and used in parallel!
+  // we need to make sure we don't freeze concurrently.
+  private ReentrantLock freezeLock = new ReentrantLock();
 
   public MutStr(Str str) {
+    assert str != null;
     buffer.add(str);
     immStr = str;
   }
@@ -40,7 +47,9 @@ public final class MutStr implements Str {
   }
 
   @Override public MutStr $plus$mut(base.Stringable_0 other$) {
-    buffer.add(other$.str$read());
+    var other = other$.str$read();
+    assert other != null;
+    buffer.add(other);
     immStr = null;
     return this;
   }
@@ -64,15 +73,23 @@ public final class MutStr implements Str {
   }
 
   private Str freeze() {
-    byte[] utf8 = new byte[buffer.parallelStream().mapToInt(s -> s.utf8().length).sum()];
-    int idx = 0;
-    for (var str : buffer) {
-      System.arraycopy(str.utf8(), 0, utf8, idx, str.utf8().length);
-      idx = idx + str.utf8().length;
+    freezeLock.lock();
+    try {
+      // if we lost the lock race, use the answer from the winner
+      if (immStr != null) { return immStr; }
+
+      byte[] utf8 = new byte[buffer.parallelStream().mapToInt(s -> s.utf8().length).sum()];
+      int idx = 0;
+      for (var str : buffer) {
+        System.arraycopy(str.utf8(), 0, utf8, idx, str.utf8().length);
+        idx = idx + str.utf8().length;
+      }
+      var res = Str.fromTrustedUtf8(utf8);
+      buffer.clear(); // cant just set to null, because we use .freeze for just normal reading too (not just for ->imm)
+      buffer.add(res);
+      return res;
+    } finally {
+      freezeLock.unlock();
     }
-    var res = Str.fromTrustedUtf8(utf8);
-    buffer.clear(); // cant just set to null, because we use .freeze for just normal reading too (not just for ->imm)
-    buffer.add(res);
-    return res;
   }
 }
