@@ -70,6 +70,7 @@ alias base.Main as Main,
 alias base.Error as Error,
 alias base.Try as Try,
 alias base.Info as Info,
+alias base.Infos as Infos,
 
 alias base.Bool as Bool,
 alias base.True as True,
@@ -88,3 +89,6 @@ alias base.Regexs as Regexs,
 alias base.Regex as Regex,
 
 alias base.UTF16 as UTF16,
+
+alias base.Actions as Actions,
+alias base.Action as Action,

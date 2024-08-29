@@ -4,7 +4,7 @@ LexString: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
 //  .do {base.Debug.println("LexStringCh: " + e)}
   .if {e == "\""} .return {Block#(
     base.Debug.println("LexString: " + (ctx.str)),
-    downstream#(Tokens.quoted(ctx.str)),
+    downstream#(Tokens.quoted(ctx.line.get, ctx.col.get, ctx.str)),
     ctx.clear,
     ctx.mode(_LexerModes.value),
     ActorRes.continue

@@ -1,6 +1,52 @@
 package base.json
 
-ParseJson: {#(input: Str): Json -> input.flow
+ParseJson: {#(input: Str): mut Action[Json] -> {res -> input.flow
   .actor[mut _LexerCtx,Token](_LexerCtxs#, mut LexJson)
-  .fold(Jsons.null, {acc, _ -> acc})
+  .actor[mut _ParserCtx,Json](_ParserCtxs.value, {downstream, ctx, token -> ctx.match{
+    .value -> token.match(mut _SubMatch[ActorRes]{
+      .mode -> "value", .token -> token,
+      }),
+    .array -> Todo!"arrays",
+    .object -> Todo!"objects",
+    }})
+  .first.match{
+    .some(json) -> res.ok(json),
+    .empty -> res.info(Infos.msg("Empty string found, expected JSON."))
+    }
+  }}
+
+//_ParserCtxs: {#: mut _ParserCtx -> mut _ParserCtx: {
+//
+//  }}
+
+_ParserCtxMatch[R:iso,imm,mut,mutH,read,readH]: {
+  mut .value: R,
+  mut .object: R,
+  mut .array: R,
+  }
+_ParserCtxs: {
+  .value: mut _ParserCtx -> {m -> m.value},
+  .object: mut _ParserCtx -> {m -> m.object},
+  .array: mut _ParserCtx -> {m -> m.array},
+  }
+_ParserCtx: {
+  mut .match[R:iso,imm,mut,mutH,read,readH](m: mut _ParserCtxMatch[R]): R,
+  }
+
+_SubMatch[R:iso,imm,mut,mutH,read,readH]: TokenMatch[R]{
+  read .mode: Str,
+  read .token: Token,
+  read .errorSuffix: Str -> mut " at " + (this.token.line.str) + ":" + (this.token.col.str),
+  .true -> Error.msg ("Unexpected 'true' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .false -> Error.msg ("Unexpected 'false' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .null -> Error.msg ("Unexpected 'null' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .quoted(chars) -> Error.msg (mut "Unexpected string '" + chars + "' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .numeric(chars) -> Error.msg ("Unexpected number '" + chars + "' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .os -> Error.msg ("Unexpected '[' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .cs -> Error.msg ("Unexpected ']' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .oc -> Error.msg ("Unexpected '{' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .cc -> Error.msg ("Unexpected '}' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .comma -> Error.msg ("Unexpected ',' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .colon -> Error.msg ("Unexpected ':' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .unknownFragment(bufferContents) -> Error.msg ("Unknown fragment in JSON code:\n" + bufferContents),
   }
