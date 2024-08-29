@@ -1,0 +1,6 @@
+package base.json
+
+ParseJson: {#(input: Str): Json -> input.flow
+  .actor[mut _LexerCtx,Token](_LexerCtxs#, mut LexJson)
+  .fold(Jsons.null, {acc, _ -> acc})
+  }

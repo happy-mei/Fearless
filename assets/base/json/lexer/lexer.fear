@@ -2,24 +2,21 @@ package base.json
 
 // Strictly follows ECMA-404 https://www.json.org/json-en.html
 // and the identical RFC 8259 https://tools.ietf.org/html/rfc8259
-LexJson: {#(input: Str): Json -> input.flow
-  .actor[mut _LexerCtx,Token](_LexerCtxs#, {downstream, ctx, e -> ctx.mode.match{
-    .value -> Block#
-      .if {ctx.isWhitespace(e)} .return {ActorRes.continue}
-      .if {ctx.isEmpty} .return {_LexStartingToken#(downstream, ctx, e)}
-      .do {ctx.write(e)}
-      .if {ctx.str == "true"} .return {Block#(downstream#(Tokens.true), ctx.clear, ActorRes.continue)}
-      .if {ctx.str == "false"} .return {Block#(downstream#(Tokens.false), ctx.clear, ActorRes.continue)}
-      .if {ctx.str == "null"} .return {Block#(downstream#(Tokens.null), ctx.clear, ActorRes.continue)}
-      .do {downstream#(Tokens.unknownFragment(ctx.str))}
-      .return {ActorRes.stop},
-    .string -> LexString#(downstream, ctx, e),
-    .stringEscape -> LexStringEscapes#(downstream, ctx, e),
-    .unicodeEscape(buf) -> LexUnicodeEscapes#(ctx, buf, e),
-    .digits -> Todo!"Digits",
-    }})
-    .fold(Jsons.null, {acc, _ -> acc})
-  }
+LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> ctx.mode.match{
+  .value -> Block#
+    .if {ctx.isWhitespace(e)} .return {ActorRes.continue}
+    .if {ctx.isEmpty} .return {_LexStartingToken#(downstream, ctx, e)}
+    .do {ctx.write(e)}
+    .if {ctx.str == "true"} .return {Block#(downstream#(Tokens.true), ctx.clear, ActorRes.continue)}
+    .if {ctx.str == "false"} .return {Block#(downstream#(Tokens.false), ctx.clear, ActorRes.continue)}
+    .if {ctx.str == "null"} .return {Block#(downstream#(Tokens.null), ctx.clear, ActorRes.continue)}
+    .do {downstream#(Tokens.unknownFragment(ctx.str))}
+    .return {ActorRes.stop},
+  .string -> LexString#(downstream, ctx, e),
+  .stringEscape -> LexStringEscapes#(downstream, ctx, e),
+  .unicodeEscape(buf) -> LexUnicodeEscapes#(ctx, buf, e),
+  .digits -> Todo!"Digits",
+  }}
 
 _LexerCtxs: {#: mut _LexerCtx -> Block#
   .let buffer = {mut ""}
@@ -58,6 +55,7 @@ _LexStartingToken: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
   .if {e == "{"} .return {Block#(downstream#(Tokens.oc), ActorRes.continue)}
   .if {e == "}"} .return {Block#(downstream#(Tokens.cc), ActorRes.continue)}
   .if {e == ","} .return {Block#(downstream#(Tokens.comma), ActorRes.continue)}
+  .if {e == ":"} .return {Block#(downstream#(Tokens.colon), ActorRes.continue)}
   .do {ctx.write(e)}
   .return {{}}
   }
@@ -90,9 +88,11 @@ Tokens: {
   .cc: Token -> {m -> m.cc},
   .quote: Token -> {m -> m.quote},
   .comma: Token -> {m -> m.comma},
+  .colon: Token -> {m -> m.colon},
   .quoted(chars: Str): Token -> {m -> m.quoted(base.Debug#chars)},
   .numeric(chars: Str): Token -> {m -> m.numeric(chars)},
-  .unknownFragment(bufferContents: Str): Token -> {m -> m.unknownFragment(bufferContents)},
+//  .unknownFragment(bufferContents: Str): Token -> {m -> m.unknownFragment(bufferContents)},
+  .unknownFragment(bufferContents: Str): Token -> Error.msg ("Unknown fragment in JSON code:\n" + bufferContents),
   }
 Token: {
   read .match[R:iso,imm,mut,mutH,read,readH](m: mut TokenMatch[R]): R,
