@@ -14,7 +14,7 @@ LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> ctx.mode.match{
     .if {ctx.str == "true"} .return {Block#(downstream#(Tokens.true(ctx.line.get, ctx.col.get)), ctx.clear, ActorRes.continue)}
     .if {ctx.str == "false"} .return {Block#(downstream#(Tokens.false(ctx.line.get, ctx.col.get)), ctx.clear, ActorRes.continue)}
     .if {ctx.str == "null"} .return {Block#(downstream#(Tokens.null(ctx.line.get, ctx.col.get)), ctx.clear, ActorRes.continue)}
-    .do {downstream#(Tokens.unknownFragment(ctx.str))}
+    .do {downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str))}
     .return {ActorRes.stop},
   .string -> LexString#(downstream, ctx, e),
   .stringEscape -> LexStringEscapes#(downstream, ctx, e),
@@ -83,7 +83,7 @@ TokenMatch[R:iso,imm,mut,mutH,read,readH]: {
   mut .colon: R,
 
   // The error case:
-  mut .unknownFragment(bufferContents: Str): R,
+//  mut .unknownFragment(bufferContents: Str): R,
   }
 Tokens: {
   .true(line: Nat, col: Nat): Token -> {
@@ -142,7 +142,7 @@ Tokens: {
     .col -> col,
     },
 //  .unknownFragment(bufferContents: Str): Token -> {m -> m.unknownFragment(bufferContents)},
-  .unknownFragment(bufferContents: Str): Token -> Error.msg ("Unknown fragment in JSON code:\n" + bufferContents),
+  .unknownFragment(line: Nat, col: Nat, bufferContents: Str): Token -> Error.msg (mut "Unknown fragment in JSON code:\n" + bufferContents + " at " + (line.str) + ":" + (col.str)),
   }
 Token: {
   read .match[R:iso,imm,mut,mutH,read,readH](m: mut TokenMatch[R]): R,

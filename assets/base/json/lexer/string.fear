@@ -18,7 +18,7 @@ LexString: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
     ActorRes.continue
     )}
   .do {ctx.write(e)}
-  .do {downstream#(Tokens.unknownFragment(ctx.str))}
+  .do {downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str))}
   .return {ActorRes.stop}
   }
 
@@ -32,7 +32,7 @@ LexStringEscapes: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
   .if {e == "r"} .return {Block#(ctx.write("\r"), ctx.mode(_LexerModes.string), ActorRes.continue)}
   .if {e == "t"} .return {Block#(ctx.write("\t"), ctx.mode(_LexerModes.string), ActorRes.continue)}
   .if {e == "u"} .return {Block#(ctx.mode(_LexerModes.unicodeEscape), ActorRes.continue)}
-  .do {downstream#(Tokens.unknownFragment(ctx.str))}
+  .do {downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str))}
   .return {ActorRes.stop}
   }
 
