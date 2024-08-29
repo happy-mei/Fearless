@@ -21,6 +21,7 @@ public class Magic {
   public static final Id.DecId Bool = new Id.DecId("base.Bool", 0);
   public static final Id.DecId Float = new Id.DecId("base.Float", 0);
   public static final Id.DecId Str = new Id.DecId("base.Str", 0);
+  public static final Id.DecId UTF16 = new Id.DecId("base.UTF16", 0);
   public static final Id.DecId AsciiStr = new Id.DecId("base.AsciiStr", 0);
   public static final Id.DecId Debug = new Id.DecId("base.Debug", 0);
   public static final Id.DecId CheapHash = new Id.DecId("base.CheapHash", 0);

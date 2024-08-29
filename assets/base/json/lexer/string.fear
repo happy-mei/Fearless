@@ -1,7 +1,9 @@
 package base.json
 
 LexString: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
+//  .do {base.Debug.println("LexStringCh: " + e)}
   .if {e == "\""} .return {Block#(
+    base.Debug.println("LexString: " + (ctx.str)),
     downstream#(Tokens.quoted(ctx.str)),
     ctx.mode(_LexerModes.value),
     ActorRes.continue
@@ -33,40 +35,65 @@ LexStringEscapes: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
   .return {ActorRes.stop}
   }
 
-LexUnicodeEscapes: {#(ctx: mut _LexerCtx, buffer: mut List[Str], e: Str): ActorRes -> Block#
-  .return {Todo!"Unicode escapes"}
-//  .if {ctx.str.size == 4} .return {Block#(
-//    ctx.write(e),
-//    ctx.clear,
-//    ctx.mode(_LexerModes.string),
-//    ActorRes.continue
-//    )}
+LexUnicodeEscapes: {
+  #(ctx: mut _LexerCtx,
+    buffer: mut List[Str],
+    e: Str
+  ): ActorRes -> Block#
+    .do {buffer.add(e)}
+    .if {buffer.size < 4} .return {ActorRes.continue}
+    .do {base.Debug.println("LexUnicodeEscapes: " + (buffer.flow.join " "))}
+    .let[Nat] codePoint = {_ParseHex#(buffer)}
+    .if {UTF16.isSurrogate(codePoint)} .return {Block#
+      .if {ctx.unpairedSurrogate.size == 1} .return {Block#
+        .do {ctx.write(UTF16.fromSurrogatePair(ctx.unpairedSurrogate.get(0), codePoint))}
+        .do {ctx.unpairedSurrogate.clear}
+        .do {ctx.mode(_LexerModes.string)}
+        .return {ActorRes.continue}
+        }
+      .assert({ctx.unpairedSurrogate.isEmpty}, "unpairedSurrogate was not empty")
+      .do {ctx.unpairedSurrogate.add(codePoint)}
+      .do {ctx.mode(_LexerModes.string)}
+      .return {ActorRes.continue}
+      }
+    .do {ctx.write(UTF16.fromCodePoint(codePoint))}
+    .do {ctx.mode(_LexerModes.string)}
+    .return {ActorRes.continue},
   }
 
-//LexString: base.flows.ActorImpl[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
-//  .assert {ctx.isStrMode}
-////  .let wasEscaped = {}
-//  .if {ctx.isEscaped} .return {Block#
-//    .if {ctx.str == "\""} .return {ActorRes.continue}
-//    .if {ctx.str == "\\"} .return {ActorRes.continue}
-//    .if {ctx.str == "/"} .return {ActorRes.continue}
-//    .if {ctx.str == "\b"} .return {ActorRes.continue}
-//    .if {ctx.str == "\f"} .return {ActorRes.continue}
-//    .if {ctx.str == "\n"} .return {ActorRes.continue}
-//    .if {ctx.str == "\r"} .return {ActorRes.continue}
-//    .if {ctx.str == "\t"} .return {ActorRes.continue}
-//    .if {ctx.str == "\u"} .return {Block#(ctx.isUnicodeEscape(True), ActorRes.continue)}
-//    .return {ActorRes.continue}
-//    }
-//  .return {{}}
-//  }
-//
-//_StringLexerCtxs: {#(ctx: mut _LexerCtx): Block#
-//  .let isUnicodeEscape = {Var#[Bool]False}
-//  .return {mut _StringLexerCtx: Stringable{'ctx
-//    .str -> ctx.str,
-//    mut .parent: mut _LexerCtx -> ctx,
-//    read .isUnicodeEscape: Bool -> ctx.isUnicodeEscape.get,
-//    mut  .isUnicodeEscape(next: Bool): Void -> ctx.isUnicodeEscape.set(next),
-//    }}
-//  }
+_ParseHex: {
+  #(chars: read List[Str]): Nat -> chars.flow
+    .map{ch -> this.encoding(ch)}
+    #(Flow.enumerate[Nat])
+    .fold[Nat](0, {acc, ni -> Block#
+      .let digit = {ni.e}
+      .let place = {chars.size - (ni.i + 1)}
+      .return {acc + (digit * (16 ** place))}
+      }),
+
+  .encoding(ch: Str): Nat -> Block#
+    .if {ch == "0"} .return {0}
+    .if {ch == "1"} .return {1}
+    .if {ch == "2"} .return {2}
+    .if {ch == "3"} .return {3}
+    .if {ch == "4"} .return {4}
+    .if {ch == "5"} .return {5}
+    .if {ch == "6"} .return {6}
+    .if {ch == "7"} .return {7}
+    .if {ch == "8"} .return {8}
+    .if {ch == "8"} .return {8}
+    .if {ch == "9"} .return {9}
+    .if {ch == "A"} .return {10}
+    .if {ch == "a"} .return {10}
+    .if {ch == "B"} .return {11}
+    .if {ch == "b"} .return {11}
+    .if {ch == "C"} .return {12}
+    .if {ch == "c"} .return {12}
+    .if {ch == "D"} .return {13}
+    .if {ch == "d"} .return {13}
+    .if {ch == "E"} .return {14}
+    .if {ch == "e"} .return {14}
+    .if {ch == "F"} .return {15}
+    .if {ch == "f"} .return {15}
+    .return {Error.msg("Invalid hex digit: " + ch)},
+  }

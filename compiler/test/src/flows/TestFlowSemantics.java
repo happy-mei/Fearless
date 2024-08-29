@@ -66,6 +66,57 @@ public class TestFlowSemantics {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+  @Test void throwMultiplePar() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
+    package test
+    Test: Main{sys -> Block#
+      .let x = {Flow#[Nat](1, 2, 3)
+        .map{x->Block#
+          .if {x.nat == 2} .do {Error.msg (x.str)}
+          .if {x.nat == 3} .do {Error.msg (x.str)}
+          .return {x.nat * 10}
+          }
+        }
+      .let[Nat] sum = {x#(Flow.uSum)}
+      .let[mut IO] io = {UnrestrictedIO#sys}
+      .do {io.println(sum.str)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+  @Test void throwMultipleActor() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
+    package test
+    Test: Main{sys -> Block#
+      .let x = {Flow#[Nat](1, 2, 3)
+        .actor[Void,Nat](iso Void,{next,_,x->Block#
+          .if {x.nat == 2} .do {Error.msg (x.str)}
+          .if {x.nat == 3} .do {Error.msg (x.str)}
+          .do {next#(x.nat * 10)}
+          .return {{}}
+          })
+        .fold[Nat](0, {a, x -> a + x})
+        }
+      .let[mut IO] io = {UnrestrictedIO#sys}
+      .do {io.println(x.str)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+  @Test void throwMultipleActorFromDP() {ok(new RunOutput.Res("", "Program crashed with: \"5\"", 1), """
+    package test
+    Test: Main{sys -> Block#
+      .let[List[Nat]] list = {List.withCapacity(10) + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10}
+      .let x = {list.flow
+        .actor[Void,Nat](iso Void,{next,_,x->Block#
+          .if {x.nat == 5} .do {Error.msg (x.str)}
+          .if {x.nat == 7} .do {Error.msg (x.str)}
+          .do {next#(x.nat * 10)}
+          .return {{}}
+          })
+        .fold[Nat](0, {a, x -> a + x})
+        }
+      .let[mut IO] io = {UnrestrictedIO#sys}
+      .do {io.println(x.str)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
 
   @Test void throwInAFlowBeforeStopSeq() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
     package test

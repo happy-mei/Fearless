@@ -40,7 +40,7 @@ public interface PipelineParallelFlow {
 //        System.out.println("Stop received (SUBJ "+subjectId+")");
 //        original.stop$mut$();
 //      });
-      this.subject = spawn(original::$hash$mut, original::pushError$mut, original::stop$mut);
+      this.subject = spawn(original);
     }
 
     @Override public base.Void_0 stop$mut() {
@@ -72,21 +72,27 @@ public interface PipelineParallelFlow {
     }
   }
 
-  static <E> FlowRuntime.Subject<E> spawn(Consumer<E> downstreamData, Consumer<base.Info_0> downstreamErrors, Runnable stop) {
+  static <E> FlowRuntime.Subject<E> spawn(base.flows._Sink_1 downstream) {
     var self = FlowRuntime.<E>spawnWorker();
-    return new FlowRuntime.Subject<>(self, self.consume(msg->{
-      switch (msg) {
-        case FlowRuntime.Message.Data<E> data -> {
-          try {
-            downstreamData.accept(data.data());
-          } catch (FearlessError err) {
-            downstreamErrors.accept(err.info);
+    return new FlowRuntime.Subject<>(self, self.consume(new Consumer<FlowRuntime.Message<E>>() {
+      private boolean softClosed = false;
+      @Override public void accept(FlowRuntime.Message<E> msg) {
+        switch (msg) {
+          case FlowRuntime.Message.Data<E> data -> {
+            if (softClosed) { return; }
+            try {
+              downstream.$hash$mut(data.data());
+            } catch (FearlessError err) {
+              // Keep "accepting" new messages, but don't actually do anything with them because we're in an error state
+              softClosed = true;
+              downstream.pushError$mut(err.info);
+            }
           }
-        }
-        case FlowRuntime.Message.Error<E> info -> downstreamErrors.accept(info.info());
-        case FlowRuntime.Message.Stop<E> ignored -> {
-          stop.run();
-          self.close();
+          case FlowRuntime.Message.Error<E> info -> downstream.pushError$mut(info.info());
+          case FlowRuntime.Message.Stop<E> ignored -> {
+            downstream.stop$mut();
+            self.close();
+          }
         }
       }
     }));

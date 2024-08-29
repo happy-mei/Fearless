@@ -17,23 +17,7 @@ LexJson: {#(input: Str): Json -> input.flow
     .stringEscape -> LexStringEscapes#(downstream, ctx, e),
     .unicodeEscape(buf) -> LexUnicodeEscapes#(ctx, buf, e),
     .digits -> Todo!"Digits",
-    }
-
-//  Block#
-//    .let wasEscaped = {ctx.isEscaped}
-//    .do {ctx.isEscaped(False)}
-//    .do {ctx.write(e)}
-//    .if {(ctx.str == "\"") && (wasEscaped.not)}
-//      .return {Block#
-//        .if {ctx.isStrMode} .do {downstream#(Tokens.quoted(ctx.str))}
-//        .do {ctx.toggleStrMode}
-//        .do {ctx.clear}
-//        .return {ActorRes.continue}
-//        }
-//    // TODO: check for control characters if in string (should terminate string mode and tokenize as an unknownFragment
-//    .if {ctx.isStrMode} .return {{}}
-//    .return {{}}
-    })
+    }})
     .fold(Jsons.null, {acc, _ -> acc})
   }
 
@@ -41,8 +25,9 @@ _LexerCtxs: {#: mut _LexerCtx -> Block#
   .let buffer = {mut ""}
   .let mode = {Var#[mut _LexerMode](_LexerModes.value)}
   .let isDigit = {Regexs#"[0-9]"}
-  .let isWhitespace = {Regexs#"[ \\n \\r \\t]"}
+  .let isWhitespace = {Regexs#"[ \\n\\r\\t]"}
   .let isChar = {Regexs#"[\\U{0020}-\\U{10FFFF}]"}
+  .let unpairedSurrogate = {List.withCapacity[Nat](1)}
   .return {mut _LexerCtx: Stringable{'ctx
     read .isEmpty: Bool -> buffer.isEmpty,
     mut .write(e: Str): Void -> buffer.append(e),
@@ -53,6 +38,7 @@ _LexerCtxs: {#: mut _LexerCtx -> Block#
     read .isDigit(ch: Str): Bool -> isDigit.isMatch(ch),
     read .isWhitespace(ch: Str): Bool -> isWhitespace.isMatch(ch),
     read .isChar(ch: Str): Bool -> isChar.isMatch(ch),
+    mut .unpairedSurrogate: mut List[Nat] -> unpairedSurrogate,
     }}
   }
 
@@ -104,7 +90,7 @@ Tokens: {
   .cc: Token -> {m -> m.cc},
   .quote: Token -> {m -> m.quote},
   .comma: Token -> {m -> m.comma},
-  .quoted(chars: Str): Token -> {m -> m.quoted(chars)},
+  .quoted(chars: Str): Token -> {m -> m.quoted(base.Debug#chars)},
   .numeric(chars: Str): Token -> {m -> m.numeric(chars)},
   .unknownFragment(bufferContents: Str): Token -> {m -> m.unknownFragment(bufferContents)},
   }

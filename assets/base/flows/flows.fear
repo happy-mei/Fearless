@@ -75,7 +75,7 @@ _TerminalOps[E]: Sealed{
       .greater -> max,
       }
     }})
-  }
+    }
 
 // TODO: move all of these extension methods onto the data-types, i.e. myflow#"," to join with "," or myflow#(Int.sum) for summing
 _FlowExtensions: {
@@ -87,6 +87,12 @@ _FlowExtensions: {
   .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int](+0, {acc, e -> acc + e})},
   .uSum: mut Extension[mut Flow[Nat], Nat] -> {flow -> flow.fold[Nat](0, {acc, e -> acc + e})},
   .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> flow.fold[Float](0.0, {acc, e -> acc + e})},
+
+  .enumerate[E:imm]: mut Extension[mut Flow[E], mut Flow[Enumerated[E]]] -> {flow ->
+    flow.actor[mut Count[Nat],Enumerated[E]](Count.nat(0), {downstream, i, e ->
+      Block#(downstream#(_Enumerateds#(i++, e)), {})
+      })
+    },
   }
 
 EmptyFlow[E]: Flow[E]{
@@ -117,3 +123,8 @@ _LimitSize: {#(n: Nat, size: Opt[Nat]): Opt[Nat] ->
     beforeLimit > n ? { .then -> n, .else -> beforeLimit, }
     }
   }
+
+_Enumerateds: {#[E:imm](i: Nat, e: E): Enumerated[E] -> Enumerated[E:imm]: {
+  .i: Nat -> i,
+  .e: E -> e,
+  }}

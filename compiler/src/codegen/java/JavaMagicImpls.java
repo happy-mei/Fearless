@@ -236,6 +236,28 @@ public record JavaMagicImpls(
     };
   }
 
+  @Override public MagicTrait<MIR.E, String> utf16(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        return Optional.empty();
+      }
+      @Override
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        if (m.equals(new Id.MethName(".fromCodePoint", 1))) {
+          return "rt.Str.fromJavaStr(new String(new int[]{(int)(long)%s}, 0, 1))"
+            .formatted(args.getFirst().accept(gen, true))
+            .describeConstable();
+        }
+        if (m.equals(new Id.MethName(".fromSurrogatePair", 2))) {
+          return "rt.Str.fromJavaStr(new String(new int[]{(int)(long)%s, (int)(long)%s}, 0, 2))"
+            .formatted(args.get(0).accept(gen, true), args.get(1).accept(gen, true))
+            .describeConstable();
+        }
+        return MagicTrait.super.call(m, args, variants, expectedT);
+      }
+    };
+  }
+
   @Override public MagicTrait<MIR.E, String> asciiStr(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {

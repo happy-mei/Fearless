@@ -87,3 +87,4 @@ alias base.FOrdering as FOrdering,
 alias base.Regexs as Regexs,
 alias base.Regex as Regex,
 
+alias base.UTF16 as UTF16,
