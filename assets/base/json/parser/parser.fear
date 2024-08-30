@@ -3,7 +3,7 @@ package base.json
 ParseJson: {#(input: Str): mut Action[Json] -> {res -> Try#{input.flow
   .actor[mut _LexerCtx,Token](_LexerCtxs#, mut LexJson)
   .actor[mut Var[mut _ParserActor],Json](
-    Var#[mut _ParserActor](mut _ValueParser),
+    Var#[mut _ParserActor](mut _TopLevelParser),
     {downstream, ctx, token -> ctx.get#(downstream, ctx, token)}
     )
 //      .value -> token.match(mut _SubMatch[ActorRes]{
@@ -27,34 +27,46 @@ ParseJson: {#(input: Str): mut Action[Json] -> {res -> Try#{input.flow
   }}
 
 _ParserActor: {
-  mut #(downstream: mut base.flows._Sink[imm Json], state: mut Var[mut _ParserActor], e: Token): ActorRes
+  mut #(downstream: mut base.flows._Sink[Json], state: mut Var[mut _ParserActor], e: Token): ActorRes
   }
-_ValueParser: _ParserActor{
+_TopLevelParser: _ParserActor{downstream, behaviour, token -> Block#
+  .do {behaviour.set(_ValueParser#({value -> downstream#value}, this))}
+  .return {behaviour.get#(downstream, behaviour, token)}
+  }
+_ValueParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _ParserActor -> {'parser
   downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
     .mode -> "value", .token -> token,
-    .quoted(str) -> Block#(downstream#(Jsons.string str), ActorRes.continue),
-    .os -> Block#(behaviour.set(_ArrayParser#this), ActorRes.continue),
+    .true -> Block#(collector#(Jsons.bool True), behaviour.set(old), ActorRes.continue),
+    .false -> Block#(collector#(Jsons.bool False), behaviour.set(old), ActorRes.continue),
+    .null -> Block#(collector#(Jsons.null), behaviour.set(old), ActorRes.continue),
+    .quoted(str) -> Block#(collector#(Jsons.string str), behaviour.set(old), ActorRes.continue),
+    .os -> Block#(behaviour.set(_ArrayParser#(collector, parser)), ActorRes.continue),
     })
-  }
-_ArrayParser: {#(old: mut _ParserActor): mut _ParserActor -> Block#
+  }}
+_ArrayParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _ParserActor -> Block#
   .let[mut IsoPod[iso List[Json]]] es = {IsoPod#(List#)}
   .return {{'parser
     downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
       .mode -> "array", .token -> token,
-      .cs -> Block#(downstream#(Jsons.array(es!)), behaviour.set(old), ActorRes.continue),
-      .quoted(str) -> Block#(
-        es.mutate{es' -> es'.add(Jsons.string str)},
-        behaviour.set(_ArrayCommaParser#parser),
-        ActorRes.continue
-        ),
+      .cs -> Block#(collector#(Jsons.array(es!)), behaviour.set(old), ActorRes.continue),
+      .default(_) -> Block#
+        .let[mut Consumer[Json]] collector' = {{value -> es.mutate{es' -> es'.add(value)}!}}
+        .return {_ValueParser
+          #(collector', _ArrayCommaParser#(collector', parser))
+          #(downstream, behaviour, token)},
       })
     }}
   }
-_ArrayCommaParser: {#(old: mut _ParserActor): mut _ParserActor -> {downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
-  .mode -> "comma or end of array", .token -> token,
-  .cs -> old#(downstream, behaviour, token),
-  .comma -> Block#(behaviour.set(old), ActorRes.continue),
-  })}}
+_ArrayCommaParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _ParserActor -> {'parser
+  downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+    .mode -> "comma or end of array", .token -> token,
+    .cs -> old#(downstream, behaviour, token),
+    .comma -> Block#(
+      behaviour.set(_ValueParser#(collector, parser)),
+      ActorRes.continue
+      ),
+    })}
+  }
 //_ArrayParser: _ParserActor{downstream, behaviour, token -> token.match(mut _SubMatch{
 //  .mode -> "array", .token -> token,
 //  .quoted(str) ->
@@ -98,15 +110,16 @@ _SubMatch[R:iso,imm,mut,mutH,read,readH]: TokenMatch[R]{
   read .mode: Str,
   read .token: Token,
   read .errorSuffix: Str -> mut " at " + (this.token.line.str) + ":" + (this.token.col.str),
-  .true -> Error.msg ("Unexpected 'true' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
-  .false -> Error.msg ("Unexpected 'false' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
-  .null -> Error.msg ("Unexpected 'null' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
-  .quoted(chars) -> Error.msg (mut "Unexpected string '" + chars + "' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
-  .numeric(chars) -> Error.msg ("Unexpected number '" + chars + "' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
-  .os -> Error.msg ("Unexpected '[' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
-  .cs -> Error.msg ("Unexpected ']' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
-  .oc -> Error.msg ("Unexpected '{' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
-  .cc -> Error.msg ("Unexpected '}' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
-  .comma -> Error.msg ("Unexpected ',' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
-  .colon -> Error.msg ("Unexpected ':' when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  mut .default(kind: Str): R -> Error.msg ("Unexpected " + kind + " when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .true -> this.default("'true'"),
+  .false -> this.default("'false'"),
+  .null -> this.default("'null'"),
+  .quoted(chars) -> this.default("string \"" + chars + "\""),
+  .numeric(chars) -> this.default("number " + chars),
+  .os -> this.default("'['"),
+  .cs -> this.default("']'"),
+  .oc -> this.default("'{'"),
+  .cc -> this.default("'}'"),
+  .comma -> this.default("','"),
+  .colon -> this.default("':'"),
   }

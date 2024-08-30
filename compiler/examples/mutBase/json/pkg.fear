@@ -1,4 +1,4 @@
-package base.json
+package test
 alias base.iter.Iter as Iter,
 
 alias base.caps.IsoPod as IsoPod,
@@ -48,7 +48,6 @@ alias base.Nat as Nat,
 
 alias base.LList as LList,
 alias base.List as List,
-alias base.ListViews as ListViews,
 alias base.Collection as Collection,
 
 alias base.As as As,
@@ -72,7 +71,6 @@ alias base.Main as Main,
 alias base.Error as Error,
 alias base.Try as Try,
 alias base.Info as Info,
-alias base.Infos as Infos,
 
 alias base.Bool as Bool,
 alias base.True as True,
@@ -82,15 +80,6 @@ alias base.Assert as Assert,
 
 alias base.flows.Flow as Flow,
 alias base.flows.ActorRes as ActorRes,
-alias base.flows.ActorImpl as Actor,
 
 alias base.Ordering as Ordering,
 alias base.FOrdering as FOrdering,
-
-alias base.Regexs as Regexs,
-alias base.Regex as Regex,
-
-alias base.UTF16 as UTF16,
-
-alias base.Actions as Actions,
-alias base.Action as Action,

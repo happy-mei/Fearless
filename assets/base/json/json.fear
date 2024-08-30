@@ -18,9 +18,9 @@ Jsons: {
   .array(a: List[Json]): Json -> {m -> m.array(a)},
   .null: Json -> {m -> m.null},
   }
-Json: Stringable{
+Json: {
   read .match[R:iso,imm,mut,mutH,read,readH](m: mut JsonMatch[R]): R,
-  .str -> Todo!
+  .str: Str -> _JsonToStr#this,
   }
 
 _JsonToStr: {

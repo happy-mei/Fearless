@@ -1,0 +1,26 @@
+package test
+alias base.json.LexJson as LexJson,
+alias base.json.ParseJson as ParseJson,
+alias base.json.Json as Json,
+alias base.Action as Action,
+alias base.Debug as D,
+
+Test:Main {sys -> Block#
+  .let p = {Printers#(sys.io)}
+  .let[Json] r1 = {ParseJson#("\"Hello!!!\\nHow are you?\"")!}
+  .do {p#r1}
+  .let[Json] r2 = {ParseJson#("\"Hello!!!\\nHow \u5423are\\u5423 you?\"")!}
+  .do {p#r2}
+  .let[Json] r3 = {ParseJson#("\"Hello!!!\\nHow \u5423are\\u5423 you? \\uD834\\uDD1E\"")!}
+  .do {p#r3}
+  .let[Json] r4 = {ParseJson#("[\n\n   \"abc\", \"def\", true, false, null]")!}
+  .do {p#r4}
+  .let[Json] r5 = {ParseJson#("[\n\n   \"abc\", \"def\", {}, {\"a\": \"fearless\" }]")!}
+  .do {p#r5}
+//  .let[base.json.Json] _ = {ParseJson#("\"uh oh invalid \\u33 bad\"")!}
+  .return {{}}
+  }
+
+Printers: {#(io: mut IO): mut Printer -> mut Printer: {
+  mut #(j: Json): Void -> io.println(j.str)
+  }}

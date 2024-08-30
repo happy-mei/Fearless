@@ -1,6 +1,6 @@
 package base.json
 
-// Strictly follows ECMA-404 https://www.json.org/json-en.html
+// Follows ECMA-404 https://www.json.org/json-en.html
 // and the identical RFC 8259 https://tools.ietf.org/html/rfc8259
 LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> ctx.mode.match{
   .value -> Block#
@@ -11,11 +11,18 @@ LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> ctx.mode.match{
     .if {ctx.isWhitespace(e)} .return {ActorRes.continue}
     .if {ctx.isEmpty} .return {_LexStartingToken#(downstream, ctx, e)}
     .do {ctx.write(e)}
+    // this will technically match on `truesefsf` but that's fine because we'll error later
     .if {ctx.str == "true"} .return {Block#(downstream#(Tokens.true(ctx.line.get, ctx.col.get)), ctx.clear, ActorRes.continue)}
     .if {ctx.str == "false"} .return {Block#(downstream#(Tokens.false(ctx.line.get, ctx.col.get)), ctx.clear, ActorRes.continue)}
     .if {ctx.str == "null"} .return {Block#(downstream#(Tokens.null(ctx.line.get, ctx.col.get)), ctx.clear, ActorRes.continue)}
-    .do {downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str))}
-    .return {ActorRes.stop},
+    // if we have something in our buffer greater than the length of our longest token-- it's an error
+    .if {ctx.str.size > 5} .return {Block#(
+      downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str)),
+      ActorRes.stop
+      )}
+    .return {ActorRes.continue},
+//    .do {downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str))}
+//    .return {ActorRes.stop},
   .string -> LexString#(downstream, ctx, e),
   .stringEscape -> LexStringEscapes#(downstream, ctx, e),
   .unicodeEscape(buf) -> LexUnicodeEscapes#(ctx, buf, e),
@@ -132,7 +139,7 @@ Tokens: {
     .col -> col,
     },
   .quoted(line:Nat, col:Nat, chars: Str): Token -> {
-    .match(m) -> m.quoted(base.Debug#chars),
+    .match(m) -> m.quoted(chars),
     .line -> line,
     .col -> col,
     },

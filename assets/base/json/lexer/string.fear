@@ -3,7 +3,7 @@ package base.json
 LexString: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
 //  .do {base.Debug.println("LexStringCh: " + e)}
   .if {e == "\""} .return {Block#(
-    base.Debug.println("LexString: " + (ctx.str)),
+//    base.Debug.println("LexString: " + (ctx.str)),
     downstream#(Tokens.quoted(ctx.line.get, ctx.col.get, ctx.str)),
     ctx.clear,
     ctx.mode(_LexerModes.value),
@@ -43,7 +43,7 @@ LexUnicodeEscapes: {
   ): ActorRes -> Block#
     .do {buffer.add(e)}
     .if {buffer.size < 4} .return {ActorRes.continue}
-    .do {base.Debug.println("LexUnicodeEscapes: " + (buffer.flow.join " "))}
+//    .do {base.Debug.println("LexUnicodeEscapes: " + (buffer.flow.join " "))}
     .let[Nat] codePoint = {_ParseHex#(buffer)}
     .if {UTF16.isSurrogate(codePoint)} .return {Block#
       .if {ctx.unpairedSurrogate.size == 1} .return {Block#
