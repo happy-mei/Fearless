@@ -21,7 +21,7 @@ public interface Str extends base.Str_0 {
 	}
 	static Str fromTrustedUtf8(byte[] utf8) {
 		return new Str(){
-			private int[] GRAPHEMES = null;
+			private volatile int[] GRAPHEMES = null;
 			@Override public byte[] utf8() { return utf8; }
 			@Override public int[] graphemes() {
 				if (GRAPHEMES == null) { GRAPHEMES = NativeRuntime.indexString(utf8); }
