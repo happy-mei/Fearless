@@ -28,6 +28,7 @@ public interface MagicImpls<R> {
     if (isMagic(Magic.CheapHash, e)) { return Optional.ofNullable(cheapHash(e)); }
     if (isMagic(Magic.RegexK, e)) { return Optional.ofNullable(regexK(e)); }
     if (isMagic(Magic.UTF16, e)) { return Optional.ofNullable(utf16(e)); }
+    if (isMagic(Magic.MapK, e)) { return Optional.ofNullable(mapK(e)); }
     return Magic.ObjectCaps.stream()
       .filter(target->isMagic(target, e))
       .map(target->Optional.ofNullable(objCap(target, e)))
@@ -69,6 +70,7 @@ public interface MagicImpls<R> {
   default MagicTrait<MIR.E,R> pipelineParallelSinkK(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> dataParallelFlowK(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> objCap(Id.DecId magicTrait, MIR.E e) { return null; }
+  default MagicTrait<MIR.E,R> mapK(MIR.E e) { return null; }
   default MagicCallable<MIR.E,R> variantCall(MIR.E e) { return null; }
   ast.Program p();
 

@@ -1185,6 +1185,24 @@ public class TestJavaProgram {
       .return{Void}
       }
     """, Base.mutBaseAliases);}
+  @Test void linkedHashMap1() { ok(new Res("23\n32", "", 0), """
+    package test
+    alias base.Maps as Maps,
+    alias base.LinkedHashMap as LinkedHashMap,
+    Test:Main{ s -> Block#
+      .let[mut IO] io = {s.io}
+      .let[mut LinkedHashMap[Str,Nat]] m = {Maps.hashMap({k1,k2 -> k1 == k2}, {k->k})}
+      .do {m.put("Nick", 23)}
+      .do {m.put("Bob", 32)}
+      .do {io.println(m.get("Nick")!.str)}
+      .do {io.println(m.get("Bob")!.str)}
+      .assert {m.get("nobody").isEmpty}
+      .do {Block#(m.remove("Nick"))}
+      .assert {m.get("Nick").isEmpty}
+      .assert {m.get("Bob").isSome}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases);}
 
   @Test void tryCatch1() { ok(new Res("Happy", "", 0), """
     package test

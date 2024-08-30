@@ -433,6 +433,21 @@ public record JavaMagicImpls(
     return ()->Optional.of("rt.ListK.$self");
   }
 
+  @Override public MagicTrait<MIR.E, String> mapK(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {return Optional.empty();}
+      @Override
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), ".hashMap", 2))) {
+          return "new rt.LinkedHashMap(%s,%s)"
+            .formatted(args.getFirst().accept(gen, true), args.get(1).accept(gen, true))
+            .describeConstable();
+        }
+        return MagicTrait.super.call(m, args, variants, expectedT);
+      }
+    };
+  }
+
   @Override public MagicTrait<MIR.E, String> flowRange(MIR.E e) {
     return ()->Optional.of("rt.flows.Range.$self");
   }
