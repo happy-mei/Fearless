@@ -269,4 +269,19 @@ public class TestFlowSemantics {
       }
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
+
+  @Test void mutableStrings() {ok(new RunOutput.Res("""
+    abc
+    yodabcyoeabcyofabc
+    """, "", 0), """
+    package test
+    P: {#(a: Str, mutyA: Str): Str -> mut "yo" + a + mutyA}
+    Test: Main{sys -> Block#
+      .let[Str] mutyA = {"abc".flow.join ""}
+      .let[Str] mutyB = {"def".flow.map{a->P#(a,mutyA)}.join ""}
+      .do {sys.io.println(mutyA)}
+      .do {sys.io.println(mutyB)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
 }
