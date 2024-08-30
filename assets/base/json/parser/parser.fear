@@ -40,9 +40,11 @@ _ValueParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _Par
     .false -> Block#(collector#(Jsons.bool False), behaviour.set(old), ActorRes.continue),
     .null -> Block#(collector#(Jsons.null), behaviour.set(old), ActorRes.continue),
     .quoted(str) -> Block#(collector#(Jsons.string str), behaviour.set(old), ActorRes.continue),
-    .os -> Block#(behaviour.set(_ArrayParser#(collector, parser)), ActorRes.continue),
+    .os -> Block#(behaviour.set(_ArrayParser#(collector, old)), ActorRes.continue),
+    .oc -> Block#(behaviour.set(_ObjectParser#(collector, old)), ActorRes.continue),
     })
   }}
+
 _ArrayParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _ParserActor -> Block#
   .let[mut IsoPod[iso List[Json]]] es = {IsoPod#(List#)}
   .return {{'parser
@@ -67,10 +69,31 @@ _ArrayCommaParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut
       ),
     })}
   }
-//_ArrayParser: _ParserActor{downstream, behaviour, token -> token.match(mut _SubMatch{
-//  .mode -> "array", .token -> token,
-//  .quoted(str) ->
-//  })}
+
+_ObjectParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _ParserActor -> Block#
+  .let[mut IsoPod[iso LinkedHashMap[Str,Json]]] es = {IsoPod#(Maps.hashMap[Str,Json]({k1,k2 -> k1 == k2}, {k->k}))}
+  .return {{'parser
+    downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+      .mode -> "object", .token -> token,
+      .cc -> Block#(collector#(Jsons.object(es!)), behaviour.set(old), ActorRes.continue),
+//      .default(_) -> Block#
+//        .let[mut Consumer[Json]] collector' = {{value -> es.mutate{es' -> es'.put(value)}!}}
+//        .return {_ValueParser
+//          #(collector', _ObjectCommaParser#(collector', parser))
+//          #(downstream, behaviour, token)},
+      })
+    }}
+  }
+_ObjectCommaParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _ParserActor -> {'parser
+  downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+    .mode -> "comma or end of object", .token -> token,
+    .cs -> old#(downstream, behaviour, token),
+    .comma -> Block#(
+      behaviour.set(_ValueParser#(collector, parser)),
+      ActorRes.continue
+      ),
+    })}
+  }
 
 TopLevelMatch: {
   #(downstream: mut base.flows._Sink[Json],

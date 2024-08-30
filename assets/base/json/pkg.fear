@@ -94,3 +94,6 @@ alias base.UTF16 as UTF16,
 
 alias base.Actions as Actions,
 alias base.Action as Action,
+
+alias base.Maps as Maps,
+alias base.LinkedHashMap as LinkedHashMap,
