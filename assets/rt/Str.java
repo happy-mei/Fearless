@@ -124,6 +124,7 @@ public interface Str extends base.Str_0 {
 				for (; this.cur < end; ++this.cur) {
 					downstream_m$.$hash$mut(charAt$imm(this.cur));
 				}
+				downstream_m$.stop$mut();
 				return Void_0.$self;
 			}
 			@Override public Opt_1 split$mut() {

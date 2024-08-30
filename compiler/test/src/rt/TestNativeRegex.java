@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import rt.NativeRuntime.*;
+import rt.NativeRuntime.Regex;
 
 public class TestNativeRegex {
 	@Test void shouldCreateAndReleasePattern() {
