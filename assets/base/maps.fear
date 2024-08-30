@@ -19,10 +19,27 @@ LinkedHashMap[K:imm,V]: Map[K,V]{
   mut  .get(k: K): mut Opt[V],
   imm  .get(k: K): mut Opt[imm V],
   read .get(k: K): mut Opt[read/imm V],
+
   mut .remove(k: K): mut Opt[V],
   mut .clear: Void,
   mut +(k: K, v: V): mut LinkedHashMap[K,V],
   mut .put(k: K, v: V): Void -> Block#(this + (k,v)),
+
+  read .keys: mut Flow[imm K],
+
+  mut  .values: mut Flow[V],
+  imm  .values: mut Flow[imm V],
+  read .values: mut Flow[read/imm V],
+
+  mut  .flowMut: mut Flow[mut Entry[K,V]],
+  mut  .flow: mut Flow[read Entry[K,V]],
+  imm  .flow: mut Flow[imm Entry[K,V]],
+  read .flow: mut Flow[read Entry[K,V]],
+  }
+Entry[K:imm,V]: {
+  read .key: K,
+  mut  .value: mut V,
+  read .value: read/imm V,
   }
 
 /// A linked map that upholds the lens laws:

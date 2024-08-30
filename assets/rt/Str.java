@@ -98,7 +98,7 @@ public interface Str extends base.Str_0 {
 		return this._flow$imm(0, size$imm());
 	}
 	@Override default FlowOp_1 _flow$imm(long start, long end_) {
-		return new FlowOp_1() {
+		return RestrictFlowReuse_0.$self.$hash$imm(new FlowOp_1() {
 			long cur = start;
 			long end = end_;
 			@Override public Bool_0 isFinite$mut() {
@@ -137,7 +137,7 @@ public interface Str extends base.Str_0 {
 			@Override public Bool_0 canSplit$read() {
 				return this.end - this.cur > 1 ? True_0.$self : False_0.$self;
 			}
-		};
+		});
 	}
 
 	@Override default base.Hasher_0 hash$read(base.Hasher_0 hasher) {

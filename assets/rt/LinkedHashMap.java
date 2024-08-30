@@ -1,7 +1,10 @@
 package rt;
 
 import base.*;
+import base.flows.*;
+import rt.flows.SpliteratorFlowOp;
 
+import java.util.Spliterator;
 import java.util.function.BiFunction;
 
 public final class LinkedHashMap implements LinkedHashMap_2 {
@@ -46,6 +49,51 @@ public final class LinkedHashMap implements LinkedHashMap_2 {
   }
   @Override public Void_0 put$mut(Object k_m$, Object v_m$) {
     return LinkedHashMap_2.put$mut$fun(k_m$, v_m$, this);
+  }
+
+  @Override public Flow_1 keys$read() {
+    var keys = inner.keySet().spliterator();
+    return Flow_0.$self.fromOp$imm(SpliteratorFlowOp.of(keys), inner.size());
+  }
+
+  @Override public Flow_1 values$mut() {
+    var values = inner.values().spliterator();
+    return Flow_0.$self.fromMutSource$imm(SpliteratorFlowOp.of(values), inner.size());
+  }
+  @Override public Flow_1 values$read() {
+    var keys = inner.values().spliterator();
+    return Flow_0.$self.fromOp$imm(SpliteratorFlowOp.of(keys), inner.size());
+  }
+  @Override public Flow_1 values$imm() {
+    return values$read();
+  }
+  @Override public Flow_1 flowMut$mut() {
+    return Flow_0.$self.fromMutSource$imm(SpliteratorFlowOp.of(mapToEntries()), inner.size());
+  }
+  @Override public Flow_1 flow$read() {
+    return Flow_0.$self.fromOp$imm(SpliteratorFlowOp.of(mapToEntries()), inner.size());
+  }
+  @Override public Flow_1 flow$imm() {
+    return flow$read();
+  }
+  @Override public Flow_1 flow$mut() {
+    return flow$read();
+  }
+
+  private Spliterator<? extends Entry_2> mapToEntries() {
+    return inner.entrySet().stream()
+      .map(kv -> new Entry_2() {
+        @Override public Object value$read() {
+          return kv.getValue();
+        }
+        @Override public Object value$mut() {
+          return kv.getValue();
+        }
+        @Override public Object key$read() {
+          return kv.getKey();
+        }
+      })
+      .spliterator();
   }
 
   private Key keyOf(Object k) {

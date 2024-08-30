@@ -19,6 +19,7 @@ Test:Main {sys -> Block#
   .do {p#r4}
   .let[Json] r5 = {ParseJson#("[\n\n   \"abc\", \"def\", true, [false], null, []]")!}
   .do {p#r5}
+  .do {p#(ParseJson#("{}")!)}
   .let[Json] r6 = {ParseJson#("[\n\n   \"abc\", \"def\", {}, {\"a\": \"fearless\" }]")!}
   .do {p#r6}
 //  .let[base.json.Json] _ = {ParseJson#("\"uh oh invalid \\u33 bad\"")!}
