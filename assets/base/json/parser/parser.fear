@@ -6,16 +6,6 @@ ParseJson: {#(input: Str): mut Action[Json] -> {res -> Try#{input.flow
     Var#[mut _ParserActor](mut _TopLevelParser),
     {downstream, ctx, token -> ctx.get#(downstream, ctx, token)}
     )
-//      .value -> token.match(mut _SubMatch[ActorRes]{
-//        .mode -> "value", .token -> token,
-//        .quoted(str) -> Block#(downstream#(Jsons.string str), ActorRes.continue),
-//        .os -> Block#(ctx.set(_ParserCtxs.array), ActorRes.continue),
-//        }),
-//      .array -> token.match(mut _SubMatch[ActorRes]{
-//        .mode -> "array", .token -> token,
-//        }),
-//      .object -> Todo!"objects",
-//      }})
   .first
   }.run{
     .ok(optJson) -> optJson.match{
@@ -76,9 +66,10 @@ _ObjectParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _Pa
     downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
       .mode -> "object", .token -> token,
       .cc -> Block#(collector#(Jsons.object(es!)), behaviour.set(old), ActorRes.continue),
-      .quoted(_) -> _MemberKeyParser
-        #(collector', parser)
-        #(downstream, behaviour, token),
+      .quoted(_) -> Block#
+        .let keyParser = {_MemberKeyParser#(collector', parser)}
+        .do {behaviour.set(keyParser)}
+        .return {keyParser#(downstream, behaviour, token)},
       })
     }}
   }
@@ -102,7 +93,7 @@ _MemberValueParser: {#(collector: mut Consumer[Str,Json], old: mut _ParserActor,
     .default(_) -> Block#
       .let[mut Consumer[Json]] collector' = {{value -> collector#(key, value)}}
       .return {_ValueParser
-        #(collector', _ObjectCommaParser#(collector, parser))
+        #(collector', _ObjectCommaParser#(collector, old))
         #(downstream, behaviour, token)},
     })
   }}
@@ -111,7 +102,7 @@ _ObjectCommaParser: {#(collector: mut Consumer[Str,Json], old: mut _ParserActor)
     .mode -> "comma or end of object", .token -> token,
     .cc -> old#(downstream, behaviour, token),
     .comma -> Block#(
-      behaviour.set(_MemberKeyParser#(collector, parser)),
+      behaviour.set(old),
       ActorRes.continue
       ),
     })}
@@ -131,25 +122,6 @@ TopLevelMatch: {
       ActorRes.continue
       )
     }}
-
-//_ParserCtxs: {#: mut _ParserCtx -> mut _ParserCtx: {
-//
-//  }}
-
-// TODO: instead of this, in the context store a "next matcher" as our context.
-//_ParserCtxMatch[R:iso,imm,mut,mutH,read,readH]: {
-//  mut .value: R,
-//  mut .object: R,
-//  mut .array: R,
-//  }
-//_ParserCtxs: {
-//  .value: mut _ParserCtx -> {m -> m.value},
-//  .object: mut _ParserCtx -> {m -> m.object},
-//  .array: mut _ParserCtx -> {m -> m.array},
-//  }
-//_ParserCtx: {
-//  mut .match[R:iso,imm,mut,mutH,read,readH](m: mut _ParserCtxMatch[R]): R,
-//  }
 
 _SubMatch[R:iso,imm,mut,mutH,read,readH]: TokenMatch[R]{
   read .mode: Str,

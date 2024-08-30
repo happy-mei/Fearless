@@ -21,6 +21,10 @@ public interface FlowCreator {
   static Flow_1 fromFlowOp(_FlowFactory_0 intended, FlowOp_1 op, long size) {
 //    System.out.println("from "+original+" intended "+intended);
     var optSize = Opts_0.$self.$hash$imm(size);
+    // TODO: temporarily disabling flow parallelism until I can fix the soundness bug
+    if (true) {
+      return _SeqFlow_0.$self.fromOp$imm(op, optSize);
+    }
 //    if (op.canSplit$read() == base.False_0.$self && intended instanceof DataParallelFlowK) {
 //      return _SeqFlow_0.$self.fromOp$imm(op, optSize);
 //    }

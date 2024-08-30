@@ -52,7 +52,9 @@ public final class LinkedHashMap implements LinkedHashMap_2 {
   }
 
   @Override public Flow_1 keys$read() {
-    var keys = inner.keySet().spliterator();
+    var keys = inner.keySet().stream()
+      .map(k -> ((Key)k).k)
+      .spliterator();
     return Flow_0.$self.fromOp$imm(SpliteratorFlowOp.of(keys), inner.size());
   }
 
@@ -90,7 +92,7 @@ public final class LinkedHashMap implements LinkedHashMap_2 {
           return kv.getValue();
         }
         @Override public Object key$read() {
-          return kv.getKey();
+          return ((Key)kv.getKey()).k;
         }
       })
       .spliterator();

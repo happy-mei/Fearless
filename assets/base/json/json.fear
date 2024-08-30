@@ -25,8 +25,7 @@ Json: {
 
 _JsonToStr: {
   #(json: Json): Str -> json.match{
-    // TODO: needs to escape contents of s
-    .string(s) -> "\""+s+"\"",
+    .string(s) -> mut "\"" + (this.escape(s)) + "\"",
     .number(n) -> n.str,
     .bool(b)   -> b ? {.then -> "true", .else -> "false"},
     .object(o) -> "{"+(this.object(o))+"}",
@@ -38,7 +37,23 @@ _JsonToStr: {
     .map{json->this#json}
     .join ", ",
   .object(o: LinkedHashMap[Str,Json]): Str -> o.flow
-    // TODO: escape key name
-    .map{kv -> mut "\""+(kv.key)+"\": " + (this#(kv.value)) .str}
+    .map{kv -> mut "\""+(this.escape(kv.key))+"\": " + (this#(kv.value)) .str}
     .join ", ",
+  .escape(s: Str): Str -> Block#
+    .let[Regex] mustEscape = {Regexs#"[\\U{0000}-\\U{001F}]"} // unicode control characters
+    .return {s.flow
+      .map{ch -> Block#
+//        .if {ch == "\\"} .return {"\\\\"} // TODO: this breaks the fearless parer
+        .if {ch == "\u005C"} .return {"\u005C\u005C"}
+        .if {ch == "\n"} .return {"\\n"}
+        .if {ch == "\b"} .return {"\\b"}
+        .if {ch == "\f"} .return {"\\f"}
+        .if {ch == "\n"} .return {"\\n"}
+        .if {ch == "\r"} .return {"\\r"}
+        .if {ch == "\t"} .return {"\\t"}
+        .if {mustEscape.isMatch(ch)} .return {Todo!("more escapes: "+ch)} // TODO
+        .return {ch}
+        }
+      .join ""
+      },
   }
