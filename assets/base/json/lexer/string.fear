@@ -2,6 +2,7 @@ package base.json
 
 LexString: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
 //  .do {base.Debug.println("LexStringCh: " + e)}
+  .do {Block#(ctx.col++)}
   .if {e == "\""} .return {Block#(
 //    base.Debug.println("LexString: " + (ctx.str)),
     downstream#(Tokens.quoted(ctx.line.get, ctx.col.get, ctx.str)),
@@ -24,6 +25,7 @@ LexString: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
 
 LexStringEscapes: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
 //  .do {base.Debug.println(e)}
+  .do {Block#(ctx.col++)}
   .if {e == "\""} .return {Block#(ctx.write(e), ctx.mode(_LexerModes.string), ActorRes.continue)}
   .if {e == "\\"} .return {Block#(ctx.write(e), ctx.mode(_LexerModes.string), ActorRes.continue)}
   .if {e == "b"} .return {Block#(ctx.write("\b"), ctx.mode(_LexerModes.string), ActorRes.continue)}
@@ -41,6 +43,7 @@ LexUnicodeEscapes: {
     buffer: mut List[Str],
     e: Str
   ): ActorRes -> Block#
+    .do {Block#(ctx.col++)}
     .do {buffer.add(e)}
     .if {buffer.size < 4} .return {ActorRes.continue}
 //    .do {base.Debug.println("LexUnicodeEscapes: " + (buffer.flow.join " "))}
