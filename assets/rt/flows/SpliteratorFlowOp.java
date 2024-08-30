@@ -30,6 +30,7 @@ public interface SpliteratorFlowOp {
       }
       @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
         spliterator.forEachRemaining(downstream_m$::$hash$mut);
+        downstream_m$.stop$mut();
         return Void_0.$self;
       }
       @Override public Opt_1 split$mut() {
