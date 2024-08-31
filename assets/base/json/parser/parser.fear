@@ -30,7 +30,7 @@ _ValueParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _Par
     .false -> Block#(collector#(Jsons.bool False), behaviour.set(old), ActorRes.continue),
     .null -> Block#(collector#(Jsons.null), behaviour.set(old), ActorRes.continue),
     .quoted(str) -> Block#(collector#(Jsons.string str), behaviour.set(old), ActorRes.continue),
-    .numeric(str) -> Todo!("The number: " + str),
+    .numeric(num) -> Todo!("The number: " + (num.str)),
     .os -> Block#(behaviour.set(_ArrayParser#(collector, old)), ActorRes.continue),
     .oc -> Block#(behaviour.set(_ObjectParser#(collector, old)), ActorRes.continue),
     })
@@ -133,7 +133,7 @@ _SubMatch[R:iso,imm,mut,mutH,read,readH]: TokenMatch[R]{
   .false -> this.default("'false'"),
   .null -> this.default("'null'"),
   .quoted(chars) -> this.default(mut "string \"" + chars + "\""),
-  .numeric(chars) -> this.default("number " + chars),
+  .numeric(num) -> this.default("number " + (num.str)),
   .os -> this.default("'['"),
   .cs -> this.default("']'"),
   .oc -> this.default("'{'"),

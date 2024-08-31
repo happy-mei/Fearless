@@ -32,7 +32,7 @@ LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> ctx.mode.match{
 _LexerCtxs: {#: mut _LexerCtx -> Block#
   .let buffer = {mut ""}
   .let mode = {Var#[mut _LexerMode](_LexerModes.value)}
-  .let isDigit = {Regexs#"[0-9]"}
+  .let isDigit = {Regexs#"[0-9eE\\-+\\.]"}
   .let isNumberStart = {Regexs#"[\\-0-9]"}
   .let isWhitespace = {Regexs#"[ \\n\\r\\t]"}
   .let isChar = {Regexs#"[\\U{0020}-\\U{10FFFF}]"}
@@ -57,7 +57,7 @@ _LexerCtxs: {#: mut _LexerCtx -> Block#
   }
 
 _LexStartingToken: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
-  .if {ctx.isDigit(e)}
+  .if {ctx.isNumberStart(e)}
     .return {Block#(
       ctx.write(e),
       ctx.mode(_LexerModes.digits),
@@ -82,7 +82,7 @@ TokenMatch[R:iso,imm,mut,mutH,read,readH]: {
   mut .false: R,
   mut .null: R,
   mut .quoted(chars: Str): R,
-  mut .numeric(chars: Str): R,
+  mut .numeric(num: Float): R,
 
   mut .os: R,
   mut .cs: R,
@@ -145,8 +145,8 @@ Tokens: {
     .line -> line,
     .col -> col,
     },
-  .numeric(line: Nat, col: Nat, chars: Str): Token -> {
-    .match(m) -> m.numeric(chars),
+  .numeric(line: Nat, col: Nat, num: Float): Token -> {
+    .match(m) -> m.numeric(num),
     .line -> line,
     .col -> col,
     },
