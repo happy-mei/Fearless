@@ -30,7 +30,7 @@ _ValueParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _Par
     .false -> Block#(collector#(Jsons.bool False), behaviour.set(old), ActorRes.continue),
     .null -> Block#(collector#(Jsons.null), behaviour.set(old), ActorRes.continue),
     .quoted(str) -> Block#(collector#(Jsons.string str), behaviour.set(old), ActorRes.continue),
-    .numeric(num) -> Todo!("The number: " + (num.str)),
+    .numeric(num) -> Block#(collector#(Jsons.number num), behaviour.set(old), ActorRes.continue),
     .os -> Block#(behaviour.set(_ArrayParser#(collector, old)), ActorRes.continue),
     .oc -> Block#(behaviour.set(_ObjectParser#(collector, old)), ActorRes.continue),
     })

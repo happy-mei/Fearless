@@ -17,6 +17,9 @@ Str: Sealed,Stringable,base.flows.Joinable[Str],ToHash{
   .flow: mut Flow[Str],
   ._flow: mut FlowOp[Str],
   ._flow(start: Nat, end: Nat): mut FlowOp[Str],
+
+  // Conversions
+  .float: mut Action[Float],
   }
 
 Stringable: {
@@ -52,6 +55,7 @@ _StrInstance: Str{
   ._flow -> Magic!,
   ._flow(_,_) -> Magic!,
   .hash(h) -> Magic!,
+  .float -> Magic!,
   }
 
 _StrHelpers: {

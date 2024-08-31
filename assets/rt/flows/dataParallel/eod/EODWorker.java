@@ -57,6 +57,8 @@ public final class EODWorker implements Runnable {
           source.forRemaining$mut(downstream);
         } catch (FearlessError err) {
           downstream.pushError$mut(err.info);
+        } catch (ArithmeticException err) {
+          downstream.pushError$mut(base.Infos_0.$self.msg$imm(rt.Str.fromJavaStr(err.getMessage())));
         }
       });
   }

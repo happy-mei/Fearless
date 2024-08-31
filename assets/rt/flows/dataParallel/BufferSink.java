@@ -41,6 +41,8 @@ public final class BufferSink implements _Sink_1 {
         original.$hash$mut(e);
       } catch (FearlessError err) {
         original.pushError$mut(err.info);
+      } catch (ArithmeticException err) {
+        original.pushError$mut(base.Infos_0.$self.msg$imm(rt.Str.fromJavaStr(err.getMessage())));
       }
     }
     original.stop$mut();

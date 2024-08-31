@@ -86,6 +86,9 @@ public interface PipelineParallelFlow {
               // Keep "accepting" new messages, but don't actually do anything with them because we're in an error state
               softClosed = true;
               downstream.pushError$mut(err.info);
+            } catch (ArithmeticException err) {
+              softClosed = true;
+              downstream.pushError$mut(base.Infos_0.$self.msg$imm(rt.Str.fromJavaStr(err.getMessage())));
             }
           }
           case FlowRuntime.Message.Error<E> info -> {
