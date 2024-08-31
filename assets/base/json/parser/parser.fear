@@ -17,7 +17,7 @@ ParseJson: {#(input: Str): mut Action[Json] -> {res -> Try#{input.flow
   }}
 
 _ParserActor: {
-  mut #(downstream: mut base.flows._Sink[Json], state: mut Var[mut _ParserActor], e: Token): ActorRes
+  mut #(downstream: mut Sink[Json], state: mut Var[mut _ParserActor], e: Token): ActorRes
   }
 _TopLevelParser: _ParserActor{downstream, behaviour, token -> Block#
   .do {behaviour.set(_ValueParser#({value -> downstream#value}, this))}
@@ -30,6 +30,7 @@ _ValueParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _Par
     .false -> Block#(collector#(Jsons.bool False), behaviour.set(old), ActorRes.continue),
     .null -> Block#(collector#(Jsons.null), behaviour.set(old), ActorRes.continue),
     .quoted(str) -> Block#(collector#(Jsons.string str), behaviour.set(old), ActorRes.continue),
+    .numeric(str) -> Todo!("The number: " + str),
     .os -> Block#(behaviour.set(_ArrayParser#(collector, old)), ActorRes.continue),
     .oc -> Block#(behaviour.set(_ObjectParser#(collector, old)), ActorRes.continue),
     })
@@ -109,7 +110,7 @@ _ObjectCommaParser: {#(collector: mut Consumer[Str,Json], old: mut _ParserActor)
   }
 
 TopLevelMatch: {
-  #(downstream: mut base.flows._Sink[Json],
+  #(downstream: mut Sink[Json],
     ctx: mut Var[mut Opt[mut _SubMatch[ActorRes]]],
     token: Token
   ): mut _SubMatch[ActorRes] -> {

@@ -17,7 +17,7 @@ Test:Main {sys -> Block#
   .do {p#(ParseJson#("[[[[]], [], true]]")!)}
   .let[Json] r4 = {ParseJson#("[\n\n   \"abc\", \"def\", true, false, null]")!}
   .do {p#r4}
-  .let[Json] r5 = {ParseJson#("[\n\n   \"abc\", \"def\", true, [false], null, []]")!}
+  .let[Json] r5 = {ParseJson#("[\n\n   \"abc\", \"def\", true, [false], 5, null, []]")!}
   .do {p#r5}
   .do {p#(ParseJson#("{}")!)}
   .let[Json] r6 = {ParseJson#("[\n\n   \"ab\u005C\u005Cc\", \"def\", {}, {\"a\": \"fearless\",\n \"b\": {\"a\": true} }]")!}

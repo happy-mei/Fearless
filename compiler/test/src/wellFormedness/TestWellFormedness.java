@@ -438,4 +438,17 @@ public class TestWellFormedness {
       .foo: A,
       }}
     """);}
+
+  @Test void cannotCreateAliasedPrivate() {fail("""
+    In position [###]/Dummy0.fear:3:12
+    [E48 privateTraitImplementation]
+    The private trait b._Private/0 cannot be implemented outside of its package.
+    """, """
+    package a
+    alias b._Private as P,
+    A: {#: P -> {}}
+    """, """
+    package b
+    _Private: {}
+    """);}
 }

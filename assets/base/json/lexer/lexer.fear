@@ -26,13 +26,14 @@ LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> ctx.mode.match{
   .string -> LexString#(downstream, ctx, e),
   .stringEscape -> LexStringEscapes#(downstream, ctx, e),
   .unicodeEscape(buf) -> LexUnicodeEscapes#(ctx, buf, e),
-  .digits -> Todo!"Digits",
+  .digits -> LexNum#(downstream, ctx, e, mut LexJson),
   }}
 
 _LexerCtxs: {#: mut _LexerCtx -> Block#
   .let buffer = {mut ""}
   .let mode = {Var#[mut _LexerMode](_LexerModes.value)}
   .let isDigit = {Regexs#"[0-9]"}
+  .let isNumberStart = {Regexs#"[\\-0-9]"}
   .let isWhitespace = {Regexs#"[ \\n\\r\\t]"}
   .let isChar = {Regexs#"[\\U{0020}-\\U{10FFFF}]"}
   .let unpairedSurrogate = {List.withCapacity[Nat](1)}
@@ -46,6 +47,7 @@ _LexerCtxs: {#: mut _LexerCtx -> Block#
     mut .mode: mut _LexerMode -> mode.get,
     mut .mode(next: mut _LexerMode): Void -> mode.set(next),
     read .isDigit(ch: Str): Bool -> isDigit.isMatch(ch),
+    read .isNumberStart(ch: Str): Bool -> isNumberStart.isMatch(ch),
     read .isWhitespace(ch: Str): Bool -> isWhitespace.isMatch(ch),
     read .isChar(ch: Str): Bool -> isChar.isMatch(ch),
     mut .unpairedSurrogate: mut List[Nat] -> unpairedSurrogate,
