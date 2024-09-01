@@ -28,6 +28,7 @@ LexStringEscapes: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
   .do {Block#(ctx.col++)}
   .if {e == "\""} .return {Block#(ctx.write(e), ctx.mode(_LexerModes.string), ActorRes.continue)}
   .if {e == "\\"} .return {Block#(ctx.write(e), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "/"} .return {Block#(ctx.write(e), ctx.mode(_LexerModes.string), ActorRes.continue)}
   .if {e == "b"} .return {Block#(ctx.write("\b"), ctx.mode(_LexerModes.string), ActorRes.continue)}
   .if {e == "f"} .return {Block#(ctx.write("\f"), ctx.mode(_LexerModes.string), ActorRes.continue)}
   .if {e == "n"} .return {Block#(ctx.write("\n"), ctx.mode(_LexerModes.string), ActorRes.continue)}
