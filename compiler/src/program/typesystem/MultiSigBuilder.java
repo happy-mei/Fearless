@@ -66,7 +66,7 @@ record MultiSigBuilder(
   boolean filterExpectedRes(T resToAdd){
     if(expectedRes.isEmpty()){ return true; }
     return expectedRes.stream()
-      .filter(t -> t.rt().getClass().equals(resToAdd.rt().getClass()))
+      .filter(t -> t.isGX() == resToAdd.isGX())
       .map(T::mdf)
       .anyMatch(mi->mdfSubtypeWithBounds(mi,resToAdd));
   }
