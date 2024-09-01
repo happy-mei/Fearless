@@ -44,7 +44,7 @@ _JsonToStr: {
     .return {s.flow
       .map{ch -> Block#
 //        .if {ch == "\\"} .return {"\\\\"} // TODO: this breaks the fearless parer
-        .if {ch == "\u005C"} .return {"\u005C\u005C"}
+        .if {ch == "\u005C"} .return {"\\"}
         .if {ch == "\n"} .return {"\\n"}
         .if {ch == "\b"} .return {"\\b"}
         .if {ch == "\f"} .return {"\\f"}
