@@ -1,5 +1,11 @@
 package rt;
 
+import base.List_1;
+import base.caps.ReadPath_0;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+
 public final class IO implements base.caps.IO_0 {
 	public static final IO $self = new IO();
 	@Override public base.Void_0 printlnErr$mut(Str msg$) {
@@ -17,5 +23,18 @@ public final class IO implements base.caps.IO_0 {
 	@Override public base.Void_0 printErr$mut(Str msg$) {
 		NativeRuntime.printErr(msg$.utf8());
 		return base.Void_0.$self;
+	}
+	@Override public ReadPath_0 read$mut(List_1 path_m$) {
+		return new rt.fs.ReadPath(strListToPath(Path.of("").toAbsolutePath(), path_m$));
+	}
+
+	public static Path strListToPath(Path root, List_1 path) {
+		assert root.isAbsolute();
+		@SuppressWarnings("unchecked") // validated by the Fearless type system
+		var pathList = ((ListK.ListImpl<Str>)path);
+		return pathList.inner().stream()
+			.map(str -> new String(str.utf8(), StandardCharsets.UTF_8))
+			.reduce(root, Path::resolve, (_,_)->{throw new UnsupportedOperationException("not associative");})
+			.toAbsolutePath();
 	}
 }

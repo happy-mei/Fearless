@@ -76,13 +76,14 @@ _ObjectParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _Pa
   }
 _MemberKeyParser: {#(collector: mut Consumer[Str,Json], old: mut _ParserActor): mut _ParserActor -> Block#
   .let[mut Str] key = {mut ""}
+  .let hasKey = {Var#[Bool]False}
   .return {{downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{'matcher
     .mode -> "object member key", .token -> token,
     .quoted(str) -> key.isEmpty ? {
-      .then -> Block#(key.append(str), ActorRes.continue),
+      .then -> Block#(key.append(str), hasKey.set(True), ActorRes.continue),
       .else -> matcher.default(mut "string \"" + str + "\""),
       },
-    .colon -> key.isEmpty ? {
+    .colon -> hasKey.get.not ? {
       .then -> matcher.default("':'"),
       .else -> Block#(behaviour.set(_MemberValueParser#(collector, old, key.str)), ActorRes.continue),
       },

@@ -5,7 +5,7 @@ package base.json
 LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> ctx.mode.match{
   .value -> Block#
     .do {e == "\n" ? {
-      .then -> Block#(ctx.line++, ctx.col := 0),
+      .then -> Block#(ctx.line++, ctx.col := 1),
       .else -> Block#(ctx.col++)
       }}
     .if {ctx.isWhitespace(e)} .return {ActorRes.continue}
@@ -37,8 +37,8 @@ _LexerCtxs: {#: mut _LexerCtx -> Block#
   .let isWhitespace = {Regexs#"[ \\n\\r\\t]"}
   .let isChar = {Regexs#"[\\U{0020}-\\U{10FFFF}]"}
   .let unpairedSurrogate = {List.withCapacity[Nat](1)}
-  .let line = {Count.nat(0)}
-  .let col = {Count.nat(0)}
+  .let line = {Count.nat(1)}
+  .let col = {Count.nat(1)}
   .return {mut _LexerCtx: Stringable{'ctx
     read .isEmpty: Bool -> buffer.isEmpty,
     mut .write(e: Str): Void -> buffer.append(e),

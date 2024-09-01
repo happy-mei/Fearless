@@ -13,6 +13,10 @@ Action[T]: {
     .ok(x) -> m.ok(f#x),
     .info(i) -> m.info(i),
     }},
+  mut .flatMap[R](f: mut MF[T,mut Action[R]]): mut Action[R] -> {m -> this.run{
+    .ok(x) -> f#x.run(m),
+    .info(i) -> m.info(i),
+    }},
   mut .mapInfo[R](f: mut MF[Info,Info]): mut Action[T] -> {m -> this.run{
     .ok(x) -> m.ok(x),
     .info(i) -> m.info(f#i),

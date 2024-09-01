@@ -146,25 +146,13 @@ public interface Str extends base.Str_0 {
 		return hasher;
 	}
 
-	@Override default Action_1 float$imm() {
-		var str = this;
-		return new Action_1() {
-			@Override public Object run$mut(ActionMatch_2 m) {
-				try {
-					var res = Double.parseDouble(new String(str.utf8(), StandardCharsets.UTF_8));
-					return m.ok$mut(res);
-				} catch (NumberFormatException e) {
-					return m.info$mut(base.Infos_0.$self.msg$imm(fromJavaStr(e.getMessage())));
-				}
-			}
-			@Override public Object $exclamation$mut() {
-				return Action_1.$exclamation$mut$fun(this);
-			}
-			@Override public Action_1 mapInfo$mut(MF_2 f_m$) {
-				return Action_1.mapInfo$mut$fun(f_m$, this);
-			}
-			@Override public Action_1 map$mut(MF_2 f_m$) {
-				return Action_1.map$mut$fun(f_m$, this);
+	@Override default Fallible float$imm() {
+		return m -> {
+			try {
+				var res = Double.parseDouble(new String(this.utf8(), StandardCharsets.UTF_8));
+				return m.ok$mut(res);
+			} catch (NumberFormatException e) {
+				return m.info$mut(base.Infos_0.$self.msg$imm(fromJavaStr(e.getMessage())));
 			}
 		};
 	}
