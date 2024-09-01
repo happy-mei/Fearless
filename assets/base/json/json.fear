@@ -37,7 +37,7 @@ _JsonToStr: {
     .map{json->this#json}
     .join ", ",
   .object(o: LinkedHashMap[Str,Json]): Str -> o.flow
-    .map{kv -> mut "\""+(this.escape(kv.key))+"\": " + (this#(kv.value)) .str}
+    .map[Str]{kv -> mut "\""+(this.escape(kv.key))+"\": " + (this#(kv.value))}
     .join ", ",
   .escape(s: Str): Str -> Block#
     .let[Regex] mustEscape = {Regexs#"[\\U{0000}-\\U{001F}]"} // unicode control characters
