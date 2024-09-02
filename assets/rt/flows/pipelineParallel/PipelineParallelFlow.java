@@ -56,6 +56,7 @@ public interface PipelineParallelFlow {
         if (exception != null) {
           var message = exception.getMessage();
           if (exception instanceof StackOverflowError) { message = "Stack overflowed"; }
+          if (exception instanceof FearlessError fe) { throw fe; } // TODO: check this with flow semantics
           throw new RuntimeException(message, exception);
         }
       }

@@ -31,6 +31,11 @@ Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
     .return {cont#(splitResult, selfFlow)},
   mut .join(j: Joinable[E]): E -> j.join(this),
   mut .unwrapOp(unwrap: mut _UnwrapFlowToken): mut FlowOp[E],
+  mut .only: mut Action[E] -> {res -> Block#
+    .let found = {this.limit(2).list}
+    .if {found.size == 1} .return {res.ok(found.get(0))}
+    .return {res.info(Infos.msg("Expected exactly one element, found " + (found.size.str)))}
+    },
   }
 _UnwrapFlowToken: {}
 

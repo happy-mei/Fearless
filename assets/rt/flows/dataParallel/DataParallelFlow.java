@@ -87,6 +87,10 @@ public final class DataParallelFlow implements Flow_1 {
     return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).fold$mut(acc_m$, f_m$);
   }
 
+  public Action_1 only$mut() {
+    return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).only$mut();
+  }
+
   public Flow_1 map$mut(F_2 f_m$) {
     return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, source_m$, f_m$), this.size_m$);
   }

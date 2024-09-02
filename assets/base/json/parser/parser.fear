@@ -1,18 +1,19 @@
 package base.json
 
-ParseJson: {#(input: Str): mut Action[Json] -> {res -> Try#{input.flow
-  .actor[mut _LexerCtx,Token](_LexerCtxs#, mut LexJson)
-  .actor[mut Var[mut _ParserActor],Json](
-    Var#[mut _ParserActor](mut _TopLevelParser),
-    {downstream, ctx, token -> ctx.get#(downstream, ctx, token)}
-    )
-  .first
-  }.run{
-    .ok(optJson) -> optJson.match{
-      .some(json) -> res.ok(json),
-      .empty -> res.info(Infos.msg("Empty string found, expected JSON."))
-      },
-    .info(info) -> res.info(info),
+ParseJson: {#(rawInput: Str): mut Action[Json] -> ValidateInput#(rawInput).flatMap{input ->
+  {res -> Try#{input.flow
+    .actor[mut _LexerCtx,Token](_LexerCtxs#, LexJson)
+    .actor[mut Var[mut _ParserActor],Json](
+      Var#[mut _ParserActor](mut _TopLevelParser),
+      {downstream, ctx, token -> ctx.get#(downstream, ctx, token)}
+      )
+    .only!
+    }
+//    .flatMap[Json]{oneJsonOrInvalid -> oneJsonOrInvalid}
+    .run{
+      .ok(json) -> res.ok(json),
+      .info(_) -> res.info(Infos.msg("Invalid string found, expected JSON.")),
+      }
     }
   }}
 
