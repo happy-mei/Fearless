@@ -7,9 +7,9 @@ ParseJson: {#(rawInput: Str): mut Action[Json] -> ValidateInput#(rawInput).flatM
       Var#[mut _ParserActor](mut _TopLevelParser),
       {downstream, ctx, token -> ctx.get#(downstream, ctx, token)}
       )
-    .only!
+    .only
     }
-//    .flatMap[Json]{oneJsonOrInvalid -> oneJsonOrInvalid}
+    .flatMap[Json]{oneJsonOrInvalid -> oneJsonOrInvalid}
     .run{
       .ok(json) -> res.ok(json),
       .info(_) -> res.info(Infos.msg("Invalid string found, expected JSON.")),
