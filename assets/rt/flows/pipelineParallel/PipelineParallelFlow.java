@@ -54,9 +54,11 @@ public interface PipelineParallelFlow {
           })
           .join();
         if (exception != null) {
+          if (exception instanceof DeterministicFearlessError fe) {
+            throw fe;
+          }
           var message = exception.getMessage();
           if (exception instanceof StackOverflowError) { message = "Stack overflowed"; }
-          if (exception instanceof FearlessError fe) { throw fe; } // TODO: check this with flow semantics
           throw new RuntimeException(message, exception);
         }
       }
@@ -86,7 +88,15 @@ public interface PipelineParallelFlow {
             } catch (FearlessError err) {
               // Keep "accepting" new messages, but don't actually do anything with them because we're in an error state
               softClosed = true;
-              downstream.pushError$mut(err.info);
+
+              // If we're in a nested flow and the pushError throws, then we want to propagate that as a deterministic
+              // exception (as opposed to a random error that we wrap in a RuntimeException to prevent it from being
+              // caught by Try/1)
+              try {
+                downstream.pushError$mut(err.info);
+              } catch (FearlessError err1) {
+                throw new DeterministicFearlessError(err1.info);
+              }
             } catch (ArithmeticException err) {
               softClosed = true;
               downstream.pushError$mut(base.Infos_0.$self.msg$imm(rt.Str.fromJavaStr(err.getMessage())));
@@ -95,7 +105,14 @@ public interface PipelineParallelFlow {
           case FlowRuntime.Message.Error<E> info -> {
             if (softClosed) { return; }
             softClosed = true;
-            downstream.pushError$mut(info.info());
+            // If we're in a nested flow and the pushError throws, then we want to propagate that as a deterministic
+            // exception (as opposed to a random error that we wrap in a RuntimeException to prevent it from being
+            // caught by Try/1)
+            try {
+              downstream.pushError$mut(info.info());
+            } catch (FearlessError err) {
+              throw new DeterministicFearlessError(err.info);
+            }
           }
           case FlowRuntime.Message.Stop<E> ignored -> {
             downstream.stop$mut();
@@ -104,5 +121,11 @@ public interface PipelineParallelFlow {
         }
       }
     }));
+  }
+
+  final class DeterministicFearlessError extends FearlessError {
+    DeterministicFearlessError(base.Info_0 info) {
+      super(info);
+    }
   }
 }
