@@ -183,7 +183,15 @@ public class TestJavaProgram {
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5_00_000.5 + 2.1) .str, { Void }) }
     """);}
-  @Test void intDivByZero() { ok(new Res("", "Program crashed with: / by zero", 1), """
+  @Test void intDivByZero() { ok(new Res("", """
+    Program crashed with: / by zero
+    
+    Stack trace:
+    <runtime java.lang.Long>
+    test.Test/0
+    test.Test/0
+    <runtime base.FearlessMain>
+    """, 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void, alias base.Block as Do,
@@ -726,7 +734,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Block#
       .let[mut IsoPod[iso MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
-      .do{ Block#(a.mutate{ mt -> Block#(mt.n++) }) }
+      .do{ Block#(a.mutate{ mt -> Block#(mt.n++) }!) }
       .return{ Assert!(Usage#(a!) == +1) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
@@ -831,9 +839,9 @@ public class TestJavaProgram {
       Try#[Str]{ Block#
         .let[mut IsoPod[iso Str]] pod = { IsoPod#[iso Str] iso "hi" }
         .return{pod!}
-        }.resMatch{
+        }.run{
           .ok(msg) -> UnrestrictedIO#s.println(msg),
-          .err(info) -> UnrestrictedIO#s.printlnErr(info.str),
+          .info(info) -> UnrestrictedIO#s.printlnErr(info.str),
         }
       }
     """, Base.mutBaseAliases); }
@@ -844,9 +852,9 @@ public class TestJavaProgram {
         .let[mut IsoPod[iso Str]] pod = { IsoPod#[iso Str] iso "hi" }
         .do{ Block#(pod!) }
         .return{pod!}
-        }.resMatch{
+        }.run{
           .ok(msg) -> UnrestrictedIO#s.println(msg),
-          .err(info) -> UnrestrictedIO#s.printlnErr(info.msg),
+          .info(info) -> UnrestrictedIO#s.printlnErr(info.msg),
         }
       }
     """, Base.mutBaseAliases); }
@@ -1213,9 +1221,9 @@ public class TestJavaProgram {
 //        ))
 //      }
     Test:Main{s ->
-      UnrestrictedIO#s.println(Try#[Str]{"Happy"}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{"Happy"}.run{
         .ok(res) -> res,
-        .err(err) -> err.str,
+        .info(err) -> err.str,
         })
       }
     """, Base.mutBaseAliases);}
@@ -1228,23 +1236,23 @@ public class TestJavaProgram {
 //        ))
 //      }
     Test:Main{s ->
-      UnrestrictedIO#s.println(Try#[Str]{Error.msg("oof")}.match{ .a(a) -> a, .b(err) -> err.msg })
+      UnrestrictedIO#s.println(Try#[Str]{Error.msg("oof")}.run{ .ok(a) -> a, .info(err) -> err.msg })
       }
     """, Base.mutBaseAliases);}
-  @Test void error1() { ok(new Res("", "Program crashed with: \"yolo\" ", 1), """
+  @Test void error1() { ok(new Res("", "Program crashed with: \"yolo\"[###]", 1), """
     package test
     Test:Main{s -> Error.msg("yolo") }
     """, Base.mutBaseAliases);}
-  @Test void emptyOptErr1() { ok(new Res("", "Program crashed with: \"Opt was empty\"", 1), """
+  @Test void emptyOptErr1() { ok(new Res("", "Program crashed with: \"Opt was empty\"[###]", 1), """
     package test
     Test:Main{s -> Block#(Opt[Str]!) }
     """, Base.mutBaseAliases);}
   @Test void emptyOptErr2() { ok(new Res("", "Opt was empty", 0), """
     package test
     Test:Main{s ->
-      Try#{Opt[Str]!}.match{
-        .a(_) -> {},
-        .b(info) -> UnrestrictedIO#s.printlnErr(info.msg),
+      Try#{Opt[Str]!}.run{
+        .ok(_) -> {},
+        .info(info) -> UnrestrictedIO#s.printlnErr(info.msg),
         }
       }
     """, Base.mutBaseAliases);}
@@ -1289,7 +1297,17 @@ public class TestJavaProgram {
       }
     """); }
 
-  @Test void errorKToObj() { ok(new Res("", "Program crashed with: \"whoops\"", 1), """
+  @Test void errorKToObj() { ok(new Res("", """
+    Program crashed with: \"whoops\"
+    
+    Stack trace:
+    <runtime rt.Error>
+    base.Error/0
+    base.Error/0
+    test.Test/0
+    test.Test/0
+    <runtime base.FearlessMain>
+    """, 1), """
     package test
     Test: Main{ _ -> A#(Error.msg "whoops") }
     A:{ #(x: Str): Void -> Void }
@@ -1303,6 +1321,7 @@ public class TestJavaProgram {
       .println(msg) -> Magic!,
       .printErr(msg) -> Magic!,
       .printlnErr(msg) -> Magic!,
+      .read(_) -> Magic!,
       }
     """, Base.mutBaseAliases); }
 
