@@ -208,6 +208,19 @@ public class TestJavaProgram {
     Test:Main{ _ -> Assert!(False, ((0 - 2) - 9223372036854775807) .str, { Void }) }
     """);}
 
+  @Test void strEq() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{_ -> Assert!("abc" == "abc", {Void})}
+    """);}
+  @Test void strEqFail() { ok(new Res("", "Assertion failed :(", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{_ -> Assert!("abc" == "def", {Void})}
+    """);}
+
   @Test void println() { ok(new Res("Hello, World!", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Block as Block,

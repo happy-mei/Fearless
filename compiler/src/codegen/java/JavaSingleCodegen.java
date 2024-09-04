@@ -13,6 +13,7 @@ import utils.Bug;
 import utils.Streams;
 import visitors.MIRVisitor;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
@@ -247,18 +248,19 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     var javaStr = getLiteral(p.p(), id).map(l->l.substring(1, l.length() - 1)).orElseThrow();
     // We parse literal \n, unicode escapes as if this was a Java string literal.
     var utf8 = StringEscapeUtils.unescapeJava(javaStr).getBytes(StandardCharsets.UTF_8);
-    var recordName = ("str$"+Long.toUnsignedString(NativeRuntime.hashString(utf8), 10)+"$str$");
+    var buf = ByteBuffer.allocateDirect(utf8.length).put(utf8).position(0).asReadOnlyBuffer();
+    var recordName = ("str$"+Long.toUnsignedString(NativeRuntime.hashString(buf), 10)+"$str$");
     if (!this.freshRecords.containsKey(id)) {
       var utf8Array = IntStream.range(0, utf8.length).mapToObj(i->Byte.toString(utf8[i])).collect(Collectors.joining(","));
       // We do not need to run validateStringOrThrow because Java will never produce an invalid UTF-8 str with getBytes.
-      var graphemes = Arrays.stream(NativeRuntime.indexString(utf8)).mapToObj(Integer::toString).collect(Collectors.joining(","));
+      var graphemes = Arrays.stream(NativeRuntime.indexString(buf)).mapToObj(Integer::toString).collect(Collectors.joining(","));
 
       this.freshRecords.put(new DecId(this.pkg+"."+recordName, 0), """
         final class %s implements rt.Str {
           public static final rt.Str $self = new %s();
-          private static final byte[] UTF8 = new byte[]{%s};
+          private static final java.nio.ByteBuffer UTF8 = rt.Str.wrap(new byte[]{%s});
           private static final int[] GRAPHEMES = new int[]{%s};
-          @Override public byte[] utf8() { return UTF8; }
+          @Override public java.nio.ByteBuffer utf8() { return UTF8; }
           @Override public int[] graphemes() { return GRAPHEMES; }
         }
         """.formatted(recordName, recordName, utf8Array, graphemes));

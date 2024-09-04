@@ -1,12 +1,12 @@
-use std::cell::RefCell;
-use std::convert::Into;
-use std::num::NonZeroUsize;
 use crate::strings::FearlessStr;
-use jni::objects::{JByteArray, JClass};
+use jni::objects::{JByteBuffer, JClass};
 use jni::sys::{jboolean, jlong};
 use jni::JNIEnv;
 use lru::LruCache;
 use regex::Regex;
+use std::cell::RefCell;
+use std::convert::Into;
+use std::num::NonZeroUsize;
 
 thread_local! {
     static REGEX_CACHE: RefCell<LruCache<u64, Regex, lru::DefaultHasher>> = RefCell::new(
@@ -17,7 +17,7 @@ thread_local! {
 /// # Safety
 /// The Fearless string is valid UTF-8.
 #[no_mangle]
-pub unsafe extern "system" fn Java_rt_NativeRuntime_compileRegexPattern<'local>(mut env: JNIEnv<'local>, _class: JClass<'local>, utf8_regex_str: JByteArray<'local>) -> jlong {
+pub unsafe extern "system" fn Java_rt_NativeRuntime_compileRegexPattern<'local>(mut env: JNIEnv<'local>, _class: JClass<'local>, utf8_regex_str: JByteBuffer<'local>) -> jlong {
     let str = FearlessStr::new(&mut env, &utf8_regex_str);
     
     match get_regex(str.as_str()) {
@@ -63,7 +63,7 @@ pub unsafe extern "system" fn Java_rt_NativeRuntime_dropRegexPattern<'local>(_en
 }
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_rt_NativeRuntime_doesRegexMatch<'local>(mut env: JNIEnv<'local>, _class: JClass<'local>, pattern: jlong, str: JByteArray<'local>) -> jboolean {
+pub unsafe extern "system" fn Java_rt_NativeRuntime_doesRegexMatch<'local>(mut env: JNIEnv<'local>, _class: JClass<'local>, pattern: jlong, str: JByteBuffer<'local>) -> jboolean {
     let regex = from_java(pattern);
     let str = FearlessStr::new(&mut env, &str);
     regex.is_match(str.as_str()).into()
