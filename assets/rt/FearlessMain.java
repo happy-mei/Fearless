@@ -1,9 +1,11 @@
 package base;
 
 import base.caps._System_0;
+import rt.Debug;
 import rt.Str;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 
 public class FearlessMain {
   public static void main(String[] args) {
@@ -27,11 +29,11 @@ public class FearlessMain {
     try {
       myMain.$hash$imm(_System_0.$self);
     } catch (StackOverflowError e) {
-      fatal("Program crashed with: Stack overflowed");
+      fatal("Program crashed with: Stack overflowed", Debug.demangleStackTrace(e.getStackTrace()));
     }
     catch (Throwable t) {
       var msg = t.getMessage() == null ? t.getCause() : t.getMessage();
-      fatal("Program crashed with: "+msg);
+      fatal("Program crashed with: "+msg, Debug.demangleStackTrace(t.getStackTrace()));
     }
   }
   public static Main_0 getMain(String mainName) throws NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalArgumentException, IllegalAccessException, ClassCastException {
@@ -47,7 +49,11 @@ public class FearlessMain {
     return res;
   }
   private static void fatal(String message) {
+    fatal(message, null);
+  }
+  private static void fatal(String message, String stackTrace) {
     System.err.println(message);
+    if (stackTrace != null) { System.err.println("\nStack trace:\n"+stackTrace); }
     System.exit(1);
   }
   public static class FAux { public static base.LList_1 LAUNCH_ARGS; }
