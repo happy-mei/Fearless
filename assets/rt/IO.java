@@ -33,7 +33,7 @@ public final class IO implements base.caps.IO_0 {
 		@SuppressWarnings("unchecked") // validated by the Fearless type system
 		var pathList = ((ListK.ListImpl<Str>)path);
 		return pathList.inner().stream()
-			.map(str -> new String(str.utf8(), StandardCharsets.UTF_8))
+			.map(str -> rt.Str.toJavaStr(str.utf8()))
 			.reduce(root, Path::resolve, (_,_)->{throw new UnsupportedOperationException("not associative");})
 			.toAbsolutePath();
 	}

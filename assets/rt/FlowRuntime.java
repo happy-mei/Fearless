@@ -7,7 +7,7 @@ import java.util.concurrent.SubmissionPublisher;
 import java.util.function.Function;
 
 public interface FlowRuntime {
-  int BUFFER_SIZE = 256;
+  int BUFFER_SIZE = Integer.MAX_VALUE;
   ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
   static <E> SubmissionPublisher<Message<E>> spawnWorker() {
