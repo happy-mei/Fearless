@@ -45,7 +45,7 @@ public final class EODWorker implements Runnable {
   private EODWorker(FlowOp_1 source, _Sink_1 downstream, AtomicInteger info, List<Object> buffer) {
     this.source = source;
     this.info = info;
-    this.downstream = new BufferSink(downstream, buffer);
+    this.downstream = new BufferSink(downstream);
   }
 
   @SuppressWarnings("preview")
@@ -60,6 +60,7 @@ public final class EODWorker implements Runnable {
         } catch (ArithmeticException err) {
           downstream.pushError$mut(base.Infos_0.$self.msg$imm(rt.Str.fromJavaStr(err.getMessage())));
         }
+        this.flush();
       });
   }
 

@@ -65,7 +65,7 @@ final class UnrestrictedWorker implements Runnable {
   }
   public UnrestrictedWorker(FlowOp_1 source, _Sink_1 downstream, int size, CountDownLatch doneSignal, List<Object> buffer) {
     this.source = source;
-    this.downstream = new BufferSink(downstream, buffer);
+    this.downstream = new BufferSink(downstream);
     this.doneSignal = doneSignal;
   }
 

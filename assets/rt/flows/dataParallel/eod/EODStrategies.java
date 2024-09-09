@@ -34,8 +34,8 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
 
   // TODO: exception handling and potentially make this bounded
   @Override public void oneParOneSeq() {
-    var lhsSink = new BufferSink(downstream, new ArrayList<>(1));
-    var rhsSink = new BufferSink(downstream, new ArrayList<>(1));
+    var lhsSink = new BufferSink(downstream);
+    var rhsSink = new BufferSink(downstream);
     var lhs = Thread.ofVirtual().start(()->splitData.getFirst().forRemaining$mut(lhsSink));
     splitData.stream()
       .skip(1)
@@ -72,6 +72,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     var workers = new EODWorker[nTasks];
     var spawned = new Thread[nTasks];
     AtomicReference<RuntimeException> exception = new AtomicReference<>();
+    var flusher = BufferSink.FlushWorker.start(null);
     for (int i = 0; i < nTasks; ++i) {
       var actualException = exception.getAcquire();
       if (actualException != null) {
@@ -114,9 +115,29 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
       tryReleaseAll(permits);
     }
 
-    for (var worker : workers) {
+    flusher.stop();
+
+//    for (var worker : workers) {
+//      if (worker == null) { break; }
+//      worker.flush();
+//    }
+    for (int i = 0; i < nTasks; ++i) {
+      var worker = workers[i];
       if (worker == null) { break; }
-      worker.flush();
+      var thread = spawned[i];
+
+      if (thread != null) {
+        try {
+          thread.join();
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      var actualException = exception.get();
+      if (actualException != null) {
+        throw actualException;
+      }
     }
   }
 
