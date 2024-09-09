@@ -81,10 +81,10 @@ public final class MutStr implements Str {
 
       var bufferStream = buffer.size() > 32 ? buffer.parallelStream() : buffer.stream();
 //      byte[] utf8 = new byte[bufferStream.mapToInt(s -> s.utf8().length).sum()];
-      var capacity = bufferStream.mapToInt(s -> s.utf8().capacity()).sum();
+      var capacity = bufferStream.mapToInt(s -> s.utf8().remaining()).sum();
       var utf8 = ByteBuffer.allocateDirect(capacity);
       for (var str : buffer) {
-        utf8.put(str.utf8());
+        utf8.put(str.utf8().duplicate());
       }
       utf8.position(0);
       utf8 = utf8.asReadOnlyBuffer();

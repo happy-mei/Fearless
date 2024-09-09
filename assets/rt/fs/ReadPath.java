@@ -28,7 +28,7 @@ public record ReadPath(Path inner) implements ReadPath_0 {
   @Override public Fallible str$mut() {
     return m -> {
       try {
-        var uncheckedUtf8 = ByteBuffer.wrap(Files.readAllBytes(inner));
+        var uncheckedUtf8 = rt.Str.wrap(Files.readAllBytes(inner));
         return m.ok$mut(Str.fromUtf8(uncheckedUtf8));
       } catch (FearlessError e) {
         return m.info$mut(e.info);

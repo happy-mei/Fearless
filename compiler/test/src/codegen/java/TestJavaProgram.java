@@ -1460,4 +1460,15 @@ public class TestJavaProgram {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+
+  @Test void stringConcat() {ok(new Res("Hello, World! Bye!", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#(" "))}
+    Foo: {#(join: Str): Str -> "Hello," + join + "World!" + join + "Bye!"}
+    """, Base.mutBaseAliases);}
+  @Test void stringConcatMut() {ok(new Res("Hello, World! Bye!", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#(" "))}
+    Foo: {#(join: Str): Str -> mut "Hello," + join + "World!" + join + "Bye!"}
+    """, Base.mutBaseAliases);}
 }

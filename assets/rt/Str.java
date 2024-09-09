@@ -19,13 +19,12 @@ public interface Str extends base.Str_0 {
 			.asReadOnlyBuffer();
 	}
 	public static String toJavaStr(ByteBuffer utf8) {
-		var dst = new byte[utf8.capacity()];
+		var dst = new byte[utf8.remaining()];
 		utf8.get(dst);
-		System.err.println(new String(dst, StandardCharsets.UTF_8));
 		return new String(dst, StandardCharsets.UTF_8);
 	}
 
-	Str EMPTY = fromTrustedUtf8(ByteBuffer.allocate(0));
+	Str EMPTY = fromTrustedUtf8(ByteBuffer.allocateDirect(0));
 	static Str fromJavaStr(String str) {
 		var utf8 = str.getBytes(StandardCharsets.UTF_8);
 		return fromTrustedUtf8(wrap(utf8));
@@ -58,8 +57,8 @@ public interface Str extends base.Str_0 {
 		var a = this.utf8();
 		var b = other$.str$read().utf8();
 		var res = ByteBuffer.allocateDirect(a.remaining() + b.remaining());
-		res.put(a);
-		res.put(b);
+		res.put(a.duplicate());
+		res.put(b.duplicate());
 		res.position(0);
 		res = res.asReadOnlyBuffer();
 		return fromTrustedUtf8(res);
