@@ -6,6 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/examples/mutBase/parser/out" />
       <excludeFolder url="file://$MODULE_DIR$/examples/mutBase/simple/out" />
       <excludeFolder url="file://$MODULE_DIR$/examples/mutBase/flows/out" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/mutBase/json/out" />
     </content>
   </component>
   <component name="Go" enabled="true" />

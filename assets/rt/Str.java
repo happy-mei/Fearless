@@ -5,7 +5,6 @@ import base.flows.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 public interface Str extends base.Str_0 {
 	ByteBuffer utf8();
@@ -118,15 +117,9 @@ public interface Str extends base.Str_0 {
 
 	@Override default Flow_1 flow$imm() {
 		var size = size$imm();
-		return Flow_0.$self.fromOp$imm(this.__flow$imm(0, size), size);
+		return Flow_0.$self.fromOp$imm(this._flow$imm(0, size), size);
 	}
-	@Override default FlowOp_1 _flow$imm() {
-		return this._flow$imm(0, size$imm());
-	}
-	@Override default FlowOp_1 _flow$imm(long start, long end_) {
-		throw new RuntimeException("Unreachable code");
-	}
-	default FlowOp_1 __flow$imm(long start, long end_) {
+	default FlowOp_1 _flow$imm(long start, long end_) {
 		return RestrictFlowReuse_0.$self.$hash$imm(new FlowOp_1() {
 			long cur = start;
 			long end = end_;
@@ -193,9 +186,10 @@ public interface Str extends base.Str_0 {
 		public SubStr(Str all, int start, int end) {
 			var graphemes = all.graphemes();
 			var utf8 = all.utf8();
-			var startIdx = start == graphemes.length ? utf8.remaining() : graphemes[start];
+			var index = start == graphemes.length ? utf8.remaining() : graphemes[start];
 			var endIdx = end == graphemes.length ? utf8.remaining() : graphemes[end];
-			this.UTF8 = utf8.slice(startIdx, endIdx);
+			var byteSize = endIdx - index;
+			this.UTF8 = utf8.slice(index, byteSize);
 			this.size = end - start;
 		}
 		@Override public ByteBuffer utf8() {
