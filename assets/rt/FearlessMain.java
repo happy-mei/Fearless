@@ -32,7 +32,8 @@ public class FearlessMain {
       fatal("Program crashed with: Stack overflowed", Debug.demangleStackTrace(e.getStackTrace()));
     } catch (RuntimeException e) {
       var t = e.getCause();
-      var msg = t.getMessage() == null ? e.getCause() : t.getMessage();
+      if (t == null) { t = e; }
+      var msg = t.getMessage() == null ? t.getCause() : t.getMessage();
       fatal("Program crashed with: "+msg, Debug.demangleStackTrace(t.getStackTrace()));
     } catch (Throwable t) {
       var msg = t.getMessage() == null ? t.getCause() : t.getMessage();

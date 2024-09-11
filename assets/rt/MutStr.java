@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public final class MutStr implements Str {
   private ByteBuffer buffer = ByteBuffer.allocateDirect(16);
-  private int[] graphemes = null;
+  private volatile int[] graphemes = null;
 
   public MutStr(Str str) {
     assert str != null;
@@ -57,37 +57,16 @@ public final class MutStr implements Str {
   }
 
   private void put(Str str) {
+    graphemes = null;
     var toAdd = str.utf8();
+    assert toAdd.position() == 0;
     if (buffer.remaining() < toAdd.capacity()) {
-      buffer.position(0);
-      var newBuffer = ByteBuffer.allocateDirect((buffer.capacity() * 3) / 2 + 1);
-      buffer = newBuffer.put(buffer);
+      var minSizeIncrease = (buffer.capacity() * 3) / 2 + 1;
+      var newBuffer = ByteBuffer.allocateDirect(Math.max(minSizeIncrease, buffer.capacity() + toAdd.capacity()));
+      newBuffer.put(this.utf8());
+      buffer = newBuffer;
     }
     buffer.put(toAdd);
     toAdd.position(0);
   }
-
-//  private Str freeze() {
-//    freezeLock.lock();
-//    try {
-//      // if we lost the lock race, use the answer from the winner
-//      if (immStr != null) { return immStr; }
-//
-//      var bufferStream = buffer.size() > 32 ? buffer.parallelStream() : buffer.stream();
-////      byte[] utf8 = new byte[bufferStream.mapToInt(s -> s.utf8().length).sum()];
-//      var capacity = bufferStream.mapToInt(s -> s.utf8().remaining()).sum();
-//      var utf8 = ByteBuffer.allocateDirect(capacity);
-//      for (var str : buffer) {
-//        utf8.put(str.utf8().duplicate());
-//      }
-//      utf8.position(0);
-////      utf8 = utf8.asReadOnlyBuffer();
-//      var res = Str.fromTrustedUtf8(utf8);
-//      buffer.clear(); // cant just set to null, because we use .freeze for just normal reading too (not just for ->imm)
-//      buffer.add(res);
-//      return res;
-//    } finally {
-//      freezeLock.unlock();
-//    }
-//  }
 }

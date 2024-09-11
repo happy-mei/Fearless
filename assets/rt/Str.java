@@ -190,9 +190,11 @@ public interface Str extends base.Str_0 {
 		public SubStr(Str all, int start, int end) {
 			var graphemes = all.graphemes();
 			var utf8 = all.utf8();
+			assert utf8.position() == 0 : "SubStr position must be 0";
 			var index = start == graphemes.length ? utf8.remaining() : graphemes[start];
 			var endIdx = end == graphemes.length ? utf8.remaining() : graphemes[end];
 			var byteSize = endIdx - index;
+			assert byteSize >= 0 : "SubStr byteSize must be >= 0, was "+byteSize;
 			this.UTF8 = utf8.slice(index, byteSize);
 			this.size = end - start;
 		}

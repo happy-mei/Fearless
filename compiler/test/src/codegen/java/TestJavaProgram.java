@@ -1471,4 +1471,9 @@ public class TestJavaProgram {
     Test: Main{sys -> sys.io.println(Foo#(" "))}
     Foo: {#(join: Str): Str -> mut "Hello," + join + "World!" + join + "Bye!"}
     """, Base.mutBaseAliases);}
+  @Test void stringConcatMutAndMut() {ok(new Res("Hello, World! Bye!", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#(mut " "))}
+    Foo: {#(join: mut Str): mut Str -> mut "Hello," + join + mut "World!" + join + mut "Bye!"}
+    """, Base.mutBaseAliases);}
 }
