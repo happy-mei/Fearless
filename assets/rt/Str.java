@@ -5,6 +5,7 @@ import base.flows.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 public interface Str extends base.Str_0 {
 	byte[] utf8();
@@ -38,6 +39,10 @@ public interface Str extends base.Str_0 {
 	}
 	@Override default base.Bool_0 $exclamation$equals$imm(Str other$) {
 		return Arrays.equals(this.utf8(), other$.utf8()) ? False_0.$self : True_0.$self;
+	}
+	@Override default base.Bool_0 startsWith$imm(Str other$) {
+		if (this.size$imm() < other$.size$imm()) { return False_0.$self; }
+		return IntStream.range(0, other$.utf8().length).allMatch(i -> this.utf8()[i] == other$.utf8()[i]) ? True_0.$self : False_0.$self;
 	}
 	@Override default Str $plus$imm(base.Stringable_0 other$) {
 		var a = this.utf8();
