@@ -1,44 +1,34 @@
 package rt.flows.dataParallel;
 
 import base.Info_0;
+import base.Infos_0;
 import base.Void_0;
 import base.flows._Sink_1;
 import rt.FearlessError;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicReference;
 
 public final class BufferSink implements _Sink_1 {
   private final static BlockingQueue<FlusherElement> toFlush = new LinkedBlockingQueue<>();
-  private static AtomicReference<RuntimeException> exception = new AtomicReference<>();
   public static final class FlushWorker implements Runnable {
     private FlushWorker() {}
     public static final CompletableFuture<Void> doneSignal = new CompletableFuture<>();
     private static Thread thread;
     public static FlushWorker start(Thread.UncaughtExceptionHandler exceptionHandler) {
       var worker = new FlushWorker();
-      thread = Thread.ofVirtual().uncaughtExceptionHandler((_,err) -> {
-        err.printStackTrace();
-        var message = err.getMessage();
-        if (err instanceof StackOverflowError) { message = "Stack overflowed"; }
-        exception.compareAndSet(null, new RuntimeException(message, err));
-      }).start(worker);
+      thread = Thread.ofVirtual().uncaughtExceptionHandler(exceptionHandler).start(worker);
       return worker;
     }
-    public void stop() {
+    public void stop(_Sink_1 original) {
       toFlush.add(FlusherElement.StopToken.$self);
       try {
         thread.join();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
-      var actualException = exception.get();
-      if (actualException != null) {
-        throw actualException;
-      }
+      original.stop$mut();
     }
     @Override public void run() {
       while (!toFlush.isEmpty() || !doneSignal.isDone()) {
@@ -60,7 +50,7 @@ public final class BufferSink implements _Sink_1 {
         Object e;try{e = sink.buffer.take();}
         catch (InterruptedException ex) {throw new RuntimeException(ex);}
         if (e == FlusherElement.StopToken.$self) {
-          assert sink.buffer.isEmpty();
+          assert sink.buffer.isEmpty() : "Buffer should be empty when stopping.";
           break;
         }
 
@@ -76,26 +66,28 @@ public final class BufferSink implements _Sink_1 {
           sink.original.pushError$mut(base.Infos_0.$self.msg$imm(rt.Str.fromJavaStr(err.getMessage())));
         }
       }
-      sink.original.stop$mut();
+      assert sink.buffer.isEmpty() : "Buffer should be empty after flushing. Got: "+sink.buffer;
     }
   }
 
   public final _Sink_1 original;
   private final BlockingQueue<Object> buffer;
   private final CompletableFuture<Void> noMoreElementsSignal = new CompletableFuture<>();
-//  private final Thread flusher;
 
   private record Error(Info_0 info) {}
 
+//  private static final int BUFFER_MAX = (int) OSInfo.memoryAndCpuScaledValue(500);
+//  private static final int BUFFER_MAX = 1;
+  private static final int BUFFER_MAX = Integer.MAX_VALUE;
+  public BufferSink(_Sink_1 original, int sizeHint) {
+    this.original = original;
+    this.buffer = new LinkedBlockingQueue<>(BUFFER_MAX);
+    toFlush.add(new FlusherElement.Sink(this));
+  }
   public BufferSink(_Sink_1 original) {
     this.original = original;
-    this.buffer = new LinkedBlockingQueue<>(5_000_000);
+    this.buffer = new LinkedBlockingQueue<>(BUFFER_MAX);
     toFlush.add(new FlusherElement.Sink(this));
-//    var onReady = new CompletableFuture<Void>();
-//    this.flusher = Thread.ofVirtual().start(new FlushWorker(this, onReady));
-//    onReady.join();
-//    assert flushLock.isFair();
-//    flushLock.lo;
   }
 
   @Override public Void_0 stop$mut() {
@@ -104,11 +96,6 @@ public final class BufferSink implements _Sink_1 {
   }
 
   void safePut(Object e) {
-    noMoreElementsSignal.complete(null);
-    var actualException = exception.get();
-    if (actualException != null) {
-      throw actualException;
-    }
     try {
       buffer.put(e);
     } catch (InterruptedException ex) {
@@ -126,12 +113,8 @@ public final class BufferSink implements _Sink_1 {
   }
 
   public void flush() {
+    noMoreElementsSignal.complete(null);
     safePut(FlusherElement.StopToken.$self);
-//    try {
-//      flusher.join();
-//    } catch (InterruptedException e) {
-//      throw new RuntimeException(e);
-//    }
   }
   sealed interface FlusherElement {
     record StopToken() implements FlusherElement {
