@@ -10,6 +10,7 @@ use unicode_normalization::UnicodeNormalization;
 pub use fearless_str::FearlessStr;
 
 mod fearless_str;
+mod conversions;
 
 #[no_mangle]
 pub extern "system" fn Java_rt_NativeRuntime_validateStringOrThrow<'local>(mut env: JNIEnv<'local>, _class: JClass<'local>, utf8_str: JByteBuffer<'local>) {
