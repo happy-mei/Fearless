@@ -97,7 +97,7 @@ public record Parser(Path fileName,String content){
     FearlessParser.NudeTContext res = p.nudeT();
     var ok = errorst.isEmpty() && errorsp.isEmpty();
     if(ok){ return new FullEAntlrVisitor(fileName,s->Optional.empty()).visitNudeT(res); }
-    throw Bug.unreachable();
+    throw Fail.syntaxError(errorsp.toString());
   }
   
   public boolean parseX(){ return parseId(p->p.nudeX().getText());}
