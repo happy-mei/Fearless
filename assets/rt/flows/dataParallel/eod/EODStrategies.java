@@ -6,7 +6,6 @@ import rt.flows.dataParallel.BufferSink;
 import rt.flows.dataParallel.DelayedStopSink;
 import rt.flows.dataParallel.ParallelStrategies;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -72,20 +71,21 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     var workers = new EODWorker[nTasks];
     var spawned = new Thread[nTasks];
     AtomicReference<RuntimeException> exception = new AtomicReference<>();
-    var flusher = BufferSink.FlushWorker.start(null);
+    final Thread.UncaughtExceptionHandler handler = (_,err) -> {
+      var message = err.getMessage();
+      if (err instanceof StackOverflowError) { message = "Stack overflowed"; }
+      exception.compareAndSet(null, new RuntimeException(message, err));
+    };
+    var flusher = BufferSink.FlushWorker.start(handler);
     for (int i = 0; i < nTasks; ++i) {
       var actualException = exception.getAcquire();
       if (actualException != null) {
         throw actualException;
       }
       var subSource = splitData.get(i);
-      var worker = new EODWorker(subSource, downstream, perWorkerSize, permits);
+      var worker = new EODWorker(subSource, downstream, permits, perWorkerSize);
       if (willParallelise) {
-        spawned[i] = Thread.ofVirtual().uncaughtExceptionHandler((_,err) -> {
-          var message = err.getMessage();
-          if (err instanceof StackOverflowError) { message = "Stack overflowed"; }
-          exception.set(new RuntimeException(message, err));
-        }).start(worker);
+        spawned[i] = Thread.ofVirtual().uncaughtExceptionHandler(handler).start(worker);
       } else {
         worker.run();
       }
@@ -115,29 +115,10 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
       tryReleaseAll(permits);
     }
 
-    flusher.stop();
-
-//    for (var worker : workers) {
-//      if (worker == null) { break; }
-//      worker.flush();
-//    }
-    for (int i = 0; i < nTasks; ++i) {
-      var worker = workers[i];
-      if (worker == null) { break; }
-      var thread = spawned[i];
-
-      if (thread != null) {
-        try {
-          thread.join();
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        }
-      }
-
-      var actualException = exception.get();
-      if (actualException != null) {
-        throw actualException;
-      }
+    flusher.stop(downstream);
+    var actualException = exception.get();
+    if (actualException != null) {
+      throw actualException;
     }
   }
 

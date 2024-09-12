@@ -30,8 +30,12 @@ public class FearlessMain {
       myMain.$hash$imm(_System_0.$self);
     } catch (StackOverflowError e) {
       fatal("Program crashed with: Stack overflowed", Debug.demangleStackTrace(e.getStackTrace()));
-    }
-    catch (Throwable t) {
+    } catch (RuntimeException e) {
+      var t = e.getCause();
+      if (t == null) { t = e; }
+      var msg = t.getMessage() == null ? t.getCause() : t.getMessage();
+      fatal("Program crashed with: "+msg, Debug.demangleStackTrace(t.getStackTrace()));
+    } catch (Throwable t) {
       var msg = t.getMessage() == null ? t.getCause() : t.getMessage();
       fatal("Program crashed with: "+msg, Debug.demangleStackTrace(t.getStackTrace()));
     }

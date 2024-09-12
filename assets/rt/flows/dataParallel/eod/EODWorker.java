@@ -6,9 +6,6 @@ import rt.FearlessError;
 import rt.flows.dataParallel.BufferSink;
 import rt.flows.dataParallel.SplitTasks;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
@@ -33,19 +30,10 @@ public final class EODWorker implements Runnable {
   private final BufferSink downstream;
   private final AtomicInteger info;
 
-  EODWorker(FlowOp_1 source, _Sink_1 downstream, int size, AtomicInteger info) {
-    this(
-      source,
-      downstream,
-      info,
-      // size isn't always going to be the correct answer here but in most cases it will be.
-      size >= 0 ? new ArrayList<>(size) : new ArrayList<>()
-    );
-  }
-  private EODWorker(FlowOp_1 source, _Sink_1 downstream, AtomicInteger info, List<Object> buffer) {
+  public EODWorker(FlowOp_1 source, _Sink_1 downstream, AtomicInteger info, int sizeHint) {
     this.source = source;
     this.info = info;
-    this.downstream = new BufferSink(downstream);
+    this.downstream = new BufferSink(downstream, sizeHint);
   }
 
   @SuppressWarnings("preview")

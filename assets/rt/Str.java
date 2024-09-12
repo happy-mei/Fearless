@@ -10,14 +10,13 @@ public interface Str extends base.Str_0 {
 	ByteBuffer utf8();
 	int[] graphemes();
 
-	public static ByteBuffer wrap(byte[] array) {
+	static ByteBuffer wrap(byte[] array) {
 		return ByteBuffer
 			.allocateDirect(array.length)
 			.put(array)
-			.position(0)
-			.asReadOnlyBuffer();
+			.position(0);
 	}
-	public static String toJavaStr(ByteBuffer utf8) {
+	static String toJavaStr(ByteBuffer utf8) {
 		var dst = new byte[utf8.remaining()];
 		utf8.get(dst);
 		return new String(dst, StandardCharsets.UTF_8);
@@ -59,7 +58,7 @@ public interface Str extends base.Str_0 {
 		res.put(a.duplicate());
 		res.put(b.duplicate());
 		res.position(0);
-		res = res.asReadOnlyBuffer();
+//		res = res.asReadOnlyBuffer();
 		return fromTrustedUtf8(res);
 	}
 	@Override default Str $plus$mut(base.Stringable_0 other$) { throw new java.lang.Error("Unreachable code"); }
@@ -83,6 +82,11 @@ public interface Str extends base.Str_0 {
 			var str = (Str) _str;
 			return acc.isEmpty$read() == True_0.$self ? acc.$plus$mut(str) : acc.$plus$mut(this).$plus$mut(str);
 		});
+//		return (Str) flow_m$.fold$mut(EMPTY, (_acc, _str) -> {
+//			var acc = (Str) _acc;
+//			var str = (Str) _str;
+//			return acc.isEmpty$read() == True_0.$self ? acc.$plus$imm(str) : acc.$plus$imm(this).$plus$imm(str);
+//		});
 	}
 
 	@Override default Str substring$imm(long start_m$, long end_m$) {
@@ -186,9 +190,11 @@ public interface Str extends base.Str_0 {
 		public SubStr(Str all, int start, int end) {
 			var graphemes = all.graphemes();
 			var utf8 = all.utf8();
+			assert utf8.position() == 0 : "SubStr position must be 0";
 			var index = start == graphemes.length ? utf8.remaining() : graphemes[start];
 			var endIdx = end == graphemes.length ? utf8.remaining() : graphemes[end];
 			var byteSize = endIdx - index;
+			assert byteSize >= 0 : "SubStr byteSize must be >= 0, was "+byteSize;
 			this.UTF8 = utf8.slice(index, byteSize);
 			this.size = end - start;
 		}
