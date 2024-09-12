@@ -33,7 +33,10 @@ public class FearlessMain {
     } catch (RuntimeException e) {
       var t = e.getCause();
       if (t == null) { t = e; }
-      var msg = t.getMessage() == null ? t.getCause() : t.getMessage();
+      var msg = t.getMessage() == null ? e.getCause() : t.getMessage();
+      if (msg instanceof StackOverflowError) {
+        msg = "Stack overflowed";
+      }
       fatal("Program crashed with: "+msg, Debug.demangleStackTrace(t.getStackTrace()));
     } catch (Throwable t) {
       var msg = t.getMessage() == null ? t.getCause() : t.getMessage();

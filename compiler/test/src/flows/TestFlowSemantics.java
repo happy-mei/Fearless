@@ -19,7 +19,7 @@ public class TestFlowSemantics {
     """, Base.mutBaseAliases);}
 
   // TODO: currently leaving this broken because I want to change how this works
-  @Test void flowReuse() {ok(new RunOutput.Res("60", "Program crashed with: \"This flow cannot be reused.\"", 1), """
+  @Test void flowReuse() {ok(new RunOutput.Res("60", "Program crashed with: \"This flow cannot be reused.\"[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let[mut Flow[Nat]] x = {Flow#[Nat](1,2,3).map{x->x * 10}}
@@ -35,7 +35,7 @@ public class TestFlowSemantics {
   /*
    * Fearless errors in flow before a stop are propagated. Fearless errors after the "stop" are ignored.
    */
-  @Test void throwInAFlowBeforeStopPar() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
+  @Test void throwInAFlowBeforeStopPar() {ok(new RunOutput.Res("", "Program crashed with: \"2\"[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[Nat](1, 2, 3)
@@ -66,7 +66,7 @@ public class TestFlowSemantics {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
-  @Test void throwMultiplePar() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
+  @Test void throwMultiplePar() {ok(new RunOutput.Res("", "Program crashed with: \"2\"[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[Nat](1, 2, 3)
@@ -82,7 +82,7 @@ public class TestFlowSemantics {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
-  @Test void throwMultipleActor() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
+  @Test void throwMultipleActor() {ok(new RunOutput.Res("", "Program crashed with: \"2\"[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[Nat](1, 2, 3)
@@ -99,7 +99,7 @@ public class TestFlowSemantics {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
-  @Test void throwMultipleActorFromDP() {ok(new RunOutput.Res("", "Program crashed with: \"5\"", 1), """
+  @Test void throwMultipleActorFromDP() {ok(new RunOutput.Res("", "Program crashed with: \"5\"[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let[List[Nat]] list = {List.withCapacity(10) + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10}
@@ -118,7 +118,7 @@ public class TestFlowSemantics {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void throwInAFlowBeforeStopSeq() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
+  @Test void throwInAFlowBeforeStopSeq() {ok(new RunOutput.Res("", "Program crashed with: \"2\"[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[mut Nat](mut 1, mut 2, mut 3)
@@ -150,7 +150,7 @@ public class TestFlowSemantics {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void throwInAFlowBeforeStopDP() {ok(new RunOutput.Res("", "Program crashed with: \"2\"", 1), """
+  @Test void throwInAFlowBeforeStopDP() {ok(new RunOutput.Res("", "Program crashed with: \"2\"[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow.range(+1, +50).map{n->n.nat}.list.flow
@@ -186,7 +186,7 @@ public class TestFlowSemantics {
    * Non-deterministic errors bubble up, even if the flow isn't listening anymore because they're only catchable
    * in Fearless code with a capability anyway.
    */
-  @Test void throwInAFlowBeforeStopDP_ND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
+  @Test void throwInAFlowBeforeStopDP_ND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow.range(+1, +50).map{n->n.nat}
@@ -202,7 +202,7 @@ public class TestFlowSemantics {
       }
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
-  @Test void throwInAFlowBeforeStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
+  @Test void throwInAFlowBeforeStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[Nat](1, 2, 3)
@@ -218,7 +218,7 @@ public class TestFlowSemantics {
       }
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
-  @Test void throwInAFlowAfterStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
+  @Test void throwInAFlowAfterStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[Nat](1, 2, 3)
@@ -236,7 +236,7 @@ public class TestFlowSemantics {
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
 
-  @Test void throwInAFlowBeforeStopSeqND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
+  @Test void throwInAFlowBeforeStopSeqND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[mut Nat](mut 1, mut 2, mut 3)
