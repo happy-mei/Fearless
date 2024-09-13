@@ -51,6 +51,7 @@ public final class NativeRuntime {
   public static native void printlnErr(ByteBuffer utf8Str);
   public static native void printErr(ByteBuffer utf8Str);
   public static native byte[] normaliseString(ByteBuffer utf8Str);
+  public static native byte[] floatToStr(double value);
 
   // Regex
   public static final class Regex {

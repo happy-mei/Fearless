@@ -187,7 +187,7 @@ public record JavaMagicImpls(
           return instantiate().orElseThrow();
         }
         if (m.equals(new Id.MethName(".str", 0))) {
-          return "rt.Str.fromJavaStr(Double.toString("+instantiate().orElseThrow()+"))";
+          return "rt.Str.fromTrustedUtf8(rt.Str.wrap(rt.NativeRuntime.floatToStr("+instantiate().orElseThrow()+")))";
         }
         if (m.equals(new Id.MethName("+", 1))) { return instantiate().orElseThrow()+" + "+args.getFirst().accept(gen, true); }
         if (m.equals(new Id.MethName("-", 1))) { return instantiate().orElseThrow()+" - "+args.getFirst().accept(gen, true); }

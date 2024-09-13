@@ -51,9 +51,12 @@ public final class MutStr implements Str {
   }
 
   @Override public base.Void_0 clear$mut() {
-    buffer.clear();
-    buffer.position(0);
+    buffer = ByteBuffer.allocateDirect(16);
     return base.Void_0.$self;
+  }
+
+  @Override public rt.Str str$read() {
+    return rt.Str.fromTrustedUtf8(utf8());
   }
 
   private void put(Str str) {
@@ -63,10 +66,9 @@ public final class MutStr implements Str {
     if (buffer.remaining() < toAdd.capacity()) {
       var minSizeIncrease = (buffer.capacity() * 3) / 2 + 1;
       var newBuffer = ByteBuffer.allocateDirect(Math.max(minSizeIncrease, buffer.capacity() + toAdd.capacity()));
-      newBuffer.put(this.utf8());
+      newBuffer.put(this.utf8().duplicate());
       buffer = newBuffer;
     }
-    buffer.put(toAdd);
-    toAdd.position(0);
+    buffer.put(toAdd.duplicate());
   }
 }

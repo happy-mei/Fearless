@@ -11,7 +11,7 @@ public final class Debug implements base.Debug_0 {
   public static final Debug $self = new Debug();
 
   @Override public Void_0 println$imm(Object x) {
-    NativeRuntime.println(toStr(x).utf8());
+    NativeRuntime.printlnErr(toStr(x).utf8());
     return Void_0.$self;
   }
 
@@ -20,7 +20,7 @@ public final class Debug implements base.Debug_0 {
   }
 
   @Override public Object $hash$imm(Object x) {
-    NativeRuntime.println(toStr(x).utf8());
+    NativeRuntime.printlnErr(toStr(x).utf8());
     return x;
   }
 

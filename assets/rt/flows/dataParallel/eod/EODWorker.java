@@ -30,10 +30,10 @@ public final class EODWorker implements Runnable {
   private final BufferSink downstream;
   private final AtomicInteger info;
 
-  public EODWorker(FlowOp_1 source, _Sink_1 downstream, AtomicInteger info, int sizeHint) {
+  public EODWorker(FlowOp_1 source, _Sink_1 downstream, AtomicInteger info, int sizeHint, BufferSink.FlushWorker flusher) {
     this.source = source;
     this.info = info;
-    this.downstream = new BufferSink(downstream, sizeHint);
+    this.downstream = new BufferSink(downstream, flusher, sizeHint);
   }
 
   @SuppressWarnings("preview")

@@ -11,10 +11,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public final class BufferSink implements _Sink_1 {
-  private final static BlockingQueue<FlusherElement> toFlush = new LinkedBlockingQueue<>();
   public static final class FlushWorker implements Runnable {
     private FlushWorker() {}
-    private static Thread thread;
+    private final BlockingQueue<FlusherElement> toFlush = new LinkedBlockingQueue<>();
+    private Thread thread;
     public static FlushWorker start(Thread.UncaughtExceptionHandler exceptionHandler) {
       var worker = new FlushWorker();
       thread = Thread.ofVirtual().uncaughtExceptionHandler(exceptionHandler).start(worker);
@@ -34,7 +34,7 @@ public final class BufferSink implements _Sink_1 {
         FlusherElement e;try{e = toFlush.take();}
         catch (InterruptedException ex) {throw new RuntimeException(ex);}
         if (e == FlusherElement.StopToken.$self) {
-          assert toFlush.isEmpty();
+          assert toFlush.isEmpty() : toFlush;
           break;
         }
         if (!(e instanceof FlusherElement.Sink sink)) {
@@ -78,15 +78,15 @@ public final class BufferSink implements _Sink_1 {
 //  private static final int BUFFER_MAX = (int) OSInfo.memoryAndCpuScaledValue(500);
 //  private static final int BUFFER_MAX = 1;
   private static final int BUFFER_MAX = Integer.MAX_VALUE;
-  public BufferSink(_Sink_1 original, int sizeHint) {
+  public BufferSink(_Sink_1 original, FlushWorker flusher, int sizeHint) {
     this.original = original;
     this.buffer = new LinkedBlockingQueue<>(BUFFER_MAX);
-    toFlush.add(new FlusherElement.Sink(this));
+    flusher.toFlush.add(new FlusherElement.Sink(this));
   }
-  public BufferSink(_Sink_1 original) {
+  public BufferSink(_Sink_1 original, FlushWorker flusher) {
     this.original = original;
     this.buffer = new LinkedBlockingQueue<>(BUFFER_MAX);
-    toFlush.add(new FlusherElement.Sink(this));
+    flusher.toFlush.add(new FlusherElement.Sink(this));
   }
 
   @Override public Void_0 stop$mut() {
