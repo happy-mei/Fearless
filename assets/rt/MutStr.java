@@ -66,7 +66,7 @@ public final class MutStr implements Str {
     if (buffer.remaining() < toAdd.capacity()) {
       var minSizeIncrease = (buffer.capacity() * 3) / 2 + 1;
       var newBuffer = ByteBuffer.allocateDirect(Math.max(minSizeIncrease, buffer.capacity() + toAdd.capacity()));
-      newBuffer.put(this.utf8().duplicate());
+      newBuffer.put(this.utf8());
       buffer = newBuffer;
     }
     buffer.put(toAdd.duplicate());
