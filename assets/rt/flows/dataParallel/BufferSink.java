@@ -14,7 +14,6 @@ public final class BufferSink implements _Sink_1 {
   private final static BlockingQueue<FlusherElement> toFlush = new LinkedBlockingQueue<>();
   public static final class FlushWorker implements Runnable {
     private FlushWorker() {}
-    public static final CompletableFuture<Void> doneSignal = new CompletableFuture<>();
     private static Thread thread;
     public static FlushWorker start(Thread.UncaughtExceptionHandler exceptionHandler) {
       var worker = new FlushWorker();
@@ -31,7 +30,7 @@ public final class BufferSink implements _Sink_1 {
       original.stop$mut();
     }
     @Override public void run() {
-      while (!toFlush.isEmpty() || !doneSignal.isDone()) {
+      while (true) {
         FlusherElement e;try{e = toFlush.take();}
         catch (InterruptedException ex) {throw new RuntimeException(ex);}
         if (e == FlusherElement.StopToken.$self) {
@@ -113,8 +112,8 @@ public final class BufferSink implements _Sink_1 {
   }
 
   public void flush() {
-    noMoreElementsSignal.complete(null);
     safePut(FlusherElement.StopToken.$self);
+    noMoreElementsSignal.complete(null);
   }
   sealed interface FlusherElement {
     record StopToken() implements FlusherElement {
