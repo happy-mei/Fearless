@@ -33,19 +33,20 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
 
   // TODO: exception handling and potentially make this bounded
   @Override public void oneParOneSeq() {
-    var lhsSink = new BufferSink(downstream);
-    var rhsSink = new BufferSink(downstream);
-    var lhs = Thread.ofVirtual().start(()->splitData.getFirst().forRemaining$mut(lhsSink));
-    splitData.stream()
-      .skip(1)
-      .forEachOrdered(rhs->rhs.forRemaining$mut(rhsSink));
-    try {
-      lhs.join();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e); // should never happen with a virtual thread
-    }
-    lhsSink.flush();
-    rhsSink.flush();
+    throw new RuntimeException("TODO");
+//    var lhsSink = new BufferSink(downstream);
+//    var rhsSink = new BufferSink(downstream);
+//    var lhs = Thread.ofVirtual().start(()->splitData.getFirst().forRemaining$mut(lhsSink));
+//    splitData.stream()
+//      .skip(1)
+//      .forEachOrdered(rhs->rhs.forRemaining$mut(rhsSink));
+//    try {
+//      lhs.join();
+//    } catch (InterruptedException e) {
+//      throw new RuntimeException(e); // should never happen with a virtual thread
+//    }
+//    lhsSink.flush();
+//    rhsSink.flush();
   }
 
   @Override public void manyPar() {
@@ -83,7 +84,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
         throw actualException;
       }
       var subSource = splitData.get(i);
-      var worker = new EODWorker(subSource, downstream, permits, perWorkerSize);
+      var worker = new EODWorker(subSource, downstream, permits, perWorkerSize, flusher);
       if (willParallelise) {
         spawned[i] = Thread.ofVirtual().uncaughtExceptionHandler(handler).start(worker);
       } else {

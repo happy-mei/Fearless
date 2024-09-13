@@ -17,7 +17,7 @@ public final class BufferSink implements _Sink_1 {
     private Thread thread;
     public static FlushWorker start(Thread.UncaughtExceptionHandler exceptionHandler) {
       var worker = new FlushWorker();
-      thread = Thread.ofVirtual().uncaughtExceptionHandler(exceptionHandler).start(worker);
+      Thread.ofVirtual().uncaughtExceptionHandler(exceptionHandler).start(worker);
       return worker;
     }
     public void stop(_Sink_1 original) {
@@ -30,6 +30,7 @@ public final class BufferSink implements _Sink_1 {
       original.stop$mut();
     }
     @Override public void run() {
+      this.thread = Thread.currentThread();
       while (true) {
         FlusherElement e;try{e = toFlush.take();}
         catch (InterruptedException ex) {throw new RuntimeException(ex);}
