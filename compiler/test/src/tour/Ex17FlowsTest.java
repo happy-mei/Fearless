@@ -56,9 +56,8 @@ public class Ex17FlowsTest {
     package test
     // We cannot have Assert.eq without a magic equality and magic toString (which would help us provide a better
     // error message)
-    Test:Main {sys -> Assert!(
-      Flow#[Int](+5, +10, +15)#(Flow.sum)
-      == +30
+    Test:Main {sys -> 30 .assertEq(
+      Flow#[Nat](5, 10, 15)#(Flow.uSum)
       )}
     """, Base.mutBaseAliases);}
 
@@ -136,7 +135,7 @@ public class Ex17FlowsTest {
         .flatMap{n -> Flow#[Int](n, n, n).limit(2).map{n' -> n' * +10}}
         .limit(5)
         .map{n -> n.str}
-        #(Flow.str ", ")
+        .join ", "
       )}
     """, Base.mutBaseAliases); }
 
