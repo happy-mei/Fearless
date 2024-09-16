@@ -5,6 +5,7 @@ import base.flows.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.IntStream;
 
 public interface Str extends base.Str_0 {
 	ByteBuffer utf8();
@@ -51,6 +52,10 @@ public interface Str extends base.Str_0 {
 	@Override default base.Bool_0 $exclamation$equals$imm(Str other$) {
 		return this.utf8().equals(other$.utf8()) ? False_0.$self : True_0.$self;
 	}
+	@Override default base.Bool_0 startsWith$imm(Str other$) {
+		if (this.size$imm() < other$.size$imm()) { return False_0.$self; }
+		return IntStream.range(0, other$.utf8().length).allMatch(i -> this.utf8()[i] == other$.utf8()[i]) ? True_0.$self : False_0.$self;
+	}
 	@Override default Str $plus$imm(base.Stringable_0 other$) {
 		var a = this.utf8();
 		var b = other$.str$read().utf8();
@@ -58,7 +63,6 @@ public interface Str extends base.Str_0 {
 		res.put(a.duplicate());
 		res.put(b.duplicate());
 		res.position(0);
-//		res = res.asReadOnlyBuffer();
 		return fromTrustedUtf8(res);
 	}
 	@Override default Str $plus$mut(base.Stringable_0 other$) { throw new java.lang.Error("Unreachable code"); }
@@ -82,11 +86,6 @@ public interface Str extends base.Str_0 {
 			var str = (Str) _str;
 			return acc.isEmpty$read() == True_0.$self ? acc.$plus$mut(str) : acc.$plus$mut(this).$plus$mut(str);
 		});
-//		return (Str) flow_m$.fold$mut(EMPTY, (_acc, _str) -> {
-//			var acc = (Str) _acc;
-//			var str = (Str) _str;
-//			return acc.isEmpty$read() == True_0.$self ? acc.$plus$imm(str) : acc.$plus$imm(this).$plus$imm(str);
-//		});
 	}
 
 	@Override default Str substring$imm(long start_m$, long end_m$) {

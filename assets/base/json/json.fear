@@ -41,7 +41,7 @@ _JsonToStr: {
     .join ", ",
   .escape(s: Str): Str -> Block#
     .let[Regex] mustEscape = {Regexs#"[\\U{0000}-\\U{001F}]"} // unicode control characters
-    .return {s.flow
+    .return {s.flow // TODO: replace with a Regex because this is wrong if we have any joining characters
       .map{ch -> Block#
 //        .if {ch == "\\"} .return {"\\\\"} // TODO: this breaks the fearless parer
         .if {ch == "\u005C"} .return {"\\"}
@@ -51,6 +51,7 @@ _JsonToStr: {
         .if {ch == "\n"} .return {"\\n"}
         .if {ch == "\r"} .return {"\\r"}
         .if {ch == "\t"} .return {"\\t"}
+        .if {ch == "\""} .return {"\\\""}
         .if {mustEscape.isMatch(ch)} .return {Todo!("more escapes: "+ch)} // TODO
         .return {ch}
         }
