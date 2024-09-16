@@ -2,6 +2,7 @@ package rt;
 
 import java.io.IOException;
 import java.lang.ref.Cleaner;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 
@@ -43,13 +44,14 @@ public final class NativeRuntime {
     }
   }
 
-  public static native void validateStringOrThrow(byte[] utf8Str) throws StringEncodingError;
-  public static native int[] indexString(byte[] utf8Str);
-  public static native void print(byte[] utf8Str);
-  public static native void println(byte[] utf8Str);
-  public static native void printlnErr(byte[] utf8Str);
-  public static native void printErr(byte[] utf8Str);
-  public static native byte[] normaliseString(byte[] utf8Str);
+  public static native void validateStringOrThrow(ByteBuffer utf8Str) throws StringEncodingError;
+  public static native int[] indexString(ByteBuffer utf8Str);
+  public static native void print(ByteBuffer utf8Str);
+  public static native void println(ByteBuffer utf8Str);
+  public static native void printlnErr(ByteBuffer utf8Str);
+  public static native void printErr(ByteBuffer utf8Str);
+  public static native byte[] normaliseString(ByteBuffer utf8Str);
+  public static native byte[] floatToStr(double value);
 
   // Regex
   public static final class Regex {
@@ -60,11 +62,11 @@ public final class NativeRuntime {
     }
 
     private final long patternPtr;
-    public Regex(byte[] patternStr) {
+    public Regex(ByteBuffer patternStr) {
       this.patternPtr = NativeRuntime.compileRegexPattern(patternStr);
       cleaner.register(this, new CleaningState(patternPtr));
     }
-    public boolean doesRegexMatch(byte[] utf8Str) {
+    public boolean doesRegexMatch(ByteBuffer utf8Str) {
       return NativeRuntime.doesRegexMatch(patternPtr, utf8Str);
     }
     public static class InvalidRegexError extends FearlessError {
@@ -73,7 +75,7 @@ public final class NativeRuntime {
       }
     }
   }
-  private static native long compileRegexPattern(byte[] utf8Str);
+  private static native long compileRegexPattern(ByteBuffer utf8Str);
   private static native void dropRegexPattern(long pattern);
-  private static native boolean doesRegexMatch(long pattern, byte[] utf8Str);
+  private static native boolean doesRegexMatch(long pattern, ByteBuffer utf8Str);
 }
