@@ -3,6 +3,7 @@ package codegen.java;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
+import utils.ResolveResource;
 
 import java.util.List;
 
@@ -821,7 +822,8 @@ public class TestJavaProgram {
       // pos
       .do{ Assert!(1.0 == 1.0, "id", {{}}) }
       .do{ Assert!(1.0 + 3.5 == 4.5, "addition 1 (pos)", {{}}) }
-      .do{ Assert!((1.0).str == "1.0", "str", {{}}) }
+      .do{ Assert!((1.0).str == "1", "str pt 0", {{}}) }
+      .do{ Assert!((1.5).str == "1.5", "str pt 5", {{}}) }
       .do{ Assert!((5.0 / 2.0) == 2.5, (5.0 / 2.0).str, {{}}) }
       .return{{}}
       }
@@ -1353,7 +1355,7 @@ public class TestJavaProgram {
       .return {Void}
       }
     """, Base.mutBaseAliases); }
-  @Test void eagerCallEarlyExit() { ok(new Res("hey", "", 0), """
+  @Test void eagerCallEarlyExit() { ok(new Res("", "hey", 0), """
     package test
     Test: Main{sys -> Block#
       .if {True} .return {Void}
@@ -1476,4 +1478,24 @@ public class TestJavaProgram {
     Test: Main{sys -> sys.io.println(Foo#(mut " "))}
     Foo: {#(join: mut Str): mut Str -> mut "Hello," + join + mut "World!" + join + mut "Bye!"}
     """, Base.mutBaseAliases);}
+
+  @Test void simpleJson() {ok(new Res("""
+    "Hello!!!\\nHow are you?"
+    "Hello!!!\\nHow 吣are吣 you?"
+    "Hello!!!\\nHow 吣are吣 you? 𝄞"
+    []
+    [[[[]], [], true]]
+    ["abc", "def", true, false, null]
+    ["abc", "def", true, [false], 42.1337, null, []]
+    {}
+    {"single": true}
+    ["ab\\c", "def", {}, {"a": "fearless", "b": {"a": true}}]
+    {"value": 12345678901234567000}
+    """, """
+    Invalid string found, expected JSON.
+    Unknown fragment in JSON code:
+    tru at 1:6
+    Invalid string found, expected JSON.
+    Unexpected 'true' when parsing a JSON object at 1:6
+    """, 0), ResolveResource.test("/json/main.fear"), ResolveResource.test("/json/pkg.fear"));}
 }

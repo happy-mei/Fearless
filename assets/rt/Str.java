@@ -5,7 +5,6 @@ import base.flows.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.IntStream;
 
 public interface Str extends base.Str_0 {
 	ByteBuffer utf8();
@@ -53,8 +52,10 @@ public interface Str extends base.Str_0 {
 		return this.utf8().equals(other$.utf8()) ? False_0.$self : True_0.$self;
 	}
 	@Override default base.Bool_0 startsWith$imm(Str other$) {
-		if (this.size$imm() < other$.size$imm()) { return False_0.$self; }
-		return IntStream.range(0, other$.utf8().length).allMatch(i -> this.utf8()[i] == other$.utf8()[i]) ? True_0.$self : False_0.$self;
+		var needle = other$.utf8();
+		if (this.utf8().remaining() < needle.remaining()) { return False_0.$self; }
+		var haystack = this.utf8().slice(0, needle.remaining());
+		return haystack.equals(needle) ? True_0.$self : False_0.$self;
 	}
 	@Override default Str $plus$imm(base.Stringable_0 other$) {
 		var a = this.utf8();

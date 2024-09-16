@@ -169,7 +169,15 @@
                 <directory>../assets</directory>
             </resource>
         </resources>
+        <testResources>
+            <testResource>
+                <filtering>false</filtering>
+                <targetPath>.</targetPath>
+                <directory>../compiler-tests</directory>
+            </testResource>
+        </testResources>
         <testSourceDirectory>test/src</testSourceDirectory>
+        <testOutputDirectory>target/test-classes</testOutputDirectory>
 <!--        <testResources>-->
 <!--            <testResource>-->
 <!--                <directory>test/resources</directory>-->
