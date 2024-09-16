@@ -60,10 +60,11 @@ _InternalActor: {
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
+          .let[mut _ActorSink[imm R]] actorSink = {_ActorSinks#downstream}
           .do {sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(downstream.stop, op.stop),
             #(e) -> isRunning.get ? {
-              .then -> f#(_ActorSinks#downstream, state, e).match{
+              .then -> f#(actorSink, state, e).match{
                 .continue -> {},
                 .stop -> Block#(downstream.stop, isRunning := False),
                 },
