@@ -50,9 +50,13 @@ _SeqFlow: _FlowFactory{
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .let[mut Var[S]] acc' = {Var#acc}
+      .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(mut _Sink[E]{
-        .stop -> {},
-        .pushError(info) -> Error!info,
+        .stop -> stopped := True,
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
         #(e) -> acc' := (f#(acc'.get, e)),
         })}
       .do {source.stop}

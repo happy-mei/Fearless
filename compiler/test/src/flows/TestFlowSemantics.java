@@ -284,4 +284,39 @@ public class TestFlowSemantics {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+
+  @Test void pushErrorAndThrowSeq() {ok(new RunOutput.Res("", "Program crashed with: \"hello\"[###]", 1), """
+    package test
+    Test: Main{sys -> Block#
+      .let x = {Flow#[mut Nat](mut 1, mut 2, mut 3)
+        .actor[Void,Nat](iso Void,{next,_,x->Block#
+          .if {x.nat == 2} .do {next.pushError(Infos.msg "hello")}
+          .if {x.nat == 3} .do {Error.msg (x.str)}
+          .do {next#(x.nat * 10)}
+          .return {{}}
+          })
+        .fold[Nat](0, {a, x -> a + x})
+        }
+      .let[mut IO] io = {UnrestrictedIO#sys}
+      .do {io.println(x.str)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+  @Test void pushErrorAndThrow() {ok(new RunOutput.Res("", "Program crashed with: \"hello\"[###]", 1), """
+    package test
+    Test: Main{sys -> Block#
+      .let x = {Flow#[Nat](1, 2, 3)
+        .actor[Void,Nat](iso Void,{next,_,x->Block#
+          .if {x.nat == 2} .do {next.pushError(Infos.msg "hello")}
+          .if {x.nat == 3} .do {Error.msg (x.str)}
+          .do {next#(x.nat * 10)}
+          .return {{}}
+          })
+        .fold[Nat](0, {a, x -> a + x})
+        }
+      .let[mut IO] io = {UnrestrictedIO#sys}
+      .do {io.println(x.str)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
 }
