@@ -7,9 +7,6 @@ LexNum: {#(
   parent: mut Actor[mut _LexerCtx,Str,Token]
   ): ActorRes -> Block#
     .do {Block#(ctx.col++)}
-//    .if {e == "."} .return {Todo!"Decimals"}
-//    .if {ctx.str == "E" || (ctx.str == "e")} .return {Todo!"Exponents"}
-//    .if {ctx.str == "E" || (ctx.str == "e")} .return {Todo!"Exponents"}
     .if {ctx.isDigit(e)} .return {Block#(ctx.write(e), ActorRes.continue)}
     .return {ctx.str.float.run{
       .ok(f) -> Block#(
