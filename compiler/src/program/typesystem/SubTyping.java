@@ -42,9 +42,18 @@ public interface SubTyping extends TypeTable {
 
   default boolean isSubTypeAux(XBs xbs, T t1, T t2) {//t1<=t2
     if (t1.equals(t2)) { return true; }
-    if (t1.isMdfX() && t2.mdf().isReadImm()) { return true; }
+    if (isReadImmSub(xbs, t1, t2)) { return true; }
     if (isRCSub(xbs, t1, t2)) { return true; }
     return isTransitiveSubType(xbs, t1, t2);
+  }
+
+  default boolean isReadImmSub(XBs xbs, T t1, T t2) {
+    if (!t1.isMdfX() || !t2.mdf().isReadImm()) {
+      return false;
+    }
+    // No hyg allowed
+    var kj = new KindingJudgement(this, xbs, Set.of(Mdf.iso, Mdf.imm, Mdf.mut, Mdf.read), true);
+    return t1.accept(kj).isRes();
   }
 
   default boolean isRCSub(XBs xbs, T t1, T t2) {

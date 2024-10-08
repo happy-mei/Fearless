@@ -80,6 +80,35 @@ public class TestReadImm {
       .subsetOf(Mdf.iso, Mdf.imm, Mdf.mut, Mdf.mutH, Mdf.read, Mdf.readH)
       .ofMinSize(1);
   }
+  @Provide SetArbitrary<Mdf> nonHygBounds() {
+    return Arbitraries
+      .subsetOf(Mdf.iso, Mdf.imm, Mdf.mut, Mdf.read)
+      .ofMinSize(1);
+  }
+
+  @Property public void readImmGenSubtypeOfAllNonHyg(@ForAll("bounds") Set<Mdf> bounds) {
+    var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
+    var code = """
+    package a
+    A[X:%s]: {
+      #(x: read/imm X): read/imm X -> x,
+      }
+    B[X:%s]: {#(x: X): read/imm X -> A[X]#x}
+    """.formatted(xbs, xbs);
+
+    if (bounds.contains(Mdf.readH) || bounds.contains(Mdf.mutH)) {
+      fail("""
+        [E66 invalidMethodArgumentTypes]
+        Method #/1 called in position [###]/Dummy0.fear:5:[###] can not be called with current parameters of types:
+        [X]
+        Attempted signatures:
+        [###]
+        """, code);
+      return;
+    }
+    ok(code);
+  }
+
   @Property void shouldGetAsIsForMut(@ForAll("capturableMdf") Mdf mdf) { ok("""
     package test
     A: {#[X](box: mut Box[%s X]): %s X -> box.get}
