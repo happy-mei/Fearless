@@ -48,6 +48,11 @@ public interface SubTyping extends TypeTable {
   }
 
   default boolean isReadImmSub(XBs xbs, T t1, T t2) {
+    /* isRCSub handles most of the cases this addresses. One case where this is useful is:
+       A[X:iso,mut]: {#(x: X): read/imm X -> x}
+       because XBs |- read/imm X : read,imm,_ (and not read,_ or imm,_)
+       but mut is not a subtype of imm.
+     */
     if (!t1.isMdfX() || !t2.mdf().isReadImm()) {
       return false;
     }

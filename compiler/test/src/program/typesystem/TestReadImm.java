@@ -90,24 +90,23 @@ public class TestReadImm {
     var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
     var code = """
     package a
-    A[X:%s]: {
-      #(x: read/imm X): read/imm X -> x,
-      }
-    B[X:%s]: {#(x: X): read/imm X -> A[X]#x}
+    A[X:%s]: {#(x: X): read/imm X -> x}
     """.formatted(xbs, xbs);
 
     if (bounds.contains(Mdf.readH) || bounds.contains(Mdf.mutH)) {
       fail("""
-        [E66 invalidMethodArgumentTypes]
-        Method #/1 called in position [###]/Dummy0.fear:5:[###] can not be called with current parameters of types:
-        [X]
-        Attempted signatures:
-        [###]
+        In position [###]:2:[###]
+        [E37 noSubTypingRelationship]
+        There is no sub-typing relationship between X and read/imm X.
         """, code);
       return;
     }
     ok(code);
   }
+  @Test void readImmGenSubtypeOfMut() {ok("""
+    package a
+    A[X:mut]: {#(x: X): read/imm X -> x}
+    """);}
 
   @Property void shouldGetAsIsForMut(@ForAll("capturableMdf") Mdf mdf) { ok("""
     package test
@@ -155,6 +154,16 @@ public class TestReadImm {
   }
   @Property void shouldNeverAllowXToBecomeImm(@ForAll("bounds") Set<Mdf> bounds) {
     var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
+    var code = """
+      package test
+      Caster[X:%s]: { .m(bob: read/imm X): read/imm X->bob }
+      // could try all permutations of bounds for X
+      User: {.user[X:%s](x: X):imm X->Caster[X].m(x)}
+      """.formatted(xbs, xbs);
+    if (bounds.equals(Set.of(Mdf.iso)) || bounds.equals(Set.of(Mdf.imm)) || bounds.equals(Set.of(Mdf.iso, Mdf.imm))) {
+      ok(code);
+      return;
+    }
     /*
     [E66 invalidMethodArgumentTypes]
       Method .m/1 called in position [###] can not be called with current parameters of types:
@@ -164,12 +173,7 @@ public class TestReadImm {
      */
     fail("""
       [###]
-      """, """
-      package test
-      Caster[X:%s]: { .m(bob: read/imm X): read/imm X->bob }
-      // could try all permutations of bounds for X
-      User: {.user[X:%s](x: X):imm X->Caster[X].m(x)}
-      """.formatted(xbs, xbs));
+      """, code);
   }
 
   /* parameter of read X, pass a mdf Y --> becomes read Y */
