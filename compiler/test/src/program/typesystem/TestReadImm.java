@@ -152,6 +152,7 @@ public class TestReadImm {
       User: {.user[X:%s](x:read X):imm X->Caster[X].m(x)}
       """.formatted(xbs, xbs));
   }
+
   @Property void shouldNeverAllowXToBecomeImm(@ForAll("bounds") Set<Mdf> bounds) {
     var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
     var code = """
@@ -171,6 +172,37 @@ public class TestReadImm {
       Attempted signatures:
       [###]
      */
+    fail("""
+      [###]
+      """, code);
+  }
+
+  @Property void shouldNeverAllowXToBecomeImm2(@ForAll("bounds") Set<Mdf> bounds) {
+    var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
+    var code = """
+      package test
+      A: {
+        .m1[X:iso,imm,mut,read](x: read/imm X): read/imm X -> x,
+        .m2[X:%s](x: X): imm X -> this.m1[X](x),
+        }
+      """.formatted(xbs);
+    if (bounds.equals(Set.of(Mdf.iso)) || bounds.equals(Set.of(Mdf.imm)) || bounds.equals(Set.of(Mdf.iso, Mdf.imm))) {
+      ok(code);
+      return;
+    }
+    fail("""
+      [###]
+      """, code);
+  }
+
+  @Property void shouldNeverAllowXToBecomeImm3(@ForAll("bounds") Set<Mdf> bounds) {
+    var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
+    var code = """
+      package test
+      Caster[X:%s]: { .m(bob: read/imm X): read/imm X->bob }
+      // could try all permutations of bounds for X
+      User: {.user[X:iso,imm,mut,read](x: X):imm X->Caster[X].m(x)}
+      """.formatted(xbs);
     fail("""
       [###]
       """, code);
