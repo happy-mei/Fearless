@@ -19,6 +19,7 @@ Str: Sealed,Stringable,base.flows.Joinable[Str],ToHash{
 
   // Conversions
   .float: mut Action[Float],
+  .utf8: List[Byte],
   }
 
 Stringable: {
@@ -54,6 +55,7 @@ _StrInstance: Str{
   .join(_) -> Magic!,
   .hash(h) -> Magic!,
   .float -> Magic!,
+  .utf8 -> Magic!,
   }
 
 _StrHelpers: {

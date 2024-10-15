@@ -1541,4 +1541,14 @@ public class TestJavaProgram {
       })
     }
     """, Base.mutBaseAliases);}
+
+  // TODO: more test coverage for bytes
+  @Test void strToBytes() {ok(new Res("72,101,108,108,111,33", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println("Hello!".utf8.flow.map{b -> b.str}.join ",")}
+    """, Base.mutBaseAliases);}
+  @Test void byteEq() {ok(new Res(), """
+    package test
+    Test: Main{_ -> "Hello!".utf8.get(0).assertEq(72 .byte)}
+    """, Base.mutBaseAliases);}
 }
