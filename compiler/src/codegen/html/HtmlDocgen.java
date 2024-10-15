@@ -73,7 +73,7 @@ public class HtmlDocgen {
       .map(cm->visitMeth(trait, cm))
       .collect(Collectors.joining("\n"));
 
-    String preCode= STR."<pre><code class=\"language-fearless code-block\">\{sigs}</code></pre>";
+    String preCode= "<pre><code class=\"language-fearless code-block\">" + sigs + "</code></pre>";
     return new TraitDoc(trait.name(), new T(trait.lambda().mdf(), trait.toIT()), preCode);
   }
 
@@ -139,16 +139,14 @@ public class HtmlDocgen {
 
   private static String generatePage(String title, Optional<String> parent, String index, String content) {
     var singleContent = content.isEmpty() ? index : content;
-    var parentHtml = parent.map(p->STR."""
-      <a href="\{p}" alt="Go up one level" title="Go up one level">&#8624;</a>
-      """.stripIndent()).orElse("");
-    return STR."""
+    var parentHtml = parent.map(p-> ("<a href=\"" + p + "\" alt=\"Go up one level\" title=\"Go up one level\">&#8624;</a>\n").stripIndent()).orElse("");
+    return String.format("""
       <!DOCTYPE html>
       <html>
       <head>
       	<meta charset="utf-8">
       	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-      	<title>\{title}</title>
+      	<title>%s</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
        	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
        	<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -156,17 +154,17 @@ public class HtmlDocgen {
       	<link rel="stylesheet" type="text/css" href="style.css">
       </head>
       <body>
-        <header><h1><code>\{parentHtml}\{title}</code></h1></header>
+        <header><h1><code>%s%s</code></h1></header>
       	<div id="split-layout">
       		<div id="split-layout__index">
-      		\{index}
+      		%s
       		</div>
       		<div id="split-layout__content">
-      			\{content}
+      			%s
       		</div>
       	</div>
       	<div id="single-layout">
-          \{singleContent}
+          %s
         </div>
       	<footer>
       		This documentation page includes work from <code>glitch-hello-eleventy</code> under the MIT licence (&copy; Glitch, Inc.).
@@ -175,6 +173,6 @@ public class HtmlDocgen {
         <script src="highlighting.js"></script>
       </body>
       </html>
-      """.stripIndent();
+      """, title, parentHtml, title, index, content, singleContent).stripIndent();
   }
 }

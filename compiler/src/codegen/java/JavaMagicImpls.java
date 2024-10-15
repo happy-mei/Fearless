@@ -88,7 +88,7 @@ public record JavaMagicImpls(
           return "base._IntAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+", "+args.get(1).accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".hash", 1))) {
-          return STR."\{args.getFirst().accept(gen, true)}.int$mut(\{instantiate().orElseThrow()})";
+          return args.getFirst().accept(gen, true) + ".int$mut(" + instantiate().orElseThrow() + ")";
         }
         throw Bug.unreachable();
       }
@@ -156,7 +156,7 @@ public record JavaMagicImpls(
           return "base._NatAssertionHelper_0.assertEq$imm$fun("+instantiate().orElseThrow()+","+args.getFirst().accept(gen, true)+", "+args.get(1).accept(gen, true)+", null)";
         }
         if (m.equals(new Id.MethName(".hash", 1))) {
-          return STR."\{args.getFirst().accept(gen, true)}.int$mut(\{instantiate().orElseThrow()})";
+          return args.getFirst().accept(gen, true) + ".int$mut(" + instantiate().orElseThrow() + ")";
         }
         throw Bug.unreachable();
       }
@@ -218,7 +218,7 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".isPosInfinity", 0))) { return "("+instantiate().orElseThrow()+" == Double.POSITIVE_INFINITY)?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName(".isNegInfinity", 0))) { return "("+instantiate().orElseThrow()+" == Double.NEGATIVE_INFINITY)?base.True_0.$self:base.False_0.$self)"; }
         if (m.equals(new Id.MethName(".hash", 1))) {
-          return STR."\{args.getFirst().accept(gen, true)}.int$mut(\{instantiate().orElseThrow()})";
+          return args.getFirst().accept(gen, true) + ".int$mut(" + instantiate().orElseThrow() + ")";
         }
         throw Bug.unreachable();
       }
