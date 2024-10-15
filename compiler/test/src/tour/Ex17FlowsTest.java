@@ -697,4 +697,60 @@ public class Ex17FlowsTest {
     Foo: {#: Str -> Flow.range(+500, +5001).map{n -> n.float / 10.0}.map{n -> n.str}.join " "}
     Test: Main{sys -> sys.io.println(Foo#)}
     """, Base.mutBaseAliases);}
+
+  @Test void zip() {ok(new Res("1 and 4, 2 and 5, 3 and 6", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#("123", "456"))}
+    Foo: {
+      #(a: Str, b: Str): Str -> a.flow
+        .with(b.flow)
+        .map{ab -> ab.a + " and " + (ab.b)}
+        .join ", "
+      }
+    """, Base.mutBaseAliases);}
+  @Test void zipMismatchA() {ok(new Res("1 and 4, 2 and 5", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#("12", "456"))}
+    Foo: {
+      #(a: Str, b: Str): Str -> a.flow
+        .with(b.flow)
+        .map{ab -> ab.a + " and " + (ab.b)}
+        .join ", "
+      }
+    """, Base.mutBaseAliases);}
+  @Test void zipMismatchB() {ok(new Res("1 and 4, 2 and 5", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#("123", "45"))}
+    Foo: {
+      #(a: Str, b: Str): Str -> a.flow
+        .with(b.flow)
+        .map{ab -> ab.a + " and " + (ab.b)}
+        .join ", "
+      }
+    """, Base.mutBaseAliases);}
+
+  @Test void listEqualityZip() {ok(new Res(), """
+    package test
+    Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list))}
+    Foo: {
+      #(a: List[Int], b: List[Int]): Bool -> Block#
+        .assert {a.size == (b.size)}
+        .return {a.flow
+          .with(b.flow)
+          .all{ab -> ab.a == (ab.b)}
+          }
+      }
+    """, Base.mutBaseAliases);}
+  @Test void listEqualityZipNotEquals() {ok(new Res("", "Assertion failed :(", 1), """
+    package test
+    Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list + +1337))}
+    Foo: {
+      #(a: List[Int], b: List[Int]): Bool -> Block#
+        .assert {a.size == (b.size)}
+        .return {a.flow
+          .with(b.flow)
+          .all{ab -> ab.a == (ab.b)}
+          }
+      }
+    """, Base.mutBaseAliases);}
 }
