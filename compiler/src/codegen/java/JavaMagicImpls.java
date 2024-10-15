@@ -7,6 +7,7 @@ import id.Id;
 import id.Mdf;
 import magic.Magic;
 import magic.MagicCallable;
+import magic.MagicImpls;
 import magic.MagicTrait;
 import utils.Bug;
 import visitors.MIRVisitor;
@@ -314,6 +315,10 @@ public record JavaMagicImpls(
         return Optional.empty();
       }
     };
+  }
+
+  @Override public MagicTrait<MIR.E, String> utf8(MIR.E e) {
+    return "rt.UTF8.$self"::describeConstable;
   }
 
   @Override public MagicTrait<MIR.E, String> utf16(MIR.E e) {

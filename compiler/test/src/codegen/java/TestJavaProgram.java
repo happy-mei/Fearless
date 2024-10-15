@@ -1551,4 +1551,19 @@ public class TestJavaProgram {
     package test
     Test: Main{_ -> "Hello!".utf8.get(0).assertEq(72 .byte)}
     """, Base.mutBaseAliases);}
+  @Test void bytesToStr() {ok(new Res("Hello!", "", 0), """
+    package test
+    alias base.UTF8 as UTF8,
+    Test: Main{sys -> sys.io.println(UTF8.fromBytes("Hello!".utf8)!)}
+    """, Base.mutBaseAliases);}
+  @Test void bytesToStrManual() {ok(new Res("AB", "", 0), """
+    package test
+    alias base.UTF8 as UTF8,
+    Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(65 .byte, 66 .byte))!)}
+    """, Base.mutBaseAliases);}
+  @Test void bytesToStrFail() {ok(new Res("", "Program crashed with: \"incomplete utf-8 byte sequence from index 0\"[###]", 1), """
+    package test
+    alias base.UTF8 as UTF8,
+    Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(-28 .byte))!)}
+    """, Base.mutBaseAliases);}
 }

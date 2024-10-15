@@ -158,7 +158,7 @@ record MultiSigBuilder(
     assert m.isSyntaxMdf():
       "["+m+"]";
     return switch(m){
-      case mut->Mdf.iso;
+      case mut,mutH->Mdf.iso;
       case read, readH ->Mdf.imm;
       default ->m;
     };
