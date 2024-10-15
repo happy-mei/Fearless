@@ -85,9 +85,11 @@ public class HtmlDocgen {
       .collect(Collectors.joining(", "));
     if (!args.isEmpty()) { args = "("+args+")"; }
     var body = cm.isAbs() ? "," : " -> …,";
+    var name = cm.name().name();
+    name = astFull.E.X.isFresh(name) ? "_" : name;
     var sig = "%s%s%s%s: %s%s".formatted(
       formatMdf(cm.mdf()),
-      cm.name().name(),
+      name,
       gens,
       args,
       formatT(cm.ret()),
