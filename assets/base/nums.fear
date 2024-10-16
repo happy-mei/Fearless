@@ -1,8 +1,14 @@
 package base
 
 Int: Sealed,_MathOps[imm Int],_IntOps[imm Int]{}
-Nat: Sealed,_MathOps[imm Nat],_IntOps[imm Nat]{}
-Byte: Sealed,_MathOps[imm Byte],_IntOps[imm Byte]{}
+Nat: Sealed,_MathOps[imm Nat],_IntOps[imm Nat]{
+  /// Take an offset int and apply it to this number. Will throw if this overflows.
+  .offset(delta: Int): Nat,
+  }
+Byte: Sealed,_MathOps[imm Byte],_IntOps[imm Byte]{
+  /// Take an offset int and apply it to this number. Will throw if this overflows.
+  .offset(delta: Int): Byte,
+  }
 Float: Sealed,_MathOps[imm Float]{
   .round: Int,
   .ceil: Int,
@@ -93,6 +99,7 @@ _NatInstance: Nat{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .offset(_) -> Magic!,
 
   // bitwise
   .shiftLeft(n) -> Magic!,
@@ -124,6 +131,7 @@ _ByteInstance: Byte{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .offset(_) -> Magic!,
 
   // bitwise
   .shiftLeft(n) -> Magic!,
