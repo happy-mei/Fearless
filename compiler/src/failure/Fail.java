@@ -337,7 +337,7 @@ public class Fail{
     var unimplementedList = unimplemented.stream()
       .map(m->m.mdf().orElseThrow()+" "+m)
       .collect(Collectors.joining(", "));
-    return of("Literals must implement all callable methods. The following methods are unimplemented: "+unimplementedList+".");
+    return of("Object literals must implement all callable methods. The following methods are unimplemented: "+unimplementedList+".");
   }
 
   private static String aVsAn(Mdf mdf) {

@@ -92,7 +92,7 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".hash", 1))) {
           return args.getFirst().accept(gen, true) + ".int$mut(" + instantiate().orElseThrow() + ")";
         }
-        throw Bug.unreachable();
+        throw Bug.of("Expected magic to exist for: "+m);
       }
     };
   }
@@ -162,7 +162,10 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".hash", 1))) {
           return args.getFirst().accept(gen, true) + ".int$mut(" + instantiate().orElseThrow() + ")";
         }
-        throw Bug.unreachable();
+        if (m.equals(new Id.MethName(".offset", 1))) {
+          return instantiate().orElseThrow()+" + "+args.getFirst().accept(gen, true);
+        }
+        throw Bug.of("Expected magic to exist for: "+m);
       }
     };
   }
@@ -227,7 +230,7 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".hash", 1))) {
           return args.getFirst().accept(gen, true) + ".int$mut(" + instantiate().orElseThrow() + ")";
         }
-        throw Bug.unreachable();
+        throw Bug.of("Expected magic to exist for: "+m);
       }
     };
   }
@@ -298,7 +301,10 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(".hash", 1))) {
           return args.getFirst().accept(gen, true) + ".byte$mut(" + instantiate().orElseThrow() + ")";
         }
-        throw Bug.unreachable();
+        if (m.equals(new Id.MethName(".offset", 1))) {
+          return "((byte)"+byteToInt(instantiate().orElseThrow())+" + "+args.getFirst().accept(gen, true)+")";
+        }
+        throw Bug.of("Expected magic to exist for: "+m);
       }
       private String byteToInt(String raw) {
         return "Byte.toUnsignedInt(%s)".formatted(raw);

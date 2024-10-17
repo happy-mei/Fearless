@@ -1,8 +1,8 @@
 package base
 
 Int: Sealed,_MathOps[imm Int],_IntOps[imm Int]{}
-Nat: Sealed,_MathOps[imm Nat],_IntOps[imm Nat]{}
-Byte: Sealed,_MathOps[imm Byte],_IntOps[imm Byte]{}
+Nat: Sealed,_MathOps[imm Nat],_IntOps[imm Nat],_UnsignedOps[imm Nat]{}
+Byte: Sealed,_MathOps[imm Byte],_IntOps[imm Byte],_UnsignedOps[imm Byte]{}
 Float: Sealed,_MathOps[imm Float]{
   .round: Int,
   .ceil: Int,
@@ -46,6 +46,9 @@ _IntOps[T]: Sealed{
   .bitwiseOr(n: T): T,
 
   **(n: Nat): T, // pow
+  }
+_UnsignedOps[T]: Sealed{
+  .offset(n: Int): T,
   }
 
 // Fake concrete type for all numbers. The real implementation is generated at code-gen.
@@ -93,6 +96,7 @@ _NatInstance: Nat{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .offset(n) -> Magic!,
 
   // bitwise
   .shiftLeft(n) -> Magic!,
@@ -124,6 +128,7 @@ _ByteInstance: Byte{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .offset(n) -> Magic!,
 
   // bitwise
   .shiftLeft(n) -> Magic!,
