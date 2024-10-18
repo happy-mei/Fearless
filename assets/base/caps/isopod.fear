@@ -7,6 +7,10 @@ IsoPod:{
 IsoPod[T:imm,iso]: {
   read .isAlive: Bool,
   read .peek[R](f: mut IsoViewer[T, R]): R,
+  read .look[R](f: mut IsoViewer'[T, R]): mut Action[R] -> {m -> this.peek{
+    .some(x) -> m.ok(f#x),
+    .empty -> m.info(Infos.msg "The IsoPod was empty"),
+    }},
   mut !: iso T,
   mut .next(val: iso T): Void,
   read .isDead: Bool -> this.isAlive.not,
@@ -24,6 +28,9 @@ IsoConsumer[T:imm,iso, R]:{
 IsoViewer[T:imm,iso, R]:{
   mut .some(x: readH T): R,
   mut .empty: R,
+  }
+IsoViewer'[T:imm,iso, R]:{
+  mut #(x: readH T): R,
   }
 _IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Block#(f#val, val) }
 
