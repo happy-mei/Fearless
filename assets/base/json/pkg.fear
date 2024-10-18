@@ -45,6 +45,7 @@ alias base.Opts as Opts,
 alias base.Int as Int,
 alias base.Float as Float,
 alias base.Nat as Nat,
+alias base.Byte as Byte,
 
 alias base.LList as LList,
 alias base.List as List,
@@ -92,6 +93,7 @@ alias base.Regexs as Regexs,
 alias base.Regex as Regex,
 
 alias base.UTF16 as UTF16,
+alias base.UTF8 as UTF8,
 
 alias base.Actions as Actions,
 alias base.Action as Action,
