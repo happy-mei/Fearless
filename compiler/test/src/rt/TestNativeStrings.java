@@ -86,9 +86,9 @@ public class TestNativeStrings {
 	}
 	private ByteBuffer wrap(String str) {
 		var bytes = str.getBytes(StandardCharsets.UTF_8);
-		return ByteBuffer.allocateDirect(bytes.length).put(bytes).asReadOnlyBuffer();
+		return ByteBuffer.allocateDirect(bytes.length).put(bytes).position(0);
 	}
 	private ByteBuffer wrap(byte[] bytes) {
-		return ByteBuffer.allocateDirect(bytes.length).put(bytes).asReadOnlyBuffer();
+		return ByteBuffer.allocateDirect(bytes.length).put(bytes).position(0);
 	}
 }

@@ -100,3 +100,5 @@ alias base.Action as Action,
 
 alias base.Maps as Maps,
 alias base.LinkedHashMap as LinkedHashMap,
+
+alias base.AtomiseStr as AtomiseStr,

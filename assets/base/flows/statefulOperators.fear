@@ -8,7 +8,7 @@ _Limit: {
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return {{ 'runner
       .stop -> Block#(remaining := 0, upstream.stop),
-      .isRunning -> remaining* > 0 && (upstream.isRunning),
+      .isRunning -> remaining* > 0 & (upstream.isRunning),
 //      .stop -> upstream.stop,
 //      .isRunning -> upstream.isRunning,
       .isFinite -> True,
