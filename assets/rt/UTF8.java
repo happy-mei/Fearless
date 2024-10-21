@@ -11,7 +11,7 @@ public final class UTF8 implements base.UTF8_0 {
   @SuppressWarnings({"unchecked", "rawtypes"})
   @Override public Fallible fromBytes$imm(List_1 utf8Bytes_m$) {
     return switch (utf8Bytes_m$) {
-      case rt.ListK.ByteBufferListImpl byteList -> utf8ToStr(byteList.inner());
+      case rt.ListK.ByteBufferListImpl byteList -> utf8ToStr(byteList.inner().duplicate());
       case ListK.ListImpl list -> utf8ToStr(rawListToBuffer((java.util.List<Byte>) list.inner()));
       default -> utf8ToStr(listToBuffer(utf8Bytes_m$));
     };

@@ -184,10 +184,3 @@ _LexerModes: {
   .digits: mut _LexerMode -> {m -> m.digits},
   }
 _LexerMode: {mut .match[R:iso,imm,mut,mutH,read,readH](m: mut _LexerModeMatch[R]): R}
-
-// TODO: This should be part of the string library
-//_IsDigit: {#(c: Str): Bool -> "0123456789".flow.any{n -> n == c}}
-_IsWhitespace: {#(c: Str): Bool -> Block#
-  .assert {c.size == 1}
-  .return{(c == " ") || (c == "\n") || (c == "\r") || (c == "\t")}
-  }

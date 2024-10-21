@@ -41,7 +41,7 @@ _JsonToStr: {
     .join ", ",
   .escape(s: Str): Str -> Block#
     .let[Regex] mustEscape = {Regexs#"[\\U{0000}-\\U{001F}]"} // unicode control characters
-    .return {s.flow // TODO: replace with a Regex because this is wrong if we have any joining characters
+    .return {AtomiseStr#s
       .map{ch -> Block#
 //        .if {ch == "\\"} .return {"\\\\"} // TODO: this breaks the fearless parer
         .if {ch == "\u005C"} .return {"\\"}
@@ -52,7 +52,8 @@ _JsonToStr: {
         .if {ch == "\r"} .return {"\\r"}
         .if {ch == "\t"} .return {"\\t"}
         .if {ch == "\""} .return {"\\\""}
-        .if {mustEscape.isMatch(ch)} .return {Todo!("more escapes: "+ch)} // TODO
+        .if {mustEscape.isMatch(ch)}
+          .error {Infos.msg ("Unexpected special character sequence: "+(ch.utf8.flow.map{b -> b.str}.join ","))}
         .return {ch}
         }
       .join ""
