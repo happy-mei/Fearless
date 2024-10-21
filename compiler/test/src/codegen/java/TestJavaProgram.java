@@ -64,43 +64,43 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (True && True) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (True & True) .str, { Void }) }
     """);}
   @Test void binaryAnd2() { ok(new Res("", "False", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (True && False) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (True & False) .str, { Void }) }
     """);}
   @Test void binaryAnd3() { ok(new Res("", "False", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (False && False) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (False & False) .str, { Void }) }
     """);}
   @Test void binaryOr1() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (True || True) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (True | True) .str, { Void }) }
     """);}
   @Test void binaryOr2() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (True || False) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (True | False) .str, { Void }) }
     """);}
   @Test void binaryOr3() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (False || True) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (False | True) .str, { Void }) }
     """);}
   @Test void binaryOr4() { ok(new Res("", "False", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (False || False) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (False | False) .str, { Void }) }
     """);}
 
   @Test void conditionals1() { ok(new Res("", "Assertion failed :(", 1), """
@@ -900,7 +900,7 @@ public class TestJavaProgram {
       
       Shape:{
         .x: Int, .y: Int,
-        ==(other: Shape): Bool -> (this.x == (other.x)) && (this.y == (other.y)),
+        ==(other: Shape): Bool -> (this.x == (other.x)) & (this.y == (other.y)),
         !=(other: Shape): Bool -> this == other .not,
         }
       """, Base.mutBaseAliases);
@@ -919,12 +919,12 @@ public class TestJavaProgram {
       
       Shape:{
         .x: Int, .y: Int,
-        ==(other: Shape): Bool -> (this.x == (other.x)) && (this.y == (other.y)),
+        ==(other: Shape): Bool -> (this.x == (other.x)) & (this.y == (other.y)),
         !=(other: Shape): Bool -> this == other .not,
         }
       Square:Shape{
         read .size: Int,
-        .eqSq(other: Square): Bool -> this == other && (this.size == (other.size)),
+        .eqSq(other: Square): Bool -> this == other & (this.size == (other.size)),
         }
       """, Base.mutBaseAliases);
   }
