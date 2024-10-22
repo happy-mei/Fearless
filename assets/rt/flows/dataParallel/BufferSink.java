@@ -7,7 +7,6 @@ import base.flows._Sink_1;
 import rt.FearlessError;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public final class BufferSink implements _Sink_1 {
@@ -45,7 +44,7 @@ public final class BufferSink implements _Sink_1 {
     }
     private void flush(BufferSink sink) {
       // keep flushing if there are elements to flush, or if there might be more elements in the future.
-      while (!sink.buffer.isEmpty() || !sink.noMoreElementsSignal.isDone()) {
+      while (true) {
         Object e;try{e = sink.buffer.take();}
         catch (InterruptedException ex) {throw new RuntimeException(ex);}
         if (e == FlusherElement.StopToken.$self) {
@@ -71,7 +70,6 @@ public final class BufferSink implements _Sink_1 {
 
   public final _Sink_1 original;
   private final BlockingQueue<Object> buffer;
-  private final CompletableFuture<Void> noMoreElementsSignal = new CompletableFuture<>();
 
   private record Error(Info_0 info) {}
 
@@ -113,7 +111,6 @@ public final class BufferSink implements _Sink_1 {
 
   public void flush() {
     safePut(FlusherElement.StopToken.$self);
-    noMoreElementsSignal.complete(null);
   }
   sealed interface FlusherElement {
     record StopToken() implements FlusherElement {
