@@ -16,11 +16,8 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
   private static final int TASKS_PER_CORE = 5;
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   public static final int PARALLELISM_POTENTIAL = TASKS_PER_CORE * N_CPUS;
-//  public static final int PARALLELISM_POTENTIAL = 4;
-  @SuppressWarnings("preview")
-  public static final ScopedValue<AtomicInteger> INFO = ScopedValue.newInstance();
-  private static final Semaphore AVAILABLE_PARALLELISM = new Semaphore(PARALLELISM_POTENTIAL);
-  private static final AtomicLong waitingTasks = new AtomicLong();
+  //  public static final int PARALLELISM_POTENTIAL = 4;
+  public static final Semaphore AVAILABLE_PARALLELISM = new Semaphore(PARALLELISM_POTENTIAL);
 
   @Override public void seqOnly() {
     var sink = new DelayedStopSink(downstream);
@@ -31,43 +28,13 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     sink.stop();
   }
 
-  // TODO: exception handling and potentially make this bounded
   @Override public void oneParOneSeq() {
-    throw new RuntimeException("TODO");
-//    var lhsSink = new BufferSink(downstream);
-//    var rhsSink = new BufferSink(downstream);
-//    var lhs = Thread.ofVirtual().start(()->splitData.getFirst().forRemaining$mut(lhsSink));
-//    splitData.stream()
-//      .skip(1)
-//      .forEachOrdered(rhs->rhs.forRemaining$mut(rhsSink));
-//    try {
-//      lhs.join();
-//    } catch (InterruptedException e) {
-//      throw new RuntimeException(e); // should never happen with a virtual thread
-//    }
-//    lhsSink.flush();
-//    rhsSink.flush();
+    manyPar();
   }
 
   @Override public void manyPar() {
+    assert nTasks > 1;
     int perWorkerSize = size / nTasks;
-    if (Thread.currentThread().isVirtual()) {
-      releaseParentPermit();
-    }
-
-    var willParallelise = true;
-    if (!AVAILABLE_PARALLELISM.tryAcquire(nTasks)) {
-      //TODO: for some reason if we ever run seq here instead of blocking we can end up having unbounded concurrency when availability > 1
-      if (waitingTasks.getPlain() < 10) {
-        waitingTasks.getAndIncrement();
-        AVAILABLE_PARALLELISM.acquireUninterruptibly(nTasks);
-        waitingTasks.getAndDecrement();
-      } else {
-        willParallelise = false;
-      }
-    }
-    final var parallelTasks = willParallelise ? nTasks: 0;
-    var permits = new AtomicInteger(parallelTasks);
 
     var workers = new EODWorker[nTasks];
     var spawned = new Thread[nTasks];
@@ -79,12 +46,19 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     };
     var flusher = BufferSink.FlushWorker.start(handler);
     for (int i = 0; i < nTasks; ++i) {
-      var actualException = exception.getAcquire();
+      var actualException = exception.get();
       if (actualException != null) {
         throw actualException;
       }
       var subSource = splitData.get(i);
-      var worker = new EODWorker(subSource, downstream, permits, perWorkerSize, flusher);
+      var worker = new EODWorker(subSource, downstream, perWorkerSize, flusher);
+      if (i == nTasks - 1) {
+        worker.run();
+        workers[i] = worker;
+        break;
+      }
+
+      var willParallelise = AVAILABLE_PARALLELISM.tryAcquire();
       if (willParallelise) {
         spawned[i] = Thread.ofVirtual().uncaughtExceptionHandler(handler).start(worker);
       } else {
@@ -104,6 +78,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
+        AVAILABLE_PARALLELISM.release();
       }
 
       var actualException = exception.get();
@@ -112,27 +87,11 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
       }
     }
 
-    while (permits.get() > 0) {
-      tryReleaseAll(permits);
-    }
-
     flusher.stop(downstream);
     var actualException = exception.get();
     if (actualException != null) {
       throw actualException;
     }
-  }
-
-  /**
-   * If we're entering new data-parallelism within a DP worker already, we need to release our parents permits
-   * to prevent deadlocks.
-   */
-  @SuppressWarnings("preview")
-  private static void releaseParentPermit() {
-    assert Thread.currentThread().isVirtual();
-    if (!INFO.isBound()) { return; }
-    var info = INFO.get();
-    tryReleaseAll(info);
   }
 
   private static void tryReleaseAll(AtomicInteger permits) {

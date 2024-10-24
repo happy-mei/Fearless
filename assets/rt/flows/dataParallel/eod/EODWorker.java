@@ -6,8 +6,9 @@ import rt.FearlessError;
 import rt.flows.dataParallel.BufferSink;
 import rt.flows.dataParallel.SplitTasks;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static rt.flows.dataParallel.eod.EODStrategies.AVAILABLE_PARALLELISM;
 import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
 
 /**
@@ -28,28 +29,25 @@ public final class EODWorker implements Runnable {
 
   private final FlowOp_1 source;
   private final BufferSink downstream;
-  private final AtomicInteger info;
 
-  public EODWorker(FlowOp_1 source, _Sink_1 downstream, AtomicInteger info, int sizeHint, BufferSink.FlushWorker flusher) {
+  public EODWorker(FlowOp_1 source, _Sink_1 downstream, int sizeHint, BufferSink.FlushWorker flusher) {
     this.source = source;
-    this.info = info;
     this.downstream = new BufferSink(downstream, flusher, sizeHint);
   }
 
-  @SuppressWarnings("preview")
   @Override public void run() {
-    ScopedValue
-      .where(EODStrategies.INFO, info)
-      .run(()->{
-        try {
-          source.forRemaining$mut(downstream);
-        } catch (FearlessError err) {
-          downstream.pushError$mut(err.info);
-        } catch (ArithmeticException err) {
-          downstream.pushError$mut(base.Infos_0.$self.msg$imm(rt.Str.fromJavaStr(err.getMessage())));
-        }
-        this.flush();
-      });
+    impl();
+  }
+
+  public void impl() {
+    try {
+      source.forRemaining$mut(downstream);
+    } catch (FearlessError err) {
+      downstream.pushError$mut(err.info);
+    } catch (ArithmeticException err) {
+      downstream.pushError$mut(base.Infos_0.$self.msg$imm(rt.Str.fromJavaStr(err.getMessage())));
+    }
+    this.flush();
   }
 
   public void flush() {
