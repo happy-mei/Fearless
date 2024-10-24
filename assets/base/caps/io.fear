@@ -8,7 +8,9 @@ IO: {
   mut .println(msg: Str): Void,
   mut .printErr(msg: Str): Void,
   mut .printlnErr(msg: Str): Void,
-  mut .read(path: Path): mut ReadPath,
+  mut .accessR(path: Path): mut ReadPath,
+  mut .accessW(path: Path): mut WritePath,
+  mut .accessRW(path: Path): mut ReadWritePath,
 //  mut .path(path: Path): mut base.caps.fs.FS,
   }
 UnrestrictedIO:F[mut System, mut IO],Sealed{
@@ -17,7 +19,9 @@ UnrestrictedIO:F[mut System, mut IO],Sealed{
     .println(msg) -> Magic!,
     .printErr(msg) -> Magic!,
     .printlnErr(msg) -> Magic!,
-    .read(path) -> Magic!,
+    .accessR(path) -> Magic!,
+    .accessW(path) -> Magic!,
+    .accessRW(path) -> Magic!,
 //    .path(path) -> {
 //      // ...
 //      },
@@ -26,11 +30,16 @@ UnrestrictedIO:F[mut System, mut IO],Sealed{
   }
 
 ReadPath: {
-  mut .read(path: Path): mut ReadPath,
+  mut .accessR(path: Path): mut ReadPath,
 //  mut .lines: mut Action[mut Flow[Str]],
-  mut .str: mut Action[Str],
+  mut .readStr: mut Action[Str],
   }
-WritePath: ReadPath{}
+WritePath: {
+  mut .accessW(path: Path): mut WritePath,
+  }
+ReadWritePath: ReadPath,WritePath{
+  mut .accessRW(path: Path): mut ReadWritePath,
+  }
 
 FileHandleMode:Stringable,Sealed{}
 Read:FileHandleMode{ "r" }

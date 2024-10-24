@@ -13,7 +13,7 @@ public interface Fallible extends Action_1 {
   @Override default Action_1 map$mut(MF_2 f_m$) {
     return Action_1.map$mut$fun(f_m$, this);
   }
-  @Override default Action_1 flatMap$mut(MF_2 f_m$) {
-    return Action_1.flatMap$mut$fun(f_m$, this);
+  @Override default Action_1 andThen$mut(MF_2 f_m$) {
+    return Action_1.andThen$mut$fun(f_m$, this);
   }
 }

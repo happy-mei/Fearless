@@ -1,6 +1,6 @@
 package base.json
 
-ParseJson: {#(rawInput: Str): mut Action[Json] -> ValidateInput#(rawInput).flatMap{input ->
+ParseJson: {#(rawInput: Str): mut Action[Json] -> ValidateInput#(rawInput).andThen{input ->
   {res -> Try#{AtomiseStr#input
     .actor[mut _LexerCtx,Token](_LexerCtxs#, LexJson)
     .actor[mut Var[mut _ParserActor],Json](
@@ -9,7 +9,7 @@ ParseJson: {#(rawInput: Str): mut Action[Json] -> ValidateInput#(rawInput).flatM
       )
     .only
     }
-    .flatMap[Json]{oneJsonOrInvalid -> oneJsonOrInvalid}
+    .andThen[Json]{oneJsonOrInvalid -> oneJsonOrInvalid}
     .run{
       .ok(json) -> res.ok(json),
       .info(info) -> res.info(Infos.msg("Invalid string found, expected JSON.\n"+(info.msg))),
