@@ -8,8 +8,6 @@ import rt.flows.dataParallel.ParallelStrategies;
 
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitData, int nTasks) implements ParallelStrategies {
@@ -17,7 +15,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   public static final int PARALLELISM_POTENTIAL = TASKS_PER_CORE * N_CPUS;
   //  public static final int PARALLELISM_POTENTIAL = 4;
-  public static final Semaphore AVAILABLE_PARALLELISM = new Semaphore(PARALLELISM_POTENTIAL);
+  private static final Semaphore AVAILABLE_PARALLELISM = new Semaphore(PARALLELISM_POTENTIAL);
 
   @Override public void seqOnly() {
     var sink = new DelayedStopSink(downstream);
@@ -92,15 +90,5 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     if (actualException != null) {
       throw actualException;
     }
-  }
-
-  private static void tryReleaseAll(AtomicInteger permits) {
-    int remaining;
-    do {
-      remaining = permits.get();
-      assert remaining >= 0;
-      if (remaining == 0) { return; }
-    } while (!permits.compareAndSet(remaining, 0));
-    AVAILABLE_PARALLELISM.release(remaining);
   }
 }
