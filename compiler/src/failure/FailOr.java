@@ -3,6 +3,7 @@ package failure;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -10,17 +11,37 @@ import java.util.function.UnaryOperator;
 public sealed interface FailOr<T>{
   <R> FailOr<R> flatMap(Function<T,FailOr<R>> r);
   <R> FailOr<R> map(Function<T,R> r);
+  FailOr<T> peek(Consumer<T> r);
+  FailOr<T> or(Supplier<FailOr<T>> r);
   FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u);
+  default void ifRes(Consumer<T> r) {
+    this.<Void>map(t -> {
+      r.accept(t);
+      return null;
+    });
+  }
   boolean isRes();
   default boolean isErr() { return !this.isRes(); }
+  <R> FailOr<R> cast();
   T get();
   Optional<Supplier<CompileError>> asOpt();
 
   record Res<T>(T t) implements FailOr<T> {
     public <R> FailOr<R> flatMap(Function<T,FailOr<R>> r) { return r.apply(t); }
     public <R> FailOr<R> map(Function<T,R> r) { return new Res<>(r.apply(t)); }
+    public FailOr<T> peek(Consumer<T> r) {
+      r.accept(t);
+      return this;
+    }
+    @Override public FailOr<T> or(Supplier<FailOr<T>> r) { return this; }
+
     public FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u) {return this;}
     public boolean isRes(){ return true; }
+
+    @Override public <R> FailOr<R> cast() {
+      throw new UnsupportedOperationException("Only failures can be cast");
+    }
+
     public T get(){ return t; }
     static final private Res<Void> ok= new Res<Void>(null);
     public Optional<Supplier<CompileError>> asOpt(){ return Optional.empty(); }
@@ -30,8 +51,16 @@ public sealed interface FailOr<T>{
     private <R> Fail<R> self(){return (Fail<R>) this;}
     public <R> FailOr<R> flatMap(Function<T,FailOr<R>> r) { return self(); }
     public <R> FailOr<R> map(Function<T,R> r) { return self(); }
+    public FailOr<T> peek(Consumer<T> r) { return self(); }
+    @Override public FailOr<T> or(Supplier<FailOr<T>> r) { return r.get(); }
+
     public FailOr<T> mapErr(UnaryOperator<Supplier<CompileError>> u){ return new Fail<>(u.apply(err)); }
     public boolean isRes(){ return false; }
+
+    @Override public <R> FailOr<R> cast() {
+      return self();
+    }
+
     public T get(){ throw err.get(); }
     public Optional<Supplier<CompileError>> asOpt(){ return Optional.of(err); }
   }

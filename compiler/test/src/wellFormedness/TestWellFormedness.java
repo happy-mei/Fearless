@@ -27,7 +27,7 @@ public class TestWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
     var res = new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
@@ -40,10 +40,9 @@ public class TestWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = InferBodies.inferAll(p);
-
     try {
       var error = new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
       if (error.isEmpty()) { Assertions.fail("Did not fail"); }
@@ -56,7 +55,7 @@ public class TestWellFormedness {
   @Test void sealedOutsidePkg() { fail("""
     In position [###]/Dummy1.fear:2:2
     [E35 sealedCreation]
-    The sealed trait a.A/0 cannot be created in a different package (b).
+    The sealed trait a.A/0 cannot be implemented in a different package (b).
     """, """
     package a
     alias base.Sealed as Sealed,
@@ -72,7 +71,7 @@ public class TestWellFormedness {
   @Test void sealedOutsidePkgNested() { fail("""
     In position [###]/Dummy1.fear:2:2
     [E35 sealedCreation]
-    The sealed trait a.A/0 cannot be created in a different package (b).
+    The sealed trait a.B/0 cannot be implemented in a different package (b).
     """, """
     package a
     alias base.Sealed as Sealed,
@@ -85,7 +84,11 @@ public class TestWellFormedness {
     package base
     Sealed:{}
     """); }
-  @Test void sealedOutsidePkgNoOverrides() { ok("""
+  @Test void sealedOutsidePkgNoOverrides() { fail("""
+    In position [###]/Dummy1.fear:2:2
+    [E35 sealedCreation]
+    The sealed trait a.A/0 cannot be implemented in a different package (b).
+    """, """
     package a
     alias base.Sealed as Sealed,
     A:Sealed{}
@@ -97,6 +100,53 @@ public class TestWellFormedness {
     package base
     Sealed:{}
     """); }
+  @Test void sealedOutsidePkgNoOverridesInline() { ok("""
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{}
+    B:A{}
+    """, """
+    package b
+    Test: {#: C -> C:a.B{}}
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void sealedOutsidePkgInline() { fail("""
+    In position [###]/Dummy1.fear:2:18
+    [E35 sealedCreation]
+    The sealed trait a.B/0 cannot be implemented in a different package (b).
+    """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{}
+    B: A{.m1: A}
+    """, """
+    package b
+    Test: {#: C -> C: a.B{this}}
+    """, """
+    package base
+    Sealed:{}
+    """); }
+  @Test void sealedOutsidePkgMultiImpl() { fail("""
+    In position [###]/Dummy1.fear:2:18
+    [E34 conflictingSealedImpl]
+    A sealed trait from another package may not be composed with any other traits.
+    conflicts:
+    ([###]/Dummy0.fear:3:2) a.A/0
+    ([###]/Dummy0.fear:4:3) a.B/0
+    """, """
+    package a
+    alias base.Sealed as Sealed,
+    A:Sealed{}
+    B: A{.m1: A}
+    """, """
+    package b
+    Test: {#: C -> C: a.A,a.B{}}
+    """, """
+    package base
+    Sealed:{}
+    """); }
   @Test void sealedOutsidePkgNestedNoOverrides() { ok("""
     package a
     alias base.Sealed as Sealed,
@@ -104,7 +154,7 @@ public class TestWellFormedness {
     B:A{}
     """, """
     package b
-    C:a.B{}
+    Foo: {#: C -> C:a.B{}}
     """, """
     package base
     Sealed:{}
@@ -112,7 +162,7 @@ public class TestWellFormedness {
   @Test void sealedOutsidePkgInlineExplicit() { fail("""
     In position [###]/Dummy1.fear:4:17
     [E35 sealedCreation]
-    The sealed trait a.A/0 cannot be created in a different package (b).
+    The sealed trait a.A/0 cannot be implemented in a different package (b).
     """, """
     package a
     alias base.Sealed as Sealed,
@@ -132,7 +182,7 @@ public class TestWellFormedness {
   @Test void sealedOutsidePkgInlineInferred() { fail("""
     In position [###]/Dummy1.fear:4:17
     [E35 sealedCreation]
-    The sealed trait a.A/0 cannot be created in a different package (b).
+    The sealed trait a.A/0 cannot be implemented in a different package (b).
     """, """
     package a
     alias base.Sealed as Sealed,
@@ -167,6 +217,23 @@ public class TestWellFormedness {
     Sealed:{}
     """); }
 
+  @Test void noSealedMultiOutsideOfPkg() {fail("""
+    In position [###]/Dummy1.fear:2:14
+    [E34 conflictingSealedImpl]
+    A sealed trait from another package may not be composed with any other traits.
+    conflicts:
+    ([###]/Dummy0.fear:3:3) base.A/0
+    ([###]/Dummy1.fear:3:3) a.C/0
+    """, """
+    package base
+    Sealed: {}
+    A: Sealed{}
+    """, """
+    package a
+    Foo: {#: C -> base.A,C{}}
+    C: {}
+    """);}
+
   // This well formedness requirement doesn't make sense because it only considers boxes (but not functions that do not capture)
 //  @Test void noMutHygType1() { fail("""
 //    In position [###]/Dummy0.fear:2:7
@@ -191,17 +258,6 @@ public class TestWellFormedness {
   @Test void noMutHygType4() { ok("""
     package a
     A[X]:{ .no: read A[read A[X]] }
-    """); }
-
-  @Test void noRecMdfInImplements() { fail("""
-    In position [###]/Dummy0.fear:3:5
-    [E27 recMdfInImpls]
-    Invalid modifier for recMdf Y.
-    recMdf may not be used in the list of implemented traits.
-    """, """
-    package base
-    A[X]:{}
-    B[Y]:A[recMdf Y]{}
     """); }
 
   @Test void allowPrivateLambdaUsageWithinPkg() { ok("""
@@ -325,21 +381,6 @@ public class TestWellFormedness {
     Str:{} Bob:Str{}
     Nat:{} TwentyFour:Nat{}
     """); }
-  @Test void noFreeGensFunnelling() { fail("""
-    In position [###]/Dummy0.fear:2:52
-    [E56 freeGensInLambda]
-    The declaration name for a lambda must include all type variables used in the lambda. The declaration name test.Person[] does not include the following type variables: N
-    """, """
-    package test
-    FPerson:{ #[N](name: Str, age: N): Person -> Person:{
-      .name: Str -> name,
-      .age: N -> age,
-      }}
-    """, """
-    package test
-    Str:{} Bob:Str{}
-    Nat:{} TwentyFour:Nat{}
-    """); }
 
   @Test void noLentLambdaCreation() { fail("""
     In position [###]/Dummy0.fear:2:17
@@ -349,22 +390,65 @@ public class TestWellFormedness {
     package test
     A: {#: mutH A -> {}}
     """); }
-  @Test void noReadOnlyLambdaCreation() { fail("""
-    In position [###]/Dummy0.fear:2:21
-    [E63 invalidLambdaMdf]
-    readH is not a valid modifier for a lambda.
+
+  @Test void mustImplementMethodsInInlineDecOk() {ok("""
+    package test
+    A: {.foo: A}
+    Bs: {#: B -> B: A{
+      .foo -> this,
+      }}
+    """);}
+  @Test void mustImplementMethodsInInlineDecFail() {fail("""
+    In position file:///home/nick/Programming/uni/fearless/compiler/Dummy0.fear:3:16
+    [E70 noUnimplementedMethods]
+    Literals must implement all callable methods. The following methods are unimplemented: imm .foo/0.
     """, """
     package test
-    A: {#: readH A -> {}}
-    """); }
+    A: {.foo: A}
+    Bs: {#: B -> B: A{}}
+    """);}
 
-  @Test void noImplGeneric() {fail("""
-    In position [###]/Dummy0.fear:2:6
-    [E14 expectedConcreteType]
-    A concrete type was expected but the following generic type was given:
-    X
+  @Test void mustImplementMethodsInLambdaOk() {ok("""
+    package test
+    A: {.foo: A}
+    B: A
+    Bs: {#: B -> B{
+      .foo -> this,
+      }}
+    """);}
+  @Test void mustImplementMethodsInLambdaFail() {fail("""
+    In position [###]/Dummy0.fear:4:13
+    [E70 noUnimplementedMethods]
+    Literals must implement all callable methods. The following methods are unimplemented: imm .foo/0.
+    """, """
+    package test
+    A: {.foo: A}
+    B: A
+    Bs: {#: B -> B {}}
+    """);}
+  @Test void mustImplementMethodsInLambdaEvenIfImplAbs() {fail("""
+    In position [###]/Dummy0.fear:4:13
+    [E70 noUnimplementedMethods]
+    Literals must implement all callable methods. The following methods are unimplemented: imm .foo/0.
+    """, """
+    package test
+    A: {.foo: A}
+    B: A
+    Bs: {#: B -> B {
+      .foo: A,
+      }}
+    """);}
+
+  @Test void cannotCreateAliasedPrivate() {fail("""
+    In position [###]/Dummy0.fear:3:12
+    [E48 privateTraitImplementation]
+    The private trait b._Private/0 cannot be implemented outside of its package.
     """, """
     package a
-    A[X]: X{}
+    alias b._Private as P,
+    A: {#: P -> {}}
+    """, """
+    package b
+    _Private: {}
     """);}
 }

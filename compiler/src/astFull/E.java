@@ -7,12 +7,10 @@ import id.Id;
 import id.Id.MethName;
 import id.Mdf;
 import program.inference.FreshenDuplicatedNames;
-import utils.Box;
 import utils.Bug;
 import visitors.FullCloneVisitor;
 import visitors.FullVisitor;
 import visitors.InjectionVisitor;
-import wellFormedness.UndefinedGXsVisitor;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,15 +32,13 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
       assert mdf.isPresent() == it.isPresent();
-      assert id.id.isFresh() || id.id().gen()!=0 || its.stream().allMatch(t->{
-        var fv= new UndefinedGXsVisitor(List.of());
-        fv.visitIT(t.toAstIT(ti->ti.toAstTFreshenInfers(new Box<>(0))));
-        if (!fv.res().isEmpty()) {System.out.println(fv.res());}
-        return fv.res().isEmpty();
-      });
     }
 
-    public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {}
+    public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {
+      public Id.IT<T> toIT() {
+        return new Id.IT<>(id, gens.stream().map(gx->new T(Mdf.mdf, gx)).toList());
+      }
+    }
 
     /** This method correctly throw assertion error if called on a top level lambda
     */
@@ -139,6 +135,9 @@ public sealed interface E extends HasPos {
         return next;
       });
       return "fear" + n + "$";
+    }
+    public static boolean isFresh(String name) {
+      return name.startsWith("fear") && name.endsWith("$");
     }
     public X(T t){
       this(freshName(), t, Optional.empty());

@@ -2,7 +2,11 @@ package program.typesystem;
 
 import id.Mdf;
 import net.jqwik.api.*;
+import net.jqwik.api.arbitraries.SetArbitrary;
 import org.junit.jupiter.api.Test;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static program.typesystem.RunTypeSystem.fail;
 import static program.typesystem.RunTypeSystem.ok;
@@ -71,6 +75,39 @@ public class TestReadImm {
   @Provide Arbitrary<Mdf> recvMdf() {
     return Arbitraries.of(Mdf.imm, Mdf.read, Mdf.mut, Mdf.readH, Mdf.mutH, Mdf.iso);
   }
+  @Provide SetArbitrary<Mdf> bounds() {
+    return Arbitraries
+      .subsetOf(Mdf.iso, Mdf.imm, Mdf.mut, Mdf.mutH, Mdf.read, Mdf.readH)
+      .ofMinSize(1);
+  }
+  @Provide SetArbitrary<Mdf> nonHygBounds() {
+    return Arbitraries
+      .subsetOf(Mdf.iso, Mdf.imm, Mdf.mut, Mdf.read)
+      .ofMinSize(1);
+  }
+
+  @Property public void readImmGenSubtypeOfAllNonHyg(@ForAll("bounds") Set<Mdf> bounds) {
+    var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
+    var code = """
+    package a
+    A[X:%s]: {#(x: X): read/imm X -> x}
+    """.formatted(xbs, xbs);
+
+    if (bounds.contains(Mdf.readH) || bounds.contains(Mdf.mutH)) {
+      fail("""
+        In position [###]:2:[###]
+        [E37 noSubTypingRelationship]
+        There is no sub-typing relationship between X and read/imm X.
+        """, code);
+      return;
+    }
+    ok(code);
+  }
+  @Test void readImmGenSubtypeOfMut() {ok("""
+    package a
+    A[X:mut]: {#(x: X): read/imm X -> x}
+    """);}
+
   @Property void shouldGetAsIsForMut(@ForAll("capturableMdf") Mdf mdf) { ok("""
     package test
     A: {#[X](box: mut Box[%s X]): %s X -> box.get}
@@ -89,12 +126,86 @@ public class TestReadImm {
   }
   @Property void shouldGetAsReadOrImmForReadImmArbitraryRecvMdf(@ForAll("recvMdf") Mdf recvMdf, @ForAll("capturableMdf") Mdf mdf) {
     var expected = mdf.isImm() ? "imm" : "read";
-    if (recvMdf.isHyg() && !mdf.isImm()) { expected = "readOnly"; }
+    if (recvMdf.isHyg() && !mdf.isImm()) { expected = "readH"; }
     ok("""
     package test
     A: {#[X](box: %s Box[%s X]): %s X -> box.riget}
     B: {}
     """.formatted(recvMdf, mdf, expected), BOX);
+  }
+
+  @Property void shouldNeverAllowReadToBecomeImm(@ForAll("bounds") Set<Mdf> bounds) {
+    var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
+    /*
+    [E66 invalidMethodArgumentTypes]
+      Method .m/1 called in position [###] can not be called with current parameters of types:
+      [read X]
+      Attempted signatures:
+      [###]
+     */
+    fail("""
+      [###]
+      """, """
+      package test
+      Caster[X:%s]: { .m(bob: read/imm X): read/imm X->bob }
+      // could try all permutations of bounds for X
+      User: {.user[X:%s](x:read X):imm X->Caster[X].m(x)}
+      """.formatted(xbs, xbs));
+  }
+
+  @Property void shouldNeverAllowXToBecomeImm(@ForAll("bounds") Set<Mdf> bounds) {
+    var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
+    var code = """
+      package test
+      Caster[X:%s]: { .m(bob: read/imm X): read/imm X->bob }
+      // could try all permutations of bounds for X
+      User: {.user[X:%s](x: X):imm X->Caster[X].m(x)}
+      """.formatted(xbs, xbs);
+    if (bounds.equals(Set.of(Mdf.iso)) || bounds.equals(Set.of(Mdf.imm)) || bounds.equals(Set.of(Mdf.iso, Mdf.imm))) {
+      ok(code);
+      return;
+    }
+    /*
+    [E66 invalidMethodArgumentTypes]
+      Method .m/1 called in position [###] can not be called with current parameters of types:
+      [read X]
+      Attempted signatures:
+      [###]
+     */
+    fail("""
+      [###]
+      """, code);
+  }
+
+  @Property void shouldNeverAllowXToBecomeImm2(@ForAll("bounds") Set<Mdf> bounds) {
+    var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
+    var code = """
+      package test
+      A: {
+        .m1[X:iso,imm,mut,read](x: read/imm X): read/imm X -> x,
+        .m2[X:%s](x: X): imm X -> this.m1[X](x),
+        }
+      """.formatted(xbs);
+    if (bounds.equals(Set.of(Mdf.iso)) || bounds.equals(Set.of(Mdf.imm)) || bounds.equals(Set.of(Mdf.iso, Mdf.imm))) {
+      ok(code);
+      return;
+    }
+    fail("""
+      [###]
+      """, code);
+  }
+
+  @Property void shouldNeverAllowXToBecomeImm3(@ForAll("bounds") Set<Mdf> bounds) {
+    var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
+    var code = """
+      package test
+      Caster[X:%s]: { .m(bob: read/imm X): read/imm X->bob }
+      // could try all permutations of bounds for X
+      User: {.user[X:iso,imm,mut,read](x: X):imm X->Caster[X].m(x)}
+      """.formatted(xbs);
+    fail("""
+      [###]
+      """, code);
   }
 
   /* parameter of read X, pass a mdf Y --> becomes read Y */
@@ -133,5 +244,27 @@ public class TestReadImm {
     B[Y]: {.m(y: read Y): read/imm Y -> BrokenA[Y]: A[Y].m(y)}
     C: {.m(foo: read Foo): imm Foo -> BrokenB: B[imm Foo].m(foo)} // unsound
     Foo: {}
+    """);}
+
+  @Test void readImmInheritance() {ok("""
+    package a
+    B[Y:read,imm]:{.m:read/imm Y}
+    A1[X:imm]:B[X]{}
+    A2[X:imm]:B[X]{.m:read/imm X}
+    """); }
+
+  @Test void passReadImmXAround1() {ok("""
+    package a
+    B[X]: {
+      .m1(a: read/imm X): read/imm X -> this.m1(a),
+      .m2(a: read/imm X): read/imm X -> a,
+      }
+    """);}
+  @Test void passReadImmXAround2() {ok("""
+    package a
+    B[X]: {
+      .m1(a: read/imm X): read/imm X -> this.m1(a),
+      .m2[Y](a: read/imm Y): read/imm Y -> a,
+      }
     """);}
 }

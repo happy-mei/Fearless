@@ -1,6 +1,5 @@
 package failure;
 
-import astFull.E;
 import astFull.T;
 import files.Pos;
 import id.Id;
@@ -72,11 +71,12 @@ public class Fail{
       +"\nAlternatively, are you attempting to shadow an existing class name?"
   );}
   public static CompileError modifierOnInferredLambda(){return of(
-    "Modifiers cannot be specified on lambdas without an explicit type."
+    "A reference capability cannot be specified on lambdas without an explicit type."
   );}
-  public static CompileError invalidMdfBound(ast.T badType, List<Mdf> bounds){
+
+  public static CompileError invalidMdfBound(String badType, Stream<Mdf> bounds){
     return of(
-      "The type "+badType+" is not valid because it's modifier is not in the required bounds. The allowed modifiers are: "+bounds.stream().map(Enum::toString).collect(Collectors.joining(", "))+"."
+      "The type "+badType+" is not valid because its capability is not in the required bounds. The allowed modifiers are: "+bounds.map(Enum::toString).collect(Collectors.joining(", "))+"."
     );
   }
   public static CompileError shadowingX(String x){return of(String.format("'%s' is shadowing another variable in scope.", x));}
@@ -95,7 +95,7 @@ public class Fail{
 
   public static CompileError missingDecl(Id.DecId d){ return of("The following trait cannot be aliased because it does not exist:\n"+d); }
 
-  public static CompileError invalidMethMdf(E.Sig s, Id.MethName n){ return of(String.format("%s is not a valid modifier for a method (on the method %s).", n.mdf().orElseThrow(), n)); }
+  public static CompileError invalidMethMdf(Mdf mdf, Id.MethName n){ return of(String.format("%s is not a valid modifier for a method (on the method %s).", mdf, n)); }
   public static CompileError invalidLambdaMdf(Mdf mdf){ return of(String.format("%s is not a valid modifier for a lambda.", mdf)); }
   public static CompileError cannotInferSig(Id.DecId d, Id.MethName m){ return of(String.format("Could not infer the signature for %s in %s.", m, d)); }
   public static CompileError cannotInferAbsSig(Id.DecId d){ return of(String.format("Could not infer the signature for the abstract lambda in %s. There must be one abstract lambda in the trait.", d)); }
@@ -103,6 +103,7 @@ public class Fail{
     return of(String.format("The trait %s could not be found.", d));
   }
   public static CompileError inferFailed(String e){ return of(String.format("Could not infer the type for the following expression:\n%s", e)); }
+  public static CompileError inferImplementsFailed(String e){ return of(String.format("Could not infer the types this literal implements. Attempted to infer this list of types:\n%s", e)); }
 
   public static CompileError methTypeError(ast.T expected, ast.T actual, Id.MethName m){
     var msg = "Expected the method "+m+" to return "+expected+", got "+actual+".";
@@ -168,7 +169,7 @@ public class Fail{
       "sigs", sigs,
       "expected", expected
     );
-    var msg= STR."Method \{e.name()} called in position \{e.posOrUnknown()} can not be called with current parameters of types: \{t1n}";
+    var msg= "Method " + e.name() + " called in position " + e.posOrUnknown() + " can not be called with current parameters of types: " + t1n;
     return of(msg+"\n"+sigs, attributes);
   }
 
@@ -186,13 +187,22 @@ public class Fail{
     );
   }
 
-  public static CompileError callTypeError(ast.E.MCall e, Optional<ast.T> expected, String calls) {
-    var expected_ = expected.map(ast.T::toString).orElse("?");
-    return of("Type error: None of the following candidates (returning the expected type \""+expected_+"\") for this method call:\n"+e+"\nwere valid:\n"+calls);
+  public static CompileError callTypeError(Id.MethName name, Mdf mdf0, Mdf formalMdf, List<ast.T> expectedT, ast.T formalRet) {
+//    var expected_ = expected.map(ast.T::toString).orElse("?");
+    var expectedRets = expectedT.isEmpty()
+      ? ""
+      : "\nThe expected return types were " + expectedT + ", the method's return type was " + formalRet + ".";
+    return of("There is no possible candidate for the method call to " + name + ".\nThe receiver's reference capability was " + mdf0 + ", the method's reference capability was " + formalMdf + "." + expectedRets + "\n");
   }
 
   public static CompileError sealedCreation(Id.DecId sealedDec, String pkg) {
-    return of("The sealed trait "+sealedDec+" cannot be created in a different package ("+pkg+").");
+    return of("The sealed trait "+sealedDec+" cannot be implemented in a different package ("+pkg+").");
+  }
+  public static CompileError conflictingSealedImpl(List<ast.T.Dec> sealedDecs) {
+    var conflicts = sealedDecs.stream()
+      .map(d->conflict(d.posOrUnknown(), d.name().toString()))
+      .toList();
+    return of(conflictingMsg("A sealed trait from another package may not be composed with any other traits.", conflicts));
   }
 
   public static CompileError privateMethCall(Id.MethName meth) {
@@ -287,9 +297,9 @@ public class Fail{
     return of("Traits declared within expressions cannot be implemented. This lambda has the following invalid implementations: "+msg);
   }
 
-  public static CompileError freeGensInLambda(ast.E.Lambda.LambdaId name, Set<Id.GX<ast.T>> freeGens) {
+  public static CompileError freeGensInLambda(String name, Set<Id.GX<ast.T>> freeGens) {
     var msg = freeGens.stream().map(Id.GX::toString).collect(Collectors.joining(", "));
-    return of("The declaration name for a lambda must include all type variables used in the lambda. The declaration name "+name.toIT()+" does not include the following type variables: "+msg);
+    return of("The declaration name for a lambda must include all type variables used in the lambda. The declaration name "+name+" does not include the following type variables: "+msg);
   }
 
   public static CompileError invalidLambdaNameMdfBounds(List<String> invalidBounds) {
@@ -317,6 +327,17 @@ public class Fail{
 
   public static CompileError crossPackageDeclaration() {
     return of("You may not declare a trait in a different package than the package the declaration is in.");
+  }
+
+  public static CompileError genericMismatch(List<ast.T> actualArgs, List<Id.GX<ast.T>> formalParams) {
+    return of("Expected " + formalParams.size() + " generic type arguments, got " + actualArgs + ".");
+  }
+
+  public static CompileError noUnimplementedMethods(List<Id.MethName> unimplemented) {
+    var unimplementedList = unimplemented.stream()
+      .map(m->m.mdf().orElseThrow()+" "+m)
+      .collect(Collectors.joining(", "));
+    return of("Object literals must implement all callable methods. The following methods are unimplemented: "+unimplementedList+".");
   }
 
   private static String aVsAn(Mdf mdf) {
@@ -360,7 +381,7 @@ enum ErrorCode {
   invalidNum,
   noCandidateMeths,
   callTypeError,
-  UNUSED1,
+  conflictingSealedImpl,
   sealedCreation,
   undefinedMethod,
   noSubTypingRelationship,
@@ -393,7 +414,10 @@ enum ErrorCode {
   Unknown,
   noMethOnX,
   invalidMethodArgumentTypes,
-  crossPackageDeclaration;
+  crossPackageDeclaration,
+  genericMismatch,
+  inferImplementsFailed,
+  noUnimplementedMethods;
   private static final ErrorCode[] values = values();
   int code() {
     return this.ordinal() + 1;

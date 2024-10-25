@@ -9,7 +9,8 @@ import ast.Program;
 import id.Id;
 import id.Mdf;
 
-class StringIds{
+final class StringIds{
+  public static final StringIds $self = new StringIds();
   public Optional<String> getLiteral(Program p, Id.DecId d) {
     return p.superDecIds(d).stream()
       .map(Id.DecId::name)

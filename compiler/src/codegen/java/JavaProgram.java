@@ -31,8 +31,7 @@ public record JavaProgram(List<JavaFile> files){
               .replace(".", "/");
       var dirName = output.resolve(pkgName);
       Files.createDirectories(dirName);
-      Path filePath = Path.of(fi.toUri()).getFileName();
-      Files.write(dirName.resolve(filePath),fi.code().getBytes());
+      Files.write(dirName.resolve(fi.getName()),fi.code().getBytes());
     }
   }
 }

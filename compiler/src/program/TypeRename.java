@@ -46,43 +46,8 @@ public interface TypeRename<T extends Id.Ty>{
     }
     public boolean isInfer(ast.T t) { return false; }
   }
-  class CoreRecMdfTypeRename extends CoreTTypeRename {
-    private final Mdf recvMdf;
-    public CoreRecMdfTypeRename(Mdf recvMdf) {
-      super();
-      assert !recvMdf.isMdf();
-      this.recvMdf = recvMdf;
-    }
-
-    /** This is part of MDF ITX[[MDF0; Ts=Xs]] */
-    @Override public ast.T propagateMdf(Mdf mdf, ast.T t){
-      if(!mdf.isRecMdf()){ return super.propagateMdf(mdf, t); }
-      assert t!=null;
-      if (recvMdf.isRecMdf() && t.mdf().isMdf()) {
-        return t.withMdf(Mdf.recMdf);
-      }
-      // TODO: or maybe this (see commented tests in TestTypeSystem)
-//      if (t.mdf().isMdf()) {
-//        return t.withMdf(Mdf.recMdf);
-//      }
-      var returnMdf = recvMdf.adapt(t.mdf());
-      return t.withMdf(returnMdf);
-    }
-    @Override public ast.T propagateArgMdf(XBs xbs, Mdf mdf, ast.T t){
-      if(!mdf.isRecMdf()){ return super.propagateMdf(mdf, t); }
-      assert t!=null;
-      if (t.mdf().isMdf() || recvMdf.isRecMdf() || t.mdf().isRecMdf()) {
-        // not sure about if this is sound
-        // we enter this from inference where we replace all the gens with mdf FearN$
-        return propagateMdf(mdf, t);
-      }
-      var argMdf = Gamma.xT(t.rt().toString(), xbs, recvMdf, t, recvMdf).mdf();
-      return t.withMdf(argMdf);
-    }
-  }
   static FullTTypeRename full(Program p) { return FullTTypeRename.INSTANCE; }
   static CoreTTypeRename core() { return CoreTTypeRename.INSTANCE; }
-  static CoreRecMdfTypeRename coreRec(Mdf recvMdf) { return new CoreRecMdfTypeRename(recvMdf); }
 
   <R> R matchT(T t, Function<Id.GX<T>,R> gx, Function<Id.IT<T>,R> it);
   Mdf mdf(T t);
@@ -134,7 +99,7 @@ public interface TypeRename<T extends Id.Ty>{
   default T propagateMdf(Mdf mdf, T t){
     assert t!=null;
     if(mdf.isMdf()){ return t; }
-    if (mdf.isReadImm() && mdf(t).isImm()) {
+    if (mdf.isReadImm() && mdf(t).is(Mdf.iso, Mdf.imm)) {
       return withMdf(t, Mdf.imm);
     }
     if (mdf.isReadImm() && !mdf(t).is(Mdf.mdf,Mdf.readImm)) {

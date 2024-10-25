@@ -13,6 +13,7 @@ import wellFormedness.WellFormednessShortCircuitVisitor;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,9 +23,9 @@ public interface LogicMain {
   InputOutput io();
   HashSet<String> cachedPkg();
   default TypeSystemFeatures typeSystemFeatures() {
-    return new TypeSystemFeatures.TypeSystemFeaturesBuilder()
-      .allowAdapterSubtyping(false)
-      .build();
+    return new TypeSystemFeatures()
+      .hygienics(true)
+      .literalPromotions(true);
   }
 
   void cachePackageTypes(ast.Program program);
@@ -58,8 +59,11 @@ public interface LogicMain {
     return InferBodies.inferAll(fullProgram);
   }
   default void wellFormednessCore(ast.Program program){
-    new WellFormednessShortCircuitVisitor(program)
-      .visitProgram(program)
+    program.ds().values().parallelStream()
+      .map(dec->new WellFormednessShortCircuitVisitor(program).visitDec(dec))
+      .filter(Optional::isPresent)
+      .findAny()
+      .flatMap(x->x)
       .ifPresent(err->{ throw err; });
   }
   default ConcurrentHashMap<Long, TsT> typeSystem(ast.Program program){
@@ -77,7 +81,9 @@ public interface LogicMain {
 
 
   default Map<String, List<Package>> load(List<Parser> files) {
-    return files.stream()
+    // Making this parallel is especially useful for cached situations where each package's type info is actually a
+    // substantial chunk of work for ANTLR to parse.
+    return files.parallelStream()
       .map(p->p.parseFile(CompileError::err))
       .collect(Collectors.groupingBy(Package::name));
   }

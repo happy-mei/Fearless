@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static program.typesystem.RunTypeSystem.fail;
+
 class TestFullParser {
   void ok(String expected, String... content){
     Main.resetAll();
@@ -18,8 +20,8 @@ class TestFullParser {
     var ps = Arrays.stream(content)
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
         .toList();
-    String res = Parser.parseAll(ps, TypeSystemFeatures.of()).toString();
-    Err.strCmpFormat(expected,res);
+    var res = Parser.parseAll(ps, new TypeSystemFeatures());
+    Err.strCmpFormat(expected,res.toString());
   }
   void fail(String expectedErr, String... content){
     Main.resetAll();
@@ -28,7 +30,7 @@ class TestFullParser {
         .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
         .toList();
     try {
-      var res = Parser.parseAll(ps, TypeSystemFeatures.of());
+      var res = Parser.parseAll(ps, new TypeSystemFeatures());
       Assertions.fail("Parsing did not fail. Got: "+res);
     }
     catch (CompileError e) {
@@ -374,7 +376,7 @@ class TestFullParser {
       name=base.Ref/1,
       gxs=[X],
       lambda=[-infer-][base.NoMutHyg[X],base.Sealed[]]{
-        */0([]):Sig[gens=[],ts=[],ret=recMdfX]->[-],
+        */0([]):Sig[gens=[],ts=[],ret=read/immX]->[-],
         .swap/1([x]):Sig[gens=[],ts=[X],ret=X]->[-],
         :=/1([x]):Sig[gens=[],ts=[X],ret=imm base.Void[]]->
           [-imm base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
@@ -398,7 +400,7 @@ class TestFullParser {
     Let[V,R]:{ .var: V, .in(v:V): R }
     Ref:{ #[X](x: X): mut Ref[X] -> this#(x) }
     Ref[X]:NoMutHyg[X],Sealed{
-      read * : recMdf X,
+      read * : read/imm X,
       mut .swap(x: X): X,
       mut :=(x: X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
       mut <-(f: UpdateRef[X]): X -> this.swap(f#(this*)),
@@ -493,7 +495,7 @@ class TestFullParser {
 
   @Test void namedInline() { ok("""
     {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{#/0([]):Sig[gens=[],ts=[],ret=imm test.B[]]->
-      LambdaId[id=test.B/0,gens=[],bounds={}]:[-infer-][]{}}]}
+      LambdaId[id=test.B/0,gens=[],bounds={}]:[-imm test.B[]-][]{}}]}
     """, """
     package test
     A:{ #: B -> B:{} }
@@ -501,11 +503,28 @@ class TestFullParser {
   @Test void namedInlineGens() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-infer-][]{
       #/1([x]):Sig[gens=[],ts=[X],ret=immtest.B[X]]->
-        LambdaId[id=test.B/1,gens=[X],bounds={}]:[-infer-][]{
+        LambdaId[id=test.B/1,gens=[X],bounds={}]:[-imm test.B[X]-][]{
           .m1/0([]):Sig[gens=[],ts=[],ret=X]->x:infer}}]}
     """, """
     package test
     A[X]:{ #(x: X): B[X] -> B[X]:{ .m1: X -> x } }
+    """); }
+  @Test void namedInlineGensWithBound() { ok("""
+    {test.A/1=Dec[name=test.A/1,gxs=[X],bounds={X=[imm]},lambda=[-infer-][]{
+      #/1([x]):Sig[gens=[],ts=[X],ret=immtest.B[X]]->
+        LambdaId[id=test.B/1,gens=[X],bounds={X=[imm]}]:[-immtest.B[X]-][]{
+          .m1/0([]):Sig[gens=[],ts=[],ret=X]->x:infer}}]}
+    """, """
+    package test
+    A[X:imm]:{ #(x: X): B[X] -> B[X:imm]:{ .m1: X -> x } }
+    """); }
+  @Test void inferNameOnCall() { ok("""
+    {test.A/1=Dec[name=test.A/1,gxs=[X],bounds={X=[imm]},lambda=[-infer-][]{
+      #/1([x]):Sig[gens=[],ts=[X],ret=X]->
+        [-imm test.Fear0$[X]-][test.Fear0$[X]]{.m1/0([]):Sig[gens=[],ts=[],ret=X]->x:infer}.m1/0[-]([]):infer}]}
+    """, """
+    package test
+    A[X:imm]: {#(x: X): X -> {.m1: X -> x}.m1}
     """); }
 
   @Test void missingColonTypeDeclaration() { fail("""
@@ -517,4 +536,14 @@ class TestFullParser {
     Foo{}
     // I missed a colon :(
     """); }
+
+  @Test void noImplGeneric() {fail("""
+    In position [###]/Dummy0.fear:2:6
+    [E14 expectedConcreteType]
+    A concrete type was expected but the following generic type was given:
+    X
+    """, """
+    package a
+    A[X]: X{}
+    """);}
 }

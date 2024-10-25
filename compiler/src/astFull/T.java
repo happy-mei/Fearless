@@ -8,6 +8,7 @@ import utils.Box;
 import utils.Bug;
 import visitors.FullCloneVisitor;
 import visitors.FullShortCircuitVisitor;
+import visitors.TypeVisitor;
 
 import java.util.*;
 import java.util.function.Function;
@@ -45,6 +46,15 @@ public final class T implements Id.Ty {
         return new ast.T(mdf(), new Id.IT<>(it.name(), ts));
       });
   }
+  public <R> R accept(TypeVisitor<T, R> visitor) {
+    if (this.isInfer()) { return visitor.visitInfer(); }
+    return this.match(gx->switch (mdf) {
+      case mdf -> visitor.visitX(gx);
+      case readImm -> visitor.visitReadImm(gx);
+      case iso,imm,mut,mutH,read,readH -> visitor.visitRCX(mdf, gx);
+      case recMdf -> throw Bug.unreachable();
+    }, it->visitor.visitLiteral(mdf, it));
+  }
   public ast.T toAstTFreshenInfers(Box<Integer> nFresh) {
     if (this.isInfer()) {
       int n = nFresh.get();
@@ -81,7 +91,9 @@ public final class T implements Id.Ty {
     });
   }
   public <R> R match(Function<Id.GX<T>, R> gx, Function<Id.IT<T>, R> it) {
-    if (this.isInfer()) { throw new MatchOnInfer(); }
+    if (this.isInfer()) {
+      throw new MatchOnInfer();
+    }
     return rt.match(gx, it);
   }
   public Stream<T> flatten() {

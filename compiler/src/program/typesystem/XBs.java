@@ -4,10 +4,7 @@ import ast.T;
 import id.Id;
 import id.Mdf;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public interface XBs {
   Set<Mdf> defaultBounds = Set.of(Mdf.mut, Mdf.imm, Mdf.read);

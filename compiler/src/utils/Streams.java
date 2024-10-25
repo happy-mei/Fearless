@@ -17,30 +17,33 @@ public class Streams {
 
   public static <A,B> Zipper<A,B> zip(List<A> as, List<B> bs){
     assert as.size()==bs.size();
-    return new Zipper<>(as,bs);
+    return new ListZipper<>(as,bs);
+  }
+  public static <A,B> Zipper<A,B> zip(A[] as, B[] bs){
+    assert as.length==bs.length;
+    return new ArrayZipper<>(as,bs);
   }
 
-  public record Zipper<A,B>(List<A> as, List<B> bs){
-    public void forEach(BiConsumer<A,B> f){
+  private record ListZipper<A,B>(List<A> as, List<B> bs) implements Zipper<A, B> {
+    @Override public void forEach(BiConsumer<A, B> f){
       IntStream.range(0, as.size()).forEach(i->f.accept(as.get(i), bs.get(i)));
     }
-    public <R> Stream<R> map(BiFunction<A,B,R>f){
+    @Override public <R> Stream<R> map(BiFunction<A, B, R> f){
       return IntStream.range(0, as.size()).mapToObj(i->f.apply(as.get(i),bs.get(i)));
     }
-    public <R> Stream<R> parallelMap(BiFunction<A,B,R>f){
+    @Override public <R> Stream<R> parallelMap(BiFunction<A, B, R> f){
       return IntStream.range(0, as.size()).parallel().mapToObj(i->f.apply(as.get(i),bs.get(i)));
     }
-    public <R> Stream<R> flatMap(BiFunction<A,B,Stream<R>>f){
+    @Override public <R> Stream<R> flatMap(BiFunction<A, B, Stream<R>> f){
       return IntStream.range(0, as.size()).boxed().flatMap(i->f.apply(as.get(i),bs.get(i)));
     }
-    public <R> Stream<R> filterMap(BiFunction<A,B,Optional<R>>f){
+    @Override public <R> Stream<R> filterMap(BiFunction<A, B, Optional<R>> f){
       return IntStream.range(0, as.size())
         .mapToObj(i->f.apply(as.get(i),bs.get(i)))
         .filter(Optional::isPresent)
         .map(Optional::get);
     }
-
-    public Zipper<A,B> filter(BiPredicate<A,B>f){
+    @Override public Zipper<A,B> filter(BiPredicate<A, B> f){
       var asi = new ArrayList<A>();
       var bsi = new ArrayList<B>();
       IntStream.range(0, as.size())
@@ -49,27 +52,76 @@ public class Streams {
           asi.add(as.get(i));
           bsi.add(bs.get(i));
         });
-      return new Zipper<>(asi, bsi);
+      return new ListZipper<>(asi, bsi);
     }
-
-    public <R> R fold(Acc<R, A, B> folder, R initial) {
+    @Override public <R> R fold(Acc<R, A, B> folder, R initial) {
       Box<R> acc = new Box<>(initial);
       IntStream.range(0, as.size())
         .forEach(i->acc.set(folder.apply(acc.get(), as.get(i), bs.get(i))));
       return acc.get();
     }
-    public boolean anyMatch(BiPredicate<A,B> test){
+    @Override public boolean anyMatch(BiPredicate<A, B> test){
       return IntStream.range(0, as.size())
         .anyMatch(i->test.test(as.get(i),bs.get(i)));
     }
-    public boolean allMatch(BiPredicate<A,B> test){
+    @Override public boolean allMatch(BiPredicate<A, B> test){
       return IntStream.range(0, as.size())
         .allMatch(i->test.test(as.get(i),bs.get(i)));
     }
-    public boolean allMatchParallel(BiPredicate<A,B> test){
+    @Override public boolean allMatchParallel(BiPredicate<A, B> test){
       return IntStream.range(0, as.size())
         .parallel()
         .allMatch(i->test.test(as.get(i),bs.get(i)));
+    }
+  }
+  private record ArrayZipper<A,B>(A[] as, B[] bs) implements Zipper<A,B> {
+    @Override public void forEach(BiConsumer<A, B> f){
+      IntStream.range(0, as.length).forEach(i->f.accept(as[i], bs[i]));
+    }
+    @Override public <R> Stream<R> map(BiFunction<A, B, R> f){
+      return IntStream.range(0, as.length).mapToObj(i->f.apply(as[i],bs[i]));
+    }
+    @Override public <R> Stream<R> parallelMap(BiFunction<A, B, R> f){
+      return IntStream.range(0, as.length).parallel().mapToObj(i->f.apply(as[i],bs[i]));
+    }
+    @Override public <R> Stream<R> flatMap(BiFunction<A, B, Stream<R>> f){
+      return IntStream.range(0, as.length).boxed().flatMap(i->f.apply(as[i],bs[i]));
+    }
+    @Override public <R> Stream<R> filterMap(BiFunction<A, B, Optional<R>> f){
+      return IntStream.range(0, as.length)
+        .mapToObj(i->f.apply(as[i],bs[i]))
+        .filter(Optional::isPresent)
+        .map(Optional::get);
+    }
+    @Override public Zipper<A,B> filter(BiPredicate<A, B> f){
+      var asi = new ArrayList<A>();
+      var bsi = new ArrayList<B>();
+      IntStream.range(0, as.length)
+        .filter(i->f.test(as[i],bs[i]))
+        .forEachOrdered(i->{
+          asi.add(as[i]);
+          bsi.add(bs[i]);
+        });
+      return new ListZipper<>(asi, bsi);
+    }
+    @Override public <R> R fold(Acc<R, A, B> folder, R initial) {
+      Box<R> acc = new Box<>(initial);
+      IntStream.range(0, as.length)
+        .forEach(i->acc.set(folder.apply(acc.get(), as[i], bs[i])));
+      return acc.get();
+    }
+    @Override public boolean anyMatch(BiPredicate<A, B> test){
+      return IntStream.range(0, as.length)
+        .anyMatch(i->test.test(as[i],bs[i]));
+    }
+    @Override public boolean allMatch(BiPredicate<A, B> test){
+      return IntStream.range(0, as.length)
+        .allMatch(i->test.test(as[i],bs[i]));
+    }
+    @Override public boolean allMatchParallel(BiPredicate<A, B> test){
+      return IntStream.range(0, as.length)
+        .parallel()
+        .allMatch(i->test.test(as[i],bs[i]));
     }
   }
 

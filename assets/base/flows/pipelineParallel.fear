@@ -5,7 +5,7 @@ _PipelineParallelSink: _Sink{
   }
 _PipelineParallelSink[T]: _Sink[T]
 
-_PipelineParallelFlow: {
+_PipelineParallelFlow: _FlowFactory{
   .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
     .unwrapOp(_) -> source,
     // non-terminals
@@ -16,7 +16,8 @@ _PipelineParallelFlow: {
       this.fromOp(_Actor#[S,E,R](_PipelineParallelSink, source, state, f), {}),
     mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
       this.fromOp(_Actor.anyRet[S,E,R](_PipelineParallelSink, source, state, f), {}),
-    .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), size),
+    .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), _LimitSize#(n, size)),
+    .with(other) -> this.fromOp(_With#(_PipelineParallelSink, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
 
     // terminals
     mut .first: mut Opt[E] -> Block#
@@ -64,14 +65,6 @@ _PipelineParallelFlow: {
       .do {source.stop}
       .return {res.get},
 
-    .find(p) -> self.findMap{e -> p#e ? {.then -> Opts#e, .else -> {}}},
-    .any(p) -> self
-      .findMap{e -> p#e ? {.then -> Opts#True, .else -> {}}}
-      .isSome,
-    .all(p) -> self
-      .findMap{e -> p#e ? {.then -> {}, .else -> Opts#False}}
-      .isEmpty,
-
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .let[mut Var[S]] acc' = {Var#acc}
@@ -86,29 +79,27 @@ _PipelineParallelFlow: {
         })}
       .do {source.stop}
       .return {acc'.get},
-    // Pipeline parallel flows do not split so no combine is needed
-    .fold(acc, f, combine) -> self.fold(acc, f),
 
-    .size -> size.match[Nat]{
+    .size -> size.match{
       .some(n) -> n,
       .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
       },
     },
 
-  #[E](e: E): mut Flow[E] -> Block#
-    .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
-    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
-      .isRunning -> seq.get.isSome,
-      .stop -> seq := {},
-      .step(downstream) -> seq.swap(mut Opt[E]).match{
-        .some(x) -> downstream#x,
-        .empty -> Block#(downstream.stop, self.stop),
-        },
-      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
-        .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
-        .empty -> Block#(downstream.stop, self.stop),
-        },
-      }}
-    .return {this.fromOp(source, Opts#[Nat]1)},
-//    .return {this.fromOp(source, Opts#1)},
+  #[E](e: E): mut Flow[E] -> Error.msg "_PipelineParallelFlow# should not be reachable",
+//  #[E](e: E): mut Flow[E] -> Block#
+//    .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
+//    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
+//      .isRunning -> seq.get.isSome,
+//      .stop -> seq := {},
+//      .step(downstream) -> seq.swap(mut Opt[E]).match{
+//        .some(x) -> downstream#x,
+//        .empty -> Block#(downstream.stop, self.stop),
+//        },
+//      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+//        .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
+//        .empty -> Block#(downstream.stop, self.stop),
+//        },
+//      }}
+//    .return {this.fromOp(source, Opts#[Nat]1)},
   }

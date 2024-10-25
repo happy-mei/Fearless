@@ -50,31 +50,8 @@ public class Program implements program.Program{
     return of(t).pos();
   }
 
-  @Override public Program shallowClone() {
-    var subTypeCache = new HashMap<>(this.subTypeCache);
-    var methsCache = new HashMap<>(this.methsCache);
-    return new Program(tsf, ds){
-      @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
-        return subTypeCache;
-      }
-      @Override public HashMap<MethsCacheKey, List<NormResult>> methsCache() {
-        return methsCache;
-      }
-    };
-  }
-
   @Override public TypeSystemFeatures tsf() {
     return this.tsf;
-  }
-
-  private final HashMap<SubTypeQuery, SubTypeResult> subTypeCache = new HashMap<>();
-  @Override public HashMap<SubTypeQuery, SubTypeResult> subTypeCache() {
-    return subTypeCache;
-  }
-
-  private final HashMap<MethsCacheKey, List<NormResult>> methsCache = new HashMap<>();
-  @Override public HashMap<MethsCacheKey, List<NormResult>> methsCache() {
-    return methsCache;
   }
 
   public T.Dec of(Id.DecId d) {
@@ -109,7 +86,7 @@ public class Program implements program.Program{
     var bounds = XBs.empty().addBounds(gxs, Mapper.of(xbs->d.bounds().forEach((gx,bs)->xbs.put(new Id.GX<>(gx.name()), bs))));
     return d.lambda().meths().stream()
       .filter(mi->mi.sig().isPresent())
-      .map(mi->cm(recvMdf, t, mi, bounds, f))
+      .map(mi->cm(t, mi, bounds, f))
       .toList();
   }
   @Override public CM plainCM(CM fancyCM){
@@ -128,10 +105,10 @@ public class Program implements program.Program{
     return of(t).gxs().stream().map(Id.GX::toAstGX).collect(Collectors.toSet());
   }
 
-  private NormResult cm(Mdf recvMdf, Id.IT<ast.T> t, astFull.E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
+  private NormResult cm(Id.IT<ast.T> t, astFull.E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
     // This is doing C[Ts]<<Ms[Xs=Ts] (hopefully)
     var sig=mi.sig().orElseThrow();
-    var cm = CM.of(t, mi, TypeRename.coreRec(recvMdf).renameSig(InjectionVisitor.of().visitSig(sig), xbs, f));
+    var cm = CM.of(t, mi, TypeRename.core().renameSig(InjectionVisitor.of().visitSig(sig), xbs, f));
     return norm(cm);
   }
   private CM cmCore(Id.IT<ast.T> t, astFull.E.Meth mi, XBs xbs, Function<Id.GX<ast.T>, ast.T> f){
@@ -143,7 +120,7 @@ public class Program implements program.Program{
   public Map<Id.DecId, T.Dec> ds() { return this.ds; }
   public Map<Id.DecId, T.Dec> inlineDs() { return this.inlineDs; }
 
-  private final HashMap<Id.DecId, Set<Id.DecId>> superDecIdsCache = new HashMap<>();
+  private final Map<Id.DecId, Set<Id.DecId>> superDecIdsCache = new HashMap<>();
   public Set<Id.DecId> superDecIds(Id.DecId start) {
     if (superDecIdsCache.containsKey(start)) { return superDecIdsCache.get(start); }
 
@@ -172,16 +149,17 @@ public class Program implements program.Program{
   }
 
   /**
-   * Applies inference 5a
+   * Applies inference 5a. This is not safe to parallelise.
    */
   public astFull.Program inferSignatures(){
     var is=new InferSignatures(this);
     for (int i : Range.of(is.decs)){
+      this.reset();
       var di = is.inferSignatures(is.decs.get(i));
       is.updateDec(di,i);
     }
-    this.reset();
     for (int i : Range.of(is.inlineDecs)){
+      this.reset();
       var di = is.inferInlineSignatures(is.inlineDecs.get(i));
       is.updateInlineDec(di,i);
     }
@@ -203,7 +181,9 @@ public class Program implements program.Program{
       // Do a topological sort on the dep graph (should be a DAG) so we infer parents before children.
       // Just using Kahn's algorithm here
       var sorted = new ArrayList<T.Dec>();
-      var roots = ds.stream().filter(d->d.lambda().its().isEmpty()).collect(Collectors.toCollection(ArrayDeque::new));
+      var roots = ds.stream()
+        .filter(InferSignatures::hasNoSuperTypeInDs)
+        .collect(Collectors.toCollection(ArrayDeque::new));
       var unvisited = roots.stream().map(T.Dec::name).collect(Collectors.toCollection(HashSet::new));
       var visited = new HashSet<Id.DecId>(ds.size());
       while (!roots.isEmpty()) {
@@ -223,6 +203,9 @@ public class Program implements program.Program{
       assert unvisited.isEmpty();
       assert sorted.size() == ds.size();
       return sorted;
+    }
+    private static boolean hasNoSuperTypeInDs(T.Dec d) {
+      return d.lambda().its().isEmpty() || d.lambda().its().stream().anyMatch(it->Magic.isLiteral(it.name().name()));
     }
     private void updateDec(T.Dec d, int i) {
       assert !p.inlineDs().containsKey(d.name());

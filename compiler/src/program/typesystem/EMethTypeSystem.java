@@ -10,11 +10,14 @@ import id.Mdf;
 import program.CM;
 import program.Program;
 import program.TypeRename;
+import program.TypeTable;
 import utils.Push;
 import utils.Range;
 
 import java.util.*;
 import java.util.stream.IntStream;
+
+import static program.typesystem.SubTyping.isSubType;
 
 /*//as in the paper
   Ls; Xs';G; empty |- e0 : RC0 D[Ts0]
@@ -61,12 +64,16 @@ public interface EMethTypeSystem extends ETypeSystem {
   private CM applyGenerics(CM cm, List<T> ts){
     var renamer = TypeRename.core();
     var gens= cm.sig().gens();
-    //var xbs= xbs().addBounds(gens, sig.bounds());//No? from 2 different scopes?
+    // We could do a bounds check here (like below) but we don't (see the comment later in this method)
+//    var boundsCheck = GenericBounds.validGenericMeth(p(), xbs(), cm, ts);
+//    if (boundsCheck.isPresent()) {
+//      return FailOr.err(boundsCheck.get());
+//    }
     var transformer= renamer.renameFun(ts, gens);
     Sig res=renamer.renameSigOnMCall(cm.sig(),xbs(),transformer);
-    //Note: from this point on sig have 'generics' that have
-    //already been replaced. Removed for clarity.
-    res= new Sig(List.of(),Map.of(),res.ts(),res.ret(),res.pos());
+    // I am keeping the original generics/bounds on this renamed sig so we can validate the replacement was valid.
+    // We need to do this later (rather than before/as part of the replacement) because we only want to check if
+    // the replacement is valid for the specific sig we are selecting in the case of an overloaded receiver RC.
     return cm.withSig(res);
   }
   private FailOr<T> visitMCall(Mdf mdf0, IT<T> recvIT, E.MCall e) {
@@ -74,28 +81,33 @@ public interface EMethTypeSystem extends ETypeSystem {
       .map(s->applyGenerics(s,e.ts()))
       .sorted(Comparator.comparingInt(cm->
           EMethTypeSystem.recvPriority.indexOf(cm.mdf())))
-      .toList();    
+      .toList();
     CM selected = selectOverload(e,sigs,mdf0,recvIT);
-    List<T> ts = selected.sig().ts();
-    TsT tst = new TsT(ts,selected.ret(),selected);
-    resolvedCalls().put(e.callId(), tst);
+    var boundsCheck = GenericBounds.validGenericMCall(p(), xbs(), selected, e.ts());
+    if (boundsCheck instanceof FailOr.Fail<Void> fail) {
+      return fail.mapErr(err->()->err.get().pos(e.pos())).cast();
+    }
 
     var multi_ = MultiSigBuilder.multiMethod(
-      xbs(),selected.mdf(),//bounds,formalMdf
+      p(),
+      e.name(),
+      xbs(),
+      selected.mdf(),//bounds,formalMdf
       selected.sig().ts(),//formalTs
       selected.sig().ret(),//formalRet,
       mdf0,this.expectedT()//mdf0,expectedRes
     );
     var multiErr = multi_.asOpt();
-    if (multiErr.isPresent()) { return FailOr.err(multiErr.get()); }
+    if (multiErr.isPresent()) {return FailOr.err(multiErr.get());}
     var multi = multi_.get();
 
     FailOr<List<T>> ft1n= FailOr.fold(
       Range.of(e.es()),
       i-> e.es().get(i).accept(multi.expectedT(this, i))
     );
-    return ft1n.flatMap(t1n->selectResult(e,multi,t1n));
+    return ft1n.flatMap(t1n->selectResult(e, selected, multi, t1n));
   }
+
   private CM selectOverload(E.MCall e, List<CM> sigs, Mdf mdf0, IT<T> recvIT){
     if(sigs.size()==1){ return sigs.getFirst(); }
     return sigs.stream()
@@ -109,36 +121,36 @@ public interface EMethTypeSystem extends ETypeSystem {
     Mdf methMdf= cm.mdf();//however, mutH/readH are relaxing the method signature
     if(methMdf.isRead()){ methMdf = Mdf.readH; }//not enriching the parameter type
     if(methMdf.isMut()){ methMdf = Mdf.mutH; }
-    if (!Program.isSubType(mdf0,methMdf)){ return false; }
+    if (!isSubType(mdf0,methMdf)){ return false; }
     if (expectedT().isEmpty()){ return true; }
     //should we consider return types?
     return true;
   }
-  private FailOr<T> selectResult(E.MCall e, MultiSig multi,List<T> t1n){
+  private FailOr<T> selectResult(E.MCall e, CM selected, MultiSig multi, List<T> t1n){
     assert multi.tss().size()==t1n.size();//That is, tss does not have 'this'?
     var sel= IntStream.range(0, multi.rets().size())
       .filter(i->ok(multi,i,t1n))
       .boxed()
       .findFirst();
-   return sel
-     .map(i->successType(e,i,multi))
-     .orElse(FailOr.err(()->Fail.invalidMethodArgumentTypes(e,t1n,multi,expectedT())));
+    return sel
+      .map(i->successType(e,selected,i,multi))
+      .orElse(FailOr.err(()->Fail.invalidMethodArgumentTypes(e,t1n,multi,expectedT())));
   }
-  private FailOr<T> successType(E.MCall e, int i, MultiSig multi){
+  private FailOr<T> successType(E.MCall e, CM selected, int i, MultiSig multi){
+    Mdf mdf = multi.recvMdfs().get(i);
+    List<T> ts= multi.tss().stream().map(tsj->tsj.get(i)).toList();
     T ret= multi.rets().get(i);
-//    List<T> ts= multi.tss().stream().map(tsj->tsj.get(i)).toList();
-//    TsT tst=new TsT(ts,ret,null);
-//    resolvedCalls().put(e.callId(), tst);
+    TsT tst = new TsT(mdf, ts, ret, selected);
+    resolvedCalls().put(e.callId(), tst);
     return FailOr.res(ret);
   }
   private boolean ok(MultiSig multi,int i,List<T> t1n){
     return IntStream.range(0, t1n.size()).allMatch(j->{
       var actualT= t1n.get(j);
       var formalT= multi.tss().get(j).get(i);//current par index, current attempt
-      return p().isSubType(xbs(),actualT,formalT); 
+      return p().isSubType(xbs(),actualT,formalT);
     });
   }
-
 }
   
   

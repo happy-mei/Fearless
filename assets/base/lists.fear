@@ -1,6 +1,6 @@
 package base
 
-Collection:{
+Collection: {
   read .size: Nat,
   read .isEmpty: Bool,
   // I might make this generic and have a .iter method on this
@@ -151,33 +151,24 @@ LList[E]:Collection,Sealed{
 //        }
 //      },
   }
-LListMatch[E,R]:{
+LListMatch[E,R]: {
   mut .elem(head: E, tail: mut LList[E]): R,
   mut .empty: R,
   }
-LListMatchRead[E,R]:{
+LListMatchRead[E,R]: {
   mut .elem(head: read/imm E, tail: read LList[E]): R,
   mut .empty: R,
   }
 
-List:{
-  #[E]: mut List[E] -> _List.new(Var#(_ListState#[E](0, {}))),
-  #[E](e1: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e1)),
-  #[E](e1: E, e2: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e2).pushFront(e1)),
+List: Sealed{
+  #[E]: mut List[E] -> Magic!,
+  #[E](e1: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E): mut List[E] -> Magic!,
   // TODO: this up to 12 or something
-  #[E](e1: E, e2: E, e3: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e3).pushFront(e2).pushFront(e1)),
-  #[E](e1: E, e2: E, e3: E, e4: E): mut List[E] -> this.fromLList[E](mut LList[E].pushFront(e4).pushFront(e3).pushFront(e2).pushFront(e1)),
-  .fromLList[E](list: mut LList[E]): mut List[E] -> _List.new(Var#(_ListState#[E](list.size, list))),
-  }
-_List:{
-  .new[E](s: mut Var[mut _ListState[E]]): mut List[E] -> {'l
-    .size -> s*.size,
-    .isEmpty -> s*.inner.isEmpty,
-    .get(i) -> s*.inner.get(i),
-    .tryGet(i) -> s*.inner.tryGet(i),
-    .add(e) -> s := (_ListState#[E](s*.size + 1, s*.inner + e)),
-    .clear -> s := (_ListState#[E](0, {})),
-    }
+  #[E](e1: E, e2: E, e3: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E): mut List[E] -> Magic!,
+  .fromLList[E](list: mut LList[E]): mut List[E] -> Magic!,
+  .withCapacity[E](capacity: Nat): mut List[E] -> Magic!,
   }
 List[E]: Collection,Sealed{
   mut  .get(i: Nat): E,
@@ -189,9 +180,29 @@ List[E]: Collection,Sealed{
   imm  .tryGet(i: Nat): mut Opt[imm E],
 
   mut .add(e: E): Void,
+  mut +(e: E): mut List[E] -> Block#(this.add(e), this),
   mut .addAll(other: mut List[E]): Void -> other.iter.for{e -> this.add(e)},
 
   mut .clear: Void,
+
+  mut  ==(eq: read F[E, E, Bool], other: mut List[E]): Bool ->
+    this.size == (other.size)
+    && {this.flow
+      .with(other.flow)
+      .all{ab -> eq#(ab.a, ab.b)}
+      },
+  read ==(eq: read F[read/imm E, read/imm E, Bool], other: read List[E]): Bool ->
+    this.size == (other.size)
+    && {this.flow
+      .with(other.flow)
+      .all{ab -> eq#(ab.a, ab.b)}
+      },
+  imm  ==(eq: F[imm E, imm E, Bool], other: List[E]): Bool ->
+    this.size == (other.size)
+    && {this.flow
+      .with(other.flow)
+      .all{ab -> eq#(ab.a, ab.b)}
+      },
 
   mut .flow: mut Flow[E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(0)}
@@ -206,33 +217,54 @@ List[E]: Collection,Sealed{
         .empty -> Block#(downstream.stop, self.stop),
         },
       }, this.size)},
-  read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread), this.size),
-  read ._flowread: mut FlowOp[read/imm E] -> Block#
-    .let[mut Count[Nat]] cursor = {Count.nat(0)}
+  read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread(0, this.size)), this.size),
+  read ._flowread(start: Nat, end: Nat): mut FlowOp[read/imm E] -> Block#
+    .let[mut Count[Nat]] cursor = {Count.nat(start)}
+    .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {{'self
-      .isRunning -> cursor* < (this.size),
-      .stop -> cursor := (this.size),
-      .step(downstream) -> this.tryGet(cursor++).match{
-        .some(x) -> Block#
-          .do {downstream#x}
-          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+      .isRunning -> cursor* < (endCursor.get),
+      .stop -> cursor := (endCursor.get),
+      .step(downstream) -> cursor.get < (endCursor.get) ? {
+        .then -> Block#
+          .do {downstream#(this.get(cursor++))}
+          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stop, self.stop)}
           .return {{}},
-        .empty -> Block#(downstream.stop, self.stop),
+        .else -> Block#(downstream.stop, self.stop),
         },
+      .split -> self.canSplit ? {
+        .else -> {},
+        .then -> Block#
+          .let cur = {cursor.get}
+          .let[Nat] mid = {cur + ((endCursor.get - cur) / 2)}
+          .let[Nat] end' = {endCursor.swap(mid)}
+          .return {Opts#(this._flowread(mid, end'))},
+        },
+      .canSplit -> endCursor.get - (cursor.get) > 1,
       }},
-  imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm), this.size),
-  imm ._flowimm: mut FlowOp[imm E] -> Block#
-    .let[mut Count[Nat]] cursor = {Count.nat(0)}
+  imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm(0, this.size)), this.size),
+  imm ._flowimm(start: Nat, end: Nat): mut FlowOp[imm E] -> Block#
+    .let[mut Count[Nat]] cursor = {Count.nat(start)}
+    .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {{'self
-      .isRunning -> cursor* < (this.size),
-      .stop -> cursor := (this.size),
-      .step(downstream) -> this.tryGet(cursor++).match{
-        .some(x) -> Block#
-          .do {downstream#x}
-          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+      .isRunning -> cursor* < (endCursor.get),
+      .stop -> cursor := (endCursor.get),
+      .step(downstream) -> cursor.get < (endCursor.get) ? {
+        .then -> Block#
+          .do {downstream#(this.get(cursor++))}
+          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stop, self.stop)}
           .return {{}},
-        .empty -> Block#(downstream.stop, self.stop),
+        .else -> Block#(downstream.stop, self.stop),
         },
+      // TODO: I could have a larger threshold check and refuse to split for lists that are too small here if I want
+      .split -> self.canSplit ? {
+        .else -> {},
+        .then -> Block#
+          .let cur = {cursor.get}
+          .let[Nat] mid = {cur + ((endCursor.get - cur) / 2)}
+          .let[Nat] end' = {endCursor.swap(mid)}
+          .return {Opts#(this._flowimm(mid, end'))},
+        },
+      .canSplit -> endCursor.get - (cursor.get) > 1,
       }},
 
   mut .iter: mut Iter[E] -> Let#{
@@ -248,24 +280,61 @@ List[E]: Collection,Sealed{
     .in(cursor) -> { .next -> this.tryGet(cursor++) }
     },
   }
-_ListState[E]:{
-  read .size: Nat,
-  mut .inner: mut LList[E],
-  read .inner: read LList[E],
-  }
-_ListState:{
-  #[E](len: Nat, inner: mut LList[E]): mut _ListState[E] -> {
-    .size -> len,
-    .inner -> inner
-    }
-  }
 
-/// A list that can be appended to, then iterated over. Elements cannot be removed from this list.
-/// After the list is built, it may no longer be modified. This data structure is equivalent to
-/// Java's SpinedBuffer.
-AppendList[E]: Collection{
-  mut  .get(i: Nat): mut Opt[E],
-  read .get(i: Nat): mut Opt[read E],
-  imm  .get(i: Nat): iso Opt[imm E],
-  mut .append(e: E): Void,
+// Right now this is invalid if the list gets mutated for any reason, Could Repr help?
+ListView[E]: List[E]{
+  read .inner: read List[E],
+  /// Get an item with its original RC by providing a reference to the original mutable list.
+  read .expose(list: mut List[E], i: Nat): E,
+  read .tryExpose(list: mut List[E], i: Nat): mut Opt[E],
+  }
+ListViews: {
+  .subList[E](list: read List[E], from: Nat, to: Nat): read ListView[E] -> Block#
+    .assert({from <= to}, "Invalid range for the list proxy, "+(from.str)+" is greater than "+(to.str))
+    .assert({to <= (list.size)}, "Invalid range for the list proxy, "+(to.str)+" is greater than the list size ("+(list.size.str)+")")
+    .return {{'self
+      .inner -> list,
+      .size -> to - from,
+      .isEmpty -> self.size == 0,
+      .expose(rawList, i) -> i < (self.size) ? {
+        .then -> rawList.get(from + i),
+        .else -> Error.msg("Index "+(i.str)+" is out of bounds for this list")
+        },
+      .tryExpose(rawList, i) -> i < (self.size) ? {
+        .then -> rawList.tryGet(from + i),
+        .else -> {}
+        },
+      read .get(i: Nat): read/imm E -> i < (self.size) ? {
+        .then -> list.get(from + i),
+        .else -> Error.msg("Index "+(i.str)+" is out of bounds for this list")
+        },
+      imm  .get(i: Nat): imm E -> i < (self.size) ? {
+        .then -> list.get(from + i),
+        .else -> Error.msg("Index "+(i.str)+" is out of bounds for this list")
+        },
+      read .tryGet(i: Nat): mut Opt[read/imm E] -> i < (self.size) ? {
+        .then -> list.tryGet(from + i),
+        .else -> {}
+        },
+      imm  .tryGet(i: Nat): mut Opt[imm E] -> i < (self.size) ? {
+        .then -> list.tryGet(from + i),
+        .else -> {}
+        },
+      }},
+
+  .indexMap[E](list: read List[E], mappings: List[Nat]): read ListView[E] -> Block#
+    .assert({mappings.size == (list.size)}, "The mappings list must be the same size as the original list ("+(mappings.size.str)+" vs. "+(list.size.str)+")")
+    .return {{'self
+      .inner -> list,
+      .size -> list.size,
+      .isEmpty -> list.isEmpty,
+      .expose(rawList, i) -> Assert!(
+        rawList.size == (mappings.size), "The provided list must be the same size as the list this is proxying ("+(rawList.size.str)+" vs. "+(mappings.size.str)+")",
+        {rawList.get(mappings.get(i))}
+        ),
+      .tryExpose(rawList, i) -> mappings.tryGet(i).flatMap{i' -> rawList.tryGet(i')},
+      .get(i) -> list.get(mappings.get(i)),
+      read .tryGet(i: Nat): mut Opt[read/imm E] -> mappings.tryGet(i).flatMap{i' -> list.tryGet(i')},
+      imm  .tryGet(i: Nat): mut Opt[imm E] -> mappings.tryGet(i).flatMap{i' -> list.tryGet(i')},
+      }},
   }

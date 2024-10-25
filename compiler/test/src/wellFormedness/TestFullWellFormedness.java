@@ -23,7 +23,7 @@ public class TestFullWellFormedness {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     var res = new WellFormednessFullShortCircuitVisitor().visitProgram(p);
     var isWellFormed = res.isEmpty();
     assertTrue(isWellFormed, res.map(Object::toString).orElse(""));
@@ -36,7 +36,7 @@ public class TestFullWellFormedness {
       .toList();
 
     try {
-      var p = Parser.parseAll(ps, TypeSystemFeatures.of());
+      var p = Parser.parseAll(ps, new TypeSystemFeatures());
       var error = new WellFormednessFullShortCircuitVisitor().visitProgram(p);
       if (error.isEmpty()) { Assertions.fail("Did not fail"); }
       Err.strCmp(expectedErr, error.map(Object::toString).orElseThrow());
@@ -355,7 +355,7 @@ public class TestFullWellFormedness {
     A: {#: mutH A -> mutH A}
     """); }
   @Test void noReadOnlyLambdaCreation() { fail("""
-    In position [###]/Dummy0.fear:2:30
+    In position [###]/Dummy0.fear:2:24
     [E63 invalidLambdaMdf]
     readH is not a valid modifier for a lambda.
     """, """
@@ -397,15 +397,10 @@ public class TestFullWellFormedness {
     A: {#: Nat -> 5}
     Nat: {}
     """); }
-  @Test void invalidDecimalInt(){ fail("""
-    In position [###]/Dummy0.fear:2:14
-    [E59 syntaxError]
-    +5.556/0 is not a valid type name.
-    """,
-    """
+  @Test void invalidDecimalInt(){ ok("""
     package a
-    A: {#: Nat -> +5.556}
-    Nat: {}
+    A: {#: Float -> +5.556}
+    Float: {}
     """); }
   @Test void noMultiplePointsInFloat() {fail("""
     In position [###]/Dummy0.fear:2:16
@@ -421,6 +416,40 @@ public class TestFullWellFormedness {
     A: {#: Str -> "Hello"}
     Str: {}
     """); }
+
+  @Test void noFreeGensFunnelling() { fail("""
+    In position [###]/Dummy0.fear:2:52
+    [E56 freeGensInLambda]
+    The declaration name for a lambda must include all type variables used in the lambda. The declaration name test.Person[] does not include the following type variables: N
+    """, """
+    package test
+    FPerson:{ #[N](name: Str, age: N): Person -> Person:{
+      .name: Str -> name,
+      .age: N -> age,
+      }}
+    """, """
+    package test
+    Str:{} Bob:Str{}
+    Nat:{} TwentyFour:Nat{}
+    """); }
+  @Test void nonExistentImplInline() {fail("""
+    In position [###]/Dummy0.fear:3:42
+    [E28 undefinedName]
+    The identifier "Break" is undefined or cannot be captured.
+    """, """
+    package test
+    A[X:mut]: {}
+    BreakOuter: {#: BreakInner -> BreakInner: A[imm Break]}
+    """);}
+  @Test void nonExistentGenInline() {fail("""
+    In position [###]/Dummy0.fear:3:49
+    [E56 freeGensInLambda]
+    The declaration name for a lambda must include all type variables used in the lambda. The declaration name test.BreakInner[] does not include the following type variables: Z
+    """, """
+    package test
+    A[X:mut]: {}
+    BreakOuter[Z:mut]: {#: BreakInner -> BreakInner: A[Z]}
+    """);}
 
   @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {
     var code = String.format("""
@@ -443,6 +472,6 @@ public class TestFullWellFormedness {
   }
 
   @Provide Arbitrary<Mdf> methMdfs() {
-    return Arbitraries.of(Arrays.stream(Mdf.values()).filter(mdf->!mdf.isMdf() && !mdf.isReadImm()).toList());
+    return Arbitraries.of(Arrays.stream(Mdf.values()).filter(mdf->!mdf.is(Mdf.mdf, Mdf.iso, Mdf.mutH, Mdf.readH, Mdf.readImm)).toList());
   }
 }

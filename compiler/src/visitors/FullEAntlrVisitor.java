@@ -17,6 +17,7 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import astFull.E.Lambda.LambdaId;
+import parser.ParseDirectLambdaCall;
 import utils.*;
 
 import java.nio.file.Path;
@@ -125,14 +126,15 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   E desugar(E root,List<Call> tail){
     if(tail.isEmpty()){ return root; }
-    var head = tail.get(0);
+    var head = tail.getFirst();
     var newTail = Pop.left(tail);
     var m = head.m();
     var ts=head.mGen();
+    var recv = ParseDirectLambdaCall.of(root, xbs);
     if(head.x().isPresent()){
       var x = head.x().get();
       assert head.es().size() == 1;
-      var e = head.es().get(0);
+      var e = head.es().getFirst();
       var freshRoot = new E.X(T.infer);
       var rest = desugar(freshRoot, newTail);
 
@@ -146,10 +148,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         Optional.empty(),
         Optional.of(head.pos())
       );
-      return new E.MCall(root, new MethName(Optional.empty(), m.name(), 2), ts, List.of(e, cont), T.infer, Optional.of(head.pos()));
+      return new E.MCall(recv, new MethName(Optional.empty(), m.name(), 2), ts, List.of(e, cont), T.infer, Optional.of(head.pos()));
     }
     var es=head.es();
-    E res=new E.MCall(root, new MethName(Optional.empty(), m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
+    E res=new E.MCall(recv, new MethName(Optional.empty(), m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
     return desugar(res,newTail);
   }
   public Optional<List<T>> visitMGen(MGenContext ctx, boolean isDecl){
@@ -203,13 +205,12 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         .filter(Objects::nonNull));
   }
   @Override public E.Lambda visitLambda(LambdaContext ctx){
-
     var oldXbs = this.xbs;
     E.Lambda res;
     if (ctx.topDec() != null) {
       String cName = visitFullCN(ctx.topDec().fullCN());
       if (Magic.isLiteral(cName)) {
-        throw Fail.syntaxError(STR."\{pkg}.\{cName} is not a valid type name.").pos(pos(ctx));
+        throw Fail.syntaxError(pkg + "." + cName + " is not a valid type name.").pos(pos(ctx));
       }
       if (cName.contains(".")) {
         throw Fail.crossPackageDeclaration().pos(pos(ctx));
@@ -251,15 +252,22 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         id.gens().stream().map(gx->new T(Mdf.mdf, gx)).toList());
       inferredOpt = Optional.of(nameId);
     }
-    if(inferredOpt.isEmpty()&& !its.isEmpty()) {
-      inferredOpt = Optional.of(its.get(0));
+    if(inferredOpt.isEmpty() && !its.isEmpty()) {
+      inferredOpt = Optional.of(its.getFirst());
       if(mdf.isEmpty()){ mdf = Optional.of(Mdf.imm); }
     }
     //TODO: inferredOpt may itself disappear since we have nameId in id.
     var bb = ctx.bblock();
-    if(bb==null || bb.children==null){
-      return new E.Lambda(name.orElseGet(emptyTopName),
-        mdf, its, null, List.of(), inferredOpt, Optional.of(pos(ctx)));
+    if (bb==null || bb.children==null) {
+      return new E.Lambda(
+        name.orElseGet(emptyTopName),
+        mdf,
+        its,
+        null,
+        List.of(),
+        inferredOpt,
+        Optional.of(pos(ctx))
+      );
     }
     var _x=bb.SelfX();
     var _n=_x==null?null:_x.getText().substring(1);
@@ -268,8 +276,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     List<E.Meth> mms=_ms==null?List.of():_ms;
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
     var meths = mms;
-    return new E.Lambda(id, mdf, its, _n,
-      meths,inferredOpt, Optional.of(pos(ctx)));
+    return new E.Lambda(id, mdf, its, _n, meths, inferredOpt, Optional.of(pos(ctx)));
   }
   @Override public String visitFullCN(FullCNContext ctx) {
     return ctx.getText();
@@ -372,7 +379,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     check(ctx);
     String cName = visitFullCN(ctx.fullCN());
     if (Magic.isLiteral(cName)) {
-      throw Fail.syntaxError(STR."\{pkg}.\{cName} is not a valid type name.").pos(pos(ctx));
+      throw Fail.syntaxError(pkg + "." + cName + " is not a valid type name.").pos(pos(ctx));
     }
     if (cName.contains(".")) {
       throw Fail.crossPackageDeclaration().pos(pos(ctx));

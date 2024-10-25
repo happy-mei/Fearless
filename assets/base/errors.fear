@@ -11,24 +11,29 @@ Error: {
 
 Todo: {
   ![R:read,mut,imm,iso,mutH,readH]: R -> Error.msg[R] "TODO: Implement this code",
-  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("TODO: "+msg),
-}
+  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("TODO: " + msg),
+  }
+
+Unreachable: {
+  ![R:read,mut,imm,iso,mutH,readH]: R -> Error.msg[R] "Unreachable code reached",
+  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("Unreachable code reached: " + msg),
+  }
 
 /// Strong exception safety is upheld:
 /// The operation has either completed successfully or thrown an exception,
 // leaving the program state exactly as it was before the operation started.
 Try: {
-  #[R](try: read Try[R]): mut Res[R,Info] -> Magic!,
+  #[R](try: read Try[R]): mut Action[R] -> Magic!,
   }
 Try[R]:{ read #: R, }
 
-Info: Sealed,_InfoToJson{
+Info: Sealed{
   .msg: Str,
   .map: Map[Str, Info],
   .list: List[Info],
   .str: Str -> _InfoToJson#this,
   }
-FInfo: {
+Infos: {
   .msg(msg: Str): Info -> {
     .msg -> msg,
     .list -> List#,
@@ -46,13 +51,15 @@ FInfo: {
     },
   }
 
-_InfoToJson: {#(info: Info): Str -> Block#
-  .if {info.msg.isEmpty.not} .return {"\""+(info.msg)+"\""}
-  .if {info.list.isEmpty.not} .return {"["+(this.list(info.list))+"]"}
-  .if {info.map.isEmpty.not} .return {Todo! "Flows over maps are not implemented yet"}
-  .return {Error.msg "Unreachable"},
+// TODO: needs to escape contents of info.msg
+_InfoToJson: {
+  #(info: Info): Str -> Block#
+    .if {info.msg.isEmpty.not} .return {"\""+(info.msg)+"\""}
+    .if {info.list.isEmpty.not} .return {"["+(this.list(info.list))+"]"}
+    .if {info.map.isEmpty.not} .return {Todo! "Flows over maps are not implemented yet"}
+    .return {Unreachable!},
 
   .list(l: List[Info]): Str -> l.flow
     .map{info->this#info}
-    #(Flow.str ","),
+    .join ", ",
   }

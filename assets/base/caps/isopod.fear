@@ -2,20 +2,24 @@ package base.caps
 
 // Allowing imm in the bounds for the convenience of being able to write IsoPod[Str] instead of IsoPod[iso Str]
 IsoPod:{
-  #[T:iso](val: iso T): mut IsoPod[iso T] -> _MagicIsoPodImpl.toIsoPod[iso T](_MagicIsoPodImpl#[iso T](val)),
+  #[T:imm,iso](val: iso T): mut IsoPod[iso T] -> _MagicIsoPodImpl.toIsoPod[iso T](_MagicIsoPodImpl#[iso T](val)),
   }
 IsoPod[T:imm,iso]: {
-  readH .isAlive: Bool,
-  readH .peek[R](f: mut IsoViewer[T, R]): R,
+  read .isAlive: Bool,
+  read .peek[R](f: mut IsoViewer[T, R]): R,
+  read .look[R](f: mut IsoViewer'[T, R]): mut Action[R] -> {m -> this.peek{
+    .some(x) -> m.ok(f#x),
+    .empty -> m.info(Infos.msg "The IsoPod was empty"),
+    }},
   mut !: iso T,
   mut .next(val: iso T): Void,
-  readH .isDead: Bool -> this.isAlive.not,
+  read .isDead: Bool -> this.isAlive.not,
   mut .consume[R](f: mut IsoConsumer[T, R]): R -> this.isAlive ? { .then -> f.some(this!), .else -> f.empty },
   mut :=(val: iso T): Void -> this.next(val),
-  mut .mutate(f: F[mut T, Void]): Bool -> this.consume{
-    .some(x) -> Block#(this.next(_IsoMutator#(f, x)), True),
-    .empty -> False,
-    }
+  mut .mutate(f: F[mut T, Void]): mut Action[Void] -> {m -> this.consume{
+    .some(x) -> Block#(this.next(_IsoMutator#(f, x)), m.ok{}),
+    .empty -> m.info(Infos.msg "The IsoPod was empty"),
+    }}
   }
 IsoConsumer[T:imm,iso, R]:{
   mut .some(x: iso T): R,
@@ -25,20 +29,23 @@ IsoViewer[T:imm,iso, R]:{
   mut .some(x: readH T): R,
   mut .empty: R,
   }
+IsoViewer'[T:imm,iso, R]:{
+  mut #(x: readH T): R,
+  }
 _IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Block#(f#val, val) }
 
 _MagicIsoPodImpl: {
   #[T:iso](val: iso T): mut _MagicIsoPodImpl[iso T] -> Magic!,
   .toIsoPod[T:iso](inner: mut _MagicIsoPodImpl[iso T]): mut IsoPod[iso T] -> {
-    readH .isAlive: Bool -> inner.isAlive,
-    readH .peek[R](f: mut IsoViewer[iso T, R]): R -> inner.peek[R](f),
+    read .isAlive: Bool -> inner.isAlive,
+    read .peek[R](f: mut IsoViewer[iso T, R]): R -> inner.peek[R](f),
     mut !: iso T -> inner!,
     mut .next(val: iso T): Void -> inner.next(val),
     },
   }
 _MagicIsoPodImpl[T:imm,iso]: {
-  readH .isAlive: Bool -> Magic!,
-  readH .peek[R](f: mut IsoViewer[T, R]): R -> Magic!,
+  read .isAlive: Bool -> Magic!,
+  read .peek[R](f: mut IsoViewer[T, R]): R -> Magic!,
   mut !: iso T -> Magic!,
   mut .next(val: iso T): Void -> Magic!,
   }

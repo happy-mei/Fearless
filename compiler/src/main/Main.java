@@ -3,10 +3,12 @@ package main;
 import astFull.E;
 import com.github.bogdanovmn.cmdline.CmdLineAppBuilder;
 import id.Id;
+import main.html.LogicMainHtml;
 import main.java.LogicMainJava;
+import program.MethLookup;
+import program.typesystem.SubTyping;
 import utils.Box;
 import utils.Bug;
-import main.html.LogicMainHtml;
 
 import java.nio.file.Path;
 
@@ -14,6 +16,8 @@ public class Main {
   public static void resetAll(){
     E.X.reset();
     Id.GX.reset();
+    MethLookup.methsCache.clear();
+    SubTyping.subTypeCache.clear();
   }
 
   public static void main(String[] args) {
@@ -25,6 +29,7 @@ public class Main {
       .withDescription("The compiler for the Fearless programming language. See https://fearlang.org for more information.")
       .withFlag("new", "Create a new package")
       .withFlag("check", "c", "Check that the given Fearless program is valid")
+      .withFlag("build", "b", "Compile the given Fearless program")
       .withFlag("run", "r", "Compile and run the given Fearless program")
         .withArg("entry-point", "The qualified name for the entry-trait that implements base.Main")
         .withDependencies("run", "entry-point")
@@ -35,7 +40,7 @@ public class Main {
       .withFlag("print-codegen", "pc", "Print the output of the codegen stage to standard output")
       .withFlag("show-tasks", "sct", "Print progress messages showing the current task the compiler is performing.")
       .withFlag("show-full-progress", "sfp", "Print progress messages showing the current task and all sub-tasks the compiler is performing.")
-      .withAtLeastOneRequiredOption("help", "new", "check", "run", "regenerate-aliases", "generate-docs")
+      .withAtLeastOneRequiredOption("help", "new", "check", "build", "run", "regenerate-aliases", "generate-docs")
       .withEntryPoint(res->{
         CompilerFrontEnd.ProgressVerbosity pv = CompilerFrontEnd.ProgressVerbosity.None;
         if (res.hasOption("show-tasks")) { pv = CompilerFrontEnd.ProgressVerbosity.Tasks; }
@@ -77,13 +82,18 @@ public class Main {
           System.out.println("All checks passed");
           return;
         }
+        if (res.hasOption("build")) {
+          main.buildAndCache();
+          System.out.println("Compilation successful");
+          return;
+        }
         if (res.hasOption("run")) {
           var p = main.run().inheritIO().start().onExit().join();
           System.exit(p.exitValue());
           return;
         }
 
-//        frontEnd = new CompilerFrontEnd(bv, verbosity.get(), TypeSystemFeatures.of());
+//        frontEnd = new CompilerFrontEnd(bv, verbosity.get(), new TypeSystemFeatures());
 //        if (res.hasOption("new")) {
 //          frontEnd.newPkg(res.getOptionValue("new"));
 //          return;

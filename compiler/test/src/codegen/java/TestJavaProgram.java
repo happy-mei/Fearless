@@ -3,6 +3,7 @@ package codegen.java;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
+import utils.ResolveResource;
 
 import java.util.List;
 
@@ -63,43 +64,43 @@ public class TestJavaProgram {
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (True && True) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (True & True) .str, { Void }) }
     """);}
   @Test void binaryAnd2() { ok(new Res("", "False", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (True && False) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (True & False) .str, { Void }) }
     """);}
   @Test void binaryAnd3() { ok(new Res("", "False", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (False && False) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (False & False) .str, { Void }) }
     """);}
   @Test void binaryOr1() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (True || True) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (True | True) .str, { Void }) }
     """);}
   @Test void binaryOr2() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (True || False) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (True | False) .str, { Void }) }
     """);}
   @Test void binaryOr3() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (False || True) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (False | True) .str, { Void }) }
     """);}
   @Test void binaryOr4() { ok(new Res("", "False", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (False || False) .str, { Void }) }
+    Test:Main{ _ -> Assert!(False, (False | False) .str, { Void }) }
     """);}
 
   @Test void conditionals1() { ok(new Res("", "Assertion failed :(", 1), """
@@ -183,7 +184,15 @@ public class TestJavaProgram {
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5_00_000.5 + 2.1) .str, { Void }) }
     """);}
-  @Test void intDivByZero() { ok(new Res("", "Program crashed with: / by zero", 1), """
+  @Test void intDivByZero() { ok(new Res("", """
+    Program crashed with: / by zero
+    
+    Stack trace:
+    <runtime java.lang.Long>
+    test.Test/0
+    test.Test/0
+    <runtime base.FearlessMain>
+    """, 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void, alias base.Block as Do,
@@ -206,6 +215,19 @@ public class TestJavaProgram {
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, ((0 - 2) - 9223372036854775807) .str, { Void }) }
+    """);}
+
+  @Test void strEq() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{_ -> Assert!("abc" == "abc", {Void})}
+    """);}
+  @Test void strEqFail() { ok(new Res("", "Assertion failed :(", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{_ -> Assert!("abc" == "def", {Void})}
     """);}
 
   @Test void println() { ok(new Res("Hello, World!", "", 0), """
@@ -310,6 +332,14 @@ public class TestJavaProgram {
     """, """
     package test.foo
     Bar:test.Foo{ .a -> this }
+    """); }
+
+  @Test void nestedConditional() { ok(new Res("2", "", 0), """
+    package test
+    alias base.Main as Main, alias base.True as True, alias base.False as False, alias base.Nat as Nat,
+    Test:Main {sys -> sys.io.println(True ?[Nat] {.then -> False ?[Nat] {.then -> 1, .else -> Block#[Foo,Nat](Foo, 2)}, .else -> 3}.str)}
+    Foo: {}
+    Block:{#[A:imm,R:imm](_: A, r: R): R -> r}
     """); }
 
     @Test void ref1() { ok(new Res("", "", 0), """
@@ -718,7 +748,7 @@ public class TestJavaProgram {
     package test
     Test:Main{ _ -> Block#
       .let[mut IsoPod[iso MutThingy]] a = { IsoPod#[MutThingy](MutThingy'#(Count.int(+0))) }
-      .do{ Block#(a.mutate{ mt -> Block#(mt.n++) }) }
+      .do{ Block#(a.mutate{ mt -> Block#(mt.n++) }!) }
       .return{ Assert!(Usage#(a!) == +1) }
       }
     Usage:{ #(m: iso MutThingy): Int -> (m.n*) }
@@ -792,7 +822,8 @@ public class TestJavaProgram {
       // pos
       .do{ Assert!(1.0 == 1.0, "id", {{}}) }
       .do{ Assert!(1.0 + 3.5 == 4.5, "addition 1 (pos)", {{}}) }
-      .do{ Assert!((1.0).str == "1.0", "str", {{}}) }
+      .do{ Assert!((1.0).str == "1", "str pt 0", {{}}) }
+      .do{ Assert!((1.5).str == "1.5", "str pt 5", {{}}) }
       .do{ Assert!((5.0 / 2.0) == 2.5, (5.0 / 2.0).str, {{}}) }
       .return{{}}
       }
@@ -823,9 +854,9 @@ public class TestJavaProgram {
       Try#[Str]{ Block#
         .let[mut IsoPod[iso Str]] pod = { IsoPod#[iso Str] iso "hi" }
         .return{pod!}
-        }.resMatch{
+        }.run{
           .ok(msg) -> UnrestrictedIO#s.println(msg),
-          .err(info) -> UnrestrictedIO#s.printlnErr(info.str),
+          .info(info) -> UnrestrictedIO#s.printlnErr(info.str),
         }
       }
     """, Base.mutBaseAliases); }
@@ -836,9 +867,9 @@ public class TestJavaProgram {
         .let[mut IsoPod[iso Str]] pod = { IsoPod#[iso Str] iso "hi" }
         .do{ Block#(pod!) }
         .return{pod!}
-        }.resMatch{
+        }.run{
           .ok(msg) -> UnrestrictedIO#s.println(msg),
-          .err(info) -> UnrestrictedIO#s.printlnErr(info.msg),
+          .info(info) -> UnrestrictedIO#s.printlnErr(info.msg),
         }
       }
     """, Base.mutBaseAliases); }
@@ -869,7 +900,7 @@ public class TestJavaProgram {
       
       Shape:{
         .x: Int, .y: Int,
-        ==(other: Shape): Bool -> (this.x == (other.x)) && (this.y == (other.y)),
+        ==(other: Shape): Bool -> (this.x == (other.x)) & (this.y == (other.y)),
         !=(other: Shape): Bool -> this == other .not,
         }
       """, Base.mutBaseAliases);
@@ -888,12 +919,12 @@ public class TestJavaProgram {
       
       Shape:{
         .x: Int, .y: Int,
-        ==(other: Shape): Bool -> (this.x == (other.x)) && (this.y == (other.y)),
+        ==(other: Shape): Bool -> (this.x == (other.x)) & (this.y == (other.y)),
         !=(other: Shape): Bool -> this == other .not,
         }
       Square:Shape{
         read .size: Int,
-        .eqSq(other: Square): Bool -> this == other && (this.size == (other.size)),
+        .eqSq(other: Square): Bool -> this == other & (this.size == (other.size)),
         }
       """, Base.mutBaseAliases);
   }
@@ -1177,6 +1208,24 @@ public class TestJavaProgram {
       .return{Void}
       }
     """, Base.mutBaseAliases);}
+  @Test void linkedHashMap1() { ok(new Res("23\n32", "", 0), """
+    package test
+    alias base.Maps as Maps,
+    alias base.LinkedHashMap as LinkedHashMap,
+    Test:Main{ s -> Block#
+      .let[mut IO] io = {s.io}
+      .let[mut LinkedHashMap[Str,Nat]] m = {Maps.hashMap({k1,k2 -> k1 == k2}, {k->k})}
+      .do {m.put("Nick", 23)}
+      .do {m.put("Bob", 32)}
+      .do {io.println(m.get("Nick")!.str)}
+      .do {io.println(m.get("Bob")!.str)}
+      .assert {m.get("nobody").isEmpty}
+      .do {Block#(m.remove("Nick"))}
+      .assert {m.get("Nick").isEmpty}
+      .assert {m.get("Bob").isSome}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases);}
 
   @Test void tryCatch1() { ok(new Res("Happy", "", 0), """
     package test
@@ -1187,9 +1236,9 @@ public class TestJavaProgram {
 //        ))
 //      }
     Test:Main{s ->
-      UnrestrictedIO#s.println(Try#[Str]{"Happy"}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{"Happy"}.run{
         .ok(res) -> res,
-        .err(err) -> err.str,
+        .info(err) -> err.str,
         })
       }
     """, Base.mutBaseAliases);}
@@ -1202,23 +1251,23 @@ public class TestJavaProgram {
 //        ))
 //      }
     Test:Main{s ->
-      UnrestrictedIO#s.println(Try#[Str]{Error.msg("oof")}.match{ .a(a) -> a, .b(err) -> err.msg })
+      UnrestrictedIO#s.println(Try#[Str]{Error.msg("oof")}.run{ .ok(a) -> a, .info(err) -> err.msg })
       }
     """, Base.mutBaseAliases);}
-  @Test void error1() { ok(new Res("", "Program crashed with: \"yolo\" ", 1), """
+  @Test void error1() { ok(new Res("", "Program crashed with: \"yolo\"[###]", 1), """
     package test
     Test:Main{s -> Error.msg("yolo") }
     """, Base.mutBaseAliases);}
-  @Test void emptyOptErr1() { ok(new Res("", "Program crashed with: \"Opt was empty\"", 1), """
+  @Test void emptyOptErr1() { ok(new Res("", "Program crashed with: \"Opt was empty\"[###]", 1), """
     package test
     Test:Main{s -> Block#(Opt[Str]!) }
     """, Base.mutBaseAliases);}
   @Test void emptyOptErr2() { ok(new Res("", "Opt was empty", 0), """
     package test
     Test:Main{s ->
-      Try#{Opt[Str]!}.match{
-        .a(_) -> {},
-        .b(info) -> UnrestrictedIO#s.printlnErr(info.msg),
+      Try#{Opt[Str]!}.run{
+        .ok(_) -> {},
+        .info(info) -> UnrestrictedIO#s.printlnErr(info.msg),
         }
       }
     """, Base.mutBaseAliases);}
@@ -1263,7 +1312,17 @@ public class TestJavaProgram {
       }
     """); }
 
-  @Test void errorKToObj() { ok(new Res("", "Program crashed with: \"whoops\"", 1), """
+  @Test void errorKToObj() { ok(new Res("", """
+    Program crashed with: \"whoops\"
+    
+    Stack trace:
+    <runtime rt.Error>
+    base.Error/0
+    base.Error/0
+    test.Test/0
+    test.Test/0
+    <runtime base.FearlessMain>
+    """, 1), """
     package test
     Test: Main{ _ -> A#(Error.msg "whoops") }
     A:{ #(x: Str): Void -> Void }
@@ -1277,6 +1336,7 @@ public class TestJavaProgram {
       .println(msg) -> Magic!,
       .printErr(msg) -> Magic!,
       .printlnErr(msg) -> Magic!,
+      .read(_) -> Magic!,
       }
     """, Base.mutBaseAliases); }
 
@@ -1295,7 +1355,7 @@ public class TestJavaProgram {
       .return {Void}
       }
     """, Base.mutBaseAliases); }
-  @Test void eagerCallEarlyExit() { ok(new Res("hey", "", 0), """
+  @Test void eagerCallEarlyExit() { ok(new Res("", "hey", 0), """
     package test
     Test: Main{sys -> Block#
       .if {True} .return {Void}
@@ -1355,4 +1415,155 @@ public class TestJavaProgram {
     Test: Main{sys -> UnrestrictedIO#sys.println(Foo.msg("Hello, World"))}
     Foo: {.msg(start: Stringable): Str -> start.str + "!"}
     """, Base.mutBaseAliases); }
+
+  @Test void literalSubtypeStr() {ok(new Res("Nick", "", 0), """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(MyNames#)}
+    MyNames: {#: MyName -> MyName: "Nick"{}}
+    """, Base.mutBaseAliases);}
+  @Test void literalSubtypeMultiDiff() {fail("""
+    In position [###]/Dummy0.fear:3:31
+    [E34 conflictingSealedImpl]
+    A sealed trait from another package may not be composed with any other traits.
+    conflicts:
+    ([###]) "Nick"/0
+    ([###]) 123/0
+    ([###]/Dummy0.fear:4:5) test.Foo/0
+    """, """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(MyNames#)}
+    MyNames: {#: MyName -> MyName: "Nick", 123, Foo{}}
+    Foo: {}
+    """, Base.mutBaseAliases);}
+
+  @Test void testHash() {ok(new Res("115\n18446744072677519477\n18446744072677519477\n396592873", "", 0), """
+    package test
+    alias base.CheapHash as H,
+    Custom: ToHash{
+      .hash(h) -> h
+        .nat 5
+        .int +5
+        .float 5.0
+        .str "5"
+      }
+    
+    Test: Main{sys -> Block#
+      .let io = {sys.io}
+      .let h = {mut H}
+      .let _ = {h.nat 5}
+      .let _ = {h.int +5}
+      .let _ = {h.float 5.0}
+      .let _ = {h.str "5"}
+      .do {io.println("5".hash(mut H).compute.str)}
+      .do {io.println(h.compute.str)}
+      .do {io.println(Custom.hash(mut H).compute.str)}
+      .let _ = {Custom.hash(h)}
+      .do{io.println(h.compute.str)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+
+  @Test void stringConcat() {ok(new Res("Hello, World! Bye!", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#(" "))}
+    Foo: {#(join: Str): Str -> "Hello," + join + "World!" + join + "Bye!"}
+    """, Base.mutBaseAliases);}
+  @Test void stringConcatMut() {ok(new Res("Hello, World! Bye!", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#(" "))}
+    Foo: {#(join: Str): Str -> mut "Hello," + join + "World!" + join + "Bye!"}
+    """, Base.mutBaseAliases);}
+  @Test void stringConcatMutAndMut() {ok(new Res("Hello, World! Bye!", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#(mut " "))}
+    Foo: {#(join: mut Str): mut Str -> mut "Hello," + join + mut "World!" + join + mut "Bye!"}
+    """, Base.mutBaseAliases);}
+
+  @Test void simpleJson() {ok(new Res("""
+    "Hello!!!\\nHow are you?"
+    "Hello!!!\\nHow 吣are吣 you?"
+    "Hello!!!\\nHow 吣are吣 you? 𝄞"
+    []
+    [[[[]], [], true]]
+    ["abc", "def", true, false, null]
+    ["abc", "def", true, [false], 42.1337, null, []]
+    {}
+    {"single": true}
+    ["ab\\c", "def", {}, {"a": "fearless", "b": {"a": true}}]
+    {"value": 12345678901234567000}
+    """, """
+    Invalid string found, expected JSON.
+    Unknown fragment in JSON code:
+    tru at 1:6
+    Invalid string found, expected JSON.
+    Unexpected 'true' when parsing a JSON object at 1:6
+    """, 0), ResolveResource.test("/json/main.fear"), ResolveResource.test("/json/pkg.fear"));}
+
+  @Test void expParser() {ok(new Res("", "", 0), """
+    package test
+    alias base.Int as Num,
+    alias base.Var as Vars,
+    
+    Test: Main{_ -> {}}
+    
+    Exp: {mut .match[R:iso,imm,mut,mutH,read,readH](l: mut ExpMatch[R]): R}
+    ExpMatch[R:iso,imm,mut,mutH,read,readH]: {
+      mut .sum(left: mut Var[mut Exp], right: mut Var[mut Exp]): R,
+      mut .lit(n: Num): R,
+    }
+    Exps: {
+      .sum(left: mut Var[mut Exp], right: mut Var[mut Exp]): mut Exp -> {m -> m.sum(left, right)},
+      .lit(n: Num): mut Exp -> {m -> m.lit(n)},
+    }
+    
+    Lexer: {  mut .nextToken: Token -> Magic! }
+    Token: {.match(l: mutH Lexer, m: TokenMatch): iso Exp}
+    TokenMatch: {
+      .plus(l: mutH Lexer): iso Exp,
+      .num(l: mutH Lexer, n: Num): iso Exp,
+      .eof(l: mutH Lexer): iso Exp,
+    }
+    Tokens: { //could not implement TokenMatch
+      .plus: Token -> {l, m -> m.plus(l)},
+      .num(n: Num): Token -> {l, m -> m.num(l,n)},
+      .eof: Token -> {l, m -> m.eof(l)},
+    }
+    Parser: {//simple right associative parser
+      .parse(l: mutH Lexer): iso Exp -> l.nextToken.match(l, {
+        .plus(_)->Error.msg "cannot start with +",
+        .eof(_)->Error.msg "cannot start with EOF",
+        .num(l', n) -> this.parse(l', n),
+      }),
+      .parse(l: mutH Lexer, left: Num): iso Exp -> l.nextToken.match(l, {
+        .plus(l')->Exps.sum(Vars#[mut Exp](Exps.lit(left)),Vars#[mut Exp](this.parse(l'))),
+        .eof(_) -> Exps.lit(left),
+        .num(l', n) -> Error.msg "unexpected num",
+      })
+    }
+    """, Base.mutBaseAliases);}
+
+  // TODO: more test coverage for bytes
+  @Test void strToBytes() {ok(new Res("72,101,108,108,111,33", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println("Hello!".utf8.flow.map{b -> b.str}.join ",")}
+    """, Base.mutBaseAliases);}
+  @Test void byteEq() {ok(new Res(), """
+    package test
+    Test: Main{_ -> "Hello!".utf8.get(0).assertEq(72 .byte)}
+    """, Base.mutBaseAliases);}
+  @Test void bytesToStr() {ok(new Res("Hello!", "", 0), """
+    package test
+    alias base.UTF8 as UTF8,
+    Test: Main{sys -> sys.io.println(UTF8.fromBytes("Hello!".utf8)!)}
+    """, Base.mutBaseAliases);}
+  @Test void bytesToStrManual() {ok(new Res("AB", "", 0), """
+    package test
+    alias base.UTF8 as UTF8,
+    Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(65 .byte, 66 .byte))!)}
+    """, Base.mutBaseAliases);}
+  @Test void bytesToStrFail() {ok(new Res("", "Program crashed with: \"incomplete utf-8 byte sequence from index 0\"[###]", 1), """
+    package test
+    alias base.UTF8 as UTF8,
+    Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(-28 .byte))!)}
+    """, Base.mutBaseAliases);}
 }

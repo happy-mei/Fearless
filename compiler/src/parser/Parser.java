@@ -68,10 +68,11 @@ public record Parser(Path fileName,String content){
       .map(allPi->Package.merge(List.of(), allPi))
       .toList();
     assert allPs.stream().map(Package::name).distinct().count()==allPs.size();//redundant?
-    return new Program(tsf, Collections.unmodifiableMap(allPs.stream().map(Package::parse).reduce(new HashMap<>(),
-      (acc, val) -> { acc.putAll(val); return acc; },
-      (m1, m2) -> { assert m1==m2; return m1;}
-    )));
+    Map<Id.DecId, T.Dec> ds = allPs.parallelStream()
+      .map(Package::parse)
+      .flatMap(dsi->dsi.values().stream())
+      .collect(Collectors.toConcurrentMap(T.Dec::name, d->d));
+    return new Program(tsf, ds);
   }
 
   public E parseFullE(Function<String,E> orElse,Function<String,Optional<Id.IT<T>>> resolve){
@@ -96,7 +97,7 @@ public record Parser(Path fileName,String content){
     FearlessParser.NudeTContext res = p.nudeT();
     var ok = errorst.isEmpty() && errorsp.isEmpty();
     if(ok){ return new FullEAntlrVisitor(fileName,s->Optional.empty()).visitNudeT(res); }
-    throw Bug.unreachable();
+    throw Fail.syntaxError(errorsp.toString());
   }
   
   public boolean parseX(){ return parseId(p->p.nudeX().getText());}

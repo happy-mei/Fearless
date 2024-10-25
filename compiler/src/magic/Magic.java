@@ -12,7 +12,6 @@ import java.util.function.Function;
 import ast.E.Lambda;
 import ast.E.Lambda.LambdaId;
 import ast.T.Dec;
-import utils.Bug;
 
 public class Magic {
   public static final Id.DecId Main = new Id.DecId("base.Main", 0);
@@ -21,9 +20,14 @@ public class Magic {
   public static final Id.DecId Int = new Id.DecId("base.Int", 0);
   public static final Id.DecId Bool = new Id.DecId("base.Bool", 0);
   public static final Id.DecId Float = new Id.DecId("base.Float", 0);
+  public static final Id.DecId Byte = new Id.DecId("base.Byte", 0);
   public static final Id.DecId Str = new Id.DecId("base.Str", 0);
+  public static final Id.DecId UTF8 = new Id.DecId("base.UTF8", 0);
+  public static final Id.DecId UTF16 = new Id.DecId("base.UTF16", 0);
   public static final Id.DecId AsciiStr = new Id.DecId("base.AsciiStr", 0);
   public static final Id.DecId Debug = new Id.DecId("base.Debug", 0);
+  public static final Id.DecId CheapHash = new Id.DecId("base.CheapHash", 0);
+  public static final Id.DecId RegexK = new Id.DecId("base.Regexs", 0);
 
   public static final Id.DecId BlockK = new Id.DecId("base.Block", 0);
   public static final Id.DecId Block = new Id.DecId("base.Block", 1);
@@ -39,16 +43,20 @@ public class Magic {
   public static final Id.DecId MagicAbort = new Id.DecId("base.Magic", 0);
   public static final Id.DecId ErrorK = new Id.DecId("base.Error", 0);
   public static final Id.DecId Try = new Id.DecId("base.Try", 0);
-  public static final Id.DecId CapTry = new Id.DecId("base.caps.CapTry", 0);
+  public static final Id.DecId CapTryK = new Id.DecId("base.caps.CapTries", 0);
 
   public static final Id.DecId FlowK = new Id.DecId("base.flows.Flow", 0);
   public static final Id.DecId FlowOp = new Id.DecId("base.flows.FlowOp", 1);
+  public static final Id.DecId FlowRange = new Id.DecId("base.flows._FlowRange", 0);
   public static final Id.DecId PipelineParallelSinkK = new Id.DecId("base.flows._PipelineParallelSink", 0);
-  public static final Id.DecId PipelineParallelFlowK = new Id.DecId("base.flows._PipelineParallelFlow", 0);
+  public static final Id.DecId PipelineParallelFlowK = new Id.DecId("rt.flows.pipelineParallel.PipelineParallelFlowK", 0);
+  public static final Id.DecId DataParallelFlowK = new Id.DecId("base.flows._DataParallelFlow", 0);
   public static final Id.DecId FList = new Id.DecId("base.List", 1);
   public static final Id.DecId ListK = new Id.DecId("base.List", 0);
   public static final Id.DecId LList = new Id.DecId("base.LList", 1);
   public static final Id.DecId SafeFlowSource = new Id.DecId("base.flows._SafeSource", 0);
+
+  public static final Id.DecId MapK = new Id.DecId("base.Maps", 0);
 
   // object capabilities
   public static final Id.DecId SystemImpl = new Id.DecId("base.caps._System", 0);
@@ -118,8 +126,9 @@ public class Magic {
 
   public static Optional<CompileError> validateLiteral(Id.DecId id) {
     assert isLiteral(id.name());
-    var res = _getDec(_ -> 0, id);
-    if (res.isEmpty()) {
+    try {
+      getLiteralKind(id);
+    } catch (InvalidLiteralException err) {
       return Optional.of(Fail.syntaxError(id + " is not a valid type name."));
     }
     return Optional.empty();
@@ -148,7 +157,7 @@ public class Magic {
     if (isStringLiteral(lit)) {
       return LiteralKind.Str;
     }
-    throw Bug.of("Unknown literal kind: " + id);
+    throw new InvalidLiteralException("Unknown literal kind: " + id);
   }
 
   private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {

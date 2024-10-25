@@ -8,8 +8,6 @@ Read:'read';
 ReadImm:'read/imm';
 ReadH:'readH';
 Iso:'iso';
-RecMdf:'recMdf';
-Mdf:'mdf';
 Imm:'imm';
 Eq:'=';
 Alias: 'alias';
@@ -68,7 +66,7 @@ Whitespace: ('\t' | ' ' | '\n' )-> channel(HIDDEN);
 fullCN:FullCN;
 x: X| Underscore;
 m: SysInM | MName;
-mdf: Mut | ReadH | MutH | ReadImm | Read | Iso | RecMdf | Imm | ;
+mdf: Mut | ReadH | MutH | ReadImm | Read | Iso | Imm | ;
 
 
 roundE : OR e CR;

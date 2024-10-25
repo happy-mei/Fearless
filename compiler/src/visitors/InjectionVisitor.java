@@ -60,7 +60,12 @@ public abstract class InjectionVisitor implements FullVisitor<ast.E>{
     var its= e.its().isEmpty() ? inferredType : e.its();
     var lambdaId= new ast.E.Lambda.LambdaId(e.id().id(),gxs,bounds);
     Mdf lambdaMdf= e.mdf().orElse(Mdf.imm);
-    var resIts= its.stream().map(this::visitIT).toList();
+
+    List<Id.IT<T>> resIts;try{resIts = its.stream().map(this::visitIT).toList();}
+    catch (astFull.T.MatchOnInfer err) {
+      throw Fail.inferImplementsFailed(its.toString()).pos(e.pos());
+    }
+
     var resMeths= e.meths().stream().map(this::visitMeth).toList();
     boolean inferredName= lambdaId.id().isFresh();
     if (inferredName) {
@@ -72,9 +77,9 @@ public abstract class InjectionVisitor implements FullVisitor<ast.E>{
     }
     return new ast.E.Lambda(
       lambdaId, lambdaMdf,
-      its.stream().map(this::visitIT).toList(),
+      resIts,
       Optional.ofNullable(e.selfName()).orElseGet(E.X::freshName),
-      e.meths().stream().map(this::visitMeth).toList(),
+      resMeths,
       e.pos()
     );
   }
@@ -112,7 +117,8 @@ public abstract class InjectionVisitor implements FullVisitor<ast.E>{
   }
 
   public ast.T visitTInGens(astFull.T t){
-    return t.toAstT();//throws MatchOnInfer if t == ?
+    //throws MatchOnInfer if t contains infer as a type parameter
+    return t.toAstT();
   }
 
   public Id.IT<ast.T> visitIT(Id.IT<astFull.T> t){

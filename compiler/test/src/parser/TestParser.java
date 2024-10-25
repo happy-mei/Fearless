@@ -141,8 +141,7 @@ class TestParser {
   @Test void explicitMdfLambdaImm(){ ok("[-imm pkg1.L[]-][pkg1.L[]]{}", "imm pkg1.L{}"); }
   @Test void explicitMdfLambdaMut(){ ok("[-mut pkg1.L[]-][pkg1.L[]]{}", "mut pkg1.L{}"); }
   @Test void explicitMdfLambdaRead(){ ok("[-read pkg1.L[]-][pkg1.L[]]{}", "read pkg1.L{}"); }
-  @Test void explicitMdfLambdaLent(){ ok("[-lent pkg1.L[]-][pkg1.L[]]{}", "lent pkg1.L{}"); }
-  @Test void explicitMdfLambdaRecMdf(){ ok("[-recMdf pkg1.L[]-][pkg1.L[]]{}", "recMdf pkg1.L{}"); }
+  @Test void explicitMdfLambdaLent(){ ok("[-mutH pkg1.L[]-][pkg1.L[]]{}", "mutH pkg1.L{}"); }
   @Test void explicitMdfLambdaMdf(){ fail("""
     [E11 invalidMdf]
     The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type pkg1.L[]
@@ -204,8 +203,9 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
       .filter{}
       .toList
     """); }
+  // null is correct in the expected AST below because these tests do not visit a package, so the package is null.
   @Test void flowPrecedence2a() { ok("""
-    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}.toList/0[-]([]):infer]):infer
+    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-imm null.Fear3$[]-][null.Fear3$[]]{}.toList/0[-]([]):infer]):infer
     """, """
     list.flow
       .map{}

@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public interface Base {
   static ast.Program ignoreBase(ast.Program p) {
     return new ast.Program(
-      TypeSystemFeatures.of(),
+      new TypeSystemFeatures(),
       p.ds().entrySet().stream()
         .filter(kv->!kv.getKey().name().startsWith("base."))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
@@ -103,6 +103,7 @@ public interface Base {
     
     alias base.LList as LList,
     alias base.List as List,
+    alias base.ListViews as ListViews,
     alias base.Collection as Collection,
     
     alias base.As as As,
@@ -125,7 +126,7 @@ public interface Base {
     alias base.Error as Error,
     alias base.Try as Try,
     alias base.Info as Info,
-    alias base.FInfo as FInfo,
+    alias base.Infos as Infos,
     
     alias base.Bool as Bool,
     alias base.True as True,
@@ -139,5 +140,8 @@ public interface Base {
     alias base.Ordering as Ordering,
     alias base.FOrdering as FOrdering,
     alias base.Debug as Debug,
+    
+    alias base.Actions as Actions,
+    alias base.ToHash as ToHash,
     """;
 }

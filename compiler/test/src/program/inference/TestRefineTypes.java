@@ -26,7 +26,7 @@ public class TestRefineTypes {
     var e = new Parser(Parser.dummy,expr).parseFullE(Bug::err, s->Optional.empty());
     var pT1 = addInfers(new Parser(Parser.dummy, t1).parseFullT());
     var pT2 = addInfers(new Parser(Parser.dummy, t2).parseFullT());
-    var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)), TypeSystemFeatures.of());
+    var p = Parser.parseAll(List.of(new Parser(Path.of("Dummy.fear"), program)), new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferredSigs = ShallowInjectionVisitor.of().visitProgram(p.inferSignatures());
 
@@ -83,7 +83,7 @@ public class TestRefineTypes {
   @Test//varName:imm a.A[mut a.B[],read a.B[]]
   void aGenMdf1() {ok("""
     varName:imma.A[muta.C[],imma.B[]]
-    """, "varName", "a.A[mut X,imm a.B[]]", "a.A[lent a.C[],read Y]", """
+    """, "varName", "a.A[mut X,imm a.B[]]", "a.A[mutH a.C[],read Y]", """
     package a
     A[X,Y]:{}
     B:{}
@@ -93,7 +93,7 @@ public class TestRefineTypes {
   //We get to mutH a.C[] = mut a.C[] and we take the 'best type: as specified by t1 (the user's type)
   @Test void aGenMdf2() {ok("""
     varName:imma.A[muta.B[],reada.B[]]
-    """, "varName", "a.A[mut X,read a.B[]]", "a.A[lent a.B[],Y]", """
+    """, "varName", "a.A[mut X,read a.B[]]", "a.A[mutH a.B[],Y]", """
     package a
     A[X,Y]:{}
     B:{}
@@ -226,14 +226,14 @@ public class TestRefineTypes {
     """);}
   @Test void refineGensMdfNested1() {ok("""
     varName:imm a.A[imm a.A[X]]
-    """, "varName", "a.A[recMdf a.A[X]]", "a.A[imm a.B[]]", """
+    """, "varName", "a.A[imm a.A[X]]", "a.A[imm a.B[]]", """
     package a
     A[X]:{}
     B:{}
     """);}
   @Test void refineGensMdfNested2() {ok("""
-    varName:imma.A[recMdfa.A[imma.B[]]]
-    """, "varName", "a.A[recMdf a.A[X]]", "a.A[recMdf a.A[imm a.B[]]]", """
+    varName:imma.A[read/imma.A[imma.B[]]]
+    """, "varName", "a.A[read/imm a.A[X]]", "a.A[read/imm a.A[imm a.B[]]]", """
     package a
     A[X]:{}
     B:{}

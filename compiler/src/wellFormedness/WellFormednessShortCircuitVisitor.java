@@ -8,6 +8,10 @@ import failure.Fail;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
+import program.CM;
+import program.TypeTable;
+import program.typesystem.XBs;
+import utils.Bug;
 import visitors.ShortCircuitVisitor;
 import visitors.ShortCircuitVisitorWithEnv;
 
@@ -16,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static magic.Magic.isLiteral;
 
@@ -39,6 +44,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
       .or(()->validLambdaMdf(e))
       .or(()->noSealedOutsidePkg(e))
       .or(()->noImplInlineDec(e))
+      .or(()->noAbsMethods(e))
       .or(()->noFreeGensInLambda(e))
       .or(()->validBoundsForLambdaGens(e))
       .or(()->super.visitLambda(e))
@@ -118,19 +124,33 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
   }
 
   private Optional<CompileError> noSealedOutsidePkg(E.Lambda e) {
-    if (e.meths().isEmpty()) { return Optional.empty(); }
     var pkg = this.pkg.orElseThrow();
-    return getSealedDec(e.its()).filter(dec->!dec.pkg().equals(pkg)).map(dec->Fail.sealedCreation(dec, pkg).pos(e.pos()));
+    var sealedDecs = getSealedDecs(e.id().toIT(), e.its(), pkg);
+    if (sealedDecs.isEmpty()) {
+      return Optional.empty();
+    }
+    if (e.isTopLevel()) {
+      return Optional.of(Fail.sealedCreation(sealedDecs.getFirst(), pkg).pos(e.pos()));
+    }
+    if (e.its().size() > 1) {
+      var allSealed = Stream.concat(sealedDecs.stream(), e.its().stream().map(Id.IT::name))
+        .distinct()
+        .map(p::of)
+        .toList();
+      return Optional.of(Fail.conflictingSealedImpl(allSealed).pos(e.pos()));
+    }
+    if (e.meths().isEmpty()) { return Optional.empty(); }
+    return Optional.of(Fail.sealedCreation(sealedDecs.getFirst(), pkg).pos(e.pos()));
   }
 
-  private Optional<Id.DecId> getSealedDec(List<Id.IT<T>> its) {
-    if (its.isEmpty()) { return Optional.empty(); }
-    return its.stream()
-//      .map(Id.IT::name)
-      .filter(it->p.itsOf(it).stream().anyMatch(it1->it1.name().equals(Magic.Sealed)))
+  private List<Id.DecId> getSealedDecs(Id.IT<T> base, List<Id.IT<T>> its, String pkg) {
+    if (its.isEmpty()) { return List.of(); }
+    return Stream.concat(its.stream(), Stream.of(base))
       .map(Id.IT::name)
-      .findFirst()
-      .or(()->getSealedDec(its.stream().flatMap(it->p.itsOf(it).stream()).toList()));
+      .filter(dec->Magic.isLiteral(dec.name()) || !dec.pkg().equals(pkg))
+      .filter(dec->p.superDecIds(dec).contains(Magic.Sealed))
+      .filter(dec->!dec.equals(Magic.Sealed))
+      .toList();
   }
 
   private Optional<CompileError> noImplInlineDec(E.Lambda e) {
@@ -147,7 +167,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
     var visitor = new UndefinedGXsVisitor(Set.copyOf(e.id().gens()));
     visitor.visitLambda(e);
     if (visitor.res().isEmpty()) { return Optional.empty(); }
-    return Optional.of(Fail.freeGensInLambda(e.id(), visitor.res()).pos(e.pos()));
+    return Optional.of(Fail.freeGensInLambda(e.id().toIT().toString(), visitor.res()).pos(e.pos()));
   }
 
   private Optional<CompileError> validBoundsForLambdaGens(E.Lambda e) {
@@ -167,6 +187,26 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
 
   private Optional<CompileError> validLambdaMdf(E.Lambda e) {
     if (e.mdf().is(Mdf.readImm, Mdf.mutH, Mdf.readH)) { return Optional.of(Fail.invalidLambdaMdf(e.mdf())); }
+    return Optional.empty();
+  }
+
+  private Optional<CompileError> noAbsMethods(E.Lambda e) {
+    // Ignore top-level
+    if (e.mdf().isMdf()) { return Optional.empty(); }
+
+    var implMs = e.meths().stream()
+      .filter(m->!m.isAbs())
+      .map(E.Meth::name)
+      .collect(Collectors.toSet());
+    var unimplemented = p.meths(XBs.empty().addBounds(e.id().gens(), e.id().bounds()), e.mdf(), e, 0).stream()
+      .filter(CM::isAbs)
+      .filter(m->TypeTable.filterByMdf(e.mdf(), m.mdf()))
+      .map(CM::name)
+      .filter(name->!implMs.contains(name))
+      .toList();
+    if (!unimplemented.isEmpty()) {
+      return Optional.of(Fail.noUnimplementedMethods(unimplemented));
+    }
     return Optional.empty();
   }
 }

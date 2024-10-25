@@ -108,7 +108,7 @@ public class TestInlineDecs {
   @Test void boundsForwardingImplicitBreak() { fail("""
     In position [###]/Dummy0.fear:3:10
     [E5 invalidMdfBound]
-    The type N is not valid because it's modifier is not in the required bounds. The allowed modifiers are: imm.
+    The type N is not valid because its capability is not in the required bounds. The allowed modifiers are: imm.
     """, """
     package test
     Person[N: imm]:{ .name: Str, .age: N }
@@ -157,12 +157,8 @@ public class TestInlineDecs {
     Str:{} Bob:Str{}
     Nat:{} TwentyFour:Nat{}
     """); }
-  // TODO: some bounds forwarding logic is broken. I think this should really be failing at like well-formedness, but is not.
-  @Test void boundsForwardingExplicit() { fail("""
-    In position [###]/Dummy0.fear:3:65
-    [E5 invalidMdfBound]
-    The type N is not valid because it's modifier is not in the required bounds. The allowed modifiers are: imm.
-    """, """
+
+  @Test void boundsForwardingExplicit() { ok("""
     package test
     Person[N: imm]:{ .name: Str, .age: N }
     FPerson:{ #[N](name: Str, age: imm N): Person[imm N] -> Fresh[N]:Person[imm N]{
@@ -178,5 +174,107 @@ public class TestInlineDecs {
     package test
     Str:{} Bob:Str{}
     Nat:{} TwentyFour:Nat{}
+    """); }
+
+  @Test void boundsForwardingExplicit2() { fail("""
+    In position [###]/Dummy0.fear:3:65
+    [E5 invalidMdfBound]
+    The type N is not valid because its capability is not in the required bounds. The allowed modifiers are: imm.
+    """, """
+    package test
+    Person[N: imm]:{ .name: Str, .age: N }
+    FPerson:{ #[N](name: Str, age: imm N): Person[imm N] -> Fresh[N]:Person[N]{
+      .name -> name,
+      .age -> age,
+      }}
+    Break:{ #: Fresh[mut Nat], }
+    Ex:{
+      .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour),
+      .name(p: Person[Nat]): Str -> p.name,
+      }
+    """, """
+    package test
+    Str:{} Bob:Str{}
+    Nat:{} TwentyFour:Nat{}
+    """); }
+
+  @Test void inlineCallUnbounded() { ok("""
+    package test
+    alias base.F as F,
+    
+    Stack[T]: _Stack[T]{
+      .match(m) -> m.empty,
+      read .process[R](f: F[read/imm T, R]): mut Stack[R] -> {'comp
+        #(current: read Stack[T], acc: mut Stack[R]): mut Stack[R] -> current.match{
+          .empty -> acc,
+          .elem(top, tail) -> comp#(tail, acc + ( f#(top) ))
+          },
+        }#(this,{}),
+      mut +(e: T): mut Stack[T] -> {
+        .match(m) -> m.elem(e, this),
+        },
+      }
+    _Stack[T]: {
+      mut  .match[R](m: mut StackMatch[T,R]): R,
+      read .match[R](m: mut StackMatchRead[T,R]): R,
+      }
+    StackMatch[T, R]: {
+      mut .empty: R,
+      mut .elem(top: T, tail: mut Stack[T]): R
+      }
+    StackMatchRead[T, R]: {
+      mut .empty: R,
+      mut .elem(top: read/imm T, tail: read Stack[T]): R
+      }
+    """, """
+    package test
+    alias base.Str as Str,
+    Plate: {
+      .id: Str,
+      .clean: Clean -> {this.id},
+      }
+    Dirty: Plate
+    Clean: Plate
+    Example: {#(ds: Stack[Dirty]): Stack[Clean] -> ds.process{dirty -> dirty.clean}}
+    """, """
+    package base
+    F[A:read,mut,imm,iso,R:read,mut,imm,iso]: { read #(a: A): R }
+    Str: {}
+    """); }
+
+  @Test void inlineCallBounded() { ok("""
+    package test
+    alias base.F as F,
+    
+    Stack[T:imm]: {
+      .match[R](m: StackMatch[T,R]): R -> m.empty,
+      .process[R:imm](f: F[T, R]): Stack[R] -> {'comp
+        #(current: Stack[T], acc: Stack[R]): Stack[R] -> current.match{
+          .empty -> acc,
+          .elem(top, tail) -> comp#(tail, acc + ( f#(top) ))
+          },
+        }#(this,{}),
+      +(e: T): Stack[T] -> {
+        .match(m) -> m.elem(e, this),
+        },
+      }
+    StackMatch[T:imm, R]: {
+      .empty: R,
+      .elem(top:T, tail: Stack[T]): R
+    }
+    """, """
+    package test
+    alias base.Str as Str,
+    Plate: {
+      .id: Str,
+      .clean: Clean -> {this.id},
+      }
+    Dirty: Plate
+    Clean: Plate
+    Example: {#(ds: Stack[Dirty]): Stack[Clean] -> ds.process{dirty -> dirty.clean}}
+    """, """
+    package base
+    F[A:read,mut,imm,iso,R:read,mut,imm,iso]: { read #(a: A): R }
+    Str: {}
     """); }
 }

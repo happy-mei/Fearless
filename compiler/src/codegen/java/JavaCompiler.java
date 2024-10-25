@@ -24,7 +24,9 @@ public record JavaCompiler(Verbosity verbosity, InputOutput io){
     var options = List.of(
       "-d", io.output().toAbsolutePath().toString(),
       "-cp", io.cachedBase().toAbsolutePath().toString(),
-      "-Xdiags:verbose"
+      "-Xdiags:verbose",
+      "--enable-preview",
+      "--release", "23"
       );
     var errors = new Box<Diagnostic<?>>(null);
     boolean success = compiler.getTask(

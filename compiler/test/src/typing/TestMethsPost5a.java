@@ -611,4 +611,21 @@ public class TestMethsPost5a {
     List[T]:{} Bob:{}
     Bar[X]: {.m(): Foo[X] -> Foo[X]:{}}
     """);}
+
+  @Test void genericConflict() {fail("""
+    In position [###]/Dummy0.fear:7:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:4:6) a.A[imm base.Float[]], .m/1[](imm base.Float[]): imm base.Float[]
+    ([###]/Dummy0.fear:4:6) a.A[imm base.Int[]], .m/1[](imm base.Int[]): imm base.Int[]
+    """, "a.D", """
+    package a
+    alias base.Int as Int, alias base.Float as Float,
+    
+    A[X]:{.m(x:X):X->x,}
+    B:A[Int]{}
+    C:A[Float]{}
+    D:B,C{}
+    """);}
 }

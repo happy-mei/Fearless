@@ -28,7 +28,11 @@ public interface CM {
   static CM of(Id.IT<T> c, ast.E.Meth m, ast.E.Sig sig){ return new CoreCM(c,m,sig); }
   static CM of(Id.IT<T> c, astFull.E.Meth m, ast.E.Sig sig){ return new FullCM(c,m,sig); }
 
-  record CoreCM(Id.IT<T> c, ast.E.Meth m, ast.E.Sig sig) implements CM{
+  record CoreCM(Id.IT<T> c, ast.E.Meth m, ast.E.Sig sig) implements CM {
+    public CoreCM {
+      assert m.sig().gens().size() == sig.gens().size() : "Sig mismatch on "+m;
+    }
+
     public Id.MethName name(){ return m.name(); }
     public List<String> xs(){ return m.xs(); }
     public boolean isAbs(){ return m.isAbs(); }

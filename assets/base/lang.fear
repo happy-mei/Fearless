@@ -37,9 +37,9 @@ Consumer[A:read,mut,imm,iso]: { mut #(a: A): Void }
 Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso]: { mut #(a: A, b: B): Void }
 Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso]: { mut #(a: A, b: B, c: C): Void }
 
-ToImm[R]: { readH .toImm: imm R, }
+ToImm[R]: { read .toImm: imm R, }
 Freezer[T,R]: { mut #(self: T): imm R }
-Ice[T]: { readH .get: imm T }
+Ice[T]: { read .get: imm T }
 
 Box[T]: {
   mut  .get: T,

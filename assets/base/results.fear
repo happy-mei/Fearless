@@ -7,9 +7,9 @@ Res:{
   }
 Res[T]:Res[T, Info]
 Res[T,E]:Either[T, E]{
-  mut  .resMatch[R](m: mut ResMatch[T, E, R]): R -> this.match(m),
-  read .resMatch[R](m: mut ResMatch[read T, read E, R]): R -> this.match(m),
-  imm  .resMatch[R](m: mut ResMatch[imm T, imm E, R]): R -> this.match(m),
+  mut  .resMatch[R:iso,imm,mut,mutH,read,readH](m: mut ResMatch[T, E, R]): R -> this.match(m),
+  read .resMatch[R:iso,imm,mut,mutH,read,readH](m: mut ResMatch[read T, read E, R]): R -> this.match(m),
+  imm  .resMatch[R:iso,imm,mut,mutH,read,readH](m: mut ResMatch[imm T, imm E, R]): R -> this.match(m),
 
   mut  !: T -> this.resMatch[T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
   read !: read T -> this.resMatch[read T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
@@ -25,7 +25,7 @@ Res[T,E]:Either[T, E]{
 
   mut  .ok: mut Opt[T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
   read .ok: mut Opt[read T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
-  imm  .ok: iso Opt[imm T] -> this.resMatch[mut Opt[imm T]]{ .ok(x) -> Opts#x, .err(_) -> {} },
+  imm  .ok: iso Opt[imm T] -> this.resMatch{ .ok(x) -> Opts#x, .err(_) -> {} },
 
   mut  .err: mut Opt[E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
   read .err: mut Opt[read E] -> this.resMatch{ .ok(_) -> {}, .err(e) -> Opts#e },
@@ -35,7 +35,7 @@ Res[T,E]:Either[T, E]{
   read .isOk: Bool -> this.resMatch{ .err(_) -> False, .ok(_) -> True },
   }
 
-ResMatch[T,E,R]:EitherMatch[T, E, R]{
+ResMatch[T,E,R:iso,imm,mut,mutH,read,readH]:EitherMatch[T, E, R]{
   .a(x) -> this.ok(x), .b(x) -> this.err(x),
   mut .ok(x: T): R,
   mut .err(x: E): R

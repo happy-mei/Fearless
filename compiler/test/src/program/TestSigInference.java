@@ -20,7 +20,7 @@ public class TestSigInference {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
     var inferred = p.inferSignatures();
     Err.strCmpFormat(expected, inferred.toString());
@@ -31,7 +31,7 @@ public class TestSigInference {
     var ps = Arrays.stream(content)
       .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
-    var p = Parser.parseAll(ps, TypeSystemFeatures.of());
+    var p = Parser.parseAll(ps, new TypeSystemFeatures());
     new WellFormednessFullShortCircuitVisitor().visitProgram(p).ifPresent(err->{ throw err; });
 
     try {
@@ -149,7 +149,7 @@ public class TestSigInference {
 
   @Test void oneParentImplGens() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
-      .fullType/1([x]):Sig[gens=[G$0],ts=[immG$0],ret=immG$0]->x:infer}],
+      .fullType/1([x]):Sig[gens=[G$0],bounds={G$0=[imm,mut,read]},ts=[immG$0],ret=immG$0]->x:infer}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
       .fullType/1([a]):Sig[gens=[G],ts=[immG],ret=immG]->[-]}]}
     """, """
@@ -202,7 +202,7 @@ public class TestSigInference {
       .m/0([]):Sig[gens=[X],ts=[],ret=imma.Bi[immX,immY]]->this:infer}],
     a.A/1=Dec[name=a.A/1,gxs=[X],lambda=[-infer-][a.B[immX]]{'this
       .foo/0([]):Sig[gens=[],ts=[],ret=immX]->[-],
-      .m/0([]):Sig[gens=[X$0],ts=[],ret=imma.Bi[imm X$0,imm X$0]]->this:infer}],
+      .m/0([]):Sig[gens=[X$0],bounds={X$0=[imm,mut,read]},ts=[],ret=imma.Bi[imm X$0,imm X$0]]->this:infer}],
     a.Bi/2=Dec[name=a.Bi/2,gxs=[AA,BB],lambda=[-infer-][]{'this}]}
     """, """
     package a
@@ -274,10 +274,20 @@ public class TestSigInference {
     {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][]{'this
       .m/2([x,y]):Sig[gens=[X,Y],ts=[immX,immY],ret=immY]->[-]}],
       a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[]]{'this
-        .m/2([a1,a2]):Sig[gens=[X$0,Y$0],ts=[immX$0,immY$0],ret=immY$0]->a2:infer}]}
+        .m/2([a1,a2]):Sig[gens=[X$0,Y$0],bounds={X$0=[imm,mut,read],Y$0=[imm,mut,read]},ts=[immX$0,immY$0],ret=immY$0]->a2:infer}]}
     """, """
     package a
     A:{ .m[X,Y](x:imm X,y:imm Y): imm Y }
+    B:A{ .m(a1,a2) -> a2 }
+    """); }
+  @Test void multiGensDiffBounds() { ok("""
+    {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][]{'this
+      .m/2([x,y]):Sig[gens=[X,Y],bounds={X=[imm,iso],Y=[mut,read]},ts=[immX,immY],ret=immY]->[-]}],
+      a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[]]{'this
+        .m/2([a1,a2]):Sig[gens=[X$0,Y$0],bounds={X$0=[imm,iso],Y$0=[mut,read]},ts=[immX$0,immY$0],ret=immY$0]->a2:infer}]}
+    """, """
+    package a
+    A:{ .m[X:imm,iso,Y:mut,read](x:imm X,y:imm Y): imm Y }
     B:A{ .m(a1,a2) -> a2 }
     """); }
   @Test void multiGensOneConcrete() { ok("""
@@ -285,23 +295,24 @@ public class TestSigInference {
       .m/2([x,y]):Sig[gens=[X,Y],ts=[imma.Foo[immX],immY],ret=immY]->[-]}],
     a.Foo/1=Dec[name=a.Foo/1,gxs=[X],lambda=[-infer-][]{'this}],
     a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[]]{'this
-      .m/2([a1,a2]):Sig[gens=[X$0,Y$0],ts=[imma.Foo[immX$0],immY$0],ret=immY$0]->a2:infer}]}
+      .m/2([a1,a2]):Sig[gens=[X$0,Y$0],bounds={X$0=[imm,mut,read],Y$0=[imm,mut,read]},ts=[imma.Foo[immX$0],immY$0],ret=immY$0]->a2:infer}]}
     """, """
     package a
     Foo[X]:{}
     A:{ .m[X,Y](x:Foo[imm X],y:imm Y): imm Y }
     B:A{ .m(a1,a2) -> a2 }
     """); }
-  @Test void multiGensOneConcreteMdfs() { ok("""
+  @Test void multiGensOneConcreteRCs() { ok("""
     {a.A/0=Dec[name=a.A/0,gxs=[],lambda=[-infer-][]{'this
-      .m/2([x,y]):Sig[gens=[X,Y],ts=[muta.Foo[immX],recMdfY],ret=recMdfY]->[-]}],
+      .m/2([x,y]):Sig[gens=[X,Y],ts=[muta.Foo[immX],Y],ret=Y]->[-]}],
     a.Foo/1=Dec[name=a.Foo/1,gxs=[X],lambda=[-infer-][]{'this}],
     a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[]]{'this
-      .m/2([a1,a2]):Sig[gens=[X$0,Y$0],ts=[muta.Foo[immX$0],recMdfY$0],ret=recMdfY$0]->a2:infer}]}
+      .m/2([a1,a2]):Sig[gens=[X$0,Y$0],bounds={X$0=[imm,mut,read],Y$0=[imm,mut,read]},ts=[muta.Foo[immX$0],Y$0],ret=Y$0]->
+        a2:infer}]}
     """, """
     package a
     Foo[X]:{}
-    A:{ recMdf .m[X,Y](x:mut Foo[imm X],y:recMdf Y): recMdf Y }
+    A:{ .m[X,Y](x:mut Foo[imm X],y:Y): Y }
     B:A{ .m(a1,a2) -> a2 }
     """); }
   @Test void sameGens() {
@@ -343,34 +354,34 @@ public class TestSigInference {
       .m1/0([]):Sig[gens=[],ts=[],ret=X]->[-],
       .m2/0([]):Sig[gens=[],ts=[],ret=mutX]->[-],
       .m3/0([]):Sig[gens=[],ts=[],ret=isoX]->[-],
-      .m4/0([]):Sig[gens=[],ts=[],ret=lentX]->[-],
-      .m5/0([]):Sig[gens=[],ts=[],ret=recMdfX]->[-],
+      .m4/0([]):Sig[gens=[],ts=[],ret=mutHX]->[-],
+      .m5/0([]):Sig[gens=[],ts=[],ret=read/immX]->[-],
       .m7/0([]):Sig[gens=[],ts=[],ret=immX]->[-]}],
     a.C/0=Dec[name=a.C/0,gxs=[],lambda=[-infer-][a.A[muta.B[]]]{'this
       .m1/0([]):Sig[gens=[],ts=[],ret=muta.B[]]->this:infer.m1/0[-]([]):infer,
       .m2/0([]):Sig[gens=[],ts=[],ret=muta.B[]]->this:infer.m2/0[-]([]):infer,
       .m3/0([]):Sig[gens=[],ts=[],ret=isoa.B[]]->this:infer.m3/0[-]([]):infer,
-      .m4/0([]):Sig[gens=[],ts=[],ret=lenta.B[]]->this:infer.m4/0[-]([]):infer,
-      .m5/0([]):Sig[gens=[],ts=[],ret=recMdf a.B[]]->this:infer.m5/0[-]([]):infer,
+      .m4/0([]):Sig[gens=[],ts=[],ret=mutHa.B[]]->this:infer.m4/0[-]([]):infer,
+      .m5/0([]):Sig[gens=[],ts=[],ret=read a.B[]]->this:infer.m5/0[-]([]):infer,
       .m7/0([]):Sig[gens=[],ts=[],ret=imma.B[]]->this:infer.m7/0[-]([]):infer}],
     a.D/1=Dec[name=a.D/1,gxs=[X],lambda=[-infer-][a.A[X]]{'this
       .m1/0([]):Sig[gens=[],ts=[],ret=X]->this:infer.m1/0[-]([]):infer,
       .m2/0([]):Sig[gens=[],ts=[],ret=mutX]->this:infer.m2/0[-]([]):infer,
       .m3/0([]):Sig[gens=[],ts=[],ret=isoX]->this:infer.m3/0[-]([]):infer,
-      .m4/0([]):Sig[gens=[],ts=[],ret=lentX]->this:infer.m4/0[-]([]):infer,
-      .m5/0([]):Sig[gens=[],ts=[],ret=recMdfX]->this:infer.m5/0[-]([]):infer,
+      .m4/0([]):Sig[gens=[],ts=[],ret=mutHX]->this:infer.m4/0[-]([]):infer,
+      .m5/0([]):Sig[gens=[],ts=[],ret=read/immX]->this:infer.m5/0[-]([]):infer,
       .m7/0([]):Sig[gens=[],ts=[],ret=immX]->this:infer.m7/0[-]([]):infer}],
     a.B/0=Dec[name=a.B/0,gxs=[],lambda=[-infer-][a.A[imma.B[]]]{'this
       .m1/0([]):Sig[gens=[],ts=[],ret=imma.B[]]->this:infer.m1/0[-]([]):infer,
       .m2/0([]):Sig[gens=[],ts=[],ret=muta.B[]]->this:infer.m2/0[-]([]):infer,
       .m3/0([]):Sig[gens=[],ts=[],ret=isoa.B[]]->this:infer.m3/0[-]([]):infer,
-      .m4/0([]):Sig[gens=[],ts=[],ret=lenta.B[]]->this:infer.m4/0[-]([]):infer,
+      .m4/0([]):Sig[gens=[],ts=[],ret=mutHa.B[]]->this:infer.m4/0[-]([]):infer,
       .m5/0([]):Sig[gens=[],ts=[],ret=imm a.B[]]->this:infer.m5/0[-]([]):infer,
       .m7/0([]):Sig[gens=[],ts=[],ret=imma.B[]]->this:infer.m7/0[-]([]):infer}]}
     """, """
     package a
     A[X]:{ .m1:X,  .m2: mut X, .m3: iso X, .m4: mutH X,
-            recMdf .m5: recMdf X, .m7: imm X
+            read .m5: read/imm X, .m7: imm X
           }
     B:A[B]{ .m1->this.m1, .m2->this.m2, .m3->this.m3, .m4->this.m4, .m5->this.m5,
             .m7->this.m7,}
@@ -380,58 +391,15 @@ public class TestSigInference {
           }
     """); }
 
-  @Test void nullrefDef() { ok("""
-    {base.Let/2=Dec[name=base.Let/2,gxs=[V,R],lambda=[-infer-][]{'this
-      .var/0([]):Sig[gens=[],ts=[],ret=V]->[-],
-      .in/1([v]):Sig[gens=[],ts=[V],ret=R]->[-]}],
-      
-    base.Ref/1=Dec[name=base.Ref/1,gxs=[X],lambda=[-infer-][base.Sealed[]]{'this
-      */0([]):Sig[gens=[],ts=[],ret=recMdfX]->[-],
-      .swap/1([x]):Sig[gens=[],ts=[X],ret=X]->[-],
-      :=/1([x]):Sig[gens=[],ts=[X],ret=immbase.Void[]]->
-        [-imm base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
-          .var/0([]):[-]->this:infer.swap/1[-]([x:infer]):infer,
-          .in/1([fear0$]):[-]->[-imm base.Void[]-][base.Void[]]{}}]):infer,
-      <-/1([f]):Sig[gens=[],ts=[immbase.UpdateRef[X]],ret=X]->
-        this:infer.swap/1[-]([f:infer#/1[-]([this:infer*/0[-]([]):infer]):infer]):infer}],
-        
-    base.Sealed/0=Dec[name=base.Sealed/0,gxs=[],lambda=[-infer-][]{'this}],
-    
-    base.Ref/0=Dec[name=base.Ref/0,gxs=[],lambda=[-infer-][]{'this
-      #/1([x]):Sig[gens=[X],ts=[X],ret=mutbase.Ref[X]]->this:infer#/1[-]([x:infer]):infer}],
-      
-    base.Let/0=Dec[name=base.Let/0,gxs=[],lambda=[-infer-][]{'this
-      #/1([l]):Sig[gens=[V,R],ts=[immbase.Let[V,R]],ret=R]->
-        l:infer.in/1[-]([l:infer.var/0[-]([]):infer]):infer}],
-        
-    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{'this}],
-    
-    base.UpdateRef/1=Dec[name=base.UpdateRef/1,gxs=[X],lambda=[-infer-][]{'this
-      #/1([x]):Sig[gens=[],ts=[X],ret=X]->[-]}]}
-    """, """
-    package base
-    Sealed:{} Void:{}
-    Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
-    Let[V,R]:{ .var:V, .in(v:V):R }
-    Ref:{ #[X](x: X): mut Ref[X] -> this#(x) }
-    Ref[X]:Sealed{
-      recMdf * : recMdf X,
-      mut .swap(x: X): X,
-      mut :=(x: X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
-      mut <-(f: UpdateRef[X]): X -> this.swap(f#(this*)),
-    }
-    UpdateRef[X]:{ mut #(x: X): X }
-    """); }
-
   @Test void immDelegate() { ok("""
     {base.B/0=Dec[name=base.B/0,gxs=[],lambda=[-infer-][base.A[]]{'this
-      .m2/1([k]):Sig[gens=[K$0],ts=[immK$0],ret=immbase.Void[]]->
+      .m2/1([k]):Sig[gens=[K$0],bounds={K$0=[imm,mut,read]},ts=[immK$0],ret=immbase.Void[]]->
         this:infer.m1/1[-]([k:infer]):infer}],
+    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{'this}],
     base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-infer-][]{'this
       .m1/1([x]):Sig[gens=[T],ts=[immT],ret=immbase.Void[]]->
         this:infer.m2/1[-]([x:infer]):infer,
-      .m2/1([k]):Sig[gens=[K],ts=[immK],ret=immbase.Void[]]->[-]}],
-    base.Void/0=Dec[name=base.Void/0,gxs=[],lambda=[-infer-][]{'this}]}
+      .m2/1([k]):Sig[gens=[K],ts=[immK],ret=immbase.Void[]]->[-]}]}
     """, """
     package base
     A:{

@@ -8,8 +8,6 @@ import failure.CompileError;
 import failure.Fail;
 import failure.FailOr;
 import files.Pos;
-import id.Id;
-import id.Id.GX;
 import id.Mdf;
 import utils.Box;
 import utils.Bug;
@@ -17,21 +15,34 @@ import utils.Streams;
 import visitors.ShortCircuitVisitor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static program.Program.filterByMdf;
+import static program.TypeTable.filterByMdf;
+
 
 interface ELambdaTypeSystem extends ETypeSystem{
-  default FailOr<T> visitLambda(E.Lambda b){
-    Dec d= new Dec(b);
-    var self= (ELambdaTypeSystem)withProgram(p().withDec(d));
-    var err1= self.implMethErrors(b);
+  default FailOr<T> visitLambda(E.Lambda lit){
+    if (!p().tsf().literalPromotions()) {
+      return litT(lit);
+    }
+    if (lit.mdf().isMut()) {
+      return litT(lit.withMdf(Mdf.iso))
+        .or(()->litT(lit));
+    }
+    if (lit.mdf().isRead()) {
+      return litT(lit.withMdf(Mdf.imm))
+        .or(()->litT(lit));
+    }
+    return litT(lit);
+  }
+  private FailOr<T> litT(E.Lambda lit) {
+    Dec d= new Dec(lit);
+    var self= (ELambdaTypeSystem) withProgram(p().withDec(d));
+    var err1= self.implMethErrors(lit);
     return err1.flatMap(_ ->self.bothT(d));
   }
   private List<E.Meth> filteredByMdf(E.Lambda b){
@@ -60,84 +71,82 @@ interface ELambdaTypeSystem extends ETypeSystem{
     }
     return FailOr.ok();
   }
-  private XBs addBounds(List<GX<T>> gxs,Map<Id.GX<T>, Set<Mdf>> bounds) {
-    var xbs = xbs();
-    for (var gx : gxs) {
-      var boundsi = bounds.get(gx);
-      assert boundsi!=null;
-      if (boundsi.isEmpty()) { continue; }
-      xbs = xbs.add(gx.name(), boundsi);
-    }
-    return xbs;
-  }
   default FailOr<T> bothT(Dec d){
     var b = d.lambda();
-    var xbs = addBounds(d.gxs(),d.bounds());
+    var xbs = xbs().addBounds(d.gxs(),d.bounds());
     var invalidGens = GenericBounds.validGenericLambda(p(), xbs, b);
-    if (invalidGens.isPresent()) {
-      return FailOr.err(()->invalidGens.get().get().pos(b.pos()));
+    if (invalidGens instanceof FailOr.Fail<Void> fail) {
+      return fail.mapErr(err->()->err.get().pos(b.pos())).cast();
     }
     T selfT= new T(b.mdf(), d.toIT());
     var selfName=b.selfName();
     var mRes= FailOr.fold(b.meths(),
-      mi->methOkCath(xbs, selfT, selfName, mi));
+      mi->methOkOuter(xbs, selfT, selfName, mi));
     return mRes.map(_ ->selfT);
   }
   private FailOr<Void> sigOk(Sig sig,Optional<Pos> p){
     var ts= Stream.concat(sig.ts().stream(),Stream.of(sig.ret()));
-    var bad= ts.map(t->GenericBounds.validGenericT(p(), xbs(), t))
-      .flatMap(Optional::stream)
+    var badBounds= ts
+      .map(t->t.accept(new KindingJudgement(p(), xbs(), true)))
+      .filter(FailOr::isErr)
+      .<FailOr<Void>>map(FailOr::cast)
+      .map(res->res.mapErr(err->()->err.get().pos(p)))
       .findFirst();
-    return FailOr.opt(bad.map(s->()->s.get().pos(p)));
+    return badBounds.orElseGet(FailOr::ok);
   }
-  private FailOr<Void> mOk(String selfName, T selfT, E.Meth m){
-    var xbs = addBounds(m.sig().gens(),m.sig().bounds());
-    var withXBs = (ELambdaTypeSystem) withXBs(xbs);
-    withXBs.sigOk(m.sig(),m.pos());
-    if(m.isAbs()){ return FailOr.ok(); }
-    return withXBs.mOkEntry(selfName, selfT, m, m.sig());
-  }
-  private FailOr<Void> methOkCath(
-      XBs xbs, T selfT, String selfName, E.Meth mi) {
+  private FailOr<Void> methOkOuter(XBs xbs, T litT, String selfName, E.Meth mi) {
+    var selfT = switch (litT.mdf()) {
+      case mdf,iso -> litT.withMdf(Mdf.mut);
+      default -> litT;
+    };
+    litT = litT.mdf().isMdf() ? litT.withMdf(Mdf.mut) : litT;
     var boundedTypeSys =(ELambdaTypeSystem) ETypeSystem.of(
-        p().shallowClone(), g(), xbs,
+        p(), g(), xbs,
         expectedT(), resolvedCalls(), depth());
-    try { return boundedTypeSys.mOk(selfName, selfT, mi); }
+    try { return boundedTypeSys.mOk(selfName, selfT, litT, mi); }
     catch (CompileError err) { return err.fail(); }
     //TODO: will die soon since we avoid all the throws?
   }
-  default FailOr<Void> mOkEntry(String selfName, T selfT, E.Meth m, E.Sig sig) {
+  private FailOr<Void> mOk(String selfName, T selfT, T litT, E.Meth m){
+    var xbs = xbs().addBounds(m.sig().gens(),m.sig().bounds());
+    var withXBs = (ELambdaTypeSystem) withXBs(xbs);
+    var sigOk = withXBs.sigOk(m.sig(),m.pos());
+    if (sigOk.isErr()) { return sigOk; }
+    if(m.isAbs()){ return FailOr.ok(); }
+    return withXBs.mOkEntry(selfName, selfT, litT, m, m.sig());
+  }
+  default FailOr<Void> mOkEntry(String selfName, T selfT, T litT, E.Meth m, E.Sig sig) {
     var e   = m.body().orElseThrow();
     var mMdf = m.mdf();
 
     var args = sig.ts();
     var ret = sig.ret();
     assert !selfT.mdf().isMdf() || g().dom().isEmpty();
-    var g0  = g().captureSelf(xbs(), selfName, selfT, mMdf);
-    Mdf selfTMdf = g0.get(selfName).mdf();
-    var gg  = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
+    var g0  = g().add(selfName, selfT).ctxAwareGamma(p(), xbs(), litT, mMdf);
+    var gg = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
-    var baseCase = topLevelIso(gg, m, e, ret);
+    var baseCase = isoAwareJudgment(gg, m, e, ret);
     var baseDestiny = baseCase.isEmpty() || ret.mdf().is(Mdf.mut, Mdf.read);
     if (baseDestiny) { return FailOr.opt(baseCase); }
     //res is iso or imm, thus is promotable
 
-    var criticalFailure = topLevelIso(gg, m, e, ret.withMdf(Mdf.readH));
+    var criticalFailure = isoAwareJudgment(gg, m, e, ret.withMdf(Mdf.readH));
     if (criticalFailure.isPresent()) { return FailOr.opt(baseCase); }
 
-    var readPromotion = mOkReadPromotion(selfName, selfT, m, sig);
+    var readPromotion = mOkReadPromotion(selfName, selfT, litT, m, sig);
     if (readPromotion.isEmpty() || !ret.mdf().is(Mdf.imm, Mdf.iso)) {
       return FailOr.opt(readPromotion.flatMap(ignored->baseCase));
     }
 
-    var isoPromotion = mOkIsoPromotion(selfName, selfT, m, sig);
+    var isoPromotion = mOkIsoPromotion(selfName, selfT, litT, m, sig);
     if(ret.mdf().isIso() || isoPromotion.isEmpty()){ return FailOr.opt(isoPromotion); }
 
-    return FailOr.opt(mOkImmPromotion(selfName, selfT, m, sig, selfTMdf)
+    Mdf selfTMdf = gg.get(selfName).mdf();
+    return FailOr.opt(mOkImmPromotion(selfName, selfT, litT, m, sig, selfTMdf)
       .flatMap(ignored->baseCase));
   }
 
-  default Optional<Supplier<CompileError>> mOkReadPromotion(String selfName, T selfT, E.Meth m, E.Sig sig) {
+  default Optional<Supplier<CompileError>> mOkReadPromotion(String selfName, T selfT, T litT, E.Meth m, E.Sig sig) {
     var readOnlyAsReadG = new Gamma() {
       @Override public Optional<T> getO(String x) {
         return g().getO(x).map(t->{
@@ -148,18 +157,17 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public List<String> dom() { return g().dom(); }
       @Override public String toString() { return "readOnlyAsReadG"+g().toString(); }
       @Override public String toStr(){ throw Bug.unreachable(); }
-
     };
-    var mMdf = m.mdf();
-    var g0 = readOnlyAsReadG.captureSelf(xbs(), selfName, selfT, mMdf.isReadH() ? Mdf.read : mMdf);
+
+    var g0 = readOnlyAsReadG.add(selfName, selfT).ctxAwareGamma(p(), xbs(), litT, m.mdf());
     var gg  = Streams.zip(
       m.xs(),
       sig.ts().stream().map(t->t.mdf().isReadH() ? t.withMdf(Mdf.read) : t).toList()
     ).fold(Gamma::add, g0);
-    return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret());
+    return isoAwareJudgment(gg, m, m.body().orElseThrow(), sig.ret());
   }
 
-  default Optional<Supplier<CompileError>> mOkIsoPromotion(String selfName, T selfT, E.Meth m, E.Sig sig) {
+  default Optional<Supplier<CompileError>> mOkIsoPromotion(String selfName, T selfT, T litT, E.Meth m, E.Sig sig) {
     Function<T, T> mdfTransform = t->{
       if (t.mdf().isMut()) { return t.withMdf(Mdf.mutH); }
       if (t.mdf().is(Mdf.read, Mdf.readImm)) { return t.withMdf(Mdf.readH); }
@@ -173,16 +181,18 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public String toString() { return "readOnlyAsReadG"+g().toString(); }
       @Override public String toStr(){ throw Bug.unreachable(); }
     };
-    var mMdf = mdfTransform.apply(selfT.withMdf(m.mdf())).mdf();
-    var g0 = mutAsLentG.captureSelf(xbs(), selfName, selfT, mMdf.isMut() ? Mdf.mutH : mMdf);
+    // TODO: relaxation, before we captured gamma as if it were mutH, but because we don't have mutH methods we rely on an explicit gamma transform here.
+//    var mMdf = mdfTransform.apply(selfT.withMdf(m.mdf())).mdf();
+    var methSelfT = g().add(selfName, selfT).ctxAwareGamma(p(), xbs(), litT, m.mdf()).get("this");
+    var g0 = mutAsLentG.ctxAwareGamma(p(), xbs(), litT, m.mdf()).add(selfName, mdfTransform.apply(methSelfT));
     var gg  = Streams.zip(
       m.xs(),
       sig.ts().stream().map(mdfTransform).toList()
-    ).filter((x,t)->!t.mdf().isMdf()).fold(Gamma::add, g0);
-    return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.mut));
+    ).filter((_, t)->!t.mdf().isMdf()).fold(Gamma::add, g0);
+    return isoAwareJudgment(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.mut));
   }
 
-  default Optional<Supplier<CompileError>> mOkImmPromotion(String selfName, T selfT, E.Meth m, E.Sig sig, Mdf selfTMdf) {
+  default Optional<Supplier<CompileError>> mOkImmPromotion(String selfName, T selfT, T litT, E.Meth m, E.Sig sig, Mdf selfTMdf) {
     var noMutyG = new Gamma() {
       @Override public Optional<T> getO(String x) {
         return g().getO(x).filter(t->!(t.mdf().isLikeMut() || t.mdf().isRecMdf() || t.mdf().isMdf()));
@@ -192,33 +202,12 @@ interface ELambdaTypeSystem extends ETypeSystem{
       @Override public String toStr(){ throw Bug.unreachable(); }
     };
     var mMdf = m.mdf();
-    var g0 = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.captureSelf(xbs(), selfName, selfT, mMdf);
-    var gg = Streams.zip(m.xs(), sig.ts()).filter((x,t)->!t.mdf().isLikeMut() && !t.mdf().isMdf() && !t.mdf().isRecMdf()).fold(Gamma::add, g0);
-    return topLevelIso(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.readH));
-  }
-
-  /**
-   * G1,x:iso ITX,G2;XBs |= e : T               (TopLevel-iso)
-   *   where
-   *   G1,x:mut ITX,G2;XBs |= e : T
-   */
-  default Optional<Supplier<CompileError>> topLevelIso(Gamma g, E.Meth m, E e, T expected) {
-    var res = isoAwareJudgment(g, m, e, expected);
-    if (res.isEmpty()) { return res; }
-    var isoNames = g.dom().stream().filter(x->{
-      try {
-        return g.get(x).mdf().isIso();
-      } catch (CompileError err) {
-        // we cannot capture something it's not in our domain, so skip it
-        return false;
-      }
-    }).toList();
-
-    for (var name : isoNames) {
-      var g_ = g.add(name, g.get(name).withMdf(Mdf.mut));
-      if (isoAwareJudgment(g_, m, e, expected).isEmpty()) { return Optional.empty(); }
-    }
-    return res;
+    var selfG = selfTMdf.isLikeMut() || selfTMdf.isRecMdf() ? Gamma.empty() : noMutyG.add(selfName, selfT);
+    var g0 = Streams.zip(m.xs(), sig.ts())
+      .filter((_,t)->!t.mdf().isLikeMut() && !t.mdf().isMdf() && !t.mdf().isRecMdf())
+      .fold(Gamma::add, selfG);
+    var gg = g0.ctxAwareGamma(p(), xbs(), litT, mMdf);
+    return isoAwareJudgment(gg, m, m.body().orElseThrow(), sig.ret().withMdf(Mdf.readH));
   }
 
   /** G;XBs |= e : T */

@@ -13,7 +13,7 @@ public record JavaFile(Path path, String code) implements JavaFileObject {
   }
 
   @Override public String getName() {
-    return path.toString();
+    return path.getFileName().toString();
   }
 
   @Override public Reader openReader(boolean ignoreEncodingErrors) {

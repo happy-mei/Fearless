@@ -1,6 +1,7 @@
 package main.java;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,10 +32,7 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
       .withBlockOptimisation()
       .run(mir);
   }
-  default JavaProgram codeGeneration(
-          MIR.Program mir
-  ){
-    var c= new JavaCompiler(verbosity(),io());
+  default JavaProgram codeGeneration(MIR.Program mir) {
     var res= new JavaProgram(this,mir);
 
     if (verbosity().printCodegen()) {
@@ -42,15 +40,15 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
       res.writeJavaFiles(tmp);
       System.out.println("saved to "+tmp);
     }
-
-    c.compile(res.files());
     return res;
   }
-  default ProcessBuilder execution(
-          MIR.Program program,
-          JavaProgram exe,
-          ConcurrentHashMap<Long, TsT> resolvedCalls
-  ){
+
+  @Override default void compileBackEnd(JavaProgram src) {
+    var c= new JavaCompiler(verbosity(),io());
+    c.compile(src.files());
+  }
+
+  default ProcessBuilder execution(JavaProgram exe){
     return MakeJavaProcess.of(io());
   }
   static LogicMainJava of(
@@ -80,7 +78,7 @@ class MakeJavaProcess{
             + File.pathSeparator
             + io.cachedBase().toAbsolutePath();
     var baseCommand = Stream.of(
-            jrePath, "-cp", classpath, entryPoint, io.entry());
+            jrePath, "-cp", classpath, "--enable-preview", "-ea", entryPoint, io.entry());
     return Stream.concat(baseCommand,
                     io.commandLineArguments().stream())
             .toArray(String[]::new);

@@ -1,7 +1,14 @@
 package base
 
 Int: Sealed,_MathOps[imm Int],_IntOps[imm Int]{}
-Nat: Sealed,_MathOps[imm Nat],_IntOps[imm Nat]{}
+Nat: Sealed,_MathOps[imm Nat],_IntOps[imm Nat],_UnsignedOps[imm Nat]{
+  /// Take an offset int and apply it to this number. Will throw if this overflows.
+  .offset(delta: Int): Nat,
+  }
+Byte: Sealed,_MathOps[imm Byte],_IntOps[imm Byte],_UnsignedOps[imm Byte]{
+  /// Take an offset int and apply it to this number. Will throw if this overflows.
+  .offset(delta: Int): Byte,
+  }
 Float: Sealed,_MathOps[imm Float]{
   .round: Int,
   .ceil: Int,
@@ -17,6 +24,7 @@ _MathOps[T]: Sealed{
   read .int: Int,
   read .nat: Nat,
   read .float: Float,
+  read .byte: Byte,
   read .str: Str,
   +(n: T): T,
   -(n: T): T,
@@ -33,6 +41,7 @@ _MathOps[T]: Sealed{
   ==(n: T): Bool,
   .assertEq(actual: T): Void,
   .assertEq(actual: T, message: Str): Void,
+  read .hash(hasher: mut Hasher): Void,
   }
 _IntOps[T]: Sealed{
   // bitwise
@@ -44,12 +53,16 @@ _IntOps[T]: Sealed{
 
   **(n: Nat): T, // pow
   }
+_UnsignedOps[T]: Sealed{
+  .offset(n: Int): T,
+  }
 
 // Fake concrete type for all numbers. The real implementation is generated at code-gen.
 _IntInstance: Int{
   .int -> Magic!,
   .nat -> Magic!,
   .float -> Magic!,
+  .byte -> Magic!,
   .str -> Magic!,
   +(n) -> Magic!,
   -(n) -> Magic!,
@@ -74,11 +87,13 @@ _IntInstance: Int{
   ==n -> Magic!,
   .assertEq(actual) -> Magic!,
   .assertEq(actual, message) -> Magic!,
+  .hash(_) -> Magic!,
   }
 _NatInstance: Nat{
   .int -> Magic!,
   .nat -> Magic!,
   .float -> Magic!,
+  .byte -> Magic!,
   .str -> Magic!,
   +(n) -> Magic!,
   -(n) -> Magic!,
@@ -87,6 +102,7 @@ _NatInstance: Nat{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .offset(n) -> Magic!,
 
   // bitwise
   .shiftLeft(n) -> Magic!,
@@ -103,11 +119,45 @@ _NatInstance: Nat{
   ==n -> Magic!,
   .assertEq(actual) -> Magic!,
   .assertEq(actual, message) -> Magic!,
+  .hash(_) -> Magic!,
+  }
+_ByteInstance: Byte{
+  .int -> Magic!,
+  .nat -> Magic!,
+  .float -> Magic!,
+  .byte -> Magic!,
+  .str -> Magic!,
+  +(n) -> Magic!,
+  -(n) -> Magic!,
+  *(n) -> Magic!,
+  /(n) -> Magic!,
+  %(n) -> Magic!,
+  **(n) -> Magic!,
+  .abs -> Magic!,
+  .offset(n) -> Magic!,
+
+  // bitwise
+  .shiftLeft(n) -> Magic!,
+  .shiftRight(n) -> Magic!,
+  .xor(n) -> Magic!,
+  .bitwiseAnd(n) -> Magic!,
+  .bitwiseOr(n) -> Magic!,
+
+  // Comparisons
+  >n -> Magic!,
+  <n -> Magic!,
+  >=n -> Magic!,
+  <=n -> Magic!,
+  ==n -> Magic!,
+  .assertEq(actual) -> Magic!,
+  .assertEq(actual, message) -> Magic!,
+  .hash(_) -> Magic!,
   }
 _FloatInstance: Float{
   .int -> Magic!,
   .nat -> Magic!,
   .float -> Magic!,
+  .byte -> Magic!,
   .str -> Magic!,
   .round -> Magic!,
   .ceil -> Magic!,
@@ -131,6 +181,7 @@ _FloatInstance: Float{
   ==n -> Magic!,
   .assertEq(actual) -> Magic!,
   .assertEq(actual, message) -> Magic!,
+  .hash(_) -> Magic!,
   }
 
 _NumsAssertionHelper[T]: {
@@ -144,6 +195,12 @@ _IntAssertionHelper: _NumsAssertionHelper[Int]{
     Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
   }
 _NatAssertionHelper: _NumsAssertionHelper[Nat]{
+  .assertEq(expected, actual) ->
+    Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  .assertEq(expected, actual, message) ->
+    Assert!(expected == actual, message+"\nExpected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
+  }
+_ByteAssertionHelper: _NumsAssertionHelper[Byte]{
   .assertEq(expected, actual) ->
     Assert!(expected == actual, "Expected: "+(expected.str)+"\nActual: "+(actual.str), {{}}),
   .assertEq(expected, actual, message) ->

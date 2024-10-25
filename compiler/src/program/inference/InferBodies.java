@@ -28,12 +28,9 @@ public record InferBodies(ast.Program p) {
   }
 
   static Map<Id.DecId, ast.T.Dec> inferDecs(ast.Program p, astFull.Program fullProgram){
-//    var inferBodies = new InferBodies(p);
-//    return fullProgram.ds().values().stream()
-//      .map(inferBodies::inferDec)
-//      .collect(Collectors.toMap(ast.T.Dec::name, d->d));
-    return fullProgram.ds().values().stream()//TODO: to ease debugging.parallelStream()
-      .map(dec->new InferBodies(p.shallowClone()).inferDec(dec))
+    var inferBodies = new InferBodies(p);
+    return fullProgram.ds().values().parallelStream()
+      .map(inferBodies::inferDec)
       .collect(Collectors.toConcurrentMap(ast.T.Dec::name, d->d));
   }
   ast.T.Dec inferDec(astFull.T.Dec d){
@@ -159,9 +156,10 @@ public record InferBodies(ast.Program p) {
       .filter(fullSig->fullSig.sig().ts().size() == m.xs().size())
       .map(fullSig->m.withName(fullSig.name()).withSig(fullSig.sig()).makeBodyUnique())
       .toList();
+
+    // TODO: this can throw if the abstract method is not callable (i.e. we're returning imm so no abstract meths exist)
     assert res.stream().noneMatch(m::equals);
-    assert !res.isEmpty():
-      onlyAbs(e, depth);
+    assert !res.isEmpty() : onlyAbs(e, depth);
     return Optional.of(res);
   }
 
@@ -182,7 +180,15 @@ public record InferBodies(ast.Program p) {
     var its= e.its().isEmpty()
       ?e.it().stream().toList()
       :e.its();
-    var sigs = FullMethSig.of(p, XBs.empty(), e.mdf().orElse(Mdf.recMdf), its, depth, CM::isAbs);
+    List<FullMethSig> sigs;try{sigs = FullMethSig.of(
+      p,
+      XBs.empty(),
+      e.mdf().orElse(Mdf.recMdf),
+      its,
+      depth,
+      CM::isAbs
+    );
+    } catch (CompileError err) { throw err.parentPos(e.pos()); }
     @SuppressWarnings("preview")
     var nUniqueSigs = sigs.stream()
       .gather(DistinctBy.of(sig->sig.name().withMdf(Optional.empty())))
