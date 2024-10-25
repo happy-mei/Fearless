@@ -94,43 +94,7 @@ public class TypeSystemMsg {
     return newList.reversed();
   }
 
-  private static int levenshteinDist(String a, String b) {
-    int aLen = a.length();
-    int bLen = b.length();
-    // If either string are empty, min edit cost will be length of other string.
-    // This should never happen for method names, but still here if this method needs to be used for other purposes.
-    if (aLen == 0) {return bLen;}
-    if (bLen == 0) {return aLen;}
-    // Swap so b is always the longer string
-    if (aLen > bLen) {
-      return levenshteinDist(b, a);
-    }
-    // Unnecessary to store full 2d matrix, only need last array.
-    int[] prevRow = new int[aLen + 1];
-    for (int i=0; i<=aLen; i++) {
-      prevRow[i] = i;
-    }
-    // Update rows
-    for (int j=1; j<=bLen; j++) {
-      prevRow = updateRow(a, b, aLen, j, prevRow);
-    }
-    return prevRow[aLen];
-  }
-
-  private static int[] updateRow(String a, String b, int aLen, int bIndex, int[] prevRow) {
-    int[] crntRow = new int[aLen + 1];
-    crntRow[0] = bIndex;
-    int prevVal = prevRow[0];
-    for (int i=1; i<=aLen; i++) {
-      int cost = (a.charAt(i-1) == b.charAt(bIndex - 1)) ? 0 : 1;
-      int newVal = Math.min(Math.min(crntRow[i-1]+1, prevRow[i]+1), prevVal+cost);
-      prevVal = prevRow[i];
-      crntRow[i] = newVal;
-    }
-    return crntRow;
-  }
-
-  private static double jaroWinkler(String s1, String s2) {
+  private static double getJaroDistance(String s1, String s2) {
     if (s1.equals(s2)) {return 1.0;}
     if (s1.isBlank() || s2.isBlank()) {return 0.0;}
 
@@ -167,7 +131,11 @@ public class TypeSystemMsg {
     t /= 2;
 
     double jaro = ((double)match/s1.length() + (double)match/s2.length() + (double)(match-t)/match)/3.0;
+    return jaro;
+  }
 
+  private static double jaroWinkler(String s1, String s2) {
+    double jaro = getJaroDistance(s1, s2);
     int prefix = 0;
     int maxPrefixLength = 4;
     for (int i=0; i<Math.min(s1.length(), s2.length()); i++) {

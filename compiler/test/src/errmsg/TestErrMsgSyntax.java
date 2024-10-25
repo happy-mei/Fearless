@@ -17,10 +17,10 @@ public class TestErrMsgSyntax {
     Main.resetAll();
     AtomicInteger pi = new AtomicInteger();
     var ps = Arrays.stream(content)
-      .map(code -> new Parser(Path.of(STR."Dummy\{pi.getAndIncrement()}.fear"), code))
+      .map(code -> new Parser(Path.of("Dummy"+pi.getAndIncrement()+".fear"), code))
       .toList();
     try {
-      var res = Parser.parseAll(ps, TypeSystemFeatures.of());
+      var res = Parser.parseAll(ps, new TypeSystemFeatures());
       Assertions.fail("Parsing did not fail. Got: "+res);
     }
     catch (CompileError e) {
