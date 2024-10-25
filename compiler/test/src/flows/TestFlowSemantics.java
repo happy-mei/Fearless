@@ -319,4 +319,13 @@ public class TestFlowSemantics {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+
+  @Test void dataParallelAllThrowsMustGetFirst() {ok(new RunOutput.Res("", "Program crashed with: \"0\"[###]", 1), """
+    package test
+    Test: Main{sys -> Block#(
+      Flow.range(+0, +100_000)
+        .map{i -> Error.msg[Int] (i.str)}
+        .list
+      )}
+    """, Base.mutBaseAliases);}
 }
