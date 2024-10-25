@@ -34,7 +34,7 @@ public class ParenthesisMessage {
    */
   private static String getSingleUnclosed(Parenthesis open, String input) {
     String prefix = open.line() + ": ";
-    String message = String.format("Error: unclosed opening parenthesis '%s' at %d:%d\n", open.type().symbol, open.line(), open.pos());
+    String message = String.format("Error: unclosed opening parenthesis '%s' at line %d pos %d\n", open.type().symbol, open.line(), open.pos());
     message += prefix + input.lines().toList().get(open.line()-1) + "\n";
     message += " ".repeat(open.pos() + prefix.length()) + "^ unclosed parenthesis\n";
     return message;
@@ -63,7 +63,7 @@ public class ParenthesisMessage {
   private static String getUnexpectedErrorMessage(ParenthesisChecker checker, String input) {
     Parenthesis close = checker.getStack().pop();
     String prefix = close.line() + ": ";
-    String message = String.format("Error: unexpected closing parenthesis '%s' at %d:%d\n", close.type().symbol, close.line(), close.pos());
+    String message = String.format("Error: unexpected closing parenthesis '%s' at line %d pos %d\n", close.type().symbol, close.line(), close.pos());
     message += prefix + input.lines().toList().get(close.line()-1) + "\n";
     message += " ".repeat(close.pos() + prefix.length()) + "^ unexpected close\n";
     return message;
@@ -96,7 +96,7 @@ public class ParenthesisMessage {
     String suggestion = "is it meant to be '" + open.type().pair + "'?";
     String indicator = whitespace + "^" + "-".repeat(close.pos()-open.pos()-1) + "^ mismatched close, " + suggestion;
     return """
-        Error: mismatched closing parenthesis '%s' at %d:%d
+        Error: mismatched closing parenthesis '%s' at line %d pos %d
         %s%s
         %s
         %s|
@@ -115,7 +115,7 @@ public class ParenthesisMessage {
   private static String getMultiLineMismatch(Parenthesis open, Parenthesis close, String input) {
     List<String> lines = input.lines().toList();
     StringBuilder message = new StringBuilder(
-      String.format("Error: mismatched closing parenthesis '%s' at %d:%d\n", close.type().symbol, close.line(), close.pos()));
+      String.format("Error: mismatched closing parenthesis '%s' at line %d pos %d\n", close.type().symbol, close.line(), close.pos()));
     boolean skipped = false;
     for(int i=open.line(); i<=close.line(); i++) {
       if(i > open.line()+1 && i < close.line()-1) {

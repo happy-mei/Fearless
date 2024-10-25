@@ -32,7 +32,7 @@ public class TestErrMsgSyntax {
     """
     [###]Dummy0.fear:2:5
     [E59 syntaxError]
-    Error: mismatched closing parenthesis ')' at 2:5
+    Error: mismatched closing parenthesis ')' at line 2 pos 5
     2: Bar:{)
            ^^ mismatched close, is it meant to be '}'?
            |
@@ -48,7 +48,7 @@ public class TestErrMsgSyntax {
     """
     [###]Dummy0.fear:3:0
     [E59 syntaxError]
-    Error: unclosed opening parenthesis '{' at 2:4
+    Error: unclosed opening parenthesis '{' at line 2 pos 4
     2: Bar:{
            ^ unclosed parenthesis
     """,
@@ -62,7 +62,7 @@ public class TestErrMsgSyntax {
     """
     [###]Dummy0.fear:2:4
     [E59 syntaxError]
-    Error: unexpected closing parenthesis '}' at 2:4
+    Error: unexpected closing parenthesis '}' at line 2 pos 4
     2: Bar:}
            ^ unexpected close
     """,
@@ -76,7 +76,7 @@ public class TestErrMsgSyntax {
   """
     [###]Dummy0.fear:4:0
     [E59 syntaxError]
-    Error: mismatched closing parenthesis ')' at 4:0
+    Error: mismatched closing parenthesis ')' at line 4 pos 0
     2  : Bar:{
              ^ unclosed open
     3  :   Hello:{}
@@ -95,7 +95,7 @@ public class TestErrMsgSyntax {
     """
     [###]Dummy0.fear:9:0
     [E59 syntaxError]
-    Error: mismatched closing parenthesis ')' at 9:0
+    Error: mismatched closing parenthesis ')' at line 9 pos 0
     2  : Bar:{
              ^ unclosed open
     3  :   // Show this line
@@ -121,7 +121,7 @@ public class TestErrMsgSyntax {
     """
     [###]Dummy0.fear:3:5
     [E59 syntaxError]
-    Error: mismatched closing parenthesis ')' at 3:5
+    Error: mismatched closing parenthesis ')' at line 3 pos 5
     3: Bar:{)
            ^^ mismatched close, is it meant to be '}'?
            |
@@ -138,7 +138,7 @@ public class TestErrMsgSyntax {
     """
     [###]Dummy0.fear:4:5
     [E59 syntaxError]
-    Error: mismatched closing parenthesis ')' at 4:5
+    Error: mismatched closing parenthesis ')' at line 4 pos 5
     4: Bar:{)
            ^^ mismatched close, is it meant to be '}'?
            |
@@ -156,7 +156,7 @@ public class TestErrMsgSyntax {
     """
     [###]
     [E59 syntaxError]
-    Error: mismatched closing parenthesis ')' at 2:50
+    Error: mismatched closing parenthesis ')' at line 2 pos 50
     2: Hello: Main{ s -> s.println("Hello World [)]((]") )
                   ^--------------------------------------^ mismatched close, is it meant to be '}'?
                   |
@@ -172,7 +172,7 @@ public class TestErrMsgSyntax {
     """
     [###]
     [E59 syntaxError]
-    Error: mismatched closing parenthesis ')' at 2:52
+    Error: mismatched closing parenthesis ')' at line 2 pos 52
     2: Hello: Main{ s -> s.println("Hello World \\"[)]((]") )
                   ^----------------------------------------^ mismatched close, is it meant to be '}'?
                   |
@@ -188,7 +188,7 @@ public class TestErrMsgSyntax {
     """
     [###]
     [E59 syntaxError]
-    Error: mismatched closing parenthesis ')' at 5:6
+    Error: mismatched closing parenthesis ')' at line 5 pos 6
     2  : Hello: Main{ s -> s.println( ""\"
                     ^ unclosed open
     3  :  | Hello World
@@ -209,7 +209,7 @@ public class TestErrMsgSyntax {
     """
     [###]
     [E59 syntaxError]
-    Error: mismatched closing parenthesis ')' at 5:6
+    Error: mismatched closing parenthesis ')' at line 5 pos 6
     2  : Hello: Main{ s -> s.println( ""\"
                     ^ unclosed open
     3  :  | Hello World
@@ -230,7 +230,7 @@ public class TestErrMsgSyntax {
     """
     [###]
     [E59 syntaxError]
-    Error: mismatched closing parenthesis ')' at 6:6
+    Error: mismatched closing parenthesis ')' at line 6 pos 6
     2  : Hello: Main{ s -> s.println( ""\"
                     ^ unclosed open
     3  :  | Hello World

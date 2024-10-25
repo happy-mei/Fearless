@@ -63,10 +63,9 @@ public class TypeSystemMsg {
   private static String getMessage(CompileError rawError, ast.T recvT, CM suggestMeth) {
     Id.MethName name = (Id.MethName) rawError.attributes.get("name");
     // Not sure if there is a way to get arg types from incorrect method.
-    return "Method \"%s\" with %d args does not exist in \"%s\"".formatted(name.name(), name.num(), recvT)
-      + "\nDid you mean \"" + suggestMeth.name().name()
-      + "(" + suggestMeth.sig().ts().stream().map(T::toString).collect(Collectors.joining(", ")) + "): "
-      + suggestMeth.sig().ret() + "\"";
+    return "Method <%s> with %d args does not exist in <%s>".formatted(name.name(), name.num(), recvT)
+      + "\nDid you mean <" + suggestMeth.c().name().name() +suggestMeth.name().name()
+      + "(" + suggestMeth.sig().ts().stream().map(T::toString).collect(Collectors.joining(", ")) + ")" + ">";
   }
 
   /**
@@ -79,20 +78,20 @@ public class TypeSystemMsg {
    */
   private static List<CM> sortMethodSimilarity(Id.MethName name, List<CM> ms, ast.T recvT) {
     ArrayList<CM> newList = new ArrayList<>(ms);
-    newList.sort(Comparator.comparingInt((cm)-> {
-      int i = levenshteinDist(name.name(), cm.name().name());
+    newList.sort(Comparator.comparingDouble((cm)-> {
+      double jaro = jaroWinkler(name.name(), cm.name().name());
       // Prioritizes methods from the same receiver type
       // Prioritizes methods with closer number of arguments
       // TODO: This is a hacky way to do this, maybe there is a better method.
-      int argsPenalty = Math.abs(cm.name().num() + name.num());
-      int recvPenalty = recvT.rt().equals(cm.c()) ? 0 : 1;
-      if (i + recvPenalty == 0) {
-        return argsPenalty;
+      int argsPenalty = Math.abs(cm.name().num() - name.num());
+      double typeSimilarity = jaroWinkler(recvT.rt().toString(), cm.c().toString());
+      if (jaro + typeSimilarity == 2.0) {
+        return argsPenalty*-1 + 10;
       }
       // +50 to prioritize methods with same name and receiver, i*2 to add more weight to name similarity than arg no.
-      return i + recvPenalty + argsPenalty + 50;
+      return jaro + typeSimilarity;
     }));
-    return newList;
+    return newList.reversed();
   }
 
   private static int levenshteinDist(String a, String b) {
@@ -129,5 +128,58 @@ public class TypeSystemMsg {
       crntRow[i] = newVal;
     }
     return crntRow;
+  }
+
+  private static double jaroWinkler(String s1, String s2) {
+    if (s1.equals(s2)) {return 1.0;}
+    if (s1.isBlank() || s2.isBlank()) {return 0.0;}
+
+    int maxDist = Math.max(s1.length(), s2.length())/2 - 1;
+    int match = 0;
+
+    boolean[] s1Hash = new boolean [s1.length()];
+    boolean[] s2Hash = new boolean [s2.length()];
+
+    for (int i=0; i<s1.length(); i++) {
+      int start = Math.max(0, i - maxDist);
+      int end = Math.min(s2.length()-1, i + maxDist);
+      for (int j=start; j<=end; j++) {
+        if(s2Hash[j]) {continue;}
+        if(s1.charAt(i) != s2.charAt(j)) {continue;}
+        s1Hash[i] = true;
+        s2Hash[j] = true;
+        match++;
+        break;
+      }
+    }
+    if (match == 0) {return 0.0;}
+
+    int k = 0;
+    double t = 0;
+    for (int i=0; i<s1.length(); i++) {
+      if (!s1Hash[i]) {continue;}
+      while (!s2Hash[k]) {k++;}
+      if (s1.charAt(i) != s2.charAt(k)) {
+        t++;
+      }
+      k++;
+    }
+    t /= 2;
+
+    double jaro = ((double)match/s1.length() + (double)match/s2.length() + (double)(match-t)/match)/3.0;
+
+    int prefix = 0;
+    int maxPrefixLength = 4;
+    for (int i=0; i<Math.min(s1.length(), s2.length()); i++) {
+      if (s1.charAt(i) == s2.charAt(i)) {
+        prefix++;
+      } else {
+        break;
+      }
+    }
+    prefix = Math.min(prefix, maxPrefixLength);
+
+    double scalingFactor = 0.1;
+    return jaro + prefix * scalingFactor * (1-jaro);
   }
 }
