@@ -1,4 +1,4 @@
-package rt.flows.dataParallel.eod;
+package rt.flows.dataParallel.heartbeat;
 
 import base.flows.FlowOp_1;
 import base.flows._Sink_1;
@@ -7,8 +7,9 @@ import rt.flows.dataParallel.BufferSink;
 import rt.flows.dataParallel.SplitTasks;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
+import static rt.flows.dataParallel.heartbeat.HeartbeatFlow.PARALLELISM_POTENTIAL;
 
 /**
  * EODWorker (Explosive Ordnance Disposal Worker) is a parallelism strategy that will optimistically parallelise tasks
@@ -16,22 +17,40 @@ import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
  * sequentially. This strategy aims to maximise parallelism while avoiding explosions of nested parallelism consuming
  * large amounts of memory.
  */
-public final class EODWorker implements Runnable {
+public final class HeartbeatFlowWorker implements Runnable {
   public static void forRemaining(FlowOp_1 source, _Sink_1 downstream, int size) {
     var splitData = SplitTasks.of(source, Math.max(PARALLELISM_POTENTIAL / 2, 1));
-    var nTasks = splitData.size();
+    int realSize = size >= 0 ? size : splitData.size();
 
-    int realSize = size >= 0 ? size : nTasks;
-    new EODStrategies(downstream, realSize, splitData, nTasks).runFlow(nTasks);
+    AtomicReference<RuntimeException> exception = new AtomicReference<>();
+    final Thread.UncaughtExceptionHandler handler = (_,err) -> {
+      var message = err.getMessage();
+      if (err instanceof StackOverflowError) { message = "Stack overflowed"; }
+      exception.compareAndSet(null, new RuntimeException(message, err));
+    };
+    var flusher = BufferSink.FlushWorker.start(handler);
+    var sync = new CountDownLatch(splitData.size());
+    new HeartbeatFlow(downstream, realSize, splitData, flusher, sync, handler).run();
+    try {
+      sync.await();
+    } catch (InterruptedException e) {
+      throw new IllegalStateException(e);
+    }
+    flusher.stop(downstream);
+    var actualException = exception.get();
+    if (actualException != null) {
+      throw actualException;
+    }
   }
 
 
   private final FlowOp_1 source;
   private final BufferSink downstream;
   private final CountDownLatch sync;
-  public EODWorker(FlowOp_1 source, _Sink_1 downstream, int sizeHint, BufferSink.FlushWorker flusher, CountDownLatch sync) {
+
+  public HeartbeatFlowWorker(FlowOp_1 source, _Sink_1 downstream, BufferSink.FlushWorker flusher, CountDownLatch sync) {
     this.source = source;
-    this.downstream = new BufferSink(downstream, flusher, sizeHint);
+    this.downstream = new BufferSink(downstream, flusher);
     this.sync = sync;
   }
 
@@ -48,7 +67,7 @@ public final class EODWorker implements Runnable {
       downstream.pushError$mut(base.Infos_0.$self.msg$imm(rt.Str.fromJavaStr(err.getMessage())));
     } finally {
       this.flush();
-      this.sync.countDown();
+      sync.countDown();
     }
   }
 

@@ -7,6 +7,7 @@ import rt.flows.dataParallel.DelayedStopSink;
 import rt.flows.dataParallel.ParallelStrategies;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,8 +35,6 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     assert nTasks > 1;
     int perWorkerSize = size / nTasks;
 
-    var workers = new EODWorker[nTasks];
-    var spawned = new Thread[nTasks];
     AtomicReference<RuntimeException> exception = new AtomicReference<>();
     final Thread.UncaughtExceptionHandler handler = (_,err) -> {
       var message = err.getMessage();
@@ -43,48 +42,32 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
       exception.compareAndSet(null, new RuntimeException(message, err));
     };
     var flusher = BufferSink.FlushWorker.start(handler);
+    var sync = new CountDownLatch(nTasks);
     for (int i = 0; i < nTasks; ++i) {
       var actualException = exception.get();
       if (actualException != null) {
         throw actualException;
       }
       var subSource = splitData.get(i);
-      var worker = new EODWorker(subSource, downstream, perWorkerSize, flusher);
+      var worker = new EODWorker(subSource, downstream, perWorkerSize, flusher, sync);
       if (i == nTasks - 1) {
         worker.run();
-        workers[i] = worker;
         break;
       }
 
       var willParallelise = AVAILABLE_PARALLELISM.tryAcquire();
       if (willParallelise) {
-        spawned[i] = Thread.ofVirtual().uncaughtExceptionHandler(handler).start(worker);
+        Thread.ofVirtual().uncaughtExceptionHandler(handler).start(worker);
       } else {
         worker.run();
       }
-      workers[i] = worker;
     }
 
-    for (int i = 0; i < nTasks; ++i) {
-      var worker = workers[i];
-      if (worker == null) { break; }
-      var thread = spawned[i];
-
-      if (thread != null) {
-        try {
-          thread.join();
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        }
-        AVAILABLE_PARALLELISM.release();
-      }
-
-      var actualException = exception.get();
-      if (actualException != null) {
-        throw actualException;
-      }
+    try {
+      sync.await();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
-
     flusher.stop(downstream);
     var actualException = exception.get();
     if (actualException != null) {

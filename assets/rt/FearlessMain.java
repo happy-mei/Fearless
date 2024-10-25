@@ -3,9 +3,9 @@ package base;
 import base.caps._System_0;
 import rt.Debug;
 import rt.Str;
+import rt.vpf.VPF;
 
 import java.lang.reflect.Field;
-import java.util.Optional;
 
 public class FearlessMain {
   public static void main(String[] args) {
@@ -26,6 +26,7 @@ public class FearlessMain {
     assert myMain != null;
 
     FAux.LAUNCH_ARGS = buildArgList(args, 1);
+    var shutdownVPF = VPF.start(3);
     try {
       myMain.$hash$imm(_System_0.$self);
     } catch (StackOverflowError e) {
@@ -41,6 +42,8 @@ public class FearlessMain {
     } catch (Throwable t) {
       var msg = t.getMessage() == null ? t.getCause() : t.getMessage();
       fatal("Program crashed with: "+msg, Debug.demangleStackTrace(t.getStackTrace()));
+    } finally {
+      shutdownVPF.run();
     }
   }
   public static Main_0 getMain(String mainName) throws NoSuchFieldException, SecurityException, ClassNotFoundException, IllegalArgumentException, IllegalAccessException, ClassCastException {

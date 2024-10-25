@@ -4,6 +4,7 @@ import base.*;
 import base.flows.*;
 import rt.flows.dataParallel.eod.EODWorker;
 import rt.flows.FlowCreator;
+import rt.flows.dataParallel.heartbeat.HeartbeatFlowWorker;
 
 import java.util.Objects;
 
@@ -181,7 +182,8 @@ public final class DataParallelFlow implements Flow_1 {
     }
 
     @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
-      EODWorker.forRemaining(source_m$, downstream_m$, (int) size);
+//      EODWorker.forRemaining(source_m$, downstream_m$, (int) size);
+      HeartbeatFlowWorker.forRemaining(source_m$, downstream_m$, (int) size);
 //      nestLevel.incrementAndGet();
 //      if (stats == null) {
 //        stats = size >= 0 ? new Stats(size) : new Stats();
