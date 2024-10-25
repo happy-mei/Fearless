@@ -9,24 +9,26 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public record HeartbeatFlow(_Sink_1 downstream, int size, List<FlowOp_1> splitData, BufferSink.FlushWorker flusher, CountDownLatch sync, Thread.UncaughtExceptionHandler exceptionHandler) implements Runnable {
-  private static final int TASKS_PER_CORE = 5;
+  private static final int TASKS_PER_CORE = 4;
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   public static final int PARALLELISM_POTENTIAL = TASKS_PER_CORE * N_CPUS;
 
   @Override public void run() {
-    if (splitData.size() == 1) {
-      new HeartbeatFlowWorker(splitData().getFirst(), downstream, flusher, sync).run();
-      return;
-    }
+    for (int i = 0; i < splitData.size(); ++i) {
+      var worker = new HeartbeatFlowWorker(splitData().getFirst(), downstream, flusher, sync);
+      if (splitData.size() == 1) {
+        worker.run();
+        return;
+      }
 
-    var next = new HeartbeatFlow(downstream, size, splitData.subList(1, splitData.size()), flusher, sync, exceptionHandler);
-    var worker = new HeartbeatFlowWorker(splitData().getFirst(), downstream, flusher, sync);
-    if (VPF.shouldSpawn()) {
-      VPF.spawnDirect(next, exceptionHandler);
+      if (VPF.shouldSpawn()) {
+        var next = new HeartbeatFlow(downstream, size, splitData.subList(i+1, splitData.size()), flusher, sync, exceptionHandler);
+        VPF.spawnDirect(next, exceptionHandler);
+        worker.run();
+        return;
+      }
+
       worker.run();
-    } else {
-      worker.run();
-      next.run();
     }
   }
 }

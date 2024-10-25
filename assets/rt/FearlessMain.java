@@ -3,6 +3,7 @@ package base;
 import base.caps._System_0;
 import rt.Debug;
 import rt.Str;
+import rt.vpf.ConfigureVPF;
 import rt.vpf.VPF;
 
 import java.lang.reflect.Field;
@@ -26,7 +27,7 @@ public class FearlessMain {
     assert myMain != null;
 
     FAux.LAUNCH_ARGS = buildArgList(args, 1);
-    var shutdownVPF = VPF.start(3);
+    var shutdownVPF = VPF.start(ConfigureVPF.getHeartbeatInterval());
     try {
       myMain.$hash$imm(_System_0.$self);
     } catch (StackOverflowError e) {

@@ -12,7 +12,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
 public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitData, int nTasks) implements ParallelStrategies {
-  private static final int TASKS_PER_CORE = 5;
+  private static final int TASKS_PER_CORE = 4;
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   public static final int PARALLELISM_POTENTIAL = TASKS_PER_CORE * N_CPUS;
   //  public static final int PARALLELISM_POTENTIAL = 4;
@@ -44,10 +44,6 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     var flusher = BufferSink.FlushWorker.start(handler);
     var sync = new CountDownLatch(nTasks);
     for (int i = 0; i < nTasks; ++i) {
-      var actualException = exception.get();
-      if (actualException != null) {
-        throw actualException;
-      }
       var subSource = splitData.get(i);
       var worker = new EODWorker(subSource, downstream, perWorkerSize, flusher, sync);
       if (i == nTasks - 1) {

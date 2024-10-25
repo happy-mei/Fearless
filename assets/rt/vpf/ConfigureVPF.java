@@ -20,7 +20,7 @@ public final class ConfigureVPF {
     }
 
     // Automatic heartbeat configuration out of scope for this project, so we'll just return a default value
-    return 8000;
+    return 10_000;
   }
   public static void main(String[] ignored) {
     System.err.println("Heartbeat interval: "+getHeartbeatInterval());
