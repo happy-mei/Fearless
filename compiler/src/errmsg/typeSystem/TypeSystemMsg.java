@@ -44,7 +44,7 @@ public class TypeSystemMsg {
 
   private static String getOtherSuggestedMethods(List<CM> sortedMs) {
     StringBuilder suggestions = new StringBuilder("\n\nOther candidates:");
-    for(var meth: sortedMs) {
+    for(var meth : sortedMs) {
       String args = "(";
       args += meth.sig().ts().stream().map(T::toString).collect(Collectors.joining(", "));
       args += "): ";
@@ -91,7 +91,7 @@ public class TypeSystemMsg {
       // +50 to prioritize methods with same name and receiver, i*2 to add more weight to name similarity than arg no.
       return jaro + typeSimilarity;
     }));
-    return newList.reversed();
+    return newList.reversed().subList(0, Math.min(newList.size(), 11));
   }
 
   private static double getJaroDistance(String s1, String s2) {
