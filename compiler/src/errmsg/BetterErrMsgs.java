@@ -15,7 +15,6 @@ public class BetterErrMsgs {
   }
 
   public String syntaxError() {
-    System.out.println(input);
     try {
       return new ParenthesisChecker(input).compute();
     } catch (IllegalStateException e) {
