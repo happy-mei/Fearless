@@ -1336,7 +1336,9 @@ public class TestJavaProgram {
       .println(msg) -> Magic!,
       .printErr(msg) -> Magic!,
       .printlnErr(msg) -> Magic!,
-      .read(_) -> Magic!,
+      .accessR(_) -> Magic!,
+      .accessW(_) -> Magic!,
+      .accessRW(_) -> Magic!,
       }
     """, Base.mutBaseAliases); }
 
