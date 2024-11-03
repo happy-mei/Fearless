@@ -28,4 +28,7 @@ public final class CheapHash implements base.CheapHash_0 {
     result = ((result << 5) - result) + x.utf8().hashCode();
     return this;
   }
+  @Override public base.Hasher_0 hash$mut(base.ToHash_0 x) {
+    return x.hash$read(this);
+  }
 }

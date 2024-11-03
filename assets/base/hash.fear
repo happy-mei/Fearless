@@ -13,6 +13,7 @@ Hasher: {
   mut .float(x: read Float): mut Hasher,
   mut .byte(x: read Byte): mut Hasher,
   mut .str(x: read Str): mut Hasher,
+  mut .hash(x: read ToHash): mut Hasher -> x.hash(this),
   }
 
 /// Implementation defined hash algorithm with no security guarantees.

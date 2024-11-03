@@ -78,9 +78,6 @@ public final class LinkedHashMap implements LinkedHashMap_2 {
   @Override public Flow_1 flow$imm() {
     return flow$read();
   }
-  @Override public Flow_1 flow$mut() {
-    return flow$read();
-  }
 
   private Spliterator<? extends Entry_2> mapToEntries() {
     return inner.entrySet().stream()

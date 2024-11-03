@@ -1458,6 +1458,7 @@ public class TestJavaProgram {
       .let _ = {h.str "5"}
       .do {io.println("5".hash(mut H).compute.str)}
       .do {io.println(h.compute.str)}
+      .assert{mut H.hash(Custom).hash(Custom).compute == (Custom.hash(Custom.hash(mut H)).compute)}
       .do {io.println(Custom.hash(mut H).compute.str)}
       .let _ = {Custom.hash(h)}
       .do{io.println(h.compute.str)}
