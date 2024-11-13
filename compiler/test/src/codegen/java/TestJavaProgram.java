@@ -1569,4 +1569,42 @@ public class TestJavaProgram {
     alias base.UTF8 as UTF8,
     Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(-28 .byte))!)}
     """, Base.mutBaseAliases);}
+
+  @Test void flow() {ok(new Res("Transformed List: 6, 7, 12, 13, 18", "", 0), """
+    package test
+    
+    alias base.Main as AppMain,
+    alias base.caps.System as System,
+    alias base.caps.UnrestrictedIO as UnrestrictedIO,
+    alias base.List as List,
+    alias base.flows.Flow as Flow,
+    alias base.Int as Int,
+    alias base.Str as Str,
+    alias base.Block as Block,
+    alias base.Void as Void,
+    
+    Test: AppMain{
+      #(sys) -> Block#
+        .let[mut List[Int]] numbers = {List#(+1, +2, +3, +4, +5, +6, +7, +8, +9, +10)}
+    
+        // Create a flow from the list
+        .let[mut Flow[Int]] flow = {numbers.flow}
+    
+        // Apply various flow operations
+        .let[mut Flow[Int]] transformedFlow = {flow
+          .map{n -> n * +2} // Multiply each number by 2
+          .filter{n -> n % +3 == +0} // Keep only numbers divisible by 3
+          .flatMap{n -> Flow#(n, n + +1)} // For each number, create a flow of the number and the number + 1
+          .limit(5) // Limit the flow to the first 5 elements
+        }
+    
+        // Collect the results into a list
+        .let[mut List[Int]] resultList = {transformedFlow.list}
+    
+        // Print the results
+        .do {sys.io.println("Transformed List: " + (resultList.flow.map{num -> num.str}.join ", "))}
+    
+        .return {Void}
+    }
+    """);}
 }

@@ -1,6 +1,7 @@
 package rt.flows;
 
 import base.Opts_0;
+import base.Opt_1;
 import base.flows.*;
 import rt.flows.dataParallel.DataParallelFlowK;
 
@@ -20,7 +21,7 @@ public interface FlowCreator {
 
   static Flow_1 fromFlowOp(_FlowFactory_0 intended, FlowOp_1 op, long size) {
 //    System.out.println("from "+original+" intended "+intended);
-    var optSize = Opts_0.$self.$hash$imm(size);
+    var optSize = size >= 0 ? Opts_0.$self.$hash$imm(size) : Opt_1.$self;
 //    if (true) {
 //      return _SeqFlow_0.$self.fromOp$imm(op, optSize);
 //    }
