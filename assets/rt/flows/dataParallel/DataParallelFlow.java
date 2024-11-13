@@ -77,8 +77,7 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Flow_1 flatMap$mut(F_2 f_m$) {
-    // TODO: can we do a data parallel flat map?
-    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size).flatMap$mut(f_m$);
+    return $this.fromOp$imm(_FlatMap_0.$self.$hash$imm(_Sink_0.$self, source_m$, f_m$), Opt_1.$self);
   }
 
   public Opt_1 findMap$mut(F_2 f_m$) {
