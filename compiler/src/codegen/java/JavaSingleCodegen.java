@@ -80,8 +80,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     return "public interface "+shortName+impls+"{\n"
       + singletonGet + sigs + staticFuns + "}";
   }
-  public String visitSig(
-      MIR.Sig sig, Map<Id.MethName, MIR.Sig> leastSpecific) {
+  public String visitSig(MIR.Sig sig, Map<Id.MethName, MIR.Sig> leastSpecific) {
     // If params are different in my parent, we need to objectify
     var overriddenSig= this.overriddenSig(sig, leastSpecific);
     if (overriddenSig.isPresent()) {
@@ -96,7 +95,6 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   }
   public String visitMeth(MIR.Meth meth, MethExprKind kind, Map<Id.MethName, MIR.Sig> leastSpecific) {
     var overriddenSig = this.overriddenSig(meth.sig(), leastSpecific);
-
     var toSkip = overriddenSig.isPresent();
     var deleMeth = meth;
     if (toSkip){
@@ -161,22 +159,42 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       """.formatted(getTName(fun.ret(),true), name, args, ret, body);
   }
   @Override public String visitBlockExpr(MIR.Block expr, boolean checkMagic) {
+    return visitBlockExpr(expr, BlockReturnKind.RETURN);
+  }
+
+  enum BlockReturnKind {
+    RETURN {
+      @Override public String toString() {
+        return "return";
+      }
+    },
+    YIELD {
+      @Override public String toString() {
+        return "yield";
+      }
+    }
+  }
+  private String visitBlockExpr(MIR.Block expr, BlockReturnKind returnKind) {
     var res = new StringBuilder();
     var stmts = new ArrayDeque<>(expr.stmts());
     var doIdx = new Box<>(0);
     while (!stmts.isEmpty()) {
-      res.append(this.visitBlockStmt(expr, stmts, doIdx));
+      res.append(this.visitBlockStmt(expr, stmts, doIdx, returnKind));
     }
     return res.toString();
   }
 
   private String visitBlockStmt(
-      MIR.Block expr, ArrayDeque<MIR.Block.BlockStmt> stmts, Box<Integer> doIdx) {
+      MIR.Block expr,
+      ArrayDeque<MIR.Block.BlockStmt> stmts,
+      Box<Integer> doIdx,
+      BlockReturnKind returnKind
+  ) {
     var stmt = stmts.poll();
     assert stmt != null;
     return switch (stmt) {
       case MIR.Block.BlockStmt.Return ret ->
-        "return %s".formatted(ret.e().accept(this, true));
+        "%s %s".formatted(returnKind, ret.e().accept(this, true));
       case MIR.Block.BlockStmt.Do do_ ->
         "var doRes%s = %s;\n"
         .formatted(doIdx.update(n->n + 1), do_.e().accept(this, true));
@@ -185,14 +203,15 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
           var res = %s.$hash$mut();
           if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
             if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-            if (res instanceof base.ControlFlowReturn_1 rv) { return (%s) rv.value$mut(); }
+            if (res instanceof base.ControlFlowReturn_1 rv) { %s (%s) rv.value$mut(); }
           }
         """.formatted(
         loop.e().accept(this, true),
+        returnKind,
         getTName(expr.expectedT(),false));
       case MIR.Block.BlockStmt.If if_ -> {
-        var body = this.visitBlockStmt(expr, stmts, doIdx);
-        if (body.startsWith("return")) { body += ";"; }
+        var body = this.visitBlockStmt(expr, stmts, doIdx, returnKind);
+        if (body.startsWith(returnKind.toString())) { body += ";"; }
         yield """
           if (%s == base.True_0.$self) { %s }
           """.formatted(if_.pred().accept(this, true), body);
@@ -219,7 +238,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   }
   public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic){
     var name= createObj.concreteT().id();
-    var recordName= id.getSimpleName(name)+"Impl"; 
+    var recordName= id.getSimpleName(name)+"Impl";
     addFreshRecord(createObj, name, recordName);
     var captures= seq(createObj.captures(),x->visitX(x, checkMagic),", ");
     return "new "+recordName+"("+captures+")";
@@ -315,12 +334,12 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     return "(%s(%s == base.True_0.$self ? %s : %s))".formatted(cast, recv, thenBody, elseBody);
   }
   private String inlineBlock(MIR.Block block) {
-    var blockCode = block.accept(this, true);
+    var blockCode = this.visitBlockExpr(block, BlockReturnKind.YIELD);
     return """
-      ((java.util.function.Supplier<%s>)()->{
+      (switch (1) {default -> {
         %s;
-      }).get()
-      """.formatted(getTName(block.t(), true), blockCode);
+      }})
+      """.formatted(blockCode);
   }
 
   private Optional<MIR.Sig> overriddenSig(MIR.Sig sig, Map<Id.MethName, MIR.Sig> leastSpecific) {
