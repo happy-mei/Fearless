@@ -14,15 +14,15 @@ class TestParser {
   void ok(String expected, String content){
     Main.resetAll();
     String res = new Parser(Parser.dummy,content)
-      .parseFullE(Bug::err,s->Optional.empty())
+      .parseFullE("dummy",Bug::err,s->Optional.empty())
       .toString();
     Err.strCmpFormat(expected,res);
   }
   void same(String content1, String content2){
     Main.resetAll();
-    String res1 = new Parser(Parser.dummy,content1).parseFullE(Bug::err,s->Optional.empty()).toString();
+    String res1 = new Parser(Parser.dummy,content1).parseFullE("dummy",Bug::err,s->Optional.empty()).toString();
     Main.resetAll();
-    String res2 = new Parser(Parser.dummy,content2).parseFullE(Bug::err,s->Optional.empty()).toString();
+    String res2 = new Parser(Parser.dummy,content2).parseFullE("dummy",Bug::err,s->Optional.empty()).toString();
     Err.strCmpFormat(res1,res2);
   }
   void fail(String expectedErr,String content){
@@ -30,7 +30,7 @@ class TestParser {
     var b=new StringBuffer();
     try {
       var res=new Parser(Parser.dummy,content)
-        .parseFullE(s->{b.append(s);return null;},s->Optional.empty());
+        .parseFullE("dummy",s->{b.append(s);return null;},s->Optional.empty());
       if (res == null) { return; }
       Assertions.fail("Parsing did not fail. Got: "+res);
     }
@@ -77,19 +77,19 @@ class TestParser {
   @Test void singleEqSugarPOp1(){ ok(
     """
     recv:infer.m1/2[-]([val:infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer}]):infer
-    """, "recv .m1 (v = val)"); }
+    """, "recv .m1 v = (val)"); }
   @Test void singleEqSugarPOp2(){ ok(
     """
     recv:infer.m1/2[-]([val:infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer.m2/0[-]([]):infer}]):infer
-    """, "recv .m1 (v = val) .m2"); }
+    """, "recv .m1 v = (val) .m2"); }
   @Test void singleEqSugarPOp3(){ ok(
     """
     recv:infer.m1/2[-]([val:infer.m2/0[-]([]):infer,[-infer-][]{[-]([v,fear0$]):[-]->fear0$:infer.m3/0[-]([]):infer}]):infer
-    """, "recv .m1 (v = val .m2) .m3"); }
+    """, "recv .m1 v = (val .m2) .m3"); }
   @Test void testVarLast(){ ok("""
     recv:infer.m1/2[-]([v:infer,[-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer}]):infer
     ""","recv .m1 x=v"); }
-  @Test void eqSugarSame1() { same("recv .m1 v = val", "recv .m1 (v = val)"); }
+  @Test void eqSugarSame1() { same("recv .m1 v = val", "recv .m1 v = (val)"); }
   @Test void eqSugarSame2() { same("recv .m1 v = val .m2", "recv .m1 v = (val) .m2"); }
   @Test void chainedMethCall() { ok("""
     recv:infer.m1/1[-]([a:infer]):infer .m2/1[-]([b:infer]):infer
@@ -135,7 +135,6 @@ class TestParser {
   @Test void sameTest5(){ same("recv .m1 x=v .m2", "recv .m1 x=(v) .m2"); }
   @Test void weirdEq(){ ok("recv:infer.m1/2[-]([v:infer,[-infer-][]{[-]([x,fear0$]):[-]->fear0$:infer}]):infer.m2/0[-]([]):infer", "(recv .m1 x=v) .m2"); }
   @Test void sameTest6(){ same("recv .m1[A] x=v .m2[B,base.C[D]]", "recv .m1[A] x=(v) .m2[B,base.C[D]]"); }
-  @Test void sameTestVarLast(){ same("recv.m1(x=v)", "recv .m1 x=v"); }
   @Test void implicitLambdaImm(){ ok("[-immpkg1.L[]-][pkg1.L[]]{}", "pkg1.L{}"); }
   @Test void explicitMdfLambdaIso(){ ok("[-iso pkg1.L[]-][pkg1.L[]]{}", "iso pkg1.L{}"); }
   @Test void explicitMdfLambdaImm(){ ok("[-imm pkg1.L[]-][pkg1.L[]]{}", "imm pkg1.L{}"); }
@@ -205,7 +204,7 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
     """); }
   // null is correct in the expected AST below because these tests do not visit a package, so the package is null.
   @Test void flowPrecedence2a() { ok("""
-    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-imm null.Fear3$[]-][null.Fear3$[]]{}.toList/0[-]([]):infer]):infer
+    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-imm dummy.Fear3$[]-][dummy.Fear3$[]]{}.toList/0[-]([]):infer]):infer
     """, """
     list.flow
       .map{}
@@ -253,6 +252,6 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
   @Test void precedenceMCall2Arg() { same("(a - b).m(c,d)", "a - b.m(c,d)"); }
   @Test void precedenceMCallPlus1() { same("a + b.foo()", "(a + b).foo"); }
   @Test void precedenceMCallPlus2() { same("a + b.foo()", "a + b.foo"); }
-  @Test void invalidNumberSyntax() {fail("""
-    """, "1.2u");}
+  //@Test void invalidNumberSyntax() {fail("""
+  //  """, "1.2u");}//Now valid
 }

@@ -17,6 +17,8 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import astFull.E.Lambda.LambdaId;
+import astFull.E.Meth;
+import astFull.E.X;
 import parser.ParseDirectLambdaCall;
 import utils.*;
 
@@ -37,9 +39,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   private String pkg;
   private Map<Id.GX<T>, Set<Mdf>> xbs = Map.of();
   public List<T.Alias> inlineNames = new ArrayList<>();
-  public FullEAntlrVisitor(Path fileName,Function<String,Optional<Id.IT<T>>> resolve){
-    this.fileName=fileName;
-    this.resolve=resolve;
+  public FullEAntlrVisitor(Path fileName,String pkg,Function<String,Optional<Id.IT<T>>> resolve){
+    this.fileName= fileName;
+    this.resolve= resolve;
+    this.pkg= pkg;
   }
   Pos pos(ParserRuleContext prc){
     return pos(fileName,prc);
@@ -49,6 +52,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     }
 
   void check(ParserRuleContext ctx){
+    assert this.pkg!=null;
     if(ctx.children==null){ throw new ParserFailed(); }
     }
   @Override public Void visit(ParseTree arg0){ throw Bug.unreachable(); }
@@ -60,14 +64,14 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Object visitMGen(MGenContext ctx) { throw Bug.unreachable(); }
 
   @Override public Object visitBblock(BblockContext ctx){ throw Bug.unreachable(); }
-  @Override public Object visitPOp(POpContext ctx){ throw Bug.unreachable(); }
   @Override public T.Dec visitTopDec(TopDecContext ctx) { throw Bug.unreachable(); }
   @Override public Object visitNudeX(NudeXContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeM(NudeMContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeFullCN(NudeFullCNContext ctx){ throw Bug.unreachable(); }
   @Override public MethName visitM(MContext ctx){ throw Bug.unreachable(); }
   @Override public MethName visitBlock(BlockContext ctx){ throw Bug.unreachable(); }
-  @Override public Call visitCallOp(CallOpContext ctx) {
+  @Override public Package visitNudeProgram(NudeProgramContext ctx){ throw Bug.unreachable(); }
+  /*@Override public Call visitCallOp(CallOpContext ctx) {
     check(ctx);
     return new Call(
       new MethName(Optional.empty(), ctx.m().getText(),1),
@@ -76,7 +80,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       List.of(visitPostE(ctx.postE())),
       pos(ctx)
     );
-  }
+  }*/
 
   @Override public E visitNudeE(NudeEContext ctx){
     check(ctx);
@@ -85,46 +89,63 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
 
   @Override public E visitE(EContext ctx){
     check(ctx);
-    E root = visitPostE(ctx.postE());
-    var calls = ctx.callOp();
+    E root = visitAtomE(ctx.atomE());
+    var calls = ctx.pOp();
     if(calls.isEmpty()){ return root; }
-    var res = calls.stream()
-      .flatMap(callOpCtx->{
-        var head = new Call(
-          new MethName(Optional.empty(), callOpCtx.m().getText(),1),
-          visitMGen(callOpCtx.mGen(), true),
-          Optional.ofNullable(callOpCtx.x()).map(this::visitX),
-          List.of(visitAtomE(callOpCtx.postE().atomE())),
-          pos(callOpCtx)
-        );
-        return Stream.concat(Stream.of(head), callOpCtx.postE().pOp().stream().flatMap(pOp->fromPOp(pOp).stream()));
-      })
-      .toList();
-
-    return desugar(root, res);
+    root = ParseDirectLambdaCall.of(root, xbs); 
+    return visitAllPOp(calls).apply(root);
     }
+  public Function<E,E> visitAllPOp(List<POpContext> pops){
+    return pops.stream()
+      .map(popi->this.visitPOp(popi))
+      .reduce(x->x,Function::andThen);
+    }
+  @Override public Function<E,E> visitPOp(POpContext ctx){
+    check(ctx);
+    return recv->{
+      var gen= visitMGen(ctx.mGen(), true);
+      var es=  ctx.e().stream().map(this::visitE).toList();
+      var atomE= Optional.ofNullable(ctx.atomE()).map(this::visitAtomE);
+      if(atomE.isPresent()){ es = Push.of(atomE.get(),es); }
+      var m=   new MethName(Optional.empty(), ctx.m().getText(),es.size());
+      var pos= Optional.of(pos(ctx));
+      var mcall= new E.MCall(recv,m,gen,es,T.infer,pos);
+      Optional<X> xOpt=Optional.ofNullable(ctx.x()).map(this::visitX);
+      Function<E,E> pOp= this.visitAllPOp(ctx.pOp());
+      return xOpt
+        .map(x->buildEqSugar(mcall,x,pOp))
+        .orElse(mcall);
+      };        
+    }
+  E.MCall buildEqSugar(E.MCall m, X x,Function<E,E> pops){
+    //e0.m(atom.pops), x --> e0.m1(atom,{x,self->self.pops}
+    assert m.es().size() == 1;
+    var atom= m.es().get(0);
+    var freshSelf= new E.X(T.infer);
+    var body= Optional.of(pops.apply(freshSelf));
+    var pos= atom.pos();
+    var id= new E.Lambda.LambdaId(Id.DecId.fresh(pkg, 0), List.of(), this.xbs);
+    var xs= List.of(x.name(), freshSelf.name());
+    var contM = new E.Meth(Optional.empty(), Optional.empty(), xs, body, pos);
+    var cont = new E.Lambda(id, Optional.empty(), List.of(), null,
+      List.of(contM), Optional.empty(), pos);
+    List<E> es=List.of(atom,cont);
+    var n=new MethName(m.name().name(),2);
+    return new E.MCall(m.receiver(), n, m.ts(), es, m.t(),m.pos());
+  }
 
   static <A,B> B opt(A a,Function<A,B> f){
     if(a==null){return null;}
     return f.apply(a);
     }
-  @Override public E visitPostE(PostEContext ctx){
+  /*@Override public E visitPostE(PostEContext ctx){
     check(ctx);
     E root = visitAtomE(ctx.atomE());
     return desugar(root, ctx.pOp().stream().flatMap(pOp->fromPOp(pOp).stream()).toList());
-  }
-  record Call(MethName m, Optional<List<T>> mGen, Optional<E.X> x, List<E> es, Pos pos){}
-  List<Call> fromPOp(POpContext ctx) {
-    var call = new Call(
-      new MethName(Optional.empty(), ctx.m().getText(),ctx.e().size()),
-      visitMGen(ctx.mGen(), true),
-      Optional.ofNullable(ctx.x()).map(this::visitX),
-      ctx.e().stream().map(this::visitE).toList(),
-      pos(ctx)
-    );
-    return Push.of(call, ctx.callOp().stream().map(this::visitCallOp).toList());
-  }
-  E desugar(E root,List<Call> tail){
+  }*/
+  //record Call(MethName m, Optional<List<T>> mGen, Optional<E.X> x, List<E> es, Pos pos){}
+
+  /*E desugar(E root,List<Call> tail){
     if(tail.isEmpty()){ return root; }
     var head = tail.getFirst();
     var newTail = Pop.left(tail);
@@ -153,7 +174,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var es=head.es();
     E res=new E.MCall(recv, new MethName(Optional.empty(), m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
     return desugar(res,newTail);
-  }
+  }*/
   public Optional<List<T>> visitMGen(MGenContext ctx, boolean isDecl){
     if(ctx.children==null){ return Optional.empty(); }//subsumes check(ctx);
     var noTs = ctx.genDecl()==null || ctx.genDecl().isEmpty();
@@ -375,7 +396,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .map((xCtx, tCtx)->new E.X(xCtx.getText(), this.visitT(tCtx), Optional.of(pos(xCtx))))
       .toList();
   }
-  public T.Dec visitTopDec(TopDecContext ctx, String pkg, boolean shallow) {
+  public T.Dec visitTopDec(TopDecContext ctx, boolean shallow) {
     check(ctx);
     String cName = visitFullCN(ctx.fullCN());
     if (Magic.isLiteral(cName)) {
@@ -385,7 +406,6 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       throw Fail.crossPackageDeclaration().pos(pos(ctx));
     }
     cName = pkg+"."+cName;
-    this.pkg = pkg;
 
     var mGen = Optional.ofNullable(ctx.mGen())
       .flatMap(this::visitMGenParams)
@@ -419,14 +439,19 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(!outG.genDecl().isEmpty()){ throw Bug.of("No gen on out Alias"); }
     return new T.Alias(inT, out, Optional.of(pos(ctx)));
   }
-  @Override public Package visitNudeProgram(NudeProgramContext ctx) {
+  public static Package fileToPackage(
+      Path fileName,Function<String,Optional<Id.IT<T>>> resolve, NudeProgramContext ctx){
     String name = ctx.Pack().getText();
     assert name.startsWith("package ");
     assert name.endsWith("\n");
     name = name.substring("package ".length(),name.length()-1);
-    var as = ctx.alias().stream().map(this::visitAlias).toList();
-
+    FullEAntlrVisitor self=new FullEAntlrVisitor(fileName,name,resolve);
+    var as = ctx.alias().stream().map(self::visitAlias).toList();
     var decs = List.copyOf(ctx.topDec());
     return new Package(name,as,decs,decs.stream().map(e->fileName).toList());
+  }
+  @Override
+  public Object visitFStringMulti(FStringMultiContext arg0) {
+    throw Bug.unreachable();
   }
 }

@@ -16,15 +16,15 @@ import java.util.Arrays;
 
 public class TestSubTyping {
   void ok(String t1, String t2, boolean res, String ...code){
-    var ty1 = new Parser(Parser.dummy, t1).parseFullT();
-    var ty2 = new Parser(Parser.dummy, t2).parseFullT();
+    var ty1 = new Parser(Parser.dummy, t1).parseFullT("dummy");
+    var ty2 = new Parser(Parser.dummy, t2).parseFullT("dummy");
     Program p = FromContent.of(code);
     Assertions.assertEquals(res,p.isSubType(XBs.empty(), ty1, ty2), String.format("t1: %s\nt2: %s", ty1, ty2));
   }
 
   void fail(String expected, String t1, String t2, String ...code){
-    var ty1 = new Parser(Parser.dummy, t1).parseFullT();
-    var ty2 = new Parser(Parser.dummy, t2).parseFullT();
+    var ty1 = new Parser(Parser.dummy, t1).parseFullT("dummy");
+    var ty2 = new Parser(Parser.dummy, t2).parseFullT("dummy");
     Program p = FromContent.of(code);
     try {
       p.isSubType(XBs.empty(), ty1, ty2);

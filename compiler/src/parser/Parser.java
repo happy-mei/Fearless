@@ -75,7 +75,7 @@ public record Parser(Path fileName,String content){
     return new Program(tsf, ds);
   }
 
-  public E parseFullE(Function<String,E> orElse,Function<String,Optional<Id.IT<T>>> resolve){
+  public E parseFullE(String pkg, Function<String,E> orElse,Function<String,Optional<Id.IT<T>>> resolve){
       var l = new FearlessLexer(CharStreams.fromString(content));
       var p = new FearlessParser(new CommonTokenStream(l));
       var errorst = new StringBuilder();
@@ -83,12 +83,12 @@ public record Parser(Path fileName,String content){
       FailConsole.setFail(fileName, l, p, errorst, errorsp);
       NudeEContext res = p.nudeE();
       var ok = errorst.isEmpty() && errorsp.isEmpty();
-      if(ok){ return new FullEAntlrVisitor(fileName,resolve).visitNudeE(res); }
+      if(ok){ return new FullEAntlrVisitor(fileName,pkg,resolve).visitNudeE(res); }
       //TODO: better errors below
       if(!errorst.isEmpty()){ return orElse.apply(errorst.toString()); }
       return orElse.apply(errorsp.toString());
   }
-  public astFull.T parseFullT(){
+  public astFull.T parseFullT(String pkg){
     var l = new FearlessLexer(CharStreams.fromString(content));
     var p = new FearlessParser(new CommonTokenStream(l));
     var errorst = new StringBuilder();
@@ -96,7 +96,7 @@ public record Parser(Path fileName,String content){
     FailConsole.setFail(fileName, l, p, errorst, errorsp);
     FearlessParser.NudeTContext res = p.nudeT();
     var ok = errorst.isEmpty() && errorsp.isEmpty();
-    if(ok){ return new FullEAntlrVisitor(fileName,s->Optional.empty()).visitNudeT(res); }
+    if(ok){ return new FullEAntlrVisitor(fileName,pkg,s->Optional.empty()).visitNudeT(res); }
     throw Fail.syntaxError(errorsp.toString());
   }
   
@@ -137,12 +137,9 @@ public record Parser(Path fileName,String content){
     return orElse.apply(errorsp.toString());
   }
   Package parseNudeProgram(NudeProgramContext res){
-    return new FullEAntlrVisitor(
-      fileName,
-      s->{
-        throw Fail.undefinedName(s).pos(FullEAntlrVisitor.pos(fileName, res));
-      }
-    ).visitNudeProgram(res);
+    return FullEAntlrVisitor.fileToPackage(fileName,
+      s->{throw Fail.undefinedName(s).pos(FullEAntlrVisitor.pos(fileName,res));},
+      res);
   }
 }
 class FailConsole extends ConsoleErrorListener{

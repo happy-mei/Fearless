@@ -1,4 +1,6 @@
 package parser;
+//The tests in this folder are the main test to pass
+//codegen.java/TestJavaProgram.java
 
 import failure.CompileError;
 import main.Main;
@@ -10,8 +12,6 @@ import utils.Err;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static program.typesystem.RunTypeSystem.fail;
 
 class TestFullParser {
   void ok(String expected, String... content){
@@ -301,7 +301,7 @@ class TestFullParser {
     Cont[X,R]:{ mut #(x: X, self: A): R }
     A:{ .foo[T](x: T, cont: mut Cont[T, T]): T -> cont#(x, cont) }
     B:{ #: 5 -> A
-      .foo (lol=5)
+      .foo lol=5
       }
     """
   );}
@@ -330,7 +330,7 @@ class TestFullParser {
       }
     Usage:{
       .foo: Void -> Candy[Void]
-        .sugar[Foo](f = Foo)
+        .sugar[Foo]f = Foo
         .return{ f.v }
       }
     """); }
@@ -399,7 +399,7 @@ class TestFullParser {
     Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
     Let[V,R]:{ .var: V, .in(v:V): R }
     Ref:{ #[X](x: X): mut Ref[X] -> this#(x) }
-    Ref[X]:NoMutHyg[X],Sealed{
+    Ref[X] : NoMutHyg [ X ] , Sealed  {
       read * : read/imm X,
       mut .swap(x: X): X,
       mut :=(x: X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
@@ -527,6 +527,7 @@ class TestFullParser {
     A[X:imm]: {#(x: X): X -> {.m1: X -> x}.m1}
     """); }
 
+  //NOTE: Failes in main (fix parethesis count?)
   @Test void missingColonTypeDeclaration() { fail("""
     In position [###]/Dummy0.fear:2:3
     [E59 syntaxError]

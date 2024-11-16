@@ -22,7 +22,7 @@ import static id.Mdf.*;
 
 public class TestKindingJudgement {
   private static void ok(XBs xbs, String t, Set<Mdf> expected, String... content) {
-    var fullT = new Parser(Parser.dummy, t).parseFullT();
+    var fullT = new Parser(Parser.dummy, t).parseFullT("dummy");
     var coreT = fullT.toAstT();
     var p = toProgram(content);
     var actualFull = coreT.accept(new KindingJudgement(p, xbs, expected, false)).get();
@@ -31,28 +31,28 @@ public class TestKindingJudgement {
     Assertions.assertTrue(actualCheckOnly.stream().anyMatch(rcs->rcs.equals(expected)));
   }
   private static void extract(XBs xbs, String t, Set<Set<Mdf>> expected, String... content) {
-    var fullT = new Parser(Parser.dummy, t).parseFullT();
+    var fullT = new Parser(Parser.dummy, t).parseFullT("dummy");
     var coreT = fullT.toAstT();
     var p = toProgram(content);
     var actual = new HashSet<>(coreT.accept(new KindingJudgement(p, xbs, false)).get());
     Assertions.assertEquals(expected, actual);
   }
   private static void contains(XBs xbs, String t, Set<Mdf> expected, String... content) {
-    var fullT = new Parser(Parser.dummy, t).parseFullT();
+    var fullT = new Parser(Parser.dummy, t).parseFullT("dummy");
     var coreT = fullT.toAstT();
     var p = toProgram(content);
     var actual = new HashSet<>(coreT.accept(new KindingJudgement(p, xbs, false)).get());
     Assertions.assertTrue(actual.contains(expected));
   }
   private static void notContains(XBs xbs, String t, Set<Mdf> expected, String... content) {
-    var fullT = new Parser(Parser.dummy, t).parseFullT();
+    var fullT = new Parser(Parser.dummy, t).parseFullT("dummy");
     var coreT = fullT.toAstT();
     var p = toProgram(content);
     var actual = new HashSet<>(coreT.accept(new KindingJudgement(p, xbs, false)).get());
     Assertions.assertFalse(actual.contains(expected));
   }
   private static void fail(String expectedErr, XBs xbs, String t, Set<Mdf> expected, String... content) {
-    var fullT = new Parser(Parser.dummy, t).parseFullT();
+    var fullT = new Parser(Parser.dummy, t).parseFullT("dummy");
     var coreT = fullT.toAstT();
     var p = toProgram(content);
     try {

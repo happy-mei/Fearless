@@ -18,12 +18,12 @@ import java.util.Arrays;
 @Disabled // No more recMdf
 public class TestAdaptRecMdf {
   void ok(String expected, String type, Mdf lambdaMdf, String ...code){
-    var it = new Parser(Parser.dummy, type).parseFullT();
+    var it = new Parser(Parser.dummy, type).parseFullT("dummy");
     Program p= FromContent.of(code);
     Err.strCmpFormat(expected, p.meths(XBs.empty(), lambdaMdf, it.toAstT().itOrThrow(), 0).toString());
   }
   void fail(String expected, String type, Mdf lambdaMdf, String ...code) {
-    var it = new Parser(Parser.dummy, type).parseFullT();
+    var it = new Parser(Parser.dummy, type).parseFullT("dummy");
     Program p = FromContent.of(code);
     try {
       var res = p.meths(XBs.empty(), lambdaMdf, it.toAstT().itOrThrow(), 0);

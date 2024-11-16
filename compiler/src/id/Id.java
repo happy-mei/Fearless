@@ -33,6 +33,7 @@ public class Id {
   public record DecId(String name, int gen){
     public DecId{ assert validDecName(name) && gen>=0 : name; }
     public static DecId fresh(String pkg, int gens) {
+      assert pkg!=null;
       return new DecId(pkg+"."+Id.GX.fresh().name(), gens);
     }
 

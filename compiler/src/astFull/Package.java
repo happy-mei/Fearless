@@ -53,8 +53,8 @@ public record Package(
   private void acc(Map<Id.DecId,T.Dec> acc, List<T.Alias> extraAliases, int i, boolean shallow){
     Path pi = this.ps().get(i);
     TopDecContext di=this.ds().get(i);
-    var visitor = new FullEAntlrVisitor(pi,this::resolve);
-    T.Dec dec = visitor.visitTopDec(di, this.name(), shallow);
+    var visitor = new FullEAntlrVisitor(pi,this.name(),this::resolve);
+    T.Dec dec = visitor.visitTopDec(di, shallow);
     acc.put(dec.name(), dec);
     extraAliases.addAll(visitor.inlineNames);
   }

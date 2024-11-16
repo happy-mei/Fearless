@@ -299,7 +299,7 @@ class TestFullParserWithBetterErrors {
     Cont[X,R]:{ mut #(x: X, self: A): R }
     A:{ .foo[T](x: T, cont: mut Cont[T, T]): T -> cont#(x, cont) }
     B:{ #: 5 -> A
-      .foo (lol=5)
+      .foo lol=5
       }
     """
   );}
@@ -328,7 +328,7 @@ class TestFullParserWithBetterErrors {
       }
     Usage:{
       .foo: Void -> Candy[Void]
-        .sugar[Foo](f = Foo)
+        .sugar[Foo]f = Foo
         .return{ f.v }
       }
     """); }
@@ -374,7 +374,7 @@ class TestFullParserWithBetterErrors {
       name=base.Ref/1,
       gxs=[X],
       lambda=[-infer-][base.NoMutHyg[X],base.Sealed[]]{
-        */0([]):Sig[gens=[],ts=[],ret=recMdfX]->[-],
+        */0([]):Sig[gens=[],ts=[],ret=X]->[-],
         .swap/1([x]):Sig[gens=[],ts=[X],ret=X]->[-],
         :=/1([x]):Sig[gens=[],ts=[X],ret=imm base.Void[]]->
           [-imm base.Let[]-][base.Let[]]{}#/1[-]([[-infer-][]{
@@ -397,8 +397,8 @@ class TestFullParserWithBetterErrors {
     Let:{ #[V,R](l:Let[V,R]):R -> l.in(l.var) }
     Let[V,R]:{ .var: V, .in(v:V): R }
     Ref:{ #[X](x: X): mut Ref[X] -> this#(x) }
-    Ref[X]:NoMutHyg[X],Sealed{
-      read * : recMdf X,
+    Ref[X] : NoMutHyg [ X ] , Sealed{
+      read * : X,
       mut .swap(x: X): X,
       mut :=(x: X): Void -> Let#{ .var -> this.swap(x), .in(_)->Void },
       mut <-(f: UpdateRef[X]): X -> this.swap(f#(this*)),
@@ -493,7 +493,7 @@ class TestFullParserWithBetterErrors {
 
   @Test void namedInline() { ok("""
     {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{#/0([]):Sig[gens=[],ts=[],ret=imm test.B[]]->
-      LambdaId[id=test.B/0,gens=[],bounds={}]:[-infer-][]{}}]}
+      LambdaId[id=test.B/0,gens=[],bounds={}]:[-immtest.B[]-][]{}}]}
     """, """
     package test
     A:{ #: B -> B:{} }
@@ -501,7 +501,7 @@ class TestFullParserWithBetterErrors {
   @Test void namedInlineGens() { ok("""
     {test.A/1=Dec[name=test.A/1,gxs=[X],lambda=[-infer-][]{
       #/1([x]):Sig[gens=[],ts=[X],ret=immtest.B[X]]->
-        LambdaId[id=test.B/1,gens=[X],bounds={}]:[-infer-][]{
+        LambdaId[id=test.B/1,gens=[X],bounds={}]:[-immtest.B[X]-][]{
           .m1/0([]):Sig[gens=[],ts=[],ret=X]->x:infer}}]}
     """, """
     package test

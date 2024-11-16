@@ -13,12 +13,12 @@ import utils.FromContent;
 
 public class TestMeths {
   void ok(String expected, String type, String ...code){
-    var it = new Parser(Parser.dummy, type).parseFullT();
+    var it = new Parser(Parser.dummy, type).parseFullT("dummy");
     Program p= FromContent.of(code);
     Err.strCmpFormat(expected, p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0).toString());
   }
   void fail(String expected, String type, String ...code) {
-    var it = new Parser(Parser.dummy, type).parseFullT();
+    var it = new Parser(Parser.dummy, type).parseFullT("dummy");
     Program p = FromContent.of(code);
     try {
       var res = p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0);
@@ -29,13 +29,13 @@ public class TestMeths {
   }
 
   void okNoAdapt(String expected, String type, String ...code){
-    var it = new Parser(Parser.dummy, type).parseFullT();
+    var it = new Parser(Parser.dummy, type).parseFullT("dummy");
     var tsf = new TypeSystemFeatures();
     Program p = FromContent.withTsf(tsf, code);
     Err.strCmpFormat(expected, p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0).toString());
   }
   void failNoAdapt(String expected, String type, String ...code) {
-    var it = new Parser(Parser.dummy, type).parseFullT();
+    var it = new Parser(Parser.dummy, type).parseFullT("dummy");
     var tsf = new TypeSystemFeatures();
     Program p = FromContent.withTsf(tsf, code);
     try {
