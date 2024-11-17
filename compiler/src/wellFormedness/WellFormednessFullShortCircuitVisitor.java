@@ -8,6 +8,7 @@ import failure.Fail;
 import files.HasPos;
 import id.Id;
 import id.Mdf;
+import magic.LiteralKind;
 import magic.Magic;
 import visitors.FullShortCircuitVisitor;
 import visitors.FullShortCircuitVisitorWithEnv;
@@ -114,7 +115,7 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       .or(()->super.visitT(t));
   }
   @Override public Optional<CompileError> visitIT(Id.IT<T> t) {
-    return noInvalidLiterals(t)
+    return Magic.validateIfLiteral(t.name())
       .or(()->super.visitIT(t));
   }
 
@@ -244,12 +245,6 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
       e.its().stream().map(Id.IT::name).filter(d->p.isInlineDec(d) && !e.id().id().equals(d)).toList()
     ));
   }
-
-  private Optional<CompileError> noInvalidLiterals(Id.IT<T> it) {
-    if (!Magic.isLiteral(it.name().name())) { return Optional.empty(); }
-    return Magic.validateLiteral(it.name());
-  }
-
   private Optional<CompileError> disjointDecls(Program p) {
     var inline = p.inlineDs().keySet();
     var topLevel = p.ds().keySet();

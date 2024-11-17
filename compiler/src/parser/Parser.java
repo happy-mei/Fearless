@@ -122,7 +122,20 @@ public record Parser(Path fileName,String content){
     //need check res==content otherwise there may be spaces/comments too 
     return ok ;
   }
+  private void debugTokensPrint(String content){
+    var l = new FearlessLexer(CharStreams.fromString(content));
+    var tokenStream = new CommonTokenStream(l);
+    tokenStream.fill();
+    System.out.println("Tokens:");
+    for (Token token : tokenStream.getTokens()) {
+      System.out.printf("Type: %-15s Text: %s%n",
+        FearlessLexer.VOCABULARY.getSymbolicName(token.getType()), 
+        token.getText()
+      );
+    }
+  }
   public Package parseFile(Function<String,Package> orElse){
+    //debugTokensPrint(content);
     var l = new FearlessLexer(CharStreams.fromString(content));
     var p = new FearlessParser(new CommonTokenStream(l));
     p.addErrorListener(new ParserErrors(fileName.toUri()));

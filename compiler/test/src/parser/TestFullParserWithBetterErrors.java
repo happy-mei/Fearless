@@ -282,8 +282,8 @@ class TestFullParserWithBetterErrors {
       {base.B/0=Dec[
         name=base.B/0,
         gxs=[],
-        lambda=[-infer-][]{#/0([]):Sig[gens=[],ts=[],ret=imm 5[]]->[-imm base.A[]-][base.A[]]{}.foo/2[-]([
-          [-imm 5[]-][5[]]{},[-infer-][]{[-]([lol,fear0$]):[-]->fear0$:infer}
+        lambda=[-infer-][]{#/0([]):Sig[gens=[],ts=[],ret=imm base.5[]]->[-imm base.A[]-][base.A[]]{}.foo/2[-]([
+          [-imm base.5[]-][base.5[]]{},[-infer-][]{[-]([lol,fear0$]):[-]->fear0$:infer}
         ]):infer}
       ],base.Cont/2=Dec[
         name=base.Cont/2,
@@ -407,7 +407,7 @@ class TestFullParserWithBetterErrors {
     """);}
 
   @Test void magicIntbers() { ok("""
-    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{.foo/0([]):Sig[gens=[],ts=[],ret=imm5[]]->[-imm 5[]-][5[]]{}}]}
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-infer-][]{.foo/0([]):Sig[gens=[],ts=[],ret=imm test.5[]]->[-imm test.5[]-][test.5[]]{}}]}
     """, """
     package test
     A:{ .foo: 5 -> 5 }

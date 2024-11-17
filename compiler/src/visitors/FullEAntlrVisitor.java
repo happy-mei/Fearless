@@ -6,9 +6,11 @@ import astFull.T;
 import files.Pos;
 import generated.FearlessParser.*;
 import id.Id;
+import id.Id.GX;
 import id.Id.MethName;
 import id.Mdf;
 import failure.Fail;
+import magic.LiteralKind;
 import magic.Magic;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -17,7 +19,6 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import astFull.E.Lambda.LambdaId;
-import astFull.E.Meth;
 import astFull.E.X;
 import parser.ParseDirectLambdaCall;
 import utils.*;
@@ -26,6 +27,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,22 +74,11 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public MethName visitM(MContext ctx){ throw Bug.unreachable(); }
   @Override public MethName visitBlock(BlockContext ctx){ throw Bug.unreachable(); }
   @Override public Package visitNudeProgram(NudeProgramContext ctx){ throw Bug.unreachable(); }
-  /*@Override public Call visitCallOp(CallOpContext ctx) {
-    check(ctx);
-    return new Call(
-      new MethName(Optional.empty(), ctx.m().getText(),1),
-      visitMGen(ctx.mGen(), true),
-      Optional.ofNullable(ctx.x()).map(this::visitX),
-      List.of(visitPostE(ctx.postE())),
-      pos(ctx)
-    );
-  }*/
 
   @Override public E visitNudeE(NudeEContext ctx){
     check(ctx);
     return visitE(ctx.e());
   }
-
   @Override public E visitE(EContext ctx){
     check(ctx);
     E root = visitAtomE(ctx.atomE());
@@ -133,48 +125,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var n=new MethName(m.name().name(),2);
     return new E.MCall(m.receiver(), n, m.ts(), es, m.t(),m.pos());
   }
-
   static <A,B> B opt(A a,Function<A,B> f){
     if(a==null){return null;}
     return f.apply(a);
     }
-  /*@Override public E visitPostE(PostEContext ctx){
-    check(ctx);
-    E root = visitAtomE(ctx.atomE());
-    return desugar(root, ctx.pOp().stream().flatMap(pOp->fromPOp(pOp).stream()).toList());
-  }*/
-  //record Call(MethName m, Optional<List<T>> mGen, Optional<E.X> x, List<E> es, Pos pos){}
-
-  /*E desugar(E root,List<Call> tail){
-    if(tail.isEmpty()){ return root; }
-    var head = tail.getFirst();
-    var newTail = Pop.left(tail);
-    var m = head.m();
-    var ts=head.mGen();
-    var recv = ParseDirectLambdaCall.of(root, xbs);
-    if(head.x().isPresent()){
-      var x = head.x().get();
-      assert head.es().size() == 1;
-      var e = head.es().getFirst();
-      var freshRoot = new E.X(T.infer);
-      var rest = desugar(freshRoot, newTail);
-
-      var contMs = List.of(new E.Meth(Optional.empty(), Optional.empty(), List.of(x.name(), freshRoot.name()), Optional.of(rest), Optional.of(head.pos())));
-      var cont = new E.Lambda(
-        new E.Lambda.LambdaId(Id.DecId.fresh(pkg, 0), List.of(), this.xbs),
-        Optional.empty(),
-        List.of(),
-        null,
-        contMs,
-        Optional.empty(),
-        Optional.of(head.pos())
-      );
-      return new E.MCall(recv, new MethName(Optional.empty(), m.name(), 2), ts, List.of(e, cont), T.infer, Optional.of(head.pos()));
-    }
-    var es=head.es();
-    E res=new E.MCall(recv, new MethName(Optional.empty(), m.name(), es.size()), ts, es, T.infer, Optional.of(head.pos()));
-    return desugar(res,newTail);
-  }*/
   public Optional<List<T>> visitMGen(MGenContext ctx, boolean isDecl){
     if(ctx.children==null){ return Optional.empty(); }//subsumes check(ctx);
     var noTs = ctx.genDecl()==null || ctx.genDecl().isEmpty();
@@ -188,25 +142,30 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     }).toList());
   }
   public record GenericParams(List<Id.GX<T>> gxs, Map<Id.GX<astFull.T>, Set<Mdf>> bounds) {}
-  public Optional<GenericParams> visitMGenParams(MGenContext ctx){
-    var mGens = this.visitMGen(ctx, false);
-    return mGens
-      .map(ts->ts.stream()
-        .map(t->t.match(
-          gx->gx,
-          it->{throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx));}
+  private GenericParams genericParams(List<T> ts, MGenContext ctx){
+    List<GX<T>> gxs= toGxsOrFail(ts,pos(ctx));
+    Map<Id.GX<astFull.T>, Set<Mdf>> boundsMap = Mapper
+      .of(acc->Streams.zip(ctx.genDecl(), gxs)
+      .filter((declCtx, gx)->declCtx.mdf() != null && !declCtx.mdf().isEmpty())
+      .forEach((declCtx, gx) -> {
+        var bounds = declCtx.mdf().stream()
+          .map(this::visitGenMdf)
+          .collect(Collectors.toSet());
+        acc.put(gx, bounds);
+        }));
+    return new GenericParams(gxs, boundsMap);
+  }
+  private List<GX<T>> toGxsOrFail(List<T> ts, Pos pos){
+    return ts.stream()
+      .map(t->t.match(
+        gx->gx,
+        it->{ throw Fail.concreteTypeInFormalParams(t).pos(pos); }
         ))
-        .toList())
-      .map(gxs -> {
-        Map<Id.GX<astFull.T>, Set<Mdf>> boundsMap = Mapper.of(acc->Streams.zip(ctx.genDecl(), gxs)
-          .filter((declCtx, gx)->declCtx.mdf() != null && !declCtx.mdf().isEmpty())
-          .forEach((declCtx, gx) -> {
-            var bounds = declCtx.mdf().stream().map(this::visitGenMdf).collect(Collectors.toSet());
-            acc.put(gx, bounds);
-          }));
-
-        return new GenericParams(gxs, boundsMap);
-      });
+      .toList();
+  }
+  public Optional<GenericParams> visitMGenParams(MGenContext ctx){
+    Optional<List<T>> mGens = this.visitMGen(ctx, false);    
+    return mGens.map(ts->genericParams(ts,ctx));
   }
   @Override public E.X visitX(XContext ctx){
     check(ctx);
@@ -225,33 +184,27 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         opt(ctx.roundE(),(re->this.visitE(re.e()))))
         .filter(Objects::nonNull));
   }
+  E.Lambda visitUnnamedLambda(LambdaContext ctx){
+    E.Lambda res = visitBlock(ctx.block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), Optional.empty());
+    if (res.its().isEmpty() && !ctx.mdf().getText().isEmpty()) { throw Fail.modifierOnInferredLambda().pos(pos(ctx)); }
+    return res;
+  }
+  E.Lambda visitNamedLambda(LambdaContext ctx){
+    String cName= completeDeclName(visitFullCN(ctx.topDec().fullCN()), pos(ctx));
+    var mGen = Optional.ofNullable(ctx.topDec().mGen())
+      .flatMap(this::visitMGenParams)
+      .orElse(new GenericParams(List.of(), Map.of()));
+    this.xbs = mGen.bounds;
+    var id = new Id.DecId(cName, mGen.gxs.size());
+    var name = Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds));
+    return visitBlock(ctx.topDec().block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), name);
+  }
+
   @Override public E.Lambda visitLambda(LambdaContext ctx){
     var oldXbs = this.xbs;
-    E.Lambda res;
-    if (ctx.topDec() != null) {
-      String cName = visitFullCN(ctx.topDec().fullCN());
-      if (Magic.isLiteral(cName)) {
-        throw Fail.syntaxError(pkg + "." + cName + " is not a valid type name.").pos(pos(ctx));
-      }
-      if (cName.contains(".")) {
-        throw Fail.crossPackageDeclaration().pos(pos(ctx));
-      }
-      assert this.pkg != null;
-      cName = this.pkg+"."+cName;
-
-      var mGen = Optional.ofNullable(ctx.topDec().mGen())
-        .flatMap(this::visitMGenParams)
-        .orElse(new GenericParams(List.of(), Map.of()));
-      this.xbs = mGen.bounds;
-      var id = new Id.DecId(cName, mGen.gxs.size());
-
-      var name = Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds));
-      res = visitBlock(ctx.topDec().block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), name);
-    } else {
-      res = visitBlock(ctx.block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), Optional.empty());
-      if (res.its().isEmpty() && !ctx.mdf().getText().isEmpty()) { throw Fail.modifierOnInferredLambda().pos(pos(ctx)); }
-    }
-
+    E.Lambda res= ctx.topDec() == null
+      ? visitUnnamedLambda(ctx)
+      : visitNamedLambda(ctx);
     this.xbs = oldXbs;
     return res;
   }
@@ -325,13 +278,30 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   @Override public T visitNudeT(NudeTContext ctx) { return visitT(ctx.t()); }
 
+  private static final Pattern regexPkg = Pattern.compile("^(_*[a-z][0-9A-Za-z_]*(?:\\.[_]*[a-z][0-9A-Za-z_]*)*)");
+  private static final Pattern regexGenName = Pattern.compile("^_*[A-Z][0-9A-Za-z_]*$");
+
+  private String extractPkgname(String name){
+    Matcher matcher = regexPkg.matcher(name);
+    if (matcher.find()) { return matcher.group(1); }
+    else { return ""; }
+  }
+  private boolean isGenOk(String name){
+    return regexGenName.matcher(name).matches();
+  }
   @Override public T visitT(TContext ctx) { return visitT(ctx,true); }
   public T visitT(TContext ctx, boolean canMdf) {
     if(!canMdf && !ctx.mdf().getText().isEmpty()){
       throw Fail.noMdfInFormalParams(ctx.getText()).pos(pos(ctx));
     }
     String name = visitFullCN(ctx.fullCN());
-    var isFullName = name.contains(".");
+    String pkgName= extractPkgname(name);
+    String simpleName= pkgName.isEmpty()? name : name.substring(pkgName.length()+1);
+    var canBeGen =  isGenOk(simpleName);
+    if(!canBeGen && pkgName.isEmpty()){
+      name = LiteralKind.toFullName(name).orElse(this.pkg+"."+name);
+      }
+    var isFullName = !canBeGen || !pkgName.isEmpty();
     var mGen=visitMGen(ctx.mGen(), true);
     Optional<Id.IT<T>> resolved = isFullName ? Optional.empty() : resolve.apply(name);
     var isIT = isFullName || resolved.isPresent();
@@ -396,17 +366,20 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .map((xCtx, tCtx)->new E.X(xCtx.getText(), this.visitT(tCtx), Optional.of(pos(xCtx))))
       .toList();
   }
+  String completeDeclName(String cName, Pos pos){
+    String pkgName= extractPkgname(cName);
+    if (!pkgName.isEmpty()){ throw Fail.crossPackageDeclaration().pos(pos); }
+    Optional<String> litFullName= LiteralKind.toFullName(cName);
+    if (litFullName.isPresent()) {
+      //TODO: will be changed when we add the alias pkg.* syntax
+      throw Fail.syntaxError(pkg + "." + cName + " is not a valid type name.").pos(pos);
+    }
+    assert pkg!=null;
+    return pkg+"."+cName;
+  }
   public T.Dec visitTopDec(TopDecContext ctx, boolean shallow) {
     check(ctx);
-    String cName = visitFullCN(ctx.fullCN());
-    if (Magic.isLiteral(cName)) {
-      throw Fail.syntaxError(pkg + "." + cName + " is not a valid type name.").pos(pos(ctx));
-    }
-    if (cName.contains(".")) {
-      throw Fail.crossPackageDeclaration().pos(pos(ctx));
-    }
-    cName = pkg+"."+cName;
-
+    String cName= completeDeclName(visitFullCN(ctx.fullCN()), pos(ctx));
     var mGen = Optional.ofNullable(ctx.mGen())
       .flatMap(this::visitMGenParams)
       .orElse(new GenericParams(List.of(), Map.of()));
@@ -421,9 +394,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var body = shallow ? null
       : visitBlock(ctx.block(), Optional.empty(),
           Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds)));
-    if (body != null) {
-      body = body.withT(Optional.empty());
-    }
+    if (body != null){ body = body.withT(Optional.empty()); }
     this.xbs = oldXbs;
     return new T.Dec(id, mGen.gxs(), mGen.bounds(), body, Optional.of(pos(ctx)));
   }

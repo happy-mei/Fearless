@@ -39,7 +39,7 @@ fragment CHARInStringDouble://TODO: this need to instead allow unicode will look
 fragment CHARInStringMulti://TODO: this need to instead allow unicode
 'A'..'Z'|'a'..'z'|'0'..'9' | '(' | ')' | '[' | ']' | '<' | '>' | '&' | '|' | '*' | '+' | '-' | '=' | '/' | '!' | '?' | ';' | ':' | ',' | '.' | ' ' | '~' | '@' | '#' | '$' | '%' | '`' | '^' | '_' | '\\' | '{' | '}' | '"' | '\'';//no \n
 
-fragment StringMultiLine:'#'+ ('`'|'"') CHARInStringMulti* '\n';
+fragment StringMultiLine:'|'+ ('`'|'"') CHARInStringMulti* '\n';
 fragment FStringSingle: '`' CHARInStringSingle* '`';
 fragment FStringDouble: '"'  CHARInStringDouble* '"';
 

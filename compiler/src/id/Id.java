@@ -115,7 +115,7 @@ public class Id {
       return new GX<>("Fear" + n + "$");
     }
 
-    public GX{ assert Id.validGX(name); }
+    public GX{ assert Id.validGX(name):name; }
     public <R> R match(Function<GX<TT>,R>gx, Function<IT<TT>,R>it){ return gx.apply(this); }
 
     @Override public boolean equals(Object o) {

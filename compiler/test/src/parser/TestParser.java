@@ -146,46 +146,6 @@ class TestParser {
     The modifier 'mdf' can only be used on generic type variables. 'mdf' found on type pkg1.L[]
     """, "mdf pkg1.L{}"); }
 
-  /*
-  Right now a method call without parentheses have less binding power of
-a method call with parenthesis.
-Except for a no argument method call, a.foo behaves the same as a.foo()
-
-I wonder if we should remove the 'Except' part.
-
-right now we are doing
-list.flow
-  .map{..}
-  .filter{..}
-  .to List
-because if it was
-list.flow
-  .map{..}
-  .filter{..}
-  .toList
-it would have precedence as follows:
-list.flow
-  .map{..}
-  .filter
-  ({..}.toList)
-
-But, I'm not sure if we will always have arguments on our flows, and
-for may cases, like the builder pattern, it is very natural to have
-just a call.
-
-Stuff.build
-  .name(...)
-  .age(..)
-  .build
-
-We originally designed our precedence because we wanted
-a .and b .not
-to be interpreted as
-a .and (b .not)
-But... maybe it was a mistake?
-
-Would  the interpretation (a .and b) .not  become more natural going forward?
-   */
   @Test void flowPrecedence1() { ok("""
     list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-infer-][]{}]):infer.to/1[-]([[-immbase.List[]-][base.List[]]{}]):infer
     """, """
@@ -252,6 +212,19 @@ Would  the interpretation (a .and b) .not  become more natural going forward?
   @Test void precedenceMCall2Arg() { same("(a - b).m(c,d)", "a - b.m(c,d)"); }
   @Test void precedenceMCallPlus1() { same("a + b.foo()", "(a + b).foo"); }
   @Test void precedenceMCallPlus2() { same("a + b.foo()", "a + b.foo"); }
+  
+  @Test void squareMeth() { same("A:{.m():A,}", "A:{.m[]():A,}"); }
+  @Test void roundMeth1() { same("A:{.m:A,}", "A:{.m[]():A,}"); }
+  @Test void roundMeth2() { same("A:{.m:A,}", "A:{.m():A,}"); }
+  @Test void hashStringNoSpace1() { same("a#\"foo\"", "a#(\"foo\")"); }
+  @Test void hashStringNoSpace2() { same("a#`foo`", "a#(`foo`)"); }
   //@Test void invalidNumberSyntax() {fail("""
   //  """, "1.2u");}//Now valid
+  
+  @Test void stringEscapeWork1() { ok("""
+      [-imm base.uStrLit."Hello\\""[]-][base.uStrLit."Hello\\""[]]{}
+      ""","""
+      "Hello\\""
+      """); }
+
 }

@@ -73,13 +73,8 @@ public class Magic {
   );
 
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
-    var isLiteral = !name.isEmpty() && isLiteral(name);
-    if (isLiteral) {return Optional.of(new Id.IT<>(name, List.of()));}
-    return Optional.empty();
-//    return switch(name){
-//      case noMutHygName -> Optional.of(new Id.IT<>(new Id.DecId(noMutHygName, 0), List.of()));
-//      default -> Optional.empty();
-//    };
+    assert !isNakedLiteral(name):name;
+    return LiteralKind.match(name).map(k->new Id.IT<astFull.T>(name, List.of()));
   }
 
   public static astFull.T.Dec getFullDec(Function<Id.DecId, astFull.T.Dec> resolve, Id.DecId id) {
@@ -103,16 +98,16 @@ public class Magic {
     return b.withLambda(l);
   }
 
-  public static Optional<String> getLiteral(Program p, Id.DecId d) {
-    if (isLiteral(d.name())) {return Optional.of(d.name());}
+  public static Optional<String> getLiteral(Program p, Id.DecId d){
+    if(LiteralKind.isLiteral(d.name())){ return Optional.of(d.name()); }
     var supers = p.superDecIds(d);
-    return supers.stream().filter(dec -> {
-      var name = dec.name();
-      return isLiteral(name);
-    }).map(Id.DecId::name).findFirst();
+    return supers.stream()
+      .filter(dec -> LiteralKind.isLiteral(dec.name()))
+      .map(Id.DecId::name)
+      .findFirst();
   }
 
-  public static boolean isLiteral(String name) {
+  public static boolean isNakedLiteral(String name) {
     return isStringLiteral(name) || isNumberLiteral(name);
   }
 
@@ -124,50 +119,24 @@ public class Magic {
     return Character.isDigit(name.charAt(0)) || name.startsWith("-") || name.startsWith("+");
   }
 
-  public static Optional<CompileError> validateLiteral(Id.DecId id) {
-    assert isLiteral(id.name());
-    try {
-      getLiteralKind(id);
-    } catch (InvalidLiteralException err) {
-      return Optional.of(Fail.syntaxError(id + " is not a valid type name."));
-    }
-    return Optional.empty();
+  public static Optional<CompileError> validateIfLiteral(Id.DecId id) {
+    var kind= LiteralKind.match(id.name());
+    if(kind.isEmpty()){ return Optional.empty(); }
+    return kind.flatMap(k->k.validate(id.name()));
   }
-
-  public enum LiteralKind {
-    Str,
-    Int,
-    Nat,
-    Float,
-  }
-  public static LiteralKind getLiteralKind(Id.DecId id) {
-    assert isLiteral(id.name());
-    var lit = id.name();
-    if (isNumberLiteral(lit)) {
-      if (lit.matches("[+-][\\d_]*\\d+$")) {
-        return LiteralKind.Int;
-      }
-      if (lit.matches("[+-]?[\\d_]*\\d+\\.[\\d_]*\\d+$")) {
-        return LiteralKind.Float;
-      }
-      if (lit.matches("[\\d_]*\\d+$")) {
-        return LiteralKind.Nat;
-      }
+  static boolean strValidation(String input, char terminator){
+    boolean noBorders=input.length() < 2 
+      || input.charAt(0) != terminator || input.charAt(input.length() - 1) != terminator;
+    if (noBorders){ return false; }
+    for (int i = 1; i < input.length() - 1; i++) {
+      if (input.charAt(i) != terminator){ continue; }
+      if (input.charAt(i - 1) != '\\'){ return false; }
     }
-    if (isStringLiteral(lit)) {
-      return LiteralKind.Str;
-    }
-    throw new InvalidLiteralException("Unknown literal kind: " + id);
+    return true;
   }
-
   private static <T> Optional<T> _getDec(Function<Id.DecId, T> resolve, Id.DecId id) {
-    var lit = id.name();
-    if (!isLiteral(lit)) { return Optional.empty(); }
-    return Optional.of(switch (getLiteralKind(id)) {
-      case Str -> resolve.apply(new Id.DecId("base._StrInstance", 0));
-      case Int -> resolve.apply(new Id.DecId("base._IntInstance", 0));
-      case Nat -> resolve.apply(new Id.DecId("base._NatInstance", 0));
-      case Float -> resolve.apply(new Id.DecId("base._FloatInstance", 0));
-    });
+    return LiteralKind.match(id.name())
+      .map(LiteralKind::toDecId)
+      .map(resolve::apply);
   }
 }
