@@ -53,6 +53,12 @@ public interface FearlessVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMGen(FearlessParser.MGenContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link FearlessParser#actualGen}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitActualGen(FearlessParser.ActualGenContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link FearlessParser#topDec}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

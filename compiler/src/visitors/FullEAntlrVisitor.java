@@ -63,7 +63,6 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Void visitTerminal(TerminalNode arg0){ throw Bug.unreachable(); }
   @Override public Object visitRoundE(RoundEContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitGenDecl(GenDeclContext ctx) { throw Bug.unreachable();}
-  @Override public Object visitMGen(MGenContext ctx) { throw Bug.unreachable(); }
   @Override public Object visitNudeX(NudeXContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeM(NudeMContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeFullCN(NudeFullCNContext ctx){ throw Bug.unreachable(); }
@@ -87,8 +86,8 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .map(popi->this.visitPOp(popi))
       .reduce(x->x,Function::andThen);
     }
-  E.MCall buildMCall(E recv, MGenContext mGen, List<EContext> e, AtomEContext atomE, String mName, XContext x, List<POpContext> pops, Pos pos){
-    var gen= visitMGen(mGen, true);
+  E.MCall buildMCall(E recv, ActualGenContext mGen, List<EContext> e, AtomEContext atomE, String mName, XContext x, List<POpContext> pops, Pos pos){
+    var gen= visitActualGen(mGen);
     var es=  e.stream().map(this::visitE).toList();
     var optAtomE= Optional.ofNullable(atomE).map(this::visitAtomE);
     if(optAtomE.isPresent()){ es = Push.of(optAtomE.get(),es); }
@@ -103,7 +102,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Function<E,E> visitPOp(POpContext ctx){
     check(ctx);
     return recv->buildMCall(
-      recv, ctx.mGen(), ctx.e(), ctx.atomE(),ctx.m().getText(),
+      recv, ctx.actualGen(), ctx.e(), ctx.atomE(),ctx.m().getText(),
       ctx.x(),ctx.pOp(),pos(ctx));
     }
   E.MCall buildEqSugar(E.MCall m, X x,Function<E,E> pops){
@@ -126,18 +125,12 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(a==null){return null;}
     return f.apply(a);
     }
-  public Optional<List<T>> visitMGen(MGenContext ctx, boolean isDecl){
-    if(ctx.children==null){ return Optional.empty(); }//subsumes check(ctx);
-    var noTs = !some(ctx.genDecl());
-    if(ctx.OS() == null){ return Optional.empty(); }
-    if(noTs){ return Optional.of(List.of()); }
-    return Optional.of(ctx.genDecl().stream().map(declCtx->{
-      var t = visitT(declCtx.t(), isDecl);
-      if (!some(declCtx.mdf())) { return t; }
-      var gx = t.gxOrThrow();
-      return new T(t.mdf(), new Id.GX<>(gx.name()));
-    }).toList());
-  }
+
+ 
+  @Override public Optional<List<T>> visitActualGen(ActualGenContext ctx) {
+    if(ctx.OS()==null){ return Optional.empty(); }
+    return Optional.of(ctx.t().stream().map(this::visitT).toList()); 
+    }
   public record GenericParams(List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds) {
     public GenericParams{
       assert gxs.size()==bounds.size():gxs+" "+bounds;
@@ -154,8 +147,22 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     res.add(Mdf.iso);res.add(Mdf.mutH);res.add(Mdf.readH);
     return res;
   }
-  private GenericParams genericParams(List<T> ts, MGenContext ctx){
-    List<GX<T>> gxs= toGxsOrFail(ts,pos(ctx));
+  Id.GX<T> buildGenX(FullCNContext ctx){
+    return buildGenX(visitFullCN(ctx),pos(ctx));
+  }
+  Id.GX<T> buildGenX(String name, Pos pos){
+    var canBeGen =  isGenOk(name);
+    if (!canBeGen){ throw Bug.todo("better error for invalid syntax for gen declared name"); }
+    var shadows= resolve.apply(name);
+    if (shadows.isPresent()){ throw Fail.concreteTypeInFormalParams(shadows.get().toString()).pos(pos); }
+    //TODO: above can be improved "better error for generic name shadows type name"
+    return new Id.GX<T>(name);
+  }
+  @Override public Optional<GenericParams> visitMGen(MGenContext ctx) {
+    if (ctx.OS()==null){ return Optional.empty(); }//subsumes check(ctx);
+    List<GX<T>> gxs= ctx.genDecl().stream()
+      .map(gd->buildGenX(gd.fullCN()))
+      .toList();
     Map<Id.GX<astFull.T>, Set<Mdf>> boundsMap = Mapper.of(acc->
       Streams.zip(ctx.genDecl(), gxs)
         .forEach((declCtx, gx) -> {
@@ -166,19 +173,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
               .toList());
           acc.put(gx, bounds);
           }));
-    return new GenericParams(gxs, boundsMap);
-  }
-  private List<GX<T>> toGxsOrFail(List<T> ts, Pos pos){
-    return ts.stream()
-      .map(t->t.match(
-        gx->gx,
-        it->{ throw Fail.concreteTypeInFormalParams(t).pos(pos); }
-        ))
-      .toList();
-  }
-  public Optional<GenericParams> visitMGenParams(MGenContext ctx){
-    Optional<List<T>> mGens = this.visitMGen(ctx, false);    
-    return mGens.map(ts->genericParams(ts,ctx));
+    return Optional.of(new GenericParams(gxs, boundsMap));
   }
   @Override public E.X visitX(XContext ctx){
     check(ctx);
@@ -244,7 +239,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   E.Lambda visitNamedLambda(Mdf mdf,TopDecContext ctx){
     GenericParams mGen= Optional.ofNullable(ctx.mGen())
-        .flatMap(this::visitMGenParams)
+        .flatMap(this::visitMGen)
         .orElse(new GenericParams(List.of(), Map.of()));
     return withXBs(mGen.bounds,()->visitNamedLambda(mGen,mdf,ctx));
   }
@@ -303,7 +298,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if (id){ return new XE(x,x); }
     String mName=sugarName(ctx.CCMName().getText(), ctx.CCMName().getText());
     E e= buildMCall(
-      x, ctx.mGen(), ctx.e(), ctx.atomE(),mName,
+      x, ctx.actualGen(), ctx.e(), ctx.atomE(),mName,
       ctx.x(),ctx.pOp(),pos(ctx));
     return new XE(x,e);    
   }
@@ -422,7 +417,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   @Override public T visitT(TContext ctx) { return visitT(ctx,true); }
   public T visitT(TContext ctx, boolean canMdf) {
+    //TODO: I suspect this can now be simplified a lot, since no more used for generic declarations
     if(!canMdf && !ctx.mdf().getText().isEmpty()){
+      //TODO: not the right error?
       throw Fail.noMdfInFormalParams(ctx.getText()).pos(pos(ctx));
     }
     String name = visitFullCN(ctx.fullCN());
@@ -433,17 +430,17 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       name = LiteralKind.toFullName(name).orElse(this.pkg+"."+name);
       }
     var isFullName = !canBeGen || !pkgName.isEmpty();
-    var mGen=visitMGen(ctx.mGen(), true);
+    Optional<List<T>> aGen=visitActualGen(ctx.actualGen());
     Optional<Id.IT<T>> resolved = isFullName ? Optional.empty() : resolve.apply(name);
     var isIT = isFullName || resolved.isPresent();
     if(!isIT){
       var t = new T(visitGenricMdf(ctx.mdf()), new Id.GX<>(name));
-      if(mGen.isPresent()){ throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx)); }
+      if(aGen.isPresent()){ throw Fail.concreteTypeInFormalParams(t.toString()).pos(pos(ctx)); }
       return t;
     }
     // TODO: TEST alias generic merging
     Mdf mdf = visitMdf(ctx.mdf());
-    var ts = mGen.orElse(List.of());
+    var ts = aGen.orElse(List.of());
     if(resolved.isEmpty()){return new T(mdf,new Id.IT<>(name,ts));}
     var res = resolved.get();
     ts = Push.of(res.ts(),ts);
@@ -488,7 +485,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public MethHeader visitSig(SigContext ctx) {
     check(ctx);
     var mdf = this.visitMdf(ctx.mdf());
-    var gens = this.visitMGenParams(ctx.mGen()).orElse(new GenericParams(List.of(), Map.of()));
+    var gens = this.visitMGen(ctx.mGen()).orElse(new GenericParams(List.of(), Map.of()));
     var xs = Optional.ofNullable(ctx.gamma()).map(this::visitGamma).orElse(List.of());
     var name = new MethName(Optional.of(mdf), ctx.m().getText(), xs.size());
     var ret = this.visitT(ctx.t());
@@ -521,11 +518,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public T.Alias visitAlias(AliasContext ctx) {
     check(ctx);
     var in = visitFullCN(ctx.fullCN(0));
-    var _inG = opt(ctx.mGen(0), mGenCtx->visitMGen(mGenCtx, true));
+    var _inG = opt(ctx.actualGen(), g->visitActualGen(g));
     var inG = Optional.ofNullable(_inG).flatMap(e->e).orElse(List.of());
     var inT=new Id.IT<>(in,inG);
     var out = visitFullCN(ctx.fullCN(1));
-    if(some(ctx.mGen(1).genDecl())){ throw Bug.of("No gen on out Alias"); }
     return new T.Alias(inT, out, Optional.of(pos(ctx)));
   }
   public static Package fileToPackage(

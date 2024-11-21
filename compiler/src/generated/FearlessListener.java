@@ -78,6 +78,16 @@ public interface FearlessListener extends ParseTreeListener {
 	 */
 	void exitMGen(FearlessParser.MGenContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link FearlessParser#actualGen}.
+	 * @param ctx the parse tree
+	 */
+	void enterActualGen(FearlessParser.ActualGenContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FearlessParser#actualGen}.
+	 * @param ctx the parse tree
+	 */
+	void exitActualGen(FearlessParser.ActualGenContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link FearlessParser#topDec}.
 	 * @param ctx the parse tree
 	 */

@@ -85,10 +85,12 @@ mdf: Mut | ReadH | MutH | ReadImm | Read | Iso | Imm | ;
 
 roundE : OR e CR;
 
-genDecl : t Colon mdf (Comma mdf)* | t (Colon SysInM | );//generic declaration
+genDecl : fullCN Colon mdf (Comma mdf)* | fullCN (Colon SysInM | );//generic declaration
 //the code will check that SysInM is only either '**' or '*'
 
 mGen   : | OS (genDecl (Comma genDecl)*)? CS;
+
+actualGen   : | OS (t (Comma t)*)? CS;
 
 topDec : fullCN mGen Colon (t (Comma t)* Comma?)? OC bblock CC;
 lambda : mdf topDec | (t | mdf) OC bblock CC | t;
@@ -96,28 +98,28 @@ lambda : mdf topDec | (t | mdf) OC bblock CC | t;
 bblock :
        | SelfX? singleM
        | SelfX? (meth (Comma meth)*)? Comma?
-       | (CCMName|SysInM) mGen pOp*
-       | (CCMName|SysInM) mGen OR (e (Comma e)+)? CR pOp*
-       | (CCMName|SysInM) mGen atomE
-       | (CCMName|SysInM) mGen atomE
-       | (CCMName|SysInM) mGen x Eq atomE pOp*       
+       | (CCMName|SysInM) actualGen pOp*
+       | (CCMName|SysInM) actualGen OR (e (Comma e)+)? CR pOp*
+       | (CCMName|SysInM) actualGen atomE
+       | (CCMName|SysInM) actualGen atomE
+       | (CCMName|SysInM) actualGen x Eq atomE pOp*       
        //parser will check that SysInM starts with ::
        | ColonColon;
 
-t      : mdf fullCN mGen;
+t      : mdf fullCN actualGen;
 //we recognize if fullCN is an X after parsing
 singleM: (x (Comma x)*)? Arrow e | e;
 meth   : sig | sig Arrow e | m OR (x (Comma x)*)? CR Arrow e | m (x (Comma x)*)? Arrow e;
 sig    : mdf m mGen (OR gamma CR)? Colon t | mdf m mGen gamma Colon t;
 gamma  : (x Colon t (Comma x Colon t)*)?;
-alias  : Alias fullCN mGen As fullCN mGen Comma;
+alias  : Alias fullCN actualGen As fullCN Comma;
 fStringMulti:FStringMulti;
 atomE : x | roundE | lambda | fStringMulti;
 e : atomE pOp*;
-pOp : m mGen 
-    | m mGen OR (e (Comma e)+)? CR
-    | m mGen atomE 
-    | m mGen x Eq atomE pOp*;
+pOp : m actualGen 
+    | m actualGen OR (e (Comma e)+)? CR
+    | m actualGen atomE 
+    | m actualGen x Eq atomE pOp*;
 
 nudeE : e EOF;
 nudeX : x EOF;

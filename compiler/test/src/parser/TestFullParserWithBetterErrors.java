@@ -250,10 +250,10 @@ class TestFullParserWithBetterErrors {
     """
   );}
   @Test void failConcreteInGens(){ fail("""
-    In position [###]/Dummy0.fear:2:7
+    In position [###]/Dummy0.fear:2:8
     [E3 concreteTypeInFormalParams]
     Trait and method declarations may only have generic type parameters. This concrete type was provided instead:
-    imm base.A[]
+    base.A[]
     Alternatively, are you attempting to shadow an existing class name?
     """, """
     package base
@@ -444,8 +444,8 @@ class TestFullParserWithBetterErrors {
 
   @Test void noModifiersInFormalTypeParams1() { fail("""
     In position [###]/Dummy0.fear:2:2
-    [E46 noMdfInFormalParams]
-    Modifiers are not allowed in declarations or implementation lists: mutB
+    [E59 syntaxError]
+    extraneous input 'mut' expecting {']', FullCN}
     """, """
     package test
     A[mut B]:{}

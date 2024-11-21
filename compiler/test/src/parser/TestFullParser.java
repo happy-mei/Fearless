@@ -287,10 +287,10 @@ class TestFullParser {
     """
     );}
   @Test void failConcreteInGens(){ fail("""
-    In position [###]/Dummy0.fear:2:7
+    In position [###]/Dummy0.fear:2:8
     [E3 concreteTypeInFormalParams]
     Trait and method declarations may only have generic type parameters. This concrete type was provided instead:
-    imm base.A[]
+    base.A[]
     Alternatively, are you attempting to shadow an existing class name?
     """, """
     package base
@@ -482,8 +482,8 @@ class TestFullParser {
 
   @Test void noModifiersInFormalTypeParams1() { fail("""
     In position [###]/Dummy0.fear:2:2
-    [E46 noMdfInFormalParams]
-    Modifiers are not allowed in declarations or implementation lists: mutB
+    [E59 syntaxError]
+    extraneous input 'mut' expecting {']', FullCN}
     """, """
     package test
     A[mut B]:{}
@@ -575,7 +575,7 @@ class TestFullParser {
   @Test void missingColonTypeDeclaration() { fail("""
     In position [###]/Dummy0.fear:2:3
     [E59 syntaxError]
-    missing ':' at '{'
+    no viable alternative at input '{'
     """, """
     package base
     Foo{}
@@ -591,4 +591,42 @@ class TestFullParser {
     package a
     A[X]: X{}
     """);}
+  @Test void generciBoundsOk() {ok("""
+      {
+      test.Beer/0=Dec[name=test.Beer/0,gxs=[],
+        lambda=[-muttest.Beer[]-][]{.m/0([]):Sig[gens=[X],
+        bounds={X=[mut]},ts=[],ret=immtest.Baz[X]]->
+        LambdaId[id=test.Baz/1,gens=[X],bounds={X=[mut]}]
+        :[-immtest.Baz[X]-][]{}}],
+      test.Foo/1=Dec[name=test.Foo/1,gxs=[X],bounds={X=[mut]},
+        lambda=[-muttest.Foo[X]-][]{}],
+      test.Bar/0=Dec[name=test.Bar/0,gxs=[],
+        lambda=[-muttest.Bar[]-][]{.m/0([]):Sig[gens=[X],
+        bounds={X=[mut]},ts=[],ret=immtest.Foo[X]]->[-]}]}
+      """, """
+      package test
+      Foo[X:mut]:{}
+      Bar:{.m[X:mut]:Foo[X]}
+      Beer:{ .m[X:mut]:Baz[X]->Baz[X:mut]:{} }
+      """);}
+    @Test void generciBoundsKO1() {fail("""
+      In position [###]/Dummy0.fear:3:20
+      [E59 syntaxError]
+      no viable alternative at input '.m[X:mut]:Foo[X:'
+      """, """
+      package test
+      Foo[X:mut]:{}
+      Bar:{.m[X:mut]:Foo[X:mut]}
+      Beer:{ .m[X:mut]:Baz[X]->Baz[X:mut]:{} }
+      """);}
+    @Test void generciBoundsKO2() {fail("""
+      In position [###]/Dummy0.fear:4:41
+      [E59 syntaxError]
+      mismatched input ':' expecting {']', ','}
+      """, """
+      package test
+      Foo[X:mut]:{}
+      Bar:{.m[X:mut]:Foo[X]}
+      Beer:{ .m[X:mut]:Baz[X]->Baz[X:mut]:Foo[X:mut]{} }
+      """);}
 }

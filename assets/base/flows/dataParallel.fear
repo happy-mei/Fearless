@@ -1,7 +1,7 @@
 package base.flows
 
 _DataParallelFlow: _FlowFactory{
-  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> Magic!,
+  .fromOp[E:*](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> Magic!,
 //  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
 //    .unwrapOp(_) -> source,
 //
@@ -25,6 +25,6 @@ _DataParallelFlow: _FlowFactory{
 //    },
   }
 
-_DataParallelInvalidStateful: {![R]: R ->
+_DataParallelInvalidStateful: {![R:**]: R ->
   Error.msg "Stateful operators are invalid in data-parallel flows. If you see this, there is a bug in the Fearless compiler."
   }

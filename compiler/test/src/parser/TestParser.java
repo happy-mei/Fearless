@@ -224,57 +224,56 @@ class TestParser {
   //  """, "1.2u");}//Now valid
   
   @Test void stringEscapeWork1() { ok("""
-      [-imm base.uStrLit."Hello\\""[]-][base.uStrLit."Hello\\""[]]{}
-      ""","""
-      "Hello\\""
-      """); }
+    [-imm base.uStrLit."Hello\\""[]-][base.uStrLit."Hello\\""[]]{}
+    ""","""
+    "Hello\\""
+    """); }
   @Test void stringEscapeWork2() { ok("""
-      [-mutbase.uStrLit."string\\""[]-][base.uStrLit."string\\""[]]{}+/1[-]([str:infer]):infer+/1[-]([[-immbase.uStrLit."\\""[]-][base.uStrLit."\\""[]]{}]):infer
-      ""","""
-      mut "string \\"" + str + "\\""
-      """); }
+    [-mutbase.uStrLit."string\\""[]-][base.uStrLit."string\\""[]]{}+/1[-]([str:infer]):infer+/1[-]([[-immbase.uStrLit."\\""[]-][base.uStrLit."\\""[]]{}]):infer
+    ""","""
+    mut "string \\"" + str + "\\""
+    """); }
 
   @Test void stringEscapeWork3() { ok("""
-      [-mutbase.sStrLit.`string\\``[]-][base.sStrLit.`string\\``[]]{}+/1[-]([str:infer]):infer+/1[-]([[-immbase.sStrLit.`\\``[]-][base.sStrLit.`\\``[]]{}]):infer
-      ""","""
-      mut `string \\`` + str + `\\``
-      """); }
+    [-mutbase.sStrLit.`string\\``[]-][base.sStrLit.`string\\``[]]{}+/1[-]([str:infer]):infer+/1[-]([[-immbase.sStrLit.`\\``[]-][base.sStrLit.`\\``[]]{}]):infer
+    ""","""
+    mut `string \\`` + str + `\\``
+    """); }
   @Test void parametersVsMultipleInheritance() { ok("""
-      [-imma.A[]-][a.A[]]{}#/3[-]([
-        [-immbase.natLit.12[]-][base.natLit.12[]]{}==/1[-]([
-          [-immbase.intLit.+84[]-][base.intLit.+84[]]{}
-          ]):infer,
-        [-immbase.uStrLit."findsome"[]-][base.uStrLit."findsome"[]]{},
-        [-infer-][]{ [-]([]):[-]->[-infer-][]{} }
-        ]):infer
-      ""","""
-      a.A#(12 == +84, "find some", {{}})
-      """); }
+    [-imma.A[]-][a.A[]]{}#/3[-]([
+      [-immbase.natLit.12[]-][base.natLit.12[]]{}==/1[-]([
+        [-immbase.intLit.+84[]-][base.intLit.+84[]]{}
+        ]):infer,
+      [-immbase.uStrLit."findsome"[]-][base.uStrLit."findsome"[]]{},
+      [-infer-][]{ [-]([]):[-]->[-infer-][]{} }
+      ]):infer
+    ""","""
+    a.A#(12 == +84, "find some", {{}})
+    """); }
   @Test void ambiguousComma1() {ok("""
-      [-imma.A[]-][a.A[]]{}#/1[-]
-      ([LambdaId[id=dummy.Name/0,gens=[],bounds={}]:[-immdummy.Name[]-][a.B[],b.C[]]{}]):infer
-      """, """
-      a.A#(Name:a.B,b.C{})
-      """);}
+    [-imma.A[]-][a.A[]]{}#/1[-]
+    ([LambdaId[id=dummy.Name/0,gens=[],bounds={}]:[-immdummy.Name[]-][a.B[],b.C[]]{}]):infer
+    """, """
+    a.A#(Name:a.B,b.C{})
+    """);}
   @Test void ambiguousComma2() {ok("""
-      [-imma.A[]-][a.A[]]{}#/2[-]
-      ([[-imma.B[]-][a.B[]]{},[-immb.C[]-][b.C[]]{}]):infer
-      """, """
-      a.A#(a.B,b.C{})
-      """);}
-
-  //u{numbers}//rust syntax  0..9*
- //convert the hex to decimal and replace with u{..}
+    [-imma.A[]-][a.A[]]{}#/2[-]
+    ([[-imma.B[]-][a.B[]]{},[-immb.C[]-][b.C[]]{}]):infer
+    """, """
+    a.A#(a.B,b.C{})
+    """);}
+}
+  
+//TODO:
+//Why we had
+//alias  : Alias fullCN actualGen As fullCN actualGen Comma;?
+//Now is alias  : Alias fullCN actualGen As fullCN Comma;?
+//removed: if(some(ctx.actualGen(1).genDecl())){ throw Bug.of("No gen on out Alias"); }
+//u{numbers}//rust syntax  0..9*
+//convert the hex to decimal and replace with u{..}
 //-{..}
 //-single
 //-Name:multi{..}//optional comma after the last type name?
-//  top level multiple inh  question on {} required
-//  inner method anon multiple inh question on name required
-  //linter or better error to seek token and ranke them for suspisciusness 
-//  .m:+5,
-//  .m:Person->+Person#(..)
-//  .m:+Person
-  //for escapes, follow java escape list
+//for escapes, follow java escape list
+//solve the todo below (may already be solved)
 //.if {ch == "\\"} .return {"\\\\"} // TODO: this breaks the fearless parer
-//.if {ch == "\\"} .return {"\\\\"}
-}

@@ -3,7 +3,7 @@ package base
 Opts: {
   #[T:*](x: T): mut Opt[T] -> {.match(m) -> m.some(x)},
   }
-Opt[T:*]: _Opt[T:*]{
+Opt[T:*]: _Opt[T]{
   .match(m) -> m.empty,
   .map(f)   -> this.match(f),
   .flatMap(f)   -> this.match(f),
