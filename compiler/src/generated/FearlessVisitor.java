@@ -53,17 +53,17 @@ public interface FearlessVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMGen(FearlessParser.MGenContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link FearlessParser#topDec}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTopDec(FearlessParser.TopDecContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link FearlessParser#lambda}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitLambda(FearlessParser.LambdaContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FearlessParser#block}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBlock(FearlessParser.BlockContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FearlessParser#bblock}.
 	 * @param ctx the parse tree
@@ -100,12 +100,6 @@ public interface FearlessVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitGamma(FearlessParser.GammaContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link FearlessParser#topDec}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTopDec(FearlessParser.TopDecContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FearlessParser#alias}.
 	 * @param ctx the parse tree

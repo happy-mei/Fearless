@@ -31,6 +31,7 @@ public enum LiteralKind {
     String simpleName=fullName.substring(pkgName.length()+1);
     switch(this){
     //  case Nat://TODO: add kind specific validation (too big number for example)
+    //Note: Nick will fill up here
       }
     return Optional.empty();
   }

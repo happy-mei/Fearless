@@ -19,9 +19,11 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import astFull.E.Lambda.LambdaId;
+import astFull.E.Meth;
 import astFull.E.X;
 import parser.ParseDirectLambdaCall;
 import utils.*;
+import wellFormedness.FullUndefinedGXsVisitor;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -41,7 +43,6 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   public StringBuilder errors = new StringBuilder();
   private String pkg;
   private Map<Id.GX<T>, Set<Mdf>> xbs = Map.of();
-  public List<T.Alias> inlineNames = new ArrayList<>();
   public FullEAntlrVisitor(Path fileName,String pkg,Function<String,Optional<Id.IT<T>>> resolve){
     this.fileName= fileName;
     this.resolve= resolve;
@@ -65,14 +66,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public Object visitRoundE(RoundEContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitGenDecl(GenDeclContext ctx) { throw Bug.unreachable();}
   @Override public Object visitMGen(MGenContext ctx) { throw Bug.unreachable(); }
-
-  @Override public Object visitBblock(BblockContext ctx){ throw Bug.unreachable(); }
-  @Override public T.Dec visitTopDec(TopDecContext ctx) { throw Bug.unreachable(); }
   @Override public Object visitNudeX(NudeXContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeM(NudeMContext ctx){ throw Bug.unreachable(); }
   @Override public Object visitNudeFullCN(NudeFullCNContext ctx){ throw Bug.unreachable(); }
   @Override public MethName visitM(MContext ctx){ throw Bug.unreachable(); }
-  @Override public MethName visitBlock(BlockContext ctx){ throw Bug.unreachable(); }
   @Override public Package visitNudeProgram(NudeProgramContext ctx){ throw Bug.unreachable(); }
 
   @Override public E visitNudeE(NudeEContext ctx){
@@ -92,22 +89,24 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .map(popi->this.visitPOp(popi))
       .reduce(x->x,Function::andThen);
     }
+  E.MCall buildMCall(E recv, MGenContext mGen, List<EContext> e, AtomEContext atomE, String mName, XContext x, List<POpContext> pops, Pos pos){
+    var gen= visitMGen(mGen, true);
+    var es=  e.stream().map(this::visitE).toList();
+    var optAtomE= Optional.ofNullable(atomE).map(this::visitAtomE);
+    if(optAtomE.isPresent()){ es = Push.of(optAtomE.get(),es); }
+    var m=   new MethName(Optional.empty(), mName, es.size());
+    var mcall= new E.MCall(recv,m,gen,es,T.infer,Optional.of(pos));
+    Optional<X> xOpt= Optional.ofNullable(x).map(this::visitX);
+    Function<E,E> pOp= this.visitAllPOp(pops);
+    return xOpt
+      .map(xi->buildEqSugar(mcall,xi,pOp))
+      .orElse(mcall);
+    }
   @Override public Function<E,E> visitPOp(POpContext ctx){
     check(ctx);
-    return recv->{
-      var gen= visitMGen(ctx.mGen(), true);
-      var es=  ctx.e().stream().map(this::visitE).toList();
-      var atomE= Optional.ofNullable(ctx.atomE()).map(this::visitAtomE);
-      if(atomE.isPresent()){ es = Push.of(atomE.get(),es); }
-      var m=   new MethName(Optional.empty(), ctx.m().getText(),es.size());
-      var pos= Optional.of(pos(ctx));
-      var mcall= new E.MCall(recv,m,gen,es,T.infer,pos);
-      Optional<X> xOpt=Optional.ofNullable(ctx.x()).map(this::visitX);
-      Function<E,E> pOp= this.visitAllPOp(ctx.pOp());
-      return xOpt
-        .map(x->buildEqSugar(mcall,x,pOp))
-        .orElse(mcall);
-      };        
+    return recv->buildMCall(
+      recv, ctx.mGen(), ctx.e(), ctx.atomE(),ctx.m().getText(),
+      ctx.x(),ctx.pOp(),pos(ctx));
     }
   E.MCall buildEqSugar(E.MCall m, X x,Function<E,E> pops){
     //e0.m(atom.pops), x --> e0.m1(atom,{x,self->self.pops}
@@ -131,28 +130,34 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     }
   public Optional<List<T>> visitMGen(MGenContext ctx, boolean isDecl){
     if(ctx.children==null){ return Optional.empty(); }//subsumes check(ctx);
-    var noTs = ctx.genDecl()==null || ctx.genDecl().isEmpty();
+    var noTs = !some(ctx.genDecl());
     if(ctx.OS() == null){ return Optional.empty(); }
     if(noTs){ return Optional.of(List.of()); }
     return Optional.of(ctx.genDecl().stream().map(declCtx->{
       var t = visitT(declCtx.t(), isDecl);
-      if (declCtx.mdf() == null || declCtx.mdf().isEmpty()) { return t; }
+      if (!some(declCtx.mdf())) { return t; }
       var gx = t.gxOrThrow();
       return new T(t.mdf(), new Id.GX<>(gx.name()));
     }).toList());
   }
-  public record GenericParams(List<Id.GX<T>> gxs, Map<Id.GX<astFull.T>, Set<Mdf>> bounds) {}
+  public record GenericParams(List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds) {
+    public GenericParams{
+      assert gxs.size()==bounds.size():gxs+" "+bounds;
+      assert bounds.keySet().stream().allMatch(k->gxs.contains(k)):gxs+" "+bounds;
+    }
+  }
   private GenericParams genericParams(List<T> ts, MGenContext ctx){
     List<GX<T>> gxs= toGxsOrFail(ts,pos(ctx));
-    Map<Id.GX<astFull.T>, Set<Mdf>> boundsMap = Mapper
-      .of(acc->Streams.zip(ctx.genDecl(), gxs)
-      .filter((declCtx, gx)->declCtx.mdf() != null && !declCtx.mdf().isEmpty())
-      .forEach((declCtx, gx) -> {
-        var bounds = declCtx.mdf().stream()
-          .map(this::visitGenMdf)
-          .collect(Collectors.toSet());
-        acc.put(gx, bounds);
-        }));
+    Map<Id.GX<astFull.T>, Set<Mdf>> boundsMap = Mapper.of(acc->
+      Streams.zip(ctx.genDecl(), gxs)
+        .forEach((declCtx, gx) -> {
+          var bounds = !some(declCtx.mdf())
+            ?Set.of(Mdf.imm)
+            :new LinkedHashSet<>(declCtx.mdf().stream()
+              .map(this::visitMdf)
+              .toList());
+          acc.put(gx, bounds);
+          }));
     return new GenericParams(gxs, boundsMap);
   }
   private List<GX<T>> toGxsOrFail(List<T> ts, Pos pos){
@@ -184,31 +189,150 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         opt(ctx.roundE(),(re->this.visitE(re.e()))))
         .filter(Objects::nonNull));
   }
+  Map<Id.GX<T>, Set<Mdf>> freeXbs(List<Id.IT<T>> its,List<Meth> ms){
+    var visitor = new FullUndefinedGXsVisitor(Set.copyOf(xbs.keySet()));
+    its.forEach(visitor::visitIT);
+    ms.forEach(visitor::visitMeth);
+    var vres= visitor.res();
+    return Mapper.of(m->vres.forEach(b->m.put(b, xbs.get(b))));
+  }
   E.Lambda visitUnnamedLambda(LambdaContext ctx){
-    E.Lambda res = visitBlock(ctx.block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), Optional.empty());
-    if (res.its().isEmpty() && !ctx.mdf().getText().isEmpty()) { throw Fail.modifierOnInferredLambda().pos(pos(ctx)); }
-    return res;
+    T t= opt(ctx.t(),this::visitT);
+    assert t==null || !t.isInfer();
+    Mdf mdf=opt(ctx.mdf(),this::visitExplicitMdf);
+    if (mdf==null && t!=null){ mdf = visitMdf(ctx.t().mdf()); }
+    Id.IT<T> it= opt(t,ti->ti.match(gx->{throw Fail.expectedConcreteType(ti).pos(pos(ctx));}, iti->iti));
+    List<Id.IT<T>> its= it==null?List.of():List.of(it);
+    String text=ctx.getText();
+    boolean empty=ctx.bblock()==null;
+    BBlock block= opt(ctx.bblock(),this::visitBblock);
+    var decId= Id.DecId.fresh(pkg, 0);
+    Map<Id.GX<T>, Set<Mdf>> idBounds=block==null?Map.of():freeXbs(List.of(),block.ms());
+    var id= new E.Lambda.LambdaId(decId, List.of(), idBounds);
+    if(block==null){
+      assert it!=null;
+      return new E.Lambda(
+          id,                       //LambdaId id
+          Optional.ofNullable(mdf), //Optional<Mdf> mdf
+          its,                      //List<Id.IT<T>>its
+          null,                     //String selfName
+          List.of(),                //List<Meth> meths
+          Optional.of(it),          //Optional<Id.IT<T>> it
+          Optional.of(pos(ctx))     //Optional<Pos> pos
+        );
+    }
+    assert block!=null;
+    return new E.Lambda(
+        id,                       //LambdaId id
+        Optional.ofNullable(mdf), //Optional<Mdf> mdf
+        its,                      //List<Id.IT<T>>its
+        block.selfName(),         //String selfName
+        block.ms(),                //List<Meth> meths
+        Optional.ofNullable(it),  //Optional<Id.IT<T>> it
+        Optional.of(pos(ctx))     //Optional<Pos> pos
+      );    
   }
   E.Lambda visitNamedLambda(LambdaContext ctx){
-    String cName= completeDeclName(visitFullCN(ctx.topDec().fullCN()), pos(ctx));
-    var mGen = Optional.ofNullable(ctx.topDec().mGen())
-      .flatMap(this::visitMGenParams)
-      .orElse(new GenericParams(List.of(), Map.of()));
-    this.xbs = mGen.bounds;
-    var id = new Id.DecId(cName, mGen.gxs.size());
-    var name = Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds));
-    return visitBlock(ctx.topDec().block(), Optional.ofNullable(visitExplicitMdf(ctx.mdf())), name);
+    Mdf mdf= opt(ctx.mdf(),this::visitMdf);
+    return visitNamedLambda(mdf,ctx.topDec());
   }
-
+  E.Lambda visitNamedLambda(Mdf mdf,TopDecContext ctx){
+    GenericParams mGen= Optional.ofNullable(ctx.mGen())
+        .flatMap(this::visitMGenParams)
+        .orElse(new GenericParams(List.of(), Map.of()));
+    return withXBs(mGen.bounds,()->visitNamedLambda(mGen,mdf,ctx));
+  }
+  E.Lambda visitNamedLambda(GenericParams mGen, Mdf mdf, TopDecContext ctx){
+    String cName= completeDeclName(visitFullCN(ctx.fullCN()), pos(ctx));
+    var decId= new Id.DecId(cName, mGen.gxs.size());
+    LambdaId id= new LambdaId(decId, mGen.gxs, mGen.bounds);
+    List<T> nameTs= id.gens().stream()
+      .map(gx->new T(Mdf.mdf, gx))
+      .toList();
+    Id.IT<T> nameId= new Id.IT<T>(decId,nameTs);
+    List<Id.IT<T>> its= ctx.t() == null
+      ?List.of()
+      :ctx.t().stream()
+        .map(ti->visitT(ti,false))
+        .map(ti->ti.match(
+          gx->{ 
+            throw Fail.expectedConcreteType(ti).pos(pos(ctx)); },
+          iti->iti))
+        .toList();
+    var block= visitBblock(ctx.bblock());
+    return new E.Lambda(
+      id,                       //LambdaId id
+      Optional.ofNullable(mdf), //Optional<Mdf> mdf
+      its,                      //List<Id.IT<T>>its
+      block.selfName(),         //String selfName
+      block.ms(),                //List<Meth> meths
+      Optional.ofNullable(nameId),  //Optional<Id.IT<T>> it
+      Optional.of(pos(ctx))     //Optional<Pos> pos
+    );
+  }
+  record BBlock(String selfName, List<Meth> ms){};
+  public BBlock visitMethsBlock(BblockContext ctx){
+    var selfName=opt(ctx.SelfX(),xi->xi.getText().substring(1));
+    List<Meth> ms= ctx.meth().stream().map(this::visitMeth).toList();
+    return new BBlock(selfName,ms);
+  }
+  public BBlock visitSingleBlock(BblockContext ctx){
+    var selfName=opt(ctx.SelfX(),xi->xi.getText().substring(1));
+    List<Meth> ms=List.of(visitSingleM(ctx.singleM()));
+    return new BBlock(selfName,ms);
+  }
+  String sugarName(String mName, String opName){
+    if (mName!=null){
+      assert mName.startsWith("::");
+      return "."+mName.substring(2); 
+      }
+    assert opName!=null;
+    if (!opName.startsWith("::")){ throw Bug.todo("better error"); }
+    return opName.substring(2);    
+  }
+  record XE(X x,E e){}
+  XE computeSugarBlockStart(BblockContext ctx){
+    var x= new E.X(T.infer);
+    boolean id= ctx.ColonColon()!=null;
+    if (id){ return new XE(x,x); }
+    String mName=sugarName(ctx.CCMName().getText(), ctx.CCMName().getText());
+    E e= buildMCall(
+      x, ctx.mGen(), ctx.e(), ctx.atomE(),mName,
+      ctx.x(),ctx.pOp(),pos(ctx));
+    return new XE(x,e);    
+  }
+  public BBlock visitSugarBlock(BblockContext ctx){
+    XE xe=computeSugarBlockStart(ctx);
+    List<String> xs= List.of(xe.x().name());
+    List<POpContext> pop= ctx.pOp()==null?List.of():ctx.pOp();
+    E e=visitAllPOp(pop).apply(xe.e());
+    Meth m= new E.Meth(
+      Optional.empty(), Optional.empty(), xs,
+      Optional.of(e), Optional.of(pos(ctx)));
+    return new BBlock(null,List.of(m));
+  }
+  @Override public BBlock visitBblock(BblockContext ctx){
+    //NO: can be empty check(ctx);
+    if (ctx.children==null){ new BBlock(null,List.of()); }
+    boolean sugar= ctx.ColonColon()!=null || ctx.CCMName() !=null|| ctx.SysInM()!=null;
+    if (sugar){ return visitSugarBlock(ctx); }
+    if (ctx.singleM()!=null){return visitSingleBlock(ctx);}
+    assert ctx.meth()!=null;
+    return visitMethsBlock(ctx);
+  }
   @Override public E.Lambda visitLambda(LambdaContext ctx){
-    var oldXbs = this.xbs;
-    E.Lambda res= ctx.topDec() == null
+    check(ctx);
+    return ctx.topDec() == null
       ? visitUnnamedLambda(ctx)
       : visitNamedLambda(ctx);
-    this.xbs = oldXbs;
-    return res;
   }
-  public E.Lambda visitBlock(BlockContext ctx, Optional<Mdf> mdf, Optional<E.Lambda.LambdaId> name){
+  private <R> R withXBs(Map<Id.GX<T>, Set<Mdf>> xbs, Supplier<R> s){
+    var oldXbs = this.xbs;
+    this.xbs = Map.copyOf(xbs);
+    try{ return s.get(); }
+    finally { this.xbs = oldXbs; }
+  }
+/*  public E.Lambda visitBlock(BlockContext ctx, Optional<Mdf> mdf, Optional<E.Lambda.LambdaId> name){
     check(ctx);
     var _its = Optional.ofNullable(ctx.t())
       .map(its->its.stream().map(this::visitIT).toList());
@@ -251,24 +375,25 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
     var meths = mms;
     return new E.Lambda(id, mdf, its, _n, meths, inferredOpt, Optional.of(pos(ctx)));
-  }
+  }*/
+  
   @Override public String visitFullCN(FullCNContext ctx) {
     return ctx.getText();
   }
 
   @Override public Mdf visitMdf(MdfContext ctx) {
     if(ctx.getText().isEmpty()){ return Mdf.imm; }
-    if (ctx.getText().equals("read/imm")) { return Mdf.readImm; }
+    if(ctx.getText().equals("read/imm")) { return Mdf.readImm; }
     return Mdf.valueOf(ctx.getText());
   }
   public Mdf visitExplicitMdf(MdfContext ctx) {
     if(ctx.getText().isEmpty()){ return null; }
-    if (ctx.getText().equals("read/imm")) { return Mdf.readImm; }
+    if(ctx.getText().equals("read/imm")) { return Mdf.readImm; }
     return Mdf.valueOf(ctx.getText());
   }
-  public Mdf visitGenMdf(MdfContext ctx) {
+  public Mdf visitGenricMdf(MdfContext ctx) {
     if(ctx.getText().isEmpty()){ return Mdf.mdf; }
-    if (ctx.getText().equals("read/imm")) { return Mdf.readImm; }
+    if(ctx.getText().equals("read/imm")) { return Mdf.readImm; }
     return Mdf.valueOf(ctx.getText());
   }
 
@@ -305,13 +430,13 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var mGen=visitMGen(ctx.mGen(), true);
     Optional<Id.IT<T>> resolved = isFullName ? Optional.empty() : resolve.apply(name);
     var isIT = isFullName || resolved.isPresent();
-    Mdf mdf = isIT ? visitMdf(ctx.mdf()) : visitGenMdf(ctx.mdf());
     if(!isIT){
-      var t = new T(mdf, new Id.GX<>(name));
+      var t = new T(visitGenricMdf(ctx.mdf()), new Id.GX<>(name));
       if(mGen.isPresent()){ throw Fail.concreteTypeInFormalParams(t).pos(pos(ctx)); }
       return t;
     }
     // TODO: TEST alias generic merging
+    Mdf mdf = visitMdf(ctx.mdf());
     var ts = mGen.orElse(List.of());
     if(resolved.isEmpty()){return new T(mdf,new Id.IT<>(name,ts));}
     var res = resolved.get();
@@ -321,11 +446,14 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override
   public E.Meth visitSingleM(SingleMContext ctx) {
     check(ctx);
-    var _xs = opt(ctx.x(), xs->xs.stream()
-      .map(this::visitX).map(E.X::name).toList());
-    _xs = _xs==null?List.of():_xs;
+    var xs = ctx.x() == null
+      ?List.<String>of()
+      :ctx.x().stream()
+        .map(this::visitX)
+        .map(E.X::name)
+        .toList();
     var body = Optional.ofNullable(ctx.e()).map(this::visitE);
-    return new E.Meth(Optional.empty(), Optional.empty(), _xs, body, Optional.of(pos(ctx)));
+    return new E.Meth(Optional.empty(), Optional.empty(), xs, body, Optional.of(pos(ctx)));
   }
   @Override
   public E.Meth visitMeth(MethContext ctx) {
@@ -377,26 +505,11 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     assert pkg!=null;
     return pkg+"."+cName;
   }
-  public T.Dec visitTopDec(TopDecContext ctx, boolean shallow) {
+  @Override public T.Dec visitTopDec(TopDecContext ctx) {
     check(ctx);
-    String cName= completeDeclName(visitFullCN(ctx.fullCN()), pos(ctx));
-    var mGen = Optional.ofNullable(ctx.mGen())
-      .flatMap(this::visitMGenParams)
-      .orElse(new GenericParams(List.of(), Map.of()));
-    var id = new Id.DecId(cName,mGen.gxs.size());
-
-    var inlineNamesVisitor = new InlineDecNamesAntlrVisitor(this, pkg);
-    inlineNamesVisitor.visitTopDec(ctx);
-    this.inlineNames.addAll(inlineNamesVisitor.inlineDecs);
-
-    var oldXbs = this.xbs;
-    this.xbs = Map.copyOf(mGen.bounds);
-    var body = shallow ? null
-      : visitBlock(ctx.block(), Optional.empty(),
-          Optional.of(new E.Lambda.LambdaId(id, mGen.gxs, mGen.bounds)));
-    if (body != null){ body = body.withT(Optional.empty()); }
-    this.xbs = oldXbs;
-    return new T.Dec(id, mGen.gxs(), mGen.bounds(), body, Optional.of(pos(ctx)));
+    E.Lambda l= visitNamedLambda(Mdf.mut,ctx);
+    var pos= Optional.of(pos(ctx));
+    return new T.Dec(l.id().id(), l.id().gens(), l.id().bounds(), l, pos);
   }
   @Override
   public T.Alias visitAlias(AliasContext ctx) {
@@ -406,8 +519,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var inG = Optional.ofNullable(_inG).flatMap(e->e).orElse(List.of());
     var inT=new Id.IT<>(in,inG);
     var out = visitFullCN(ctx.fullCN(1));
-    var outG = ctx.mGen(1);
-    if(!outG.genDecl().isEmpty()){ throw Bug.of("No gen on out Alias"); }
+    if(some(ctx.mGen(1).genDecl())){ throw Bug.of("No gen on out Alias"); }
     return new T.Alias(inT, out, Optional.of(pos(ctx)));
   }
   public static Package fileToPackage(
@@ -424,5 +536,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override
   public Object visitFStringMulti(FStringMultiContext arg0) {
     throw Bug.unreachable();
+  }
+  private boolean some(Object ctx){
+    if (ctx==null){ return false; }
+    if (ctx instanceof Collection<?> c && c.isEmpty()){ return false; }
+    return true;
   }
 }

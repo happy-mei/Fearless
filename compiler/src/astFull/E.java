@@ -31,7 +31,7 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(mdf);
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
-      assert mdf.isPresent() == it.isPresent();
+      assert mdf.isPresent() == it.isPresent(): mdf+" "+it;
     }
 
     public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {

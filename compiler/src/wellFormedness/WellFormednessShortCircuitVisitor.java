@@ -166,8 +166,9 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
     if (this.env.gxs().isEmpty()) { return Optional.empty(); }
     var visitor = new UndefinedGXsVisitor(Set.copyOf(e.id().gens()));
     visitor.visitLambda(e);
-    if (visitor.res().isEmpty()) { return Optional.empty(); }
-    return Optional.of(Fail.freeGensInLambda(e.id().toIT().toString(), visitor.res()).pos(e.pos()));
+    var vres= visitor.res(); 
+    if (vres.isEmpty()) { return Optional.empty(); }
+    return Optional.of(Fail.freeGensInLambda(e.id().toIT().toString(), vres).pos(e.pos()));
   }
 
   private Optional<CompileError> validBoundsForLambdaGens(E.Lambda e) {

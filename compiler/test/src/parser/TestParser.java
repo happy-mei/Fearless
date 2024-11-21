@@ -13,6 +13,7 @@ import java.util.Optional;
 class TestParser {
   void ok(String expected, String content){
     Main.resetAll();
+    Parser.debugTokensPrint(content);
     String res = new Parser(Parser.dummy,content)
       .parseFullE("dummy",Bug::err,s->Optional.empty())
       .toString();
@@ -164,7 +165,8 @@ class TestParser {
     """); }
   // null is correct in the expected AST below because these tests do not visit a package, so the package is null.
   @Test void flowPrecedence2a() { ok("""
-    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer.filter/1[-]([[-imm dummy.Fear3$[]-][dummy.Fear3$[]]{}.toList/0[-]([]):infer]):infer
+    list:infer.flow/0[-]([]):infer.map/1[-]([[-infer-][]{}]):infer
+    .filter/1[-]([[-immdummy.Fear1$[]-][dummy.Fear1$[]]{}.toList/0[-]([]):infer]):infer
     """, """
     list.flow
       .map{}
@@ -226,5 +228,53 @@ class TestParser {
       ""","""
       "Hello\\""
       """); }
+  @Test void stringEscapeWork2() { ok("""
+      [-mutbase.uStrLit."string\\""[]-][base.uStrLit."string\\""[]]{}+/1[-]([str:infer]):infer+/1[-]([[-immbase.uStrLit."\\""[]-][base.uStrLit."\\""[]]{}]):infer
+      ""","""
+      mut "string \\"" + str + "\\""
+      """); }
 
+  @Test void stringEscapeWork3() { ok("""
+      [-mutbase.sStrLit.`string\\``[]-][base.sStrLit.`string\\``[]]{}+/1[-]([str:infer]):infer+/1[-]([[-immbase.sStrLit.`\\``[]-][base.sStrLit.`\\``[]]{}]):infer
+      ""","""
+      mut `string \\`` + str + `\\``
+      """); }
+  @Test void parametersVsMultipleInheritance() { ok("""
+      [-imma.A[]-][a.A[]]{}#/3[-]([
+        [-immbase.natLit.12[]-][base.natLit.12[]]{}==/1[-]([
+          [-immbase.intLit.+84[]-][base.intLit.+84[]]{}
+          ]):infer,
+        [-immbase.uStrLit."findsome"[]-][base.uStrLit."findsome"[]]{},
+        [-infer-][]{ [-]([]):[-]->[-infer-][]{} }
+        ]):infer
+      ""","""
+      a.A#(12 == +84, "find some", {{}})
+      """); }
+  @Test void ambiguousComma1() {ok("""
+      [-imma.A[]-][a.A[]]{}#/1[-]
+      ([LambdaId[id=dummy.Name/0,gens=[],bounds={}]:[-immdummy.Name[]-][a.B[],b.C[]]{}]):infer
+      """, """
+      a.A#(Name:a.B,b.C{})
+      """);}
+  @Test void ambiguousComma2() {ok("""
+      [-imma.A[]-][a.A[]]{}#/2[-]
+      ([[-imma.B[]-][a.B[]]{},[-immb.C[]-][b.C[]]{}]):infer
+      """, """
+      a.A#(a.B,b.C{})
+      """);}
+
+  //u{numbers}//rust syntax  0..9*
+ //convert the hex to decimal and replace with u{..}
+//-{..}
+//-single
+//-Name:multi{..}//optional comma after the last type name?
+//  top level multiple inh  question on {} required
+//  inner method anon multiple inh question on name required
+  //linter or better error to seek token and ranke them for suspisciusness 
+//  .m:+5,
+//  .m:Person->+Person#(..)
+//  .m:+Person
+  //for escapes, follow java escape list
+//.if {ch == "\\"} .return {"\\\\"} // TODO: this breaks the fearless parer
+//.if {ch == "\\"} .return {"\\\\"}
 }

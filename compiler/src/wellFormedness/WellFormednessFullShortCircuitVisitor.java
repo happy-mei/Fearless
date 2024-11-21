@@ -269,8 +269,9 @@ public class WellFormednessFullShortCircuitVisitor extends FullShortCircuitVisit
     if (decId.isFresh() || decId.gen() != 0) { return Optional.empty(); }
     var visitor = new FullUndefinedGXsVisitor(Set.copyOf(e.id().gens()));
     visitor.visitLambda(e);
-    if (visitor.res().isEmpty()) { return Optional.empty(); }
-    var res = visitor.res().stream().map(Id.GX::toAstGX).collect(Collectors.toUnmodifiableSet());
+    var vres= visitor.res();
+    if (vres.isEmpty()) { return Optional.empty(); }
+    var res = vres.stream().map(Id.GX::toAstGX).collect(Collectors.toUnmodifiableSet());
     return Optional.of(Fail.freeGensInLambda(e.id().toIT().toString(), res).pos(e.pos()));
   }
 }

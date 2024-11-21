@@ -78,6 +78,16 @@ public interface FearlessListener extends ParseTreeListener {
 	 */
 	void exitMGen(FearlessParser.MGenContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link FearlessParser#topDec}.
+	 * @param ctx the parse tree
+	 */
+	void enterTopDec(FearlessParser.TopDecContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FearlessParser#topDec}.
+	 * @param ctx the parse tree
+	 */
+	void exitTopDec(FearlessParser.TopDecContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link FearlessParser#lambda}.
 	 * @param ctx the parse tree
 	 */
@@ -87,16 +97,6 @@ public interface FearlessListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLambda(FearlessParser.LambdaContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link FearlessParser#block}.
-	 * @param ctx the parse tree
-	 */
-	void enterBlock(FearlessParser.BlockContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FearlessParser#block}.
-	 * @param ctx the parse tree
-	 */
-	void exitBlock(FearlessParser.BlockContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link FearlessParser#bblock}.
 	 * @param ctx the parse tree
@@ -157,16 +157,6 @@ public interface FearlessListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitGamma(FearlessParser.GammaContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link FearlessParser#topDec}.
-	 * @param ctx the parse tree
-	 */
-	void enterTopDec(FearlessParser.TopDecContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FearlessParser#topDec}.
-	 * @param ctx the parse tree
-	 */
-	void exitTopDec(FearlessParser.TopDecContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link FearlessParser#alias}.
 	 * @param ctx the parse tree

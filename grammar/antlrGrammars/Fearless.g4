@@ -12,7 +12,7 @@ Imm:'imm';
 Eq:'=';
 Alias: 'alias';
 As: 'as';
-
+ColonColon: '::';
 OC:'{';
 CC:'}';
 
@@ -31,17 +31,21 @@ Underscore:'_';
 fragment CHAR:
 'A'..'Z'|'a'..'z'|'0'..'9' | '(' | ')' | '[' | ']' | '<' | '>' | '&' | '|' | '*' | '+' | '-' | '=' | '/' | '!' | '?' | ';' | ':' | ',' | '.' | ' ' | '~' | '@' | '#' | '$' | '%' | '`' | '^' | '_' | '\\' | '{' | '}' | '"' | '\'' | '\n';
 
-fragment CHARInStringSingle:
-'A'..'Z'|'a'..'z'|'0'..'9' | '(' | ')' | '[' | ']' | '<' | '>' | '&' | '|' | '*' | '+' | '-' | '=' | '/' | '!' | '?' | ';' | ':' | ',' | '.' | ' ' | '~' | '@' | '#' | '$' | '%' | '\\`' | '^' | '_' | '\\' | '{' | '}' | '"'|'\'';//no \n and ` by itself
-fragment CHARInStringDouble://TODO: this need to instead allow unicode will look like [...]-" | '\\"'
-'A'..'Z'|'a'..'z'|'0'..'9' | '(' | ')' | '[' | ']' | '<' | '>' | '&' | '|' | '*' | '+' | '-' | '=' | '/' | '!' | '?' | ';' | ':' | ',' | '.' | ' ' | '~' | '@' | '#' | '$' | '%' | '`' | '^' | '_' | '\\' | '{' | '}' | '\\"'|'\'';//no \n and " by itself
-
-fragment CHARInStringMulti://TODO: this need to instead allow unicode
-'A'..'Z'|'a'..'z'|'0'..'9' | '(' | ')' | '[' | ']' | '<' | '>' | '&' | '|' | '*' | '+' | '-' | '=' | '/' | '!' | '?' | ';' | ':' | ',' | '.' | ' ' | '~' | '@' | '#' | '$' | '%' | '`' | '^' | '_' | '\\' | '{' | '}' | '"' | '\'';//no \n
-
-fragment StringMultiLine:'|'+ ('`'|'"') CHARInStringMulti* '\n';
+//Note: defining both \ and \" or \` as valid options do not work.
+//This would allow the parses to 'chose' between closing string or not.
+//This have unpredictable results
+fragment EscapeSequence: '\\' ('"' | '`' | '\\' | 'n' | 'r' | 't' | 'b' | 'f' | 'u' );//others? \u{..}?
+//Note: some of those should only be for unicode
+fragment CHARInString: 'A'..'Z'|'a'..'z'|'0'..'9' | '(' | ')' | '[' | ']' | '<' | '>' | '&' | '|' | '*' | '+' | '-' | '=' | '/' | '!' | '?' | ';' | ':' | ',' | '.' | ' ' | '~' | '@' | '#' | '$' | '%' | '^' | '_' | '{' | '}' | '\'';
+fragment CHARInStringSingle: CHARInString | EscapeSequence | '"';
+fragment CHARInStringDouble: CHARInString | EscapeSequence | '`';  
 fragment FStringSingle: '`' CHARInStringSingle* '`';
 fragment FStringDouble: '"'  CHARInStringDouble* '"';
+
+//TODO: this need to instead allow unicode will look like [...]-" | '\\"'
+fragment CHARInStringMulti://TODO: this need to instead allow unicode
+'A'..'Z'|'a'..'z'|'0'..'9' | '(' | ')' | '[' | ']' | '<' | '>' | '&' | '|' | '*' | '+' | '-' | '=' | '/' | '!' | '?' | ';' | ':' | ',' | '.' | ' ' | '~' | '@' | '#' | '$' | '%' | '`' | '^' | '_' | '\\' | '{' | '}' | '"' | '\'';//no \n
+fragment StringMultiLine:'|'+ ('`'|'"') CHARInStringMulti* '\n';
 
 fragment Unders:   '_'*;
 fragment NumSym:   '+'|'-'|'/'|'.';
@@ -86,17 +90,20 @@ genDecl : t Colon mdf (Comma mdf)* | t (Colon SysInM | );//generic declaration
 //the code will check that SysInM is only either '**' or '*'
 
 mGen   : | OS (genDecl (Comma genDecl)*)? CS;
-lambda : mdf topDec | mdf block;
-block  : 
-       | OC bblock CC
-       | t (Comma t)* 
-       | t (Comma t)* OC bblock CC;
+
+topDec : fullCN mGen Colon (t (Comma t)* Comma?)? OC bblock CC;
+lambda : mdf topDec | (t | mdf) OC bblock CC | t;
+
 bblock :
-       | SelfX? singleM  
+       | SelfX? singleM
        | SelfX? (meth (Comma meth)*)? Comma?
-       | (CCMName|SysInM) pOp*
+       | (CCMName|SysInM) mGen pOp*
+       | (CCMName|SysInM) mGen OR (e (Comma e)+)? CR pOp*
+       | (CCMName|SysInM) mGen atomE
+       | (CCMName|SysInM) mGen atomE
+       | (CCMName|SysInM) mGen x Eq atomE pOp*       
        //parser will check that SysInM starts with ::
-       | '::';
+       | ColonColon;
 
 t      : mdf fullCN mGen;
 //we recognize if fullCN is an X after parsing
@@ -104,7 +111,6 @@ singleM: (x (Comma x)*)? Arrow e | e;
 meth   : sig | sig Arrow e | m OR (x (Comma x)*)? CR Arrow e | m (x (Comma x)*)? Arrow e;
 sig    : mdf m mGen (OR gamma CR)? Colon t | mdf m mGen gamma Colon t;
 gamma  : (x Colon t (Comma x Colon t)*)?;
-topDec : fullCN mGen Colon block;
 alias  : Alias fullCN mGen As fullCN mGen Comma;
 fStringMulti:FStringMulti;
 atomE : x | roundE | lambda | fStringMulti;

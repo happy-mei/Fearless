@@ -68,7 +68,7 @@ public record Parser(Path fileName,String content){
       .map(allPi->Package.merge(List.of(), allPi))
       .toList();
     assert allPs.stream().map(Package::name).distinct().count()==allPs.size();//redundant?
-    Map<Id.DecId, T.Dec> ds = allPs.parallelStream()
+    Map<Id.DecId, T.Dec> ds = allPs.stream()//.parallelStream()//For debugging
       .map(Package::parse)
       .flatMap(dsi->dsi.values().stream())
       .collect(Collectors.toConcurrentMap(T.Dec::name, d->d));
@@ -122,7 +122,7 @@ public record Parser(Path fileName,String content){
     //need check res==content otherwise there may be spaces/comments too 
     return ok ;
   }
-  private void debugTokensPrint(String content){
+  public static void debugTokensPrint(String content){
     var l = new FearlessLexer(CharStreams.fromString(content));
     var tokenStream = new CommonTokenStream(l);
     tokenStream.fill();

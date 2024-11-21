@@ -101,6 +101,18 @@ public class FearlessBaseListener implements FearlessListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterTopDec(FearlessParser.TopDecContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTopDec(FearlessParser.TopDecContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterLambda(FearlessParser.LambdaContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -108,18 +120,6 @@ public class FearlessBaseListener implements FearlessListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitLambda(FearlessParser.LambdaContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterBlock(FearlessParser.BlockContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitBlock(FearlessParser.BlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -192,18 +192,6 @@ public class FearlessBaseListener implements FearlessListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitGamma(FearlessParser.GammaContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterTopDec(FearlessParser.TopDecContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTopDec(FearlessParser.TopDecContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
