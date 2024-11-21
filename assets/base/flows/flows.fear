@@ -60,7 +60,7 @@ _NonTerminalOps[E]: {
   }
 _TerminalOps[E]: Sealed{
   // has to be magic because of strong exception safety (flows are mut and thus cannot be in a Try)
-//  mut .action[R:iso,imm,mut,mutH,read,readH](terminalOp: read F[mut Flow[E],R]): mut Action[R] -> Todo!,
+//  mut .action[R:**](terminalOp: read F[mut Flow[E],R]): mut Action[R] -> Todo!,
 
   mut .first: mut Opt[E],
   mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],

@@ -5,11 +5,11 @@ Res:{
   .ok[T,E](x: T): mut Res[T, E] -> { .match(m) -> m.a(x), },
   .err[T,E](x: E): mut Res[T, E] -> { .match(m) -> m.b(x), },
   }
-Res[T]:Res[T, Info]
+Res[T]:Res[T, Info]{}
 Res[T,E]:Either[T, E]{
-  mut  .resMatch[R:iso,imm,mut,mutH,read,readH](m: mut ResMatch[T, E, R]): R -> this.match(m),
-  read .resMatch[R:iso,imm,mut,mutH,read,readH](m: mut ResMatch[read T, read E, R]): R -> this.match(m),
-  imm  .resMatch[R:iso,imm,mut,mutH,read,readH](m: mut ResMatch[imm T, imm E, R]): R -> this.match(m),
+  mut  .resMatch[R:**](m: mut ResMatch[T, E, R]): R -> this.match(m),
+  read .resMatch[R:**](m: mut ResMatch[read T, read E, R]): R -> this.match(m),
+  imm  .resMatch[R:**](m: mut ResMatch[imm T, imm E, R]): R -> this.match(m),
 
   mut  !: T -> this.resMatch[T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
   read !: read T -> this.resMatch[read T]{ .ok(x) -> x, .err(_) -> Error.msg "Res was not ok" },
@@ -35,7 +35,7 @@ Res[T,E]:Either[T, E]{
   read .isOk: Bool -> this.resMatch{ .err(_) -> False, .ok(_) -> True },
   }
 
-ResMatch[T,E,R:iso,imm,mut,mutH,read,readH]:EitherMatch[T, E, R]{
+ResMatch[T,E,R:**]:EitherMatch[T, E, R]{
   .a(x) -> this.ok(x), .b(x) -> this.err(x),
   mut .ok(x: T): R,
   mut .err(x: E): R

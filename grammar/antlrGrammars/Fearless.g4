@@ -69,11 +69,10 @@ BlockComment: '/*' (BlockComment|.)*? '*/' -> channel(HIDDEN);
 LineComment: '//' .*? ('\n'|EOF) -> channel(HIDDEN);
 
 fragment SyInM:
-'+' | '-' | '*' | '/' | '\\' | '|' | '!' | '@' | '#' | '$' | '%' | '^' | '&' | '?' | '~' | '<' | '>' | '=';//no ':'
-fragment SyInMExtra:
-'+' | '-' | '*' | '/' | '\\' | '|' | '!' | '@' | '#' | '$' | '%' | '^' | '&' | '?' | '~' | '<' | '>' | '=' | ':';
+'+' | '-' | '/' | '\\' | '|' | '!' | '@' | '#' | '$' | '%' | '^' | '&' | '?' | '~' | '<' | '>' | '=';//no ':', '*'
+fragment SyInMExtra: ':'* SyInM; 
 //  excluding = alone and excluding containing //, because they are defined first
-SysInM: SyInMExtra* SyInM;
+SysInM: SyInMExtra* (SyInM|'*')+ | SyInMExtra+;
 FullCN: (FIdLow '.')* TypeName;
 
 Whitespace: ('\t' | ' ' | '\n' )-> channel(HIDDEN);

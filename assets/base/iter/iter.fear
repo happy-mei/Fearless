@@ -1,6 +1,6 @@
 package base.iter
 
-Iter[E]:{
+Iter[E:*]:{
   mut .next: mut Opt[E],
   mut .find(p: mut IterPredicate[E]): mut Opt[E] -> this.next.match[mut Opt[E]]{
     .some(x) -> p#x ? { .then -> Opts#x, .else -> this.find(p) },
@@ -69,7 +69,7 @@ Sum:{
 IterForEacher[E]:{ mut #(e: E): Void }
 IterFolder[E,R]:{ mut #(acc: R, e: E): R }
 IterScanner[E, R, S]:{ mut #(state: mut Var[S], e: E): S }
-IterMapper[E,R]:OptMap[E, R]
+IterMapper[E,R]:OptMap[E, R]{}
 IterPredicate[E]:{ mut #(e: E): Bool }
 
 //_ListIsoAdd[E]:{

@@ -250,6 +250,42 @@ class TestFullParser {
     A:{.foo[B](a: A, b: read B): read B,}
     """
   );}
+  @Test void methWithGensBoundsStar(){ ok("""
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mutbase.A[]-][]{
+      .foo/2([a,b]):Sig[gens=[B],bounds={B=[imm,mut,read]},ts=[immbase.A[],B],ret=B]->[-]
+      }]}
+    """, """
+    package base
+    A:{.foo[B:*](a: A, b: B): B,}
+    """
+    );}
+  @Test void methWithGensBoundsStarStar(){ ok("""
+    {base.A/0=Dec[name=base.A/0,gxs=[],lambda=[-mutbase.A[]-][]{
+      .foo/2([a,b]):Sig[gens=[B],bounds={B=[imm,iso,mut,mutH,read,readH]},ts=[immbase.A[],B],ret=B]->[-]
+    }]}
+    """, """
+    package base
+    A:{.foo[B:**](a: A, b: B): B,}
+    """
+    );}
+  @Test void classWithGensBoundsStar(){ ok("""
+    {base.A/1=Dec[name=base.A/1,gxs=[B],bounds={B=[imm,mut,read]},lambda=[-mutbase.A[B]-][]{
+      .foo/2([a,b]):Sig[gens=[],ts=[immbase.A[],B],ret=B]->[-]
+      }]}
+    """, """
+    package base
+    A[B:*]:{.foo(a: A, b: B): B,}
+    """
+    );}
+  @Test void classWithGensBoundsStarStar(){ ok("""
+    {base.A/1=Dec[name=base.A/1,gxs=[B],bounds={B=[imm,iso,mut,mutH,read,readH]},lambda=[-mutbase.A[B]-][]{
+      .foo/2([a,b]):Sig[gens=[],ts=[immbase.A[],B],ret=B]->[-]
+      }]}
+    """, """
+    package base
+    A[B:**]:{.foo(a: A, b: B): B,}
+    """
+    );}
   @Test void failConcreteInGens(){ fail("""
     In position [###]/Dummy0.fear:2:7
     [E3 concreteTypeInFormalParams]

@@ -11,7 +11,6 @@ import id.Id.MethName;
 import id.Mdf;
 import failure.Fail;
 import magic.LiteralKind;
-import magic.Magic;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -31,7 +30,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @SuppressWarnings("serial")
@@ -146,13 +144,23 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       assert bounds.keySet().stream().allMatch(k->gxs.contains(k)):gxs+" "+bounds;
     }
   }
+  private Set<Mdf> mdfStarSugar(GenDeclContext gen){
+    if (gen.SysInM()==null){ return Set.of(Mdf.imm); }
+    String text= gen.SysInM().getText();
+    var res= new LinkedHashSet<Mdf>();
+    res.add(Mdf.imm);res.add(Mdf.mut);res.add(Mdf.read);
+    if (text.equals("*")){return res;}
+    if (!text.equals("**")){ throw Bug.todo("better error"); }
+    res.add(Mdf.iso);res.add(Mdf.mutH);res.add(Mdf.readH);
+    return res;
+  }
   private GenericParams genericParams(List<T> ts, MGenContext ctx){
     List<GX<T>> gxs= toGxsOrFail(ts,pos(ctx));
     Map<Id.GX<astFull.T>, Set<Mdf>> boundsMap = Mapper.of(acc->
       Streams.zip(ctx.genDecl(), gxs)
         .forEach((declCtx, gx) -> {
           var bounds = !some(declCtx.mdf())
-            ?Set.of(Mdf.imm)
+            ?mdfStarSugar(declCtx)
             :new LinkedHashSet<>(declCtx.mdf().stream()
               .map(this::visitMdf)
               .toList());
@@ -203,8 +211,6 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     if (mdf==null && t!=null){ mdf = visitMdf(ctx.t().mdf()); }
     Id.IT<T> it= opt(t,ti->ti.match(gx->{throw Fail.expectedConcreteType(ti).pos(pos(ctx));}, iti->iti));
     List<Id.IT<T>> its= it==null?List.of():List.of(it);
-    String text=ctx.getText();
-    boolean empty=ctx.bblock()==null;
     BBlock block= opt(ctx.bblock(),this::visitBblock);
     var decId= Id.DecId.fresh(pkg, 0);
     Map<Id.GX<T>, Set<Mdf>> idBounds=block==null?Map.of():freeXbs(List.of(),block.ms());

@@ -85,7 +85,7 @@ _LexStartingToken: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
   .return {ActorRes.continue}
   }
 
-TokenMatch[R:iso,imm,mut,mutH,read,readH]: {
+TokenMatch[R:**]: {
   mut .true: R,
   mut .false: R,
   mut .null: R,
@@ -162,12 +162,12 @@ Tokens: {
   .unknownFragment(line: Nat, col: Nat, bufferContents: Str): Token -> Error.msg (mut "Unknown fragment in JSON code:\n" + bufferContents + " at " + (line.str) + ":" + (col.str)),
   }
 Token: {
-  read .match[R:iso,imm,mut,mutH,read,readH](m: mut TokenMatch[R]): R,
+  read .match[R:**](m: mut TokenMatch[R]): R,
   read .line: Nat,
   read .col: Nat,
   }
 
-_LexerModeMatch[R:iso,imm,mut,mutH,read,readH]: {
+_LexerModeMatch[R:**]: {
   mut .value: R,
   mut .string: R,
   mut .stringEscape: R,
@@ -183,4 +183,4 @@ _LexerModes: {
     .return {{m -> m.unicodeEscape(buffer)}},
   .digits: mut _LexerMode -> {m -> m.digits},
   }
-_LexerMode: {mut .match[R:iso,imm,mut,mutH,read,readH](m: mut _LexerModeMatch[R]): R}
+_LexerMode: {mut .match[R:**](m: mut _LexerModeMatch[R]): R}

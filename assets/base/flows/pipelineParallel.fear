@@ -3,7 +3,7 @@ package base.flows
 _PipelineParallelSink: _Sink{
   #[T](s: mut _Sink[T]): mut _Sink[T] -> Magic!,
   }
-_PipelineParallelSink[T]: _Sink[T]
+_PipelineParallelSink[T]: _Sink[T]{}
 
 _PipelineParallelFlow: _FlowFactory{
   .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self

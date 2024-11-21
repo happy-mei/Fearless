@@ -126,7 +126,7 @@ TopLevelMatch: {
       )
     }}
 
-_SubMatch[R:iso,imm,mut,mutH,read,readH]: TokenMatch[R]{
+_SubMatch[R:**]: TokenMatch[R]{
   read .mode: Str,
   read .token: Token,
   read .errorSuffix: Str -> mut " at " + (this.token.line.str) + ":" + (this.token.col.str),
