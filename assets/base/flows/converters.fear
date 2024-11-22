@@ -1,9 +1,9 @@
 package base.flows
 
-Joinable[T]: { .join(flow: mut Flow[T]): T }
+Joinable[T:*]: { .join(flow: mut Flow[T]): T }
 
 RestrictFlowReuse: {
-  #[E](f: mut FlowOp[E]): mut FlowOp[E] -> Block#
+  #[E:*](f: mut FlowOp[E]): mut FlowOp[E] -> Block#
     .var[Bool] stopped = {False}
     .return {{
       .isRunning -> f.isRunning,
@@ -29,7 +29,7 @@ RestrictFlowReuse: {
 // Prevents any issues arising from someone mutating the thing the flow is going over
 // from within the flow itself. This is prevented by collecting the flow-source into a list and then
 // flowing on that instead.
-_MutSourceCollection[E]: {
+_MutSourceCollection[E:*]: {
   #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#[mut FlowOp[E]]
     .let[mut Var[mut Opt[mut FlowOp[E]]]] cloned = {Var#[mut Opt[mut FlowOp[E]]]{}}
     .return{{
@@ -83,8 +83,8 @@ _FlowRange: {
 
 // Variants of the converter methods that do not clone if is safe to do so. Invoked by magic
 _SafeSource: {
-//  .fromIter[E](iter: mut base.iter.Iter[E]): mut Flow[E] -> Flow.fromOp[E](this.fromIter'[E](iter)),
-//  .fromIter'[E](iter: mut base.iter.Iter[E]): mut FlowOp[E] -> Block#
+//  .fromIter[E:*](iter: mut base.iter.Iter[E]): mut Flow[E] -> Flow.fromOp[E](this.fromIter'[E](iter)),
+//  .fromIter'[E:*](iter: mut base.iter.Iter[E]): mut FlowOp[E] -> Block#
 //    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
 //    .return {{'op
 //      .stop -> isRunning := False,
@@ -98,8 +98,8 @@ _SafeSource: {
 //        }
 //      }},
 
-  .fromList[E](list: mut List[E]): mut Flow[E] -> Flow.fromOp[E](this.fromList'[E](list, 0, list.size), list.size),
-  .fromList'[E](list: mut List[E], start: Nat, end: Nat): mut FlowOp[E] -> Block#
+  .fromList[E:*](list: mut List[E]): mut Flow[E] -> Flow.fromOp[E](this.fromList'[E](list, 0, list.size), list.size),
+  .fromList'[E:*](list: mut List[E], start: Nat, end: Nat): mut FlowOp[E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {RestrictFlowReuse#{'self

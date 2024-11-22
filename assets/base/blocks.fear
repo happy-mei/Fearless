@@ -14,10 +14,10 @@ ControlFlow: {
     mut .value: T -> returnValue,
     },
   }
-ControlFlow[T:*]: {
+ControlFlow[T:**]: {
   mut .match[R:**](m: mut ControlFlowMatch[T,R]): R,
   }
-ControlFlowMatch[T:*,R:**]: {
+ControlFlowMatch[T:**,R:**]: {
   mut .continue: R,
   mut .break: R,
   mut .return(returnValue: T): R,

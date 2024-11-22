@@ -135,8 +135,8 @@ LList[E:*]:Collection,Sealed{
 //  imm  .pushFront(e: E): LList[E] -> Let#{
 //      .var -> this.size + 1,
 //      .in(len) -> {'l
-//        imm  .match[R](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
-//        read .match[R](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
+//        imm  .match[R:**](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
+//        read .match[R:**](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
 //
 //        imm  .get(i: Nat): mut Opt[E] -> (i == 0) ? { .then -> Opts#[E]e, .else -> this.get[](i - 1) },
 //        read .get(i: Nat): mut Opt[read E] -> (i == 0) ? { .then -> Opts#[read E]e, .else -> this.get[](i - 1) },

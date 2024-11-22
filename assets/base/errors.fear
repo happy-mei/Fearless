@@ -23,9 +23,9 @@ Unreachable: {
 /// The operation has either completed successfully or thrown an exception,
 // leaving the program state exactly as it was before the operation started.
 Try: {
-  #[R](try: read Try[R]): mut Action[R] -> Magic!,
+  #[R:*](try: read Try[R]): mut Action[R] -> Magic!,
   }
-Try[R]:{ read #: R, }
+Try[R:*]:{ read #: R, }
 
 Info: Sealed{
   .msg: Str,

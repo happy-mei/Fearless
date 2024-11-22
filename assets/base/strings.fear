@@ -52,7 +52,7 @@ AtomiseStr: {
 
 SimpleStr: Str{}
 
-StrMap[V]: LinkedLens[Str, V]{k1, k2 -> k1 == k2}
+StrMap[V:*]: LinkedLens[Str, V]{k1, k2 -> k1 == k2}
 
 _StrInstance: Str{
   .size -> Magic!,
