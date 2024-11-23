@@ -44,7 +44,7 @@ _JsonToStr: {
     .return {AtomiseStr#s
       .map{ch -> Block#
 //        .if {ch == "\\"} .return {"\\\\"} // TODO: this breaks the fearless parer
-        .if {ch == "\u005C"} .return {"\\"}
+        .if {ch == "\u{92}"} .return {"\\"}
         .if {ch == "\n"} .return {"\\n"}
         .if {ch == "\b"} .return {"\\b"}
         .if {ch == "\f"} .return {"\\f"}

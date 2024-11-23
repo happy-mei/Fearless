@@ -266,7 +266,9 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     var id = k.concreteT().id();
     var javaStr = getLiteral(p.p(), id).map(l->l.substring(1, l.length() - 1)).orElseThrow();
     // We parse literal \n, unicode escapes as if this was a Java string literal.
-    var utf8 = StringEscapeUtils.unescapeJava(javaStr).getBytes(StandardCharsets.UTF_8);
+    String unescaped;try{ unescaped=StringEscapeUtils.unescapeJava(javaStr);}
+    catch(IllegalArgumentException iae){unescaped="AA";}//TODO: Nick fix here
+    byte[] utf8=unescaped.getBytes(StandardCharsets.UTF_8);
     var buf = ByteBuffer.allocateDirect(utf8.length).put(utf8).position(0).asReadOnlyBuffer();
     var recordName = ("str$"+Long.toUnsignedString(NativeRuntime.hashString(buf), 10)+"$str$");
     if (!this.freshRecords.containsKey(id)) {

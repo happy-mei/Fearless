@@ -34,7 +34,7 @@ fragment CHAR:
 //Note: defining both \ and \" or \` as valid options do not work.
 //This would allow the parses to 'chose' between closing string or not.
 //This have unpredictable results
-fragment EscapeSequence: '\\' ('"' | '`' | '\\' | 'n' | 'r' | 't' | 'b' | 'f' | 'u' );//others? \u{..}?
+fragment EscapeSequence: '\\' ('"' | '`' | '\\' | 'n' | 'r' | 't' | 'b' | 'f' | 'u{'('0'..'9')+'}' );//others? \u{..}?
 //Note: some of those should only be for unicode
 fragment CHARInString: 'A'..'Z'|'a'..'z'|'0'..'9' | '(' | ')' | '[' | ']' | '<' | '>' | '&' | '|' | '*' | '+' | '-' | '=' | '/' | '!' | '?' | ';' | ':' | ',' | '.' | ' ' | '~' | '@' | '#' | '$' | '%' | '^' | '_' | '{' | '}' | '\'';
 fragment CHARInStringSingle: CHARInString | EscapeSequence | '"';

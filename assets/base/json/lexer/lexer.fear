@@ -2,7 +2,7 @@ package base.json
 
 // Follows ECMA-404 https://www.json.org/json-en.html
 // and the identical RFC 8259 https://tools.ietf.org/html/rfc8259
-LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> e == "\u0003" ? {
+LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> e == "\u{3}" ? {
   .then -> Block#
     .if {ctx.str.isEmpty.not} .do {downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str))}
     .return {ActorRes.continue},
