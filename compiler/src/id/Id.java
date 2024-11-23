@@ -3,6 +3,7 @@ package id;
 import parser.Parser;
 import utils.Bug;
 import utils.OneOr;
+import visitors.FullEAntlrVisitor;
 import visitors.TypeVisitor;
 
 import java.util.*;
@@ -46,6 +47,12 @@ public class Id {
     static Pattern pkgRegex = Pattern.compile("(.+\\.)+([A-Za-z0-9_'$]+)\\$?$");
     public String pkg() { return _pkg(name); }
     private static String _pkg(String name) {
+      //TODO: Nick, the below should be the new way of doing it
+      //return FullEAntlrVisitor.extractPkgname(name);
+      //and use substring instead of group2 for the simpleName.
+      //But, If I do it, other stuff breaks. Also may be connected with the confusing 
+      //      .filter(tr->!tr.equals(fullName))//TODO: remove when fixed
+      //in JavaSingleCodeGen line 49
       var pkg = OneOr.of("Malformed package: "+name, pkgRegex.matcher(name).results()).group(1);
       return pkg.substring(0, pkg.length() - 1);
     }
