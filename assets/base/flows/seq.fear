@@ -7,9 +7,9 @@ _SeqFlow: _FlowFactory{
     .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
     .map(f) -> this.fromOp(_Map#(_Sink, source, f), size),
     .flatMap(f) -> this.fromOp(_FlatMap#(_Sink, source, f), {}),
-    mut .actor[S:*,R:**](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+    mut .actor[S:*,R:*](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
       this.fromOp(_Actor#[S,E,R](_Sink, source, state, f), {}),
-    mut .actorMut[S:*,R:**](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+    mut .actorMut[S:*,R:*](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
       this.fromOp(_Actor.anyRet[S,E,R](_Sink, source, state, f), {}),
     .limit(n) -> this.fromOp(_Limit#(_Sink, source, n), _LimitSize#(n, size)),
     .with(other) -> this.fromOp(_With#(_Sink, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
@@ -30,7 +30,7 @@ _SeqFlow: _FlowFactory{
       .do {source.stop}
       .return {res.get},
 
-    mut .findMap[R:**](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
+    mut .findMap[R:*](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
       .do {source.forRemaining(mut _Sink[E]{'runner
         .stop -> source.stop,

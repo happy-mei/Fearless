@@ -91,7 +91,6 @@ public class Id {
 
   public record GX<TT extends Ty>(String name) implements RT<TT>{
     private static final AtomicInteger FRESH_N = new AtomicInteger(0);
-    private static HashMap<Integer, List<GX<ast.T>>> freshNames = new HashMap<>();
 
     public static void reset() {
       // TODO: disable outside unit testing context

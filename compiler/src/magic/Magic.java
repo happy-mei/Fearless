@@ -2,8 +2,8 @@ package magic;
 
 import ast.Program;
 import failure.CompileError;
-import failure.Fail;
 import id.Id;
+import visitors.FullEAntlrVisitor;
 
 import java.util.List;
 import java.util.Optional;
@@ -97,8 +97,15 @@ public class Magic {
     l = l.withId(lid.withId(id)).withITs(its);
     return b.withLambda(l);
   }
-
+  private static String toSimpleName(String fullName){
+    var pkg=FullEAntlrVisitor.extractPkgname(fullName);
+    assert pkg.length()>1;
+    return fullName.substring(pkg.length()+1);
+  }
   public static Optional<String> getLiteral(Program p, Id.DecId d){
+    return getFullLiteral(p, d).map(fullName->toSimpleName(fullName));
+  }
+  public static Optional<String> getFullLiteral(Program p, Id.DecId d){
     if(LiteralKind.isLiteral(d.name())){ return Optional.of(d.name()); }
     var supers = p.superDecIds(d);
     return supers.stream()

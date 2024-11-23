@@ -11,8 +11,8 @@ Collection: {
 // Doing the linked list in stack ordering would make getting elements much slower
 LList:{ #[E:*]: mut LList[E] -> mut LList[E] }
 LList[E:*]:Collection,Sealed{
-  mut  .match[R:**](m: mut LListMatch[E, R]): R -> m.empty,
-  read .match[R:**](m: mut LListMatchRead[E, R]): R -> m.empty,
+  mut  .match[R:*](m: mut LListMatch[E, R]): R -> m.empty,
+  read .match[R:*](m: mut LListMatchRead[E, R]): R -> m.empty,
 
   mut  .get(i: Nat): E -> Error.msg ("The index "+(i.str)+" is out of bounds for this list"),
   read .get(i: Nat): read/imm E -> Error.msg ("The index "+(i.str)+" is out of bounds for this list"),
@@ -90,9 +90,9 @@ LList[E:*]:Collection,Sealed{
   mut .pushFront(e: E): mut LList[E] -> Let#{
     .var -> this.size + 1,
     .in(len) -> {'l //Why the method signature below?
-      mut  .match[R:**](m: mut LListMatch[E, R]): R -> m.elem(e, this),
-      read .match[R:**](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
-      imm  .match[R:**](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
+      mut  .match[R:*](m: mut LListMatch[E, R]): R -> m.elem(e, this),
+      read .match[R:*](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
+      imm  .match[R:*](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
 
       mut  .get(i: Nat): E -> (i == 0) ? { .then -> e, .else -> this.get[](i - 1) },
       read .get(i: Nat): read/imm E -> (i == 0) ?[read/imm E] { .then -> e, .else -> this.get[](i - 1) },
@@ -115,8 +115,8 @@ LList[E:*]:Collection,Sealed{
   read .pushFront(e: E): read LList[E] -> Let#{
     .var -> this.size + 1,
     .in(len) -> {'l
-      read .match[R:**](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
-      imm  .match[R:**](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
+      read .match[R:*](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
+      imm  .match[R:*](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
 
       read .get(i: Nat): read/imm E -> (i == 0) ?[read/imm E] { .then -> e, .else -> this.get(i - 1) },
       imm  .get(i: Nat): imm E -> (i  == 0) ?[imm E] { .then -> e, .else -> this.get(i - 1) },
@@ -135,8 +135,8 @@ LList[E:*]:Collection,Sealed{
 //  imm  .pushFront(e: E): LList[E] -> Let#{
 //      .var -> this.size + 1,
 //      .in(len) -> {'l
-//        imm  .match[R:**](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
-//        read .match[R:**](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
+//        imm  .match[R:*](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
+//        read .match[R:*](m: mut LListMatchRead[read E, R]): R -> m.elem(e, this),
 //
 //        imm  .get(i: Nat): mut Opt[E] -> (i == 0) ? { .then -> Opts#[E]e, .else -> this.get[](i - 1) },
 //        read .get(i: Nat): mut Opt[read E] -> (i == 0) ? { .then -> Opts#[read E]e, .else -> this.get[](i - 1) },
@@ -151,11 +151,11 @@ LList[E:*]:Collection,Sealed{
 //        }
 //      },
   }
-LListMatch[E:*,R:**]: {
+LListMatch[E:*,R:*]: {
   mut .elem(head: E, tail: mut LList[E]): R,
   mut .empty: R,
   }
-LListMatchRead[E:*,R:**]: {
+LListMatchRead[E:*,R:*]: {
   mut .elem(head: read/imm E, tail: read LList[E]): R,
   mut .empty: R,
   }

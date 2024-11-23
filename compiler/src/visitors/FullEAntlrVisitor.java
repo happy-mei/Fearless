@@ -407,7 +407,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   private static final Pattern regexPkg = Pattern.compile("^(_*[a-z][0-9A-Za-z_]*(?:\\.[_]*[a-z][0-9A-Za-z_]*)*)");
   private static final Pattern regexGenName = Pattern.compile("^_*[A-Z][0-9A-Za-z_]*$");
 
-  private String extractPkgname(String name){
+  public static String extractPkgname(String name){
     Matcher matcher = regexPkg.matcher(name);
     if (matcher.find()) { return matcher.group(1); }
     else { return ""; }

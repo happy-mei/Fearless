@@ -315,7 +315,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       +call.recv().accept(this, checkMagic)
       +"."+id.getMName(call.mdf(), call.name())+"(";
     var args = seq(call.args(),a->a.accept(this, checkMagic),",");
-    return start+args+")"+(mustCast ? ")" : "");
+    return start+args+")"+(mustCast ? ")" : "");   
   }
 
   @Override public String visitBoolExpr(MIR.BoolExpr expr, boolean checkMagic) {

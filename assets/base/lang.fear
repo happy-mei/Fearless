@@ -14,12 +14,12 @@ Debug: Sealed{
   }
 HasIdentity: { mut .idEq(other: readH HasIdentity): Bool -> Magic! } // TODO: magic
 
-As[X:**]: Sealed{ #(x: X): X -> x }
+As[X:*]: Sealed{ #(x: X): X -> x }
 
 Let: {
-  #[V:*,R:**](l: mut Let[V, R]): R -> l.in(l.var),
+  #[V:*,R:*](l: mut Let[V, R]): R -> l.in(l.var),
   }
-Let[V:*,R:**]: { mut .var: V, mut .in(v: V): R }
+Let[V:*,R:*]: { mut .var: V, mut .in(v: V): R }
 
 F[R:**]: { read #: R }
 F[A:**,R:**]: { read #(a: A): R }
@@ -38,7 +38,7 @@ Consumer[A:**, B:**]: { mut #(a: A, b: B): Void }
 Consumer[A:**, B:**, C:**]: { mut #(a: A, b: B, c: C): Void }
 
 ToImm[R:imm]: { read .toImm: imm R, }
-Freezer[T:**,R:imm]: { mut #(self: T): imm R }
+Freezer[T:*,R:imm]: { mut #(self: T): imm R }
 Ice[T:imm]: { read .get: imm T }
 
 Box[T:*]: {

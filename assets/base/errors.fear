@@ -1,8 +1,8 @@
 package base
 
 Error: {
-  ![R:**](info: Info): R -> Magic!,
-  .msg[R:**](msg: Str): R -> this!{
+  ![R:*](info: Info): R -> Magic!,
+  .msg[R:*](msg: Str): R -> this!{
     .msg -> msg,
     .list -> List#,
     .map -> EmptyMap[Str, Info]
@@ -10,13 +10,13 @@ Error: {
   }
 
 Todo: {
-  ![R:**]: R -> Error.msg[R] "TODO: Implement this code",
-  ![R:**](msg: Str): R -> Error.msg[R]("TODO: " + msg),
+  ![R:*]: R -> Error.msg[R] "TODO: Implement this code",
+  ![R:*](msg: Str): R -> Error.msg[R]("TODO: " + msg),
   }
 
 Unreachable: {
-  ![R:**]: R -> Error.msg[R] "Unreachable code reached",
-  ![R:**](msg: Str): R -> Error.msg[R]("Unreachable code reached: " + msg),
+  ![R:*]: R -> Error.msg[R] "Unreachable code reached",
+  ![R:*](msg: Str): R -> Error.msg[R]("Unreachable code reached: " + msg),
   }
 
 /// Strong exception safety is upheld:

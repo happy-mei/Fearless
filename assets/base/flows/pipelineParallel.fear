@@ -12,9 +12,9 @@ _PipelineParallelFlow: _FlowFactory{
     .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
     .map(f) -> this.fromOp(_Map#(_PipelineParallelSink, source, f), size),
     .flatMap(f) -> this.fromOp(_FlatMap#(_PipelineParallelSink, source, f), {}),
-    mut .actor[S:*,R:**](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+    mut .actor[S:*,R:*](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
       this.fromOp(_Actor#[S,E,R](_PipelineParallelSink, source, state, f), {}),
-    mut .actorMut[S:*,R:**](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+    mut .actorMut[S:*,R:*](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
       this.fromOp(_Actor.anyRet[S,E,R](_PipelineParallelSink, source, state, f), {}),
     .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), _LimitSize#(n, size)),
     .with(other) -> this.fromOp(_With#(_PipelineParallelSink, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
@@ -41,7 +41,7 @@ _PipelineParallelFlow: _FlowFactory{
       .do {source.stop}
       .return {res.get},
 
-    mut .findMap[R:**](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
+    mut .findMap[R:*](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
       .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(_PipelineParallelSink#[E]{'runner

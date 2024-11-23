@@ -1,9 +1,9 @@
 package base
 
-ReturnStmt[R:**]: {mut #: R}
+ReturnStmt[R:*]: {mut #: R}
 Condition: ReturnStmt[Bool]{}
-LoopBody[R:**]: ReturnStmt[mut ControlFlow[R]]{}
-Continuation[T:*,C:*,R:**]: {mut #(x: T, self: C): R}
+LoopBody[R:*]: ReturnStmt[mut ControlFlow[R]]{}
+Continuation[T:*,C:*,R:*]: {mut #(x: T, self: C): R}
 ControlFlow: {
   .continue: mut ControlFlow[Void] -> mut ControlFlowContinue: ControlFlow[Void]{m -> m.continue},
   .break: mut ControlFlow[Void] -> mut ControlFlowBreak: ControlFlow[Void]{m -> m.break},
@@ -14,10 +14,10 @@ ControlFlow: {
     mut .value: T -> returnValue,
     },
   }
-ControlFlow[T:**]: {
-  mut .match[R:**](m: mut ControlFlowMatch[T,R]): R,
+ControlFlow[T:*]: {
+  mut .match[R:*](m: mut ControlFlowMatch[T,R]): R,
   }
-ControlFlowMatch[T:**,R:**]: {
+ControlFlowMatch[T:*,R:*]: {
   mut .continue: R,
   mut .break: R,
   mut .return(returnValue: T): R,
@@ -40,7 +40,7 @@ Block[R:*]: Sealed{
   mut .assert(p: mut Condition, failMsg: Str): mut Block[R] ->
     Assert!(p#, failMsg, mut AssertCont[mut Block[R]]{this}),
   mut .let[X:*](x: mut ReturnStmt[X], cont: mut Continuation[X, mut Block[R], R]): R -> cont#(x#, this),
-  mut .letIso[X:iso](x: X, cont: mut Continuation[mut X, mut Block[R], R]): R -> cont#(x, this),
+  mut .letIso[X:**](x: iso X, cont: mut Continuation[mut X, mut Block[R], R]): R -> cont#(x, this),
   mut .var[X:*](x: mut ReturnStmt[X], cont: mut Continuation[mut Var[X], mut Block[R], R]): R -> cont#(Var#(x#), this),
 //  mut .isoPod[X:iso](x: mut ReturnStmt[X], cont: mut VarContinuation[mut IsoPod[X], R]): R -> cont#(IsoPod#(x#), this),
   mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond

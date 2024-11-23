@@ -21,7 +21,7 @@ Flow: Sealed, _FlowExtensions, _FlowConverters{
 
 Flow[E:*]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
   .self -> this,
-  mut .let[DR:**,R:**](x: read F[mut MF[mut Flow[E]],DR], cont: mut Continuation[DR,mut Flow[E],R]): R -> Block#
+  mut .let[DR:*,R:*](x: read F[mut MF[mut Flow[E]],DR], cont: mut Continuation[DR,mut Flow[E],R]): R -> Block#
     .let duplicator = {_LazyFlowDuplicators#this}
     .let splitResult = {x#duplicator}
     .let[mut Flow[E]] selfFlow = {duplicator.collected.match{
@@ -41,13 +41,13 @@ _UnwrapFlowToken: {}
 
 _NonTerminalOps[E:*]: {
   mut .filter(predicate: read F[E, Bool]): mut Flow[E],
-  mut .map[R:**](f: read F[E, R]): mut Flow[R],
-  mut .flatMap[R:**](f: read F[E, mut Flow[R]]): mut Flow[R],
+  mut .map[R:*](f: read F[E, R]): mut Flow[R],
+  mut .flatMap[R:*](f: read F[E, mut Flow[R]]): mut Flow[R],
   /// Combine this flow with another flow, producing a flow of pairs. The resulting flow will stop when either of the source
   /// flows stop.
   mut .with[EB:*](other: mut Flow[EB]): mut Flow[mut Pair[E,EB]],
-  mut .actor[S:*,R:**](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R],
-  mut .actorMut[S:*,R:**](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R],
+  mut .actor[S:*,R:*](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R],
+  mut .actorMut[S:*,R:*](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R],
 
   mut .limit(n: Nat): mut Flow[E],
 
@@ -60,10 +60,10 @@ _NonTerminalOps[E:*]: {
   }
 _TerminalOps[E:*]: Sealed{
   // has to be magic because of strong exception safety (flows are mut and thus cannot be in a Try)
-//  mut .action[R:**](terminalOp: read F[mut Flow[E],R]): mut Action[R] -> Todo!,
+//  mut .action[R:*](terminalOp: read F[mut Flow[E],R]): mut Action[R] -> Todo!,
 
   mut .first: mut Opt[E],
-  mut .findMap[R:**](f: read F[E, mut Opt[R]]): mut Opt[R],
+  mut .findMap[R:*](f: read F[E, mut Opt[R]]): mut Opt[R],
   mut .fold[S:*](acc: S, f: read F[S,E,S]): S,
   mut .size: Nat,
 
@@ -107,10 +107,10 @@ _FlowExtensions: {
 EmptyFlow[E:*]: Flow[E]{//TODO: why the types are repeated?
   .filter(p) -> this,
   mut .with[EB:*](other: mut Flow[EB]): mut Flow[mut Pair[E,EB]] -> mut EmptyFlow[mut Pair[E,EB]],
-  mut .map[R:**](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
-  mut .flatMap[R:**](f: read F[E, mut Flow[R]]): mut Flow[R] -> mut EmptyFlow[R],
-  mut .actor[S:*,R:**](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] -> mut EmptyFlow[imm R],
-  mut .actorMut[S:*,R:**](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] -> mut EmptyFlow[R],
+  mut .map[R:*](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
+  mut .flatMap[R:*](f: read F[E, mut Flow[R]]): mut Flow[R] -> mut EmptyFlow[R],
+  mut .actor[S:*,R:*](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] -> mut EmptyFlow[imm R],
+  mut .actorMut[S:*,R:*](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] -> mut EmptyFlow[R],
   .limit(_) -> this,
   .first -> {},
   .findMap(_) -> {},
