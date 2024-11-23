@@ -262,18 +262,73 @@ class TestParser {
     """, """
     a.A#(a.B,b.C{})
     """);}
+  @Test void optionalExtraComma() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]
+    ([LambdaId[id=dummy.Name/0,gens=[],bounds={}]:[-immdummy.Name[]-][a.B[],b.C[]]{}]):infer
+    """, """
+    a.A#(Name:a.B,b.C,{})
+    """);}
+  @Test void idLambda() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->fear0$:infer}]):infer
+    """, """
+    a.A#({::})
+    """);}
+  @Test void colonColon1NoArg() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->fear0$:infer}]):infer
+    """, """
+    a.A#({::})
+    """);}
+  @Test void colonColon1Arg1() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->fear0$:infer.foo/1[-]([a:infer]):infer}]):infer
+    """, """
+    a.A#({::foo a})
+    """);}
+  @Test void colonColon1Args() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->fear0$:infer.foo/2[-]([a:infer,b:infer]):infer}]):infer
+    """, """
+    a.A#({::foo(a,b)})
+    """);}
+  @Test void colonColon2NoArg() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->fear0$:infer.foo/0[-]([]):infer.bar/0[-]([]):infer}]):infer
+    """, """
+    a.A#({::foo.bar})
+    """);}
+  @Test void colonColon2Arg1() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->
+        fear0$:infer
+          .foo/1[-]([a:infer]):infer
+          .bar/0[-]([]):infer}]):infer
+    """, """
+    a.A#({::foo a .bar})
+    """);}
+  @Test void colonColon2Args() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->fear0$:infer.foo/2[-]([a:infer,b:infer]):infer.bar/0[-]([]):infer}]):infer
+    """, """
+    a.A#({::foo(a,b).bar})
+    """);}
+  @Test void colonColonPlus() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->fear0$:infer+/1[-]([a:infer]):infer}]):infer
+    """, """
+    a.A#({::+ a})
+    """);}
+  @Test void colonColonPlusMeth() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->
+        fear0$:infer+/1[-]([a:infer]):infer.bar/0[-]([]):infer}]):infer
+    """, """
+    a.A#({::+ a .bar})
+    """);}
 }
-  
-//TODO:
-//Why we had
+//TODO: Nick, Why we had
 //alias  : Alias fullCN actualGen As fullCN actualGen Comma;?
-//Now is alias  : Alias fullCN actualGen As fullCN Comma;?
-//removed: if(some(ctx.actualGen(1).genDecl())){ throw Bug.of("No gen on out Alias"); }
-//u{numbers}//rust syntax  0..9*
-//convert the hex to decimal and replace with u{..}
-//-{..}
-//-single
-//-Name:multi{..}//optional comma after the last type name?
-//for escapes, follow java escape list
-//solve the todo below (may already be solved)
-//.if {ch == "\\"} .return {"\\\\"} // TODO: this breaks the fearless parer
+//Now is it alias  : Alias fullCN actualGen As fullCN Comma;?
+//is that ok?
+//connected to that, I removed: if(some(ctx.actualGen(1).genDecl())){ throw Bug.of("No gen on out Alias"); }

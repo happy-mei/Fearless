@@ -100,8 +100,7 @@ bblock :
        | SelfX? (meth (Comma meth)*)? Comma?
        | (CCMName|SysInM) actualGen pOp*
        | (CCMName|SysInM) actualGen OR (e (Comma e)+)? CR pOp*
-       | (CCMName|SysInM) actualGen atomE
-       | (CCMName|SysInM) actualGen atomE
+       | (CCMName|SysInM) actualGen atomE pOp*
        | (CCMName|SysInM) actualGen x Eq atomE pOp*       
        //parser will check that SysInM starts with ::
        | ColonColon;

@@ -296,7 +296,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     var x= new E.X(T.infer);
     boolean id= ctx.ColonColon()!=null;
     if (id){ return new XE(x,x); }
-    String mName=sugarName(ctx.CCMName().getText(), ctx.CCMName().getText());
+    String mName=sugarName(opt(ctx.CCMName(),s->s.getText()), opt(ctx.SysInM(),s->s.getText()));
     E e= buildMCall(
       x, ctx.actualGen(), ctx.e(), ctx.atomE(),mName,
       ctx.x(),ctx.pOp(),pos(ctx));
