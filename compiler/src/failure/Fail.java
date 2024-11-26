@@ -159,6 +159,9 @@ public class Fail{
   public static CompileError invalidNum(String n, String kind) {
     return of("The number "+n+" is not a valid "+kind);
   }
+  public static CompileError invalidStr(String n, String kind) {
+    return of("The string "+n+"\" is not a valid "+kind+" string");
+  }
   public static CompileError noMethOnX(ast.E.MCall e, ast.T found) {
     return of("Method "+e.name()+" can not be called on generic type "+found);
   }
@@ -417,7 +420,8 @@ enum ErrorCode {
   crossPackageDeclaration,
   genericMismatch,
   inferImplementsFailed,
-  noUnimplementedMethods;
+  noUnimplementedMethods,
+  invalidStr;
   private static final ErrorCode[] values = values();
   int code() {
     return this.ordinal() + 1;

@@ -8,6 +8,7 @@ import visitors.FullEAntlrVisitor;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import ast.E.Lambda;
 import ast.E.Lambda.LambdaId;
@@ -72,11 +73,6 @@ public class Magic {
     FRandomSeed
   );
 
-  public static Optional<Id.IT<astFull.T>> resolve(String name) {
-    assert !isNakedLiteral(name):name;
-    return LiteralKind.match(name).map(k->new Id.IT<astFull.T>(name, List.of()));
-  }
-
   public static astFull.T.Dec getFullDec(Function<Id.DecId, astFull.T.Dec> resolve, Id.DecId id) {
     var base = _getDec(resolve, id);
     return base.map(b -> b.withName(id)).orElse(null);
@@ -103,7 +99,7 @@ public class Magic {
     return fullName.substring(pkg.length()+1);
   }
   public static Optional<String> getLiteral(Program p, Id.DecId d){
-    return getFullLiteral(p, d).map(fullName->toSimpleName(fullName));
+    return getFullLiteral(p, d).map(Magic::toSimpleName);
   }
   public static Optional<String> getFullLiteral(Program p, Id.DecId d){
     if(LiteralKind.isLiteral(d.name())){ return Optional.of(d.name()); }
@@ -129,7 +125,7 @@ public class Magic {
   public static Optional<CompileError> validateIfLiteral(Id.DecId id) {
     var kind= LiteralKind.match(id.name());
     if(kind.isEmpty()){ return Optional.empty(); }
-    return kind.flatMap(k->k.validate(id.name()));
+    return kind.flatMap(k->k.validate(id.name()).map(Supplier::get));
   }
   static boolean strValidation(String input, char terminator){
     boolean noBorders=input.length() < 2 

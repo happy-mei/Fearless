@@ -33,7 +33,7 @@ public record Package(
   public List<T.Alias> shallowParse(){
     var aliases = new ArrayList<T.Alias>();
     IntStream.range(0, this.ds().size()).forEach(i->this.shallowParse(aliases, i));
-    return aliases;    
+    return aliases;
   }
   private void acc(Map<Id.DecId,T.Dec> acc, int i){
     Path pi= this.ps().get(i);
@@ -50,8 +50,7 @@ public record Package(
     aliases.addAll(inlineNamesVisitor.inlineDecs);
   }
   Optional<Id.IT<T>> resolve(String base){
-    return //Magic.resolve(base)//TODO is this magic resolve still needed?
-      Optional.<Id.IT<T>>empty().or(()->this.as.stream()
+    return Optional.<Id.IT<T>>empty().or(()->this.as.stream()
         .filter(a -> base.equals(a.to()))
         .findAny()
         .map(T.Alias::from));

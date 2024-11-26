@@ -2,8 +2,11 @@ package magic;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import failure.CompileError;
+import failure.FailOr;
+import files.Pos;
 import id.Id;
 
 public enum LiteralKind {
@@ -27,13 +30,16 @@ public enum LiteralKind {
     return Optional.empty();
   }
   public Id.DecId toDecId(){ return new Id.DecId(instance, 0); }
-  public Optional<CompileError> validate(String fullName){
+  public Optional<Supplier<CompileError>> validate(String fullName){
     String simpleName=fullName.substring(pkgName.length()+1);
-    switch(this){
+    return switch(this) {
+      case UStr -> new FearlessStringHandler(FearlessStringHandler.StringKind.Unicode)
+        .toJavaString(simpleName)
+        .asOpt();
+      default -> FailOr.ok().asOpt();
     //  case Nat://TODO: add kind specific validation (too big number for example)
     //Note: Nick will fill up here
-      }
-    return Optional.empty();
+    };
   }
   public static Optional<String> toFullName(String name){
     return classify(name).map(k->k.pkgName+"."+name);
