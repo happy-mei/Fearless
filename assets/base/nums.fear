@@ -20,7 +20,7 @@ Float: Sealed,_MathOps[imm Float]{
   .isNegInfinity: Bool,
   }
 
-_MathOps[T:*]: Sealed{
+_MathOps[T]: Sealed{
   read .int: Int,
   read .nat: Nat,
   read .float: Float,
@@ -43,7 +43,7 @@ _MathOps[T:*]: Sealed{
   .assertEq(actual: T, message: Str): Void,
   read .hash(hasher: mut Hasher): Void,
   }
-_IntOps[T:*]: Sealed{
+_IntOps[T]: Sealed{
   // bitwise
   .shiftLeft(n: T): T,
   .shiftRight(n: T): T,
@@ -53,7 +53,7 @@ _IntOps[T:*]: Sealed{
 
   **(n: Nat): T, // pow
   }
-_UnsignedOps[T:*]: Sealed{
+_UnsignedOps[T]: Sealed{
   .offset(n: Int): T,
   }
 
@@ -184,7 +184,7 @@ _FloatInstance: Float{
   .hash(_) -> Magic!,
   }
 
-_NumsAssertionHelper[T:*]: {
+_NumsAssertionHelper[T]: {
   .assertEq(expected: T, actual: T): Void,
   .assertEq(expected: T, actual: T, message: Str): Void,
   }

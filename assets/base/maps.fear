@@ -35,7 +35,7 @@ LinkedHashMap[K:imm,V:*]: Map[K,V]{
   imm  .flow: mut Flow[imm Entry[K,V]],
   read .flow: mut Flow[read Entry[K,V]],
   }
-Entry[K:imm,V:*]: {
+Entry[K, V:*]: {
   read .key: K,
   mut  .value: mut V,
   read .value: read/imm V,
@@ -45,7 +45,7 @@ Entry[K:imm,V:*]: {
 /// 1. set l (view l s) s = s
 /// 2. view l (set l s a) = a
 /// 3. set l (set l s a) b = set l s b
-Lens[K: imm, V:*]:Map[K, imm V]{
+Lens[K, V]: Map[K, imm V]{
   .put(k: K, v: imm V): mut Lens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#v, .else -> this.get(k')},
@@ -61,7 +61,7 @@ Lens[K: imm, V:*]:Map[K, imm V]{
   }
 
 /// A Lens that supports mutable and readable data
-LinkedLens[K:imm, V:*]:Map[K, V]{
+LinkedLens[K, V:*]: Map[K, V]{
   imm  .get(k: K): mut Opt[imm V] -> {},
   mut  .get(k: K): mut Opt[V] -> {},
   read .get(k: K): mut Opt[read/imm V] -> {},

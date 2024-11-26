@@ -22,7 +22,7 @@ Var[X:*]: Sealed{
   }
 UpdateVar[X:*]: { mut #(x: X): X }
 
-Count[N:*]: Var[N]{
+Count[N]: Var[N]{
   mut ++: N,
   mut --: N,
   mut +=(n: N): N,

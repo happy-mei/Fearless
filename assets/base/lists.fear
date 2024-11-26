@@ -89,10 +89,8 @@ LList[E:*]:Collection,Sealed{
 
   mut .pushFront(e: E): mut LList[E] -> Let#{
     .var -> this.size + 1,
-    .in(len) -> {'l //Why the method signature below?
-      mut  .match[R:*](m: mut LListMatch[E, R]): R -> m.elem(e, this),
-      read .match[R:*](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
-      imm  .match[R:*](m: mut LListMatchRead[E, R]): R -> m.elem(e, this),
+    .in(len) -> {'l
+      .match(m) -> m.elem(e, this),
 
       mut  .get(i: Nat): E -> (i == 0) ? { .then -> e, .else -> this.get[](i - 1) },
       read .get(i: Nat): read/imm E -> (i == 0) ?[read/imm E] { .then -> e, .else -> this.get[](i - 1) },
@@ -177,7 +175,7 @@ List: Sealed{
   #[E:*](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E, e12: E, e13: E): mut List[E] -> Magic!,
   #[E:*](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E, e12: E, e13: E, e14: E): mut List[E] -> Magic!,
   #[E:*](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E, e12: E, e13: E, e14: E, e15: E): mut List[E] -> Magic!,
-  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E, e12: E, e13: E, e14: E, e15: E, e16: E): mut List[E] -> Magic!,
+  #[E:*](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E, e12: E, e13: E, e14: E, e15: E, e16: E): mut List[E] -> Magic!,
   .fromLList[E:*](list: mut LList[E]): mut List[E] -> Magic!,
   .withCapacity[E:*](capacity: Nat): mut List[E] -> Magic!,
   }
