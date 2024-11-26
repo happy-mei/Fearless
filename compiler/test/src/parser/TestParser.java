@@ -13,7 +13,7 @@ import java.util.Optional;
 class TestParser {
   void ok(String expected, String content){
     Main.resetAll();
-    Parser.debugTokensPrint(content);
+//    Parser.debugTokensPrint(content);
     String res = new Parser(Parser.dummy,content)
       .parseFullE("dummy",Bug::err,s->Optional.empty())
       .toString();
