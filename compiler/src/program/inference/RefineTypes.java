@@ -37,13 +37,6 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     if (lambda.selfName() == null) {
       lambda = lambda.withSelfName(E.X.freshName());
     }
-    if (lambda.mdf().isPresent()) {
-      switch (lambda.mdf().get()) {
-        case mutH -> lambda = lambda.withMdf(Mdf.mut);
-        case readH -> lambda = lambda.withMdf(Mdf.read);
-        default -> {}
-      }
-    }
     if (lambda.meths().stream().anyMatch(m->m.sig().isEmpty())) {
       return lambda;
     }

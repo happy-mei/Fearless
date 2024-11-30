@@ -32,6 +32,7 @@ public sealed interface E extends HasPos {
       Objects.requireNonNull(meths);
       Objects.requireNonNull(it);
       assert mdf.isPresent() == it.isPresent();
+      assert mdf.map(mdf_->!mdf_.is(Mdf.mutH, Mdf.readH)).orElse(true);
     }
 
     public record LambdaId(Id.DecId id, List<Id.GX<T>> gens, Map<Id.GX<T>, Set<Mdf>> bounds) {
@@ -49,7 +50,12 @@ public sealed interface E extends HasPos {
     }
 
     @Override public Lambda withT(T t) {
-      var mdf = Optional.ofNullable(t.isInfer() ? null:t.mdf());
+      var mdf = Optional.ofNullable(t.isInfer() ? null:t.mdf())
+        .map(mdf_->switch (mdf_) {
+          case mutH -> Mdf.mut;
+          case readH -> Mdf.read;
+          default -> mdf_;
+        });
       if (!t.isInfer() && t.match(gx->true, it->false)) {
         throw Fail.lambdaImplementsGeneric(t).pos(pos);
       }

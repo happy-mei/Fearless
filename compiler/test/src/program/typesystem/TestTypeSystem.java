@@ -37,9 +37,8 @@ public class TestTypeSystem {
 
   @Test void simpleTypeError(){ fail("""
     In position [###]/Dummy0.fear:4:15
-    [E32 noCandidateMeths]
-    When attempting to type check the method call: [-imm-][test.A[]]{'fear1$ } .m/0[]([]), no candidates for .m/0 returned the expected type imm test.B[]. The candidates were:
-    (imm test.A[]): imm test.A[]
+    [E37 noSubTypingRelationship]
+    There is no sub-typing relationship between imm test.A[] and imm test.B[].
     """, """
     package test
     A:{ .m: A -> this }
@@ -63,8 +62,8 @@ public class TestTypeSystem {
     """); }
   @Test void numbersGenericTypes2aNoMagic(){ fail("""
     In position [###]/Dummy0.fear:6:43
-    [E54 lambdaTypeError]
-    Expected the lambda here to implement imm test.FortyTwo[].
+    [E37 noSubTypingRelationship]
+    There is no sub-typing relationship between imm test.Fear7$[] and imm test.FortyTwo[].
     """, """
     package test
     Res1:{} Res2:{}
@@ -75,8 +74,8 @@ public class TestTypeSystem {
     """); }
   @Test void mdfSubTypingFailure(){ fail("""
     In position [###]/Dummy0.fear:6:46
-    [E53 xTypeError]
-    Expected 'n' to be imm test.FortyTwo[], got mut test.FortyTwo[].
+    [E37 noSubTypingRelationship]
+    There is no sub-typing relationship between mut test.FortyTwo[] and imm test.FortyTwo[].
     """, """
     package test
     Res1:{} Res2:{}
@@ -129,21 +128,16 @@ public class TestTypeSystem {
     """); }
   // the other tests are only passing due to iso promotion
   @Test void callMutFromLent2a() { fail("""
-    In position [###]/Dummy0.fear:4:34
+    In position [###]/Dummy0.fear:4:30
     [E33 callTypeError]
-    Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
-    this .b/0[]([])
-    were valid:
-    (readOnly test.A[]) <= (imm test.A[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:30
-        [E53 xTypeError]
-        Expected 'this' to be imm test.A[], got readH test.A[].
+    There is no possible candidate for the method call to .b/0.
+    The receiver's reference capability was read, the method's reference capability was read.
+    The expected return types were [mut test.B[]], the method's return type was mutH test.B[].
     """, """
     package test
     A:{
-      readH .b: mutH B -> {},
-      readH .doThing: mut B -> this.b
+      read .b: mutH B -> {},
+      read .doThing: mut B -> this.b
       }
     B:{}
     """); }
@@ -155,18 +149,7 @@ public class TestTypeSystem {
       }
     B:{}
     """); }
-  @Test void callMutFromLentFail1() { fail("""
-    In position [###]/Dummy0.fear:4:25
-    [E33 callTypeError]
-    Type error: None of the following candidates (returning the expected type "mut test.B[]") for this method call:
-    this .b/1[]([[-mut-][test.A[]]{'fear[###]$ }])
-    were valid:
-    (imm test.A[], mut test.A[]) <= (imm test.A[], iso test.A[]): iso test.B[]
-      The following errors were found when checking this sub-typing:
-        In position [###]/Dummy0.fear:4:28
-        [E54 lambdaTypeError]
-        Expected the lambda here to implement iso test.A[].
-    """, """
+  @Test void callMutFromLent4() { ok("""
     package test
     A:{
       .b(a: mut A): mutH B -> {},
@@ -190,7 +173,13 @@ public class TestTypeSystem {
   @Test void noCallMutFromImm() { fail("""
     In position [###]/Dummy0.fear:4:26
     [E36 undefinedMethod]
-    .foo/0 does not exist in imm test.B[].
+    Method <.foo> with 0 args does not exist in <imm test.B[]>
+    Did you mean <test.B.foo()>
+    
+    Other candidates:
+    test.A[].b(): imm test.B[]
+    test.A[].doThing(): imm test.Void[]
+    test.B[].ret(): imm test.Void[]
     """, """
     package test
     A:{
