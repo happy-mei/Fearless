@@ -1,8 +1,13 @@
 package tour;
 
 import org.junit.jupiter.api.Test;
+import utils.Base;
 
+import static codegen.java.RunJavaProgramTests.ok;
 import static tour.TourHelper.run;
+import static utils.RunOutput.Res;
+
+;
 public class Ex01HelloWorldTest {
 /*
 # A tour of Fearless standard library
@@ -46,10 +51,10 @@ As you can see, `UnrestrictedIO#sys.println(..)`
 is quite verbose.
 We do not expect this code to be very common in Fearless.
 If someone is printing just because they want a debugging printout, the can use
--------------------------*/@Test void helloWorldDebug() { run("""
+-------------------------*/@Test void helloWorldDebug() { ok(new Res("", "Hello, World!", 0), """
+    package test
     Test:Main {sys -> base.Debug.println("Hello, World!")}//OK
-    //prints Hello, World!
-    """); }/*--------------------------------------------
+    """, Base.mutBaseAliases); }/*--------------------------------------------
 
 On the other hand, if they are writing a console program, or any kind of program that needs to do input output, there will be a few
 well-designed types that have this responsibility, and the main will assign capabilities to those types. We will see an example of this (much) later.
