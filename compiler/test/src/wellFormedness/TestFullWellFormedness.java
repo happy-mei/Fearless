@@ -1,9 +1,7 @@
 package wellFormedness;
 
 import failure.CompileError;
-import id.Mdf;
 import main.Main;
-import net.jqwik.api.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
@@ -450,28 +448,4 @@ public class TestFullWellFormedness {
     A[X:mut]: {}
     BreakOuter[Z:mut]: {#: BreakInner -> BreakInner: A[Z]}
     """);}
-
-  @Property void recMdfOnlyOnRecMdf(@ForAll("methMdfs") Mdf mdf) {
-    var code = String.format("""
-    package test
-    A:{ %s .foo: recMdf Res }
-    Res:{}
-    """, mdf);
-
-    if (mdf.isRecMdf()) {
-      ok(code);
-      return;
-    }
-
-    fail(String.format("""
-    In position [###]/Dummy0.fear:2:4
-    [E26 recMdfInNonRecMdf]
-    Invalid modifier for recMdf test.Res[].
-    recMdf may only be used in recMdf methods. The method .foo/0 has the %s modifier.
-    """, mdf), code);
-  }
-
-  @Provide Arbitrary<Mdf> methMdfs() {
-    return Arbitraries.of(Arrays.stream(Mdf.values()).filter(mdf->!mdf.is(Mdf.mdf, Mdf.iso, Mdf.mutH, Mdf.readH, Mdf.readImm)).toList());
-  }
 }

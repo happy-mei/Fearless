@@ -31,7 +31,7 @@ public record ParserErrors(URI fileName) implements ANTLRErrorListener {
     try {
       String betterMsg = new BetterErrMsgs(input.getText(), offendingSymbol, msg).syntaxError();
       throw Fail.syntaxError(betterMsg).pos(Pos.of(this.fileName, line, charPositionInLine));
-    } catch (Throwable err) {
+    } catch (AssertionError err) {
       System.err.println("Error in BetterErrMsgs, falling back: " + err + " with message: " + err.getMessage());
     }
     throw Fail.syntaxError(msg).pos(Pos.of(this.fileName, line, charPositionInLine));
