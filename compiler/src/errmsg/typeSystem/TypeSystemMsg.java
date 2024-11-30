@@ -2,6 +2,8 @@ package errmsg.typeSystem;
 
 import ast.T;
 import failure.CompileError;
+import failure.ErrorCode;
+import failure.Fail;
 import id.Id;
 import id.Mdf;
 import program.CM;
@@ -20,7 +22,7 @@ public class TypeSystemMsg {
    * Does not verify whether suggested methods are actually valid to call.
    * Does not take return types into account.
    */
-  public static String undefinedMeth(CompileError rawError, Program p) {
+  public static CompileError undefinedMeth(CompileError rawError, Program p) {
     ast.T recvT = switch (rawError.attributes.get("recvT")) {
       case astFull.T t -> t.toAstT();
       case ast.T t -> t;
@@ -34,12 +36,8 @@ public class TypeSystemMsg {
     }
     List<CM> sortedMs = sortMethodSimilarity(name, ms, recvT);
     String message = getMessage(rawError, recvT, sortedMs.removeFirst());
-    return getMessageHeader(rawError) + message + getOtherSuggestedMethods(sortedMs);
-  }
-
-  private static String getMessageHeader(CompileError rawError) {
-    assert rawError.pos().isPresent();
-    return  "In position %s\n[E%d %s]\n".formatted(rawError.pos().get(), rawError.code(), rawError.name());
+    assert rawError.code() == ErrorCode.undefinedMethod.code();
+    return Fail.undefinedMethod(message + getOtherSuggestedMethods(sortedMs));
   }
 
   private static String getOtherSuggestedMethods(List<CM> sortedMs) {
