@@ -106,7 +106,6 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       ctx.x(),ctx.pOp(),pos(ctx));
     }
   E.MCall buildEqSugar(E.MCall m, X x,Function<E,E> pops){
-    //e0.m(atom.pops), x --> e0.m1(atom,{x,self->self.pops}
     assert m.es().size() == 1;
     var atom= m.es().get(0);
     var freshSelf= new E.X(T.infer);
@@ -306,7 +305,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     XE xe=computeSugarBlockStart(ctx);
     List<String> xs= List.of(xe.x().name());
     List<POpContext> pop= ctx.pOp()==null?List.of():ctx.pOp();
-    E e=visitAllPOp(pop).apply(xe.e());
+    var popAlreadyAdded= ctx.x()!=null;
+    E e= xe.e();
+    if (!popAlreadyAdded){ e = visitAllPOp(pop).apply(e); }    
     Meth m= new E.Meth(
       Optional.empty(), Optional.empty(), xs,
       Optional.of(e), Optional.of(pos(ctx)));
@@ -333,55 +334,9 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     try{ return s.get(); }
     finally { this.xbs = oldXbs; }
   }
-/*  public E.Lambda visitBlock(BlockContext ctx, Optional<Mdf> mdf, Optional<E.Lambda.LambdaId> name){
-    check(ctx);
-    var _its = Optional.ofNullable(ctx.t())
-      .map(its->its.stream().map(this::visitIT).toList());
-    var its = _its.orElse(List.of());
-    boolean nakedMdf= mdf.isPresent() && name.isEmpty() && its.isEmpty();
-    if (nakedMdf){ throw Fail.mustProvideImplsIfMdfProvided().pos(pos(ctx)); }
-    if (name.isPresent() && mdf.isEmpty()) { mdf = Optional.of(Mdf.imm); }
-    assert mdf.filter(Mdf::isMdf).isEmpty();
-    Supplier<E.Lambda.LambdaId> emptyTopName = ()->new E.Lambda.LambdaId(Id.DecId.fresh(pkg, 0), List.of(), this.xbs);
-    LambdaId id= name.orElseGet(emptyTopName);
-    boolean givenName= mdf.isPresent() && !id.id().isFresh();
-    var inferredOpt= Optional.<Id.IT<T>>empty();
-    if(givenName){
-      Id.IT<astFull.T> nameId= new Id.IT<>(id.id(),
-        id.gens().stream().map(gx->new T(Mdf.mdf, gx)).toList());
-      inferredOpt = Optional.of(nameId);
-    }
-    if(inferredOpt.isEmpty() && !its.isEmpty()) {
-      inferredOpt = Optional.of(its.getFirst());
-      if(mdf.isEmpty()){ mdf = Optional.of(Mdf.imm); }
-    }
-    //TODO: inferredOpt may itself disappear since we have nameId in id.
-    var bb = ctx.bblock();
-    if (bb==null || bb.children==null) {
-      return new E.Lambda(
-        name.orElseGet(emptyTopName),
-        mdf,
-        its,
-        null,
-        List.of(),
-        inferredOpt,
-        Optional.of(pos(ctx))
-      );
-    }
-    var _x=bb.SelfX();
-    var _n=_x==null?null:_x.getText().substring(1);
-    var _ms=opt(bb.meth(),ms->ms.stream().map(this::visitMeth).toList());
-    var _singleM=opt(bb.singleM(),this::visitSingleM);
-    List<E.Meth> mms=_ms==null?List.of():_ms;
-    if(mms.isEmpty()&&_singleM!=null){ mms=List.of(_singleM); }
-    var meths = mms;
-    return new E.Lambda(id, mdf, its, _n, meths, inferredOpt, Optional.of(pos(ctx)));
-  }*/
-  
   @Override public String visitFullCN(FullCNContext ctx) {
     return ctx.getText();
   }
-
   @Override public Mdf visitMdf(MdfContext ctx) {
     if(ctx.getText().isEmpty()){ return Mdf.imm; }
     if(ctx.getText().equals("read/imm")) { return Mdf.readImm; }

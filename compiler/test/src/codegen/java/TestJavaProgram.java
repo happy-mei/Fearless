@@ -865,7 +865,7 @@ public class TestJavaProgram {
     Test:Main{ s ->
       Try#[Str]{ Block#
         .let[mut IsoPod[Str]] pod = { IsoPod#[Str] iso "hi" }
-        .do{ Block#[mut Str](pod!) }
+        .do{ Block#(pod!) }
         .return{pod!}
         }.run{
           .ok(msg) -> UnrestrictedIO#s.println(msg),
@@ -1418,6 +1418,7 @@ public class TestJavaProgram {
     Foo: {.msg(start: Stringable): Str -> start.str + "!"}
     """, Base.mutBaseAliases); }
 
+//TODO: Nick fix this: extending string literal?
   @Test void literalSubtypeStr() {ok(new Res("Nick", "", 0), """
     package test
     Test: Main{sys -> UnrestrictedIO#sys.println(MyNames#)}
@@ -1482,6 +1483,7 @@ public class TestJavaProgram {
     Foo: {#(join: mut Str): mut Str -> mut "Hello," + join + mut "World!" + join + mut "Bye!"}
     """, Base.mutBaseAliases);}
 
+  //TODO: Nick fix this
   @Test void simpleJson() {ok(new Res("""
     "Hello!!!\\nHow are you?"
     "Hello!!!\\nHow 吣are吣 you?"
@@ -1532,11 +1534,11 @@ public class TestJavaProgram {
       .eof: Token -> {l, m -> m.eof(l)},
     }
     Parser: {//simple right associative parser
-      .parse(l: mutH Lexer): iso Exp -> l.nextToken.match(l, {
-        .plus(_)->Error.msg "cannot start with +",
+      .parse(l: mutH Lexer): iso Exp -> l.nextToken.match(l, {      
+        .plus(_)->Error.msg "cannot start with +",        
         .eof(_)->Error.msg "cannot start with EOF",
         .num(l', n) -> this.parse(l', n),
-      }),
+      }),      
       .parse(l: mutH Lexer, left: Num): iso Exp -> l.nextToken.match(l, {
         .plus(l')->Exps.sum(Vars#[mut Exp](Exps.lit(left)),Vars#[mut Exp](this.parse(l'))),
         .eof(_) -> Exps.lit(left),

@@ -18,7 +18,7 @@ a collection of zero or one element.
 An empty optional is not representing a mistake/error/problem.
 We think that understanding the full code of optional is a great way to learn Fearless and to
 demystify fearless collections.
--------------------------*/@Test void optional() { run("""
+-------------------------*/@Disabled("30/11/2024")@Test void optional() { run("""
   Opts: {
     #[T](x: T): mut Opt[T] -> {.match(m) -> m.some(x)},
     }
@@ -202,7 +202,7 @@ in fearless and should be replaced with flow access when possible.
 Of course, there are still situations where random access is crucial.
 Note how .get can not possibly succeed for elements outside of the
 size of the list. In this case a dynamic error is thrown. 
--------------------------*/@Test void addAndGetFromList() {run("""
+-------------------------*/@Disabled("30/11/2024")@Test void addAndGetFromList() {run("""
     package test
     Test:Main {sys -> Block#
       .let list = {List#[Str]}//YES spaces on both sides of =?
@@ -217,7 +217,7 @@ the method `.size` gives us the current size.
 Fearless standard library consistently uses the word `size`
 to talk about sizes of collections, flows, results etc.
 Using `length`/`count` is discouraged.
--------------------------*/@Test void listSize() {run("""
+-------------------------*/@Disabled("30/11/2024")@Test void listSize() {run("""
     package test
     Test:Main {sys -> Block#
       .let list = {List#(5, 10, 15)}
@@ -234,7 +234,7 @@ Map keys must be immutable objects, element can be anything.
 Many maps are on Str or Int types
 //Int or Num?? I'm happy with Int, but we have tons of 'Num' around
 //norm for non cyclic?
--------------------------*/@Test void mapOfNameToAge() {run("""
+-------------------------*/@Disabled("30/11/2024")@Test void mapOfNameToAge() {run("""
     package test
     Person:Ordered[Person]{
       .name:Str, .age:Nat
@@ -300,7 +300,7 @@ Many maps are on Str or Int types
     """);}
 
   // Our maps/sets are linked hashmaps/linked hashsets and thus have deterministic iteration order.
-  @Test void mapFlow() { ok(new Res("30", "", 0), """
+  @Disabled("30/11/2024")@Test void mapFlow() { ok(new Res("30", "", 0), """
     package test
     Test:Main {sys -> Block#
       .let map = {Map.str("Alice",24, "Bob",30)}

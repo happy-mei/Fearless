@@ -3,6 +3,7 @@ package typing;
 import failure.CompileError;
 import id.Mdf;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.Program;

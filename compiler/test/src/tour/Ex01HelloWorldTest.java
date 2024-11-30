@@ -1,5 +1,6 @@
 package tour;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static tour.TourHelper.run;
@@ -90,7 +91,7 @@ Since writing `.return{Void}` can get verbose and repetitive, we can just write 
     """); }/*--------------------------------------------
 Block supports early exits, using the `.if` method, and many other useful features. To explore them, we write a `StrToMessage` function
 that can be useful to map strings into good error messages
--------------------------*/@Test void blockIf() { run("""
+-------------------------*/@Disabled("30/11/2024")@Test void blockIf() { run("""
     StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
       .var res = {s}

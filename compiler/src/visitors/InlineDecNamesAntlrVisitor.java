@@ -35,12 +35,4 @@ public class InlineDecNamesAntlrVisitor extends FearlessBaseVisitor<Void> {
     if (ctx!=null){ topDecCollect(ctx); }
     return super.visitTopDec(ctx);
   }
-
-  /*@Override public Void visitNudeProgram(FearlessParser.NudeProgramContext ctx) {
-    String name = ctx.Pack().getText();
-    assert name.startsWith("package ");
-    assert name.endsWith("\n");
-    this.pkg = name.substring("package ".length(),name.length()-1);
-    return super.visitNudeProgram(ctx);
-  }*/
 }

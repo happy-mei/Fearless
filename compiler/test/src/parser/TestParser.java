@@ -326,9 +326,29 @@ class TestParser {
     """, """
     a.A#({::+ a .bar})
     """);}
+  @Test void colonColonEqSugarCombo1() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->fear0$:infer
+      .var/2[-]([
+        a:infer,
+        [-infer-][]{[-]([x,fear1$]):[-]->fear1$:infer}
+        ]):infer
+      }]):infer
+    """, """
+    a.A#({::var x= a})
+    """);}
+  @Test void colonColonEqSugarCombo2() {ok("""
+    [-imma.A[]-][a.A[]]{}#/1[-]([
+      [-infer-][]{[-]([fear0$]):[-]->fear0$:infer
+      .var/2[-]([
+        a:infer,
+        [-infer-][]{[-]([x,fear1$]):[-]->fear1$:infer
+          .bar/1[-]([b:infer]):infer
+          .beer/1[-]([c:infer]):infer}
+        ]):infer
+      }]):infer
+    """, """
+    a.A#({::var x= a .bar b .beer c})
+    """);}
+
 }
-//TODO: Nick, Why we had
-//alias  : Alias fullCN actualGen As fullCN actualGen Comma;?
-//Now is it alias  : Alias fullCN actualGen As fullCN Comma;?
-//is that ok?
-//connected to that, I removed: if(some(ctx.actualGen(1).genDecl())){ throw Bug.of("No gen on out Alias"); }

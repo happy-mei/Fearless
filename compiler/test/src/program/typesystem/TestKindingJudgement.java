@@ -25,30 +25,30 @@ public class TestKindingJudgement {
     var fullT = new Parser(Parser.dummy, t).parseFullT("dummy");
     var coreT = fullT.toAstT();
     var p = toProgram(content);
-    var actualFull = coreT.accept(new KindingJudgement(p, xbs, expected, false)).get();
+    var actualFull = coreT.accept(new KindingJudgement(p, coreT.toString(), xbs, expected, false)).get();
     Assertions.assertTrue(actualFull.stream().anyMatch(rcs->rcs.equals(expected)));
-    var actualCheckOnly = coreT.accept(new KindingJudgement(p, xbs, expected, true)).get();
+    var actualCheckOnly = coreT.accept(new KindingJudgement(p,  coreT.toString(), xbs, expected, true)).get();
     Assertions.assertTrue(actualCheckOnly.stream().anyMatch(rcs->rcs.equals(expected)));
   }
   private static void extract(XBs xbs, String t, Set<Set<Mdf>> expected, String... content) {
     var fullT = new Parser(Parser.dummy, t).parseFullT("dummy");
     var coreT = fullT.toAstT();
     var p = toProgram(content);
-    var actual = new HashSet<>(coreT.accept(new KindingJudgement(p, xbs, false)).get());
+    var actual = new HashSet<>(coreT.accept(new KindingJudgement(p, coreT.toString(), xbs, GenericBounds.ALL_RCS, false)).get());
     Assertions.assertEquals(expected, actual);
   }
   private static void contains(XBs xbs, String t, Set<Mdf> expected, String... content) {
     var fullT = new Parser(Parser.dummy, t).parseFullT("dummy");
     var coreT = fullT.toAstT();
     var p = toProgram(content);
-    var actual = new HashSet<>(coreT.accept(new KindingJudgement(p, xbs, false)).get());
+    var actual = new HashSet<>(coreT.accept(new KindingJudgement(p, coreT.toString(), xbs, GenericBounds.ALL_RCS, false)).get());
     Assertions.assertTrue(actual.contains(expected));
   }
   private static void notContains(XBs xbs, String t, Set<Mdf> expected, String... content) {
     var fullT = new Parser(Parser.dummy, t).parseFullT("dummy");
     var coreT = fullT.toAstT();
     var p = toProgram(content);
-    var actual = new HashSet<>(coreT.accept(new KindingJudgement(p, xbs, false)).get());
+    var actual = new HashSet<>(coreT.accept(new KindingJudgement(p, coreT.toString(), xbs, GenericBounds.ALL_RCS, false)).get());
     Assertions.assertFalse(actual.contains(expected));
   }
   private static void fail(String expectedErr, XBs xbs, String t, Set<Mdf> expected, String... content) {
@@ -56,7 +56,7 @@ public class TestKindingJudgement {
     var coreT = fullT.toAstT();
     var p = toProgram(content);
     try {
-      coreT.accept(new KindingJudgement(p, xbs, expected, false)).get();
+      coreT.accept(new KindingJudgement(p, coreT.toString(), xbs, expected, false)).get();
       Assertions.fail("Did not fail!\n");
     } catch (CompileError e) {
       Err.strCmp(expectedErr, e.toString());

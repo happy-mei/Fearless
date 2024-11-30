@@ -14,9 +14,9 @@ import java.util.UUID;
 
 public record ResolveResource(Path assetRoot, Path artefactRoot, Optional<Path> testsRoot, FileSystem virtualFs) {
   static private final ResolveResource instance= 
-    //ResolveResource.infer(Path.of(""));
-    ResolveResource.infer(Paths.get("C:/")
-      .resolve("Users/sonta/Documents/GitHub/Fearless/compiler"));
+    ResolveResource.infer(Path.of(""));
+    //ResolveResource.infer(Paths.get("C:/")
+    //  .resolve("Users/sonta/Documents/GitHub/Fearless/compiler"));
   //Infer works if we put the two data folders in the class path
 
   public ResolveResource{

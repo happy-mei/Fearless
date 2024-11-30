@@ -74,9 +74,9 @@ public class Fail{
     "A reference capability cannot be specified on lambdas without an explicit type."
   );}
 
-  public static CompileError invalidMdfBound(String badType, Stream<Mdf> bounds){
+  public static CompileError invalidMdfBound(String context, String badType, Stream<Mdf> bounds){
     return of(
-      "The type "+badType+" is not valid because its capability is not in the required bounds. The allowed modifiers are: "+bounds.map(Enum::toString).collect(Collectors.joining(", "))+"."
+      "Type bound related to "+context+":\nThe type "+badType+" is not valid because its capability is not in the required bounds. The allowed modifiers are: "+bounds.map(Enum::toString).collect(Collectors.joining(", "))+"."
     );
   }
   public static CompileError shadowingX(String x){return of(String.format("'%s' is shadowing another variable in scope.", x));}

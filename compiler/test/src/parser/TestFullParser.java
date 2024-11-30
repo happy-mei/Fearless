@@ -1,6 +1,4 @@
 package parser;
-//The tests in this folder are the main test to pass
-//codegen.java/TestJavaProgram.java
 
 import failure.CompileError;
 import main.Main;
