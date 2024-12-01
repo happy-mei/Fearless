@@ -237,6 +237,11 @@ public class Fail{
     return of(name+" does not exist in "+recv+". The following methods exist on that type: "+callableMs, attributes);
   }
 
+  /** This is called by TypeSystemMsg.undefinedMeth */
+  public static CompileError undefinedMethod(String message){
+    return of(message);
+  }
+
   public static CompileError noSubTypingRelationship(ast.T it1, ast.T it2){
     return of("There is no sub-typing relationship between "+it1+" and "+it2+".");
   }
@@ -346,87 +351,5 @@ public class Fail{
   private static String aVsAn(Mdf mdf) {
     if (mdf.isImm()) { return "an "+mdf; }
     return "a "+mdf;
-  }
-}
-
-//only add to the bottom
-enum ErrorCode {
-  conflictingAlias,
-  conflictingDecl,
-  concreteTypeInFormalParams,
-  modifierOnInferredLambda,
-  invalidMdfBound,
-  explicitThis,
-  conflictingMethParams,
-  cyclicImplRelation,
-  shadowingX,
-  shadowingGX,
-  invalidMdf,
-  typeError,
-  implInlineDec,
-  expectedConcreteType,
-  missingDecl,
-  invalidMethMdf,
-  conflictingMethNames,
-  uncomposableMethods,
-  cannotInferSig,
-  traitNotFound,
-  inferFailed,
-  cannotInferAbsSig,
-  methTypeError,
-  unimplementedInLambda,
-  cyclicSubType,
-  recMdfInNonRecMdf,
-  recMdfInImpls,
-  undefinedName,
-  noDupImpls,
-  badCapture,
-  invalidNum,
-  noCandidateMeths,
-  callTypeError,
-  conflictingSealedImpl,
-  sealedCreation,
-  undefinedMethod,
-  noSubTypingRelationship,
-  uncallableMeths,
-  incompatibleMdfs,
-  mutCapturesHyg,
-  ioError,
-  fsError,
-  invalidEntryPoint,
-  ignoredIdentInExpr,
-  multipleIsoUsage,
-  noMdfInFormalParams,
-  privateMethCall,
-  privateTraitImplementation,
-  mustProvideImplsIfMdfProvided,
-  namedTopLevelLambda,
-  couldNotInferCallGenerics,
-  incompatibleGenerics,
-  xTypeError,
-  lambdaTypeError,
-  conflictingDecls,
-  freeGensInLambda,
-  invalidLambdaNameMdfBounds,
-  mismatchedMethodGens,
-  syntaxError,
-  specialPackageConflict,
-  reservedPackageName,
-  lambdaImplementsGeneric,
-  invalidLambdaMdf,
-  Unknown,
-  noMethOnX,
-  invalidMethodArgumentTypes,
-  crossPackageDeclaration,
-  genericMismatch,
-  inferImplementsFailed,
-  noUnimplementedMethods,
-  invalidStr;
-  private static final ErrorCode[] values = values();
-  int code() {
-    return this.ordinal() + 1;
-  }
-  static ErrorCode fromCode(int code) {
-    return values[code - 1];
   }
 }

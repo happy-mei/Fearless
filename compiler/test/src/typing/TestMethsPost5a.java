@@ -4,7 +4,6 @@ import failure.CompileError;
 import id.Mdf;
 import net.jqwik.api.Example;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.CM;
@@ -17,7 +16,7 @@ import java.util.Comparator;
 
 public class TestMethsPost5a {
   void ok(String expected, String type, String ...code){
-    var it = new Parser(Parser.dummy, type).parseFullT("dummy");
+    var it = new Parser(Parser.dummy, type).parseFullT(type.split("\\.")[0]);
     var p = FromContent.of(code).inferSignatures();
     var res = p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0).stream()
       .sorted(Comparator.comparing(CM::toString))
@@ -25,7 +24,7 @@ public class TestMethsPost5a {
     Err.strCmpFormat(expected, res.toString());
   }
   void fail(String expected, String type, String ...code) {
-    var it = new Parser(Parser.dummy, type).parseFullT("dummy");
+    var it = new Parser(Parser.dummy, type).parseFullT(type.split("\\.")[0]);
     var p = FromContent.of(code).inferSignatures();
     try {
       var res = p.meths(XBs.empty(), Mdf.recMdf, it.toAstT().itOrThrow(), 0);
@@ -507,24 +506,40 @@ public class TestMethsPost5a {
     B[Y]:{.m[X]:Bi[imm X,imm Y]->this}
     Bi[AA,BB]:{}
     """); }
-  @Test void t22() { ok("""
-    [a.A[],imm.m/0()[][]:imma.Break[imma.A[]]abs]
+  @Test void t22() { fail("""
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:4) a.B[], .m/0[](): imm a.Break[imm a.B[]]
+    ([###]/Dummy0.fear:2:5) a.A[], .m/0[](): imm a.Break[imm a.A[]]
     """, "a.A", """
     package a
     A:B{ .m:Break[A] }
     B:{ .m:Break[B] }
     Break[X]:{}
     """); }
-  @Test void t23() { ok("""
-    [a.A[],imm.m/0()[][]:imma.Break[imma.B[]]abs]
+  // Fails because no adapterOk anymore
+  @Test void t23() { fail("""
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:3) a.B[], .m/0[](): imm a.Break[imm a.A[]]
+    ([###]/Dummy0.fear:2:5) a.A[], .m/0[](): imm a.Break[imm a.B[]]
     """, "a.A", """
     package a
     A:B{ .m:Break[B] } //pass, note, A/B inverted
     B:{.m:Break[A]}
     Break[X]:{}
     """); }
-  @Test void t24() { ok("""
-    [a.A[],imm.m/0()[][]:imma.Break[imma.A[]]abs]
+  @Test void t24() { fail("""
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:3) a.B[], .m/0[](): imm a.Break[imm a.B[]]
+    ([###]/Dummy0.fear:2:5) a.A[], .m/0[](): imm a.Break[imm a.A[]]
     """, "a.A", """
     package a
     A:B{ .m:Break[A] }
@@ -545,26 +560,36 @@ public class TestMethsPost5a {
     Break[X]:{ .b:X }
     """); }
 
-  @Test void loopingSupTypes1() { ok("""
-    [a.A[],imm .m/0()[][]:imm a.Break[imm a.A[]]abs]
+  @Test void loopingSupTypes1() { fail("""
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:4) a.B[], .m/0[](): imm a.Break[imm a.B[]]
+    ([###]/Dummy0.fear:2:5) a.A[], .m/0[](): imm a.Break[imm a.A[]]
     """, "a.A", """
     package a
     A:B{ .m: Break[A] }//pass? is this the looping one?
     B:{ .m: Break[B] }
     Break[X]:{ .b: Break[X] }
     """); }
-  @Test void loopingSupTypes2() { ok("""
-    [a.A[],imm .m/0()[][]:imm a.Break[imm a.B[]]abs]
+  @Test void loopingSupTypes2() { fail("""
+    In position [###]/Dummy0.fear:2:0
+    [E18 uncomposableMethods]
+    These methods could not be composed.
+    conflicts:
+    ([###]/Dummy0.fear:3:4) a.B[], .m/0[](): imm a.Break[imm a.A[]]
+    ([###]/Dummy0.fear:2:5) a.A[], .m/0[](): imm a.Break[imm a.B[]]
     """, "a.A", """
     package a
     A:B{ .m:Break[B] }//pass? or is this one?
     B:{ .m:Break[A] }
     Break[X]:{ .b:Break[X] }
     """); }
-  
+
   @Test void methGens() { ok("""
-    [base.A[],imm.m1/1(x)[X$0][X$0]:immbase.Void[]impl,base.A[],
-    imm.m2/1(k)[X$0][X$0]:immbase.Void[]abs]
+    [base.A[],imm.m1/1(x)[T$0][T$0]:immbase.Void[]impl,
+     base.A[],imm.m2/1(k)[K$0][K$0]:immbase.Void[]abs]
     """, "base.A", """
     package base
     A:{
@@ -590,19 +615,19 @@ public class TestMethsPost5a {
   ThenElse[R]:{ mut .then: R, mut .else: R, }
   """;
   @Test void bool1() { ok("""
-    [bools.Bool[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]abs,bools.Bool[],imm.not/0()[][]:immbools.Bool[]abs,bools.Bool[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]abs,bools.Bool[],imm?/1(f)[X$0][mutbools.ThenElse[X$0]]:X$0abs]
+    [bools.Bool[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]abs,bools.Bool[],imm.not/0()[][]:immbools.Bool[]abs,bools.Bool[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]abs,bools.Bool[],imm?/1(f)[R$0][mutbools.ThenElse[R$0]]:R$0abs]
     """, "bools.Bool", boolPkg); }
   @Test void bool2() { ok("""
-    [bools.True[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.True[],imm.not/0()[][]:immbools.Bool[]impl,bools.True[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.True[],imm?/1(f)[X$0][mutbools.ThenElse[X$0]]:X$0impl]
+    [bools.True[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.True[],imm.not/0()[][]:immbools.Bool[]impl,bools.True[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.True[],imm?/1(f)[R$0][mutbools.ThenElse[R$0]]:R$0impl]
     """, "bools.True", boolPkg); }
   @Test void bool3() { ok("""
-    [bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X$0][mutbools.ThenElse[X$0]]:X$0impl]
+    [bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm?/1(f)[R$0][mutbools.ThenElse[R$0]]:R$0impl]
     """, "bools.False", boolPkg); }
   @Test void bool4() { ok("""
-    [bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X$0][mutbools.ThenElse[X$0]]:X$0impl]
+    [bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm?/1(f)[R$0][mutbools.ThenElse[R$0]]:R$0impl]
     """, "bools.Fresh1", boolPkg); }
   @Test void bool5() { ok("""
-    [bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm?/1(f)[X$0][mutbools.ThenElse[X$0]]:X$0impl]
+    [bools.False[],imm.and/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm.not/0()[][]:immbools.Bool[]impl,bools.False[],imm.or/1(b)[][immbools.Bool[]]:immbools.Bool[]impl,bools.False[],imm?/1(f)[R$0][mutbools.ThenElse[R$0]]:R$0impl]
     """, "bools.Fresh2", boolPkg); }
 
   @Test void namedLiteral() {ok("""
