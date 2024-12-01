@@ -22,7 +22,7 @@ Test: Main{sys -> Block#
   .do {p#r5}
   .do {p#(ParseJson#("{}")!)}
   .do {p#(ParseJson#("{\"single\":true}")!)}
-  .let[Json] r6 = {ParseJson#("[\n\n   \"ab\u005C\u005Cc\", \"def\", {}, {\"a\": \"fearless\",\n \"b\": {\"a\": true} }]")!}
+  .let[Json] r6 = {ParseJson#("[\n\n   \"ab\u{92}\u{92}c\", \"def\", {}, {\"a\": \"fearless\",\n \"b\": {\"a\": true} }]")!}
   .do {p#r6}
 
   // matches JavaScript's loss of precision to 12345678901234567000 (1.2345678901234567E19). =

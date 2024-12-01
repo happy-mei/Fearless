@@ -1494,7 +1494,7 @@ public class TestJavaProgram {
     ["abc", "def", true, [false], 42.1337, null, []]
     {}
     {"single": true}
-    ["ab\\c", "def", {}, {"a": "fearless", "b": {"a": true}}]
+    ["ab\\\\c", "def", {}, {"a": "fearless", "b": {"a": true}}]
     {"value": 12345678901234567000}
     """, """
     Invalid string found, expected JSON.
