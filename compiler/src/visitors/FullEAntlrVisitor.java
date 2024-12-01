@@ -359,10 +359,11 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   @Override public T visitNudeT(NudeTContext ctx) { return visitT(ctx.t()); }
 
-  private static final Pattern regexPkg = Pattern.compile("^(_*[a-z][0-9A-Za-z_]*(?:\\.[_]*[a-z][0-9A-Za-z_]*)*)");
+  // TODO: this RegEx looks wrong to me, I think something like _foo. will match
+  private static final Pattern regexPkg = Pattern.compile("^(_*[a-z][0-9A-Za-z_]*(?:\\._*[a-z][0-9A-Za-z_]*)*)");
   private static final Pattern regexGenName = Pattern.compile("^_*[A-Z][0-9A-Za-z_]*$");
 
-  public static String extractPkgname(String name){
+  public static String extractPackageName(String name) {
     Matcher matcher = regexPkg.matcher(name);
     if (matcher.find()) { return matcher.group(1); }
     else { return ""; }
@@ -378,7 +379,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       throw Fail.noMdfInFormalParams(ctx.getText()).pos(pos(ctx));
     }
     String name = visitFullCN(ctx.fullCN());
-    String pkgName= extractPkgname(name);
+    String pkgName= extractPackageName(name);
     String simpleName= pkgName.isEmpty()? name : name.substring(pkgName.length()+1);
     var canBeGen =  isGenOk(simpleName);
     if(!canBeGen && pkgName.isEmpty()){
@@ -453,7 +454,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       .toList();
   }
   String completeDeclName(String cName, Pos pos){
-    String pkgName= extractPkgname(cName);
+    String pkgName= extractPackageName(cName);
     if (!pkgName.isEmpty()){ throw Fail.crossPackageDeclaration().pos(pos); }
     Optional<String> litFullName= LiteralKind.toFullName(cName);
     if (litFullName.isPresent()) {

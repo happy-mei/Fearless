@@ -94,7 +94,7 @@ public class Magic {
     return b.withLambda(l);
   }
   private static String toSimpleName(String fullName){
-    var pkg=FullEAntlrVisitor.extractPkgname(fullName);
+    var pkg=FullEAntlrVisitor.extractPackageName(fullName);
     assert pkg.length()>1;
     return fullName.substring(pkg.length()+1);
   }
