@@ -1,4 +1,7 @@
 package base.benchmarking
+alias base.Magic as Magic,
+alias base.Nat as Nat,
+alias base.Void as Void,
 
 BlackBox: {
   .consumeCpu(tokens: Nat): Void -> Magic!,

@@ -29,6 +29,7 @@ public final class EODWorker implements Runnable {
   private final FlowOp_1 source;
   private final BufferSink downstream;
   private final CountDownLatch sync;
+  public boolean releaseOnDone = false;
   public EODWorker(FlowOp_1 source, _Sink_1 downstream, int sizeHint, BufferSink.FlushWorker flusher, CountDownLatch sync) {
     this.source = source;
     this.downstream = new BufferSink(downstream, flusher, sizeHint);
@@ -49,6 +50,9 @@ public final class EODWorker implements Runnable {
     } finally {
       this.flush();
       this.sync.countDown();
+      if (releaseOnDone) {
+        EODStrategies.AVAILABLE_PARALLELISM.release();
+      }
     }
   }
 
