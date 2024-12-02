@@ -1,0 +1,6 @@
+package base.benchmarking
+
+BlackBox: {
+  .consumeCpu(tokens: Nat): Void -> Magic!,
+  .consumeValue[T:imm,mut,read](value: T): Void -> Magic!,
+  }
