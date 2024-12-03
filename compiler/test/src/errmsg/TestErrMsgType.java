@@ -61,7 +61,7 @@ public class TestErrMsgType {
    """);}
 
   @Test void multipleAlternatives2() {fail("""
-   In position file:///C:/Users/ripti/OneDrive%20-%20Victoria%20University%20of%20Wellington%20-%20STUDENT/VUW/2024/T1/ENGR489/Fearless/Fearless/compiler/Dummy0.fear:9:26
+   In position [###]/Dummy0.fear:9:26
    [E36 undefinedMethod]
    Method <.meh1> with 0 args does not exist in <imm test.A[]>
    Did you mean <test.A.meth1()>
@@ -89,7 +89,7 @@ public class TestErrMsgType {
    """);}
 
   @Test void multipleAlternatives3() {fail("""
-   In position file:///C:/Users/ripti/OneDrive%20-%20Victoria%20University%20of%20Wellington%20-%20STUDENT/VUW/2024/T1/ENGR489/Fearless/Fearless/compiler/Dummy0.fear:9:26
+   In position [###]/Dummy0.fear:9:26
    [E36 undefinedMethod]
    Method <.meh1> with 0 args does not exist in <imm test.A[]>
    Did you mean <test.C.meh1()>

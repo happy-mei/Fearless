@@ -3,17 +3,21 @@ package rt;
 import java.nio.ByteBuffer;
 
 public record CapTry(base.caps.System_0 sys) implements base.caps.CapTry_0 {
-	@Override public base.Res_2 $hash$mut(base.caps.TryBody_1 try$) {
-		try { return base.Res_0.$self.ok$imm(try$.$hash$read()); }
-		catch(FearlessError _$err) { return base.Res_0.$self.err$imm(_$err.info); }
-		catch(java.lang.StackOverflowError _$err) { return base.Res_0.$self.err$imm(base.Infos_0.$self.msg$imm(StackOverflowedErrStr.$self)); }
-		catch(Throwable _$err) { return base.Res_0.$self.err$imm(base.Infos_0.$self.msg$imm(Str.fromJavaStr(_$err.getMessage()))); }
+	@Override public Fallible $hash$mut(base.caps.TryBody_1 try$) {
+		return res -> {
+			try { return res.ok$mut(try$.$hash$read()); }
+			catch(FearlessError _$err) { return res.info$mut(_$err.info); }
+			catch(java.lang.StackOverflowError _$err) { return res.info$mut(base.Infos_0.$self.msg$imm(StackOverflowedErrStr.$self)); }
+			catch(Throwable _$err) { return res.info$mut(base.Infos_0.$self.msg$imm(Str.fromJavaStr(_$err.getMessage()))); }
+		};
 	}
-	@Override public base.Res_2 $hash$mut(Object data, base.caps.TryBody_2 try$) {
-		try { return base.Res_0.$self.ok$imm(try$.$hash$read(data)); }
-		catch(FearlessError _$err) { return base.Res_0.$self.err$imm(_$err.info); }
-		catch(java.lang.StackOverflowError _$err) { return base.Res_0.$self.err$imm(base.Infos_0.$self.msg$imm(StackOverflowedErrStr.$self)); }
-		catch(Throwable _$err) { return base.Res_0.$self.err$imm(base.Infos_0.$self.msg$imm(Str.fromJavaStr(_$err.getMessage()))); }
+	@Override public Fallible $hash$mut(Object data, base.caps.TryBody_2 try$) {
+		return res -> {
+			try { return res.ok$mut(try$.$hash$read(data)); }
+			catch(FearlessError _$err) { return res.info$mut(_$err.info); }
+			catch(java.lang.StackOverflowError _$err) { return res.info$mut(base.Infos_0.$self.msg$imm(StackOverflowedErrStr.$self)); }
+			catch(Throwable _$err) { return res.info$mut(base.Infos_0.$self.msg$imm(Str.fromJavaStr(_$err.getMessage()))); }
+		};
 	}
 	private static class StackOverflowedErrStr implements Str {
 		private static final Str $self = new StackOverflowedErrStr();

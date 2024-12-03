@@ -10,9 +10,9 @@ public class Ex25ErrorsTest {
   @Test void catchNothing() { ok(new RunOutput.Res("Happy", "", 0), """
     package test
     Test:Main{s ->
-      UnrestrictedIO#s.println(Try#[Str]{"Happy"}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{"Happy"}.run{
         .ok(res) -> res,
-        .err(err) -> err.str,
+        .info(err) -> err.str,
         })
       }
     """, Base.mutBaseAliases); }
@@ -20,42 +20,42 @@ public class Ex25ErrorsTest {
   @Test void catchExplicitError() { ok(new RunOutput.Res("\"Sad\"", "", 0), """
     package test
     Test:Main{s ->
-      UnrestrictedIO#s.println(Try#[Str]{Error.msg "Sad"}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{Error.msg "Sad"}.run{
         .ok(res) -> res,
-        .err(err) -> err.str,
+        .info(err) -> err.str,
         })
       }
     """, Base.mutBaseAliases); }
   @Test void catchExplicitErrorMsg() { ok(new RunOutput.Res("Sad", "", 0), """
     package test
     Test:Main{s ->
-      UnrestrictedIO#s.println(Try#[Str]{Error.msg "Sad"}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{Error.msg "Sad"}.run{
         .ok(res) -> res,
-        .err(err) -> err.msg,
+        .info(err) -> err.msg,
         })
       }
     """, Base.mutBaseAliases); }
   @Test void catchExplicitErrorList() { ok(new RunOutput.Res("""
-    ["big",["oof"]]
+    ["big", ["oof"]]
     """, "", 0), """
     package test
     Test:Main{s ->
       UnrestrictedIO#s.println(Try#[Str]{Error!(Infos.list(List#(
         Infos.msg "big",
         Infos.list(List#(Infos.msg "oof"))
-      )))}.resMatch{
+      )))}.run{
         .ok(res) -> res,
-        .err(err) -> err.str,
+        .info(err) -> err.str,
         })
       }
     """, Base.mutBaseAliases); }
 
-  @Test void cannotCatchStackOverflow() { ok(new RunOutput.Res("", "Program crashed with: Stack overflowed", 1), """
+  @Test void cannotCatchStackOverflow() { ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test:Main{s ->
-      UnrestrictedIO#s.println(Try#[Str]{Loop!}.resMatch{
+      UnrestrictedIO#s.println(Try#[Str]{Loop!}.run{
         .ok(res) -> res,
-        .err(err) -> err.str,
+        .info(err) -> err.str,
         })
       }
     Loop: {![R]: R -> this!}
@@ -66,9 +66,9 @@ public class Ex25ErrorsTest {
     Test:Main{s -> Block#
       .let io = {UnrestrictedIO#s}
       .let try = {CapTries#s}
-      .return {io.println(try#[Str]{Loop!}.resMatch{
+      .return {io.println(try#[Str]{Loop!}.run{
         .ok(res) -> res,
-        .err(err) -> err.str,
+        .info(err) -> err.str,
         })}
       }
     Loop: {![R]: R -> this!}
