@@ -29,7 +29,7 @@ public record TypingAndInferenceErrors(Program p, URI fileName) {
     var errorProcessor = new TypingAndInferenceErrors(p, error.posOrUnknown().fileName());
     return switch (ErrorCode.fromCode(error.code())) {
       // TODO: match on error types you want to improve
-      case undefinedMethod -> TypeSystemMsg.undefinedMeth(error, p);
+      case undefinedMethod -> TypeSystemMsg.undefinedMeth(error, p).parentPos(error.pos());
       case invalidMethodArgumentTypes -> errorProcessor.invalidMethodArgumentTypes(error);
       default -> error;
     };
