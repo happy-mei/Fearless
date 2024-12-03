@@ -31,6 +31,7 @@ public interface MagicImpls<R> {
     if (isMagic(Magic.UTF8, e)) { return Optional.ofNullable(utf8(e)); }
     if (isMagic(Magic.UTF16, e)) { return Optional.ofNullable(utf16(e)); }
     if (isMagic(Magic.MapK, e)) { return Optional.ofNullable(mapK(e)); }
+    if (isMagic(Magic.BlackBox, e)) { return Optional.ofNullable(blackBox(e)); }
     return Magic.ObjectCaps.stream()
       .filter(target->isMagic(target, e))
       .map(target->Optional.ofNullable(objCap(target, e)))
@@ -61,6 +62,7 @@ public interface MagicImpls<R> {
   MagicTrait<MIR.E,R> assert_(MIR.E e);
   MagicTrait<MIR.E,R> cheapHash(MIR.E e);
   MagicTrait<MIR.E,R> regexK(MIR.E e);
+  default MagicTrait<MIR.E,R> blackBox(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> utf8(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> utf16(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> bool(MIR.E e) { return null; }

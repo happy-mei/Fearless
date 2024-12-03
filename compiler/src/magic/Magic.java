@@ -28,6 +28,7 @@ public class Magic {
   public static final Id.DecId Debug = new Id.DecId("base.Debug", 0);
   public static final Id.DecId CheapHash = new Id.DecId("base.CheapHash", 0);
   public static final Id.DecId RegexK = new Id.DecId("base.Regexs", 0);
+  public static final Id.DecId BlackBox = new Id.DecId("base.benchmarking.BlackBox", 0);
 
   public static final Id.DecId BlockK = new Id.DecId("base.Block", 0);
   public static final Id.DecId Block = new Id.DecId("base.Block", 1);

@@ -740,6 +740,11 @@ public record JavaMagicImpls(
     };
   }
 
+  /** These are specialised for internal Fearless benchmarking, expect weird  */
+  @Override public MagicTrait<MIR.E, String> blackBox(MIR.E e) {
+    return "rt.BlackBox.$self"::describeConstable;
+  }
+
   private String getJavaRet(MIR.MT expectedT) {
     String ret = getTName.apply(expectedT);
     return switch (ret) {
