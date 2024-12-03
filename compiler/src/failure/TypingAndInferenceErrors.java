@@ -30,7 +30,7 @@ public record TypingAndInferenceErrors(Program p, URI fileName) {
     return switch (ErrorCode.fromCode(error.code())) {
       // TODO: match on error types you want to improve
       case undefinedMethod -> TypeSystemMsg.undefinedMeth(error, p).parentPos(error.pos());
-      case invalidMethodArgumentTypes -> errorProcessor.invalidMethodArgumentTypes(error);
+      case invalidMethodArgumentTypes -> errorProcessor.invalidMethodArgumentTypes(error).parentPos(error.pos());
       default -> error;
     };
   }
