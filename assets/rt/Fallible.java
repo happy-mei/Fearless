@@ -16,4 +16,6 @@ public interface Fallible extends Action_1 {
   @Override default Action_1 andThen$mut(MF_2 f_m$) {
     return Action_1.andThen$mut$fun(f_m$, this);
   }
+  @Override default base.Opt_1 ok$mut() { return Action_1.ok$mut$fun(this); }
+  @Override default base.Opt_1 info$mut() { return Action_1.info$mut$fun(this); }
 }

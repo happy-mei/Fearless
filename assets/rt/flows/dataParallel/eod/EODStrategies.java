@@ -16,7 +16,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   public static final int PARALLELISM_POTENTIAL = TASKS_PER_CORE * N_CPUS;
   //  public static final int PARALLELISM_POTENTIAL = 4;
-  private static final Semaphore AVAILABLE_PARALLELISM = new Semaphore(PARALLELISM_POTENTIAL);
+  public static final Semaphore AVAILABLE_PARALLELISM = new Semaphore(PARALLELISM_POTENTIAL);
 
   @Override public void seqOnly() {
     var sink = new DelayedStopSink(downstream);
@@ -53,6 +53,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
 
       var willParallelise = AVAILABLE_PARALLELISM.tryAcquire();
       if (willParallelise) {
+        worker.releaseOnDone = true;
         Thread.ofVirtual().uncaughtExceptionHandler(handler).start(worker);
       } else {
         worker.run();

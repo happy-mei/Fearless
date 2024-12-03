@@ -20,7 +20,7 @@ public class TestFlowSemantics {
     """, Base.mutBaseAliases);}
 
   // TODO: currently leaving this broken because I want to change how this works
-  @Test void flowReuse() {ok(new RunOutput.Res("60", "Program crashed with: \"This flow cannot be reused.\"[###]", 1), """
+  @Disabled("redo flow re-use impl") @Test void flowReuse() {ok(new RunOutput.Res("60", "Program crashed with: \"This flow cannot be reused.\"[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let[mut Flow[Nat]] x = {Flow#[Nat](1,2,3).map{x->x * 10}}

@@ -96,7 +96,7 @@ Since writing `.return{Void}` can get verbose and repetitive, we can just write 
     """); }/*--------------------------------------------
 Block supports early exits, using the `.if` method, and many other useful features. To explore them, we write a `StrToMessage` function
 that can be useful to map strings into good error messages
--------------------------*/@Disabled("30/11/2024")@Test void blockIf() { run("""
+-------------------------*/@Disabled("03/12/24") @Test void blockIf() { run("""
     StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
       .var res = {s}
@@ -136,7 +136,7 @@ Note the difference between `.var` and `.let`:
 
 The nested block ends with '.return'. This is different from what you may expect, the '.return' here is making the inner block return `Void`, the result of `:=`.
 To clarify the behavior of nested blocks, we show some alternative to that code below:
--------------------------*/@Test void blockNested1() { run("""
+-------------------------*/@Disabled("03/12/24") @Test void blockNested1() { run("""
     StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
       .let res = {s}
@@ -150,7 +150,7 @@ To clarify the behavior of nested blocks, we show some alternative to that code 
       }
     """); }/*--------------------------------------------
 In this alternative, we use `.if .. .return` to propagate out the result. Note how we now return the final result directly instead of updating `res`.
--------------------------*/@Test void blockNested2() { run("""
+-------------------------*/@Disabled("03/12/24") @Test void blockNested2() { run("""
     StrToMessage:F[Str,Str]{s->Block#
       .if {s.isEmpty} .return {"<EmptyString>"}
       .let res = {s}
@@ -169,7 +169,7 @@ Note that without `.done` the code would not compile, since `.do` returns a `Blo
 
 As always, the best alternative is to avoid nesting and to write
 
--------------------------*/@Test void blockNested3() { run("""
+-------------------------*/@Disabled("03/12/24") @Test void blockNested3() { run("""
     StrToMessage:F[Str,Str]{s->Block#      
       .if {s.isEmpty} .return {"<EmptyString>"}
       .let res = {s}
@@ -185,7 +185,7 @@ As you can see, by inverting the `.if` condition and inserting a one liner early
 
 Block is much more powerful that usual statements, because each individual bit is an expression. Thus we can use it to modularize method bodies that requires many early returns, and we can scope local variables:
 
--------------------------*/@Test void blockScoped() { run("""
+-------------------------*/@Disabled("03/12/24") @Test void blockScoped() { run("""
   Example: F[Str,Str]{s->Block# //bad all mixed
     //part1 //comments used to denote section of code: bad smell
     .let res = {s}

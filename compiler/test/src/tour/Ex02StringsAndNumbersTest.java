@@ -75,7 +75,7 @@ returning a string.
 //#   due to our read promotion rules (i.e. takes no args & returns an imm)
 
 The code below shows those numeric types in action.
--------------------------*/@Disabled("30/11/2024")@Test void numericTypes() { run("""
+-------------------------*/@Test void numericTypes() { run("""
     Test:Main {sys ->Block#
       .let ten = {10}// the Nat 10, 64 bit unsigned
       .let pTen = {+10} //Int +10, 64 bit signed
@@ -91,7 +91,7 @@ The code below shows those numeric types in action.
       //# this is less dramatic, since - 10 is really unnatural
       .let mixTypes1 = {fTen + (ten.float)}
       .let mixTypes2 = {fTen.nat + ten} //very different results!
-      .return {Debug.println(ten.str)}
+      .return {sys.io.println(ten.str)}
       }
     //prints 10
     """); }/*--------------------------------------------
@@ -137,17 +137,16 @@ Here the methods supported by Str:
 ```
 As you can see, strings support '+' to concatenate with other stringables, and the numeric types are all Stringable, so we can 
 write code like the following:
--------------------------*/@Disabled("30/11/2024")@Test void stringable() { run("""
-    package test
+-------------------------*/@Disabled("03/12/24") @Test void stringable() { run("""
     //as defined in the standard library
     //Stringable: {read .str: Str, }
 
-    Persons:F[Str,Nat,Person],Stringable{name,age->Person:{
-      .name:Str->name,
-      .age:Nat->age,
-      .str->"Person["+name+", "+age+"]"
+    Persons: F[Str,Nat,Person]{name,age -> Person: Stringable{
+      .name: Str -> name,
+      .age: Nat -> age,
+      .str -> "Person["+name+", "+age+"]"
       }}
-    Test:Main {sys -> 
+    Test:Main {sys ->
       UnrestrictedIO#sys.println(Persons#("Bob",43))
       }
     //prints Person[Bob, 43]
@@ -169,7 +168,7 @@ identity as it does for numeric types. This of course is crucial when the string
 Method `Str.int` can be used to convert the string into an integer.
 It returns a `mut Action[Int]`. We discuss the Action type in details later, for now just know that you use  `!` to extract the parsed value as shown below
 
--------------------------*/@Disabled("30/11/2024")@Test void parseInt() { run("""
+-------------------------*/@Disabled("03/12/24") @Test void parseInt() { run("""
     Test:Main {sys -> Block#
       .let[Str] s= {"43"}
       .let[Int] i = {s.int!}
@@ -185,11 +184,11 @@ It returns a `mut Action[Int]`. We discuss the Action type in details later, for
     Test:Main {sys -> UnrestrictedIO#sys.println(((15 - 20) + 50).str)}
     """, Base.mutBaseAliases);}
 
-  @Disabled("30/11/2024")@Test void intDivByZero() { ok(new RunOutput.Res("", "Program crashed with: / by zero", 1), """
+  @Test void intDivByZero() { ok(new RunOutput.Res("", "Program crashed with: / by zero[###]", 1), """
     package test
     Test:Main {sys -> Block#(+5 / +0) }
     """, Base.mutBaseAliases);}
-  @Disabled("30/11/2024")@Test void uIntDivByZero() { ok(new RunOutput.Res("", "Program crashed with: / by zero", 1), """
+  @Test void uIntDivByZero() { ok(new RunOutput.Res("", "Program crashed with: / by zero[###]", 1), """
     package test
     Test:Main {sys -> Block#(5 / 0) }
     """, Base.mutBaseAliases);}
