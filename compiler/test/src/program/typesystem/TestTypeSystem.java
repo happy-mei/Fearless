@@ -1116,6 +1116,7 @@ public class TestTypeSystem {
     Abort:{ ![R:readH,mutH,read,mut,imm,iso]: R -> this! }
     """); }
   @Test void badGenericPromotionImm() { fail("""
+    In position [###]/Dummy0.fear:3:37
     [E66 invalidMethodArgumentTypes]
     Method .m/1 called in position [###]/Dummy0.fear:3:37 can not be called with current parameters of types:
     [Y]

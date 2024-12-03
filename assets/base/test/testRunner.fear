@@ -32,9 +32,9 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
       .return {results},
     mut .runDirectTests: mut List[TestResult] -> tests.iter
       .map{test -> Block#
-        .return {FTestResult#(test.title, try#(sys.clone, {sys' -> test.impl#sys'}).resMatch{
+        .return {FTestResult#(test.title, try#(sys.clone, {sys' -> test.impl#sys'}).run{
           .ok(_) -> FTestResultKind.passed,
-          .err(info) -> FTestResultKind.errored(info.str)
+          .info(info) -> FTestResultKind.errored(info.str)
           })}
         }
       .list,

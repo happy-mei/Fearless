@@ -4,10 +4,10 @@ package base.caps
 CapTries: F[mut System, mut CapTry]{sys -> mut CapTry: {
   /// This method upholds strong exception safety, so you can observe changes to the program state
   /// from any exception-causing code.
-  mut #[R](try: read TryBody[R]): mut Res[R, Info] -> Magic!,
+  mut #[R](try: read TryBody[R]): mut Action[R] -> Magic!,
   /// This method gets the system object capability, however any violations of strong exception safety
   /// can only be observed with an object capability because System is the only external mutable reference.
-  mut #[T:iso,imm,mut,read,R](data: iso T, try: read TryBody[T,R]): mut Res[R, Info] -> Magic!,
+  mut #[T:iso,imm,mut,read,R](data: iso T, try: read TryBody[T,R]): mut Action[R] -> Magic!,
   }}
 
 TryBody[R:iso,imm,mut,mutH,read,readH]: {read #: R}
