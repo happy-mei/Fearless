@@ -216,6 +216,7 @@ public class TestReadImm {
     C: {.m[Y](y: read Y): read Y -> A.m[Y](y)}
     """);}
   @Test void readParamMdfArgAIsReadImm() {fail("""
+    In position [###]/Dummy0.fear:3:37
     [E66 invalidMethodArgumentTypes]
     Method .m/1 called in position [###]/Dummy0.fear:3:37 can not be called with current parameters of types:
     [read Y]
@@ -231,6 +232,7 @@ public class TestReadImm {
     Foo: {}
     """);}
   @Test void readParamMdfArgAIsReadImmOnTrait() {fail("""
+    In position [###]/Dummy0.fear:3:52
     [E66 invalidMethodArgumentTypes]
     Method .m/1 called in position [###]/Dummy0.fear:3:52 can not be called with current parameters of types:
     [read Y]
