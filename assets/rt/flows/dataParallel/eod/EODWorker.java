@@ -18,7 +18,7 @@ import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
  */
 public final class EODWorker implements Runnable {
   public static void forRemaining(FlowOp_1 source, _Sink_1 downstream, int size) {
-    var splitData = SplitTasks.of(source, Math.max(PARALLELISM_POTENTIAL / 2, 1));
+    var splitData = SplitTasks.of(source, Math.max(PARALLELISM_POTENTIAL / 2, 2));
     var nTasks = splitData.size();
 
     int realSize = size >= 0 ? size : nTasks;
