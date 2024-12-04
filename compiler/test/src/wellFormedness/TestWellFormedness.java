@@ -390,7 +390,7 @@ public class TestWellFormedness {
       }}
     """);}
   @Test void mustImplementMethodsInInlineDecFail() {fail("""
-    In position file:///home/nick/Programming/uni/fearless/compiler/Dummy0.fear:3:16
+    In position [###]/compiler/Dummy0.fear:3:16
     [E70 noUnimplementedMethods]
     Object literals must implement all callable methods. The following methods are unimplemented: imm .foo/0.
     """, """
