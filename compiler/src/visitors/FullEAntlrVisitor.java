@@ -132,7 +132,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     }
   public record GenericParams(List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds) {
     public GenericParams{
-      assert gxs.size()==bounds.size():gxs+" "+bounds;
+      //No, it must be allowed so that it can fails on well formedness assert gxs.size()==bounds.size():gxs+" "+bounds;
       assert bounds.keySet().stream().allMatch(k->gxs.contains(k)):gxs+" "+bounds;
     }
   }

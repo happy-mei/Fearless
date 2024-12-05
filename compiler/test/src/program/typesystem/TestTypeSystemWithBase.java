@@ -180,12 +180,12 @@ public class TestTypeSystemWithBase {
     In position [###]/Dummy0.fear:5:21
     [E66 invalidMethodArgumentTypes]
     Method .nm/1 called in position [###]/Dummy0.fear:5:21 can not be called with current parameters of types:
-    [imm test.Fear[###]$[] (5/0)]
+    [imm test.Fear[###]$[] (base.natLit.5/0)]
     Attempted signatures:
-    (imm 6[]):imm base.Nat[] kind: IsoHProm
-    (imm 6[]):imm base.Nat[] kind: IsoProm
-    (imm 6[]):imm base.Nat[] kind: Base
-    (imm 6[]):imm base.Nat[] kind: ReadHProm
+    (imm base.natLit.6[]):imm base.Nat[] kind: IsoHProm
+    (imm base.natLit.6[]):imm base.Nat[] kind: IsoProm
+    (imm base.natLit.6[]):imm base.Nat[] kind: Base
+    (imm base.natLit.6[]):imm base.Nat[] kind: ReadHProm
     """, """
     package test
     alias base.Nat as Nat,
@@ -295,7 +295,7 @@ public class TestTypeSystemWithBase {
     In position [###]/Dummy0.fear:9:44
     [E66 invalidMethodArgumentTypes]
     Method #/2 called in position [###]/Dummy0.fear:9:44 can not be called with current parameters of types:
-    [iso test.Fear[###]$[] (base.LList/1), mut test.Person[] ()]
+    [iso test.Fear[###]$[] (base.LList/1), mut test.Person[] (test.Person/0)]
     Attempted signatures:
     (iso base.LList[read test.Person[]], imm test.Person[]):iso base.LList[read test.Person[]] kind: IsoHProm
     (iso base.LList[read test.Person[]], imm test.Person[]):iso base.LList[read test.Person[]] kind: IsoProm
