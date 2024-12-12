@@ -1165,6 +1165,7 @@ public class TestJavaProgram {
         {k, v -> (v.nat * 10).str }
         )) }
       .do{ io.println(tm*.get("Nick")!) }
+      
       .do{ tm := (tm*.put("Nick", "hi")) }
       .do{ io.println(tm*.get("Nick")!) }
       .return{Void}
@@ -1339,6 +1340,7 @@ public class TestJavaProgram {
       .accessR(_) -> Magic!,
       .accessW(_) -> Magic!,
       .accessRW(_) -> Magic!,
+      .clone -> iso FakeIO,
       }
     """, Base.mutBaseAliases); }
 

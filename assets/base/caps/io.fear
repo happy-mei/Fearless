@@ -11,9 +11,9 @@ IO: {
   mut .accessR(path: Path): mut ReadPath,
   mut .accessW(path: Path): mut WritePath,
   mut .accessRW(path: Path): mut ReadWritePath,
-//  mut .path(path: Path): mut base.caps.fs.FS,
+  mut .clone: iso IO,
   }
-UnrestrictedIO:F[mut System, mut IO],Sealed{
+UnrestrictedIO: F[mut System, mut IO],Sealed{
   s -> {
     .print(msg) -> Magic!,
     .println(msg) -> Magic!,
@@ -22,10 +22,7 @@ UnrestrictedIO:F[mut System, mut IO],Sealed{
     .accessR(path) -> Magic!,
     .accessW(path) -> Magic!,
     .accessRW(path) -> Magic!,
-//    .path(path) -> {
-//      // ...
-//      },
-//    mut .fopen(path: Path, mode: FileHandleMode): mut base.caps.fs.RawFileHandle -> Magic!,
+    .clone -> UnrestrictedIO#(s.clone),
     }
   }
 
