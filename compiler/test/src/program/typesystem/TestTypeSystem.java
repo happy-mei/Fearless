@@ -1380,4 +1380,30 @@ public class TestTypeSystem {
     Foos: {#(a: mut A): iso Foo -> iso Foo{a}}
     Foo: {mut #: mut A}
     """);}
+
+  @Test void testBoundsGenMethodOk() {ok("""
+    package test
+    A: {#[X: mut,mutH,readH](x: X, f: mut Foo): mut Foo -> f}
+    Expect: {.isoFoo(f: iso Foo): iso Foo -> f} // to ignore flexible method typing
+    Good: {#[Y: mutH,readH](y: Y, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[Y](y, isoF))}
+    Concrete: {#(y: mutH Foo, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[mutH Foo](y, isoF))}
+    Foo: {}
+    """);}
+  @Test void testBoundsGenMethod() {fail("""
+    In position [###]/Dummy0.fear:4:75
+    [E66 invalidMethodArgumentTypes]
+    Method #/2 called in position [###]/Dummy0.fear:4:75 can not be called with current parameters of types:
+    [Y, iso test.Foo[] ()]
+    Attempted signatures:
+    (iso Y, iso test.Foo[]):iso test.Foo[] kind: IsoHProm
+    (iso Y, iso test.Foo[]):iso test.Foo[] kind: IsoProm
+    """, """
+    package test
+    A: {#[X: mut,mutH,readH](x: X, f: mut Foo): mut Foo -> f}
+    Expect: {.isoFoo(f: iso Foo): iso Foo -> f} // to ignore flexible method typing
+    Bad: {#[Y: mut,mutH,readH](y: Y, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[Y](y, isoF))}
+    Good: {#[Y: mutH,readH](y: Y, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[Y](y, isoF))}
+    Concrete: {#(y: mutH Foo, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[mutH Foo](y, isoF))}
+    Foo: {}
+    """);}
 }
