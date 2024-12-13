@@ -30,12 +30,15 @@ ReadPath: {
   mut .accessR(path: Path): mut ReadPath,
 //  mut .lines: mut Action[mut Flow[Str]],
   mut .readStr: mut Action[Str],
+  mut .clone: iso ReadPath,
   }
 WritePath: {
   mut .accessW(path: Path): mut WritePath,
+  mut .clone: iso WritePath,
   }
 ReadWritePath: ReadPath,WritePath{
   mut .accessRW(path: Path): mut ReadWritePath,
+  mut .clone: iso ReadWritePath,
   }
 
 FileHandleMode:Stringable,Sealed{}
