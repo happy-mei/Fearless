@@ -74,7 +74,9 @@ public interface Base {
     alias base.Res as Res,
     
     alias base.LinkedLens as LinkedLens,
+    alias base.LinkedHashMap as LinkedHashMap,
     alias base.Map as Map,
+    alias base.Maps as Maps,
     alias base.EmptyMap as EmptyMap,
     alias base.Lens as Lens,
     

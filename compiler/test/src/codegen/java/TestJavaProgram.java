@@ -1165,7 +1165,6 @@ public class TestJavaProgram {
         {k, v -> (v.nat * 10).str }
         )) }
       .do{ io.println(tm*.get("Nick")!) }
-      
       .do{ tm := (tm*.put("Nick", "hi")) }
       .do{ io.println(tm*.get("Nick")!) }
       .return{Void}

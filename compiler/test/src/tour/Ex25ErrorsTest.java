@@ -73,6 +73,23 @@ public class Ex25ErrorsTest {
         })
       }
     """, Base.mutBaseAliases); }
+  @Test void catchExplicitErrorMap() { ok(new RunOutput.Res("""
+    {"a": "big", "b": ["oof"]}
+    """, "", 0), """
+    package test
+    Test: Main{s -> Block#
+      .let[LinkedHashMap[Str,Info]] map = {
+        Maps.hashMap[Str,Info]({k1,k2 -> k1 == k2}, {k -> k})
+        + ("a", Infos.msg "big")
+        + ("b", Infos.list(List#(Infos.msg "oof")))
+        }
+      .do {s.io.println(Try#[Str]{Error!(Infos.map map)}.run{
+        .ok(res) -> res,
+        .info(err) -> err.str,
+        })}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases); }
 
   @Test void cannotCatchStackOverflow() { ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test

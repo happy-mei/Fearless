@@ -59,5 +59,14 @@ InfoVisitor[R]: {
 _InfoToJson: InfoVisitor[Json]{
   .msg(info) -> Jsons.string(info.msg),
   .list(info) -> Jsons.array(info.list.flow.map{info' -> info'.accept(this)}.list),
-  .map(info) -> Todo!"Collecting a flow into a map",
+  .map(info) -> Jsons.object(info.map.flow
+    .map{kv -> Entry[Str,Json]{
+      .key -> kv.key,
+      .value -> kv.value.accept(this),
+      }}
+    .fold(
+      Maps.hashMap[Str,Json]({k1, k2 -> k1 == k2}, {k -> k}),
+      {acc, kv -> acc + (kv.key, kv.value)}
+      )
+    ),
   }
