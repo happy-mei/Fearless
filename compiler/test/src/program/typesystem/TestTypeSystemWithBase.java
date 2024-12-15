@@ -6,7 +6,6 @@ import main.InputOutput;
 import main.Main;
 import main.java.LogicMainJava;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
 import utils.Err;
@@ -59,7 +58,7 @@ public class TestTypeSystemWithBase {
   @Test void numbersSubTyping2(){ fail("""
     In position [###]/Dummy0.fear:3:22
     [E37 noSubTypingRelationship]
-    There is no sub-typing relationship between imm base.Nat[] and imm 42[].
+    There is no sub-typing relationship between imm base.Nat[] and imm base.natLit.42[].
     """, """
     package test
     alias base.Nat as Nat,
@@ -97,7 +96,7 @@ public class TestTypeSystemWithBase {
   @Test void numbersGenericTypes2a(){ fail("""
     In position [###]/Dummy0.fear:4:31
     [E37 noSubTypingRelationship]
-    There is no sub-typing relationship between imm test.Fear[###]$[] and imm 42[].
+    There is no sub-typing relationship between imm test.Fear[###]$[] and imm base.natLit.42[].
     """, """
     package test
     alias base.Nat as Nat,
@@ -107,7 +106,7 @@ public class TestTypeSystemWithBase {
   @Test void numbersSubTyping5a(){ fail("""
     In position [###]/Dummy0.fear:6:19
     [E37 noSubTypingRelationship]
-    There is no sub-typing relationship between imm base.Nat[] and imm 42[].
+    There is no sub-typing relationship between imm base.Nat[] and imm base.natLit.42[].
     """, """
     package test
     alias base.Nat as Nat,
@@ -161,7 +160,7 @@ public class TestTypeSystemWithBase {
     In position [###]/Dummy0.fear:5:21
     [E66 invalidMethodArgumentTypes]
     Method .nm/1 called in position [###]/Dummy0.fear:5:21 can not be called with current parameters of types:
-    [imm test.Fear[###]$[] (5/0)]
+    [imm test.Fear[###]$[] (base.natLit.5/0)]
     Attempted signatures:
     (imm base.Float[]):imm base.Nat[] kind: IsoHProm
     (imm base.Float[]):imm base.Nat[] kind: IsoProm
@@ -268,10 +267,7 @@ public class TestTypeSystemWithBase {
     In position [###]/Dummy0.fear:9:43
     [E66 invalidMethodArgumentTypes]
     Method #/2 called in position [###]/Dummy0.fear:9:43 can not be called with current parameters of types:
-    [
-    iso base.List[read test.Person[]] (base.Collection/0, base.Sealed/0),
-    mut test.Person[] ()
-    ]
+    [iso base.List[read test.Person[]] (base.Collection/0, base.Sealed/0), mut test.Person[] ()]
     Attempted signatures:
     (iso base.List[read test.Person[]], imm test.Person[]):iso base.List[read test.Person[]] kind: IsoHProm
     (iso base.List[read test.Person[]], imm test.Person[]):iso base.List[read test.Person[]] kind: IsoProm
@@ -298,7 +294,7 @@ public class TestTypeSystemWithBase {
     In position [###]/Dummy0.fear:9:44
     [E66 invalidMethodArgumentTypes]
     Method #/2 called in position [###]/Dummy0.fear:9:44 can not be called with current parameters of types:
-    [iso test.Fear[###]$[] (base.LList/1), mut test.Person[] (test.Person/0)]
+    [iso test.Fear[###]$[] (base.LList/1), mut test.Person[] ()]
     Attempted signatures:
     (iso base.LList[read test.Person[]], imm test.Person[]):iso base.LList[read test.Person[]] kind: IsoHProm
     (iso base.LList[read test.Person[]], imm test.Person[]):iso base.LList[read test.Person[]] kind: IsoProm
