@@ -169,7 +169,7 @@ public class Fail{
       "sigs", sigs,
       "expected", expected
     );
-    var msg= "Method " + e.name() + " called in position " + e.posOrUnknown() + " can not be called with current parameters of types: " + t1n;
+    var msg= "Method " + e.name() + " called in position " + e.posOrUnknown() + " cannot be called with current parameters of types: " + t1n;
     return of(msg+"\n"+sigs, attributes);
   }
 

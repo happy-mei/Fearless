@@ -160,7 +160,7 @@ public class TestTypeSystemWithBase {
   @Test void numImpls3() { fail("""
     In position [###]/Dummy0.fear:5:21
     [E66 invalidMethodArgumentTypes]
-    Method .nm/1 called in position [###]/Dummy0.fear:5:21 can not be called with current parameters of types:
+    Method .nm/1 called in position [###]/Dummy0.fear:5:21 cannot be called with current parameters of types:
     [imm test.Fear[###]$[] (5/0)]
     Attempted signatures:
     (imm base.Float[]):imm base.Nat[] kind: IsoHProm
@@ -179,7 +179,7 @@ public class TestTypeSystemWithBase {
   @Test void numImpl4() { fail("""
     In position [###]/Dummy0.fear:5:21
     [E66 invalidMethodArgumentTypes]
-    Method .nm/1 called in position [###]/Dummy0.fear:5:21 can not be called with current parameters of types:
+    Method .nm/1 called in position [###]/Dummy0.fear:5:21 cannot be called with current parameters of types:
     [imm test.Fear[###]$[] (5/0)]
     Attempted signatures:
     (imm 6[]):imm base.Nat[] kind: IsoHProm
@@ -267,7 +267,7 @@ public class TestTypeSystemWithBase {
   @Test void unsoundHygienicList() { fail("""
     In position [###]/Dummy0.fear:9:43
     [E66 invalidMethodArgumentTypes]
-    Method #/2 called in position [###]/Dummy0.fear:9:43 can not be called with current parameters of types:
+    Method #/2 called in position [###]/Dummy0.fear:9:43 cannot be called with current parameters of types:
     [iso base.List[read test.Person[]] (base.Collection/0, base.Sealed/0), mut test.Person[] ()]
     Attempted signatures:
     (iso base.List[read test.Person[]], imm test.Person[]):iso base.List[read test.Person[]] kind: IsoHProm
@@ -294,7 +294,7 @@ public class TestTypeSystemWithBase {
   @Test void unsoundHygienicLList() { fail("""
     In position [###]/Dummy0.fear:9:44
     [E66 invalidMethodArgumentTypes]
-    Method #/2 called in position [###]/Dummy0.fear:9:44 can not be called with current parameters of types:
+    Method #/2 called in position [###]/Dummy0.fear:9:44 cannot be called with current parameters of types:
     [iso test.Fear[###]$[] (base.LList/1), mut test.Person[] ()]
     Attempted signatures:
     (iso base.LList[read test.Person[]], imm test.Person[]):iso base.LList[read test.Person[]] kind: IsoHProm

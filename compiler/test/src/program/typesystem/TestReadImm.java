@@ -138,7 +138,7 @@ public class TestReadImm {
     var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
     /*
     [E66 invalidMethodArgumentTypes]
-      Method .m/1 called in position [###] can not be called with current parameters of types:
+      Method .m/1 called in position [###] cannot be called with current parameters of types:
       [read X]
       Attempted signatures:
       [###]
@@ -167,7 +167,7 @@ public class TestReadImm {
     }
     /*
     [E66 invalidMethodArgumentTypes]
-      Method .m/1 called in position [###] can not be called with current parameters of types:
+      Method .m/1 called in position [###] cannot be called with current parameters of types:
       [read X]
       Attempted signatures:
       [###]
@@ -218,7 +218,7 @@ public class TestReadImm {
   @Test void readParamMdfArgAIsReadImm() {fail("""
     In position [###]/Dummy0.fear:3:37
     [E66 invalidMethodArgumentTypes]
-    Method .m/1 called in position [###]/Dummy0.fear:3:37 can not be called with current parameters of types:
+    Method .m/1 called in position [###]/Dummy0.fear:3:37 cannot be called with current parameters of types:
     [read Y]
     Attempted signatures:
     (imm Y):imm Y kind: IsoHProm
@@ -234,7 +234,7 @@ public class TestReadImm {
   @Test void readParamMdfArgAIsReadImmOnTrait() {fail("""
     In position [###]/Dummy0.fear:3:52
     [E66 invalidMethodArgumentTypes]
-    Method .m/1 called in position [###]/Dummy0.fear:3:52 can not be called with current parameters of types:
+    Method .m/1 called in position [###]/Dummy0.fear:3:52 cannot be called with current parameters of types:
     [read Y]
     Attempted signatures:
     (imm Y):imm Y kind: IsoHProm
