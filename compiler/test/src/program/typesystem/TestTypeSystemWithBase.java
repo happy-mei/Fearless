@@ -268,7 +268,10 @@ public class TestTypeSystemWithBase {
     In position [###]/Dummy0.fear:9:43
     [E66 invalidMethodArgumentTypes]
     Method #/2 called in position [###]/Dummy0.fear:9:43 can not be called with current parameters of types:
-    [iso base.List[read test.Person[]] (base.Collection/0, base.Sealed/0), mut test.Person[] ()]
+    [
+    iso base.List[read test.Person[]] (base.Collection/0, base.Sealed/0),
+    mut test.Person[] ()
+    ]
     Attempted signatures:
     (iso base.List[read test.Person[]], imm test.Person[]):iso base.List[read test.Person[]] kind: IsoHProm
     (iso base.List[read test.Person[]], imm test.Person[]):iso base.List[read test.Person[]] kind: IsoProm

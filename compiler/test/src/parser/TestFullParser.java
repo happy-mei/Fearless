@@ -88,7 +88,9 @@ class TestFullParser {
     Bar:{}
     """); }
   @Test void aliasGenericHiding() { ok("""
-    {test.Yolo/0=Dec[name=test.Yolo/0,gxs=[],lambda=[-muttest.Yolo[]-][]{}],
+    {
+    test.Bloop4/0=Dec[name=test.Bloop4/0,gxs=[],lambda=[-muttest.Bloop4[]-][foo.Bar[immtest.Yolo[],immtest.Bloop3[]]]{}],
+    test.Yolo/0=Dec[name=test.Yolo/0,gxs=[],lambda=[-muttest.Yolo[]-][]{}],
     test.Bloop3/0=Dec[name=test.Bloop3/0,gxs=[],lambda=[-muttest.Bloop3[]-][foo.Bar[immtest.Yolo[],immtest.Yolo[]]]{}],
     foo.Bar/0=Dec[name=foo.Bar/0,gxs=[],lambda=[-mutfoo.Bar[]-][]{}],
     foo.Bar/2=Dec[name=foo.Bar/2,gxs=[A,B],bounds={A=[imm],B=[imm]},lambda=[-mutfoo.Bar[A,B]-][]{}],
@@ -103,6 +105,7 @@ class TestFullParser {
     Bloop1:Baz{}
     Bloop2:Baz[Yolo],YoloBar{}
     Bloop3:YoloBar[Yolo]{}
+    Bloop4:YoloBar[Bloop3]{}
     """, """
     package foo
     Bar:{}
@@ -494,7 +497,7 @@ class TestFullParser {
     """); }
   @Test void noModifiersInImpls() { fail("""
     In position [###]/Dummy0.fear:3:2
-    [E46 noMdfInFormalParams]
+    [E46 noMdfInImplementedT]
     Modifiers are not allowed in declarations or implementation lists: mutA
     """, """
     package test

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import astFull.T;
 import failure.CompileError;
 import failure.FailOr;
 import files.Pos;
@@ -43,6 +44,9 @@ public enum LiteralKind {
   }
   public static Optional<String> toFullName(String name){
     return classify(name).map(k->k.pkgName+"."+name);
+  }
+  public static Optional<Id.IT<T>> toFullIt(String name,List<T> ts){
+    return toFullName(name).map(s->new Id.IT<>(s,ts));
   }    
   public static Optional<LiteralKind> classify(String name){
     if (name.matches("[+-][\\d_]*\\d+$")){ return Optional.of(Int); }

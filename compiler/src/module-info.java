@@ -10,4 +10,6 @@ module FearlessCompiler {
   requires org.apache.commons.text;
   requires org.apache.commons.lang3;
   requires commons.cli;
+  exports program.typesystem;//Got a problem in TestReadImm without those exports.
+  exports typing;
 }

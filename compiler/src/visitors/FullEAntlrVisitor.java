@@ -253,7 +253,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     List<Id.IT<T>> its= ctx.t() == null
       ?List.of()
       :ctx.t().stream()
-        .map(ti->visitT(ti,false))
+        .map(ti->visitTNoMdf(ti))
         .map(ti->ti.match(
           gx->{ 
             throw Fail.expectedConcreteType(ti).pos(pos(ctx)); },
@@ -354,14 +354,14 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
 
   public Id.IT<T> visitIT(TContext ctx) {
-    T t=visitT(ctx,false);
+    T t=visitTNoMdf(ctx);
     return t.match(gx->{throw Fail.expectedConcreteType(t).pos(pos(ctx));}, it->it);
   }
   @Override public T visitNudeT(NudeTContext ctx) { return visitT(ctx.t()); }
 
   // TODO: this RegEx looks wrong to me, I think something like _foo. will match
   private static final Pattern regexPkg = Pattern.compile("^(_*[a-z][0-9A-Za-z_]*(?:\\._*[a-z][0-9A-Za-z_]*)*)");
-  private static final Pattern regexGenName = Pattern.compile("^_*[A-Z][0-9A-Za-z_]*$");
+  private static final Pattern regexGenName = Pattern.compile("^_*[A-Z][0-9A-Za-z_]*'*$");
 
   public static String extractPackageName(String name) {
     Matcher matcher = regexPkg.matcher(name);
@@ -371,36 +371,27 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   private boolean isGenOk(String name){
     return regexGenName.matcher(name).matches();
   }
-  @Override public T visitT(TContext ctx) { return visitT(ctx,true); }
-  public T visitT(TContext ctx, boolean canMdf) {
-    //TODO: I suspect this can now be simplified a lot, since no more used for generic declarations
-    if(!canMdf && !ctx.mdf().getText().isEmpty()){
-      //TODO: not the right error?
-      throw Fail.noMdfInFormalParams(ctx.getText()).pos(pos(ctx));
-    }
-    String name = visitFullCN(ctx.fullCN());
+  public T visitTNoMdf(TContext ctx) {
+    if(ctx.mdf().getText().isEmpty()){ return visitT(ctx); }
+    throw Fail.noMdfInImplementedT(ctx.getText()).pos(pos(ctx));
+  }
+  Optional<Id.IT<T>> fullNameIt(String name, List<T> ts){
     String pkgName= extractPackageName(name);
-    String simpleName= pkgName.isEmpty()? name : name.substring(pkgName.length()+1);
-    var canBeGen =  isGenOk(simpleName);
-    if(!canBeGen && pkgName.isEmpty()){
-      name = LiteralKind.toFullName(name).orElse(this.pkg+"."+name);
-      }
-    var isFullName = !canBeGen || !pkgName.isEmpty();
-    Optional<List<T>> aGen=visitActualGen(ctx.actualGen());
-    Optional<Id.IT<T>> resolved = isFullName ? Optional.empty() : resolve.apply(name);
-    var isIT = isFullName || resolved.isPresent();
-    if(!isIT){
-      var t = new T(visitGenricMdf(ctx.mdf()), new Id.GX<>(name));
-      if(aGen.isPresent()){ throw Fail.concreteTypeInFormalParams(t.toString()).pos(pos(ctx)); }
-      return t;
-    }
-    // TODO: TEST alias generic merging
-    Mdf mdf = visitMdf(ctx.mdf());
-    var ts = aGen.orElse(List.of());
-    if(resolved.isEmpty()){return new T(mdf,new Id.IT<>(name,ts));}
-    var res = resolved.get();
-    ts = Push.of(res.ts(),ts);
-    return new T(mdf,res.withTs(ts));
+    if(pkgName.isEmpty()){ return Optional.empty(); }
+    return Optional.of(new Id.IT<>(name,ts));
+  }
+  Optional<Id.IT<T>> aliasIt(String name, List<T> ts){
+    return resolve.apply(name)
+      .map(it-> it.withTs(Push.of(it.ts(),ts)));
+  }  
+  @Override public T visitT(TContext ctx) {
+    String name = visitFullCN(ctx.fullCN());
+    var ts= visitActualGen(ctx.actualGen()).orElse(List.of());
+    return fullNameIt(name,ts)
+      .or(()->aliasIt(name,ts))
+      .or(()->LiteralKind.toFullIt(name,ts))
+      .map(it->new T(visitMdf(ctx.mdf()),it))
+      .orElseGet(()->new T(visitGenricMdf(ctx.mdf()), new Id.GX<>(name)));
   }
   @Override
   public E.Meth visitSingleM(SingleMContext ctx) {

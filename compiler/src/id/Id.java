@@ -146,10 +146,8 @@ public class Id {
     }
     public GX<TT> withName(String name) { return new GX<>(name); }
   }
-  public record IT<TT extends Ty>(Id.DecId name, List<TT> ts)implements RT<TT>{
-    public IT{
-      assert ts.size()==name.gen();
-    }
+  public record IT<TT extends Ty>(Id.DecId name, List<TT> ts) implements RT<TT>{
+    public IT{ assert ts.size()==name.gen(); }
     public IT(String name,List<TT> ts){ this(new Id.DecId(name,ts.size()),ts); }
     public <R> R match(Function<GX<TT>,R> gx, Function<IT<TT>,R> it){ return it.apply(this); }
     public <R> R accept(TypeVisitor<TT, R> visitor) {

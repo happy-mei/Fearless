@@ -47,7 +47,7 @@ public enum ErrorCode {
   invalidEntryPoint,
   ignoredIdentInExpr,
   multipleIsoUsage,
-  noMdfInFormalParams,
+  noMdfInImplementedT,
   privateMethCall,
   privateTraitImplementation,
   mustProvideImplsIfMdfProvided,
