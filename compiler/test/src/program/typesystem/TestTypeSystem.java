@@ -346,8 +346,8 @@ public class TestTypeSystem {
   @Test void immCapture() { ok("""
     package test
     B:{}
-    L[X]:{ imm .absMeth: imm X }
-    A:{ read .m[T](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
+    L[X:*]:{ imm .absMeth: imm X }
+    A:{ read .m[T:*](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
     """); }
 
   @Test void numbersNoBase(){ ok( """

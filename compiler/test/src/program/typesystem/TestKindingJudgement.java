@@ -124,6 +124,7 @@ public class TestKindingJudgement {
   );}
   @Test void noMutInExpected() {fail("""
     [E5 invalidMdfBound]
+    Type bound related to mut X:
     The type mut X is not valid because its capability is not in the required bounds. The allowed modifiers are: read, imm.
     """,
     XBs.empty(),
@@ -139,6 +140,7 @@ public class TestKindingJudgement {
   );}
   @Test void noMutInExpectedX() {fail("""
     [E5 invalidMdfBound]
+    Type bound related to mut X:
     The type mut X is not valid because its capability is not in the required bounds. The allowed modifiers are: read, imm.
     """,
     XBs.empty()
@@ -148,6 +150,7 @@ public class TestKindingJudgement {
   );}
   @Test void multiBoundsXFail() {fail("""
     [E5 invalidMdfBound]
+    Type bound related to X:
     The type X is not valid because its capability is not in the required bounds. The allowed modifiers are: read, mut, imm.
     """,
     XBs.empty()
@@ -181,6 +184,7 @@ public class TestKindingJudgement {
   );}
   @Test void readImmWillOnlyBeImm() {fail("""
     [E5 invalidMdfBound]
+    Type bound related to read/imm X:
     The type read/imm X is not valid because its capability is not in the required bounds. The allowed modifiers are: read.
     """,
     XBs.empty()
@@ -203,6 +207,7 @@ public class TestKindingJudgement {
   );}
   @Test void immIsoLimitXFail() {fail("""
     [E5 invalidMdfBound]
+    Type bound related to X:
     The type X is not valid because its capability is not in the required bounds. The allowed modifiers are: iso, imm.
     """,
     XBs.empty()
@@ -222,6 +227,7 @@ public class TestKindingJudgement {
   );}
   @Test void literalFail() {fail("""
     [E5 invalidMdfBound]
+    Type bound related to mut a.A[]:
     The type mut a.A[] is not valid because its capability is not in the required bounds. The allowed modifiers are: imm.
     """,
     XBs.empty(),
@@ -257,6 +263,7 @@ public class TestKindingJudgement {
   );}
   @Test void literalImplFail1() {fail("""
     [E5 invalidMdfBound]
+    Type bound related to a.A[mut a.B[]]:
     The type mut a.B[] is not valid because its capability is not in the required bounds. The allowed modifiers are: imm.
     """,
     XBs.empty(),
