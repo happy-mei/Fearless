@@ -178,7 +178,7 @@ public class WellFormednessShortCircuitVisitor extends ShortCircuitVisitorWithEn
       if (boundsOpt.isEmpty()) { continue; }
       var bounds = boundsOpt.get();
       if (!bounds.equals(e.id().bounds().get(gx))) {
-        invalidBounds.add(gx+": "+bounds.stream().map(Mdf::toString).collect(Collectors.joining(", ")));
+        invalidBounds.add(gx+": "+bounds.stream().sorted().map(Mdf::toString).collect(Collectors.joining(", ")));
       }
     }
     if (invalidBounds.isEmpty()) { return Optional.empty(); }
