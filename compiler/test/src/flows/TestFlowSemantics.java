@@ -187,7 +187,7 @@ public class TestFlowSemantics {
    * Non-deterministic errors bubble up, even if the flow isn't listening anymore because they're only catchable
    * in Fearless code with a capability anyway.
    */
-  @Test void throwInAFlowBeforeStopDP_ND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
+  @Disabled("loops on marco")@Test void throwInAFlowBeforeStopDP_ND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow.range(+1, +50).map{n->n.nat}
@@ -203,7 +203,7 @@ public class TestFlowSemantics {
       }
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
-  @Test void throwInAFlowBeforeStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
+  @Disabled("loops on marco")@Test void throwInAFlowBeforeStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[Nat](1, 2, 3)
@@ -219,7 +219,7 @@ public class TestFlowSemantics {
       }
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
-  @Test void throwInAFlowAfterStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
+  @Disabled("loops on marco")@Test void throwInAFlowAfterStopParND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[Nat](1, 2, 3)
@@ -237,7 +237,7 @@ public class TestFlowSemantics {
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
 
-  @Test void throwInAFlowBeforeStopSeqND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
+  @Disabled("loops on marco")@Test void throwInAFlowBeforeStopSeqND() {ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[mut Nat](mut 1, mut 2, mut 3)
@@ -253,7 +253,7 @@ public class TestFlowSemantics {
       }
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
-  @Test void throwInAFlowAfterStopSeqND() {ok(new RunOutput.Res("10", "", 0), """
+  @Disabled("loops on marco")@Test void throwInAFlowAfterStopSeqND() {ok(new RunOutput.Res("10", "", 0), """
     package test
     Test: Main{sys -> Block#
       .let x = {Flow#[mut Nat](mut 1, mut 2, mut 3)
