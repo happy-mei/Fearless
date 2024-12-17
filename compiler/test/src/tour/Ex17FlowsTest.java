@@ -767,4 +767,12 @@ public class Ex17FlowsTest {
           }
       }
     """, Base.mutBaseAliases);}
+
+  @Test void forEffect() {ok(new Res("01234", "", 0), """
+    package test
+    Test: Main{sys -> Flow.range(+0, +5)
+      .map{n -> n.str}
+      .forEffect{msg -> sys.io.print msg}
+      }
+    """, Base.mutBaseAliases);}
 }
