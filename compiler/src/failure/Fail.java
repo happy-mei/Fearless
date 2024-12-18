@@ -272,8 +272,8 @@ public class Fail{
     return of("The isolated reference \""+x+"\" is used more than once.");
   }
 
-  public static CompileError noMdfInFormalParams(String ty) {
-    return of("Modifiers are not allowed in declarations or implementation lists: "+ty);
+  public static CompileError noMdfInFormalParams(String mdf, String ty) {
+    return of("Modifiers are not allowed in declarations or implementation lists: "+mdf+" "+ty);
   }
 
   public static CompileError mustProvideImplsIfMdfProvided() {

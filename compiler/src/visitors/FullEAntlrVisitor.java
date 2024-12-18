@@ -307,7 +307,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public T visitT(TContext ctx) { return visitT(ctx,true); }
   public T visitT(TContext ctx, boolean canMdf) {
     if(!canMdf && !ctx.mdf().getText().isEmpty()){
-      throw Fail.noMdfInFormalParams(ctx.getText()).pos(pos(ctx));
+      throw Fail.noMdfInFormalParams(ctx.mdf().getText(), ctx.fullCN().getText()).pos(pos(ctx));
     }
     String name = visitFullCN(ctx.fullCN());
     var isFullName = name.contains(".");

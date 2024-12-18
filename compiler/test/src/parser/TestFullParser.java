@@ -439,7 +439,7 @@ class TestFullParser {
   @Test void noModifiersInFormalTypeParams1() { fail("""
     In position [###]/Dummy0.fear:2:2
     [E46 noMdfInFormalParams]
-    Modifiers are not allowed in declarations or implementation lists: mutB
+    Modifiers are not allowed in declarations or implementation lists: mut B
     """, """
     package test
     A[mut B]:{}
@@ -453,7 +453,7 @@ class TestFullParser {
   @Test void noModifiersInImpls() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E46 noMdfInFormalParams]
-    Modifiers are not allowed in declarations or implementation lists: mutA
+    Modifiers are not allowed in declarations or implementation lists: mut A
     """, """
     package test
     A:{}
