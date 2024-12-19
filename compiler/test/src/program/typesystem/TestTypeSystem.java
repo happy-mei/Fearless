@@ -1123,7 +1123,7 @@ public class TestTypeSystem {
   @Test void badGenericPromotionImm() { fail("""
     In position [###]/Dummy0.fear:3:39
     [E66 invalidMethodArgumentTypes]
-    Method .m/1 called in position [###]/Dummy0.fear:3:39 can not be called with current parameters of types:
+    Method .m/1 called in position [###]/Dummy0.fear:3:39 cannot be called with current parameters of types:
     [Y]
     Attempted signatures:
     (iso Y):iso test.Beer[Y] kind: IsoHProm

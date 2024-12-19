@@ -218,7 +218,7 @@ public class TestReadImm {
   @Test void readParamMdfArgAIsReadImm() {fail("""
     In position [###]/Dummy0.fear:3:39
     [E66 invalidMethodArgumentTypes]
-    Method .m/1 called in position [###]/Dummy0.fear:3:39 can not be called with current parameters of types:
+    Method .m/1 called in position [###]/Dummy0.fear:3:39 cannot be called with current parameters of types:
     [read Y]
     Attempted signatures:
     (imm Y):imm Y kind: IsoHProm
@@ -234,7 +234,7 @@ public class TestReadImm {
   @Test void readParamMdfArgAIsReadImmOnTrait() {fail("""
     In position [###]/Dummy0.fear:3:58
     [E66 invalidMethodArgumentTypes]
-    Method .m/1 called in position [###]/Dummy0.fear:3:58 can not be called with current parameters of types:
+    Method .m/1 called in position [###]/Dummy0.fear:3:58 cannot be called with current parameters of types:
     [read Y]
     Attempted signatures:
     (imm Y):imm Y kind: IsoHProm
