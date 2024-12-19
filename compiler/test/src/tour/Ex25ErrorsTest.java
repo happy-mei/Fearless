@@ -1,6 +1,5 @@
 package tour;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
 import utils.RunOutput;
@@ -51,7 +50,7 @@ public class Ex25ErrorsTest {
       }
     """, Base.mutBaseAliases); }
 
-  @Disabled("loops on marco")@Test void cannotCatchStackOverflow() { ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
+  @Test void cannotCatchStackOverflow() { ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test:Main{s ->
       UnrestrictedIO#s.println(Try#[Str]{Loop!}.run{

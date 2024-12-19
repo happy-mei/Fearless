@@ -1,6 +1,5 @@
 package tour;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
 
@@ -8,7 +7,7 @@ import static utils.RunOutput.Res;
 import static codegen.java.RunJavaProgramTests.*;
 
 public class Ex18ErrorsTest {
-  @Disabled("loops on marco") @Test void uncaughtStackOverflow() { ok(new Res("", "Program crashed with: Stack overflowed[###]", 1), """
+  @Test void uncaughtStackOverflow() { ok(new Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test:Main {sys -> Loop!}
     Loop: { ![R]: R -> this! }
