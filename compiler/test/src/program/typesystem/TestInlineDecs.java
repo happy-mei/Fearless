@@ -279,4 +279,31 @@ public class TestInlineDecs {
     F[A:read,mut,imm,iso,R:read,mut,imm,iso]: { read #(a: A): R }
     Str: {}
     """); }
+
+  @Test void shouldRejectRCInInlineDecl() { fail("""
+    In position [###]/Dummy0.fear:2:46
+    [E46 noMdfInFormalParams]
+    Modifiers are not allowed in declarations or implementation lists: mut X
+    """, """
+    package test
+    A: {.m[X:mut,read]: mut Foo[mut X] -> mut Foo[mut X]: {}}
+    """);}
+
+  @Test void shouldRejectInvalidFunnel() { fail("""
+    In position [###]/Dummy0.fear:2:54
+    [E57 invalidLambdaNameMdfBounds]
+    This lambda is missing/has an incompatible set of bounds for its type parameters:
+      X: read, mut
+    """, """
+    package test
+    A: {.m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]: {}}
+    """);}
+  @Test void shouldRejectValidFunnelBecauseNotMut() { fail("""
+    In position [###]/Dummy0.fear:2:59
+    [E37 noSubTypingRelationship]
+    There is no sub-typing relationship between iso test.Foo[X] and mut test.Foo[mut X].
+    """, """
+    package test
+    A: {.m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut,read]: {}}
+    """);}
 }

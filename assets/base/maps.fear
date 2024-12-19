@@ -13,7 +13,7 @@ EmptyMap[K:imm,V:*]: Map[K,V]{
   }
 
 Maps: Sealed{
-  .hashMap[K:imm,V:*](keyEq: read F[K,K,Bool],hash: F[K,read ToHash]): mut LinkedHashMap[K,V] -> Magic!,
+  .hashMap[K:imm,V:*](keyEq: read F[K,K,Bool], hash: F[K,read ToHash]): mut LinkedHashMap[K,V] -> Magic!,
   }
 LinkedHashMap[K:imm,V:*]: Map[K,V]{
   mut  .get(k: K): mut Opt[V],
@@ -37,7 +37,7 @@ LinkedHashMap[K:imm,V:*]: Map[K,V]{
   }
 Entry[K, V:*]: {
   read .key: K,
-  mut  .value: mut V,
+  mut  .value: V,
   read .value: read/imm V,
   }
 

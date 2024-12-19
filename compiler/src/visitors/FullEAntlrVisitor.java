@@ -78,7 +78,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     E root = visitAtomE(ctx.atomE());
     var calls = ctx.pOp();
     if(calls.isEmpty()){ return root; }
-    root = ParseDirectLambdaCall.of(root, xbs); 
+    root = ParseDirectLambdaCall.of(root, xbs);
     return visitAllPOp(calls).apply(root);
     }
   public Function<E,E> visitAllPOp(List<POpContext> pops){
@@ -125,10 +125,10 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     return f.apply(a);
     }
 
- 
+
   @Override public Optional<List<T>> visitActualGen(ActualGenContext ctx) {
     if(ctx.OS()==null){ return Optional.empty(); }
-    return Optional.of(ctx.t().stream().map(this::visitT).toList()); 
+    return Optional.of(ctx.t().stream().map(this::visitT).toList());
     }
   public record GenericParams(List<Id.GX<T>> gxs, Map<Id.GX<T>, Set<Mdf>> bounds) {
     public GenericParams{
@@ -230,7 +230,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
         block.ms(),                //List<Meth> meths
         Optional.ofNullable(it),  //Optional<Id.IT<T>> it
         Optional.of(pos(ctx))     //Optional<Pos> pos
-      );    
+      );
   }
   E.Lambda visitNamedLambda(LambdaContext ctx){
     Mdf mdf= opt(ctx.mdf(),this::visitMdf);
@@ -255,7 +255,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
       :ctx.t().stream()
         .map(ti->visitTNoMdf(ti))
         .map(ti->ti.match(
-          gx->{ 
+          gx->{
             throw Fail.expectedConcreteType(ti).pos(pos(ctx)); },
           iti->iti))
         .toList();
@@ -284,11 +284,11 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   String sugarName(String mName, String opName){
     if (mName!=null){
       assert mName.startsWith("::");
-      return "."+mName.substring(2); 
+      return "."+mName.substring(2);
       }
     assert opName!=null;
     if (!opName.startsWith("::")){ throw Bug.todo("better error"); }
-    return opName.substring(2);    
+    return opName.substring(2);
   }
   record XE(X x,E e){}
   XE computeSugarBlockStart(BblockContext ctx){
@@ -299,7 +299,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     E e= buildMCall(
       x, ctx.actualGen(), ctx.e(), ctx.atomE(),mName,
       ctx.x(),ctx.pOp(),pos(ctx));
-    return new XE(x,e);    
+    return new XE(x,e);
   }
   public BBlock visitSugarBlock(BblockContext ctx){
     XE xe=computeSugarBlockStart(ctx);
@@ -307,7 +307,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     List<POpContext> pop= ctx.pOp()==null?List.of():ctx.pOp();
     var popAlreadyAdded= ctx.x()!=null;
     E e= xe.e();
-    if (!popAlreadyAdded){ e = visitAllPOp(pop).apply(e); }    
+    if (!popAlreadyAdded){ e = visitAllPOp(pop).apply(e); }
     Meth m= new E.Meth(
       Optional.empty(), Optional.empty(), xs,
       Optional.of(e), Optional.of(pos(ctx)));
@@ -373,7 +373,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   }
   public T visitTNoMdf(TContext ctx) {
     if(ctx.mdf().getText().isEmpty()){ return visitT(ctx); }
-    throw Fail.noMdfInImplementedT(ctx.getText()).pos(pos(ctx));
+    throw Fail.noMdfInImplementedT(ctx.mdf().getText(), ctx.fullCN().getText()).pos(pos(ctx));
   }
   Optional<Id.IT<T>> fullNameIt(String name, List<T> ts){
     String pkgName= extractPackageName(name);
@@ -383,7 +383,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   Optional<Id.IT<T>> aliasIt(String name, List<T> ts){
     return resolve.apply(name)
       .map(it-> it.withTs(Push.of(it.ts(),ts)));
-  }  
+  }
   @Override public T visitT(TContext ctx) {
     String name = visitFullCN(ctx.fullCN());
     var ts= visitActualGen(ctx.actualGen()).orElse(List.of());

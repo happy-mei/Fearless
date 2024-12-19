@@ -3,7 +3,7 @@ package rt;
 import java.nio.ByteBuffer;
 
 public record CapTry(base.caps.System_0 sys) implements base.caps.CapTry_0 {
-	@Override public Fallible $hash$mut(base.caps.TryBody_1 try$) {
+	@Override public Fallible $hash$mut(base.F_1 try$) {
 		return res -> {
 			try { return res.ok$mut(try$.$hash$read()); }
 			catch(FearlessError _$err) { return res.info$mut(_$err.info); }
@@ -11,7 +11,7 @@ public record CapTry(base.caps.System_0 sys) implements base.caps.CapTry_0 {
 			catch(Throwable _$err) { return res.info$mut(base.Infos_0.$self.msg$imm(Str.fromJavaStr(_$err.getMessage()))); }
 		};
 	}
-	@Override public Fallible $hash$mut(Object data, base.caps.TryBody_2 try$) {
+	@Override public Fallible $hash$mut(Object data, base.F_2 try$) {
 		return res -> {
 			try { return res.ok$mut(try$.$hash$read(data)); }
 			catch(FearlessError _$err) { return res.info$mut(_$err.info); }
@@ -19,6 +19,7 @@ public record CapTry(base.caps.System_0 sys) implements base.caps.CapTry_0 {
 			catch(Throwable _$err) { return res.info$mut(base.Infos_0.$self.msg$imm(Str.fromJavaStr(_$err.getMessage()))); }
 		};
 	}
+	@Override public CapTry clone$mut() { return this; }
 	private static class StackOverflowedErrStr implements Str {
 		private static final Str $self = new StackOverflowedErrStr();
 		private static final ByteBuffer UTF8 = Str.wrap(new byte[]{83, 116, 97, 99, 107, 32, 111, 118, 101, 114, 102, 108, 111, 119, 101, 100});

@@ -28,9 +28,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public record Parser(Path fileName,String content){
-  public Parser of(String fileName){ return of(Paths.get(fileName)); }
+  public Parser {
+    assert fileName!=null;
+    assert content!=null;
+    content = content.replace("\r","");
+    preCheck(content);
+  }
+  public static Parser of(String fileName){ return of(Paths.get(fileName)); }
   public static final Path dummy = Path.of("Dummy.fear");
-  public Parser of(Path path){
+  public static Parser of(Path path){
     assert Files.exists(path);
     assert !Files.isDirectory(path);
     try{ return new Parser(path,codeFromPath(path)); }
@@ -38,8 +44,6 @@ public record Parser(Path fileName,String content){
   }
   public static String codeFromPath(Path path) throws IOException{
     String code = Files.readString(path,StandardCharsets.US_ASCII);
-    code = code.replace("\r","");
-    preCheck(code);
     return code;
   }
   public static void preCheck(String code){

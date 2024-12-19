@@ -498,7 +498,7 @@ class TestFullParser {
   @Test void noModifiersInImpls() { fail("""
     In position [###]/Dummy0.fear:3:2
     [E46 noMdfInImplementedT]
-    Modifiers are not allowed in declarations or implementation lists: mutA
+    Modifiers are not allowed in declarations or implementation lists: mut A
     """, """
     package test
     A:{}

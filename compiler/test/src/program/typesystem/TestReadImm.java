@@ -138,7 +138,7 @@ public class TestReadImm {
     var xbs = bounds.stream().map(Mdf::toString).collect(Collectors.joining(","));
     /*
     [E66 invalidMethodArgumentTypes]
-      Method .m/1 called in position [###] can not be called with current parameters of types:
+      Method .m/1 called in position [###] cannot be called with current parameters of types:
       [read X]
       Attempted signatures:
       [###]
@@ -167,7 +167,7 @@ public class TestReadImm {
     }
     /*
     [E66 invalidMethodArgumentTypes]
-      Method .m/1 called in position [###] can not be called with current parameters of types:
+      Method .m/1 called in position [###] cannot be called with current parameters of types:
       [read X]
       Attempted signatures:
       [###]

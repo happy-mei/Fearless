@@ -139,6 +139,9 @@ public final class DataParallelFlow implements Flow_1 {
   public Void_0 for$mut(F_2 f_m$) {
     return _TerminalOps_1.for$mut$fun(f_m$, this);
   }
+  public Void_0 forEffect$mut(MF_2 f_m$) {
+    return _TerminalOps_1.forEffect$mut$fun(f_m$, this);
+  }
 
   @Override
   public boolean equals(Object obj) {

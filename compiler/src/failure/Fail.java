@@ -172,7 +172,7 @@ public class Fail{
       "sigs", sigs,
       "expected", expected
     );
-    var msg= "Method " + e.name() + " called in position " + e.posOrUnknown() + " can not be called with current parameters of types: " + t1n;
+    var msg= "Method " + e.name() + " called in position " + e.posOrUnknown() + " cannot be called with current parameters of types: " + t1n;
     return of(msg+"\n"+sigs, attributes);
   }
 
@@ -275,8 +275,8 @@ public class Fail{
     return of("The isolated reference \""+x+"\" is used more than once.");
   }
 
-  public static CompileError noMdfInImplementedT(String ty) {
-    return of("Modifiers are not allowed in declarations or implementation lists: "+ty);
+  public static CompileError noMdfInImplementedT(String mdf, String ty) {
+    return of("Modifiers are not allowed in declarations or implementation lists: "+mdf+" "+ty);
   }
 
   public static CompileError mustProvideImplsIfMdfProvided() {
