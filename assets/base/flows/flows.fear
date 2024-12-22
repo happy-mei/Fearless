@@ -45,6 +45,10 @@ _NonTerminalOps[E]: {
   mut .map[R](f: read F[E, R]): mut Flow[R],
   mut .map[C,R](ctx: iso ToIso[C], f: read F[iso C, E, R]): mut Flow[R],
 
+  mut .peek(f: read F[E, Void]): mut Flow[E] -> this.map{e -> Block#(f#e, e)},
+  mut .peek[C](ctx: iso ToIso[C], f: read F[iso C, E, Void]): mut Flow[E] ->
+    this.map(ctx, {c, e -> Block#(f#(c, e), e)}),
+
   mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R],
   /// Combine this flow with another flow, producing a flow of pairs. The resulting flow will stop when either of the source
   /// flows stop.

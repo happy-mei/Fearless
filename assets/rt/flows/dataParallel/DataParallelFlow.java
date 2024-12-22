@@ -103,6 +103,13 @@ public final class DataParallelFlow implements Flow_1 {
     return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, source_m$, c, f_m$), this.size_m$);
   }
 
+  public Flow_1 peek$mut(F_2 f_m$) {
+    return _NonTerminalOps_1.peek$mut$fun(f_m$, this);
+  }
+  public Flow_1 peek$mut(ToIso_1 c, F_3 f_m$) {
+    return _NonTerminalOps_1.peek$mut$fun(c, f_m$, this);
+  }
+
   public Bool_0 any$mut(F_2 predicate_m$) {
     return _TerminalOps_1.any$mut$fun(predicate_m$, this);
   }
