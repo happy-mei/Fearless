@@ -291,7 +291,7 @@ public class TestInlineDecs {
     In position [###]/Dummy0.fear:2:54
     [E57 invalidLambdaNameMdfBounds]
     This lambda is missing/has an incompatible set of bounds for its type parameters:
-      X: read, mut
+      X: mut, read
     """, """
     package test
     A: {.m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]: {}}

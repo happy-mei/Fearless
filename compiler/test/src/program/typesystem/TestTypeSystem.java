@@ -770,7 +770,7 @@ public class TestTypeSystem {
   @Test void invalidBoundsOnInlineLambda() { fail("""
     In position [###]/Dummy0.fear:3:6
     [E5 invalidMdfBound]
-    The type mutH test.Foo[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut, imm.
+    The type mutH test.Foo[] is not valid because its capability is not in the required bounds. The allowed modifiers are: imm, mut.
     """, """
     package test
     A[X: imm, mut]:{}
@@ -781,11 +781,11 @@ public class TestTypeSystem {
     fail("""
       In position [###]/Dummy0.fear:10:21
       [E5 invalidMdfBound]
-      The type mutH base.B[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut, imm.
+      The type mutH base.B[] is not valid because its capability is not in the required bounds. The allowed modifiers are: imm, mut.
       
       In position [###]/Dummy0.fear:3:4
       [E5 invalidMdfBound]
-      The type mutH base.B[] is not valid because its capability is not in the required bounds. The allowed modifiers are: mut, imm.
+      The type mutH base.B[] is not valid because its capability is not in the required bounds. The allowed modifiers are: imm, mut.
       """, """
       package base
       // should also not pass with `mutH Ref[mutH B]`
