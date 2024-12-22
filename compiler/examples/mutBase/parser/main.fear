@@ -3,7 +3,7 @@ App:Main{ s -> Block#
   .let io = {UnrestrictedIO#s}
   .let[Str] input = {"123\n678\n"}
   .let parsed = {Parse#(input)}
-  .return {io.println(parsed.flow.join ", ")}
+  .return {io.println(parsed.flow.map[IO,Str](io.iso, {io',e -> Block#(io'.printlnErr e, e)}).join ", ")}
   }
 
 Parse: {#(input: Str): List[Str] -> input.flow
