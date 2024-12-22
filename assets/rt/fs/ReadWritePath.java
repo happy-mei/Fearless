@@ -49,7 +49,7 @@ public record ReadWritePath(Path inner) implements ReadWritePath_0 {
     };
   }
 
-  @Override public ReadWritePath clone$mut() {
+  @Override public ReadWritePath iso$mut() {
     return this;
   }
 }

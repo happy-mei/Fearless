@@ -1337,7 +1337,8 @@ public class TestJavaProgram {
       .accessR(_) -> Magic!,
       .accessW(_) -> Magic!,
       .accessRW(_) -> Magic!,
-      .clone -> iso FakeIO,
+      .env -> Magic!,
+      .iso -> iso FakeIO,
       }
     """, Base.mutBaseAliases); }
 
@@ -1642,4 +1643,17 @@ public class TestJavaProgram {
         .return {Void}
     }
     """);}
+
+  @Test void cannotGetMagicFromMockSystem() {ok(new Res("", "Program aborted at:[###]", 1), """
+    package test
+    Evil:{
+      .break: mut System -> {
+        .iso -> Abort!,
+        .rng -> Abort!,
+        .try -> Abort!,
+        .io -> Abort!,
+        },
+      }
+    Test: Main{_ -> UnrestrictedIO#(Evil.break).println "oh no"}
+    """, Base.mutBaseAliases);}
 }

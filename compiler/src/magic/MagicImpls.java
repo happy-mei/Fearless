@@ -21,7 +21,6 @@ public interface MagicImpls<R> {
     if (isMagic(Magic.MagicAbort, e)) { return Optional.ofNullable(magicAbort(e)); }
     if (isMagic(Magic.ErrorK, e)) { return Optional.ofNullable(errorK(e)); }
     if (isMagic(Magic.Try, e)) { return Optional.ofNullable(tryCatch(e)); }
-    if (isMagic(Magic.CapTryK, e)) { return Optional.ofNullable(capTryCatchK(e)); }
     if (isMagic(Magic.PipelineParallelSinkK, e)) { return Optional.ofNullable(pipelineParallelSinkK(e)); }
     if (isMagic(Magic.DataParallelFlowK, e)) { return Optional.ofNullable(dataParallelFlowK(e)); }
     if (isMagic(Magic.ListK, e)) { return Optional.ofNullable(listK(e)); }
@@ -32,11 +31,7 @@ public interface MagicImpls<R> {
     if (isMagic(Magic.UTF16, e)) { return Optional.ofNullable(utf16(e)); }
     if (isMagic(Magic.MapK, e)) { return Optional.ofNullable(mapK(e)); }
     if (isMagic(Magic.BlackBox, e)) { return Optional.ofNullable(blackBox(e)); }
-    return Magic.ObjectCaps.stream()
-      .filter(target->isMagic(target, e))
-      .map(target->Optional.ofNullable(objCap(target, e)))
-      .findAny()
-      .flatMap(o->o);
+    return Optional.empty();
   }
 
   default boolean isMagic(Id.DecId magicDec, MIR.E e) {
@@ -70,12 +65,10 @@ public interface MagicImpls<R> {
   default MagicTrait<MIR.E,R> magicAbort(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> errorK(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> tryCatch(MIR.E e) { return null; }
-  default MagicTrait<MIR.E,R> capTryCatchK(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> listK(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> flowRange(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> pipelineParallelSinkK(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> dataParallelFlowK(MIR.E e) { return null; }
-  default MagicTrait<MIR.E,R> objCap(Id.DecId magicTrait, MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> mapK(MIR.E e) { return null; }
   default MagicCallable<MIR.E,R> variantCall(MIR.E e) { return null; }
   ast.Program p();

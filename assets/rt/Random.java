@@ -12,5 +12,6 @@ public interface Random {
 			do { res = rt.Str.wrap(rng.generateSeed(8)).getLong(); } while (res == 0);
 			return res;
 		}
+		@Override public SeedGenerator iso$mut() { return this; }
 	}
 }

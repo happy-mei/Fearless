@@ -3,7 +3,7 @@ alias base.List[base.Str] as Path,
 
 /// Capability for reading and writing to files and devices, including stdout and stderr.
 /// This capability is for local IO, there is a different capability for network IO and IPC IO.
-IO: {
+IO: ToIso[IO]{
   mut .print(msg: Str): Void,
   mut .println(msg: Str): Void,
   mut .printErr(msg: Str): Void,
@@ -11,34 +11,21 @@ IO: {
   mut .accessR(path: Path): mut ReadPath,
   mut .accessW(path: Path): mut WritePath,
   mut .accessRW(path: Path): mut ReadWritePath,
-  mut .clone: iso IO,
+  mut .env: mut Env,
+  mut .iso: iso IO,
   }
-UnrestrictedIO: F[mut System, mut IO],Sealed{
-  s -> {
-    .print(msg) -> Magic!,
-    .println(msg) -> Magic!,
-    .printErr(msg) -> Magic!,
-    .printlnErr(msg) -> Magic!,
-    .accessR(path) -> Magic!,
-    .accessW(path) -> Magic!,
-    .accessRW(path) -> Magic!,
-    .clone -> UnrestrictedIO#(s.clone),
-    }
-  }
+UnrestrictedIO: F[mut System, mut IO],Sealed{sys -> sys.io}
 
-ReadPath: {
+ReadPath: ToIso[ReadPath]{
   mut .accessR(path: Path): mut ReadPath,
 //  mut .lines: mut Action[mut Flow[Str]],
   mut .readStr: mut Action[Str],
-  mut .clone: iso ReadPath,
   }
-WritePath: {
+WritePath: ToIso[WritePath]{
   mut .accessW(path: Path): mut WritePath,
-  mut .clone: iso WritePath,
   }
-ReadWritePath: ReadPath,WritePath{
+ReadWritePath: ReadPath,WritePath,ToIso[ReadWritePath]{
   mut .accessRW(path: Path): mut ReadWritePath,
-  mut .clone: iso ReadWritePath,
   }
 
 FileHandleMode:Stringable,Sealed{}

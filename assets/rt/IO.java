@@ -35,7 +35,8 @@ public final class IO implements base.caps.IO_0 {
 	@Override public ReadWritePath_0 accessRW$mut(List_1 path_m$) {
 		return new rt.fs.ReadWritePath(strListToPath(Path.of("").toAbsolutePath(), path_m$));
 	}
-	@Override public IO clone$mut() { return this; }
+	@Override public base.caps.Env_0 env$mut() { return rt.Env.$self; }
+	@Override public IO iso$mut() { return this; }
 
 	public static Path strListToPath(Path root, List_1 path) {
 		assert root.isAbsolute();
