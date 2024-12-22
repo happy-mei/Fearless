@@ -34,8 +34,14 @@ Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
   mut .only: mut Action[E] -> {res -> Block#
     .let found = {this.limit(2).list}
     .if {found.size == 1} .return {res.ok(found.get(0))}
-    .return {res.info(Infos.msg("Expected exactly one element, found " + (found.size.str)))}
+    .return {res.info(Infos.msg("Expected exactly one element, found at least " + (found.size.str)))}
     },
+  mut .get: E -> this.only!,
+  mut .opt: mut Opt[E] -> Block#
+    .let found = {this.limit(2).list}
+    .if {found.size > 1}
+      .error {Infos.msg("Expected exactly one element, found at least " + (found.size.str))}
+    .return {found.tryGet(0)},
   }
 _UnwrapFlowToken: {}
 
