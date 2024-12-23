@@ -105,15 +105,15 @@ public final class DataParallelFlow implements Flow_1 {
   public Flow_1 map$mut(F_2 f_m$) {
     return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, source_m$, f_m$), this.size_m$);
   }
-  public Flow_1 map$mut(ToIso_1 c, F_3 f_m$) {
-    return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, source_m$, c, f_m$), this.size_m$);
+  public Flow_1 map$mut(ToIso_1 c, F_2 rC, F_3 f_m$) {
+    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size).map$mut(c, rC, f_m$);
   }
 
   public Flow_1 peek$mut(F_2 f_m$) {
     return _NonTerminalOps_1.peek$mut$fun(f_m$, this);
   }
-  public Flow_1 peek$mut(ToIso_1 c, F_3 f_m$) {
-    return _NonTerminalOps_1.peek$mut$fun(c, f_m$, this);
+  public Flow_1 peek$mut(ToIso_1 c, F_2 rC, F_3 f_m$) {
+    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size).peek$mut(c, rC, f_m$);
   }
 
   public Bool_0 any$mut(F_2 predicate_m$) {

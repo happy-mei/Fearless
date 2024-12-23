@@ -12,7 +12,7 @@ _PipelineParallelFlow: _FlowFactory{
     .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
 
     .map(f) -> this.fromOp(_Map#(_PipelineParallelSink, source, f), size),
-    .map(c, f) -> this.fromOp(_Map#(_PipelineParallelSink, source, c, f), size),
+    .map(ctx, recoverCtx, f) -> this.fromOp(_Map#(_PipelineParallelSink, source, ctx, recoverCtx, f), size),
 
     .flatMap(f) -> this.fromOp(_FlatMap#(_PipelineParallelSink, source, f), {}),
     mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->

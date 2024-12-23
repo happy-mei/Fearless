@@ -49,11 +49,11 @@ _NonTerminalOps[E]: {
   mut .filter(predicate: read F[E, Bool]): mut Flow[E],
 
   mut .map[R](f: read F[E, R]): mut Flow[R],
-  mut .map[C,R](ctx: iso ToIso[C], f: read F[iso C, E, R]): mut Flow[R],
+  mut .map[C,R](ctx: iso ToIso[C], recoverCtx: read F[iso C, iso ToIso[C]], f: read F[iso C, E, R]): mut Flow[R],
 
   mut .peek(f: read F[E, Void]): mut Flow[E] -> this.map{e -> Block#(f#e, e)},
-  mut .peek[C](ctx: iso ToIso[C], f: read F[iso C, E, Void]): mut Flow[E] ->
-    this.map(ctx, {c, e -> Block#(f#(c, e), e)}),
+  mut .peek[C](ctx: iso ToIso[C], recoverCtx: read F[iso C, iso ToIso[C]], f: read F[iso C, E, Void]): mut Flow[E] ->
+    this.map(ctx, recoverCtx, {c, e -> Block#(f#(c, e), e)}),
 
   mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R],
   /// Combine this flow with another flow, producing a flow of pairs. The resulting flow will stop when either of the source
@@ -123,7 +123,7 @@ EmptyFlow[E]: Flow[E]{
   mut .with[EB](other: mut Flow[EB]): mut Flow[mut Pair[E,EB]] -> mut EmptyFlow[mut Pair[E,EB]],
 
   mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
-  .map(_,_) -> this.map({_ -> Unreachable!}),
+  .map(_,_,_) -> this.map({_ -> Unreachable!}),
 
   mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R] -> mut EmptyFlow[R],
   mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] -> mut EmptyFlow[imm R],
