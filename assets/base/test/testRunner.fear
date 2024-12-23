@@ -2,7 +2,7 @@ package base.test
 
 Main: AppMain{
   #(sys) -> Block#
-    .do {Block#(this.testMain(sys.iso, FTestRunner#(sys.iso)))}
+    .do {Block#(this.testMain(sys.iso.self, FTestRunner#(sys.iso.self)))}
     .return {Void},
   .testMain(system: iso System, runner: iso TestRunner): List[read TestResults]
   }
@@ -32,7 +32,7 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
       .return {results},
     mut .runDirectTests: mut List[TestResult] -> tests.iter
       .map{test -> Block#
-        .return {FTestResult#(test.title, try#(sys.iso, {sys' -> test.impl#sys'}).run{
+        .return {FTestResult#(test.title, try#(sys.iso.self, {sys' -> test.impl#sys'}).run{
           .ok(_) -> FTestResultKind.passed,
           .info(info) -> FTestResultKind.errored(info.str)
           })}

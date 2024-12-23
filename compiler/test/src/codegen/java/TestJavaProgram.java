@@ -1339,6 +1339,7 @@ public class TestJavaProgram {
       .accessRW(_) -> Magic!,
       .env -> Magic!,
       .iso -> iso FakeIO,
+      .self -> this,
       }
     """, Base.mutBaseAliases); }
 
@@ -1647,7 +1648,8 @@ public class TestJavaProgram {
   @Test void cannotGetMagicFromMockSystem() {ok(new Res("", "Program aborted at:[###]", 1), """
     package test
     Evil:{
-      .break: mut System -> {
+      .break: mut System -> {'sys
+        .self -> sys,
         .iso -> Abort!,
         .rng -> Abort!,
         .try -> Abort!,

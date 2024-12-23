@@ -13,5 +13,6 @@ public interface Random {
 			return res;
 		}
 		@Override public SeedGenerator iso$mut() { return this; }
+		@Override public SeedGenerator self$mut() { return this; }
 	}
 }

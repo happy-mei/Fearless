@@ -7,7 +7,7 @@ _SeqFlow: _FlowFactory{
     .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
 
     .map(f) -> this.fromOp(_Map#(_Sink, source, f), size),
-    .map(ctx, recoverCtx, f) -> this.fromOp(_Map#(_Sink, source, ctx, recoverCtx, f), size),
+    .map(ctx, f) -> this.fromOp(_Map#(_Sink, source, ctx, f), size),
 
     .flatMap(f) -> this.fromOp(_FlatMap#(_Sink, source, f), {}),
     mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->

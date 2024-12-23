@@ -41,7 +41,7 @@ Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso]: { mut #(a: A, b: B): Void }
 Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso]: { mut #(a: A, b: B, c: C): Void }
 
 ToImm[R]: {read .toImm: imm R}
-ToIso[R]: {mut .iso: iso R}
+ToIso[R]: {mut .iso: iso ToIso[R], mut .self: mut R,}
 
 Box[T]: {
   mut  .get: T,

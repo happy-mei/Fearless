@@ -16,15 +16,17 @@ IO: ToIso[IO]{
   }
 UnrestrictedIO: F[mut System, mut IO],Sealed{sys -> sys.io}
 
-ReadPath: ToIso[ReadPath]{
+ReadPath: _ReadPath,ToIso[ReadPath]{}
+_ReadPath: {
   mut .accessR(path: Path): mut ReadPath,
 //  mut .lines: mut Action[mut Flow[Str]],
   mut .readStr: mut Action[Str],
   }
-WritePath: ToIso[WritePath]{
+WritePath: _WritePath,ToIso[WritePath]{}
+_WritePath: {
   mut .accessW(path: Path): mut WritePath,
   }
-ReadWritePath: ReadPath,WritePath,ToIso[ReadWritePath]{
+ReadWritePath: _ReadPath,_WritePath,ToIso[ReadWritePath]{
   mut .accessRW(path: Path): mut ReadWritePath,
   }
 

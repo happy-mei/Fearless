@@ -334,7 +334,7 @@ public class TestFlowSemantics {
     package test
     Test: Main{sys -> Block#
       .let[Str] x = {Flow#[mut Nat](mut 1, mut 2, mut 3, mut 4)
-        .map[Ctx,Str](Ctxs#(Count.nat 0), {x->x}, {ctx, x -> ctx.n.str + (x.str)})
+        .map[Ctx,Str](Ctxs#(Count.nat 0), {ctx, x -> ctx.n.str + (x.str)})
         .join " "
         }
       .return {sys.io.println x}
@@ -342,6 +342,7 @@ public class TestFlowSemantics {
     Ctxs: F[mut Count[Nat], mut Ctx]{cs -> Block#
       .return {mut Ctx: base.ToIso[Ctx]{'ctx
         .iso -> Ctxs#(Count.nat(cs++)),
+        .self -> ctx,
         read .n: Nat -> cs.get,
         }}
       }
@@ -351,7 +352,7 @@ public class TestFlowSemantics {
     Test: Main{sys -> Block#
       .let[Str] x = {Flow#[Nat](1, 2, 3, 4)
         .limit(100)
-        .map[Ctx,Str](Ctxs#(Count.nat 0), {x->x}, {ctx, x -> ctx.n.str + (x.str)})
+        .map[Ctx,Str](Ctxs#(Count.nat 0), {ctx, x -> ctx.n.str + (x.str)})
         .join " "
         }
       .return {sys.io.println x}
@@ -359,6 +360,7 @@ public class TestFlowSemantics {
     Ctxs: F[mut Count[Nat], mut Ctx]{cs -> Block#
       .return {mut Ctx: base.ToIso[Ctx]{'ctx
         .iso -> Ctxs#(Count.nat(cs++)),
+        .self -> ctx,
         read .n: Nat -> cs.get,
         }}
       }
@@ -368,7 +370,7 @@ public class TestFlowSemantics {
     package test
     Test: Main{sys -> Block#
       .let[Str] x = {Flow#[Nat](1, 2, 3, 4)
-        .map[Ctx,Str](Ctxs#(Count.nat 0), {x->x}, {ctx, x -> ctx.n.str + (x.str)})
+        .map[Ctx,Str](Ctxs#(Count.nat 0), {ctx, x -> ctx.n.str + (x.str)})
         .join " "
         }
       .return {sys.io.println x}
@@ -376,6 +378,7 @@ public class TestFlowSemantics {
     Ctxs: F[mut Count[Nat], mut Ctx]{cs -> Block#
       .return {mut Ctx: base.ToIso[Ctx]{'ctx
         .iso -> Ctxs#(Count.nat(cs++)),
+        .self -> ctx,
         read .n: Nat -> cs.get,
         }}
       }
@@ -385,7 +388,7 @@ public class TestFlowSemantics {
     package test
     Test: Main{sys -> Block#
       .let[Str] x = {Flow#[mut Nat](mut 1, mut 2, mut 3, mut 4)
-        .map[Ctx,Str](Ctxs#0, {x->x}, {ctx, x -> ctx.n.str + (x.str)})
+        .map[Ctx,Str](Ctxs#0, {ctx, x -> ctx.n.str + (x.str)})
         .join " "
         }
       .return {sys.io.println x}
@@ -393,6 +396,7 @@ public class TestFlowSemantics {
     Ctxs: F[Nat, mut Ctx]{n -> Block#
       .return {mut Ctx: base.ToIso[Ctx]{'ctx
         .iso -> Ctxs#(n + 1),
+        .self -> ctx,
         read .n: Nat -> n,
         }}
       }
@@ -402,7 +406,7 @@ public class TestFlowSemantics {
     Test: Main{sys -> Block#
       .let[Str] x = {Flow#[Nat](1, 2, 3, 4)
         .limit(100)
-        .map[Ctx,Str](Ctxs#0, {x->x}, {ctx, x -> ctx.n.str + (x.str)})
+        .map[Ctx,Str](Ctxs#0, {ctx, x -> ctx.n.str + (x.str)})
         .join " "
         }
       .return {sys.io.println x}
@@ -410,6 +414,7 @@ public class TestFlowSemantics {
     Ctxs: F[Nat, mut Ctx]{n -> Block#
       .return {mut Ctx: base.ToIso[Ctx]{'ctx
         .iso -> Ctxs#(n + 1),
+        .self -> ctx,
         read .n: Nat -> n,
         }}
       }
@@ -419,7 +424,7 @@ public class TestFlowSemantics {
     package test
     Test: Main{sys -> Block#
       .let[Str] x = {Flow#[Nat](1, 2, 3, 4)
-        .map[Ctx,Str](Ctxs#0, {x->x}, {ctx, x -> ctx.n.str + (x.str)})
+        .map[Ctx,Str](Ctxs#0, {ctx, x -> ctx.n.str + (x.str)})
         .join " "
         }
       .return {sys.io.println x}
@@ -427,6 +432,7 @@ public class TestFlowSemantics {
     Ctxs: F[Nat, mut Ctx]{n -> Block#
       .return {mut Ctx: base.ToIso[Ctx]{'ctx
         .iso -> Ctxs#(n + 1),
+        .self -> ctx,
         read .n: Nat -> n,
         }}
       }

@@ -7,6 +7,7 @@ System: ToIso[System]{
   }
 _System: Sealed,System{
   .iso -> iso _System,
+  .self -> this,
   .io -> Magic!this,
   .rng -> Magic!this,
   .try -> Magic!this,

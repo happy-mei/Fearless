@@ -20,6 +20,7 @@ public final class CapTry implements base.caps.CapTry_0 {
 		};
 	}
 	@Override public CapTry iso$mut() { return this; }
+	@Override public CapTry self$mut() { return this; }
 	private static class StackOverflowedErrStr implements Str {
 		private static final Str $self = new StackOverflowedErrStr();
 		private static final ByteBuffer UTF8 = Str.wrap(new byte[]{83, 116, 97, 99, 107, 32, 111, 118, 101, 114, 102, 108, 111, 119, 101, 100});
