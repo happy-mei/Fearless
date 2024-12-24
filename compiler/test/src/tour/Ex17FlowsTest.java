@@ -775,4 +775,11 @@ public class Ex17FlowsTest {
       .forEffect{msg -> sys.io.print msg}
       }
     """, Base.mutBaseAliases);}
+  @Test void forEffectFold() {ok(new Res("01234", "", 0), """
+    package test
+    Test: Main{sys -> Block#(Flow.range(+0, +5)
+      .map{n -> n.str}
+      .fold(sys.io, {io, msg -> Block#(io.print msg, io)}))
+      }
+    """, Base.mutBaseAliases);}
 }
