@@ -782,4 +782,17 @@ public class Ex17FlowsTest {
       .fold(sys.io, {io, msg -> Block#(io.print msg, io)}))
       }
     """, Base.mutBaseAliases);}
+
+  @Test void noneTerminal() {ok(new Res(), """
+    package test
+    Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list))}
+    Foo: {
+      #(a: List[Int], b: List[Int]): Bool -> Block#
+        .assert {a.size == (b.size)}
+        .return {a.flow
+          .with(b.flow)
+          .none{ab -> (ab.a == (ab.b)).not}
+          }
+      }
+    """, Base.mutBaseAliases);}
 }

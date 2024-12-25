@@ -71,6 +71,9 @@ public final class DataParallelFlow implements Flow_1 {
   public Bool_0 all$mut(F_2 predicate_m$) {
     return _TerminalOps_1.all$mut$fun(predicate_m$, this);
   }
+  public Bool_0 none$mut(F_2 predicate_m$) {
+    return _TerminalOps_1.none$mut$fun(predicate_m$, this);
+  }
 
   public Flow_1 filter$mut(F_2 p_m$) {
     return $this.fromOp$imm(_Filter_0.$self.$hash$imm(_Sink_0.$self, source_m$, p_m$), Opt_1.$self);

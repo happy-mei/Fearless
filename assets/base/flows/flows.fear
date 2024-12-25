@@ -87,9 +87,10 @@ _TerminalOps[E]: Sealed{
   mut .all(predicate: read F[E, Bool]): Bool -> this
     .findMap{e -> predicate#e ? {.then -> {}, .else -> Opts#False}}
     .isEmpty,
+  mut .none(predicate: read F[E, Bool]): Bool -> this.all{e -> predicate#e.not},
   mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
   mut .forEffect(f: mut MF[E, Void]): Void -> this.list.iter.for{e -> f#e},
-  mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> Block#(acc.add(e), acc)}),
+  mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> acc + e}),
   mut .max(compare: read F[E, E, Ordering]): mut Opt[E] -> this.fold[mut Opt[E]]({}, {max, b -> max.match{
     .empty -> Opts#b,
     .some(a) -> compare#(a, b).match{
