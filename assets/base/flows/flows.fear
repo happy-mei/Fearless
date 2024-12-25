@@ -99,7 +99,7 @@ _TerminalOps[E]: Sealed{
       .greater -> max,
       }
     }})
-    }
+  }
 
 // TODO: move all of these extension methods onto the data-types, i.e. myflow#"," to join with "," or myflow#(Int.sum) for summing
 _FlowExtensions: {
