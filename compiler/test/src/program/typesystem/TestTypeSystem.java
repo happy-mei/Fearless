@@ -1406,4 +1406,11 @@ public class TestTypeSystem {
     Concrete: {#(y: mutH Foo, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[mutH Foo](y, isoF))}
     Foo: {}
     """);}
+
+  @Test void selfAlias() {ok("""
+    package test
+    alias test.Blah as Bloop,
+    Blah: {.m1: Bloop -> this}
+    Z: Bloop,Blah,Bloop{}
+    """);}
 }
