@@ -6,10 +6,12 @@ import id.Id;
 import magic.Magic;
 import magic.MagicImpls;
 import utils.Bug;
+import utils.Streams;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // TODO: also optimise Block#(...)
 public class BlockOptimisation implements
@@ -44,16 +46,19 @@ public class BlockOptimisation implements
     Optional<MIR.X> self
   ) {
     var stmts = new ArrayDeque<MIR.Block.BlockStmt>();
-    var res = flatten(call, stmts, self);
+    var eagerStmts = new ArrayDeque<MIR.Block.BlockStmt>();
+    var res = flatten(call, stmts, eagerStmts, self);
     if (res == FlattenStatus.INVALID) { return Optional.empty(); }
     if (validEndings.stream().noneMatch(c->c.isAssignableFrom(stmts.getLast().getClass()))) { return Optional.empty(); }
     assert res == FlattenStatus.FLATTENED;
-    return Optional.of(new MIR.Block(call, Collections.unmodifiableCollection(stmts), call.t()));
+    var allStmts = Stream.concat(eagerStmts.stream(), stmts.stream()).toList();
+    return Optional.of(new MIR.Block(call, allStmts, call.t()));
   }
 
   @Override public FlattenStatus flatten(
     MIR.E expr,
     Deque<MIR.Block.BlockStmt> stmts,
+    Deque<MIR.Block.BlockStmt> eagerStmts,
     Optional<MIR.X> self
   ) {
     return switch (expr) {
@@ -71,6 +76,12 @@ public class BlockOptimisation implements
             yield FlattenStatus.INVALID;
           }
           stmts.offerFirst(new MIR.Block.BlockStmt.Do(res.get()));
+        } else if (mCall.name().equals(new Id.MethName(".error", 1))) {
+          var res = this.visitReturn(mCall.args().getFirst());
+          if (res.isEmpty()) {
+            yield FlattenStatus.INVALID;
+          }
+          stmts.offerFirst(new MIR.Block.BlockStmt.Throw(res.get()));
         } else if (mCall.name().equals(new Id.MethName(".loop", 1))) {
           // We intentionally do not inline the block function because, often it is implemented with a Block itself,
           // so leaving it as a different function lets us apply this optimisation to it as well.
@@ -91,15 +102,36 @@ public class BlockOptimisation implements
             Optional.of(continuationCall.get().selfVar())
           );
           if (continuation.isEmpty()) { yield FlattenStatus.INVALID; }
+          stmts.offerFirst(new MIR.Block.BlockStmt.Let(continuationCall.get().var().name(), variable.get()));
+          continuation.get().stmts().forEach(stmts::offerLast);
+        } else if (mCall.name().equals(new Id.MethName(".var", 2))) {
+          var variable = this.visitReturn(mCall.args().getFirst());
+          var continuationCall = this.visitVarContinuation(mCall.args().get(1));
+          if (variable.isEmpty() || continuationCall.isEmpty()) {yield FlattenStatus.INVALID;}
+          var continuation = this.visitFluentCall(
+            continuationCall.get().continuationCall(),
+            List.of(MIR.Block.BlockStmt.Return.class, MIR.Block.BlockStmt.Do.class), // TODO: and .error when we have that
+            Optional.of(continuationCall.get().selfVar())
+          );
+          if (continuation.isEmpty()) {yield FlattenStatus.INVALID;}
           stmts.offerFirst(new MIR.Block.BlockStmt.Var(continuationCall.get().var().name(), variable.get()));
           continuation.get().stmts().forEach(stmts::offerLast);
+        } else if (mCall.name().equals(new Id.MethName(".openIso", 2))) {
+          var continuationCall = this.visitVarContinuation(mCall.args().get(1));
+          if (continuationCall.isEmpty()) {yield FlattenStatus.INVALID;}
+          var continuation = this.visitFluentCall(
+            continuationCall.get().continuationCall(),
+            List.of(MIR.Block.BlockStmt.Return.class, MIR.Block.BlockStmt.Do.class), // TODO: and .error when we have that
+            Optional.of(continuationCall.get().selfVar())
+          );
+          if (continuation.isEmpty()) {yield FlattenStatus.INVALID;}
+          eagerStmts.offerFirst(new MIR.Block.BlockStmt.Let(continuationCall.get().var().name(), mCall.args().getFirst()));
+          continuation.get().stmts().forEach(stmts::offerLast);
         } else {
-          // TODO: .error
           // TODO: .assert
-          // TODO: .letIso
           yield FlattenStatus.INVALID;
         }
-        yield flatten(mCall.recv(), stmts, self);
+        yield flatten(mCall.recv(), stmts, eagerStmts, self);
       }
       case MIR.BoolExpr _ -> throw Bug.todo();
       case MIR.X x -> self.filter(x::equals).map(_->FlattenStatus.FLATTENED).orElse(FlattenStatus.INVALID);

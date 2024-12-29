@@ -70,7 +70,7 @@ _PipelineParallelFlow: _FlowFactory{
 
     mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .letIso initialValueSupplier = acc
+      .openIso initialValueSupplier = acc
       .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
       .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(_PipelineParallelSink#[E]{

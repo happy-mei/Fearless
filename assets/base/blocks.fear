@@ -40,7 +40,7 @@ Block[R]: Sealed{
   mut .assert(p: mut Condition, failMsg: Str): mut Block[R] ->
     Assert!(p#, failMsg, mut AssertCont[mut Block[R]]{this}),
   mut .let[X](x: mut ReturnStmt[X], cont: mut Continuation[X, mut Block[R], R]): R -> cont#(x#, this),
-  mut .letIso[X:iso](x: X, cont: mut Continuation[mut X, mut Block[R], R]): R -> cont#(x, this),
+  mut .openIso[X:iso,imm,mut,read](x: iso X, cont: mut Continuation[mut X, mut Block[R], R]): R -> cont#(x, this),
   mut .var[X](x: mut ReturnStmt[X], cont: mut Continuation[mut Var[X], mut Block[R], R]): R -> cont#(Var#(x#), this),
 //  mut .isoPod[X:iso](x: mut ReturnStmt[X], cont: mut VarContinuation[mut IsoPod[X], R]): R -> cont#(IsoPod#(x#), this),
   mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond
@@ -72,7 +72,7 @@ _DecidedBlock:{
     .return(_) -> res,
     .do(_) -> self,
     .let(_, _) -> res,
-    .letIso(_, _) -> res,
+    .openIso(_, _) -> res,
     .var(_, _) -> res,
     .assert(_) -> self,
     .assert(_, _) -> self,

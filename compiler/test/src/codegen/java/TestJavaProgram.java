@@ -1362,7 +1362,27 @@ public class TestJavaProgram {
     package test
     Test: Main{sys -> Block#
       .if {True} .return {Void}
-      .letIso[iso Rez] x = (Block#(base.Debug#[Str]"hey", iso Rez))
+      .openIso[iso Rez] x = (Block#(base.Debug#[Str]"hey", iso Rez))
+      .return {Void}
+      }
+    Rez: {}
+    """, Base.mutBaseAliases); }
+  @Test void eagerCallEarlyExitMulti() { ok(new Res("", "hey", 0), """
+    package test
+    Test: Main{sys -> Block#
+      .if {True} .return {Void}
+      .openIso[iso Rez] x1 = (Block#(base.Debug#[Str]"hey", iso Rez))
+      .openIso[iso Rez] x2 = (Block#(base.Debug#[Str]"hey2", iso Rez))
+      .return {Void}
+      }
+    Rez: {}
+    """, Base.mutBaseAliases); }
+  @Test void eagerCallEarlyExitInCont() { ok(new Res("", "", 0), """
+    package test
+    Test: Main{sys -> Block#
+      .if {True} .return {Void}
+      .let[Nat] z = {54}
+      .openIso[iso Rez] x = (Block#(base.Debug#[Str]"hey", iso Rez))
       .return {Void}
       }
     Rez: {}

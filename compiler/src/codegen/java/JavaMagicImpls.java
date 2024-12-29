@@ -400,16 +400,7 @@ public record JavaMagicImpls(
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
           MIR.E x = args.getFirst();
-          return Optional.of(String.format("""
-            new base._MagicVarImpl_1(){
-              private Object x$ = %s;
-              public Object get$mut() { return this.x$; }
-              public Object get$read() { return this.x$; }
-              public Object swap$mut(Object x$) {
-                var y$ = this.x$; this.x$ = x$; return y$;
-                }
-            }
-            """, x.accept(gen, true)));
+          return Optional.of(String.format("new rt.Var(%s)", x.accept(gen, true)));
         }
         return Optional.empty();
       }

@@ -78,7 +78,7 @@ _Map: {
   // It would be unsound to call this with a non-iso `c` if this is run in parallel.
   // It's okay here because the public API of this library requires that `c` is iso.
   #[C,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], ctx: iso ToIso[C], f: read F[iso C, E, R]): mut FlowOp[R] -> Block#
-    .letIso ctx' = ctx
+    .openIso ctx' = ctx
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return  {{'op
       .step(downstream) -> sink.get.match{

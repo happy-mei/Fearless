@@ -908,7 +908,7 @@ Block[R]:{
   mut .assert(p: mut Condition, failMsg: Str): mut Block[R] ->
     Assert!(p#, failMsg, mut AssertCont[mut Block[R]]{this}),
   mut .let[X](x: mut ReturnStmt[X], cont: mut VarContinuation[X, R]): R -> cont#(x#, this),
-  mut .letIso[X:iso](x: X, cont: mut VarContinuation[mut X, R]): R -> cont#(x, this),
+  mut .openIso[X:iso](x: X, cont: mut VarContinuation[mut X, R]): R -> cont#(x, this),
   mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond
     .then -> { 't
       .return(a) -> _DecidedBlock#(a#),
@@ -2420,7 +2420,7 @@ alias base.Bool as Bool,
 
 FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
   _x,_inv->Block#
-   .letIso x = _x
+   .openIso x = _x
    .let[mut Repr[T]] res= {mut Repr[T:imm]:{'repr
     read .look[R](f:read F[read T,imm R]): imm R ->f#x,
     mut  .mutate[R](f:read F[mut T,imm R]): imm R -> Block#
@@ -2876,7 +2876,7 @@ alias base.Bool as Bool,
 
 FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
   _x,_inv->Block#
-   .letIso x = _x
+   .openIso x = _x
    .let[mut Repr[T]] res= {mut Repr[T:imm]:{'repr
     read .look[R](f:read F[read T,imm R]): imm R ->f#x,
     mut  .mutate[R](f:read F[mut T,imm R]): imm R -> Block#
