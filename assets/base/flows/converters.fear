@@ -8,9 +8,9 @@ _RestrictFlowReuse: {
     .var[Bool] isTail = {True}
     .return {{
       .unwrapOp(token) -> flow.unwrapOp(token),
-      mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+      mut .actorMut[S:*,R:*](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
         Block#(_CheckFlowReuse#isTail, flow.actorMut[S,R](state, f)),
-      mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+      mut .actor[S:*,R:*](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
         Block#(_CheckFlowReuse#isTail, flow.actor[S,R](state, f)),
       .first -> Block#(_CheckFlowReuse#isTail, flow.first),
       .filter(predicate) -> Block#(_CheckFlowReuse#isTail, flow.filter(predicate)),

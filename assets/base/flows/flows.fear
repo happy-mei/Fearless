@@ -48,7 +48,7 @@ _UnwrapFlowToken: {}
 _NonTerminalOps[E:*]: {
   mut .filter(predicate: read F[E, Bool]): mut Flow[E],
 
-  mut .map[R](f: read F[E, R]): mut Flow[R],
+  mut .map[R:*](f: read F[E, R]): mut Flow[R],
   mut .map[C,R:*](ctx: iso ToIso[C], f: read F[iso C, E, R]): mut Flow[R],
 
   mut .peek(f: read F[E, Void]): mut Flow[E] -> this.map{e -> Block#(f#e, e)},

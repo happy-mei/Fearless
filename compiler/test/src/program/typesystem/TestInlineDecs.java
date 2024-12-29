@@ -281,16 +281,16 @@ public class TestInlineDecs {
     """); }
 
   @Test void shouldRejectRCInInlineDecl() { fail("""
-    In position [###]/Dummy0.fear:2:46
-    [E46 noMdfInFormalParams]
-    Modifiers are not allowed in declarations or implementation lists: mut X
+    In position [###]/Dummy0.fear:2:52
+    [E59 syntaxError]
+    mismatched input ':' expecting {'}', ',', MName, SysInM}
     """, """
     package test
     A: {.m[X:mut,read]: mut Foo[mut X] -> mut Foo[mut X]: {}}
     """);}
 
   @Test void shouldRejectInvalidFunnel() { fail("""
-    In position [###]/Dummy0.fear:2:54
+    In position [###]/Dummy0.fear:2:42
     [E57 invalidLambdaNameMdfBounds]
     This lambda is missing/has an incompatible set of bounds for its type parameters:
       X: mut, read
@@ -299,7 +299,7 @@ public class TestInlineDecs {
     A: {.m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]: {}}
     """);}
   @Test void shouldRejectValidFunnelBecauseNotMut() { fail("""
-    In position [###]/Dummy0.fear:2:59
+    In position [###]/Dummy0.fear:2:42
     [E37 noSubTypingRelationship]
     There is no sub-typing relationship between iso test.Foo[X] and mut test.Foo[mut X].
     """, """

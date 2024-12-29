@@ -77,7 +77,7 @@ _Map: {
     this#[_EmptyCtx,E,R](sinkFactory, upstream, iso _EmptyCtx, {_,e -> f#e}),
   // It would be unsound to call this with a non-iso `c` if this is run in parallel.
   // It's okay here because the public API of this library requires that `c` is iso.
-  #[C:*,E:*,R:*](sinkFactory: _Sink, upstream: mut FlowOp[E], ctx: iso ToIso[C], f: read F[iso C, E, R]): mut FlowOp[R] -> Block#
+  #[C,E:*,R:*](sinkFactory: _Sink, upstream: mut FlowOp[E], ctx: iso ToIso[C], f: read F[iso C, E, R]): mut FlowOp[R] -> Block#
     .letIso ctx' = ctx
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return  {{'op
