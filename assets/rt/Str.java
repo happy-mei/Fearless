@@ -18,7 +18,7 @@ public interface Str extends base.Str_0 {
 	}
 	static String toJavaStr(ByteBuffer utf8) {
 		var dst = new byte[utf8.remaining()];
-		utf8.get(dst);
+		utf8.duplicate().get(dst);
 		return new String(dst, StandardCharsets.UTF_8);
 	}
 

@@ -36,10 +36,10 @@ public final class BufferSink implements _Sink_1 {
           assert toFlush.isEmpty() : toFlush;
           break;
         }
-        if (!(e instanceof FlusherElement.Sink sink)) {
+        if (!(e instanceof FlusherElement.Sink(BufferSink sink))) {
           throw new UnsupportedOperationException("Only stop tokens and buffer sinks are supported.");
         }
-        this.flush(sink.sink);
+        this.flush(sink);
       }
     }
     private void flush(BufferSink sink) {

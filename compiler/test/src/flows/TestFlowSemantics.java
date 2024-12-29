@@ -1,11 +1,10 @@
 package flows;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
-import static utils.RunOutput.Res;
 
 import static codegen.java.RunJavaProgramTests.ok;
+import static utils.RunOutput.Res;
 
 public class TestFlowSemantics {
   @Test void flowSum() {ok(new Res("60", "", 0), """

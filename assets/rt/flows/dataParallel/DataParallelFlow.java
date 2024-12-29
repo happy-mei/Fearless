@@ -3,8 +3,7 @@ package rt.flows.dataParallel;
 import base.*;
 import base.flows.*;
 import rt.flows.dataParallel.eod.EODWorker;
-import rt.flows.FlowCreator;
-import rt.flows.dataParallel.heartbeat.HeartbeatFlowWorker;
+import rt.flows.pipelineParallel.ConvertFromDataParallel;
 
 import java.util.Objects;
 
@@ -45,15 +44,15 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Flow_1 actorMut$mut(Object state_m$, ActorImplMut_3 f_m$) {
-    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size).actorMut$mut(state_m$, f_m$);
+    return ConvertFromDataParallel.of(this, size_m$).actorMut$mut(state_m$, f_m$);
   }
 
   public Flow_1 actor$mut(Object state_m$, ActorImpl_3 f_m$) {
-    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size).actor$mut(state_m$, f_m$);
+    return ConvertFromDataParallel.of(this, size_m$).actor$mut(state_m$, f_m$);
   }
 
   public Flow_1 limit$mut(long n_m$) {
-    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size).limit$mut(n_m$);
+    return ConvertFromDataParallel.of(this, size_m$).limit$mut(n_m$);
   }
 
   public Flow_1 with$mut(Flow_1 other_m$) {
@@ -95,31 +94,31 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Object fold$mut(MF_1 acc_m$, F_3 f_m$) {
-    return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).fold$mut(acc_m$, f_m$);
+    return _SeqFlow_0.$self.fromOp$imm(new DataParallelSource(), size_m$).fold$mut(acc_m$, f_m$);
   }
 
   public Action_1 only$mut() {
-    return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).only$mut();
+    return _SeqFlow_0.$self.fromOp$imm(new DataParallelSource(), size_m$).only$mut();
   }
   public Object get$mut() {
-    return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).get$mut();
+    return _SeqFlow_0.$self.fromOp$imm(new DataParallelSource(), size_m$).get$mut();
   }
   public Opt_1 opt$mut() {
-    return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).opt$mut();
+    return _SeqFlow_0.$self.fromOp$imm(new DataParallelSource(), size_m$).opt$mut();
   }
 
   public Flow_1 map$mut(F_2 f_m$) {
     return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, source_m$, f_m$), this.size_m$);
   }
   public Flow_1 map$mut(ToIso_1 c, F_3 f_m$) {
-    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size).map$mut(c, f_m$);
+    return ConvertFromDataParallel.of(this, size_m$).map$mut(c, f_m$);
   }
 
   public Flow_1 peek$mut(F_2 f_m$) {
     return _NonTerminalOps_1.peek$mut$fun(f_m$, this);
   }
   public Flow_1 peek$mut(ToIso_1 c, F_3 f_m$) {
-    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size).peek$mut(c, f_m$);
+    return ConvertFromDataParallel.of(this, size_m$).peek$mut(c, f_m$);
   }
 
   public Bool_0 any$mut(F_2 predicate_m$) {
@@ -191,8 +190,11 @@ public final class DataParallelFlow implements Flow_1 {
       "$this=" + $this + ']';
   }
 
+  public DataParallelSource getDataParallelSource() {
+    return new DataParallelSource();
+  }
 
-  private class ParallelSource implements FlowOp_1 {
+  public class DataParallelSource implements FlowOp_1 {
     @Override public Bool_0 isFinite$mut() {
       return source_m$.isFinite$mut();
     }
