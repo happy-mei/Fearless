@@ -113,6 +113,7 @@ public interface Base {
     alias base.Sealed as Sealed,
     alias base.Magic as Magic,
     alias base.F as F,
+    alias base.MF as MF,
     alias base.Consumer as Consumer,
     alias base.Let as Let,
     alias base.Void as Void,

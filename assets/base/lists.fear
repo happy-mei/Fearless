@@ -50,36 +50,53 @@ LList[E]:Collection,Sealed{
 
   mut  .flow: mut Flow[E] -> Block#
     .let cursor = {Var#this}
-    .return {Flow.fromMutSource(RestrictFlowReuse#{'op
+    .return {Flow.fromOp({'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> Block#
-        .return {(cursor.swap(cursor*.tail)).head.match{
-          .some(x) -> downstream#x,
+        .let cursor' = {cursor.swap(cursor*.tail)}
+        .do {cursor'.head.match{
+          .some(x) -> Block#
+            .do {downstream#x}
+            .if {cursor.get.isEmpty} .do {Block#(downstream.stop, op.stop)}
+            .return {Void},
           .empty -> Block#(downstream.stop, op.stop),
-          }},
-      })},
-  read .flow: mut Flow[read/imm E] -> Flow.fromOp[read/imm E](RestrictFlowReuse#(this._flowread)),
+          }}
+        .return {{}},
+      }, this.size)},
+  read .flow: mut Flow[read/imm E] -> Flow.fromOp[read/imm E](this._flowread, this.size),
   read ._flowread: mut FlowOp[read/imm E] -> Block#
     .let cursor = {Var#this}
     .return {mut FlowOp[read/imm E]{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
-      .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
-        .some(x) -> downstream#x,
-        .empty -> Block#(downstream.stop, op.stop),
-        },
+      .step(downstream) -> Block#
+        .let cursor' = {cursor.swap(cursor*.tail)}
+        .do {cursor'.head.match{
+          .some(x) -> Block#
+            .do {downstream#x}
+            .if {cursor.get.isEmpty} .do {Block#(downstream.stop, op.stop)}
+            .return {Void},
+          .empty -> Block#(downstream.stop, op.stop),
+          }}
+        .return {{}},
       }},
-  imm  .flow: mut Flow[imm E] -> Flow.fromOp[imm E](RestrictFlowReuse#(this._flowimm)),
+  imm  .flow: mut Flow[imm E] -> Flow.fromOp[imm E](this._flowimm, this.size),
   imm  ._flowimm: mut FlowOp[imm E] -> Block#
     .let cursor = {Var#this}
     .return {mut FlowOp[imm E]{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
-      .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
-        .some(x) -> downstream#x,
-        .empty -> Block#(downstream.stop, op.stop),
-        },
+      .step(downstream) -> Block#
+        .let cursor' = {cursor.swap(cursor*.tail)}
+        .do {cursor'.head.match{
+          .some(x) -> Block#
+            .do {downstream#x}
+            .if {cursor.get.isEmpty} .do {Block#(downstream.stop, op.stop)}
+            .return {Void},
+          .empty -> Block#(downstream.stop, op.stop),
+          }}
+        .return {{}},
       }},
 
   read .isEmpty: Bool -> True,
@@ -217,7 +234,7 @@ List[E]: Collection,Sealed{
 
   mut .flow: mut Flow[E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(0)}
-    .return {Flow.fromMutSource(RestrictFlowReuse#[E]{'self
+    .return {Flow.fromMutSource({'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
       .step(downstream) -> this.tryGet(cursor++).match{
@@ -227,8 +244,14 @@ List[E]: Collection,Sealed{
           .return {{}},
         .empty -> Block#(downstream.stop, self.stop),
         },
+        .forRemaining(downstream) -> Block#
+          .loop {Block#
+            .if {cursor.get >= (this.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+            .do {downstream#(this.get(cursor++))}
+            .return {ControlFlow.continue}
+            }.return {{}},
       }, this.size)},
-  read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread(0, this.size)), this.size),
+  read .flow: mut Flow[read/imm E] -> Flow.fromOp(this._flowread(0, this.size), this.size),
   read ._flowread(start: Nat, end: Nat): mut FlowOp[read/imm E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
@@ -242,6 +265,12 @@ List[E]: Collection,Sealed{
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
+      .forRemaining(downstream) -> Block#
+        .loop {Block#
+          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+          .do {downstream#(this.get(cursor++))}
+          .return {ControlFlow.continue}
+          }.return {{}},
       .split -> self.canSplit ? {
         .else -> {},
         .then -> Block#
@@ -252,7 +281,7 @@ List[E]: Collection,Sealed{
         },
       .canSplit -> endCursor.get - (cursor.get) > 1,
       }},
-  imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm(0, this.size)), this.size),
+  imm .flow: mut Flow[imm E] -> Flow.fromOp(this._flowimm(0, this.size), this.size),
   imm ._flowimm(start: Nat, end: Nat): mut FlowOp[imm E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
@@ -266,7 +295,12 @@ List[E]: Collection,Sealed{
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
-      // TODO: I could have a larger threshold check and refuse to split for lists that are too small here if I want
+      .forRemaining(downstream) -> Block#
+        .loop {Block#
+          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+          .do {downstream#(this.get(cursor++))}
+          .return {ControlFlow.continue}
+          }.return {{}},
       .split -> self.canSplit ? {
         .else -> {},
         .then -> Block#

@@ -16,7 +16,7 @@ Flow: Sealed, _FlowExtensions, _FlowConverters{
   // This variant of fromOp asks the compiler to emit code that collects the source into an intermediary list to
   // avoid any concurrent modification issues if they would be possible during the execution of the flow.
   .fromMutSource[E](source: mut FlowOp[E]): mut Flow[E] -> _MutSourceCollection[E]#source,
-  .fromMutSource[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _MutSourceCollection[E]#source,
+  .fromMutSource[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _MutSourceCollection[E]#(source, size),
   }
 
 Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
@@ -76,11 +76,13 @@ _TerminalOps[E]: Sealed{
 //  mut .action[R:iso,imm,mut,mutH,read,readH](terminalOp: read F[mut Flow[E],R]): mut Action[R] -> Todo!,
 
   mut .first: mut Opt[E],
+  mut .last: mut Opt[E] -> this.fold[mut Opt[E]]({{}}, {_, e -> Opts#e}),
   mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],
-  mut .fold[S](acc: S, f: read F[S,E,S]): S,
+  mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S,
   mut .size: Nat,
 
   mut .find(predicate: read F[E, Bool]): mut Opt[E] -> this.findMap{e -> predicate#e ? {.then -> Opts#e, .else -> {}}},
+  mut .first(predicate: read F[E, Bool]): mut Opt[E] -> this.find(predicate),
   mut .any(predicate: read F[E, Bool]): Bool -> this
     .findMap{e -> predicate#e ? {.then -> Opts#True, .else -> {}}}
     .isSome,
@@ -88,10 +90,10 @@ _TerminalOps[E]: Sealed{
     .findMap{e -> predicate#e ? {.then -> {}, .else -> Opts#False}}
     .isEmpty,
   mut .none(predicate: read F[E, Bool]): Bool -> this.all{e -> predicate#e.not},
-  mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
+  mut .for(f: read F[E, Void]): Void -> this.fold({Void}, {_, e -> f#e}),
   mut .forEffect(f: mut MF[E, Void]): Void -> this.list.iter.for{e -> f#e},
-  mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> acc + e}),
-  mut .max(compare: read F[E, E, Ordering]): mut Opt[E] -> this.fold[mut Opt[E]]({}, {max, b -> max.match{
+  mut .list: mut List[E] -> this.fold({List#[E]}, {acc, e -> acc + e}),
+  mut .max(compare: read F[E, E, Ordering]): mut Opt[E] -> this.fold[mut Opt[E]]({{}}, {max, b -> max.match{
     .empty -> Opts#b,
     .some(a) -> compare#(a, b).match{
       .less -> Opts#b,
@@ -103,14 +105,9 @@ _TerminalOps[E]: Sealed{
 
 // TODO: move all of these extension methods onto the data-types, i.e. myflow#"," to join with "," or myflow#(Int.sum) for summing
 _FlowExtensions: {
-  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold[Str]("", {acc, str -> acc.isEmpty ? {
-    .then -> acc + str,
-    .else -> acc + separator + str,
-    }})},
-
-  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int](+0, {acc, e -> acc + e})},
-  .uSum: mut Extension[mut Flow[Nat], Nat] -> {flow -> flow.fold[Nat](0, {acc, e -> acc + e})},
-  .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> flow.fold[Float](0.0, {acc, e -> acc + e})},
+  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int]({+0}, {acc, e -> acc + e})},
+  .uSum: mut Extension[mut Flow[Nat], Nat] -> {flow -> flow.fold[Nat]({0}, {acc, e -> acc + e})},
+  .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> flow.fold[Float]({0.0}, {acc, e -> acc + e})},
 
   .enumerate[E:imm]: mut Extension[mut Flow[E], mut Flow[Enumerated[E]]] -> {flow ->
     flow.actor[mut Count[Nat],Enumerated[E]](Count.nat(0), {downstream, i, e ->
@@ -135,7 +132,7 @@ EmptyFlow[E]: Flow[E]{
   .find(_) -> {},
   .any(p) -> False,
   .all(p) -> False,
-  .fold(acc, _) -> acc,
+  .fold(acc, _) -> acc#,
   .size -> 0,
   .unwrapOp(_) -> {
     .step(_) -> {},

@@ -6,7 +6,7 @@ _PipelineParallelSink: _Sink{
 _PipelineParallelSink[T]: _Sink[T]
 
 _PipelineParallelFlow: _FlowFactory{
-  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> _RestrictFlowReuse#{'self
     .unwrapOp(_) -> source,
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
@@ -68,9 +68,10 @@ _PipelineParallelFlow: _FlowFactory{
       .do {source.stop}
       .return {res.get},
 
-    mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
+    mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .let[mut Var[S]] acc' = {Var#acc}
+      .letIso initialValueSupplier = acc
+      .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
       .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(_PipelineParallelSink#[E]{
         #(e) -> acc' := (f#(acc'.get, e)),
@@ -85,7 +86,7 @@ _PipelineParallelFlow: _FlowFactory{
 
     .size -> size.match{
       .some(n) -> n,
-      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
+      .empty -> self.fold[Nat]({0}, {acc, _ -> acc + 1}),
       },
     },
 

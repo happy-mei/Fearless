@@ -19,8 +19,7 @@ public class TestFlowSemantics {
       }
     """, Base.mutBaseAliases);}
 
-  // TODO: currently leaving this broken because I want to change how this works
-  @Disabled("redo flow re-use impl") @Test void flowReuse() {ok(new Res("60", "Program crashed with: \"This flow cannot be reused.\"[###]", 1), """
+  @Test void flowReuse() {ok(new Res("", "Program crashed with: \"This flow cannot be reused. Consider collecting it to a list first.\"[###]", 1), """
     package test
     Test: Main{sys -> Block#
       .let[mut Flow[Nat]] x = {Flow#[Nat](1,2,3).map{x->x * 10}}
@@ -93,7 +92,7 @@ public class TestFlowSemantics {
           .do {next#(x.nat * 10)}
           .return {{}}
           })
-        .fold[Nat](0, {a, x -> a + x})
+        .fold[Nat]({0}, {a, x -> a + x})
         }
       .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(x.str)}
@@ -111,7 +110,7 @@ public class TestFlowSemantics {
           .do {next#(x.nat * 10)}
           .return {{}}
           })
-        .fold[Nat](0, {a, x -> a + x})
+        .fold[Nat]({0}, {a, x -> a + x})
         }
       .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(x.str)}
@@ -203,16 +202,16 @@ public class TestFlowSemantics {
       }
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
-  @Test void throwInAFlowBeforeStopParND() {ok(new Res("", "Program crashed with: Stack overflowed[###]", 1), """
+  @Test void throwInAFlowBeforeStopParND() {ok(new Res("", "Program crashed with: \"Stack overflowed\"[###]", 1), """
     package test
     Test: Main{sys -> Block#
-      .let x = {Flow#[Nat](1, 2, 3)
+      .let[Nat] sum = {sys.try#{Flow#[Nat](1, 2, 3)
         .map{x->Block#
           .if {x.nat == 2} .do {StackOverflow#}
           .return {x.nat * 10}
           }
-        }
-      .let[Nat] sum = {x#(Flow.uSum)}
+        #(Flow.uSum)
+        }!}
       .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(sum.str)}
       .return {{}}
@@ -296,7 +295,7 @@ public class TestFlowSemantics {
           .do {next#(x.nat * 10)}
           .return {{}}
           })
-        .fold[Nat](0, {a, x -> a + x})
+        .fold[Nat]({0}, {a, x -> a + x})
         }
       .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(x.str)}
@@ -313,7 +312,7 @@ public class TestFlowSemantics {
           .do {next#(x.nat * 10)}
           .return {{}}
           })
-        .fold[Nat](0, {a, x -> a + x})
+        .fold[Nat]({0}, {a, x -> a + x})
         }
       .let[mut IO] io = {UnrestrictedIO#sys}
       .do {io.println(x.str)}

@@ -1,7 +1,7 @@
 package base.flows
 
 _SeqFlow: _FlowFactory{
-  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> _RestrictFlowReuse#{'self
     .unwrapOp(_) -> source,
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
@@ -51,9 +51,10 @@ _SeqFlow: _FlowFactory{
       .do {source.stop}
       .return {res.get},
 
-    mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
+    mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .let[mut Var[S]] acc' = {Var#acc}
+      .letIso initialValueSupplier = acc
+      .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
       .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(mut _Sink[E]{
         .stop -> stopped := True,
@@ -68,13 +69,13 @@ _SeqFlow: _FlowFactory{
 
     .size -> size.match{
       .some(n) -> n,
-      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
+      .empty -> self.fold[Nat]({0}, {acc, _ -> acc + 1}),
       },
     },
 
   #[E](e: E): mut Flow[E] -> Block#
     .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
-    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
+    .let[mut FlowOp[E]] source = {{'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},
       .step(downstream) -> seq.swap(mut Opt[E]).match{
@@ -86,6 +87,5 @@ _SeqFlow: _FlowFactory{
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opts#[Nat]1)},
-//    .return {this.fromOp(source, Opts#1)},
+    .return {this.fromOp(source, Opts#1)},
   }

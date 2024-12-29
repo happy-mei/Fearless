@@ -1,56 +1,71 @@
 package base.flows
 
-Joinable[T]: { .join(flow: mut Flow[T]): T }
+Joinable[T,R]: {.join(flow: mut Flow[T]): R}
+Joinable[T]: Joinable[T,T]{}
 
-RestrictFlowReuse: {
-  #[E](f: mut FlowOp[E]): mut FlowOp[E] -> Block#
-    .var[Bool] stopped = {False}
+_RestrictFlowReuse: {
+  #[E](flow: mut Flow[E]): mut Flow[E] -> Block#
+    .var[Bool] isTail = {True}
     .return {{
-      .isRunning -> f.isRunning,
-      .stop -> Block#
-        .do {stopped := True}
-        .return {f.stop},
-      .step(downstream) -> stopped.get ? {
-        .then -> Error.msg "This flow cannot be reused.",
-        .else -> f.step(downstream),
-        },
-      .forRemaining(downstream) -> stopped.get ? {
-        .then -> Error.msg "This flow cannot be reused.",
-        .else -> f.forRemaining(downstream),
-        },
-      .isFinite -> f.isFinite,
-      .split -> stopped.get ? {
-        .then -> Error.msg "This flow cannot be reused.",
-        .else -> f.split.map{op -> RestrictFlowReuse#op},
-        },
-      }}
+      .unwrapOp(token) -> flow.unwrapOp(token),
+      mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+        Block#(_CheckFlowReuse#isTail, flow.actorMut[S,R](state, f)),
+      mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+        Block#(_CheckFlowReuse#isTail, flow.actor[S,R](state, f)),
+      .first -> Block#(_CheckFlowReuse#isTail, flow.first),
+      .filter(predicate) -> Block#(_CheckFlowReuse#isTail, flow.filter(predicate)),
+      .findMap(f) -> Block#(_CheckFlowReuse#isTail, flow.findMap(f)),
+      .flatMap(f) -> Block#(_CheckFlowReuse#isTail, flow.flatMap(f)),
+      .fold(acc, f) -> Block#(_CheckFlowReuse#isTail, flow.fold(acc, f)),
+      .limit(n) -> Block#(_CheckFlowReuse#isTail, flow.limit(n)),
+      .map(f) -> Block#(_CheckFlowReuse#isTail, flow.map(f)),
+      .map(ctx, f) -> Block#(_CheckFlowReuse#isTail, flow.map(ctx, f)),
+      .with(other) -> Block#(_CheckFlowReuse#isTail, flow.with(other)),
+      .size -> Block#(_CheckFlowReuse#isTail, flow.size),
+    }},
+  }
+_CheckFlowReuse: {
+  #(isTail: mut Var[Bool]): Void -> isTail.get ? {
+    .then -> isTail := False,
+    .else -> Error.msg "This flow cannot be reused. Consider collecting it to a list first.",
+    },
   }
 
 // Prevents any issues arising from someone mutating the thing the flow is going over
 // from within the flow itself. This is prevented by collecting the flow-source into a list and then
 // flowing on that instead.
 _MutSourceCollection[E]: {
-  #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#[mut FlowOp[E]]
-    .let[mut Var[mut Opt[mut FlowOp[E]]]] cloned = {Var#[mut Opt[mut FlowOp[E]]]{}}
+  #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(this.wrap(source)),
+  #(source: mut FlowOp[E], size: Nat): mut Flow[E] -> Flow.fromOp(this.wrap(source), size),
+  .wrap(source: mut FlowOp[E]): mut FlowOp[E] -> Block#
+    .var[mut Opt[mut FlowOp[E]]] cloned = {{}}
     .return{{
       .isRunning -> this.get(cloned, source).isRunning,
       .stop -> this.get(cloned, source).stop,
       .step(downstream) -> this.get(cloned, source).step(downstream),
-      }}),
+      }},
   .get(cloned: mut Var[mut Opt[mut FlowOp[E]]], original: mut FlowOp[E]): mut FlowOp[E] -> cloned.get.match{
      .some(cloned') -> cloned',
      .empty -> Block#
        .let[mut List[E]] dup = {Flow.fromOp(original).list}
        .do {cloned := (Opts#(Block#[mut FlowOp[E]]
          .let[mut Count[Nat]] cursor = {Count.nat(0)}
-         .return {RestrictFlowReuse#{'self
+         .return {{'self
            .isRunning -> cursor* < (dup.size),
            .stop -> cursor := (dup.size),
-           // TODO: also add .forRemaining
            .step(downstream) -> dup.tryGet(cursor++).match{
-             .some(x) -> downstream#x,
+             .some(x) -> Block#
+               .do {downstream#x}
+               .if {cursor.get >= (dup.size)} .do {Block#(downstream.stop, self.stop)}
+               .return {{}},
              .empty -> Block#(downstream.stop, self.stop),
              },
+           .forRemaining(downstream) -> Block#
+             .loop {Block#
+               .if {cursor.get >= (dup.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+               .do {downstream#(dup.get(cursor++))}
+               .return {ControlFlow.continue}
+               }.return {{}},
            }}))}
        .return{cloned.get!},
      },
@@ -61,7 +76,7 @@ _FlowConverters: Sealed{
 //  .range(start: Int, end: Int): mut Flow[Int] -> _PipelineParallelFlow.fromOp[Int](this.range'(start, end), Opts#((end - start).nat)),
 //  .range'(start: Int, end: Int): mut FlowOp[Int] -> Block#
 //    .let cursor = {Count.int(start)}
-//    .return {RestrictFlowReuse#{'self
+//    .return {{'self
 //      .isRunning -> cursor* < end,
 //      .stop -> cursor := end,
 //      .step(downstream) -> Block#
@@ -102,7 +117,7 @@ _SafeSource: {
   .fromList'[E](list: mut List[E], start: Nat, end: Nat): mut FlowOp[E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
-    .return {RestrictFlowReuse#{'self
+    .return {{'self
       .isRunning -> cursor* < (endCursor.get),
       .stop -> cursor := (endCursor.get),
       .step(downstream) -> cursor.get < (endCursor.get) ? {

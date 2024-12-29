@@ -28,6 +28,11 @@ public class FearlessMain {
 
     FAux.LAUNCH_ARGS = buildArgList(args, 1);
     var shutdownVPF = VPF.start(ConfigureVPF.getHeartbeatInterval());
+//    try {
+//      myMain.$hash$imm(new RealSystem());
+//    } finally {
+//      shutdownVPF.run();
+//    }
     try {
       myMain.$hash$imm(new RealSystem());
     } catch (StackOverflowError e) {
