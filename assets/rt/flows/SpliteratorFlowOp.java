@@ -2,14 +2,13 @@ package rt.flows;
 
 import base.*;
 import base.flows.FlowOp_1;
-import base.flows.RestrictFlowReuse_0;
 import base.flows._Sink_1;
 
 import java.util.Spliterator;
 
 public interface SpliteratorFlowOp {
   static <T> FlowOp_1 of(Spliterator<T> spliterator) {
-    return RestrictFlowReuse_0.$self.$hash$imm(new FlowOp_1() {
+    return new FlowOp_1() {
       boolean hasStopped = false;
       @Override public Bool_0 isFinite$mut() {
         return True_0.$self;
@@ -41,6 +40,6 @@ public interface SpliteratorFlowOp {
       @Override public Bool_0 canSplit$read() {
         return spliterator.estimateSize() > 1 ? True_0.$self : False_0.$self;
       }
-    });
+    };
   }
 }

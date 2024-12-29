@@ -684,7 +684,7 @@ public class TestJavaProgram {
           .flatMap{n -> List#(n, n, n).flow}
           .map{n -> n * 10}
           .map{n -> n.str}
-          #(Flow.str ",")}
+          .join(",")}
         .let io = {UnrestrictedIO#sys}
         .return {io.println(msg)}
         // prints 350,350,350,140,140,140
@@ -1337,7 +1337,9 @@ public class TestJavaProgram {
       .accessR(_) -> Magic!,
       .accessW(_) -> Magic!,
       .accessRW(_) -> Magic!,
-      .clone -> iso FakeIO,
+      .env -> Magic!,
+      .iso -> iso FakeIO,
+      .self -> this,
       }
     """, Base.mutBaseAliases); }
 
@@ -1644,4 +1646,69 @@ public class TestJavaProgram {
         .return {Void}
     }
     """);}
+
+  @Test void cannotGetMagicFromMockSystem() {ok(new Res("", "Program aborted at:[###]", 1), """
+    package test
+    Evil: {
+      .break: mut System -> {'sys
+        .self -> sys,
+        .iso -> Abort!,
+        .rng -> Abort!,
+        .try -> Abort!,
+        .io -> Abort!,
+        },
+      }
+    Test: Main{_ -> UnrestrictedIO#(Evil.break).println "oh no"}
+    """, Base.mutBaseAliases);}
+
+  @Test void noConcurrentModification() {ok(new Res("6", "", 0), """
+    package test
+    GetList: F[mut List[Nat]]{List# + 1 + 2 + 3 + 4}
+    Elem: {read .n: Nat, mut .list: mut List[mut Elem]}
+    BadMutation: {#: Nat -> Block#
+      .let[mut List[mut Elem]] l = {List#}
+      .do {l.add(mut Elem{.n -> 1, .list -> l})}
+      .do {l.add(mut Elem{.n -> 2, .list -> l})}
+      .do {l.add(mut Elem{.n -> 3, .list -> l})}
+      .return {l.iter
+        .fold[Nat](0, {acc, e -> acc + (e.n)})
+      }
+    }
+    
+    Test: Main{sys -> sys.io.println(BadMutation# .str)}
+    """, Base.mutBaseAliases);}
+  @Test void concurrentModification() {ok(new Res("", "Program crashed with: Stack overflowed[###]", 1), """
+    package test
+    GetList: F[mut List[Nat]]{List# + 1 + 2 + 3 + 4}
+    Elem: {read .n: Nat, mut .list: mut List[mut Elem]}
+    BadMutation: {#: Nat -> Block#
+      .let[mut List[mut Elem]] l = {List#}
+      .do {l.add(mut Elem{.n -> 1, .list -> l})}
+      .do {l.add(mut Elem{.n -> 2, .list -> l})}
+      .do {l.add(mut Elem{.n -> 3, .list -> l})}
+      .return {l.iter
+        .map{e -> Block#(e.list.add(e), e)}
+        .fold[Nat](0, {acc, e -> acc + (e.n)})
+      }
+    }
+    
+    Test: Main{sys -> sys.io.println(BadMutation# .str)}
+    """, Base.mutBaseAliases);}
+  @Test void noConcurrentModificationFlow() {ok(new Res("6", "", 0), """
+    package test
+    GetList: F[mut List[Nat]]{List# + 1 + 2 + 3 + 4}
+    Elem: {read .n: Nat, mut .list: mut List[mut Elem]}
+    BadMutation: {#: Nat -> Block#
+      .let[mut List[mut Elem]] l = {List#}
+      .do {l.add(mut Elem{.n -> 1, .list -> l})}
+      .do {l.add(mut Elem{.n -> 2, .list -> l})}
+      .do {l.add(mut Elem{.n -> 3, .list -> l})}
+      .return {l.flow
+        .map{e -> Block#(e.list.add(e), e)}
+        .fold[Nat]({0}, {acc, e -> acc + (e.n)})
+      }
+    }
+    
+    Test: Main{sys -> sys.io.println(BadMutation# .str)}
+    """, Base.mutBaseAliases);}
 }

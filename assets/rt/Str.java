@@ -86,7 +86,7 @@ public interface Str extends base.Str_0 {
 		return this.utf8().remaining() == 0 ? True_0.$self : False_0.$self;
 	}
 	@Override default Str join$imm(Flow_1 flow_m$) {
-		return (Str) flow_m$.fold$mut(new MutStr(EMPTY), (_acc, _str) -> {
+		return (Str) flow_m$.fold$mut(()->new MutStr(EMPTY), (_acc, _str) -> {
 			var acc = (MutStr) _acc;
 			var str = (Str) _str;
 			return acc.isEmpty$read() == True_0.$self ? acc.$plus$mut(str) : acc.$plus$mut(this).$plus$mut(str);
@@ -128,7 +128,7 @@ public interface Str extends base.Str_0 {
 		return Flow_0.$self.fromOp$imm(this._flow$imm(0, size), size);
 	}
 	default FlowOp_1 _flow$imm(long start, long end_) {
-		return RestrictFlowReuse_0.$self.$hash$imm(new FlowOp_1() {
+		return new FlowOp_1() {
 			long cur = start;
 			long end = end_;
 			@Override public Bool_0 isFinite$mut() {
@@ -168,7 +168,7 @@ public interface Str extends base.Str_0 {
 			@Override public Bool_0 canSplit$read() {
 				return this.end - this.cur > 1 ? True_0.$self : False_0.$self;
 			}
-		});
+		};
 	}
 
 	@Override default base.Hasher_0 hash$read(base.Hasher_0 hasher) {

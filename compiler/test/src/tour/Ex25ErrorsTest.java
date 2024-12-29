@@ -119,7 +119,7 @@ public class Ex25ErrorsTest {
     package test
     Test:Main{s -> Block#
       .let[mut IO] io = {UnrestrictedIO#s}
-      .return {io.println(Try#(io.clone, {io' -> Block#(io'.println("hiya"), Error.msg[Str] "rip")}).run{
+      .return {io.println(Try#(io.iso, {io' -> Block#(io'.println("hiya"), Error.msg[Str] "rip")}).run{
         .ok(res) -> res,
         .info(err) -> err.msg,
         })}
@@ -131,7 +131,7 @@ public class Ex25ErrorsTest {
     Test:Main{s -> Block#
       .let[mut IO] io = {UnrestrictedIO#s}
       .let[mut CapTry] try = {CapTrys#s}
-      .return {io.println(try#(io.clone, {io' -> Block#(io'.println("hiya"), Loop![Str])}).run{
+      .return {io.println(try#(io.iso, {io' -> Block#(io'.println("hiya"), Loop![Str])}).run{
         .ok(res) -> res,
         .info(err) -> err.str,
         })}

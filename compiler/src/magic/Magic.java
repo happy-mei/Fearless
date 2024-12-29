@@ -60,20 +60,6 @@ public class Magic {
 
   public static final Id.DecId MapK = new Id.DecId("base.Maps", 0);
 
-  // object capabilities
-  public static final Id.DecId SystemImpl = new Id.DecId("base.caps._System", 0);
-  public static final Id.DecId RootCap = new Id.DecId("base.caps.RootCap", 0);
-  public static final Id.DecId UnrestrictedIO = new Id.DecId("base.caps.UnrestrictedIO", 0);
-  public static final Id.DecId FEnv = new Id.DecId("base.caps.FEnv", 0);
-  public static final Id.DecId FRandomSeed = new Id.DecId("base.caps.FRandomSeed", 0);
-  public static final List<Id.DecId> ObjectCaps = List.of(
-    RootCap,
-    UnrestrictedIO,
-    FEnv,
-    Debug,
-    FRandomSeed
-  );
-
   public static astFull.T.Dec getFullDec(Function<Id.DecId, astFull.T.Dec> resolve, Id.DecId id) {
     var base = _getDec(resolve, id);
     return base.map(b -> b.withName(id)).orElse(null);
@@ -129,7 +115,7 @@ public class Magic {
     return kind.flatMap(k->k.validate(id.name()).map(Supplier::get));
   }
   static boolean strValidation(String input, char terminator){
-    boolean noBorders=input.length() < 2 
+    boolean noBorders=input.length() < 2
       || input.charAt(0) != terminator || input.charAt(input.length() - 1) != terminator;
     if (noBorders){ return false; }
     for (int i = 1; i < input.length() - 1; i++) {

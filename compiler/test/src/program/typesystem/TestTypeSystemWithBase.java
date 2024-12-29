@@ -203,15 +203,6 @@ public class TestTypeSystemWithBase {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void cannotCreateRootCapInCode1() { fail("""
-    In position [###]/Dummy0.fear:2:39
-    [E35 sealedCreation]
-    The sealed trait base.caps.System/0 cannot be implemented in a different package (test).
-    """, """
-    package test
-    Evil:{ .break: mut base.caps.System -> { this.break } }
-    """); }
-
   @Test void mutateInPlace() { ok("""
     package test
     Person:{ mut .name: mut Var[Str], mut .friends: mut List[Person] }

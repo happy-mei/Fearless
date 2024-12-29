@@ -58,7 +58,9 @@ public class Fail{
   public static CompileError conflictingDecls(List<Conflict> conflicts){return of(
     conflictingMsg("Trait names must be unique.", conflicts));}
 
-  public static CompileError uncomposableMethods(List<Conflict> conflicts) { return of(conflictingMsg("These methods could not be composed.", conflicts)); }
+  public static CompileError uncomposableMethods(List<Conflict> conflicts) {
+    return of(conflictingMsg("These methods could not be composed.", conflicts));
+  }
 
   public static CompileError conflictingMethParams(List<String> conflicts){return of(
     "Parameters on methods must have different names. The following parameters were conflicting: " + String.join(", ", conflicts));}

@@ -73,7 +73,12 @@ _Filter: {
       }}
   }
 _Map: {
-  #[E:*,R:*](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
+  #[E:*,R:*](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] ->
+    this#[_EmptyCtx,E,R](sinkFactory, upstream, iso _EmptyCtx, {_,e -> f#e}),
+  // It would be unsound to call this with a non-iso `c` if this is run in parallel.
+  // It's okay here because the public API of this library requires that `c` is iso.
+  #[C:*,E:*,R:*](sinkFactory: _Sink, upstream: mut FlowOp[E], ctx: iso ToIso[C], f: read F[iso C, E, R]): mut FlowOp[R] -> Block#
+    .letIso ctx' = ctx
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return  {{'op
       .step(downstream) -> sink.get.match{
@@ -81,7 +86,7 @@ _Map: {
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
-            #(e) -> downstream#(f#e),
+            #(e) -> downstream#(f#(ctx'.iso.self, e)),
             .pushError(info) -> downstream.pushError(info),
             })),
           upstream.step(sink.get!)
@@ -92,7 +97,7 @@ _Map: {
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
-            #(e) -> downstream#(f#e),
+            #(e) -> downstream#(f#(ctx'.iso.self, e)),
             .pushError(info) -> downstream.pushError(info),
             })),
           upstream.forRemaining(sink.get!)
@@ -100,7 +105,7 @@ _Map: {
         },
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
-      .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},
+      .split -> upstream.split.map{right -> this#[C,E,R](sinkFactory, right, ctx'.iso, f)},
     }}
   }
 _FlatMap: {

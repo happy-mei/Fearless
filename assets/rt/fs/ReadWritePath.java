@@ -17,6 +17,36 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
 public record ReadWritePath(Path inner) implements ReadWritePath_0 {
+  public static ReadPath_0 readPath(ReadWritePath_0 rwPath) {
+    return new ReadPath_0() {
+      @Override public ReadPath_0 accessR$mut(List_1 path) {
+        return rwPath.accessR$mut(path);
+      }
+      @Override public base.Action_1 readStr$mut() {
+        return rwPath.readStr$mut();
+      }
+      @Override public ReadPath_0 self$mut() {
+        return this;
+      }
+      @Override public ReadPath_0 iso$mut() {
+        return this;
+      }
+    };
+  }
+  public static WritePath_0 writePath(ReadWritePath_0 rwPath) {
+    return new WritePath_0() {
+      @Override public WritePath_0 accessW$mut(List_1 path) {
+        return rwPath.accessW$mut(path);
+      }
+      @Override public WritePath_0 self$mut() {
+        return this;
+      }
+      @Override public WritePath_0 iso$mut() {
+        return this;
+      }
+    };
+  }
+
   @Override public ReadWritePath_0 accessRW$mut(List_1 path) {
     var start = inner;
     var res = IO.strListToPath(start, path);
@@ -27,10 +57,10 @@ public record ReadWritePath(Path inner) implements ReadWritePath_0 {
     throw new FearlessError(Infos_0.$self.msg$imm(Str.fromJavaStr(msg)));
   }
   @Override public ReadPath_0 accessR$mut(List_1 path) {
-    return this.accessRW$mut(path);
+    return readPath(this.accessRW$mut(path));
   }
   @Override public WritePath_0 accessW$mut(List_1 path) {
-    return this.accessRW$mut(path);
+    return writePath(this.accessRW$mut(path));
   }
 
   @Override public Fallible readStr$mut() {
@@ -49,7 +79,10 @@ public record ReadWritePath(Path inner) implements ReadWritePath_0 {
     };
   }
 
-  @Override public ReadWritePath clone$mut() {
+  @Override public ReadWritePath iso$mut() {
+    return this;
+  }
+  @Override public ReadWritePath self$mut() {
     return this;
   }
 }

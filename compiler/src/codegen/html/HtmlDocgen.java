@@ -10,10 +10,7 @@ import utils.Streams;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,11 +39,11 @@ public class HtmlDocgen {
       return generatePage(pkgName, Optional.of("."), "<ul>"+links+"</ul>", "");
     }
   }
-  public record TraitDoc(Id.DecId traitName, T traitT, String content) {
+  public record TraitDoc(Id.DecId traitName, String formattedName, String content) {
     public String fileName() { return traitName.name().replace('.', '_')+"_"+traitName.gen()+".html"; }
     public String html(String links) {
       var pkgLink = pkgFileName(traitName.pkg());
-      return generatePage(formatT(traitT), Optional.of(pkgLink), "<ul>"+links+"</ul>", content);
+      return generatePage(formattedName, Optional.of(pkgLink), "<ul>"+links+"</ul>", content);
     }
   }
 
@@ -74,11 +71,25 @@ public class HtmlDocgen {
       .collect(Collectors.joining("\n"));
 
     String preCode= "<pre><code class=\"language-fearless code-block\">" + sigs + "</code></pre>";
-    return new TraitDoc(trait.name(), new T(trait.lambda().mdf(), trait.toIT()), preCode);
+
+    var traitName = new StringBuilder();
+    traitName.append(formatMdf(trait.lambda().mdf()));
+    traitName.append(trait.name().name());
+    if (!trait.gxs().isEmpty()) {
+      traitName.append('[');
+      var gens = trait.gxs().stream()
+        .map(gx->formatGenWithBounds(trait.bounds(), gx))
+        .collect(Collectors.joining(","));
+      traitName.append(gens);
+      traitName.append(']');
+    }
+    return new TraitDoc(trait.name(), traitName.toString(), preCode);
   }
 
   public String visitMeth(T.Dec parent, CM cm) {
-    var gens = cm.sig().gens().stream().map(Id.GX::name).collect(Collectors.joining(","));
+    var gens = cm.sig().gens().stream()
+      .map(gx-> formatGenWithBounds(cm.sig().bounds(), gx))
+      .collect(Collectors.joining(","));
     if (!gens.isEmpty()) { gens = "["+gens+"]"; }
     var args = Streams.zip(cm.xs(), cm.sig().ts())
       .map((x,t)->"%s: %s".formatted(x, formatT(t)))
@@ -102,6 +113,13 @@ public class HtmlDocgen {
       sig,
       attribution
     ).stripIndent();
+  }
+
+  private static String formatGenWithBounds(Map<Id.GX<T>, Set<Mdf>> bounds, Id.GX<T> gen) {
+    var xbs = bounds.get(gen);
+    if (xbs.isEmpty()) { return gen.name(); }
+    var boundsStr = xbs.stream().sorted().map(Mdf::toString).collect(Collectors.joining(","));
+    return "%s:%s".formatted(gen.name(), boundsStr);
   }
 
   private static String formatMdf(Mdf mdf) {

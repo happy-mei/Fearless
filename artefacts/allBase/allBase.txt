@@ -44,6 +44,7 @@ Opts: {
 Opt[T]: _Opt[T]{
   .match(m) -> m.empty,
   .map(f)   -> this.match(f),
+  .flatMap(f)   -> this.match(f),
   ||(default)     -> this.match{.some(x) -> x, .empty -> default#},
   |(default)      -> this.match{.some(x) -> x, .empty -> default},
   !         -> this.match{.some(x) -> x, .empty -> Error.msg "Opt was empty"},
@@ -61,6 +62,10 @@ _Opt[T]: Sealed{ // Sealed because potential magic on .flow
   mut  .map[R](f: mut OptMap[T, R]):          mut Opt[R],
   read .map[R](f: mut OptMap[read/imm T, R]): mut Opt[R],
   imm  .map[R](f: mut OptMap[imm T, R]):      mut Opt[R],
+
+  mut  .flatMap[R](f: mut OptFlatMap[T, R]):          mut Opt[R],
+  read .flatMap[R](f: mut OptFlatMap[read/imm T, R]): mut Opt[R],
+  imm  .flatMap[R](f: mut OptFlatMap[imm T, R]):      mut Opt[R],
 
   mut  ||(default: mut MF[T]):          T,
   read ||(default: mut MF[read/imm T]): read/imm T,
@@ -83,6 +88,11 @@ OptMatch[T,R:iso,imm,mut,mutH,read,readH]:{ mut .some(x: T): R, mut .empty: R }
 OptMap[T,R]:OptMatch[T, mut Opt[R]]{
   mut #(t: T): R,
   .some(x) -> Opts#(this#x),
+  .empty -> {}
+  }
+OptFlatMap[T,R]:OptMatch[T, mut Opt[R]]{
+  mut #(t: T): mut Opt[R],
+  .some(x) -> this#x,
   .empty -> {}
   }
 
@@ -135,36 +145,53 @@ LList[E]:Collection,Sealed{
 
   mut  .flow: mut Flow[E] -> Block#
     .let cursor = {Var#this}
-    .return {Flow.fromMutSource(RestrictFlowReuse#{'op
+    .return {Flow.fromOp({'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> Block#
-        .return {(cursor.swap(cursor*.tail)).head.match{
-          .some(x) -> downstream#x,
+        .let cursor' = {cursor.swap(cursor*.tail)}
+        .do {cursor'.head.match{
+          .some(x) -> Block#
+            .do {downstream#x}
+            .if {cursor.get.isEmpty} .do {Block#(downstream.stop, op.stop)}
+            .return {Void},
           .empty -> Block#(downstream.stop, op.stop),
-          }},
-      })},
-  read .flow: mut Flow[read/imm E] -> Flow.fromOp[read/imm E](RestrictFlowReuse#(this._flowread)),
+          }}
+        .return {{}},
+      }, this.size)},
+  read .flow: mut Flow[read/imm E] -> Flow.fromOp[read/imm E](this._flowread, this.size),
   read ._flowread: mut FlowOp[read/imm E] -> Block#
     .let cursor = {Var#this}
     .return {mut FlowOp[read/imm E]{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
-      .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
-        .some(x) -> downstream#x,
-        .empty -> Block#(downstream.stop, op.stop),
-        },
+      .step(downstream) -> Block#
+        .let cursor' = {cursor.swap(cursor*.tail)}
+        .do {cursor'.head.match{
+          .some(x) -> Block#
+            .do {downstream#x}
+            .if {cursor.get.isEmpty} .do {Block#(downstream.stop, op.stop)}
+            .return {Void},
+          .empty -> Block#(downstream.stop, op.stop),
+          }}
+        .return {{}},
       }},
-  imm  .flow: mut Flow[imm E] -> Flow.fromOp[imm E](RestrictFlowReuse#(this._flowimm)),
+  imm  .flow: mut Flow[imm E] -> Flow.fromOp[imm E](this._flowimm, this.size),
   imm  ._flowimm: mut FlowOp[imm E] -> Block#
     .let cursor = {Var#this}
     .return {mut FlowOp[imm E]{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
-      .step(downstream) -> (cursor.swap(cursor*.tail)).head.match{
-        .some(x) -> downstream#x,
-        .empty -> Block#(downstream.stop, op.stop),
-        },
+      .step(downstream) -> Block#
+        .let cursor' = {cursor.swap(cursor*.tail)}
+        .do {cursor'.head.match{
+          .some(x) -> Block#
+            .do {downstream#x}
+            .if {cursor.get.isEmpty} .do {Block#(downstream.stop, op.stop)}
+            .return {Void},
+          .empty -> Block#(downstream.stop, op.stop),
+          }}
+        .return {{}},
       }},
 
   read .isEmpty: Bool -> True,
@@ -233,7 +260,20 @@ List: Sealed{
   #[E](e1: E, e2: E): mut List[E] -> Magic!,
   #[E](e1: E, e2: E, e3: E): mut List[E] -> Magic!,
   #[E](e1: E, e2: E, e3: E, e4: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E, e12: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E, e12: E, e13: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E, e12: E, e13: E, e14: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E, e12: E, e13: E, e14: E, e15: E): mut List[E] -> Magic!,
+  #[E](e1: E, e2: E, e3: E, e4: E, e5: E, e6: E, e7: E, e8: E, e9: E, e10: E, e11: E, e12: E, e13: E, e14: E, e15: E, e16: E): mut List[E] -> Magic!,
   .fromLList[E](list: mut LList[E]): mut List[E] -> Magic!,
+  .withCapacity[E](capacity: Nat): mut List[E] -> Magic!,
   }
 List[E]: Collection,Sealed{
   mut  .get(i: Nat): E,
@@ -245,14 +285,33 @@ List[E]: Collection,Sealed{
   imm  .tryGet(i: Nat): mut Opt[imm E],
 
   mut .add(e: E): Void,
-  mut .addAnd(e: E): mut List[E] -> Block#(this.add(e), this),
+  mut +(e: E): mut List[E] -> Block#(this.add(e), this),
   mut .addAll(other: mut List[E]): Void -> other.iter.for{e -> this.add(e)},
 
   mut .clear: Void,
 
+  mut  ==(eq: read F[E, E, Bool], other: mut List[E]): Bool ->
+    this.size == (other.size)
+    && {this.flow
+      .with(other.flow)
+      .all{ab -> eq#(ab.a, ab.b)}
+      },
+  read ==(eq: read F[read/imm E, read/imm E, Bool], other: read List[E]): Bool ->
+    this.size == (other.size)
+    && {this.flow
+      .with(other.flow)
+      .all{ab -> eq#(ab.a, ab.b)}
+      },
+  imm  ==(eq: F[imm E, imm E, Bool], other: List[E]): Bool ->
+    this.size == (other.size)
+    && {this.flow
+      .with(other.flow)
+      .all{ab -> eq#(ab.a, ab.b)}
+      },
+
   mut .flow: mut Flow[E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(0)}
-    .return {Flow.fromMutSource(RestrictFlowReuse#[E]{'self
+    .return {Flow.fromMutSource({'self
       .isRunning -> cursor* < (this.size),
       .stop -> cursor := (this.size),
       .step(downstream) -> this.tryGet(cursor++).match{
@@ -262,8 +321,14 @@ List[E]: Collection,Sealed{
           .return {{}},
         .empty -> Block#(downstream.stop, self.stop),
         },
+        .forRemaining(downstream) -> Block#
+          .loop {Block#
+            .if {cursor.get >= (this.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+            .do {downstream#(this.get(cursor++))}
+            .return {ControlFlow.continue}
+            }.return {{}},
       }, this.size)},
-  read .flow: mut Flow[read/imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowread(0, this.size)), this.size),
+  read .flow: mut Flow[read/imm E] -> Flow.fromOp(this._flowread(0, this.size), this.size),
   read ._flowread(start: Nat, end: Nat): mut FlowOp[read/imm E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
@@ -277,6 +342,12 @@ List[E]: Collection,Sealed{
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
+      .forRemaining(downstream) -> Block#
+        .loop {Block#
+          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+          .do {downstream#(this.get(cursor++))}
+          .return {ControlFlow.continue}
+          }.return {{}},
       .split -> self.canSplit ? {
         .else -> {},
         .then -> Block#
@@ -287,7 +358,7 @@ List[E]: Collection,Sealed{
         },
       .canSplit -> endCursor.get - (cursor.get) > 1,
       }},
-  imm .flow: mut Flow[imm E] -> Flow.fromOp(RestrictFlowReuse#(this._flowimm(0, this.size)), this.size),
+  imm .flow: mut Flow[imm E] -> Flow.fromOp(this._flowimm(0, this.size), this.size),
   imm ._flowimm(start: Nat, end: Nat): mut FlowOp[imm E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
@@ -301,6 +372,12 @@ List[E]: Collection,Sealed{
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
+      .forRemaining(downstream) -> Block#
+        .loop {Block#
+          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+          .do {downstream#(this.get(cursor++))}
+          .return {ControlFlow.continue}
+          }.return {{}},
       .split -> self.canSplit ? {
         .else -> {},
         .then -> Block#
@@ -326,39 +403,114 @@ List[E]: Collection,Sealed{
     },
   }
 
-AppendList[E]: Collection{
-  mut  .get(i: Nat): mut Opt[E],
-  read .get(i: Nat): mut Opt[read E],
-  imm  .get(i: Nat): iso Opt[imm E],
-  mut .append(e: E): Void,
+ListView[E]: List[E]{
+  read .inner: read List[E],
+  read .expose(list: mut List[E], i: Nat): E,
+  read .tryExpose(list: mut List[E], i: Nat): mut Opt[E],
+  }
+ListViews: {
+  .subList[E](list: read List[E], from: Nat, to: Nat): read ListView[E] -> Block#
+    .assert({from <= to}, "Invalid range for the list proxy, "+(from.str)+" is greater than "+(to.str))
+    .assert({to <= (list.size)}, "Invalid range for the list proxy, "+(to.str)+" is greater than the list size ("+(list.size.str)+")")
+    .return {{'self
+      .inner -> list,
+      .size -> to - from,
+      .isEmpty -> self.size == 0,
+      .expose(rawList, i) -> i < (self.size) ? {
+        .then -> rawList.get(from + i),
+        .else -> Error.msg("Index "+(i.str)+" is out of bounds for this list")
+        },
+      .tryExpose(rawList, i) -> i < (self.size) ? {
+        .then -> rawList.tryGet(from + i),
+        .else -> {}
+        },
+      read .get(i: Nat): read/imm E -> i < (self.size) ? {
+        .then -> list.get(from + i),
+        .else -> Error.msg("Index "+(i.str)+" is out of bounds for this list")
+        },
+      imm  .get(i: Nat): imm E -> i < (self.size) ? {
+        .then -> list.get(from + i),
+        .else -> Error.msg("Index "+(i.str)+" is out of bounds for this list")
+        },
+      read .tryGet(i: Nat): mut Opt[read/imm E] -> i < (self.size) ? {
+        .then -> list.tryGet(from + i),
+        .else -> {}
+        },
+      imm  .tryGet(i: Nat): mut Opt[imm E] -> i < (self.size) ? {
+        .then -> list.tryGet(from + i),
+        .else -> {}
+        },
+      }},
+
+  .indexMap[E](list: read List[E], mappings: List[Nat]): read ListView[E] -> Block#
+    .assert({mappings.size == (list.size)}, "The mappings list must be the same size as the original list ("+(mappings.size.str)+" vs. "+(list.size.str)+")")
+    .return {{'self
+      .inner -> list,
+      .size -> list.size,
+      .isEmpty -> list.isEmpty,
+      .expose(rawList, i) -> Assert!(
+        rawList.size == (mappings.size), "The provided list must be the same size as the list this is proxying ("+(rawList.size.str)+" vs. "+(mappings.size.str)+")",
+        {rawList.get(mappings.get(i))}
+        ),
+      .tryExpose(rawList, i) -> mappings.tryGet(i).flatMap{i' -> rawList.tryGet(i')},
+      .get(i) -> list.get(mappings.get(i)),
+      read .tryGet(i: Nat): mut Opt[read/imm E] -> mappings.tryGet(i).flatMap{i' -> list.tryGet(i')},
+      imm  .tryGet(i: Nat): mut Opt[imm E] -> mappings.tryGet(i).flatMap{i' -> list.tryGet(i')},
+      }},
   }
 
 //---File pkg.fear
 package base
 alias base.iter.Iter as Iter,
+alias base.json.Json as Json,
+alias base.json.Jsons as Jsons,
 
 //---File strings.fear
 package base
 Str: Sealed,Stringable,base.flows.Joinable[Str],ToHash{
+  read .isEmpty: Bool,
   .size: Nat,
-  .isEmpty: Bool,
   +(other: read Stringable): Str,
   ==(other: Str): Bool,
   !=(other: Str): Bool,
+  .startsWith(other: Str): Bool,
   .assertEq(other: Str): Void,
   .assertEq(message: Str, other: Str): Void,
   .substring(start: Nat, end: Nat): Str,
   .charAt(index: Nat): Str,
   .normalise: Str,
-  mut .append(other: read Stringable): mut Str,
+  mut .append(other: read Stringable): Void,
+  mut +(other: read Stringable): mut Str,
   mut .clear: Void,
   .flow: mut Flow[Str],
-  ._flow: mut FlowOp[Str],
-  ._flow(start: Nat, end: Nat): mut FlowOp[Str],
+
+  .float: mut Action[Float],
+  .utf8: List[Byte],
   }
 
 Stringable: {
   read .str: Str,
+  }
+
+UTF16: Sealed{
+  .fromCodePoint(codePoint: Nat): Str -> Magic!,
+  .isSurrogate(codePoint: Nat): Bool -> codePoint >= 55296 & (codePoint < 57344),
+  .fromSurrogatePair(high: Nat, low: Nat): Str -> Magic!,
+  }
+
+UTF8: Sealed{
+  .fromBytes(utf8Bytes: read List[Byte]): mut Action[Str] -> Magic!,
+  }
+
+AtomiseStr: {
+  #(raw: Str): mut Flow[Str] -> raw.utf8.flow
+    .actor[mut List[Byte], Str](List#, {downstream, buffer, byte -> Block#
+      .do {buffer.add(byte)}
+      .return {UTF8.fromBytes(buffer).run{
+        .ok(str) -> Block#(buffer.clear, downstream#str, {}),
+        .info(_) -> {},
+        }}
+      }),
   }
 
 SimpleStr: Str
@@ -371,6 +523,7 @@ _StrInstance: Str{
   +(other) -> Magic!,
   ==(other) -> Magic!,
   !=(other) -> Magic!,
+  .startsWith(other) -> Magic!,
   .assertEq(other) -> Magic!,
   .assertEq(other, message) -> Magic!,
   .str -> Magic!,
@@ -381,9 +534,9 @@ _StrInstance: Str{
   .clear -> Magic!,
   .flow -> Magic!,
   .join(_) -> Magic!,
-  ._flow -> Magic!,
-  ._flow(_,_) -> Magic!,
-  .hash -> Magic!,
+  .hash(h) -> Magic!,
+  .float -> Magic!,
+  .utf8 -> Magic!,
   }
 
 _StrHelpers: {
@@ -460,7 +613,9 @@ Hasher: {
   mut .nat(x: read Nat): mut Hasher,
   mut .int(x: read Int): mut Hasher,
   mut .float(x: read Float): mut Hasher,
+  mut .byte(x: read Byte): mut Hasher,
   mut .str(x: read Str): mut Hasher,
+  mut .hash(x: read ToHash): mut Hasher -> x.hash(this),
   }
 
 CheapHash: Hasher{
@@ -468,32 +623,65 @@ CheapHash: Hasher{
   .nat(x) -> Magic!,
   .int(x) -> Magic!,
   .float(x) -> Magic!,
+  .byte(x) -> Magic!,
   .str(x) -> Magic!,
   }
 
 //---File maps.fear
 package base
 
-Map[K:imm, V]:{
+Map[K:imm,V]: {
   read .keyEq(k1: K, k2: K): Bool,
   imm  .get(k: K): mut Opt[imm V] -> {},
+  read .get(k: K): mut Opt[read/imm V] -> {},
   read .isEmpty: Bool -> True,
   }
 
-EmptyMap[K:imm,V]:Map[K, V]{
+EmptyMap[K:imm,V]: Map[K,V]{
   .keyEq(k1, k2) -> False,
   .get(k) -> {},
+  }
+
+Maps: Sealed{
+  .hashMap[K:imm,V](keyEq: read F[K,K,Bool], hash: F[K,read ToHash]): mut LinkedHashMap[K,V] -> Magic!,
+  }
+LinkedHashMap[K:imm,V]: Map[K,V]{
+  mut  .get(k: K): mut Opt[V],
+  imm  .get(k: K): mut Opt[imm V],
+  read .get(k: K): mut Opt[read/imm V],
+
+  mut .remove(k: K): mut Opt[V],
+  mut .clear: Void,
+  mut +(k: K, v: V): mut LinkedHashMap[K,V],
+  mut .put(k: K, v: V): Void -> Block#(this + (k,v)),
+
+  read .keys: mut Flow[imm K],
+
+  mut  .values: mut Flow[V],
+  imm  .values: mut Flow[imm V],
+  read .values: mut Flow[read/imm V],
+
+  mut  .flowMut: mut Flow[mut Entry[K,V]],
+  imm  .flow: mut Flow[imm Entry[K,V]],
+  read .flow: mut Flow[read Entry[K,V]],
+  }
+Entry[K:imm,V]: {
+  read .key: K,
+  mut  .value: V,
+  read .value: read/imm V,
   }
 
 Lens[K: imm, V]:Map[K, imm V]{
   .put(k: K, v: imm V): mut Lens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
-    .get(k') -> next.keyEq(k, k') ? {.then -> Opts#v, .else -> this.get(k')},
+    imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#v, .else -> this.get(k')},
     .isEmpty -> False,
     },
   .map[R](f: MapMapImm[K, imm V, imm R]): Lens[K, imm R] -> {
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
-    .get(k) -> this.get(k).map{res -> f#(k, res)},
+    imm  .get(k: K): mut Opt[imm R] -> this.get(k).map{res -> f#(k, res)},
+    read .get(k: K): mut Opt[imm R] -> this.get(k).map{res -> f#(k, res)},
     .isEmpty -> this.isEmpty,
     },
   }
@@ -501,14 +689,14 @@ Lens[K: imm, V]:Map[K, imm V]{
 LinkedLens[K:imm, V]:Map[K, V]{
   imm  .get(k: K): mut Opt[imm V] -> {},
   mut  .get(k: K): mut Opt[V] -> {},
-  read .get(k: K): mut Opt[read V] -> {},
+  read .get(k: K): mut Opt[read/imm V] -> {},
 
   imm  .put(k: K, v: imm V): imm LinkedLens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
-    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {
-      .then -> Opts#[read V]v,
-      .else -> this.get(k').match{.some(v') -> Opts#[read V]v', .empty -> mut Opt[read V]},
+    read .get(k': K): mut Opt[read/imm V] -> next.keyEq(k, k') ? {
+      .then -> Opts#[read/imm V]v,
+      .else -> this.get(k').match{.some(v') -> Opts#[read/imm V]v', .empty -> mut Opt[read/imm V]},
       },
     .isEmpty -> False,
     },
@@ -516,40 +704,40 @@ LinkedLens[K:imm, V]:Map[K, V]{
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
     mut  .get(k': K): mut Opt[V] -> next.keyEq(k, k') ? {.then -> Opts#v, .else -> this.get(k')},
-    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[read/imm V] -> next.keyEq(k, k') ? {.then -> Opts#[read/imm V]v, .else -> this.get(k')},
     .isEmpty -> False,
     },
   read .put(k: K, v: V): read LinkedLens[K, V] -> {'next
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k': K): mut Opt[imm V] -> next.keyEq(k, k') ? {.then -> Opts#[imm V]v, .else -> this.get(k')},
-    read .get(k': K): mut Opt[read V] -> next.keyEq(k, k') ? {.then -> Opts#[read V]v, .else -> this.get(k')},
+    read .get(k': K): mut Opt[read/imm V] -> next.keyEq(k, k') ? {.then -> Opts#[read/imm V]v, .else -> this.get(k')},
     .isEmpty -> False,
     },
 
   imm .map[R](fImm: MapMapImm[K, imm V, imm R], fRead: MapMapRead[K, V, R]): LinkedLens[K, R] -> {
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k: K): mut Opt[imm R] ->  As[mut Opt[imm V]]#(this.get(k)).map{res -> fImm#(k, res)},
-    read .get(k: K): mut Opt[read R] -> this.get(k).map{res -> fRead#(k, res)},
+    read .get(k: K): mut Opt[read/imm R] -> this.get(k).map{res -> fRead#(k, res)},
     .isEmpty -> this.isEmpty,
     },
   mut .map[R](fImm: MapMapImm[K, imm V, imm R], fMut: mut MapMapMut[K, V, R], fRead: read MapMapRead[K, V, R]): mut LinkedLens[K, R] -> {
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k: K): mut Opt[imm R] ->  As[mut Opt[imm V]]#(this.get(k)).map{res -> fImm#(k, res)},
     mut  .get(k: K): mut Opt[R] ->      this.get(k).map{res -> fMut#(k, res)},
-    read .get(k: K): mut Opt[read R] -> this.get(k).map mut OptMap[read V, read R]{res -> fRead#(k, res)},
+    read .get(k: K): mut Opt[read/imm R] -> this.get(k).map mut OptMap[read/imm V, read/imm R]{res -> fRead#(k, res)},
     .isEmpty -> this.isEmpty,
     },
   read .map[R](fImm: MapMapImm[K, imm V, imm R], fRead: read MapMapRead[K, V, R]): read LinkedLens[K, R] -> {
     .keyEq(k1, k2) -> this.keyEq(k1, k2),
     imm  .get(k: K): mut Opt[imm R] ->  As[mut Opt[imm V]]#(this.get(k)).map{res -> fImm#(k, res)},
-    read .get(k: K): mut Opt[read R] -> this.get(k).map{res -> fRead#(k, res)},
+    read .get(k: K): mut Opt[read/imm R] -> this.get(k).map{res -> fRead#(k, res)},
     .isEmpty -> this.isEmpty,
     },
   }
 
 MapMapImm[K:imm,V,R]:{ #(k: K, v: imm V): R }
 MapMapMut[K:imm,V,R]:{ mut #(k: K, v: V): R }
-MapMapRead[K:imm,V,R]:{ read #(k: K, v: read V): R }
+MapMapRead[K:imm,V,R]:{ read #(k: K, v: read/imm V): R }
 
 //---File actions.fear
 package base
@@ -566,16 +754,646 @@ Action[T]: {
     .ok(x) -> m.ok(f#x),
     .info(i) -> m.info(i),
     }},
-  mut .mapInfo[R](f: mut MF[Info,Info]): mut Action[T] -> {m -> this.run{
+  mut .andThen[R](f: mut MF[T,mut Action[R]]): mut Action[R] -> {m -> this.run{
+    .ok(x) -> f#x.run(m),
+    .info(i) -> m.info(i),
+    }},
+  mut .mapInfo(f: mut MF[Info,Info]): mut Action[T] -> {m -> this.run{
     .ok(x) -> m.ok(x),
     .info(i) -> m.info(f#i),
     }},
   mut !: T -> this.run{.ok(x) -> x, .info(i) -> Error!i},
+  mut .ok: mut Opt[T] -> this.run{.ok(x) -> Opts#x, .info(_) -> {}},
+  mut .info: Opt[Info] -> this.run{.ok(_) -> {}, .info(i) -> Opts#i},
   }
 ActionMatch[T,R]: {
   mut .ok(x: T): R,
   mut .info(info: Info): R,
   }
+
+//---File json/pkg.fear
+package base.json
+alias base.iter.Iter as Iter,
+
+alias base.caps.IsoPod as IsoPod,
+
+alias base.caps.Write as Write,
+alias base.caps.Read as Read,
+alias base.caps.FileHandleMode as FileHandleMode,
+alias base.caps.Create as Create,
+
+alias base.caps.UnrestrictedIO as UnrestrictedIO,
+alias base.caps.IO as IO,
+alias base.caps.Env as Env,
+alias base.caps.FEnv as FEnv,
+alias base.caps.FRandomSeed as FRandomSeed,
+alias base.caps.RandomSeed as RandomSeed,
+
+alias base.caps.System as System,
+
+alias base.Res as Res,
+
+alias base.LinkedLens as LinkedLens,
+alias base.Map as Map,
+alias base.EmptyMap as EmptyMap,
+alias base.Lens as Lens,
+
+alias base.Extensible as Extensible,
+alias base.Extension as Extension,
+
+alias base.Either as Either,
+
+alias base.Block as Block,
+
+alias base.Str as Str,
+alias base.StrMap as StrMap,
+alias base.Stringable as Stringable,
+
+alias base.Var as Var,
+alias base.Count as Count,
+alias base.VarImm as VarImm,
+
+alias base.Opt as Opt,
+alias base.Opts as Opts,
+
+alias base.Int as Int,
+alias base.Float as Float,
+alias base.Nat as Nat,
+alias base.Byte as Byte,
+
+alias base.LList as LList,
+alias base.List as List,
+alias base.ListViews as ListViews,
+alias base.Collection as Collection,
+
+alias base.As as As,
+alias base.Box as Box,
+alias base.Sealed as Sealed,
+alias base.Magic as Magic,
+alias base.F as F,
+alias base.MF as MF,
+alias base.Consumer as Consumer,
+alias base.Let as Let,
+alias base.Void as Void,
+alias base.HasIdentity as HasIdentity,
+
+alias base.Ice as Ice,
+alias base.Freezer as Freezer,
+alias base.ToImm as ToImm,
+
+alias base.Abort as Abort,
+alias base.Main as Main,
+
+alias base.Error as Error,
+alias base.Try as Try,
+alias base.Info as Info,
+alias base.Infos as Infos,
+
+alias base.Bool as Bool,
+alias base.True as True,
+alias base.False as False,
+
+alias base.Assert as Assert,
+
+alias base.flows.Flow as Flow,
+alias base.flows.ActorRes as ActorRes,
+alias base.flows.ActorImpl as Actor,
+alias base.flows._ActorSink as Sink,
+
+alias base.Ordering as Ordering,
+alias base.FOrdering as FOrdering,
+
+alias base.Regexs as Regexs,
+alias base.Regex as Regex,
+
+alias base.UTF16 as UTF16,
+alias base.UTF8 as UTF8,
+
+alias base.Actions as Actions,
+alias base.Action as Action,
+
+alias base.Maps as Maps,
+alias base.LinkedHashMap as LinkedHashMap,
+
+alias base.AtomiseStr as AtomiseStr,
+
+//---File json/json.fear
+package base.json
+
+alias base.Todo as Todo,
+
+JsonMatch[R:iso,imm,mut,mutH,read,readH]: {
+  mut .string(s: Str): R,
+  mut .number(n: Float): R,
+  mut .bool(b: Bool): R,
+  mut .object(o: LinkedHashMap[Str,Json]): R,
+  mut .array(a: List[Json]): R,
+  mut .null: R,
+  }
+Jsons: {
+  .string(s: Str): Json -> {m -> m.string(s)},
+  .number(n: Float): Json -> {m -> m.number(n)},
+  .bool(b: Bool): Json -> {m -> m.bool(b)},
+  .object(o: LinkedHashMap[Str, Json]): Json -> {m -> m.object(o)},
+  .array(a: List[Json]): Json -> {m -> m.array(a)},
+  .null: Json -> {m -> m.null},
+  }
+Json: {
+  read .match[R:iso,imm,mut,mutH,read,readH](m: mut JsonMatch[R]): R,
+  .str: Str -> _JsonToStr#this,
+  }
+
+_JsonToStr: {
+  #(json: Json): Str -> json.match{
+    .string(s) -> mut "\"" + (this.escape(s)) + "\"",
+    .number(n) -> n.str,
+    .bool(b)   -> b ? {.then -> "true", .else -> "false"},
+    .object(o) -> "{"+(this.object(o))+"}",
+    .array(a)  -> "["+(this.array(a))+"]",
+    .null      -> "null",
+    },
+
+  .array(a: List[Json]): Str -> a.flow
+    .map{json->this#json}
+    .join ", ",
+  .object(o: LinkedHashMap[Str,Json]): Str -> o.flow
+    .map[Str]{kv -> mut "\""+(this.escape(kv.key))+"\": " + (this#(kv.value))}
+    .join ", ",
+  .escape(s: Str): Str -> Block#
+    .let[Regex] mustEscape = {Regexs#"[\\U{0000}-\\U{001F}]"} // unicode control characters
+    .return {AtomiseStr#s
+      .map{ch -> Block#
+        .if {ch == "\u005C"} .return {"\\"}
+        .if {ch == "\n"} .return {"\\n"}
+        .if {ch == "\b"} .return {"\\b"}
+        .if {ch == "\f"} .return {"\\f"}
+        .if {ch == "\n"} .return {"\\n"}
+        .if {ch == "\r"} .return {"\\r"}
+        .if {ch == "\t"} .return {"\\t"}
+        .if {ch == "\""} .return {"\\\""}
+        .if {mustEscape.isMatch(ch)}
+          .error {Infos.msg ("Unexpected special character sequence: "+(ch.utf8.flow.map{b -> b.str}.join ","))}
+        .return {ch}
+        }
+      .join ""
+      },
+  }
+
+//---File json/validate.fear
+package base.json
+
+ValidateInput: {#(input: Str): mut Action[Str] -> Block#
+  .let invalidChars = {Regexs#"[[^\\U{1F}-\\U{10FFFF}]&&[^\\U{20}\\U{A}\\U{D}\\U{9}]]"}
+  .return {{res -> invalidChars.isMatch(input) ? {
+    .then -> res.info(Infos.msg("JSON may not contain any non-whitespace control characters.")),
+    .else -> res.ok(input + "\u0003"), // append END OF TEXT character for the lexer
+    }}}
+  }
+
+//---File json/parser/parser.fear
+package base.json
+
+ParseJson: {#(rawInput: Str): mut Action[Json] -> ValidateInput#(rawInput).andThen{input ->
+  {res -> Try#{AtomiseStr#input
+    .actor[mut _LexerCtx,Token](_LexerCtxs#, LexJson)
+    .actor[mut Var[mut _ParserActor],Json](
+      Var#[mut _ParserActor](mut _TopLevelParser),
+      {downstream, ctx, token -> ctx.get#(downstream, ctx, token)}
+      )
+    .get
+    }.run{
+      .ok(json) -> res.ok(json),
+      .info(info) -> res.info(Infos.msg("Invalid string found, expected JSON.\n"+(info.msg))),
+      }
+    }
+  }}
+
+_ParserActor: {
+  mut #(downstream: mut Sink[Json], state: mut Var[mut _ParserActor], e: Token): ActorRes
+  }
+_TopLevelParser: _ParserActor{downstream, behaviour, token -> Block#
+  .do {behaviour.set(_ValueParser#({value -> downstream#value}, this))}
+  .return {behaviour.get#(downstream, behaviour, token)}
+  }
+_ValueParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _ParserActor -> {'parser
+  downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+    .mode -> "value", .token -> token,
+    .true -> Block#(collector#(Jsons.bool True), behaviour.set(old), ActorRes.continue),
+    .false -> Block#(collector#(Jsons.bool False), behaviour.set(old), ActorRes.continue),
+    .null -> Block#(collector#(Jsons.null), behaviour.set(old), ActorRes.continue),
+    .quoted(str) -> Block#(collector#(Jsons.string str), behaviour.set(old), ActorRes.continue),
+    .numeric(num) -> Block#(collector#(Jsons.number num), behaviour.set(old), ActorRes.continue),
+    .os -> Block#(behaviour.set(_ArrayParser#(collector, old)), ActorRes.continue),
+    .oc -> Block#(behaviour.set(_ObjectParser#(collector, old)), ActorRes.continue),
+    })
+  }}
+
+_ArrayParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _ParserActor -> Block#
+  .let[mut IsoPod[iso List[Json]]] es = {IsoPod#(List#)}
+  .let[mut Consumer[Json]] collector' = {{value -> es.mutate{es' -> es'.add(value)}!}}
+  .return {{'parser
+    downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+      .mode -> "array", .token -> token,
+      .cs -> Block#(collector#(Jsons.array(es!)), behaviour.set(old), ActorRes.continue),
+      .default(_) -> _ValueParser
+        #(collector', _ArrayCommaParser#(collector', parser))
+        #(downstream, behaviour, token),
+      })
+    }}
+  }
+_ArrayCommaParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _ParserActor -> {'parser
+  downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+    .mode -> "comma or end of array", .token -> token,
+    .cs -> old#(downstream, behaviour, token),
+    .comma -> Block#(
+      behaviour.set(_ValueParser#(collector, parser)),
+      ActorRes.continue
+      ),
+    })}
+  }
+
+_ObjectParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _ParserActor -> Block#
+  .let[mut IsoPod[iso LinkedHashMap[Str,Json]]] es = {IsoPod#(Maps.hashMap[Str,Json]({k1,k2 -> k1 == k2}, {k->k}))}
+  .let[mut Consumer[Str,Json]] collector' = {{key, value -> es.mutate{es' -> es'.put(key, value)}!}}
+  .return {{'parser
+    downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+      .mode -> "object", .token -> token,
+      .cc -> Block#(collector#(Jsons.object(es!)), behaviour.set(old), ActorRes.continue),
+      .quoted(_) -> Block#
+        .let keyParser = {_MemberKeyParser#(collector', parser)}
+        .do {behaviour.set(keyParser)}
+        .return {keyParser#(downstream, behaviour, token)},
+      })
+    }}
+  }
+_MemberKeyParser: {#(collector: mut Consumer[Str,Json], old: mut _ParserActor): mut _ParserActor -> Block#
+  .let[mut Str] key = {mut ""}
+  .let hasKey = {Var#[Bool]False}
+  .return {{downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{'matcher
+    .mode -> "object member key", .token -> token,
+    .quoted(str) -> key.isEmpty ? {
+      .then -> Block#(key.append(str), hasKey.set(True), ActorRes.continue),
+      .else -> matcher.default(mut "string \"" + str + "\""),
+      },
+    .colon -> hasKey.get.not ? {
+      .then -> matcher.default("':'"),
+      .else -> Block#(behaviour.set(_MemberValueParser#(collector, old, key.str)), ActorRes.continue),
+      },
+    })}}
+  }
+_MemberValueParser: {#(collector: mut Consumer[Str,Json], old: mut _ParserActor, key: Str): mut _ParserActor -> {'parser
+  downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+    .mode -> "object member value", .token -> token,
+    .default(_) -> Block#
+      .let[mut Consumer[Json]] collector' = {{value -> collector#(key, value)}}
+      .return {_ValueParser
+        #(collector', _ObjectCommaParser#(collector, old))
+        #(downstream, behaviour, token)},
+    })
+  }}
+_ObjectCommaParser: {#(collector: mut Consumer[Str,Json], old: mut _ParserActor): mut _ParserActor -> {'parser
+  downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{
+    .mode -> "comma or end of object", .token -> token,
+    .cc -> old#(downstream, behaviour, token),
+    .comma -> Block#(
+      behaviour.set(old),
+      ActorRes.continue
+      ),
+    })}
+  }
+
+TopLevelMatch: {
+  #(downstream: mut Sink[Json],
+    ctx: mut Var[mut Opt[mut _SubMatch[ActorRes]]],
+    token: Token
+  ): mut _SubMatch[ActorRes] -> {
+    .mode -> "value", .token -> Tokens.null(0, 0),
+    .quoted(str) -> Block#(downstream#(Jsons.string str), ActorRes.continue),
+    .os -> Block#(
+      ctx.set(Opts#{
+        .mode -> "array", .token -> token,
+        }),
+      ActorRes.continue
+      )
+    }}
+
+_SubMatch[R:iso,imm,mut,mutH,read,readH]: TokenMatch[R]{
+  read .mode: Str,
+  read .token: Token,
+  read .errorSuffix: Str -> mut " at " + (this.token.line.str) + ":" + (this.token.col.str),
+  mut .default(kind: Str): R -> Error.msg (mut "Unexpected " + kind + " when parsing a JSON " + (this.mode) + (this.errorSuffix)),
+  .true -> this.default("'true'"),
+  .false -> this.default("'false'"),
+  .null -> this.default("'null'"),
+  .quoted(chars) -> this.default(mut "string \"" + chars + "\""),
+  .numeric(num) -> this.default("number " + (num.str)),
+  .os -> this.default("'['"),
+  .cs -> this.default("']'"),
+  .oc -> this.default("'{'"),
+  .cc -> this.default("'}'"),
+  .comma -> this.default("','"),
+  .colon -> this.default("':'"),
+  }
+
+//---File json/lexer/digits.fear
+package base.json
+
+LexNum: {#(
+  downstream: mut Sink[Token],
+  ctx: mut _LexerCtx,
+  e: Str,
+  parent: mut Actor[mut _LexerCtx,Str,Token]
+  ): ActorRes -> Block#
+    .do {Block#(ctx.col++)}
+    .if {ctx.isDigit(e)} .return {Block#(ctx.write(e), ActorRes.continue)}
+    .return {ctx.str.float.run{
+      .ok(f) -> Block#(
+        downstream#(Tokens.numeric(ctx.line.get, ctx.col.get, f)),
+        ctx.clear,
+        ctx.mode(_LexerModes.value),
+        parent#(downstream, ctx, e)
+        ),
+      .info(i) -> Block#(
+        downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str)),
+        ActorRes.stop
+        ),
+      }}
+  }
+
+//---File json/lexer/string.fear
+package base.json
+
+LexString: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
+  .do {Block#(ctx.col++)}
+  .if {e == "\""} .return {Block#(
+    downstream#(Tokens.quoted(ctx.line.get, ctx.col.get, ctx.str)),
+    ctx.clear,
+    ctx.mode(_LexerModes.value),
+    ActorRes.continue
+    )}
+  .if {e == "\\"} .return {Block#(
+    ctx.mode(_LexerModes.stringEscape),
+    ActorRes.continue
+    )}
+  .do {ctx.write(e)}
+  .if {ctx.isChar(e)} .return {ActorRes.continue}
+  .do {downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str))}
+  .return {ActorRes.stop}
+  }
+
+LexStringEscapes: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
+  .do {Block#(ctx.col++)}
+  .if {e == "\""} .return {Block#(ctx.write(e), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "\\"} .return {Block#(ctx.write(e), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "/"} .return {Block#(ctx.write(e), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "b"} .return {Block#(ctx.write("\b"), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "f"} .return {Block#(ctx.write("\f"), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "n"} .return {Block#(ctx.write("\n"), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "r"} .return {Block#(ctx.write("\r"), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "t"} .return {Block#(ctx.write("\t"), ctx.mode(_LexerModes.string), ActorRes.continue)}
+  .if {e == "u"} .return {Block#(ctx.mode(_LexerModes.unicodeEscape), ActorRes.continue)}
+  .do {downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str))}
+  .return {ActorRes.stop}
+  }
+
+LexUnicodeEscapes: {
+  #(ctx: mut _LexerCtx,
+    buffer: mut List[Str],
+    e: Str
+  ): ActorRes -> Block#
+    .do {Block#(ctx.col++)}
+    .do {buffer.add(e)}
+    .if {buffer.size < 4} .return {ActorRes.continue}
+    .let[Nat] codePoint = {_ParseHex#(buffer)}
+    .if {UTF16.isSurrogate(codePoint)} .return {Block#
+      .if {ctx.unpairedSurrogate.size == 1} .return {Block#
+        .do {ctx.write(UTF16.fromSurrogatePair(ctx.unpairedSurrogate.get(0), codePoint))}
+        .do {ctx.unpairedSurrogate.clear}
+        .do {ctx.mode(_LexerModes.string)}
+        .return {ActorRes.continue}
+        }
+      .assert({ctx.unpairedSurrogate.isEmpty}, "unpairedSurrogate was not empty")
+      .do {ctx.unpairedSurrogate.add(codePoint)}
+      .do {ctx.mode(_LexerModes.string)}
+      .return {ActorRes.continue}
+      }
+    .do {ctx.write(UTF16.fromCodePoint(codePoint))}
+    .do {ctx.mode(_LexerModes.string)}
+    .return {ActorRes.continue},
+  }
+
+_ParseHex: {
+  #(chars: read List[Str]): Nat -> chars.flow
+    .map{ch -> this.encoding(ch)}
+    #(Flow.enumerate[Nat])
+    .fold[Nat]({0}, {acc, ni -> Block#
+      .let digit = {ni.e}
+      .let place = {chars.size - (ni.i + 1)}
+      .return {acc + (digit * (16 ** place))}
+      }),
+
+  .encoding(ch: Str): Nat -> Block#
+    .if {ch == "0"} .return {0}
+    .if {ch == "1"} .return {1}
+    .if {ch == "2"} .return {2}
+    .if {ch == "3"} .return {3}
+    .if {ch == "4"} .return {4}
+    .if {ch == "5"} .return {5}
+    .if {ch == "6"} .return {6}
+    .if {ch == "7"} .return {7}
+    .if {ch == "8"} .return {8}
+    .if {ch == "8"} .return {8}
+    .if {ch == "9"} .return {9}
+    .if {ch == "A"} .return {10}
+    .if {ch == "a"} .return {10}
+    .if {ch == "B"} .return {11}
+    .if {ch == "b"} .return {11}
+    .if {ch == "C"} .return {12}
+    .if {ch == "c"} .return {12}
+    .if {ch == "D"} .return {13}
+    .if {ch == "d"} .return {13}
+    .if {ch == "E"} .return {14}
+    .if {ch == "e"} .return {14}
+    .if {ch == "F"} .return {15}
+    .if {ch == "f"} .return {15}
+    .return {Error.msg("Invalid hex digit: " + ch)},
+  }
+
+//---File json/lexer/lexer.fear
+package base.json
+
+LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> e == "\u0003" ? {
+  .then -> Block#
+    .if {ctx.str.isEmpty.not} .do {downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str))}
+    .return {ActorRes.continue},
+  .else -> ctx.mode.match{
+    .value -> Block#
+     .do {e == "\n" ? {
+       .then -> Block#(ctx.line++, ctx.col := 1),
+       .else -> Block#(ctx.col++)
+       }}
+     .if {ctx.isWhitespace(e)} .return {ActorRes.continue}
+     .if {ctx.isEmpty} .return {_LexStartingToken#(downstream, ctx, e)}
+     .do {ctx.write(e)}
+     .if {ctx.str == "true"} .return {Block#(downstream#(Tokens.true(ctx.line.get, ctx.col.get)), ctx.clear, ActorRes.continue)}
+     .if {ctx.str == "false"} .return {Block#(downstream#(Tokens.false(ctx.line.get, ctx.col.get)), ctx.clear, ActorRes.continue)}
+     .if {ctx.str == "null"} .return {Block#(downstream#(Tokens.null(ctx.line.get, ctx.col.get)), ctx.clear, ActorRes.continue)}
+     .if {ctx.str.size > 5} .return {Block#(
+       downstream#(Tokens.unknownFragment(ctx.line.get, ctx.col.get, ctx.str)),
+       ActorRes.stop
+       )}
+     .return {ActorRes.continue},
+    .string -> LexString#(downstream, ctx, e),
+    .stringEscape -> LexStringEscapes#(downstream, ctx, e),
+    .unicodeEscape(buf) -> LexUnicodeEscapes#(ctx, buf, e),
+    .digits -> LexNum#(downstream, ctx, e, mut LexJson),
+    }
+  }}
+
+_LexerCtxs: {#: mut _LexerCtx -> Block#
+  .let buffer = {mut ""}
+  .let mode = {Var#[mut _LexerMode](_LexerModes.value)}
+  .let isDigit = {Regexs#"[0-9eE\\-+\\.]"}
+  .let isNumberStart = {Regexs#"[\\-0-9]"}
+  .let isWhitespace = {Regexs#"[ \\n\\r\\t]"}
+  .let isChar = {Regexs#"[\\U{0020}-\\U{10FFFF}]"}
+  .let unpairedSurrogate = {List.withCapacity[Nat](1)}
+  .let line = {Count.nat(1)}
+  .let col = {Count.nat(1)}
+  .return {mut _LexerCtx: Stringable{'ctx
+    read .isEmpty: Bool -> buffer.isEmpty,
+    mut .write(e: Str): Void -> buffer.append(e),
+    mut .clear: Void -> buffer.clear,
+    .str -> buffer.str,
+    mut .mode: mut _LexerMode -> mode.get,
+    mut .mode(next: mut _LexerMode): Void -> mode.set(next),
+    read .isDigit(ch: Str): Bool -> isDigit.isMatch(ch),
+    read .isNumberStart(ch: Str): Bool -> isNumberStart.isMatch(ch),
+    read .isWhitespace(ch: Str): Bool -> isWhitespace.isMatch(ch),
+    read .isChar(ch: Str): Bool -> isChar.isMatch(ch),
+    mut .unpairedSurrogate: mut List[Nat] -> unpairedSurrogate,
+    mut .line: mut Count[Nat] -> line,
+    mut .col: mut Count[Nat] -> col,
+    }}
+  }
+
+_LexStartingToken: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> Block#
+  .if {ctx.isNumberStart(e)}
+    .return {Block#(
+      ctx.write(e),
+      ctx.mode(_LexerModes.digits),
+      ActorRes.continue
+      )}
+  .if {e == "\""} .return {Block#(
+    ctx.mode(_LexerModes.string),
+    ActorRes.continue
+    )}
+  .if {e == "["} .return {Block#(downstream#(Tokens.os(ctx.line.get, ctx.col.get)), ActorRes.continue)}
+  .if {e == "]"} .return {Block#(downstream#(Tokens.cs(ctx.line.get, ctx.col.get)), ActorRes.continue)}
+  .if {e == "{"} .return {Block#(downstream#(Tokens.oc(ctx.line.get, ctx.col.get)), ActorRes.continue)}
+  .if {e == "}"} .return {Block#(downstream#(Tokens.cc(ctx.line.get, ctx.col.get)), ActorRes.continue)}
+  .if {e == ","} .return {Block#(downstream#(Tokens.comma(ctx.line.get, ctx.col.get)), ActorRes.continue)}
+  .if {e == ":"} .return {Block#(downstream#(Tokens.colon(ctx.line.get, ctx.col.get)), ActorRes.continue)}
+  .do {ctx.write(e)}
+  .return {ActorRes.continue}
+  }
+
+TokenMatch[R:iso,imm,mut,mutH,read,readH]: {
+  mut .true: R,
+  mut .false: R,
+  mut .null: R,
+  mut .quoted(chars: Str): R,
+  mut .numeric(num: Float): R,
+
+  mut .os: R,
+  mut .cs: R,
+  mut .oc: R,
+  mut .cc: R,
+  mut .comma: R,
+  mut .colon: R,
+
+  }
+Tokens: {
+  .true(line: Nat, col: Nat): Token -> {
+    .match(m) -> m.true,
+    .line -> line,
+    .col -> col,
+    },
+  .false(line: Nat, col: Nat): Token -> {
+    .match(m) -> m.false,
+    .line -> line,
+    .col -> col,
+    },
+  .null(line: Nat, col: Nat): Token -> {
+    .match(m) -> m.null,
+    .line -> line,
+    .col -> col,
+    },
+  .os(line: Nat, col: Nat): Token -> {
+    .match(m) -> m.os,
+    .line -> line,
+    .col -> col,
+    },
+  .cs(line: Nat, col: Nat): Token -> {
+    .match(m) -> m.cs,
+    .line -> line,
+    .col -> col,
+    },
+  .oc(line: Nat, col: Nat): Token -> {
+    .match(m) -> m.oc,
+    .line -> line,
+    .col -> col,
+    },
+  .cc(line: Nat, col: Nat): Token -> {
+    .match(m) -> m.cc,
+    .line -> line,
+    .col -> col,
+    },
+  .comma(line: Nat, col: Nat): Token -> {
+    .match(m) -> m.comma,
+    .line -> line,
+    .col -> col,
+    },
+  .colon(line: Nat, col: Nat): Token -> {
+    .match(m) -> m.colon,
+    .line -> line,
+    .col -> col,
+    },
+  .quoted(line:Nat, col:Nat, chars: Str): Token -> {
+    .match(m) -> m.quoted(chars),
+    .line -> line,
+    .col -> col,
+    },
+  .numeric(line: Nat, col: Nat, num: Float): Token -> {
+    .match(m) -> m.numeric(num),
+    .line -> line,
+    .col -> col,
+    },
+  .unknownFragment(line: Nat, col: Nat, bufferContents: Str): Token -> Error.msg (mut "Unknown fragment in JSON code:\n" + bufferContents + " at " + (line.str) + ":" + (col.str)),
+  }
+Token: {
+  read .match[R:iso,imm,mut,mutH,read,readH](m: mut TokenMatch[R]): R,
+  read .line: Nat,
+  read .col: Nat,
+  }
+
+_LexerModeMatch[R:iso,imm,mut,mutH,read,readH]: {
+  mut .value: R,
+  mut .string: R,
+  mut .stringEscape: R,
+  mut .unicodeEscape(buffer: mut List[Str]): R,
+  mut .digits: R,
+  }
+_LexerModes: {
+  .value: mut _LexerMode -> {m -> m.value},
+  .string: mut _LexerMode -> {m -> m.string},
+  .stringEscape: mut _LexerMode -> {m -> m.stringEscape},
+  .unicodeEscape: mut _LexerMode -> Block#
+    .let[mut List[Str]] buffer = {List.withCapacity(4)}
+    .return {{m -> m.unicodeEscape(buffer)}},
+  .digits: mut _LexerMode -> {m -> m.digits},
+  }
+_LexerMode: {mut .match[R:iso,imm,mut,mutH,read,readH](m: mut _LexerModeMatch[R]): R}
 
 //---File flows.fear
 package base
@@ -585,6 +1403,7 @@ alias base.flows.FlowOp as FlowOp,
 alias base.flows.ControlFlow as FlowCtrl,
 alias base.flows._Sink as FlowSink,
 alias base.flows.RestrictFlowReuse as RestrictFlowReuse,
+alias base.flows.ActorRes as ActorRes,
 
 //---File repr.fear
 package base.repr
@@ -623,7 +1442,7 @@ FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
 package base.test
 
 ResultPrinters: F[mut IO, mut ResultPrinter]{io -> mut ResultPrinter: ResultReporter{#(results) -> Block#
-  .let[Str] resultsMsg = {results.flow.map{suite -> _TextUtils.suite(suite, +1)}#(Flow.str "\n\n")}
+  .let[Str] resultsMsg = {results.flow.map{suite -> _TextUtils.suite(suite, +1)}.join "\n\n"}
   .do {io.printlnErr("# Test Results\n" + resultsMsg)}
   .return {Void}
   }}
@@ -635,13 +1454,13 @@ _TextUtils: {
   .suite(suite: read TestResults, depth: Int): Str ->
     this.heading(suite.suiteTitle, depth)
     + "\n"
-    + (this.results(suite.results)#(Flow.str "\n\n"))
+    + (this.results(suite.results).join "\n\n")
     + (suite.nestedResults.isEmpty ?[Str] {.then -> "", .else -> "\n\n"})
-    + (suite.nestedResults.flow.map{nested -> this.suite(nested, depth + +1)}#(Flow.str "\n")),
+    + (suite.nestedResults.flow.map{nested -> this.suite(nested, depth + +1)}.join "\n"),
 
   .heading(title: Str, depth: Int): Str -> Block#
     .if {depth > +5} .return {"**"+title+"**  "}
-    .return {Flow.range(+0, depth + +1).map[Str]{_ -> "#"}#(Flow.str "") + " " + title},
+    .return {Flow.range(+0, depth + +1).map[Str]{_ -> "#"}.join("") + " " + title},
 
   .status(kind: TestResultKind): Str -> kind.match{
     .passed -> "PASSED",
@@ -674,7 +1493,7 @@ package base.test
 
 Main: AppMain{
   #(sys) -> Block#
-    .do {Block#(this.testMain(sys.clone, FTestRunner#(sys.clone)))}
+    .do {Block#(this.testMain(sys.iso.self, FTestRunner#(sys.iso.self)))}
     .return {Void},
   .testMain(system: iso System, runner: iso TestRunner): List[read TestResults]
   }
@@ -683,7 +1502,7 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
   .let[mut List[Test]] tests = {List#}
   .let[mut List[mut TestSuite]] suites = {List#}
   .let[mut List[mut ResultReporter]] reporters = {List#}
-  .let[mut CapTry] try = {CapTrys#sys}
+  .let[mut CapTry] try = {sys.try}
   .return {{'self
     .suite(title, registerTests) -> Block#
       .do {suites.add({.title -> title, .runner -> registerTests#(FTestRunner#sys)})}
@@ -703,9 +1522,9 @@ FTestRunner: F[mut System, mut TestRunner]{sys -> Block#
       .return {results},
     mut .runDirectTests: mut List[TestResult] -> tests.iter
       .map{test -> Block#
-        .return {FTestResult#(test.title, try#(sys.clone, {sys' -> test.impl#sys'}).resMatch{
+        .return {FTestResult#(test.title, try#(sys.iso.self, {sys' -> test.impl#sys'}).run{
           .ok(_) -> FTestResultKind.passed,
-          .err(info) -> FTestResultKind.errored(info.str)
+          .info(info) -> FTestResultKind.errored(info.str)
           })}
         }
       .list,
@@ -800,9 +1619,11 @@ AssertCont[R]:{ mut #: R }
 package base
 Bool: Sealed,Stringable,ToImm[Bool]{
   .and(b: Bool): Bool,
-  &&(b: Bool): Bool -> this.and(b),
+  &&(b: mut MF[Bool]): Bool -> this.and(b#),
+  &(b: Bool): Bool -> this.and(b),
   .or(b: Bool): Bool,
-  ||(b: Bool): Bool -> this.or(b),
+  |(b: Bool): Bool -> this.or(b),
+  ||(b: mut MF[Bool]): Bool -> this.or(b#),
   .not: Bool,
   .if[R:read,mut,imm,iso](f: mut ThenElse[R]): R,
   ?[R:read,mut,imm,iso](f: mut ThenElse[R]): R -> this.if(f),
@@ -811,6 +1632,14 @@ True: Bool{ .and(b) -> b, .or(b) -> this, .not -> False, .if(f) -> f.then(), .st
 False: Bool{ .and(b) -> this, .or(b) -> b, .not -> True, .if(f) -> f.else(), .str -> "False", .toImm -> False }
 ThenElse[R:read,mut,imm,iso]: { mut .then: R, mut .else: R, }
 
+//---File regex.fear
+package base
+
+Regexs: Sealed{#(pattern: Str): Regex -> Regex: Stringable{
+  .str -> Magic!,
+  .isMatch(haystack: Str): Bool -> Magic!,
+  }}
+
 //---File bytes.fear
 package base
 
@@ -818,12 +1647,12 @@ Bytess: {
   .fromList(list: read List[Byte]): Bytes -> Magic!,
   }
 
-Bytes: Collection{
+Bytes: {
   mut .read(i: Nat): Byte -> Error.msg ("The index "+(i.str)+" is out of bounds."),
   mut .list: List[Byte] -> List#,
 
-  .size -> 0,
-  .isEmpty -> True,
+  read .size: Nat -> 0,
+  read .isEmpty: Bool -> True,
   }
 
 //---File either.fear
@@ -839,11 +1668,27 @@ EitherMatch[A,B,R:iso,imm,mut,mutH,read,readH]:{
   mut .b(x: B): R,
   }
 
+//---File benchmarking.fear
+package base.benchmarking
+alias base.Magic as Magic,
+alias base.Nat as Nat,
+alias base.Void as Void,
+
+BlackBox: {
+  #[T:imm,mut,read](value: T): Void -> Magic!,
+  .consumeCpu(tokens: Nat): Void -> Magic!,
+  }
+
 //---File flows/internals.fear
 package base.flows
 
 _FlowFactory: {
   .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E],
+  }
+
+_EmptyCtx: ToIso[_EmptyCtx]{
+  .iso -> iso _EmptyCtx,
+  .self -> this,
   }
 
 //---File flows/dataParallel.fear
@@ -872,11 +1717,14 @@ alias base.Var as Var, alias base.Count as Count,
 alias base.Opts as Opts, alias base.Opt as Opt,
 alias base.Let as Let,
 alias base.List as List,
-alias base.Error as Error, alias base.FInfo as FInfo, alias base.Info as Info,
+alias base.Error as Error, alias base.Infos as Infos, alias base.Info as Info,
 alias base.Ordering as Ordering,
 alias base.Magic as Magic,
 alias base.IsoPod as IsoPod,
 alias base.ControlFlow as ControlFlow,
+alias base.Action as Action,
+alias base.ToIso as ToIso,
+alias base.Unreachable as Unreachable,
 
 //---File flows/flows.fear
 package base.flows
@@ -893,7 +1741,7 @@ Flow: Sealed, _FlowExtensions, _FlowConverters{
   .fromOp[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _SeqFlow.fromOp(source, Opts#size),
 
   .fromMutSource[E](source: mut FlowOp[E]): mut Flow[E] -> _MutSourceCollection[E]#source,
-  .fromMutSource[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _MutSourceCollection[E]#source,
+  .fromMutSource[E](source: mut FlowOp[E], size: Nat): mut Flow[E] -> _MutSourceCollection[E]#(source, size),
   }
 
 Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
@@ -908,14 +1756,32 @@ Flow[E]: Sealed, Extensible[Flow[E]], _NonTerminalOps[E], _TerminalOps[E]{
     .return {cont#(splitResult, selfFlow)},
   mut .join(j: Joinable[E]): E -> j.join(this),
   mut .unwrapOp(unwrap: mut _UnwrapFlowToken): mut FlowOp[E],
+  mut .only: mut Action[E] -> {res -> Block#
+    .let found = {this.limit(2).list}
+    .if {found.size == 1} .return {res.ok(found.get(0))}
+    .return {res.info(Infos.msg("Expected exactly one element, found at least " + (found.size.str)))}
+    },
+  mut .get: E -> this.only!,
+  mut .opt: mut Opt[E] -> Block#
+    .let found = {this.limit(2).list}
+    .if {found.size > 1}
+      .error {Infos.msg("Expected exactly one element, found at least " + (found.size.str))}
+    .return {found.tryGet(0)},
   }
 _UnwrapFlowToken: {}
 
 _NonTerminalOps[E]: {
   mut .filter(predicate: read F[E, Bool]): mut Flow[E],
-  mut .map[R](f: read F[E, R]): mut Flow[R],
-  mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R],
 
+  mut .map[R](f: read F[E, R]): mut Flow[R],
+  mut .map[C,R](ctx: iso ToIso[C], f: read F[iso C, E, R]): mut Flow[R],
+
+  mut .peek(f: read F[E, Void]): mut Flow[E] -> this.map{e -> Block#(f#e, e)},
+  mut .peek[C](ctx: iso ToIso[C], f: read F[iso C, E, Void]): mut Flow[E] ->
+    this.map(ctx, {c, e -> Block#(f#(c, e), e)}),
+
+  mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R],
+  mut .with[EB](other: mut Flow[EB]): mut Flow[mut Pair[E,EB]],
   mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R],
   mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R],
 
@@ -928,21 +1794,26 @@ _NonTerminalOps[E]: {
     )}),
   }
 _TerminalOps[E]: Sealed{
+
   mut .first: mut Opt[E],
+  mut .last: mut Opt[E] -> this.fold[mut Opt[E]]({{}}, {_, e -> Opts#e}),
   mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R],
-  mut .fold[S](acc: S, f: read F[S,E,S]): S,
+  mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S,
   mut .size: Nat,
 
   mut .find(predicate: read F[E, Bool]): mut Opt[E] -> this.findMap{e -> predicate#e ? {.then -> Opts#e, .else -> {}}},
+  mut .first(predicate: read F[E, Bool]): mut Opt[E] -> this.find(predicate),
   mut .any(predicate: read F[E, Bool]): Bool -> this
     .findMap{e -> predicate#e ? {.then -> Opts#True, .else -> {}}}
     .isSome,
   mut .all(predicate: read F[E, Bool]): Bool -> this
     .findMap{e -> predicate#e ? {.then -> {}, .else -> Opts#False}}
     .isEmpty,
-  mut .for(f: read F[E, Void]): Void -> this.fold(Void, {_, e -> f#e}),
-  mut .list: mut List[E] -> this.fold(List#[E], {acc, e -> Block#(acc.add(e), acc)}),
-  mut .max(compare: read F[E, E, Ordering]): mut Opt[E] -> this.fold[mut Opt[E]]({}, {max, b -> max.match{
+  mut .none(predicate: read F[E, Bool]): Bool -> this.all{e -> predicate#e.not},
+  mut .for(f: read F[E, Void]): Void -> this.fold({Void}, {_, e -> f#e}),
+  mut .forEffect(f: mut MF[E, Void]): Void -> this.list.iter.for{e -> f#e},
+  mut .list: mut List[E] -> this.fold({List#[E]}, {acc, e -> acc + e}),
+  mut .max(compare: read F[E, E, Ordering]): mut Opt[E] -> this.fold[mut Opt[E]]({{}}, {max, b -> max.match{
     .empty -> Opts#b,
     .some(a) -> compare#(a, b).match{
       .less -> Opts#b,
@@ -953,19 +1824,24 @@ _TerminalOps[E]: Sealed{
   }
 
 _FlowExtensions: {
-  .str(separator: Str): mut Extension[mut Flow[Str], Str] -> {flow -> flow.fold[Str]("", {acc, str -> acc.isEmpty ? {
-    .then -> acc + str,
-    .else -> acc + separator + str,
-    }})},
+  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int]({+0}, {acc, e -> acc + e})},
+  .uSum: mut Extension[mut Flow[Nat], Nat] -> {flow -> flow.fold[Nat]({0}, {acc, e -> acc + e})},
+  .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> flow.fold[Float]({0.0}, {acc, e -> acc + e})},
 
-  .sum: mut Extension[mut Flow[Int], Int] -> {flow -> flow.fold[Int](+0, {acc, e -> acc + e})},
-  .uSum: mut Extension[mut Flow[Nat], Nat] -> {flow -> flow.fold[Nat](0, {acc, e -> acc + e})},
-  .fSum: mut Extension[mut Flow[Float], Float] -> {flow -> flow.fold[Float](0.0, {acc, e -> acc + e})},
+  .enumerate[E:imm]: mut Extension[mut Flow[E], mut Flow[Enumerated[E]]] -> {flow ->
+    flow.actor[mut Count[Nat],Enumerated[E]](Count.nat(0), {downstream, i, e ->
+      Block#(downstream#(_Enumerateds#(i++, e)), {})
+      })
+    },
   }
 
 EmptyFlow[E]: Flow[E]{
   .filter(p) -> this,
+  mut .with[EB](other: mut Flow[EB]): mut Flow[mut Pair[E,EB]] -> mut EmptyFlow[mut Pair[E,EB]],
+
   mut .map[R](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
+  .map(_,_) -> this.map({_ -> Unreachable!}),
+
   mut .flatMap[R](f: read F[E, mut Flow[R]]): mut Flow[R] -> mut EmptyFlow[R],
   mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] -> mut EmptyFlow[imm R],
   mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] -> mut EmptyFlow[R],
@@ -975,7 +1851,7 @@ EmptyFlow[E]: Flow[E]{
   .find(_) -> {},
   .any(p) -> False,
   .all(p) -> False,
-  .fold(acc, _) -> acc,
+  .fold(acc, _) -> acc#,
   .size -> 0,
   .unwrapOp(_) -> {
     .step(_) -> {},
@@ -984,7 +1860,20 @@ EmptyFlow[E]: Flow[E]{
     },
   }
 
-TerminalOnInfiniteError: { #: Info -> FInfo.msg "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5) to bound the flow." }
+TerminalOnInfiniteError: { #: Info -> Infos.msg "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5) to bound the flow." }
+
+_LimitSize: {#(n: Nat, size: Opt[Nat]): Opt[Nat] ->
+  size.map{beforeLimit ->
+    beforeLimit > n ? { .then -> n, .else -> beforeLimit, }
+    }
+  }
+
+_Enumerateds: {#[E:imm](i: Nat, e: E): Enumerated[E] -> Enumerated[E:imm]: {
+  .i: Nat -> i,
+  .e: E -> e,
+  }}
+
+Pair[A,B]: {mut .a: A, mut .b: B}
 
 //---File flows/operators.fear
 package base.flows
@@ -1049,7 +1938,10 @@ _Filter: {
       }}
   }
 _Map: {
-  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
+  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] ->
+    this#[_EmptyCtx,E,R](sinkFactory, upstream, iso _EmptyCtx, {_,e -> f#e}),
+  #[C,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], ctx: iso ToIso[C], f: read F[iso C, E, R]): mut FlowOp[R] -> Block#
+    .letIso ctx' = ctx
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return  {{'op
       .step(downstream) -> sink.get.match{
@@ -1057,7 +1949,7 @@ _Map: {
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
-            #(e) -> downstream#(f#e),
+            #(e) -> downstream#(f#(ctx'.iso.self, e)),
             .pushError(info) -> downstream.pushError(info),
             })),
           upstream.step(sink.get!)
@@ -1068,7 +1960,7 @@ _Map: {
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
-            #(e) -> downstream#(f#e),
+            #(e) -> downstream#(f#(ctx'.iso.self, e)),
             .pushError(info) -> downstream.pushError(info),
             })),
           upstream.forRemaining(sink.get!)
@@ -1076,7 +1968,7 @@ _Map: {
         },
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
-      .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},
+      .split -> upstream.split.map{right -> this#[C,E,R](sinkFactory, right, ctx'.iso, f)},
     }}
   }
 _FlatMap: {
@@ -1124,6 +2016,52 @@ _FlatMap: {
       }}
   }
 
+_With: {
+  #[A,B](sinkFactory: _Sink, upstream: mut FlowOp[A], other: mut FlowOp[B]): mut FlowOp[mut Pair[A,B]] -> Block#
+    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[A]]]] sink = {Var#{}}
+    .return{{'op
+      .step(downstream) -> sink.get.match{
+        .some(sink') -> upstream.step(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[A]{
+            .stop -> Block#(isRunning := False, downstream.stop),
+            #(e) -> Block#
+              .return {other.step{
+                #(e') -> op.isRunning ? {.then -> downstream#{.a -> e, .b -> e'}, .else -> other.stop},
+                .stop -> op.stop,
+                .pushError(info) -> downstream.pushError(info),
+                }},
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.step(sink.get!)
+          )
+        },
+      .forRemaining(downstream) -> sink.get.match{
+        .some(sink') -> upstream.forRemaining(sink'),
+        .empty -> Block#(
+          sink := (Opts#(sinkFactory#[A]{
+            .stop -> Block#(isRunning := False, downstream.stop),
+            #(e) -> Block#
+              .return {other.step{
+                #(e') -> op.isRunning ? {.then -> downstream#{.a -> e, .b -> e'}, .else -> other.stop},
+                .stop -> op.stop,
+                .pushError(info) -> downstream.pushError(info),
+                }},
+            .pushError(info) -> downstream.pushError(info),
+            })),
+          upstream.forRemaining(sink.get!)
+          )
+        },
+      .stop -> upstream.stop,
+      .isRunning -> isRunning*,
+      .split -> Block#
+        .if {upstream.canSplit.not} .return {{}}
+        .if {other.canSplit.not} .return {{}}
+        .return {Opts#(this#(sinkFactory, upstream.split!, other.split!))},
+      }}
+  }
+
 //---File flows/statefulOperators.fear
 package base.flows
 
@@ -1133,7 +2071,7 @@ _Limit: {
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
     .return {{ 'runner
       .stop -> Block#(remaining := 0, upstream.stop),
-      .isRunning -> remaining* > 0 && (upstream.isRunning),
+      .isRunning -> remaining* > 0 & (upstream.isRunning),
       .isFinite -> True,
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -1176,10 +2114,11 @@ _InternalActor: {
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
+          .let[mut _ActorSink[imm R]] actorSink = {_ActorSinks#downstream}
           .do {sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(downstream.stop, op.stop),
             #(e) -> isRunning.get ? {
-              .then -> f#(downstream, state, e).match{
+              .then -> f#(actorSink, state, e).match{
                 .continue -> {},
                 .stop -> Block#(downstream.stop, isRunning := False),
                 },
@@ -1208,7 +2147,7 @@ _InternalActor: {
         .empty -> Block#
           .do {sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(downstream.stop, op.stop),
-            #(e) -> f#(downstream, state, e).match{
+            #(e) -> f#(_ActorSinks#downstream, state, e).match{
               .continue -> {},
               .stop -> Block#(downstream.stop, isRunning := False),
               },
@@ -1222,8 +2161,8 @@ _InternalActor: {
       }},
   }
 
-ActorImpl[S,E,R]: { read #(downstream: mut _Sink[imm R], state: S, e: E): ActorRes }
-ActorImplMut[S,E,R]: { read #(downstream: mutH _Sink[R], state: mutH S, e: E): ActorRes }
+ActorImpl[S,E,R]: { read #(downstream: mut _ActorSink[imm R], state: S, e: E): ActorRes }
+ActorImplMut[S,E,R]: { read #(downstream: mutH _ActorSink[R], state: mutH S, e: E): ActorRes }
 
 ActorRes: Sealed{
   .match[R](m: mut ActorResMatch[R]): R -> m.continue,
@@ -1231,6 +2170,11 @@ ActorRes: Sealed{
   .stop: ActorRes -> {.match(m) -> m.stop},
   }
 ActorResMatch[R]: { mut .continue: R, mut .stop: R, }
+
+_ActorSinks: {#[T](sink: mut _Sink[T]): mut _ActorSink[T] -> mut _ActorSink[T]: {
+  mut #(x: T): Void -> sink#x,
+  mut .pushError(info: Info): Void -> sink.pushError(info),
+  }}
 
 //---File flows/pipelineParallel.fear
 package base.flows
@@ -1241,19 +2185,20 @@ _PipelineParallelSink: _Sink{
 _PipelineParallelSink[T]: _Sink[T]
 
 _PipelineParallelFlow: _FlowFactory{
-  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> _RestrictFlowReuse#{'self
     .unwrapOp(_) -> source,
     .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
+
     .map(f) -> this.fromOp(_Map#(_PipelineParallelSink, source, f), size),
+    .map(ctx, f) -> this.fromOp(_Map#(_PipelineParallelSink, source, ctx, f), size),
+
     .flatMap(f) -> this.fromOp(_FlatMap#(_PipelineParallelSink, source, f), {}),
     mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
       this.fromOp(_Actor#[S,E,R](_PipelineParallelSink, source, state, f), {}),
     mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
       this.fromOp(_Actor.anyRet[S,E,R](_PipelineParallelSink, source, state, f), {}),
-    .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), size.map(iso base.OptMap[Nat,Nat]{beforeLimit -> beforeLimit > n ? {
-      .then -> n,
-      .else -> beforeLimit,
-      }})),
+    .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), _LimitSize#(n, size)),
+    .with(other) -> this.fromOp(_With#(_PipelineParallelSink, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
 
     mut .first: mut Opt[E] -> Block#
       .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
@@ -1300,9 +2245,10 @@ _PipelineParallelFlow: _FlowFactory{
       .do {source.stop}
       .return {res.get},
 
-    mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
+    mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .let[mut Var[S]] acc' = {Var#acc}
+      .letIso initialValueSupplier = acc
+      .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
       .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(_PipelineParallelSink#[E]{
         #(e) -> acc' := (f#(acc'.get, e)),
@@ -1317,7 +2263,7 @@ _PipelineParallelFlow: _FlowFactory{
 
     .size -> size.match{
       .some(n) -> n,
-      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
+      .empty -> self.fold[Nat]({0}, {acc, _ -> acc + 1}),
       },
     },
 
@@ -1327,53 +2273,69 @@ _PipelineParallelFlow: _FlowFactory{
 //---File flows/converters.fear
 package base.flows
 
-Joinable[T]: { .join(flow: mut Flow[T]): T }
+Joinable[T,R]: {.join(flow: mut Flow[T]): R}
+Joinable[T]: Joinable[T,T]{}
 
-RestrictFlowReuse: {
-  #[E](f: mut FlowOp[E]): mut FlowOp[E] -> Block#
-    .var[Bool] stopped = {False}
+_RestrictFlowReuse: {
+  #[E](flow: mut Flow[E]): mut Flow[E] -> Block#
+    .var[Bool] isTail = {True}
     .return {{
-      .isRunning -> f.isRunning,
-      .stop -> Block#
-        .do {stopped := True}
-        .return {f.stop},
-      .step(downstream) -> stopped.get ? {
-        .then -> Error.msg "This flow cannot be reused.",
-        .else -> f.step(downstream),
-        },
-      .forRemaining(downstream) -> stopped.get ? {
-        .then -> Error.msg "This flow cannot be reused.",
-        .else -> f.forRemaining(downstream),
-        },
-      .isFinite -> f.isFinite,
-      .split -> stopped.get ? {
-        .then -> Error.msg "This flow cannot be reused.",
-        .else -> f.split.map{op -> RestrictFlowReuse#op},
-        },
-      }}
+      .unwrapOp(token) -> flow.unwrapOp(token),
+      mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+        Block#(_CheckFlowReuse#isTail, flow.actorMut[S,R](state, f)),
+      mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+        Block#(_CheckFlowReuse#isTail, flow.actor[S,R](state, f)),
+      .first -> Block#(_CheckFlowReuse#isTail, flow.first),
+      .filter(predicate) -> Block#(_CheckFlowReuse#isTail, flow.filter(predicate)),
+      .findMap(f) -> Block#(_CheckFlowReuse#isTail, flow.findMap(f)),
+      .flatMap(f) -> Block#(_CheckFlowReuse#isTail, flow.flatMap(f)),
+      .fold(acc, f) -> Block#(_CheckFlowReuse#isTail, flow.fold(acc, f)),
+      .limit(n) -> Block#(_CheckFlowReuse#isTail, flow.limit(n)),
+      .map(f) -> Block#(_CheckFlowReuse#isTail, flow.map(f)),
+      .map(ctx, f) -> Block#(_CheckFlowReuse#isTail, flow.map(ctx, f)),
+      .with(other) -> Block#(_CheckFlowReuse#isTail, flow.with(other)),
+      .size -> Block#(_CheckFlowReuse#isTail, flow.size),
+    }},
+  }
+_CheckFlowReuse: {
+  #(isTail: mut Var[Bool]): Void -> isTail.get ? {
+    .then -> isTail := False,
+    .else -> Error.msg "This flow cannot be reused. Consider collecting it to a list first.",
+    },
   }
 
 _MutSourceCollection[E]: {
-  #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(Block#[mut FlowOp[E]]
-    .let[mut Var[mut Opt[mut FlowOp[E]]]] cloned = {Var#[mut Opt[mut FlowOp[E]]]{}}
+  #(source: mut FlowOp[E]): mut Flow[E] -> Flow.fromOp(this.wrap(source)),
+  #(source: mut FlowOp[E], size: Nat): mut Flow[E] -> Flow.fromOp(this.wrap(source), size),
+  .wrap(source: mut FlowOp[E]): mut FlowOp[E] -> Block#
+    .var[mut Opt[mut FlowOp[E]]] cloned = {{}}
     .return{{
       .isRunning -> this.get(cloned, source).isRunning,
       .stop -> this.get(cloned, source).stop,
       .step(downstream) -> this.get(cloned, source).step(downstream),
-      }}),
+      }},
   .get(cloned: mut Var[mut Opt[mut FlowOp[E]]], original: mut FlowOp[E]): mut FlowOp[E] -> cloned.get.match{
      .some(cloned') -> cloned',
      .empty -> Block#
        .let[mut List[E]] dup = {Flow.fromOp(original).list}
        .do {cloned := (Opts#(Block#[mut FlowOp[E]]
          .let[mut Count[Nat]] cursor = {Count.nat(0)}
-         .return {RestrictFlowReuse#{'self
+         .return {{'self
            .isRunning -> cursor* < (dup.size),
            .stop -> cursor := (dup.size),
            .step(downstream) -> dup.tryGet(cursor++).match{
-             .some(x) -> downstream#x,
+             .some(x) -> Block#
+               .do {downstream#x}
+               .if {cursor.get >= (dup.size)} .do {Block#(downstream.stop, self.stop)}
+               .return {{}},
              .empty -> Block#(downstream.stop, self.stop),
              },
+           .forRemaining(downstream) -> Block#
+             .loop {Block#
+               .if {cursor.get >= (dup.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+               .do {downstream#(dup.get(cursor++))}
+               .return {ControlFlow.continue}
+               }.return {{}},
            }}))}
        .return{cloned.get!},
      },
@@ -1392,7 +2354,7 @@ _SafeSource: {
   .fromList'[E](list: mut List[E], start: Nat, end: Nat): mut FlowOp[E] -> Block#
     .let[mut Count[Nat]] cursor = {Count.nat(start)}
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
-    .return {RestrictFlowReuse#{'self
+    .return {{'self
       .isRunning -> cursor* < (endCursor.get),
       .stop -> cursor := (endCursor.get),
       .step(downstream) -> cursor.get < (endCursor.get) ? {
@@ -1402,6 +2364,12 @@ _SafeSource: {
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
+      .forRemaining(downstream) -> Block#
+        .loop {Block#
+          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+          .do {downstream#(list.get(cursor++))}
+          .return {ControlFlow.continue}
+          }.return {{}},
       .split -> self.canSplit ? {
         .else -> {},
         .then -> Block#
@@ -1418,19 +2386,20 @@ _SafeSource: {
 package base.flows
 
 _SeqFlow: _FlowFactory{
-  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> {'self
+  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> _RestrictFlowReuse#{'self
     .unwrapOp(_) -> source,
     .filter(p) -> this.fromOp(_Filter#(_Sink, source, p), {}),
+
     .map(f) -> this.fromOp(_Map#(_Sink, source, f), size),
+    .map(ctx, f) -> this.fromOp(_Map#(_Sink, source, ctx, f), size),
+
     .flatMap(f) -> this.fromOp(_FlatMap#(_Sink, source, f), {}),
     mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
       this.fromOp(_Actor#[S,E,R](_Sink, source, state, f), {}),
     mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
       this.fromOp(_Actor.anyRet[S,E,R](_Sink, source, state, f), {}),
-    .limit(n) -> this.fromOp(_Limit#(_Sink, source, n), size.map(iso base.OptMap[Nat,Nat]{beforeLimit -> beforeLimit > n ? {
-      .then -> n,
-      .else -> beforeLimit,
-      }})),
+    .limit(n) -> this.fromOp(_Limit#(_Sink, source, n), _LimitSize#(n, size)),
+    .with(other) -> this.fromOp(_With#(_Sink, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
 
     mut .first: mut Opt[E] -> Block#
       .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
@@ -1465,12 +2434,17 @@ _SeqFlow: _FlowFactory{
       .do {source.stop}
       .return {res.get},
 
-    mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
+    mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .let[mut Var[S]] acc' = {Var#acc}
+      .letIso initialValueSupplier = acc
+      .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
+      .let stopped = {Var#[Bool]False}
       .do {source.forRemaining(mut _Sink[E]{
-        .stop -> {},
-        .pushError(info) -> Error!info,
+        .stop -> stopped := True,
+        .pushError(info) -> stopped* ? {
+          .then -> {},
+          .else -> Error!info,
+          },
         #(e) -> acc' := (f#(acc'.get, e)),
         })}
       .do {source.stop}
@@ -1478,13 +2452,13 @@ _SeqFlow: _FlowFactory{
 
     .size -> size.match{
       .some(n) -> n,
-      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}),
+      .empty -> self.fold[Nat]({0}, {acc, _ -> acc + 1}),
       },
     },
 
   #[E](e: E): mut Flow[E] -> Block#
     .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
-    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
+    .let[mut FlowOp[E]] source = {{'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},
       .step(downstream) -> seq.swap(mut Opt[E]).match{
@@ -1496,7 +2470,7 @@ _SeqFlow: _FlowFactory{
         .empty -> Block#(downstream.stop, self.stop),
         },
       }}
-    .return {this.fromOp(source, Opts#[Nat]1)},
+    .return {this.fromOp(source, Opts#1)},
   }
 
 //---File flows/flowLet.fear
@@ -1588,8 +2562,12 @@ _MagicVarImpl[X]: {
 package base
 
 Int: Sealed,_MathOps[imm Int],_IntOps[imm Int]{}
-Nat: Sealed,_MathOps[imm Nat],_IntOps[imm Nat]{}
-Byte: Sealed,_MathOps[imm Byte],_IntOps[imm Byte]{}
+Nat: Sealed,_MathOps[imm Nat],_IntOps[imm Nat],_UnsignedOps[imm Nat]{
+  .offset(delta: Int): Nat,
+  }
+Byte: Sealed,_MathOps[imm Byte],_IntOps[imm Byte],_UnsignedOps[imm Byte]{
+  .offset(delta: Int): Byte,
+  }
 Float: Sealed,_MathOps[imm Float]{
   .round: Int,
   .ceil: Int,
@@ -1605,6 +2583,7 @@ _MathOps[T]: Sealed{
   read .int: Int,
   read .nat: Nat,
   read .float: Float,
+  read .byte: Byte,
   read .str: Str,
   +(n: T): T,
   -(n: T): T,
@@ -1631,11 +2610,15 @@ _IntOps[T]: Sealed{
 
   **(n: Nat): T, // pow
   }
+_UnsignedOps[T]: Sealed{
+  .offset(n: Int): T,
+  }
 
 _IntInstance: Int{
   .int -> Magic!,
   .nat -> Magic!,
   .float -> Magic!,
+  .byte -> Magic!,
   .str -> Magic!,
   +(n) -> Magic!,
   -(n) -> Magic!,
@@ -1664,6 +2647,7 @@ _NatInstance: Nat{
   .int -> Magic!,
   .nat -> Magic!,
   .float -> Magic!,
+  .byte -> Magic!,
   .str -> Magic!,
   +(n) -> Magic!,
   -(n) -> Magic!,
@@ -1672,6 +2656,7 @@ _NatInstance: Nat{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .offset(n) -> Magic!,
 
   .shiftLeft(n) -> Magic!,
   .shiftRight(n) -> Magic!,
@@ -1692,6 +2677,7 @@ _ByteInstance: Byte{
   .int -> Magic!,
   .nat -> Magic!,
   .float -> Magic!,
+  .byte -> Magic!,
   .str -> Magic!,
   +(n) -> Magic!,
   -(n) -> Magic!,
@@ -1700,6 +2686,7 @@ _ByteInstance: Byte{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .offset(n) -> Magic!,
 
   .shiftLeft(n) -> Magic!,
   .shiftRight(n) -> Magic!,
@@ -1720,6 +2707,7 @@ _FloatInstance: Float{
   .int -> Magic!,
   .nat -> Magic!,
   .float -> Magic!,
+  .byte -> Magic!,
   .str -> Magic!,
   .round -> Magic!,
   .ceil -> Magic!,
@@ -1833,8 +2821,10 @@ Iter[E]:{
   mut .list: mut List[E] -> this.fold(List#[E], { acc, e -> Block#(acc.add(e), acc) }),
   mut .llist: mut LList[E] -> this.fold(mut LList[E], { acc, e -> acc +[] e }),
   mut .str(toStr: mut IterMapper[E, Str], joining: Str): Str -> this.map(toStr)
-    .fold[Str]("", mut IterFolder[Str, Str]{ acc, e -> acc.size == 0 ? { .then -> acc + e,
-                                                                          .else -> acc + joining + e }}),
+    .fold[Str]("", mut IterFolder[Str, Str]{acc, e -> acc.isEmpty ? {
+      .then -> acc + e,
+      .else -> acc + joining + e }
+      }).str,
   }
 
 Sum:{
@@ -1878,7 +2868,10 @@ Sealed: {}
 Void: Sealed{}
 
 Abort: Sealed{![R:readH,mutH,read,mut,imm,iso]: R -> this!} // can be optimised to just terminate (goes stuck)
-Magic: Sealed{![R:readH,mutH,read,mut,imm,iso]: R -> this!} // magic'd out to tell us what we forgot to implement
+Magic: Sealed{
+  ![R:readH,mutH,read,mut,imm,iso]: R -> this!, // magic'd out to tell us what we forgot to implement
+  ![R:readH,mutH,read,mut,imm,iso](_: mut base.caps._System): R -> this!,
+  }
 Debug: Sealed{
   #[T](x: T): T -> x,
   .println[T](x: T): Void -> {},
@@ -1909,13 +2902,12 @@ Consumer[A:read,mut,imm,iso]: { mut #(a: A): Void }
 Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso]: { mut #(a: A, b: B): Void }
 Consumer[A:read,mut,imm,iso, B:read,mut,imm,iso, C:read,mut,imm,iso]: { mut #(a: A, b: B, c: C): Void }
 
-ToImm[R]: { read .toImm: imm R, }
-Freezer[T,R]: { mut #(self: T): imm R }
-Ice[T]: { read .get: imm T }
+ToImm[R]: {read .toImm: imm R}
+ToIso[R]: {mut .iso: iso ToIso[R], mut .self: mut R,}
 
 Box[T]: {
   mut  .get: T,
-  read .get: read T,
+  read .get: read/imm T,
   imm  .get: imm T,
   }
 
@@ -1924,12 +2916,12 @@ package base.rng
 alias base.Block as Block,
 alias base.Nat as Nat, alias base.Float as Float,
 alias base.F as F,
-alias base.FInfo as FInfo,
+alias base.Infos as Infos,
 alias base.Sealed as Sealed,
 alias base.Var as Var, alias base.VarImm as VarImm,
 
 FRandom: F[Nat, mut Random]{seed -> Block#
-  .if {seed == 0} .error {FInfo.msg "Seed may not be zero"}
+  .if {seed == 0} .error {Infos.msg "Seed may not be zero"}
   .let prev = {Var#seed}
   .return {{
     .nat -> Block#
@@ -2020,6 +3012,16 @@ _DecidedBlock:{
     .return(_) -> res,
     .do(_) -> self,
     .let(_, _) -> res,
+    .letIso(_, _) -> res,
+    .var(_, _) -> res,
+    .assert(_) -> self,
+    .assert(_, _) -> self,
+    .if(_) -> {
+      .return(_) -> self,
+      .do(_) -> self,
+      .error(_) -> self,
+      },
+    .loop(_) -> self,
     }
   }
 
@@ -2028,56 +3030,70 @@ package base
 
 Error: {
   ![R:read,mut,imm,iso,mutH,readH](info: Info): R -> Magic!,
-  .msg[R:read,mut,imm,iso,mutH,readH](msg: Str): R -> this!{
-    .msg -> msg,
-    .list -> List#,
-    .map -> EmptyMap[Str, Info]
-    }
+  .msg[R:read,mut,imm,iso,mutH,readH](msg: Str): R -> this!(Infos.msg msg)
   }
 
 Todo: {
   ![R:read,mut,imm,iso,mutH,readH]: R -> Error.msg[R] "TODO: Implement this code",
-  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("TODO: "+msg),
-}
+  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("TODO: " + msg),
+  }
+
+Unreachable: {
+  ![R:read,mut,imm,iso,mutH,readH]: R -> Error.msg[R] "Unreachable code reached",
+  ![R:read,mut,imm,iso,mutH,readH](msg: Str): R -> Error.msg[R]("Unreachable code reached: " + msg),
+  }
 
 Try: {
-  #[R](try: read Try[R]): mut Res[R,Info] -> Magic!,
+  #[R](try: read F[R]): mut Action[R] -> Magic!,
+  #[T:iso,imm,mut,read,R](data: iso T, try: read F[iso T, R]): mut Action[R] -> Magic!,
   }
-Try[R]:{ read #: R, }
 
-Info: Sealed,_InfoToJson{
+Info: Sealed{
   .msg: Str,
-  .map: Map[Str, Info],
+  .map: LinkedHashMap[Str, Info],
   .list: List[Info],
-  .str: Str -> _InfoToJson#this,
+  .accept[R](visitor: InfoVisitor[R]): R,
+  .str: Str -> this.accept[Json](_InfoToJson).str,
   }
-FInfo: {
-  .msg(msg: Str): Info -> {
+Infos: {
+  .msg(msg: Str): Info -> {'info
     .msg -> msg,
     .list -> List#,
-    .map -> EmptyMap[Str, Info],
+    .map -> Maps.hashMap({k1, k2 -> k1 == k2}, {k -> k}),
+    .accept(visitor) -> visitor.msg(info),
     },
-  .list(list: List[Info]): Info -> {
+  .list(list: List[Info]): Info -> {'info
     .msg -> "",
     .list -> list,
-    .map -> EmptyMap[Str, Info],
+    .map -> Maps.hashMap({k1, k2 -> k1 == k2}, {k -> k}),
+    .accept(visitor) -> visitor.list(info),
     },
-  .map(map: Map[Str, Info]): Info -> {
+  .map(map: LinkedHashMap[Str, Info]): Info -> {'info
     .msg -> "",
     .list -> List#,
     .map -> map,
+    .accept(visitor) -> visitor.map(info),
     },
   }
+InfoVisitor[R]: {
+  .msg(info: Info): R,
+  .list(info: Info): R,
+  .map(info: Info): R,
+  }
 
-_InfoToJson: {#(info: Info): Str -> Block#
-  .if {info.msg.isEmpty.not} .return {"\""+(info.msg)+"\""}
-  .if {info.list.isEmpty.not} .return {"["+(this.list(info.list))+"]"}
-  .if {info.map.isEmpty.not} .return {Todo! "Flows over maps are not implemented yet"}
-  .return {Error.msg "Unreachable"},
-
-  .list(l: List[Info]): Str -> l.flow
-    .map{info->this#info}
-    #(Flow.str ","),
+_InfoToJson: InfoVisitor[Json]{
+  .msg(info) -> Jsons.string(info.msg),
+  .list(info) -> Jsons.array(info.list.flow.map{info' -> info'.accept(this)}.list),
+  .map(info) -> Jsons.object(info.map.flow
+    .map{kv -> Entry[Str,Json]{
+      .key -> kv.key,
+      .value -> kv.value.accept(this),
+      }}
+    .fold(
+      {Maps.hashMap[Str,Json]({k1, k2 -> k1 == k2}, {k -> k})},
+      {acc, kv -> acc + (kv.key, kv.value)}
+      )
+    ),
   }
 
 //---File caps/net.fear
@@ -2089,17 +3105,13 @@ alias base.Sealed as Sealed,
 //---File caps/env.fear
 package base.caps
 
-Env:{
+Env: ToIso[Env]{
   mut .launchArgs: base.LList[Str],
   }
 
 FEnv:F[mut System, mut Env],Sealed{
-  #(s) -> {
-    .launchArgs -> Magic!
-    },
-  .io(io: mut IO): mut Env -> {
-    .launchArgs -> Magic!
-    }
+  #(s) -> s.io.env,
+  .io(io: mut IO): mut Env -> io.env,
   }
 
 //---File caps/pkg.fear
@@ -2117,24 +3129,39 @@ alias base.Block as Block,
 alias base.Nat as Nat,
 alias base.Res as Res,
 alias base.Info as Info,
+alias base.Infos as Infos,
+alias base.Actions as Actions,
+alias base.Action as Action,
+alias base.ToIso as ToIso,
 
 //---File caps/io.fear
 package base.caps
-alias base.LList[base.Str] as Path,
+alias base.List[base.Str] as Path,
 
-IO: {
+IO: ToIso[IO]{
   mut .print(msg: Str): Void,
   mut .println(msg: Str): Void,
   mut .printErr(msg: Str): Void,
   mut .printlnErr(msg: Str): Void,
+  mut .accessR(path: Path): mut ReadPath,
+  mut .accessW(path: Path): mut WritePath,
+  mut .accessRW(path: Path): mut ReadWritePath,
+  mut .env: mut Env,
+  mut .iso: iso IO,
   }
-UnrestrictedIO:F[mut System, mut IO],Sealed{
-  s -> {
-    .print(msg) -> Magic!,
-    .println(msg) -> Magic!,
-    .printErr(msg) -> Magic!,
-    .printlnErr(msg) -> Magic!,
-    }
+UnrestrictedIO: F[mut System, mut IO],Sealed{sys -> sys.io}
+
+ReadPath: _ReadPath,ToIso[ReadPath]{}
+_ReadPath: {
+  mut .accessR(path: Path): mut ReadPath,
+  mut .readStr: mut Action[Str],
+  }
+WritePath: _WritePath,ToIso[WritePath]{}
+_WritePath: {
+  mut .accessW(path: Path): mut WritePath,
+  }
+ReadWritePath: _ReadPath,_WritePath,ToIso[ReadWritePath]{
+  mut .accessRW(path: Path): mut ReadWritePath,
   }
 
 FileHandleMode:Stringable,Sealed{}
@@ -2145,12 +3172,18 @@ Create:FileHandleMode{ "w+" }
 //---File caps/capabilities.fear
 package base.caps
 
-System:Sealed{
-  mut .clone: iso System -> { _System },
-  mut .io: mut IO -> UnrestrictedIO#this,
-  ._preventCreation: _System,
+System: ToIso[System]{
+  mut .io: mut IO,
+  mut .rng: mut RandomSeed,
+  mut .try: mut CapTry,
   }
-_System:Sealed,System{ _System }
+_System: Sealed,System{
+  .iso -> iso _System,
+  .self -> this,
+  .io -> Magic!this,
+  .rng -> Magic!this,
+  .try -> Magic!this,
+  }
 
 //---File caps/isopod.fear
 package base.caps
@@ -2161,15 +3194,19 @@ IsoPod:{
 IsoPod[T:imm,iso]: {
   read .isAlive: Bool,
   read .peek[R](f: mut IsoViewer[T, R]): R,
+  read .look[R](f: mut IsoViewer'[T, R]): mut Action[R] -> {m -> this.peek{
+    .some(x) -> m.ok(f#x),
+    .empty -> m.info(Infos.msg "The IsoPod was empty"),
+    }},
   mut !: iso T,
   mut .next(val: iso T): Void,
   read .isDead: Bool -> this.isAlive.not,
   mut .consume[R](f: mut IsoConsumer[T, R]): R -> this.isAlive ? { .then -> f.some(this!), .else -> f.empty },
   mut :=(val: iso T): Void -> this.next(val),
-  mut .mutate(f: F[mut T, Void]): Bool -> this.consume{
-    .some(x) -> Block#(this.next(_IsoMutator#(f, x)), True),
-    .empty -> False,
-    }
+  mut .mutate(f: F[mut T, Void]): mut Action[Void] -> {m -> this.consume{
+    .some(x) -> Block#(this.next(_IsoMutator#(f, x)), m.ok{}),
+    .empty -> m.info(Infos.msg "The IsoPod was empty"),
+    }}
   }
 IsoConsumer[T:imm,iso, R]:{
   mut .some(x: iso T): R,
@@ -2178,6 +3215,9 @@ IsoConsumer[T:imm,iso, R]:{
 IsoViewer[T:imm,iso, R]:{
   mut .some(x: readH T): R,
   mut .empty: R,
+  }
+IsoViewer'[T:imm,iso, R]:{
+  mut #(x: readH T): R,
   }
 _IsoMutator:{ #[T,R](f: F[mut T, R], val: mut T): mut T -> Block#(f#val, val) }
 
@@ -2201,23 +3241,18 @@ _MagicIsoPodImpl[T:imm,iso]: {
 //---File caps/rng.fear
 package base.caps
 
-RandomSeed: {
+RandomSeed: ToIso[RandomSeed]{
   mut #: Nat,
   }
-FRandomSeed: F[mut System, mut RandomSeed]{s -> {
-  # -> Magic!
-  }}
 
 //---File caps/tryCatch.fear
 package base.caps
 
-CapTrys: F[mut System, mut CapTry]{sys -> mut CapTry: {
-  mut #[R](try: read TryBody[R]): mut Res[R, Info] -> Magic!,
-  mut #[T:iso,imm,mut,read,R](data: iso T, try: read TryBody[T,R]): mut Res[R, Info] -> Magic!,
-  }}
-
-TryBody[R:iso,imm,mut,mutH,read,readH]: {read #: R}
-TryBody[T:iso,imm,mut,read,R:iso,imm,mut,mutH,read,readH]: {read #(data: iso T): R}
+CapTry: ToIso[CapTry]{
+  mut #[R](try: read F[R]): mut Action[R],
+  mut #[T:iso,imm,mut,read,R](data: iso T, try: read F[iso T, R]): mut Action[R],
+  }
+CapTrys: F[mut System, mut CapTry]{sys -> sys.try}
 
 //---File extensions.fear
 package base

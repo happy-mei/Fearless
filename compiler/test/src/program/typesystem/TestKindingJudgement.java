@@ -125,7 +125,7 @@ public class TestKindingJudgement {
   @Test void noMutInExpected() {fail("""
     [E5 invalidMdfBound]
     Type bound related to mut X:
-    The type mut X is not valid because its capability is not in the required bounds. The allowed modifiers are: read, imm.
+    The type mut X is not valid because its capability is not in the required bounds. The allowed modifiers are: imm, read.
     """,
     XBs.empty(),
     "mut X",
@@ -141,7 +141,7 @@ public class TestKindingJudgement {
   @Test void noMutInExpectedX() {fail("""
     [E5 invalidMdfBound]
     Type bound related to mut X:
-    The type mut X is not valid because its capability is not in the required bounds. The allowed modifiers are: read, imm.
+    The type mut X is not valid because its capability is not in the required bounds. The allowed modifiers are: imm, read.
     """,
     XBs.empty()
       .addBounds(List.of(new Id.GX<>("X")), Map.of(new Id.GX<>("X"), Set.of(Mdf.mut))),
@@ -151,7 +151,7 @@ public class TestKindingJudgement {
   @Test void multiBoundsXFail() {fail("""
     [E5 invalidMdfBound]
     Type bound related to X:
-    The type X is not valid because its capability is not in the required bounds. The allowed modifiers are: read, mut, imm.
+    The type X is not valid because its capability is not in the required bounds. The allowed modifiers are: imm, mut, read.
     """,
     XBs.empty()
       .addBounds(List.of(new Id.GX<>("X")), Map.of(new Id.GX<>("X"), Set.of(Mdf.mut, Mdf.iso))),

@@ -78,10 +78,20 @@ public class Ex17FlowsTest {
         .map{n -> n * 10}
         .flatMap{n ->As[List[Nat]]#(List#(n + 1, n + 2, n + 3, n + 4)).flow}
         .map{n -> n * 10}
-        .fold[Nat](0, {acc, n -> acc + n})
+        .fold[Nat]({0}, {acc, n -> acc + n})
         .str
       )}
     """, Base.mutBaseAliases); }
+
+  @Test void emptyFlatMap() { ok(new Res(), """
+    package test
+    Test:Main {sys -> Assert!(LList[LList[Nat]].flow
+      .flatMap{l -> l.flow}
+      .map{_ -> Void}
+      .last
+      .isEmpty
+      )}
+    """, Base.mutBaseAliases);}
 
   @Test void flowMapMapCollect() { ok(new Res("""
     5010, 5020, 5030, 5040, 10010, 10020, 10030, 10040, 15010, 15020, 15030, 15040, 50010, 50020, 50030, 50040
@@ -94,7 +104,7 @@ public class Ex17FlowsTest {
         .flatMap{n ->As[List[Nat]]#(List#(n + 1, n + 2, n + 3, n + 4)).flow}
         .map{n -> n * 10}
         .map{n -> n.str}
-        #(Flow.str ", ")
+        .join(", ")
         .str
       )}
     """, Base.mutBaseAliases); }
@@ -109,7 +119,7 @@ public class Ex17FlowsTest {
         .if {n <= 35} .return {this.seq(n)}
         .return {As[List[Nat]]#(List#(n - 1, n - 2)).flow
           .map{n' -> Fib.flow(n')}
-          .fold[Nat](0, {a,b -> a + b})
+          .fold[Nat]({0}, {a,b -> a + b})
           },
       }
     
@@ -372,7 +382,7 @@ public class Ex17FlowsTest {
         .let[Int,Str] f2 = {f1 -> f1# #(Flow.sum)}
         .map{n -> n + f2}
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
         )
       }
     """, Base.mutBaseAliases);}
@@ -383,7 +393,7 @@ public class Ex17FlowsTest {
         .let[Int,Str] f2 = {f1 -> (f1# #(Flow.sum)) + (f1# #(Flow.sum))}
         .map{n -> n + f2}
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
         )
       }
     """, Base.mutBaseAliases);}
@@ -395,7 +405,7 @@ public class Ex17FlowsTest {
         .let[Int,Str] f3 = {_ -> +100}
         .map{n -> n + f2 + f3}
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
         )
       }
     """, Base.mutBaseAliases);}
@@ -408,7 +418,7 @@ public class Ex17FlowsTest {
         .filter{n -> n > +1}
         #{f -> f.map{n -> n * +10}}
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
         }
       .return {UnrestrictedIO#sys.println(myFlow)}
       }
@@ -427,7 +437,7 @@ public class Ex17FlowsTest {
           .do {downstream#n}
           .return {{}}})
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
       )}
     """, Base.mutBaseAliases);}
   @Disabled @Test void flowActorMutRet() { ok(new Res("", "", 0), """
@@ -441,7 +451,7 @@ public class Ex17FlowsTest {
           .do {downstream#n}
           .return {{}}})
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
       )}
     """, Base.mutBaseAliases);}
   @Disabled @Test void flowActorMutRetWorks() { ok(new Res("", "", 0), """
@@ -459,7 +469,7 @@ public class Ex17FlowsTest {
 //          .do {downstream#n}
 //          .return {{}}})
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
       )}
     MyActorMs: {
       .addNToState(state: mut Var[Nat], n: Nat): Void -> state := (state.get + n),
@@ -478,7 +488,7 @@ public class Ex17FlowsTest {
           .return {{}}})
         .limit(2)
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
       )}
     """, Base.mutBaseAliases);}
   @Test void limitedFlowActorBefore() { ok(new Res("", "", 0), """
@@ -493,7 +503,7 @@ public class Ex17FlowsTest {
           .do {downstream#n}
           .return {{}}})
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
       )}
     """, Base.mutBaseAliases);}
   @Test void flowActorNoConsumer() { ok(new Res(), """
@@ -507,7 +517,7 @@ public class Ex17FlowsTest {
           .do {downstream#n}
           .return {{}}})
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
       )}
     """, Base.mutBaseAliases);}
 
@@ -518,7 +528,7 @@ public class Ex17FlowsTest {
       Flow#[Nat](5, 10, 15)
         .scan[Str]("!", {acc, n -> acc + (n.str)})
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
       )}
     """, Base.mutBaseAliases);}
   @Test void flowScan2() { ok(new Res(), """
@@ -528,8 +538,39 @@ public class Ex17FlowsTest {
         .scan[Int](+0, {acc, n -> acc + n})
         .scan[Int](+0, {acc, n -> acc + n})
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
       )}
+    """, Base.mutBaseAliases);}
+
+  @Test void rollingAvg() {ok(new Res("The average grade for 3 students is 82.13333333333334", "", 0), """
+    package test
+    Student: {.name: Str, .age: Nat, .grades: LList[Grade]}
+    Grade: {.assessment: Str, .score: Float}
+    Stats: {.avg: Float, .n: Float}
+    RollingAvg: {#(students: LList[Student]): Str ->
+      students.flow
+        .flatMap{s -> s.grades.flow}
+        .map{g -> g.score}
+        .scan[Stats](
+          {.avg -> 0.0, .n -> 0.0},
+          {acc, n -> Stats{
+            .avg -> (acc.avg * (acc.n) + n) / (acc.n + 1.0),
+            .n -> acc.n + 1.0
+          }}
+        )
+        .map{stats -> "The average grade for " + (stats.n.nat.str) + " students is " + (stats.avg.str)}
+        .last!
+    }
+    
+    Test: Main{sys -> sys.io.println(RollingAvg#(LList[Student] + Alice))}
+    Alice: Student{
+      .name -> "Alice",
+      .age -> 20,
+      .grades -> LList[Grade]
+        + {.assessment -> "COMP261", .score -> 80.0}
+        + {.assessment -> "SWEN221", .score -> 90.0}
+        + {.assessment -> "NWEN241", .score -> 76.4},
+      }
     """, Base.mutBaseAliases);}
 
   // TODO: fix top level dec issue when wanting a mut instance of a top level lambda
@@ -539,7 +580,7 @@ public class Ex17FlowsTest {
       Flow#[Nat](5, 10, 15)
         .scan[Str]("!", {acc, n -> acc + (n.str)})
         .map{n -> n.str}
-        #(Flow.str " ")
+        .join(" ")
       )}
     """, """
     package test
@@ -588,7 +629,7 @@ public class Ex17FlowsTest {
 //          .do {state.put(n + state.get)}
 //          .return {n})
 //        .map{n -> n.str}
-//        #(Flow.str " ")
+//        .join(" ")
 //      )}
 //    """, Base.mutBaseAliases);}
 
@@ -605,7 +646,7 @@ public class Ex17FlowsTest {
             .return {{}}
             })
           .map{n -> n.str}
-          #(Flow.str " ")
+          .join(" ")
         )}
       }
     """, Base.mutBaseAliases); }
@@ -619,7 +660,7 @@ public class Ex17FlowsTest {
         .mapMut{n -> Block#(counter++, n)}
         .mapMut{n -> Block#(counter++, n)}
         .map{n -> n + 10}
-        #(Flow.str " ")
+        .join(" ")
       )}
     """, Base.mutBaseAliases);}
 
@@ -632,14 +673,14 @@ public class Ex17FlowsTest {
           {f -> f.map{n -> n * 5}.filter{n -> n > 10}},
           {f -> f.map{n -> n * 10}},
           {f -> f.map{n -> n * 15}},
-          {f1,f2,f3 -> f1#(Flow.str " ")+" "+f2#(Flow.str " ")+" "+f3#(Flow.str " ")},
+          {f1,f2,f3 -> f1.join(" ")+" "+f2.join(" ")+" "+f3.join(" ")},
         )
         //vs
         .split3{
           .f1(f) -> f.map{n -> n * 5},
           .f2(f) -> f.map{n -> n * 10},
           .f3(f) -> f.map{n -> n * 15},
-          .merge(f1,f2,f3) -> f1#(Flow.str " ")+" "+f2#(Flow.str " ")+" "+f3#(Flow.str " "),
+          .merge(f1,f2,f3) -> f1.join(" ")+" "+f2.join(" ")+" "+f3.join(" "),
         }
         // split actors
         // with a capability, this is fine with imm messages. Without a capability we can call actor2 and actor3 from
@@ -773,6 +814,27 @@ public class Ex17FlowsTest {
     Test: Main{sys -> Flow.range(+0, +5)
       .map{n -> n.str}
       .forEffect{msg -> sys.io.print msg}
+      }
+    """, Base.mutBaseAliases);}
+  @Test void forEffectFold() {ok(new Res("01234", "", 0), """
+    package test
+    Test: Main{sys -> Block#(Flow.range(+0, +5)
+      .map{n -> n.str}
+      .fold(_ToIsoMF#(sys.io.iso.self), {io, msg -> Block#(io.print msg, io)}))
+      }
+    _ToIsoMF: {#[T](x: mut T): mut MF[mut T] -> {x}}
+    """, Base.mutBaseAliases);}
+
+  @Test void noneTerminal() {ok(new Res(), """
+    package test
+    Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list))}
+    Foo: {
+      #(a: List[Int], b: List[Int]): Bool -> Block#
+        .assert {a.size == (b.size)}
+        .return {a.flow
+          .with(b.flow)
+          .none{ab -> (ab.a == (ab.b)).not}
+          }
       }
     """, Base.mutBaseAliases);}
 }

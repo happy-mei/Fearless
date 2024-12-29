@@ -20,7 +20,7 @@ _DataParallelFlow: _FlowFactory{
 //    mut .fold[S:*](acc: S, f: read F[S,E,S], combine: read F[S, S, S]): S -> base.Todo!,
 //    .size -> size.match{
 //      .some(n) -> n,
-//      .empty -> self.fold[Nat](0, {acc, _ -> acc + 1}, {a, b -> a + b}),
+//      .empty -> self.fold[Nat]({0}, {acc, _ -> acc + 1}, {a, b -> a + b}),
 //      },
 //    },
   }

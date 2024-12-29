@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum Mdf{
-  read,mut,mutH,readH,iso,recMdf,mdf,imm,readImm;
+  iso,imm,mut,mutH,read,readH,recMdf,mdf,readImm;
   public boolean is(Mdf... valid){
     for (Mdf mdf : valid) {
       if (this == mdf) { return true; }

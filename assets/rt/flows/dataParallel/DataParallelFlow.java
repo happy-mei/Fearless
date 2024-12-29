@@ -63,6 +63,9 @@ public final class DataParallelFlow implements Flow_1 {
   public Opt_1 first$mut() {
     return _SeqFlow_0.$self.fromOp$imm(source_m$, size_m$).first$mut();
   }
+  public Opt_1 last$mut() {
+    return _TerminalOps_1.last$mut$fun(this);
+  }
 
   public List_1 list$mut() {
     return _TerminalOps_1.list$mut$fun(this);
@@ -70,6 +73,9 @@ public final class DataParallelFlow implements Flow_1 {
 
   public Bool_0 all$mut(F_2 predicate_m$) {
     return _TerminalOps_1.all$mut$fun(predicate_m$, this);
+  }
+  public Bool_0 none$mut(F_2 predicate_m$) {
+    return _TerminalOps_1.none$mut$fun(predicate_m$, this);
   }
 
   public Flow_1 filter$mut(F_2 p_m$) {
@@ -88,16 +94,32 @@ public final class DataParallelFlow implements Flow_1 {
     return source_m$;
   }
 
-  public Object fold$mut(Object acc_m$, F_3 f_m$) {
+  public Object fold$mut(MF_1 acc_m$, F_3 f_m$) {
     return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).fold$mut(acc_m$, f_m$);
   }
 
   public Action_1 only$mut() {
     return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).only$mut();
   }
+  public Object get$mut() {
+    return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).get$mut();
+  }
+  public Opt_1 opt$mut() {
+    return _SeqFlow_0.$self.fromOp$imm(new ParallelSource(), size_m$).opt$mut();
+  }
 
   public Flow_1 map$mut(F_2 f_m$) {
     return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, source_m$, f_m$), this.size_m$);
+  }
+  public Flow_1 map$mut(ToIso_1 c, F_3 f_m$) {
+    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size).map$mut(c, f_m$);
+  }
+
+  public Flow_1 peek$mut(F_2 f_m$) {
+    return _NonTerminalOps_1.peek$mut$fun(f_m$, this);
+  }
+  public Flow_1 peek$mut(ToIso_1 c, F_3 f_m$) {
+    return FlowCreator.fromFlowOp(rt.flows.pipelineParallel.PipelineParallelFlowK.$self, source_m$, this.size).peek$mut(c, f_m$);
   }
 
   public Bool_0 any$mut(F_2 predicate_m$) {
@@ -107,13 +129,16 @@ public final class DataParallelFlow implements Flow_1 {
   public Opt_1 find$mut(F_2 predicate_m$) {
     return _TerminalOps_1.find$mut$fun(predicate_m$, this);
   }
+  public Opt_1 first$mut(F_2 predicate_m$) {
+    return _TerminalOps_1.first$mut$fun(predicate_m$, this);
+  }
 
   public Opt_1 max$mut(F_3 compare_m$) {
     return _TerminalOps_1.max$mut$fun(compare_m$, this);
   }
 
   public Long size$mut() {
-    return this.size >= 0 ? this.size : (Long) fold$mut(0L, (acc, _) -> ((long) acc) + 1);
+    return this.size >= 0 ? this.size : (Long) fold$mut(()->0L, (acc, _) -> ((long) acc) + 1);
   }
 
   public Flow_1 scan$mut(Object acc_m$, F_3 f_m$) {

@@ -102,7 +102,7 @@ public record InferBodies(ast.Program p) {
       if (bProp.isEmpty()) { newMs.add(mi); continue; }
       var err= bProp.get().isEmpty();
       if(err){ throw Fail.inferFailed("Could not infer method "+
-        mi.name().map(n->n.name()).orElse("-name to infer-")
+        mi.name().map(Id.MethName::name).orElse("-name to infer-")
         +" on:\n"+e).pos(e.pos()); }
       newMs.addAll(bProp.get());
       done= true;
@@ -126,6 +126,7 @@ public record InferBodies(ast.Program p) {
     if(anyNoSig){ return Optional.empty(); }
     if(m.body().isEmpty()){ return Optional.empty(); }
     if(m.sig().isEmpty()){ return Optional.empty(); }
+
     var sig = m.sig().orElseThrow();
     Map<String, T> richGamma = new HashMap<>(gamma);
     assert e.selfName() != null;
@@ -136,10 +137,12 @@ public record InferBodies(ast.Program p) {
     var e1 = m.body().get();
     var e2 = refiner.fixType(e1,sig.ret());
     var optBody = inferStep(richGamma,e2,depth);
-    var res = optBody.map(b->m.withBody(Optional.of(b)).withSig(refiner.fixSig(sig, b.t())));
+
+    var bestITStrategy = BestITStrategy.MostUserWritten.$self;
+    var res = optBody.map(b->m.withBody(Optional.of(b)).withSig(refiner.fixSig(sig, b.t(), bestITStrategy)));
     var finalRes = res.or(()->e1==e2
       ? Optional.empty()
-      : Optional.of(m.withBody(Optional.of(e2)).withSig(refiner.fixSig(sig, e2.t()))));
+      : Optional.of(m.withBody(Optional.of(e2)).withSig(refiner.fixSig(sig, e2.t(), bestITStrategy))));
     return finalRes.map(m1->!m.equals(m1)).orElse(true)
       ? finalRes : Optional.empty();
 //    assert finalRes.map(m1->!m.equals(m1)).orElse(true);

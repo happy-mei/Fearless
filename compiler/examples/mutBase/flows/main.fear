@@ -12,7 +12,7 @@ alias base.flows.Flow as Flow, alias base.Consumer as Consumer,
 //      .do {downstream#n}
 //      .return {{}}}, mut Consumer[mut Var[Int]]{state->UnrestrictedIO#sys.println(state.get.str)})
 //    .map{n -> n.str}
-//    #(Flow.str " ")
+//    .join(" ")
 //  )}
 
 App:Main{ sys -> Block#
@@ -57,7 +57,7 @@ Fib: {
     .if {n <= 35} .return {this.seq(n)}
     .return {As[List[Nat]]#(List#(n - 1, n - 2)).flow
       .map{n' -> Fib#(n')}
-      .fold[Nat](0, {a,b -> a + b})
+      .fold[Nat]({0}, {a,b -> a + b})
       },
   .seq(n: Nat): Nat -> n <= 1 ? {
     .then -> n,

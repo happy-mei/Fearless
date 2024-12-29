@@ -10,7 +10,7 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
   PipelineParallelFlowK $self = new PipelineParallelFlowK(){};
 
   @Override default Flow_1 fromOp$imm(FlowOp_1 source_m$, Opt_1 size_m$) {
-    var source = RestrictFlowReuse_0.$hash$imm$fun(new SafeSource(source_m$), RestrictFlowReuse_0.$self);
+    var source = new SafeSource(source_m$);
     return _PipelineParallelFlow_0.fromOp$imm$fun(source, size_m$, this);
   }
   @Override default Flow_1 $hash$imm(Object e_m$) {

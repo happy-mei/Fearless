@@ -8,7 +8,7 @@ Void: Sealed{}
 Abort: Sealed{![R:**]: R -> this!} // can be optimised to just terminate (goes stuck)
 Magic: Sealed{
   ![R:**]: R -> this!, // magic'd out to tell us what we forgot to implement
-  ![R:readH,mutH,read,mut,imm,iso](_: mut System): R -> this!,
+  ![R:readH,mutH,read,mut,imm,iso](_: mut base.caps._System): R -> this!,
   }
 Debug: Sealed{
   #[T:**](x: T): T -> x,
@@ -40,9 +40,8 @@ Consumer[A:**]: { mut #(a: A): Void }
 Consumer[A:**, B:**]: { mut #(a: A, b: B): Void }
 Consumer[A:**, B:**, C:**]: { mut #(a: A, b: B, c: C): Void }
 
-ToImm[R:imm]: { read .toImm: imm R, }
-Freezer[T:*,R:imm]: { mut #(self: T): imm R }
-Ice[T:imm]: { read .get: imm T }
+ToImm[R]: {read .toImm: imm R}
+ToIso[R]: {mut .iso: iso ToIso[R], mut .self: mut R,}
 
 Box[T:*]: {
   mut  .get: T,

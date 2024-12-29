@@ -1,10 +1,10 @@
 package base;
 
-import base.caps._System_0;
 import rt.Debug;
 import rt.Str;
 import rt.vpf.ConfigureVPF;
 import rt.vpf.VPF;
+import rt.RealSystem;
 
 import java.lang.reflect.Field;
 
@@ -28,8 +28,13 @@ public class FearlessMain {
 
     FAux.LAUNCH_ARGS = buildArgList(args, 1);
     var shutdownVPF = VPF.start(ConfigureVPF.getHeartbeatInterval());
+//    try {
+//      myMain.$hash$imm(new RealSystem());
+//    } finally {
+//      shutdownVPF.run();
+//    }
     try {
-      myMain.$hash$imm(_System_0.$self);
+      myMain.$hash$imm(new RealSystem());
     } catch (StackOverflowError e) {
       fatal("Program crashed with: Stack overflowed", Debug.demangleStackTrace(e.getStackTrace()));
     } catch (RuntimeException e) {
