@@ -435,4 +435,24 @@ public class TestFlowSemantics {
         }}
       }
     """, Base.mutBaseAliases);}
+
+  @Test void throwInTerminalSeq() {ok(new Res("", "Program crashed with: \"1\"[###]", 1), """
+    package test
+    Test: Main{sys -> Block#(
+      Flow#[mut Int](mut +1, mut +2, mut +3)
+        .map{e -> e}
+        .first{e -> Error.msg (e.str)}
+      )}
+    """, Base.mutBaseAliases);}
+  @Test void throwInTerminalDP() {ok(new Res("", "Program crashed with: \"31\"[###]", 1), """
+    package test
+    Test: Main{sys -> Block#(
+      Flow.range(+1, +500)
+        .map{e -> e}
+        .first{e -> e > +30 ? {
+          .then -> Error.msg (e.str),
+          .else -> False
+          }}
+      )}
+    """, Base.mutBaseAliases);}
 }
