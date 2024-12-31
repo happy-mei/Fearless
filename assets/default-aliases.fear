@@ -35,6 +35,7 @@ alias base.StrMap as StrMap,
 alias base.Stringable as Stringable,
 
 alias base.Var as Var,
+alias base.Vars as Vars,
 alias base.Count as Count,
 alias base.VarImm as VarImm,
 

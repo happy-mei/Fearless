@@ -39,17 +39,17 @@ LList[E]:Collection,Sealed{
   imm  +(e: imm E): LList[imm E] -> this ++ (LList[imm E].pushFront[](e)),
 
   mut .iter: mut Iter[E] -> Block#
-    .let[mut Var[mut LList[E]]] cursor = {Var#(this)}
+    .let[mut Var[mut LList[E]]] cursor = {Vars#(this)}
     .return {{.next -> cursor.swap(cursor.get.tail).head}},
   imm .iter: mut Iter[imm E] -> Block#
-    .let[mut Var[LList[E]]] cursor = {Var#(this)}
+    .let[mut Var[LList[E]]] cursor = {Vars#(this)}
     .return {{.next -> cursor.swap(cursor.get.tail).head}},
   read .iter: mut Iter[read/imm E] -> Block#
-    .let[mut Var[read LList[E]]] cursor = {Var#(this)}
+    .let[mut Var[read LList[E]]] cursor = {Vars#(this)}
     .return {{.next -> cursor.swap(cursor.get.tail).head}},
 
   mut  .flow: mut Flow[E] -> Block#
-    .let cursor = {Var#this}
+    .let cursor = {Vars#this}
     .return {Flow.fromOp({'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
@@ -66,7 +66,7 @@ LList[E]:Collection,Sealed{
       }, this.size)},
   read .flow: mut Flow[read/imm E] -> Flow.fromOp[read/imm E](this._flowread, this.size),
   read ._flowread: mut FlowOp[read/imm E] -> Block#
-    .let cursor = {Var#this}
+    .let cursor = {Vars#this}
     .return {mut FlowOp[read/imm E]{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
@@ -83,7 +83,7 @@ LList[E]:Collection,Sealed{
       }},
   imm  .flow: mut Flow[imm E] -> Flow.fromOp[imm E](this._flowimm, this.size),
   imm  ._flowimm: mut FlowOp[imm E] -> Block#
-    .let cursor = {Var#this}
+    .let cursor = {Vars#this}
     .return {mut FlowOp[imm E]{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,

@@ -24,8 +24,8 @@ _PipelineParallelFlow: _FlowFactory{
 
     // terminals
     mut .first: mut Opt[E] -> Block#
-      .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
-      .let stopped = {Var#[Bool]False}
+      .let[mut Var[mut Opt[E]]] res = {Vars#mut Opt[E]}
+      .let stopped = {Vars#[Bool]False}
       .do {source.for(_PipelineParallelSink#[E]{'runner
         .stop -> Block#
           .do {stopped := True}
@@ -45,8 +45,8 @@ _PipelineParallelFlow: _FlowFactory{
       .return {res.get},
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
-      .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
-      .let stopped = {Var#[Bool]False}
+      .let[mut Var[mut Opt[R]]] res = {Vars#mut Opt[R]}
+      .let stopped = {Vars#[Bool]False}
       .do {source.for(_PipelineParallelSink#[E]{'runner
         .stop -> Block#
           .do {stopped := True}
@@ -71,8 +71,8 @@ _PipelineParallelFlow: _FlowFactory{
     mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .openIso initialValueSupplier = acc
-      .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
-      .let stopped = {Var#[Bool]False}
+      .let[mut Var[S]] acc' = {Vars#(initialValueSupplier#)}
+      .let stopped = {Vars#[Bool]False}
       .do {source.for(_PipelineParallelSink#[E]{
         #(e) -> acc' := (f#(acc'.get, e)),
         .stop -> stopped := True,
@@ -92,7 +92,7 @@ _PipelineParallelFlow: _FlowFactory{
 
   #[E](e: E): mut Flow[E] -> Error.msg "_PipelineParallelFlow# should not be reachable",
 //  #[E](e: E): mut Flow[E] -> Block#
-//    .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
+//    .let[mut Var[mut Opt[E]]] seq = { Vars#(Opts#e) }
 //    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
 //      .isRunning -> seq.get.isSome,
 //      .stop -> seq := {},

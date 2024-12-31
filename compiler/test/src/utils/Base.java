@@ -93,6 +93,7 @@ public interface Base {
     alias base.Stringable as Stringable,
     
     alias base.Var as Var,
+    alias base.Vars as Vars,
     alias base.Count as Count,
     
     alias base.Opts as Opts,

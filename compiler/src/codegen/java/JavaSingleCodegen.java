@@ -220,7 +220,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       }
       case MIR.Block.BlockStmt.Let let -> "var %s = %s;\n"
         .formatted(id.varName(let.name()), let.value().accept(this, true));
-      case MIR.Block.BlockStmt.Var var -> "var %s = base.Var_0.$self.$hash$imm(%s);\n"
+      case MIR.Block.BlockStmt.Var var -> "var %s = base.Vars_0.$self.$hash$imm(%s);\n"
         .formatted(id.varName(var.name()), var.value().accept(this, true));
     };
   }

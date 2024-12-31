@@ -20,13 +20,13 @@ ImmMain:{
 //  #(args: LList[Str]): Str -> args.get 0 || (Box#"Sad"),
 
   .errMsg(retCounter: Bool): mut Var[Str] -> Block#
-    .let res = { Var#[mut Var[Str]](Var#[Str]"Sad") }
+    .let res = { Vars#[mut Var[Str]](Vars#[Str]"Sad") }
     .let counter = { Count.int(+42) }
     .do{ res* := "mutability!" }
     .do{ Block#(counter++) }
-    .if{ False }.return{ Var#[Str]"Short cut" }
+    .if{ False }.return{ Vars#[Str]"Short cut" }
     .if{ True }.do{ Block#[Int](counter *= +9000) } // MY POWER LEVELS ARE OVER 9000!!!!!!
     .if{ True }.do{ res* := "moar mutability" }
     .if{ retCounter.not }.return{ res* }
-    .return{ Var#(counter*.str) }
+    .return{ Vars#(counter*.str) }
   }

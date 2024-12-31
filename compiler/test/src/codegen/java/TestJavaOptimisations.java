@@ -58,7 +58,7 @@ public class TestJavaOptimisations {
     Test_0 $self = new Test_0Impl();
     base.Void_0 $hash$imm(base.caps.System_0 fear[###]$_m$);
     static base.Void_0 $hash$imm$fun(base.caps.System_0 fear[###]$_m$, test.Test_0 $this) {
-      var n_m$ = base.Var_0.$self.$hash$imm(5L);
+      var n_m$ = base.Vars_0.$self.$hash$imm(5L);
     var doRes1 = test.ForceGen_0.$self.$hash$imm();
     return base.Void_0.$self;
     }
@@ -123,7 +123,7 @@ public class TestJavaOptimisations {
     static base.Void_0 $hash$imm$fun(base.caps.System_0 fear[###]$_m$, test.Test_0 $this) {
       var n_m$ = 5L;
     var n2_m$ = 10L;
-    var n3_m$ = base.Var_0.$self.$hash$imm(15L);
+    var n3_m$ = base.Vars_0.$self.$hash$imm(15L);
     if ((((long)((long)n3_m$.get$mut()))==((long)((long)((long)n_m$)) + n2_m$)?base.True_0.$self:base.False_0.$self) == base.True_0.$self) { rt.Error.throwFearlessError(base.Infos_0.$self.msg$imm(str$3882878235102293474$str$.$self));
      }
     var doRes1 = test.ForceGen_0.$self.$hash$imm();

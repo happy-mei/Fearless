@@ -100,7 +100,7 @@ _FlowRange: {
 _SafeSource: {
 //  .fromIter[E](iter: mut base.iter.Iter[E]): mut Flow[E] -> Flow.fromOp[E](this.fromIter'[E](iter)),
 //  .fromIter'[E](iter: mut base.iter.Iter[E]): mut FlowOp[E] -> Block#
-//    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
+//    .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
 //    .return {{'op
 //      .stop -> isRunning := False,
 //      .isRunning -> isRunning*,

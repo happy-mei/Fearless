@@ -208,7 +208,7 @@ public class TestTypeSystemWithBase {
     package test
     Person:{ mut .name: mut Var[Str], mut .friends: mut List[Person] }
     Person':{
-      #(name: Str): mut Person -> this.new(Var#name, List#),
+      #(name: Str): mut Person -> this.new(Vars#name, List#),
       .new(name: mut Var[Str], friends: mut List[Person]): mut Person ->
         { .name -> name, .friends -> friends },
       }
@@ -224,7 +224,7 @@ public class TestTypeSystemWithBase {
     package test
     Person:{ mut .name: mut Var[Str], mut .friends: mut List[Person] }
     Person':{
-      #(name: Str): mut Person -> this.new(Var#name, List#),
+      #(name: Str): mut Person -> this.new(Vars#name, List#),
       .new(name: mut Var[Str], friends: mut List[Person]): mut Person ->
         { .name -> name, .friends -> friends },
       }
@@ -242,7 +242,7 @@ public class TestTypeSystemWithBase {
     package test
     Person:{ mut .name: mut Var[Str], mut .friends: mut List[Person] }
     Person':{
-      #(name: Str): mut Person -> this.new(Var#name, List#),
+      #(name: Str): mut Person -> this.new(Vars#name, List#),
       .new(name: mut Var[Str], friends: mut List[Person]): mut Person ->
         { .name -> name, .friends -> friends },
       }
@@ -366,7 +366,7 @@ public class TestTypeSystemWithBase {
       }
     FReadBox:{
       #[T](t: mut T): mut ReadBox[T] -> Block#
-        .let[mut Var[mut ReadBox[T]]] state = { Var#[mut ReadBox[T]](mut _MutBox[T]{ t }) }
+        .let[mut Var[mut ReadBox[T]]] state = { Vars#[mut ReadBox[T]](mut _MutBox[T]{ t }) }
         .return{{
           .get -> state*.get,
           .setImm(x) -> state := mut _ImmBox[T]{ x },
@@ -438,7 +438,7 @@ public class TestTypeSystemWithBase {
     package test
     Test:{
       .m1(r: read Var[Nat]): Nat -> r.get,
-      .m2: Nat -> this.m1(Var#5),
+      .m2: Nat -> this.m1(Vars#5),
       }
     """, Base.mutBaseAliases); }
   @Test void updateVarImmRecoverFail() { fail("""
