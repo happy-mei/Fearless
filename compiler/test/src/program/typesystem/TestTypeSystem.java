@@ -1406,4 +1406,11 @@ public class TestTypeSystem {
     Concrete: {#(y: mutH Foo, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[mutH Foo](y, isoF))}
     Foo: {}
     """);}
+
+  @Test void isoCanBeCapturedMultipleTimesAsImm() {ok("""
+    package a
+    A: {#(a: iso A): B -> Block#(B{a}, B{a})}
+    B: {#: A}
+    Block: {#[X1,R](a1: X1, a2: R): R -> a2}
+    """);}
 }
