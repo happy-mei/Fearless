@@ -13,7 +13,7 @@ final class LessRestrictedWorker implements Runnable {
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   private static final int TASK_SIZE = N_CPUS * 5;
 
-  static void forRemaining(FlowOp_1 source, _Sink_1 downstream, int size) {
+  static void for_(FlowOp_1 source, _Sink_1 downstream, int size) {
     // Try to split up the source N_CPU times
     // TODO: we probably want to just do this on some of the dataset to try it out first
     var splitData = new FlowOp_1[TASK_SIZE];
@@ -75,7 +75,7 @@ final class LessRestrictedWorker implements Runnable {
   }
 
   @Override public void run() {
-    source.forRemaining$mut(downstream);
+    source.for$mut(downstream);
     doneSignal.countDown();
   }
 }

@@ -25,7 +25,7 @@ public class Ex21RandomTest {
   @Test void generatesNumberWithRandomSeed() { ok(new RunOutput.Res("", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let[mut RandomSeed] seeder = {FRandomSeed#sys}
+      .let[mut RandomSeed] seeder = {sys.rng}
       .let rng1 = {FRandom#(seeder#)}
       .let rng2 = {FRandom#(seeder#)}
       // I mean, this technically has a _tiny_ chance of failing but it's so small that
@@ -64,6 +64,6 @@ public class Ex21RandomTest {
 
   @Test void generateRandomSeed() { ok(new RunOutput.Res("[###]", "", 0), """
     package test
-    Test:Main {sys -> UnrestrictedIO#sys.println(FRandomSeed#sys#.str)}
+    Test:Main {sys -> sys.io.println(sys.rng#.str)}
     """, Base.mutBaseAliases, RNG_ALIASES); }
 }

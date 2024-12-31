@@ -43,7 +43,9 @@ public abstract class ShallowInjectionVisitor extends InjectionVisitor implement
    * @return The same declaration with all methods removed
    */
   private static T.Dec removeInlineMs(T.Dec dec) {
-    return dec.withLambda(dec.lambda().withMeths(dec.lambda().meths().stream()
-      .filter(m->m.sig().isPresent()).toList()));
+    return dec.withLambda(
+      dec.lambda()
+        .withMeths(dec.lambda().meths().stream().filter(m->m.sig().isPresent()).toList())
+    );
   }
 }

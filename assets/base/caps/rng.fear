@@ -1,8 +1,5 @@
 package base.caps
 
-RandomSeed: {
+RandomSeed: ToIso[RandomSeed]{
   mut #: Nat,
   }
-FRandomSeed: F[mut System, mut RandomSeed]{s -> {
-  # -> Magic!
-  }}

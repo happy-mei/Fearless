@@ -11,7 +11,7 @@ FlowOp[E]: {
   mut .step(sink: mut _Sink[E]): Void,
   mut .stop: Void,
   mut .isRunning: Bool,
-  mut .forRemaining(downstream: mut _Sink[E]): Void -> Block#
+  mut .for(downstream: mut _Sink[E]): Void -> Block#
     .loop {Block#
       .if {this.isRunning.not} .return {ControlFlow.break}
       .do {this.step(downstream)}
@@ -42,8 +42,8 @@ _Sink[T]: {
 
 _Filter: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
-//    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+//    .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return{{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -56,15 +56,15 @@ _Filter: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -73,40 +73,45 @@ _Filter: {
       }}
   }
 _Map: {
-  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] ->
+    this#[_EmptyCtx,E,R](sinkFactory, upstream, iso _EmptyCtx, {_,e -> f#e}),
+  // It would be unsound to call this with a non-iso `c` if this is run in parallel.
+  // It's okay here because the public API of this library requires that `c` is iso.
+  #[C,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], ctx: iso ToIso[C], f: read F[iso C, E, R]): mut FlowOp[R] -> Block#
+    .openIso ctx' = ctx
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return  {{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
-            #(e) -> downstream#(f#e),
+            #(e) -> downstream#(f#(ctx'.iso.self, e)),
             .pushError(info) -> downstream.pushError(info),
             })),
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
-            #(e) -> downstream#(f#e),
+            #(e) -> downstream#(f#(ctx'.iso.self, e)),
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
-      .split -> upstream.split.map{right -> this#(sinkFactory, right, f)},
+      .split -> upstream.split.map{right -> this#[C,E,R](sinkFactory, right, ctx'.iso, f)},
     }}
   }
 _FlatMap: {
   #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
-    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return{{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -115,7 +120,7 @@ _FlatMap: {
             .stop -> Block#(isRunning := False, downstream.stop),
             #(e) -> Block#
               .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
-              .return {nestedOp.forRemaining{
+              .return {nestedOp.for{
                 #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
                 .stop -> {},
                 .pushError(info) -> downstream.pushError(info),
@@ -125,21 +130,21 @@ _FlatMap: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(isRunning := False, downstream.stop),
             #(e) -> Block#
               .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
-              .return {nestedOp.forRemaining{
+              .return {nestedOp.for{
                 #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
                 .stop -> {},
                 .pushError(info) -> downstream.pushError(info),
                 }},
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -151,8 +156,8 @@ _FlatMap: {
 // TODO: I'm still not 100% sure .with/1 is safe in parallel
 _With: {
   #[A,B](sinkFactory: _Sink, upstream: mut FlowOp[A], other: mut FlowOp[B]): mut FlowOp[mut Pair[A,B]] -> Block#
-    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
-    .let[mut Var[mut Opt[mut _Sink[A]]]] sink = {Var#{}}
+    .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[A]]]] sink = {Vars#{}}
     .return{{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -170,8 +175,8 @@ _With: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[A]{
             .stop -> Block#(isRunning := False, downstream.stop),
@@ -183,7 +188,7 @@ _With: {
                 }},
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,

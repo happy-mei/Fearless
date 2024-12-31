@@ -37,7 +37,7 @@ final class ForkJoinWorker extends RecursiveAction {
     this.es = es;
   }
 
-  public void forRemaining() {
+  public void for_() {
     this.compute();
     for (var e : es) {
       original.$hash$mut(e);
@@ -58,7 +58,7 @@ final class ForkJoinWorker extends RecursiveAction {
         return null;
       }
       @Override public Object empty$mut() {
-        source.forRemaining$mut(downstream);
+        source.for$mut(downstream);
         return null;
       }
     });

@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Env Cap Example" type="Application" factoryName="Application">
+  <configuration default="false" name="Run Range Example" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="main.Main" />
     <module name="fearless" />
-    <option name="PROGRAM_PARAMETERS" value="--show-internal-stack-traces -e capstesting.Nothing --run examples/mutBase -- hi" />
+    <option name="PROGRAM_PARAMETERS" value="--show-internal-stack-traces --show-full-progress -e flows.RangeTest --run examples/mutBase/flows" />
     <option name="VM_PARAMETERS" value="-ea" />
     <extension name="coverage">
       <pattern>

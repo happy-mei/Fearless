@@ -99,9 +99,9 @@ public record RefineTypes(ast.Program p, TypeRename.FullTTypeRename renamer) {
     var gens = sig.gens().stream().map(g->new T(Mdf.mdf,g)).toList();
     return new RefinedSig(name, gens, sig.bounds(), sig.ts(),sig.ret());
   }
-  E.Sig fixSig(E.Sig sig, T iTi){
+  E.Sig fixSig(E.Sig sig, T iTi, BestITStrategy bestITStrategy){
     var ret  = sig.ret();
-    var best = best(ret, iTi, new BestITStrategy.MostSpecific(p));
+    var best = best(ret, iTi, bestITStrategy);
     if(best==ret){ return sig; }
     var res  = sig.withRet(best);
     // TODO: poorly written programs can fail this assertion, should throw a CompileError instead.

@@ -138,7 +138,7 @@ Here we show some example code using Optionals
   SumAgeIfStudent: {#(roll: SchoolRoll, names: List[Str]): Nat -> names.flow
     .flatMap{name -> roll#name.flow}
     .map{student -> student.age}
-    .fold[Nat](0, {a, b -> a + b})
+    .fold[Nat]({0}, {a, b -> a + b})
     }
   //prints 25
   """); }/*--------------------------------------------
@@ -310,7 +310,7 @@ Many maps are on Str or Int types
 //      .return {map#(Map.str "\\n") // Map.str requires Map[Stringable, Stringable]
       .return {map.flow
         .map{kv -> kv.key + ": " + (kv.val.str)}
-        #(Flow.str "\\n")
+        .join("\\n")
         }
       }
     """, Base.mutBaseAliases);}

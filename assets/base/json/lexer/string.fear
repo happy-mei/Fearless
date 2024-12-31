@@ -67,7 +67,7 @@ _ParseHex: {
   #(chars: read List[Str]): Nat -> chars.flow
     .map{ch -> this.encoding(ch)}
     #(Flow.enumerate[Nat])
-    .fold[Nat](0, {acc, ni -> Block#
+    .fold[Nat]({0}, {acc, ni -> Block#
       .let digit = {ni.e}
       .let place = {chars.size - (ni.i + 1)}
       .return {acc + (digit * (16 ** place))}

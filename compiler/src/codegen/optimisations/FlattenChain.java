@@ -16,5 +16,5 @@ interface FlattenChain<Link,Endings,Res> {
   enum FlattenStatus { INVALID, FLATTENED }
 
   Optional<Res> visitFluentCall(MIR.MCall call, List<Endings> validEndings, Optional<MIR.X> self);
-  FlattenStatus flatten(MIR.E expr, Deque<Link> stmts, Optional<MIR.X> self);
+  FlattenStatus flatten(MIR.E expr, Deque<Link> stmts, Deque<Link> eagerStmts, Optional<MIR.X> self);
 }

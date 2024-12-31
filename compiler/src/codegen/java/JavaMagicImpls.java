@@ -400,16 +400,7 @@ public record JavaMagicImpls(
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
           MIR.E x = args.getFirst();
-          return Optional.of(String.format("""
-            new base._MagicVarImpl_1(){
-              private Object x$ = %s;
-              public Object get$mut() { return this.x$; }
-              public Object get$read() { return this.x$; }
-              public Object swap$mut(Object x$) {
-                var y$ = this.x$; this.x$ = x$; return y$;
-                }
-            }
-            """, x.accept(gen, true)));
+          return Optional.of(String.format("new rt.Var(%s)", x.accept(gen, true)));
         }
         return Optional.empty();
       }
@@ -508,18 +499,6 @@ public record JavaMagicImpls(
     };
   }
 
-  @Override public MagicTrait<MIR.E, String> capTryCatchK(MIR.E e) {
-    return new MagicTrait<>() {
-      @Override public Optional<String> instantiate() { return Optional.empty(); }
-      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
-        if (m.equals(new Id.MethName(Optional.of(Mdf.read), "#", 1))) {
-          return Optional.of("new rt.CapTry(%s)".formatted(args.getFirst().accept(gen, true)));
-        }
-        return Optional.empty();
-      }
-    };
-  }
-
   @Override public MagicTrait<MIR.E, String> listK(MIR.E e) {
     return ()->Optional.of("rt.ListK.$self");
   }
@@ -549,57 +528,6 @@ public record JavaMagicImpls(
 
   @Override public MagicTrait<MIR.E, String> dataParallelFlowK(MIR.E e) {
     return ()->Optional.of("rt.flows.dataParallel.DataParallelFlowK.$self");
-  }
-
-  @Override public MagicTrait<MIR.E,String> objCap(Id.DecId target, MIR.E e) {
-    JavaMagicImpls _this = this;
-    return new MagicTrait<>() {
-      @Override public Optional<String> instantiate() {
-        return Optional.empty();
-      }
-      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
-        ObjCapImpl impl = null;
-        if (target == Magic.RootCap) { impl = (ctx, m1, args1) -> null; }
-        if (target == Magic.FEnv) { impl = env(); }
-        if (target == Magic.UnrestrictedIO) { impl = io(); }
-        if (target == Magic.FRandomSeed) { impl = randomSeed(); }
-        assert impl != null;
-
-        String res = impl.call(_this, m, args);
-        return Optional.ofNullable(res);
-      }
-
-      private ObjCapImpl env() {
-        return (ctx, m, args)->{
-          if (m.equals(new Id.MethName("#", 1)) || m.equals(new Id.MethName(".io", 1))) {
-            return """
-              new base.caps.Env_0(){
-                public base.LList_1 launchArgs$mut() { return base.FearlessMain.FAux.LAUNCH_ARGS; }
-              }
-              """;
-          }
-          return null;
-        };
-      }
-
-      private ObjCapImpl io() {
-        return (ctx, m, args) ->{
-          if (m.equals(new Id.MethName("#", 1))) {
-            return "rt.IO.$self";
-          }
-          return null;
-        };
-      }
-
-      private ObjCapImpl randomSeed() {
-        return (ctx, m, args) ->{
-          if (m.equals(new Id.MethName("#", 1))) {
-            return "rt.Random.SeedGenerator.$self";
-          }
-          return null;
-        };
-      }
-    };
   }
 
   @Override public MagicCallable<MIR.E,String> variantCall(MIR.E e) {
@@ -740,7 +668,7 @@ public record JavaMagicImpls(
     };
   }
 
-  /** These are specialised for internal Fearless benchmarking, expect weird  */
+  /** These are specialised for internal Fearless benchmarking, expect weird results if this is not the case. */
   @Override public MagicTrait<MIR.E, String> blackBox(MIR.E e) {
     return "rt.BlackBox.$self"::describeConstable;
   }

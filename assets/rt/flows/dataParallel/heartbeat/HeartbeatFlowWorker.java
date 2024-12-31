@@ -18,7 +18,7 @@ import static rt.flows.dataParallel.heartbeat.HeartbeatFlow.PARALLELISM_POTENTIA
  * large amounts of memory.
  */
 public final class HeartbeatFlowWorker implements Runnable {
-  public static void forRemaining(FlowOp_1 source, _Sink_1 downstream, int size) {
+  public static void for_(FlowOp_1 source, _Sink_1 downstream, int size) {
     var splitData = SplitTasks.of(source, Math.max(PARALLELISM_POTENTIAL / 2, 1));
     int realSize = size >= 0 ? size : splitData.size();
 
@@ -60,7 +60,7 @@ public final class HeartbeatFlowWorker implements Runnable {
 
   public void impl() {
     try {
-      source.forRemaining$mut(downstream);
+      source.for$mut(downstream);
     } catch (FearlessError err) {
       downstream.pushError$mut(err.info);
     } catch (ArithmeticException err) {

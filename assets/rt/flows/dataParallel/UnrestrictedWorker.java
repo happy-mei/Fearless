@@ -10,7 +10,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 final class UnrestrictedWorker implements Runnable {
-  static void forRemaining(FlowOp_1 source, _Sink_1 downstream, int size) {
+  static void for_(FlowOp_1 source, _Sink_1 downstream, int size) {
     // Try to split up the source N_CPU times
     // TODO: we probably want to just do this on some of the dataset to try it out first
     var splitData = new ArrayList<FlowOp_1>();
@@ -76,7 +76,7 @@ final class UnrestrictedWorker implements Runnable {
   }
 
   @Override public void run() {
-    source.forRemaining$mut(downstream);
+    source.for$mut(downstream);
     doneSignal.countDown();
   }
 }

@@ -93,6 +93,7 @@ public interface Base {
     alias base.Stringable as Stringable,
     
     alias base.Var as Var,
+    alias base.Vars as Vars,
     alias base.Count as Count,
     
     alias base.Opts as Opts,
@@ -113,6 +114,7 @@ public interface Base {
     alias base.Sealed as Sealed,
     alias base.Magic as Magic,
     alias base.F as F,
+    alias base.MF as MF,
     alias base.Consumer as Consumer,
     alias base.Let as Let,
     alias base.Void as Void,

@@ -10,7 +10,7 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
   PipelineParallelFlowK $self = new PipelineParallelFlowK(){};
 
   @Override default Flow_1 fromOp$imm(FlowOp_1 source_m$, Opt_1 size_m$) {
-    var source = RestrictFlowReuse_0.$hash$imm$fun(new SafeSource(source_m$), RestrictFlowReuse_0.$self);
+    var source = new SafeSource(source_m$);
     return _PipelineParallelFlow_0.fromOp$imm$fun(source, size_m$, this);
   }
   @Override default Flow_1 $hash$imm(Object e_m$) {
@@ -19,7 +19,7 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
 
   /**
    * A variant of FlowOp which catches all FearlessErrors during execution of the operation.
-   * We only catch errors in .step/.forRemaining. Any other methods should never throw. This is unenforceable for user-written
+   * We only catch errors in .step/.for. Any other methods should never throw. This is unenforceable for user-written
    * FlowOps, but we control all FlowOps used within any parallel flows-- so we can make sure to uphold this property.
    * More thought would be needed if we wanted to support parallel flows of user created data structures in the future.
    */
@@ -55,9 +55,9 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
       return original.isRunning$mut();
     }
 
-    @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
+    @Override public Void_0 for$mut(_Sink_1 downstream_m$) {
       try {
-        return original.forRemaining$mut(downstream_m$);
+        return original.for$mut(downstream_m$);
       } catch (PipelineParallelFlow.DeterministicFearlessError err) {
         throw err;
       } catch (FearlessError err) {

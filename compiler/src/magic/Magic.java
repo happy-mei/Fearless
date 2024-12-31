@@ -59,20 +59,6 @@ public class Magic {
 
   public static final Id.DecId MapK = new Id.DecId("base.Maps", 0);
 
-  // object capabilities
-  public static final Id.DecId SystemImpl = new Id.DecId("base.caps._System", 0);
-  public static final Id.DecId RootCap = new Id.DecId("base.caps.RootCap", 0);
-  public static final Id.DecId UnrestrictedIO = new Id.DecId("base.caps.UnrestrictedIO", 0);
-  public static final Id.DecId FEnv = new Id.DecId("base.caps.FEnv", 0);
-  public static final Id.DecId FRandomSeed = new Id.DecId("base.caps.FRandomSeed", 0);
-  public static final List<Id.DecId> ObjectCaps = List.of(
-    RootCap,
-    UnrestrictedIO,
-    FEnv,
-    Debug,
-    FRandomSeed
-  );
-
   public static Optional<Id.IT<astFull.T>> resolve(String name) {
     var isLiteral = !name.isEmpty() && isLiteral(name);
     if (isLiteral) {return Optional.of(new Id.IT<>(name, List.of()));}
