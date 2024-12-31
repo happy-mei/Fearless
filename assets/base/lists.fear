@@ -31,11 +31,11 @@ LList[E]:Collection,Sealed{
   imm  .tail: LList[E] -> this,
 
   mut  ++(l1: mut LList[E]): mut LList[E] -> l1,
-  read ++(l1: read LList[read E]): read LList[read E] -> l1,
+  read ++(l1: read LList[read/imm E]): read LList[read/imm E] -> l1,
   imm ++(l1: LList[imm E]): LList[imm E] -> l1,
 
   mut  +(e: E): mut LList[E] -> this ++ (mut LList[E].pushFront[](e)),
-  read +(e: read E): read LList[read E] -> this ++ (read LList[read E].pushFront[](e)),
+  read +(e: read/imm E): read LList[read/imm E] -> this ++ (read LList[read/imm E].pushFront[](e)),
   imm  +(e: imm E): LList[imm E] -> this ++ (LList[imm E].pushFront[](e)),
 
   mut .iter: mut Iter[E] -> Block#
