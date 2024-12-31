@@ -244,7 +244,7 @@ List[E]: Collection,Sealed{
           .return {{}},
         .empty -> Block#(downstream.stop, self.stop),
         },
-        .forRemaining(downstream) -> Block#
+        .for(downstream) -> Block#
           .loop {Block#
             .if {cursor.get >= (this.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
             .do {downstream#(this.get(cursor++))}
@@ -265,7 +265,7 @@ List[E]: Collection,Sealed{
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> Block#
+      .for(downstream) -> Block#
         .loop {Block#
           .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
           .do {downstream#(this.get(cursor++))}
@@ -295,7 +295,7 @@ List[E]: Collection,Sealed{
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> Block#
+      .for(downstream) -> Block#
         .loop {Block#
           .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
           .do {downstream#(this.get(cursor++))}

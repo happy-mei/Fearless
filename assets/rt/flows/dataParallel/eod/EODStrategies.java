@@ -22,7 +22,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     var sink = new DelayedStopSink(downstream);
     for (var data : splitData) {
       if (data == null) { break; }
-      data.forRemaining$mut(sink);
+      data.for$mut(sink);
     }
     sink.stop();
   }

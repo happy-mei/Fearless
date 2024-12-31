@@ -20,7 +20,7 @@ _SeqFlow: _FlowFactory{
     // terminals
     mut .first: mut Opt[E] -> Block#
       .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
-      .do {source.forRemaining(mut _Sink[E]{'runner
+      .do {source.for(mut _Sink[E]{'runner
         .stop -> source.stop,
         .pushError(info) -> Error!info,
         #(e) -> res.get.isEmpty ? {
@@ -35,7 +35,7 @@ _SeqFlow: _FlowFactory{
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
-      .do {source.forRemaining(mut _Sink[E]{'runner
+      .do {source.for(mut _Sink[E]{'runner
         .stop -> source.stop,
         .pushError(info) -> Error!info,
         #(e) -> res.get.isEmpty ? {
@@ -56,7 +56,7 @@ _SeqFlow: _FlowFactory{
       .openIso initialValueSupplier = acc
       .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
       .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(mut _Sink[E]{
+      .do {source.for(mut _Sink[E]{
         .stop -> stopped := True,
         .pushError(info) -> stopped* ? {
           .then -> {},
@@ -82,7 +82,7 @@ _SeqFlow: _FlowFactory{
         .some(x) -> downstream#x,
         .empty -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+      .for(downstream) -> seq.swap(mut Opt[E]).match{
         .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
         .empty -> Block#(downstream.stop, self.stop),
         },

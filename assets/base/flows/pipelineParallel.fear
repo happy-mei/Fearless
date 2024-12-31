@@ -26,7 +26,7 @@ _PipelineParallelFlow: _FlowFactory{
     mut .first: mut Opt[E] -> Block#
       .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
       .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
+      .do {source.for(_PipelineParallelSink#[E]{'runner
         .stop -> Block#
           .do {stopped := True}
           .return {source.stop},
@@ -47,7 +47,7 @@ _PipelineParallelFlow: _FlowFactory{
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
       .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
+      .do {source.for(_PipelineParallelSink#[E]{'runner
         .stop -> Block#
           .do {stopped := True}
           .return {source.stop},
@@ -73,7 +73,7 @@ _PipelineParallelFlow: _FlowFactory{
       .openIso initialValueSupplier = acc
       .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
       .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{
+      .do {source.for(_PipelineParallelSink#[E]{
         #(e) -> acc' := (f#(acc'.get, e)),
         .stop -> stopped := True,
         .pushError(info) -> stopped* ? {
@@ -100,7 +100,7 @@ _PipelineParallelFlow: _FlowFactory{
 //        .some(x) -> downstream#x,
 //        .empty -> Block#(downstream.stop, self.stop),
 //        },
-//      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+//      .for(downstream) -> seq.swap(mut Opt[E]).match{
 //        .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
 //        .empty -> Block#(downstream.stop, self.stop),
 //        },

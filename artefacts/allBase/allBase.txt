@@ -321,7 +321,7 @@ List[E]: Collection,Sealed{
           .return {{}},
         .empty -> Block#(downstream.stop, self.stop),
         },
-        .forRemaining(downstream) -> Block#
+        .for(downstream) -> Block#
           .loop {Block#
             .if {cursor.get >= (this.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
             .do {downstream#(this.get(cursor++))}
@@ -342,7 +342,7 @@ List[E]: Collection,Sealed{
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> Block#
+      .for(downstream) -> Block#
         .loop {Block#
           .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
           .do {downstream#(this.get(cursor++))}
@@ -372,7 +372,7 @@ List[E]: Collection,Sealed{
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> Block#
+      .for(downstream) -> Block#
         .loop {Block#
           .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
           .do {downstream#(this.get(cursor++))}
@@ -1883,7 +1883,7 @@ FlowOp[E]: {
   mut .step(sink: mut _Sink[E]): Void,
   mut .stop: Void,
   mut .isRunning: Bool,
-  mut .forRemaining(downstream: mut _Sink[E]): Void -> Block#
+  mut .for(downstream: mut _Sink[E]): Void -> Block#
     .loop {Block#
       .if {this.isRunning.not} .return {ControlFlow.break}
       .do {this.step(downstream)}
@@ -1921,15 +1921,15 @@ _Filter: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -1955,15 +1955,15 @@ _Map: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> downstream#(f#(ctx'.iso.self, e)),
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -1983,7 +1983,7 @@ _FlatMap: {
             .stop -> Block#(isRunning := False, downstream.stop),
             #(e) -> Block#
               .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
-              .return {nestedOp.forRemaining{
+              .return {nestedOp.for{
                 #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
                 .stop -> {},
                 .pushError(info) -> downstream.pushError(info),
@@ -1993,21 +1993,21 @@ _FlatMap: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(isRunning := False, downstream.stop),
             #(e) -> Block#
               .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
-              .return {nestedOp.forRemaining{
+              .return {nestedOp.for{
                 #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
                 .stop -> {},
                 .pushError(info) -> downstream.pushError(info),
                 }},
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -2037,8 +2037,8 @@ _With: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[A]{
             .stop -> Block#(isRunning := False, downstream.stop),
@@ -2050,7 +2050,7 @@ _With: {
                 }},
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -2203,7 +2203,7 @@ _PipelineParallelFlow: _FlowFactory{
     mut .first: mut Opt[E] -> Block#
       .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
       .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
+      .do {source.for(_PipelineParallelSink#[E]{'runner
         .stop -> Block#
           .do {stopped := True}
           .return {source.stop},
@@ -2224,7 +2224,7 @@ _PipelineParallelFlow: _FlowFactory{
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
       .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
+      .do {source.for(_PipelineParallelSink#[E]{'runner
         .stop -> Block#
           .do {stopped := True}
           .return {source.stop},
@@ -2250,7 +2250,7 @@ _PipelineParallelFlow: _FlowFactory{
       .openIso initialValueSupplier = acc
       .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
       .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{
+      .do {source.for(_PipelineParallelSink#[E]{
         #(e) -> acc' := (f#(acc'.get, e)),
         .stop -> stopped := True,
         .pushError(info) -> stopped* ? {
@@ -2330,7 +2330,7 @@ _MutSourceCollection[E]: {
                .return {{}},
              .empty -> Block#(downstream.stop, self.stop),
              },
-           .forRemaining(downstream) -> Block#
+           .for(downstream) -> Block#
              .loop {Block#
                .if {cursor.get >= (dup.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
                .do {downstream#(dup.get(cursor++))}
@@ -2364,7 +2364,7 @@ _SafeSource: {
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> Block#
+      .for(downstream) -> Block#
         .loop {Block#
           .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
           .do {downstream#(list.get(cursor++))}
@@ -2403,7 +2403,7 @@ _SeqFlow: _FlowFactory{
 
     mut .first: mut Opt[E] -> Block#
       .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
-      .do {source.forRemaining(mut _Sink[E]{'runner
+      .do {source.for(mut _Sink[E]{'runner
         .stop -> source.stop,
         .pushError(info) -> Error!info,
         #(e) -> res.get.isEmpty ? {
@@ -2418,7 +2418,7 @@ _SeqFlow: _FlowFactory{
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
-      .do {source.forRemaining(mut _Sink[E]{'runner
+      .do {source.for(mut _Sink[E]{'runner
         .stop -> source.stop,
         .pushError(info) -> Error!info,
         #(e) -> res.get.isEmpty ? {
@@ -2439,7 +2439,7 @@ _SeqFlow: _FlowFactory{
       .openIso initialValueSupplier = acc
       .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
       .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(mut _Sink[E]{
+      .do {source.for(mut _Sink[E]{
         .stop -> stopped := True,
         .pushError(info) -> stopped* ? {
           .then -> {},
@@ -2465,7 +2465,7 @@ _SeqFlow: _FlowFactory{
         .some(x) -> downstream#x,
         .empty -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+      .for(downstream) -> seq.swap(mut Opt[E]).match{
         .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
         .empty -> Block#(downstream.stop, self.stop),
         },

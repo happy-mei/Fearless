@@ -30,9 +30,9 @@ _Limit: {
             }))}
           .return {upstream.step(sink.get!)}
         },
-//      mut .forRemaining[R](sink: mut _Sink[E]): Void -> Block#
+//      mut .for[R](sink: mut _Sink[E]): Void -> Block#
 //        .if {n == 0} .return {ControlFlow.break[R]}
-//        .return {upstream.forRemaining{e -> Block#
+//        .return {upstream.for{e -> Block#
 //          .if {remaining-- == 0} .return {ControlFlow.break[R]}
 //          .return {sink#e}
 //          }}

@@ -17,7 +17,7 @@ import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
  * large amounts of memory.
  */
 public final class EODWorker implements Runnable {
-  public static void forRemaining(FlowOp_1 source, _Sink_1 downstream, int size) {
+  public static void for_(FlowOp_1 source, _Sink_1 downstream, int size) {
     var splitData = SplitTasks.of(source, Math.max(PARALLELISM_POTENTIAL / 2, 2));
     var nTasks = splitData.size();
 
@@ -42,7 +42,7 @@ public final class EODWorker implements Runnable {
 
   public void impl() {
     try {
-      source.forRemaining$mut(downstream);
+      source.for$mut(downstream);
     } catch (FearlessError err) {
       downstream.pushError$mut(err.info);
     } catch (ArithmeticException err) {

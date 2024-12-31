@@ -52,7 +52,7 @@ Iter[E]:{
 //      .some(x) -> sink#x,
 //      .empty -> op.stop,
 //      },
-//    .forRemaining(sink) -> this.map{x -> sink#x}.find{ctrl -> ctrl.match{
+//    .for(sink) -> this.map{x -> sink#x}.find{ctrl -> ctrl.match{
 //      .continue -> False,
 //      .break -> True,
 //      .return(_) -> True,

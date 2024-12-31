@@ -211,14 +211,14 @@ public final class DataParallelFlow implements Flow_1 {
       return source_m$.isRunning$mut();
     }
 
-    @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
-      EODWorker.forRemaining(source_m$, downstream_m$, (int) size);
-//      HeartbeatFlowWorker.forRemaining(source_m$, downstream_m$, (int) size);
+    @Override public Void_0 for$mut(_Sink_1 downstream_m$) {
+      EODWorker.for_(source_m$, downstream_m$, (int) size);
+//      HeartbeatFlowWorker.for_(source_m$, downstream_m$, (int) size);
 //      nestLevel.incrementAndGet();
 //      if (stats == null) {
 //        stats = size >= 0 ? new Stats(size) : new Stats();
 //      }
-//      new ForRemaining(source_m$, downstream_m$).forRemaining();
+//      new ForRemaining(source_m$, downstream_m$).for();
 //      if (nestLevel.decrementAndGet() == 0) {
 ////        stats = null;
 //      }

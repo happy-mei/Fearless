@@ -60,7 +60,7 @@ _MutSourceCollection[E]: {
                .return {{}},
              .empty -> Block#(downstream.stop, self.stop),
              },
-           .forRemaining(downstream) -> Block#
+           .for(downstream) -> Block#
              .loop {Block#
                .if {cursor.get >= (dup.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
                .do {downstream#(dup.get(cursor++))}
@@ -83,7 +83,7 @@ _FlowConverters: Sealed{
 //        .do {downstream#(cursor <- {n -> n + +1})}
 //        .if {cursor* >= end} .do {Block#(downstream.stop, self.stop)}
 //        .return {{}},
-//      .forRemaining(downstream) -> Block#
+//      .for(downstream) -> Block#
 //        .loop {Block#
 //          .if {cursor* >= end} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
 //          .do {downstream#(cursor <- {n -> n + +1})}
@@ -127,7 +127,7 @@ _SafeSource: {
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> Block#
+      .for(downstream) -> Block#
         .loop {Block#
           .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
           .do {downstream#(list.get(cursor++))}

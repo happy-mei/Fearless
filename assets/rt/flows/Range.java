@@ -51,7 +51,7 @@ public interface Range extends base.flows._FlowRange_0 {
       return this.cursor < this.end;
     }
 
-    @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
+    @Override public Void_0 for$mut(_Sink_1 downstream_m$) {
       for (; this.cursor < this.end; ++this.cursor) {
         downstream_m$.$hash$mut(this.cursor);
       }

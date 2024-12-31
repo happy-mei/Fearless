@@ -1313,10 +1313,10 @@ FlowOp[E]: {
   mut .step(sink: mut _Sink[E]): Void,
   mut .stop: Void,
   mut .isRunning: Bool,
-  mut .forRemaining(downstream: mut _Sink[E]): Void -> Block#
+  mut .for(downstream: mut _Sink[E]): Void -> Block#
     .do{this.step(downstream)}
     .if {this.isRunning.not} .return {{}}
-    .return {this.forRemaining(downstream)},
+    .return {this.for(downstream)},
   mut .isFinite: Bool -> True,
   mut .split: mut Opt[mut FlowOp[E]] -> {},
   }
@@ -1409,7 +1409,7 @@ _PipelineParallelFlow: {
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .let[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
+      .do {source.for(_PipelineParallelSink#[E]{'runner
         .stop -> source.stop,
         #(e) -> f#e.match{.some(e') -> Block#(res := (Opts#e'), runner.stop), .empty -> {}},
         })}
@@ -1427,7 +1427,7 @@ _PipelineParallelFlow: {
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .let[mut Ref[S]] acc' = {Ref#acc}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{
+      .do {source.for(_PipelineParallelSink#[E]{
         .stop -> {},
         #(e) -> acc' := (f#(acc'.get, e)),
         })}
@@ -1450,7 +1450,7 @@ _PipelineParallelFlow: {
         .some(x) -> downstream#x,
         .empty -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+      .for(downstream) -> seq.swap(mut Opt[E]).match{
         .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
         .empty -> Block#(downstream.stop, self.stop),
         },
@@ -1495,7 +1495,7 @@ _SeqFlow: {
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .let[mut Ref[mut Opt[R]]] res = {Ref#mut Opt[R]}
-      .do {source.forRemaining(mut _Sink[E]{'runner
+      .do {source.for(mut _Sink[E]{'runner
         .stop -> {},
         #(e) -> f#e.match{.some(e') -> Block#(res := (Opts#e'), runner.stop), .empty -> {}},
         })}
@@ -1513,7 +1513,7 @@ _SeqFlow: {
     mut .fold[S](acc: S, f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
       .let[mut Ref[S]] acc' = {Ref#acc}
-      .do {source.forRemaining(mut _Sink[E]{
+      .do {source.for(mut _Sink[E]{
         .stop -> {},
         #(e) -> acc' := (f#(acc'.get, e)),
         })}
@@ -1536,7 +1536,7 @@ _SeqFlow: {
         .some(x) -> downstream#x,
         .empty -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+      .for(downstream) -> seq.swap(mut Opt[E]).match{
         .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
         .empty -> Block#(downstream.stop, self.stop),
         },

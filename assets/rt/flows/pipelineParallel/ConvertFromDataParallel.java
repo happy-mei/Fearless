@@ -40,7 +40,7 @@ class DPSource implements FlowOp_1 {
     assert !hasStarted : "start called twice on DPSource";
     hasStarted = true;
     Thread.ofVirtual().start(()->
-      source.forRemaining$mut(new _Sink_1() {
+      source.for$mut(new _Sink_1() {
         @Override public Void_0 stop$mut() {
           buffer.offer(PipelineParallelFlow.Message.Stop.INSTANCE);
           return Void_0.$self;
@@ -90,8 +90,8 @@ class DPSource implements FlowOp_1 {
   @Override public Bool_0 isRunning$mut() {
     return isRunning ? True_0.$self : False_0.$self;
   }
-  @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
-    return base.flows.FlowOp_1.forRemaining$mut$fun(downstream_m$, this);
+  @Override public Void_0 for$mut(_Sink_1 downstream_m$) {
+    return base.flows.FlowOp_1.for$mut$fun(downstream_m$, this);
   }
   @Override public Opt_1 split$mut() {
     return Opt_1.$self;

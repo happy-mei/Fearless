@@ -150,7 +150,7 @@ public interface Str extends base.Str_0 {
 			@Override public Bool_0 isRunning$mut() {
 				return this.cur >= this.end ? False_0.$self : True_0.$self;
 			}
-			@Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
+			@Override public Void_0 for$mut(_Sink_1 downstream_m$) {
 				for (; this.cur < end; ++this.cur) {
 					downstream_m$.$hash$mut(charAtUnchecked(this.cur));
 				}
