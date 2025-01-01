@@ -345,22 +345,24 @@ public class TestJavaProgram {
     @Test void ref1() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
-    alias base.Var as Var, alias base.Int as Int,
-    Test:Main{ _ -> Assert!((GetVars#(+5))* == +5, { Void }) }
+    alias base.Vars as Vars, alias base.Int as Int,
+    alias base.Var as Var,
+    Test:Main{ _ -> Assert!((GetVar#(+5))* == +5, { Void }) }
     GetVar:{ #(n: Int): mut Var[Int] -> Vars#n }
     """); }
   @Test void ref2() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
-    alias base.Var as Var, alias base.Int as Int,
-    Test:Main{ _ -> Assert!((GetVars#(+5)).swap(+6) == +5, { Void }) }
+    alias base.Vars as Vars, alias base.Int as Int,
+    alias base.Var as Var,
+    Test:Main{ _ -> Assert!((GetVar#(+5)).swap(+6) == +5, { Void }) }
     GetVar:{ #(n: Int): mut Var[Int] -> Vars#n }
     """); }
   // TODO: loops if we give a broken value like `.let[mut Var[Int]](n = Vars#5)` (not a ReturnStmt)
   @Test void ref3() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert, alias base.Block as Block,
-    alias base.Var as Var, alias base.Int as Int, alias base.ReturnStmt as ReturnStmt,
+    alias base.Vars as Vars, alias base.Int as Int, alias base.ReturnStmt as ReturnStmt,
     Test:Main{ _ -> mut Block[Void]
       .let(n = { Vars#[Int]+5 })
       .do{ Assert!(n.swap(+6) == +5) }
@@ -1526,7 +1528,6 @@ public class TestJavaProgram {
   @Test void expParser() {ok(new Res("", "", 0), """
     package test
     alias base.Int as Num,
-    alias base.Var as Vars,
     
     Test: Main{_ -> {}}
     
