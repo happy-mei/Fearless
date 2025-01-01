@@ -1413,4 +1413,11 @@ public class TestTypeSystem {
     Blah: {.m1: Bloop -> this}
     Z: Bloop,Blah,Bloop{}
     """);}
+
+  @Test void isoCanBeCapturedMultipleTimesAsImm() {ok("""
+    package a
+    A: {#(a: iso A): B -> Block#(B{a}, B{a})}
+    B: {#: A}
+    Block: {#[X1,R](a1: X1, a2: R): R -> a2}
+    """);}
 }
