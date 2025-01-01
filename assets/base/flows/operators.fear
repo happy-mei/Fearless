@@ -50,7 +50,7 @@ _Filter: {
         .pushError(info) -> downstream.pushError(info),
         }
       }}}
-    .return{{'op
+    .return{{
       .step(downstream) ->
         this.run(sink, newSink#downstream, {sink' -> upstream.step(sink')}),
       .for(downstream) ->
