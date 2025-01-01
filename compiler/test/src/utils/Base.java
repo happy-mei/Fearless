@@ -53,7 +53,7 @@ public interface Base {
     package test
     alias base.iter.Iter as Iter,
     
-    alias base.caps.IsoPod as IsoPod,
+    alias base.IsoPod as IsoPod,
     
     alias base.caps.Write as Write,
     alias base.caps.Read as Read,
@@ -72,6 +72,7 @@ public interface Base {
     alias base.caps.System as System,
     
     alias base.Res as Res,
+    alias base.Action as Action,
     
     alias base.LinkedLens as LinkedLens,
     alias base.LinkedHashMap as LinkedHashMap,

@@ -1800,7 +1800,7 @@ alias base.Ref as Ref,
 alias base.Sealed as Sealed,
 alias base.As as As,
 alias base.F as F,
-alias base.caps.IsoPod as IsoPod,
+alias base.IsoPod as IsoPod,
 
 //---File iter\pkg.fear
 package base.iter

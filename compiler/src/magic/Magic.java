@@ -38,7 +38,7 @@ public class Magic {
 
 
   public static final Id.DecId RefK = new Id.DecId("base._MagicVarImpl", 0);
-  public static final Id.DecId IsoPodK = new Id.DecId("base.caps._MagicIsoPodImpl", 0);
+  public static final Id.DecId IsoPodK = new Id.DecId("base._MagicIsoPodImpl", 0);
   public static final Id.DecId Assert = new Id.DecId("base.Assert", 0);
   public static final Id.DecId Abort = new Id.DecId("base.Abort", 0);
   public static final Id.DecId MagicAbort = new Id.DecId("base.Magic", 0);

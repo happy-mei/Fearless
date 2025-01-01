@@ -418,12 +418,12 @@ public record JavaMagicImpls(
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
           MIR.E x = args.getFirst();
           return Optional.of(String.format("""
-            new base.caps._MagicIsoPodImpl_1(){
+            new base._MagicIsoPodImpl_1(){
               private Object x = %s;
               private boolean isAlive = true;
 
               public base.Bool_0 isAlive$read() { return this.isAlive ? base.True_0.$self : base.False_0.$self; }
-              public Object peek$read(base.caps.IsoViewer_2 f) { return this.isAlive ? ((base.caps.IsoViewer_2)f).some$mut(this.x) : ((base.caps.IsoViewer_2)f).empty$mut(); }
+              public Object peek$read(base.IsoViewer_2 f) { return this.isAlive ? ((base.IsoViewer_2)f).some$mut(this.x) : ((base.IsoViewer_2)f).empty$mut(); }
               public Object $exclamation$mut() {
                 if (!this.isAlive) {
                   base.Error_0.$self.msg$imm(rt.Str.fromJavaStr("Cannot consume an empty IsoPod."));
@@ -537,7 +537,7 @@ public record JavaMagicImpls(
       var parallelConstr = FlowSelector.bestParallelConstr(call);
 
       if (isMagic(Magic.FlowK, call.recv())) {
-        if (m.name().equals("#")) {
+        if (m.name().equals("#") || m.name().equals(".ofIso")) {
           var listKCall = new MIR.MCall(
             new MIR.CreateObj(Mdf.imm, Magic.ListK),
             new Id.MethName(Optional.of(Mdf.imm), "#", call.args().size()),
@@ -559,8 +559,13 @@ public record JavaMagicImpls(
         if (m.name().equals(".range")) {
           assert parallelConstr.isPresent();
           return "rt.flows.FlowCreator.fromFlow(%s, %s)".formatted(
-//            gen.visitCreateObj(new MIR.CreateObj(Mdf.imm, new Id.DecId("base.flows._SeqFlow", 0)), true),
-//            gen.visitCreateObj(new MIR.CreateObj(Mdf.imm, Magic.PipelineParallelFlowK), true),
+            gen.visitCreateObj(new MIR.CreateObj(Mdf.imm, Magic.DataParallelFlowK), true),
+            call.withVariants(EnumSet.of(MIR.MCall.CallVariant.Standard)).accept(gen, true)
+          ).describeConstable();
+        }
+        if (m.name().equals(".ofIsos")) {
+          assert parallelConstr.isPresent();
+          return "rt.flows.FlowCreator.fromFlow(%s, %s)".formatted(
             gen.visitCreateObj(new MIR.CreateObj(Mdf.imm, Magic.DataParallelFlowK), true),
             call.withVariants(EnumSet.of(MIR.MCall.CallVariant.Standard)).accept(gen, true)
           ).describeConstable();

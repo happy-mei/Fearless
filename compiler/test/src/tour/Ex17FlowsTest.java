@@ -837,4 +837,59 @@ public class Ex17FlowsTest {
           }
       }
     """, Base.mutBaseAliases);}
+
+  @Test void ofIso() { ok(new Res("""
+    Person that is 12 years old
+    Person that is 25 years old
+    Person that is 120 years old
+    Person that is 22 years old
+    """, "", 0), """
+    package test
+    Test:Main {sys -> Block#
+      .let[Str] res = {Flow.ofIso(Persons#12, Persons#25, Persons#434, Persons#22)
+        .peek{p -> p.age > 120 ? {.then -> p.age(120), .else -> {}}}
+        .map{p -> p.str}
+        .join "\\n"
+        }
+      .return{sys.io.println(res)}
+      }
+    """, """
+    package test
+    Persons: { #(age: Nat): mut Person -> Block#
+      .var[Nat] age' = {age}
+      .return {mut Person: {'self
+        read .age: Nat -> age'.get,
+        mut .age(age'': Nat): Void -> age' := age'',
+        read .str: Str -> "Person that is "+(self.age.str)+" years old",
+        read ==(other: read Person): Bool -> self.age == (other.age),
+        }}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void ofIsos() { ok(new Res("""
+    Person that is 12 years old
+    Person that is 25 years old
+    Person that is 120 years old
+    Person that is 22 years old
+    """, "", 0), """
+    package test
+    Test:Main {sys -> Block#
+      .let[Str] res = {Flow.ofIsos(List#(IsoPod#(Persons#12), IsoPod#(Persons#25), IsoPod#(Persons#434), IsoPod#(Persons#22)))
+        .peek{p -> p.age > 120 ? {.then -> p.age(120), .else -> {}}}
+        .map{p -> p.str}
+        .join "\\n"
+        }
+      .return{sys.io.println(res)}
+      }
+    """, """
+    package test
+    Persons: { #(age: Nat): mut Person -> Block#
+      .var[Nat] age' = {age}
+      .return {mut Person: {'self
+        read .age: Nat -> age'.get,
+        mut .age(age'': Nat): Void -> age' := age'',
+        read .str: Str -> "Person that is "+(self.age.str)+" years old",
+        read ==(other: read Person): Bool -> self.age == (other.age),
+        }}
+      }
+    """, Base.mutBaseAliases); }
 }

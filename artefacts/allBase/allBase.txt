@@ -775,7 +775,7 @@ ActionMatch[T,R]: {
 package base.json
 alias base.iter.Iter as Iter,
 
-alias base.caps.IsoPod as IsoPod,
+alias base.IsoPod as IsoPod,
 
 alias base.caps.Write as Write,
 alias base.caps.Read as Read,
