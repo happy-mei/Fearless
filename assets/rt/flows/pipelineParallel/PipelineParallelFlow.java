@@ -24,15 +24,13 @@ public interface PipelineParallelFlow {
 //    static long SINK_ID = 0;
     @Override public base.flows._Sink_1 $hash$imm(base.flows._Sink_1 original) {
 //      return original;
-      return new WrappedSink(0, original);
+      return new WrappedSink(original);
     }
   }
   final class WrappedSink implements base.flows._PipelineParallelSink_1 {
-    final long subjectId;
     final base.flows._Sink_1 original;
     Subject subject;
-    public WrappedSink(long subjectId, base.flows._Sink_1 original) {
-      this.subjectId = subjectId;
+    public WrappedSink(base.flows._Sink_1 original) {
       this.original = original;
 
 //      System.out.println("SPAWNING SUBJ: "+subjectId);
