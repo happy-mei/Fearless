@@ -95,27 +95,27 @@ class TestLiterals {
   @Test void natType(){ okLit("imm base.natLit.5[]","5"); }
   @Test void intPType(){ okLit("imm base.intLit.+5[]"," +5"); }
   @Test void intNType(){ okLit("imm base.intLit.-5[]"," -5"); }
-  @Test void floatDotType(){ okLit("imm a..32[]",".32"); }
+  @Test void floatDotType(){ okLit(".32",".32"); }
   @Test void floatPType(){ okLit("imm base.floatLit.+5.32[]"," +5.32"); }
   @Test void floatNType(){ okLit("imm base.floatLit.-5.32[]"," -5.32"); }
-  @Test void floatNTypeUnder(){ okLit("imm a.__-5.32[]","__-5.32"); }
-  @Test void floatNPTypeUnder(){ okLit("imm a.__-5.+32[]","__-5.+32"); }
+  @Test void floatNTypeUnder(){ okLit("__-5.32","__-5.32"); }
+  @Test void floatNPTypeUnder(){ okLit("__-5.+32","__-5.+32"); }
   
-  @Test void floatUnderPType(){ okLit("imm a._+3+5[]"," _+3+5"); }
+  @Test void floatUnderPType(){ okLit("_+3+5"," _+3+5"); }
   
-  @Test void doublePlusUnder(){ okLit("imm a._+5+2[]","_+5+2"); }
-  @Test void doublePlus(){ okLit("imm a.+5+2[]"," +5+2"); }
+  @Test void doublePlusUnder(){ okLit("_+5+2","_+5+2"); }
+  @Test void doublePlus(){ okLit("+5+2"," +5+2"); }
   @Test void floatUType(){ okLit("imm base.floatLit.5.32[]","5.32"); }
-  @Test void floatDotsType(){ okLit("imm a.5....32[]","5....32"); }
-  @Test void numPPType(){ okLit("imm a.+5/+2[]"," +5/+2"); }
-  @Test void numNPType(){ okLit("imm a.-5/+2[]"," -5/+2"); }
-  @Test void numUPType(){ okLit("imm a.5/+2[]","5/+2"); }
-  @Test void numPNType(){ okLit("imm a.+5/-2[]"," +5/-2"); }
-  @Test void numNNType(){ okLit("imm a.-5/-2[]"," -5/-2"); }
-  @Test void numUNType(){ okLit("imm a.5/-2[]","5/-2"); }
-  @Test void numPUType(){ okLit("imm a.+5/2[]"," +5/2"); }
-  @Test void numNUType(){ okLit("imm a.-5/2[]"," -5/2"); }
-  @Test void numUUType(){ okLit("imm a.5/2[]","5/2"); }
+  @Test void floatDotsType(){ okLit("5....32","5....32"); }
+  @Test void numPPType(){ okLit("+5/+2"," +5/+2"); }
+  @Test void numNPType(){ okLit("-5/+2"," -5/+2"); }
+  @Test void numUPType(){ okLit("5/+2","5/+2"); }
+  @Test void numPNType(){ okLit("+5/-2"," +5/-2"); }
+  @Test void numNNType(){ okLit("-5/-2"," -5/-2"); }
+  @Test void numUNType(){ okLit("5/-2","5/-2"); }
+  @Test void numPUType(){ okLit("+5/2"," +5/2"); }
+  @Test void numNUType(){ okLit("-5/2"," -5/2"); }
+  @Test void numUUType(){ okLit("5/2","5/2"); }
 
 
   @Test void uStrType(){ okLit("imm base.uStrLit.\"hello\"[]","\"hello\""); }
@@ -123,7 +123,7 @@ class TestLiterals {
   @Test void uStrTypeEsc(){ okLit("imm base.uStrLit.\"hello\\\"dd\"[]","\"hello\\\"dd\""); }
   @Test void sStrTypeEsc(){ okLit("imm base.sStrLit.`hello\"dd`[]","`hello\"dd`"); }
 
-  @Test void composedTypeName1(){ okLit("imm a._AA`hello`++09e34[]","_AA`hello`++09e34"); }
-  @Test void composedTypeName2(){ okLit("imm a._AA\"hello\"++09e34[]","_AA\"hello\"++09e34"); }
+  @Test void composedTypeName1(){ okLit("_AA`hello`++09e34","_AA`hello`++09e34"); }
+  @Test void composedTypeName2(){ okLit("_AA\"hello\"++09e34","_AA\"hello\"++09e34"); }
 
 }

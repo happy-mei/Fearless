@@ -107,13 +107,7 @@ public record Parser(Path fileName,String content){
   public boolean parseX(){ return parseId(p->p.nudeX().getText());}
   public boolean parseM(){ return parseId(p->p.nudeM().getText());}
   public boolean parseFullCN(){ return parseId(p->p.nudeFullCN().getText());}
-  public boolean parseGX(){
-    if(!parseFullCN()){ return false; }
-    //can not use AntlrApi since FullCN uses fragments for subcases
-    String noStart="0123456789\"";
-    var ok=!content.contains(".") && !noStart.contains(content.substring(0,1));
-    return ok;
-  }
+  public boolean parseGX(){ return parseFullCN(); }//Note: it used to be more restrictive then fullCN
   
   private boolean parseId(Function<FearlessParser,String> checker){
     var l = new FearlessLexer(CharStreams.fromString(content));
