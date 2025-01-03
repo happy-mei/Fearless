@@ -9,17 +9,9 @@ import rt.flows.dataParallel.SplitTasks;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static rt.flows.dataParallel.heartbeat.HeartbeatFlow.PARALLELISM_POTENTIAL;
-
-/**
- * EODWorker (Explosive Ordnance Disposal Worker) is a parallelism strategy that will optimistically parallelise tasks
- * until it runs out of capacity, blocking at that point or if there are a number of blocked workers, running
- * sequentially. This strategy aims to maximise parallelism while avoiding explosions of nested parallelism consuming
- * large amounts of memory.
- */
 public final class HeartbeatFlowWorker implements Runnable {
   public static void for_(FlowOp_1 source, _Sink_1 downstream, int size) {
-    var splitData = SplitTasks.of(source, Math.max(PARALLELISM_POTENTIAL / 2, 1));
+    var splitData = SplitTasks.of(source, 8192);
     int realSize = size >= 0 ? size : splitData.size();
 
     AtomicReference<RuntimeException> exception = new AtomicReference<>();
@@ -44,21 +36,23 @@ public final class HeartbeatFlowWorker implements Runnable {
   }
 
 
+  public final Thread.UncaughtExceptionHandler exceptionHandler;
   private final FlowOp_1 source;
   private final BufferSink downstream;
   private final CountDownLatch sync;
 
-  public HeartbeatFlowWorker(FlowOp_1 source, _Sink_1 downstream, BufferSink.FlushWorker flusher, CountDownLatch sync) {
+  public HeartbeatFlowWorker(FlowOp_1 source, _Sink_1 downstream, BufferSink.FlushWorker flusher, CountDownLatch sync, Thread.UncaughtExceptionHandler handler) {
     this.source = source;
     this.downstream = new BufferSink(downstream, flusher);
     this.sync = sync;
+    this.exceptionHandler = handler;
   }
 
   @Override public void run() {
     impl();
   }
 
-  public void impl() {
+  private void impl() {
     try {
       source.for$mut(downstream);
     } catch (FearlessError err) {

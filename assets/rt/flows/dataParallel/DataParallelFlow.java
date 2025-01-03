@@ -2,7 +2,9 @@ package rt.flows.dataParallel;
 
 import base.*;
 import base.flows.*;
+import rt.flows.dataParallel.dynamicSplit.DynamicSplitFlow;
 import rt.flows.dataParallel.eod.EODWorker;
+import rt.flows.dataParallel.heartbeat.HeartbeatFlowWorker;
 import rt.flows.pipelineParallel.ConvertFromDataParallel;
 
 import java.util.Objects;
@@ -114,6 +116,10 @@ public final class DataParallelFlow implements Flow_1 {
     return ConvertFromDataParallel.of(this, size_m$).map$mut(c, f_m$);
   }
 
+  public Flow_1 mapFilter$mut(F_2 f_m$) {
+    return _NonTerminalOps_1.mapFilter$mut$fun(f_m$, this);
+  }
+
   public Flow_1 peek$mut(F_2 f_m$) {
     return _NonTerminalOps_1.peek$mut$fun(f_m$, this);
   }
@@ -213,12 +219,15 @@ public final class DataParallelFlow implements Flow_1 {
 
     @Override public Void_0 for$mut(_Sink_1 downstream_m$) {
       EODWorker.for_(source_m$, downstream_m$, (int) size);
+//      DynamicSplitFlow.for_(source_m$, downstream_m$);
 //      HeartbeatFlowWorker.for_(source_m$, downstream_m$, (int) size);
+//      ForkJoinWorker.for_(source_m$, downstream_m$);
+//      UnrestrictedWorker.for_(source_m$, downstream_m$, (int)size);
 //      nestLevel.incrementAndGet();
 //      if (stats == null) {
 //        stats = size >= 0 ? new Stats(size) : new Stats();
 //      }
-//      new ForRemaining(source_m$, downstream_m$).for();
+//      new ForRemaining(source_m$, downstream_m$).forRemaining();
 //      if (nestLevel.decrementAndGet() == 0) {
 ////        stats = null;
 //      }

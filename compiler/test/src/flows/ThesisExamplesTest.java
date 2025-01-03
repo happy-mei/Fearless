@@ -202,4 +202,52 @@ public class ThesisExamplesTest {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+
+  @Test void moleculeExample() {ok(new Res("", "", 0), """
+    package test
+    alias base.CompareNats as CompareNats,
+    
+    Samples: F[Nat,Sample]{id -> Sample: {
+      .str: Str -> "{id: " + (id.str) + "}",
+      .analyseSample: mut List[Molecule] -> Block#
+        .var[Nat] n = {100}
+        .let[mut List[Molecule]] res = {List.withCapacity(n.get)}
+        .loop {Block#
+          .if {n.get == 0} .return {ControlFlow.breakWith[mut List[Molecule]]}
+          .do {Block#(n <- {n' -> n' - 1})}
+          .do {res.add Molecule{.weight -> 2323}}
+          .return {ControlFlow.continueWith[mut List[Molecule]]}
+        }
+        .return {res},
+    }}
+    Molecule: {
+      .weight: Nat,
+      .str: Str -> "Molecule(" + (this.weight.str) + ")",
+      }
+    GenerateSamples: {#: mut List[Sample] -> Block#
+      .var[Nat] n = {10_000}
+      .let[mut List[Sample]] res = {List.withCapacity(n.get)}
+      .loop {Block#
+        .if {n.get == 0} .return {ControlFlow.breakWith[mut List[Sample]]}
+        .do {Block#(n <- {n' -> n' - 1})}
+        .do {res.add(Samples#(n.get))}
+        .return {ControlFlow.continueWith[mut List[Sample]]}
+      }
+      .return {res},
+    }
+    
+    HeaviestMolecules: {#(samples: List[Sample]): List[Molecule] ->
+      samples.flow
+        .map{sample -> sample.analyseSample}
+        .map{molecules -> molecules.flow.max{m1, m2 -> CompareNats#(m1.weight, m2.weight)}}
+        .flatMap{optMax -> optMax.flow}
+        .list
+    }
+    
+    Test: Main{sys -> Block#
+      .let[List[Sample]] ss = {GenerateSamples#}
+      .let[List[Molecule]] ms = {HeaviestMolecules#ss}
+      .return{sys.io.println(ms.flow.map{m -> m.str}.join ",")}
+    }
+    """, Base.mutBaseAliases);}
 }

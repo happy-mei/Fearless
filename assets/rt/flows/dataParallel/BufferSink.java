@@ -1,11 +1,11 @@
 package rt.flows.dataParallel;
 
 import base.Info_0;
-import base.Infos_0;
 import base.Void_0;
 import base.flows._Sink_1;
 import rt.FearlessError;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -52,8 +52,8 @@ public final class BufferSink implements _Sink_1 {
           break;
         }
 
-        if (e instanceof Error err) {
-          sink.original.pushError$mut(err.info);
+        if (e instanceof Error(Info_0 info)) {
+          sink.original.pushError$mut(info);
           continue;
         }
         try {
@@ -75,15 +75,14 @@ public final class BufferSink implements _Sink_1 {
 
   //  private static final int BUFFER_MAX = (int) OSInfo.memoryAndCpuScaledValue(500);
 //  private static final int BUFFER_MAX = 1;
-  private static final int BUFFER_MAX = Integer.MAX_VALUE;
   public BufferSink(_Sink_1 original, FlushWorker flusher, int sizeHint) {
     this.original = original;
-    this.buffer = new LinkedBlockingQueue<>(BUFFER_MAX);
+    this.buffer = new LinkedBlockingQueue<>();
     flusher.toFlush.add(new FlusherElement.Sink(this));
   }
   public BufferSink(_Sink_1 original, FlushWorker flusher) {
     this.original = original;
-    this.buffer = new LinkedBlockingQueue<>(BUFFER_MAX);
+    this.buffer = new LinkedBlockingQueue<>();
     flusher.toFlush.add(new FlusherElement.Sink(this));
   }
 
