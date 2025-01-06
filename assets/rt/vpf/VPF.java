@@ -9,7 +9,7 @@ public final class VPF {
   private static ExecutorService executor;
   private static volatile boolean heartbeat = true;
   private static final AtomicLong running = new AtomicLong(0);
-  private static ScheduledExecutorService heartbeatSideEffects = Executors.newSingleThreadScheduledExecutor();
+  private static final ScheduledExecutorService heartbeatSideEffects = Executors.newSingleThreadScheduledExecutor();
   private static long HEARTBEAT_INTERVAL;
   private static boolean heartbeatEffectsEnabled;
 //  private static final long MAX_TASKS = ConfigureVPF.getTasksPerCPU(Runtime.getRuntime().availableProcessors());

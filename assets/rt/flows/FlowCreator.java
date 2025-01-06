@@ -6,6 +6,8 @@ import base.flows.*;
 import rt.flows.dataParallel.DataParallelFlowK;
 
 public interface FlowCreator {
+  ScopedValue<Void> IS_SEQUENTIALISED = ScopedValue.newInstance();
+
   /**
    * @param intended The flow factory the compiler intends for us to use
    * @param original The original flow that we are trying to promote
@@ -15,11 +17,16 @@ public interface FlowCreator {
   static Flow_1 fromFlow(_FlowFactory_0 intended, Flow_1 original) {
 //    System.out.println("from "+original+" intended "+intended);
     var op = original.unwrapOp$mut(_UnwrapFlowToken_0.$self);
-    Long size = original.size$mut();
+    Long size = original.size$mut(); // TODO: use a guaranteed O(1) size method
     return fromFlowOp(intended, op, size);
   }
 
   static Flow_1 fromFlowOp(_FlowFactory_0 intended, FlowOp_1 op, long size) {
+    var isSequentialised = IS_SEQUENTIALISED.isBound();
+    if (isSequentialised) {
+      Opt_1 optSize = size < 0 ? Opt_1.$self : Opts_0.$self.$hash$imm(size);
+      return _SeqFlow_0.$self.fromOp$imm(op, optSize);
+    }
     if (size < 0) { return intended.fromOp$imm(op, Opt_1.$self); }
     var optSize = Opts_0.$self.$hash$imm(size);
 //    if (true) {

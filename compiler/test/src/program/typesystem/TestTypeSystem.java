@@ -322,7 +322,7 @@ public class TestTypeSystem {
         }
    */
 
-  @Test void noCaptureImmAsRecMdfCounterEx() { fail("""
+  @Test void noCaptureImmAsReadImmCounterEx() { fail("""
     In position [###]/Dummy0.fear:5:25
     [E33 callTypeError]
     There is no possible candidate for the method call to .absMeth/0.

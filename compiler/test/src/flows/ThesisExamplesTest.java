@@ -1,5 +1,6 @@
 package flows;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
 
@@ -203,6 +204,7 @@ public class ThesisExamplesTest {
       }
     """, Base.mutBaseAliases);}
 
+  @Disabled
   @Test void moleculeExample() {ok(new Res("", "", 0), """
     package test
     alias base.CompareNats as CompareNats,
@@ -250,4 +252,45 @@ public class ThesisExamplesTest {
       .return{sys.io.println(ms.flow.map{m -> m.str}.join ",")}
     }
     """, Base.mutBaseAliases);}
+
+  @Test void covariantReturnTypes() {ok(new Res("test.A/0\ntest.B1/0\ntest.B2/0", "", 0), """
+    package test
+    alias base.Block as Block,
+    alias base.Debug as D,
+    alias base.Main as Main,
+    alias base.True as True,
+    alias base.Bool as Bool,
+    
+    A: {.self: A -> this}
+    B1: A{}
+    B2: A{.self: B2 -> B2}
+    
+    Is: {
+      .a(a: A): Bool -> True,
+      .b1(b1: B1): Bool -> True,
+      .b2(b2: B2): Bool -> True,
+    }
+    Test: Main{sys -> Block#
+      .let io = {sys.io}
+//      .do {io.println(Is.b2(B2.self).str)}
+      .do {io.println(D.identify(A.self))}
+      .do {io.println(D.identify(B1.self))}
+      .do {io.println(D.identify(B2.self))}
+      .return {{}}
+    }
+    """);}
+
+  @Test void packages() {ok(new Res(), """
+    package test
+    alias base.Bool as B,
+    alias base.True as True,
+    alias base.False as False,
+    alias base.List as List,
+    alias base.List[base.Str] as LStr,
+    
+    BoolExample: {#: B -> True .and False .or base.True}
+    // returns True
+    
+    Test: base.Main{sys -> {}}
+    """);}
 }

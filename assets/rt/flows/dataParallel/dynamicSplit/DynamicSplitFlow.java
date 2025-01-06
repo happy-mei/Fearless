@@ -9,11 +9,11 @@ import base.flows._Sink_1;
 import rt.FearlessError;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
-import java.util.List;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static rt.flows.FlowCreator.IS_SEQUENTIALISED;
 
 public final class DynamicSplitFlow {
   private final FlowOp_1 upstream;
@@ -21,7 +21,7 @@ public final class DynamicSplitFlow {
   private final _Sink_1 downstream;
   private final Phaser sync;
   private final Thread.UncaughtExceptionHandler exceptionHandler;
-  private final List<Object> es;
+  private final Deque<Object> es;
   private final Deque<Thread> splitResults;
   private Thread prev;
 
@@ -32,11 +32,12 @@ public final class DynamicSplitFlow {
     Thread.UncaughtExceptionHandler exceptionHandler,
     Thread prev
   ) {
+    sync.register();
     this.upstream = upstream;
     this.originalDownstream = originalDownstream;
     this.sync = sync;
     this.exceptionHandler = exceptionHandler;
-    this.es = new ArrayList<>();
+    this.es = new ArrayDeque<>();
     this.splitResults = new ArrayDeque<>();
     this.downstream = new _Sink_1() {
       @Override public Void_0 stop$mut() { return Void_0.$self; }
@@ -72,7 +73,8 @@ public final class DynamicSplitFlow {
   }
 
   private static void flattenResults(DynamicSplitFlow res, _Sink_1 downstream) {
-    for (var e : res.es) {
+    while (!res.es.isEmpty()) {
+      var e = res.es.removeFirst();
       if (e instanceof CheckSplitResult(DynamicSplitFlow split)) {
         var worker = res.splitResults.pollFirst();
         assert worker != null;
@@ -81,6 +83,7 @@ public final class DynamicSplitFlow {
         } catch (InterruptedException ex) {
           throw new RuntimeException(ex);
         }
+        assert split != res;
         flattenResults(split, downstream);
         continue;
       }
@@ -101,7 +104,6 @@ public final class DynamicSplitFlow {
   }
 
   public void run() {
-    sync.register();
     try {
       var splitTokens = new ArrayDeque<CheckSplitResult>();
       while (upstream.isRunning$mut() == True_0.$self) {
@@ -123,7 +125,7 @@ public final class DynamicSplitFlow {
           splitResults.add(rhsRes);
           if (!noFailures) { break; }
         } else {
-          forSeq();
+          ScopedValue.runWhere(IS_SEQUENTIALISED, null, this::forSeq);
         }
       }
       es.addAll(splitTokens);

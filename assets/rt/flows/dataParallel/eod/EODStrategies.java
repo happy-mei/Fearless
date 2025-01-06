@@ -11,11 +11,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static rt.flows.FlowCreator.IS_SEQUENTIALISED;
+
 public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitData, int nTasks) implements ParallelStrategies {
   private static final int TASKS_PER_CORE = 128;
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   public static final int PARALLELISM_POTENTIAL = TASKS_PER_CORE * N_CPUS;
-  //  public static final int PARALLELISM_POTENTIAL = 4;
+  //    public static final int PARALLELISM_POTENTIAL = 2;
   public static final Semaphore AVAILABLE_PARALLELISM = new Semaphore(PARALLELISM_POTENTIAL);
 
   @Override public void seqOnly() {
@@ -56,7 +58,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
         worker.releaseOnDone = true;
         Thread.ofVirtual().uncaughtExceptionHandler(handler).start(worker);
       } else {
-        worker.run();
+        ScopedValue.runWhere(IS_SEQUENTIALISED, null, worker);
       }
     }
 

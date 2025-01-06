@@ -11,8 +11,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 final class UnrestrictedWorker implements Runnable {
   static void for_(FlowOp_1 source, _Sink_1 downstream, int size) {
-    // Try to split up the source N_CPU times
-    // TODO: we probably want to just do this on some of the dataset to try it out first
     var splitData = new ArrayList<FlowOp_1>();
     int i = 1;
     splitData.add(source);

@@ -14,26 +14,30 @@ import java.util.stream.IntStream;
 public record HeartbeatFlow(_Sink_1 downstream, int size, List<FlowOp_1> splitData, BufferSink.FlushWorker flusher, CountDownLatch sync, Thread.UncaughtExceptionHandler exceptionHandler) implements Runnable {
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   private static final BlockingQueue<HeartbeatFlowWorker> tasks = new LinkedBlockingQueue<>();
-  static { start(); }
+//  static { start(); }
 
   @Override public void run() {
-    for (int i = 0; i < splitData.size(); ++i) {
-      var worker = new HeartbeatFlowWorker(splitData().get(i), downstream, flusher, sync, exceptionHandler);
-      if (splitData.size() == 1) {
-        worker.run();
+    int i = 0;
+    HeartbeatFlowWorker worker = new HeartbeatFlowWorker(splitData().get(i), downstream, flusher, sync, exceptionHandler);
+    while (i < splitData().size()) {
+      if (splitData.size() - i == 1) {
+        worker.runAll();
+        return;
+      }
+//      tasks.add(worker);
+//
+      if (VPF.shouldSpawn()) {
+        var next = new HeartbeatFlow(downstream, size, splitData.subList(i+1, splitData.size()), flusher, sync, exceptionHandler);
+        VPF.spawnDirect(next, exceptionHandler);
+        worker.runAll();
         return;
       }
 
-      tasks.add(worker);
-//
-//      if (VPF.shouldSpawn()) {
-//        var next = new HeartbeatFlow(downstream, size, splitData.subList(i+1, splitData.size()), flusher, sync, exceptionHandler);
-//        VPF.spawnDirect(next, exceptionHandler);
-//        worker.run();
-//        return;
-//      }
-//
-//      worker.run();
+      var isDone = worker.runOnce();
+      if (isDone) {
+        ++i;
+        worker = new HeartbeatFlowWorker(splitData().get(i), downstream, flusher, sync, exceptionHandler);
+      }
     }
   }
 
@@ -43,7 +47,7 @@ public record HeartbeatFlow(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
         HeartbeatFlowWorker task;try{task = tasks.take();}
         catch (InterruptedException e) {throw new RuntimeException(e);}
         try {
-          task.run();
+          task.runAll();
         } catch (Throwable e) {
           task.exceptionHandler.uncaughtException(Thread.currentThread(), e);
         }
@@ -52,14 +56,13 @@ public record HeartbeatFlow(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     IntStream.range(0, N_CPUS).forEach(_ -> {
       VPF.onHeartbeat(()->{
         if (tasks.isEmpty()) {
-          Thread.onSpinWait();
           return;
         }
         var task = tasks.poll();
         if (task == null) {
           return;
         }
-        VPF.spawnDirect(task, task.exceptionHandler);
+        VPF.spawnDirect(task::runAll, task.exceptionHandler);
       });
     });
 
