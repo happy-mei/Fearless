@@ -1,0 +1,30 @@
+package base.flows
+
+_First[E]: F[mut FlowOp[E], _Sink, mut Opt[E]]{upstream, sinkFactory -> Block#
+  .let res = {Slots#[E]}
+  .var[Bool] stopped = {False}
+  .do {upstream.for(sinkFactory#{'runner
+    .stop -> Block#(stopped := True, upstream.stop),
+    .pushError(info) -> stopped.get ? {.then -> {}, .else -> Error!info},
+    #(e) -> Block#
+      .do {res.ensureFull{e}}
+      .return {runner.stop},
+    })}
+  .do {upstream.stop}
+  .return {res.opt}
+  }
+
+_FindMap[E,R]: F[mut FlowOp[E], read F[E, mut Opt[R]], _Sink, mut Opt[R]]{upstream, f, sinkFactory -> Block#
+  .let res = {Slots#[R]}
+  .var[Bool] stopped = {False}
+  .do {upstream.for(sinkFactory#{'runner
+    .stop -> Block#(stopped := True, upstream.stop),
+    .pushError(info) -> stopped.get ? {.then -> {}, .else -> Error!info},
+    #(e) -> f#e.match{
+      .some(e') -> Block#(res.ensureFull{e'}, runner.stop),
+      .empty -> {},
+      },
+    })}
+  .do {upstream.stop}
+  .return {res.opt}
+  }

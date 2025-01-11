@@ -18,38 +18,8 @@ _SeqFlow: _FlowFactory{
     .with(other) -> this.fromOp(_With#(_Sink, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
 
     // terminals
-    mut .first: mut Opt[E] -> Block#
-      .let[mut Var[mut Opt[E]]] res = {Vars#mut Opt[E]}
-      .do {source.for(mut _Sink[E]{'runner
-        .stop -> source.stop,
-        .pushError(info) -> Error!info,
-        #(e) -> res.get.isEmpty ? {
-          .then -> Block#
-            .do {res := (Opts#e)}
-            .return {runner.stop},
-          .else -> {},
-          },
-        })}
-      .do {source.stop}
-      .return {res.get},
-
-    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
-      .let[mut Var[mut Opt[R]]] res = {Vars#mut Opt[R]}
-      .do {source.for(mut _Sink[E]{'runner
-        .stop -> source.stop,
-        .pushError(info) -> Error!info,
-        #(e) -> res.get.isEmpty ? {
-          .then -> f#e.match{
-            .some(e') -> Block#
-              .do{res := (Opts#e')}
-              .return {runner.stop},
-            .empty -> {},
-            },
-          .else -> {},
-          },
-        })}
-      .do {source.stop}
-      .return {res.get},
+    mut .first: mut Opt[E] -> _First[E]#(source, {}),
+    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> _FindMap[E,R]#(source, f, {}),
 
     mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}

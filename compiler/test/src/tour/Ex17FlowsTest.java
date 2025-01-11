@@ -892,4 +892,25 @@ public class Ex17FlowsTest {
         }}
       }
     """, Base.mutBaseAliases); }
+
+  @Test void findMap() {ok(new Res("2", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(FirstEven#(Flow.range(+1, +10)))}
+    FirstEven: {
+      #(a: mut Flow[Int]): Str -> a
+        .map{n -> n.float}
+        .findMap{n -> n % 2.0 == 0.0 ? {.then -> Opts#(n.str), .else -> {}}}!
+      }
+    """, Base.mutBaseAliases);}
+  @Test void findMapPP() {ok(new Res("12", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#(Flow.range(+4, +12)))}
+    Foo: {
+      #(a: mut Flow[Int]): Str -> a
+        .limit(50)
+        .map{n -> n.float}
+        .map{n -> n * 2.0}
+        .findMap{n -> n % 6.0 == 0.0 ? {.then -> Opts#(n.str), .else -> {}}}!
+      }
+    """, Base.mutBaseAliases);}
 }
