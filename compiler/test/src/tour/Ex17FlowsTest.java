@@ -334,14 +334,14 @@ public class Ex17FlowsTest {
   @Test void flowFilter() { ok(new Res(), """
     package test
     Test:Main {sys -> Assert!(
-      Flow#[Int](+5, +10, +15).filter{n -> n > +5}.size
+      Flow#[Int](+5, +10, +15).filter{n -> n > +5}.count
       == 2
       )}
     """, Base.mutBaseAliases);}
   @Test void flowFilterPrintSize() { ok(new Res("2", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let size = {Flow#[Nat](5, 10, 15).filter{n -> n > 5}.size}
+      .let size = {Flow#[Nat](5, 10, 15).filter{n -> n > 5}.count}
       .return {UnrestrictedIO#sys.println(size.str)}
       }
     """, Base.mutBaseAliases);}

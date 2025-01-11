@@ -142,8 +142,11 @@ public final class DataParallelFlow implements Flow_1 {
     return _TerminalOps_1.max$mut$fun(compare_m$, this);
   }
 
-  public Long size$mut() {
+  public Long count$mut() {
     return this.size >= 0 ? this.size : (Long) fold$mut(()->0L, (acc, _) -> ((long) acc) + 1);
+  }
+  public Opt_1 size$read() {
+    return this.size_m$;
   }
 
   public Flow_1 scan$mut(Object acc_m$, F_3 f_m$) {

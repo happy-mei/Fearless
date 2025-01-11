@@ -7,6 +7,7 @@ _RestrictFlowReuse: {
   #[E](flow: mut Flow[E]): mut Flow[E] -> Block#
     .var[Bool] isTail = {True}
     .return {{
+      .size -> flow.size,
       .unwrapOp(token) -> flow.unwrapOp(token),
       mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
         Block#(_CheckFlowReuse#isTail, flow.actorMut[S,R](state, f)),
@@ -21,7 +22,7 @@ _RestrictFlowReuse: {
       .map(f) -> Block#(_CheckFlowReuse#isTail, flow.map(f)),
       .map(ctx, f) -> Block#(_CheckFlowReuse#isTail, flow.map(ctx, f)),
       .with(other) -> Block#(_CheckFlowReuse#isTail, flow.with(other)),
-      .size -> Block#(_CheckFlowReuse#isTail, flow.size),
+      .count -> Block#(_CheckFlowReuse#isTail, flow.count),
     }},
   }
 _CheckFlowReuse: {
