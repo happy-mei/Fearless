@@ -58,7 +58,7 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Flow_1 with$mut(Flow_1 other_m$) {
-    return $this.fromOp$imm(_With_0.$self.$hash$imm(_Sink_0.$self, source_m$, other_m$.unwrapOp$mut(null)), Opt_1.$self);
+    return $this.fromOp$imm(_With_0.$self.$hash$imm(_Sinks_0.$self, source_m$, other_m$.unwrapOp$mut(null)), Opt_1.$self);
   }
 
   public Opt_1 first$mut() {
@@ -80,11 +80,11 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Flow_1 filter$mut(F_2 p_m$) {
-    return $this.fromOp$imm(_Filter_0.$self.$hash$imm(_Sink_0.$self, source_m$, p_m$), Opt_1.$self);
+    return $this.fromOp$imm(_Filter_0.$self.$hash$imm(_Sinks_0.$self, source_m$, p_m$), Opt_1.$self);
   }
 
   public Flow_1 flatMap$mut(F_2 f_m$) {
-    return $this.fromOp$imm(_FlatMap_0.$self.$hash$imm(_Sink_0.$self, source_m$, f_m$), Opt_1.$self);
+    return $this.fromOp$imm(_FlatMap_0.$self.$hash$imm(_Sinks_0.$self, source_m$, f_m$), Opt_1.$self);
   }
 
   public Opt_1 findMap$mut(F_2 f_m$) {
@@ -110,7 +110,7 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Flow_1 map$mut(F_2 f_m$) {
-    return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sink_0.$self, source_m$, f_m$), this.size_m$);
+    return $this.fromOp$imm(_Map_0.$self.$hash$imm(_Sinks_0.$self, source_m$, f_m$), this.size_m$);
   }
   public Flow_1 map$mut(ToIso_1 c, F_3 f_m$) {
     return ConvertFromDataParallel.of(this, size_m$).map$mut(c, f_m$);

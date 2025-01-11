@@ -1,6 +1,6 @@
 package base.flows
 
-_First[E]: F[mut FlowOp[E], _Sink, mut Opt[E]]{upstream, sinkFactory -> Block#
+_First[E]: F[mut FlowOp[E], _Sinks, mut Opt[E]]{upstream, sinkFactory -> Block#
   .if {upstream.isFinite.not} .error {TerminalOnInfiniteError#}
   .let res = {Slots#[E]}
   .var[Bool] stopped = {False}
@@ -15,7 +15,7 @@ _First[E]: F[mut FlowOp[E], _Sink, mut Opt[E]]{upstream, sinkFactory -> Block#
   .return {res.opt}
   }
 
-_FindMap[E,R]: F[mut FlowOp[E], read F[E, mut Opt[R]], _Sink, mut Opt[R]]{upstream, f, sinkFactory -> Block#
+_FindMap[E,R]: F[mut FlowOp[E], read F[E, mut Opt[R]], _Sinks, mut Opt[R]]{upstream, f, sinkFactory -> Block#
   .if {upstream.isFinite.not} .error {TerminalOnInfiniteError#}
   .let res = {Slots#[R]}
   .var[Bool] stopped = {False}
@@ -31,7 +31,7 @@ _FindMap[E,R]: F[mut FlowOp[E], read F[E, mut Opt[R]], _Sink, mut Opt[R]]{upstre
   .return {res.opt}
   }
 
-_Fold[S,E]: F[mut FlowOp[E], S, read F[S,E,S], _Sink, S]{upstream, acc, f, sinkFactory -> Block#
+_Fold[S,E]: F[mut FlowOp[E], S, read F[S,E,S], _Sinks, S]{upstream, acc, f, sinkFactory -> Block#
   .if {upstream.isFinite.not} .error {TerminalOnInfiniteError#}
   .var[S] res = {acc}
   .var[Bool] stopped = {False}

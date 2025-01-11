@@ -1,6 +1,6 @@
 package base.flows
 
-_PipelineParallelSink: _Sink{
+_PipelineParallelSink: _Sinks{
   #[T](s: mut _Sink[T]): mut _Sink[T] -> Magic!,
   }
 _PipelineParallelSink[T]: _Sink[T]

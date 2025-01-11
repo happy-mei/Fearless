@@ -29,7 +29,7 @@ FlowOp[E]: {
   }
 
 
-_Sink: {
+_Sinks: {
   #[T](s: mut _Sink[T]): mut _Sink[T] -> s,
   }
 _Sink[T]: {
@@ -41,44 +41,30 @@ _Sink[T]: {
 // IMPORTANT NOTE: REUSE SINK OBJECTS! THE IDENTITY IS IMPORTANT FOR WHEN THEY ARE RAN IN PARALLEL!!!!!
 
 _Filter: {
-  #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
-    .var[mut Opt[mut _Sink[E]]] sink = {{}}
-    .let[mut MF[mut _Sink[E],mut MF[mut _Sink[E]]]] newSink = {{downstream -> {
-      sinkFactory#[E]{
-        #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
-        .stop -> downstream.stop,
-        .pushError(info) -> downstream.pushError(info),
-        }
-      }}}
+  #[E](sinkFactory: _Sinks, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
+    .let sink = {Slots#[mut _Sink[E]]}
     .return{{
       .step(downstream) ->
-        this.run(sink, newSink#downstream, {sink' -> upstream.step(sink')}),
+        upstream.step(sink.getOrFill{this.impl(downstream, predicate, sinkFactory)}),
       .for(downstream) ->
-        this.run(sink, newSink#downstream, {sink' -> upstream.for(sink')}),
+        upstream.for(sink.getOrFill{this.impl(downstream, predicate, sinkFactory)}),
       .stop -> upstream.stop,
       .isRunning -> upstream.isRunning,
       .split -> upstream.split.map{right -> this#(sinkFactory, right, predicate)},
       }},
-  .run[E](
-    sink: mut Var[mut Opt[mut _Sink[E]]],
-    newSink: mut MF[mut _Sink[E]],
-    task: mut MF[mut _Sink[E],Void]
-    ): Void ->
-    sink.get.match{
-      .some(sink') -> task#sink',
-      .empty -> Block#
-        .let[mut _Sink[E]] sink' = {newSink#}
-        .do {sink.set(Opts#sink')}
-        .return {task#sink'},
-      },
+  .impl[E](downstream: mut _Sink[E], predicate: read F[E, Bool], sinkFactory: _Sinks): mut _Sink[E] -> {
+    #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
+    .stop -> downstream.stop,
+    .pushError(info) -> downstream.pushError(info),
+    },
   }
 // TODO: ^ use the `this.run` pattern in the other operators to reduce code reuse.
 _Map: {
-  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] ->
+  #[E,R](sinkFactory: _Sinks, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] ->
     this#[_EmptyCtx,E,R](sinkFactory, upstream, iso _EmptyCtx, {_,e -> f#e}),
   // It would be unsound to call this with a non-iso `c` if this is run in parallel.
   // It's okay here because the public API of this library requires that `c` is iso.
-  #[C,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], ctx: iso ToIso[C], f: read F[iso C, E, R]): mut FlowOp[R] -> Block#
+  #[C,E,R](sinkFactory: _Sinks, upstream: mut FlowOp[E], ctx: iso ToIso[C], f: read F[iso C, E, R]): mut FlowOp[R] -> Block#
     .openIso ctx' = ctx
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return  {{'op
@@ -110,7 +96,7 @@ _Map: {
     }}
   }
 _FlatMap: {
-  #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
+  #[E,R](sinkFactory: _Sinks, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
     .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return{{'op
@@ -156,7 +142,7 @@ _FlatMap: {
 
 // TODO: I'm still not 100% sure .with/1 is safe in parallel
 _With: {
-  #[A,B](sinkFactory: _Sink, upstream: mut FlowOp[A], other: mut FlowOp[B]): mut FlowOp[mut Pair[A,B]] -> Block#
+  #[A,B](sinkFactory: _Sinks, upstream: mut FlowOp[A], other: mut FlowOp[B]): mut FlowOp[mut Pair[A,B]] -> Block#
     .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
     .let[mut Var[mut Opt[mut _Sink[A]]]] sink = {Vars#{}}
     .return{{'op
