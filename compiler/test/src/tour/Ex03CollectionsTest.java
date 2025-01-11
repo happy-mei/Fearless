@@ -369,4 +369,18 @@ Many maps are on Str or Int types
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+  @Test void slotUpdate() {ok(new Res("1337\n1337\n2674", "", 0), """
+    package test
+    Test:Main {sys -> Block#
+      .let io = {sys.io}
+      .let slot = {Slots#[Nat]}
+      .do {io.println(slot.getOrFill{1337}.str)}
+      .do {io.println(slot.getOrFill{1234}.str)}
+      .do {io.println(slot.match{
+        .some(x) -> x * 2,
+        .empty -> 0,
+        }.str)}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
 }
