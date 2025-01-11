@@ -1,4 +1,20 @@
 package base
-Slots: {#[E]: mut Slot -> Block#
-  .return {mut Slot: {}}
+Slots: {#[E]: mut Slot[E] -> Block#
+  .var[mut Opt[E]] e = {{}}
+  .return {mut Slot[E]: {'slot
+    mut .match(m: mut SlotMatch[E]): E -> e.get.match{
+      .some(x) -> m.some(x),
+      .empty -> Block#
+        .let[E] x = {m.empty}
+        .do {e.set(Opts#x)}
+        .return {x}
+      },
+    mut .getOrFill(filler: mut MF[E]): E -> slot.match{
+      .some(x) -> x,
+      .empty -> filler#
+      },
+    mut .ensureFull(filler: mut MF[E]): Void -> Block#(slot.getOrFill filler),
+    mut .opt: mut Opt[E] -> e.get,
+    }}
   }
+SlotMatch[E]: {mut .some(x: E): E, mut .empty: E}
