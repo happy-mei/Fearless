@@ -1,0 +1,4 @@
+package base
+Slots: {#[E]: mut Slot -> Block#
+  .return {mut Slot: {}}
+  }
