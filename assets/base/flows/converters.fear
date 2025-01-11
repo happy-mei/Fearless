@@ -42,7 +42,7 @@ _MutSourceCollection[E]: {
     .var[mut Opt[mut FlowOp[E]]] cloned = {{}}
     .return{{
       .isRunning -> this.get(cloned, source).isRunning,
-      .stop -> this.get(cloned, source).stop,
+      .stopUp -> this.get(cloned, source).stopUp,
       .step(downstream) -> this.get(cloned, source).step(downstream),
       }},
   .get(cloned: mut Var[mut Opt[mut FlowOp[E]]], original: mut FlowOp[E]): mut FlowOp[E] -> cloned.get.match{
@@ -53,17 +53,17 @@ _MutSourceCollection[E]: {
          .let[mut Count[Nat]] cursor = {Count.nat(0)}
          .return {{'self
            .isRunning -> cursor* < (dup.size),
-           .stop -> cursor := (dup.size),
+           .stopUp -> cursor := (dup.size),
            .step(downstream) -> dup.tryGet(cursor++).match{
              .some(x) -> Block#
                .do {downstream#x}
-               .if {cursor.get >= (dup.size)} .do {Block#(downstream.stop, self.stop)}
+               .if {cursor.get >= (dup.size)} .do {Block#(downstream.stopDown, self.stopUp)}
                .return {{}},
-             .empty -> Block#(downstream.stop, self.stop),
+             .empty -> Block#(downstream.stopDown, self.stopUp),
              },
            .for(downstream) -> Block#
              .loop {Block#
-               .if {cursor.get >= (dup.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+               .if {cursor.get >= (dup.size)} .return {Block#(downstream.stopDown, self.stopUp, ControlFlow.break)}
                .do {downstream#(dup.get(cursor++))}
                .return {ControlFlow.continue}
                }.return {{}},
@@ -82,11 +82,11 @@ _FlowConverters: Sealed{
 //      .stop -> cursor := end,
 //      .step(downstream) -> Block#
 //        .do {downstream#(cursor <- {n -> n + +1})}
-//        .if {cursor* >= end} .do {Block#(downstream.stop, self.stop)}
+//        .if {cursor* >= end} .do {Block#(downstream.stopDown, self.stop)}
 //        .return {{}},
 //      .for(downstream) -> Block#
 //        .loop {Block#
-//          .if {cursor* >= end} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+//          .if {cursor* >= end} .return {Block#(downstream.stopDown, self.stop, ControlFlow.break)}
 //          .do {downstream#(cursor <- {n -> n + +1})}
 //          .return {ControlFlow.continue}
 //          }
@@ -108,7 +108,7 @@ _SafeSource: {
 //      .step(downstream) -> isRunning* ? {
 //        .then -> iter.next.match{
 //          .some(x) -> downstream#x,
-//          .empty -> Block#(downstream.stop, op.stop),
+//          .empty -> Block#(downstream.stopDown, op.stop),
 //          },
 //        .else -> op.stop,
 //        }
@@ -120,17 +120,17 @@ _SafeSource: {
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {{'self
       .isRunning -> cursor* < (endCursor.get),
-      .stop -> cursor := (endCursor.get),
+      .stopUp -> cursor := (endCursor.get),
       .step(downstream) -> cursor.get < (endCursor.get) ? {
         .then -> Block#
           .do {downstream#(list.get(cursor++))}
-          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stop, self.stop)}
+          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stopDown, self.stopUp)}
           .return {{}},
-        .else -> Block#(downstream.stop, self.stop),
+        .else -> Block#(downstream.stopDown, self.stopUp),
         },
       .for(downstream) -> Block#
         .loop {Block#
-          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stopDown, self.stopUp, ControlFlow.break)}
           .do {downstream#(list.get(cursor++))}
           .return {ControlFlow.continue}
           }.return {{}},

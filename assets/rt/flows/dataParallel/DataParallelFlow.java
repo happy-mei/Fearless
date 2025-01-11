@@ -212,8 +212,8 @@ public final class DataParallelFlow implements Flow_1 {
       return source_m$.step$mut(sink_m$);
     }
 
-    @Override public Void_0 stop$mut() {
-      return source_m$.stop$mut();
+    @Override public Void_0 stopUp$mut() {
+      return source_m$.stopUp$mut();
     }
 
     @Override public Bool_0 isRunning$mut() {

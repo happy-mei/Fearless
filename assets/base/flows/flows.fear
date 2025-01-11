@@ -162,7 +162,7 @@ EmptyFlow[E]: Flow[E]{
   .count -> 0,
   .unwrapOp(_) -> {
     .step(_) -> {},
-    .stop -> {},
+    .stopUp -> {},
     .isRunning -> False,
     },
   }

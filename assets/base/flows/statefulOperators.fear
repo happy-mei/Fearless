@@ -7,21 +7,21 @@ _Limit: {
     .let[mut Count[Nat]] remaining = {Count.nat(n)}
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return {{ 'runner
-      .stop -> Block#(remaining := 0, upstream.stop),
+      .stopUp -> Block#(remaining := 0, upstream.stopUp),
       .isRunning -> remaining* > 0 & (upstream.isRunning),
-//      .stop -> upstream.stop,
+//      .stopDown -> upstream.stop,
 //      .isRunning -> upstream.isRunning,
       .isFinite -> True,
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
-          .if {n == 0} .return {runner.stop}
+          .if {n == 0} .return {runner.stopUp}
           .do {sink := (Opts#(sinkFactory#[E]{
-            .stop -> downstream.stop,
+            .stopDown -> downstream.stopDown,
             #(e) -> Block#
-              .if {remaining* == 0} .return {runner.stop}
+              .if {remaining* == 0} .return {runner.stopUp}
               .do {downstream#e}
-              .if {remaining-- <= 1} .return {runner.stop}
+              .if {remaining-- <= 1} .return {runner.stopUp}
               .return {{}},
             .pushError(info) -> remaining* == 0 ? {
               .then -> {},
@@ -52,8 +52,8 @@ _InternalActor: {
     .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return {{'op
-      .stop -> op.isRunning ? {
-       .then -> Block#(isRunning := False, upstream.stop),
+      .stopUp -> op.isRunning ? {
+       .then -> Block#(isRunning := False, upstream.stopUp),
        .else -> {}
        },
       .isRunning -> isRunning*,
@@ -62,13 +62,13 @@ _InternalActor: {
         .empty -> Block#
           .let[mut _ActorSink[imm R]] actorSink = {_ActorSinks#downstream}
           .do {sink := (Opts#(sinkFactory#[E]{
-            .stop -> Block#(downstream.stop, op.stop),
+            .stopDown -> Block#(downstream.stopDown, op.stopUp),
             #(e) -> isRunning.get ? {
               .then -> f#(actorSink, state, e).match{
                 .continue -> {},
-                .stop -> Block#(downstream.stop, isRunning := False),
+                .stop -> Block#(downstream.stopDown, isRunning := False),
                 },
-              .else -> op.stop,
+              .else -> op.stopUp,
               },
             .pushError(info) -> isRunning.get ? {
               .then -> downstream.pushError(info),
@@ -83,8 +83,8 @@ _InternalActor: {
     .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return {{'op
-      .stop -> op.isRunning ? {
-       .then -> Block#(isRunning := False, upstream.stop),
+      .stopUp -> op.isRunning ? {
+       .then -> Block#(isRunning := False, upstream.stopUp),
        .else -> {}
        },
       .isRunning -> isRunning*,
@@ -92,10 +92,10 @@ _InternalActor: {
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
           .do {sink := (Opts#(sinkFactory#[E]{
-            .stop -> Block#(downstream.stop, op.stop),
+            .stopDown -> Block#(downstream.stopDown, op.stopUp),
             #(e) -> f#(_ActorSinks#downstream, state, e).match{
               .continue -> {},
-              .stop -> Block#(downstream.stop, isRunning := False),
+              .stop -> Block#(downstream.stopDown, isRunning := False),
               },
             .pushError(info) -> isRunning.get ? {
               .then -> downstream.pushError(info),

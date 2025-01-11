@@ -51,16 +51,16 @@ LList[E]:Collection,Sealed{
   mut  .flow: mut Flow[E] -> Block#
     .let cursor = {Vars#this}
     .return {Flow.fromOp({'op
-      .stop -> cursor := {},
+      .stopUp -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> Block#
         .let cursor' = {cursor.swap(cursor*.tail)}
         .do {cursor'.head.match{
           .some(x) -> Block#
             .do {downstream#x}
-            .if {cursor.get.isEmpty} .do {Block#(downstream.stop, op.stop)}
+            .if {cursor.get.isEmpty} .do {Block#(downstream.stopDown, op.stopUp)}
             .return {Void},
-          .empty -> Block#(downstream.stop, op.stop),
+          .empty -> Block#(downstream.stopDown, op.stopUp),
           }}
         .return {{}},
       }, this.size)},
@@ -68,16 +68,16 @@ LList[E]:Collection,Sealed{
   read ._flowread: mut FlowOp[read/imm E] -> Block#
     .let cursor = {Vars#this}
     .return {mut FlowOp[read/imm E]{'op
-      .stop -> cursor := {},
+      .stopUp -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> Block#
         .let cursor' = {cursor.swap(cursor*.tail)}
         .do {cursor'.head.match{
           .some(x) -> Block#
             .do {downstream#x}
-            .if {cursor.get.isEmpty} .do {Block#(downstream.stop, op.stop)}
+            .if {cursor.get.isEmpty} .do {Block#(downstream.stopDown, op.stopUp)}
             .return {Void},
-          .empty -> Block#(downstream.stop, op.stop),
+          .empty -> Block#(downstream.stopDown, op.stopUp),
           }}
         .return {{}},
       }},
@@ -85,16 +85,16 @@ LList[E]:Collection,Sealed{
   imm  ._flowimm: mut FlowOp[imm E] -> Block#
     .let cursor = {Vars#this}
     .return {mut FlowOp[imm E]{'op
-      .stop -> cursor := {},
+      .stopUp -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
       .step(downstream) -> Block#
         .let cursor' = {cursor.swap(cursor*.tail)}
         .do {cursor'.head.match{
           .some(x) -> Block#
             .do {downstream#x}
-            .if {cursor.get.isEmpty} .do {Block#(downstream.stop, op.stop)}
+            .if {cursor.get.isEmpty} .do {Block#(downstream.stopDown, op.stopUp)}
             .return {Void},
-          .empty -> Block#(downstream.stop, op.stop),
+          .empty -> Block#(downstream.stopDown, op.stopUp),
           }}
         .return {{}},
       }},
@@ -236,17 +236,17 @@ List[E]: Collection,Sealed{
     .let[mut Count[Nat]] cursor = {Count.nat(0)}
     .return {Flow.fromMutSource({'self
       .isRunning -> cursor* < (this.size),
-      .stop -> cursor := (this.size),
+      .stopUp -> cursor := (this.size),
       .step(downstream) -> this.tryGet(cursor++).match{
         .some(x) -> Block#
           .do {downstream#x}
-          .if {cursor.get >= (this.size)} .do {Block#(downstream.stop, self.stop)}
+          .if {cursor.get >= (this.size)} .do {Block#(downstream.stopDown, self.stopUp)}
           .return {{}},
-        .empty -> Block#(downstream.stop, self.stop),
+        .empty -> Block#(downstream.stopDown, self.stopUp),
         },
         .for(downstream) -> Block#
           .loop {Block#
-            .if {cursor.get >= (this.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+            .if {cursor.get >= (this.size)} .return {Block#(downstream.stopDown, self.stopUp, ControlFlow.break)}
             .do {downstream#(this.get(cursor++))}
             .return {ControlFlow.continue}
             }.return {{}},
@@ -257,17 +257,17 @@ List[E]: Collection,Sealed{
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {{'self
       .isRunning -> cursor* < (endCursor.get),
-      .stop -> cursor := (endCursor.get),
+      .stopUp -> cursor := (endCursor.get),
       .step(downstream) -> cursor.get < (endCursor.get) ? {
         .then -> Block#
           .do {downstream#(this.get(cursor++))}
-          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stop, self.stop)}
+          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stopDown, self.stopUp)}
           .return {{}},
-        .else -> Block#(downstream.stop, self.stop),
+        .else -> Block#(downstream.stopDown, self.stopUp),
         },
       .for(downstream) -> Block#
         .loop {Block#
-          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stopDown, self.stopUp, ControlFlow.break)}
           .do {downstream#(this.get(cursor++))}
           .return {ControlFlow.continue}
           }.return {{}},
@@ -287,17 +287,17 @@ List[E]: Collection,Sealed{
     .let[mut Count[Nat]] endCursor = {Count.nat(end)}
     .return {{'self
       .isRunning -> cursor* < (endCursor.get),
-      .stop -> cursor := (endCursor.get),
+      .stopUp -> cursor := (endCursor.get),
       .step(downstream) -> cursor.get < (endCursor.get) ? {
         .then -> Block#
           .do {downstream#(this.get(cursor++))}
-          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stop, self.stop)}
+          .if {cursor.get >= (endCursor.get)} .do {Block#(downstream.stopDown, self.stopUp)}
           .return {{}},
-        .else -> Block#(downstream.stop, self.stop),
+        .else -> Block#(downstream.stopDown, self.stopUp),
         },
       .for(downstream) -> Block#
         .loop {Block#
-          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
+          .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stopDown, self.stopUp, ControlFlow.break)}
           .do {downstream#(this.get(cursor++))}
           .return {ControlFlow.continue}
           }.return {{}},

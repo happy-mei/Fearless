@@ -5,13 +5,13 @@ _First[E]: F[mut FlowOp[E], _Sinks, mut Opt[E]]{upstream, sinkFactory -> Block#
   .let res = {Slots#[E]}
   .var[Bool] stopped = {False}
   .do {upstream.for(sinkFactory#{'runner
-    .stop -> Block#(stopped := True, upstream.stop),
+    .stopDown -> Block#(stopped := True, upstream.stopUp),
     .pushError(info) -> stopped.get ? {.then -> {}, .else -> Error!info},
     #(e) -> Block#
       .do {res.ensureFull{e}}
-      .return {runner.stop},
+      .return {runner.stopDown},
     })}
-  .do {upstream.stop}
+  .do {upstream.stopUp}
   .return {res.opt}
   }
 
@@ -20,14 +20,14 @@ _FindMap[E,R]: F[mut FlowOp[E], read F[E, mut Opt[R]], _Sinks, mut Opt[R]]{upstr
   .let res = {Slots#[R]}
   .var[Bool] stopped = {False}
   .do {upstream.for(sinkFactory#{'runner
-    .stop -> Block#(stopped := True, upstream.stop),
+    .stopDown -> Block#(stopped := True, upstream.stopUp),
     .pushError(info) -> stopped.get ? {.then -> {}, .else -> Error!info},
     #(e) -> f#e.match{
-      .some(e') -> Block#(res.ensureFull{e'}, runner.stop),
+      .some(e') -> Block#(res.ensureFull{e'}, runner.stopDown),
       .empty -> {},
       },
     })}
-  .do {upstream.stop}
+  .do {upstream.stopUp}
   .return {res.opt}
   }
 
@@ -36,10 +36,10 @@ _Fold[S,E]: F[mut FlowOp[E], S, read F[S,E,S], _Sinks, S]{upstream, acc, f, sink
   .var[S] res = {acc}
   .var[Bool] stopped = {False}
   .do {upstream.for(sinkFactory#[E]{'runner
-    .stop -> Block#(stopped := True, upstream.stop),
+    .stopDown -> Block#(stopped := True, upstream.stopUp),
     .pushError(info) -> stopped.get ? {.then -> {}, .else -> Error!info},
     #(e) -> res := (f#(res.get, e)),
     })}
-  .do {upstream.stop}
+  .do {upstream.stopUp}
   .return {res.get}
   }

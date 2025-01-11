@@ -32,14 +32,14 @@ _SeqFlow: _FlowFactory{
     .let[mut Var[mut Opt[E]]] seq = { Vars#(Opts#e) }
     .let[mut FlowOp[E]] source = {{'self
       .isRunning -> seq.get.isSome,
-      .stop -> seq := {},
+      .stopUp -> seq := {},
       .step(downstream) -> seq.swap(mut Opt[E]).match{
-        .some(x) -> downstream#x,
-        .empty -> Block#(downstream.stop, self.stop),
+        .some(x) -> Block#(downstream#x, self.stopUp, downstream.stopDown),
+        .empty -> {},
         },
       .for(downstream) -> seq.swap(mut Opt[E]).match{
-        .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
-        .empty -> Block#(downstream.stop, self.stop),
+        .some(x) -> Block#(downstream#x, self.stopUp, downstream.stopDown),
+        .empty -> {},
         },
       }}
     .return {this.fromOp(source, Opts#1)},

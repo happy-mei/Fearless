@@ -29,17 +29,17 @@ public interface Range extends base.flows._FlowRange_0 {
 
     @Override public Void_0 step$mut(_Sink_1 sink_m$) {
       if (!this.isRunning()) {
-        sink_m$.stop$mut();
+        sink_m$.stopDown$mut();
         return Void_0.$self;
       }
       sink_m$.$hash$mut(this.cursor++);
       if (!this.isRunning()) {
-        sink_m$.stop$mut();
+        sink_m$.stopDown$mut();
       }
       return Void_0.$self;
     }
 
-    @Override public Void_0 stop$mut() {
+    @Override public Void_0 stopUp$mut() {
       this.cursor = this.end;
       return Void_0.$self;
     }
@@ -55,7 +55,7 @@ public interface Range extends base.flows._FlowRange_0 {
       for (; this.cursor < this.end; ++this.cursor) {
         downstream_m$.$hash$mut(this.cursor);
       }
-      return downstream_m$.stop$mut();
+      return downstream_m$.stopDown$mut();
     }
 
     @Override public Opt_1 split$mut() {
