@@ -1,0 +1,34 @@
+package base.flows
+
+_FlatMap: {
+  #[E,R](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
+    .let sink = {Slots#[mut _Sink[E]]}
+    .var[Bool] isRunning = {True}
+    .return {{'op
+      .step(downstream) -> upstream.step(sink.getOrFill{this.impl(downstream, f, op, sinkDecorator)}),
+      .for(downstream) -> upstream.for(sink.getOrFill{this.impl(downstream, f, op, sinkDecorator)}),
+      .stopUp -> upstream.stopUp,
+      .isRunning -> isRunning.get,
+      .split -> upstream.split.map{right -> this#(sinkDecorator, right, f)},
+      .canSplit -> upstream.canSplit,
+      }},
+
+  .impl[E,R](downstream: mut _Sink[R], f: read F[E, mut Flow[R]], op: mut FlowOp[R], sinkDecorator: _SinkDecorator): mut _Sink[E] ->
+    sinkDecorator#{
+      #(e) -> this.flatten(
+        f#e.unwrapOp(mut _UnwrapFlowToken),
+        downstream,
+        op,
+        sinkDecorator
+        ),
+      .stopDown -> downstream.stopDown,
+      .pushError(info) -> downstream.pushError(info),
+      },
+
+  .flatten[R](toFlatten: mut FlowOp[R], downstream: mut _Sink[R], op: mut FlowOp[R], sinkDecorator: _SinkDecorator): Void ->
+    toFlatten.for(sinkDecorator#[R]{
+      #(e) -> op.isRunning ? {.then -> downstream#e, .else -> toFlatten.stopUp},
+      .stopDown -> {},
+      .pushError(info) -> downstream.pushError(info),
+      }),
+  }

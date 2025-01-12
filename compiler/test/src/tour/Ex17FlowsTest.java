@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
 
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static utils.RunOutput.Res;
 import static codegen.java.RunJavaProgramTests.*;
 
@@ -82,6 +86,27 @@ public class Ex17FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
+
+  @Test void flatMapLimit() { ok(new Res("101, 101, 102, 101, 102, 103, 102, 103, 104, 103", "", 0), """
+    package test
+    Test:Main {sys -> UnrestrictedIO#sys.println(
+      Flow.range(-125, +496)
+        .flatMap{n -> Flow.range(n, n + +5).limit(3)}
+        .filter{n -> n > +100}
+        .limit(10)
+        .map{n -> n.str}
+        .join(", ")
+      )}
+    """, Base.mutBaseAliases); }
+  @Test void javaFlatMapLimit() {
+    var res = IntStream.range(-125, 496)
+      .flatMap(n -> IntStream.range(n, n + 5).limit(3))
+      .filter(n -> n > 100)
+      .limit(10)
+      .mapToObj(Integer::toString)
+      .collect(Collectors.joining(", "));
+    assertEquals("101, 101, 102, 101, 102, 103, 102, 103, 104, 103", res);
+  }
 
   @Test void emptyFlatMap() { ok(new Res(), """
     package test
