@@ -19,11 +19,11 @@ _Limit: {
           .do {sink := (Opts#(sinkDecorator#[E]{
             .stopDown -> downstream.stopDown,
             #(e) -> Block#
-              .if {remaining* == 0} .return {runner.stopUp}
+              .if {remaining.get <= 0} .return {runner.stopUp}
               .do {downstream#e}
-              .if {remaining-- <= 1} .return {runner.stopUp}
+              .if {remaining.update{r -> r - 1} <= 1} .return {runner.stopUp}
               .return {{}},
-            .pushError(info) -> remaining* == 0 ? {
+            .pushError(info) -> remaining.get == 0 ? {
               .then -> {},
               .else -> downstream.pushError(info),
               },
