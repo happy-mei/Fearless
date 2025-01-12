@@ -57,41 +57,42 @@ _Filter: {
     },
   }
 _Map: {
-  #[E,R](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] ->
-    this#[_EmptyCtx,E,R](sinkDecorator, upstream, iso _EmptyCtx, {_,e -> f#e}),
-  // It would be unsound to call this with a non-iso `c` if this is run in parallel.
-  // It's okay here because the public API of this library requires that `c` is iso.
+  #[E,R](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] -> Block#
+    .let sink = {Slots#[mut _Sink[E]]}
+    .return{{
+      .step(downstream) ->
+        upstream.step(sink.getOrFill{this.impl(downstream, f, sinkDecorator)}),
+      .for(downstream) ->
+        upstream.for(sink.getOrFill{this.impl(downstream, f, sinkDecorator)}),
+      .stopUp -> upstream.stopUp,
+      .isRunning -> upstream.isRunning,
+      .split -> upstream.split.map{right -> this#[E,R](sinkDecorator, right, f)},
+      }},
+  .impl[E,R](downstream: mut _Sink[R], f: read F[E, R], sinkDecorator: _SinkDecorator): mut _Sink[E] -> {
+    #(e) -> downstream#(f#e),
+    .stopDown -> downstream.stopDown,
+    .pushError(info) -> downstream.pushError(info),
+    },
+
   #[C,E,R](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], ctx: iso ToIso[C], f: read F[iso C, E, R]): mut FlowOp[R] -> Block#
     .openIso ctx' = ctx
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
-    .return  {{'op
-      .step(downstream) -> sink.get.match{
-        .some(sink') -> upstream.step(sink'),
-        .empty -> Block#(
-          sink := (Opts#(sinkDecorator#[E]{
-            .stopDown -> downstream.stopDown,
-            #(e) -> downstream#(f#(ctx'.iso.self, e)),
-            .pushError(info) -> downstream.pushError(info),
-            })),
-          upstream.step(sink.get!)
-          )
-        },
-      .for(downstream) -> sink.get.match{
-        .some(sink') -> upstream.for(sink'),
-        .empty -> Block#(
-          sink := (Opts#(sinkDecorator#[E]{
-            .stopDown -> downstream.stopDown,
-            #(e) -> downstream#(f#(ctx'.iso.self, e)),
-            .pushError(info) -> downstream.pushError(info),
-            })),
-          upstream.for(sink.get!)
-          )
-        },
+    .let sink = {Slots#[mut _Sink[E]]}
+    .return{{
+      .step(downstream) ->
+        upstream.step(sink.getOrFill{this.impl(downstream, ctx', f, sinkDecorator)}),
+      .for(downstream) ->
+        upstream.for(sink.getOrFill{this.impl(downstream, ctx', f, sinkDecorator)}),
       .stopUp -> upstream.stopUp,
       .isRunning -> upstream.isRunning,
       .split -> upstream.split.map{right -> this#[C,E,R](sinkDecorator, right, ctx'.iso, f)},
-    }}
+      }},
+  .impl[C,E,R](downstream: mut _Sink[R], ctx: mut ToIso[C], f: read F[iso C, E, R], sinkDecorator: _SinkDecorator): mut _Sink[E] -> {
+    #(e) -> downstream#(f#(ctx.iso.self, e)),
+    .stopDown -> downstream.stopDown,
+    .pushError(info) -> downstream.pushError(info),
+    },
   }
+
 _FlatMap: {
   #[E,R](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
     .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
