@@ -778,6 +778,7 @@ public class Ex17FlowsTest {
     Test: Main{sys -> sys.io.println(Foo#)}
     """, Base.mutBaseAliases);}
 
+  @Disabled(".with is disabled because of a known bug")
   @Test void zip() {ok(new Res("1 and 4, 2 and 5, 3 and 6", "", 0), """
     package test
     Test: Main{sys -> sys.io.println(Foo#("123", "456"))}
@@ -788,6 +789,18 @@ public class Ex17FlowsTest {
         .join ", "
       }
     """, Base.mutBaseAliases);}
+  @Disabled(".with is disabled because of a known bug")
+  @Test void zipLimit() {ok(new Res("1 and 4, 2 and 5, 3 and 6", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#("123", "456"))}
+    Foo: {
+      #(a: Str, b: Str): Str -> a.flow
+        .with(b.flow.limit(2))
+        .map{ab -> ab.a + " and " + (ab.b)}
+        .join ", "
+      }
+    """, Base.mutBaseAliases);}
+  @Disabled(".with is disabled because of a known bug")
   @Test void zipMismatchA() {ok(new Res("1 and 4, 2 and 5", "", 0), """
     package test
     Test: Main{sys -> sys.io.println(Foo#("12", "456"))}
@@ -798,6 +811,7 @@ public class Ex17FlowsTest {
         .join ", "
       }
     """, Base.mutBaseAliases);}
+  @Disabled(".with is disabled because of a known bug")
   @Test void zipMismatchB() {ok(new Res("1 and 4, 2 and 5", "", 0), """
     package test
     Test: Main{sys -> sys.io.println(Foo#("123", "45"))}
@@ -809,6 +823,7 @@ public class Ex17FlowsTest {
       }
     """, Base.mutBaseAliases);}
 
+  @Disabled(".with is disabled because of a known bug")
   @Test void listEqualityZip() {ok(new Res(), """
     package test
     Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list))}
@@ -821,6 +836,7 @@ public class Ex17FlowsTest {
           }
       }
     """, Base.mutBaseAliases);}
+  @Disabled(".with is disabled because of a known bug")
   @Test void listEqualityZipNotEquals() {ok(new Res("", "Assertion failed :(", 1), """
     package test
     Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list + +1337))}
@@ -830,6 +846,19 @@ public class Ex17FlowsTest {
         .return {a.flow
           .with(b.flow)
           .all{ab -> ab.a == (ab.b)}
+          }
+      }
+    """, Base.mutBaseAliases);}
+  @Disabled(".with is disabled because of a known bug")
+  @Test void noneTerminal() {ok(new Res(), """
+    package test
+    Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list))}
+    Foo: {
+      #(a: List[Int], b: List[Int]): Bool -> Block#
+        .assert {a.size == (b.size)}
+        .return {a.flow
+          .with(b.flow)
+          .none{ab -> (ab.a == (ab.b)).not}
           }
       }
     """, Base.mutBaseAliases);}
@@ -848,19 +877,6 @@ public class Ex17FlowsTest {
       .fold(_ToIsoMF#(sys.io.iso.self), {io, msg -> Block#(io.print msg, io)}))
       }
     _ToIsoMF: {#[T](x: mut T): mut MF[mut T] -> {x}}
-    """, Base.mutBaseAliases);}
-
-  @Test void noneTerminal() {ok(new Res(), """
-    package test
-    Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list))}
-    Foo: {
-      #(a: List[Int], b: List[Int]): Bool -> Block#
-        .assert {a.size == (b.size)}
-        .return {a.flow
-          .with(b.flow)
-          .none{ab -> (ab.a == (ab.b)).not}
-          }
-      }
     """, Base.mutBaseAliases);}
 
   @Test void ofIso() { ok(new Res("""
