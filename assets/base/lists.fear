@@ -211,6 +211,8 @@ List[E]: Collection,Sealed{
   mut +(e: E): mut List[E] -> Block#(this.add(e), this),
   mut .addAll(other: mut List[E]): Void -> other.iter.for{e -> this.add(e)},
 
+  mut .takeFirst: mut Opt[E],
+
   mut .clear: Void,
 
 // TODO: disabled until I fix .with

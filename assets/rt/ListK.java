@@ -272,6 +272,13 @@ public interface ListK extends base.List_0 {
       return Void_0.$self;
     }
 
+    @Override public base.Opt_1 takeFirst$mut() {
+      if (inner.isEmpty()) {
+        return base.Opt_1.$self;
+      }
+      return base.Opts_0.$self.$hash$imm(inner.removeFirst());
+    }
+
     @Override public Opt_1 tryGet$imm(long i_m$) {
       if (i_m$ >= inner.size()) { return Opt_1.$self; }
       return Opts_0.$self.$hash$imm(inner.get((int) i_m$));
@@ -371,6 +378,10 @@ public interface ListK extends base.List_0 {
     }
 
     @Override public Void_0 addAll$mut(List_1 other_m$) {
+      throw new RuntimeException("Unreachable code");
+    }
+
+    @Override public base.Opt_1 takeFirst$mut() {
       throw new RuntimeException("Unreachable code");
     }
 
