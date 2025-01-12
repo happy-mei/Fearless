@@ -3,7 +3,7 @@ package base.flows
 // This could be implemented as an actor, but I have it special cased because it forces a Flow to be finite and gives
 // it a static size, which is more info than we could get if this was just an ActorImpl.
 _Limit: {
-  #[E](sinkFactory: _Sinks, upstream: mut FlowOp[E], n: Nat): mut FlowOp[E] -> Block#
+  #[E](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], n: Nat): mut FlowOp[E] -> Block#
     .let[mut Count[Nat]] remaining = {Count.nat(n)}
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return {{ 'runner
@@ -16,7 +16,7 @@ _Limit: {
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
           .if {n == 0} .return {runner.stopUp}
-          .do {sink := (Opts#(sinkFactory#[E]{
+          .do {sink := (Opts#(sinkDecorator#[E]{
             .stopDown -> downstream.stopDown,
             #(e) -> Block#
               .if {remaining* == 0} .return {runner.stopUp}
@@ -41,14 +41,14 @@ _Limit: {
 
 _Actor: {
   // Delegates to _InternalActor to unwrap the iso state so it can be captured as whatever the user wants.
-  #[S,E,R](sinkFactory: _Sinks, upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] ->
-    _InternalActor#[S,E,R](sinkFactory, upstream, state, f),
+  #[S,E,R](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], state: iso S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] ->
+    _InternalActor#[S,E,R](sinkDecorator, upstream, state, f),
 
-  .anyRet[S,E,R](sinkFactory: _Sinks, upstream: mut FlowOp[E], state: iso S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] ->
-    _InternalActor.anyRet[S,E,R](sinkFactory, upstream, state, f),
+  .anyRet[S,E,R](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], state: iso S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] ->
+    _InternalActor.anyRet[S,E,R](sinkDecorator, upstream, state, f),
   }
 _InternalActor: {
-  #[S,E,R](sinkFactory: _Sinks, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] -> Block#
+  #[S,E,R](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] -> Block#
     .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return {{'op
@@ -61,7 +61,7 @@ _InternalActor: {
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
           .let[mut _ActorSink[imm R]] actorSink = {_ActorSinks#downstream}
-          .do {sink := (Opts#(sinkFactory#[E]{
+          .do {sink := (Opts#(sinkDecorator#[E]{
             .stopDown -> Block#(downstream.stopDown, op.stopUp),
             #(e) -> isRunning.get ? {
               .then -> f#(actorSink, state, e).match{
@@ -79,7 +79,7 @@ _InternalActor: {
         },
       }},
 
-  .anyRet[S,E,R](sinkFactory: _Sinks, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] -> Block#
+  .anyRet[S,E,R](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] -> Block#
     .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
     .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return {{'op
@@ -91,7 +91,7 @@ _InternalActor: {
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
         .empty -> Block#
-          .do {sink := (Opts#(sinkFactory#[E]{
+          .do {sink := (Opts#(sinkDecorator#[E]{
             .stopDown -> Block#(downstream.stopDown, op.stopUp),
             #(e) -> f#(_ActorSinks#downstream, state, e).match{
               .continue -> {},

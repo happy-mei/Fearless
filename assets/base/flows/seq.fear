@@ -4,23 +4,23 @@ _SeqFlow: _FlowFactory{
   .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> _RestrictFlowReuse#{'self
     .unwrapOp(_) -> source,
     // non-terminals
-    .filter(p) -> this.fromOp(_Filter#(_Sinks, source, p), {}),
+    .filter(p) -> this.fromOp(_Filter#({s->s}, source, p), {}),
 
-    .map(f) -> this.fromOp(_Map#(_Sinks, source, f), size),
-    .map(ctx, f) -> this.fromOp(_Map#(_Sinks, source, ctx, f), size),
+    .map(f) -> this.fromOp(_Map#({s->s}, source, f), size),
+    .map(ctx, f) -> this.fromOp(_Map#({s->s}, source, ctx, f), size),
 
-    .flatMap(f) -> this.fromOp(_FlatMap#(_Sinks, source, f), {}),
+    .flatMap(f) -> this.fromOp(_FlatMap#({s->s}, source, f), {}),
     mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
-      this.fromOp(_Actor#[S,E,R](_Sinks, source, state, f), {}),
+      this.fromOp(_Actor#[S,E,R]({s->s}, source, state, f), {}),
     mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
-      this.fromOp(_Actor.anyRet[S,E,R](_Sinks, source, state, f), {}),
-    .limit(n) -> this.fromOp(_Limit#(_Sinks, source, n), _LimitSize#(n, size)),
-    .with(other) -> this.fromOp(_With#(_Sinks, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
+      this.fromOp(_Actor.anyRet[S,E,R]({s->s}, source, state, f), {}),
+    .limit(n) -> this.fromOp(_Limit#({s->s}, source, n), _LimitSize#(n, size)),
+    .with(other) -> this.fromOp(_With#({s->s}, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
 
     // terminals
-    mut .first: mut Opt[E] -> _First[E]#(source, {}),
-    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> _FindMap[E,R]#(source, f, {}),
-    mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> _Fold[S,E]#(source, acc#, f, {}),
+    mut .first: mut Opt[E] -> _First[E]#(source, {s->s}),
+    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> _FindMap[E,R]#(source, f, {s->s}),
+    mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> _Fold[S,E]#(source, acc#, f, {s->s}),
     .size -> size,
     .count -> size.match{
       .some(n) -> n,
