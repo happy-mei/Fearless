@@ -14,6 +14,7 @@ _FlatMap: {
       .isRunning -> isRunning.get,
       .split -> upstream.split.map{right -> this#(sinkDecorator, right, f)},
       .canSplit -> upstream.canSplit,
+      .isFinite -> upstream.isFinite,
       }},
 
   .impl[E,R](downstream: mut _Sink[R], f: read F[E, mut Flow[R]], op: mut FlowOp[R], sinkDecorator: _SinkDecorator): mut _Sink[E] ->
