@@ -3,7 +3,6 @@ package base.flows
 _FlatMap: {
   #[E,R](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
     .let sink = {Slots#[mut _Sink[E]]}
-    .var[Bool] isRunning = {True}
     .return {{'op
       // technically this .step implementation violates the contract of FlowOp because it
       // will call downstream multiple times per step. We could buffer things to follow the contract,
@@ -11,7 +10,7 @@ _FlatMap: {
       .step(downstream) -> upstream.step(sink.getOrFill{this.impl(downstream, f, op, sinkDecorator)}),
       .for(downstream) -> upstream.for(sink.getOrFill{this.impl(downstream, f, op, sinkDecorator)}),
       .stopUp -> upstream.stopUp,
-      .isRunning -> isRunning.get,
+      .isRunning -> upstream.isRunning,
       .split -> upstream.split.map{right -> this#(sinkDecorator, right, f)},
       .canSplit -> upstream.canSplit,
       .isFinite -> upstream.isFinite,
