@@ -32,4 +32,11 @@ public class OptimisationBuilder {
     passes.add(new BlockOptimisation(magic));
     return this;
   }
+  public OptimisationBuilder withAsIdFnOptimisation() {
+    return withOptimisation(new AsIdFnOptimisation(magic));
+  }
+  public OptimisationBuilder withOptimisation(MIRCloneVisitor optimisation) {
+    passes.add(optimisation);
+    return this;
+  }
 }
