@@ -9,11 +9,12 @@ import rt.flows.dataParallel.ParallelStrategies;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static rt.flows.FlowCreator.IS_SEQUENTIALISED;
 
-public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitData, int nTasks) implements ParallelStrategies {
+public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitData, int nTasks, AtomicBoolean isRunning) implements ParallelStrategies {
   private static final int TASKS_PER_CORE = 4;
   private static final int N_CPUS = Runtime.getRuntime().availableProcessors();
   public static final int PARALLELISM_POTENTIAL = TASKS_PER_CORE * N_CPUS;
@@ -50,7 +51,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
     int knownFinishedN = 0;
     for (int i = 0; i < nTasks; ++i) {
       var subSource = splitData.get(i);
-      var worker = new EODWorker(subSource, downstream, perWorkerSize, flusher, sync);
+      var worker = new EODWorker(subSource, downstream, perWorkerSize, flusher, sync, isRunning);
       if (i == nTasks - 1) {
         worker.run();
         break;

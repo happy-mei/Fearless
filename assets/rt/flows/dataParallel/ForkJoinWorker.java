@@ -6,18 +6,20 @@ import base.Void_0;
 import base.flows.FlowOp_1;
 import base.flows._Sink_1;
 import rt.FearlessError;
-import rt.flows.dataParallel.dynamicSplit.DynamicSplitFlow;
+import rt.Var;
 
 import java.util.ArrayList;
 import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 final class ForkJoinWorker extends RecursiveAction {
   private final FlowOp_1 source;
   private final _Sink_1 downstream;
   private final _Sink_1 original;
   private final ArrayList<Object> es;
+  private final AtomicBoolean isRunning;
 
-  private ForkJoinWorker(FlowOp_1 source, _Sink_1 downstream, ArrayList<Object> es) {
+  private ForkJoinWorker(FlowOp_1 source, _Sink_1 downstream, AtomicBoolean isRunning, ArrayList<Object> es) {
     this.source = source;
     this.original = downstream;
     this.downstream = new _Sink_1() {
@@ -33,12 +35,13 @@ final class ForkJoinWorker extends RecursiveAction {
         return Void_0.$self;
       }
     };
+    this.isRunning = isRunning;
     this.es = es;
   }
 
-  public static void for_(FlowOp_1 source, _Sink_1 downstream) {
+  public static void for_(FlowOp_1 source, _Sink_1 downstream, AtomicBoolean isRunning) {
     var es = new ArrayList<>();
-    var worker = new ForkJoinWorker(source, downstream, es);
+    var worker = new ForkJoinWorker(source, downstream, isRunning, es);
     worker.compute();
     for (var e : es) {
       if (e instanceof Error(Info_0 info)) {
@@ -57,12 +60,16 @@ final class ForkJoinWorker extends RecursiveAction {
   }
 
   @Override protected void compute() {
+    if (!isRunning.getPlain()) {
+      return;
+    }
+
     var lhs = this;
     source.split$mut().match$mut(new OptMatch_2() {
       @Override public Object some$mut(Object split_) {
         var split = (FlowOp_1) split_;
         var rhsData = new ArrayList<>();
-        var rhs = new ForkJoinWorker(split, original, rhsData);
+        var rhs = new ForkJoinWorker(split, original, isRunning, rhsData);
         rhs.fork();
         lhs.compute();
         rhs.join();

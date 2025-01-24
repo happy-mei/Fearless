@@ -5,6 +5,7 @@ import rt.FearlessError;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /*
   The plan:
@@ -64,6 +65,9 @@ public interface PipelineParallelFlow {
       this.subject.submit(new Message.Error(info$));
       return base.Void_0.$self;
     }
+    public void softClose() {
+      this.subject.softClosed = true;
+    }
   }
 
   sealed interface Message {
@@ -89,6 +93,9 @@ public interface PipelineParallelFlow {
     }
 
     public void submit(Object msg) {
+      if (softClosed && msg != Message.Stop.INSTANCE) {
+        return;
+      }
       var didSubmit = buffer.offer(msg);
       if (didSubmit) { return; }
       assert onEmpty == null || onEmpty.isDone() : "onEmpty should be clean if we're not awaiting it.";
@@ -101,16 +108,22 @@ public interface PipelineParallelFlow {
       while (true) {
         Object msg;
         if (onEmpty != null && !onEmpty.isDone()) {
-          msg = buffer.poll();
-          if (msg == null) {
-            onEmpty.complete(null);
-            continue;
+          while (true) {
+            msg = buffer.poll();
+            if (msg == null) {
+              onEmpty.complete(null);
+              break;
+            }
           }
+          continue;
         } else {
           try {
-            msg = buffer.take();
+            msg = buffer.poll(50, TimeUnit.MILLISECONDS);
           } catch (InterruptedException e) {
             throw new RuntimeException(e);
+          }
+          if (msg == null) {
+            continue;
           }
         }
 

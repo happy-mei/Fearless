@@ -7,6 +7,7 @@ import rt.flows.dataParallel.BufferSink;
 import rt.flows.dataParallel.SplitTasks;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
 
@@ -17,27 +18,32 @@ import static rt.flows.dataParallel.eod.EODStrategies.PARALLELISM_POTENTIAL;
  * large amounts of memory.
  */
 public final class EODWorker implements Runnable {
-  public static void for_(FlowOp_1 source, _Sink_1 downstream, int size) {
+  public static void for_(FlowOp_1 source, _Sink_1 downstream, int size, AtomicBoolean isRunning) {
     var splitData = SplitTasks.of(source, Math.max(PARALLELISM_POTENTIAL / 2, 2));
     var nTasks = splitData.size();
 
     int realSize = size >= 0 ? size : nTasks;
-    new EODStrategies(downstream, realSize, splitData, nTasks).runFlow(nTasks);
+    new EODStrategies(downstream, realSize, splitData, nTasks, isRunning).runFlow(nTasks);
   }
 
 
   private final FlowOp_1 source;
   private final BufferSink downstream;
   private final CountDownLatch sync;
+  private final AtomicBoolean isRunning;
   public boolean releaseOnDone = false;
-  public EODWorker(FlowOp_1 source, _Sink_1 downstream, int sizeHint, BufferSink.FlushWorker flusher, CountDownLatch sync) {
+  public EODWorker(FlowOp_1 source, _Sink_1 downstream, int sizeHint, BufferSink.FlushWorker flusher, CountDownLatch sync, AtomicBoolean isRunning) {
     this.source = source;
-    this.downstream = new BufferSink(downstream, flusher, sizeHint);
+    this.downstream = new BufferSink(downstream, flusher, isRunning);
     this.sync = sync;
+    this.isRunning = isRunning;
   }
 
   @Override public void run() {
     try {
+      if (!isRunning.getPlain()) {
+        return;
+      }
       source.for$mut(downstream);
     } catch (FearlessError err) {
       downstream.pushError$mut(err.info);

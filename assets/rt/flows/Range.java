@@ -126,9 +126,6 @@ public final class Range implements base.flows._FlowRange_0 {
     }
 
     private long increment() {
-      if (this.cursor == Long.MAX_VALUE) {
-        throw new FearlessError(Infos_0.$self.msg$imm(rt.Str.fromJavaStr("Cannot continue base.flows.Flow.range/1, reached the maximum value of an Int.")));
-      }
       return this.cursor++;
     }
   }

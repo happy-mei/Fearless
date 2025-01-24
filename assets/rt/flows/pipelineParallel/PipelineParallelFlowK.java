@@ -25,6 +25,7 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
    */
   final class SafeSource implements FlowOp_1 {
     private final FlowOp_1 original;
+    private PipelineParallelFlow.WrappedSink sink;
     private SafeSource(FlowOp_1 original) {
       this.original = original;
     }
@@ -34,6 +35,9 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
     }
 
     @Override public Void_0 step$mut(_Sink_1 sink_m$) {
+      if (sink_m$ instanceof PipelineParallelFlow.WrappedSink ws) {
+        this.sink = ws;
+      }
       try {
         return original.step$mut(sink_m$);
       } catch (PipelineParallelFlow.DeterministicFearlessError err) {
@@ -48,6 +52,9 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
     }
 
     @Override public Void_0 stopUp$mut() {
+      if (this.sink != null) {
+        this.sink.softClose();
+      }
       return original.stopUp$mut();
     }
 
@@ -56,6 +63,9 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
     }
 
     @Override public Void_0 for$mut(_Sink_1 downstream_m$) {
+      if (downstream_m$ instanceof PipelineParallelFlow.WrappedSink ws) {
+        this.sink = ws;
+      }
       try {
         return original.for$mut(downstream_m$);
       } catch (PipelineParallelFlow.DeterministicFearlessError err) {

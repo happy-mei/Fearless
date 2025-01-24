@@ -8,6 +8,7 @@ import rt.flows.dataParallel.BufferSink;
 import rt.flows.dataParallel.SplitTasks;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class HeartbeatFlowWorker {

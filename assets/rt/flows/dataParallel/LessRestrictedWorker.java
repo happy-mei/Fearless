@@ -7,6 +7,7 @@ import base.flows._Sink_1;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 final class LessRestrictedWorker implements Runnable {
@@ -43,10 +44,11 @@ final class LessRestrictedWorker implements Runnable {
       exception.compareAndSet(null, new RuntimeException(message, err));
     };
     var flusher = BufferSink.FlushWorker.start(handler);
+    var isRunning = new AtomicBoolean(true);
     for (int j = 0; j < i; ++j) {
       var subSource = splitData[j];
       assert subSource != null;
-      var worker = new LessRestrictedWorker(subSource, downstream, perWorkerSize, doneSignal, flusher);
+      var worker = new LessRestrictedWorker(subSource, downstream, perWorkerSize, doneSignal, flusher, isRunning);
       Thread.ofVirtual().start(worker);
       workers[j] = worker;
     }
@@ -68,14 +70,22 @@ final class LessRestrictedWorker implements Runnable {
   private final FlowOp_1 source;
   private final BufferSink downstream;
   private final CountDownLatch doneSignal;
-  public LessRestrictedWorker(FlowOp_1 source, _Sink_1 downstream, int size, CountDownLatch doneSignal, BufferSink.FlushWorker flusher) {
+  private final AtomicBoolean isRunning;
+  public LessRestrictedWorker(FlowOp_1 source, _Sink_1 downstream, int size, CountDownLatch doneSignal, BufferSink.FlushWorker flusher, AtomicBoolean isRunning) {
     this.source = source;
     this.downstream = new BufferSink(downstream, flusher);
     this.doneSignal = doneSignal;
+    this.isRunning = isRunning;
   }
 
   @Override public void run() {
-    source.for$mut(downstream);
-    doneSignal.countDown();
+    try {
+      if (!isRunning.getPlain()) {
+        return;
+      }
+      source.for$mut(downstream);
+    } finally {
+      doneSignal.countDown();
+    }
   }
 }

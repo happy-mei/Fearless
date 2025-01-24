@@ -11,6 +11,7 @@ import rt.FearlessError;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static rt.flows.FlowCreator.IS_SEQUENTIALISED;
@@ -21,6 +22,7 @@ public final class DynamicSplitFlow {
   private final _Sink_1 downstream;
   private final Phaser sync;
   private final Thread.UncaughtExceptionHandler exceptionHandler;
+  private final AtomicBoolean isRunning;
   private final Deque<Object> es;
   private final Deque<Thread> splitResults;
   private Thread prev;
@@ -29,6 +31,7 @@ public final class DynamicSplitFlow {
     FlowOp_1 upstream,
     _Sink_1 originalDownstream,
     Phaser sync,
+    AtomicBoolean isRunning,
     Thread.UncaughtExceptionHandler exceptionHandler,
     Thread prev
   ) {
@@ -36,11 +39,14 @@ public final class DynamicSplitFlow {
     this.upstream = upstream;
     this.originalDownstream = originalDownstream;
     this.sync = sync;
+    this.isRunning = isRunning;
     this.exceptionHandler = exceptionHandler;
     this.es = new ArrayDeque<>();
     this.splitResults = new ArrayDeque<>();
     this.downstream = new _Sink_1() {
-      @Override public Void_0 stopDown$mut() { return Void_0.$self; }
+      @Override public Void_0 stopDown$mut() {
+        return Void_0.$self;
+      }
       @Override public Void_0 pushError$mut(Info_0 info_m$) {
         es.add(new Error(info_m$));
         return Void_0.$self;
@@ -53,7 +59,7 @@ public final class DynamicSplitFlow {
     this.prev = prev;
   }
 
-  public static void for_(FlowOp_1 source, _Sink_1 downstream) {
+  public static void for_(FlowOp_1 source, _Sink_1 downstream, AtomicBoolean isRunning) {
     AtomicReference<RuntimeException> exception = new AtomicReference<>();
     final Thread.UncaughtExceptionHandler handler = (_,err) -> {
       var message = err.getMessage();
@@ -61,7 +67,7 @@ public final class DynamicSplitFlow {
       exception.compareAndSet(null, new RuntimeException(message, err));
     };
     var sync = new Phaser(1);
-    var res = new DynamicSplitFlow(source, downstream, sync, handler, null);
+    var res = new DynamicSplitFlow(source, downstream, sync, isRunning, handler, null);
     res.run();
     sync.arriveAndAwaitAdvance();
     flattenResults(res, downstream);
@@ -106,6 +112,9 @@ public final class DynamicSplitFlow {
   @SuppressWarnings("preview")
   public void run() {
     try {
+      if (!isRunning.getPlain()) {
+        return;
+      }
       var splitTokens = new ArrayDeque<CheckSplitResult>();
       while (upstream.isRunning$mut() == True_0.$self) {
         if (this.prev == null || prev.isAlive()) {
@@ -118,7 +127,7 @@ public final class DynamicSplitFlow {
             es.addAll(splitTokens);
             return;
           }
-          var rhsWorker = new DynamicSplitFlow(rhs, originalDownstream, sync, exceptionHandler, this.prev);
+          var rhsWorker = new DynamicSplitFlow(rhs, originalDownstream, sync, isRunning, exceptionHandler, this.prev);
           var rhsRes = Thread.ofVirtual().uncaughtExceptionHandler(exceptionHandler).start(rhsWorker::run);
           this.prev = rhsRes;
           var noFailures = stepSeq();

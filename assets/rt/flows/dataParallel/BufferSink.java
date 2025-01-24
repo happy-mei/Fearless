@@ -7,6 +7,7 @@ import rt.FearlessError;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class BufferSink implements _Sink_1 {
   public static final class FlushWorker implements Runnable {
@@ -44,6 +45,10 @@ public final class BufferSink implements _Sink_1 {
     private void flush(BufferSink sink) {
       // keep flushing if there are elements to flush, or if there might be more elements in the future.
       while (true) {
+        if (sink.isRunning != null && !sink.isRunning.getPlain()) {
+          sink.buffer.clear();
+          break;
+        }
         Object e;try{e = sink.buffer.take();}
         catch (InterruptedException ex) {throw new RuntimeException(ex);}
         if (e == FlusherElement.StopToken.$self) {
@@ -69,19 +74,22 @@ public final class BufferSink implements _Sink_1 {
 
   public final _Sink_1 original;
   private final BlockingQueue<Object> buffer;
+  private final AtomicBoolean isRunning;
 
   private record Error(Info_0 info) {}
 
   //  private static final int BUFFER_MAX = (int) OSInfo.memoryAndCpuScaledValue(500);
 //  private static final int BUFFER_MAX = 1;
-  public BufferSink(_Sink_1 original, FlushWorker flusher, int sizeHint) {
+  public BufferSink(_Sink_1 original, FlushWorker flusher, AtomicBoolean isRunning) {
     this.original = original;
     this.buffer = new LinkedBlockingQueue<>();
+    this.isRunning = isRunning;
     flusher.toFlush.add(new FlusherElement.Sink(this));
   }
   public BufferSink(_Sink_1 original, FlushWorker flusher) {
     this.original = original;
     this.buffer = new LinkedBlockingQueue<>();
+    this.isRunning = null;
     flusher.toFlush.add(new FlusherElement.Sink(this));
   }
 

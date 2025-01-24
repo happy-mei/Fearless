@@ -8,6 +8,8 @@ import rt.flows.dataParallel.heartbeat.HeartbeatFlowWorker;
 import rt.flows.pipelineParallel.ConvertFromDataParallel;
 
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class DataParallelFlow implements Flow_1 {
   private final FlowOp_1 source_m$;
@@ -62,7 +64,7 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Opt_1 first$mut() {
-    return _SeqFlow_0.$self.fromOp$imm(source_m$, size_m$).first$mut();
+    return _SeqFlow_0.$self.fromOp$imm(new DataParallelSource(), size_m$).first$mut();
   }
   public Opt_1 last$mut() {
     return _TerminalOps_1.last$mut$fun(this);
@@ -88,7 +90,8 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Opt_1 findMap$mut(F_2 f_m$) {
-    return _SeqFlow_0.$self.fromOp$imm(source_m$, size_m$).findMap$mut(f_m$);
+//    return _SeqFlow_0.$self.fromOp$imm(source_m$, size_m$).findMap$mut(f_m$);
+    return _SeqFlow_0.$self.fromOp$imm(new DataParallelSource(), size_m$).findMap$mut(f_m$);
   }
 
   public FlowOp_1 unwrapOp$mut(_UnwrapFlowToken_0 fear55$_m$) {
@@ -208,6 +211,7 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public class DataParallelSource implements FlowOp_1 {
+    private final AtomicBoolean isDPRunning = new AtomicBoolean(true);
     @Override public Bool_0 isFinite$mut() {
       return source_m$.isFinite$mut();
     }
@@ -217,6 +221,7 @@ public final class DataParallelFlow implements Flow_1 {
     }
 
     @Override public Void_0 stopUp$mut() {
+      isDPRunning.set(false);
       return source_m$.stopUp$mut();
     }
 
@@ -225,10 +230,10 @@ public final class DataParallelFlow implements Flow_1 {
     }
 
     @Override public Void_0 for$mut(_Sink_1 downstream_m$) {
-      EODWorker.for_(source_m$, downstream_m$, (int) size);
-//      DynamicSplitFlow.for_(source_m$, downstream_m$);
+      EODWorker.for_(source_m$, downstream_m$, (int) size, isDPRunning);
+//      DynamicSplitFlow.for_(source_m$, downstream_m$, isDPRunning);
 //      HeartbeatFlowWorker.for_(source_m$, downstream_m$, (int) size);
-//      ForkJoinWorker.for_(source_m$, downstream_m$);
+//      ForkJoinWorker.for_(source_m$, downstream_m$, isDPRunning);
 //      UnrestrictedWorker.for_(source_m$, downstream_m$, (int)size);
 //      nestLevel.incrementAndGet();
 //      if (stats == null) {
