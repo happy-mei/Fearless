@@ -4,6 +4,7 @@ import base.Opt_1;
 import base.Opts_0;
 import base.flows.*;
 import rt.flows.dataParallel.DataParallelFlowK;
+import rt.flows.pipelineParallel.PipelineParallelFlowK;
 
 public interface FlowCreator {
   @SuppressWarnings("preview")
@@ -32,11 +33,11 @@ public interface FlowCreator {
       Opt_1 optSize = size < 0 ? Opt_1.$self : Opts_0.$self.$hash$imm(size);
       return _SeqFlow_0.$self.fromOp$imm(op, optSize);
     }
+    if (op.isFinite$mut() == base.False_0.$self && intended instanceof DataParallelFlowK) {
+      return PipelineParallelFlowK.$self.fromOp$imm(op, Opt_1.$self);
+    }
     if (size < 0) { return intended.fromOp$imm(op, Opt_1.$self); }
     var optSize = Opts_0.$self.$hash$imm(size);
-//    if (true) {
-//      return _SeqFlow_0.$self.fromOp$imm(op, optSize);
-//    }
 //    if (op.canSplit$read() == base.False_0.$self && intended instanceof DataParallelFlowK) {
 //      return _SeqFlow_0.$self.fromOp$imm(op, optSize);
 //    }
@@ -51,7 +52,7 @@ public interface FlowCreator {
     }
 
     if (size < 4 && intended instanceof DataParallelFlowK) {
-      return rt.flows.pipelineParallel.PipelineParallelFlowK.$self.fromOp$imm(op, optSize);
+      return PipelineParallelFlowK.$self.fromOp$imm(op, optSize);
     }
 
     return intended.fromOp$imm(op, optSize);

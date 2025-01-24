@@ -68,7 +68,7 @@ public final class BufferSink implements _Sink_1 {
           sink.original.pushError$mut(base.Infos_0.$self.msg$imm(rt.Str.fromJavaStr(err.getMessage())));
         }
       }
-      assert sink.buffer.isEmpty() : "Buffer should be empty after flushing. Got: "+sink.buffer;
+      assert sink.buffer.isEmpty() || !sink.isRunning.get() : "Buffer should be empty after flushing. Got: "+sink.buffer;
     }
   }
 
