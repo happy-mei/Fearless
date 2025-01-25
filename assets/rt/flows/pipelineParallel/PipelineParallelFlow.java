@@ -2,10 +2,7 @@ package rt.flows.pipelineParallel;
 
 import rt.FearlessError;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /*
   The plan:
@@ -57,7 +54,7 @@ public interface PipelineParallelFlow {
       return base.Void_0.$self;
     }
     @Override public base.Void_0 $hash$mut(Object x$) {
-//      System.out.println("SUBJ: "+subjectId+" GOT MSG: "+x$);
+//      System.out.println("SUBJ: "+this+" GOT MSG: "+x$);
       this.subject.submit(x$);
       return base.Void_0.$self;
     }
@@ -93,37 +90,38 @@ public interface PipelineParallelFlow {
     }
 
     public void submit(Object msg) {
-      if (softClosed && msg != Message.Stop.INSTANCE) {
-        return;
+      while (true) {
+        if (softClosed && msg != Message.Stop.INSTANCE) {
+          return;
+        }
+        var didSubmit = buffer.offer(msg);
+        if (didSubmit) { return; }
+        assert onEmpty == null || onEmpty.isDone() : "onEmpty should be clean if we're not awaiting it.";
+        onEmpty = new CompletableFuture<>();
+        try {
+          onEmpty.orTimeout(50, TimeUnit.MILLISECONDS).join();
+        } catch (RuntimeException e) {
+          if (!(e.getCause() instanceof TimeoutException)) {
+            throw e;
+          }
+        }
       }
-      var didSubmit = buffer.offer(msg);
-      if (didSubmit) { return; }
-      assert onEmpty == null || onEmpty.isDone() : "onEmpty should be clean if we're not awaiting it.";
-      onEmpty = new CompletableFuture<>();
-      onEmpty.join();
-      submit(msg);
     }
 
     @Override public void run() {
       while (true) {
         Object msg;
         if (onEmpty != null && !onEmpty.isDone()) {
-          while (true) {
-            msg = buffer.poll();
-            if (msg == null) {
-              onEmpty.complete(null);
-              break;
-            }
+          msg = buffer.poll();
+          if (msg == null) {
+            onEmpty.complete(null);
+            continue;
           }
-          continue;
         } else {
           try {
-            msg = buffer.poll(50, TimeUnit.MILLISECONDS);
+            msg = buffer.take();
           } catch (InterruptedException e) {
             throw new RuntimeException(e);
-          }
-          if (msg == null) {
-            continue;
           }
         }
 
