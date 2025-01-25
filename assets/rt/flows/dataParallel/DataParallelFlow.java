@@ -75,7 +75,11 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Bool_0 all$mut(F_2 predicate_m$) {
-    return _TerminalOps_1.all$mut$fun(predicate_m$, this);
+    var res = this
+      .filter$mut(x -> ((base.Bool_0) predicate_m$.$hash$read(x)).not$imm())
+      .first$mut();
+    return res.isEmpty$read();
+//    return _TerminalOps_1.all$mut$fun(predicate_m$, this);
   }
   public Bool_0 none$mut(F_2 predicate_m$) {
     return _TerminalOps_1.none$mut$fun(predicate_m$, this);
@@ -91,7 +95,18 @@ public final class DataParallelFlow implements Flow_1 {
 
   public Opt_1 findMap$mut(F_2 f_m$) {
 //    return _SeqFlow_0.$self.fromOp$imm(source_m$, size_m$).findMap$mut(f_m$);
-    return _SeqFlow_0.$self.fromOp$imm(new DataParallelSource(), size_m$).findMap$mut(f_m$);
+    return this
+      .map$mut(f_m$)
+      .filter$mut(res -> ((Opt_1) res).isSome$read())
+      .first$mut()
+      .flatMap$mut(new OptFlatMap_2() {
+        @Override public Opt_1 some$mut(Object x_m$) {return OptFlatMap_2.some$mut$fun(x_m$, this);}
+        @Override public Opt_1 empty$mut() {return OptFlatMap_2.empty$mut$fun(this);}
+        @Override public Opt_1 $hash$mut(Object t_m$) {
+          return (Opt_1) t_m$;
+        }
+      });
+//    return _SeqFlow_0.$self.fromOp$imm(new DataParallelSource(), size_m$).findMap$mut(f_m$);
   }
 
   public FlowOp_1 unwrapOp$mut(_UnwrapFlowToken_0 fear55$_m$) {
@@ -135,14 +150,18 @@ public final class DataParallelFlow implements Flow_1 {
   }
 
   public Bool_0 any$mut(F_2 predicate_m$) {
-    return _TerminalOps_1.any$mut$fun(predicate_m$, this);
+    var res = this
+      .filter$mut(predicate_m$)
+      .first$mut();
+    return res.isSome$read();
+//    return _TerminalOps_1.any$mut$fun(predicate_m$, this);
   }
 
   public Opt_1 find$mut(F_2 predicate_m$) {
     return _TerminalOps_1.find$mut$fun(predicate_m$, this);
   }
   public Opt_1 first$mut(F_2 predicate_m$) {
-    return _TerminalOps_1.first$mut$fun(predicate_m$, this);
+    return _SeqFlow_0.$self.fromOp$imm(new DataParallelSource(), size_m$).first$mut(predicate_m$);
   }
 
   public Opt_1 max$mut(F_3 compare_m$) {
@@ -234,7 +253,7 @@ public final class DataParallelFlow implements Flow_1 {
 //      DynamicSplitFlow.for_(source_m$, downstream_m$, isDPRunning);
 //      HeartbeatFlowWorker.for_(source_m$, downstream_m$, (int) size);
 //      ForkJoinWorker.for_(source_m$, downstream_m$, isDPRunning);
-//      UnrestrictedWorker.for_(source_m$, downstream_m$, (int)size);
+//      UnrestrictedWorker.for_(source_m$, downstream_m$, (int)size, isDPRunning);
 //      nestLevel.incrementAndGet();
 //      if (stats == null) {
 //        stats = size >= 0 ? new Stats(size) : new Stats();

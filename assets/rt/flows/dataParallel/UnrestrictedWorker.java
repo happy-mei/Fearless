@@ -70,14 +70,14 @@ final class UnrestrictedWorker implements Runnable {
   private final AtomicBoolean isRunning;
   public UnrestrictedWorker(FlowOp_1 source, _Sink_1 downstream, int size, CountDownLatch doneSignal, BufferSink.FlushWorker flusher, AtomicBoolean isRunning) {
     this.source = source;
-    this.downstream = new BufferSink(downstream, flusher);
+    this.downstream = new BufferSink(downstream, flusher, isRunning);
     this.doneSignal = doneSignal;
     this.isRunning = isRunning;
   }
 
   @Override public void run() {
     try {
-      if (isRunning.getPlain()) {
+      if (!isRunning.getPlain()) {
         return;
       }
       source.for$mut(downstream);

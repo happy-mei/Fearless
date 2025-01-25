@@ -14,6 +14,8 @@ _RestrictFlowReuse: {
       mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
         Block#(_CheckFlowReuse#isTail, flow.actor[S,R](state, f)),
       .first -> Block#(_CheckFlowReuse#isTail, flow.first),
+      .any(p) -> Block#(_CheckFlowReuse#isTail, flow.any(p)),
+      .all(p) -> Block#(_CheckFlowReuse#isTail, flow.all(p)),
       .filter(predicate) -> Block#(_CheckFlowReuse#isTail, flow.filter(predicate)),
       .findMap(f) -> Block#(_CheckFlowReuse#isTail, flow.findMap(f)),
       .flatMap(f) -> Block#(_CheckFlowReuse#isTail, flow.flatMap(f)),
