@@ -293,4 +293,38 @@ public class ThesisExamplesTest {
     
     Test: base.Main{sys -> {}}
     """);}
+
+  @Test void isoFlexMethTypeEx1() {ok(new Res(), """
+    package test
+    alias base.Todo as Todo,
+    A: {
+      read .m1(a1: mut A, a2: imm A): iso B -> Bs#(a1.compute(a2), mut A),
+      mut .compute(a: A): mut A -> this, // some in-place mutation
+    }
+    Bs: {
+      #(a1: mutH A, a2: mut A): mut B -> mut B{a2},
+    }
+    B: {mut .a: mut A}
+    
+    Test: Main{_ -> {}}
+    """, Base.mutBaseAliases);}
+  @Disabled @Test void isoFlexMethTypeEx1UsingPromotion() {ok(new Res(), """
+    package test
+    alias base.Todo as Todo,
+    A: {
+      read .m1(a1: mut A, a2: imm A): iso B -> A'.m1(a1, a2),
+      mut .compute(a: A): mut A -> this, // some in-place mutation
+    }
+    A': {
+      .m1(a1: mutH A, a2: imm A): iso B -> this.m1'(a1, a2),
+      .m1'(a1: mut A, a2: imm A): iso A -> Bs#(this.m1''(a1, a2), mut A),
+      .m1''(a1: mut A, a2: imm A): mutH A -> a1.compute(a2),
+    }
+    Bs: {
+      #(a1: mutH A, a2: mut A): mut B -> mut B{a2},
+    }
+    B: {mut .a: mut A}
+    
+    Test: Main{_ -> {}}
+    """, Base.mutBaseAliases);}
 }
