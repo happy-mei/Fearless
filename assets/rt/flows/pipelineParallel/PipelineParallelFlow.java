@@ -2,12 +2,7 @@ package rt.flows.pipelineParallel;
 
 import rt.FearlessError;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.*;
 
 /*
   The plan:
@@ -24,15 +19,13 @@ public interface PipelineParallelFlow {
 //    static long SINK_ID = 0;
     @Override public base.flows._Sink_1 $hash$imm(base.flows._Sink_1 original) {
 //      return original;
-      return new WrappedSink(0, original);
+      return new WrappedSink(original);
     }
   }
   final class WrappedSink implements base.flows._PipelineParallelSink_1 {
-    final long subjectId;
     final base.flows._Sink_1 original;
     Subject subject;
-    public WrappedSink(long subjectId, base.flows._Sink_1 original) {
-      this.subjectId = subjectId;
+    public WrappedSink(base.flows._Sink_1 original) {
       this.original = original;
 
 //      System.out.println("SPAWNING SUBJ: "+subjectId);
@@ -46,7 +39,7 @@ public interface PipelineParallelFlow {
       this.subject = new Subject(original);
     }
 
-    @Override public base.Void_0 stop$mut() {
+    @Override public base.Void_0 stopDown$mut() {
 //      System.out.println("Stopping subj "+subjectId);
       try {
         subject.submit(Message.Stop.INSTANCE);
@@ -61,13 +54,16 @@ public interface PipelineParallelFlow {
       return base.Void_0.$self;
     }
     @Override public base.Void_0 $hash$mut(Object x$) {
-//      System.out.println("SUBJ: "+subjectId+" GOT MSG: "+x$);
+//      System.out.println("SUBJ: "+this+" GOT MSG: "+x$);
       this.subject.submit(x$);
       return base.Void_0.$self;
     }
     @Override public base.Void_0 pushError$mut(base.Info_0 info$) {
       this.subject.submit(new Message.Error(info$));
       return base.Void_0.$self;
+    }
+    public void softClose() {
+      this.subject.softClosed = true;
     }
   }
 
@@ -94,12 +90,22 @@ public interface PipelineParallelFlow {
     }
 
     public void submit(Object msg) {
-      var didSubmit = buffer.offer(msg);
-      if (didSubmit) { return; }
-      assert onEmpty == null || onEmpty.isDone() : "onEmpty should be clean if we're not awaiting it.";
-      onEmpty = new CompletableFuture<>();
-      onEmpty.join();
-      submit(msg);
+      while (true) {
+        if (softClosed && msg != Message.Stop.INSTANCE) {
+          return;
+        }
+        var didSubmit = buffer.offer(msg);
+        if (didSubmit) { return; }
+        assert onEmpty == null || onEmpty.isDone() : "onEmpty should be clean if we're not awaiting it.";
+        onEmpty = new CompletableFuture<>();
+        try {
+          onEmpty.orTimeout(50, TimeUnit.MILLISECONDS).join();
+        } catch (RuntimeException e) {
+          if (!(e.getCause() instanceof TimeoutException)) {
+            throw e;
+          }
+        }
+      }
     }
 
     @Override public void run() {
@@ -120,7 +126,7 @@ public interface PipelineParallelFlow {
         }
 
         if (msg == Message.Stop.INSTANCE) {
-          downstream.stop$mut();
+          downstream.stopDown$mut();
           break;
         }
         if (msg instanceof Message.Error info) {
@@ -134,7 +140,7 @@ public interface PipelineParallelFlow {
     public void join() {
       try {
         worker.join();
-        downstream.stop$mut();
+        downstream.stopDown$mut();
         if (this.exception != null) {
           switch (exception) {
             case RuntimeException re -> throw re;

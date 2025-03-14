@@ -8,6 +8,24 @@ Flow: Sealed, _FlowExtensions, _FlowConverters{
   #[E:*](e1: E, e2: E, e3: E): mut Flow[E] -> List#(e1, e2, e3).flow,
   #[E:*](e1: E, e2: E, e3: E, e4: E): mut Flow[E] -> List#(e1, e2, e3, e4).flow,
 
+  .ofIso[E:iso,imm,mut,read](e: iso E): mut Flow[mut E] -> _SeqFlow#[mut E](e),
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E): mut Flow[mut E] -> List#[mut E](e1, e2).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E, e7: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6, e7).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E, e7: iso E, e8: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6, e7, e8).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E, e7: iso E, e8: iso E, e9: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6, e7, e8, e9).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E, e7: iso E, e8: iso E, e9: iso E, e10: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6, e7, e8, e9, e10).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E, e7: iso E, e8: iso E, e9: iso E, e10: iso E, e11: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E, e7: iso E, e8: iso E, e9: iso E, e10: iso E, e11: iso E, e12: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E, e7: iso E, e8: iso E, e9: iso E, e10: iso E, e11: iso E, e12: iso E, e13: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E, e7: iso E, e8: iso E, e9: iso E, e10: iso E, e11: iso E, e12: iso E, e13: iso E, e14: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E, e7: iso E, e8: iso E, e9: iso E, e10: iso E, e11: iso E, e12: iso E, e13: iso E, e14: iso E, e15: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15).flow,
+  .ofIso[E:iso,imm,mut,read](e1: iso E, e2: iso E, e3: iso E, e4: iso E, e5: iso E, e6: iso E, e7: iso E, e8: iso E, e9: iso E, e10: iso E, e11: iso E, e12: iso E, e13: iso E, e14: iso E, e15: iso E, e16: iso E): mut Flow[mut E] -> List#[mut E](e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16).flow,
+  .ofIsos[E:iso,imm](es: mut List[mut IsoPod[E]]): mut Flow[mut E] -> es.flow.map[mut E]{pod -> pod!}.list.flow,
+
   // These fromOp calls will always be sequential. Only flows made from specific standard library types
   // could have a parallel constructor.
   .fromOp[E:*](source: mut FlowOp[E]): mut Flow[E] -> _SeqFlow.fromOp(source, {}),
@@ -51,25 +69,31 @@ _NonTerminalOps[E:*]: {
   mut .map[R:*](f: read F[E, R]): mut Flow[R],
   mut .map[C,R:*](ctx: iso ToIso[C], f: read F[iso C, E, R]): mut Flow[R],
 
+  mut .mapFilter[R](f: read F[E, mut Opt[R]]): mut Flow[R] -> this.map(f)
+    .filter{r -> r.isSome}
+    .map{r -> r!},
+
   mut .peek(f: read F[E, Void]): mut Flow[E] -> this.map{e -> Block#(f#e, e)},
   mut .peek[C](ctx: iso ToIso[C], f: read F[iso C, E, Void]): mut Flow[E] ->
     this.map(ctx, {c, e -> Block#(f#(c, e), e)}),
 
   mut .flatMap[R:*](f: read F[E, mut Flow[R]]): mut Flow[R],
   /// Combine this flow with another flow, producing a flow of pairs. The resulting flow will stop when either of the source
-  /// flows stop.
-  mut .with[EB:*](other: mut Flow[EB]): mut Flow[mut Pair[E,EB]],
+  /// flows stop. Currently disabled, see [operators/with.fear] for more info.
+//  mut .with[EB:*](other: mut Flow[EB]): mut Flow[mut Pair[E,EB]],
   mut .actor[S:*,R:*](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R],
   mut .actorMut[S:*,R:*](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R],
 
   mut .limit(n: Nat): mut Flow[E],
 
   // TODO: this can keep size if it is known
-  mut .scan[S:imm](acc: imm S, f: read F[S,E,S]): mut Flow[imm S] -> this.actor[mut Var[imm S], imm S](Var#[imm S]acc, {downstream, acc', e -> Block#(
+  mut .scan[S:imm](acc: imm S, f: read F[S,E,S]): mut Flow[imm S] -> this.actor[mut Var[imm S], imm S](Vars#[imm S]acc, {downstream, acc', e -> Block#(
     acc' := (f#(acc'.get, e)),
     downstream#(acc'.get),
     ActorRes.continue
     )}),
+
+  mut .assumeFinite: mut Flow[E],
   }
 _TerminalOps[E:*]: Sealed{
   // has to be magic because of strong exception safety (flows are mut and thus cannot be in a Try)
@@ -79,7 +103,10 @@ _TerminalOps[E:*]: Sealed{
   mut .last: mut Opt[E] -> this.fold[mut Opt[E]]({{}}, {_, e -> Opts#e}),
   mut .findMap[R:*](f: read F[E, mut Opt[R]]): mut Opt[R],
   mut .fold[S:*](acc: iso MF[S], f: read F[S,E,S]): S,
-  mut .size: Nat,
+  /// Get the size of the flow if it is known. This does not consume the flow.
+  read .size: Opt[Nat],
+  /// Count the number of elements in the flow.
+  mut  .count: Nat,
 
   mut .find(predicate: read F[E, Bool]): mut Opt[E] -> this.findMap{e -> predicate#e ? {.then -> Opts#e, .else -> {}}},
   mut .first(predicate: read F[E, Bool]): mut Opt[E] -> this.find(predicate),
@@ -89,7 +116,9 @@ _TerminalOps[E:*]: Sealed{
   mut .all(predicate: read F[E, Bool]): Bool -> this
     .findMap{e -> predicate#e ? {.then -> {}, .else -> Opts#False}}
     .isEmpty,
-  mut .none(predicate: read F[E, Bool]): Bool -> this.all{e -> predicate#e.not},
+  mut .none(predicate: read F[E, Bool]): Bool -> this
+    .findMap{e -> predicate#e ? {.then -> Opts#False, .else -> {}}}
+    .isEmpty,
   mut .for(f: read F[E, Void]): Void -> this.fold({Void}, {_, e -> f#e}),
   mut .forEffect(f: mut MF[E, Void]): Void -> this.list.iter.for{e -> f#e},
   mut .list: mut List[E] -> this.fold({List#[E]}, {acc, e -> acc + e}),
@@ -111,14 +140,14 @@ _FlowExtensions: {
 
   .enumerate[E:imm]: mut Extension[mut Flow[E], mut Flow[Enumerated[E]]] -> {flow ->
     flow.actor[mut Count[Nat],Enumerated[E]](Count.nat(0), {downstream, i, e ->
-      Block#(downstream#(_Enumerateds#(i++, e)), {})
+      Block#(downstream#(_Enumerateds#(i.update{i' -> i' + 1}, e)), {})
       })
     },
   }
 
 EmptyFlow[E:*]: Flow[E]{//TODO: why the types are repeated?
   .filter(p) -> this,
-  mut .with[EB:*](other: mut Flow[EB]): mut Flow[mut Pair[E,EB]] -> mut EmptyFlow[mut Pair[E,EB]],
+//  mut .with[EB:*](other: mut Flow[EB]): mut Flow[mut Pair[E,EB]] -> mut EmptyFlow[mut Pair[E,EB]],
 
   mut .map[R:*](f: read F[E, R]): mut Flow[R] -> mut EmptyFlow[R],
   .map(_,_) -> this.map({_ -> Unreachable!}),
@@ -133,15 +162,17 @@ EmptyFlow[E:*]: Flow[E]{//TODO: why the types are repeated?
   .any(p) -> False,
   .all(p) -> False,
   .fold(acc, _) -> acc#,
-  .size -> 0,
+  .assumeFinite -> this,
+  .size -> Opts#0,
+  .count -> 0,
   .unwrapOp(_) -> {
     .step(_) -> {},
-    .stop -> {},
+    .stopUp -> {},
     .isRunning -> False,
     },
   }
 
-TerminalOnInfiniteError: { #: Info -> Infos.msg "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5) to bound the flow." }
+TerminalOnInfiniteError: { #: Info -> Infos.msg "Terminal operators cannot be called on infinite flows. Use an operation like .limit(5) or .assumeFinite to bound the flow." }
 
 _LimitSize: {#(n: Nat, size: Opt[Nat]): Opt[Nat] ->
   size.map{beforeLimit ->

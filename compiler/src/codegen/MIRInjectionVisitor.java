@@ -285,8 +285,14 @@ public class MIRInjectionVisitor implements CtxVisitor<MIRInjectionVisitor.Ctx, 
         return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow);
       }
     }
-    if (recvIT.name().equals(Magic.FlowK) && e.name().name().equals(".range")) {
+    if (recvIT.name().equals(Magic.FlowK) && (e.name().name().equals(".ofIso") || e.name().name().equals(".ofIsos"))) {
       return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow);
+    }
+    if (recvIT.name().equals(Magic.FlowK) && e.name().equals(new Id.MethName(".range", 2))) {
+      return EnumSet.of(MIR.MCall.CallVariant.DataParallelFlow, MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow);
+    }
+    if (recvIT.name().equals(Magic.FlowK) && e.name().equals(new Id.MethName(".range", 1))) {
+      return EnumSet.of(MIR.MCall.CallVariant.PipelineParallelFlow, MIR.MCall.CallVariant.SafeMutSourceFlow);
     }
 
     return EnumSet.of(MIR.MCall.CallVariant.Standard);

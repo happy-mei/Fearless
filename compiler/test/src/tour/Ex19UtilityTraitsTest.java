@@ -19,7 +19,7 @@ public class Ex19UtilityTraitsTest {
       }
     Foo:{ #(f: read F[read Person]): read Person -> f# }
     FPerson:{ #(name: Str): mut Person -> Block#
-      .let nameRef = {Var#name}
+      .let nameRef = {Vars#name}
       .return {mut Person:{
         read .name: Str -> nameRef.get,
         mut .name(newName: Str): Void -> nameRef.set(newName),

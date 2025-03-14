@@ -23,11 +23,16 @@ public class TypeSystemMsg {
    * Does not take return types into account.
    */
   public static CompileError undefinedMeth(CompileError rawError, Program p) {
-    ast.T recvT = switch (rawError.attributes.get("recvT")) {
-      case astFull.T t -> t.toAstT();
-      case ast.T t -> t;
-      default -> throw Bug.unreachable();
-    };
+    ast.T recvT;
+    try {
+      recvT = switch (rawError.attributes.get("recvT")) {
+        case astFull.T t -> t.toAstT();
+        case ast.T t -> t;
+        default -> throw Bug.unreachable();
+      };
+    } catch (astFull.T.MatchOnInfer e) {
+      return rawError;
+    }
     var name = (Id.MethName) rawError.attributes.get("name");
     var astP = (ast.Program) p;
     List<CM> ms = new ArrayList<>();
@@ -42,7 +47,7 @@ public class TypeSystemMsg {
 
   private static String getOtherSuggestedMethods(List<CM> sortedMs) {
     StringBuilder suggestions = new StringBuilder("\n\nOther candidates:");
-    for(var meth : sortedMs) {
+    for (var meth : sortedMs) {
       String args = "(";
       args += meth.sig().ts().stream().map(T::toString).collect(Collectors.joining(", "));
       args += "): ";
@@ -62,7 +67,7 @@ public class TypeSystemMsg {
     Id.MethName name = (Id.MethName) rawError.attributes.get("name");
     // Not sure if there is a way to get arg types from incorrect method.
     return "Method <%s> with %d args does not exist in <%s>".formatted(name.name(), name.num(), recvT)
-      + "\nDid you mean <" + suggestMeth.c().name().name() +suggestMeth.name().name()
+      + "\nDid you mean <" + suggestMeth.c().name().name() + suggestMeth.name().name()
       + "(" + suggestMeth.sig().ts().stream().map(T::toString).collect(Collectors.joining(", ")) + ")" + ">";
   }
 
@@ -76,7 +81,7 @@ public class TypeSystemMsg {
    */
   private static List<CM> sortMethodSimilarity(Id.MethName name, List<CM> ms, ast.T recvT) {
     ArrayList<CM> newList = new ArrayList<>(ms);
-    newList.sort(Comparator.comparingDouble((cm)-> {
+    newList.sort(Comparator.comparingDouble((cm) -> {
       double jaro = jaroWinkler(name.name(), cm.name().name());
       // Prioritizes methods from the same receiver type
       // Prioritizes methods with closer number of arguments
@@ -84,7 +89,7 @@ public class TypeSystemMsg {
       int argsPenalty = Math.abs(cm.name().num() - name.num());
       double typeSimilarity = jaroWinkler(recvT.rt().toString(), cm.c().toString());
       if (jaro + typeSimilarity == 2.0) {
-        return argsPenalty*-1 + 10;
+        return argsPenalty * -1 + 10;
       }
       // +50 to prioritize methods with same name and receiver, i*2 to add more weight to name similarity than arg no.
       return jaro + typeSimilarity;
@@ -96,18 +101,18 @@ public class TypeSystemMsg {
     if (s1.equals(s2)) {return 1.0;}
     if (s1.isBlank() || s2.isBlank()) {return 0.0;}
 
-    int maxDist = Math.max(s1.length(), s2.length())/2 - 1;
+    int maxDist = Math.max(s1.length(), s2.length()) / 2 - 1;
     int match = 0;
 
-    boolean[] s1Hash = new boolean [s1.length()];
-    boolean[] s2Hash = new boolean [s2.length()];
+    boolean[] s1Hash = new boolean[s1.length()];
+    boolean[] s2Hash = new boolean[s2.length()];
 
-    for (int i=0; i<s1.length(); i++) {
+    for (int i = 0; i < s1.length(); i++) {
       int start = Math.max(0, i - maxDist);
-      int end = Math.min(s2.length()-1, i + maxDist);
-      for (int j=start; j<=end; j++) {
-        if(s2Hash[j]) {continue;}
-        if(s1.charAt(i) != s2.charAt(j)) {continue;}
+      int end = Math.min(s2.length() - 1, i + maxDist);
+      for (int j = start; j <= end; j++) {
+        if (s2Hash[j]) {continue;}
+        if (s1.charAt(i) != s2.charAt(j)) {continue;}
         s1Hash[i] = true;
         s2Hash[j] = true;
         match++;
@@ -118,7 +123,7 @@ public class TypeSystemMsg {
 
     int k = 0;
     double t = 0;
-    for (int i=0; i<s1.length(); i++) {
+    for (int i = 0; i < s1.length(); i++) {
       if (!s1Hash[i]) {continue;}
       while (!s2Hash[k]) {k++;}
       if (s1.charAt(i) != s2.charAt(k)) {
@@ -128,7 +133,7 @@ public class TypeSystemMsg {
     }
     t /= 2;
 
-    double jaro = ((double)match/s1.length() + (double)match/s2.length() + (double)(match-t)/match)/3.0;
+    double jaro = ((double) match / s1.length() + (double) match / s2.length() + (match - t) / match) / 3.0;
     return jaro;
   }
 
@@ -136,7 +141,7 @@ public class TypeSystemMsg {
     double jaro = getJaroDistance(s1, s2);
     int prefix = 0;
     int maxPrefixLength = 4;
-    for (int i=0; i<Math.min(s1.length(), s2.length()); i++) {
+    for (int i = 0; i < Math.min(s1.length(), s2.length()); i++) {
       if (s1.charAt(i) == s2.charAt(i)) {
         prefix++;
       } else {
@@ -146,6 +151,6 @@ public class TypeSystemMsg {
     prefix = Math.min(prefix, maxPrefixLength);
 
     double scalingFactor = 0.1;
-    return jaro + prefix * scalingFactor * (1-jaro);
+    return jaro + prefix * scalingFactor * (1 - jaro);
   }
 }

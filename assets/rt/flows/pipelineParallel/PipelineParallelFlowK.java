@@ -19,12 +19,13 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
 
   /**
    * A variant of FlowOp which catches all FearlessErrors during execution of the operation.
-   * We only catch errors in .step/.forRemaining. Any other methods should never throw. This is unenforceable for user-written
+   * We only catch errors in .step/.for. Any other methods should never throw. This is unenforceable for user-written
    * FlowOps, but we control all FlowOps used within any parallel flows-- so we can make sure to uphold this property.
    * More thought would be needed if we wanted to support parallel flows of user created data structures in the future.
    */
   final class SafeSource implements FlowOp_1 {
     private final FlowOp_1 original;
+    private PipelineParallelFlow.WrappedSink sink;
     private SafeSource(FlowOp_1 original) {
       this.original = original;
     }
@@ -34,6 +35,9 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
     }
 
     @Override public Void_0 step$mut(_Sink_1 sink_m$) {
+      if (sink_m$ instanceof PipelineParallelFlow.WrappedSink ws) {
+        this.sink = ws;
+      }
       try {
         return original.step$mut(sink_m$);
       } catch (PipelineParallelFlow.DeterministicFearlessError err) {
@@ -47,17 +51,23 @@ public interface PipelineParallelFlowK extends _PipelineParallelFlow_0 {
       }
     }
 
-    @Override public Void_0 stop$mut() {
-      return original.stop$mut();
+    @Override public Void_0 stopUp$mut() {
+      if (this.sink != null) {
+        this.sink.softClose();
+      }
+      return original.stopUp$mut();
     }
 
     @Override public Bool_0 isRunning$mut() {
       return original.isRunning$mut();
     }
 
-    @Override public Void_0 forRemaining$mut(_Sink_1 downstream_m$) {
+    @Override public Void_0 for$mut(_Sink_1 downstream_m$) {
+      if (downstream_m$ instanceof PipelineParallelFlow.WrappedSink ws) {
+        this.sink = ws;
+      }
       try {
-        return original.forRemaining$mut(downstream_m$);
+        return original.for$mut(downstream_m$);
       } catch (PipelineParallelFlow.DeterministicFearlessError err) {
         throw err;
       } catch (FearlessError err) {

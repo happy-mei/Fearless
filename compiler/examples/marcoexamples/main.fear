@@ -29,7 +29,7 @@ Person:{
   }
 FPerson:F[Str, Nat, mut Person]{
   name, age -> Block#
-    .let _age = { Var#[Nat](age) }
+    .let _age = { Vars#[Nat](age) }
     .return{{
       .name -> name,
       .age -> _age*,

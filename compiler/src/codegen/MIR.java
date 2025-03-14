@@ -159,6 +159,9 @@ public sealed interface MIR {
       record Do(E e) implements BlockStmt {
         @Override public Do withE(E e) { return new Do(e); }
       }
+      record Throw(E e) implements BlockStmt {
+        @Override public Throw withE(E e) { return new Throw(e); }
+      }
       record Loop(E e) implements BlockStmt {
         @Override public Loop withE(E e) { return new Loop(e); }
       }
@@ -166,9 +169,13 @@ public sealed interface MIR {
         @Override public E e() { return pred; }
         @Override public If withE(E e) { return new If(e); }
       }
+      record Let(String name, E value) implements BlockStmt {
+        @Override public E e() { return value; }
+        @Override public Let withE(E e) { return new Let(name, e); }
+      }
       record Var(String name, E value) implements BlockStmt {
         @Override public E e() { return value; }
-        @Override public Var withE(E e) { return new Var(name, e); }
+        @Override public Let withE(E e) { return new Let(name, e); }
       }
     }
 

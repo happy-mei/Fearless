@@ -1,6 +1,6 @@
 package base
 
-Var:{
+Vars: {
   #[X:*](x: X): mut Var[X] -> Block#
     .let[mut _MagicVarImpl[X]] inner = {_MagicVarImpl#x}
     .return {{
@@ -8,6 +8,7 @@ Var:{
       .swap(x') -> inner.swap(x'),
       }},
   }
+Var: Vars{}
 Var[X:*]: Sealed{
   mut  .get: X,
   read .get: read/imm X,
@@ -23,38 +24,36 @@ Var[X:*]: Sealed{
 UpdateVar[X:*]: { mut #(x: X): X }
 
 Count[N]: Var[N]{
-  mut ++: N,
-  mut --: N,
-  mut +=(n: N): N,
-  mut -=(n: N): N,
-  mut *=(n: N): N,
+  mut ++: Void,
+  mut --: Void,
+  mut +=(n: N): Void,
+  mut -=(n: N): Void,
+  mut *=(n: N): Void,
   }
 Count:{
   #(n: Int): mut Count[Int] -> this.int(n),
-  .int(n: Int): mut Count[Int] -> Let#({
-    .var -> Var#n,
-    .in(c) -> {
+  .int(n: Int): mut Count[Int] -> Block#
+    .var[Int] c = {n}
+    .return {{
       .get -> c.get,
       .swap(x) -> c.swap(x),
-      ++ -> c <- { c' -> c' + +1 },
-      -- -> c <- { c' -> c' - +1 },
-      +=(n2) -> c <- { c' -> c' + n2 },
-      -=(n2) -> c <- { c' -> c' - n2 },
-      *=(n2) -> c <- { c' -> c' * n2 },
-      }
-    }),
-  .nat(n: Nat): mut Count[Nat] -> Let#({
-    .var -> Var#n,
-    .in(c) -> {
+      ++ -> c := (c.get + +1),
+      -- -> c := (c.get - +1),
+      +=(n2) -> c := (c.get + n2),
+      -=(n2) -> c := (c.get - n2),
+      *=(n2) -> c := (c.get * n2),
+      }},
+  .nat(n: Nat): mut Count[Nat] -> Block#
+    .var[Nat] c = {n}
+    .return {{
       .get -> c.get,
       .swap(x) -> c.swap(x),
-      ++ -> c <- { c' -> c' + 1 },
-      -- -> c <- { c' -> c' - 1 },
-      +=(n2) -> c <- { c' -> c' + n2 },
-      -=(n2) -> c <- { c' -> c' - n2 },
-      *=(n2) -> c <- { c' -> c' * n2 },
-      }
-    })
+      ++ -> c := (c.get + 1),
+      -- -> c := (c.get - 1),
+      +=(n2) -> c := (c.get + n2),
+      -=(n2) -> c := (c.get - n2),
+      *=(n2) -> c := (c.get * n2),
+      }}
   }
 
 // Var as defined in the formal reduction of Fearless.

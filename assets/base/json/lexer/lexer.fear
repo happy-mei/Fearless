@@ -36,7 +36,7 @@ LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> e == "\u{3}" ? {
 
 _LexerCtxs: {#: mut _LexerCtx -> Block#
   .let buffer = {mut ""}
-  .let mode = {Var#[mut _LexerMode](_LexerModes.value)}
+  .let mode = {Vars#[mut _LexerMode](_LexerModes.value)}
   .let isDigit = {Regexs#"[0-9eE\\-+\\.]"}
   .let isNumberStart = {Regexs#"[\\-0-9]"}
   .let isWhitespace = {Regexs#"[ \\n\\r\\t]"}

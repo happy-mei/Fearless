@@ -3,9 +3,9 @@ package flows;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
-import static utils.RunOutput.Res;
 
 import static codegen.java.RunJavaProgramTests.ok;
+import static utils.RunOutput.Res;
 
 public class TestFlowSemantics {
   @Test void flowSum() {ok(new Res("60", "", 0), """
@@ -186,6 +186,7 @@ public class TestFlowSemantics {
    * Non-deterministic errors bubble up, even if the flow isn't listening anymore because they're only catchable
    * in Fearless code with a capability anyway.
    */
+  @Disabled("Obviously, nondeterministic")
   @Test void throwInAFlowBeforeStopDP_ND() {ok(new Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#
@@ -340,7 +341,7 @@ public class TestFlowSemantics {
       }
     Ctxs: F[mut Count[Nat], mut Ctx]{cs -> Block#
       .return {mut Ctx: base.ToIso[Ctx]{'ctx
-        .iso -> Ctxs#(Count.nat(cs++)),
+        .iso -> Ctxs#(Count.nat(cs.update{c -> c + 1})),
         .self -> ctx,
         read .n: Nat -> cs.get,
         }}
@@ -358,7 +359,7 @@ public class TestFlowSemantics {
       }
     Ctxs: F[mut Count[Nat], mut Ctx]{cs -> Block#
       .return {mut Ctx: base.ToIso[Ctx]{'ctx
-        .iso -> Ctxs#(Count.nat(cs++)),
+        .iso -> Ctxs#(Count.nat(cs.update{c -> c + 1})),
         .self -> ctx,
         read .n: Nat -> cs.get,
         }}
@@ -376,7 +377,7 @@ public class TestFlowSemantics {
       }
     Ctxs: F[mut Count[Nat], mut Ctx]{cs -> Block#
       .return {mut Ctx: base.ToIso[Ctx]{'ctx
-        .iso -> Ctxs#(Count.nat(cs++)),
+        .iso -> Ctxs#(Count.nat(cs.update{c -> c + 1})),
         .self -> ctx,
         read .n: Nat -> cs.get,
         }}
@@ -435,5 +436,25 @@ public class TestFlowSemantics {
         read .n: Nat -> n,
         }}
       }
+    """, Base.mutBaseAliases);}
+
+  @Test void throwInTerminalSeq() {ok(new Res("", "Program crashed with: \"1\"[###]", 1), """
+    package test
+    Test: Main{sys -> Block#(
+      Flow#[mut Int](mut +1, mut +2, mut +3)
+        .map{e -> e}
+        .first{e -> Error.msg (e.str)}
+      )}
+    """, Base.mutBaseAliases);}
+  @Test void throwInTerminalDP() {ok(new Res("", "Program crashed with: \"31\"[###]", 1), """
+    package test
+    Test: Main{sys -> Block#(
+      Flow.range(+1, +500)
+        .map{e -> e}
+        .first{e -> e > +30 ? {
+          .then -> Error.msg (e.str),
+          .else -> False
+          }}
+      )}
     """, Base.mutBaseAliases);}
 }

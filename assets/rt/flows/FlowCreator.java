@@ -4,8 +4,12 @@ import base.Opt_1;
 import base.Opts_0;
 import base.flows.*;
 import rt.flows.dataParallel.DataParallelFlowK;
+import rt.flows.pipelineParallel.PipelineParallelFlowK;
 
 public interface FlowCreator {
+  @SuppressWarnings("preview")
+  ScopedValue<Void> IS_SEQUENTIALISED = ScopedValue.newInstance();
+
   /**
    * @param intended The flow factory the compiler intends for us to use
    * @param original The original flow that we are trying to promote
@@ -15,16 +19,25 @@ public interface FlowCreator {
   static Flow_1 fromFlow(_FlowFactory_0 intended, Flow_1 original) {
 //    System.out.println("from "+original+" intended "+intended);
     var op = original.unwrapOp$mut(_UnwrapFlowToken_0.$self);
-    Long size = original.size$mut();
+    long size = (long) original.size$read().match$imm(new base.OptMatch_2(){
+      @Override public Object some$mut(Object x) { return x; }
+      @Override public Object empty$mut() { return -1L; }
+    });
     return fromFlowOp(intended, op, size);
   }
 
+  @SuppressWarnings("preview")
   static Flow_1 fromFlowOp(_FlowFactory_0 intended, FlowOp_1 op, long size) {
+    var isSequentialised = IS_SEQUENTIALISED.isBound();
+    if (isSequentialised) {
+      Opt_1 optSize = size < 0 ? Opt_1.$self : Opts_0.$self.$hash$imm(size);
+      return _SeqFlow_0.$self.fromOp$imm(op, optSize);
+    }
+    if (op.isFinite$mut() == base.False_0.$self && intended instanceof DataParallelFlowK) {
+      return PipelineParallelFlowK.$self.fromOp$imm(op, Opt_1.$self);
+    }
     if (size < 0) { return intended.fromOp$imm(op, Opt_1.$self); }
     var optSize = Opts_0.$self.$hash$imm(size);
-//    if (true) {
-//      return _SeqFlow_0.$self.fromOp$imm(op, optSize);
-//    }
 //    if (op.canSplit$read() == base.False_0.$self && intended instanceof DataParallelFlowK) {
 //      return _SeqFlow_0.$self.fromOp$imm(op, optSize);
 //    }
@@ -39,7 +52,7 @@ public interface FlowCreator {
     }
 
     if (size < 4 && intended instanceof DataParallelFlowK) {
-      return rt.flows.pipelineParallel.PipelineParallelFlowK.$self.fromOp$imm(op, optSize);
+      return PipelineParallelFlowK.$self.fromOp$imm(op, optSize);
     }
 
     return intended.fromOp$imm(op, optSize);

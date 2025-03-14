@@ -1,8 +1,6 @@
 package base.flows
 
-_PipelineParallelSink: _Sink{
-  #[T:*](s: mut _Sink[T]): mut _Sink[T] -> Magic!,
-  }
+_PipelineParallelSink: _SinkDecorator{s -> Magic!}
 _PipelineParallelSink[T:*]: _Sink[T]{}
 
 _PipelineParallelFlow: _FlowFactory{
@@ -20,71 +18,15 @@ _PipelineParallelFlow: _FlowFactory{
     mut .actorMut[S:*,R:*](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
       this.fromOp(_Actor.anyRet[S,E,R](_PipelineParallelSink, source, state, f), {}),
     .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), _LimitSize#(n, size)),
-    .with(other) -> this.fromOp(_With#(_PipelineParallelSink, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
+    .assumeFinite -> this.fromOp(_AssumeFinite[E]#source, size),
+//    .with(other) -> this.fromOp(_With#(_PipelineParallelSink, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
 
     // terminals
-    mut .first: mut Opt[E] -> Block#
-      .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
-      .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
-        .stop -> Block#
-          .do {stopped := True}
-          .return {source.stop},
-        .pushError(info) -> stopped* ? {
-          .then -> {},
-          .else -> Error!info,
-          },
-        #(e) -> res.get.isEmpty ? {
-          .then -> Block#
-            .do {res := (Opts#e)}
-            .return {runner.stop},
-          .else -> {},
-          },
-        })}
-      .do {source.stop}
-      .return {res.get},
-
-    mut .findMap[R:*](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
-      .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
-      .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
-        .stop -> Block#
-          .do {stopped := True}
-          .return {source.stop},
-        .pushError(info) -> stopped* ? {
-          .then -> {},
-          .else -> Error!info,
-          },
-        #(e) -> res.get.isEmpty ? {
-          .then -> f#e.match{
-            .some(e') -> Block#
-              .do{res := (Opts#e')}
-              .return {runner.stop},
-            .empty -> {},
-            },
-          .else -> {},
-          },
-        })}
-      .do {source.stop}
-      .return {res.get},
-
-    mut .fold[S:*](acc: iso MF[S], f: read F[S,E,S]): S -> Block#
-      .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .letIso initialValueSupplier = acc
-      .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
-      .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{
-        #(e) -> acc' := (f#(acc'.get, e)),
-        .stop -> stopped := True,
-        .pushError(info) -> stopped* ? {
-          .then -> {},
-          .else -> Error!info,
-          },
-        })}
-      .do {source.stop}
-      .return {acc'.get},
-
-    .size -> size.match{
+    mut .first: mut Opt[E] -> _First[E]#(source, _PipelineParallelSink),
+    mut .findMap[R:*](f: read F[E, mut Opt[R]]): mut Opt[R] -> _FindMap[E,R]#(source, f, _PipelineParallelSink),
+    mut .fold[S:*](acc: iso MF[S], f: read F[S,E,S]): S -> _Fold[S,E]#(source, acc#, f, _PipelineParallelSink),
+    .size -> size,
+    .count -> size.match{
       .some(n) -> n,
       .empty -> self.fold[Nat]({0}, {acc, _ -> acc + 1}),
       },
@@ -92,7 +34,7 @@ _PipelineParallelFlow: _FlowFactory{
 
   #[E:*](e: E): mut Flow[E] -> Error.msg "_PipelineParallelFlow# should not be reachable",
 //  #[E](e: E): mut Flow[E] -> Block#
-//    .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
+//    .let[mut Var[mut Opt[E]]] seq = { Vars#(Opts#e) }
 //    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self
 //      .isRunning -> seq.get.isSome,
 //      .stop -> seq := {},
@@ -100,7 +42,7 @@ _PipelineParallelFlow: _FlowFactory{
 //        .some(x) -> downstream#x,
 //        .empty -> Block#(downstream.stop, self.stop),
 //        },
-//      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+//      .for(downstream) -> seq.swap(mut Opt[E]).match{
 //        .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
 //        .empty -> Block#(downstream.stop, self.stop),
 //        },

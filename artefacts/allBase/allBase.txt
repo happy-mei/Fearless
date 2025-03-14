@@ -134,17 +134,17 @@ LList[E]:Collection,Sealed{
   imm  +(e: imm E): LList[imm E] -> this ++ (LList[imm E].pushFront[](e)),
 
   mut .iter: mut Iter[E] -> Block#
-    .let[mut Var[mut LList[E]]] cursor = {Var#(this)}
+    .let[mut Var[mut LList[E]]] cursor = {Vars#(this)}
     .return {{.next -> cursor.swap(cursor.get.tail).head}},
   imm .iter: mut Iter[imm E] -> Block#
-    .let[mut Var[LList[E]]] cursor = {Var#(this)}
+    .let[mut Var[LList[E]]] cursor = {Vars#(this)}
     .return {{.next -> cursor.swap(cursor.get.tail).head}},
   read .iter: mut Iter[read/imm E] -> Block#
-    .let[mut Var[read LList[E]]] cursor = {Var#(this)}
+    .let[mut Var[read LList[E]]] cursor = {Vars#(this)}
     .return {{.next -> cursor.swap(cursor.get.tail).head}},
 
   mut  .flow: mut Flow[E] -> Block#
-    .let cursor = {Var#this}
+    .let cursor = {Vars#this}
     .return {Flow.fromOp({'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
@@ -161,7 +161,7 @@ LList[E]:Collection,Sealed{
       }, this.size)},
   read .flow: mut Flow[read/imm E] -> Flow.fromOp[read/imm E](this._flowread, this.size),
   read ._flowread: mut FlowOp[read/imm E] -> Block#
-    .let cursor = {Var#this}
+    .let cursor = {Vars#this}
     .return {mut FlowOp[read/imm E]{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
@@ -178,7 +178,7 @@ LList[E]:Collection,Sealed{
       }},
   imm  .flow: mut Flow[imm E] -> Flow.fromOp[imm E](this._flowimm, this.size),
   imm  ._flowimm: mut FlowOp[imm E] -> Block#
-    .let cursor = {Var#this}
+    .let cursor = {Vars#this}
     .return {mut FlowOp[imm E]{'op
       .stop -> cursor := {},
       .isRunning -> cursor*.isEmpty.not,
@@ -321,7 +321,7 @@ List[E]: Collection,Sealed{
           .return {{}},
         .empty -> Block#(downstream.stop, self.stop),
         },
-        .forRemaining(downstream) -> Block#
+        .for(downstream) -> Block#
           .loop {Block#
             .if {cursor.get >= (this.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
             .do {downstream#(this.get(cursor++))}
@@ -342,7 +342,7 @@ List[E]: Collection,Sealed{
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> Block#
+      .for(downstream) -> Block#
         .loop {Block#
           .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
           .do {downstream#(this.get(cursor++))}
@@ -372,7 +372,7 @@ List[E]: Collection,Sealed{
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> Block#
+      .for(downstream) -> Block#
         .loop {Block#
           .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
           .do {downstream#(this.get(cursor++))}
@@ -775,7 +775,7 @@ ActionMatch[T,R]: {
 package base.json
 alias base.iter.Iter as Iter,
 
-alias base.caps.IsoPod as IsoPod,
+alias base.IsoPod as IsoPod,
 
 alias base.caps.Write as Write,
 alias base.caps.Read as Read,
@@ -957,7 +957,7 @@ ParseJson: {#(rawInput: Str): mut Action[Json] -> ValidateInput#(rawInput).andTh
   {res -> Try#{AtomiseStr#input
     .actor[mut _LexerCtx,Token](_LexerCtxs#, LexJson)
     .actor[mut Var[mut _ParserActor],Json](
-      Var#[mut _ParserActor](mut _TopLevelParser),
+      Vars#[mut _ParserActor](mut _TopLevelParser),
       {downstream, ctx, token -> ctx.get#(downstream, ctx, token)}
       )
     .get
@@ -1028,7 +1028,7 @@ _ObjectParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _Pa
   }
 _MemberKeyParser: {#(collector: mut Consumer[Str,Json], old: mut _ParserActor): mut _ParserActor -> Block#
   .let[mut Str] key = {mut ""}
-  .let hasKey = {Var#[Bool]False}
+  .let hasKey = {Vars#[Bool]False}
   .return {{downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{'matcher
     .mode -> "object member key", .token -> token,
     .quoted(str) -> key.isEmpty ? {
@@ -1252,7 +1252,7 @@ LexJson: Actor[mut _LexerCtx,Str,Token]{downstream, ctx, e -> e == "\u0003" ? {
 
 _LexerCtxs: {#: mut _LexerCtx -> Block#
   .let buffer = {mut ""}
-  .let mode = {Var#[mut _LexerMode](_LexerModes.value)}
+  .let mode = {Vars#[mut _LexerMode](_LexerModes.value)}
   .let isDigit = {Regexs#"[0-9eE\\-+\\.]"}
   .let isNumberStart = {Regexs#"[\\-0-9]"}
   .let isWhitespace = {Regexs#"[ \\n\\r\\t]"}
@@ -1417,7 +1417,7 @@ alias base.Bool as Bool,
 
 FRepr[T:imm]:F[iso T, F[read T,Bool], mut Repr[T]]{
   _x,_inv->Block#
-   .letIso x = _x
+   .openIso x = _x
    .let[mut Repr[T]] res= {mut Repr[T:imm]:{'repr
     read .look[R](f:read F[read T,imm R]): imm R ->f#x,
     mut  .mutate[R](f:read F[mut T,imm R]): imm R -> Block#
@@ -1787,7 +1787,7 @@ _NonTerminalOps[E]: {
 
   mut .limit(n: Nat): mut Flow[E],
 
-  mut .scan[S:imm](acc: imm S, f: read F[S,E,S]): mut Flow[imm S] -> this.actor[mut Var[imm S], imm S](Var#[imm S]acc, {downstream, acc', e -> Block#(
+  mut .scan[S:imm](acc: imm S, f: read F[S,E,S]): mut Flow[imm S] -> this.actor[mut Var[imm S], imm S](Vars#[imm S]acc, {downstream, acc', e -> Block#(
     acc' := (f#(acc'.get, e)),
     downstream#(acc'.get),
     ActorRes.continue
@@ -1883,7 +1883,7 @@ FlowOp[E]: {
   mut .step(sink: mut _Sink[E]): Void,
   mut .stop: Void,
   mut .isRunning: Bool,
-  mut .forRemaining(downstream: mut _Sink[E]): Void -> Block#
+  mut .for(downstream: mut _Sink[E]): Void -> Block#
     .loop {Block#
       .if {this.isRunning.not} .return {ControlFlow.break}
       .do {this.step(downstream)}
@@ -1908,7 +1908,7 @@ _Sink[T]: {
 
 _Filter: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return{{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -1921,15 +1921,15 @@ _Filter: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -1941,8 +1941,8 @@ _Map: {
   #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, R]): mut FlowOp[R] ->
     this#[_EmptyCtx,E,R](sinkFactory, upstream, iso _EmptyCtx, {_,e -> f#e}),
   #[C,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], ctx: iso ToIso[C], f: read F[iso C, E, R]): mut FlowOp[R] -> Block#
-    .letIso ctx' = ctx
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .openIso ctx' = ctx
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return  {{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -1955,15 +1955,15 @@ _Map: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> downstream.stop,
             #(e) -> downstream#(f#(ctx'.iso.self, e)),
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -1973,8 +1973,8 @@ _Map: {
   }
 _FlatMap: {
   #[E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], f: read F[E, mut Flow[R]]): mut FlowOp[R] -> Block#
-    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return{{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -1983,7 +1983,7 @@ _FlatMap: {
             .stop -> Block#(isRunning := False, downstream.stop),
             #(e) -> Block#
               .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
-              .return {nestedOp.forRemaining{
+              .return {nestedOp.for{
                 #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
                 .stop -> {},
                 .pushError(info) -> downstream.pushError(info),
@@ -1993,21 +1993,21 @@ _FlatMap: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[E]{
             .stop -> Block#(isRunning := False, downstream.stop),
             #(e) -> Block#
               .let nestedOp = {f#e.unwrapOp(mut _UnwrapFlowToken)}
-              .return {nestedOp.forRemaining{
+              .return {nestedOp.for{
                 #(e') -> op.isRunning ? {.then -> downstream#e', .else -> nestedOp.stop},
                 .stop -> {},
                 .pushError(info) -> downstream.pushError(info),
                 }},
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -2018,8 +2018,8 @@ _FlatMap: {
 
 _With: {
   #[A,B](sinkFactory: _Sink, upstream: mut FlowOp[A], other: mut FlowOp[B]): mut FlowOp[mut Pair[A,B]] -> Block#
-    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
-    .let[mut Var[mut Opt[mut _Sink[A]]]] sink = {Var#{}}
+    .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[A]]]] sink = {Vars#{}}
     .return{{'op
       .step(downstream) -> sink.get.match{
         .some(sink') -> upstream.step(sink'),
@@ -2037,8 +2037,8 @@ _With: {
           upstream.step(sink.get!)
           )
         },
-      .forRemaining(downstream) -> sink.get.match{
-        .some(sink') -> upstream.forRemaining(sink'),
+      .for(downstream) -> sink.get.match{
+        .some(sink') -> upstream.for(sink'),
         .empty -> Block#(
           sink := (Opts#(sinkFactory#[A]{
             .stop -> Block#(isRunning := False, downstream.stop),
@@ -2050,7 +2050,7 @@ _With: {
                 }},
             .pushError(info) -> downstream.pushError(info),
             })),
-          upstream.forRemaining(sink.get!)
+          upstream.for(sink.get!)
           )
         },
       .stop -> upstream.stop,
@@ -2068,7 +2068,7 @@ package base.flows
 _Limit: {
   #[E](sinkFactory: _Sink, upstream: mut FlowOp[E], n: Nat): mut FlowOp[E] -> Block#
     .let[mut Count[Nat]] remaining = {Count.nat(n)}
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return {{ 'runner
       .stop -> Block#(remaining := 0, upstream.stop),
       .isRunning -> remaining* > 0 & (upstream.isRunning),
@@ -2103,8 +2103,8 @@ _Actor: {
   }
 _InternalActor: {
   #[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: S, f: read ActorImpl[S,E,R]): mut FlowOp[imm R] -> Block#
-    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return {{'op
       .stop -> op.isRunning ? {
        .then -> Block#(isRunning := False, upstream.stop),
@@ -2134,8 +2134,8 @@ _InternalActor: {
       }},
 
   .anyRet[S,E,R](sinkFactory: _Sink, upstream: mut FlowOp[E], state: mut S, f: read ActorImplMut[S,E,R]): mut FlowOp[R] -> Block#
-    .let[mut Var[Bool]] isRunning = {Var#[Bool]True}
-    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Var#{}}
+    .let[mut Var[Bool]] isRunning = {Vars#[Bool]True}
+    .let[mut Var[mut Opt[mut _Sink[E]]]] sink = {Vars#{}}
     .return {{'op
       .stop -> op.isRunning ? {
        .then -> Block#(isRunning := False, upstream.stop),
@@ -2201,9 +2201,9 @@ _PipelineParallelFlow: _FlowFactory{
     .with(other) -> this.fromOp(_With#(_PipelineParallelSink, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
 
     mut .first: mut Opt[E] -> Block#
-      .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
-      .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
+      .let[mut Var[mut Opt[E]]] res = {Vars#mut Opt[E]}
+      .let stopped = {Vars#[Bool]False}
+      .do {source.for(_PipelineParallelSink#[E]{'runner
         .stop -> Block#
           .do {stopped := True}
           .return {source.stop},
@@ -2222,9 +2222,9 @@ _PipelineParallelFlow: _FlowFactory{
       .return {res.get},
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
-      .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
-      .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{'runner
+      .let[mut Var[mut Opt[R]]] res = {Vars#mut Opt[R]}
+      .let stopped = {Vars#[Bool]False}
+      .do {source.for(_PipelineParallelSink#[E]{'runner
         .stop -> Block#
           .do {stopped := True}
           .return {source.stop},
@@ -2247,10 +2247,10 @@ _PipelineParallelFlow: _FlowFactory{
 
     mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .letIso initialValueSupplier = acc
-      .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
-      .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(_PipelineParallelSink#[E]{
+      .openIso initialValueSupplier = acc
+      .let[mut Var[S]] acc' = {Vars#(initialValueSupplier#)}
+      .let stopped = {Vars#[Bool]False}
+      .do {source.for(_PipelineParallelSink#[E]{
         #(e) -> acc' := (f#(acc'.get, e)),
         .stop -> stopped := True,
         .pushError(info) -> stopped* ? {
@@ -2330,7 +2330,7 @@ _MutSourceCollection[E]: {
                .return {{}},
              .empty -> Block#(downstream.stop, self.stop),
              },
-           .forRemaining(downstream) -> Block#
+           .for(downstream) -> Block#
              .loop {Block#
                .if {cursor.get >= (dup.size)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
                .do {downstream#(dup.get(cursor++))}
@@ -2364,7 +2364,7 @@ _SafeSource: {
           .return {{}},
         .else -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> Block#
+      .for(downstream) -> Block#
         .loop {Block#
           .if {cursor.get >= (endCursor.get)} .return {Block#(downstream.stop, self.stop, ControlFlow.break)}
           .do {downstream#(list.get(cursor++))}
@@ -2402,8 +2402,8 @@ _SeqFlow: _FlowFactory{
     .with(other) -> this.fromOp(_With#(_Sink, source, other.unwrapOp(mut _UnwrapFlowToken)), {}),
 
     mut .first: mut Opt[E] -> Block#
-      .let[mut Var[mut Opt[E]]] res = {Var#mut Opt[E]}
-      .do {source.forRemaining(mut _Sink[E]{'runner
+      .let[mut Var[mut Opt[E]]] res = {Vars#mut Opt[E]}
+      .do {source.for(mut _Sink[E]{'runner
         .stop -> source.stop,
         .pushError(info) -> Error!info,
         #(e) -> res.get.isEmpty ? {
@@ -2417,8 +2417,8 @@ _SeqFlow: _FlowFactory{
       .return {res.get},
 
     mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> Block#
-      .let[mut Var[mut Opt[R]]] res = {Var#mut Opt[R]}
-      .do {source.forRemaining(mut _Sink[E]{'runner
+      .let[mut Var[mut Opt[R]]] res = {Vars#mut Opt[R]}
+      .do {source.for(mut _Sink[E]{'runner
         .stop -> source.stop,
         .pushError(info) -> Error!info,
         #(e) -> res.get.isEmpty ? {
@@ -2436,10 +2436,10 @@ _SeqFlow: _FlowFactory{
 
     mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> Block#
       .if {source.isFinite.not} .error {TerminalOnInfiniteError#}
-      .letIso initialValueSupplier = acc
-      .let[mut Var[S]] acc' = {Var#(initialValueSupplier#)}
-      .let stopped = {Var#[Bool]False}
-      .do {source.forRemaining(mut _Sink[E]{
+      .openIso initialValueSupplier = acc
+      .let[mut Var[S]] acc' = {Vars#(initialValueSupplier#)}
+      .let stopped = {Vars#[Bool]False}
+      .do {source.for(mut _Sink[E]{
         .stop -> stopped := True,
         .pushError(info) -> stopped* ? {
           .then -> {},
@@ -2457,7 +2457,7 @@ _SeqFlow: _FlowFactory{
     },
 
   #[E](e: E): mut Flow[E] -> Block#
-    .let[mut Var[mut Opt[E]]] seq = { Var#(Opts#e) }
+    .let[mut Var[mut Opt[E]]] seq = { Vars#(Opts#e) }
     .let[mut FlowOp[E]] source = {{'self
       .isRunning -> seq.get.isSome,
       .stop -> seq := {},
@@ -2465,7 +2465,7 @@ _SeqFlow: _FlowFactory{
         .some(x) -> downstream#x,
         .empty -> Block#(downstream.stop, self.stop),
         },
-      .forRemaining(downstream) -> seq.swap(mut Opt[E]).match{
+      .for(downstream) -> seq.swap(mut Opt[E]).match{
         .some(x) -> Block#(downstream#x, downstream.stop, self.stop),
         .empty -> Block#(downstream.stop, self.stop),
         },
@@ -2526,7 +2526,7 @@ Count[N:imm]: Var[N]{
 Count:{
   #(n: Int): mut Count[Int] -> this.int(n),
   .int(n: Int): mut Count[Int] -> Let#({
-    .var -> Var#n,
+    .var -> Vars#n,
     .in(c) -> {
       .get -> c.get,
       .swap(x) -> c.swap(x),
@@ -2538,7 +2538,7 @@ Count:{
       }
     }),
   .nat(n: Nat): mut Count[Nat] -> Let#({
-    .var -> Var#n,
+    .var -> Vars#n,
     .in(c) -> {
       .get -> c.get,
       .swap(x) -> c.swap(x),
@@ -2796,7 +2796,7 @@ Iter[E]:{
   mut .map[R](f: mut IterMapper[E, R]): mut Iter[R] -> { this.next.map[R](f) },
   mut .flatMap[R](f: mut IterMapper[E, mut Iter[R]]): mut Iter[R] -> Block#
     .let[mut Iter[mut Iter[R]]] mapIter = { this.map(f) }
-    .let[mut Var[mut Opt[mut Iter[R]]]] optCurIter = { Var#(mapIter.next) }
+    .let[mut Var[mut Opt[mut Iter[R]]]] optCurIter = { Vars#(mapIter.next) }
     .return(mut ReturnStmt[mut Iter[R]]{ mut Iter[R]{ 'self
       .next -> optCurIter*[].match[mut Opt[R]]{
         .some(curIter) -> curIter.next.match[mut Opt[R]]{
@@ -2922,7 +2922,7 @@ alias base.Var as Var, alias base.VarImm as VarImm,
 
 FRandom: F[Nat, mut Random]{seed -> Block#
   .if {seed == 0} .error {Infos.msg "Seed may not be zero"}
-  .let prev = {Var#seed}
+  .let prev = {Vars#seed}
   .return {{
     .nat -> Block#
       .do {prev := ((prev.get) * 6364136223846793005 + 1 .shiftRight 33)}
@@ -2981,8 +2981,8 @@ Block[R]: Sealed{
   mut .assert(p: mut Condition, failMsg: Str): mut Block[R] ->
     Assert!(p#, failMsg, mut AssertCont[mut Block[R]]{this}),
   mut .let[X:*](x: mut ReturnStmt[X], cont: mut Continuation[X, mut Block[R], R]): R -> cont#(x#, this),
-  mut .letIso[X:iso](x: X, cont: mut Continuation[mut X, mut Block[R], R]): R -> cont#(x, this),
-  mut .var[X:*](x: mut ReturnStmt[X], cont: mut Continuation[mut Var[X], mut Block[R], R]): R -> cont#(Var#(x#), this),
+  mut .openIso[X:iso,imm,mut,read](x: iso X, cont: mut Continuation[mut X, mut Block[R], R]): R -> cont#(x, this),
+  mut .var[X:*](x: mut ReturnStmt[X], cont: mut Continuation[mut Var[X], mut Block[R], R]): R -> cont#(Vars#(x#), this),
   mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond
     .then -> { 't
       .return(a) -> _DecidedBlock#(a#),
@@ -3012,7 +3012,7 @@ _DecidedBlock:{
     .return(_) -> res,
     .do(_) -> self,
     .let(_, _) -> res,
-    .letIso(_, _) -> res,
+    .openIso(_, _) -> res,
     .var(_, _) -> res,
     .assert(_) -> self,
     .assert(_, _) -> self,

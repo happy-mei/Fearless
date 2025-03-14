@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
 
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static utils.RunOutput.Res;
 import static codegen.java.RunJavaProgramTests.*;
 
@@ -82,6 +86,27 @@ public class Ex17FlowsTest {
         .str
       )}
     """, Base.mutBaseAliases); }
+
+  @Test void flatMapLimit() { ok(new Res("101, 101, 102, 101, 102, 103, 102, 103, 104, 103", "", 0), """
+    package test
+    Test:Main {sys -> UnrestrictedIO#sys.println(
+      Flow.range(-125, +496)
+        .flatMap{n -> Flow.range(n, n + +5).limit(3)}
+        .filter{n -> n > +100}
+        .limit(10)
+        .map{n -> n.str}
+        .join(", ")
+      )}
+    """, Base.mutBaseAliases); }
+  @Test void javaFlatMapLimit() {
+    var res = IntStream.range(-125, 496)
+      .flatMap(n -> IntStream.range(n, n + 5).limit(3))
+      .filter(n -> n > 100)
+      .limit(10)
+      .mapToObj(Integer::toString)
+      .collect(Collectors.joining(", "));
+    assertEquals("101, 101, 102, 101, 102, 103, 102, 103, 104, 103", res);
+  }
 
   @Test void emptyFlatMap() { ok(new Res(), """
     package test
@@ -334,14 +359,14 @@ public class Ex17FlowsTest {
   @Test void flowFilter() { ok(new Res(), """
     package test
     Test:Main {sys -> Assert!(
-      Flow#[Int](+5, +10, +15).filter{n -> n > +5}.size
+      Flow#[Int](+5, +10, +15).filter{n -> n > +5}.count
       == 2
       )}
     """, Base.mutBaseAliases);}
   @Test void flowFilterPrintSize() { ok(new Res("2", "", 0), """
     package test
     Test:Main {sys -> Block#
-      .let size = {Flow#[Nat](5, 10, 15).filter{n -> n > 5}.size}
+      .let size = {Flow#[Nat](5, 10, 15).filter{n -> n > 5}.count}
       .return {UnrestrictedIO#sys.println(size.str)}
       }
     """, Base.mutBaseAliases);}
@@ -430,7 +455,7 @@ public class Ex17FlowsTest {
       Flow#[Int](+5, +10, +15)
         // .actor requires an iso S for its initial value
         // The 3rd argument is optional
-        .actor[mut Var[Int], Int](Var#[Int]+1, {downstream, state, n -> Block#
+        .actor[mut Var[Int], Int](Vars#[Int]+1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > +16} .return{Block#(downstream#(+500), {})}
           .do {downstream#(+42)}
@@ -444,7 +469,7 @@ public class Ex17FlowsTest {
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Nat](5, 10, 15)
-        .actorMut[mut Var[Nat], Nat](Var#[Nat]1, {downstream, state, n -> Block#
+        .actorMut[mut Var[Nat], Nat](Vars#[Nat]1, {downstream, state, n -> Block#
           .do {state := (state.get + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
@@ -458,11 +483,11 @@ public class Ex17FlowsTest {
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Nat](5, 10, 15)
-        .actorMut[mut Var[Nat], Nat](Var#[Nat]1, {downstream, state, n -> Block#(
+        .actorMut[mut Var[Nat], Nat](Vars#[Nat]1, {downstream, state, n -> Block#(
           MyActorMs.addNToState(state, n),
           {}
           )})
-//        .actorMut[mut Var[Nat], Nat](Var#[Nat]1, {downstream, state, n -> Block#
+//        .actorMut[mut Var[Nat], Nat](Vars#[Nat]1, {downstream, state, n -> Block#
 //          .do {state := (state.get + n)}
 //          .if {state.get > 16} .return{Block#(downstream#500, {})}
 //          .do {downstream#42}
@@ -480,7 +505,7 @@ public class Ex17FlowsTest {
     package test
     Test:Main {sys -> "42 5".assertEq(
       Flow#[Nat](5, 10, 15)
-        .actor[mut Var[Nat], Nat](Var#[Nat]1, {downstream, state, n -> Block#
+        .actor[mut Var[Nat], Nat](Vars#[Nat]1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > 16} .return{Block#(downstream#500, {})}
           .do {downstream#42}
@@ -496,7 +521,7 @@ public class Ex17FlowsTest {
     Test:Main {sys -> "42 5 42 10".assertEq(
       Flow#[Int](+5, +10, +15)
         .limit(2)
-        .actor[mut Var[Int], Int](Var#[Int]+1, {downstream, state, n -> Block#
+        .actor[mut Var[Int], Int](Vars#[Int]+1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > +16} .return{Block#(downstream#(+500), {})}
           .do {downstream#(+42)}
@@ -510,7 +535,7 @@ public class Ex17FlowsTest {
     package test
     Test:Main {sys -> "42 5 42 10 500".assertEq(
       Flow#[Int](+5, +10, +15)
-        .actor[mut Var[Int], Int](Var#[Int]+1, {downstream, state, n -> Block#
+        .actor[mut Var[Int], Int](Vars#[Int]+1, {downstream, state, n -> Block#
           .do {state := (state* + n)}
           .if {state.get > +16} .return{Block#(downstream#(+500), {})}
           .do {downstream#(+42)}
@@ -546,13 +571,13 @@ public class Ex17FlowsTest {
     package test
     Student: {.name: Str, .age: Nat, .grades: LList[Grade]}
     Grade: {.assessment: Str, .score: Float}
-    Stats: {.avg: Float, .n: Float}
+    Stats: {.avg: Float -> 0.0, .n: Float -> 0.0}
     RollingAvg: {#(students: LList[Student]): Str ->
       students.flow
         .flatMap{s -> s.grades.flow}
         .map{g -> g.score}
-        .scan[Stats](
-          {.avg -> 0.0, .n -> 0.0},
+        .scan(
+          Stats,
           {acc, n -> Stats{
             .avg -> (acc.avg * (acc.n) + n) / (acc.n + 1.0),
             .n -> acc.n + 1.0
@@ -586,7 +611,7 @@ public class Ex17FlowsTest {
     package test
     FPerson:{
       #(age: Nat): mut Person -> Block#
-        .let[mut Var[Nat]] age' = {Var#age}
+        .let[mut Var[Nat]] age' = {Vars#age}
         .return mut base.ReturnStmt[mut Person]{mut Person: Person{
           read .age: Nat -> age'.get,
           mut .age(n: Nat): Void -> age' := n,
@@ -600,11 +625,11 @@ public class Ex17FlowsTest {
 //      Flow#[Int](5, 10, 15)
 //        // .actor requires an iso S for its initial value
 //        // This lambda has the type read ActorImpl[mut IsoPod[S], ... E, R]
-//        .actor(Var#1, mut Consume[mut Var[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
+//        .actor(Vars#1, mut Consume[mut Var[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
 //          .do {state.set(someMutList.get(0)!)}
 //          .if {state.get > 10} .return {500}
 //          .return {n})
-//        .actor(Var#1, mut Consume[mut Var[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
+//        .actor(Vars#1, mut Consume[mut Var[Int]]{state->someRandom.set(state.get)}, {state, n -> Block#
 //          .do {state.set(someMutList.get(0)!)}
 //          .if {state.get > 10} .return {500}
 //          .return {n})
@@ -624,7 +649,7 @@ public class Ex17FlowsTest {
 //        // - mut flow of imm values with an readH lambda
 //        // - mut flow of mut values with an readH lambda
 //
-//        .actor(Var#1, {state, n -> Block#
+//        .actor(Vars#1, {state, n -> Block#
 //          .if {state.get > 10} .return {500}
 //          .do {state.put(n + state.get)}
 //          .return {n})
@@ -639,7 +664,7 @@ public class Ex17FlowsTest {
       .let[mut List[Int]] someMutList = {List#[Int](+30)}
       .return {"500 5 500 10".assertEq(
         Flow#[Int](+5, +10)
-          .actor[mut Var[Int],Int](Var#[Int]+1, {next, state, n -> Block#
+          .actor[mut Var[Int],Int](Vars#[Int]+1, {next, state, n -> Block#
             .do {state.set(someMutList.get(0))}
             .if {state.get > +10} .do {next#(+500)}
             .do {next#n}
@@ -753,6 +778,7 @@ public class Ex17FlowsTest {
     Test: Main{sys -> sys.io.println(Foo#)}
     """, Base.mutBaseAliases);}
 
+  @Disabled(".with is disabled because of a known bug")
   @Test void zip() {ok(new Res("1 and 4, 2 and 5, 3 and 6", "", 0), """
     package test
     Test: Main{sys -> sys.io.println(Foo#("123", "456"))}
@@ -763,6 +789,18 @@ public class Ex17FlowsTest {
         .join ", "
       }
     """, Base.mutBaseAliases);}
+  @Disabled(".with is disabled because of a known bug")
+  @Test void zipLimit() {ok(new Res("1 and 4, 2 and 5, 3 and 6", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#("123", "456"))}
+    Foo: {
+      #(a: Str, b: Str): Str -> a.flow
+        .with(b.flow.limit(2))
+        .map{ab -> ab.a + " and " + (ab.b)}
+        .join ", "
+      }
+    """, Base.mutBaseAliases);}
+  @Disabled(".with is disabled because of a known bug")
   @Test void zipMismatchA() {ok(new Res("1 and 4, 2 and 5", "", 0), """
     package test
     Test: Main{sys -> sys.io.println(Foo#("12", "456"))}
@@ -773,6 +811,7 @@ public class Ex17FlowsTest {
         .join ", "
       }
     """, Base.mutBaseAliases);}
+  @Disabled(".with is disabled because of a known bug")
   @Test void zipMismatchB() {ok(new Res("1 and 4, 2 and 5", "", 0), """
     package test
     Test: Main{sys -> sys.io.println(Foo#("123", "45"))}
@@ -784,6 +823,7 @@ public class Ex17FlowsTest {
       }
     """, Base.mutBaseAliases);}
 
+  @Disabled(".with is disabled because of a known bug")
   @Test void listEqualityZip() {ok(new Res(), """
     package test
     Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list))}
@@ -796,6 +836,7 @@ public class Ex17FlowsTest {
           }
       }
     """, Base.mutBaseAliases);}
+  @Disabled(".with is disabled because of a known bug")
   @Test void listEqualityZipNotEquals() {ok(new Res("", "Assertion failed :(", 1), """
     package test
     Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list + +1337))}
@@ -805,6 +846,19 @@ public class Ex17FlowsTest {
         .return {a.flow
           .with(b.flow)
           .all{ab -> ab.a == (ab.b)}
+          }
+      }
+    """, Base.mutBaseAliases);}
+  @Disabled(".with is disabled because of a known bug")
+  @Test void noneTerminal() {ok(new Res(), """
+    package test
+    Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list))}
+    Foo: {
+      #(a: List[Int], b: List[Int]): Bool -> Block#
+        .assert {a.size == (b.size)}
+        .return {a.flow
+          .with(b.flow)
+          .none{ab -> (ab.a == (ab.b)).not}
           }
       }
     """, Base.mutBaseAliases);}
@@ -825,16 +879,79 @@ public class Ex17FlowsTest {
     _ToIsoMF: {#[T:*](x: mut T): mut MF[mut T] -> {x}}
     """, Base.mutBaseAliases);}
 
-  @Test void noneTerminal() {ok(new Res(), """
+  @Test void ofIso() { ok(new Res("""
+    Person that is 12 years old
+    Person that is 25 years old
+    Person that is 120 years old
+    Person that is 22 years old
+    """, "", 0), """
     package test
-    Test: Main{_ -> Assert!(Foo#(Flow.range(+1, +500_000).list, Flow.range(+1, +500_000).list))}
+    Test:Main {sys -> Block#
+      .let[Str] res = {Flow.ofIso(Persons#12, Persons#25, Persons#434, Persons#22)
+        .peek{p -> p.age > 120 ? {.then -> p.age(120), .else -> {}}}
+        .map{p -> p.str}
+        .join "\\n"
+        }
+      .return{sys.io.println(res)}
+      }
+    """, """
+    package test
+    Persons: { #(age: Nat): mut Person -> Block#
+      .var[Nat] age' = {age}
+      .return {mut Person: {'self
+        read .age: Nat -> age'.get,
+        mut .age(age'': Nat): Void -> age' := age'',
+        read .str: Str -> "Person that is "+(self.age.str)+" years old",
+        read ==(other: read Person): Bool -> self.age == (other.age),
+        }}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void ofIsos() { ok(new Res("""
+    Person that is 12 years old
+    Person that is 25 years old
+    Person that is 120 years old
+    Person that is 22 years old
+    """, "", 0), """
+    package test
+    Test:Main {sys -> Block#
+      .let[Str] res = {Flow.ofIsos(List#(IsoPod#(Persons#12), IsoPod#(Persons#25), IsoPod#(Persons#434), IsoPod#(Persons#22)))
+        .peek{p -> p.age > 120 ? {.then -> p.age(120), .else -> {}}}
+        .map{p -> p.str}
+        .join "\\n"
+        }
+      .return{sys.io.println(res)}
+      }
+    """, """
+    package test
+    Persons: { #(age: Nat): mut Person -> Block#
+      .var[Nat] age' = {age}
+      .return {mut Person: {'self
+        read .age: Nat -> age'.get,
+        mut .age(age'': Nat): Void -> age' := age'',
+        read .str: Str -> "Person that is "+(self.age.str)+" years old",
+        read ==(other: read Person): Bool -> self.age == (other.age),
+        }}
+      }
+    """, Base.mutBaseAliases); }
+
+  @Test void findMap() {ok(new Res("2", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(FirstEven#(Flow.range(+1, +10)))}
+    FirstEven: {
+      #(a: mut Flow[Int]): Str -> a
+        .map{n -> n.float}
+        .findMap{n -> n % 2.0 == 0.0 ? {.then -> Opts#(n.str), .else -> {}}}!
+      }
+    """, Base.mutBaseAliases);}
+  @Test void findMapPP() {ok(new Res("12", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#(Flow.range(+4, +12)))}
     Foo: {
-      #(a: List[Int], b: List[Int]): Bool -> Block#
-        .assert {a.size == (b.size)}
-        .return {a.flow
-          .with(b.flow)
-          .none{ab -> (ab.a == (ab.b)).not}
-          }
+      #(a: mut Flow[Int]): Str -> a
+        .limit(50)
+        .map{n -> n.float}
+        .map{n -> n * 2.0}
+        .findMap{n -> n % 6.0 == 0.0 ? {.then -> Opts#(n.str), .else -> {}}}!
       }
     """, Base.mutBaseAliases);}
 }

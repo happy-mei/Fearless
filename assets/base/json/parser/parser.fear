@@ -4,7 +4,7 @@ ParseJson: {#(rawInput: Str): mut Action[Json] -> ValidateInput#(rawInput).andTh
   {res -> Try#{AtomiseStr#input
     .actor[mut _LexerCtx,Token](_LexerCtxs#, LexJson)
     .actor[mut Var[mut _ParserActor],Json](
-      Var#[mut _ParserActor](mut _TopLevelParser),
+      Vars#[mut _ParserActor](mut _TopLevelParser),
       {downstream, ctx, token -> ctx.get#(downstream, ctx, token)}
       )
     .get
@@ -75,7 +75,7 @@ _ObjectParser: {#(collector: mut Consumer[Json], old: mut _ParserActor): mut _Pa
   }
 _MemberKeyParser: {#(collector: mut Consumer[Str,Json], old: mut _ParserActor): mut _ParserActor -> Block#
   .let[mut Str] key = {mut ""}
-  .let hasKey = {Var#[Bool]False}
+  .let hasKey = {Vars#[Bool]False}
   .return {{downstream, behaviour, token -> token.match(mut _SubMatch[ActorRes]{'matcher
     .mode -> "object member key", .token -> token,
     .quoted(str) -> key.isEmpty ? {

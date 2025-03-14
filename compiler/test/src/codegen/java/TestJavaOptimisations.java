@@ -31,7 +31,7 @@ public class TestJavaOptimisations {
     Err.strCmp(expected, fileCode);
   }
 
-  @Test void blockVarDoRet() { ok("""
+  @Test void blockLetDoRet() { ok("""
     package test;
     public interface Test_0 extends base.Main_0{
     Test_0 $self = new Test_0Impl();
@@ -47,6 +47,97 @@ public class TestJavaOptimisations {
     alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
     Test:base.Main {_ -> Block#
      .let[Int] n = {+5}
+     .do {ForceGen#}
+     .return {Void}
+     }
+    ForceGen: {#: Void -> {}}
+    """);}
+  @Test void blockVarDoRet() { ok("""
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 fear[###]$_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear[###]$_m$, test.Test_0 $this) {
+      var n_m$ = base.Vars_0.$self.$hash$imm(5L);
+    var doRes1 = test.ForceGen_0.$self.$hash$imm();
+    return base.Void_0.$self;
+    }
+    }
+    """, "/test/Test_0.java", """
+    package test
+    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    Test:base.Main {_ -> Block#
+     .var[Int] n = {+5}
+     .do {ForceGen#}
+     .return {Void}
+     }
+    ForceGen: {#: Void -> {}}
+    """);}
+  @Test void blockOpenIsoDoRet() { ok("""
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 fear[###]$_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear[###]$_m$, test.Test_0 $this) {
+      var n_m$ = 5L;
+    var doRes1 = test.ForceGen_0.$self.$hash$imm();
+    return base.Void_0.$self;
+    }
+    }
+    """, "/test/Test_0.java", """
+    package test
+    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    Test:base.Main {_ -> Block#
+     .openIso[iso Int] n = (iso +5)
+     .do {ForceGen#}
+     .return {Void}
+     }
+    ForceGen: {#: Void -> {}}
+    """);}
+  @Test void blockOpenIsoAlwaysGoesFirst() { ok("""
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 fear[###]$_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear[###]$_m$, test.Test_0 $this) {
+      var n_m$ = 5L;
+    var doRes1 = test.ForceGen_0.$self.$hash$imm();
+    return base.Void_0.$self;
+    }
+    }
+    """, "/test/Test_0.java", """
+    package test
+    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    Test:base.Main {_ -> Block#
+     .do {ForceGen#}
+     .openIso[iso Int] n = (iso +5)
+     .return {Void}
+     }
+    ForceGen: {#: Void -> {}}
+    """);}
+  @Test void blockError() { ok("""
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 fear[###]$_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear[###]$_m$, test.Test_0 $this) {
+      var n_m$ = 5L;
+    var n2_m$ = 10L;
+    var n3_m$ = base.Vars_0.$self.$hash$imm(15L);
+    if ((((long)((long)n3_m$.get$mut()))==((long)((long)((long)n_m$)) + n2_m$)?base.True_0.$self:base.False_0.$self) == base.True_0.$self) { rt.Error.throwFearlessError(base.Infos_0.$self.msg$imm(str$3882878235102293474$str$.$self));
+     }
+    var doRes1 = test.ForceGen_0.$self.$hash$imm();
+    return base.Void_0.$self;
+    }
+    }
+    """, "/test/Test_0.java", """
+    package test
+    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    Test:base.Main {_ -> Block#
+     .openIso[Int] n = (iso +5)
+     .let[Int] n2 = {+10}
+     .var[Int] n3 = {+15}
+     .if {n3.get == (n.int + n2)} .error {base.Infos.msg "oh no"}
      .do {ForceGen#}
      .return {Void}
      }
@@ -209,5 +300,32 @@ public class TestJavaOptimisations {
       .map{ch -> ch == "H" ? {.then -> "J", .else -> ch}}
       .join ""
       )}
+    """, Base.mutBaseAliases);}
+
+  @Test void asIdFn() {ok("""
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 sys_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 sys_m$, test.Test_0 $this) {
+      return base.Block_0.$self.$hash$imm(((base.List_1)rt.ListK.$self.$hash$imm()));
+    }
+    }
+    """, "/test/Test_0.java", """
+    package test
+    Test: Main{sys -> Block#(List#[Nat].as{x->x})}
+    """, Base.mutBaseAliases);}
+  @Test void asNonIdFn() {ok("""
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 sys_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 sys_m$, test.Test_0 $this) {
+      return base.Block_0.$self.$hash$imm(((base.List_1)rt.ListK.$self.$hash$imm()).as$read(test.Fear[###]$_0.$self));
+    }
+    }
+    """, "/test/Test_0.java", """
+    package test
+    Test: Main{sys -> Block#(List#[Nat].as{x->x * 2})}
     """, Base.mutBaseAliases);}
 }

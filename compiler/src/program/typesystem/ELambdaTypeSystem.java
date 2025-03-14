@@ -129,20 +129,22 @@ interface ELambdaTypeSystem extends ETypeSystem{
     var gg = Streams.zip(m.xs(), args).fold(Gamma::add, g0);
 
     var baseCase = isoAwareJudgment(gg, m, e, ret);
-    var baseDestiny = baseCase.isEmpty() || ret.mdf().is(Mdf.mut, Mdf.read);
+    var baseDestiny = baseCase.isEmpty() || !ret.mdf().is(Mdf.imm, Mdf.iso);
     if (baseDestiny) { return FailOr.opt(baseCase); }
     //res is iso or imm, thus is promotable
 
     var criticalFailure = isoAwareJudgment(gg, m, e, ret.withMdf(Mdf.readH));
     if (criticalFailure.isPresent()) { return FailOr.opt(baseCase); }
 
-    var readPromotion = mOkReadPromotion(selfName, selfT, litT, m, sig);
-    if (readPromotion.isEmpty() || !ret.mdf().is(Mdf.imm, Mdf.iso)) {
-      return FailOr.opt(readPromotion.flatMap(ignored->baseCase));
-    }
+//    var readPromotion = mOkReadPromotion(selfName, selfT, litT, m, sig);
+//    if (readPromotion.isEmpty() || !ret.mdf().is(Mdf.imm, Mdf.iso)) {
+//      return FailOr.opt(readPromotion.flatMap(ignored->baseCase));
+//    }
 
     var isoPromotion = mOkIsoPromotion(selfName, selfT, litT, m, sig);
-    if(ret.mdf().isIso() || isoPromotion.isEmpty()){ return FailOr.opt(isoPromotion); }
+    if(ret.mdf().isIso() || isoPromotion.isEmpty()){
+      return FailOr.opt(isoPromotion);
+    }
 
     var selfTRes = gg.get(selfName);
     if (!selfTRes.isRes()) { return selfTRes.cast(); }
@@ -151,13 +153,14 @@ interface ELambdaTypeSystem extends ETypeSystem{
       .flatMap(ignored->baseCase));
   }
 
+  // Currently not used, need to think more about soundness:
   default Optional<Supplier<CompileError>> mOkReadPromotion(String selfName, T selfT, T litT, E.Meth m, E.Sig sig) {
     var readOnlyAsReadG = new Gamma() {
       @Override public FailOr<Optional<T>> getO(String x) {
-        return g().getO(x).map(res->res.map(t->{
-          if (t.mdf().isMdf()) { return t.withMdf(Mdf.iso); }
-          return t.mdf().isReadH() ? t.withMdf(Mdf.read) : t;
-        }));
+        return g().getO(x).map(res->res
+          .filter(t->!t.mdf().isMdf())
+          .map(t->t.mdf().isReadH() ? t.withMdf(Mdf.read) : t)
+        );
       }
       @Override public List<String> dom() { return g().dom(); }
       @Override public String toString() { return "readOnlyAsReadG"+g().toString(); }

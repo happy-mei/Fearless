@@ -11,8 +11,6 @@ import static codegen.java.RunJavaProgramTests.*;
 public class Ex23ActionsTest {
   @Test void lazyAction() {ok(new Res("hi\nyes hi", "", 0), """
     package test
-    alias base.Action as Action,
-    
     Test: Main{sys -> Block#
       .do {sys.io.println("hi")}
       .do {Block#(Actions.lazy{sys.io.println("no hi")})}

@@ -330,7 +330,7 @@ public class TestTypeSystem {
         }
    */
 
-  @Test void noCaptureImmAsRecMdfCounterEx() { fail("""
+  @Test void noCaptureImmAsReadImmCounterEx() { fail("""
     In position [###]/Dummy0.fear:5:25
     [E33 callTypeError]
     There is no possible candidate for the method call to .absMeth/0.
@@ -1425,5 +1425,12 @@ public class TestTypeSystem {
     alias test.Blah as Bloop,
     Blah: {.m1: Bloop -> this}
     Z: Bloop,Blah,Bloop{}
+    """);}
+
+  @Test void isoCanBeCapturedMultipleTimesAsImm() {ok("""
+    package a
+    A: {#(a: iso A): B -> Block#(B{a}, B{a})}
+    B: {#: A}
+    Block: {#[X1,R](a1: X1, a2: R): R -> a2}
     """);}
 }

@@ -1,7 +1,7 @@
 package base.json
 alias base.iter.Iter as Iter,
 
-alias base.caps.IsoPod as IsoPod,
+alias base.IsoPod as IsoPod,
 
 alias base.caps.Write as Write,
 alias base.caps.Read as Read,
@@ -36,6 +36,7 @@ alias base.StrMap as StrMap,
 alias base.Stringable as Stringable,
 
 alias base.Var as Var,
+alias base.Vars as Vars,
 alias base.Count as Count,
 alias base.VarImm as VarImm,
 

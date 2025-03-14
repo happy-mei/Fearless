@@ -5,14 +5,12 @@ import base.flows.FlowOp_1;
 import base.flows._Sink_1;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 final class UnrestrictedWorker implements Runnable {
-  static void forRemaining(FlowOp_1 source, _Sink_1 downstream, int size) {
-    // Try to split up the source N_CPU times
-    // TODO: we probably want to just do this on some of the dataset to try it out first
+  static void for_(FlowOp_1 source, _Sink_1 downstream, int size, AtomicBoolean isRunning) {
     var splitData = new ArrayList<FlowOp_1>();
     int i = 1;
     splitData.add(source);
@@ -47,7 +45,7 @@ final class UnrestrictedWorker implements Runnable {
       }
       var subSource = splitData.get(j);
       assert subSource != null;
-      var worker = new UnrestrictedWorker(subSource, downstream, perWorkerSize, doneSignal, flusher);
+      var worker = new UnrestrictedWorker(subSource, downstream, perWorkerSize, doneSignal, flusher, isRunning);
       Thread.ofVirtual().start(worker);
       workers[j] = worker;
     }
@@ -69,14 +67,22 @@ final class UnrestrictedWorker implements Runnable {
   private final FlowOp_1 source;
   private final BufferSink downstream;
   private final CountDownLatch doneSignal;
-  public UnrestrictedWorker(FlowOp_1 source, _Sink_1 downstream, int size, CountDownLatch doneSignal, BufferSink.FlushWorker flusher) {
+  private final AtomicBoolean isRunning;
+  public UnrestrictedWorker(FlowOp_1 source, _Sink_1 downstream, int size, CountDownLatch doneSignal, BufferSink.FlushWorker flusher, AtomicBoolean isRunning) {
     this.source = source;
-    this.downstream = new BufferSink(downstream, flusher);
+    this.downstream = new BufferSink(downstream, flusher, isRunning);
     this.doneSignal = doneSignal;
+    this.isRunning = isRunning;
   }
 
   @Override public void run() {
-    source.forRemaining$mut(downstream);
-    doneSignal.countDown();
+    try {
+      if (!isRunning.getPlain()) {
+        return;
+      }
+      source.for$mut(downstream);
+    } finally {
+      doneSignal.countDown();
+    }
   }
 }

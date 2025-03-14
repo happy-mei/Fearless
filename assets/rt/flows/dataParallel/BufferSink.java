@@ -1,13 +1,13 @@
 package rt.flows.dataParallel;
 
 import base.Info_0;
-import base.Infos_0;
 import base.Void_0;
 import base.flows._Sink_1;
 import rt.FearlessError;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class BufferSink implements _Sink_1 {
   public static final class FlushWorker implements Runnable {
@@ -26,7 +26,7 @@ public final class BufferSink implements _Sink_1 {
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
-      original.stop$mut();
+      original.stopDown$mut();
     }
     @Override public void run() {
       while (true) {
@@ -36,10 +36,10 @@ public final class BufferSink implements _Sink_1 {
           assert toFlush.isEmpty() : toFlush;
           break;
         }
-        if (!(e instanceof FlusherElement.Sink sink)) {
+        if (!(e instanceof FlusherElement.Sink(BufferSink sink))) {
           throw new UnsupportedOperationException("Only stop tokens and buffer sinks are supported.");
         }
-        this.flush(sink.sink);
+        this.flush(sink);
       }
     }
     private void flush(BufferSink sink) {
@@ -52,8 +52,8 @@ public final class BufferSink implements _Sink_1 {
           break;
         }
 
-        if (e instanceof Error err) {
-          sink.original.pushError$mut(err.info);
+        if (e instanceof Error(Info_0 info)) {
+          sink.original.pushError$mut(info);
           continue;
         }
         try {
@@ -70,24 +70,26 @@ public final class BufferSink implements _Sink_1 {
 
   public final _Sink_1 original;
   private final BlockingQueue<Object> buffer;
+  private final AtomicBoolean isRunning;
 
   private record Error(Info_0 info) {}
 
   //  private static final int BUFFER_MAX = (int) OSInfo.memoryAndCpuScaledValue(500);
 //  private static final int BUFFER_MAX = 1;
-  private static final int BUFFER_MAX = Integer.MAX_VALUE;
-  public BufferSink(_Sink_1 original, FlushWorker flusher, int sizeHint) {
+  public BufferSink(_Sink_1 original, FlushWorker flusher, AtomicBoolean isRunning) {
     this.original = original;
-    this.buffer = new LinkedBlockingQueue<>(BUFFER_MAX);
+    this.buffer = new LinkedBlockingQueue<>();
+    this.isRunning = isRunning;
     flusher.toFlush.add(new FlusherElement.Sink(this));
   }
   public BufferSink(_Sink_1 original, FlushWorker flusher) {
     this.original = original;
-    this.buffer = new LinkedBlockingQueue<>(BUFFER_MAX);
+    this.buffer = new LinkedBlockingQueue<>();
+    this.isRunning = null;
     flusher.toFlush.add(new FlusherElement.Sink(this));
   }
 
-  @Override public Void_0 stop$mut() {
+  @Override public Void_0 stopDown$mut() {
 //    return original.stop$mut();
     return Void_0.$self;
   }

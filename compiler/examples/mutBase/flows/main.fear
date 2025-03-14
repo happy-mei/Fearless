@@ -5,7 +5,7 @@ alias base.flows.Flow as Flow, alias base.Consumer as Consumer,
 //  Flow#[Int](5, 10, 15)
 //    // .actor requires an iso S for its initial value
 //    // The 3rd argument is optional
-//    .actor[mut Var[Int], Int](Var#[Int]1, {downstream, state, n -> Block#
+//    .actor[mut Var[Int], Int](Vars#[Int]1, {downstream, state, n -> Block#
 //      .do {state := (state* + n)}
 //      .if {state.get > 16} .return{Block#(downstream#500, {})}
 //      .do{downstream#42}

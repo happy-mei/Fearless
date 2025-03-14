@@ -1,4 +1,4 @@
-package base.caps
+package base
 
 // Allowing imm in the bounds for the convenience of being able to write IsoPod[Str] instead of IsoPod[iso Str]
 //does not work
