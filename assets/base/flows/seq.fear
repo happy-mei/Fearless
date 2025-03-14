@@ -1,7 +1,7 @@
 package base.flows
 
 _SeqFlow: _FlowFactory{
-  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> _RestrictFlowReuse#{'self
+  .fromOp[E:*](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> _RestrictFlowReuse#{'self
     .unwrapOp(_) -> source,
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#({s->s}, source, p), {}),
@@ -10,9 +10,9 @@ _SeqFlow: _FlowFactory{
     .map(ctx, f) -> this.fromOp(_Map#({s->s}, source, ctx, f), size),
 
     .flatMap(f) -> this.fromOp(_FlatMap#({s->s}, source, f), {}),
-    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+    mut .actor[S:*,R:*](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
       this.fromOp(_Actor#[S,E,R]({s->s}, source, state, f), {}),
-    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+    mut .actorMut[S:*,R:*](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
       this.fromOp(_Actor.anyRet[S,E,R]({s->s}, source, state, f), {}),
     .limit(n) -> this.fromOp(_Limit#({s->s}, source, n), _LimitSize#(n, size)),
     .assumeFinite -> this.fromOp(_AssumeFinite[E]#source, size),
@@ -20,8 +20,8 @@ _SeqFlow: _FlowFactory{
 
     // terminals
     mut .first: mut Opt[E] -> _First[E]#(source, {s->s}),
-    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> _FindMap[E,R]#(source, f, {s->s}),
-    mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> _Fold[S,E]#(source, acc#, f, {s->s}),
+    mut .findMap[R:*](f: read F[E, mut Opt[R]]): mut Opt[R] -> _FindMap[E,R]#(source, f, {s->s}),
+    mut .fold[S:*](acc: iso MF[S], f: read F[S,E,S]): S -> _Fold[S,E]#(source, acc#, f, {s->s}),
     .size -> size,
     .count -> size.match{
       .some(n) -> n,
@@ -29,7 +29,7 @@ _SeqFlow: _FlowFactory{
       },
     },
 
-  #[E](e: E): mut Flow[E] -> Block#
+  #[E:*](e: E): mut Flow[E] -> Block#
     .let[mut Var[mut Opt[E]]] seq = { Vars#(Opts#e) }
     .let[mut FlowOp[E]] source = {{'self
       .isRunning -> seq.get.isSome,

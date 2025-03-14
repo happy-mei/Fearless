@@ -1,10 +1,10 @@
 package base.flows
 
 _PipelineParallelSink: _SinkDecorator{s -> Magic!}
-_PipelineParallelSink[T]: _Sink[T]
+_PipelineParallelSink[T:*]: _Sink[T]{}
 
 _PipelineParallelFlow: _FlowFactory{
-  .fromOp[E](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> _RestrictFlowReuse#{'self
+  .fromOp[E:*](source: mut FlowOp[E], size: Opt[Nat]): mut Flow[E] -> _RestrictFlowReuse#{'self
     .unwrapOp(_) -> source,
     // non-terminals
     .filter(p) -> this.fromOp(_Filter#(_PipelineParallelSink, source, p), {}),
@@ -13,9 +13,9 @@ _PipelineParallelFlow: _FlowFactory{
     .map(ctx, f) -> this.fromOp(_Map#(_PipelineParallelSink, source, ctx, f), size),
 
     .flatMap(f) -> this.fromOp(_FlatMap#(_PipelineParallelSink, source, f), {}),
-    mut .actor[S,R](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
+    mut .actor[S:*,R:*](state: iso S, f: read ActorImpl[S,E,R]): mut Flow[imm R] ->
       this.fromOp(_Actor#[S,E,R](_PipelineParallelSink, source, state, f), {}),
-    mut .actorMut[S,R](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
+    mut .actorMut[S:*,R:*](state: iso S, f: read ActorImplMut[S,E,R]): mut Flow[R] ->
       this.fromOp(_Actor.anyRet[S,E,R](_PipelineParallelSink, source, state, f), {}),
     .limit(n) -> this.fromOp(_Limit#(_PipelineParallelSink, source, n), _LimitSize#(n, size)),
     .assumeFinite -> this.fromOp(_AssumeFinite[E]#source, size),
@@ -23,8 +23,8 @@ _PipelineParallelFlow: _FlowFactory{
 
     // terminals
     mut .first: mut Opt[E] -> _First[E]#(source, _PipelineParallelSink),
-    mut .findMap[R](f: read F[E, mut Opt[R]]): mut Opt[R] -> _FindMap[E,R]#(source, f, _PipelineParallelSink),
-    mut .fold[S](acc: iso MF[S], f: read F[S,E,S]): S -> _Fold[S,E]#(source, acc#, f, _PipelineParallelSink),
+    mut .findMap[R:*](f: read F[E, mut Opt[R]]): mut Opt[R] -> _FindMap[E,R]#(source, f, _PipelineParallelSink),
+    mut .fold[S:*](acc: iso MF[S], f: read F[S,E,S]): S -> _Fold[S,E]#(source, acc#, f, _PipelineParallelSink),
     .size -> size,
     .count -> size.match{
       .some(n) -> n,
@@ -32,7 +32,7 @@ _PipelineParallelFlow: _FlowFactory{
       },
     },
 
-  #[E](e: E): mut Flow[E] -> Error.msg "_PipelineParallelFlow# should not be reachable",
+  #[E:*](e: E): mut Flow[E] -> Error.msg "_PipelineParallelFlow# should not be reachable",
 //  #[E](e: E): mut Flow[E] -> Block#
 //    .let[mut Var[mut Opt[E]]] seq = { Vars#(Opts#e) }
 //    .let[mut FlowOp[E]] source = {RestrictFlowReuse#[E]{'self

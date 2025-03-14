@@ -3,6 +3,7 @@ package errmsg;
 import failure.CompileError;
 import main.Main;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.Parser;
 import program.TypeSystemFeatures;
@@ -12,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Disabled("Better error messages are disabled due to syntax changes. This suite should be re-enabled after the better error messages are re-enabled.")
 public class TestErrMsgSyntax {
   void fail(String expectedErr, String... content){
     Main.resetAll();

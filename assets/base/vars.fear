@@ -1,7 +1,7 @@
 package base
 
 Vars: {
-  #[X](x: X): mut Var[X] -> Block#
+  #[X:*](x: X): mut Var[X] -> Block#
     .let[mut _MagicVarImpl[X]] inner = {_MagicVarImpl#x}
     .return {{
       .get -> inner.get,
@@ -9,7 +9,7 @@ Vars: {
       }},
   }
 Var: Vars{}
-Var[X:imm,mut,read]: Sealed{
+Var[X:*]: Sealed{
   mut  .get: X,
   read .get: read/imm X,
   mut  *: X -> this.get,
@@ -21,9 +21,9 @@ Var[X:imm,mut,read]: Sealed{
   mut <-(f: mut UpdateVar[X]): X -> this.swap(f#(this*)),
   mut .update(f: mut UpdateVar[X]): X -> this <- f,
   }
-UpdateVar[X]: { mut #(x: X): X }
+UpdateVar[X:*]: { mut #(x: X): X }
 
-Count[N:imm]: Var[N]{
+Count[N]: Var[N]{
   mut ++: Void,
   mut --: Void,
   mut +=(n: N): Void,
@@ -58,8 +58,8 @@ Count:{
 
 // Var as defined in the formal reduction of Fearless.
 // We capture this in the richer Var.
-_MagicVarImpl: {#[X](x: X): mut _MagicVarImpl[X] -> Magic!}
-_MagicVarImpl[X]: {
+_MagicVarImpl: {#[X:*](x: X): mut _MagicVarImpl[X] -> Magic!}
+_MagicVarImpl[X:*]: {
   mut  .get: X,
   read .get: read/imm X,
   mut .swap(x: X): X,

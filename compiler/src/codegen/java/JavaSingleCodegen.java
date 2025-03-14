@@ -5,8 +5,8 @@ import codegen.MethExprKind;
 import codegen.ParentWalker;
 import id.Id;
 import id.Id.DecId;
+import magic.FearlessStringHandler;
 import magic.Magic;
-import org.apache.commons.text.StringEscapeUtils;
 import rt.NativeRuntime;
 import utils.Box;
 import utils.Bug;
@@ -46,7 +46,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       .map(MIR.MT.Plain::id)
       .filter(e->!isLiteral(e))
       .map(id::getFullName)
-      .filter(tr->!tr.equals(fullName))//TODO: remove when fixed
+      .filter(qualifiedTypeName->!qualifiedTypeName.equals(fullName)) // don't extend ourselves
       .distinct()
       .sorted()
       .collect(Collectors.joining(","));
@@ -268,9 +268,12 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
   }
   public String visitStringLiteral(MIR.CreateObj k) {
     var id = k.concreteT().id();
-    var javaStr = getLiteral(p.p(), id).map(l->l.substring(1, l.length() - 1)).orElseThrow();
-    // We parse literal \n, unicode escapes as if this was a Java string literal.
-    var utf8 = StringEscapeUtils.unescapeJava(javaStr).getBytes(StandardCharsets.UTF_8);
+    var fearlessStr = getLiteral(p.p(), id).orElseThrow();
+    // We need to turn this into a java string
+    var javaStr = new FearlessStringHandler(FearlessStringHandler.StringKind.Unicode)
+      .toJavaString(fearlessStr)
+      .get();
+    byte[] utf8=javaStr.getBytes(StandardCharsets.UTF_8);
     var buf = ByteBuffer.allocateDirect(utf8.length).put(utf8).position(0).asReadOnlyBuffer();
     var recordName = ("str$"+Long.toUnsignedString(NativeRuntime.hashString(buf), 10)+"$str$");
     if (!this.freshRecords.containsKey(id)) {
@@ -319,7 +322,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       +call.recv().accept(this, checkMagic)
       +"."+id.getMName(call.mdf(), call.name())+"(";
     var args = seq(call.args(),a->a.accept(this, checkMagic),",");
-    return start+args+")"+(mustCast ? ")" : "");
+    return start+args+")"+(mustCast ? ")" : "");   
   }
 
   @Override public String visitBoolExpr(MIR.BoolExpr expr, boolean checkMagic) {

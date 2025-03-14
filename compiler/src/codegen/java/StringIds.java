@@ -8,20 +8,15 @@ import java.util.stream.Stream;
 import ast.Program;
 import id.Id;
 import id.Mdf;
+import magic.LiteralKind;
 
 final class StringIds{
   public static final StringIds $self = new StringIds();
   public Optional<String> getLiteral(Program p, Id.DecId d) {
     return p.superDecIds(d).stream()
       .map(Id.DecId::name)
-      .filter(this::isLiteral)
+      .filter(LiteralKind::isLiteral)
       .findFirst();
-  }
-  public boolean isLiteral(String name) {
-    return isDigit(name.codePointAt(0)) 
-      || name.startsWith("\"")
-      || name.startsWith("-")
-      || name.startsWith("+");
   }
   public boolean isDigit(int codepoint){
     //Character.isDigit is way too relaxed

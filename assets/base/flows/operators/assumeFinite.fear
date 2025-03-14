@@ -1,6 +1,6 @@
 package base.flows
 
-_AssumeFinite[E]: F[mut FlowOp[E], mut FlowOp[E]]{upstream -> {
+_AssumeFinite[E:*]: F[mut FlowOp[E], mut FlowOp[E]]{upstream -> {
   .step(downstream) -> upstream.step(downstream),
   .for(downstream) -> upstream.for(downstream),
   .stopUp -> upstream.stopUp,
