@@ -7,7 +7,7 @@ package base.flows
 // to parallelise never runs in parallel. This should be easy because basically all parallel implementations of _Sink
 // will be Magic!.
 
-FlowOp[E]: {
+FlowOp[E:*]: {
   mut .step(sink: mut _Sink[E]): Void,
   mut .stopUp: Void,
   mut .isRunning: Bool,
@@ -30,8 +30,8 @@ FlowOp[E]: {
 
 
 // IMPORTANT NOTE: REUSE SINK OBJECTS! THE IDENTITY IS IMPORTANT FOR WHEN THEY ARE RAN IN PARALLEL!!!!!
-_SinkDecorator: {#[E](sink: mut _Sink[E]): mut _Sink[E]}
-_Sink[T]: {
+_SinkDecorator: {#[E:*](sink: mut _Sink[E]): mut _Sink[E]}
+_Sink[T:*]: {
   mut #(x: T): Void,
   mut .pushError(info: Info): Void,
   mut .stopDown: Void,

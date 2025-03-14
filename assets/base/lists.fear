@@ -212,7 +212,7 @@ List[E:*]: Collection,Sealed{
   mut .takeFirst: mut Opt[E],
 
   read .as[R:imm](f: mut MF[read/imm E, R]): List[R] -> Block#
-    .let[mut IsoPod[iso List[R]]] res = {IsoPod#(List.withCapacity(this.size))}
+    .let[mut IsoPod[List[R]]] res = {IsoPod#(List.withCapacity(this.size))}
     .do {this.iter
       .map{e -> f#e}
       .for{e -> res.mutate{l -> l.add(e)}!}

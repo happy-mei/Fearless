@@ -1,7 +1,7 @@
 package base.flows
 
 _Filter: {
-  #[E](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
+  #[E:*](sinkDecorator: _SinkDecorator, upstream: mut FlowOp[E], predicate: read F[E, Bool]): mut FlowOp[E] -> Block#
     .let sink = {Slots#[mut _Sink[E]]}
     .return{{
       .step(downstream) ->
@@ -14,7 +14,7 @@ _Filter: {
       .canSplit -> upstream.canSplit,
       .isFinite -> upstream.isFinite,
       }},
-  .impl[E](downstream: mut _Sink[E], predicate: read F[E, Bool], sinkDecorator: _SinkDecorator): mut _Sink[E] -> sinkDecorator#{
+  .impl[E:*](downstream: mut _Sink[E], predicate: read F[E, Bool], sinkDecorator: _SinkDecorator): mut _Sink[E] -> sinkDecorator#{
     #(e) -> predicate#e ? {.then -> downstream#e, .else -> {}},
     .stopDown -> downstream.stopDown,
     .pushError(info) -> downstream.pushError(info),

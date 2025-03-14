@@ -1,7 +1,5 @@
 package base
 
-// Allowing imm in the bounds for the convenience of being able to write IsoPod[Str] instead of IsoPod[iso Str]
-//does not work
 IsoPod:{
   #[T:**](val: iso T): mut IsoPod[imm T] -> _MagicIsoPodImpl.toIsoPod[imm T](_MagicIsoPodImpl#[T](val)),
   }
