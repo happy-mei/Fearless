@@ -58,7 +58,15 @@ public class TestTypeSystem {
     FortyTwo:{}
     FortyThree:{}
     A[N]:{ .count: N, .sum: N }
-    B:A[FortyTwo]{ .count -> FortyTwo, .sum -> FortyThree,FortyTwo{} }
+    B:A[FortyTwo]{ .count -> FortyTwo, .sum -> FortyTwo{} }
+    """); }
+  // TODO: underscore for decl name to get a fresh one.
+  @Test void numbersGenericTypes2aWorksThanksTo5bMulti(){ ok("""
+    package test
+    FortyTwo:{}
+    FortyThree:{}
+    A[N]:{ .count: N, .sum: N }
+    B:A[FortyTwo]{ .count -> FortyTwo, .sum -> _:FortyThree,FortyTwo{} }
     """); }
   @Test void numbersGenericTypes2aNoMagic(){ fail("""
     In position [###]/Dummy0.fear:6:43
