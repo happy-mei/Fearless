@@ -1,4 +1,4 @@
-// Generated from C:\Users\sonta\Documents\GitHub\Fearless\grammar\antlrGrammars\Fearless.g4 by ANTLR 4.12.0
+// Generated from /home/nick/Programming/uni/fearless/grammar/antlrGrammars/Fearless.g4 by ANTLR 4.12.0
 package generated;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
@@ -19,6 +19,13 @@ public class FearlessBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitFullCN(FearlessParser.FullCNContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitDeclCN(FearlessParser.DeclCNContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

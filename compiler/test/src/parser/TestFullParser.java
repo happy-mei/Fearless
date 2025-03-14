@@ -610,24 +610,44 @@ class TestFullParser {
       Bar:{.m[X:mut]:Foo[X]}
       Beer:{ .m[X:mut]:Baz[X]->Baz[X:mut]:{} }
       """);}
-    @Test void generciBoundsKO1() {fail("""
-      In position [###]/Dummy0.fear:3:20
-      [E59 syntaxError]
-      no viable alternative at input '.m[X:mut]:Foo[X:'
-      """, """
-      package test
-      Foo[X:mut]:{}
-      Bar:{.m[X:mut]:Foo[X:mut]}
-      Beer:{ .m[X:mut]:Baz[X]->Baz[X:mut]:{} }
-      """);}
-    @Test void generciBoundsKO2() {fail("""
-      In position [###]/Dummy0.fear:4:41
-      [E59 syntaxError]
-      mismatched input ':' expecting {']', ','}
-      """, """
-      package test
-      Foo[X:mut]:{}
-      Bar:{.m[X:mut]:Foo[X]}
-      Beer:{ .m[X:mut]:Baz[X]->Baz[X:mut]:Foo[X:mut]{} }
-      """);}
+  @Test void generciBoundsKO1() {fail("""
+    In position [###]/Dummy0.fear:3:20
+    [E59 syntaxError]
+    no viable alternative at input '.m[X:mut]:Foo[X:'
+    """, """
+    package test
+    Foo[X:mut]:{}
+    Bar:{.m[X:mut]:Foo[X:mut]}
+    Beer:{ .m[X:mut]:Baz[X]->Baz[X:mut]:{} }
+    """);}
+  @Test void generciBoundsKO2() {fail("""
+    In position [###]/Dummy0.fear:4:41
+    [E59 syntaxError]
+    mismatched input ':' expecting {']', ','}
+    """, """
+    package test
+    Foo[X:mut]:{}
+    Bar:{.m[X:mut]:Foo[X]}
+    Beer:{ .m[X:mut]:Baz[X]->Baz[X:mut]:Foo[X:mut]{} }
+    """);}
+
+  // doing a fresh name at top level is a bit pointless, but I think it's worth keeping just to keep the allowed syntax
+  // the same as expressions that declare a top level type.
+  @Test void freshDeclNameTopLevel() {ok("""
+    {test.Fear4$/0=Dec[name=test.Fear4$/0,gxs=[],lambda=[-muttest.Fear4$[]-][]{}],
+     test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-muttest.A[]-][]{}],
+     test.Fear5$/0=Dec[name=test.Fear5$/0,gxs=[],lambda=[-muttest.Fear5$[]-][test.A[]]{}]}
+    """, """
+    package test
+    _: {}
+    A: {}
+    _: A{}
+    """);}
+  @Test void freshDeclNameInline() {ok("""
+    {test.A/0=Dec[name=test.A/0,gxs=[],lambda=[-muttest.A[]-][]{
+      .foo/0([]):Sig[gens=[],ts=[],ret=immtest.A[]]->[-immtest.Fear1$[]-][test.A[]]{}}]}
+    """, """
+    package test
+    A: {.foo: A -> _: A{}}
+    """);}
 }

@@ -18,6 +18,8 @@ import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static visitors.FullEAntlrVisitor.visitDeclName;
+
 public record Package(
     String name,
     List<T.Alias> as,
@@ -97,7 +99,7 @@ public record Package(
         .map(d->{
           int size=0;
           if(d.mGen()!=null && d.mGen().genDecl()!=null){ size=d.mGen().genDecl().size(); }
-          return new Id.DecId(d.fullCN().getText(),size);
+          return new Id.DecId(visitDeclName(d.declCN()),size);
           })
         .toList();
     var fns=ps.stream()

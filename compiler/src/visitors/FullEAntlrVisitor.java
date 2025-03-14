@@ -243,7 +243,7 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
     return withXBs(mGen.bounds,()->visitNamedLambda(mGen,mdf,ctx));
   }
   E.Lambda visitNamedLambda(GenericParams mGen, Mdf mdf, TopDecContext ctx){
-    String cName= completeDeclName(visitFullCN(ctx.fullCN()), pos(ctx));
+    String cName= completeDeclName(visitDeclCN(ctx.declCN()), pos(ctx));
     var decId= new Id.DecId(cName, mGen.gxs.size());
     LambdaId id= new LambdaId(decId, mGen.gxs, mGen.bounds);
     List<T> nameTs= id.gens().stream()
@@ -337,6 +337,20 @@ public class FullEAntlrVisitor implements generated.FearlessVisitor<Object>{
   @Override public String visitFullCN(FullCNContext ctx) {
     return ctx.getText();
   }
+
+  /**
+   * A declCN is either a wildcard (_) or a fullCN. If it is a wildcard, we return a fresh name.
+   */
+  public static String visitDeclName(DeclCNContext ctx) {
+    if (ctx.Underscore() == null) {
+      return ctx.FullCN().getText();
+    }
+    return Id.GX.fresh().name();
+  }
+  @Override public String visitDeclCN(DeclCNContext ctx) {
+    return FullEAntlrVisitor.visitDeclName(ctx);
+  }
+
   @Override public Mdf visitMdf(MdfContext ctx) {
     if(ctx.getText().isEmpty()){ return Mdf.imm; }
     if(ctx.getText().equals("read/imm")) { return Mdf.readImm; }

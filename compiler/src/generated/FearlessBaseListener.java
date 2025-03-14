@@ -1,4 +1,4 @@
-// Generated from C:\Users\sonta\Documents\GitHub\Fearless\grammar\antlrGrammars\Fearless.g4 by ANTLR 4.12.0
+// Generated from /home/nick/Programming/uni/fearless/grammar/antlrGrammars/Fearless.g4 by ANTLR 4.12.0
 package generated;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -24,6 +24,18 @@ public class FearlessBaseListener implements FearlessListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFullCN(FearlessParser.FullCNContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterDeclCN(FearlessParser.DeclCNContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDeclCN(FearlessParser.DeclCNContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

@@ -79,6 +79,7 @@ Whitespace: ('\t' | ' ' | '\n' )-> channel(HIDDEN);
 
 //GRAMMAR
 fullCN:FullCN;
+declCN:FullCN | Underscore;
 x: X| Underscore;
 m: SysInM | MName;
 mdf: Mut | ReadH | MutH | ReadImm | Read | Iso | Imm | ;
@@ -92,7 +93,7 @@ mGen   : | OS (genDecl (Comma genDecl)*)? CS;
 
 actualGen   : | OS (t (Comma t)*)? CS;
 
-topDec : fullCN mGen Colon (t (Comma t)* Comma?)? OC bblock CC;
+topDec : declCN mGen Colon (t (Comma t)* Comma?)? OC bblock CC;
 lambda : mdf topDec | (t | mdf) OC bblock CC | t;
 
 bblock :

@@ -25,7 +25,7 @@ public class InlineDecNamesAntlrVisitor extends FearlessBaseVisitor<Void> {
 
   void topDecCollect(TopDecContext decCtx){
     Pos pos=Pos.of(fileName.toUri(),decCtx.getStart().getLine(), decCtx.getStart().getCharPositionInLine()); 
-    String cName = decCtx.fullCN().getText();
+    String cName = FullEAntlrVisitor.visitDeclName(decCtx.declCN());
     if (cName.contains(".")){ throw Fail.crossPackageDeclaration().pos(pos); }
     var longName = pkg + "." +cName;
     var inT=new Id.IT<T>(longName, List.of());

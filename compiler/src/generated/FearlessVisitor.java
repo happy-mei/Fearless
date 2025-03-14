@@ -1,4 +1,4 @@
-// Generated from C:\Users\sonta\Documents\GitHub\Fearless\grammar\antlrGrammars\Fearless.g4 by ANTLR 4.12.0
+// Generated from /home/nick/Programming/uni/fearless/grammar/antlrGrammars/Fearless.g4 by ANTLR 4.12.0
 package generated;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -16,6 +16,12 @@ public interface FearlessVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitFullCN(FearlessParser.FullCNContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link FearlessParser#declCN}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDeclCN(FearlessParser.DeclCNContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link FearlessParser#x}.
 	 * @param ctx the parse tree

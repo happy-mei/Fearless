@@ -1509,7 +1509,6 @@ public class TestJavaProgram {
     Foo: {#(join: mut Str): mut Str -> mut "Hello," + join + mut "World!" + join + mut "Bye!"}
     """, Base.mutBaseAliases);}
 
-  //TODO: Nick fix this
   @Test void simpleJson() {ok(new Res("""
     "Hello!!!\\nHow are you?"
     "Hello!!!\\nHow 吣are吣 you?"
