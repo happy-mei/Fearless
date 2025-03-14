@@ -3,12 +3,10 @@ package codegen.java;
 import codegen.MIR;
 import codegen.MethExprKind;
 import codegen.ParentWalker;
-import files.Pos;
 import id.Id;
 import id.Id.DecId;
 import magic.FearlessStringHandler;
 import magic.Magic;
-import org.apache.commons.text.StringEscapeUtils;
 import rt.NativeRuntime;
 import utils.Box;
 import utils.Bug;
@@ -48,7 +46,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       .map(MIR.MT.Plain::id)
       .filter(e->!isLiteral(e))
       .map(id::getFullName)
-      .filter(tr->!tr.equals(fullName))//TODO: remove when fixed
+      .filter(qualifiedTypeName->!qualifiedTypeName.equals(fullName)) // don't extend ourselves
       .distinct()
       .sorted()
       .collect(Collectors.joining(","));

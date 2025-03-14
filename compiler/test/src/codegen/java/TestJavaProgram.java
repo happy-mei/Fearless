@@ -1440,8 +1440,11 @@ public class TestJavaProgram {
     Test: Main{sys -> UnrestrictedIO#sys.println(Foo.msg("Hello, World"))}
     Foo: {.msg(start: Stringable): Str -> start.str + "!"}
     """, Base.mutBaseAliases); }
-
-//TODO: Nick fix this: extending string literal?
+  @Test void literalSubtypeNat() {ok(new Res("25", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(MyNums# .str)}
+    MyNums: {#: MyNum -> MyNum: 25{}}
+    """, Base.mutBaseAliases);}
   @Test void literalSubtypeStr() {ok(new Res("Nick", "", 0), """
     package test
     Test: Main{sys -> UnrestrictedIO#sys.println(MyNames#)}
