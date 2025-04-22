@@ -11,12 +11,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+This file will have a compile time error on the first git checkout.
+This project needs to know how to locate some resources on your machine.
+You need to add a file LocalResources.java (that is already in the gitignore)
+following the template LocalResourcesTemplate.java
+*/
 public record ResolveResource(Path assetRoot, Path artefactRoot, Optional<Path> testsRoot, FileSystem virtualFs) {
-  static private final ResolveResource instance= 
-    ResolveResource.infer(Path.of(""));
-//    ResolveResource.infer(Paths.get("C:/")
-//      .resolve("Users/sonta/Documents/GitHub/Fearless/compiler"));
-  //Infer works if we put the two data folders in the class path
+  static private final ResolveResource instance= ResolveResource.infer(LocalResources.compilerPath);
+  static public final String javaVersion= LocalResources.javaVersion;
 
   public ResolveResource{
     assert Files.exists(assetRoot):assetRoot;

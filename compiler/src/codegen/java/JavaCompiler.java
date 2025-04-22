@@ -6,6 +6,7 @@ import main.InputOutput;
 import utils.Box;
 import utils.Bug;
 import utils.IoErr;
+import utils.ResolveResource;
 
 import javax.lang.model.SourceVersion;
 import javax.tools.Diagnostic;
@@ -21,7 +22,7 @@ public record JavaCompiler(Verbosity verbosity, InputOutput io){
       :"No Java compiler could be found. Please use a JDK >= 10";
     IoErr.of(()->Files.createDirectories(io.output()));
 
-    if (!compiler.getSourceVersions().contains(SourceVersion.RELEASE_23)) {
+    if (!compiler.getSourceVersions().contains(SourceVersion.RELEASE_23)) {//TODO: is this checking for >=23 or only for 23?
       throw CompileError.of("Fearless code generation with the Java backend requires JDK 23 or later.");
     }
 
@@ -33,7 +34,7 @@ public record JavaCompiler(Verbosity verbosity, InputOutput io){
       "-Xdiags:verbose",
       "-Xlint:preview",
       "--enable-preview",
-      "--release", "23"
+      "--release", ResolveResource.javaVersion
       );
     var errors = new Box<Diagnostic<?>>(null);
     boolean success = compiler.getTask(
