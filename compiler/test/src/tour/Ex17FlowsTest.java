@@ -574,8 +574,8 @@ public class Ex17FlowsTest {
     Stats: {.avg: Float -> 0.0, .n: Float -> 0.0}
     RollingAvg: {#(students: LList[Student]): Str ->
       students.flow
-        .flatMap{s -> s.grades.flow}
-        .map{g -> g.score}
+        .flatMap{::grades.flow}
+        .map{::score}
         .scan(
           Stats,
           {acc, n -> Stats{
