@@ -1745,4 +1745,53 @@ public class TestJavaProgram {
       .return {{}}
     }
     """, Base.mutBaseAliases);}
+
+  @Test void expressionProblem() {ok(new Res("""
+    55
+    ((5 + 6) * 5)
+    """, "", 0), """
+    package test
+    // Expression problem in Fearless (OO Decomposition solution)
+    Expr: {.eval: Nat,}
+    ExprMatch[R]: {
+      .literal(l: Literal): R,
+      .add(a: Add): R,
+    }
+    Literal: Expr{}
+    Literals: F[Nat,Literal]{n -> {n}}
+    
+    Add: Expr{
+      .a: Expr, .b: Expr,
+      .eval: Nat -> (this.a.eval) + (this.b.eval),
+    }
+    
+    // New library (B), adding a new expression (Multiplication)
+    Mul: Expr{
+      .a: Expr, .b: Expr,
+      .eval: Nat -> (this.a.eval) * (this.b.eval),
+    }
+    
+    // New library (C), adding a new operation (formatting)
+    CExpr: Expr{.format: Str}
+    LiteralC: CExpr,Literal{.format -> this.eval.str}
+    AddC: CExpr,Add{
+      .a: CExpr, .b: CExpr,
+      .format -> "(" + (this.a.format) + " + " + (this.b.format) + ")"
+    }
+    MulC: CExpr,Mul{
+      .a: CExpr, .b: CExpr,
+      .format -> "(" + (this.a.format) + " * " + (this.b.format) + ")"
+    }
+    
+    // User code
+    Test: Main{sys -> Block#
+      .let[CExpr] a = {LiteralC{5}}
+      .let[CExpr] b = {LiteralC{6}}
+      .let[CExpr] add = {AddC{.a -> a, .b -> b}}
+      .let[CExpr] mul = {MulC{.a -> add, .b -> a}}
+      .do {sys.io.println(mul.eval.str)}
+      .do {sys.io.println(mul.format)}
+      .return {{}}
+    }
+    """, Base.mutBaseAliases);}
 }
