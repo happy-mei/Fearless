@@ -202,6 +202,13 @@ public sealed interface MIR {
     }
   }
 
+  record UpdatableListAsIdFnCall(MIR.MCall e) implements E {
+    @Override public MT t() {return e.t();}
+    @Override public <R> R accept(MIRVisitor<R> v, boolean checkMagic) {
+      return v.visitUpdatableListAsIdFnCall(this, checkMagic);
+    }
+  }
+
   sealed interface MT {
     Mdf mdf();
     Optional<Id.DecId> name();

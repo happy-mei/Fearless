@@ -31,9 +31,16 @@ public class AsIdFnOptimisation implements MIRCloneVisitor {
 
     if (magic.isMagic(Magic.FList, call.recv())) {
       if (isIdentityFunction(call.args().getFirst())) {
-        return call.recv();
+        return new MIR.UpdatableListAsIdFnCall(call);
       }
     }
+
+    // TODO: Non-updatable list.
+//    if (magic.isMagic(Magic.FinalList, call.recv())) {
+//      if (isIdentityFunction(call.args().getFirst())) {
+//        return call.recv();
+//      }
+//    }
     return MIRCloneVisitor.super.visitMCall(call, checkMagic);
   }
 

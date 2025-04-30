@@ -1853,4 +1853,25 @@ public class TestJavaProgram {
       .return {{}}
     }
     """, Base.mutBaseAliases);}
+
+  @Test void soundAsIdFnUList() { ok(new Res("1,2,3", "", 0), """
+    package test
+    Test: Main{sys -> Block#
+      .let[mut List[Nat]] l = {List#(1, 2, 3)}
+      .let[List[Nat]] l2 = {l.as{::}}
+      .do {l.add(4)}
+      .do {sys.io.println(l2.flow.map{::str}.join ",")}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+  @Test void soundAsUList() { ok(new Res("1,2,3", "", 0), """
+    package test
+    Test: Main{sys -> Block#
+      .let[mut List[Nat]] l = {List#(1, 2, 3)}
+      .let[List[Str]] l2 = {l.as{::str}}
+      .do {l.add(4)}
+      .do {sys.io.println(l2.flow.join ",")}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
 }

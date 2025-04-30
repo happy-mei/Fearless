@@ -10,6 +10,15 @@ import java.util.ArrayList;
 
 public interface ListK extends base.List_0 {
   ListK $self = new ListK(){};
+
+  static base.List_1 asShallowClone(base.List_1 list, base.MF_2 f) {
+    return switch (list) {
+      case ListImpl<?> impl -> new ListImpl<>(new ArrayList<>(impl.inner));
+      case ByteBufferListImpl impl -> impl;
+      default -> list.as$read(f);
+    };
+  }
+
   @Override default List_1 $hash$imm(Object e1_m$) {
       var res = new ArrayList<>(1);
       res.add(e1_m$);

@@ -340,6 +340,13 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
     };
     return "(%s(%s == base.True_0.$self ? %s : %s))".formatted(cast, recv, thenBody, elseBody);
   }
+
+  @Override public String visitUpdatableListAsIdFnCall(MIR.UpdatableListAsIdFnCall call, boolean checkMagic) {
+    var recv = call.e().recv().accept(this, checkMagic);
+    var f = call.e().args().getFirst().accept(this, checkMagic);
+    return "rt.ListK.asShallowClone(%s, %s)".formatted(recv, f);
+  }
+
   private String inlineBlock(MIR.Block block) {
     var blockCode = this.visitBlockExpr(block, BlockReturnKind.YIELD);
     return """

@@ -302,13 +302,13 @@ public class TestJavaOptimisations {
       )}
     """, Base.mutBaseAliases);}
 
-  @Test void asIdFn() {ok("""
+  @Test void asIdFnUList() {ok("""
     package test;
     public interface Test_0 extends base.Main_0{
     Test_0 $self = new Test_0Impl();
     base.Void_0 $hash$imm(base.caps.System_0 sys_m$);
     static base.Void_0 $hash$imm$fun(base.caps.System_0 sys_m$, test.Test_0 $this) {
-      return base.Block_0.$self.$hash$imm(((base.List_1)rt.ListK.$self.$hash$imm()));
+      return base.Block_0.$self.$hash$imm(rt.ListK.asShallowClone(((base.List_1)rt.ListK.$self.$hash$imm()), test.Fear[###]$_0.$self));
     }
     }
     """, "/test/Test_0.java", """

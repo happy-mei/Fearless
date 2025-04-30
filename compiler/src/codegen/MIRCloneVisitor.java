@@ -97,4 +97,12 @@ public interface MIRCloneVisitor extends MIRVisitor<MIR.E> {
       expr.else_()
     );
   }
+
+  @Override default MIR.E visitUpdatableListAsIdFnCall(MIR.UpdatableListAsIdFnCall call, boolean checkMagic) {
+    var e = call.e().accept(this, checkMagic);
+    if (e instanceof MIR.MCall mCall) {
+      return new MIR.UpdatableListAsIdFnCall(mCall);
+    }
+    return e.accept(this, checkMagic);
+  }
 }
