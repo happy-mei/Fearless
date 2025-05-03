@@ -1807,24 +1807,18 @@ public class TestJavaProgram {
     }
     Expr: {#[A](alg: ExprAlg[A]): A}
     
-    Value: {.eval: Nat}
-    Values: F[Nat,Value]{n -> {n}}
-    
-    Eval: ExprAlg[Value]{
-      .literal(n: Nat): Value -> Values#(n),
-      .add(a: Value, b: Value): Value -> Values#(a.eval + (b.eval)),
+    Eval: ExprAlg[Nat]{
+      .literal(n: Nat): Nat -> n,
+      .add(a: Nat, b: Nat): Nat -> a + b,
     }
     Format: ExprAlg[Str]{
       .literal(n: Nat): Str -> n.str,
-      .add(a: Str, b: Str): Str -> "(" + a + " + " + b + ")",
+      .add(a: Str, b: Str): Str -> "("+a +" + "+b+")",
     }
     
     TermLit5: Expr{::literal 5}
     TermLit6: Expr{::literal 6}
-    TermAdd[A]: F[ExprAlg[A], A]{ alg ->
-      alg.add(TermLit5#alg, TermLit6#alg)
-    }
-    
+    TermAdd: Expr{alg -> alg.add(TermLit5#alg, TermLit6#alg)}
     
     // --- Library B: Adding Multiplication (New Variant) ---
     ExprAlgMul[A]: ExprAlg[A]{
@@ -1832,11 +1826,11 @@ public class TestJavaProgram {
     }
     ExprMul: {#[A](alg: ExprAlgMul[A]): A}
     // Update existing operations to handle the new variant
-    EvalMul: Eval,ExprAlgMul[Value]{
-      .mul(a: Value, b: Value): Value -> Values#(a.eval * (b.eval)),
+    EvalMul: Eval,ExprAlgMul[Nat]{
+      .mul(a: Nat, b: Nat): Nat -> a * b,
     }
     FormatMul: Format,ExprAlgMul[Str]{
-      .mul(a: Str, b: Str): Str -> "(" + a + " * " + b + ")",
+      .mul(a: Str, b: Str): Str -> "("+a+" * "+b+")",
     }
     
     FullTerm: ExprMul{alg ->
@@ -1846,9 +1840,9 @@ public class TestJavaProgram {
       )
     }
     Test: Main{sys -> Block#
-      .let[Value] evalResult = {FullTerm#EvalMul}
+      .let[Nat] evalResult = {FullTerm#EvalMul}
       .let[Str] formatResult = {FullTerm#FormatMul}
-      .do {sys.io.println(evalResult.eval.str)}
+      .do {sys.io.println(evalResult.str)}
       .do {sys.io.println(formatResult)}
       .return {{}}
     }
