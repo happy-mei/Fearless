@@ -79,9 +79,17 @@ class MakeJavaProcess{
             + File.pathSeparator
             + io.cachedBase().toAbsolutePath();
     var baseCommand = Stream.of(
-            jrePath, "-cp", classpath, "--enable-preview", "-ea", entryPoint, io.entry());
-    return Stream.concat(baseCommand,
-                    io.commandLineArguments().stream())
-            .toArray(String[]::new);
+      jrePath,
+      "-cp", classpath,
+      "--enable-preview",
+      "--enable-native-access=ALL-UNNAMED",
+      "-ea",
+      entryPoint,
+      io.entry()
+    );
+    return Stream.concat(
+      baseCommand,
+      io.commandLineArguments().stream()
+    ).toArray(String[]::new);
   }
 }

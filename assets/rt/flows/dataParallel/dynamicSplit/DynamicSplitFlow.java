@@ -135,7 +135,7 @@ public final class DynamicSplitFlow {
           splitResults.add(rhsRes);
           if (!noFailures) { break; }
         } else {
-          ScopedValue.runWhere(IS_SEQUENTIALISED, null, this::forSeq);
+          ScopedValue.where(IS_SEQUENTIALISED, null).run(this::forSeq);
         }
       }
       es.addAll(splitTokens);

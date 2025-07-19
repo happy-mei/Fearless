@@ -22,8 +22,10 @@ public record JavaCompiler(Verbosity verbosity, InputOutput io){
       :"No Java compiler could be found. Please use a JDK >= 10";
     IoErr.of(()->Files.createDirectories(io.output()));
 
-    if (!compiler.getSourceVersions().contains(SourceVersion.RELEASE_23)) {//TODO: is this checking for >=23 or only for 23?
-      throw CompileError.of("Fearless code generation with the Java backend requires JDK 23 or later.");
+    // This is looser than it probably should be because we are using preview features that may break in
+    // JDK 25, but there's no way to get the _latest_ JDK version of a tool (only of the currently running JRE).
+    if (!compiler.getSourceVersions().contains(SourceVersion.RELEASE_24)) {
+      throw CompileError.of("Fearless code generation with the Java backend requires JDK 24 or later.");
     }
 
     CopyRuntimeLibs.of(io.output().toAbsolutePath());

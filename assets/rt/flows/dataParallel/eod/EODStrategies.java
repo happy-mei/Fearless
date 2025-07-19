@@ -72,7 +72,7 @@ public record EODStrategies(_Sink_1 downstream, int size, List<FlowOp_1> splitDa
           }
           spawned[knownFinishedN] = null;
         }
-        ScopedValue.runWhere(IS_SEQUENTIALISED, null, worker);
+        ScopedValue.where(IS_SEQUENTIALISED, null).run(worker);
       }
     }
 

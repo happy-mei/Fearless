@@ -6,7 +6,7 @@
     <option name="MAIN_CLASS_NAME" value="main.Main" />
     <module name="fearless" />
     <option name="PROGRAM_PARAMETERS" value="--show-internal-stack-traces --show-full-progress -e test.Test --run examples/mutBase/json" />
-    <option name="VM_PARAMETERS" value="-ea" />
+    <option name="VM_PARAMETERS" value="-ea --enable-native-access=FearlessCompiler" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="main.*" />
