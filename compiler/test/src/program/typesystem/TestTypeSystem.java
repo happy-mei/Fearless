@@ -369,36 +369,12 @@ public class TestTypeSystem {
     _NatInstance: Nat{}
     """); }
 
-  @Disabled
+
   @Test void minimalMatcher() { ok("""
     package test
     //we can have mutH matcher with mutH cases that can capture all (but mut as lent), and can only return mut as mutH :-(
     //we can have mut matcher with mut cases that can capture mut,imm,iso, can return R
-    alias base.NoMutHyg as NoMutHyg,
-    Matcher[R]:{ //Look ma, no NoMutHyg
-      mutH .get: R
-      }
-    PreR:{
-      readH .get: readH MyRes -> {},
-      }
-    MyRes:{}
-    MatcherContainer:{
-      readH .match[R](m: mutH Matcher[R]): R -> m.get
-      }
-    Usage:{
-      .direct(preR: readH PreR): readH MyRes -> MatcherContainer.match{ preR.get },
-      .indirect(r: readH MyRes): readH MyRes -> MatcherContainer.match{ r }
-      }
-    """, """
-    package base
-    NoMutHyg[X]:{}
-    """); }
-  @Test void minimalMatcher2() { ok("""
-    package test
-    //we can have mutH matcher with mutH cases that can capture all (but mut as lent), and can only return mut as mutH :-(
-    //we can have mut matcher with mut cases that can capture mut,imm,iso, can return R
-    alias base.NoMutHyg as NoMutHyg,
-    Matcher[R:*]:{ //Look ma, no NoMutHyg
+    Matcher[R:*]:{
       mut .get: R
       }
     PreR:{
@@ -412,9 +388,6 @@ public class TestTypeSystem {
       .direct(preR: mut PreR): mut MyRes -> MatcherContainer.match{ preR.get },
       .indirect(r: mut MyRes): mut MyRes -> MatcherContainer.match{ r }
       }
-    """, """
-    package base
-    NoMutHyg[X:*]:{}
     """); }
 
   @Test void aliasGenericHiding() { fail("""
@@ -1432,5 +1405,23 @@ public class TestTypeSystem {
     A: {#(a: iso A): B -> Block#(B{a}, B{a})}
     B: {#: A}
     Block: {#[X1,R](a1: X1, a2: R): R -> a2}
+    """);}
+  @Test void boundedXWithImmCanBeCapturedMultipleTimesAsImm() {ok("""
+    package a
+    A: {#[X:imm](a: X): B[X] -> Block#(B[X]{a}, B[X]{a})}
+    B[X:imm]: {#: imm X}
+    Block: {#[X1:imm, R:imm](a1: X1, a2: R): R -> a2}
+    """);}
+  @Test void boundedXWithIsoCanBeCapturedMultipleTimesAsImm() {ok("""
+    package a
+    A: {#[X: iso](a: X): B[X] -> Block#(iso B[X]{a}, iso B[X]{a})}
+    B[X: iso]: {#: imm X}
+    Block: {#[X1:iso, R:iso](a1: X1, a2: R): R -> a2}
+    """);}
+  @Test void boundedXWithIsoImmCanBeCapturedMultipleTimesAsImm() {ok("""
+    package a
+    A: {#[X: iso,imm](a: X): B[X] -> Block#(B[X]{a}, B[X]{a})}
+    B[X: iso,imm]: {#: imm X}
+    Block: {#[X1:iso,imm, R:iso,imm](a1: X1, a2: R): R -> a2}
     """);}
 }
