@@ -2,6 +2,7 @@ package main.java;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +41,23 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
       var tmp = utils.IoErr.of(()->java.nio.file.Files.createTempDirectory("fgen"));
       res.writeJavaFiles(tmp);
       System.out.println("saved to "+tmp);
+    }
+    // Write Java files to the output directory for testing purposes
+    try {
+      Path outputDir = Path.of("test/output-java");
+      // before writing, clean the output directory
+      if (Files.exists(outputDir)) {
+        Files.walk(outputDir)
+          .sorted((a, b) -> b.compareTo(a)) // reverse order to delete files before directories
+          .forEach(path -> {
+            try { Files.delete(path); } catch (IOException e) { /* ignore */ }
+          });
+      }
+      Files.createDirectories(outputDir);
+      res.writeJavaFiles(outputDir);
+      System.out.println("Java files saved to " + outputDir.toAbsolutePath());
+    } catch (IOException e) {
+      System.err.println("Failed to write java files: " + e.getMessage());
     }
     return res;
   }
