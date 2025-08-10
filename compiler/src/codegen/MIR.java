@@ -61,10 +61,12 @@ public sealed interface MIR {
         case MT.Usual usual -> new MT.Plain(usual.mdf(), usual.it().name());
       };
     }
-
-    public CreateObj(Mdf mdf, Id.DecId def) {
+    private static T makeT(Mdf mdf, Id.DecId def){
+      return new T(mdf, new Id.IT<>(def, Id.GX.standardNames(def.gen()).stream().map(gx->new T(Mdf.mdf, gx)).toList()));
+    }
+    public CreateObj(Mdf mdf, Id.DecId def) {      
       this(
-        new MT.Usual(new T(mdf, new Id.IT<>(def, Id.GX.standardNames(def.gen()).stream().map(gx->new T(Mdf.mdf, gx)).toList()))),
+        new MT.Usual(makeT(mdf,def)),
         astFull.E.X.freshName(),
         List.of(),
         List.of(),
