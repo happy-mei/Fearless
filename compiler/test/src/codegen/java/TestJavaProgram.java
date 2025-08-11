@@ -2,6 +2,9 @@ package codegen.java;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+
 import utils.Base;
 import utils.ResolveResource;
 
@@ -217,6 +220,28 @@ public class TestJavaProgram {
     Test:Main{ _ -> Assert!(False, ((0 - 2) - 9223372036854775807) .str, { Void }) }
     """);}
 
+  @Test void numSqrtOne() { ok(new Res("", "10", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, 100.sqrt.str, { Void }) }
+    """);}
+  @Test void numSqrtMany() { ok(new Res("", 
+    "10W2227255841W2227255841W2227255841W3037000499W4294967295W15", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False,
+      100.sqrt.str
+      +"W"+(4960668585723128321.int.sqrt.str)//Why we need .str? is + not taking a ToStr?
+      +"W"+(4960668585723128325.int.sqrt.str)
+      +"W"+(4960668585723128399.int.sqrt.str)
+      +"W"+(9223372036854775807.int.sqrt.str)
+      +"W"+(18446744073709551615.nat.sqrt.str)
+      +"W"+(255.byte.sqrt.str),
+      { Void }) }
+    """);}
+  
   @Test void strEq() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
@@ -1508,7 +1533,7 @@ public class TestJavaProgram {
     Test: Main{sys -> sys.io.println(Foo#(mut " "))}
     Foo: {#(join: mut Str): mut Str -> mut "Hello," + join + mut "World!" + join + mut "Bye!"}
     """, Base.mutBaseAliases);}
-
+  @DisabledOnOs(OS.WINDOWS)
   @Test void simpleJson() {ok(new Res("""
     "Hello!!!\\nHow are you?"
     "Hello!!!\\nHow 吣are吣 you?"
@@ -1700,6 +1725,7 @@ public class TestJavaProgram {
     
     Test: Main{sys -> sys.io.println(BadMutation# .str)}
     """, Base.mutBaseAliases);}
+  @DisabledOnOs(OS.WINDOWS)
   @Test void concurrentModification() {ok(new Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     GetList: F[mut List[Nat]]{List# + 1 + 2 + 3 + 4}

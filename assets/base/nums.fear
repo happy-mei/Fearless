@@ -32,6 +32,7 @@ _MathOps[T]: Sealed{
   /(n: T): T,
   %(n: T): T,
   .abs: T,
+  .sqrt: T,
 
   // Comparisons
   >(n: T): Bool,
@@ -72,6 +73,7 @@ _IntInstance: Int{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .sqrt -> Magic!,
 
   // bitwise
   .shiftLeft(n) -> Magic!,
@@ -104,6 +106,7 @@ _NatInstance: Nat{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .sqrt -> Magic!,
   .offset(n) -> Magic!,
 
   // bitwise
@@ -137,6 +140,7 @@ _ByteInstance: Byte{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .sqrt -> Magic!,
   .offset(n) -> Magic!,
 
   // bitwise
@@ -177,6 +181,7 @@ _FloatInstance: Float{
   %(n) -> Magic!,
   **(n) -> Magic!,
   .abs -> Magic!,
+  .sqrt -> Magic!,
   // Comparisons
   >n -> Magic!,
   <n -> Magic!,
