@@ -1,12 +1,16 @@
 package tour;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+
 import utils.Base;
 import utils.RunOutput;
 
 import static codegen.java.RunJavaProgramTests.ok;
 
 public class Ex25ErrorsTest {
+  @DisabledOnOs(OS.WINDOWS)//LOOP
   @Test void uncaughtStackOverflow() { ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test:Main {sys -> Loop!}
@@ -90,7 +94,7 @@ public class Ex25ErrorsTest {
       .return {{}}
       }
     """, Base.mutBaseAliases); }
-
+  @DisabledOnOs(OS.WINDOWS)//LOOP
   @Test void cannotCatchStackOverflow() { ok(new RunOutput.Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test:Main{s ->

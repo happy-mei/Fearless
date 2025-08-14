@@ -2,6 +2,9 @@ package flows;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+
 import utils.Base;
 
 import static codegen.java.RunJavaProgramTests.ok;
@@ -219,6 +222,7 @@ public class TestFlowSemantics {
       }
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
+  @DisabledOnOs(OS.WINDOWS)//LOOP
   @Test void throwInAFlowAfterStopParND() {ok(new Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#
@@ -236,7 +240,7 @@ public class TestFlowSemantics {
       }
     StackOverflow: {#[R]: R -> this#}
     """, Base.mutBaseAliases);}
-
+  @DisabledOnOs(OS.WINDOWS)//LOOP
   @Test void throwInAFlowBeforeStopSeqND() {ok(new Res("", "Program crashed with: Stack overflowed[###]", 1), """
     package test
     Test: Main{sys -> Block#

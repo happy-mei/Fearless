@@ -124,7 +124,7 @@ public class TestJavaOptimisations {
       var n_m$ = 5L;
     var n2_m$ = 10L;
     var n3_m$ = base.Vars_0.$self.$hash$imm(15L);
-    if ((((long)((long)n3_m$.get$mut()))==((long)((long)((long)n_m$)) + n2_m$)?base.True_0.$self:base.False_0.$self) == base.True_0.$self) { rt.Error.throwFearlessError(base.Infos_0.$self.msg$imm(str$3882878235102293474$str$.$self));
+    if (rt.Numbers.toBool(((long)((long)n3_m$.get$mut()))==((long)((long)((long)n_m$)) + n2_m$)) == base.True_0.$self) { rt.Error.throwFearlessError(base.Infos_0.$self.msg$imm(str$3882878235102293474$str$.$self));
      }
     var doRes1 = test.ForceGen_0.$self.$hash$imm();
     return base.Void_0.$self;
