@@ -48,16 +48,19 @@ public class Id {
     public String pkg() { return _pkg(name); }
     private static String _pkg(String name) {
       //TODO: Nick, the below should be the new way of doing it
-//      return FullEAntlrVisitor.extractPackageName(name);
+      //return FullEAntlrVisitor.extractPackageName(name);
       //and use substring instead of group2 for the simpleName.
       //But, If I do it, other stuff breaks. Also may be connected with the confusing 
       //      .filter(tr->!tr.equals(fullName))//TODO: remove when fixed
       //in JavaSingleCodeGen line 49
-      var pkg = OneOr.of("Malformed package: "+name, pkgRegex.matcher(name).results()).group(1);
+      var pkg = OneOr.of("Malformed package: ["+name+"]", pkgRegex.matcher(name).results()).group(1);
       return pkg.substring(0, pkg.length() - 1);
     }
     public String shortName() {
-      return OneOr.of("Malformed package", pkgRegex.matcher(name).results()).group(2);
+      //TODO: same discussion
+      //var l= FullEAntlrVisitor.extractPackageName(name).length();
+      //return name.substring(l+1);??
+      return OneOr.of("Malformed package: ["+name+"]", pkgRegex.matcher(name).results()).group(2);
     }
     @Override public String toString() {
       return String.format("%s/%d", name, gen);

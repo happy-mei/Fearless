@@ -1,4 +1,9 @@
 package base
+
+BoolMatch[R:**]:{
+  mut .true: R,
+  mut .false: R,
+  }
 Bool: Sealed,Stringable,ToImm[Bool]{
   .and(b: Bool): Bool,
   &&(b: mut MF[Bool]): Bool,
@@ -9,6 +14,7 @@ Bool: Sealed,Stringable,ToImm[Bool]{
   .not: Bool,
   .if[R:**](f: mut ThenElse[R]): R,
   ?[R:**](f: mut ThenElse[R]): R -> this.if(f),
+  .match[R](m: mut BoolMatch[R]): R -> this?{.then->m.true, .else->m.false},
   }
 True: Bool{
   .and(b) -> b,
