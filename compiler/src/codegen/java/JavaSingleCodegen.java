@@ -275,7 +275,7 @@ public class JavaSingleCodegen implements MIRVisitor<String> {
       .get();
     byte[] utf8=javaStr.getBytes(StandardCharsets.UTF_8);
     var buf = ByteBuffer.allocateDirect(utf8.length).put(utf8).position(0).asReadOnlyBuffer();
-    var recordName = ("str$"+Long.toUnsignedString(NativeRuntime.hashString(buf), 10)+"$str$");
+    var recordName = ("Str$"+Long.toUnsignedString(NativeRuntime.hashString(buf), 10)+"$Str$");
     if (!this.freshRecords.containsKey(id)) {
       var utf8Array = IntStream.range(0, utf8.length).mapToObj(i->Byte.toString(utf8[i])).collect(Collectors.joining(","));
       // We do not need to run validateStringOrThrow because Java will never produce an invalid UTF-8 str with getBytes.

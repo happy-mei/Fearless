@@ -29,7 +29,7 @@ final class StringIds{
     //Here instead I'm actually not sure what the best way is.
     //What do we want our identifiers to be?
   }
-  public String getFullName(Id.DecId d) {
+  public String getFullName(Id.DecId d){ 
     return d.pkg()+"."+getSimpleName(d);
   }
   public String getSimpleName(Id.DecId d) {

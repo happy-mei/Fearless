@@ -124,7 +124,7 @@ public class TestJavaOptimisations {
       var n_m$ = 5L;
     var n2_m$ = 10L;
     var n3_m$ = base.Vars_0.$self.$hash$imm(15L);
-    if (rt.Numbers.toBool(((long)((long)n3_m$.get$mut()))==((long)((long)((long)n_m$)) + n2_m$)) == base.True_0.$self) { rt.Error.throwFearlessError(base.Infos_0.$self.msg$imm(str$3882878235102293474$str$.$self));
+    if (rt.Numbers.toBool(((long)((long)n3_m$.get$mut()))==((long)((long)((long)n_m$)) + n2_m$)) == base.True_0.$self) { rt.Error.throwFearlessError(base.Infos_0.$self.msg$imm(Str$3882878235102293474$Str$.$self));
      }
     var doRes1 = test.ForceGen_0.$self.$hash$imm();
     return base.Void_0.$self;
@@ -229,7 +229,7 @@ public class TestJavaOptimisations {
         if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
         if (res instanceof base.ControlFlowReturn_1 rv) { return (rt.Str) rv.value$mut(); }
       }
-    return str$1004811944375518034$str$.$self;
+    return Str$1004811944375518034$Str$.$self;
     }
     }
     """, "test/Foo_0.java", """
@@ -259,7 +259,7 @@ public class TestJavaOptimisations {
         if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
         if (res instanceof base.ControlFlowReturn_1 rv) { return (rt.Str) rv.value$mut(); }
       }
-    return str$1004811944375518034$str$.$self;
+    return Str$1004811944375518034$Str$.$self;
     }
     }
     """, "test/Foo_0.java", """
@@ -291,7 +291,7 @@ public class TestJavaOptimisations {
     Test_0 $self = new Test_0Impl();
     base.Void_0 $hash$imm(base.caps.System_0 sys_m$);
     static base.Void_0 $hash$imm$fun(base.caps.System_0 sys_m$, test.Test_0 $this) {
-      return sys_m$.io$mut().println$mut(((rt.Str)((base.flows.Flow_1)((base.flows.Flow_1)rt.flows.FlowCreator.fromFlow(rt.flows.dataParallel.DataParallelFlowK.$self, str$3297469917561599766$str$.$self.flow$imm())).map$mut(test.Fear[###]$_0.$self)).join$mut(str$14492805990617963705$str$.$self)));
+      return sys_m$.io$mut().println$mut(((rt.Str)((base.flows.Flow_1)((base.flows.Flow_1)rt.flows.FlowCreator.fromFlow(rt.flows.dataParallel.DataParallelFlowK.$self, Str$3297469917561599766$Str$.$self.flow$imm())).map$mut(test.Fear[###]$_0.$self)).join$mut(Str$14492805990617963705$Str$.$self)));
     }
     }
     """, "/test/Test_0.java", """
