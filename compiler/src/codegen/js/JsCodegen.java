@@ -18,10 +18,10 @@ public class JsCodegen implements MIRVisitor<String> {
   protected final MIR.Program p;
   private final JsMagicImpls magic;
   private final codegen.js.TypeIds typeIds;
-  public final HashMap<Id.DecId, String> freshClasses= new HashMap<>();
   public final StringIds id = new StringIds();
-  private final Map<String, StringBuilder> packageFiles = new HashMap<>();
-  private String currentPackage;
+//  public final HashMap<Id.DecId, String> freshClasses= new HashMap<>();
+//  private final Map<String, StringBuilder> packageFiles = new HashMap<>();
+//  private String currentPackage;
 
   /*
    * To add as runtime code files:
@@ -34,72 +34,66 @@ public class JsCodegen implements MIRVisitor<String> {
     this.typeIds = new TypeIds(magic, id);
   }
 
-  public String visitProgram(Id.DecId entry) {
-    var pkgs = p.pkgs().stream()
-      .map(this::visitPackage)
-      .collect(Collectors.joining("\n"));
-
-    return pkgs;
-  }
-
-  public Map<String, String> getPackageFiles() {
-    Map<String, String> result = new HashMap<>();
-    packageFiles.forEach((pkg, content) ->
-      result.put(pkg, content.toString()));
-    return result;
-  }
-
-  public void processAllPackages() {
-    p.pkgs().forEach(this::visitPackage);
-  }
-
-  public String visitPackage(MIR.Package pkg) {
-    this.currentPackage = pkg.name();
-
-    StringBuilder pkgContent = packageFiles.computeIfAbsent(currentPackage,
-      k -> new StringBuilder()
-        .append("// Package: ").append(currentPackage).append("\n"));
-
-    // Process type definitions
-    pkg.defs().values().forEach(def -> {
-      List<MIR.Fun> funs = pkg.funs().stream()
-        .filter(f -> f.name().d().equals(def.name()))
-        .collect(Collectors.toList());
-
-      String defCode = visitTypeDef(pkg.name(), def, funs);
-      if (!defCode.isEmpty()) {
-        pkgContent.append(defCode).append("\n");
-      }
-    });
-
-    // Process functions
-    pkg.funs().forEach(fun -> {
-      pkgContent.append(visitFun(fun)).append("\n");
-    });
-
-    return "";
-  }
+  public String visitProgram(Id.DecId entry){ throw Bug.unreachable(); }
+  public String visitPackage(MIR.Package pkg){ throw Bug.unreachable(); }
 
   // Generate a JS function for the type with all its methods
   public String visitTypeDef(String pkg, MIR.TypeDef def, List<MIR.Fun> funs) {
     if (def.singletonInstance().isEmpty()) {
-      return ""; // no singleton instance means no code to generate
+      return "";
     }
-    var simpleName = id.getSimpleName(def.name()); // e.g. "Test_0"
-    // Generate all methods as properties of $self
-    var methods = funs.stream()
-      .map(this::visitFun) // visitFun will produce "methodName: function(...) { ... }"
-      .collect(Collectors.joining(",\n    "));
+
+    String name = id.getSimpleName(def.name());
+    String methods = funs.stream()
+      .map(this::visitFun)
+      .collect(Collectors.joining("\n    "));
+
+    // Only import types that:
+    // 1. Are from different packages
+    // 2. Aren't string literals
+    // 3. Are actually referenced in code
+    Set<String> imports = new LinkedHashSet<>();
+
+    // Check extended interfaces
+    def.impls().stream()
+      .map(impl -> impl.id())
+      .filter(id -> !id.pkg().equals(pkg))
+      .forEach(id -> imports.add(createImport(id)));
+
+    // Check return types
+    funs.stream()
+      .map(fun -> fun.ret())
+      .filter(ret -> ret.name().isPresent())
+      .map(ret -> ret.name().get())
+      .filter(id -> {
+//        System.out.println(id.name());
+        return !id.name().contains("uStrLit");
+      })// Bug to fix: utils.OneOr$OneOrException: Malformed package: base.uStrLit."\\\\" at utils.OneOr.lambda$of$1(OneOr.java:12)
+      .filter(id -> !id.pkg().equals(pkg))
+      .forEach(id -> imports.add(createImport(id)));
+
+    String importSection = String.join("\n", imports);
 
     return """
-      function %s() {
-        return {
-          $self: {
+        %s
+        export class %s {
+            static $self = new %s();
             %s
-          }
-        };
-      }
-      """.formatted(simpleName, methods);
+        }
+        """.formatted(
+      importSection.isEmpty() ? "" : importSection + "\n",
+      name,
+      name,
+      methods);
+  }
+
+  private String createImport(Id.DecId typeId) {
+    String typeName = id.getSimpleName(typeId);
+    String pkgPath = typeId.pkg().replace(".", "/");
+    if (pkgPath.equals("rt")) {
+      return "import { " + typeName + " } from '../rt/main.js';";
+    }
+    return "import { " + typeName + " } from '../" + pkgPath + "/" + typeName + ".js';";
   }
 
   public String visitMeth(MIR.Meth meth) {
@@ -118,31 +112,30 @@ public class JsCodegen implements MIRVisitor<String> {
     ).collect(Collectors.joining(", "));
 
     return """
-            %s(%s) { 
-                return %s(%s); 
-            }
-            """.formatted(methName, args, id.getFunName(meth.fName().orElseThrow()), funArgs);
+        %s(%s) {
+            return %s(%s);
+        }
+        """.formatted(methName, args, id.getFunName(meth.fName().orElseThrow()), funArgs);
   }
 
   public String visitFun(MIR.Fun fun) {
-    var funName = id.getFunName(fun.name()); // sanitized function name (e.g., Test_0$$35$imm or better)
+    // Get function name - need to see how MName is constructed in your code
+    // Assuming there's a way to get the method name from the Fun record
+    var funName = id.getFunName(fun.name()); // or another way to get the name
+
     var args = fun.args().stream()
-      .map(x -> x.name())
+      .map(MIR.X::name)
       .collect(Collectors.joining(", "));
 
     var bodyExpr = fun.body();
     var bodyStr = bodyExpr.accept(this, true);
 
-    // If the body is a Block (statements), emit the block as-is; otherwise emit a return expression.
     if (bodyExpr instanceof MIR.Block) {
-      // bodyStr already contains statements with semicolons & returns
-      return "%s: function(%s) { %s }".formatted(funName, args, bodyStr);
+      return "%s(%s) { %s }".formatted(funName, args, bodyStr);
     } else {
-      // single expression -> return <expr>;
-      return "%s: function(%s) { return %s; }".formatted(funName, args, bodyStr);
+      return "%s(%s) { return %s; }".formatted(funName, args, bodyStr);
     }
   }
-
 
   @Override
   public String visitBlockExpr(MIR.Block expr, boolean checkMagic) {
@@ -226,22 +219,27 @@ public class JsCodegen implements MIRVisitor<String> {
   }
 
 
-  @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
-    if (magic.isMagic(Magic.Str, createObj.concreteT().id())) { // line 130
+  @Override
+  public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
+    if (magic.isMagic(Magic.Str, createObj.concreteT().id())) {
       return visitStringLiteral(createObj);
     }
-
     var magicImpl = magic.get(createObj);
     if (checkMagic && magicImpl.isPresent()) {
       var res = magicImpl.get().instantiate();
       if (res.isPresent()) { return res.get(); }
     }
-
     var id = createObj.concreteT().id();
-    if (p.of(id).singletonInstance().isPresent()) {
-      return getName(id)+"Impl";
+    var className = getName(id);
+    if (createObj.captures().isEmpty()) {
+      return className + ".$self";
     }
-    return visitCreateObjNoSingleton(createObj, checkMagic);
+    // For non-singleton cases with captures, create a new instance
+    var captures = createObj.captures().stream()
+      .map(x -> visitX(x, checkMagic))
+      .collect(Collectors.joining(", "));
+
+    return "new " + className + "(" + captures + ")";
   }
 
   // Converts string literals to JS strings, handling mutability and escaping
@@ -270,35 +268,35 @@ public class JsCodegen implements MIRVisitor<String> {
       .replace("\f", "\\f") + "\"";
   }
 
-  public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic) {
-    var name = createObj.concreteT().id();
-    var className = id.getSimpleName(name)+"Impl";
-    if (!this.freshClasses.containsKey(name)) {
-      var capturesArgs = createObj.captures().stream().map(x->visitX(x, checkMagic)).collect(Collectors.joining(", "));
-      var capturesAsFields = createObj.captures().stream()
-        .map(x->visitX(x, checkMagic))
-        .map(x->"this."+x+" = "+x+";")
-        .collect(Collectors.joining("\n"));
-      var ms = createObj.meths().stream()
-        .map(this::visitMeth)
-        .collect(Collectors.joining("\n"));
-
-      var constructor = createObj.captures().isEmpty() ? "" : """
-        constructor(%s) {
-            %s
-        }
-        """.formatted(capturesArgs, capturesAsFields);
-
-      this.freshClasses.put(name, """
-        class %s {
-          %s
-          %s
-        }
-        """.formatted(className, constructor, ms));
-    }
-    var captures = createObj.captures().stream().map(x->visitX(x, checkMagic)).collect(Collectors.joining(", "));
-    return "new "+className+"("+captures+")";
-  }
+//  public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic) {
+//    var name = createObj.concreteT().id();
+//    var className = id.getSimpleName(name)+"Impl";
+//    if (!this.freshClasses.containsKey(name)) {
+//      var capturesArgs = createObj.captures().stream().map(x->visitX(x, checkMagic)).collect(Collectors.joining(", "));
+//      var capturesAsFields = createObj.captures().stream()
+//        .map(x->visitX(x, checkMagic))
+//        .map(x->"this."+x+" = "+x+";")
+//        .collect(Collectors.joining("\n"));
+//      var ms = createObj.meths().stream()
+//        .map(this::visitMeth)
+//        .collect(Collectors.joining("\n"));
+//
+//      var constructor = createObj.captures().isEmpty() ? "" : """
+//        constructor(%s) {
+//            %s
+//        }
+//        """.formatted(capturesArgs, capturesAsFields);
+//
+//      this.freshClasses.put(name, """
+//        class %s {
+//          %s
+//          %s
+//        }
+//        """.formatted(className, constructor, ms));
+//    }
+//    var captures = createObj.captures().stream().map(x->visitX(x, checkMagic)).collect(Collectors.joining(", "));
+//    return "new "+className+"("+captures+")";
+//  }
 
   @Override public String visitX(MIR.X x, boolean checkMagic) {
     return id.varName(x.name());

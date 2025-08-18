@@ -53,6 +53,7 @@ public class Id {
       //But, If I do it, other stuff breaks. Also may be connected with the confusing 
       //      .filter(tr->!tr.equals(fullName))//TODO: remove when fixed
       //in JavaSingleCodeGen line 49
+//      System.out.println(name);
       var pkg = OneOr.of("Malformed package: "+name, pkgRegex.matcher(name).results()).group(1);
       return pkg.substring(0, pkg.length() - 1);
     }

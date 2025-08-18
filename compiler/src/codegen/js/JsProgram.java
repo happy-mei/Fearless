@@ -3,82 +3,86 @@ package codegen.js;
 import codegen.MIR;
 import main.js.LogicMainJs;
 import utils.IoErr;
+import utils.ResolveResource;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public record JsProgram(List<JsFile> files) {
   public JsProgram(LogicMainJs main, MIR.Program program) {
-    this(new ToJsProgram(main, program).generateFiles());
+    this(new ToJsProgram(main, program).of());
   }
 
   public void writeJsFiles(Path output) {
     IoErr.of(() -> _writeJsFiles(output));
   }
 
-  private void _writeJsFiles(Path output) throws IOException {
-    for (var file : files) {
-      // Combine package path + filename into full path
-      Path filePath = output.resolve(file.pkgPath()).resolve(file.name());
+  private void _writeJsFiles(Path output) throws IOException {for (var file : files) {
+    Path fullPath = output.resolve(file.path());
 
-      // Ensure *parent* directories exist (works even if pkgPath has slashes)
-      Files.createDirectories(filePath.getParent());
-
-      Files.write(filePath, file.code().getBytes());
+    // Special handling for WASM files
+    if (file.path().startsWith("rt/libwasm")) {
+      Files.createDirectories(fullPath.getParent());
+      Files.write(fullPath, file.code().getBytes(StandardCharsets.ISO_8859_1),
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING);
+      continue;
     }
+
+    // Normal JS files
+    Files.createDirectories(fullPath.getParent());
+    Files.write(fullPath, file.code().getBytes(),
+      StandardOpenOption.CREATE,
+      StandardOpenOption.TRUNCATE_EXISTING);
+  }
   }
 }
 
 record ToJsProgram(LogicMainJs main, MIR.Program program) {
-  public List<JsFile> generateFiles() {
+  public List<JsFile> of(){
+    ArrayList<JsFile> jsFiles = generateFiles();
+    List<JsFile> magicFiles =main.io().magicJsFiles();
+    assert !magicFiles.isEmpty() : "Failed to read magic files";
+    jsFiles.addAll(magicFiles);
+    return Collections.unmodifiableList(jsFiles);
+  }
+  public ArrayList<JsFile> generateFiles() {
     var jsFiles = new ArrayList<JsFile>();
     var gen = new JsCodegen(program);
 
     for (MIR.Package pkg : program.pkgs()) {
       if (main.cachedPkg().contains(pkg.name())) continue;
 
+      String pkgPath = pkg.name().replace(".", "/") + "/";
+
       for (MIR.TypeDef def : pkg.defs().values()) {
-        // Find all functions whose name matches def's name
-        var funs = pkg.funs().stream()
+        var funsList = pkg.funs().stream()
           .filter(f -> f.name().d().equals(def.name()))
           .toList();
-        String code = gen.visitTypeDef(pkg.name(), def, funs);
+        String code = gen.visitTypeDef(pkg.name(), def, funsList);
         if (code.isEmpty()) continue;
-        String simpleName = gen.id.getSimpleName(def.name()); // → Test_0
-        String fileName = simpleName + ".js";                 // → Test_0.js
-        String filePath = pkg.name().replace(".", "/");
-        JsFile jsFile = createJsFile(filePath, fileName, code);
-        jsFiles.add(jsFile);
+        String fileName = gen.id.getSimpleName(def.name()) + ".js";
+        Path filePath = Path.of(pkgPath).resolve(fileName);
+        jsFiles.add(new JsFile(filePath, code));
       }
     }
-    // Add any generated classes (from visitCreateObjNoSingleton)
-    for (var e : gen.freshClasses.entrySet()) {
-      var decId = e.getKey();
-      String pkg = e.getKey().pkg();
-      String name = gen.id.getSimpleName(decId) + "Impl.js";
-      String filePath = pkg.replace(".", "/");
-      String content = e.getValue();
-      JsFile classFile = createJsFile(filePath, name, content);
-      jsFiles.add(classFile);
-    }
 
-    return Collections.unmodifiableList(jsFiles);
+    // Handle generated implementation classes
+//      for (var e : gen.freshClasses.entrySet()) {
+//        String implFileName = gen.id.getSimpleName(e.getKey()) + "Impl.js";
+//        Path implFilePath = Path.of(pkgPath).resolve(implFileName);
+//        jsFiles.add(new JsFile(implFilePath, e.getValue()));
+//      }
+    return jsFiles;
   }
 
-  private JsFile createJsFile(String pkgPath, String fileName, String content) {
-    return new JsFile(pkgPath, fileName, content);
-  }
-}
-
-record JsFile(String pkgPath, String fileName, String code) {
-  public String name() { return fileName; }
-
-  public Object toUri() {
-    var path = Path.of(pkgPath, fileName);
-    return path.toUri();
+  private JsFile createJsFile(Path p, String content) {
+    return new JsFile(p, content);
   }
 }

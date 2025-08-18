@@ -16,6 +16,7 @@ import main.CompilerFrontEnd.Verbosity;
 import main.InputOutput;
 import main.FullLogicMain;
 import program.typesystem.TsT;
+import utils.Bug;
 
 public interface LogicMainJs extends FullLogicMain<JsProgram> {
   @Override
@@ -38,22 +39,24 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
   default JsProgram codeGeneration(MIR.Program mir) {
     var res = new JsProgram(this, mir);
 
-    // Write Js files to the output directory for testing purposes
-    try {
-      Path outputDir = Path.of("test/output-js");
-      // before writing, clean the output directory
-      if (Files.exists(outputDir)) {
-        Files.walk(outputDir)
-          .sorted((a, b) -> b.compareTo(a)) // reverse order to delete files before directories
-          .forEach(path -> {
-            try { Files.delete(path); } catch (IOException e) { /* ignore */ }
-          });
+    if (verbosity().printCodegen()) {
+      // Write Js files to the output directory for testing purposes
+      try {
+        Path outputDir = Path.of("test/output-js");
+        // before writing, clean the output directory
+        if (Files.exists(outputDir)) {
+          Files.walk(outputDir)
+            .sorted((a, b) -> b.compareTo(a)) // reverse order to delete files before directories
+            .forEach(path -> {
+              try {Files.delete(path);} catch (IOException e) { /* ignore */ }
+            });
+        }
+        Files.createDirectories(outputDir);
+        res.writeJsFiles(outputDir);
+        System.out.println("Js files saved to " + outputDir.toAbsolutePath());
+      } catch (IOException e) {
+        System.err.println("Failed to write java files: " + e.getMessage());
       }
-      Files.createDirectories(outputDir);
-      res.writeJsFiles(outputDir);
-      System.out.println("Js files saved to " + outputDir.toAbsolutePath());
-    } catch (IOException e) {
-      System.err.println("Failed to write java files: " + e.getMessage());
     }
     return res;
   }
@@ -65,7 +68,8 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
 
   @Override
   default ProcessBuilder execution(JsProgram exe) {
-    return new ProcessBuilder("node", io().output().resolve("main.js").toString());
+    throw Bug.todo();
+//    return new ProcessBuilder("node", io().output().resolve("main.js").toString());
   }
 
   static LogicMainJs of(InputOutput io, Verbosity verbosity) {
