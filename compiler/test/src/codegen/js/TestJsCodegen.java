@@ -38,13 +38,15 @@ public class TestJsCodegen {
   }
   @Test void emptyProgram() {
     ok("""
-    import { Main_0 } from '../base/Main_0.js';
-    import { Void_0 } from '../base/Void_0.js';
-    
-    export class Test_0 extends Main_0 {
+    class Test_0 extends base.Main_0 {
         static $self = new Test_0();
-        $hash$imm(fear$_m$) {
-            return Void_0.$self;
+    
+        $hash$imm(fear[###]$_m$) {
+            return base.Void_0.$self;
+        }
+    
+        static $hash$imm$fun(fear[###]$_m$, $this) {
+            return $this.$hash$imm(fear[###]$_m$);
         }
     }
      """,

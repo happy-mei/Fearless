@@ -40,23 +40,9 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
     var res = new JsProgram(this, mir);
 
     if (verbosity().printCodegen()) {
-      // Write Js files to the output directory for testing purposes
-      try {
-        Path outputDir = Path.of("test/output-js");
-        // before writing, clean the output directory
-        if (Files.exists(outputDir)) {
-          Files.walk(outputDir)
-            .sorted((a, b) -> b.compareTo(a)) // reverse order to delete files before directories
-            .forEach(path -> {
-              try {Files.delete(path);} catch (IOException e) { /* ignore */ }
-            });
-        }
-        Files.createDirectories(outputDir);
-        res.writeJsFiles(outputDir);
-        System.out.println("Js files saved to " + outputDir.toAbsolutePath());
-      } catch (IOException e) {
-        System.err.println("Failed to write java files: " + e.getMessage());
-      }
+      var tmp = utils.IoErr.of(()->java.nio.file.Files.createTempDirectory("fgenjs"));
+      res.writeJsFiles(tmp);
+      System.out.println("saved to "+tmp);
     }
     return res;
   }

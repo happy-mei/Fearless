@@ -52,36 +52,35 @@ public class JsCodegen implements MIRVisitor<String> {
     // 1. Are from different packages
     // 2. Aren't string literals
     // 3. Are actually referenced in code
-    Set<String> imports = new LinkedHashSet<>();
+//    Set<String> imports = new LinkedHashSet<>();
+//
+//    // Check extended interfaces
+//    def.impls().stream()
+//      .map(impl -> impl.id())
+//      .filter(id -> !id.pkg().equals(pkg))
+//      .forEach(id -> imports.add(createImport(id)));
+//
+//    // Check return types
+//    funs.stream()
+//      .map(fun -> fun.ret())
+//      .filter(ret -> ret.name().isPresent())
+//      .map(ret -> ret.name().get())
+//      .filter(id -> {
+////        System.out.println(id.name());
+//        return !id.name().contains("uStrLit");
+//      })// Bug to fix: utils.OneOr$OneOrException: Malformed package: base.uStrLit."\\\\" at utils.OneOr.lambda$of$1(OneOr.java:12)
+//      .filter(id -> !id.pkg().equals(pkg))
+//      .forEach(id -> imports.add(createImport(id)));
 
-    // Check extended interfaces
-    def.impls().stream()
-      .map(impl -> impl.id())
-      .filter(id -> !id.pkg().equals(pkg))
-      .forEach(id -> imports.add(createImport(id)));
-
-    // Check return types
-    funs.stream()
-      .map(fun -> fun.ret())
-      .filter(ret -> ret.name().isPresent())
-      .map(ret -> ret.name().get())
-      .filter(id -> {
-//        System.out.println(id.name());
-        return !id.name().contains("uStrLit");
-      })// Bug to fix: utils.OneOr$OneOrException: Malformed package: base.uStrLit."\\\\" at utils.OneOr.lambda$of$1(OneOr.java:12)
-      .filter(id -> !id.pkg().equals(pkg))
-      .forEach(id -> imports.add(createImport(id)));
-
-    String importSection = String.join("\n", imports);
+//    String importSection = String.join("\n", imports);
 
     return """
-        %s
-        export class %s {
+        class %s {
             static $self = new %s();
             %s
         }
         """.formatted(
-      importSection.isEmpty() ? "" : importSection + "\n",
+//      importSection.isEmpty() ? "" : importSection + "\n",
       name,
       name,
       methods);
@@ -117,11 +116,8 @@ public class JsCodegen implements MIRVisitor<String> {
         }
         """.formatted(methName, args, id.getFunName(meth.fName().orElseThrow()), funArgs);
   }
-
   public String visitFun(MIR.Fun fun) {
-    // Get function name - need to see how MName is constructed in your code
-    // Assuming there's a way to get the method name from the Fun record
-    var funName = id.getFunName(fun.name()); // or another way to get the name
+    var funName = id.getFunName(fun.name());
 
     var args = fun.args().stream()
       .map(MIR.X::name)
@@ -130,12 +126,21 @@ public class JsCodegen implements MIRVisitor<String> {
     var bodyExpr = fun.body();
     var bodyStr = bodyExpr.accept(this, true);
 
+    String instanceMethod;
     if (bodyExpr instanceof MIR.Block) {
-      return "%s(%s) { %s }".formatted(funName, args, bodyStr);
+      instanceMethod = "%s(%s) { %s }".formatted(funName, args, bodyStr);
     } else {
-      return "%s(%s) { return %s; }".formatted(funName, args, bodyStr);
+      instanceMethod = "%s(%s) { return %s; }".formatted(funName, args, bodyStr);
     }
+
+    // Add the forwarding static method
+    String forwarder =
+      "static %s$fun(%s, $this) { return $this.%s(%s); }"
+        .formatted(funName, args, funName, args);
+
+    return instanceMethod + "\n\n    " + forwarder;
   }
+
 
   @Override
   public String visitBlockExpr(MIR.Block expr, boolean checkMagic) {
