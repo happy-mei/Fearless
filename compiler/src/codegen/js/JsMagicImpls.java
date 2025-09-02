@@ -14,9 +14,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements magic.MagicImpls<String> {
-
   @Override public MagicTrait<MIR.E, String> int_(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {

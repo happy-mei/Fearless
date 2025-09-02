@@ -46,27 +46,27 @@ public class TestJavaOptimisations {
     Test:base.Main{ _ -> {} }
     """);}
 
-//  @Test void blockLetDoRet() { ok("""
-//    package test;
-//    public interface Test_0 extends base.Main_0{
-//    Test_0 $self = new Test_0Impl();
-//    base.Void_0 $hash$imm(base.caps.System_0 fear[###]$_m$);
-//    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear[###]$_m$, test.Test_0 $this) {
-//      var n_m$ = 5L;
-//    var doRes1 = test.ForceGen_0.$self.$hash$imm();
-//    return base.Void_0.$self;
-//    }
-//    }
-//    """, "/test/Test_0.java", """
-//    package test
-//    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
-//    Test:base.Main {_ -> Block#
-//     .let[Int] n = {+5}
-//     .do {ForceGen#}
-//     .return {Void}
-//     }
-//    ForceGen: {#: Void -> {}}
-//    """);}
+  @Test void blockLetDoRet() { ok("""
+    package test;
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 fear[###]$_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear[###]$_m$, test.Test_0 $this) {
+      var n_m$ = 5L;
+    var doRes1 = test.ForceGen_0.$self.$hash$imm();
+    return base.Void_0.$self;
+    }
+    }
+    """, "/test/Test_0.java", """
+    package test
+    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    Test:base.Main {_ -> Block#
+     .let[Int] n = {+5}
+     .do {ForceGen#}
+     .return {Void}
+     }
+    ForceGen: {#: Void -> {}}
+    """);}
 //  @Test void blockVarDoRet() { ok("""
 //    package test;
 //    public interface Test_0 extends base.Main_0{
