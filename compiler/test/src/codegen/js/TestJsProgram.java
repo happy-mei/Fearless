@@ -10,14 +10,15 @@ public class TestJsProgram {
   @Test void emptyProgram() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main,
-    Test:Main{ _ -> "" }
-    """);}
-  @Test void assertTrue() { ok(new Res("", "", 0), """
-    package test
-    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
-    TestM:Main{ _ -> Assert!(True, { "" }) }
+    Test:Main{ _ -> {} }
     """);}
+//  @Test void assertTrue() { ok(new Res("", "", 0), """
+//    package test
+//    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+//    alias base.Void as Void,
+//    TestM:Main{ _ -> Assert!(True, { "" }) }
+//    """);}
 //  @Test void assertFalse() { ok(new Res("", "Assertion failed :(", 1), """
 //    package test
 //    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,

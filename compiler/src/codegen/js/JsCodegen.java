@@ -49,11 +49,11 @@ public class JsCodegen implements MIRVisitor<String> {
       .collect(Collectors.joining("\n    "));
 
     return """
-        class %s%s {
-            static $self = new %s();
-            %s
-        }
-        """.formatted(
+      export class %s%s {
+        static $self = new %s();
+        %s
+      }
+      """.formatted(
       name,
       parent.isEmpty() ? "" : " extends " + parent,
       name,
@@ -97,9 +97,9 @@ public class JsCodegen implements MIRVisitor<String> {
     ).collect(Collectors.joining(", "));
 
     return """
-        %s(%s) {
-            return %s(%s);
-        }""".formatted(methName, args, id.getFunName(meth.fName().orElseThrow()), funArgs);
+      %s(%s) {
+        return %s(%s);
+      }""".formatted(methName, args, id.getFunName(meth.fName().orElseThrow()), funArgs);
   }
 
   public <T> String seq(Collection<T> es, Function<T,String> f, String join){
@@ -119,14 +119,14 @@ public class JsCodegen implements MIRVisitor<String> {
     String staticFun;
     if (bodyExpr instanceof MIR.Block) {
       staticFun = """
-          static %s(%s) {
-              %s;
-          }""".formatted(funName, args, bodyStr);
+        static %s(%s) {
+          %s;
+        }""".formatted(funName, args, bodyStr);
     } else {
       staticFun = """
-          static %s(%s) {
-              return %s;
-          }""".formatted(funName, args, bodyStr);
+        static %s(%s) {
+          return %s;
+        }""".formatted(funName, args, bodyStr);
     }
 
     return staticFun;

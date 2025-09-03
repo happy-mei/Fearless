@@ -47,7 +47,7 @@ public record JsProgram(List<JsFile> files) {
 record ToJsProgram(LogicMainJs main, MIR.Program program) {
   public List<JsFile> of(){
     ArrayList<JsFile> jsFiles = generateFiles();
-    List<JsFile> magicFiles =main.io().magicJsFiles();
+    List<JsFile> magicFiles = main.io().magicJsFiles();
     assert !magicFiles.isEmpty() : "Failed to read magic files";
     jsFiles.addAll(magicFiles);
     return Collections.unmodifiableList(jsFiles);
@@ -72,17 +72,6 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
         jsFiles.add(new JsFile(filePath, code));
       }
     }
-
-    // Handle generated implementation classes
-//      for (var e : gen.freshClasses.entrySet()) {
-//        String implFileName = gen.id.getSimpleName(e.getKey()) + "Impl.js";
-//        Path implFilePath = Path.of(pkgPath).resolve(implFileName);
-//        jsFiles.add(new JsFile(implFilePath, e.getValue()));
-//      }
     return jsFiles;
-  }
-
-  private JsFile createJsFile(Path p, String content) {
-    return new JsFile(p, content);
   }
 }
