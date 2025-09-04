@@ -58,8 +58,8 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
     // Write the main.js content
     try {
       String entry = io.entry();           // e.g. "test.Test"
-      String packagePath = entry.replace('.', '/') + "_0"; // -> "test/Test_0"
-      String entryTypeName = entry.substring(entry.lastIndexOf('.') + 1) + "_0"; // -> "Test_0"
+      String packagePath = entry.replace(".", "/") + "_0"; // -> "test/Test_0"
+      String entryTypeName = entry.replace(".", "__") + "_0"; // -> "test__Test_0"
       String mainJsContent = """
             import { %s } from './%s.js';
 

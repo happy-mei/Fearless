@@ -323,64 +323,17 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
     return null;
   }
 
-  @Override
-  public MagicTrait<MIR.E, String> assert_(MIR.E e) {
-    return new MagicTrait<>() {
-      @Override
-      public Optional<String> instantiate() {  return Optional.empty(); }
-
-      @Override
-      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args,
-                                   EnumSet<MIR.MCall.CallVariant> variants,
-                                   MIR.MT expectedT) {
-//        boolean isTestMode = ((JsCodegen)gen).testMode;  // Access the flag
-        if (m.equals(new Id.MethName("._fail", 0))) {
-          return Optional.of("""
-            (function() {
-             const err = new Error("Assertion failed");
-             console.error(err);
-             throw err;
-            })()
-            """);
-        }
-        if (m.equals(new Id.MethName("._fail", 1))) {
-          return Optional.of(String.format("""
-            (function() {
-             const err = new Error(%s);
-             console.error(err);
-             throw err;
-            })()
-            """, args.get(0).accept(gen, true)));
-        }
-        return Optional.empty();
-      }
-    };
-  }
-
   @Override public MagicTrait<MIR.E, String> cheapHash(MIR.E e) {
     throw Bug.todo();
   }
 
   @Override public MagicTrait<MIR.E, String> regexK(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Optional<String> instantiate() {
-        // regex literals are not "instantiated" at CreateObj time in our design;
-        // they are produced when a specific method (here '#') is called.
-        return Optional.empty();
-      }
-
-      @Override
-      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
-        // In the Java backend the regex creation method is identified as
-        // Optional.of(Mdf.imm), "#", 1  — match that same signature here.
+      @Override public Optional<String> instantiate() { return Optional.empty(); }
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
-          // Use the runtime Regex wrapper (keeps parity with Java runtime), passing
-          // the argument expression already codegen'd by the generator.
           return Optional.of("new rt.Regex(" + args.get(0).accept(gen, true) + ")");
-//          // Alternatively, if you want native JS RegExp, use:
-//           return Optional.of("new RegExp(" + args.get(0).accept(gen, true) + ")");
         }
-
         // Fallback to default behavior
         return MagicTrait.super.call(m, args, variants, expectedT);
       }
@@ -465,4 +418,81 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
     };
   }
 
+  @Override public MagicTrait<MIR.E,String> assert_(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() { return Optional.empty(); }
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        // === assert_._fail/0 ===
+        if (m.equals(new Id.MethName("._fail", 0))) {
+          return Optional.of("""
+          (() => {
+            console.error("Assertion failed :(");
+            if (typeof process !== "undefined") process.exit(1);
+            else throw new Error("Assertion failed :(");
+          })()
+          """);
+        }
+        // === assert_._fail/1 ===
+        if (m.equals(new Id.MethName("._fail", 1))) {
+          return Optional.of(String.format("""
+          (() => {
+            console.error(%s);
+            if (typeof process !== "undefined") process.exit(1);
+            else throw new Error(%s);
+          })()
+          """,
+            args.getFirst().accept(gen, true),   // printed message
+            args.getFirst().accept(gen, true)   // thrown message
+          ));
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<MIR.E,String> abort(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        return Optional.empty();
+      }
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        if (m.equals(new Id.MethName("!", 0))) {
+          return Optional.of("""
+            (function() {
+              switch(1) {
+                default: {
+                  console.error("Program aborted at:\\n" + new Error().stack);
+                  if (typeof process !== "undefined") process.exit(1);
+                  else throw new Error("Program aborted");
+                }
+              }
+            })()
+            """);
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<MIR.E,String> magicAbort(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() { return Optional.empty(); }
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        if (m.equals(new Id.MethName("!", 0))) {
+          return Optional.of("""
+            (function() {
+              switch(1) {
+                default: {
+                  console.error("No magic code was found at:\\n" + new Error().stack);
+                  if (typeof process !== "undefined") process.exit(1);
+                  else throw new Error("Program aborted");
+                }
+              }
+            })()
+            """);
+        }
+        return Optional.empty();
+      }
+    };
+  }
 }

@@ -3,6 +3,7 @@ package codegen.js;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import codegen.MIR;
 import id.Id;
@@ -19,17 +20,15 @@ final class StringIds {
       .findFirst();
   }
 
-  public String getFullName(Id.DecId d) {
-    return d.pkg()+"."+getSimpleName(d);
-  }
+  public String getFullName(Id.DecId d) { return d.pkg().replace(".", "__") + "__" + getSimpleName(d); }
 
   public String getSimpleName(Id.DecId d) {
     return getBase(d.shortName()) + "_" + d.gen();
   }
 
-  public String getFunName(MIR.FName name) {
-    return getSimpleName(name.d()) + "$" + getMName(name.mdf(), name.m());
-  }
+//  public String getFunName(MIR.FName name) {
+//    return getSimpleName(name.d()) + "$" + getMName(name.mdf(), name.m());
+//  }
 
   public String getMName(Mdf mdf, Id.MethName m) {
     return getBase(m.name()) + "$" + mdf;
@@ -58,59 +57,6 @@ final class StringIds {
       return res;
     }).collect(Collectors.joining());
   }
-
-  public String varName(String name){
-    return Optional.ofNullable(keywordsMap.get(name))
-      .orElse(name.replace("'","$")+"_m$");
-  }
-
-  private static final Map<String, String> keywordsMap = Map.ofEntries(
-    Map.entry("await", "$await"),
-    Map.entry("break", "$break"),
-    Map.entry("case", "$case"),
-    Map.entry("catch", "$catch"),
-    Map.entry("class", "$class"),
-    Map.entry("const", "$const"),
-    Map.entry("continue", "$continue"),
-    Map.entry("debugger", "$debugger"),
-    Map.entry("default", "$default"),
-    Map.entry("delete", "$delete"),
-    Map.entry("do", "$do"),
-    Map.entry("else", "$else"),
-    Map.entry("enum", "$enum"),
-    Map.entry("export", "$export"),
-    Map.entry("extends", "$extends"),
-    Map.entry("false", "$false"),
-    Map.entry("finally", "$finally"),
-    Map.entry("for", "$for"),
-    Map.entry("function", "$function"),
-    Map.entry("if", "$if"),
-    Map.entry("implements", "$implements"),
-    Map.entry("import", "$import"),
-    Map.entry("in", "$in"),
-    Map.entry("instanceof", "$instanceof"),
-    Map.entry("interface", "$interface"),
-    Map.entry("let", "$let"),
-    Map.entry("new", "$new"),
-    Map.entry("null", "$null"),
-    Map.entry("package", "$package"),
-    Map.entry("private", "$private"),
-    Map.entry("protected", "$protected"),
-    Map.entry("public", "$public"),
-    Map.entry("return", "$return"),
-    Map.entry("super", "$super"),
-    Map.entry("switch", "$switch"),
-    Map.entry("this", "$this"),
-    Map.entry("throw", "$throw"),
-    Map.entry("true", "$true"),
-    Map.entry("try", "$try"),
-    Map.entry("typeof", "$typeof"),
-    Map.entry("var", "$var"),
-    Map.entry("void", "$void"),
-    Map.entry("while", "$while"),
-    Map.entry("with", "$with"),
-    Map.entry("yield", "$yield")
-  );
   private static final Map<Integer, String> escape = Map.ofEntries(
     Map.entry((int)'_', "_"),
     Map.entry((int)'\'', "$apostrophe"),
@@ -134,5 +80,22 @@ final class StringIds {
     Map.entry((int)'=', "$equals"),
     Map.entry((int)':', "$colon")
   );
+  private static final String[] keywords = {
+    "abstract", "assert", "boolean", "break", "byte",
+    "case", "catch", "char", "class", "const",
+    "continue", "default", "do", "double", "else", "enum", "extends",
+    "final", "finally", "float", "for", "goto", "if", "implements",
+    "import", "instanceof", "int", "interface", "long", "native",
+    "new", "package", "private", "protected", "public", "return",
+    "short", "static", "strictfp", "super", "switch", "synchronized",
+    "this", "throw", "throws", "transient", "try", "void", "volatile",
+    "while", "true", "false", "null"
+  };
+  private static final Map<String,String> keywordsMap = Stream.of(keywords)
+    .collect(Collectors.toMap(e->e,e->"$"+e));
+  public String varName(String name){
+    return Optional.ofNullable(keywordsMap.get(name))
+      .orElse(name.replace("'","$")+"_m$");
+  }
 }
 
