@@ -30,125 +30,119 @@ public class TestJsCodegen {
   }
 //  @Test void emptyProgramAlias() {
 //    ok("""
-//     import * as base from 'base/base.js';
+//    import * as base from "../base/index.js";
 //
-//     export class Test_0 extends base.Main_0 {
-//         static $self = new Test_0();
-//         static $hash$imm$fun(fear[###]$_m$, $this) {
-//         return base.Void_0.$self;
-//     }
-//     }
-//     """,
-//    "test/Test_0.js",
-//    """
-//    package test
-//    alias base.Main as Main,
-//    alias base.Void as Void,
-//    Test:Main{ _ -> {} }
-//    """);
-//  }
-
-//  @Test void emptyProgram() {
-//    ok("""
-//     export class Test_0 extends Main_0 {
-//       static $self = new Test_0();
-//       static $hash$imm$fun(fear[###]$_m$, $this) {
-//       return base.Void_0.$self;
-//     }
-//     }
-//     """,
-//      "test/Test_0.js",
-//      """
-//      package test
-//      alias base.Main as Main,
-//      alias base.Void as Void,
-//      Test:Main{ _ -> {} }
-//      """);
-//  }
-
-//  @Test void number() {
-//    ok("""
-//     class Test_0 extends Main_0 {
-//       static $self = new Test_0();
-//       static $hash$imm$fun(fear31$_m$, $this) {
-//       let n = 5;
-//     let nn = -2;
-//     return base.Void_0.$self;
-//     }
-//     }
-//     """,
-//    "test/Test_0.js",
-//    """
-//    package test
-//    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
-//    Test:base.Main{ _ -> Block#
-//      .let[Int] nInt = {+5}
-//      .let[Int] nIntM = {-2}
-//      .return {Void}
+//    export class Test_0 extends base.Main_0 {
+//      static $self = new Test_0();
+//      $hash$imm(fear0$_m$) {
+//      return base.Void_0.$self;
 //    }
+//    static $hash$imm$fun(fear0$_m$, $this) {
+//      return $this.$hash$imm(fear0$_m$, $this);
+//    }
+//    }
+//    """,
+//    "test/Test_0.js",
+//    """
+//    package test
+//    alias base.Void as Void,
+//    Test:base.Main{ _ -> {} }
 //    """);
 //  }
 
-//  @Test void number() {
-//    ok("""
-//     class Test_0 extends Main_0 {
-//       static $self = new Test_0();
-//       static $hash$imm$fun(fear31$_m$, $this) {
-//       let n = 5;
-//     let nn = -2;
-//     return base.Void_0.$self;
-//     }
-//     }
-//     """,
-//      "test/Test_0.js",
-//      """
-//      package test
-//      alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
-//      Test:base.Main{ _ -> Block#
-//        .let[Int] nInt = {+5}
-//        .let[Int] nIntM = {-2}
-//        .return {Void}
-//      }
-//      """);
-//  }
-
-//  @Test void number() {
-//    ok("""
-//     class Test_0 extends Main_0 {
-//       static $self = new Test_0();
-//       static $hash$imm$fun(fear31$_m$, $this) {
-//       let n = 5;
-//     let nn = -2;
-//     return base.Void_0.$self;
-//     }
-//     }
-//     """,
-//      "test/Test_0.js",
-//      """
-//      package test
-//      alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
-//      Test:base.Main{ _ -> Block#
-//        .let[Int] nInt = {+5}
-//        .let[Int] nIntM = {-2}
-//        .return {Void}
-//      }
-//      """);
-//  }
-
-  @Test void asNonIdFn() {
+  @Test void blockLetDoRet() {
     ok("""
-    export class Test_0 extends Main_0 {
-     static $self = new Test_0();
-     static $hash$imm$fun(sys_m$, $this) {
-     return base.Block_0.$self.$hash$imm(base.List_0.$self.$hash$imm().as$read(test.Fear[###]$_0.$self));
-   }
-   }
-   """,
+    import { base__Void_0 } from "../base/Void_0.js";
+    import { base__Main_0 } from "../base/Main_0.js";
+    import { test__ForceGen_0 } from "../test/ForceGen_0.js";
+        
+    export class test__Test_0 extends base__Main_0 {
+      static $self = new test__Test_0();
+      $hash$imm(fear0$_m$) {
+      let n = 5;
+    let nn = -2;
+    var doRes1 = test__ForceGen_0.$self.$hash$imm();
+    return base__Void_0.$self;
+    }
+    static $hash$imm$fun(fear0$_m$, $this) {
+      return $this.$hash$imm(fear0$_m$, $this);
+    }
+    }
+    """,
     "test/Test_0.js",
     """
     package test
-    Test:base.Main{sys -> Block#(List#[Nat].as{x->x * 2})}
-    """, Base.mutBaseAliases);
+    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    Test:base.Main{ _ -> Block#
+     .let[Int] n = {+5}
+     .let[Int] nn = {-2}
+     .do {ForceGen#}
+     .return {Void}
+    }
+    ForceGen: {#: Void -> {}}
+    """);
   }
+
+//  @Test void number() {
+//    ok("""
+//     class Test_0 extends Main_0 {
+//       static $self = new Test_0();
+//       static $hash$imm$fun(fear31$_m$, $this) {
+//       let n = 5;
+//     let nn = -2;
+//     return base.Void_0.$self;
+//     }
+//     }
+//     """,
+//      "test/Test_0.js",
+//      """
+//      package test
+//      alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+//      Test:base.Main{ _ -> Block#
+//        .let[Int] nInt = {+5}
+//        .let[Int] nIntM = {-2}
+//        .return {Void}
+//      }
+//      """);
+//  }
+
+//  @Test void number() {
+//    ok("""
+//     class Test_0 extends Main_0 {
+//       static $self = new Test_0();
+//       static $hash$imm$fun(fear31$_m$, $this) {
+//       let n = 5;
+//     let nn = -2;
+//     return base.Void_0.$self;
+//     }
+//     }
+//     """,
+//      "test/Test_0.js",
+//      """
+//      package test
+//      alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+//      Test:base.Main{ _ -> Block#
+//        .let[Int] nInt = {+5}
+//        .let[Int] nIntM = {-2}
+//        .return {Void}
+//      }
+//      """);
+//  }
+
+//  @Test void asNonIdFn() {
+//    ok("""
+//    export class Test_0 extends Main_0 {
+//     static $self = new Test_0();
+//     static $hash$imm$fun(sys_m$, $this) {
+//     return base.Block_0.$self.$hash$imm(base.List_0.$self.$hash$imm().as$read(test.Fear[###]$_0.$self));
+//   }
+//   }
+//   """,
+//    "test/Test_0.js",
+//    """
+//    package test
+//    Test:base.Main{sys -> Block#(List#[Nat].as{x->x * 2})}
+//    """, Base.mutBaseAliases);
+//  }
 
 }
