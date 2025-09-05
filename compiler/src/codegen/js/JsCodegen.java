@@ -2,15 +2,13 @@ package codegen.js;
 
 import codegen.MIR;
 import id.Id;
-import id.Mdf;
 import utils.Box;
 import utils.Bug;
+import utils.Streams;
 import visitors.MIRVisitor;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,6 +20,7 @@ public class JsCodegen implements MIRVisitor<String> {
   private final JsMagicImpls magic;
   protected final Map<MIR.FName, MIR.Fun> funMap;
   public final StringIds id = new StringIds();
+  public final HashMap<Id.DecId, String> freshImpls = new HashMap<>();
 
   public JsCodegen(MIR.Program p) {
     this.p = p;
@@ -29,142 +28,184 @@ public class JsCodegen implements MIRVisitor<String> {
     this.funMap = p.pkgs().stream()
       .flatMap(pkg->pkg.funs().stream())
       .collect(Collectors.toMap(MIR.Fun::name, f->f));
+
+    // Prepass to collect constructors
+//    p.pkgs().forEach(pkg ->
+//      pkg.defs().values().forEach(def -> {
+//        def.singletonInstance().ifPresent(obj -> {
+//          addFreshConstructor(def.name(), obj);
+//        });
+//      })
+//    );
   }
 
   public String visitProgram(Id.DecId entry){ throw Bug.unreachable(); }
   public String visitPackage(MIR.Package pkg){ throw Bug.unreachable(); }
-  public String visitTypeDef(String pkg, MIR.TypeDef def, List<MIR.Fun> funs) {
-    Set<String> deps = new HashSet<>();
-
-    // === Extends clause ===
-    String extendsStr = "";
-    Id.DecId parentId = getParent(def, id.getFullName(def.name()));
-    if (parentId != null) {
-      extendsStr = " extends " + id.getFullName(parentId);
-      deps.add(id.getFullName(parentId));
-    }
-
-    // === Methods ===
-    String methods = funs.stream()
-      .map(fun -> visitFun(fun))
-      .collect(Collectors.joining("\n    "));
-
-    // Collect fully qualified names in methods
-    Matcher m = Pattern.compile("[a-z][a-z0-9_]*__[A-Z][A-Za-z0-9_$]*_\\d+").matcher(methods);
-    while (m.find()) deps.add(m.group());
-
-    // === Imports ===
-    StringBuilder importLines = new StringBuilder();
-    for (String dep : deps) {
-      String path = getRelativeImportPath(pkg, dep);
-      importLines.append("import { ")
-        .append(dep)
-        .append(" } from \"")
-        .append(path)
-        .append("\";\n");
-    }
-    if (!deps.isEmpty()) importLines.append("\n");
-
-    // === Singleton ===
+  public String visitTypeDef(MIR.TypeDef def, List<MIR.Fun> funs) {
     String className = id.getFullName(def.name());
-    String singletonField = def.singletonInstance().isPresent()
-      ? "static $self = new " + className + "();"
-      : "";
-
-    return importLines + """
-    export class %s%s {
-      %s
-      %s
+//    String extendsStr = extendsStr(def, className); // In JS, interface-like type usually does not extend anything
+    // Singleton (optional)
+    String singletonField = "";
+    if (def.singletonInstance().isPresent()) {
+      MIR.CreateObj singletonObj = def.singletonInstance().get();
+      singletonField = "\n  static $self = " + visitCreateObjNoSingleton(singletonObj, true) + ";";
     }
-    """.formatted(className, extendsStr, singletonField, methods);
-  }
-
-  private String getRelativeImportPath(String pkg, String encodedDep) {
-    // reverse the encoding: "base_$_Main_0" → pkg = "base", file = "Main"
-    String[] parts = encodedDep.split("__");
-    String depPkg = String.join("/", Arrays.copyOf(parts, parts.length - 1));
-    String depFile = parts[parts.length - 1];
-    String depPath = depPkg.isEmpty() ? depFile : depPkg + "/" + depFile;
-
-    // compute relative path from currentPkg
-    String currentPath = pkg.isEmpty() ? "" : pkg.replace(".", "/");
-    int depth = currentPath.isEmpty() ? 0 : currentPath.split("/").length;
-    StringBuilder prefix = new StringBuilder();
-    if (depth == 0) {
-      prefix.append("./");
-    } else {
-      for (int i = 0; i < depth; i++) prefix.append("../");
+    // Abstract methods
+    String abstractMeths = "";
+    if(!def.sigs().isEmpty()) {
+      abstractMeths = "\n  " + def.sigs().stream()
+        .map(this::visitSig)
+        .collect(Collectors.joining("\n  "));
     }
-    return prefix + depPath + ".js";
+    // Static methods
+    String staticFuns = "";
+    if (!funs.isEmpty()) {
+      staticFuns = "\n  " + funs.stream()
+        .map(this::visitFun)
+        .collect(Collectors.joining("\n  "));
+    }
+    return """
+    export class %s {%s%s%s
+    }""".formatted(className, singletonField, abstractMeths, staticFuns);
   }
 
-  public boolean isLiteral(Id.DecId d) {
-    return id.getLiteral(p.p(), d).isPresent();
+  public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic) {
+    Id.DecId typeId = createObj.concreteT().id();
+    String implName = id.getFullName(typeId) + "Impl";
+    // Already generated?
+    if (!freshImpls.containsKey(typeId)) {
+      addFreshImpl(typeId, createObj, implName);
+    }
+    // Create JS instance expression
+    String captures = createObj.captures().stream()
+      .map(x -> visitX(x, checkMagic))
+      .collect(Collectors.joining(", "));
+    return "new " + implName + "(" + captures + ")";
   }
 
-  // Get the first non-literal parent, or null if none
-  private String extendsStr(MIR.TypeDef def, String fullName) {
-    String parent = def.impls().stream()
-      .map(MIR.MT.Plain::id) // DecId
-      .filter(e -> !isLiteral(e))
-      .filter(e -> !id.getFullName(e).equals(fullName))
-      .findFirst() // JS only allows one parent
-      .map(id::getFullName)
-      .orElse("");
-    return parent.isEmpty() ? "" : " extends " + parent;
+  private void addFreshImpl(Id.DecId typeId, MIR.CreateObj obj, String implName) {
+    if (freshImpls.containsKey(typeId)) return;
+
+    // Constructor for captured fields
+    String constructor = "";
+    if (!obj.captures().isEmpty()) {
+      String args = obj.captures().stream()
+        .map(x -> id.varName(x.name()))
+        .collect(Collectors.joining(", "));
+      String assigns = Arrays.stream(args.split(", "))
+        .map(a -> "this." + a + " = " + a + ";")
+        .collect(Collectors.joining("\n    "));
+      constructor = """
+          constructor(%s) {
+            %s
+          }
+        """.formatted(args, assigns);
+    }
+
+    // Instance methods
+    String instanceMeths = "";
+    if (!obj.meths().isEmpty()) {
+      instanceMeths = "  " + obj.meths().stream()
+        .map(this::visitMeth)
+        .collect(Collectors.joining("\n  "))
+        + "\n";
+    }
+
+    // Unreachable methods
+    String unreachableMeths = "";
+    if (!obj.unreachableMs().isEmpty()) {
+      unreachableMeths = "  " + obj.unreachableMs().stream()
+        .map(this::visitMeth)
+        .collect(Collectors.joining("\n  "))
+        + "\n";
+    }
+
+    String implClass = """
+        export class %s extends %s {
+        %s%s%s}
+        """.formatted(implName, id.getFullName(typeId), constructor, instanceMeths, unreachableMeths);
+
+    freshImpls.put(typeId, implClass);
   }
 
-  private Id.DecId getParent(MIR.TypeDef def, String fullName) {
-    return def.impls().stream()
-      .map(MIR.MT.Plain::id) // DecId
-      .filter(e -> !isLiteral(e))
-      .filter(e -> !id.getFullName(e).equals(fullName))
-      .findFirst() // JS only allows one parent
-      .orElse(null);
+  @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
+    if (magic.isMagic(Magic.Str, createObj.concreteT().id())) {
+      return visitStringLiteral(createObj);
+    }
+    var magicImpl = magic.get(createObj);
+    if (checkMagic && magicImpl.isPresent()) {
+      var res = magicImpl.get().instantiate();
+      if (res.isPresent()) { return res.get(); }
+    }
+    Id.DecId id = createObj.concreteT().id();
+    var className = getName(id);
+    if (createObj.captures().isEmpty() && p.of(id).singletonInstance().isPresent()) {
+      return className + ".$self"; // singleton
+    }
+    // For non-singleton cases with captures, create a new instance
+//    var captures = createObj.captures().stream()
+//      .map(x -> visitX(x, checkMagic))
+//      .collect(Collectors.joining(", "));
+//    return "new " + className + "(" + captures + ")";
+    return visitCreateObjNoSingleton(createObj, checkMagic);
   }
 
-
-  public <T> String seq(Collection<T> es, Function<T,String> f, String join){
-    return seq(es.stream(),f,join);
+  // Create JS stubs for abstract methods
+  private String visitSig(MIR.Sig sig) {
+    String args = sig.xs().stream()
+      .map(x -> id.varName(x.name()))
+      .collect(Collectors.joining(", "));
+    return "%s(%s) { throw new Error('Abstract method'); }"
+      .formatted(id.getMName(sig.mdf(), sig.name()), args);
   }
-  public <T> String seq(Stream<T> s, Function<T,String> f, String join){
+
+  public <T> String seq(Collection<T> es, Function<T, String> f, String join) {
+    return seq(es.stream(), f, join);
+  }
+
+  public <T> String seq(Stream<T> s, Function<T, String> f, String join) {
     return s.map(f).collect(Collectors.joining(join));
   }
+
+  // Create JS static method
   public String visitFun(MIR.Fun fun) {
-    var funName = getFName(fun.name()); // e.g. "$hash$imm"
-    var args = seq(fun.args(), x -> id.varName(x.name()), ", "); // has $this
-    // Drop $this if present (only for instance method)
-    var argNames = fun.args().stream()
-      .map(x -> id.varName(x.name()))
-      .filter(n -> !n.equals("$this"))
-      .toList();
-    var instArgs = String.join(", ", argNames);
-    var bodyExpr = fun.body();
-    var bodyStr = bodyExpr.accept(this, true);
+    String funName = getFName(fun.name());
+    String args = seq(fun.args(), x -> id.varName(x.name()), ", ");
+    String bodyStr = fun.body().accept(this, true);
+    String maybeReturn = (fun.body() instanceof MIR.Block) ? "" : "return ";
 
-    // Instance method
-    String instFun;
-    if (bodyExpr instanceof MIR.Block) {
-      instFun = """
-          %s(%s) {
-            %s;
-          }""".formatted(funName, instArgs, bodyStr);
-    } else {
-      instFun = """
-          %s(%s) {
-            return %s;
-          }""".formatted(funName, instArgs, bodyStr);
-    }
-
-    // Static forwarding method (add `$fun` suffix)
-    String staticFun = """
-      static %s$fun(%s) {
-        return $this.%s(%s);
-      }""".formatted(funName, args, funName, args);
-
-    return instFun + "\n" + staticFun;
+    return String.format("""
+    static %s(%s) {
+        %s%s;
+      }""", funName, args, maybeReturn, bodyStr);
   }
 
+  // Create JS instance method that forwards to static method
+  public String visitMeth(MIR.Meth meth) {
+    String methName = id.getMName(meth.sig().mdf(), meth.sig().name());
+    String args = seq(meth.sig().xs(), x -> id.varName(x.name()), ", ");
+//    String funArgs = seq(meth.sig().xs(), x -> id.varName(x.name()), ", ");
+    String funArgs = Streams.of(
+      meth.sig().xs().stream().map(MIR.X::name).map(id::varName),
+      Stream.of("this"),
+      meth.captures().stream().map(id::varName).map(x->"this."+x)
+    ).collect(Collectors.joining(", "));
+
+    String className = id.getFullName(meth.origin());
+    if (!meth.fName().isPresent()) {
+      // Abstract method, no forwarding
+      return String.format("""
+        %s(%s) {
+            throw new Error('Abstract method');
+        }""", methName, args);
+    }
+    String funName = getFName(meth.fName().orElseThrow());
+
+    return String.format("""
+    %s(%s) {
+        return %s.%s(%s);
+      }""", methName, args, className, funName, funArgs);
+  }
 
   @Override
   public String visitBlockExpr(MIR.Block expr, boolean checkMagic) {
@@ -206,8 +247,8 @@ public class JsCodegen implements MIRVisitor<String> {
     assert stmt != null;
     return switch (stmt) {
       case MIR.Block.BlockStmt.Return ret ->
-        // JS: return <expr>;
-        "%s %s".formatted(returnKind, ret.e().accept(this, true));
+        // Return: always emit `return <expr>;`. In JavaScript, yield is a generator keyword.
+        "return " + ret.e().accept(this, true);
       case MIR.Block.BlockStmt.Do do_ ->
         // JS: var doRes0 = <expr>;
         "var doRes%d = %s;\n".formatted(doIdx.update(n -> n + 1), do_.e().accept(this, true));
@@ -219,31 +260,29 @@ public class JsCodegen implements MIRVisitor<String> {
         """
         while (true) {
           var res = %s.$hash$mut();
-          if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
-          if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-          if (res instanceof base.ControlFlowReturn_1 rv) { %s (%s) rv.value$mut(); }
+          if (res == base$$ControlFlowContinue_0.$self || res == base$$ControlFlowContinue_1.$self) { continue; }
+          if (res == base$$ControlFlowBreak_0.$self || res == base$$ControlFlowBreak_1.$self) { break; }
+          if (res instanceof base$$ControlFlowReturn_1 rv) { rv.value$mut(); }
         }
         """.formatted(
-          loop.e().accept(this, true),
-          returnKind,
-          getTName(expr.expectedT(), false)
+          loop.e().accept(this, true)
         );
       case MIR.Block.BlockStmt.If if_ -> {
-        // JS: if (<pred> == base.True_0.$self) { ... }
+        // JS: if (<pred> == base$$True_0.$self) { ... }
         var body = this.visitBlockStmt(expr, stmts, doIdx, returnKind);
         if (body.startsWith(returnKind.toString())) {
           body += ";";
         }
         yield """
-        if (%s == base.True_0.$self) { %s }
+        if (%s == base$$True_0.$self) { %s }
         """.formatted(if_.e().accept(this, true), body);
       }
       case MIR.Block.BlockStmt.Let let ->
         // JS: let <name> = <expr>;
         "let %s = %s;\n".formatted(let.name(), let.value().accept(this, true));
       case MIR.Block.BlockStmt.Var var ->
-        // JS: var <name> = base.Vars_0.$self.$hash$imm(<expr>);
-        "var %s = base.Vars_0.$self.$hash$imm(%s);\n".formatted(var.name(), var.value().accept(this, true));
+        // JS: var <name> = base$$Vars_0.$self.$hash$imm(<expr>);
+        "var %s = base$$Vars_0.$self.$hash$imm(%s);\n".formatted(var.name(), var.value().accept(this, true));
     };
   }
 
@@ -251,11 +290,7 @@ public class JsCodegen implements MIRVisitor<String> {
   @Override public String visitBoolExpr(MIR.BoolExpr expr, boolean checkMagic) {
     String recv = expr.condition().accept(this, checkMagic);
 
-    // Determine if we need a cast (optional in JS, but keep for consistency)
-    boolean mustCast = !this.funMap.get(expr.then()).ret().equals(this.funMap.get(expr.else_()).ret());
-    String cast = mustCast ? "(" + getTName(expr.t(), true) + ")" : "";
-
-    // Generate then and else bodies
+    // No casts needed in JS
     String thenBody = switch (this.funMap.get(expr.then()).body()) {
       case MIR.Block b -> this.inlineBlock(b);
       case MIR.E e -> e.accept(this, checkMagic);
@@ -265,41 +300,15 @@ public class JsCodegen implements MIRVisitor<String> {
       case MIR.E e -> e.accept(this, checkMagic);
     };
 
-    // Return the wrapped JS boolean expression
-    return "(%s(%s == base.True_0.$self ? %s : %s))".formatted(cast, recv, thenBody, elseBody);
+    // JS ternary expression
+    return "(%s == base$$True_0.$self ? %s : %s)".formatted(recv, thenBody, elseBody);
   }
 
-  // Wrap a block expression
+  // Wrap a block expression (used when a block is used as an expression).
+  // Use an IIFE returning the value so the expression evaluates immediately to that value.
   private String inlineBlock(MIR.Block block) {
     String blockCode = visitBlockExpr(block, BlockReturnKind.YIELD);
-    return """
-    (switch (1) { default -> {
-      %s;
-    }})
-    """.formatted(blockCode);
-  }
-
-
-  @Override public String visitCreateObj(MIR.CreateObj createObj, boolean checkMagic) {
-    if (magic.isMagic(Magic.Str, createObj.concreteT().id())) {
-      return visitStringLiteral(createObj);
-    }
-    var magicImpl = magic.get(createObj);
-    if (checkMagic && magicImpl.isPresent()) {
-      var res = magicImpl.get().instantiate();
-      if (res.isPresent()) { return res.get(); }
-    }
-    var id = createObj.concreteT().id();
-    var className = getName(id);
-    if (createObj.captures().isEmpty()) {
-      return className + ".$self";
-    }
-    // For non-singleton cases with captures, create a new instance
-    var captures = createObj.captures().stream()
-      .map(x -> visitX(x, checkMagic))
-      .collect(Collectors.joining(", "));
-
-    return "new " + className + "(" + captures + ")";
+    return "(() => {\n" + blockCode + "})()";
   }
 
   // Converts string literals to JS strings, handling mutability and escaping
@@ -318,6 +327,7 @@ public class JsCodegen implements MIRVisitor<String> {
       default -> escaped;
     };
   }
+
   public static String jsonEscape(String s) {
     return "\"" + s.replace("\\", "\\\\")
       .replace("\"", "\\\"")
@@ -358,11 +368,7 @@ public class JsCodegen implements MIRVisitor<String> {
       args
     );
   }
-
-  public String getTName(MIR.MT t, boolean isRet) {
-    return new TypeIds(magic,id).getTName(t, isRet);
-  }
   public String getFName(MIR.FName name) {
-    return id.getMName(name.mdf(), name.m());
+    return id.getMName(name.mdf(), name.m())+"$fun";
   }
 }

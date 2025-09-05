@@ -34,9 +34,7 @@ public interface InputOutput{
   default List<JavaFile> magicFiles(){//crucially, this method is lazy
     return InputOutputHelper.readMagicFiles(magicDir());
   }
-  default List<JsFile> magicJsFiles(){//crucially, this method is lazy
-    return InputOutputHelper.readMagicJsFiles(magicDir());
-  }
+  default List<JsFile> magicJsFiles(){ return InputOutputHelper.readMagicJsFiles(magicDir()); }
 
   default String generateAliases() {
     return ResolveResource.read(this.defaultAliases());
@@ -189,25 +187,31 @@ class InputOutputHelper{
       .toList();
   }
   public static List<JsFile> readMagicJsFiles(Path root) {
-    List<JsFile> result = new ArrayList<>();
-    // 1. Process main.js (if exists)
-    Path mainJs = root.resolve("main.js");
-    if (Files.exists(mainJs)) {
-      result.add(new JsFile(
-        Path.of("rt/main.js"),
-        IoErr.of(() -> Files.readString(mainJs))
-      ));
-    }
-    // 2. Process entire libwasm directory
-    Path wasmDir = root.resolve("libwasm");
+    List<JsFile> files = new ArrayList<>();
+    // root is …/target/classes/rt
+    Path jsDir = root.resolveSibling("rt-js");  // jump to sibling directory
+    // 1. Process rt-js/*.js
+    List<Parser> jsFiles = loadFiles(jsDir,".js");
+    files.addAll(jsFiles.stream()
+      .map(p-> {
+        Path relative = jsDir.relativize(p.fileName());
+        return new JsFile(
+          Path.of("rt-js").resolve(relative),
+          IoErr.of(()->p.content())
+        );
+      })
+      .toList());
+    // 2. Process .wasm files in rt-js/libwasm
+    Path wasmDir = jsDir.resolve("libwasm");
     if (Files.exists(wasmDir)) {
       try (Stream<Path> wasmFiles = Files.walk(wasmDir)) {
         wasmFiles
           .filter(Files::isRegularFile)
+//          .filter(p->p.getFileName().toString().endsWith(".wasm"))
           .forEach(p -> {
             Path relative = wasmDir.relativize(p);
-            Path destPath = Path.of("rt/libwasm").resolve(relative);
-            result.add(new JsFile(
+            Path destPath = Path.of("rt-js/libwasm").resolve(relative);
+            files.add(new JsFile(
               destPath,
               IoErr.of(() -> new String(Files.readAllBytes(p)))
             ));
@@ -216,6 +220,6 @@ class InputOutputHelper{
         throw new UncheckedIOException(e);
       }
     }
-    return result;
+    return files;
   }
 }

@@ -1,24 +1,56 @@
 package codegen.js;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static codegen.js.RunJsProgramTests.ok;
 import static utils.RunOutput.Res;
 
-@Disabled
 public class TestJsProgram {
 //  @Test void emptyProgram() { ok(new Res("", "", 0), """
+//    package test
+//    alias base.Void as Void,
+//    Test:base.Main{ _ -> {} }
+//    """);}
+//  @Test void captureTest() { ok(new Res("", "", 0), """
 //    package test
 //    alias base.Main as Main,
 //    alias base.Void as Void,
 //    Test:Main{ _ -> {} }
+//    A:{ #: A -> A{ # -> A { # -> this } }# }
 //    """);}
-  @Test void assertTrue() { ok(new Res("", "", 0), """
+//  @Test void emptyProgram2() { ok(new Res("", "", 0), """
+//    package test
+//    Test:{ .m:B->this.b, .b:B->B }
+//    B: {}
+//    """);}
+  @Test void emptyProgram3() { ok(new Res("", "", 0), """
     package test
-    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
-    alias base.Void as Void,
-    Test:Main{ _ -> Assert!(True, { Void }) }
+    Test:{ .m:base.Bool-> base.True, .b:B->B }
+    B: {}
     """);}
+  @Test void conditional() { ok(new Res("1", "", 0), """
+    package test
+    alias base.Main as Main, alias base.True as True, alias base.False as False, alias base.Nat as Nat,
+    Test:Main {sys -> sys.io.println(True ?[Nat] {.then -> 1, .else -> 3}.str)}
+    """); }
+//  @Test void emptyProgram3() { ok(new Res("", "", 0), """
+//    package test
+//    Test:{ .m():I->this.k(base.True), .k(x:base.Bool):I->x?{.then->B.k, .else->C.k} }
+//    B:I{.k->this,}
+//    C:I{.k->this.k,}
+//    I:{.k:I}
+//    """);}
+//  @Test void assertTrue() { ok(new Res("", "", 0), """
+//    package test
+//    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+//    alias base.Void as Void,
+//    Test:Main{ _ -> Assert!(True, { Void }) }
+//    """);}
+//  @Test void addition() { ok(new Res("", "7", 1), """
+//    package test
+//    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+//    alias base.Void as Void,
+//    Test:Main{ _ -> Assert!(False, (5 + 2) .str, { Void }) }
+//    """);}
 //  @Test void assertFalse() { ok(new Res("", "Assertion failed :(", 1), """
 //    package test
 //    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
@@ -30,12 +62,6 @@ public class TestJsProgram {
 //    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
 //    alias base.Void as Void,
 //    Test:Main{ _ -> Assert!(False, "power level less than 9000", { Void }) }
-//    """);}
-//  @Test void addition() { ok(new Res("", "7", 1), """
-//    package test
-//    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
-//    alias base.Void as Void,
-//    Test:Main{ _ -> Assert!(False, (5 + 2) .str, { "" }) }
 //    """);}
 
 //  @Test void arithmeticOrderOfOperations() {

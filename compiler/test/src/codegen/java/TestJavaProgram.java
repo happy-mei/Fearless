@@ -14,12 +14,17 @@ import static codegen.java.RunJavaProgramTests.*;
 import static utils.RunOutput.Res;
 
 public class TestJavaProgram {
-  @Test void emptyProgram() { ok(new Res("", "", 0), """
+  @Test void conditional() { ok(new Res("1", "", 0), """
     package test
-    alias base.Main as Main,
-    alias base.Void as Void,
-    Test:Main{ _ -> {} }
-    """);}
+    alias base.Main as Main, alias base.True as True, alias base.False as False, alias base.Nat as Nat,
+    Test:Main {sys -> sys.io.println(True ?[Nat] {.then -> 1, .else -> 3}.str)}
+    """); }
+//  @Test void emptyProgram() { ok(new Res("", "", 0), """
+//    package test
+//    alias base.Main as Main,
+//    alias base.Void as Void,
+//    Test:Main{ _ -> {} }
+//    """);}
 //
 //  @Test void captureTest() { ok(new Res("", "", 0), """
 //    package test
@@ -28,7 +33,7 @@ public class TestJavaProgram {
 //    Test:Main{ _ -> {} }
 //    A:{ #: A -> A{ # -> A { # -> this } }# }
 //    """);}
-//
+
 //  @Test void assertTrue() { ok(new Res("", "", 0), """
 //    package test
 //    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
@@ -367,7 +372,7 @@ public class TestJavaProgram {
 //    Block:{#[A:imm,R:imm](_: A, r: R): R -> r}
 //    """); }
 //
-//    @Test void ref1() { ok(new Res("", "", 0), """
+//  @Test void ref1() { ok(new Res("", "", 0), """
 //    package test
 //    alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
 //    alias base.Vars as Vars, alias base.Int as Int,

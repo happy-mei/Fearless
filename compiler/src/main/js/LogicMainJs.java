@@ -39,7 +39,7 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
     if (verbosity().printCodegen()) {
       var tmp = utils.IoErr.of(()->java.nio.file.Files.createTempDirectory("fgenjs"));
       res.writeJsFiles(tmp);
-      System.out.println("saved to "+tmp);
+      System.out.println("saved to file://" + tmp.toAbsolutePath());
     }
     return res;
   }
@@ -59,24 +59,23 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
     try {
       String entry = io.entry();           // e.g. "test.Test"
       String packagePath = entry.replace(".", "/") + "_0"; // -> "test/Test_0"
-      String entryTypeName = entry.replace(".", "__") + "_0"; // -> "test__Test_0"
+      String entryTypeName = entry.replace(".", "$$") + "_0"; // -> "test$$Test_0"
       String mainJsContent = """
-            import { %s } from './%s.js';
+      import { %s } from './%s.js';
+      import {RealSystem} from './rt-js/RealSystem.js';
 
-            const FAux = { LAUNCH_ARGS: process.argv.slice(2) };
+      async function main() {
+          const program = %s.$self;
+          try {
+              await program.$m(new RealSystem());
+          } catch (err) {
+              console.error('Program crashed with:', err);
+              process.exit(1);
+          }
+      }
 
-            async function main() {
-                const program = %s.$self;
-                try {
-                    await program.$hash$imm({ args: FAux.LAUNCH_ARGS });
-                } catch (err) {
-                    console.error('Program crashed with:', err);
-                    process.exit(1);
-                }
-            }
-
-            main();
-            """.formatted(entryTypeName, packagePath, entryTypeName);
+      main();
+      """.formatted(entryTypeName, packagePath, entryTypeName);
 
       java.nio.file.Files.writeString(mainJs, mainJsContent);
     } catch (Exception e) {

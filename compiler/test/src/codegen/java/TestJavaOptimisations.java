@@ -15,7 +15,7 @@ public class TestJavaOptimisations {
   void ok(String expected, String fileName, String... content) {
     assert content.length > 0;
     Main.resetAll();
-    var vb = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
+    var vb = new CompilerFrontEnd.Verbosity(false, true, CompilerFrontEnd.ProgressVerbosity.None);
     var main = LogicMainJava.of(InputOutput.programmaticAuto(Arrays.asList(content)), vb);
     var fullProgram = main.parse();
     main.wellFormednessFull(fullProgram);
@@ -328,4 +328,23 @@ public class TestJavaOptimisations {
     package test
     Test: Main{sys -> Block#(List#[Nat].as{x->x * 2})}
     """, Base.mutBaseAliases);}
+
+  @Test void test() {ok("""
+    package test;
+    public interface Direction_0{
+    test.Direction_0 reverse$imm();
+    
+    test.Direction_0 turn$imm();
+    static test.Direction_0 reverse$imm$fun(test.Direction_0 $this) {
+      return $this.turn$imm().turn$imm();
+    }
+    }
+    """,
+    "/test/Direction_0.java",
+    """
+    package test
+    alias base.Main as Main,
+    Test: Main{sys -> sys.io.println("Hello World") }
+    """);
+  }
 }

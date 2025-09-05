@@ -10,7 +10,7 @@ module FearlessCompiler {
   requires org.apache.commons.text;
   requires org.apache.commons.lang3;
   requires commons.cli;
-  exports tour;
-  opens typing to net.jqwik.engine, org.junit.platform.commons;
+//  exports tour;
+//  opens typing to net.jqwik.engine, org.junit.platform.commons;
   opens program.typesystem to net.jqwik.engine, org.junit.platform.commons;
 }

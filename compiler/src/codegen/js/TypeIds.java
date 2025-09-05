@@ -27,7 +27,7 @@ public class TypeIds {
       case "base.Float" -> "number";          // JS number covers floats
       case "base.Byte" -> "number";           // bytes usually numbers
       case "base.Str" -> "string";             // JS string
-      case "base.Void" -> "void";              // void for no return value
+//      case "base.Void" -> "void";              // void for no return value
       default -> magicName(name);
     };
   }
