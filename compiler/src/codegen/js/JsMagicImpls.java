@@ -77,14 +77,24 @@ record JsNumOps(
       a -> "(" + a[0] + " & 0xFF)",                   // byte
       a -> "Math.trunc(" + a[0] + ")"                 // float
     );
-
+    put(".nat", 0,
+      a -> a[0],                                      // int → nat (no conversion needed)
+      a -> a[0],                                      // nat → nat (identity)
+      a -> "(" + a[0] + " & 0xFF)",                   // byte → nat (ensure unsigned)
+      a -> "Math.trunc(" + a[0] + ")"                 // float → nat (truncate to integer)
+    );
     put(".float", 0,
       a -> "(+" + a[0] + ")",                         // int
       a -> "(+" + a[0] + ")",                         // nat
       a -> "(+" + a[0] + ")",                         // byte
       a -> a[0]                                       // float
     );
-
+    put(".byte", 0,
+      a -> "(" + a[0] + " & 0xFF)",                   // int → byte (mask to 8 bits)
+      a -> "(" + a[0] + " & 0xFF)",                   // nat → byte (mask to 8 bits)
+      a -> a[0],                                      // byte → byte (identity)
+      a -> "Math.trunc(" + a[0] + ") & 0xFF"          // float → byte (truncate and mask)
+    );
     put(".str", 0,
       a -> "String(" + a[0] + ")",                    // int
       a -> "String(" + a[0] + ")",                    // nat
@@ -184,6 +194,132 @@ record JsNumOps(
       a -> "(" + a[0] + " & " + a[1] + ")",           // nat
       a -> "((" + a[0] + " & " + a[1] + ") & 0xFF)",  // byte
       errOp                                           // float
+    );
+
+    // Math operations
+    put(".abs", 0,
+      a -> "Math.abs(" + a[0] + ")",                // int
+      a -> "Math.abs(" + a[0] + ")",                // nat
+      a -> "Math.abs(" + a[0] + ")",                // byte
+      a -> "Math.abs(" + a[0] + ")"                 // float
+    );
+
+    put(".sqrt", 0,
+      a -> "Math.sqrt(" + a[0] + ")",               // int
+      a -> "Math.sqrt(" + a[0] + ")",               // nat
+      a -> "Math.sqrt(" + a[0] + ")",               // byte
+      a -> "Math.sqrt(" + a[0] + ")"                // float
+    );
+
+    // Bitwise operations
+    put(".shiftRight", 1,
+      a -> a[0] + " >> " + a[1],                    // int
+      a -> a[0] + " >>> " + a[1],                   // nat (unsigned)
+      a -> "(" + a[0] + " >> " + a[1] + ") & 0xFF", // byte
+      errOp                                         // float
+    );
+
+    put(".shiftLeft", 1,
+      a -> a[0] + " << " + a[1],                    // int
+      a -> a[0] + " << " + a[1],                    // nat
+      a -> "(" + a[0] + " << " + a[1] + ") & 0xFF", // byte
+      errOp                                         // float
+    );
+
+    put(".xor", 1,
+      a -> a[0] + " ^ " + a[1],                     // int
+      a -> a[0] + " ^ " + a[1],                     // nat
+      a -> "(" + a[0] + " ^ " + a[1] + ") & 0xFF",  // byte
+      errOp                                         // float
+    );
+
+    put(".bitwiseOr", 1,
+      a -> a[0] + " | " + a[1],                     // int
+      a -> a[0] + " | " + a[1],                     // nat
+      a -> "(" + a[0] + " | " + a[1] + ") & 0xFF",  // byte
+      errOp                                         // float
+    );
+
+    // Float-specific operations
+    put(".isNaN", 0,
+      errOp,                                        // int
+      errOp,                                        // nat
+      errOp,                                        // byte
+      a -> "isNaN(" + a[0] + ")"                    // float
+    );
+
+    put(".isInfinite", 0,
+      errOp,                                        // int
+      errOp,                                        // nat
+      errOp,                                        // byte
+      a -> "!isFinite(" + a[0] + ")"                // float
+    );
+
+    put(".isPosInfinity", 0,
+      errOp,                                        // int
+      errOp,                                        // nat
+      errOp,                                        // byte
+      a -> a[0] + " === Infinity"                   // float
+    );
+
+    put(".isNegInfinity", 0,
+      errOp,                                        // int
+      errOp,                                        // nat
+      errOp,                                        // byte
+      a -> a[0] + " === -Infinity"                  // float
+    );
+
+    // Float rounding operations
+    put(".round", 0,
+      errOp,                                        // int
+      errOp,                                        // nat
+      errOp,                                        // byte
+      a -> "Math.round(" + a[0] + ")"               // float
+    );
+
+    put(".ceil", 0,
+      errOp,                                        // int
+      errOp,                                        // nat
+      errOp,                                        // byte
+      a -> "Math.ceil(" + a[0] + ")"                // float
+    );
+
+    put(".floor", 0,
+      errOp,                                        // int
+      errOp,                                        // nat
+      errOp,                                        // byte
+      a -> "Math.floor(" + a[0] + ")"               // float
+    );
+
+    // Assertion operations (JS-specific implementations)
+    put(".assertEq", 1,
+      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error('Assertion failed: ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
+      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error('Assertion failed: ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
+      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error('Assertion failed: ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
+      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error('Assertion failed: ' + " + a[0] + " + ' !== ' + " + a[1] + "); }"
+    );
+
+    put(".assertEq", 2,
+      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error(" + a[2] + " + ': ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
+      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error(" + a[2] + " + ': ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
+      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error(" + a[2] + " + ': ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
+      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error(" + a[2] + " + ': ' + " + a[0] + " + ' !== ' + " + a[1] + "); }"
+    );
+
+    // Hash operation (placeholder - would need Hasher implementation)
+    put(".hash", 1,
+      a -> "{ /* hash implementation */ return " + a[0] + "; }",
+      a -> "{ /* hash implementation */ return " + a[0] + "; }",
+      a -> "{ /* hash implementation */ return " + a[0] + "; }",
+      a -> "{ /* hash implementation */ return " + a[0] + "; }"
+    );
+
+    // Offset operation
+    put(".offset", 1,
+      errOp,                                        // int
+      a -> a[0] + " + " + a[1],                     // nat
+      a -> "(" + a[0] + " + " + a[1] + ") & 0xFF",  // byte
+      errOp                                         // float
     );
   }
 }
@@ -421,34 +557,40 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
   @Override public MagicTrait<MIR.E,String> assert_(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() { return Optional.empty(); }
-      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+
+      @Override
+      public Optional<String> call(Id.MethName m,
+                                   List<? extends MIR.E> args,
+                                   EnumSet<MIR.MCall.CallVariant> variants,
+                                   MIR.MT expectedT) {
         // === assert_._fail/0 ===
         if (m.equals(new Id.MethName("._fail", 0))) {
           return Optional.of("""
-          (() => {
-            console.error("Assertion failed :(");
-            if (typeof process !== "undefined") process.exit(1);
-            else throw new Error("Assertion failed :(");
-          })()
+            (() => {
+              console.error("Assertion failed :(");
+              if (typeof process !== "undefined") process.exit(1);
+              else throw new Error("Assertion failed :(");
+            })()
           """);
         }
+
         // === assert_._fail/1 ===
         if (m.equals(new Id.MethName("._fail", 1))) {
-          return Optional.of(String.format("""
-          (() => {
-            console.error(%s);
-            if (typeof process !== "undefined") process.exit(1);
-            else throw new Error(%s);
-          })()
-          """,
-            args.getFirst().accept(gen, true),   // printed message
-            args.getFirst().accept(gen, true)   // thrown message
-          ));
+          String msg = args.get(0).accept(gen, true);
+          return Optional.of("""
+            (() => {
+              console.error(%s);
+              if (typeof process !== "undefined") process.exit(1);
+              else throw new Error(%s);
+            })()
+          """.formatted(msg, msg));
         }
+
         return Optional.empty();
       }
     };
   }
+
 
   @Override public MagicTrait<MIR.E,String> abort(MIR.E e) {
     return new MagicTrait<>() {
@@ -459,13 +601,9 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
         if (m.equals(new Id.MethName("!", 0))) {
           return Optional.of("""
             (function() {
-              switch(1) {
-                default: {
-                  console.error("Program aborted at:\\n" + new Error().stack);
-                  if (typeof process !== "undefined") process.exit(1);
-                  else throw new Error("Program aborted");
-                }
-              }
+              console.error("Program aborted at:\\n" + new Error().stack);
+              if (typeof process !== "undefined") process.exit(1);
+              else throw new Error("Program aborted");
             })()
             """);
         }
@@ -481,13 +619,9 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
         if (m.equals(new Id.MethName("!", 0))) {
           return Optional.of("""
             (function() {
-              switch(1) {
-                default: {
-                  console.error("No magic code was found at:\\n" + new Error().stack);
-                  if (typeof process !== "undefined") process.exit(1);
-                  else throw new Error("Program aborted");
-                }
-              }
+              console.error("No magic code was found at:\\n" + new Error().stack);
+              if (typeof process !== "undefined") process.exit(1);
+              else throw new Error("Program aborted");
             })()
             """);
         }

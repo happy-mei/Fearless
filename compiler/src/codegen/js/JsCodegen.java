@@ -33,6 +33,7 @@ public class JsCodegen implements MIRVisitor<String> {
 
   public String visitProgram(Id.DecId entry){ throw Bug.unreachable(); }
   public String visitPackage(MIR.Package pkg){ throw Bug.unreachable(); }
+
   public String visitTypeDef(String pkg, MIR.TypeDef def, List<MIR.Fun> funs) {
     Set<String> deps = new HashSet<>();
 
@@ -44,14 +45,18 @@ public class JsCodegen implements MIRVisitor<String> {
       deps.add(id.getFullName(parentId));
     }
 
-    // === Methods ===
     String methods = funs.stream()
-      .map(fun -> visitFun(fun))
+      .map(this::visitFun)
       .collect(Collectors.joining("\n    "));
 
     // Collect fully qualified names in methods
-    Matcher m = Pattern.compile("[a-z][a-z0-9_]*__[A-Z][A-Za-z0-9_$]*_\\d+").matcher(methods);
-    while (m.find()) deps.add(m.group());
+    Matcher m = Pattern.compile("[a-z][a-z0-9_]*\\$\\$[A-Z][A-Za-z0-9_$]*_\\d+").matcher(methods);
+    while (m.find()) {
+      String dep = m.group();
+      if (!dep.equals(id.getFullName(def.name()))) { // skip self-import
+        deps.add(dep);
+      }
+    }
 
     // === Imports ===
     StringBuilder importLines = new StringBuilder();
@@ -72,16 +77,16 @@ public class JsCodegen implements MIRVisitor<String> {
       : "";
 
     return importLines + """
-    export class %s%s {
-      %s
-      %s
-    }
-    """.formatted(className, extendsStr, singletonField, methods);
+        export class %s%s {
+            %s
+            %s
+        }
+        """.formatted(className, extendsStr, singletonField, methods);
   }
 
   private String getRelativeImportPath(String pkg, String encodedDep) {
     // reverse the encoding: "base_$_Main_0" → pkg = "base", file = "Main"
-    String[] parts = encodedDep.split("__");
+    String[] parts = encodedDep.split("\\$\\$");
     String depPkg = String.join("/", Arrays.copyOf(parts, parts.length - 1));
     String depFile = parts[parts.length - 1];
     String depPath = depPkg.isEmpty() ? depFile : depPkg + "/" + depFile;
@@ -89,29 +94,20 @@ public class JsCodegen implements MIRVisitor<String> {
     // compute relative path from currentPkg
     String currentPath = pkg.isEmpty() ? "" : pkg.replace(".", "/");
     int depth = currentPath.isEmpty() ? 0 : currentPath.split("/").length;
+
     StringBuilder prefix = new StringBuilder();
     if (depth == 0) {
       prefix.append("./");
     } else {
-      for (int i = 0; i < depth; i++) prefix.append("../");
+      for (int i = 0; i < depth; i++) {
+        prefix.append("../");
+      }
     }
     return prefix + depPath + ".js";
   }
 
   public boolean isLiteral(Id.DecId d) {
     return id.getLiteral(p.p(), d).isPresent();
-  }
-
-  // Get the first non-literal parent, or null if none
-  private String extendsStr(MIR.TypeDef def, String fullName) {
-    String parent = def.impls().stream()
-      .map(MIR.MT.Plain::id) // DecId
-      .filter(e -> !isLiteral(e))
-      .filter(e -> !id.getFullName(e).equals(fullName))
-      .findFirst() // JS only allows one parent
-      .map(id::getFullName)
-      .orElse("");
-    return parent.isEmpty() ? "" : " extends " + parent;
   }
 
   private Id.DecId getParent(MIR.TypeDef def, String fullName) {
@@ -123,48 +119,51 @@ public class JsCodegen implements MIRVisitor<String> {
       .orElse(null);
   }
 
-
-  public <T> String seq(Collection<T> es, Function<T,String> f, String join){
-    return seq(es.stream(),f,join);
+  public <T> String seq(Collection<T> es, Function<T, String> f, String join) {
+    return seq(es.stream(), f, join);
   }
-  public <T> String seq(Stream<T> s, Function<T,String> f, String join){
+
+  public <T> String seq(Stream<T> s, Function<T, String> f, String join) {
     return s.map(f).collect(Collectors.joining(join));
   }
+
   public String visitFun(MIR.Fun fun) {
-    var funName = getFName(fun.name()); // e.g. "$hash$imm"
-    var args = seq(fun.args(), x -> id.varName(x.name()), ", "); // has $this
-    // Drop $this if present (only for instance method)
-    var argNames = fun.args().stream()
+    String funName = getFName(fun.name());
+
+    // Build argument lists
+    String allArgs = seq(fun.args(), x -> id.varName(x.name()), ", ");
+    String instanceArgs = fun.args().stream()
       .map(x -> id.varName(x.name()))
       .filter(n -> !n.equals("$this"))
-      .toList();
-    var instArgs = String.join(", ", argNames);
-    var bodyExpr = fun.body();
-    var bodyStr = bodyExpr.accept(this, true);
+      .collect(Collectors.joining(", "));
 
-    // Instance method
-    String instFun;
-    if (bodyExpr instanceof MIR.Block) {
-      instFun = """
-          %s(%s) {
-            %s;
-          }""".formatted(funName, instArgs, bodyStr);
+    String bodyStr = fun.body().accept(this, true);
+
+    // Build instance method
+    String instanceMethod;
+    if (fun.body() instanceof MIR.Block) {
+      instanceMethod = String.format("""
+            %s(%s) {
+                %s;
+            }
+            """, funName, instanceArgs, bodyStr);
     } else {
-      instFun = """
-          %s(%s) {
-            return %s;
-          }""".formatted(funName, instArgs, bodyStr);
+      instanceMethod = String.format("""
+            %s(%s) {
+                return %s;
+            }
+            """, funName, instanceArgs, bodyStr);
     }
 
-    // Static forwarding method (add `$fun` suffix)
-    String staticFun = """
-      static %s$fun(%s) {
-        return $this.%s(%s);
-      }""".formatted(funName, args, funName, args);
+    // Build static forwarding method
+    String staticMethod = String.format("""
+        static %s$fun(%s) {
+            return $this.%s(%s);
+        }
+        """, funName, allArgs, funName, allArgs);
 
-    return instFun + "\n" + staticFun;
+    return instanceMethod + "\n" + staticMethod;
   }
-
 
   @Override
   public String visitBlockExpr(MIR.Block expr, boolean checkMagic) {
@@ -219,9 +218,9 @@ public class JsCodegen implements MIRVisitor<String> {
         """
         while (true) {
           var res = %s.$hash$mut();
-          if (res == base.ControlFlowContinue_0.$self || res == base.ControlFlowContinue_1.$self) { continue; }
-          if (res == base.ControlFlowBreak_0.$self || res == base.ControlFlowBreak_1.$self) { break; }
-          if (res instanceof base.ControlFlowReturn_1 rv) { %s (%s) rv.value$mut(); }
+          if (res == base$$ControlFlowContinue_0.$self || res == base$$ControlFlowContinue_1.$self) { continue; }
+          if (res == base$$ControlFlowBreak_0.$self || res == base$$ControlFlowBreak_1.$self) { break; }
+          if (res instanceof base$$ControlFlowReturn_1 rv) { %s (%s) rv.value$mut(); }
         }
         """.formatted(
           loop.e().accept(this, true),
@@ -229,21 +228,21 @@ public class JsCodegen implements MIRVisitor<String> {
           getTName(expr.expectedT(), false)
         );
       case MIR.Block.BlockStmt.If if_ -> {
-        // JS: if (<pred> == base.True_0.$self) { ... }
+        // JS: if (<pred> == base$$True_0.$self) { ... }
         var body = this.visitBlockStmt(expr, stmts, doIdx, returnKind);
         if (body.startsWith(returnKind.toString())) {
           body += ";";
         }
         yield """
-        if (%s == base.True_0.$self) { %s }
+        if (%s == base$$True_0.$self) { %s }
         """.formatted(if_.e().accept(this, true), body);
       }
       case MIR.Block.BlockStmt.Let let ->
         // JS: let <name> = <expr>;
         "let %s = %s;\n".formatted(let.name(), let.value().accept(this, true));
       case MIR.Block.BlockStmt.Var var ->
-        // JS: var <name> = base.Vars_0.$self.$hash$imm(<expr>);
-        "var %s = base.Vars_0.$self.$hash$imm(%s);\n".formatted(var.name(), var.value().accept(this, true));
+        // JS: var <name> = base$$Vars_0.$self.$hash$imm(<expr>);
+        "var %s = base$$Vars_0.$self.$hash$imm(%s);\n".formatted(var.name(), var.value().accept(this, true));
     };
   }
 
@@ -266,7 +265,7 @@ public class JsCodegen implements MIRVisitor<String> {
     };
 
     // Return the wrapped JS boolean expression
-    return "(%s(%s == base.True_0.$self ? %s : %s))".formatted(cast, recv, thenBody, elseBody);
+    return "(%s(%s == base$$True_0.$self ? %s : %s))".formatted(cast, recv, thenBody, elseBody);
   }
 
   // Wrap a block expression

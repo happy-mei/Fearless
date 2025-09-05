@@ -20,7 +20,7 @@ final class StringIds {
       .findFirst();
   }
 
-  public String getFullName(Id.DecId d) { return d.pkg().replace(".", "__") + "__" + getSimpleName(d); }
+  public String getFullName(Id.DecId d) { return d.pkg().replace(".", "$$") + "$$" + getSimpleName(d); }
 
   public String getSimpleName(Id.DecId d) {
     return getBase(d.shortName()) + "_" + d.gen();

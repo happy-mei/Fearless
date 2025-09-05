@@ -14,12 +14,12 @@ import static codegen.java.RunJavaProgramTests.*;
 import static utils.RunOutput.Res;
 
 public class TestJavaProgram {
-  @Test void emptyProgram() { ok(new Res("", "", 0), """
-    package test
-    alias base.Main as Main,
-    alias base.Void as Void,
-    Test:Main{ _ -> {} }
-    """);}
+//  @Test void emptyProgram() { ok(new Res("", "", 0), """
+//    package test
+//    alias base.Main as Main,
+//    alias base.Void as Void,
+//    Test:Main{ _ -> {} }
+//    """);}
 //
 //  @Test void captureTest() { ok(new Res("", "", 0), """
 //    package test
@@ -29,12 +29,12 @@ public class TestJavaProgram {
 //    A:{ #: A -> A{ # -> A { # -> this } }# }
 //    """);}
 //
-//  @Test void assertTrue() { ok(new Res("", "", 0), """
-//    package test
-//    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
-//    alias base.Void as Void,
-//    Test:Main{ _ -> Assert!(True, { Void }) }
-//    """);}
+  @Test void assertTrue() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(True, { Void }) }
+    """);}
 //  @Test void assertFalse() { ok(new Res("", "Assertion failed :(", 1), """
 //    package test
 //    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,

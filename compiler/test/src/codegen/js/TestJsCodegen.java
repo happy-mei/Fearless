@@ -52,22 +52,28 @@ public class TestJsCodegen {
 
   @Test void blockLetDoRet() {
     ok("""
-    import { base__Void_0 } from "../base/Void_0.js";
-    import { base__Main_0 } from "../base/Main_0.js";
-    import { test__ForceGen_0 } from "../test/ForceGen_0.js";
+import { base$$Main_0 } from "../base/Main_0.js";
+import { test$$ForceGen_0 } from "../test/ForceGen_0.js";
+import { base$$Void_0 } from "../base/Void_0.js";
+
+export class test$$Test_0 extends base$$Main_0 {
+  static $self = new test$$Test_0();
+  $hash$imm(fear0$_m$) {
+    let n = 5;
+let nn = -2;
+var doRes1 = test$$ForceGen_0.$self.$hash$imm();
+return base$$Void_0.$self;
+}
+
+static $hash$imm$fun(...args) {
+    // Map args to parameters
+    let fear0$_m$ = args[0];
+let $this = args[1];
+
+    return $this.$hash$imm(fear0$_m$);
+}
         
-    export class test__Test_0 extends base__Main_0 {
-      static $self = new test__Test_0();
-      $hash$imm(fear0$_m$) {
-      let n = 5;
-    let nn = -2;
-    var doRes1 = test__ForceGen_0.$self.$hash$imm();
-    return base__Void_0.$self;
-    }
-    static $hash$imm$fun(fear0$_m$, $this) {
-      return $this.$hash$imm(fear0$_m$, $this);
-    }
-    }
+}
     """,
     "test/Test_0.js",
     """
