@@ -38,17 +38,12 @@ public class TestJsCodegen {
   }
   @Test void emptyProgram() {
     ok("""
-    class Test_0 extends base.Main_0 {
-        static $self = new Test_0();
-    
-        $hash$imm(fear[###]$_m$) {
-            return base.Void_0.$self;
-        }
-    
-        static $hash$imm$fun(fear[###]$_m$, $this) {
-            return $this.$hash$imm(fear[###]$_m$);
-        }
-    }
+     class Test_0 extends Main_0 {
+         static $self = new Test_0();
+         static $hash$imm$fun(fear[###]$_m$, $this) {
+         return base.Void_0.$self;
+     }
+     }
      """,
     "test/Test_0.js",
     """
@@ -59,46 +54,27 @@ public class TestJsCodegen {
     """);
   }
 
-//  @Test
-//  void testFunctionGeneration() {
+//  @Test void number() {
 //    ok("""
-//       function Test_0() {
-//         return {
-//          $self: {
-//            $hash$imm: function(fear_m$) {
-//              let n_m$ = 5;
-//              let doRes1 = ForceGen_0.$self.$hash$imm();
-//              return base_Void_0.$self;
-//            }
+//      class Test_0 extends Main_0 {
+//          static $self = new Test_0();
+//          static $hash$imm$fun(fear[###]$_m$, $this) {
+//              let n = 5;
+//              let nn = -2;
+//              return base.Void_0.$self;
 //          }
-//         }
-//        };
-//        """,
-//      "test/Test_0.js",
-//      """
-//        package test
-//        alias base.Int as Int, alias base.Block as Block, alias base.Void as Void,
-//        Test:base.Main {_ -> Block#
-//         .let[Int] n = {+5}
-//         .do {ForceGen#}
-//         .return {Void}
-//         }
-//        ForceGen: {#: Void -> {}}
-//        """);
+//      }
+//     """,
+//    "test/Test_0.js",
+//    """
+//    package test
+//    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+//    Test:base.Main{ _ -> Block#
+//       .let[Int] n = {+5}
+//       .let[Int] nn = {-2}
+//       .return {Void}
+//    }
+//    """);
 //  }
 
-//  @Test void asNonIdFn() {ok("""
-//    package test;
-//    public interface Test_0 extends base.Main_0{
-//    Test_0 $self = new Test_0Impl();
-//    base.Void_0 $hash$imm(base.caps.System_0 sys_m$);
-//    static base.Void_0 $hash$imm$fun(base.caps.System_0 sys_m$, test.Test_0 $this) {
-//      return base.Block_0.$self.$hash$imm(((base.List_1)rt.ListK.$self.$hash$imm()).as$read(test.Fear[###]$_0.$self));
-//    }
-//    }
-//    """, "/test_codegen/test_codegen.js", """
-//    package test_codegen
-//    Test: Main{sys -> Block#(List#[Nat].as{x->x * 2})}
-//    """, Base.mutBaseAliases);}
-//  }
 }

@@ -20,7 +20,7 @@ final class StringIds {
   }
 
   public String getFullName(Id.DecId d) {
-    return d.pkg().replace(".", "_") + "_" + getSimpleName(d);
+    return d.pkg()+"."+getSimpleName(d);
   }
 
   public String getSimpleName(Id.DecId d) {
@@ -34,24 +34,34 @@ final class StringIds {
   public String getMName(Mdf mdf, Id.MethName m) {
     return getBase(m.name()) + "$" + mdf;
   }
-
+  public boolean isDigit(int codepoint){
+    //Character.isDigit is way too relaxed
+    return codepoint >= '0' && codepoint <= '9';
+  }
+  public boolean isAlphabetic(int codepoint){
+    return (codepoint >= 'A' && codepoint <= 'Z')
+      || (codepoint >= 'a' && codepoint <= 'z');
+    //return Character.isAlphabetic(codepoint);
+    //Here instead I'm actually not sure what the best way is.
+    //What do we want our identifiers to be?
+  }
   public String getBase(String name) {
-    if (name.startsWith(".")) name = name.substring(1);
-    return name.codePoints()
-      .mapToObj(c -> isValidJsChar(c) ? Character.toString(c) : "$" + c)
-      .collect(Collectors.joining());
+    String _name=name;
+    if (name.startsWith(".")) { name = name.substring(1); }
+    return name.codePoints().mapToObj(c->{
+      var base= isAlphabetic(c) || isDigit(c);
+      if (base){ return Character.toString(c); }
+      assert c != '.';
+      var res= escape.get(c);
+      assert res!=null
+        :"not considered character ["+Character.toString(c)+"] in "+_name;
+      return res;
+    }).collect(Collectors.joining());
   }
 
-  public String varName(String name) {
-    return keywordsMap.getOrDefault(name,
-      getBase(name).replace("'", "$apos"));
-  }
-
-  private boolean isValidJsChar(int c) {
-    return (c >= 'a' && c <= 'z') ||
-      (c >= 'A' && c <= 'Z') ||
-      (c >= '0' && c <= '9') ||
-      c == '_' || c == '$';
+  public String varName(String name){
+    return Optional.ofNullable(keywordsMap.get(name))
+      .orElse(name.replace("'","$")+"_m$");
   }
 
   private static final Map<String, String> keywordsMap = Map.ofEntries(
@@ -100,6 +110,29 @@ final class StringIds {
     Map.entry("while", "$while"),
     Map.entry("with", "$with"),
     Map.entry("yield", "$yield")
+  );
+  private static final Map<Integer, String> escape = Map.ofEntries(
+    Map.entry((int)'_', "_"),
+    Map.entry((int)'\'', "$apostrophe"),
+    Map.entry((int)'+', "$plus"),
+    Map.entry((int)'-', "$minus"),
+    Map.entry((int)'*', "$asterisk"),
+    Map.entry((int)'/', "$slash"),
+    Map.entry((int)'\\', "$backslash"),
+    Map.entry((int)'|', "$pipe"),
+    Map.entry((int)'!', "$exclamation"),
+    Map.entry((int)'@', "$at"),
+    Map.entry((int)'#', "$hash"),
+    Map.entry((int)'$', "$"),
+    Map.entry((int)'%', "$percent"),
+    Map.entry((int)'^', "$caret"),
+    Map.entry((int)'&', "$ampersand"),
+    Map.entry((int)'?', "$question"),
+    Map.entry((int)'~', "$tilde"),
+    Map.entry((int)'<', "$lt"),
+    Map.entry((int)'>', "$gt"),
+    Map.entry((int)'=', "$equals"),
+    Map.entry((int)':', "$colon")
   );
 }
 

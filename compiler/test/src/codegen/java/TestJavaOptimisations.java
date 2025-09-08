@@ -15,7 +15,7 @@ public class TestJavaOptimisations {
   void ok(String expected, String fileName, String... content) {
     assert content.length > 0;
     Main.resetAll();
-    var vb = new CompilerFrontEnd.Verbosity(false, true, CompilerFrontEnd.ProgressVerbosity.None);
+    var vb = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     var main = LogicMainJava.of(InputOutput.programmaticAuto(Arrays.asList(content)), vb);
     var fullProgram = main.parse();
     main.wellFormednessFull(fullProgram);
