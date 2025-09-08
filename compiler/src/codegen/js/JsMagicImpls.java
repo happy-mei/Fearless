@@ -2,6 +2,7 @@ package codegen.js;
 
 import codegen.FlowSelector;
 import codegen.MIR;
+import failure.Fail;
 import id.Id;
 import id.Mdf;
 import magic.Magic;
@@ -10,63 +11,289 @@ import magic.MagicTrait;
 import utils.Bug;
 import visitors.MIRVisitor;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.stream.*;
+
+record JsNumOps(
+  JsNumOps.NumOp onInt,
+  JsNumOps.NumOp onNat,
+  JsNumOps.NumOp onByte,
+  JsNumOps.NumOp onFloat
+) {
+
+  public interface NumOp { String apply(String[] args); }
+
+  private static final NumOp errOp = _ -> { throw new RuntimeException("Impossible case"); };
+
+  private static final Map<Id.MethName, JsNumOps> numOps = new LinkedHashMap<>();
+
+  private static Id.MethName m(String name, int arity) { return new Id.MethName(name, arity); }
+
+  private static void put(String name, int arity, NumOp all) {
+    singlePut(m(name, arity), new JsNumOps(all, all, all, all));
+  }
+
+  private static void put(String name, int arity, NumOp i, NumOp n, NumOp b, NumOp f) {
+    singlePut(m(name, arity), new JsNumOps(i, n, b, f));
+  }
+
+  private static void singlePut(Id.MethName m, JsNumOps ops) {
+    if (numOps.containsKey(m)) throw new RuntimeException("Duplicate op: " + m);
+    numOps.put(m, ops);
+  }
+
+  public static JsNumOps emit(Id.MethName m) {
+    return Optional.ofNullable(numOps.get(m))
+      .orElseThrow(() -> new RuntimeException("Expected magic for: " + m));
+  }
+
+  public static String emitInt(Id.MethName m, String... args) {
+    return emit(m).onInt().apply(args);
+  }
+
+  public static String emitNat(Id.MethName m, String... args) {
+    return emit(m).onNat().apply(args);
+  }
+
+  public static String emitByte(Id.MethName m, String... args) {
+    return emit(m).onByte().apply(args);
+  }
+
+  public static String emitFloat(Id.MethName m, String... args) {
+    return emit(m).onFloat().apply(args);
+  }
+
+  public static String[] callArgs(MagicTrait<MIR.E,String> magic, List<? extends MIR.E> args, MIRVisitor<String> gen){
+    String self = magic.instantiate().orElseThrow();
+    Stream<String> rest = args.stream().map(a -> a.accept(gen, true));
+    return Stream.concat(Stream.of(self), rest).toArray(String[]::new);
+  }
+
+  static {
+    // Conversions - FIXED: Use actual argument references, not a[0]
+    put(".int", 0,
+      a -> a[0],                                      // int
+      a -> a[0],                                      // nat
+      a -> "(" + a[0] + " & 0xFF)",                   // byte
+      a -> "Math.trunc(" + a[0] + ")"                 // float
+    );
+
+    put(".float", 0,
+      a -> "(+" + a[0] + ")",                         // int
+      a -> "(+" + a[0] + ")",                         // nat
+      a -> "(+" + a[0] + ")",                         // byte
+      a -> a[0]                                       // float
+    );
+
+    put(".str", 0,
+      a -> "String(" + a[0] + ")",                    // int
+      a -> "String(" + a[0] + ")",                    // nat
+      a -> "String(" + a[0] + ")",                    // byte
+      a -> "String(" + a[0] + ")"                     // float
+    );
+
+    // Arithmetic - FIXED: Use proper argument references
+    put("+", 1,
+      a -> "(" + a[0] + " + " + a[1] + ")",           // int
+      a -> "(" + a[0] + " + " + a[1] + ")",           // nat
+      a -> "((" + a[0] + " + " + a[1] + ") & 0xFF)",  // byte
+      a -> "(" + a[0] + " + " + a[1] + ")"            // float
+    );
+
+    put("-", 1,
+      a -> "(" + a[0] + " - " + a[1] + ")",           // int
+      a -> "(" + a[0] + " - " + a[1] + ")",           // nat
+      a -> "((" + a[0] + " - " + a[1] + ") & 0xFF)",  // byte
+      a -> "(" + a[0] + " - " + a[1] + ")"            // float
+    );
+
+    put("*", 1,
+      a -> "(" + a[0] + " * " + a[1] + ")",           // int
+      a -> "(" + a[0] + " * " + a[1] + ")",           // nat
+      a -> "((" + a[0] + " * " + a[1] + ") & 0xFF)",  // byte
+      a -> "(" + a[0] + " * " + a[1] + ")"            // float
+    );
+
+    put("/", 1,
+      a -> "Math.trunc(" + a[0] + " / " + a[1] + ")", // int
+      a -> "Math.trunc(" + a[0] + " / " + a[1] + ")", // nat
+      a -> "Math.trunc(" + a[0] + " / " + a[1] + ")", // byte
+      a -> "(" + a[0] + " / " + a[1] + ")"            // float
+    );
+
+    put("%", 1,
+      a -> "(" + a[0] + " % " + a[1] + ")",           // int
+      a -> "(" + a[0] + " % " + a[1] + ")",           // nat
+      a -> "(" + a[0] + " % " + a[1] + ")",           // byte
+      a -> "(" + a[0] + " % " + a[1] + ")"            // float
+    );
+
+    put("**", 1,
+      a -> "Math.pow(" + a[0] + ", " + a[1] + ")",    // int
+      a -> "Math.pow(" + a[0] + ", " + a[1] + ")",    // nat
+      a -> "Math.pow(" + a[0] + ", " + a[1] + ")",    // byte
+      a -> "Math.pow(" + a[0] + ", " + a[1] + ")"     // float
+    );
+
+    // Comparisons
+    put(">", 1,
+      a -> "(" + a[0] + " > " + a[1] + ")",           // int
+      a -> "(" + a[0] + " > " + a[1] + ")",           // nat
+      a -> "(" + a[0] + " > " + a[1] + ")",           // byte
+      a -> "(" + a[0] + " > " + a[1] + ")"            // float
+    );
+
+    put("<", 1,
+      a -> "(" + a[0] + " < " + a[1] + ")",           // int
+      a -> "(" + a[0] + " < " + a[1] + ")",           // nat
+      a -> "(" + a[0] + " < " + a[1] + ")",           // byte
+      a -> "(" + a[0] + " < " + a[1] + ")"            // float
+    );
+
+    put(">=", 1,
+      a -> "(" + a[0] + " >= " + a[1] + ")",          // int
+      a -> "(" + a[0] + " >= " + a[1] + ")",          // nat
+      a -> "(" + a[0] + " >= " + a[1] + ")",          // byte
+      a -> "(" + a[0] + " >= " + a[1] + ")"           // float
+    );
+
+    put("<=", 1,
+      a -> "(" + a[0] + " <= " + a[1] + ")",          // int
+      a -> "(" + a[0] + " <= " + a[1] + ")",          // nat
+      a -> "(" + a[0] + " <= " + a[1] + ")",          // byte
+      a -> "(" + a[0] + " <= " + a[1] + ")"           // float
+    );
+
+    put("==", 1,
+      a -> "(" + a[0] + " === " + a[1] + ")",         // int
+      a -> "(" + a[0] + " === " + a[1] + ")",         // nat
+      a -> "(" + a[0] + " === " + a[1] + ")",         // byte
+      a -> "(" + a[0] + " === " + a[1] + ")"          // float
+    );
+
+    put("!=", 1,
+      a -> "(" + a[0] + " !== " + a[1] + ")",         // int
+      a -> "(" + a[0] + " !== " + a[1] + ")",         // nat
+      a -> "(" + a[0] + " !== " + a[1] + ")",         // byte
+      a -> "(" + a[0] + " !== " + a[1] + ")"          // float
+    );
+
+    // Bitwise operations (only for int, nat, byte)
+    put(".bitwiseAnd", 1,
+      a -> "(" + a[0] + " & " + a[1] + ")",           // int
+      a -> "(" + a[0] + " & " + a[1] + ")",           // nat
+      a -> "((" + a[0] + " & " + a[1] + ") & 0xFF)",  // byte
+      errOp                                           // float
+    );
+  }
+}
 
 public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements magic.MagicImpls<String> {
   @Override public MagicTrait<MIR.E, String> int_(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
-        // Try to produce a JS numeric literal from a fearless literal, if present.
-        var name = e.t().name().orElse(null);
+        var name = e.t().name().orElseThrow();
         var lit = magic.Magic.getLiteral(p, name);
-        if (lit.isPresent()) {
-          String s = lit.get();
-          // fearless ints can be like "+5" etc — normalize if needed
-          if (s.startsWith("+")) s = s.substring(1);
-          s = s.replace("_", ""); // remove any _ visual separators
-          return Optional.of(s); // already a JS number
+        try {
+          return lit
+            .map(lambdaName -> lambdaName.startsWith("+") ? lambdaName.substring(1) : lambdaName)
+            .map(lambdaName -> {
+              long value = Long.parseLong(lambdaName.replace("_", ""), 10);
+              return String.valueOf(value);
+            })
+            .orElseGet(() -> "(" + e.accept(gen, true) + ")")
+            .describeConstable();
+        } catch (NumberFormatException ignored) {
+          throw Fail.invalidNum(lit.orElse(name.toString()), "Int");
         }
-        // Not a literal we can convert here — let normal codegen handle it.
-        return Optional.empty();
       }
 
       @Override
       public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
-        String self = e.accept(gen, true);  // LHS
-        String arg = args.isEmpty() ? "" : args.get(0).accept(gen, true);  // RHS
-
-        // Handle string conversion
-        if (m.equals(new Id.MethName(".str", 0))) {
-          return Optional.of("String(" + self + ")");
-        }
-        // Arithmetic operators
-        // Handle arithmetic operations
-        if (m.equals(new Id.MethName("+", 1))) {
-          return Optional.of("(" + self + " + " + arg + ")");
-        }
-        if (m.equals(new Id.MethName("*", 1))) {
-          return Optional.of("(" + self + " * " + arg + ")");
-        }
-        return Optional.empty(); // Fallback for unhandled methods
+        return Optional.of(JsNumOps.emitInt(m, JsNumOps.callArgs(this, args, gen)));
       }
     };
   }
 
-  // sign-extension "myNumber >>> 0" to get a 32-bit unsigned integer from a JS double
-  @Override public MagicTrait<MIR.E, String> nat(MIR.E e) {
-    return int_(e); // reuse int_ logic for now
+  @Override
+  public MagicTrait<MIR.E, String> nat(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        var name = e.t().name().orElseThrow();
+        var lit = magic.Magic.getLiteral(p, name);
+        try {
+          return lit
+            .map(lambdaName -> {
+              long value = Long.parseUnsignedLong(lambdaName.replace("_", ""), 10);
+              return String.valueOf(value);
+            })
+            .orElseGet(() -> "(" + e.accept(gen, true) + " >>> 0)")
+            .describeConstable();
+        } catch (NumberFormatException ignored) {
+          throw Fail.invalidNum(lit.orElse(name.toString()), "Nat");
+        }
+      }
+
+      @Override
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args,
+                                   EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        return Optional.of(JsNumOps.emitNat(m, JsNumOps.callArgs(this, args, gen)));
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E, String> float_(MIR.E e) {
-    return int_(e); // reuse int_ logic for now
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        var name = e.t().name().orElseThrow();
+        var lit = magic.Magic.getLiteral(p, name);
+        try {
+          return lit
+            .map(lambdaName -> {
+              // Parse double and output JS number
+              double value = Double.parseDouble(lambdaName.replace("_", ""));
+              return String.valueOf(value);
+            })
+            .orElseGet(() -> "parseFloat(" + e.accept(gen, true) + ")")
+            .describeConstable();
+        } catch (NumberFormatException ignored) {
+          throw Fail.invalidNum(lit.orElse(name.toString()), "Float");
+        }
+      }
+
+      @Override
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args,
+                                   EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        return Optional.of(JsNumOps.emitFloat(m, JsNumOps.callArgs(this, args, gen)));
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E, String> byte_(MIR.E e) {
-    return int_(e); // reuse int_ logic for now
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        var name = e.t().name().orElseThrow();
+        var lit = magic.Magic.getLiteral(p, name);
+        try {
+          return lit
+            .map(lambdaName -> {
+              // Parse as unsigned byte (0-255)
+              int value = Integer.parseUnsignedInt(lambdaName.replace("_", ""), 10);
+              return String.valueOf(value & 0xFF); // Ensure byte range
+            })
+            .orElseGet(() -> "(" + e.accept(gen, true) + " & 0xFF)") // Byte masking
+            .describeConstable();
+        } catch (NumberFormatException ignored) {
+          throw Fail.invalidNum(lit.orElse(name.toString()), "Byte");
+        }
+      }
+
+      @Override
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args,
+                                   EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        return Optional.of(JsNumOps.emitByte(m, JsNumOps.callArgs(this, args, gen)));
+      }
+    };
   }
 
   @Override public MagicTrait<MIR.E,String> str(MIR.E e) {

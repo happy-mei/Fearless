@@ -1,7 +1,5 @@
 package main.js;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,7 +14,6 @@ import main.CompilerFrontEnd.Verbosity;
 import main.InputOutput;
 import main.FullLogicMain;
 import program.typesystem.TsT;
-import utils.Bug;
 
 public interface LogicMainJs extends FullLogicMain<JsProgram> {
   @Override
@@ -54,9 +51,45 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
 
   @Override
   default ProcessBuilder execution(JsProgram exe) {
-    throw Bug.todo();
-//    return new ProcessBuilder("node", io().output().resolve("main.js").toString());
+    InputOutput io = io();
+    // Generate a main.js entry file in the output directory
+    Path mainJs = io.output().resolve("main.js");
+
+    // Write the main.js content
+    try {
+      String entry = io.entry();           // e.g. "test.Test"
+      String packagePath = entry.replace('.', '/') + "_0"; // -> "test/Test_0"
+      String entryTypeName = entry.substring(entry.lastIndexOf('.') + 1) + "_0"; // -> "Test_0"
+      String mainJsContent = """
+            import { %s } from './%s.js';
+
+            const FAux = { LAUNCH_ARGS: process.argv.slice(2) };
+
+            async function main() {
+                const program = %s.$self;
+                try {
+                    await program.$hash$imm({ args: FAux.LAUNCH_ARGS });
+                } catch (err) {
+                    console.error('Program crashed with:', err);
+                    process.exit(1);
+                }
+            }
+
+            main();
+            """.formatted(entryTypeName, packagePath, entryTypeName);
+
+      java.nio.file.Files.writeString(mainJs, mainJsContent);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to write main.js entry", e);
+    }
+
+    // Return a ProcessBuilder to execute Node
+    return new ProcessBuilder("node", mainJs.toString())
+      .directory(io().output().toFile())
+      .inheritIO();
   }
+
+
 
   static LogicMainJs of(InputOutput io, Verbosity verbosity) {
     var cachedPkg = new HashSet<String>();

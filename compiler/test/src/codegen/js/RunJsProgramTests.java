@@ -1,92 +1,41 @@
 package codegen.js;
 
-import codegen.MIRInjectionVisitor;
-import id.Id;
+import failure.CompileError;
+import main.CompilerFrontEnd;
+import main.InputOutput;
 import main.Main;
+import main.js.LogicMainJs;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import parser.Parser;
-import program.TypeSystemFeatures;
-import program.inference.InferBodies;
-import program.typesystem.TsT;
-import utils.Base;
-import wellFormedness.WellFormednessFullShortCircuitVisitor;
-import wellFormedness.WellFormednessShortCircuitVisitor;
+import utils.Err;
+import utils.IoErr;
+import utils.ResolveResource;
+import utils.RunOutput;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
-import static utils.RunOutput.Res;
+import static utils.RunOutput.assertResMatch;
 
-@Disabled
 public class RunJsProgramTests {
 
-  public static void ok(Res expected, String... content) {
+  public static void ok(RunOutput.Res expected, String... content) {
     okWithArgs(expected, List.of(), content);
   }
 
-  public static void okWithArgs(Res expected, List<String> args, String... content) {
+  public static void ok(RunOutput.Res expected, Path... content) {
+    var contentStr = Arrays.stream(content)
+      .map(ResolveResource::read)
+      .toArray(String[]::new);
+    okWithArgs(expected, List.of(), contentStr);
+  }
+
+  public static void okWithArgs(RunOutput.Res expected, List<String> args, String... content) {
     assert content.length > 0;
     Main.resetAll();
-    AtomicInteger pi = new AtomicInteger();
-
-    // Parse source + base
-    var parsers = Stream.concat(Arrays.stream(content), Arrays.stream(Base.immBaseLib))
-      .map(code -> new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
-      .toList();
-
-    var parsed = Parser.parseAll(parsers, new TypeSystemFeatures());
-
-    new WellFormednessFullShortCircuitVisitor().visitProgram(parsed).ifPresent(err -> {
-      throw new RuntimeException(err);
-    });
-
-    var inferred = InferBodies.inferAll(parsed);
-    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-
-    ConcurrentHashMap<Long, TsT> resolvedCalls = new ConcurrentHashMap<>();
-    inferred.typeCheck(resolvedCalls);
-
-    var mir = new MIRInjectionVisitor(List.of(), inferred, resolvedCalls).visitProgram();
-    var jsCodegen = new JsCodegen(mir);
-
-    String js = jsCodegen.visitProgram(new Id.DecId("test.Test", 0));
-
-    try {
-      Path jsFile = Paths.get("test-output.js");
-      Files.writeString(jsFile, js);
-
-      Process process = new ProcessBuilder("node", jsFile.toAbsolutePath().toString())
-        .redirectErrorStream(true)
-        .start();
-
-      String output = new String(process.getInputStream().readAllBytes()).trim();
-      int exitCode = process.waitFor();
-
-      if (exitCode != expected.exitCode()) {
-        System.err.println("Expected exit code: " + expected.exitCode());
-        System.err.println("Actual exit code: " + exitCode);
-        System.err.println("Output:\n" + output);
-        Assertions.fail("Exit code mismatch");
-      }
-
-      // Compare output
-      String expectedOutput = expected.stdOut();
-      if (exitCode != 0) {
-        // For assertion failures, match the error message
-        expectedOutput = expected.stdErr();
-      }
-      Assertions.assertEquals(expectedOutput, output, "Output mismatch");
-
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to execute JS: " + e.getMessage(), e);
-    }
+    var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
+    var logicMain = LogicMainJs.of(InputOutput.programmaticAuto(Arrays.asList(content), args), verbosity);
+    assertResMatch(logicMain.run(), expected);
   }
 
   public static void fail(String expectedErr, String... content) {
@@ -96,31 +45,13 @@ public class RunJsProgramTests {
   public static void failWithArgs(String expectedErr, List<String> args, String... content) {
     assert content.length > 0;
     Main.resetAll();
-    AtomicInteger pi = new AtomicInteger();
-
-    var parsers = Stream.concat(Arrays.stream(content), Arrays.stream(Base.immBaseLib))
-      .map(code -> new Parser(Path.of("Dummy" + pi.getAndIncrement() + ".fear"), code))
-      .toList();
-
-    var parsed = Parser.parseAll(parsers, new TypeSystemFeatures());
-
-    new WellFormednessFullShortCircuitVisitor().visitProgram(parsed).ifPresent(err -> {
-      throw new RuntimeException(err);
-    });
-
-    var inferred = InferBodies.inferAll(parsed);
-    new WellFormednessShortCircuitVisitor(inferred).visitProgram(inferred);
-
-    ConcurrentHashMap<Long, TsT> resolvedCalls = new ConcurrentHashMap<>();
-    inferred.typeCheck(resolvedCalls);
-
+    var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     try {
-      var mir = new MIRInjectionVisitor(List.of(), inferred, resolvedCalls).visitProgram();
-      var jsCodegen = new JsCodegen(mir);
-      jsCodegen.visitProgram(new Id.DecId("test.Test", 0));
-      Assertions.fail("Expected failure, but JS codegen succeeded");
-    } catch (RuntimeException e) {
-      Assertions.assertTrue(e.getMessage().contains(expectedErr), "Error message does not contain expected substring");
+      var logicMain = LogicMainJs.of(InputOutput.programmaticAuto(Arrays.asList(content), args), verbosity);
+      IoErr.of(() -> logicMain.run().inheritIO().start()).onExit().join();
+      Assertions.fail("Did not fail");
+    } catch (CompileError e) {
+      Err.strCmp(expectedErr, e.toString());
     }
   }
 }
