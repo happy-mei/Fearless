@@ -100,19 +100,14 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
   public MagicTrait<MIR.E, String> assert_(MIR.E e) {
     return new MagicTrait<>() {
       @Override
-      public Optional<String> instantiate() {
-        // This magic trait is not instantiated directly, so we return empty.
-        return Optional.empty();
-      }
+      public Optional<String> instantiate() {  return Optional.empty(); }
 
       @Override
       public Optional<String> call(Id.MethName m, List<? extends MIR.E> args,
                                    EnumSet<MIR.MCall.CallVariant> variants,
                                    MIR.MT expectedT) {
 //        boolean isTestMode = ((JsCodegen)gen).testMode;  // Access the flag
-
         if (m.equals(new Id.MethName("._fail", 0))) {
-//          System.out.println("Assertion failed" + m);
           return Optional.of("""
             (function() {
              const err = new Error("Assertion failed");
@@ -121,9 +116,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
             })()
             """);
         }
-
         if (m.equals(new Id.MethName("._fail", 1))) {
-//          System.out.println("Assertion failed" + m);
           return Optional.of(String.format("""
             (function() {
              const err = new Error(%s);
@@ -132,7 +125,6 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
             })()
             """, args.get(0).accept(gen, true)));
         }
-
         return Optional.empty();
       }
     };

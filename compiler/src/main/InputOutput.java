@@ -1,11 +1,16 @@
 package main;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import codegen.java.JavaFile;
+import codegen.js.JsFile;
 import parser.Parser;
 import utils.IoErr;
 import utils.ResolveResource;
@@ -28,6 +33,9 @@ public interface InputOutput{
   }
   default List<JavaFile> magicFiles(){//crucially, this method is lazy
     return InputOutputHelper.readMagicFiles(magicDir());
+  }
+  default List<JsFile> magicJsFiles(){//crucially, this method is lazy
+    return InputOutputHelper.readMagicJsFiles(magicDir());
   }
 
   default String generateAliases() {
@@ -179,5 +187,35 @@ class InputOutputHelper{
     return files.stream()
       .map(p->new JavaFile(p.fileName(),p.content()))
       .toList();
+  }
+  public static List<JsFile> readMagicJsFiles(Path root) {
+    List<JsFile> result = new ArrayList<>();
+    // 1. Process main.js (if exists)
+    Path mainJs = root.resolve("main.js");
+    if (Files.exists(mainJs)) {
+      result.add(new JsFile(
+        Path.of("rt/main.js"),
+        IoErr.of(() -> Files.readString(mainJs))
+      ));
+    }
+    // 2. Process entire libwasm directory
+    Path wasmDir = root.resolve("libwasm");
+    if (Files.exists(wasmDir)) {
+      try (Stream<Path> wasmFiles = Files.walk(wasmDir)) {
+        wasmFiles
+          .filter(Files::isRegularFile)
+          .forEach(p -> {
+            Path relative = wasmDir.relativize(p);
+            Path destPath = Path.of("rt/libwasm").resolve(relative);
+            result.add(new JsFile(
+              destPath,
+              IoErr.of(() -> new String(Files.readAllBytes(p)))
+            ));
+          });
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+    return result;
   }
 }

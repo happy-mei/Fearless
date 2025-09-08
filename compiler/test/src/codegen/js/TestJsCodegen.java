@@ -7,6 +7,7 @@ import main.js.LogicMainJs;
 import org.junit.jupiter.api.Test;
 import utils.Base;
 import utils.Err;
+import utils.RunOutput;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,11 +15,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
+import static codegen.java.RunJavaProgramTests.ok;
+
 public class TestJsCodegen {
   void ok(String expected, String fileName, String... content) {
     assert content.length > 0;
     Main.resetAll();
-    var vb = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
+    var vb = new CompilerFrontEnd.Verbosity(false, true, CompilerFrontEnd.ProgressVerbosity.None);
     var main = LogicMainJs.of(InputOutput.programmaticAuto(Arrays.asList(content)), vb);
     var fullProgram = main.parse(); // builds the AST from source files (base + test)
     main.wellFormednessFull(fullProgram); // checks semantic correctness of the high-level AST
@@ -31,36 +34,56 @@ public class TestJsCodegen {
       .filter(f -> f.toUri().toString().endsWith(fileName))
       .map(JsFile::code)
       .findFirst().orElseThrow();
-//    Err.strCmp(expected, fileCode);
+    Err.strCmp(expected, fileCode);
+  }
+  @Test void emptyProgram() {
+    ok("""
+    import { Main_0 } from '../base/Main_0.js';
+    import { Void_0 } from '../base/Void_0.js';
+    
+    export class Test_0 extends Main_0 {
+        static $self = new Test_0();
+        $hash$imm(fear$_m$) {
+            return Void_0.$self;
+        }
+    }
+     """,
+    "test/Test_0.js",
+    """
+    package test
+    alias base.Main as Main,
+    alias base.Void as Void,
+    Test:Main{ _ -> {} }
+    """);
   }
 
-  @Test
-  void testFunctionGeneration() {
-    ok("""
-       function Test_0() {
-         return {
-          $self: {
-            $hash$imm: function(fear_m$) {
-              let n_m$ = 5;
-              let doRes1 = ForceGen_0.$self.$hash$imm();
-              return base_Void_0.$self;
-            }
-          }
-         }
-        };
-        """,
-      "test/Test_0.js",
-      """
-        package test
-        alias base.Int as Int, alias base.Block as Block, alias base.Void as Void,
-        Test:base.Main {_ -> Block#
-         .let[Int] n = {+5}
-         .do {ForceGen#}
-         .return {Void}
-         }
-        ForceGen: {#: Void -> {}}
-        """);
-  }
+//  @Test
+//  void testFunctionGeneration() {
+//    ok("""
+//       function Test_0() {
+//         return {
+//          $self: {
+//            $hash$imm: function(fear_m$) {
+//              let n_m$ = 5;
+//              let doRes1 = ForceGen_0.$self.$hash$imm();
+//              return base_Void_0.$self;
+//            }
+//          }
+//         }
+//        };
+//        """,
+//      "test/Test_0.js",
+//      """
+//        package test
+//        alias base.Int as Int, alias base.Block as Block, alias base.Void as Void,
+//        Test:base.Main {_ -> Block#
+//         .let[Int] n = {+5}
+//         .do {ForceGen#}
+//         .return {Void}
+//         }
+//        ForceGen: {#: Void -> {}}
+//        """);
+//  }
 
 //  @Test void asNonIdFn() {ok("""
 //    package test;
