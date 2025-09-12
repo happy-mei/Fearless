@@ -4,37 +4,41 @@ export class IO {
   static $self = new IO();
 
   printlnErr$mut(msg) {
+    const text = typeof msg === "string" ? msg : String(msg);
     if (process && process.stdout) {
-      process.stderr.write(msg.utf8() + "\n");
+      process.stderr.write(text + "\n");
     } else {
-      console.error(msg.utf8() + "\n");
+      console.error(text + "\n");
     }
     return base$$Void_0.$self;
   }
 
   println$mut(msg) {
+    const text = typeof msg === "string" ? msg : String(msg);
     if (process && process.stdout) {
-      process.stdout.write(msg.utf8() + "\n");
+      process.stdout.write(text + "\n");
     } else {
-      console.log(msg.utf8() + "\n");
+      console.log(text + "\n");
     }
     return base$$Void_0.$self;
   }
 
   print$mut(msg) {
+    const text = typeof msg === "string" ? msg : String(msg);
     if (process && process.stdout) {
-      process.stdout.write(msg.utf8());
+      process.stdout.write(text);
     } else {
-      console.log(msg.utf8());
+      console.log(text);
     }
     return base$$Void_0.$self;
   }
 
   printErr$mut(msg) {
+    const text = typeof msg === "string" ? msg : String(msg);
     if (process && process.stderr) {
-      process.stderr.write(msg.utf8());
+      process.stderr.write(text);
     } else {
-      console.error(msg.utf8());
+      console.error(text);
     }
     return base$$Void_0.$self;
   }

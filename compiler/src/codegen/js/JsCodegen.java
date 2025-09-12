@@ -21,6 +21,7 @@ public class JsCodegen implements MIRVisitor<String> {
   protected final Map<MIR.FName, MIR.Fun> funMap;
   public final StringIds id = new StringIds();
   public final HashMap<Id.DecId, String> freshImpls = new HashMap<>();
+  public final HashMap<String, String> freshSingletons = new HashMap<>();
 
   public JsCodegen(MIR.Program p) {
     this.p = p;
@@ -28,27 +29,19 @@ public class JsCodegen implements MIRVisitor<String> {
     this.funMap = p.pkgs().stream()
       .flatMap(pkg->pkg.funs().stream())
       .collect(Collectors.toMap(MIR.Fun::name, f->f));
-
-    // Prepass to collect constructors
-//    p.pkgs().forEach(pkg ->
-//      pkg.defs().values().forEach(def -> {
-//        def.singletonInstance().ifPresent(obj -> {
-//          addFreshConstructor(def.name(), obj);
-//        });
-//      })
-//    );
   }
 
   public String visitProgram(Id.DecId entry){ throw Bug.unreachable(); }
   public String visitPackage(MIR.Package pkg){ throw Bug.unreachable(); }
+
   public String visitTypeDef(MIR.TypeDef def, List<MIR.Fun> funs) {
     String className = id.getFullName(def.name());
 //    String extendsStr = extendsStr(def, className); // In JS, interface-like type usually does not extend anything
-    // Singleton (optional)
-    String singletonField = "";
+    // Singleton
     if (def.singletonInstance().isPresent()) {
       MIR.CreateObj singletonObj = def.singletonInstance().get();
-      singletonField = "\n  static $self = " + visitCreateObjNoSingleton(singletonObj, true) + ";";
+      String implExpr = visitCreateObjNoSingleton(singletonObj, true); // triggers Impl generation
+      freshSingletons.put(className, "%s.$self = %s;".formatted(className, implExpr));  // place it after Impl, because we cannot reference a class before its declaration in the same module
     }
     // Abstract methods
     String abstractMeths = "";
@@ -65,8 +58,8 @@ public class JsCodegen implements MIRVisitor<String> {
         .collect(Collectors.joining("\n  "));
     }
     return """
-    export class %s {%s%s%s
-    }""".formatted(className, singletonField, abstractMeths, staticFuns);
+    export class %s {%s%s
+    }""".formatted(className, abstractMeths, staticFuns);
   }
 
   public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic) {
@@ -142,20 +135,16 @@ public class JsCodegen implements MIRVisitor<String> {
     if (createObj.captures().isEmpty() && p.of(id).singletonInstance().isPresent()) {
       return className + ".$self"; // singleton
     }
-    // For non-singleton cases with captures, create a new instance
-//    var captures = createObj.captures().stream()
-//      .map(x -> visitX(x, checkMagic))
-//      .collect(Collectors.joining(", "));
-//    return "new " + className + "(" + captures + ")";
     return visitCreateObjNoSingleton(createObj, checkMagic);
   }
 
   // Create JS stubs for abstract methods
+  private final String abstractMethBody = "%s(%s) { throw new Error('Abstract method'); }";
   private String visitSig(MIR.Sig sig) {
     String args = sig.xs().stream()
       .map(x -> id.varName(x.name()))
       .collect(Collectors.joining(", "));
-    return "%s(%s) { throw new Error('Abstract method'); }"
+    return abstractMethBody
       .formatted(id.getMName(sig.mdf(), sig.name()), args);
   }
 
@@ -194,10 +183,7 @@ public class JsCodegen implements MIRVisitor<String> {
     String className = id.getFullName(meth.origin());
     if (!meth.fName().isPresent()) {
       // Abstract method, no forwarding
-      return String.format("""
-        %s(%s) {
-            throw new Error('Abstract method');
-        }""", methName, args);
+      return String.format(abstractMethBody, methName, args);
     }
     String funName = getFName(meth.fName().orElseThrow());
 

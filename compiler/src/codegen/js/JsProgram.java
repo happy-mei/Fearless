@@ -54,11 +54,14 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
   public ArrayList<JsFile> generateFiles() {
     var jsFiles = new ArrayList<JsFile>();
     var gen = new JsCodegen(program);
-
     // Store base type exports
     Map<String, List<String>> baseExports = new HashMap<>();
+    // define a tiny record for staged files
+    record Staged(Id.DecId typeId, StringBuilder content) {}
+    // Map from output file path -> staged info
+    Map<Path, Staged> staged = new LinkedHashMap<>();
 
-    // First pass: generate all interfaces and collect Impl classes
+    // --- First pass: generate all interfaces and stage them (do NOT write files yet) ---
     for (MIR.Package pkg : program.pkgs()) {
       String pkgPath = pkg.name().replace(".", "/") + "/";
       for (MIR.TypeDef def : pkg.defs().values()) {
@@ -67,42 +70,66 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
           .filter(f -> f.name().d().equals(typeId))
           .toList();
 
-        // Generate interface
+        // Generate interface-like content (abstract base & static helpers)
         String typeDefContent = gen.visitTypeDef(def, funsList);
-        if (!typeDefContent.isEmpty()) {
-          String fileName = gen.id.getSimpleName(typeId) + ".js";
-          Path filePath = Path.of(pkgPath).resolve(fileName);
-          String className = gen.id.getFullName(typeId);
-          String importLines = computeImports(pkg.name(), className, typeDefContent);
-          jsFiles.add(new JsFile(filePath, importLines + typeDefContent));
+        if (typeDefContent.isEmpty()) continue;
 
-          // Track base.* for merged index
-          if (pkg.name().startsWith("base")) {
-            baseExports.computeIfAbsent(pkg.name(), k -> new ArrayList<>())
-              .add(gen.id.getSimpleName(def.name()));
-          }
+        String fileName = gen.id.getSimpleName(typeId) + ".js";
+        Path filePath = Path.of(pkgPath).resolve(fileName);
+
+        // Stash content in a mutable StringBuilder so we can append impl later
+        StringBuilder sb = new StringBuilder();
+        sb.append(typeDefContent);
+        staged.put(filePath, new Staged(typeId, sb));
+
+        // Track base.* for merged index
+        if (pkg.name().startsWith("base")) {
+          baseExports.computeIfAbsent(pkg.name(), k -> new ArrayList<>())
+            .add(gen.id.getSimpleName(def.name()));
         }
       }
     }
 
-    // Second pass: generate all Impl classes
+    // --- Second step: attach Impl classes into staged files ---
     for (var e : gen.freshImpls.entrySet()) {
       Id.DecId typeId = e.getKey();
-      String pkgName = typeId.pkg();
-      String fileName = gen.id.getSimpleName(typeId) + "Impl.js";
-      Path filePath = Path.of(pkgName.replace(".", "/")).resolve(fileName);
-      String className = gen.id.getFullName(typeId) + "Impl";
-      String importLines = computeImports(pkgName, className, e.getValue());
-      String content = importLines + e.getValue();
-      jsFiles.add(new JsFile(filePath, content));
+      String implContent = e.getValue();
+      Path filePath = Path.of(typeId.pkg().replace(".", "/"))
+        .resolve(gen.id.getSimpleName(typeId) + ".js");
+      StringBuilder sb;
+      if (staged.containsKey(filePath)) {
+        sb = staged.get(filePath).content();
+      } else {
+        sb = new StringBuilder();
+        staged.put(filePath, new Staged(typeId, sb));
+      }
+      // Append Impl class
+      sb.append("\n\n").append(implContent);
+      // If there’s a queued singleton assignment, append it now
+      String className = gen.id.getFullName(typeId);
+      if (gen.freshSingletons.containsKey(className)) {
+        sb.append("\n\n").append(gen.freshSingletons.get(className));
+      }
     }
 
-    // Now generate merged base/index.js
+    // --- Now compute imports per file and finalize JsFiles ---
+    for (var entry : staged.entrySet()) {
+      Path filePath = entry.getKey();
+      Staged stagedInfo = entry.getValue();
+      Id.DecId typeId = stagedInfo.typeId();
+      String combinedContent = stagedInfo.content().toString();
+
+      // Compute imports based on combined content (so importLines reflect both interface and impl)
+      String importLines = computeImports(typeId.pkg(), gen.id.getFullName(typeId), combinedContent);
+
+      jsFiles.add(new JsFile(filePath, importLines + combinedContent));
+    }
+
+    // Now generate merged base/index.js (unchanged)
     if (!baseExports.isEmpty()) {
-      JsFile baseIndexJs = getBaseIndexJs(baseExports);
+      JsFile baseIndexJs = createBaseIndexJs(baseExports);
       jsFiles.add(baseIndexJs);
     }
-
     return jsFiles;
   }
 
@@ -110,12 +137,7 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
     Set<String> imports = new HashSet<>();
     // Pattern matches full-encoded names:
     //   <pkg>$$<pkg>$$...$$<TypeOr_underscoreStart>_<digits>  (optionally followed by Impl)
-    // Examples matched:
-    //   base$$iter$$Sum_0
-    //   base$$iter$$Sum_0Impl
-    //   base$$_InfoToJson_0
-    //   test$$Test_0
-    //   test$$Test_0Impl
+    // Examples matched: base$$iter$$Sum_0, base$$iter$$Sum_0Impl, base$$_InfoToJson_0, test$$Test_0
     Pattern p = Pattern.compile(
       "([a-z][a-z0-9_]*(?:\\$\\$[a-z][a-z0-9_]*)*\\$\\$[A-Za-z_][A-Za-z0-9_$]*_\\d+(?:Impl)?)"
     );
@@ -123,7 +145,7 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
 
     while (m.find()) {
       String dep = m.group();
-      if (dep.equals(className)) continue; // skip self
+      if (dep.equals(className) || dep.equals(className + "Impl")) continue; // skip self and self-Impl
       String importPath = getRelativeImportPath(pkg, dep);
       imports.add("import { " + dep + " } from \"" + importPath + "\";");
     }
@@ -155,7 +177,7 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
     return prefix + depPath + ".js";
   }
 
-  private JsFile getBaseIndexJs(Map<String, List<String>> baseExports) {
+  private JsFile createBaseIndexJs(Map<String, List<String>> baseExports) {
     StringBuilder rootIndex = new StringBuilder();
 
     for (var entry : baseExports.entrySet()) {

@@ -49,8 +49,7 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
     src.writeJsFiles(io().output()); // Just write JS files
   }
 
-  @Override
-  default ProcessBuilder execution(JsProgram exe) {
+  @Override default ProcessBuilder execution(JsProgram exe) {
     InputOutput io = io();
     // Generate a main.js entry file in the output directory
     Path mainJs = io.output().resolve("main.js");
@@ -67,7 +66,7 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
       async function main() {
           const program = %s.$self;
           try {
-              await program.$m(new RealSystem());
+              await program.$hash$imm(new RealSystem());
           } catch (err) {
               console.error('Program crashed with:', err);
               process.exit(1);
@@ -83,9 +82,11 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
     }
 
     // Return a ProcessBuilder to execute Node
-    return new ProcessBuilder("node", mainJs.toString())
+    ProcessBuilder pb = new ProcessBuilder("node", mainJs.toString())
       .directory(io().output().toFile())
-      .inheritIO();
+      .redirectError(ProcessBuilder.Redirect.PIPE)
+      .redirectOutput(ProcessBuilder.Redirect.PIPE);
+    return pb;
   }
 
 
