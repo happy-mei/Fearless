@@ -187,10 +187,7 @@ public class JsCodegen implements MIRVisitor<String> {
     }
     String funName = getFName(meth.fName().orElseThrow());
 
-    return String.format("""
-    %s(%s) {
-        return %s.%s(%s);
-      }""", methName, args, className, funName, funArgs);
+    return String.format("%s(%s) { return %s.%s(%s); }", methName, args, className, funName, funArgs);
   }
 
   @Override
@@ -263,12 +260,10 @@ public class JsCodegen implements MIRVisitor<String> {
         if (%s == base$$True_0.$self) { %s }
         """.formatted(if_.e().accept(this, true), body);
       }
-      case MIR.Block.BlockStmt.Let let ->
-        // JS: let <name> = <expr>;
-        "let %s = %s;\n".formatted(let.name(), let.value().accept(this, true));
-      case MIR.Block.BlockStmt.Var var ->
-        // JS: var <name> = base$$Vars_0.$self.$hash$imm(<expr>);
-        "var %s = base$$Vars_0.$self.$hash$imm(%s);\n".formatted(var.name(), var.value().accept(this, true));
+      case MIR.Block.BlockStmt.Let let -> "let %s = %s;\n"
+        .formatted(id.varName(let.name()), let.value().accept(this, true));
+      case MIR.Block.BlockStmt.Var var -> "var %s = base$$Vars_0.$self.$hash$imm(%s);\n"
+        .formatted(id.varName(var.name()), var.value().accept(this, true));
     };
   }
 

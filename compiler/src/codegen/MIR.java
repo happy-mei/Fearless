@@ -137,6 +137,7 @@ public sealed interface MIR {
 
   record BoolExpr(E original, E condition, FName then, FName else_) implements E {
     public BoolExpr {
+      System.out.println(condition.t().name());
       assert condition.t().name().isPresent() && (
         condition.t().name().get().equals(new Id.DecId("base.True", 0))
         || condition.t().name().get().equals(new Id.DecId("base.False", 0))

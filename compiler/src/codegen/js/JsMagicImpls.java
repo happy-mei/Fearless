@@ -29,6 +29,10 @@ record JsNumOps(
 
   private static Id.MethName m(String name, int arity) { return new Id.MethName(name, arity); }
 
+  private static void putFloat(String name, int arity, NumOp f){
+    singlePut(m(name, arity), new JsNumOps(errOp, errOp, errOp, f));
+  }
+
   private static void put(String name, int arity, NumOp all) {
     singlePut(m(name, arity), new JsNumOps(all, all, all, all));
   }
@@ -70,18 +74,17 @@ record JsNumOps(
   }
 
   static {
-    // Conversions - FIXED: Use actual argument references, not a[0]
     put(".int", 0,
       a -> a[0],                                      // int
       a -> a[0],                                      // nat
       a -> "(" + a[0] + " & 0xFF)",                   // byte
-      a -> "Math.trunc(" + a[0] + ")"                 // float
+      a -> a[0]                 // float
     );
     put(".nat", 0,
       a -> a[0],                                      // int → nat (no conversion needed)
       a -> a[0],                                      // nat → nat (identity)
       a -> "(" + a[0] + " & 0xFF)",                   // byte → nat (ensure unsigned)
-      a -> "Math.trunc(" + a[0] + ")"                 // float → nat (truncate to integer)
+      a -> a[0]                 // float → nat
     );
     put(".float", 0,
       a -> "(+" + a[0] + ")",                         // int
@@ -101,93 +104,109 @@ record JsNumOps(
       a -> "String(" + a[0] + ")",                    // byte
       a -> "String(" + a[0] + ")"                     // float
     );
-
-    // Arithmetic - FIXED: Use proper argument references
+    // Arithmetic
     put("+", 1,
       a -> "(" + a[0] + " + " + a[1] + ")",           // int
       a -> "(" + a[0] + " + " + a[1] + ")",           // nat
       a -> "((" + a[0] + " + " + a[1] + ") & 0xFF)",  // byte
       a -> "(" + a[0] + " + " + a[1] + ")"            // float
     );
-
     put("-", 1,
       a -> "(" + a[0] + " - " + a[1] + ")",           // int
       a -> "(" + a[0] + " - " + a[1] + ")",           // nat
       a -> "((" + a[0] + " - " + a[1] + ") & 0xFF)",  // byte
       a -> "(" + a[0] + " - " + a[1] + ")"            // float
     );
-
     put("*", 1,
       a -> "(" + a[0] + " * " + a[1] + ")",           // int
       a -> "(" + a[0] + " * " + a[1] + ")",           // nat
       a -> "((" + a[0] + " * " + a[1] + ") & 0xFF)",  // byte
       a -> "(" + a[0] + " * " + a[1] + ")"            // float
     );
-
     put("/", 1,
-      a -> "Math.trunc(" + a[0] + " / " + a[1] + ")", // int
-      a -> "Math.trunc(" + a[0] + " / " + a[1] + ")", // nat
-      a -> "Math.trunc(" + a[0] + " / " + a[1] + ")", // byte
-      a -> "(" + a[0] + " / " + a[1] + ")"            // float
+      a -> "(" + a[0] + " / " + a[1] + ")", // int → BigInt division (already truncates)
+      a -> "(" + a[0] + " / " + a[1] + ")", // nat → same
+      a -> "(" + a[0] + " / " + a[1] + ")", // byte → same (masking handled elsewhere)
+      a -> "(" + a[0] + " / " + a[1] + ")"  // float → normal JS Number division
     );
-
     put("%", 1,
       a -> "(" + a[0] + " % " + a[1] + ")",           // int
       a -> "(" + a[0] + " % " + a[1] + ")",           // nat
       a -> "(" + a[0] + " % " + a[1] + ")",           // byte
       a -> "(" + a[0] + " % " + a[1] + ")"            // float
     );
-
     put("**", 1,
-      a -> "Math.pow(" + a[0] + ", " + a[1] + ")",    // int
-      a -> "Math.pow(" + a[0] + ", " + a[1] + ")",    // nat
-      a -> "Math.pow(" + a[0] + ", " + a[1] + ")",    // byte
-      a -> "Math.pow(" + a[0] + ", " + a[1] + ")"     // float
-    );
-
-    // Comparisons
+      a -> "(" + a[0] + " ** " + a[1] + ")", // int (BigInt)
+      a -> "(" + a[0] + " ** " + a[1] + ")", // nat (BigInt)
+      a -> "(" + a[0] + " ** " + a[1] + ")", // byte (BigInt)
+      a -> "Math.pow(" + a[0] + ", " + a[1] + ")" // float (Number)
+    );// Comparisons
     put(">", 1,
-      a -> "(" + a[0] + " > " + a[1] + ")",           // int
-      a -> "(" + a[0] + " > " + a[1] + ")",           // nat
-      a -> "(" + a[0] + " > " + a[1] + ")",           // byte
-      a -> "(" + a[0] + " > " + a[1] + ")"            // float
+      a -> "rt$$Numbers.toBool((" + a[0] + ") > (" + a[1] + "))",     // int
+      a -> "rt$$Numbers.toBool((" + a[0] + ") > (" + a[1] + "))",     // nat
+      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) > (Number(" + a[1] + ") & 0xFF)))", // byte
+      a -> "rt$$Numbers.toBool((" + a[0] + ") > (" + a[1] + "))"      // float
     );
 
     put("<", 1,
-      a -> "(" + a[0] + " < " + a[1] + ")",           // int
-      a -> "(" + a[0] + " < " + a[1] + ")",           // nat
-      a -> "(" + a[0] + " < " + a[1] + ")",           // byte
-      a -> "(" + a[0] + " < " + a[1] + ")"            // float
+      a -> "rt$$Numbers.toBool((" + a[0] + ") < (" + a[1] + "))",     // int
+      a -> "rt$$Numbers.toBool((" + a[0] + ") < (" + a[1] + "))",     // nat
+      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) < (Number(" + a[1] + ") & 0xFF)))", // byte
+      a -> "rt$$Numbers.toBool((" + a[0] + ") < (" + a[1] + "))"      // float
     );
 
     put(">=", 1,
-      a -> "(" + a[0] + " >= " + a[1] + ")",          // int
-      a -> "(" + a[0] + " >= " + a[1] + ")",          // nat
-      a -> "(" + a[0] + " >= " + a[1] + ")",          // byte
-      a -> "(" + a[0] + " >= " + a[1] + ")"           // float
+      a -> "rt$$Numbers.toBool((" + a[0] + ") >= (" + a[1] + "))",    // int
+      a -> "rt$$Numbers.toBool((" + a[0] + ") >= (" + a[1] + "))",    // nat
+      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) >= (Number(" + a[1] + ") & 0xFF)))", // byte
+      a -> "rt$$Numbers.toBool((" + a[0] + ") >= (" + a[1] + "))"     // float
     );
 
     put("<=", 1,
-      a -> "(" + a[0] + " <= " + a[1] + ")",          // int
-      a -> "(" + a[0] + " <= " + a[1] + ")",          // nat
-      a -> "(" + a[0] + " <= " + a[1] + ")",          // byte
-      a -> "(" + a[0] + " <= " + a[1] + ")"           // float
+      a -> "rt$$Numbers.toBool((" + a[0] + ") <= (" + a[1] + "))",    // int
+      a -> "rt$$Numbers.toBool((" + a[0] + ") <= (" + a[1] + "))",    // nat
+      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) <= (Number(" + a[1] + ") & 0xFF)))", // byte
+      a -> "rt$$Numbers.toBool((" + a[0] + ") <= (" + a[1] + "))"     // float
     );
 
     put("==", 1,
-      a -> "(" + a[0] + " === " + a[1] + ")",         // int
-      a -> "(" + a[0] + " === " + a[1] + ")",         // nat
-      a -> "(" + a[0] + " === " + a[1] + ")",         // byte
-      a -> "(" + a[0] + " === " + a[1] + ")"          // float
+      a -> "rt$$Numbers.toBool((" + a[0] + ") === (" + a[1] + "))",   // int
+      a -> "rt$$Numbers.toBool((" + a[0] + ") === (" + a[1] + "))",   // nat
+      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) === (Number(" + a[1] + ") & 0xFF)))", // byte
+      a -> "rt$$Numbers.toBool((" + a[0] + ") === (" + a[1] + "))"    // float
     );
 
     put("!=", 1,
-      a -> "(" + a[0] + " !== " + a[1] + ")",         // int
-      a -> "(" + a[0] + " !== " + a[1] + ")",         // nat
-      a -> "(" + a[0] + " !== " + a[1] + ")",         // byte
-      a -> "(" + a[0] + " !== " + a[1] + ")"          // float
+      a -> "rt$$Numbers.toBool((" + a[0] + ") !== (" + a[1] + "))",   // int
+      a -> "rt$$Numbers.toBool((" + a[0] + ") !== (" + a[1] + "))",   // nat
+      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) !== (Number(" + a[1] + ") & 0xFF)))", // byte
+      a -> "rt$$Numbers.toBool((" + a[0] + ") !== (" + a[1] + "))"    // float
     );
-
+    // Bitwise operations
+    put(".shiftRight", 1,
+      a -> a[0] + " >> " + a[1],                    // int
+      a -> "((" + a[0] + " & ((1n<<64n)-1n)) >> " + a[1] + ")", // nat
+      a -> "(" + a[0] + " >> " + a[1] + ") & 0xFF", // byte
+      errOp                                         // float
+    );
+    put(".shiftLeft", 1,
+      a -> a[0] + " << " + a[1],                    // int
+      a -> "((" + a[0] + " << " + a[1] + ") & ((1n<<64n)-1n))", // nat
+      a -> "(" + a[0] + " << " + a[1] + ") & 0xFF", // byte
+      errOp                                         // float
+    );
+    put(".xor", 1,
+      a -> a[0] + " ^ " + a[1],                     // int
+      a -> a[0] + " ^ " + a[1],                     // nat
+      a -> "(" + a[0] + " ^ " + a[1] + ") & 0xFF",  // byte
+      errOp                                         // float
+    );
+    put(".bitwiseOr", 1,
+      a -> a[0] + " | " + a[1],                     // int
+      a -> a[0] + " | " + a[1],                     // nat
+      a -> "(" + a[0] + " | " + a[1] + ") & 0xFF",  // byte
+      errOp                                         // float
+    );
     // Bitwise operations (only for int, nat, byte)
     put(".bitwiseAnd", 1,
       a -> "(" + a[0] + " & " + a[1] + ")",           // int
@@ -195,125 +214,38 @@ record JsNumOps(
       a -> "((" + a[0] + " & " + a[1] + ") & 0xFF)",  // byte
       errOp                                           // float
     );
-
     // Math operations
     put(".abs", 0,
-      a -> "Math.abs(" + a[0] + ")",                // int
-      a -> "Math.abs(" + a[0] + ")",                // nat
-      a -> "Math.abs(" + a[0] + ")",                // byte
+      a -> a[0] + " < 0n ? -(" + a[0] + ") : " + a[0], // BigInt-safe for Int
+      a -> a[0],                // nat
+      a -> a[0],                // byte
       a -> "Math.abs(" + a[0] + ")"                 // float
     );
-
     put(".sqrt", 0,
-      a -> "Math.sqrt(" + a[0] + ")",               // int
-      a -> "Math.sqrt(" + a[0] + ")",               // nat
-      a -> "Math.sqrt(" + a[0] + ")",               // byte
+      a -> "rt$$Numbers.intSqrt("  + a[0] + ")", // int
+      a -> "rt$$Numbers.natSqrt("  + a[0] + ")", // nat
+      a -> "rt$$Numbers.byteSqrt(" + a[0] + ")", // byte
       a -> "Math.sqrt(" + a[0] + ")"                // float
     );
-
-    // Bitwise operations
-    put(".shiftRight", 1,
-      a -> a[0] + " >> " + a[1],                    // int
-      a -> a[0] + " >>> " + a[1],                   // nat (unsigned)
-      a -> "(" + a[0] + " >> " + a[1] + ") & 0xFF", // byte
-      errOp                                         // float
-    );
-
-    put(".shiftLeft", 1,
-      a -> a[0] + " << " + a[1],                    // int
-      a -> a[0] + " << " + a[1],                    // nat
-      a -> "(" + a[0] + " << " + a[1] + ") & 0xFF", // byte
-      errOp                                         // float
-    );
-
-    put(".xor", 1,
-      a -> a[0] + " ^ " + a[1],                     // int
-      a -> a[0] + " ^ " + a[1],                     // nat
-      a -> "(" + a[0] + " ^ " + a[1] + ") & 0xFF",  // byte
-      errOp                                         // float
-    );
-
-    put(".bitwiseOr", 1,
-      a -> a[0] + " | " + a[1],                     // int
-      a -> a[0] + " | " + a[1],                     // nat
-      a -> "(" + a[0] + " | " + a[1] + ") & 0xFF",  // byte
-      errOp                                         // float
-    );
-
-    // Float-specific operations
-    put(".isNaN", 0,
-      errOp,                                        // int
-      errOp,                                        // nat
-      errOp,                                        // byte
-      a -> "isNaN(" + a[0] + ")"                    // float
-    );
-
-    put(".isInfinite", 0,
-      errOp,                                        // int
-      errOp,                                        // nat
-      errOp,                                        // byte
-      a -> "!isFinite(" + a[0] + ")"                // float
-    );
-
-    put(".isPosInfinity", 0,
-      errOp,                                        // int
-      errOp,                                        // nat
-      errOp,                                        // byte
-      a -> a[0] + " === Infinity"                   // float
-    );
-
-    put(".isNegInfinity", 0,
-      errOp,                                        // int
-      errOp,                                        // nat
-      errOp,                                        // byte
-      a -> a[0] + " === -Infinity"                  // float
-    );
-
-    // Float rounding operations
-    put(".round", 0,
-      errOp,                                        // int
-      errOp,                                        // nat
-      errOp,                                        // byte
-      a -> "Math.round(" + a[0] + ")"               // float
-    );
-
-    put(".ceil", 0,
-      errOp,                                        // int
-      errOp,                                        // nat
-      errOp,                                        // byte
-      a -> "Math.ceil(" + a[0] + ")"                // float
-    );
-
-    put(".floor", 0,
-      errOp,                                        // int
-      errOp,                                        // nat
-      errOp,                                        // byte
-      a -> "Math.floor(" + a[0] + ")"               // float
-    );
-
-    // Assertion operations (JS-specific implementations)
+    // Assertion operations
     put(".assertEq", 1,
-      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error('Assertion failed: ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
-      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error('Assertion failed: ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
-      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error('Assertion failed: ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
-      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error('Assertion failed: ' + " + a[0] + " + ' !== ' + " + a[1] + "); }"
+      a-> "base$$_IntAssertionHelper_0.assertEq$imm$fun("   + a[0] + ", " + a[1] + ", null)", // Int
+      a-> "base$$_NatAssertionHelper_0.assertEq$imm$fun("   + a[0] + ", " + a[1] + ", null)", // Nat
+      a-> "base$$_ByteAssertionHelper_0.assertEq$imm$fun("  + a[0] + ", " + a[1] + ", null)", // Byte
+      a-> "base$$_FloatAssertionHelper_0.assertEq$imm$fun(" + a[0] + ", " + a[1] + ", null)" // Float
     );
-
-    put(".assertEq", 2,
-      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error(" + a[2] + " + ': ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
-      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error(" + a[2] + " + ': ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
-      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error(" + a[2] + " + ': ' + " + a[0] + " + ' !== ' + " + a[1] + "); }",
-      a -> "{ if (" + a[0] + " !== " + a[1] + ") throw new Error(" + a[2] + " + ': ' + " + a[0] + " + ' !== ' + " + a[1] + "); }"
+    put(".assertEq", 2,//TODO: should those be in rt? what is the null?
+      a-> "base$$_IntAssertionHelper_0.assertEq$imm$fun("   + a[0] + ", " + a[1] + ", " + a[2] + ", null)", // Int
+      a-> "base$$_NatAssertionHelper_0.assertEq$imm$fun("   + a[0] + ", " + a[1] + ", " + a[2] + ", null)", // Nat
+      a-> "base$$_ByteAssertionHelper_0.assertEq$imm$fun("  + a[0] + ", " + a[1] + ", " + a[2] + ", null)", // Byte
+      a-> "base$$_FloatAssertionHelper_0.assertEq$imm$fun(" + a[0] + ", " + a[1] + ", " + a[2] + ", null)" // Float
     );
-
-    // Hash operation (placeholder - would need Hasher implementation)
     put(".hash", 1,
-      a -> "{ /* hash implementation */ return " + a[0] + "; }",
-      a -> "{ /* hash implementation */ return " + a[0] + "; }",
-      a -> "{ /* hash implementation */ return " + a[0] + "; }",
-      a -> "{ /* hash implementation */ return " + a[0] + "; }"
+      a-> a[1] + ".int$mut("  + a[0] + ")", // Int
+      a-> a[1] + ".int$mut("  + a[0] + ")", // Nat
+      a-> a[1] + ".byte$mut(" + a[0] + ")", // Byte
+      a-> a[1] + ".int$mut("  + a[0] + ")" // Float
     );
-
     // Offset operation
     put(".offset", 1,
       errOp,                                        // int
@@ -321,6 +253,15 @@ record JsNumOps(
       a -> "(" + a[0] + " + " + a[1] + ") & 0xFF",  // byte
       errOp                                         // float
     );
+    // Float-specific operations
+    putFloat(".isNaN", 0,a -> "rt$$Numbers.toBool(" + "isNaN(" + a[0] + "))");
+    putFloat(".isInfinite", 0, a -> "rt$$Numbers.toBool(" + "!isFinite(" + a[0] + "))");
+    putFloat(".isPosInfinity", 0,a -> "rt$$Numbers.toBool(" + a[0] + " === Infinity)");
+    putFloat(".isNegInfinity", 0,a -> "rt$$Numbers.toBool(" + a[0] + " === -Infinity)");
+    // float-only extras
+    putFloat(".round", 0, a-> "Math.round(" + a[0] + ")");
+    putFloat(".ceil", 0,a-> "Math.ceil(" + a[0] + ")" );
+    putFloat(".floor", 0,a-> "Math.floor(" + a[0] + ")" );
   }
 }
 
@@ -461,7 +402,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
       @Override public Optional<String> instantiate() { return Optional.empty(); }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
-          return Optional.of("new rt.Regex(" + args.get(0).accept(gen, true) + ")");
+          return Optional.of("new rt$$Regex(" + args.get(0).accept(gen, true) + ")");
         }
         // Fallback to default behavior
         return MagicTrait.super.call(m, args, variants, expectedT);
@@ -663,7 +604,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
             (function() {
               console.error("No magic code was found at:\\n" + new Error().stack);
               if (typeof process !== "undefined") process.exit(1);
-              else throw new Error("Program aborted");
+              else throw new Error("No magic code was found");
             })()
             """);
         }
@@ -680,7 +621,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
       }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName("!", 1))) {
-          return Optional.of("throw new Error(%s)".formatted(args.getFirst().accept(gen, true)));
+          return Optional.of("rt$$Error.throwFearlessError(%s)".formatted(args.getFirst().accept(gen, true)));
         }
         return Optional.empty();
       }

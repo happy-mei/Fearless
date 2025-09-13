@@ -31,7 +31,7 @@ public class RunJavaProgramTests {
   public static void okWithArgs(RunOutput.Res expected, List<String> args, String... content) {
     assert content.length > 0;
     Main.resetAll();
-    var verbosity = new CompilerFrontEnd.Verbosity(false, true, CompilerFrontEnd.ProgressVerbosity.None);
+    var verbosity = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     var logicMain = LogicMainJava.of(InputOutput.programmaticAuto(Arrays.asList(content), args), verbosity);
     assertResMatch(logicMain.run(), expected);
   }

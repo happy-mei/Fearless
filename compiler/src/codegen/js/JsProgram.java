@@ -69,7 +69,6 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
         var funsList = pkg.funs().stream()
           .filter(f -> f.name().d().equals(typeId))
           .toList();
-
         // Generate interface-like content (abstract base & static helpers)
         String typeDefContent = gen.visitTypeDef(def, funsList);
         if (typeDefContent.isEmpty()) continue;
@@ -108,7 +107,7 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
       // If there’s a queued singleton assignment, append it now
       String className = gen.id.getFullName(typeId);
       if (gen.freshSingletons.containsKey(className)) {
-        sb.append("\n\n").append(gen.freshSingletons.get(className));
+        sb.append("\n").append(gen.freshSingletons.get(className));
       }
     }
 
@@ -138,20 +137,28 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
     // Pattern matches full-encoded names:
     //   <pkg>$$<pkg>$$...$$<TypeOr_underscoreStart>_<digits>  (optionally followed by Impl)
     // Examples matched: base$$iter$$Sum_0, base$$iter$$Sum_0Impl, base$$_InfoToJson_0, test$$Test_0
+    // Match encoded class names, optionally ending with Impl
     Pattern p = Pattern.compile(
-      "([a-z][a-z0-9_]*(?:\\$\\$[a-z][a-z0-9_]*)*\\$\\$[A-Za-z_][A-Za-z0-9_$]*_\\d+(?:Impl)?)"
+      "([a-z][a-z0-9_]*(?:\\$\\$[a-z][a-z0-9_]*)*\\$\\$[A-Za-z_][A-Za-z0-9_$]*_\\d+)(Impl)?"
     );
     Matcher m = p.matcher(content);
-
     while (m.find()) {
-      String dep = m.group();
-      if (dep.equals(className) || dep.equals(className + "Impl")) continue; // skip self and self-Impl
-      String importPath = getRelativeImportPath(pkg, dep);
+      String base = m.group(1);   // e.g. test$$Fear714$_0
+      String impl = m.group(2);   // "Impl" if present, null otherwise
+      String dep = (impl != null) ? base + "Impl" : base;
+      if (dep.equals(className) || dep.equals(className + "Impl")) continue;
+
+      String importPath = getRelativeImportPath(pkg, base);
       imports.add("import { " + dep + " } from \"" + importPath + "\";");
     }
-
-    if (!pkg.equals("rt") && content.contains(" rt.")) {
-      imports.add("import * as rt from \"../rt-js/index.js\";");
+    // Special-case: runtime helpers (rt$$Numbers, rt$$Other...)
+    Pattern rt = Pattern.compile("\\brt\\$\\$([A-Za-z0-9_]+)\\.");
+    Matcher rm = rt.matcher(content);
+    while (rm.find()) {
+      String dep = "rt$$" + rm.group(1);  // e.g. rt$$Numbers
+      // Always import from rt-js/<Name>.js
+      String importPath = getRelativeImportPath(pkg, "rt-js/" + rm.group(1));
+      imports.add("import { " + dep + " } from \"" + importPath + "\";");
     }
     return String.join("\n", imports) + (imports.isEmpty() ? "" : "\n\n");
   }
@@ -179,15 +186,12 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
 
   private JsFile createBaseIndexJs(Map<String, List<String>> baseExports) {
     StringBuilder rootIndex = new StringBuilder();
-
     for (var entry : baseExports.entrySet()) {
       String pkg = entry.getKey(); // e.g., "base", "base.json"
       List<String> typeNames = entry.getValue();
-
       for (String typeName : typeNames) {
-        // Compute flattened export name: base__json__Type_0
-        String flattenedName = pkg.replace(".", "__") + "__" + typeName;
-
+        // Compute flattened export name: base$$json$$Type_0
+        String flattenedName = pkg.replace(".", "$$") + "$$" + typeName;
         String simpleFile = typeName; // the actual file name
         String relPath;
         if (pkg.equals("base")) {
@@ -196,12 +200,10 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
           String pkgPath = pkg.replace(".", "/");
           relPath = "./" + pkgPath.substring(5) + "/" + simpleFile + ".js"; // remove "base/" prefix
         }
-
         rootIndex.append("export { ").append(flattenedName)
           .append(" } from '").append(relPath).append("';\n");
       }
     }
-
     return new JsFile(Path.of("base/index.js"), rootIndex.toString());
   }
 

@@ -10,12 +10,13 @@ import utils.Base;
 import utils.Err;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class TestJavaOptimisations {
   void ok(String expected, String fileName, String... content) {
     assert content.length > 0;
     Main.resetAll();
-    var vb = new CompilerFrontEnd.Verbosity(false, true, CompilerFrontEnd.ProgressVerbosity.None);
+    var vb = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     var main = LogicMainJava.of(InputOutput.programmaticAuto(Arrays.asList(content)), vb);
     var fullProgram = main.parse();
     main.wellFormednessFull(fullProgram);
@@ -29,6 +30,29 @@ public class TestJavaOptimisations {
       .map(JavaFile::code)
       .findFirst().orElseThrow();
     Err.strCmp(expected, fileCode);
+  }
+  void okList(List<String> expected, List<String> fileName, String... content) {
+    assert content.length > 0;
+    assert expected.size() == fileName.size();
+    Main.resetAll();
+    var vb = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
+    var main = LogicMainJava.of(InputOutput.programmaticAuto(Arrays.asList(content)), vb);
+    var fullProgram = main.parse();
+    main.wellFormednessFull(fullProgram);
+    var program = main.inference(fullProgram);
+    main.wellFormednessCore(program);
+    var resolvedCalls = main.typeSystem(program);
+    var mir = main.lower(program,resolvedCalls);
+    var code = main.codeGeneration(mir);
+    for (int i = 0; i < expected.size(); i++) {
+      String exp = expected.get(i);
+      String fName = fileName.get(i);
+      var fileCode = code.files().stream()
+        .filter(f -> f.toUri().toString().endsWith(fName))
+        .map(JavaFile::code)
+        .findFirst().orElseThrow();
+      Err.strCmp(exp, fileCode);
+    }
   }
 
   @Test void blockLetDoRet() { ok("""
@@ -329,22 +353,46 @@ public class TestJavaOptimisations {
     Test: Main{sys -> Block#(List#[Nat].as{x->x * 2})}
     """, Base.mutBaseAliases);}
 
-  @Test void test() {ok("""
+  @Test void assertEq() {
+    okList(List.of("""
     package test;
-    public interface Direction_0{
-    test.Direction_0 reverse$imm();
+    public interface Test_0 extends base.Main_0{
+    Test_0 $self = new Test_0Impl();
+    base.Void_0 $hash$imm(base.caps.System_0 fear0$_m$);
+    static base.Void_0 $hash$imm$fun(base.caps.System_0 fear0$_m$, test.Test_0 $this) {
+      return base._NatAssertionHelper_0.assertEq$imm$fun(5L, 5L, null);
+    }
+    }
+    """, """
+    package base;
+    public interface _NatAssertionHelper_0 extends base._NumsAssertionHelper_1{
+    _NatAssertionHelper_0 $self = new _NatAssertionHelper_0Impl();
+    base.Void_0 assertEq$imm(Object expected_m$, Object actual_m$);
     
-    test.Direction_0 turn$imm();
-    static test.Direction_0 reverse$imm$fun(test.Direction_0 $this) {
-      return $this.turn$imm().turn$imm();
+    base.Void_0 assertEq$imm(Object expected_m$, Object actual_m$, rt.Str message_m$);
+    static base.Void_0 assertEq$imm$fun(long expected_m$, long actual_m$, base._NatAssertionHelper_0 $this) {
+      return ((base.Void_0)(switch (1) { default -> {
+      System.err.println("Program aborted at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
+      System.exit(1);
+      yield (base.Void_0) null;
+    }})
+    );
+    }
+    
+    static base.Void_0 assertEq$imm$fun(long expected_m$, long actual_m$, rt.Str message_m$, base._NatAssertionHelper_0 $this) {
+      return ((base.Void_0)(switch (1) { default -> {
+      System.err.println("Program aborted at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
+      System.exit(1);
+      yield (base.Void_0) null;
+    }})
+    );
     }
     }
-    """,
-    "/test/Direction_0.java",
+    """),
+    List.of("test/Test_0.java", "/base/_NatAssertionHelper_0.java"),
     """
     package test
-    alias base.Main as Main,
-    Test: Main{sys -> sys.io.println("Hello World") }
-    """);
+    Test: Main{_ -> 5.assertEq(5)}
+    """, Base.mutBaseAliases);
   }
 }

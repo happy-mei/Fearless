@@ -89,8 +89,6 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
     return pb;
   }
 
-
-
   static LogicMainJs of(InputOutput io, Verbosity verbosity) {
     var cachedPkg = new HashSet<String>();
     return new LogicMainJs() {

@@ -5,7 +5,6 @@ import main.InputOutput;
 import main.Main;
 import main.js.LogicMainJs;
 import org.junit.jupiter.api.Test;
-import utils.Base;
 import utils.Err;
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.List;
 public class TestJsCodegen {
   JsProgram getCode(String... content) {
     Main.resetAll();
-    var vb = new CompilerFrontEnd.Verbosity(false, true, CompilerFrontEnd.ProgressVerbosity.None);
+    var vb = new CompilerFrontEnd.Verbosity(false, false, CompilerFrontEnd.ProgressVerbosity.None);
     var main = LogicMainJs.of(InputOutput.programmaticAuto(Arrays.asList(content)), vb);
     var fullProgram = main.parse(); // builds the AST from source files (base + test)
     main.wellFormednessFull(fullProgram); // checks semantic correctness of the high-level AST
@@ -25,7 +24,7 @@ public class TestJsCodegen {
     return code;
   }
   void ok(String expected, String fileName, String... content) {
-    assert content.length > 0;
+    assert content.length > 0 : "Content must not be empty";
     JsProgram code = getCode(content);
     var fileCode = code.files().stream()
       .filter(f -> f.toUri().toString().endsWith(fileName))
@@ -39,8 +38,8 @@ public class TestJsCodegen {
 //    return str.replaceAll("\\s*\\n+\\s*", "\n").trim();
 //  }
   void okList(List<String> expected, List<String> fileName, String... content) {
-    assert content.length > 0;
-    assert expected.size() == fileName.size();
+    assert content.length > 0 : "Content must not be empty";
+    assert expected.size() == fileName.size() : "Expected and fileName lists must have the same size";
     JsProgram code = getCode(content);
     for (int i = 0; i < expected.size(); i++) {
       String exp = expected.get(i);
@@ -54,16 +53,20 @@ public class TestJsCodegen {
   }
   @Test void emptyProgram() {
     ok("""
-    import { test$$Test_0Impl } from "../test/Test_0Impl.js";
     import { base$$Void_0 } from "../base/Void_0.js";
-
+    
     export class test$$Test_0 {
-      static $self = new test$$Test_0Impl();
       $hash$imm(fear[###]$_m$) { throw new Error('Abstract method'); }
       static $hash$imm$fun(fear[###]$_m$, $this) {
         return base$$Void_0.$self;
       }
     }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
     """,
     "test/Test_0.js",
     """
@@ -73,29 +76,311 @@ public class TestJsCodegen {
     """);
   }
 
-  @Test void simpleProgram() {
+  @Test void bool() {
     ok("""
-    import { test$$B_0 } from "../test/B_0.js";
-    import { test$$Test_0Impl } from "../test/Test_0Impl.js";
+    import { base$$False_0 } from "../base/False_0.js";
     import { base$$True_0 } from "../base/True_0.js";
     
     export class test$$Test_0 {
-      static $self = new test$$Test_0Impl();
       m$imm() { throw new Error('Abstract method'); }
       b$imm() { throw new Error('Abstract method'); }
       static m$imm$fun($this) {
         return base$$True_0.$self;
       }
       static b$imm$fun($this) {
-        return test$$B_0.$self;
+        return base$$False_0.$self;
       }
     }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      m$imm() { return test$$Test_0.m$imm$fun(this); }
+      b$imm() { return test$$Test_0.b$imm$fun(this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
     """,
     "test/Test_0.js",
     """
     package test
-    Test:{ .m:base.Bool-> base.True, .b:B->B }
-    B: {}
+    alias base.Bool as Bool, alias base.True as True, alias base.False as False,
+    Test:{ .m:Bool-> True, .b:Bool-> False }
+    """);
+  }
+
+  @Test void number() {
+    okList(List.of("""
+    export class test$$Test_0 {
+      $hash$imm(sys_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(sys_m$, $this) {
+        return sys_m$.io$mut().println$mut(String(BigInt(-999n < 0n ? -(-999n) : -999n)));
+      }
+    }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """, """
+    export class test$$A_0 {
+      a$imm() { throw new Error('Abstract method'); }
+      static a$imm$fun($this) {
+        return -5n < 0n ? -(-5n) : -5n;
+      }
+    }
+    
+    export class test$$A_0Impl extends test$$A_0 {
+      a$imm() { return test$$A_0.a$imm$fun(this); }
+    }
+    
+    test$$A_0.$self = new test$$A_0Impl();
+    """),
+    List.of("test/Test_0.js", "test/A_0.js"),
+    """
+    package test
+    alias base.Main as Main, alias base.Int as Int,
+    Test:Main{sys -> sys.io.println(-999 .abs.str) }
+    A:{.a:Int -> -5.abs }
+    """);
+  }
+
+  @Test void numArithmeticOps() {
+    ok("""
+    export class test$$Test_0 {
+      divInt$imm() { throw new Error('Abstract method'); }
+      mod$imm() { throw new Error('Abstract method'); }
+      divFloat$imm() { throw new Error('Abstract method'); }
+      pow$imm() { throw new Error('Abstract method'); }
+      b$imm() { throw new Error('Abstract method'); }
+      a$imm() { throw new Error('Abstract method'); }
+      static a$imm$fun($this) {
+        return (BigInt((BigInt((BigInt((1n + 2n)) * 3n)) / 1n)) - 4n);
+      }
+      static b$imm$fun($this) {
+        return (1n + (2n * 3n));
+      }
+      static mod$imm$fun($this) {
+        return (10n % 3n);
+      }
+      static pow$imm$fun($this) {
+        return (2n ** 5n);
+      }
+      static divInt$imm$fun($this) {
+        return (-7n / 2n);
+      }
+      static divFloat$imm$fun($this) {
+        return (7.0 / 2.0);
+      }
+    }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      divInt$imm() { return test$$Test_0.divInt$imm$fun(this); }
+      mod$imm() { return test$$Test_0.mod$imm$fun(this); }
+      divFloat$imm() { return test$$Test_0.divFloat$imm$fun(this); }
+      pow$imm() { return test$$Test_0.pow$imm$fun(this); }
+      b$imm() { return test$$Test_0.b$imm$fun(this); }
+      a$imm() { return test$$Test_0.a$imm$fun(this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """,
+    "test/Test_0.js",
+    """
+    package test
+    alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float, alias base.Bool as Bool,
+    Test:{
+      .a:Nat-> 1 + 2 * 3 / 1 - 4,
+      .b:Nat-> 1 + (2 * 3),
+      .mod:Nat -> 10 % 3,
+      .pow:Nat -> 2 ** 5,
+      .divInt:Int-> -7 / +2,
+      .divFloat:Float -> 7.0 / 2.0,
+    }
+    """);
+  }
+
+  @Test void numOps() {
+    ok("""
+    export class test$$Test_0 {
+      isNegInf$imm() { throw new Error('Abstract method'); }
+      abs$imm() { throw new Error('Abstract method'); }
+      assertFail$imm() { throw new Error('Abstract method'); }
+      isNaN$imm() { throw new Error('Abstract method'); }
+      assertOk$imm() { throw new Error('Abstract method'); }
+      round$imm() { throw new Error('Abstract method'); }
+      sqrt$imm() { throw new Error('Abstract method'); }
+      a$imm() { throw new Error('Abstract method'); }
+      static a$imm$fun($this) {
+        return 1n;
+      }
+      static abs$imm$fun($this) {
+        return -5n < 0n ? -(-5n) : -5n;
+      }
+      static sqrt$imm$fun($this) {
+        return Math.sqrt(9.0);
+      }
+      static isNaN$imm$fun($this) {
+        return isNaN(parseFloat((0.0 / 0.0)));
+      }
+      static isNegInf$imm$fun($this) {
+        return 0.0 === -Infinity;
+      }
+      static round$imm$fun($this) {
+        return Math.round(2.7);
+      }
+      static assertOk$imm$fun($this) {
+        return { if (5n !== 5n) throw new Error('Assertion failed: ' + 5n + ' !== ' + 5n); };
+      }
+      static assertFail$imm$fun($this) {
+        return { if (3n !== 4n) throw new Error("should fail" + ': ' + 3n + ' !== ' + 4n); };
+      }
+    }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      isNegInf$imm() { return test$$Test_0.isNegInf$imm$fun(this); }
+      abs$imm() { return test$$Test_0.abs$imm$fun(this); }
+      assertFail$imm() { return test$$Test_0.assertFail$imm$fun(this); }
+      isNaN$imm() { return test$$Test_0.isNaN$imm$fun(this); }
+      assertOk$imm() { return test$$Test_0.assertOk$imm$fun(this); }
+      round$imm() { return test$$Test_0.round$imm$fun(this); }
+      sqrt$imm() { return test$$Test_0.sqrt$imm$fun(this); }
+      a$imm() { return test$$Test_0.a$imm$fun(this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """,
+    "test/Test_0.js",
+    """
+    package test
+    alias base.Nat as Nat, alias base.Int as Int, alias base.Bool as Bool, alias base.Float as Float, alias base.Void as Void,
+    Test:{
+      .a:Int-> 1 .int,
+      .abs:Int -> (-5) .abs,
+      .sqrt:Float -> 9.0 .sqrt,
+      .isNaN:Bool  -> (0.0 / 0.0) .isNaN,
+      .isNegInf:Bool -> 0.0 .isNegInfinity,
+      .round:Int -> 2.7 .round,
+    }
+    """);
+  }
+
+  @Test void numAssert() {
+    okList(List.of("""
+    import { base$$_NatAssertionHelper_0 } from "../base/_NatAssertionHelper_0.js";
+    
+    export class test$$Test_0 {
+      $hash$imm(fear0$_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(fear0$_m$, $this) {
+        return base$$_NatAssertionHelper_0.assertEq$imm$fun(5n, 5n, null);
+      }
+    }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(fear0$_m$) { return test$$Test_0.$hash$imm$fun(fear0$_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """, """
+    export class base$$_NatAssertionHelper_0 {
+      assertEq$imm(expected_m$, actual_m$) { throw new Error('Abstract method'); }
+      assertEq$imm(expected_m$, actual_m$, message_m$) { throw new Error('Abstract method'); }
+      static assertEq$imm$fun(expected_m$, actual_m$, $this) {
+        return (function() {
+      console.error("Program aborted at:\\n" + new Error().stack);
+      if (typeof process !== "undefined") process.exit(1);
+      else throw new Error("Program aborted");
+    })()
+    ;
+      }
+      static assertEq$imm$fun(expected_m$, actual_m$, message_m$, $this) {
+        return (function() {
+      console.error("Program aborted at:\\n" + new Error().stack);
+      if (typeof process !== "undefined") process.exit(1);
+      else throw new Error("Program aborted");
+    })()
+    ;
+      }
+    }
+    
+    export class base$$_NatAssertionHelper_0Impl extends base$$_NatAssertionHelper_0 {
+      assertEq$imm(expected_m$, actual_m$) { return base$$_NatAssertionHelper_0.assertEq$imm$fun(expected_m$, actual_m$, this); }
+      assertEq$imm(expected_m$, actual_m$, message_m$) { return base$$_NatAssertionHelper_0.assertEq$imm$fun(expected_m$, actual_m$, message_m$, this); }
+    }
+    
+    base$$_NatAssertionHelper_0.$self = new base$$_NatAssertionHelper_0Impl();
+    """),
+    List.of("test/Test_0.js", "base/_NatAssertionHelper_0.js"),
+    """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    Test: Main{_ -> 5.assertEq(5)}
+    A: {
+      .assertOk:Void -> (5 .assertEq 5),
+      .assertFail:Void -> (3 .assertEq(4, "should fail")),
+    }
+    """);
+  }
+
+  @Test void numOpsCompBit() {
+    ok("""
+    import { rt$$Numbers } from "../rt-js/Numbers.js";
+    
+    export class test$$Test_0 {
+      gt$imm() { throw new Error('Abstract method'); }
+      xor$imm() { throw new Error('Abstract method'); }
+      shl$imm() { throw new Error('Abstract method'); }
+      or$imm() { throw new Error('Abstract method'); }
+      shr$imm() { throw new Error('Abstract method'); }
+      and$imm() { throw new Error('Abstract method'); }
+      lt$imm() { throw new Error('Abstract method'); }
+      static gt$imm$fun($this) {
+        return rt$$Numbers.toBool((5n) > (3n));
+      }
+      static lt$imm$fun($this) {
+        return rt$$Numbers.toBool((2n) < (7n));
+      }
+      static and$imm$fun($this) {
+        return (6n & 3n);
+      }
+      static or$imm$fun($this) {
+        return 6n | 3n;
+      }
+      static xor$imm$fun($this) {
+        return 6n ^ 3n;
+      }
+      static shl$imm$fun($this) {
+        return ((1n << 3n) & ((1n<<64n)-1n));
+      }
+      static shr$imm$fun($this) {
+        return ((8n & ((1n<<64n)-1n)) >> 2n);
+      }
+    }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      gt$imm() { return test$$Test_0.gt$imm$fun(this); }
+      xor$imm() { return test$$Test_0.xor$imm$fun(this); }
+      shl$imm() { return test$$Test_0.shl$imm$fun(this); }
+      or$imm() { return test$$Test_0.or$imm$fun(this); }
+      shr$imm() { return test$$Test_0.shr$imm$fun(this); }
+      and$imm() { return test$$Test_0.and$imm$fun(this); }
+      lt$imm() { return test$$Test_0.lt$imm$fun(this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """,
+    "test/Test_0.js",
+    """
+    package test
+    alias base.Nat as Nat, alias base.Int as Int, alias base.Bool as Bool, alias base.Float as Float, alias base.Void as Void,
+    Test:{
+      .gt:Bool -> 5 > 3,
+      .lt:Bool -> 2 < 7,
+      .and:Int -> +6 .bitwiseAnd +3,
+      .or:Int -> +6 .bitwiseOr +3,
+      .xor:Nat -> 6 .xor 3,
+      .shl:Nat -> 1 .shiftLeft 3,
+      .shr:Nat -> 8 .shiftRight 2,
+    }
     """);
   }
 
@@ -109,34 +394,26 @@ public class TestJsCodegen {
         return $this.turn$imm().turn$imm();
       }
     }
-    """,
-    """
+    """, """
     import { test$$East_0 } from "../test/East_0.js";
-    import { test$$North_0Impl } from "../test/North_0Impl.js";
+    import { test$$Direction_0 } from "../test/Direction_0.js";
     
     export class test$$North_0 {
-      static $self = new test$$North_0Impl();
       reverse$imm() { throw new Error('Abstract method'); }
       turn$imm() { throw new Error('Abstract method'); }
       static turn$imm$fun($this) {
         return test$$East_0.$self;
       }
     }
-    """,
-    """
-    import { test$$North_0 } from "../test/North_0.js";
-    import { test$$Direction_0 } from "../test/Direction_0.js";
     
     export class test$$North_0Impl extends test$$North_0 {
-      reverse$imm() {
-        return test$$Direction_0.reverse$imm$fun(this);
-      }
-      turn$imm() {
-        return test$$North_0.turn$imm$fun(this);
-      }
+      reverse$imm() { return test$$Direction_0.reverse$imm$fun(this); }
+      turn$imm() { return test$$North_0.turn$imm$fun(this); }
     }
+    
+    test$$North_0.$self = new test$$North_0Impl();
     """),
-    List.of("test/Direction_0.js", "test/North_0.js", "test/North_0Impl.js"),
+    List.of("test/Direction_0.js", "test/North_0.js"),
     """
     package test
     Direction: {
@@ -152,96 +429,103 @@ public class TestJsCodegen {
 
   @Test void tanks() {
     okList(List.of("""
-      import { test$$Tanks_0Impl } from "../test/Tanks_0Impl.js";
-      import { test$$Tank_0Impl } from "../test/Tank_0Impl.js";
-      
-      export class test$$Tanks_0 {
-        static $self = new test$$Tanks_0Impl();
-        of$imm(heading_m$, aiming_m$) { throw new Error('Abstract method'); }
-        static of$imm$fun(heading_m$, aiming_m$, $this) {
-          return new test$$Tank_0Impl(aiming_m$, heading_m$);
-        }
+    import { test$$Tank_0Impl } from "../test/Tank_0.js";
+    
+    export class test$$Tanks_0 {
+      of$imm(heading_m$, aiming_m$) { throw new Error('Abstract method'); }
+      static of$imm$fun(heading_m$, aiming_m$, $this) {
+        return new test$$Tank_0Impl(aiming_m$, heading_m$);
       }
-      """, """
-      export class test$$Tank_0 {
-        aiming$imm() { throw new Error('Abstract method'); }
-        heading$imm() { throw new Error('Abstract method'); }
-        static heading$imm$fun(fear[###]$_m$, heading_m$) {
-          return heading_m$;
-        }
-        static aiming$imm$fun(fear[###]$_m$, aiming_m$) {
-          return aiming_m$;
-        }
+    }
+    
+    export class test$$Tanks_0Impl extends test$$Tanks_0 {
+      of$imm(heading_m$, aiming_m$) { return test$$Tanks_0.of$imm$fun(heading_m$, aiming_m$, this); }
+    }
+    
+    test$$Tanks_0.$self = new test$$Tanks_0Impl();
+    """, """
+    export class test$$Tank_0 {
+      aiming$imm() { throw new Error('Abstract method'); }
+      heading$imm() { throw new Error('Abstract method'); }
+      static heading$imm$fun(fear[###]$_m$, heading_m$) {
+        return heading_m$;
       }
-      """, """
-      import { test$$Tank_0 } from "../test/Tank_0.js";
- 
-      export class test$$Tank_0Impl extends test$$Tank_0 {
-        constructor(aiming_m$, heading_m$) {
-          this.aiming_m$ = aiming_m$;
-          this.heading_m$ = heading_m$;
-        }
-        aiming$imm() {
-          return test$$Tank_0.aiming$imm$fun(this, this.aiming_m$);
-        }
-        heading$imm() {
-          return test$$Tank_0.heading$imm$fun(this, this.heading_m$);
-        }
+      static aiming$imm$fun(fear[###]$_m$, aiming_m$) {
+        return aiming_m$;
       }
-      """),
-      List.of("test/Tanks_0.js", "test/Tank_0.js", "test/Tank_0Impl.js"),
-      """
-      package test
-      Tanks: { .of(heading: Direction, aiming: Direction): Tank ->
-        Tank: { .heading: Direction -> heading, .aiming: Direction -> aiming, }
+    }
+    
+    export class test$$Tank_0Impl extends test$$Tank_0 {
+      constructor(aiming_m$, heading_m$) {
+        this.aiming_m$ = aiming_m$;
+        this.heading_m$ = heading_m$;
       }
-      Direction: {}
-      """
-    );
+      aiming$imm() { return test$$Tank_0.aiming$imm$fun(this, this.aiming_m$); }
+      heading$imm() { return test$$Tank_0.heading$imm$fun(this, this.heading_m$); }
+    }
+    """),
+    List.of("test/Tanks_0.js", "test/Tank_0.js"),
+    """
+    package test
+    Tanks: { .of(heading: Direction, aiming: Direction): Tank ->
+      Tank: { .heading: Direction -> heading, .aiming: Direction -> aiming, }
+    }
+    Direction: {}
+    """);
   }
 
   @Test void tanksWithSugar() {
     okList(List.of("""
     import { test$$East_0 } from "../test/East_0.js";
-    import { test$$North_0Impl } from "../test/North_0Impl.js";
+    import { test$$Direction_0 } from "../test/Direction_0.js";
     
     export class test$$North_0 {
-      static $self = new test$$North_0Impl();
       reverse$imm() { throw new Error('Abstract method'); }
       turn$imm() { throw new Error('Abstract method'); }
       static turn$imm$fun($this) {
         return test$$East_0.$self;
       }
     }
+    
+    export class test$$North_0Impl extends test$$North_0 {
+      reverse$imm() { return test$$Direction_0.reverse$imm$fun(this); }
+      turn$imm() { return test$$North_0.turn$imm$fun(this); }
+    }
+    
+    test$$North_0.$self = new test$$North_0Impl();
     """, """
-    import { test$$Tanks_0Impl } from "../test/Tanks_0Impl.js";
-    import { test$$Fear93$_0Impl } from "../test/Fear93$_0Impl.js";
+    import { test$$Fear[###]$_0Impl } from "../test/Fear[###]$_0.js";
     
     export class test$$Tanks_0 {
-      static $self = new test$$Tanks_0Impl();
       $hash$imm(heading_m$, aiming_m$) { throw new Error('Abstract method'); }
       static $hash$imm$fun(heading_m$, aiming_m$, $this) {
-        return new test$$Fear93$_0Impl(aiming_m$, heading_m$);
+        return new test$$Fear[###]$_0Impl(aiming_m$, heading_m$);
       }
     }
+
+    export class test$$Tanks_0Impl extends test$$Tanks_0 {
+      $hash$imm(heading_m$, aiming_m$) { return test$$Tanks_0.$hash$imm$fun(heading_m$, aiming_m$, this); }
+    }
+
+    test$$Tanks_0.$self = new test$$Tanks_0Impl();
     """),
-      List.of("test/North_0.js", "test/Tanks_0.js"),
-      """
-      package test
-      Direction: {
-        .turn: Direction,
-        .reverse: Direction -> this.turn.turn,
-        }
-      North: Direction { East  }
-      East : Direction { South }
-      South: Direction { West  }
-      West : Direction { North }
-      
-      Tank: {.heading: Direction, .aiming: Direction, }
-      Tanks: { #(heading: Direction, aiming: Direction): Tank ->
-        { .heading -> heading, .aiming -> aiming, }
+    List.of("test/North_0.js", "test/Tanks_0.js"),
+    """
+    package test
+    Direction: {
+      .turn: Direction,
+      .reverse: Direction -> this.turn.turn,
       }
-      """);
+    North: Direction { East  }
+    East : Direction { South }
+    South: Direction { West  }
+    West : Direction { North }
+    
+    Tank: {.heading: Direction, .aiming: Direction, }
+    Tanks: { #(heading: Direction, aiming: Direction): Tank ->
+      { .heading -> heading, .aiming -> aiming, }
+    }
+    """);
   }
 
   @Test void rotation() {
@@ -251,25 +535,20 @@ public class TestJsCodegen {
       $hash$imm(d_m$) { throw new Error('Abstract method'); }
     }
     """, """
-    import { test$$Turn270_0Impl } from "../test/Turn270_0Impl.js";
-    
     export class test$$Turn270_0 {
-      static $self = new test$$Turn270_0Impl();
       $hash$imm(fear[###]$_m$) { throw new Error('Abstract method'); }
       static $hash$imm$fun(fear[###]$_m$, $this) {
         return fear[###]$_m$.turn$imm().turn$imm().turn$imm();
       }
     }
-    """, """
-    import { test$$Turn270_0 } from "../test/Turn270_0.js";
     
     export class test$$Turn270_0Impl extends test$$Turn270_0 {
-      $hash$imm(fear[###]$_m$) {
-        return test$$Turn270_0.$hash$imm$fun(fear3$_m$, this);
-      }
+      $hash$imm(fear[###]$_m$) { return test$$Turn270_0.$hash$imm$fun(fear[###]$_m$, this); }
     }
+    
+    test$$Turn270_0.$self = new test$$Turn270_0Impl();
     """),
-    List.of("test/Rotation_0.js", "test/Turn270_0.js", "test/Turn270_0Impl.js"),
+    List.of("test/Rotation_0.js", "test/Turn270_0.js"),
     """
     package test
     Direction: { .turn: Direction }
@@ -283,33 +562,17 @@ public class TestJsCodegen {
 
   @Test void rotationPlus() {
     okList(List.of("""
-    import { test$$Fear89$_0Impl } from "../test/Fear89$_0Impl.js";
+    import { test$$Fear[###]$_0Impl } from "../test/Fear[###]$_0.js";
     
     export class test$$Rotation_0 {
       $plus$imm(r_m$) { throw new Error('Abstract method'); }
       $hash$imm(d_m$) { throw new Error('Abstract method'); }
       static $plus$imm$fun(r_m$, $this) {
-        return new test$$Fear89$_0Impl(r_m$, $this);
-      }
-    }
-    """, """
-    import { test$$Rotation_0 } from "../test/Rotation_0.js";
-    import { test$$Fear89$_0 } from "../test/Fear89$_0.js";
-    
-    export class test$$Fear89$_0Impl extends test$$Fear89$_0 {
-      constructor(r_m$, $this) {
-        this.r_m$ = r_m$;
-        this.$this = $this;
-      }
-      $plus$imm(r_m$) {
-        return test$$Rotation_0.$plus$imm$fun(r_m$, this);
-      }
-      $hash$imm(d_m$) {
-        return test$$Fear89$_0.$hash$imm$fun(d_m$, this, this.r_m$, this.$this);
+        return new test$$Fear[###]$_0Impl(r_m$, $this);
       }
     }
     """),
-    List.of("test/Rotation_0.js", "test/Fear89$_0Impl.js"),
+    List.of("test/Rotation_0.js"),
   """
     package test
     Direction: { .turn: Direction }
@@ -320,8 +583,23 @@ public class TestJsCodegen {
     """);
   }
 
-  @Test void turnTurret() {
+  @Test void tankTurn() {
     okList(List.of("""
+    import { test$$Fear[###]$_0Impl } from "../test/Fear[###]$_0.js";
+    
+    export class test$$Tanks_0 {
+      $hash$imm(heading_m$, aiming_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(heading_m$, aiming_m$, $this) {
+        return new test$$Fear[###]$_0Impl(aiming_m$, heading_m$);
+      }
+    }
+    
+    export class test$$Tanks_0Impl extends test$$Tanks_0 {
+      $hash$imm(heading_m$, aiming_m$) { return test$$Tanks_0.$hash$imm$fun(heading_m$, aiming_m$, this); }
+    }
+    
+    test$$Tanks_0.$self = new test$$Tanks_0Impl();
+    """, """
     import { test$$Tanks_0 } from "../test/Tanks_0.js";
     
     export class test$$Tank_0 {
@@ -332,38 +610,8 @@ public class TestJsCodegen {
         return test$$Tanks_0.$self.$hash$imm($this.heading$imm(),r_m$.$hash$imm($this.aiming$imm()));
       }
     }
-    """, """
-    import { test$$Tanks_0Impl } from "../test/Tanks_0Impl.js";
-    import { test$$Fear89$_0Impl } from "../test/Fear89$_0Impl.js";
-    
-    export class test$$Tanks_0 {
-      static $self = new test$$Tanks_0Impl();
-      $hash$imm(heading_m$, aiming_m$) { throw new Error('Abstract method'); }
-      static $hash$imm$fun(heading_m$, aiming_m$, $this) {
-        return new test$$Fear89$_0Impl(aiming_m$, heading_m$);
-      }
-    }
-    """, """
-    import { test$$Tank_0 } from "../test/Tank_0.js";
-    import { test$$Fear89$_0 } from "../test/Fear89$_0.js";
-    
-    export class test$$Fear89$_0Impl extends test$$Fear89$_0 {
-      constructor(aiming_m$, heading_m$) {
-        this.aiming_m$ = aiming_m$;
-        this.heading_m$ = heading_m$;
-      }
-      turnTurret$imm(r_m$) {
-        return test$$Tank_0.turnTurret$imm$fun(r_m$, this);
-      }
-      aiming$imm() {
-        return test$$Fear89$_0.aiming$imm$fun(this, this.aiming_m$);
-      }
-      heading$imm() {
-        return test$$Fear89$_0.heading$imm$fun(this, this.heading_m$);
-      }
-    }
     """),
-    List.of("test/Tank_0.js", "test/Tanks_0.js", "test/Fear89$_0Impl.js"),
+    List.of("test/Tanks_0.js", "test/Tank_0.js"),
     """
     package test
     Direction: { .turn: Direction }
@@ -384,10 +632,8 @@ public class TestJsCodegen {
     okList(List.of("""
     import { test$$Points_0 } from "../test/Points_0.js";
     import { test$$East_0 } from "../test/East_0.js";
-    import { test$$North_0Impl } from "../test/North_0Impl.js";
-    
+  
     export class test$$North_0 {
-      static $self = new test$$North_0Impl();
       point$imm() { throw new Error('Abstract method'); }
       turn$imm() { throw new Error('Abstract method'); }
       static turn$imm$fun($this) {
@@ -397,39 +643,28 @@ public class TestJsCodegen {
         return test$$Points_0.$self.$hash$imm(-1n,0n);
       }
     }
+  
+    export class test$$North_0Impl extends test$$North_0 {
+      point$imm() { return test$$North_0.point$imm$fun(this); }
+      turn$imm() { return test$$North_0.turn$imm$fun(this); }
+    }
+  
+    test$$North_0.$self = new test$$North_0Impl();
     """, """
-    import { test$$Fear90$_0Impl } from "../test/Fear90$_0Impl.js";
-    import { test$$Points_0Impl } from "../test/Points_0Impl.js";
+    import { test$$Fear[###]$_0Impl } from "../test/Fear[###]$_0.js";
     
     export class test$$Points_0 {
-      static $self = new test$$Points_0Impl();
       $hash$imm(x_m$, y_m$) { throw new Error('Abstract method'); }
       static $hash$imm$fun(x_m$, y_m$, $this) {
-        return new test$$Fear90$_0Impl(x_m$, y_m$);
+        return new test$$Fear[###]$_0Impl(x_m$, y_m$);
       }
     }
-    """, """
-    import { test$$Fear90$_0 } from "../test/Fear90$_0.js";
-    import { test$$Point_0 } from "../test/Point_0.js";
     
-    export class test$$Fear90$_0Impl extends test$$Fear90$_0 {
-      constructor(x_m$, y_m$) {
-        this.x_m$ = x_m$;
-        this.y_m$ = y_m$;
-      }
-      move$imm(d_m$) {
-        return test$$Point_0.move$imm$fun(d_m$, this);
-      }
-      y$imm() {
-        return test$$Fear90$_0.y$imm$fun(this, this.y_m$);
-      }
-      $plus$imm(other_m$) {
-        return test$$Point_0.$plus$imm$fun(other_m$, this);
-      }
-      x$imm() {
-        return test$$Fear90$_0.x$imm$fun(this, this.x_m$);
-      }
+    export class test$$Points_0Impl extends test$$Points_0 {
+      $hash$imm(x_m$, y_m$) { return test$$Points_0.$hash$imm$fun(x_m$, y_m$, this); }
     }
+    
+    test$$Points_0.$self = new test$$Points_0Impl();
     """, """
     import { test$$Points_0 } from "../test/Points_0.js";
     
@@ -446,7 +681,7 @@ public class TestJsCodegen {
       }
     }
     """),
-    List.of("test/North_0.js", "test/Points_0.js", "test/Fear90$_0Impl.js", "test/Point_0.js"),
+    List.of("test/North_0.js", "test/Points_0.js", "test/Point_0.js"),
     """
     package test
     alias base.Int as Int,
@@ -468,29 +703,24 @@ public class TestJsCodegen {
 
   @Test void genericMethod() {
     okList(List.of("""
-    import { test$$Left_0Impl } from "../test/Left_0Impl.js";
-    
     export class test$$Left_0 {
-      static $self = new test$$Left_0Impl();
       choose$imm(l_m$, r_m$) { throw new Error('Abstract method'); }
       static choose$imm$fun(l_m$, r_m$, $this) {
         return l_m$;
       }
     }
-    """, """
-    import { test$$Left_0 } from "../test/Left_0.js";
     
     export class test$$Left_0Impl extends test$$Left_0 {
-      choose$imm(l_m$, r_m$) {
-        return test$$Left_0.choose$imm$fun(l_m$, r_m$, this);
-      }
+      choose$imm(l_m$, r_m$) { return test$$Left_0.choose$imm$fun(l_m$, r_m$, this); }
     }
+    
+    test$$Left_0.$self = new test$$Left_0Impl();
     """, """
     export class test$$Fork_0 {
       choose$imm(leftVal_m$, rightVal_m$) { throw new Error('Abstract method'); }
     }
     """),
-    List.of("test/Left_0.js", "test/Left_0Impl.js", "test/Fork_0.js"),
+    List.of("test/Left_0.js", "test/Fork_0.js"),
     """
     package test
     Fork : { .choose[Val](leftVal: Val, rightVal: Val): Val, }
@@ -501,15 +731,18 @@ public class TestJsCodegen {
 
   @Test void genericType() {
     okList(List.of("""
-    import { test$$Right_0Impl } from "../test/Right_0Impl.js";
-    
     export class test$$Right_0 {
-      static $self = new test$$Right_0Impl();
       choose$imm(fear[###]$_m$) { throw new Error('Abstract method'); }
       static choose$imm$fun(fear[###]$_m$, $this) {
         return fear[###]$_m$.right$imm();
       }
     }
+    
+    export class test$$Right_0Impl extends test$$Right_0 {
+      choose$imm(fear[###]$_m$) { return test$$Right_0.choose$imm$fun(fear[###]$_m$, this); }
+    }
+    
+    test$$Right_0.$self = new test$$Right_0Impl();
     """, """
     export class test$$Fork_0 {
       choose$imm(leftRight_m$) { throw new Error('Abstract method'); }
@@ -532,16 +765,20 @@ public class TestJsCodegen {
 
   @Test void ifThenElse() {
     ok("""
-    import { test$$Bot_0Impl } from "../test/Bot_0Impl.js";
     import { base$$True_0 } from "../base/True_0.js";
     
     export class test$$Bot_0 {
-      static $self = new test$$Bot_0Impl();
       message$imm(s_m$) { throw new Error('Abstract method'); }
       static message$imm$fun(s_m$, $this) {
         return (s_m$.$equals$equals$imm("hello") == base$$True_0.$self ? "Hi, I'm Bot; how can I help you?" : (s_m$.$equals$equals$imm("bye") == base$$True_0.$self ? "goodbye!" : "I don't understand"));
       }
     }
+    
+    export class test$$Bot_0Impl extends test$$Bot_0 {
+      message$imm(s_m$) { return test$$Bot_0.message$imm$fun(s_m$, this); }
+    }
+    
+    test$$Bot_0.$self = new test$$Bot_0Impl();
     """,
     "test/Bot_0.js",
     """
@@ -565,52 +802,46 @@ public class TestJsCodegen {
 
   @Test void questionMark() {
     ok("""
-    import { test$$Test_0Impl } from "../test/Test_0Impl.js";
     import { base$$True_0 } from "../base/True_0.js";
     
     export class test$$Test_0 {
-      static $self = new test$$Test_0Impl();
       m$imm(b_m$) { throw new Error('Abstract method'); }
       static m$imm$fun(b_m$, $this) {
         return (b_m$ == base$$True_0.$self ? $this : $this.m$imm(b_m$));
       }
     }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      m$imm(b_m$) { return test$$Test_0.m$imm$fun(b_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
     """,
-      "test/Test_0.js",
-      """
-      package test
-      Test:{ .m(b: base.Bool):Test-> b ? {.then->this, .else->this.m(b), } }
-      """);
+    "test/Test_0.js",
+    """
+    package test
+    Test:{ .m(b: base.Bool):Test-> b ? {.then->this, .else->this.m(b), } }
+    """);
   }
 
   @Test void optional() {
     okList(List.of("""
-    import { test$$Fear90$_0 } from "../test/Fear90$_0.js";
-    import { test$$Test_0Impl } from "../test/Test_0Impl.js";
+    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
     
     export class test$$Test_0 {
-      static $self = new test$$Test_0Impl();
       getAge$imm(p_m$) { throw new Error('Abstract method'); }
       static getAge$imm$fun(p_m$, $this) {
-        return p_m$.match$imm(test$$Fear90$_0.$self);
+        return p_m$.match$imm(test$$Fear[###]$_0.$self);
       }
     }
-    """, """
-    import { test$$Fear90$_0Impl } from "../test/Fear90$_0Impl.js";
     
-    export class test$$Fear90$_0 {
-      static $self = new test$$Fear90$_0Impl();
-      some$mut(p$_m$) { throw new Error('Abstract method'); }
-      empty$mut() { throw new Error('Abstract method'); }
-      static empty$mut$fun(fear[###]$_m$) {
-        return 0n;
-      }
-      static some$mut$fun(p$_m$, fear[###]$_m$) {
-        return p$_m$.age$imm();
-      }
+    export class test$$Test_0Impl extends test$$Test_0 {
+      getAge$imm(p_m$) { return test$$Test_0.getAge$imm$fun(p_m$, this); }
     }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
     """),
-    List.of("test/Test_0.js", "test/Fear90$_0.js"),
+    List.of("test/Test_0.js"),
     """
     package test
     alias base.Nat as Nat,
@@ -625,145 +856,25 @@ public class TestJsCodegen {
     """);
   }
 
-  @Test void stack() {
-    okList(List.of("""
-    import { test$$Fear89$_1Impl } from "../test/Fear89$_1Impl.js";
-    import { test$$Stack_1Impl } from "../test/Stack_1Impl.js";
-    
-    export class test$$Stack_1 {
-      static $self = new test$$Stack_1Impl();
-      $plus$imm(e_m$) { throw new Error('Abstract method'); }
-      match$imm(m_m$) { throw new Error('Abstract method'); }
-      static match$imm$fun(m_m$, $this) {
-        return m_m$.empty$imm();
-      }
-      static $plus$imm$fun(e_m$, $this) {
-        return new test$$Fear89$_1Impl(e_m$, $this);
-      }
-    }
-    """, """
-    import { test$$Stack_1 } from "../test/Stack_1.js";
-    import { test$$Fear89$_1 } from "../test/Fear89$_1.js";
-    
-    export class test$$Fear89$_1Impl extends test$$Fear89$_1 {
-      constructor(e_m$, $this) {
-        this.e_m$ = e_m$;
-        this.$this = $this;
-      }
-      $plus$imm(e_m$) {
-        return test$$Stack_1.$plus$imm$fun(e_m$, this);
-      }
-      match$imm(m_m$) {
-        return test$$Fear89$_1.match$imm$fun(m_m$, this, this.e_m$, this.$this);
-      }
-    }
-    """, """
-    export class test$$Fear89$_1 {
-      $plus$imm(e_m$) { throw new Error('Abstract method'); }
-      match$imm(m_m$) { throw new Error('Abstract method'); }
-      static match$imm$fun(m_m$, fear[###]$_m$, e_m$, $this) {
-        return m_m$.elem$imm(e_m$,$this);
-      }
-    }
-    """),
-    List.of("test/Stack_1.js", "test/Fear89$_1Impl.js", "test/Fear89$_1.js"),
-    """
-    package test
-    alias base.Nat as Nat,
-    Stack[T]: {
-      .match[R](m: StackMatch[T,R]): R -> m.empty,
-      +(e: T): Stack[T] -> { .match(m) -> m.elem(e, this) },
-    }
-    StackMatch[T,R]: {
-      .empty: R,
-      .elem(top:T, tail: Stack[T]): R,
-    }
-    """);
-  }
-
-  @Test void stackMap() {
-    okList(List.of(
-    """
-    import { test$$ExampleSum5_0Impl } from "../test/ExampleSum5_0Impl.js";
-    import { test$$Fear92$_0 } from "../test/Fear92$_0.js";
-    
-    export class test$$ExampleSum5_0 {
-      static $self = new test$$ExampleSum5_0Impl();
-      $hash$imm(ns_m$) { throw new Error('Abstract method'); }
-      static $hash$imm$fun(ns_m$, $this) {
-        return ns_m$.map$imm(test$$Fear92$_0.$self);
-      }
-    }
-    """, """
-    import { test$$Fear92$_0Impl } from "../test/Fear92$_0Impl.js";
-    
-    export class test$$Fear92$_0 {
-      static $self = new test$$Fear92$_0Impl();
-      $hash$read(n_m$) { throw new Error('Abstract method'); }
-      static $hash$read$fun(n_m$, fear[###]$_m$) {
-        return (BigInt(n_m$) + 5n);
-      }
-    }
-    """, """
-    import { test$$Fear90$_1Impl } from "../test/Fear90$_1Impl.js";
-    import { test$$Stack_1Impl } from "../test/Stack_1Impl.js";
-    
-    export class test$$Stack_1 {
-      static $self = new test$$Stack_1Impl();
-      fold$imm(start_m$, f_m$) { throw new Error('Abstract method'); }
-      $plus$imm(e_m$) { throw new Error('Abstract method'); }
-      match$imm(m_m$) { throw new Error('Abstract method'); }
-      map$imm(f_m$) { throw new Error('Abstract method'); }
-      static match$imm$fun(m_m$, $this) {
-        return m_m$.empty$imm();
-      }
-      static fold$imm$fun(start_m$, f_m$, $this) {
-        return start_m$;
-      }
-      static map$imm$fun(f_m$, $this) {
-        return test$$Stack_1.$self;
-      }
-      static $plus$imm$fun(e_m$, $this) {
-        return new test$$Fear90$_1Impl(e_m$, $this);
-      }
-    }
-    """
-    ),
-    List.of("test/ExampleSum5_0.js", "test/Fear92$_0.js", "test/Stack_1.js"),
-  """
-    package test
-    alias base.Nat as Nat,
-    alias base.F as F,
-    StackMatch[T,R]: { .empty: R, .elem(top:T, tail: Stack[T]): R, }
-    Stack[T]: {
-      .match[R](m: StackMatch[T,R]): R -> m.empty,
-      .fold[R](start:R, f: F[R,T,R]): R -> start,
-      .map[R](f: F[T, R]): Stack[R] -> {},
-      +(e: T): Stack[T] -> {
-        .match(m) -> m.elem(e, this),
-        .fold(start, f) -> f#(this.fold(start, f), e),
-        .map(f) -> this.map(f) + ( f#(e) ),
-        },
-      }
-    ExampleSum5: {  #(ns: Stack[Nat]): Stack[Nat] -> ns.map { n -> n + 5 }  }
-    """);
-  }
-
   @Test void blockLetDoRet() {
     ok("""
     import { test$$ForceGen_0 } from "../test/ForceGen_0.js";
-    import { test$$Test_0Impl } from "../test/Test_0Impl.js";
     import { base$$Void_0 } from "../base/Void_0.js";
     
     export class test$$Test_0 {
-      static $self = new test$$Test_0Impl();
-      $hash$imm(fear0$_m$) { throw new Error('Abstract method'); }
-      static $hash$imm$fun(fear0$_m$, $this) {
-        let n = 5n;
+      $hash$imm(fear[###]$_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(fear[###]$_m$, $this) {
+        let n_m$ = 5n;
     var doRes1 = test$$ForceGen_0.$self.$hash$imm();
     return base$$Void_0.$self;
       }
     }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
     """,
     "test/Test_0.js",
     """
@@ -781,19 +892,23 @@ public class TestJsCodegen {
   @Test void blockVarDoRet() {
     ok("""
     import { test$$ForceGen_0 } from "../test/ForceGen_0.js";
-    import { test$$Test_0Impl } from "../test/Test_0Impl.js";
     import { base$$Void_0 } from "../base/Void_0.js";
     import { base$$Vars_0 } from "../base/Vars_0.js";
     
     export class test$$Test_0 {
-      static $self = new test$$Test_0Impl();
-      $hash$imm(fear0$_m$) { throw new Error('Abstract method'); }
-      static $hash$imm$fun(fear0$_m$, $this) {
-        var n = base$$Vars_0.$self.$hash$imm("Hi");
+      $hash$imm(fear[###]$_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(fear[###]$_m$, $this) {
+        var n_m$ = base$$Vars_0.$self.$hash$imm("Hi");
     var doRes1 = test$$ForceGen_0.$self.$hash$imm();
     return base$$Void_0.$self;
       }
     }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
     """,
     "test/Test_0.js",
     """
@@ -812,24 +927,29 @@ public class TestJsCodegen {
     ok("""
     import { test$$ForceGen_0 } from "../test/ForceGen_0.js";
     import { base$$Infos_0 } from "../base/Infos_0.js";
-    import { test$$Test_0Impl } from "../test/Test_0Impl.js";
+    import { rt$$Numbers } from "../rt-js/Numbers.js";
     import { base$$Void_0 } from "../base/Void_0.js";
     import { base$$Vars_0 } from "../base/Vars_0.js";
     import { base$$True_0 } from "../base/True_0.js";
     
     export class test$$Test_0 {
-      static $self = new test$$Test_0Impl();
-      $hash$imm(fear0$_m$) { throw new Error('Abstract method'); }
-      static $hash$imm$fun(fear0$_m$, $this) {
-        let n = 5n;
-    let n2 = 10n;
-    var n3 = base$$Vars_0.$self.$hash$imm(15n);
-    if ((BigInt(n3_m$.get$mut()) === (BigInt(BigInt(n_m$)) + n2_m$)) == base$$True_0.$self) { throw base$$Infos_0.$self.msg$imm("oh no");
+      $hash$imm(fear[###]$_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(fear[###]$_m$, $this) {
+        let n_m$ = 5n;
+    let n2_m$ = 10n;
+    var n3_m$ = base$$Vars_0.$self.$hash$imm(15n);
+    if (rt$$Numbers.toBool((BigInt(n3_m$.get$mut())) === ((BigInt(BigInt(n_m$)) + n2_m$))) == base$$True_0.$self) { throw base$$Infos_0.$self.msg$imm("oh no");
      }
     var doRes1 = test$$ForceGen_0.$self.$hash$imm();
     return base$$Void_0.$self;
       }
     }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
     """,
     "test/Test_0.js",
     """
@@ -849,49 +969,560 @@ public class TestJsCodegen {
 
   @Test void boolExprBlock() {
     ok("""
-    import { test$$Test_0Impl } from "../test/Test_0Impl.js";
     import { base$$Void_0 } from "../base/Void_0.js";
     import { base$$True_0 } from "../base/True_0.js";
     
     export class test$$Test_0 {
-      static $self = new test$$Test_0Impl();
-      $hash$imm(fear0$_m$) { throw new Error('Abstract method'); }
-      static $hash$imm$fun(fear0$_m$, $this) {
+      $hash$imm(fear[###]$_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(fear[###]$_m$, $this) {
         return (base$$True_0.$self == base$$True_0.$self ? (() => {
     return base$$Void_0.$self})() : (() => {
     return base$$Void_0.$self})());
       }
     }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
     """,
-      "test/Test_0.js",
-      """
-      package test
-      alias base.Block as Block, alias base.Void as Void,
-      alias base.True as True,
-      Test: base.Main{_ -> True ? {
-        .then -> Block#.return {Void},
-        .else -> Block#.return {Void},
-      }}
-      """);
+    "test/Test_0.js",
+    """
+    package test
+    alias base.Block as Block, alias base.Void as Void,
+    alias base.True as True,
+    Test: base.Main{_ -> True ? {
+      .then -> Block#.return {Void},
+      .else -> Block#.return {Void},
+    }}
+    """);
   }
 
-  @Test void sysPrint() {
+  @Test void sysIOPrint() {
     ok("""
-    import { test$$Test_0Impl } from "../test/Test_0Impl.js";
-    
     export class test$$Test_0 {
-      static $self = new test$$Test_0Impl();
       $hash$imm(sys_m$) { throw new Error('Abstract method'); }
       static $hash$imm$fun(sys_m$, $this) {
         return sys_m$.io$mut().println$mut("Hello World");
       }
     }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
     """,
-  "test/Test_0.js",
-  """
+      "test/Test_0.js",
+      """
+        package test
+        alias base.Main as Main,
+        Test: Main{sys -> sys.io.println("Hello World") }
+        """);
+  }
+
+  @Test void listAndFlowMap() {
+    okList(List.of("""
+    import { base$$flows$$_DataParallelFlow_0 } from "../base/flows/_DataParallelFlow_0.js";
+    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
+    import * as rt from "../rt-js/index.js";
+    
+    export class test$$Names_0 {
+      $hash$imm(ps_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(ps_m$, $this) {
+        return rt.flows.FlowCreator.fromFlow(base$$flows$$_DataParallelFlow_0.$self, ps_m$.flow$imm()).map$mut(test$$Fear[###]$_0.$self).list$mut();
+      }
+    }
+    
+    export class test$$Names_0Impl extends test$$Names_0 {
+      $hash$imm(ps_m$) { return test$$Names_0.$hash$imm$fun(ps_m$, this); }
+    }
+    
+    test$$Names_0.$self = new test$$Names_0Impl();
+    """, """
+    export class test$$Fear[###]$_0 {
+      $hash$read(fear31$_m$) { throw new Error('Abstract method'); }
+      static $hash$read$fun(fear31$_m$, fear[###]$_m$) {
+        return fear31$_m$.name$imm();
+      }
+    }
+    
+    export class test$$Fear[###]$_0Impl extends test$$Fear[###]$_0 {
+      $hash$read(fear31$_m$) { return test$$Fear[###]$_0.$hash$read$fun(fear31$_m$, this); }
+    }
+    
+    test$$Fear[###]$_0.$self = new test$$Fear[###]$_0Impl();
+    """),
+    List.of("test/Names_0.js", "test/Fear[###]$_0.js"),
+    """
     package test
-    alias base.Main as Main,
-    Test: Main{sys -> sys.io.println("Hello World") }
+    alias base.List as List, alias base.Str as Str,
+    
+    Person:{  .name:Str,  }
+    Names:{  #(ps: List[Person]): List[Str] -> ps.flow.map{::name }.list   }
     """);
+  }
+
+  @Test void listAndFlowFilter() {
+    okList(List.of("""
+    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
+    import { base$$flows$$_DataParallelFlow_0 } from "../base/flows/_DataParallelFlow_0.js";
+    import * as rt from "../rt-js/index.js";
+    
+    export class test$$Doctors_0 {
+      $hash$imm(ps_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(ps_m$, $this) {
+        return rt.flows.FlowCreator.fromFlow(base$$flows$$_DataParallelFlow_0.$self, ps_m$.flow$imm()).filter$mut(test$$Fear[###]$_0.$self).list$mut();
+      }
+    }
+    
+    export class test$$Doctors_0Impl extends test$$Doctors_0 {
+      $hash$imm(ps_m$) { return test$$Doctors_0.$hash$imm$fun(ps_m$, this); }
+    }
+    
+    test$$Doctors_0.$self = new test$$Doctors_0Impl();
+    """, """
+    export class test$$Fear[###]$_0 {
+      $hash$read(fear31$_m$) { throw new Error('Abstract method'); }
+      static $hash$read$fun(fear31$_m$, fear[###]$_m$) {
+        return fear31$_m$.name$imm().startsWith$imm("Dr.");
+      }
+    }
+    
+    export class test$$Fear[###]$_0Impl extends test$$Fear[###]$_0 {
+      $hash$read(fear31$_m$) { return test$$Fear[###]$_0.$hash$read$fun(fear31$_m$, this); }
+    }
+    
+    test$$Fear[###]$_0.$self = new test$$Fear[###]$_0Impl();
+    """),
+    List.of("test/Doctors_0.js", "test/Fear[###]$_0.js"),
+    """
+    package test
+    alias base.List as List, alias base.Str as Str,
+    
+    Person:{  .name:Str,  }
+    Doctors:{ #(ps: List[Person]): List[Person] ->ps.flow.filter{::name.startsWith `Dr.` }.list }
+    """);
+  }
+
+  @Test void listAndFlowFlatMapAny() {
+    okList(List.of("""
+    import { base$$flows$$_DataParallelFlow_0 } from "../base/flows/_DataParallelFlow_0.js";
+    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
+    import * as rt from "../rt-js/index.js";
+    
+    export class test$$AllCats_0 {
+      $hash$imm(ps_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(ps_m$, $this) {
+        return rt.flows.FlowCreator.fromFlow(base$$flows$$_DataParallelFlow_0.$self, ps_m$.flow$imm()).flatMap$mut(test$$Fear[###]$_0.$self).list$mut();
+      }
+    }
+    
+    export class test$$AllCats_0Impl extends test$$AllCats_0 {
+      $hash$imm(ps_m$) { return test$$AllCats_0.$hash$imm$fun(ps_m$, this); }
+    }
+    
+    test$$AllCats_0.$self = new test$$AllCats_0Impl();
+    """, """
+    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
+    import { base$$flows$$_DataParallelFlow_0 } from "../base/flows/_DataParallelFlow_0.js";
+    import * as rt from "../rt-js/index.js";
+    
+    export class test$$Sad_0 {
+      $hash$imm(ps_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(ps_m$, $this) {
+        return rt.flows.FlowCreator.fromFlow(base$$flows$$_DataParallelFlow_0.$self, ps_m$.flow$imm()).any$mut(test$$Fear[###]$_0.$self);
+      }
+    }
+    
+    export class test$$Sad_0Impl extends test$$Sad_0 {
+      $hash$imm(ps_m$) { return test$$Sad_0.$hash$imm$fun(ps_m$, this); }
+    }
+    
+    test$$Sad_0.$self = new test$$Sad_0Impl();
+    """, """
+    export class test$$Fear[###]$_0 {
+      $hash$read(fear[###]$_m$) { throw new Error('Abstract method'); }
+      static $hash$read$fun(fear[###]$_m$, fear[###]$_m$) {
+        return fear[###]$_m$.cats$imm().isEmpty$read();
+      }
+    }
+    
+    export class test$$Fear[###]$_0Impl extends test$$Fear[###]$_0 {
+      $hash$read(fear[###]$_m$) { return test$$Fear[###]$_0.$hash$read$fun(fear[###]$_m$, this); }
+    }
+    
+    test$$Fear[###]$_0.$self = new test$$Fear[###]$_0Impl();
+    """),
+    List.of("test/AllCats_0.js", "test/Sad_0.js", "test/Fear[###]$_0.js"),
+    """
+    package test
+    alias base.List as List, alias base.Str as Str, alias base.Bool as Bool,
+    
+    Person:{  .name:Str, .cats: List[Cat],  }
+    Cat:{ .name: Str, }
+    AllCats:{  #(ps: List[Person]): List[Cat] -> ps.flow.flatMap{::cats.flow }.list  }
+    Sad :{ #(ps: List[Person]): Bool -> ps.flow.any{::cats.isEmpty  } }
+    """);
+  }
+
+  @Test void listBlock() {
+    ok("""
+    import { base$$List_0 } from "../base/List_0.js";
+    import { base$$Void_0 } from "../base/Void_0.js";
+    
+    export class test$$Test_0 {
+      $hash$imm(s_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(s_m$, $this) {
+        let l = base$$List_0.$self.$hash$imm(12n,13n,14n);
+    return base$$Void_0.$self;
+      }
+    }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(s_m$) { return test$$Test_0.$hash$imm$fun(s_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """,
+    "test/Test_0.js",
+    """
+    package test
+    alias base.List as List, alias base.Int as Int, alias base.Block as Block, alias base.Main as Main,
+    Test:Main{ s -> Block#
+      .let[List[Str]] l = {List#("A", "B", "C", "D", "E")}
+      .let[List[Int]] l = { List#(+12, +13, +14) }
+      .return {{}}
+    }
+    """);
+  }
+
+  @Test void getListByF() {
+    ok("""
+    import { base$$List_0 } from "../base/List_0.js";
+    
+    export class test$$GetList_0 {
+      $hash$read() { throw new Error('Abstract method'); }
+      static $hash$read$fun($this) {
+        return base$$List_0.$self.$hash$imm().$plus$mut(1n).$plus$mut(2n).$plus$mut(3n).$plus$mut(4n);
+      }
+    }
+    
+    export class test$$GetList_0Impl extends test$$GetList_0 {
+      $hash$read() { return test$$GetList_0.$hash$read$fun(this); }
+    }
+    
+    test$$GetList_0.$self = new test$$GetList_0Impl();
+    """,
+    "test/GetList_0.js",
+    """
+    package test
+    alias base.List as List, alias base.F as F, alias base.Nat as Nat,
+    
+    GetList: F[mut List[Nat]]{List# + 1 + 2 + 3 + 4}
+    """);
+  }
+
+  @Test void listBlockAddJoin() {
+    ok("""
+    import { test$$Fear720$_0 } from "../test/Fear720$_0.js";
+    import { base$$flows$$_DataParallelFlow_0 } from "../base/flows/_DataParallelFlow_0.js";
+    import { base$$List_0 } from "../base/List_0.js";
+    import { base$$Void_0 } from "../base/Void_0.js";
+    
+    export class test$$Test_0 {
+      $hash$imm(sys_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(sys_m$, $this) {
+        let l = base$$List_0.$self.$hash$imm(1n,2n,3n);
+    let l2 = l_m$.as$read(test$$Fear720$_0.$self);
+    var doRes1 = l_m$.add$mut(4n);
+    var doRes2 = sys_m$.io$mut().println$mut(rt.flows.FlowCreator.fromFlow(base$$flows$$_DataParallelFlow_0.$self, l2_m$.flow$imm()).join$mut(","));
+    return base$$Void_0.$self;
+      }
+    }
+    
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """,
+    "test/Test_0.js",
+    """
+    package test
+    alias base.List as List, alias base.Block as Block, alias base.Main as Main, alias base.Str as Str, alias base.Nat as Nat,
+    Test: Main{sys -> Block#
+      .let[mut List[Nat]] l = {List#(1, 2, 3)}
+      .let[List[Str]] l2 = {l.as{::str}}
+      .do {l.add(4)}
+      .do {sys.io.println(l2.flow.join ",")}
+      .return {{}}
+    }
+    """);
+  }
+
+  @Test void listBlockElem() {
+    okList(List.of("""
+    import { test$$Fear718$_0 } from "../test/Fear718$_0.js";
+    import { base$$List_0 } from "../base/List_0.js";
+    import { test$$Fear721$_0 } from "../test/Fear721$_0.js";
+    import { test$$Fear722$_0 } from "../test/Fear722$_0.js";
+    
+    export class test$$BadMutation_0 {
+      $hash$imm() { throw new Error('Abstract method'); }
+      static $hash$imm$fun($this) {
+        let l = base$$List_0.$self.$hash$imm();
+    var doRes1 = l_m$.add$mut(test$$Fear718$_0.$self);
+    return l_m$.flow$mut().fold$mut(test$$Fear721$_0.$self,test$$Fear722$_0.$self);
+      }
+    }
+    
+    export class test$$BadMutation_0Impl extends test$$BadMutation_0 {
+      $hash$imm() { return test$$BadMutation_0.$hash$imm$fun(this); }
+    }
+    
+    test$$BadMutation_0.$self = new test$$BadMutation_0Impl();
+    """, """
+    export class test$$Fear718$_0 {
+      n$read() { throw new Error('Abstract method'); }
+      static n$read$fun(fear[###]$_m$) {
+        return 1n;
+      }
+    }
+    
+    export class test$$Fear718$_0Impl extends test$$Fear718$_0 {
+      n$read() { return test$$Fear718$_0.n$read$fun(this); }
+    }
+    
+    test$$Fear718$_0.$self = new test$$Fear718$_0Impl();
+    """),
+    List.of("test/BadMutation_0.js", "test/Fear718$_0.js"),
+    """
+    package test
+    alias base.List as List, alias base.Block as Block, alias base.Nat as Nat,
+    
+    Elem: { read .n: Nat, }
+    BadMutation: {#: Nat -> Block#
+      .let[mut List[mut Elem]] l = {List#}
+      .do {l.add(mut Elem{.n -> 1, })}
+      .return {l.flow
+        .fold[Nat]({0}, {acc, e -> acc + (e.n)})
+      }
+    }
+    """);
+  }
+
+  @Test void listIter() {
+    ok("""
+    import { base$$caps$$UnrestrictedIO_0 } from "../base/caps/UnrestrictedIO_0.js";
+    import { test$$Fear724$_0 } from "../test/Fear724$_0.js";
+    import { base$$List_0 } from "../base/List_0.js";
+    import { test$$Fear727$_0 } from "../test/Fear727$_0.js";
+    import { test$$Fear722$_0 } from "../test/Fear722$_0.js";
+    import { test$$Fear726$_0 } from "../test/Fear726$_0.js";
+
+    export class test$$Test_0 {
+      $hash$imm(sys_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(sys_m$, $this) {
+        let l1 = base$$List_0.$self.$hash$imm(35n,52n,84n,14n);
+    let msg = l1_m$.iter$mut().filter$mut(test$$Fear722$_0.$self).flatMap$mut(test$$Fear724$_0.$self).map$mut(test$$Fear726$_0.$self).str$mut(test$$Fear727$_0.$self,",");
+    let io = base$$caps$$UnrestrictedIO_0.$self.$hash$read(sys_m$);
+    return io_m$.println$mut(msg_m$);
+      }
+    }
+
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+    }
+
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """,
+    "test/Test_0.js",
+    """
+    package test
+    alias base.List as List, alias base.Block as Block, alias base.Main as Main, alias base.Str as Str, alias base.Nat as Nat,
+    alias base.caps.UnrestrictedIO as UnrestrictedIO,
+
+    Test :base.Main{ sys -> Block#
+      .let l1 = { List#[Nat](35, 52, 84, 14) }
+      .let[Str] msg = {l1.iter
+        .filter{n -> n < 40}
+        .flatMap{n -> List#(n, n, n).iter}
+        .map{n -> n * 10}
+        .str({n -> n.str}, ",")}
+      .let io = {UnrestrictedIO#sys}
+      .return {io.println(msg)}
+    }
+    """);
+  }
+
+  @Test void listAssert() {
+    okList(List.of("""
+    import { test$$Fear720$_0 } from "../test/Fear720$_0.js";
+    import { test$$Fear728$_0 } from "../test/Fear728$_0.js";
+    import { base$$Block_0 } from "../base/Block_0.js";
+
+    export class test$$Test_0 {
+      $hash$imm(sys_m$) { throw new Error('Abstract method'); }
+      static $hash$imm$fun(sys_m$, $this) {
+        return base$$Block_0.$self.$hash$imm().let$mut(test$$Fear720$_0.$self,test$$Fear728$_0.$self);
+      }
+    }
+
+    export class test$$Test_0Impl extends test$$Test_0 {
+      $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+    }
+
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """, """
+    import { base$$List_0 } from "../base/List_0.js";
+    
+    export class test$$Fear720$_0 {
+      $hash$mut() { throw new Error('Abstract method'); }
+      static $hash$mut$fun(fear[###]$_m$) {
+        return base$$List_0.$self.$hash$imm(35n,52n,84n,14n);
+      }
+    }
+    
+    export class test$$Fear720$_0Impl extends test$$Fear720$_0 {
+      $hash$mut() { return test$$Fear720$_0.$hash$mut$fun(this); }
+    }
+    
+    test$$Fear720$_0.$self = new test$$Fear720$_0Impl();
+    """, """
+    import { test$$Fear725$_0Impl } from "../test/Fear725$_0.js";
+    import { test$$Fear727$_0 } from "../test/Fear727$_0.js";
+    
+    export class test$$Fear728$_0 {
+      $hash$mut(l1_m$, fear31$_m$) { throw new Error('Abstract method'); }
+      static $hash$mut$fun(l1_m$, fear31$_m$, fear[###]$_m$) {
+        return fear31$_m$.assert$mut(new test$$Fear725$_0Impl(l1_m$)).return$mut(test$$Fear727$_0.$self);
+      }
+    }
+    
+    export class test$$Fear728$_0Impl extends test$$Fear728$_0 {
+      $hash$mut(l1_m$, fear31$_m$) { return test$$Fear728$_0.$hash$mut$fun(l1_m$, fear31$_m$, this); }
+    }
+    
+    test$$Fear728$_0.$self = new test$$Fear728$_0Impl();
+    """, """
+    import { test$$Fear724$_0 } from "../test/Fear724$_0.js";
+    import { test$$Fear722$_0 } from "../test/Fear722$_0.js";
+    
+    export class test$$Fear725$_0 {
+      $hash$mut() { throw new Error('Abstract method'); }
+      static $hash$mut$fun(fear[###]$_m$, l1_m$) {
+        return l1_m$.iter$mut().map$mut(test$$Fear722$_0.$self).find$mut(test$$Fear724$_0.$self).isSome$read();
+      }
+    }
+    
+    export class test$$Fear725$_0Impl extends test$$Fear725$_0 {
+      constructor(l1_m$) {
+        this.l1_m$ = l1_m$;
+      }
+      $hash$mut() { return test$$Fear725$_0.$hash$mut$fun(this, this.l1_m$); }
+    }
+    """),
+      List.of("test/Test_0.js", "test/Fear720$_0.js", "test/Fear728$_0.js", "test/Fear725$_0.js"),
+      """
+      package test
+      alias base.List as List, alias base.Block as Block, alias base.Main as Main, alias base.Str as Str, alias base.Nat as Nat,
+  
+      Test :base.Main{ sys -> Block#
+        .let l1 = { List#[Nat](35, 52, 84, 14) }
+        .assert{l1.iter
+          .map{n -> n * 10}
+          .find{n -> n == 140}
+          .isSome}
+        .return {{}}
+      }
+      """);
+  }
+
+  @Test void assertTrue() {
+    okList(List.of("""
+      import { test$$Fear92$_0 } from "../test/Fear92$_0.js";
+      import { base$$Assert_0 } from "../base/Assert_0.js";
+      import { base$$True_0 } from "../base/True_0.js";
+      
+      export class test$$Test_0 {
+        $hash$imm(fear0$_m$) { throw new Error('Abstract method'); }
+        static $hash$imm$fun(fear0$_m$, $this) {
+          return base$$Assert_0.$self.$exclamation$imm(base$$True_0.$self,test$$Fear92$_0.$self);
+        }
+      }
+      
+      export class test$$Test_0Impl extends test$$Test_0 {
+        $hash$imm(fear0$_m$) { return test$$Test_0.$hash$imm$fun(fear0$_m$, this); }
+      }
+      
+      test$$Test_0.$self = new test$$Test_0Impl();
+      """, """
+      export class base$$Assert_0 {
+        $exclamation$imm(assertion_m$) { throw new Error('Abstract method'); }
+        $exclamation$imm(assertion_m$, cont_m$) { throw new Error('Abstract method'); }
+        $exclamation$imm(assertion_m$, msg_m$, cont_m$) { throw new Error('Abstract method'); }
+        _fail$imm() { throw new Error('Abstract method'); }
+        _fail$imm(msg_m$) { throw new Error('Abstract method'); }
+        static $exclamation$imm$fun(assertion_m$, $this) {
+          return (function() {
+        console.error("Program aborted at:\\n" + new Error().stack);
+        if (typeof process !== "undefined") process.exit(1);
+        else throw new Error("Program aborted");
+      })()
+      ;
+        }
+        static $exclamation$imm$fun(assertion_m$, cont_m$, $this) {
+          return (function() {
+        console.error("Program aborted at:\\n" + new Error().stack);
+        if (typeof process !== "undefined") process.exit(1);
+        else throw new Error("Program aborted");
+      })()
+      ;
+        }
+        static $exclamation$imm$fun(assertion_m$, msg_m$, cont_m$, $this) {
+          return (function() {
+        console.error("Program aborted at:\\n" + new Error().stack);
+        if (typeof process !== "undefined") process.exit(1);
+        else throw new Error("Program aborted");
+      })()
+      ;
+        }
+        static _fail$imm$fun($this) {
+          return (function() {
+        console.error("Program aborted at:\\n" + new Error().stack);
+        if (typeof process !== "undefined") process.exit(1);
+        else throw new Error("Program aborted");
+      })()
+      ;
+        }
+        static _fail$imm$fun(msg_m$, $this) {
+          return (function() {
+        console.error("Program aborted at:\\n" + new Error().stack);
+        if (typeof process !== "undefined") process.exit(1);
+        else throw new Error("Program aborted");
+      })()
+      ;
+        }
+      }
+      
+      export class base$$Assert_0Impl extends base$$Assert_0 {
+        $exclamation$imm(assertion_m$) { return base$$Assert_0.$exclamation$imm$fun(assertion_m$, this); }
+        $exclamation$imm(assertion_m$, cont_m$) { return base$$Assert_0.$exclamation$imm$fun(assertion_m$, cont_m$, this); }
+        $exclamation$imm(assertion_m$, msg_m$, cont_m$) { return base$$Assert_0.$exclamation$imm$fun(assertion_m$, msg_m$, cont_m$, this); }
+        _fail$imm() { return base$$Assert_0._fail$imm$fun(this); }
+        _fail$imm(msg_m$) { return base$$Assert_0._fail$imm$fun(msg_m$, this); }
+      }
+      
+      base$$Assert_0.$self = new base$$Assert_0Impl();
+      """),
+    List.of("test/Test_0.js", "base/Assert_0.js"),
+      """
+      package test
+      alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+      alias base.Void as Void,
+      Test:Main{ _ -> Assert!(True, { Void }) }
+      """);
   }
 }
