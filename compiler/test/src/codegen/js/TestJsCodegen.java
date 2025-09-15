@@ -94,14 +94,31 @@ public class TestJsCodegen {
     
     test$$A_0.$self = new test$$A_0Impl();
     """, """
+    import { rt$$Str } from "../rt-js/Str.js";
+    import { test$$A_0 } from "../test/A_0.js";
+    
+    export class test$$B_0 {
+      mb$imm() { throw new Error('Abstract method'); }
+      ma$imm() { throw new Error('Abstract method'); }
+      static mb$imm$fun($this) {
+        return rt$$Str.fromJavaStr("B").$plus$imm($this.ma$imm());
+      }
+    }
+    
+    export class test$$B_0Impl extends test$$B_0 {
+      mb$imm() { return test$$B_0.mb$imm$fun(this); }
+      ma$imm() { return test$$A_0.ma$imm$fun(this); }
+    }
+    
+    test$$B_0.$self = new test$$B_0Impl();
     """),
-      List.of("test/A_0.js", "test/B_0.js"),
-      """
-      package test
-      alias base.Str as Str,
-      A:{.ma:Str -> "A" }
-      B:A {.mb:Str-> "B" + this.ma }
-      """);
+    List.of("test/A_0.js", "test/B_0.js"),
+    """
+    package test
+    alias base.Str as Str,
+    A:{.ma:Str -> "A" }
+    B:A {.mb:Str-> "B" + (this.ma) }
+    """);
   }
 
   @Test void extendsClass2() {
