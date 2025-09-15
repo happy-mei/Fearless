@@ -77,6 +77,82 @@ public class TestJsCodegen {
     """);
   }
 
+  @Test void extendsClass() {
+    okList(List.of("""
+    import { rt$$Str } from "../rt-js/Str.js";
+    
+    export class test$$A_0 {
+      ma$imm() { throw new Error('Abstract method'); }
+      static ma$imm$fun($this) {
+        return rt$$Str.fromJavaStr("A");
+      }
+    }
+    
+    export class test$$A_0Impl extends test$$A_0 {
+      ma$imm() { return test$$A_0.ma$imm$fun(this); }
+    }
+    
+    test$$A_0.$self = new test$$A_0Impl();
+    """, """
+    """),
+      List.of("test/A_0.js", "test/B_0.js"),
+      """
+      package test
+      alias base.Str as Str,
+      A:{.ma:Str -> "A" }
+      B:A {.mb:Str-> "B" + this.ma }
+      """);
+  }
+
+  @Test void extendsClass2() {
+    okList(List.of("""
+    import { rt$$Str } from "../rt-js/Str.js";
+    
+    export class test$$A_0 {
+      ma$imm() { throw new Error('Abstract method'); }
+      static ma$imm$fun($this) {
+        return rt$$Str.fromJavaStr("A");
+      }
+    }
+    
+    export class test$$A_0Impl extends test$$A_0 {
+      ma$imm() { return test$$A_0.ma$imm$fun(this); }
+    }
+    
+    test$$A_0.$self = new test$$A_0Impl();
+    """, """
+    import { rt$$Str } from "../rt-js/Str.js";
+    import { test$$A_0 } from "../test/A_0.js";
+    
+    export class test$$B_0 {
+      mb$imm() { throw new Error('Abstract method'); }
+      ma$imm() { throw new Error('Abstract method'); }
+      mc$imm() { throw new Error('Abstract method'); }
+      static mb$imm$fun($this) {
+        return rt$$Str.fromJavaStr("B");
+      }
+      static mc$imm$fun($this) {
+        return $this.ma$imm();
+      }
+    }
+    
+    export class test$$B_0Impl extends test$$B_0 {
+      mb$imm() { return test$$B_0.mb$imm$fun(this); }
+      ma$imm() { return test$$A_0.ma$imm$fun(this); }
+      mc$imm() { return test$$B_0.mc$imm$fun(this); }
+    }
+    
+    test$$B_0.$self = new test$$B_0Impl();
+    """),
+    List.of("test/A_0.js", "test/B_0.js"),
+    """
+    package test
+    alias base.Str as Str,
+    A:{.ma:Str -> "A" }
+    B:A {.mb:Str-> "B", .mc:Str->this.ma }
+    """);
+  }
+
   @Test void bool() {
     ok("""
     import { base$$False_0, base$$True_0 } from "../base/index.js";
