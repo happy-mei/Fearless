@@ -1,5 +1,5 @@
 // rt/FearlessError.js
-import { base$$Info_0 } from "../base/Info.js";
+import { base$$Info_0 } from "../base/Info_0.js";
 import { rt$$Str } from "./Str.js";
 
 export class FearlessError extends Error {

@@ -1,25 +1,24 @@
 // rt/Str.js
 import { base$$True_0 } from "../base/True_0.js";
 import { base$$False_0 } from "../base/False_0.js";
-import { base$$_StrHelpers_0 } from "./base/_StrHelpers_0.js";
-import { Flow_0 } from "../base/Flow.js";
+import { rt$$NativeRuntime } from "./NativeRuntime.js";
 import { FearlessError } from "./FearlessError.js";
 
 export class rt$$Str {
   constructor() {
-    if (this.constructor === rt$$Str) throw new Error("Cannot instantiate interface");
+    if (new.target === rt$$Str) throw new Error("Cannot instantiate interface rt$$Str directly");
   }
 
-  // --- core interface methods ---
-
-  /** utf8 returns a Uint8Array */
-  utf8() { throw new Error("Abstract method"); }
-
-  graphemes() { throw new Error("Abstract method"); }
-
+  // --- Abstract methods ---
+  utf8() { throw new Error("Abstract method"); }       // returns Uint8Array
+  graphemes() { throw new Error("Abstract method"); }  // returns Int32Array
   utf8$imm() { return this.utf8(); }
-
   str$read() { return this; }
+
+  static wrap(array) {
+    // Accepts a JS Array or TypedArray of numbers (0–255)
+    return new Uint8Array(array);
+  }
 
   $equals$equals$imm(other) {
     const a = this.utf8(), b = other.utf8();
@@ -48,10 +47,6 @@ export class rt$$Str {
   }
 
   size$imm() { return this.graphemes().length; }
-
-  assertEq$imm(other) { return base$$_StrHelpers_0.$self.assertEq$imm(this, other); }
-  assertEq$imm2(other, msg) { return base$$_StrHelpers_0.$self.assertEq$imm(this, other, msg); }
-
   isEmpty$read() { return this.utf8().length === 0 ? base$$True_0.$self : base$$False_0.$self; }
 
   substring$imm(start, end) {
@@ -64,18 +59,23 @@ export class rt$$Str {
   charAt$imm(index) { return this.substring$imm(index, index + 1); }
 
   normalise$imm() {
-    const utf8 = this.utf8(); // assume native runtime normalisation
+    const utf8 = rt$$NativeRuntime.normaliseString(this.utf8());
     return rt$$Str.fromTrustedUtf8(utf8);
   }
 
-  // --- static helpers ---
+  /** Convert to native JS string */
+  toJsString() {
+    return rt$$NativeRuntime.toStringFromUtf8(this.utf8());
+  }
+
+  // --- Static helpers ---
   static fromJavaStr(str) {
     const encoder = new TextEncoder();
     return rt$$Str.fromTrustedUtf8(encoder.encode(str));
   }
 
   static fromUtf8(utf8) {
-    // optionally validate
+    rt$$NativeRuntime.validateStringOrThrow(utf8);
     return rt$$Str.fromTrustedUtf8(utf8);
   }
 
@@ -88,19 +88,13 @@ export class rt$$Str {
       }
       utf8() { return this._utf8; }
       graphemes() {
-        if (!this._graphemes) this._graphemes = rt$$Str.indexString(this._utf8);
+        if (!this._graphemes) this._graphemes = rt$$NativeRuntime.indexString(this._utf8);
         return this._graphemes;
       }
     };
   }
 
-  /** simple grapheme indexing for demo */
-  static indexString(utf8) {
-    // naive: 1 byte per char, real implementation needs proper UTF-8 decoding
-    return Array.from({ length: utf8.length }, (_, i) => i);
-  }
-
-  // --- SubStr implementation ---
+  /** Substring implementation */
   static SubStr = class extends rt$$Str {
     constructor(parent, start, end) {
       super();
@@ -114,7 +108,7 @@ export class rt$$Str {
     }
     utf8() { return this._utf8; }
     graphemes() {
-      if (!this._graphemes) this._graphemes = rt$$Str.indexString(this._utf8);
+      if (!this._graphemes) this._graphemes = rt$$NativeRuntime.indexString(this._utf8);
       return this._graphemes;
     }
     size$imm() { return this._size; }

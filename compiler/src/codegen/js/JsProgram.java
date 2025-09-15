@@ -133,34 +133,75 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
   }
 
   private String computeImports(String pkg, String className, String content) {
-    Set<String> imports = new HashSet<>();
+    Set<String> baseImports = new TreeSet<>();
+    Set<String> otherImports = new TreeSet<>();
+    boolean needsEnsureWasm = false;
+
     // Pattern matches full-encoded names:
     //   <pkg>$$<pkg>$$...$$<TypeOr_underscoreStart>_<digits>  (optionally followed by Impl)
     // Examples matched: base$$iter$$Sum_0, base$$iter$$Sum_0Impl, base$$_InfoToJson_0, test$$Test_0
-    // Match encoded class names, optionally ending with Impl
     Pattern p = Pattern.compile(
       "([a-z][a-z0-9_]*(?:\\$\\$[a-z][a-z0-9_]*)*\\$\\$[A-Za-z_][A-Za-z0-9_$]*_\\d+)(Impl)?"
     );
     Matcher m = p.matcher(content);
     while (m.find()) {
-      String base = m.group(1);   // e.g. test$$Fear714$_0
-      String impl = m.group(2);   // "Impl" if present, null otherwise
+      String base = m.group(1);
+      String impl = m.group(2);
       String dep = (impl != null) ? base + "Impl" : base;
       if (dep.equals(className) || dep.equals(className + "Impl")) continue;
 
-      String importPath = getRelativeImportPath(pkg, base);
-      imports.add("import { " + dep + " } from \"" + importPath + "\";");
+      if (dep.startsWith("base$$")) {
+        baseImports.add(dep);
+      } else {
+        String importPath = getRelativeImportPath(pkg, base);
+        otherImports.add("import { " + dep + " } from \"" + importPath + "\";");
+      }
     }
+
     // Special-case: runtime helpers (rt$$Numbers, rt$$Other...)
     Pattern rt = Pattern.compile("\\brt\\$\\$([A-Za-z0-9_]+)\\.");
     Matcher rm = rt.matcher(content);
     while (rm.find()) {
-      String dep = "rt$$" + rm.group(1);  // e.g. rt$$Numbers
-      // Always import from rt-js/<Name>.js
+      String dep = "rt$$" + rm.group(1);
       String importPath = getRelativeImportPath(pkg, "rt-js/" + rm.group(1));
-      imports.add("import { " + dep + " } from \"" + importPath + "\";");
+      otherImports.add("import { " + dep + " } from \"" + importPath + "\";");
+
+      if (dep.equals("rt$$NativeRuntime")) {
+        needsEnsureWasm = true;
+      }
     }
-    return String.join("\n", imports) + (imports.isEmpty() ? "" : "\n\n");
+
+    // Merge base$$ imports into one line
+    StringBuilder importBlock = new StringBuilder();
+
+    // Merge all base$$ imports into one line pointing to top-level base/index.js
+    if (!baseImports.isEmpty()) {
+      StringBuilder prefix = new StringBuilder();
+      if (!pkg.isEmpty()) {
+        int depth = pkg.split("\\.").length;
+        for (int i = 0; i < depth; i++) prefix.append("../");
+      } else {
+        prefix.append("./");
+      }
+      importBlock.append("import { ")
+        .append(String.join(", ", baseImports))
+        .append(" } from \"")
+        .append(prefix)
+        .append("base/index.js\";\n");
+    }
+
+    for (String imp : otherImports) {
+      importBlock.append(imp).append("\n");
+    }
+
+    if (importBlock.length() > 0) {
+      importBlock.append("\n");
+    }
+    if (needsEnsureWasm) {
+      importBlock.append("(async function(){ await rt$$NativeRuntime.ensureWasm(); })();\n\n");
+    }
+
+    return importBlock.toString();
   }
 
   private String getRelativeImportPath(String pkg, String encodedDep) {
@@ -184,6 +225,7 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
     return prefix + depPath + ".js";
   }
 
+  // Create base/index.js to make import lines clearer
   private JsFile createBaseIndexJs(Map<String, List<String>> baseExports) {
     StringBuilder rootIndex = new StringBuilder();
     for (var entry : baseExports.entrySet()) {

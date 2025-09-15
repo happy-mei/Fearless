@@ -99,11 +99,12 @@ record JsNumOps(
       a -> "Math.trunc(" + a[0] + ") & 0xFF"          // float → byte (truncate and mask)
     );
     put(".str", 0,
-      a -> "String(" + a[0] + ")",                    // int
-      a -> "String(" + a[0] + ")",                    // nat
-      a -> "String(" + a[0] + ")",                    // byte
-      a -> "String(" + a[0] + ")"                     // float
+      a -> "rt$$Str.fromJavaStr((" + a[0] + ").toString())", // Int → BigInt signed
+      a -> "rt$$Str.fromJavaStr((" + a[0] + ").toString())", // Nat → BigInt unsigned (we must ensure it prints as unsigned)
+      a -> "rt$$Str.fromJavaStr(Number(" + a[0] + " & 0xFF).toString())", // Byte → 0..255
+      a -> "rt$$Str.fromTrustedUtf8(rt$$Str.wrap(rt$$NativeRuntime.floatToStr(" + a[0] + ")))" // Float → handled with Fearless floatToStr → wrap → fromTrustedUtf8
     );
+
     // Arithmetic
     put("+", 1,
       a -> "(" + a[0] + " + " + a[1] + ")",           // int
@@ -377,6 +378,93 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
     };
   }
 
+  @Override public MagicTrait<MIR.E, String> utf8(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        // Use the runtime UTF8 helper singleton we ship in rt-js
+        return Optional.of("rt$$UTF8.$self");
+      }
+      @Override
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        // No special call handling for utf8 here; fall back to default
+        return MagicTrait.super.call(m, args, variants, expectedT);
+      }
+    };
+  }
+
+  @Override public MagicTrait<MIR.E, String> utf16(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        // no single instantiate value for utf16 magic
+        return Optional.empty();
+      }
+
+      @Override
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args,
+                                   EnumSet<MIR.MCall.CallVariant> variants,
+                                   MIR.MT expectedT) {
+        // two helpers we want to support at codegen time:
+        //  - .fromCodePoint( cp )  -> rt$$Str.fromJavaStr(String.fromCodePoint(cp))
+        //  - .fromSurrogatePair(h, l) -> rt$$Str.fromJavaStr(String.fromCodePoint(h, l))
+        if (m.equals(new Id.MethName(".fromCodePoint", 1))) {
+          String cpExpr = args.get(0).accept(gen, true);
+          // String.fromCodePoint accepts number(s) and returns a JS string
+          return Optional.of("rt$$Str.fromJavaStr(String.fromCodePoint(" + cpExpr + "))");
+        }
+        if (m.equals(new Id.MethName(".fromSurrogatePair", 2))) {
+          String hi = args.get(0).accept(gen, true);
+          String lo = args.get(1).accept(gen, true);
+          // String.fromCodePoint can accept two code points as well
+          return Optional.of("rt$$Str.fromJavaStr(String.fromCodePoint(" + hi + ", " + lo + "))");
+        }
+        return MagicTrait.super.call(m, args, variants, expectedT);
+      }
+    };
+  }
+
+  @Override public MagicTrait<MIR.E,String> isoPodK(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        return Optional.empty();
+      }
+
+      @Override
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args,
+                                   EnumSet<MIR.MCall.CallVariant> variants,
+                                   MIR.MT expectedT) {
+        // handle the "#/1" constructor that produces an IsoPod-like object
+        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
+          // single-element iso-pod whose internal x is the provided expression
+          String xExpr = args.get(0).accept(gen, true);
+
+          // Emit an inline JS "new class { ... }()" expression implementing the API used by backend.
+          // Methods: isAlive$read, peek$read(viewer), $exclamation$mut(), next$mut(x).
+          // Use base$$True_0.$self / base$$False_0.$self and base$$Void_0.$self as runtime constants.
+          String code = String.format("""
+          new (class {
+            constructor() { this.x = %s; this.isAlive = true; }
+            isAlive$read() { return this.isAlive ? base$$True_0.$self : base$$False_0.$self; }
+            // peek: viewer.some$mut(value) or viewer.empty$mut()
+            peek$read(f) { return this.isAlive ? f.some$mut(this.x) : f.empty$mut(); }
+            $exclamation$mut() {
+              if (!this.isAlive) {
+                // throw a runtime Fearless error using runtime helper
+                return rt$$Error.throwFearlessError(rt$$Str.fromJavaStr("Cannot consume an empty IsoPod."));
+              }
+              this.isAlive = false;
+              return this.x;
+            }
+            next$mut(x) { this.isAlive = true; this.x = x; return base$$Void_0.$self; }
+          })()""", xExpr);
+
+          return Optional.of(code);
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
+
   @Override public MagicTrait<MIR.E, String> asciiStr(MIR.E e) {
     throw Bug.todo();
   }
@@ -386,10 +474,6 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
   }
 
   @Override public MagicTrait<MIR.E, String> refK(MIR.E e) {
-    return null;
-  }
-
-  @Override public MagicTrait<MIR.E, String> isoPodK(MIR.E e) {
     return null;
   }
 

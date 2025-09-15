@@ -4,41 +4,41 @@ export class IO {
   static $self = new IO();
 
   printlnErr$mut(msg) {
-    const text = typeof msg === "string" ? msg : String(msg);
+    const msgJsStr = msg.toJsString();
     if (process && process.stdout) {
-      process.stderr.write(text + "\n");
+      process.stderr.write(msgJsStr + "\n");
     } else {
-      console.error(text + "\n");
+      console.error(msgJsStr + "\n");
     }
     return base$$Void_0.$self;
   }
 
   println$mut(msg) {
-    const text = typeof msg === "string" ? msg : String(msg);
+    const msgJsStr = msg.toJsString();
     if (process && process.stdout) {
-      process.stdout.write(text + "\n");
+      process.stdout.write(msgJsStr + "\n");
     } else {
-      console.log(text + "\n");
+      console.log(msgJsStr + "\n");
     }
     return base$$Void_0.$self;
   }
 
   print$mut(msg) {
-    const text = typeof msg === "string" ? msg : String(msg);
+    const msgJsStr = msg.toJsString();
     if (process && process.stdout) {
-      process.stdout.write(text);
+      process.stdout.write(msgJsStr);
     } else {
-      console.log(text);
+      console.log(msgJsStr);
     }
     return base$$Void_0.$self;
   }
 
   printErr$mut(msg) {
-    const text = typeof msg === "string" ? msg : String(msg);
+    const msgJsStr = msg.toJsString();
     if (process && process.stderr) {
-      process.stderr.write(text);
+      process.stderr.write(msgJsStr);
     } else {
-      console.error(text);
+      console.error(msgJsStr);
     }
     return base$$Void_0.$self;
   }

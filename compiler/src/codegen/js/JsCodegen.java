@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import magic.FearlessStringHandler;
 import magic.Magic;
+
 import static magic.Magic.getLiteral;
 public class JsCodegen implements MIRVisitor<String> {
   protected final MIR.Program p;
@@ -236,16 +237,14 @@ public class JsCodegen implements MIRVisitor<String> {
         // JS: var doRes0 = <expr>;
         "var doRes%d = %s;\n".formatted(doIdx.update(n -> n + 1), do_.e().accept(this, true));
       case MIR.Block.BlockStmt.Throw throw_ ->
-        // JS: throw <expr>;
-        "throw %s;\n".formatted(throw_.e().accept(this, true));
+        "r$$Error.throwFearlessError(%s);\n".formatted(throw_.e().accept(this, true));
       case MIR.Block.BlockStmt.Loop loop ->
-        // JS: while(true) { ... }
         """
         while (true) {
           var res = %s.$hash$mut();
           if (res == base$$ControlFlowContinue_0.$self || res == base$$ControlFlowContinue_1.$self) { continue; }
           if (res == base$$ControlFlowBreak_0.$self || res == base$$ControlFlowBreak_1.$self) { break; }
-          if (res instanceof base$$ControlFlowReturn_1 rv) { rv.value$mut(); }
+          if (res instanceof base$$ControlFlowReturn_1) { base$$ControlFlowReturn_1.$self.value$mut(); }
         }
         """.formatted(
           loop.e().accept(this, true)
@@ -292,22 +291,21 @@ public class JsCodegen implements MIRVisitor<String> {
     return "(() => {\n" + blockCode + "})()";
   }
 
-  // Converts string literals to JS strings, handling mutability and escaping
   public String visitStringLiteral(MIR.CreateObj k) {
     var id = k.concreteT().id();
     var fearlessStr = getLiteral(p.p(), id).orElseThrow();
     var jsStr = new FearlessStringHandler(FearlessStringHandler.StringKind.Unicode)
       .toJavaString(fearlessStr)
       .get();
-//    System.out.println("visitStringLiteral: "+jsStr);
-    // Escape the string safely for JS (you can use a real escape util or JSON-style)
-    var escaped = jsonEscape(jsStr); // You can define this or inline escape.
+    // JSON-style escape ensures proper quoting
+    var escaped = jsonEscape(jsStr);
 
     return switch (k.t().mdf()) {
-      case mut, iso -> "new rt.MutStr(" + escaped + ")";
-      default -> escaped;
+      case mut, iso -> "new rt$$MutStr(" + escaped + ")";
+      default -> "rt$$Str.fromJavaStr(" + escaped + ")";
     };
   }
+
 
   public static String jsonEscape(String s) {
     return "\"" + s.replace("\\", "\\\\")

@@ -395,4 +395,23 @@ public class TestJavaOptimisations {
     Test: Main{_ -> 5.assertEq(5)}
     """, Base.mutBaseAliases);
   }
+
+  @Test void questionMarkStr() {
+    ok("""
+      package test;
+      public interface Test_0{
+      Test_0 $self = new Test_0Impl();
+      rt.Str m$imm();
+      static rt.Str m$imm$fun(test.Test_0 $this) {
+        return ((rt.Numbers.toBool(Long.compareUnsigned(5L,2L)>0) == base.True_0.$self ? Str$7535304289397679133$Str$.$self : Str$4459364225015063950$Str$.$self));
+      }
+      }
+      """,
+      "test/Test_0.java",
+      """
+      package test
+      alias base.Str as Str,
+      Test:{ .m:Str-> (5 > 2) ?[Str] {.then -> "True", .else -> "False", } }
+      """);
+  }
 }
