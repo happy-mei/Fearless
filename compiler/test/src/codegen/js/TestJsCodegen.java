@@ -126,47 +126,75 @@ public class TestJsCodegen {
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$A_0 {
+      mk$imm() { throw new Error('Abstract method'); }
       ma$imm() { throw new Error('Abstract method'); }
       static ma$imm$fun($this) {
         return rt$$Str.fromJavaStr("A");
       }
     }
+    """, """
+    import { rt$$Str } from "../rt-js/Str.js";
     
-    export class test$$A_0Impl extends test$$A_0 {
-      ma$imm() { return test$$A_0.ma$imm$fun(this); }
+    export class test$$B_0 {
+      mk$imm() { throw new Error('Abstract method'); }
+      mb$imm() { throw new Error('Abstract method'); }
+      ma$imm() { throw new Error('Abstract method'); }
+      static mb$imm$fun($this) {
+        return rt$$Str.fromJavaStr("B").$plus$imm($this.ma$imm());
+      }
     }
-    
-    test$$A_0.$self = new test$$A_0Impl();
     """, """
     import { rt$$Str } from "../rt-js/Str.js";
     import { test$$A_0 } from "../test/A_0.js";
+    import { test$$B_0 } from "../test/B_0.js";
     
-    export class test$$B_0 {
+    export class test$$C_0 {
+      mk$imm() { throw new Error('Abstract method'); }
       mb$imm() { throw new Error('Abstract method'); }
       ma$imm() { throw new Error('Abstract method'); }
       mc$imm() { throw new Error('Abstract method'); }
-      static mb$imm$fun($this) {
-        return rt$$Str.fromJavaStr("B");
-      }
       static mc$imm$fun($this) {
-        return $this.ma$imm();
+        return rt$$Str.fromJavaStr("C").$plus$imm($this.mb$imm());
+      }
+      static mk$imm$fun($this) {
+        return $this.mk$imm();
       }
     }
     
-    export class test$$B_0Impl extends test$$B_0 {
+    export class test$$C_0Impl extends test$$C_0 {
+      mk$imm() { return test$$C_0.mk$imm$fun(this); }
       mb$imm() { return test$$B_0.mb$imm$fun(this); }
       ma$imm() { return test$$A_0.ma$imm$fun(this); }
-      mc$imm() { return test$$B_0.mc$imm$fun(this); }
+      mc$imm() { return test$$C_0.mc$imm$fun(this); }
     }
     
-    test$$B_0.$self = new test$$B_0Impl();
+    test$$C_0.$self = new test$$C_0Impl();
+    """, """
+    import { test$$C_0 } from "../test/C_0.js";
+    
+    export class test$$User_0 {
+      foo$imm() { throw new Error('Abstract method'); }
+      static foo$imm$fun($this) {
+        return test$$C_0.$self.mc$imm();
+      }
+    }
+    
+    export class test$$User_0Impl extends test$$User_0 {
+      foo$imm() { return test$$User_0.foo$imm$fun(this); }
+    }
+    
+    test$$User_0.$self = new test$$User_0Impl();
     """),
-    List.of("test/A_0.js", "test/B_0.js"),
+    List.of("test/A_0.js", "test/B_0.js", "test/C_0.js", "test/User_0.js"),
     """
     package test
     alias base.Str as Str,
-    A:{.ma:Str -> "A" }
-    B:A {.mb:Str-> "B", .mc:Str->this.ma }
+    A:{.ma:Str -> "A", .mk:Str }
+    B:A {.mb:Str-> "B" + (this.ma) }
+    C:B{ .mc:Str-> "C" + (this.mb), .mk->this.mk}
+    User: {
+      .foo:Str->C.mc()
+    }
     """);
   }
 
