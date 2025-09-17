@@ -260,6 +260,29 @@ public class TestJsCodegen {
       """);
   }
 
+
+  @Test void strUtf8() {
+    ok("""
+    import { rt$$Str } from "../rt-js/Str.js";
+    
+    export class test$$Test_0 {
+      static $hash$imm$fun(sys_m$, $this) {
+        return sys_m$.io$mut().print$mut(rt$$Str.fromJsStr(Number((rt$$Str.fromJsStr("Hello!").utf8$imm().get$imm(0n) & 0xFF) & 0xFFn).toString()));
+      }
+    }
+    
+    export class test$$Test_0Impl {
+      $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """, "test/Test_0.js", """
+    package test
+    alias base.Main as Main,
+    Test: Main{sys -> sys.io.print("Hello!".utf8())}
+    """);
+  }
+
   @Test void numberStr() {
     ok("""
       import { rt$$Str } from "../rt-js/Str.js";
@@ -452,6 +475,28 @@ public class TestJsCodegen {
         .assertFail:Void -> (3 .assertEq(4, "should fail")),
       }
       """);
+  }
+  @Test void byteEq() {
+    ok("""
+    import { base$$_ByteAssertionHelper_0 } from "../base/index.js";
+    import { rt$$Str } from "../rt-js/Str.js";
+    
+    export class test$$Test_0 {
+      static $hash$imm$fun(fear31$_m$, $this) {
+        return base$$_ByteAssertionHelper_0.assertEq$imm$fun((rt$$Str.fromJsStr("Hello!").utf8$imm().get$imm(0n) & 0xFFn), (72n & 0xFFn), null);
+      }
+    }
+    
+    export class test$$Test_0Impl {
+      $hash$imm(fear31$_m$) { return test$$Test_0.$hash$imm$fun(fear31$_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """, "test/Test_0.js", """
+    package test
+    alias base.Main as Main,
+    Test: Main{_ -> "Hello!".utf8.get(0).assertEq(72 .byte)}
+    """);
   }
 
   @Test void numOpsCompBit() {
@@ -1464,6 +1509,7 @@ public class TestJsCodegen {
       test$$Test_0.$self = new test$$Test_0Impl();
       """, """
       import { base$$Fear1655$_0, base$$True_0 } from "../base/index.js";
+      import { rt$$IO } from "../rt-js/IO.js";
       
       export class base$$Assert_0 {
         static _fail$imm$fun(...args) {
@@ -1515,7 +1561,7 @@ public class TestJsCodegen {
               let cont_m$ = args[2];
               let $this = args[3];
               return (assertion_m$ == base$$True_0.$self ? cont_m$.$hash$mut() :   (() => {
-          console.error(msg_m$);
+          rt$$IO.$self.printlnErr$mut(msg_m$);
           if (typeof process !== "undefined") process.exit(1);
           else throw new Error(msg_m$);
         })()

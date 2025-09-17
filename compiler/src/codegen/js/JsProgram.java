@@ -166,7 +166,7 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
     }
 
     // runtime helpers
-    Pattern rt = Pattern.compile("\\brt\\$\\$([A-Za-z0-9_]+)\\.");
+    Pattern rt = Pattern.compile("\\brt\\$\\$([A-Za-z0-9_]+)\\b");
     Matcher rm = rt.matcher(content);
     while (rm.find()) {
       String dep = "rt$$" + rm.group(1);

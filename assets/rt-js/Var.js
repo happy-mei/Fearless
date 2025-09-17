@@ -1,4 +1,4 @@
-export class Var {
+export class rt$$Var {
   constructor(value) {
     this.value = value;
   }

@@ -1,7 +1,7 @@
 import { rt$$NativeRuntime } from "./NativeRuntime.js";
 import { base$$True_0, base$$False_0 } from "../base/index.js";
 
-export class Regex {
+export class rt$$Regex {
   constructor(patternStr) {
     this.pattenStr = patternStr;
     this.inner = new rt$$NativeRuntime.Regex(patternStr.utf8());

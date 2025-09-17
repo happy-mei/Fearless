@@ -1,8 +1,8 @@
-import { base$$flows$$_SeqFlow_0 } from "../../../base/flows/index.js";
-import { base$$Void_0, base$$Opt_1, base$$True_0, base$$False_0 } from "../../../base/index.js";
+import { base$$flows$$_SeqFlow_0 } from "../../base/flows/index.js";
+import { base$$Void_0, base$$Opt_1, base$$True_0, base$$False_0 } from "../../base/index.js";
 
-export class rt$$flows$$Range {
-  static $self = new rt$$flows$$Range();
+export class Range {
+  static $self = new Range();
 
   $hash$imm(...args) {
     switch(args.length) {

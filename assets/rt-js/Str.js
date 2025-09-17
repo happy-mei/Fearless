@@ -1,7 +1,7 @@
-import { base$$True_0 } from "../base/True_0.js";
-import { base$$False_0 } from "../base/False_0.js";
+import { base$$True_0, base$$False_0 } from "../base/index.js";
 import { rt$$NativeRuntime } from "./NativeRuntime.js";
 import { FearlessError } from "./FearlessError.js";
+import { ByteBufferListImpl } from "./ListK.js";
 
 export class rt$$Str {
   constructor() {
@@ -11,7 +11,9 @@ export class rt$$Str {
   // --- Abstract methods ---
   utf8() { throw new Error("Abstract method"); }       // returns Uint8Array
   graphemes() { throw new Error("Abstract method"); }  // returns Int32Array
-  utf8$imm() { return this.utf8(); }
+  utf8$imm() {
+    return new ByteBufferListImpl(this.utf8());
+  }
   str$read() { return this; }
 
   static wrap(array) {
