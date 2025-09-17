@@ -53,6 +53,13 @@ record ToJavaProgram(LogicMainJava main, MIR.Program program){
         var funs= pkg.funs().stream()
           .filter(f->f.name().d().equals(def.name()))
           .toList();
+        if (def.name().toString().startsWith("base.Assert/0")) {
+          for (MIR.Fun fun : funs) {
+            System.out.println("Function name: " + fun.name());
+            MIR.E body = fun.body();
+            System.out.println("Body: " + body);
+          }
+        }
         String typeDefContent= gen.visitTypeDef(pkg.name(), def, funs);
         if(typeDefContent.isEmpty()){ continue; }
         String name= gen.id.getSimpleName(def.name());
