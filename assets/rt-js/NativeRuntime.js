@@ -80,4 +80,54 @@ export const rt$$NativeRuntime = {
     return _textEncoder ? _textEncoder.encode(s) : Uint8Array.from(Array.from(s).map(c => c.charCodeAt(0)));
   },
 
+  compileRegex(pattern) {
+    if (!_wasmReady) throw new Error("WASM not initialized");
+    return wasmGlue.compile_regex(pattern); // returns pattern string as JsValue
+  },
+
+  doesRegexMatch(pattern, text) {
+    if (!_wasmReady) throw new Error("WASM not initialized");
+    return wasmGlue.does_regex_match(pattern, text);
+  },
+
+  // Regex class compatible with Java API
+  Regex: class {
+    constructor(patternStr) {
+      // store original Str object
+      this.pattenStr = patternStr;
+      // convert Str/UTF-8 to JS string
+      const s = rt$$NativeRuntime.toStringFromUtf8(
+        rt$$NativeRuntime._toUint8Array(patternStr)
+      );
+      // compile via WASM
+      try {
+        this.patternPtr = rt$$NativeRuntime.compileRegex(s); // in JS, just store string
+      } catch (err) {
+        throw new Error(`Invalid regex: ${err}`);
+      }
+      // optionally, could implement a cleanup function if needed
+      this._cleaned = false;
+    }
+
+    str$read() {
+      return this.pattenStr;
+    }
+
+    doesRegexMatch(str) {
+      const text = rt$$NativeRuntime.toStringFromUtf8(
+        rt$$NativeRuntime._toUint8Array(str)
+      );
+      return rt$$NativeRuntime.doesRegexMatch(this.patternPtr, text)
+        ? True_0.$self
+        : False_0.$self;
+    }
+
+    // optional: cleanup method to mimic Java Cleaner
+    cleanup() {
+      if (!this._cleaned) {
+        // in JS/WASM, nothing to free unless you implement caching
+        this._cleaned = true;
+      }
+    }
+  }
 };

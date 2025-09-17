@@ -464,32 +464,13 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
     };
   }
 
-
   @Override public MagicTrait<MIR.E, String> asciiStr(MIR.E e) {
-    throw Bug.todo();
-  }
-
-  @Override public MagicTrait<MIR.E, String> debug(MIR.E e) {
-    return null;
-  }
-
-  @Override public MagicTrait<MIR.E, String> refK(MIR.E e) {
-    return null;
-  }
-
-  @Override public MagicTrait<MIR.E, String> cheapHash(MIR.E e) {
-    throw Bug.todo();
-  }
-
-  @Override public MagicTrait<MIR.E, String> regexK(MIR.E e) {
     return new MagicTrait<>() {
-      @Override public Optional<String> instantiate() { return Optional.empty(); }
+      @Override public Optional<String> instantiate() {
+        throw Bug.todo();
+      }
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
-        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
-          return Optional.of("new rt$$Regex(" + args.get(0).accept(gen, true) + ")");
-        }
-        // Fallback to default behavior
-        return MagicTrait.super.call(m, args, variants, expectedT);
+        return Optional.empty();
       }
     };
   }
@@ -606,7 +587,6 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
     };
   }
 
-
   @Override public MagicTrait<MIR.E,String> abort(MIR.E e) {
     return new MagicTrait<>() {
       @Override public Optional<String> instantiate() {
@@ -654,6 +634,76 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
       @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
         if (m.equals(new Id.MethName("!", 1))) {
           return Optional.of("rt$$Error.throwFearlessError(%s)".formatted(args.getFirst().accept(gen, true)));
+        }
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<MIR.E,String> tryCatch(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        return Optional.of("rt$$Try.$self");
+      }
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<MIR.E, String> flowRange(MIR.E e) {
+    return ()->Optional.of("rt$$flows.Range.$self");
+  }
+
+  @Override public MagicTrait<MIR.E,String> pipelineParallelSinkK(MIR.E e) {
+    return ()->Optional.of("rt$$flows.pipelineParallel.PipelineParallelFlow.WrappedSinkK.$self");
+  }
+
+  @Override public MagicTrait<MIR.E, String> dataParallelFlowK(MIR.E e) {
+    return ()->Optional.of("rt$$flows.dataParallel.DataParallelFlowK.$self");
+  }
+
+  @Override public MagicTrait<MIR.E,String> debug(MIR.E e) {
+    return new MagicTrait<>() {
+
+      @Override public Optional<String> instantiate() {
+        return Optional.of("rt$$Debug.$self");
+      }
+
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        return Optional.empty();
+      }
+    };
+  }
+
+  @Override public MagicTrait<MIR.E, String> cheapHash(MIR.E e) {
+    return "new rt$$CheapHash()"::describeConstable;
+  }
+
+  @Override public MagicTrait<MIR.E, String> regexK(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() { return Optional.empty(); }
+      @Override
+      public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
+          return Optional.of("new rt$$Regex(%s)".formatted(args.getFirst().accept(gen, true)));
+        }
+        return MagicTrait.super.call(m, args, variants, expectedT);
+      }
+    };
+  }
+
+  @Override public MagicTrait<MIR.E,String> refK(MIR.E e) {
+    return new MagicTrait<>() {
+
+      @Override public Optional<String> instantiate() {
+        return Optional.empty();
+      }
+
+      @Override public Optional<String> call(Id.MethName m, List<? extends MIR.E> args, EnumSet<MIR.MCall.CallVariant> variants, MIR.MT expectedT) {
+        if (m.equals(new Id.MethName(Optional.of(Mdf.imm), "#", 1))) {
+          MIR.E x = args.getFirst();
+          return Optional.of(String.format("new rt$$Var(%s)", x.accept(gen, true)));
         }
         return Optional.empty();
       }
