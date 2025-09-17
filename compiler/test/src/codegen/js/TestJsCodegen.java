@@ -1560,4 +1560,83 @@ public class TestJsCodegen {
       Test:Main{ _ -> Assert!(True, { Void }) }
       """);
   }
+
+  @Test void assertTrueAbort() {
+    okList(List.of("""
+      import { base$$Assert_0, base$$True_0 } from "../base/index.js";
+      import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
+      
+      export class test$$Test_0 {
+        static $hash$imm$fun(fear0$_m$, $this) {
+          return base$$Assert_0.$self.$exclamation$imm(base$$True_0.$self,test$$Fear[###]$_0.$self);
+        }
+      }
+      
+      export class test$$Test_0Impl {
+        $hash$imm(fear0$_m$) { return test$$Test_0.$hash$imm$fun(fear0$_m$, this); }
+      }
+      
+      test$$Test_0.$self = new test$$Test_0Impl();
+      """, """
+      export class base$$Assert_0 {
+        static $exclamation$imm$fun(assertion_m$, $this) {
+          return (function() {
+        console.error("Program aborted at:\\n" + new Error().stack);
+        if (typeof process !== "undefined") process.exit(1);
+        else throw new Error("Program aborted");
+      })()
+      ;
+        }
+        static $exclamation$imm$fun(assertion_m$, cont_m$, $this) {
+          return (function() {
+        console.error("Program aborted at:\\n" + new Error().stack);
+        if (typeof process !== "undefined") process.exit(1);
+        else throw new Error("Program aborted");
+      })()
+      ;
+        }
+        static $exclamation$imm$fun(assertion_m$, msg_m$, cont_m$, $this) {
+          return (function() {
+        console.error("Program aborted at:\\n" + new Error().stack);
+        if (typeof process !== "undefined") process.exit(1);
+        else throw new Error("Program aborted");
+      })()
+      ;
+        }
+        static _fail$imm$fun($this) {
+          return (function() {
+        console.error("Program aborted at:\\n" + new Error().stack);
+        if (typeof process !== "undefined") process.exit(1);
+        else throw new Error("Program aborted");
+      })()
+      ;
+        }
+        static _fail$imm$fun(msg_m$, $this) {
+          return (function() {
+        console.error("Program aborted at:\\n" + new Error().stack);
+        if (typeof process !== "undefined") process.exit(1);
+        else throw new Error("Program aborted");
+      })()
+      ;
+        }
+      }
+
+      export class base$$Assert_0Impl {
+        $exclamation$imm(assertion_m$) { return base$$Assert_0.$exclamation$imm$fun(assertion_m$, this); }
+        $exclamation$imm(assertion_m$, cont_m$) { return base$$Assert_0.$exclamation$imm$fun(assertion_m$, cont_m$, this); }
+        $exclamation$imm(assertion_m$, msg_m$, cont_m$) { return base$$Assert_0.$exclamation$imm$fun(assertion_m$, msg_m$, cont_m$, this); }
+        _fail$imm() { return base$$Assert_0._fail$imm$fun(this); }
+        _fail$imm(msg_m$) { return base$$Assert_0._fail$imm$fun(msg_m$, this); }
+      }
+
+      base$$Assert_0.$self = new base$$Assert_0Impl();
+      """),
+      List.of("test/Test_0.js", "base/Assert_0.js"),
+      """
+      package test
+      alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+      alias base.Void as Void,
+      Test:Main{ _ -> Assert!(True, { Void }) }
+      """);
+  }
 }
