@@ -99,9 +99,9 @@ record JsNumOps(
       a -> "Math.trunc(" + a[0] + ") & 0xFF"          // float → byte (truncate and mask)
     );
     put(".str", 0,
-      a -> "rt$$Str.fromJavaStr((" + a[0] + ").toString())", // Int → BigInt signed
-      a -> "rt$$Str.fromJavaStr((" + a[0] + ").toString())", // Nat → BigInt unsigned (we must ensure it prints as unsigned)
-      a -> "rt$$Str.fromJavaStr(Number(" + a[0] + " & 0xFF).toString())", // Byte → 0..255
+      a -> "rt$$Str.fromJsStr((" + a[0] + ").toString())", // Int → BigInt signed
+      a -> "rt$$Str.fromJsStr((" + a[0] + ").toString())", // Nat → BigInt unsigned (we must ensure it prints as unsigned)
+      a -> "rt$$Str.fromJsStr(Number(" + a[0] + " & 0xFF).toString())", // Byte → 0..255
       a -> "rt$$Str.fromTrustedUtf8(rt$$Str.wrap(rt$$NativeRuntime.floatToStr(" + a[0] + ")))" // Float → handled with Fearless floatToStr → wrap → fromTrustedUtf8
     );
 
@@ -404,18 +404,18 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
                                    EnumSet<MIR.MCall.CallVariant> variants,
                                    MIR.MT expectedT) {
         // two helpers we want to support at codegen time:
-        //  - .fromCodePoint( cp )  -> rt$$Str.fromJavaStr(String.fromCodePoint(cp))
-        //  - .fromSurrogatePair(h, l) -> rt$$Str.fromJavaStr(String.fromCodePoint(h, l))
+        //  - .fromCodePoint( cp )  -> rt$$Str.fromJsStr(String.fromCodePoint(cp))
+        //  - .fromSurrogatePair(h, l) -> rt$$Str.fromJsStr(String.fromCodePoint(h, l))
         if (m.equals(new Id.MethName(".fromCodePoint", 1))) {
           String cpExpr = args.get(0).accept(gen, true);
           // String.fromCodePoint accepts number(s) and returns a JS string
-          return Optional.of("rt$$Str.fromJavaStr(String.fromCodePoint(" + cpExpr + "))");
+          return Optional.of("rt$$Str.fromJsStr(String.fromCodePoint(" + cpExpr + "))");
         }
         if (m.equals(new Id.MethName(".fromSurrogatePair", 2))) {
           String hi = args.get(0).accept(gen, true);
           String lo = args.get(1).accept(gen, true);
           // String.fromCodePoint can accept two code points as well
-          return Optional.of("rt$$Str.fromJavaStr(String.fromCodePoint(" + hi + ", " + lo + "))");
+          return Optional.of("rt$$Str.fromJsStr(String.fromCodePoint(" + hi + ", " + lo + "))");
         }
         return MagicTrait.super.call(m, args, variants, expectedT);
       }
@@ -449,7 +449,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
             $exclamation$mut() {
               if (!this.isAlive) {
                 // throw a runtime Fearless error using runtime helper
-                return rt$$Error.throwFearlessError(rt$$Str.fromJavaStr("Cannot consume an empty IsoPod."));
+                return rt$$Error.throwFearlessError(rt$$Str.fromJsStr("Cannot consume an empty IsoPod."));
               }
               this.isAlive = false;
               return this.x;
@@ -524,7 +524,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
         if (m.name().equals(".range") || m.name().equals(".ofIsos")) {
           assert parallelConstr.isPresent();
           return Optional.of(
-            "rt.flows.FlowCreator.fromFlow(" +
+            "rt$$flows.FlowCreator.fromFlow(" +
               gen.visitCreateObj(new MIR.CreateObj(Mdf.imm, Magic.DataParallelFlowK), true) +
               ", " +
               call.withVariants(EnumSet.of(MIR.MCall.CallVariant.Standard)).accept(gen, true) +
@@ -554,15 +554,12 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
           var argList = args.stream()
             .map(arg -> arg.accept(gen, true))
             .collect(Collectors.joining(", "));
-          return Optional.of(
-            "rt.flows.FlowCreator.fromFlow(" +
-              gen.visitCreateObj(new MIR.CreateObj(Mdf.imm, parallelConstr.get()), true) +
-              ", " +
-              call.recv().accept(gen, true) +
-              "." + flowMethName +
-              "(" + argList + ")" +
-              ")"
-          );
+          return "rt$$flows.FlowCreator.fromFlow(%s, %s.%s(%s))".formatted(
+            gen.visitCreateObj(new MIR.CreateObj(Mdf.imm, parallelConstr.get()), true),
+            call.recv().accept(gen, true),
+            flowMethName,
+            argList
+          ).describeConstable();
         }
       }
 

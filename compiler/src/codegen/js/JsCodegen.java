@@ -38,19 +38,25 @@ public class JsCodegen implements MIRVisitor<String> {
   public String visitTypeDef(MIR.TypeDef def, List<MIR.Fun> funs) {
     String className = id.getFullName(def.name());
 //    String extendsStr = extendsStr(def, className); // In JS, interface-like type usually does not extend anything
+
     // Singleton
     if (def.singletonInstance().isPresent()) {
       MIR.CreateObj singletonObj = def.singletonInstance().get();
       String implExpr = visitCreateObjNoSingleton(singletonObj, true); // triggers Impl generation
       freshSingletons.put(className, "%s.$self = %s;".formatted(className, implExpr));  // place it after Impl, because we cannot reference a class before its declaration in the same module
     }
+//    String singletonField = "";
+//    if (def.singletonInstance().isPresent()) {
+//      MIR.CreateObj singletonObj = def.singletonInstance().get();
+//      singletonField = "\n static $self = " + visitCreateObjNoSingleton(singletonObj, true) + ";"; }
+
     // Abstract methods
-    String abstractMeths = "";
-    if(!def.sigs().isEmpty()) {
-      abstractMeths = "\n  " + def.sigs().stream()
-        .map(this::visitSig)
-        .collect(Collectors.joining("\n  "));
-    }
+//    String abstractMeths = "";
+//    if(!def.sigs().isEmpty()) {
+//      abstractMeths = "\n  " + def.sigs().stream()
+//        .map(this::visitSig)
+//        .collect(Collectors.joining("\n  "));
+//    }
     // Static methods
     String staticFuns = "";
     if (!funs.isEmpty()) {
@@ -59,8 +65,8 @@ public class JsCodegen implements MIRVisitor<String> {
         .collect(Collectors.joining("\n  "));
     }
     return """
-    export class %s {%s%s
-    }""".formatted(className, abstractMeths, staticFuns);
+    export class %s {%s
+    }""".formatted(className, staticFuns);
   }
 
   public String visitCreateObjNoSingleton(MIR.CreateObj createObj, boolean checkMagic) {
@@ -113,11 +119,15 @@ public class JsCodegen implements MIRVisitor<String> {
         .collect(Collectors.joining("\n  "))
         + "\n";
     }
-
+//
+//    String implClass = """
+//        export class %s extends %s {
+//        %s%s%s}
+//        """.formatted(implName, id.getFullName(typeId), constructor, instanceMeths, unreachableMeths);
     String implClass = """
-        export class %s extends %s {
+        export class %s {
         %s%s%s}
-        """.formatted(implName, id.getFullName(typeId), constructor, instanceMeths, unreachableMeths);
+        """.formatted(implName, constructor, instanceMeths, unreachableMeths);
 
     freshImpls.put(typeId, implClass);
   }
@@ -302,7 +312,7 @@ public class JsCodegen implements MIRVisitor<String> {
 
     return switch (k.t().mdf()) {
       case mut, iso -> "new rt$$MutStr(" + escaped + ")";
-      default -> "rt$$Str.fromJavaStr(" + escaped + ")";
+      default -> "rt$$Str.fromJsStr(" + escaped + ")";
     };
   }
 
