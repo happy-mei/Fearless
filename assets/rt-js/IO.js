@@ -1,7 +1,7 @@
 import { base$$Void_0 } from "../base/Void_0.js";
 
-export class IO {
-  static $self = new IO();
+export class rt$$IO {
+  static $self = new rt$$IO();
 
   printlnErr$mut(msg) {
     const msgJsStr = msg.toJsString();

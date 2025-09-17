@@ -578,55 +578,6 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
                                    List<? extends MIR.E> args,
                                    EnumSet<MIR.MCall.CallVariant> variants,
                                    MIR.MT expectedT) {
-        // Handle Assert!(condition)
-        if (m.equals(new Id.MethName("!", 1))) {
-          String condition = args.get(0).accept(gen, true);
-          return Optional.of("""
-            (() => {
-                if (%s!=) {
-                    console.error("Assertion failed at:\\n" + new Error().stack);
-                    if (typeof process !== "undefined") process.exit(1);
-                    else throw new Error("Assertion failed");
-                }
-                return Void_0.$self;
-            })()
-            """.formatted(condition));
-        }
-//
-//        // Handle Assert!(condition, continuation)
-//        if (m.equals(new Id.MethName("!", 2))) {
-//          String condition = args.get(0).accept(gen, true);
-//          String continuation = args.get(1).accept(gen, true);
-//          return Optional.of("""
-//            (() => {
-//                if (!%s) {
-//                    console.error("Assertion failed at:\\n" + new Error().stack);
-//                    if (typeof process !== "undefined") process.exit(1);
-//                    else throw new Error("Assertion failed");
-//                }
-//                return %s;
-//            })()
-//            """.formatted(condition, continuation));
-//        }
-//
-//
-//        // Handle Assert!(condition, continuation)
-//        if (m.equals(new Id.MethName("!", 3))) {
-//          String condition = args.get(0).accept(gen, true);
-//          String msg = args.get(1).accept(gen, true);;
-//          String continuation = args.get(2).accept(gen, true);;
-//          return Optional.of("""
-//            (() => {
-//                if (!%s) {
-//                    console.error(%s);
-//                    if (typeof process !== "undefined") process.exit(1);
-//                    else throw new Error("Assertion failed");
-//                }
-//                return %s;
-//            })()
-//            """.formatted(condition, msg, continuation));
-//        }
-
         // === assert_._fail/0 ===
         if (m.equals(new Id.MethName("._fail", 0))) {
           return Optional.of("""
@@ -643,7 +594,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
           String msg = args.get(0).accept(gen, true);
           return Optional.of("""
             (() => {
-              console.error(%s);
+              rt$$IO.$self.printlnErr$mut(%s);
               if (typeof process !== "undefined") process.exit(1);
               else throw new Error(%s);
             })()
@@ -665,10 +616,10 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
         if (m.equals(new Id.MethName("!", 0))) {
           return Optional.of("""
             (function() {
-              console.error("Program aborted at:\\n" + new Error().stack);
-              if (typeof process !== "undefined") process.exit(1);
-              else throw new Error("Program aborted");
-            })()
+                console.error("Program aborted at:\\n" + new Error().stack);
+                if (typeof process !== "undefined") process.exit(1);
+                else throw new Error("Program aborted");
+              })()
             """);
         }
         return Optional.empty();
@@ -683,10 +634,10 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
         if (m.equals(new Id.MethName("!", 0))) {
           return Optional.of("""
             (function() {
-              console.error("No magic code was found at:\\n" + new Error().stack);
-              if (typeof process !== "undefined") process.exit(1);
-              else throw new Error("No magic code was found");
-            })()
+                console.error("No magic code was found at:\\n" + new Error().stack);
+                if (typeof process !== "undefined") process.exit(1);
+                else throw new Error("No magic code was found");
+              })()
             """);
         }
         return Optional.empty();

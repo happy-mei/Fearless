@@ -1,11 +1,11 @@
-import { IO } from './IO.js';
+import { rt$$IO } from './IO.js';
 
 export class RealSystem {
   iso$mut() { return this; }
   self$mut() { return this; }
 
   io$mut() {
-    return IO.$self;
+    return rt$$IO.$self;
   }
 
   // try$mut() {

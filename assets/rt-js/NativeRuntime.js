@@ -78,5 +78,6 @@ export const rt$$NativeRuntime = {
   floatToStr(value) {
     const s = String(value);
     return _textEncoder ? _textEncoder.encode(s) : Uint8Array.from(Array.from(s).map(c => c.charCodeAt(0)));
-  }
+  },
+
 };

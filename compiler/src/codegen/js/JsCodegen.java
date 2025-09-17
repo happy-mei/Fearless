@@ -10,6 +10,7 @@ import visitors.MIRVisitor;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import magic.FearlessStringHandler;
@@ -60,9 +61,7 @@ public class JsCodegen implements MIRVisitor<String> {
     // Static methods
     String staticFuns = "";
     if (!funs.isEmpty()) {
-      staticFuns = "\n  " + funs.stream()
-        .map(this::visitFun)
-        .collect(Collectors.joining("\n  "));
+      staticFuns = "\n  " + visitFunsForType(funs);
     }
     return """
     export class %s {%s
@@ -85,7 +84,6 @@ public class JsCodegen implements MIRVisitor<String> {
 
   private void addFreshImpl(Id.DecId typeId, MIR.CreateObj obj, String implName) {
     if (freshImpls.containsKey(typeId)) return;
-
     // Constructor for captured fields
     String constructor = "";
     if (!obj.captures().isEmpty()) {
@@ -101,25 +99,10 @@ public class JsCodegen implements MIRVisitor<String> {
           }
         """.formatted(args, assigns);
     }
-
     // Instance methods
-    String instanceMeths = "";
-    if (!obj.meths().isEmpty()) {
-      instanceMeths = "  " + obj.meths().stream()
-        .map(this::visitMeth)
-        .collect(Collectors.joining("\n  "))
-        + "\n";
-    }
-
+    String instanceMeths = obj.meths().isEmpty() ? "" : "  " + visitMethGroup(obj.meths()) + "\n";
     // Unreachable methods
-    String unreachableMeths = "";
-    if (!obj.unreachableMs().isEmpty()) {
-      unreachableMeths = "  " + obj.unreachableMs().stream()
-        .map(this::visitMeth)
-        .collect(Collectors.joining("\n  "))
-        + "\n";
-    }
-//
+    String unreachableMeths = obj.unreachableMs().isEmpty() ? "" : "  " + visitMethGroup(obj.unreachableMs()) + "\n";
 //    String implClass = """
 //        export class %s extends %s {
 //        %s%s%s}
@@ -128,7 +111,6 @@ public class JsCodegen implements MIRVisitor<String> {
         export class %s {
         %s%s%s}
         """.formatted(implName, constructor, instanceMeths, unreachableMeths);
-
     freshImpls.put(typeId, implClass);
   }
 
@@ -150,14 +132,14 @@ public class JsCodegen implements MIRVisitor<String> {
   }
 
   // Create JS stubs for abstract methods
-  private final String abstractMethBody = "%s(%s) { throw new Error('Abstract method'); }";
-  private String visitSig(MIR.Sig sig) {
-    String args = sig.xs().stream()
-      .map(x -> id.varName(x.name()))
-      .collect(Collectors.joining(", "));
-    return abstractMethBody
-      .formatted(id.getMName(sig.mdf(), sig.name()), args);
-  }
+//  private final String abstractMethBody = "%s(%s) { throw new Error('Abstract method'); }";
+//  private String visitSig(MIR.Sig sig) {
+//    String args = sig.xs().stream()
+//      .map(x -> id.varName(x.name()))
+//      .collect(Collectors.joining(", "));
+//    return abstractMethBody
+//      .formatted(id.getMName(sig.mdf(), sig.name()), args);
+//  }
 
   public <T> String seq(Collection<T> es, Function<T, String> f, String join) {
     return seq(es.stream(), f, join);
@@ -175,31 +157,101 @@ public class JsCodegen implements MIRVisitor<String> {
     String maybeReturn = (fun.body() instanceof MIR.Block) ? "" : "return ";
 
     return String.format("""
-    static %s(%s) {
-        %s%s;
-      }""", funName, args, maybeReturn, bodyStr);
+      static %s(%s) {
+          %s%s;
+        }""", funName, args, maybeReturn, bodyStr);
+  }
+
+  // Groups and emits static funs, handling overloads with dispatcher
+  public String visitFunsForType(List<MIR.Fun> funs) {
+    // Group by function name
+    Map<String, List<MIR.Fun>> grouped = funs.stream()
+      .collect(Collectors.groupingBy(f -> getFName(f.name())));
+
+    return grouped.entrySet().stream()
+      .map(entry -> {
+        String funName = entry.getKey();
+        List<MIR.Fun> overloads = entry.getValue();
+        if (overloads.size() == 1) {
+          return visitFun(overloads.get(0));
+        }
+        // Generate dispatcher for overloads
+        String cases = overloads.stream().map(fun -> {
+          int arity = fun.args().size();
+          String bodyStr = fun.body().accept(this, true);
+          // Generate param lets only if missing
+          String paramLets = IntStream.range(0, arity)
+            .mapToObj(i -> {
+              String param = id.varName(fun.args().get(i).name());
+              if (!bodyStr.contains("let " + param) &&
+                !bodyStr.contains("var " + param) &&
+                !bodyStr.contains("const " + param)) {
+                return "let " + param + " = args[" + i + "];";
+              }
+              return "";
+            })
+            .filter(s -> !s.isEmpty())
+            .collect(Collectors.joining("\n        "));
+
+          String maybeReturn = (fun.body() instanceof MIR.Block) ? "" : "return ";
+          return """
+            case %d: {
+                    %s
+                    %s%s;
+              }""".formatted(arity, paramLets.isEmpty() ? "" : paramLets, maybeReturn, bodyStr);
+        }).collect(Collectors.joining("\n      "));
+        return """
+        static %s(...args) {
+            switch(args.length) {
+              %s
+              default: throw new Error('No overload for %s with ' + args.length + ' arguments');
+            }
+          }
+        """.formatted(funName, cases, funName);
+      })
+      .collect(Collectors.joining("\n  "));
   }
 
   // Create JS instance method that forwards to static method
   public String visitMeth(MIR.Meth meth) {
     String methName = id.getMName(meth.sig().mdf(), meth.sig().name());
     String args = seq(meth.sig().xs(), x -> id.varName(x.name()), ", ");
-//    String funArgs = seq(meth.sig().xs(), x -> id.varName(x.name()), ", ");
-    String funArgs = Streams.of(
-      meth.sig().xs().stream().map(MIR.X::name).map(id::varName),
-      Stream.of("this"),
-      meth.captures().stream().map(id::varName).map(x->"this."+x)
-    ).collect(Collectors.joining(", "));
-
     String className = id.getFullName(meth.origin());
-    if (!meth.fName().isPresent()) {
-      // Abstract method, no forwarding
-      return String.format(abstractMethBody, methName, args);
-    }
     String funName = getFName(meth.fName().orElseThrow());
-
+    String funArgs = Streams.of(
+        meth.sig().xs().stream().map(MIR.X::name).map(id::varName),
+        Stream.of("this"), meth.captures().stream().map(id::varName).map(x->"this."+x)
+      ).collect(Collectors.joining(", "));
+    // Forward all args using ...args and append this
     return String.format("%s(%s) { return %s.%s(%s); }", methName, args, className, funName, funArgs);
   }
+
+  // Create one JS instance method per JS method name
+  public String visitMethGroup(List<MIR.Meth> meths) {
+    // Group by JS method name
+    Map<String, List<MIR.Meth>> grouped = meths.stream()
+      .filter(m -> m.fName().isPresent()) // skip abstract methods
+      .collect(Collectors.groupingBy(m -> id.getMName(m.sig().mdf(), m.sig().name())));
+
+    return grouped.entrySet().stream()
+      .map(entry -> {
+        List<MIR.Meth> ms = entry.getValue();
+        if (ms.size() == 1) {
+          // Only one method, return normal version with explicit args
+          return visitMeth(ms.get(0));
+        } else {
+          // Multiple overloads → forward all args with ...args to static dispatcher
+          MIR.Meth m = ms.get(0);
+          String methName = id.getMName(m.sig().mdf(), m.sig().name());
+          String className = id.getFullName(m.origin());
+          String funName = getFName(m.fName().orElseThrow());
+          return String.format("%s(...args) { return %s.%s(...args, this); }",
+            methName, className, funName);
+        }
+      })
+      .collect(Collectors.joining("\n  "));
+  }
+
 
   @Override
   public String visitBlockExpr(MIR.Block expr, boolean checkMagic) {
@@ -358,6 +410,12 @@ public class JsCodegen implements MIRVisitor<String> {
     );
   }
   public String getFName(MIR.FName name) {
-    return id.getMName(name.mdf(), name.m())+"$fun";
+    String funName = id.getMName(name.mdf(), name.m()) + "$fun";
+//    if (!funName.equals("$hash$imm$fun")) {
+//      // disambiguate overloads by arity
+//      int arity = args.size();
+//      funName = funName + "$" + arity;
+//    }
+    return funName;
   }
 }
