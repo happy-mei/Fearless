@@ -48,7 +48,7 @@ record ToJavaProgram(LogicMainJava main, MIR.Program program){
     var res= new ArrayList<JavaFile>();
     var gen= new JavaSingleCodegen(program);
     for (MIR.Package pkg : program.pkgs()) {
-      if (main.cachedPkg().contains(pkg.name())){ continue; }
+//      if (main.cachedPkg().contains(pkg.name())){ continue; }
       for (MIR.TypeDef def : pkg.defs().values()) {
         var funs= pkg.funs().stream()
           .filter(f->f.name().d().equals(def.name()))
