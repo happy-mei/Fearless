@@ -54,27 +54,27 @@ public class TestJsCodegen {
   }
   @Test void emptyProgram() {
     ok("""
-    import { base$$Void_0 } from "../base/index.js";
-    
-    export class test$$Test_0 {
-      $hash$imm(fear[###]$_m$) { throw new Error('Abstract method'); }
-      static $hash$imm$fun(fear[###]$_m$, $this) {
-        return base$$Void_0.$self;
+      import { base$$Void_0 } from "../base/index.js";
+      
+      export class test$$Test_0 {
+        static $hash$imm$fun(fear31$_m$, $this) {
+          return base$$Void_0.$self;
+        }
       }
-    }
-
-    export class test$$Test_0Impl extends test$$Test_0 {
-      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
-    }
-
-    test$$Test_0.$self = new test$$Test_0Impl();
-    """,
-    "test/Test_0.js",
-    """
-    package test
-    alias base.Void as Void,
-    Test:base.Main{ _ -> {} }
-    """);
+      
+      export class test$$Test_0Impl {
+        $hash$imm(fear31$_m$) { return test$$Test_0.$hash$imm$fun(fear31$_m$, this); }
+      }
+      
+      test$$Test_0.$self = new test$$Test_0Impl();
+      """,
+      "test/Test_0.js",
+      """
+      package test
+      alias base.Void as Void,
+      Test:base.Main{ _ -> {} }
+      """
+    );
   }
 
   @Test void extendsClass() {
@@ -82,13 +82,12 @@ public class TestJsCodegen {
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$A_0 {
-      ma$imm() { throw new Error('Abstract method'); }
       static ma$imm$fun($this) {
-        return rt$$Str.fromJavaStr("A");
+        return rt$$Str.fromJsStr("A");
       }
     }
     
-    export class test$$A_0Impl extends test$$A_0 {
+    export class test$$A_0Impl {
       ma$imm() { return test$$A_0.ma$imm$fun(this); }
     }
     
@@ -98,14 +97,12 @@ public class TestJsCodegen {
     import { test$$A_0 } from "../test/A_0.js";
     
     export class test$$B_0 {
-      mb$imm() { throw new Error('Abstract method'); }
-      ma$imm() { throw new Error('Abstract method'); }
       static mb$imm$fun($this) {
-        return rt$$Str.fromJavaStr("B").$plus$imm($this.ma$imm());
+        return rt$$Str.fromJsStr("B").$plus$imm($this.ma$imm());
       }
     }
     
-    export class test$$B_0Impl extends test$$B_0 {
+    export class test$$B_0Impl {
       mb$imm() { return test$$B_0.mb$imm$fun(this); }
       ma$imm() { return test$$A_0.ma$imm$fun(this); }
     }
@@ -126,21 +123,16 @@ public class TestJsCodegen {
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$A_0 {
-      mk$imm() { throw new Error('Abstract method'); }
-      ma$imm() { throw new Error('Abstract method'); }
       static ma$imm$fun($this) {
-        return rt$$Str.fromJavaStr("A");
+        return rt$$Str.fromJsStr("A");
       }
     }
     """, """
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$B_0 {
-      mk$imm() { throw new Error('Abstract method'); }
-      mb$imm() { throw new Error('Abstract method'); }
-      ma$imm() { throw new Error('Abstract method'); }
       static mb$imm$fun($this) {
-        return rt$$Str.fromJavaStr("B").$plus$imm($this.ma$imm());
+        return rt$$Str.fromJsStr("B").$plus$imm($this.ma$imm());
       }
     }
     """, """
@@ -149,19 +141,15 @@ public class TestJsCodegen {
     import { test$$B_0 } from "../test/B_0.js";
     
     export class test$$C_0 {
-      mk$imm() { throw new Error('Abstract method'); }
-      mb$imm() { throw new Error('Abstract method'); }
-      ma$imm() { throw new Error('Abstract method'); }
-      mc$imm() { throw new Error('Abstract method'); }
       static mc$imm$fun($this) {
-        return rt$$Str.fromJavaStr("C").$plus$imm($this.mb$imm());
+        return rt$$Str.fromJsStr("C").$plus$imm($this.mb$imm());
       }
       static mk$imm$fun($this) {
         return $this.mk$imm();
       }
     }
     
-    export class test$$C_0Impl extends test$$C_0 {
+    export class test$$C_0Impl {
       mk$imm() { return test$$C_0.mk$imm$fun(this); }
       mb$imm() { return test$$B_0.mb$imm$fun(this); }
       ma$imm() { return test$$A_0.ma$imm$fun(this); }
@@ -173,13 +161,12 @@ public class TestJsCodegen {
     import { test$$C_0 } from "../test/C_0.js";
     
     export class test$$User_0 {
-      foo$imm() { throw new Error('Abstract method'); }
       static foo$imm$fun($this) {
         return test$$C_0.$self.mc$imm();
       }
     }
     
-    export class test$$User_0Impl extends test$$User_0 {
+    export class test$$User_0Impl {
       foo$imm() { return test$$User_0.foo$imm$fun(this); }
     }
     
@@ -199,12 +186,11 @@ public class TestJsCodegen {
   }
 
   @Test void bool() {
-    ok("""
+    okList(List.of("""
     import { base$$False_0, base$$True_0 } from "../base/index.js";
     
     export class test$$Test_0 {
-      m$imm() { throw new Error('Abstract method'); }
-      b$imm() { throw new Error('Abstract method'); }
+     static $self = new test$$Test_0Impl();
       static m$imm$fun($this) {
         return base$$True_0.$self;
       }
@@ -213,14 +199,58 @@ public class TestJsCodegen {
       }
     }
     
-    export class test$$Test_0Impl extends test$$Test_0 {
+    export class test$$Test_0Impl {
       m$imm() { return test$$Test_0.m$imm$fun(this); }
       b$imm() { return test$$Test_0.b$imm$fun(this); }
     }
+    """, """
+    import { base$$Bool_0, base$$False_0 } from "../base/index.js";
+    import { rt$$Str } from "../rt-js/Str.js";
     
-    test$$Test_0.$self = new test$$Test_0Impl();
-    """,
-    "test/Test_0.js",
+    export class base$$True_0 {
+     static $self = new base$$True_0Impl();
+      static and$imm$fun(b_m$, $this) {
+        return b_m$;
+      }
+      static $ampersand$ampersand$imm$fun(b_m$, $this) {
+        return b_m$.$hash$mut();
+      }
+      static or$imm$fun(b_m$, $this) {
+        return $this;
+      }
+      static $pipe$pipe$imm$fun(b_m$, $this) {
+        return $this;
+      }
+      static not$imm$fun($this) {
+        return base$$False_0.$self;
+      }
+      static if$imm$fun(f_m$, $this) {
+        return f_m$.then$mut();
+      }
+      static str$read$fun($this) {
+        return rt$$Str.fromJsStr("True");
+      }
+      static toImm$read$fun($this) {
+        return base$$True_0.$self;
+      }
+    }
+    
+    export class base$$True_0Impl {
+      str$read() { return base$$True_0.str$read$fun(this); }
+      if$imm(f_m$) { return base$$True_0.if$imm$fun(f_m$, this); }
+      $ampersand$ampersand$imm(b_m$) { return base$$True_0.$ampersand$ampersand$imm$fun(b_m$, this); }
+      $question$imm(f_m$) { return base$$Bool_0.$question$imm$fun(f_m$, this); }
+      $pipe$pipe$imm(b_m$) { return base$$True_0.$pipe$pipe$imm$fun(b_m$, this); }
+      $pipe$imm(b_m$) { return base$$Bool_0.$pipe$imm$fun(b_m$, this); }
+      match$imm(m_m$) { return base$$Bool_0.match$imm$fun(m_m$, this); }
+      not$imm() { return base$$True_0.not$imm$fun(this); }
+      or$imm(b_m$) { return base$$True_0.or$imm$fun(b_m$, this); }
+      $ampersand$imm(b_m$) { return base$$Bool_0.$ampersand$imm$fun(b_m$, this); }
+      and$imm(b_m$) { return base$$True_0.and$imm$fun(b_m$, this); }
+      toImm$read() { return base$$True_0.toImm$read$fun(this); }
+    }
+    """),
+    List.of("test/Test_0.js", "base/True_0.js"),
     """
     package test
     alias base.Bool as Bool, alias base.True as True, alias base.False as False,
@@ -233,13 +263,12 @@ public class TestJsCodegen {
       import { rt$$Str } from "../rt-js/Str.js";
       
       export class test$$A_0 {
-        a$imm() { throw new Error('Abstract method'); }
         static a$imm$fun($this) {
-          return rt$$Str.fromJavaStr((-5n).toString());
+          return rt$$Str.fromJsStr((-5n).toString());
         }
       }
       
-      export class test$$A_0Impl extends test$$A_0 {
+      export class test$$A_0Impl {
         a$imm() { return test$$A_0.a$imm$fun(this); }
       }
       
@@ -251,18 +280,18 @@ public class TestJsCodegen {
       A:{.a:Str -> -5.str }
       """);
   }
+
   @Test void numberStrAbs() {
     ok("""
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$Test_0 {
-      $hash$imm(sys_m$) { throw new Error('Abstract method'); }
       static $hash$imm$fun(sys_m$, $this) {
-        return sys_m$.io$mut().println$mut(rt$$Str.fromJavaStr((BigInt(-999n < 0n ? -(-999n) : -999n)).toString()));
+        return sys_m$.io$mut().println$mut(rt$$Str.fromJsStr((BigInt(-999n < 0n ? -(-999n) : -999n)).toString()));
       }
     }
     
-    export class test$$Test_0Impl extends test$$Test_0 {
+    export class test$$Test_0Impl {
       $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
     }
     
@@ -278,12 +307,7 @@ public class TestJsCodegen {
   @Test void numArithmeticOps() {
     ok("""
     export class test$$Test_0 {
-      divInt$imm() { throw new Error('Abstract method'); }
-      mod$imm() { throw new Error('Abstract method'); }
-      divFloat$imm() { throw new Error('Abstract method'); }
-      pow$imm() { throw new Error('Abstract method'); }
-      b$imm() { throw new Error('Abstract method'); }
-      a$imm() { throw new Error('Abstract method'); }
+     static $self = new test$$Test_0Impl();
       static a$imm$fun($this) {
         return (BigInt((BigInt((BigInt((1n + 2n)) * 3n)) / 1n)) - 4n);
       }
@@ -304,7 +328,7 @@ public class TestJsCodegen {
       }
     }
     
-    export class test$$Test_0Impl extends test$$Test_0 {
+    export class test$$Test_0Impl {
       divInt$imm() { return test$$Test_0.divInt$imm$fun(this); }
       mod$imm() { return test$$Test_0.mod$imm$fun(this); }
       divFloat$imm() { return test$$Test_0.divFloat$imm$fun(this); }
@@ -312,8 +336,6 @@ public class TestJsCodegen {
       b$imm() { return test$$Test_0.b$imm$fun(this); }
       a$imm() { return test$$Test_0.a$imm$fun(this); }
     }
-    
-    test$$Test_0.$self = new test$$Test_0Impl();
     """,
     "test/Test_0.js",
     """
@@ -335,12 +357,7 @@ public class TestJsCodegen {
     import { rt$$Numbers } from "../rt-js/Numbers.js";
     
     export class test$$Test_0 {
-      isNegInf$imm() { throw new Error('Abstract method'); }
-      abs$imm() { throw new Error('Abstract method'); }
-      isNaN$imm() { throw new Error('Abstract method'); }
-      round$imm() { throw new Error('Abstract method'); }
-      sqrt$imm() { throw new Error('Abstract method'); }
-      a$imm() { throw new Error('Abstract method'); }
+     static $self = new test$$Test_0Impl();
       static a$imm$fun($this) {
         return 1n;
       }
@@ -360,8 +377,8 @@ public class TestJsCodegen {
         return Math.round(2.7);
       }
     }
-
-    export class test$$Test_0Impl extends test$$Test_0 {
+    
+    export class test$$Test_0Impl {
       isNegInf$imm() { return test$$Test_0.isNegInf$imm$fun(this); }
       abs$imm() { return test$$Test_0.abs$imm$fun(this); }
       isNaN$imm() { return test$$Test_0.isNaN$imm$fun(this); }
@@ -369,8 +386,6 @@ public class TestJsCodegen {
       sqrt$imm() { return test$$Test_0.sqrt$imm$fun(this); }
       a$imm() { return test$$Test_0.a$imm$fun(this); }
     }
-
-    test$$Test_0.$self = new test$$Test_0Impl();
     """,
     "test/Test_0.js",
     """
@@ -392,39 +407,34 @@ public class TestJsCodegen {
     import { base$$_NatAssertionHelper_0 } from "../base/index.js";
     
     export class test$$Test_0 {
-      $hash$imm(fear[###]$_m$) { throw new Error('Abstract method'); }
+     static $self = new test$$Test_0Impl();
       static $hash$imm$fun(fear[###]$_m$, $this) {
         return base$$_NatAssertionHelper_0.assertEq$imm$fun(5n, 5n, null);
       }
     }
     
-    export class test$$Test_0Impl extends test$$Test_0 {
+    export class test$$Test_0Impl {
       $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
     }
-    
-    test$$Test_0.$self = new test$$Test_0Impl();
     """, """
     import { base$$Assert_0, base$$Fear2252$_0, base$$Fear2257$_0 } from "../base/index.js";
     import { rt$$Numbers } from "../rt-js/Numbers.js";
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class base$$_NatAssertionHelper_0 {
-      assertEq$imm(expected_m$, actual_m$) { throw new Error('Abstract method'); }
-      assertEq$imm(expected_m$, actual_m$, message_m$) { throw new Error('Abstract method'); }
+     static $self = new base$$_NatAssertionHelper_0Impl();
       static assertEq$imm$fun(expected_m$, actual_m$, $this) {
-        return base$$Assert_0.$self.$exclamation$imm(rt$$Numbers.toBool((BigInt(expected_m$)) === (actual_m$)),rt$$Str.fromJavaStr("Expected: ").$plus$imm(rt$$Str.fromJavaStr((BigInt(expected_m$)).toString())).$plus$imm(rt$$Str.fromJavaStr("\\nActual: ")).$plus$imm(rt$$Str.fromJavaStr((BigInt(actual_m$)).toString())),base$$Fear2252$_0.$self);
+        return base$$Assert_0.$self.$exclamation$imm(rt$$Numbers.toBool((BigInt(expected_m$)) === (actual_m$)),rt$$Str.fromJsStr("Expected: ").$plus$imm(rt$$Str.fromJsStr((BigInt(expected_m$)).toString())).$plus$imm(rt$$Str.fromJsStr("\\nActual: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(actual_m$)).toString())),base$$Fear2252$_0.$self);
       }
       static assertEq$imm$fun(expected_m$, actual_m$, message_m$, $this) {
-        return base$$Assert_0.$self.$exclamation$imm(rt$$Numbers.toBool((BigInt(expected_m$)) === (actual_m$)),message_m$.$plus$imm(rt$$Str.fromJavaStr("\\nExpected: ")).$plus$imm(rt$$Str.fromJavaStr((BigInt(expected_m$)).toString())).$plus$imm(rt$$Str.fromJavaStr("\\nActual: ")).$plus$imm(rt$$Str.fromJavaStr((BigInt(actual_m$)).toString())),base$$Fear2257$_0.$self);
+        return base$$Assert_0.$self.$exclamation$imm(rt$$Numbers.toBool((BigInt(expected_m$)) === (actual_m$)),message_m$.$plus$imm(rt$$Str.fromJsStr("\\nExpected: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(expected_m$)).toString())).$plus$imm(rt$$Str.fromJsStr("\\nActual: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(actual_m$)).toString())),base$$Fear2257$_0.$self);
       }
     }
     
-    export class base$$_NatAssertionHelper_0Impl extends base$$_NatAssertionHelper_0 {
+    export class base$$_NatAssertionHelper_0Impl {
       assertEq$imm(expected_m$, actual_m$) { return base$$_NatAssertionHelper_0.assertEq$imm$fun(expected_m$, actual_m$, this); }
       assertEq$imm(expected_m$, actual_m$, message_m$) { return base$$_NatAssertionHelper_0.assertEq$imm$fun(expected_m$, actual_m$, message_m$, this); }
     }
-    
-    base$$_NatAssertionHelper_0.$self = new base$$_NatAssertionHelper_0Impl();
     """),
     List.of("test/Test_0.js", "base/_NatAssertionHelper_0.js"),
     """
@@ -443,13 +453,7 @@ public class TestJsCodegen {
     import { rt$$Numbers } from "../rt-js/Numbers.js";
     
     export class test$$Test_0 {
-      gt$imm() { throw new Error('Abstract method'); }
-      xor$imm() { throw new Error('Abstract method'); }
-      shl$imm() { throw new Error('Abstract method'); }
-      or$imm() { throw new Error('Abstract method'); }
-      shr$imm() { throw new Error('Abstract method'); }
-      and$imm() { throw new Error('Abstract method'); }
-      lt$imm() { throw new Error('Abstract method'); }
+     static $self = new test$$Test_0Impl();
       static gt$imm$fun($this) {
         return rt$$Numbers.toBool((5n) > (3n));
       }
@@ -473,7 +477,7 @@ public class TestJsCodegen {
       }
     }
     
-    export class test$$Test_0Impl extends test$$Test_0 {
+    export class test$$Test_0Impl {
       gt$imm() { return test$$Test_0.gt$imm$fun(this); }
       xor$imm() { return test$$Test_0.xor$imm$fun(this); }
       shl$imm() { return test$$Test_0.shl$imm$fun(this); }
@@ -482,8 +486,6 @@ public class TestJsCodegen {
       and$imm() { return test$$Test_0.and$imm$fun(this); }
       lt$imm() { return test$$Test_0.lt$imm$fun(this); }
     }
-    
-    test$$Test_0.$self = new test$$Test_0Impl();
     """,
     "test/Test_0.js",
     """
@@ -1168,21 +1170,20 @@ public class TestJsCodegen {
 
   @Test void listAndFlowMap() {
     okList(List.of("""
-    import { base$$flows$$_DataParallelFlow_0 } from "../base/index.js";
+    import { base$$flows$$_DataParallelFlow_0 } from "../base/flows/index.js";
+    import { rt$$flows } from "../rt-js/flows.js";
     import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
     
     export class test$$Names_0 {
-      $hash$imm(ps_m$) { throw new Error('Abstract method'); }
+     static $self = new test$$Names_0Impl();
       static $hash$imm$fun(ps_m$, $this) {
-        return rt.flows.FlowCreator.fromFlow(base$$flows$$_DataParallelFlow_0.$self, ps_m$.flow$imm()).map$mut(test$$Fear[###]$_0.$self).list$mut();
+        return rt$$flows.FlowCreator.fromFlow(base$$flows$$_DataParallelFlow_0.$self, ps_m$.flow$imm()).map$mut(test$$Fear[###]$_0.$self).list$mut();
       }
     }
     
-    export class test$$Names_0Impl extends test$$Names_0 {
+    export class test$$Names_0Impl {
       $hash$imm(ps_m$) { return test$$Names_0.$hash$imm$fun(ps_m$, this); }
     }
-    
-    test$$Names_0.$self = new test$$Names_0Impl();
     """),
     List.of("test/Names_0.js"),
     """
@@ -1485,19 +1486,18 @@ public class TestJsCodegen {
       import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
       
       export class test$$Test_0 {
-        $hash$imm(fear[###]$_m$) { throw new Error('Abstract method'); }
-        static $hash$imm$fun(fear[###]$_m$, $this) {
+        static $hash$imm$fun(fear0$_m$, $this) {
           return base$$Assert_0.$self.$exclamation$imm(base$$True_0.$self,test$$Fear[###]$_0.$self);
         }
       }
       
-      export class test$$Test_0Impl extends test$$Test_0 {
-        $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+      export class test$$Test_0Impl {
+        $hash$imm(fear0$_m$) { return test$$Test_0.$hash$imm$fun(fear0$_m$, this); }
       }
       
       test$$Test_0.$self = new test$$Test_0Impl();
       """, """
-      import { base$$Fear1655$_0, base$$True_0 } from "../base/index.js";
+      import { base$$Fear[###]$_0, base$$True_0 } from "../base/index.js";
       
       export class base$$Assert_0 {
         $exclamation$imm(assertion_m$) { throw new Error('Abstract method'); }
@@ -1506,7 +1506,7 @@ public class TestJsCodegen {
         _fail$imm() { throw new Error('Abstract method'); }
         _fail$imm(msg_m$) { throw new Error('Abstract method'); }
         static $exclamation$imm$fun(assertion_m$, $this) {
-          return $this.$exclamation$imm(assertion_m$,base$$Fear1655$_0.$self);
+          return $this.$exclamation$imm(assertion_m$,base$$Fear[###]$_0.$self);
         }
         static $exclamation$imm$fun(assertion_m$, cont_m$, $this) {
           return (assertion_m$ == base$$True_0.$self ? cont_m$.$hash$mut() :   (() => {

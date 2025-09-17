@@ -18,6 +18,39 @@ public class TestJsProgram {
     Test:Main{ _ -> {} }
     A:{ #: A -> A{ # -> A { # -> this } }# }
     """);}
+  @Test void assertTrue() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(True, { Void }) }
+    """);}
+  @Test void assertFalse() { ok(new Res("", "Assertion failed :(", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, { Void }) }
+    """);}
+  @Test void assertFalseMsg() { ok(new Res("", "power level less than 9000", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, "power level less than 9000", { Void }) }
+    """);}
+
+  @Test void falseToStr() { ok(new Res("", "False", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, Foo.bs(False), { Void }) }
+    Foo:{ .bs(b: base.Bool): base.Str -> b.str }
+    """);}
+  @Test void trueToStr() { ok(new Res("", "True", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, Foo.bs(True), { Void }) }
+    Foo:{ .bs(s: base.Stringable): base.Str -> s.str }
+    """);}
   @Test void conditional() { ok(new Res("1", "", 0), """
     package test
     alias base.Main as Main, alias base.True as True, alias base.Nat as Nat,
@@ -143,15 +176,6 @@ public class TestJsProgram {
       """);
   }
 
-
-  @Disabled void trueToStr() { ok(new Res("True", "", 0), """
-    package test
-    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
-    alias base.Void as Void,
-    Test:Main{sys -> sys.io.println(Foo.bs(True)) }
-    Foo:{ .bs(s: base.Stringable): base.Str -> s.str }
-    """);}
-
   @Disabled void binaryAnd1() { ok(new Res("", "True", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
@@ -173,24 +197,6 @@ public class TestJsProgram {
       Test: Main{_ -> "Hello!".utf8.get(0).assertEq(72 .byte)}
       """);
   }
-  @Disabled void assertTrue() { ok(new Res("", "", 0), """
-    package test
-    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
-    alias base.Void as Void,
-    Test:Main{ _ -> Assert!(True, { Void }) }
-    """);}
-  @Disabled void assertFalse() { ok(new Res("", "Assertion failed :(", 1), """
-    package test
-    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
-    alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, { "" }) }
-    """);}
-  @Disabled void assertFalseMsg() { ok(new Res("", "power level less than 9000", 1), """
-    package test
-    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
-    alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, "power level less than 9000", { Void }) }
-    """);}
 
   @Disabled void arithmeticOrderOfOperations() {
     ok(new Res("", "", 0), """

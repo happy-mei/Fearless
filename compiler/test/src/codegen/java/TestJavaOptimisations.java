@@ -414,4 +414,77 @@ public class TestJavaOptimisations {
       Test:{ .m:Str-> (5 > 2) ?[Str] {.then -> "True", .else -> "False", } }
       """);
   }
+
+  @Test void assertTrue() {
+    okList(List.of("""
+      package test;
+      public interface Test_0 extends base.Main_0{
+      Test_0 $self = new Test_0Impl();
+      base.Void_0 $hash$imm(base.caps.System_0 fear31$_m$);
+      static base.Void_0 $hash$imm$fun(base.caps.System_0 fear31$_m$, test.Test_0 $this) {
+        return ((base.Void_0)base.Assert_0.$self.$exclamation$imm(base.True_0.$self,test.Fear717$_0.$self));
+      }
+      }
+      """, """
+      package base;
+      public interface Assert_0 extends base.Sealed_0{
+      Assert_0 $self = new Assert_0Impl();
+      base.Void_0 $exclamation$imm(base.Bool_0 assertion_m$);
+      
+      Object $exclamation$imm(base.Bool_0 assertion_m$, base.AssertCont_1 cont_m$);
+      
+      Object $exclamation$imm(base.Bool_0 assertion_m$, rt.Str msg_m$, base.AssertCont_1 cont_m$);
+      
+      Object _fail$imm();
+      
+      Object _fail$imm(rt.Str msg_m$);
+      static base.Void_0 $exclamation$imm$fun(base.Bool_0 assertion_m$, base.Assert_0 $this) {
+        return ((base.Void_0)$this.$exclamation$imm(assertion_m$,base.Fear1655$_0.$self));
+      }
+      
+      static Object $exclamation$imm$fun(base.Bool_0 assertion_m$, base.AssertCont_1 cont_m$, base.Assert_0 $this) {
+        return ((assertion_m$ == base.True_0.$self ? cont_m$.$hash$mut() : (switch (1) { default -> {
+        System.err.println("Assertion failed :(");
+        System.exit(1);
+        yield (Object) null;
+      }})
+      ));
+      }
+      
+      static Object $exclamation$imm$fun(base.Bool_0 assertion_m$, rt.Str msg_m$, base.AssertCont_1 cont_m$, base.Assert_0 $this) {
+        return ((assertion_m$ == base.True_0.$self ? cont_m$.$hash$mut() : (switch (1) { default -> {
+        rt.NativeRuntime.printlnErr(msg_m$.utf8());
+        System.exit(1);
+        yield (Object) null;
+      }})
+      ));
+      }
+      
+      static Object _fail$imm$fun(base.Assert_0 $this) {
+        return (switch (1) { default -> {
+        System.err.println("No magic code was found at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
+        System.exit(1);
+        yield (Object) null;
+      }})
+      ;
+      }
+      
+      static Object _fail$imm$fun(rt.Str msg_m$, base.Assert_0 $this) {
+        return (switch (1) { default -> {
+        System.err.println("No magic code was found at:\\n"+java.util.Arrays.stream(Thread.currentThread().getStackTrace()).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining("\\n")));
+        System.exit(1);
+        yield (Object) null;
+      }})
+      ;
+      }
+      }
+      """),
+      List.of("test/Test_0.java", "base/Assert_0.java"),
+      """
+      package test
+      alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+      alias base.Void as Void,
+      Test:Main{ _ -> Assert!(True, { Void }) }
+      """);
+  }
 }

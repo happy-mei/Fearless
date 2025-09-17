@@ -1,4 +1,3 @@
-// rt/Str.js
 import { base$$True_0 } from "../base/True_0.js";
 import { base$$False_0 } from "../base/False_0.js";
 import { rt$$NativeRuntime } from "./NativeRuntime.js";
@@ -23,7 +22,11 @@ export class rt$$Str {
   $equals$equals$imm(other) {
     const a = this.utf8(), b = other.utf8();
     if (a.length !== b.length) return base$$False_0.$self;
-    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return base$$False_0.$self;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) {
+        return base$$False_0.$self;
+      }
+    }
     return base$$True_0.$self;
   }
 
@@ -34,7 +37,11 @@ export class rt$$Str {
   startsWith$imm(other) {
     const a = this.utf8(), b = other.utf8();
     if (b.length > a.length) return base$$False_0.$self;
-    for (let i = 0; i < b.length; i++) if (a[i] !== b[i]) return base$$False_0.$self;
+    for (let i = 0; i < b.length; i++) {
+      if (a[i] !== b[i]) {
+        return base$$False_0.$self;
+      }
+    }
     return base$$True_0.$self;
   }
 
@@ -50,9 +57,9 @@ export class rt$$Str {
   isEmpty$read() { return this.utf8().length === 0 ? base$$True_0.$self : base$$False_0.$self; }
 
   substring$imm(start, end) {
-    if (start > end) throw new FearlessError(rt$$Str.fromJavaStr("Start index must be <= end"));
-    if (start < 0) throw new FearlessError(rt$$Str.fromJavaStr("Start index >= 0"));
-    if (end > this.size$imm()) throw new FearlessError(rt$$Str.fromJavaStr("End index <= size"));
+    if (start > end) throw new FearlessError(rt$$Str.fromJsStr("Start index must be <= end"));
+    if (start < 0) throw new FearlessError(rt$$Str.fromJsStr("Start index >= 0"));
+    if (end > this.size$imm()) throw new FearlessError(rt$$Str.fromJsStr("End index <= size"));
     return new rt$$Str.SubStr(this, start, end);
   }
 
@@ -69,7 +76,7 @@ export class rt$$Str {
   }
 
   // --- Static helpers ---
-  static fromJavaStr(str) {
+  static fromJsStr(str) {
     const encoder = new TextEncoder();
     return rt$$Str.fromTrustedUtf8(encoder.encode(str));
   }

@@ -54,14 +54,15 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
   public ArrayList<JsFile> generateFiles() {
     var jsFiles = new ArrayList<JsFile>();
     var gen = new JsCodegen(program);
-    // Store base type exports
-    Map<String, List<String>> baseExports = new HashMap<>();
-    // define a tiny record for staged files
+
+    // Store exports grouped by base subfolder
+    Map<String, Map<Id.DecId, String>> baseExportsByFolder = new HashMap<>();
+
+    // tiny record for staged files
     record Staged(Id.DecId typeId, StringBuilder content) {}
-    // Map from output file path -> staged info
     Map<Path, Staged> staged = new LinkedHashMap<>();
 
-    // --- First pass: generate all interfaces and stage them (do NOT write files yet) ---
+    // --- First pass: generate interface defs ---
     for (MIR.Package pkg : program.pkgs()) {
       String pkgPath = pkg.name().replace(".", "/") + "/";
       for (MIR.TypeDef def : pkg.defs().values()) {
@@ -69,27 +70,28 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
         var funsList = pkg.funs().stream()
           .filter(f -> f.name().d().equals(typeId))
           .toList();
-        // Generate interface-like content (abstract base & static helpers)
+
         String typeDefContent = gen.visitTypeDef(def, funsList);
         if (typeDefContent.isEmpty()) continue;
 
         String fileName = gen.id.getSimpleName(typeId) + ".js";
         Path filePath = Path.of(pkgPath).resolve(fileName);
 
-        // Stash content in a mutable StringBuilder so we can append impl later
         StringBuilder sb = new StringBuilder();
         sb.append(typeDefContent);
         staged.put(filePath, new Staged(typeId, sb));
 
-        // Track base.* for merged index
+        // Track base.* types for per-folder index.js
         if (pkg.name().startsWith("base")) {
-          baseExports.computeIfAbsent(pkg.name(), k -> new ArrayList<>())
-            .add(gen.id.getSimpleName(def.name()));
+          String folder = pkg.name().replace(".", "/"); // e.g. base, base/flows, base/json
+          baseExportsByFolder
+            .computeIfAbsent(folder, k -> new LinkedHashMap<>())
+            .put(typeId, gen.id.getSimpleName(typeId));
         }
       }
     }
 
-    // --- Second step: attach Impl classes into staged files ---
+    // --- Second pass: attach Impl classes ---
     for (var e : gen.freshImpls.entrySet()) {
       Id.DecId typeId = e.getKey();
       String implContent = e.getValue();
@@ -102,7 +104,6 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
         sb = new StringBuilder();
         staged.put(filePath, new Staged(typeId, sb));
       }
-      // Append Impl class
       sb.append("\n\n").append(implContent);
       // If there’s a queued singleton assignment, append it now
       String className = gen.id.getFullName(typeId);
@@ -111,35 +112,35 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
       }
     }
 
-    // --- Now compute imports per file and finalize JsFiles ---
+    // --- Finalize files with imports ---
     for (var entry : staged.entrySet()) {
       Path filePath = entry.getKey();
       Staged stagedInfo = entry.getValue();
       Id.DecId typeId = stagedInfo.typeId();
       String combinedContent = stagedInfo.content().toString();
 
-      // Compute imports based on combined content (so importLines reflect both interface and impl)
       String importLines = computeImports(typeId.pkg(), gen.id.getFullName(typeId), combinedContent);
 
       jsFiles.add(new JsFile(filePath, importLines + combinedContent));
     }
 
-    // Now generate merged base/index.js (unchanged)
-    if (!baseExports.isEmpty()) {
-      JsFile baseIndexJs = createBaseIndexJs(baseExports);
-      jsFiles.add(baseIndexJs);
+    // --- Generate index.js for each base/* folder ---
+    for (var entry : baseExportsByFolder.entrySet()) {
+      String folder = entry.getKey(); // e.g. "base", "base/flows"
+      Map<Id.DecId, String> exports = entry.getValue();
+      JsFile idx = createIndexJsForFolder(folder, exports, gen);
+      jsFiles.add(idx);
     }
+
     return jsFiles;
   }
 
   private String computeImports(String pkg, String className, String content) {
-    Set<String> baseImports = new TreeSet<>();
+    Map<String, Set<String>> baseImportsByFolder = new HashMap<>();
     Set<String> otherImports = new TreeSet<>();
     boolean needsEnsureWasm = false;
 
-    // Pattern matches full-encoded names:
-    //   <pkg>$$<pkg>$$...$$<TypeOr_underscoreStart>_<digits>  (optionally followed by Impl)
-    // Examples matched: base$$iter$$Sum_0, base$$iter$$Sum_0Impl, base$$_InfoToJson_0, test$$Test_0
+    // Match flattened names like base$$iter$$Sum_0, base$$iter$$Sum_0Impl, base$$_InfoToJson_0, test$$Test_0
     Pattern p = Pattern.compile(
       "([a-z][a-z0-9_]*(?:\\$\\$[a-z][a-z0-9_]*)*\\$\\$[A-Za-z_][A-Za-z0-9_$]*_\\d+)(Impl)?"
     );
@@ -151,56 +152,58 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
       if (dep.equals(className) || dep.equals(className + "Impl")) continue;
 
       if (dep.startsWith("base$$")) {
-        baseImports.add(dep);
+        // figure out folder: e.g. base$$flows$$Foo_0 → base/flows
+        String[] parts = dep.split("\\$\\$");
+        String folder = "base";
+        if (parts.length > 2) {
+          folder += "/" + String.join("/", Arrays.copyOfRange(parts, 1, parts.length - 1));
+        }
+        baseImportsByFolder.computeIfAbsent(folder, k -> new TreeSet<>()).add(dep);
       } else {
         String importPath = getRelativeImportPath(pkg, base);
         otherImports.add("import { " + dep + " } from \"" + importPath + "\";");
       }
     }
 
-    // Special-case: runtime helpers (rt$$Numbers, rt$$Other...)
+    // runtime helpers
     Pattern rt = Pattern.compile("\\brt\\$\\$([A-Za-z0-9_]+)\\.");
     Matcher rm = rt.matcher(content);
     while (rm.find()) {
       String dep = "rt$$" + rm.group(1);
       String importPath = getRelativeImportPath(pkg, "rt-js/" + rm.group(1));
       otherImports.add("import { " + dep + " } from \"" + importPath + "\";");
-
-      if (dep.equals("rt$$NativeRuntime")) {
-        needsEnsureWasm = true;
-      }
+      if (dep.equals("rt$$NativeRuntime")) needsEnsureWasm = true;
     }
 
-    // Merge base$$ imports into one line
     StringBuilder importBlock = new StringBuilder();
 
-    // Merge all base$$ imports into one line pointing to top-level base/index.js
-    if (!baseImports.isEmpty()) {
+    // Add base imports per folder
+    for (var entry : baseImportsByFolder.entrySet()) {
+      String folder = entry.getKey();
+      Set<String> deps = entry.getValue();
+
+      int depth = pkg.isEmpty() ? 0 : pkg.split("\\.").length;
       StringBuilder prefix = new StringBuilder();
-      if (!pkg.isEmpty()) {
-        int depth = pkg.split("\\.").length;
-        for (int i = 0; i < depth; i++) prefix.append("../");
-      } else {
+      if (depth == 0) {
         prefix.append("./");
+      } else {
+        for (int i = 0; i < depth; i++) prefix.append("../");
       }
+
       importBlock.append("import { ")
-        .append(String.join(", ", baseImports))
+        .append(String.join(", ", deps))
         .append(" } from \"")
-        .append(prefix)
-        .append("base/index.js\";\n");
+        .append(prefix).append(folder).append("/index.js\";\n");
     }
 
     for (String imp : otherImports) {
       importBlock.append(imp).append("\n");
     }
 
-    if (importBlock.length() > 0) {
-      importBlock.append("\n");
-    }
+    if (importBlock.length() > 0) importBlock.append("\n");
     if (needsEnsureWasm) {
       importBlock.append("(async function(){ await rt$$NativeRuntime.ensureWasm(); })();\n\n");
     }
-
     return importBlock.toString();
   }
 
@@ -226,27 +229,60 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
   }
 
   // Create base/index.js to make import lines clearer
-  private JsFile createBaseIndexJs(Map<String, List<String>> baseExports) {
+  private JsFile createBaseIndexJs(Map<Id.DecId, List<String>> baseExports, JsCodegen gen) {
     StringBuilder rootIndex = new StringBuilder();
+
     for (var entry : baseExports.entrySet()) {
-      String pkg = entry.getKey(); // e.g., "base", "base.json"
-      List<String> typeNames = entry.getValue();
-      for (String typeName : typeNames) {
-        // Compute flattened export name: base$$json$$Type_0
-        String flattenedName = pkg.replace(".", "$$") + "$$" + typeName;
-        String simpleFile = typeName; // the actual file name
-        String relPath;
-        if (pkg.equals("base")) {
-          relPath = "./" + simpleFile + ".js";
-        } else {
-          String pkgPath = pkg.replace(".", "/");
-          relPath = "./" + pkgPath.substring(5) + "/" + simpleFile + ".js"; // remove "base/" prefix
-        }
-        rootIndex.append("export { ").append(flattenedName)
-          .append(" } from '").append(relPath).append("';\n");
+      Id.DecId decId = entry.getKey();
+      String pkg = decId.pkg();               // e.g. "base.json"
+      String typeName = gen.id.getSimpleName(decId); // e.g. "Fear340$_0"
+
+      // Flattened export name: base$$json$$Fear340$_0
+      String flattenedName = pkg.replace(".", "$$") + "$$" + typeName;
+
+      // Compute relative import path
+      String relPath;
+      if (pkg.equals("base")) {
+        relPath = "./" + typeName + ".js";
+      } else {
+        String pkgPath = pkg.replace(".", "/");
+        relPath = "./" + pkgPath.substring(5) + "/" + typeName + ".js"; // remove "base/" prefix
+      }
+
+      if (gen.freshImpls.containsKey(decId)) {
+        // If Impl exists, also export it
+        rootIndex.append(
+          "export { %s, %s } from '%s';\n".formatted(flattenedName, flattenedName + "Impl", relPath)
+        );
+      } else {
+        // Always export the interface
+        rootIndex.append(
+          "export { %s } from '%s';\n".formatted(flattenedName, relPath)
+        );
       }
     }
+
     return new JsFile(Path.of("base/index.js"), rootIndex.toString());
   }
+
+
+  private JsFile createIndexJsForFolder(String folder, Map<Id.DecId, String> exports, JsCodegen gen) {
+    StringBuilder sb = new StringBuilder();
+    for (var entry : exports.entrySet()) {
+      Id.DecId decId = entry.getKey();
+      String typeName = gen.id.getSimpleName(decId);
+      String flattened = decId.pkg().replace(".", "$$") + "$$" + typeName;
+      String relPath = "./" + typeName + ".js"; // always local
+
+      if (gen.freshImpls.containsKey(decId)) {
+        sb.append("export { ").append(flattened).append(", ").append(flattened)
+          .append("Impl } from '").append(relPath).append("';\n");
+      } else {
+        sb.append("export { ").append(flattened).append(" } from '").append(relPath).append("';\n");
+      }
+    }
+    return new JsFile(Path.of(folder, "index.js"), sb.toString());
+  }
+
 
 }
