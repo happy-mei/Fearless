@@ -246,7 +246,7 @@ export class Subject {
         try {
           const msg = (err && err.message) ? err.message : String(err);
           if (base && base.Infos_0 && base.Infos_0.$self && base.Infos_0.$self.msg$imm) {
-            this.downstream.pushError$mut(base.Infos_0.$self.msg$imm(/* rt.Str.fromJavaStr(msg) */ msg));
+            this.downstream.pushError$mut(base.Infos_0.$self.msg$imm(/* rt.Str.fromJsStr(msg) */ msg));
           } else {
             this.downstream.pushError$mut(msg);
           }

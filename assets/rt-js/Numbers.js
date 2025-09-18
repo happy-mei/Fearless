@@ -66,4 +66,18 @@ export class rt$$Numbers {
   static toBool(b) {
     return b ? base$$True_0.$self : base$$False_0.$self;
   }
+
+  // Overflow/Underflow:  just like clocks, numbers silently wrap
+  static toInt64(x) {
+    const mask64 = (1n << 64n) - 1n;
+    x &= mask64;
+    if (x >= (1n << 63n)) x -= (1n << 64n);
+    return x;
+  }
+
+  static toNat64(x) {
+    const mask64 = (1n << 64n) - 1n;
+    return x & mask64;
+  }
+
 }

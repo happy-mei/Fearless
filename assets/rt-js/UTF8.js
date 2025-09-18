@@ -1,6 +1,7 @@
 import { rt$$Str } from "./Str.js";
 import { rt$$NativeRuntime } from "./NativeRuntime.js";
 import { base$$Void_0 } from "../base/Void_0.js";
+import { ListImpl, ByteBufferListImpl } from "./ListK.js";
 
 // A tiny "Fallible" wrapper to mirror the Java runtime semantics
 class Fallible {
@@ -30,10 +31,10 @@ export class rt$$UTF8 {
   static $self = new rt$$UTF8();
 
   fromBytes$imm(utf8Bytes_m$) {
-    if (utf8Bytes_m$ instanceof rt.ListK.ByteBufferListImpl) {
-      return this.utf8ToStr(utf8Bytes_m$.inner().slice());
-    } else if (utf8Bytes_m$ instanceof rt.ListK.ListImpl) {
-      return this.utf8ToStr(this.rawListToBuffer(utf8Bytes_m$.inner()));
+    if (utf8Bytes_m$ instanceof ByteBufferListImpl) {
+      return this.utf8ToStr(utf8Bytes_m$.inner.slice());
+    } else if (utf8Bytes_m$ instanceof ListImpl) {
+      return this.utf8ToStr(this.rawListToBuffer(utf8Bytes_m$.inner));
     } else {
       return this.utf8ToStr(this.listToBuffer(utf8Bytes_m$));
     }
@@ -51,7 +52,7 @@ export class rt$$UTF8 {
           const decoder = new TextDecoder("utf-8", { fatal: true });
           str = decoder.decode(buf);
         }
-        return res.ok$mut(rt$$Str.fromJavaStr(str));
+        return res.ok$mut(rt$$Str.fromJsStr(str));
       } catch (e) {
         if (e instanceof rt$$NativeRuntime.StringEncodingError) {
           return res.info$mut(e.info);
@@ -63,7 +64,7 @@ export class rt$$UTF8 {
 
   rawListToBuffer(arr) {
     // Normalize signed bytes -> [0..255]
-    return makeBuffer(arr.map((b) => (b & 0xff)));
+    return makeBuffer(arr.map((b) => (Number(b) & 0xff)));
   }
 
   listToBuffer(list_1) {

@@ -2,15 +2,12 @@ import { base$$True_0, base$$False_0 } from "../base/index.js";
 import { rt$$NativeRuntime } from "./NativeRuntime.js";
 import { FearlessError } from "./FearlessError.js";
 import { ByteBufferListImpl } from "./ListK.js";
+import { rt$$MutStr } from "./MutStr.js";
 
 export class rt$$Str {
   constructor() {
     if (new.target === rt$$Str) throw new Error("Cannot instantiate interface rt$$Str directly");
   }
-
-  // --- Abstract methods ---
-  utf8() { throw new Error("Abstract method"); }       // returns Uint8Array
-  graphemes() { throw new Error("Abstract method"); }  // returns Int32Array
   utf8$imm() {
     return new ByteBufferListImpl(this.utf8());
   }
@@ -53,6 +50,15 @@ export class rt$$Str {
     res.set(a);
     res.set(b, a.length);
     return rt$$Str.fromTrustedUtf8(res);
+  }
+
+  join$imm(flow_m$) {
+    return flow_m$.fold$mut(
+      wrapFnMut(() => new rt$$MutStr()),
+      wrapFnMut((acc, str) => acc.isEmpty$read() === base$$True_0.$self
+        ? acc.$plus$mut(str)
+        : acc.$plus$mut(this).$plus$mut(str))
+    ).str$read(); // return a proper rt$$Str
   }
 
   size$imm() { return this.graphemes().length; }
@@ -123,4 +129,8 @@ export class rt$$Str {
     size$imm() { return this._size; }
     isEmpty$read() { return this._size === 0 ? base$$True_0.$self : base$$False_0.$self; }
   };
+}
+
+export function wrapFnMut(fn) {
+  return { $hash$mut: fn, $hash$read: fn, $hash$imm: fn };
 }

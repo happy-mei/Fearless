@@ -6,9 +6,14 @@ import main.Main;
 import main.js.LogicMainJs;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import utils.Base;
 import utils.Err;
+import utils.RunOutput;
+
 import java.util.Arrays;
 import java.util.List;
+
+import static codegen.js.RunJsProgramTests.ok;
 
 public class TestJsCodegen {
   JsProgram getCode(String... content) {
@@ -305,6 +310,29 @@ public class TestJsCodegen {
       A:{.a:Str -> -5.str }
       """);
   }
+  @Test void veryLongLongToStr() { ok("""
+    import { base$$Assert_0, base$$False_0 } from "../base/index.js";
+    import { rt$$Str } from "../rt-js/Str.js";
+    import { test$$Fear718$_0 } from "../test/Fear718$_0.js";
+    
+    export class test$$Test_0 {
+      static $hash$imm$fun(fear[###]$_m$, $this) {
+        return base$$Assert_0.$self.$exclamation$imm(base$$False_0.$self,rt$$Str.fromJsStr((-9223372036854775808n).toString()),test$$Fear718$_0.$self);
+      }
+    }
+    
+    export class test$$Test_0Impl {
+      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """, "test/Test_0.js", """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, 9223372036854775808 .str, { Void }) }
+    """);
+  }
 
   @Test void numberStrAbs() {
     ok("""
@@ -377,6 +405,27 @@ public class TestJsCodegen {
       }
       """);
   }
+
+  @Test void subtractionUnderflow() { ok("""
+    import { rt$$Numbers } from "../rt-js/Numbers.js";
+    import { rt$$Str } from "../rt-js/Str.js";
+    
+    export class test$$Test_0 {
+      static a$imm$fun($this) {
+        return rt$$Str.fromJsStr((BigInt(rt$$Numbers.toNat64((BigInt(rt$$Numbers.toNat64((0n - 2n))) - 9223372036854775807n)))).toString());
+      }
+    }
+    
+    export class test$$Test_0Impl {
+      a$imm() { return test$$Test_0.a$imm$fun(this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """, "test/Test_0.js", """
+    package test
+    alias base.Str as Str,
+    Test:{ .a:Str -> ((0 - 2) - 9223372036854775807) .str }
+    """);}
 
   @Test void numOps() {
     ok("""
@@ -482,13 +531,13 @@ public class TestJsCodegen {
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$Test_0 {
-      static $hash$imm$fun(fear31$_m$, $this) {
+      static $hash$imm$fun(fear[###]$_m$, $this) {
         return base$$_ByteAssertionHelper_0.assertEq$imm$fun((rt$$Str.fromJsStr("Hello!").utf8$imm().get$imm(0n) & 0xFFn), (72n & 0xFFn), null);
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm(fear31$_m$) { return test$$Test_0.$hash$imm$fun(fear31$_m$, this); }
+      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -1338,7 +1387,7 @@ public class TestJsCodegen {
       """);
   }
 
-  @Test void listBlockAddJoin() {
+  @Test void listAs() {
     ok("""
     import { base$$flows$$_DataParallelFlow_0 } from "../base/flows/index.js";
     import { base$$List_0, base$$Void_0 } from "../base/index.js";
@@ -1588,4 +1637,163 @@ public class TestJsCodegen {
       """);
   }
 
+
+  @Test void bytesToStrManual() {
+    ok("""
+      import { rt$$ListK } from "../rt-js/ListK.js";
+      import { rt$$Numbers } from "../rt-js/Numbers.js";
+      import { rt$$UTF8 } from "../rt-js/UTF8.js";
+      
+      export class test$$Test_0 {
+        static $hash$imm$fun(sys_m$, $this) {
+          return sys_m$.io$mut().println$mut(rt$$UTF8.$self.fromBytes$imm(rt$$ListK.$self.$hash$imm((Number(rt$$Numbers.toNat64(65n)) & 0xFF),(Number(rt$$Numbers.toNat64(66n)) & 0xFF))).$exclamation$mut());
+        }
+      }
+      
+      export class test$$Test_0Impl {
+        $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+      }
+      
+      test$$Test_0.$self = new test$$Test_0Impl();
+      """, "test/Test_0.js", """
+      package test
+      alias base.UTF8 as UTF8,
+      Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(65 .byte, 66 .byte))!)}
+      """, Base.mutBaseAliases);
+  }
+  @Test void strToBytes() {
+    okList(List.of("""
+      import { rt$$Str } from "../rt-js/Str.js";
+      import { rt$$flows } from "../rt-js/flows.js";
+      import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
+      
+      export class test$$Test_0 {
+        static $hash$imm$fun(sys_m$, $this) {
+          return sys_m$.io$mut().println$mut(rt$$flows.FlowCreator.fromFlow(rt$$flows.dataParallel.DataParallelFlowK.$self, rt$$Str.fromJsStr("Hello!").utf8$imm().flow$imm()).map$mut(test$$Fear[###]$_0.$self).join$mut(rt$$Str.fromJsStr(",")));
+        }
+      }
+      
+      export class test$$Test_0Impl {
+        $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+      }
+      
+      test$$Test_0.$self = new test$$Test_0Impl();
+      """, """
+      import { base$$flows$$Flow_1, base$$flows$$_CheckFlowReuse_0, base$$flows$$_NonTerminalOps_1, base$$flows$$_TerminalOps_1 } from "../../base/flows/index.js";
+      import { base$$Block_0, base$$Extensible_1 } from "../../base/index.js";
+      
+      export class base$$flows$$Fear894$_1 {
+        static actor$mut$fun(state_m$, f_m$, fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.actor$mut(state_m$,f_m$));
+        }
+        static first$mut$fun(fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.first$mut());
+        }
+        static count$mut$fun(fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.count$mut());
+        }
+        static actorMut$mut$fun(state_m$, f_m$, fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.actorMut$mut(state_m$,f_m$));
+        }
+        static all$mut$fun(p_m$, fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.all$mut(p_m$));
+        }
+        static limit$mut$fun(n_m$, fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.limit$mut(n_m$));
+        }
+        static map$mut$fun(...args) {
+          switch(args.length) {
+            case 4: {
+              let f_m$ = args[0];
+              let fear46155$_m$ = args[1];
+              let flow_m$ = args[2];
+              let isTail_m$ = args[3];
+              return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.map$mut(f_m$));
+        }
+            case 5: {
+              let ctx_m$ = args[0];
+              let f_m$ = args[1];
+              let fear46155$_m$ = args[2];
+              let flow_m$ = args[3];
+              let isTail_m$ = args[4];
+              return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.map$mut(ctx_m$,f_m$));
+        }
+            default: throw new Error('No overload for map$mut$fun with ' + args.length + ' arguments');
+          }
+        }
+      
+        static unwrapOp$mut$fun(token_m$, fear46155$_m$, flow_m$) {
+          return flow_m$.unwrapOp$mut(token_m$);
+        }
+        static fold$mut$fun(acc_m$, f_m$, fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.fold$mut(acc_m$,f_m$));
+        }
+        static assumeFinite$mut$fun(fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.assumeFinite$mut());
+        }
+        static any$mut$fun(p_m$, fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.any$mut(p_m$));
+        }
+        static filter$mut$fun(predicate_m$, fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.filter$mut(predicate_m$));
+        }
+        static findMap$mut$fun(f_m$, fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.findMap$mut(f_m$));
+        }
+        static size$read$fun(fear46155$_m$, flow_m$) {
+          return flow_m$.size$read();
+        }
+        static flatMap$mut$fun(f_m$, fear46155$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.flatMap$mut(f_m$));
+        }
+      }
+      
+      export class base$$flows$$Fear894$_1Impl {
+        constructor(flow_m$, isTail_m$) {
+          this.flow_m$ = flow_m$;
+          this.isTail_m$ = isTail_m$;
+        }
+        $hash$read(ext_m$) { return base$$Extensible_1.$hash$read$fun(ext_m$, this); }
+        limit$mut(n_m$) { return base$$flows$$Fear894$_1.limit$mut$fun(n_m$, this, this.flow_m$, this.isTail_m$); }
+        size$read() { return base$$flows$$Fear894$_1.size$read$fun(this, this.flow_m$); }
+        only$mut() { return base$$flows$$Flow_1.only$mut$fun(this); }
+        all$mut(p_m$) { return base$$flows$$Fear894$_1.all$mut$fun(p_m$, this, this.flow_m$, this.isTail_m$); }
+        fold$mut(acc_m$, f_m$) { return base$$flows$$Fear894$_1.fold$mut$fun(acc_m$, f_m$, this, this.flow_m$, this.isTail_m$); }
+        assumeFinite$mut() { return base$$flows$$Fear894$_1.assumeFinite$mut$fun(this, this.flow_m$, this.isTail_m$); }
+        self$mut() { return base$$flows$$Flow_1.self$mut$fun(this); }
+        $hash$mut(ext_m$) { return base$$Extensible_1.$hash$mut$fun(ext_m$, this); }
+        self$imm() { return base$$flows$$Flow_1.self$imm$fun(this); }
+        $hash$imm(ext_m$) { return base$$Extensible_1.$hash$imm$fun(ext_m$, this); }
+        actor$mut(state_m$, f_m$) { return base$$flows$$Fear894$_1.actor$mut$fun(state_m$, f_m$, this, this.flow_m$, this.isTail_m$); }
+        count$mut() { return base$$flows$$Fear894$_1.count$mut$fun(this, this.flow_m$, this.isTail_m$); }
+        none$mut(predicate_m$) { return base$$flows$$_TerminalOps_1.none$mut$fun(predicate_m$, this); }
+        map$mut(...args) { return base$$flows$$Fear894$_1.map$mut$fun(...args, this, this.flow_m$, this.isTail_m$); }
+        mapFilter$mut(f_m$) { return base$$flows$$_NonTerminalOps_1.mapFilter$mut$fun(f_m$, this); }
+        for$mut(f_m$) { return base$$flows$$_TerminalOps_1.for$mut$fun(f_m$, this); }
+        find$mut(predicate_m$) { return base$$flows$$_TerminalOps_1.find$mut$fun(predicate_m$, this); }
+        join$mut(j_m$) { return base$$flows$$Flow_1.join$mut$fun(j_m$, this); }
+        first$mut(...args) { return base$$flows$$Fear894$_1.first$mut$fun(...args, this, this.flow_m$, this.isTail_m$); }
+        get$mut() { return base$$flows$$Flow_1.get$mut$fun(this); }
+        last$mut() { return base$$flows$$_TerminalOps_1.last$mut$fun(this); }
+        findMap$mut(f_m$) { return base$$flows$$Fear894$_1.findMap$mut$fun(f_m$, this, this.flow_m$, this.isTail_m$); }
+        flatMap$mut(f_m$) { return base$$flows$$Fear894$_1.flatMap$mut$fun(f_m$, this, this.flow_m$, this.isTail_m$); }
+        list$mut() { return base$$flows$$_TerminalOps_1.list$mut$fun(this); }
+        self$read() { return base$$flows$$Flow_1.self$read$fun(this); }
+        unwrapOp$mut(token_m$) { return base$$flows$$Fear894$_1.unwrapOp$mut$fun(token_m$, this, this.flow_m$); }
+        actorMut$mut(state_m$, f_m$) { return base$$flows$$Fear894$_1.actorMut$mut$fun(state_m$, f_m$, this, this.flow_m$, this.isTail_m$); }
+        peek$mut(...args) { return base$$flows$$_NonTerminalOps_1.peek$mut$fun(...args, this); }
+        let$mut(x_m$, cont_m$) { return base$$flows$$Flow_1.let$mut$fun(x_m$, cont_m$, this); }
+        scan$mut(acc_m$, f_m$) { return base$$flows$$_NonTerminalOps_1.scan$mut$fun(acc_m$, f_m$, this); }
+        max$mut(compare_m$) { return base$$flows$$_TerminalOps_1.max$mut$fun(compare_m$, this); }
+        forEffect$mut(f_m$) { return base$$flows$$_TerminalOps_1.forEffect$mut$fun(f_m$, this); }
+        any$mut(p_m$) { return base$$flows$$Fear894$_1.any$mut$fun(p_m$, this, this.flow_m$, this.isTail_m$); }
+        filter$mut(predicate_m$) { return base$$flows$$Fear894$_1.filter$mut$fun(predicate_m$, this, this.flow_m$, this.isTail_m$); }
+        opt$mut() { return base$$flows$$Flow_1.opt$mut$fun(this); }
+      }
+      """), List.of("test/Test_0.js", "base/flows/Fear894$_1.js"),
+      """
+      package test
+      Test: Main{sys -> sys.io.println("Hello!".utf8.flow.map{b -> b.str}.join ",")}
+      """, Base.mutBaseAliases);
+  }
 }

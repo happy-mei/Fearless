@@ -123,10 +123,11 @@ public class JsCodegen implements MIRVisitor<String> {
       var res = magicImpl.get().instantiate();
       if (res.isPresent()) { return res.get(); }
     }
-    Id.DecId id = createObj.concreteT().id();
-    var className = getName(id);
-    if (createObj.captures().isEmpty() && p.of(id).singletonInstance().isPresent()) {
-      return className + ".$self"; // singleton
+    Id.DecId objId = createObj.concreteT().id();
+    var className = getName(objId);
+    var singleton= p.of(objId).singletonInstance().isPresent();
+    if (singleton) {
+      return className + ".$self";
     }
     return visitCreateObjNoSingleton(createObj, checkMagic);
   }
@@ -245,8 +246,14 @@ public class JsCodegen implements MIRVisitor<String> {
           String methName = id.getMName(m.sig().mdf(), m.sig().name());
           String className = id.getFullName(m.origin());
           String funName = getFName(m.fName().orElseThrow());
-          return String.format("%s(...args) { return %s.%s(...args, this); }",
-            methName, className, funName);
+          String capturedArgs = m.captures().stream()
+            .map(x -> "this." + id.varName(x))
+            .collect(Collectors.joining(", "));
+          if (!capturedArgs.isEmpty()) {
+            capturedArgs = ", " + capturedArgs;
+          }
+          return String.format("%s(...args) { return %s.%s(...args, this%s); }",
+            methName, className, funName, capturedArgs);
         }
       })
       .collect(Collectors.joining("\n  "));

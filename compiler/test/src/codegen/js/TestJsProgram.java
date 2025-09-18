@@ -1,4 +1,5 @@
 package codegen.js;
+import codegen.java.RunJavaProgramTests;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.Base;
@@ -137,7 +138,7 @@ public class TestJsProgram {
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, 9223372036854775807 .str, { Void }) }
     """);}
-  @Disabled void veryLongLongToStr() { ok(new Res("", "9223372036854775808", 1), """
+  @Test void veryLongLongToStr() { ok(new Res("", "9223372036854775808", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
@@ -167,21 +168,32 @@ public class TestJsProgram {
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, -123456789 .str, { Void }) }
     """);}
-  // utf8
+
+  /** utf8 **/
   @Disabled void strToBytes() {
     ok(new Res("72,101,108,108,111,33", "", 0), """
     package test
     Test: Main{sys -> sys.io.println("Hello!".utf8.flow.map{b -> b.str}.join ",")}
     """, Base.mutBaseAliases);}
-  @Disabled void strUtf8() {
-    ok(new Res("True", "", 0), """
-      package test
-      Test: Main{sys -> sys.io.print("Hello!".utf8.get(0).str)}
-      """, Base.mutBaseAliases);
-  }
+  @Test void byteEq() {
+    ok(new Res(), """
+    package test
+    Test: Main{_ -> "Hello!".utf8.get(0).assertEq(72 .byte)}
+    """, Base.mutBaseAliases);}
+  @Disabled void bytesToStr() {
+    ok(new Res("Hello!", "", 0), """
+    package test
+    alias base.UTF8 as UTF8,
+    Test: Main{sys -> sys.io.println(UTF8.fromBytes("Hello!".utf8)!)}
+    """, Base.mutBaseAliases);}
+  @Disabled void bytesToStrManual() {
+    ok(new Res("AB", "", 0), """
+    package test
+    alias base.UTF8 as UTF8,
+    Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(65 .byte, 66 .byte))!)}
+    """, Base.mutBaseAliases);}
 
   /** Number **/
-
   @Test void addition() { ok(new Res("", "7", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
@@ -297,7 +309,6 @@ public class TestJsProgram {
     }
     """, Base.mutBaseAliases);
   }
-
   @Test void negativeNums() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
@@ -310,12 +321,10 @@ public class TestJsProgram {
       .return{{}}
       }
     """, Base.mutBaseAliases); }
-
   @Test void assertEq() { ok(new Res("", "", 0), """
     package test
     Test: Main{_ -> 5.assertEq(5)}
     """, Base.mutBaseAliases); }
-
   @Test void floats() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
@@ -334,13 +343,6 @@ public class TestJsProgram {
       .return{{}}
       }
     """, Base.mutBaseAliases); }
-  @Disabled void byteEq() {
-    ok(new Res("True", "", 0), """
-      package test
-      Test: Main{_ -> "Hello!".utf8.get(0).assertEq(72 .byte)}
-      """, Base.mutBaseAliases);
-  }
-
 
   /** Block **/
   @Test void lazyCall() { ok(new Res("hey", "", 0), """
@@ -404,6 +406,57 @@ public class TestJsProgram {
         // prints 350,350,350,140,140,140
     }
     """);}
+  // as
+  @Disabled void soundAsIdFnUList() { ok(new Res("1,2,3", "", 0), """
+    package test
+    Test: Main{sys -> Block#
+      .let[mut List[Nat]] l = {List#(1, 2, 3)}
+      .let[List[Nat]] l2 = {l.as{::}}
+      .do {l.add(4)}
+      .do {sys.io.println(l2.flow.map{::str}.join ",")}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+  @Disabled void soundAsUList() { ok(new Res("1,2,3", "", 0), """
+    package test
+    Test: Main{sys -> Block#
+      .let[mut List[Nat]] l = {List#(1, 2, 3)}
+      .let[List[Str]] l2 = {l.as{::str}}
+      .do {l.add(4)}
+      .do {sys.io.println(l2.flow.join ",")}
+      .return {{}}
+      }
+    """, Base.mutBaseAliases);}
+
+  /** Flow **/
+  @Disabled void flow() {
+    ok(new Res("Transformed List: 6, 7, 12, 13, 18", "", 0), """
+    package test
+    
+    Test: Main{
+      #(sys) -> Block#
+        .let[mut List[Int]] numbers = {List#(+1, +2, +3, +4, +5, +6, +7, +8, +9, +10)}
+
+        // Create a flow from the list
+        .let[mut Flow[Int]] flow = {numbers.flow}
+
+        // Apply various flow operations
+        .let[mut Flow[Int]] transformedFlow = {flow
+          .map{n -> n * +2} // Multiply each number by 2
+//          .filter{n -> n % +3 == +0} // Keep only numbers divisible by 3
+//          .flatMap{n -> Flow#(n, n + +1)} // For each number, create a flow of the number and the number + 1
+//          .limit(5) // Limit the flow to the first 5 elements
+        }
+
+        // Collect the results into a list
+        .let[mut List[Int]] resultList = {transformedFlow.list}
+
+        // Print the results
+        .do {sys.io.println("Transformed List: " + (resultList.flow.map{num -> num.str}.join ", "))}
+
+        .return {Void}
+    }
+    """, Base.mutBaseAliases);}
 
   /** sys **/
   @Test void sysPrint() { ok(new Res("Hello, World!", "", 0), """
