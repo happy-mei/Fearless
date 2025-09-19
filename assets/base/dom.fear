@@ -1,0 +1,19 @@
+package base
+
+// A minimal DOM-ish API for Fearless -> JS target.
+Document: Sealed {
+  .getElementById(id: Str): Element,
+  .createElement(tag: Str): Element,
+}
+
+Element: Sealed {
+  value: Str,
+  .setValue(v: Str): Void,
+  .setText(v: Str): Void,
+  .appendChild(child: Element): Void,
+  .addEventListener(ev: Str, cb: Block[Void]): Void,
+  .addEventListenerKey(key: Str, cb: Block[Void]): Void,
+  .toggleClass(name: Str): Void,
+  .remove: Void,
+  .focus: Void,
+}

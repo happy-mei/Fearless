@@ -487,4 +487,66 @@ public class TestJavaOptimisations {
       Test:Main{ _ -> Assert!(True, { Void }) }
       """);
   }
+
+  @Test void animalTypes() {
+    okList(List.of("""
+      package test;
+      public interface Animal_0{
+      rt.Str name$imm();
+      
+      rt.Str run$imm();
+      static rt.Str name$imm$fun(test.Animal_0 $this) {
+        return Str$6461069789386292430$Str$.$self;
+      }
+      }
+      """, """
+      package test;
+      public interface Bear_0 extends test.Animal_0{
+      rt.Str name$imm();
+      
+      rt.Str run$imm();
+      static rt.Str name$imm$fun(test.Bear_0 $this) {
+        return Str$3002903412026342576$Str$.$self;
+      }
+      }
+      """, """
+      package test;
+      public interface BrownBear_0 extends test.Bear_0{
+      BrownBear_0 $self = new BrownBear_0Impl();
+      rt.Str name$imm();
+      
+      rt.Str run$imm();
+      static rt.Str run$imm$fun(test.BrownBear_0 $this) {
+        return Str$2552046189836841076$Str$.$self;
+      }
+      }
+      """, """
+      package test;
+      public record BrownBear_0Impl() implements test.BrownBear_0 {
+        public rt.Str name$imm() {
+        return  test.Bear_0.name$imm$fun(this);
+      }
+      
+      public rt.Str run$imm() {
+        return  test.BrownBear_0.run$imm$fun(this);
+      }
+      
+      
+      }
+      """), List.of("test/Animal_0.java", "test/Bear_0.java", "test/BrownBear_0.java", "test/BrownBear_0Impl.java"),
+      """
+      package test
+      alias base.Str as Str,
+      Animal: {
+        .name: Str -> "animal",
+        .run: Str  // abstract, not implemented
+      }
+      Bear: Animal {
+        .name: Str -> "bear"
+      }
+      BrownBear: Bear {
+        .run: Str -> "BrownBear runs fast"
+      }
+      """);
+  }
 }

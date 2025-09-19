@@ -45,7 +45,7 @@ public record JsProgram(List<JsFile> files) {
 record ToJsProgram(LogicMainJs main, MIR.Program program) {
   public List<JsFile> of(){
     ArrayList<JsFile> jsFiles = generateFiles();
-    List<JsFile> magicFiles = main.io().magicJsFiles();
+    List<JsFile> magicFiles = main.io().magicJsFiles(); // rt-js/*
     assert !magicFiles.isEmpty() : "Failed to read magic files";
     jsFiles.addAll(magicFiles);
     return Collections.unmodifiableList(jsFiles);

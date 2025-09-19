@@ -1683,29 +1683,29 @@ public class TestJsCodegen {
       import { base$$Block_0, base$$Extensible_1 } from "../../base/index.js";
       
       export class base$$flows$$Fear894$_1 {
-        static actor$mut$fun(state_m$, f_m$, fear46155$_m$, flow_m$, isTail_m$) {
+        static actor$mut$fun(state_m$, f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.actor$mut(state_m$,f_m$));
         }
-        static first$mut$fun(fear46155$_m$, flow_m$, isTail_m$) {
+        static first$mut$fun(fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.first$mut());
         }
-        static count$mut$fun(fear46155$_m$, flow_m$, isTail_m$) {
+        static count$mut$fun(fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.count$mut());
         }
-        static actorMut$mut$fun(state_m$, f_m$, fear46155$_m$, flow_m$, isTail_m$) {
+        static actorMut$mut$fun(state_m$, f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.actorMut$mut(state_m$,f_m$));
         }
-        static all$mut$fun(p_m$, fear46155$_m$, flow_m$, isTail_m$) {
+        static all$mut$fun(p_m$, fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.all$mut(p_m$));
         }
-        static limit$mut$fun(n_m$, fear46155$_m$, flow_m$, isTail_m$) {
+        static limit$mut$fun(n_m$, fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.limit$mut(n_m$));
         }
         static map$mut$fun(...args) {
           switch(args.length) {
             case 4: {
               let f_m$ = args[0];
-              let fear46155$_m$ = args[1];
+              let fear[###]$_m$ = args[1];
               let flow_m$ = args[2];
               let isTail_m$ = args[3];
               return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.map$mut(f_m$));
@@ -1713,7 +1713,7 @@ public class TestJsCodegen {
             case 5: {
               let ctx_m$ = args[0];
               let f_m$ = args[1];
-              let fear46155$_m$ = args[2];
+              let fear[###]$_m$ = args[2];
               let flow_m$ = args[3];
               let isTail_m$ = args[4];
               return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.map$mut(ctx_m$,f_m$));
@@ -1722,28 +1722,28 @@ public class TestJsCodegen {
           }
         }
       
-        static unwrapOp$mut$fun(token_m$, fear46155$_m$, flow_m$) {
+        static unwrapOp$mut$fun(token_m$, fear[###]$_m$, flow_m$) {
           return flow_m$.unwrapOp$mut(token_m$);
         }
-        static fold$mut$fun(acc_m$, f_m$, fear46155$_m$, flow_m$, isTail_m$) {
+        static fold$mut$fun(acc_m$, f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.fold$mut(acc_m$,f_m$));
         }
-        static assumeFinite$mut$fun(fear46155$_m$, flow_m$, isTail_m$) {
+        static assumeFinite$mut$fun(fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.assumeFinite$mut());
         }
-        static any$mut$fun(p_m$, fear46155$_m$, flow_m$, isTail_m$) {
+        static any$mut$fun(p_m$, fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.any$mut(p_m$));
         }
-        static filter$mut$fun(predicate_m$, fear46155$_m$, flow_m$, isTail_m$) {
+        static filter$mut$fun(predicate_m$, fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.filter$mut(predicate_m$));
         }
-        static findMap$mut$fun(f_m$, fear46155$_m$, flow_m$, isTail_m$) {
+        static findMap$mut$fun(f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.findMap$mut(f_m$));
         }
-        static size$read$fun(fear46155$_m$, flow_m$) {
+        static size$read$fun(fear[###]$_m$, flow_m$) {
           return flow_m$.size$read();
         }
-        static flatMap$mut$fun(f_m$, fear46155$_m$, flow_m$, isTail_m$) {
+        static flatMap$mut$fun(f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
           return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.flatMap$mut(f_m$));
         }
       }
@@ -1795,5 +1795,55 @@ public class TestJsCodegen {
       package test
       Test: Main{sys -> sys.io.println("Hello!".utf8.flow.map{b -> b.str}.join ",")}
       """, Base.mutBaseAliases);
+  }
+
+  @Test void animalTypes() {
+    okList(List.of("""
+      import { rt$$Str } from "../rt-js/Str.js";
+      
+      export class test$$Animal_0 {
+        static name$imm$fun($this) {
+          return rt$$Str.fromJsStr("animal");
+        }
+      }
+      """, """
+      import { rt$$Str } from "../rt-js/Str.js";
+      
+      export class test$$Bear_0 {
+        static name$imm$fun($this) {
+          return rt$$Str.fromJsStr("bear");
+        }
+      }
+      """, """
+      import { rt$$Str } from "../rt-js/Str.js";
+      import { test$$Bear_0 } from "../test/Bear_0.js";
+      
+      export class test$$BrownBear_0 {
+        static run$imm$fun($this) {
+          return rt$$Str.fromJsStr("BrownBear runs fast");
+        }
+      }
+      
+      export class test$$BrownBear_0Impl {
+        run$imm() { return test$$BrownBear_0.run$imm$fun(this); }
+        name$imm() { return test$$Bear_0.name$imm$fun(this); }
+      }
+      
+      test$$BrownBear_0.$self = new test$$BrownBear_0Impl();
+      """), List.of("test/Animal_0.js", "test/Bear_0.js", "test/BrownBear_0.js"),
+      """
+      package test
+      alias base.Str as Str,
+      Animal: {
+        .name: Str -> "animal",
+        .run: Str  // abstract, not implemented
+      }
+      Bear: Animal {
+        .name: Str -> "bear"
+      }
+      BrownBear: Bear {
+        .run: Str -> "BrownBear runs fast"
+      }
+      """);
   }
 }
