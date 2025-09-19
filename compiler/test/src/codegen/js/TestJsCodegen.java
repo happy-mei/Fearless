@@ -1802,9 +1802,21 @@ public class TestJsCodegen {
       import { rt$$Str } from "../rt-js/Str.js";
       
       export class test$$Animal_0 {
-        static name$imm$fun($this) {
-          return rt$$Str.fromJsStr("animal");
+        static name$imm$fun(...args) {
+          switch(args.length) {
+            case 1: {
+              let $this = args[0];
+              return rt$$Str.fromJsStr("animal");
         }
+            case 2: {
+              let a_m$ = args[0];
+              let $this = args[1];
+              return a_m$.$plus$imm(rt$$Str.fromJsStr("animal"));
+        }
+            default: throw new Error('No overload for name$imm$fun with ' + args.length + ' arguments');
+          }
+        }
+      
       }
       """, """
       import { rt$$Str } from "../rt-js/Str.js";
@@ -1826,7 +1838,7 @@ public class TestJsCodegen {
       
       export class test$$BrownBear_0Impl {
         run$imm() { return test$$BrownBear_0.run$imm$fun(this); }
-        name$imm() { return test$$Bear_0.name$imm$fun(this); }
+        name$imm(...args) { return test$$Bear_0.name$imm$fun(...args, this); }
       }
       
       test$$BrownBear_0.$self = new test$$BrownBear_0Impl();
@@ -1836,6 +1848,7 @@ public class TestJsCodegen {
       alias base.Str as Str,
       Animal: {
         .name: Str -> "animal",
+        .name(a:Str): Str -> a+"animal",
         .run: Str  // abstract, not implemented
       }
       Bear: Animal {
