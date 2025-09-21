@@ -291,6 +291,7 @@ public class TestJsProgram {
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, ((0 - 2) - 9223372036854775807) .str, { Void }) }
+    -9223372036854775809
     """);}
   @Test void modulo() {
     ok(new Res("1", "", 0), """

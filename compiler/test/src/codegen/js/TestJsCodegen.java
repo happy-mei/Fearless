@@ -412,7 +412,16 @@ public class TestJsCodegen {
     
     export class test$$Test_0 {
       static a$imm$1$fun($this) {
-        return rt$$Str.fromJsStr(rt$$Numbers.toNat64(BigInt(rt$$Numbers.toNat64((rt$$Numbers.toNat64(BigInt(rt$$Numbers.toNat64((rt$$Numbers.toNat64(0n) - rt$$Numbers.toNat64(2n))))) - rt$$Numbers.toNat64(9223372036854775807n))))));
+        return rt$$Str.fromJsStr(
+          rt$$Numbers.toNat64(
+          BigInt(
+          rt$$Numbers.toNat64(
+          (rt$$Numbers.toNat64(BigInt(rt$$Numbers.toNat64((rt$$Numbers.toNat64(0n) - rt$$Numbers.toNat64(2n)))))
+           - rt$$Numbers.toNat64(9223372036854775807n))
+           )
+           )
+           )
+        );
       }
     }
     
@@ -1088,21 +1097,39 @@ public class TestJsCodegen {
 
   @Test void optional() {
     okList(List.of("""
-    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
-    
-    export class test$$Test_0 {
-      static getAge$imm$fun(p_m$, $this) {
-        return p_m$.match$imm(test$$Fear[###]$_0.$self);
+      import { test$$Fear715$_0 } from "../test/Fear715$_0.js";
+      
+      export class test$$Test_0 {
+        static getAge$imm$2$fun(p_m$, $this) {
+          return p_m$.match$imm$1(test$$Fear715$_0.$self);
+        }
       }
-    }
-    
-    export class test$$Test_0Impl {
-      getAge$imm(p_m$) { return test$$Test_0.getAge$imm$fun(p_m$, this); }
-    }
-    
-    test$$Test_0.$self = new test$$Test_0Impl();
-    """),
-      List.of("test/Test_0.js"),
+      
+      export class test$$Test_0Impl {
+        getAge$imm$1(p_m$) { return test$$Test_0.getAge$imm$2$fun(p_m$, this); }
+      }
+      
+      test$$Test_0.$self = new test$$Test_0Impl();
+      """, """
+      import { rt$$Numbers } from "../rt-js/Numbers.js";
+      
+      export class test$$Fear715$_0 {
+        static empty$mut$1$fun(fear[###]$_m$) {
+          return rt$$Numbers.toNat64(0n);
+        }
+        static some$mut$2$fun(p$_m$, fear[###]$_m$) {
+          return p$_m$.age$imm$0();
+        }
+      }
+      
+      export class test$$Fear715$_0Impl {
+        some$mut$1(p$_m$) { return test$$Fear715$_0.some$mut$2$fun(p$_m$, this); }
+        empty$mut$0() { return test$$Fear715$_0.empty$mut$1$fun(this); }
+      }
+      
+      test$$Fear715$_0.$self = new test$$Fear715$_0Impl();
+      """),
+      List.of("test/Test_0.js", "test/Fear715$_0.js"),
       """
       package test
       alias base.Nat as Nat,
