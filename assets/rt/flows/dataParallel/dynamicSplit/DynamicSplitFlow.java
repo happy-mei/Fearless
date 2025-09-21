@@ -109,7 +109,6 @@ public final class DynamicSplitFlow {
     }
   }
 
-  @SuppressWarnings("preview")
   public void run() {
     try {
       if (!isRunning.getPlain()) {

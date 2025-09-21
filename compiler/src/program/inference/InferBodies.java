@@ -192,7 +192,6 @@ public record InferBodies(ast.Program p) {
       CM::isAbs
     );
     } catch (CompileError err) { throw err.parentPos(e.pos()); }
-    @SuppressWarnings("preview")
     var nUniqueSigs = sigs.stream()
       .gather(DistinctBy.of(sig->sig.name().withMdf(Optional.empty())))
       .limit(2)

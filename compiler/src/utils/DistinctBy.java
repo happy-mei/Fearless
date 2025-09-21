@@ -3,7 +3,6 @@ package utils;
 import java.util.HashSet;
 import java.util.stream.Gatherer;
 
-@SuppressWarnings("preview")
 public interface DistinctBy<T,K> extends Gatherer.Integrator<HashSet<K>,T,T> {
   static <T,K> Gatherer<T,HashSet<K>,T> of(DistinctBy<T,K> keyFn) { return Gatherer.ofSequential(HashSet::new, keyFn); }
 

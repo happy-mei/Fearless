@@ -240,7 +240,6 @@ public class Program implements program.Program{
     }
     Id.MethName onlyAbs(XBs xbs, T.Dec dec){
       // depth doesn't matter here because we just extract the name
-      @SuppressWarnings("preview")
       var abstractLambda = p.meths(xbs, Mdf.recMdf, dec.toAstT(), -1).stream()
         .filter(CM::isAbs)
         .gather(DistinctBy.of(cm->cm.name().withMdf(Optional.empty())));
