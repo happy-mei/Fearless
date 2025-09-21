@@ -5,20 +5,17 @@ import { base$$Void_0 } from "../base/index.js";
 export class rt$$Debug {
   static $self = new rt$$Debug();
 
-  // Equivalent to Java println$imm
   println$imm$1(x) {
-    rt$$IO.$self.printlnErr$mut$1(rt$$Debug.toStr(x).utf8());
+    rt$$IO.$self.printlnErr$mut$1(rt$$Debug.toStr(x));
     return base$$Void_0.$self;
   }
 
-  // Equivalent to Java identify$imm
   identify$imm$1(x) {
     return rt$$Debug.demangle(x);
   }
 
-  // Equivalent to Java $hash$imm
   $hash$imm$1(x) {
-    rt$$IO.$self.printlnErr$mut$1(rt$$Debug.toStr(x).utf8());
+    rt$$IO.$self.printlnErr$mut$1(rt$$Debug.toStr(x));
     return x;
   }
 

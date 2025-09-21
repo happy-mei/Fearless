@@ -725,4 +725,21 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
       }
     };
   }
+
+  @Override public MagicTrait<MIR.E,String> document(MIR.E e) {
+    return new MagicTrait<>() {
+      @Override public Optional<String> instantiate() {
+        return Optional.of("rt$$Document.$self");
+      }
+      @Override public Optional<String> call(Id.MethName m,
+                                             List<? extends MIR.E> args,
+                                             EnumSet<MIR.MCall.CallVariant> variants,
+                                             MIR.MT expectedT) {
+        // Forward method names to JS
+        return Optional.of("rt$$Document.$self" + m.name() + "(" +
+          args.stream().map(a -> a.accept(gen, true)).collect(Collectors.joining(",")) +
+          ")");
+      }
+    };
+  }
 }

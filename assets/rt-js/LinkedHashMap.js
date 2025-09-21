@@ -47,7 +47,7 @@ export class rt$$LinkedHashMap {
   }
 
   put$mut$2(k, v) {
-    return this.$plus$mut(k, v);
+    return this.$plus$mut$2(k, v);
   }
 
   keys$read$0() {

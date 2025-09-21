@@ -123,7 +123,6 @@ public class TestJsProgram {
     Block:{#[A:imm,R:imm](_: A, r: R): R -> r}
     """); }
 
-
   /** String **/
   // .str
   @Test void longToStr() { ok(new Res("", "123456789", 1), """
@@ -168,6 +167,35 @@ public class TestJsProgram {
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, -123456789 .str, { Void }) }
     """);}
+  @Test void stringableString() { ok(new Res("Hello, World!", "", 0), """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(Foo.msg("Hello, World"))}
+    Foo: {.msg(start: Stringable): Str -> start.str + "!"}
+    """, Base.mutBaseAliases); }
+  @Test void literalSubtypeNat() {
+    ok(new Res("25", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(MyNums# .str)}
+    MyNums: {#: MyNum -> MyNum: 25{}}
+    """, Base.mutBaseAliases);}
+  @Disabled void literalSubtypeStr() {
+    ok(new Res("Mei", "", 0), """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(MyNames#)}
+    MyNames: {#: MyName -> MyName: "Mei"{}}
+    """, Base.mutBaseAliases);}
+  @Disabled void stringConcatMut() {
+    ok(new Res("Hello, World! Bye!", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#(" "))}
+    Foo: {#(join: Str): Str -> mut "Hello," + join + "World!" + join + "Bye!"}
+    """, Base.mutBaseAliases);}
+  @Disabled void stringConcatMutAndMut() {
+    ok(new Res("Hello, World! Bye!", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(Foo#(mut " "))}
+    Foo: {#(join: mut Str): mut Str -> mut "Hello," + join + mut "World!" + join + mut "Bye!"}
+    """, Base.mutBaseAliases);}
 
   /** utf8 **/
   @Test void strToBytes() {
@@ -198,6 +226,18 @@ public class TestJsProgram {
     alias base.UTF8 as UTF8,
     Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(-28 .byte))!)}
     """, Base.mutBaseAliases);}
+  @Test void strEq() { ok(new Res("", "", 0), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{_ -> Assert!("abc" == "abc", {Void})}
+    """);}
+  @Test void strEqFail() { ok(new Res("", "Assertion failed :(", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{_ -> Assert!("abc" == "def", {Void})}
+    """);}
 
   /** Number **/
   @Test void addition() { ok(new Res("", "7", 1), """
@@ -266,13 +306,29 @@ public class TestJsProgram {
       Test:Main{sys -> sys.io.println((2 ** 3) .str) }
       """);
   }
-  @Test void absoluteValue() {
-    ok(new Res("5", "", 0), """
-      package test
-      alias base.Main as Main,
-      Test:Main{sys -> sys.io.println(-5.abs.str) }
-      """);
-  }
+  // abs
+  @Test void absIntPos() { ok(new Res("", "", 0), """
+    package test
+    Test:Main{ _ -> Assert!(+5 .abs == +5) }
+    """, Base.mutBaseAliases); }
+  @Test void absIntZero() { ok(new Res("", "", 0), """
+    package test
+    Test:Main{ _ -> Assert!(+0 .abs == +0) }
+    """, Base.mutBaseAliases); }
+  @Test void absIntNeg() { ok(new Res("", "", 0), """
+    package test
+    Test:Main{ _ -> Assert!(-5 .abs == +5) }
+    """, Base.mutBaseAliases); }
+
+  @Test void absNatPos() { ok(new Res("", "", 0), """
+    package test
+    Test:Main{ _ -> Assert!(5 .abs == 5) }
+    """, Base.mutBaseAliases); }
+  @Test void absNatZero() { ok(new Res("", "", 0), """
+    package test
+    Test:Main{ _ -> Assert!(0 .abs == 0) }
+    """, Base.mutBaseAliases); }
+  // sqrt
   @Test void sqrt() {
     ok(new Res("3", "", 0), """
       package test
@@ -280,6 +336,31 @@ public class TestJsProgram {
       Test:Main{sys -> sys.io.println((9).sqrt.str) }
       """);
   }
+  @Test void numSqrtOne() { ok(new Res("", "10", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, 100.sqrt.str, { Void }) }
+    """);}
+  @Test void numSqrtMany() { ok(new Res("",
+    "10W2227255841W2227255841W2227255841W3037000499W4294967295W15", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False,
+      100.sqrt.str
+      +"W"+(4960668585723128321.int.sqrt.str)//Why we need .str? is + not taking a ToStr?
+      +"W"+(4960668585723128325.int.sqrt.str)
+      +"W"+(4960668585723128399.int.sqrt.str)
+      +"W"+(9223372036854775807.int.sqrt.str)
+      +"W"+(18446744073709551615.nat.sqrt.str)
+      +"W"+(255.byte.sqrt.str),
+      { Void }) }
+    """);}
+  @Test void assertEq() { ok(new Res("", "", 0), """
+    package test
+    Test: Main{_ -> 5.assertEq(5)}
+    """, Base.mutBaseAliases); }
   @Test void numOpsOrder() {
     ok(new Res("", "", 0), """
       package test
@@ -327,10 +408,6 @@ public class TestJsProgram {
       .return{{}}
       }
     """, Base.mutBaseAliases); }
-  @Test void assertEq() { ok(new Res("", "", 0), """
-    package test
-    Test: Main{_ -> 5.assertEq(5)}
-    """, Base.mutBaseAliases); }
   @Test void floats() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
@@ -357,6 +434,23 @@ public class TestJsProgram {
       .let[Void] x = {UnrestrictedIO#sys.println("hey")}
       .return {Void}
       }
+    """, Base.mutBaseAliases); }
+  @Test void lazyCallEarlyExit() { ok(new Res("", "", 0), """
+    package test
+    Test: Main{sys -> Block#
+      .if {True} .return {Void}
+      .let[Void] x = {UnrestrictedIO#sys.println("hey")}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void eagerCallEarlyExit() { ok(new Res("", "hey", 0), """
+    package test
+    Test: Main{sys -> Block#
+      .if {True} .return {Void}
+      .openIso[iso Rez] x = (Block#(base.Debug#[Str]"hey", iso Rez))
+      .return {Void}
+      }
+    Rez: {}
     """, Base.mutBaseAliases); }
 
   /** List **/
@@ -406,12 +500,37 @@ public class TestJsProgram {
       .return{{}}
       }
     """, Base.mutBaseAliases); }
+
+  @Test void llistFilterMultiMdf() { ok(new Res("13, 14", "", 0), """
+    package test
+    Test:Main{ s -> Block#
+      .let io = { UnrestrictedIO#s }
+      .let[LList[Int]] l = { LList# + +12 + +13 + +14 }
+      .do { io.println(A.m1(l)) }
+      .return {{}}
+      }
+    A:{
+      .m1(l: LList[Int]): Str -> l.iter
+                                 .filter{n -> n >= (12.5 .round)}
+                                 .str({n->n.str}, ", ")
+      }
+    """, Base.mutBaseAliases);}
+  @Test void listFilterMultiMdf() { ok(new Res("13, 14", "", 0), """
+    package test
+    Test:Main{ s -> Block#
+      .let io = { UnrestrictedIO#s }
+      .let[List[Int]] l = { List#(+12, +13, +14) }
+      .do { io.println(A.m1(l)) }
+      .return {{}}
+      }
+    A:{
+      .m1(l: List[Int]): Str -> l.iter
+                                 .filter{n -> n >= (12.5 .round)}
+                                 .str({n->n.str}, ", ")
+      }
+    """, Base.mutBaseAliases);}
   @Test void paperExamplePrintIter() { ok(new Res("350,350,350,140,140,140", "", 0), """
     package test
-    alias base.Nat as Nat, alias base.Str as Str,
-    alias base.List as List, alias base.Block as Block,
-    alias base.caps.UnrestrictedIO as UnrestrictedIO, alias base.caps.IO as IO,
-
     Test :base.Main{ sys -> Block#
         .let l1 = { List#[Nat](35, 52, 84, 14) }
         .assert{l1.iter
@@ -427,14 +546,9 @@ public class TestJsProgram {
         .return {io.println(msg)}
         // prints 350,350,350,140,140,140
     }
-    """);}
+    """, Base.mutBaseAliases);}
   @Test void paperExamplePrintFlow() { ok(new Res("350,350,350,140,140,140", "", 0), """
     package test
-    alias base.Nat as Nat, alias base.Str as Str,
-    alias base.List as List, alias base.Block as Block,
-    alias base.caps.UnrestrictedIO as UnrestrictedIO, alias base.caps.IO as IO,
-    alias base.flows.Flow as Flow,
-
     Test: base.Main{ sys -> Block#
         .let l1 = { List#[Nat](35, 52, 84, 14) }
         .assert{l1.iter
@@ -451,7 +565,7 @@ public class TestJsProgram {
         .return {io.println(msg)}
         // prints 350,350,350,140,140,140
     }
-    """);}
+    """, Base.mutBaseAliases);}
   // as
   @Disabled void soundAsIdFnUList() { ok(new Res("1,2,3", "", 0), """
     package test
@@ -501,6 +615,7 @@ public class TestJsProgram {
         .return {Void}
     }
     """, Base.mutBaseAliases);}
+
   @Disabled void flow() {
     ok(new Res("Transformed List: 6, 7, 12, 13, 18", "", 0), """
     package test
@@ -619,4 +734,165 @@ public class TestJsProgram {
         }
       }
     """, Base.mutBaseAliases); }
+
+  /** inheritance **/
+  @Test void personFactory() { ok(new Res("Bob", "", 0), """
+    package test
+    FPerson:F[Str,Nat,Person]{ name, age -> Person:{
+      .name: Str -> name,
+      .age: Nat -> age,
+      }}
+    Test: Main{
+      #(sys) -> UnrestrictedIO#sys.println(this.name(this.create)),
+
+      .create: Person -> FPerson#("Bob", 24),
+      .name(p: Person): Str -> p.name,
+      }
+    """, Base.mutBaseAliases);}
+  @Test void overload() {ok(new Res("bear", "", 0), """
+    package test
+    alias base.Str as Str, alias base.Main as Main,
+    Animal: {
+      .name: Str -> "animal",
+      .name(a:Str): Str -> a+"animal",
+      .run: Str  // abstract, not implemented
+    }
+    Bear: Animal {
+      .name: Str -> "bear"
+    }
+    BrownBear: Bear {
+      .run: Str -> "BrownBear runs fast"
+    }
+    Test: Main{sys -> sys.io.println(BrownBear.name)}
+    """);}
+
+  /** mut imm read iso **/
+  @Test void canCreateMutLList() { ok(new Res("", "", 0), """
+    package test
+    Test:base.Main{ _ -> {} }
+    MutLList:{ #: mut base.LList[base.Int] -> mut base.LList[base.Int] + +35 + +52 + +84 + +14 }
+    """); }
+
+  @Test void immFromVarImmPrimitive() { ok(new Res("5", "", 0), """
+    package test
+    Test:Main{
+      #(s) -> UnrestrictedIO#s.println(this.m2.str),
+      .m1(r: read Var[Int]): Int -> r.get,
+      .m2: Int -> this.m1(Vars#(+5)),
+      }
+    """, Base.mutBaseAliases); }
+  @Test void namedLiteral() {
+    ok(new Res("Bob", "", 0), """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(CanCall# .str)}
+
+    Bob:{read .str: Str -> "Bob"}
+    Bar[X]: {.m(x: X): mut Foo[X] -> mut Foo[X]:{
+      mut .get: X -> x
+      }}
+    CanCall: {#: Bob -> Bar[Bob].m(Bob).get}
+    """, Base.mutBaseAliases);}
+
+  @Test void immThisAsImmInReadMethod() { ok(new Res("cool", "", 0), """
+    package test
+    Test: Main{sys -> UnrestrictedIO#sys.println(A.m1.str)}
+    A: {.m1: imm B -> B: {'self
+      imm .foo: B -> self,
+      read .bar: B -> self.foo,
+      imm .str: "cool" -> "cool",
+      }}
+    """, Base.mutBaseAliases); }
+  @Test void noConcurrentModification() {
+    ok(new Res("6", "", 0), """
+    package test
+    GetList: F[mut List[Nat]]{List# + 1 + 2 + 3 + 4}
+    Elem: {read .n: Nat, mut .list: mut List[mut Elem]}
+    BadMutation: {#: Nat -> Block#
+      .let[mut List[mut Elem]] l = {List#}
+      .do {l.add(mut Elem{.n -> 1, .list -> l})}
+      .do {l.add(mut Elem{.n -> 2, .list -> l})}
+      .do {l.add(mut Elem{.n -> 3, .list -> l})}
+      .return {l.iter
+        .fold[Nat](0, {acc, e -> acc + (e.n)})
+      }
+    }
+
+    Test: Main{sys -> sys.io.println(BadMutation# .str)}
+    """, Base.mutBaseAliases);}
+
+  /** Try, Error **/
+  @Disabled void tryCatch1() {
+    ok(new Res("Happy", "", 0), """
+          package test
+          Test:Main{s ->
+            UnrestrictedIO#s.println(Try#[Str]{"Happy"}.run{
+              .ok(res) -> res,
+              .info(err) -> err.str,
+              })
+            }
+      """, Base.mutBaseAliases);
+  }
+  @Disabled void tryCatch2() {
+    ok(new Res("oof", "", 0), """
+        package test
+        Test:Main{s ->
+          UnrestrictedIO#s.println(Try#[Str]{Error.msg("oof")}.run{ .ok(a) -> a, .info(err) -> err.msg })
+          }
+      """, Base.mutBaseAliases);
+  }
+  @Disabled void error1() {
+    ok(new Res("", "Program crashed with: \"yolo\"[###]", 1), """
+      package test
+      Test:Main{s -> Error.msg("yolo") }
+      """, Base.mutBaseAliases);
+  }
+  @Disabled void emptyOptErr1() {
+    ok(new Res("", "Program crashed with: \"Opt was empty\"[###]", 1), """
+      package test
+      Test:Main{s -> Block#(Opt[Str]!) }
+      """, Base.mutBaseAliases);
+  }
+  @Disabled void emptyOptErr2() {
+    ok(new Res("", "Opt was empty", 0), """
+      package test
+      Test:Main{s ->
+        Try#{Opt[Str]!}.run{
+          .ok(_) -> {},
+          .info(info) -> UnrestrictedIO#s.printlnErr(info.msg),
+          }
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void noMagicWithManualCapability() { ok(new Res("", "No magic code was found[###]", 1), """
+    package test
+    Test: Main{_ -> mut FakeIO.println("oh no")}
+    FakeIO: IO{
+      .print(msg) -> Magic!,
+      .println(msg) -> Magic!,
+      .printErr(msg) -> Magic!,
+      .printlnErr(msg) -> Magic!,
+      .accessR(_) -> Magic!,
+      .accessW(_) -> Magic!,
+      .accessRW(_) -> Magic!,
+      .env -> Magic!,
+      .iso -> iso FakeIO,
+      .self -> this,
+      }
+    """, Base.mutBaseAliases); }
+  @Disabled void linkedHashMap1() { ok(new Res("23\n32", "", 0), """
+    package test
+    Test:Main{ s -> Block#
+      .let[mut IO] io = {s.io}
+      .let[mut LinkedHashMap[Str,Nat]] m = {Maps.hashMap({k1,k2 -> k1 == k2}, {k->k})}
+      .do {m.put("Nick", 23)}
+      .do {m.put("Bob", 32)}
+      .do {io.println(m.get("Nick")!.str)}
+      .do {io.println(m.get("Bob")!.str)}
+      .assert {m.get("nobody").isEmpty}
+      .do {Block#(m.remove("Nick"))}
+      .assert {m.get("Nick").isEmpty}
+      .assert {m.get("Bob").isSome}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases);}
 }
