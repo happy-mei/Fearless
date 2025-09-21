@@ -645,38 +645,38 @@ public class TestJsCodegen {
 
   @Test void tanks() {
     okList(List.of("""
-    import { test$$Tank_0Impl } from "../test/Tank_0.js";
-    
-    export class test$$Tanks_0 {
-      static of$imm$3$fun(heading_m$, aiming_m$, $this) {
-        return new test$$Tank_0Impl(aiming_m$, heading_m$);
+      import { test$$Tank_0Impl } from "../test/Tank_0.js";
+      
+      export class test$$Tanks_0 {
+        static of$imm$3$fun(heading_m$, aiming_m$, $this) {
+          return new test$$Tank_0Impl(aiming_m$, heading_m$);
+        }
       }
-    }
-    
-    export class test$$Tanks_0Impl {
-      of$imm$2(heading_m$, aiming_m$) { return test$$Tanks_0.of$imm$3$fun(heading_m$, aiming_m$, this); }
-    }
-    
-    test$$Tanks_0.$self = new test$$Tanks_0Impl();
-    """, """
-    export class test$$Tank_0 {
-      static heading$imm$2$fun(fear[###]$_m$, heading_m$) {
-        return heading_m$;
+      
+      export class test$$Tanks_0Impl {
+        of$imm$2(heading_m$, aiming_m$) { return test$$Tanks_0.of$imm$3$fun(heading_m$, aiming_m$, this); }
       }
-      static aiming$imm$2$fun(fear[###]$_m$, aiming_m$) {
-        return aiming_m$;
+      
+      test$$Tanks_0.$self = new test$$Tanks_0Impl();
+      """, """
+      export class test$$Tank_0 {
+        static heading$imm$2$fun(fear[###]$_m$, heading_m$) {
+          return heading_m$;
+        }
+        static aiming$imm$2$fun(fear[###]$_m$, aiming_m$) {
+          return aiming_m$;
+        }
       }
-    }
-    
-    export class test$$Tank_0Impl {
-      constructor(aiming_m$, heading_m$) {
-        this.aiming_m$ = aiming_m$;
-        this.heading_m$ = heading_m$;
+      
+      export class test$$Tank_0Impl {
+        constructor(aiming_m$, heading_m$) {
+          this.aiming_m$ = aiming_m$;
+          this.heading_m$ = heading_m$;
+        }
+        aiming$imm$0() { return test$$Tank_0.aiming$imm$2$fun(this, this.aiming_m$); }
+        heading$imm$0() { return test$$Tank_0.heading$imm$2$fun(this, this.heading_m$); }
       }
-      aiming$imm$0() { return test$$Tank_0.aiming$imm$2$fun(this, this.aiming_m$); }
-      heading$imm$0() { return test$$Tank_0.heading$imm$2$fun(this, this.heading_m$); }
-    }
-    """),
+      """),
       List.of("test/Tanks_0.js", "test/Tank_0.js"),
       """
       package test
@@ -687,38 +687,86 @@ public class TestJsCodegen {
       """);
   }
 
+  @Test void tanksAnonymous() {
+    okList(List.of("""
+      import { test$$Fear714$_0Impl } from "../test/Fear714$_0.js";
+      
+      export class test$$Tanks_0 {
+        static of$imm$3$fun(heading_m$, aiming_m$, $this) {
+          return new test$$Fear714$_0Impl(aiming_m$, heading_m$);
+        }
+      }
+      
+      export class test$$Tanks_0Impl {
+        of$imm$2(heading_m$, aiming_m$) { return test$$Tanks_0.of$imm$3$fun(heading_m$, aiming_m$, this); }
+      }
+      
+      test$$Tanks_0.$self = new test$$Tanks_0Impl();
+      """, """
+      export class test$$Fear714$_0 {
+        static heading$imm$2$fun(fear[###]$_m$, heading_m$) {
+          return heading_m$;
+        }
+        static aiming$imm$2$fun(fear[###]$_m$, aiming_m$) {
+          return aiming_m$;
+        }
+      }
+      
+      export class test$$Fear714$_0Impl {
+        constructor(aiming_m$, heading_m$) {
+          this.aiming_m$ = aiming_m$;
+          this.heading_m$ = heading_m$;
+        }
+        aiming$imm$0() { return test$$Fear714$_0.aiming$imm$2$fun(this, this.aiming_m$); }
+        heading$imm$0() { return test$$Fear714$_0.heading$imm$2$fun(this, this.heading_m$); }
+      }
+      """, """
+      export class test$$Tank_0 {
+      }
+      """),
+      List.of("test/Tanks_0.js", "test/Fear714$_0.js", "test/Tank_0.js"),
+      """
+      package test
+      Tank: { .heading: Direction, .aiming: Direction, }
+      Tanks: { .of(heading: Direction, aiming: Direction): Tank ->
+        { .heading -> heading, .aiming -> aiming, }
+        }
+      Direction: {}
+      """);
+  }
+
   @Test void tanksWithSugar() {
     okList(List.of("""
-    import { test$$Direction_0 } from "../test/Direction_0.js";
-    import { test$$East_0 } from "../test/East_0.js";
-    
-    export class test$$North_0 {
-      static turn$imm$fun($this) {
-        return test$$East_0.$self;
+      import { test$$Direction_0 } from "../test/Direction_0.js";
+      import { test$$East_0 } from "../test/East_0.js";
+      
+      export class test$$North_0 {
+        static turn$imm$1$fun($this) {
+          return test$$East_0.$self;
+        }
       }
-    }
-    
-    export class test$$North_0Impl {
-      reverse$imm() { return test$$Direction_0.reverse$imm$fun(this); }
-      turn$imm() { return test$$North_0.turn$imm$fun(this); }
-    }
-    
-    test$$North_0.$self = new test$$North_0Impl();
-    """, """
-    import { test$$Fear[###]$_0Impl } from "../test/Fear[###]$_0.js";
-    
-    export class test$$Tanks_0 {
-      static $hash$imm$fun(heading_m$, aiming_m$, $this) {
-        return new test$$Fear[###]$_0Impl(aiming_m$, heading_m$);
+      
+      export class test$$North_0Impl {
+        reverse$imm$0() { return test$$Direction_0.reverse$imm$1$fun(this); }
+        turn$imm$0() { return test$$North_0.turn$imm$1$fun(this); }
       }
-    }
-
-    export class test$$Tanks_0Impl {
-      $hash$imm(heading_m$, aiming_m$) { return test$$Tanks_0.$hash$imm$fun(heading_m$, aiming_m$, this); }
-    }
-
-    test$$Tanks_0.$self = new test$$Tanks_0Impl();
-    """),
+      
+      test$$North_0.$self = new test$$North_0Impl();
+      """, """
+      import { test$$Fear[###]$_0Impl } from "../test/Fear[###]$_0.js";
+      
+      export class test$$Tanks_0 {
+        static $hash$imm$3$fun(heading_m$, aiming_m$, $this) {
+          return new test$$Fear[###]$_0Impl(aiming_m$, heading_m$);
+        }
+      }
+      
+      export class test$$Tanks_0Impl {
+        $hash$imm$2(heading_m$, aiming_m$) { return test$$Tanks_0.$hash$imm$3$fun(heading_m$, aiming_m$, this); }
+      }
+      
+      test$$Tanks_0.$self = new test$$Tanks_0Impl();
+      """),
       List.of("test/North_0.js", "test/Tanks_0.js"),
       """
       package test
