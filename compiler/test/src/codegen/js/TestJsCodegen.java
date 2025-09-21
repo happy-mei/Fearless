@@ -411,13 +411,13 @@ public class TestJsCodegen {
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$Test_0 {
-      static a$imm$fun($this) {
-        return rt$$Str.fromJsStr((BigInt(rt$$Numbers.toNat64((BigInt(rt$$Numbers.toNat64((0n - 2n))) - 9223372036854775807n)))).toString());
+      static a$imm$1$fun($this) {
+        return rt$$Str.fromJsStr(rt$$Numbers.toNat64(BigInt(rt$$Numbers.toNat64((rt$$Numbers.toNat64(BigInt(rt$$Numbers.toNat64((rt$$Numbers.toNat64(0n) - rt$$Numbers.toNat64(2n))))) - rt$$Numbers.toNat64(9223372036854775807n))))));
       }
     }
     
     export class test$$Test_0Impl {
-      a$imm() { return test$$Test_0.a$imm$fun(this); }
+      a$imm$0() { return test$$Test_0.a$imm$1$fun(this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
