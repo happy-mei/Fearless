@@ -648,22 +648,22 @@ public class TestJsCodegen {
     import { test$$Tank_0Impl } from "../test/Tank_0.js";
     
     export class test$$Tanks_0 {
-      static of$imm$fun(heading_m$, aiming_m$, $this) {
+      static of$imm$3$fun(heading_m$, aiming_m$, $this) {
         return new test$$Tank_0Impl(aiming_m$, heading_m$);
       }
     }
     
     export class test$$Tanks_0Impl {
-      of$imm(heading_m$, aiming_m$) { return test$$Tanks_0.of$imm$fun(heading_m$, aiming_m$, this); }
+      of$imm$2(heading_m$, aiming_m$) { return test$$Tanks_0.of$imm$3$fun(heading_m$, aiming_m$, this); }
     }
     
     test$$Tanks_0.$self = new test$$Tanks_0Impl();
     """, """
     export class test$$Tank_0 {
-      static heading$imm$fun(fear[###]$_m$, heading_m$) {
+      static heading$imm$2$fun(fear[###]$_m$, heading_m$) {
         return heading_m$;
       }
-      static aiming$imm$fun(fear[###]$_m$, aiming_m$) {
+      static aiming$imm$2$fun(fear[###]$_m$, aiming_m$) {
         return aiming_m$;
       }
     }
@@ -673,8 +673,8 @@ public class TestJsCodegen {
         this.aiming_m$ = aiming_m$;
         this.heading_m$ = heading_m$;
       }
-      aiming$imm() { return test$$Tank_0.aiming$imm$fun(this, this.aiming_m$); }
-      heading$imm() { return test$$Tank_0.heading$imm$fun(this, this.heading_m$); }
+      aiming$imm$0() { return test$$Tank_0.aiming$imm$2$fun(this, this.aiming_m$); }
+      heading$imm$0() { return test$$Tank_0.heading$imm$2$fun(this, this.heading_m$); }
     }
     """),
       List.of("test/Tanks_0.js", "test/Tank_0.js"),

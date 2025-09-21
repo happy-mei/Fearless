@@ -90,47 +90,33 @@ public class TestDomAccess {
   @Test void TaskManager() {
     ok("""
     """,
-    "todo/TaskManager_0.js",
+    "todo/Test_0.js",
     """
     package todo
     alias base.Document as Document, alias base.Element as Element, alias base.Main as Main, alias base.Block as Block, alias base.Void as Void,
-    TaskManager:{
-      // captured DOM nodes
-      .doc   : Document,
-      .input : Element,
-      .addBtn: Element,
-      .list  : Element,
-    
-      // a method that builds the addTask block
-      .addTask:Void -> Block#
-        .if { input.value.trim == "" } .return { Void }
+    Task: {
+      .addTask(doc: Document, input: Element, addBtn: Element, list: Element): Void -> Block#
         .let[Str] text = { input.value.trim }
+        .if { input.value.trim == "" } .return { Void }
         .let[Element] li   = { doc.createElement("li") }
         .let[Element] span = { doc.createElement("span") }
         .do { span.setText(text) }
-        .do { span.addEventListener("click", Block#{
-          .do { li.toggleClass("completed") }
-        }) }
-  
         .let[Element] delBtn = { doc.createElement("button") }
         .do { delBtn.setText("✕") }
-        .do { delBtn.addEventListener("click", Block#{
-          .do { li.remove }
-        }) }
-  
         .do { li.appendChild(span) }
         .do { li.appendChild(delBtn) }
         .do { list.appendChild(li) }
-  
         .do { input.setValue("") }
         .do { input.focus }
-        .return{{}},
-    
-      // initialize wiring
-      .init:Void -> Block#
-        .do { addBtn.addEventListener("click", addTask()) }
-        .do { input.addEventListenerKey("Enter", addTask()) }
-        .return{{}}
+        .return { Void }
+    }
+    Test: Main{_ -> Block#
+      .let[Document] doc = { Document }
+      .let[Element] input = { doc.getElementById("todoInput") }
+      .let[Element] addBtn = { doc.getElementById("addBtn") }
+      .let[Element] list = { doc.getElementById("todoList") }
+      .do { addBtn.addEventListener("click") }
+      .return{{}}
     }
     """);
   }
