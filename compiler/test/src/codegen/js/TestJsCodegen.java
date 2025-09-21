@@ -1546,85 +1546,64 @@ public class TestJsCodegen {
       import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
       
       export class test$$Test_0 {
-        static $hash$imm$fun(fear[###]$_m$, $this) {
-          return base$$Assert_0.$self.$exclamation$imm(base$$True_0.$self,test$$Fear[###]$_0.$self);
+        static $hash$imm$2$fun(fear31$_m$, $this) {
+          return base$$Assert_0.$self.$exclamation$imm$2(base$$True_0.$self,test$$Fear[###]$_0.$self);
         }
       }
       
       export class test$$Test_0Impl {
-        $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+        $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
       }
       
       test$$Test_0.$self = new test$$Test_0Impl();
       """, """
-      import { base$$Fear1655$_0, base$$True_0 } from "../base/index.js";
+      import { base$$Fear[###]$_0, base$$True_0 } from "../base/index.js";
       import { rt$$IO } from "../rt-js/IO.js";
       
       export class base$$Assert_0 {
-        static _fail$imm$fun(...args) {
-          switch(args.length) {
-            case 1: {
-              let $this = args[0];
-              return (function() {
-          console.error("No magic code was found at:\\n" + new Error().stack);
-          if (typeof process !== "undefined") process.exit(1);
-          else throw new Error("No magic code was found");
-        })()
-      ;
+        static $exclamation$imm$2$fun(assertion_m$, $this) {
+          return $this.$exclamation$imm$2(assertion_m$,base$$Fear[###]$_0.$self);
         }
-            case 2: {
-              let msg_m$ = args[0];
-              let $this = args[1];
-              return (function() {
-          console.error("No magic code was found at:\\n" + new Error().stack);
-          if (typeof process !== "undefined") process.exit(1);
-          else throw new Error("No magic code was found");
-        })()
-      ;
-        }
-            default: throw new Error('No overload for _fail$imm$fun with ' + args.length + ' arguments');
-          }
-        }
-      
-        static $exclamation$imm$fun(...args) {
-          switch(args.length) {
-            case 2: {
-              let assertion_m$ = args[0];
-              let $this = args[1];
-              return $this.$exclamation$imm(assertion_m$,base$$Fear1655$_0.$self);
-        }
-            case 3: {
-              let assertion_m$ = args[0];
-              let cont_m$ = args[1];
-              let $this = args[2];
-              return (assertion_m$ == base$$True_0.$self ? cont_m$.$hash$mut() :   (() => {
+        static $exclamation$imm$3$fun(assertion_m$, cont_m$, $this) {
+          return (assertion_m$ == base$$True_0.$self ? cont_m$.$hash$mut$0() :   (() => {
           console.error("Assertion failed :(");
           if (typeof process !== "undefined") process.exit(1);
           else throw new Error("Assertion failed :(");
         })()
       );
         }
-            case 4: {
-              let assertion_m$ = args[0];
-              let msg_m$ = args[1];
-              let cont_m$ = args[2];
-              let $this = args[3];
-              return (assertion_m$ == base$$True_0.$self ? cont_m$.$hash$mut() :   (() => {
+        static $exclamation$imm$4$fun(assertion_m$, msg_m$, cont_m$, $this) {
+          return (assertion_m$ == base$$True_0.$self ? cont_m$.$hash$mut$0() :   (() => {
           rt$$IO.$self.printlnErr$mut(msg_m$);
           if (typeof process !== "undefined") process.exit(1);
           else throw new Error(msg_m$);
         })()
       );
         }
-            default: throw new Error('No overload for $exclamation$imm$fun with ' + args.length + ' arguments');
-          }
+        static _fail$imm$1$fun($this) {
+          return (function() {
+          console.error("No magic code was found at:\\n" + new Error().stack);
+          if (typeof process !== "undefined") process.exit(1);
+          else throw new Error("No magic code was found");
+        })()
+      ;
         }
-      
+        static _fail$imm$2$fun(msg_m$, $this) {
+          return (function() {
+          console.error("No magic code was found at:\\n" + new Error().stack);
+          if (typeof process !== "undefined") process.exit(1);
+          else throw new Error("No magic code was found");
+        })()
+      ;
+        }
       }
       
       export class base$$Assert_0Impl {
-        _fail$imm(...args) { return base$$Assert_0._fail$imm$fun(...args, this); }
-        $exclamation$imm(...args) { return base$$Assert_0.$exclamation$imm$fun(...args, this); }
+        $exclamation$imm$1(assertion_m$) { return base$$Assert_0.$exclamation$imm$2$fun(assertion_m$, this); }
+        $exclamation$imm$2(assertion_m$, cont_m$) { return base$$Assert_0.$exclamation$imm$3$fun(assertion_m$, cont_m$, this); }
+        $exclamation$imm$3(assertion_m$, msg_m$, cont_m$) { return base$$Assert_0.$exclamation$imm$4$fun(assertion_m$, msg_m$, cont_m$, this); }
+        _fail$imm$0() { return base$$Assert_0._fail$imm$1$fun(this); }
+        _fail$imm$1(msg_m$) { return base$$Assert_0._fail$imm$2$fun(msg_m$, this); }
       }
       
       base$$Assert_0.$self = new base$$Assert_0Impl();
@@ -1638,28 +1617,27 @@ public class TestJsCodegen {
   }
 
 
-  @Test void bytesToStrManual() {
+  @Test void bytesToStr() {
     ok("""
-      import { rt$$ListK } from "../rt-js/ListK.js";
-      import { rt$$Numbers } from "../rt-js/Numbers.js";
+      import { rt$$Str } from "../rt-js/Str.js";
       import { rt$$UTF8 } from "../rt-js/UTF8.js";
-      
+
       export class test$$Test_0 {
-        static $hash$imm$fun(sys_m$, $this) {
-          return sys_m$.io$mut().println$mut(rt$$UTF8.$self.fromBytes$imm(rt$$ListK.$self.$hash$imm((Number(rt$$Numbers.toNat64(65n)) & 0xFF),(Number(rt$$Numbers.toNat64(66n)) & 0xFF))).$exclamation$mut());
+        static $hash$imm$2$fun(sys_m$, $this) {
+          return sys_m$.io$mut$0().println$mut$1(rt$$UTF8.$self.fromBytes$imm$1(rt$$Str.fromJsStr("Hello!").utf8$imm$0()).$exclamation$mut$0());
         }
       }
-      
+
       export class test$$Test_0Impl {
-        $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+        $hash$imm$1(sys_m$) { return test$$Test_0.$hash$imm$2$fun(sys_m$, this); }
       }
-      
+
       test$$Test_0.$self = new test$$Test_0Impl();
       """, "test/Test_0.js", """
       package test
-      alias base.UTF8 as UTF8,
-      Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(65 .byte, 66 .byte))!)}
-      """, Base.mutBaseAliases);
+      alias base.UTF8 as UTF8, alias base.Main as Main,
+      Test: Main{sys -> sys.io.println(UTF8.fromBytes("Hello!".utf8)!)}
+      """);
   }
   @Test void strToBytes() {
     okList(List.of("""
@@ -1802,43 +1780,36 @@ public class TestJsCodegen {
       import { rt$$Str } from "../rt-js/Str.js";
       
       export class test$$Animal_0 {
-        static name$imm$fun(...args) {
-          switch(args.length) {
-            case 1: {
-              let $this = args[0];
-              return rt$$Str.fromJsStr("animal");
+        static name$imm$1$fun($this) {
+          return rt$$Str.fromJsStr("animal");
         }
-            case 2: {
-              let a_m$ = args[0];
-              let $this = args[1];
-              return a_m$.$plus$imm(rt$$Str.fromJsStr("animal"));
+        static name$imm$2$fun(a_m$, $this) {
+          return a_m$.$plus$imm$1(rt$$Str.fromJsStr("animal"));
         }
-            default: throw new Error('No overload for name$imm$fun with ' + args.length + ' arguments');
-          }
-        }
-      
       }
       """, """
       import { rt$$Str } from "../rt-js/Str.js";
       
       export class test$$Bear_0 {
-        static name$imm$fun($this) {
+        static name$imm$1$fun($this) {
           return rt$$Str.fromJsStr("bear");
         }
       }
       """, """
       import { rt$$Str } from "../rt-js/Str.js";
+      import { test$$Animal_0 } from "../test/Animal_0.js";
       import { test$$Bear_0 } from "../test/Bear_0.js";
       
       export class test$$BrownBear_0 {
-        static run$imm$fun($this) {
+        static run$imm$1$fun($this) {
           return rt$$Str.fromJsStr("BrownBear runs fast");
         }
       }
       
       export class test$$BrownBear_0Impl {
-        run$imm() { return test$$BrownBear_0.run$imm$fun(this); }
-        name$imm(...args) { return test$$Bear_0.name$imm$fun(...args, this); }
+        name$imm$0() { return test$$Bear_0.name$imm$1$fun(this); }
+        name$imm$1(a_m$) { return test$$Animal_0.name$imm$2$fun(a_m$, this); }
+        run$imm$0() { return test$$BrownBear_0.run$imm$1$fun(this); }
       }
       
       test$$BrownBear_0.$self = new test$$BrownBear_0Impl();
@@ -1857,6 +1828,76 @@ public class TestJsCodegen {
       BrownBear: Bear {
         .run: Str -> "BrownBear runs fast"
       }
+      """);
+  }
+  @Test void animalTypes2() { okList(List.of("""
+    export class test$$Foo_0 {
+      constructor() {throw new Error("from constructor");}
+    
+    }
+    """, """
+    export class test$$Beer_0 {
+      constructor() {throw new Error("from constructor");}
+    
+      static beer$imm$2$fun(f_m$, $this) {
+        return f_m$.bar$imm$0();
+      }
+    }
+    
+    export class test$$Beer_0Impl {
+      beer$imm$1(f_m$) { return test$$Beer_0.beer$imm$2$fun(f_m$, this); }
+    }
+    
+    test$$Beer_0.$self = new test$$Beer_0Impl();
+    """, """
+    import { test$$Beer_0 } from "../test/Beer_0.js";
+    import { test$$Fear716$_0 } from "../test/Fear716$_0.js";
+    
+    export class test$$User_0 {
+      constructor() {throw new Error("from constructor");}
+    
+      static go$imm$1$fun($this) {
+        return test$$Beer_0.$self.beer$imm$1(test$$Fear716$_0.$self);
+      }
+    }
+    
+    export class test$$User_0Impl {
+      go$imm$0() { return test$$User_0.go$imm$1$fun(this); }
+    }
+    
+    test$$User_0.$self = new test$$User_0Impl();
+    """), List.of("test/Foo_0.js", "test/Beer_0.js", "test/User_0.js"), """
+    package test
+    Foo:{.bar:Beer}
+    Beer:{.beer(f:Foo):Beer->f.bar}
+    User:{.go:Beer->Beer.beer{Beer} }
+    """);
+  }
+
+  @Test void listFlowLimitJoin() {
+    ok("""
+      import { base$$flows$$_SafeSource_0 } from "../base/flows/index.js";
+      import { rt$$ListK } from "../rt-js/ListK.js";
+      import { rt$$Numbers } from "../rt-js/Numbers.js";
+      import { rt$$Str } from "../rt-js/Str.js";
+      import { rt$$flows } from "../rt-js/flows.js";
+      
+      export class test$$Test_0 {
+        static $hash$imm$2$fun(s_m$, $this) {
+          return s_m$.io$mut$0().println$mut$1(rt$$flows.FlowCreator.fromFlow(rt$$flows.dataParallel.DataParallelFlowK.$self, base$$flows$$_SafeSource_0.$self.fromList$imm$1(rt$$ListK.$self.$hash$imm$5(rt$$Str.fromJsStr("A"),rt$$Str.fromJsStr("B"),rt$$Str.fromJsStr("C"),rt$$Str.fromJsStr("D"),rt$$Str.fromJsStr("E")))).limit$mut$1(rt$$Numbers.toNat64(2n)).join$mut$1(rt$$Str.fromJsStr(",")));
+        }
+      }
+      
+      export class test$$Test_0Impl {
+        $hash$imm$1(s_m$) { return test$$Test_0.$hash$imm$2$fun(s_m$, this); }
+      }
+      
+      test$$Test_0.$self = new test$$Test_0Impl();
+      """, "test/Test_0.js",
+      """
+      package test
+      alias base.List as List, alias base.Int as Int, alias base.Block as Block, alias base.Main as Main, alias base.Str as Str,
+      Test:Main{ s -> s.io.println(List#("A", "B", "C", "D", "E").flow.limit(2).join ",")}
       """);
   }
 }

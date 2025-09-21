@@ -66,7 +66,7 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
       async function main() {
           const program = %s.$self;
           try {
-              await program.$hash$imm(new RealSystem());
+              await program.$hash$imm$1(new RealSystem());
           } catch (err) {
               console.error('Program crashed with:', err);
               process.exit(1);

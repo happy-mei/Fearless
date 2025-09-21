@@ -26,19 +26,19 @@ export class rt$$MutStr {
   }
 
   // Is the string empty?
-  isEmpty$read() {
+  isEmpty$read$0() {
     return this._length === 0 ? base$$True_0.$self : base$$False_0.$self;
   }
 
   // Mutable concatenation
-  $plus$mut(other$) {
-    const other = other$.str$read();
+  $plus$mut$1(other$) {
+    const other = other$.str$read$0();
     this.put(other);
     return this;
   }
 
   append$mut(other$) {
-    this.$plus$mut(other$);
+    this.$plus$mut$1(other$);
     return base$$Void_0.$self;
   }
 
@@ -49,7 +49,7 @@ export class rt$$MutStr {
     return base$$Void_0.$self;
   }
 
-  str$read() {
+  str$read$0() {
     return rt$$Str.fromTrustedUtf8(this.utf8());
   }
 

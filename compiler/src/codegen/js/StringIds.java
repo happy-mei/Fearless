@@ -30,8 +30,9 @@ final class StringIds {
 //    return getSimpleName(name.d()) + "$" + getMName(name.mdf(), name.m());
 //  }
 
-  public String getMName(Mdf mdf, Id.MethName m) {
-    return getBase(m.name()) + "$" + mdf;
+  public String getMName(Mdf mdf, Id.MethName m, int arity) {
+    String baseName = getBase(m.name());
+    return baseName + "$" + mdf + "$" + arity;
   }
   public boolean isDigit(int codepoint){
     //Character.isDigit is way too relaxed

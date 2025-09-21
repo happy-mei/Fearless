@@ -61,7 +61,8 @@ public class JsCodegen implements MIRVisitor<String> {
     // Static methods
     String staticFuns = "";
     if (!funs.isEmpty()) {
-      staticFuns = "\n  " + visitFunsForType(funs);
+//      staticFuns = "\n  " + visitFunsForType(funs);
+      staticFuns = "\n  " + funs.stream().map(this::visitFun).collect(Collectors.joining("\n  "));
     }
     return """
     export class %s {%s
@@ -100,9 +101,15 @@ public class JsCodegen implements MIRVisitor<String> {
         """.formatted(args, assigns);
     }
     // Instance methods
-    String instanceMeths = obj.meths().isEmpty() ? "" : "  " + visitMethGroup(obj.meths()) + "\n";
+//    String instanceMeths = obj.meths().isEmpty() ? "" : "  " + visitMethGroup(obj.meths()) + "\n";
+    String instanceMeths = obj.meths().isEmpty() ? "" : "  " +
+      obj.meths().stream().map(this::visitMeth).collect(Collectors.joining("\n  "))
+      + "\n";
     // Unreachable methods
-    String unreachableMeths = obj.unreachableMs().isEmpty() ? "" : "  " + visitMethGroup(obj.unreachableMs()) + "\n";
+//    String unreachableMeths = obj.unreachableMs().isEmpty() ? "" : "  " + visitMethGroup(obj.unreachableMs()) + "\n";
+    String unreachableMeths = obj.unreachableMs().isEmpty() ? "" : "  " +
+      obj.unreachableMs().stream().map(this::visitMeth).collect(Collectors.joining("\n  "))
+      + "\n";
 //    String implClass = """
 //        export class %s extends %s {
 //        %s%s%s}
@@ -152,7 +159,7 @@ public class JsCodegen implements MIRVisitor<String> {
 
   // Create JS static method
   public String visitFun(MIR.Fun fun) {
-    String funName = getFName(fun.name());
+    String funName = getFName(fun.name(), fun.args().size());
     String args = seq(fun.args(), x -> id.varName(x.name()), ", ");
     String bodyStr = fun.body().accept(this, true);
     String maybeReturn = (fun.body() instanceof MIR.Block) ? "" : "return ";
@@ -167,7 +174,7 @@ public class JsCodegen implements MIRVisitor<String> {
   public String visitFunsForType(List<MIR.Fun> funs) {
     // Group by function name
     Map<String, List<MIR.Fun>> grouped = funs.stream()
-      .collect(Collectors.groupingBy(f -> getFName(f.name())));
+      .collect(Collectors.groupingBy(f -> getFName(f.name(), f.args().size())));
 
     return grouped.entrySet().stream()
       .map(entry -> {
@@ -215,16 +222,24 @@ public class JsCodegen implements MIRVisitor<String> {
 
   // Create JS instance method that forwards to static method
   public String visitMeth(MIR.Meth meth) {
-    String methName = id.getMName(meth.sig().mdf(), meth.sig().name());
-    String args = seq(meth.sig().xs(), x -> id.varName(x.name()), ", ");
+    List<String> args = meth.sig().xs().stream()
+      .map(x -> id.varName(x.name()))
+      .toList();
+    String argsStr = String.join(", ", args);
+    String methName = id.getMName(meth.sig().mdf(), meth.sig().name(), args.size());
+    if (meth.fName().isEmpty()) {
+      return "";
+    }
     String className = id.getFullName(meth.origin());
-    String funName = getFName(meth.fName().orElseThrow());
-    String funArgs = Streams.of(
-        meth.sig().xs().stream().map(MIR.X::name).map(id::varName),
-        Stream.of("this"), meth.captures().stream().map(id::varName).map(x->"this."+x)
-      ).collect(Collectors.joining(", "));
+    List<String> funArgs = Streams.of(
+      meth.sig().xs().stream().map(MIR.X::name).map(id::varName),
+      Stream.of("this"),
+      meth.captures().stream().map(id::varName).map(x -> "this." + x)
+    ).toList();
+    String funArgsStr = String.join(", ", funArgs);
+    String funName = getFName(meth.fName().orElseThrow(), funArgs.size());
     // Forward all args using ...args and append this
-    return String.format("%s(%s) { return %s.%s(%s); }", methName, args, className, funName, funArgs);
+    return String.format("%s(%s) { return %s.%s(%s); }", methName, argsStr, className, funName, funArgsStr);
   }
 
   // Create one JS instance method per JS method name
@@ -232,7 +247,7 @@ public class JsCodegen implements MIRVisitor<String> {
     // Group by JS method name
     Map<String, List<MIR.Meth>> grouped = meths.stream()
       .filter(m -> m.fName().isPresent()) // skip abstract methods
-      .collect(Collectors.groupingBy(m -> id.getMName(m.sig().mdf(), m.sig().name())));
+      .collect(Collectors.groupingBy(m -> id.getMName(m.sig().mdf(), m.sig().name(), m.sig().xs().size())));
 
     return grouped.entrySet().stream()
       .map(entry -> {
@@ -243,12 +258,12 @@ public class JsCodegen implements MIRVisitor<String> {
         } else {
           // Multiple overloads → forward all args with ...args to static dispatcher
           MIR.Meth m = ms.get(0);
-          String methName = id.getMName(m.sig().mdf(), m.sig().name());
+          String methName = id.getMName(m.sig().mdf(), m.sig().name(), m.sig().xs().size());
           String className = id.getFullName(m.origin());
-          String funName = getFName(m.fName().orElseThrow());
           String capturedArgs = m.captures().stream()
             .map(x -> "this." + id.varName(x))
             .collect(Collectors.joining(", "));
+          String funName = getFName(m.fName().orElseThrow(), m.captures().size()); // here
           if (!capturedArgs.isEmpty()) {
             capturedArgs = ", " + capturedArgs;
           }
@@ -310,10 +325,10 @@ public class JsCodegen implements MIRVisitor<String> {
       case MIR.Block.BlockStmt.Loop loop ->
         """
         while (true) {
-          var res = %s.$hash$mut();
+          var res = %s.$hash$mut$0();
           if (res == base$$ControlFlowContinue_0.$self || res == base$$ControlFlowContinue_1.$self) { continue; }
           if (res == base$$ControlFlowBreak_0.$self || res == base$$ControlFlowBreak_1.$self) { break; }
-          if (res instanceof base$$ControlFlowReturn_1) { base$$ControlFlowReturn_1.$self.value$mut(); }
+          if (res instanceof base$$ControlFlowReturn_1) { base$$ControlFlowReturn_1.$self.value$mut$0(); }
         }
         """.formatted(
           loop.e().accept(this, true)
@@ -330,7 +345,7 @@ public class JsCodegen implements MIRVisitor<String> {
       }
       case MIR.Block.BlockStmt.Let let -> "let %s = %s;\n"
         .formatted(id.varName(let.name()), let.value().accept(this, true));
-      case MIR.Block.BlockStmt.Var var -> "var %s = base$$Vars_0.$self.$hash$imm(%s);\n"
+      case MIR.Block.BlockStmt.Var var -> "var %s = base$$Vars_0.$self.$hash$imm$1(%s);\n"
         .formatted(id.varName(var.name()), var.value().accept(this, true));
     };
   }
@@ -412,17 +427,12 @@ public class JsCodegen implements MIRVisitor<String> {
 
     return "%s.%s(%s)".formatted(
       call.recv().accept(this, checkMagic),
-      id.getMName(call.mdf(), call.name()),
+      id.getMName(call.mdf(), call.name(), call.args().size()),
       args
     );
   }
-  public String getFName(MIR.FName name) {
-    String funName = id.getMName(name.mdf(), name.m()) + "$fun";
-//    if (!funName.equals("$hash$imm$fun")) {
-//      // disambiguate overloads by arity
-//      int arity = args.size();
-//      funName = funName + "$" + arity;
-//    }
-    return funName;
+  public String getFName(MIR.FName name, int arity) {
+    String methName = id.getMName(name.mdf(), name.m(), arity);
+    return methName + "$fun";
   }
 }

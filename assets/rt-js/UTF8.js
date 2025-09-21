@@ -1,17 +1,8 @@
 import { rt$$Str } from "./Str.js";
-import { rt$$NativeRuntime } from "./NativeRuntime.js";
+import { FearlessError } from "./FearlessError.js";
 import { base$$Void_0 } from "../base/Void_0.js";
 import { ListImpl, ByteBufferListImpl } from "./ListK.js";
-
-// A tiny "Fallible" wrapper to mirror the Java runtime semantics
-class Fallible {
-  constructor(fn) {
-    this._fn = fn;
-  }
-  apply(res) {
-    return this._fn(res);
-  }
-}
+import { Fallible } from "./Fallible.js";
 
 // Detect environment: Node vs browser
 const hasNodeBuffer =
@@ -30,7 +21,7 @@ function makeBuffer(arr) {
 export class rt$$UTF8 {
   static $self = new rt$$UTF8();
 
-  fromBytes$imm(utf8Bytes_m$) {
+  fromBytes$imm$1(utf8Bytes_m$) {
     if (utf8Bytes_m$ instanceof ByteBufferListImpl) {
       return this.utf8ToStr(utf8Bytes_m$.inner.slice());
     } else if (utf8Bytes_m$ instanceof ListImpl) {
@@ -40,22 +31,31 @@ export class rt$$UTF8 {
     }
   }
 
+  // Define the custom error here
+  static StringEncodingError = class extends FearlessError {
+    constructor(message) {
+      super(message); // store message or info
+      this.name = "StringEncodingError";
+    }
+  };
+
+  // your existing utf8ToStr
   utf8ToStr(buf) {
     return new Fallible((res) => {
       try {
-        let str;
-        if (hasNodeBuffer && Buffer.isBuffer(buf)) {
-          // Node: Buffer supports utf8 decoding natively
-          str = buf.toString("utf8");
-        } else {
-          // Browser: use TextDecoder
-          const decoder = new TextDecoder("utf-8", { fatal: true });
-          str = decoder.decode(buf);
+        if (!(buf instanceof Uint8Array || (typeof Buffer !== "undefined" && Buffer.isBuffer(buf)))) {
+          throw new rt$$UTF8.StringEncodingError("Expected Uint8Array or Buffer");
         }
-        return res.ok$mut(rt$$Str.fromJsStr(str));
+
+        // Use strict decoding
+        const decoder = new TextDecoder("utf-8", { fatal: true });
+        const str = decoder.decode(buf);
+        return res.ok$mut$1(rt$$Str.fromJsStr(str));
       } catch (e) {
-        if (e instanceof rt$$NativeRuntime.StringEncodingError) {
-          return res.info$mut(e.info);
+        if (e instanceof DOMException) {
+          return res.info$mut$1(
+            new rt$$UTF8.StringEncodingError("Invalid UTF-8 byte sequence")
+          );
         }
         throw e;
       }
@@ -68,10 +68,10 @@ export class rt$$UTF8 {
   }
 
   listToBuffer(list_1) {
-    const size = list_1.size$read().intValue();
+    const size = list_1.size$read$0().intValue();
     const arr = new Array(size);
     let i = 0;
-    list_1.iter$mut().for$mut((b) => {
+    list_1.iter$mut$0().for$mut$1((b) => {
       arr[i++] = b & 0xff;
       return base$$Void_0.$self;
     });

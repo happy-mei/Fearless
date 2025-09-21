@@ -8,17 +8,17 @@ export class rt$$Str {
   constructor() {
     if (new.target === rt$$Str) throw new Error("Cannot instantiate interface rt$$Str directly");
   }
-  utf8$imm() {
+  utf8$imm$0() {
     return new ByteBufferListImpl(this.utf8());
   }
-  str$read() { return this; }
+  str$read$0() { return this; }
 
   static wrap(array) {
     // Accepts a JS Array or TypedArray of numbers (0–255)
     return new Uint8Array(array);
   }
 
-  $equals$equals$imm(other) {
+  $equals$equals$imm$1(other) {
     const a = this.utf8(), b = other.utf8();
     if (a.length !== b.length) return base$$False_0.$self;
     for (let i = 0; i < a.length; i++) {
@@ -29,11 +29,11 @@ export class rt$$Str {
     return base$$True_0.$self;
   }
 
-  $exclamation$equals$imm(other) {
-    return this.$equals$equals$imm(other) === base$$True_0.$self ? base$$False_0.$self : base$$True_0.$self;
+  $exclamation$equals$imm$1(other) {
+    return this.$equals$equals$imm$1(other) === base$$True_0.$self ? base$$False_0.$self : base$$True_0.$self;
   }
 
-  startsWith$imm(other) {
+  startsWith$imm$1(other) {
     const a = this.utf8(), b = other.utf8();
     if (b.length > a.length) return base$$False_0.$self;
     for (let i = 0; i < b.length; i++) {
@@ -44,36 +44,37 @@ export class rt$$Str {
     return base$$True_0.$self;
   }
 
-  $plus$imm(other) {
-    const a = this.utf8(), b = other.str$read().utf8();
+  $plus$imm$1(other) {
+    const a = this.utf8(), b = other.str$read$0().utf8();
     const res = new Uint8Array(a.length + b.length);
     res.set(a);
     res.set(b, a.length);
     return rt$$Str.fromTrustedUtf8(res);
   }
 
-  join$imm(flow_m$) {
-    return flow_m$.fold$mut(
-      wrapFnMut(() => new rt$$MutStr()),
-      wrapFnMut((acc, str) => acc.isEmpty$read() === base$$True_0.$self
-        ? acc.$plus$mut(str)
-        : acc.$plus$mut(this).$plus$mut(str))
-    ).str$read(); // return a proper rt$$Str
+  join$imm$1(flow_m$) {
+    // MF_1 acc_m$, F_3 f_m$
+    return flow_m$.fold$mut$2(
+      { $hash$mut$0: () => new rt$$MutStr() },
+      { $hash$read$2: (acc, str) => acc.isEmpty$read$0() === base$$True_0.$self
+          ? acc.$plus$mut$1(str)
+          : acc.$plus$mut$1(this).$plus$mut$1(str) }
+    ).str$read$0(); // return a proper rt$$Str
   }
 
-  size$imm() { return this.graphemes().length; }
-  isEmpty$read() { return this.utf8().length === 0 ? base$$True_0.$self : base$$False_0.$self; }
+  size$imm$0() { return this.graphemes().length; }
+  isEmpty$read$0() { return this.utf8().length === 0 ? base$$True_0.$self : base$$False_0.$self; }
 
-  substring$imm(start, end) {
+  substring$imm$2(start, end) {
     if (start > end) throw new FearlessError(rt$$Str.fromJsStr("Start index must be <= end"));
     if (start < 0) throw new FearlessError(rt$$Str.fromJsStr("Start index >= 0"));
-    if (end > this.size$imm()) throw new FearlessError(rt$$Str.fromJsStr("End index <= size"));
+    if (end > this.size$imm$0()) throw new FearlessError(rt$$Str.fromJsStr("End index <= size"));
     return new rt$$Str.SubStr(this, start, end);
   }
 
-  charAt$imm(index) { return this.substring$imm(index, index + 1); }
+  charAt$imm$1(index) { return this.substring$imm$2(index, index + 1); }
 
-  normalise$imm() {
+  normalise$imm$0() {
     const utf8 = rt$$NativeRuntime.normaliseString(this.utf8());
     return rt$$Str.fromTrustedUtf8(utf8);
   }
@@ -126,11 +127,14 @@ export class rt$$Str {
       if (!this._graphemes) this._graphemes = rt$$NativeRuntime.indexString(this._utf8);
       return this._graphemes;
     }
-    size$imm() { return this._size; }
-    isEmpty$read() { return this._size === 0 ? base$$True_0.$self : base$$False_0.$self; }
+    size$imm$0() { return this._size; }
+    isEmpty$read$0() { return this._size === 0 ? base$$True_0.$self : base$$False_0.$self; }
   };
 }
 
-export function wrapFnMut(fn) {
-  return { $hash$mut: fn, $hash$read: fn, $hash$imm: fn };
+function wrapFnMut$0(fn) {
+  return { $hash$mut$0: fn, $hash$read$0: fn, $hash$imm$0: fn };
+}
+function wrapFnMut$2(fn) {
+  return { $hash$mut$2: fn, $hash$read$2: fn, $hash$imm$2: fn };
 }

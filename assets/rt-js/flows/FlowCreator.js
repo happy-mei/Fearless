@@ -1,5 +1,5 @@
 import { base$$Opt_1, base$$Opts_0, base$$False_0 } from "../../base/index.js";
-import { base$$flows$$_SeqFlow_0, base$$flows$$_UnwrapFlowToken_0, base$$flows$$Flow_1, base$$flows$$FlowOp_1, base$$flows$$_FlowFactory_0 } from "../../base/flows/index.js";
+import { base$$flows$$_SeqFlow_0, base$$flows$$_UnwrapFlowToken_0 } from "../../base/flows/index.js";
 import { DataParallelFlowK } from "./dataParallel/DataParallelFlowK.js";
 import { PipelineParallelFlowK } from "./pipelineParallel/PipelineParallelFlowK.js";
 
@@ -16,12 +16,12 @@ export const FlowCreator = {
    *                  Only ever degrades flows (DP -> Seq), never upgrades.
    */
   fromFlow(intended, original) {
-    const op = original.unwrapOp$mut(base$$flows$$_UnwrapFlowToken_0.$self);
+    const op = original.unwrapOp$mut$1(base$$flows$$_UnwrapFlowToken_0.$self);
 
     // size = long, or -1 if empty
-    const size = original.size$read().match$imm({
-      some$mut: (x) => x,
-      empty$mut: () => -1n, // bigint for long
+    const size = original.size$read$0().match$imm$1({
+      some$mut$1: (x) => x,
+      empty$mut$0: () => -1n, // bigint for long
     });
 
     return FlowCreator.fromFlowOp(intended, op, size);
@@ -36,33 +36,33 @@ export const FlowCreator = {
     const isSequentialised = IS_SEQUENTIALISED.bound;
 
     if (isSequentialised) {
-      const optSize = size < 0 ? base$$Opt_1.$self : base$$Opts_0.$self.$hash$imm(size);
-      return base$$flows$$_SeqFlow_0.$self.fromOp$imm(op, optSize);
+      const optSize = size < 0 ? base$$Opt_1.$self : base$$Opts_0.$self.$hash$imm$1(size);
+      return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(op, optSize);
     }
 
-    if (op.isFinite$mut() === base$$False_0.$self && intended instanceof DataParallelFlowK) {
-      return PipelineParallelFlowK.$self.fromOp$imm(op, base$$Opt_1.$self);
+    if (op.isFinite$mut$0() === base$$False_0.$self && intended instanceof DataParallelFlowK) {
+      return PipelineParallelFlowK.$self.fromOp$imm$2(op, base$$Opt_1.$self);
     }
 
     if (size < 0) {
-      return intended.fromOp$imm(op, base$$Opt_1.$self);
+      return intended.fromOp$imm$2(op, base$$Opt_1.$self);
     }
 
-    const optSize = base$$Opts_0.$self.$hash$imm(size);
+    const optSize = base$$Opts_0.$self.$hash$imm$1(size);
 
     // Special-case fork/join attempt
     if (size === 2n) {
-      return intended.fromOp$imm(op, optSize);
+      return intended.fromOp$imm$2(op, optSize);
     }
 
     if (size <= 1n) {
-      return base$$flows$$_SeqFlow_0.$self.fromOp$imm(op, optSize);
+      return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(op, optSize);
     }
 
-    if (size < 4n && intended instanceof DataParallelFlowK) {
-      return PipelineParallelFlowK.$self.fromOp$imm(op, optSize);
+    if ((size < 4n) && intended === DataParallelFlowK.$self) {
+      return PipelineParallelFlowK.$self.fromOp$imm$2(op, optSize);
     }
 
-    return intended.fromOp$imm(op, optSize);
+    return intended.fromOp$imm$2(op, optSize);
   },
 };

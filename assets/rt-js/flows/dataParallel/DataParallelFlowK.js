@@ -3,9 +3,9 @@ import { base$$flows$$_RestrictFlowReuse_0 } from "../../../base/flows/index.js"
 
 export const DataParallelFlowK = {
   $self: null, // we fill it later
-  fromOp$imm: (source_m$, size_m$) => {
+  fromOp$imm$2: (source_m$, size_m$) => {
     const flow = new DataParallelFlow(source_m$, size_m$, DataParallelFlowK.$self);
-    return base$$flows$$_RestrictFlowReuse_0.$self.$hash$imm(flow);
+    return base$$flows$$_RestrictFlowReuse_0.$self.$hash$imm$1(flow);
   }
 };
 

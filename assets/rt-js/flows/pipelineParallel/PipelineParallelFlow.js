@@ -1,4 +1,5 @@
 import { FearlessError } from "../../FearlessError.js";
+import { base$$Void_0, base$$Infos_0 } from "../../../base/index.js";
 
 /* ---- Message sealed interface ---- */
 export const Message = {
@@ -28,7 +29,7 @@ export class WrappedSink {
     this.softClosed = false;
   }
 
-  stopDown$mut() {
+  stopDown$mut$0() {
     try {
       this.subject.submit(Message.Stop.INSTANCE);
       return this.subject.join();
@@ -41,20 +42,18 @@ export class WrappedSink {
         throw new Error(message, { cause: err });
       }
       throw err;
-    } finally {
-      return base.Void_0.$self;
     }
   }
 
-  $hash$mut(x$) {
+  $hash$mut$1(x$) {
     // submit message for processing
     this.subject.submit(x$);
-    return base.Void_0.$self;
+    return base$$Void_0.$self;
   }
 
   pushError$mut(info$) {
     this.subject.submit(new Message.Error(info$));
-    return base.Void_0.$self;
+    return base$$Void_0.$self;
   }
 
   softClose() {
@@ -64,10 +63,15 @@ export class WrappedSink {
 
 export class WrappedSinkK {
   static $self = new WrappedSinkK();
-  $hash$imm(original) {
-    return new WrappedSink(original);
-  }
+  // $hash$imm$1(original) {
+  //   return new WrappedSink(original);
+  // }
 }
+
+// attach $hash$imm to the static $self
+WrappedSinkK.$self.$hash$imm$1 = function(original) {
+  return new WrappedSink(original);
+};
 
 /* ---- Bounded async queue (Array + waiters) ---- */
 class BoundedAsyncQueue {
@@ -175,7 +179,7 @@ export class Subject {
 
       if (msg === Message.Stop.INSTANCE) {
         try {
-          this.downstream.stopDown$mut();
+          this.downstream.stopDown$mut$0();
         } catch (err) {
           // If stopDown throws, capture as exception to be rethrown on join
           throw err;
@@ -197,7 +201,7 @@ export class Subject {
     await this._workerPromise;
     // ensure downstream stop is called (Java also calls downstream.stopDown in join)
     try {
-      this.downstream.stopDown$mut();
+      this.downstream.stopDown$mut$0();
     } catch (err) {
       // ignore - will be handled below
     }
@@ -210,7 +214,7 @@ export class Subject {
       throw new Error(String(e));
     }
 
-    return base.Void_0.$self;
+    return base$$Void_0.$self;
   }
 
   _processError(msg) {
@@ -230,7 +234,7 @@ export class Subject {
   async _processDataMsg(data) {
     if (this.softClosed) return;
     try {
-      this.downstream.$hash$mut(data);
+      this.downstream.$hash$mut$1(data);
     } catch (err) {
       // Keep accepting messages but soft close and push error downstream
       this.softClosed = true;
@@ -242,13 +246,13 @@ export class Subject {
         }
       } else if (err instanceof Error && /ArithmeticException|RangeError|DivideByZero|Overflow/i.test(err.message || "")) {
         // map arithmetic-like errors to Infos_0.msg$imm(rt.Str)
-        // best effort: if base.Infos_0 exists, use it; else push plain message
+        // best effort: if base$$Infos_0 exists, use it; else push plain message
         try {
           const msg = (err && err.message) ? err.message : String(err);
-          if (base && base.Infos_0 && base.Infos_0.$self && base.Infos_0.$self.msg$imm) {
-            this.downstream.pushError$mut(base.Infos_0.$self.msg$imm(/* rt.Str.fromJsStr(msg) */ msg));
+          if (base && base$$Infos_0 && base$$Infos_0.$self && base$$Infos_0.$self.msg$imm$1) {
+            this.downstream.pushError$mut$1(base$$Infos_0.$self.msg$imm$1(/* rt.Str.fromJsStr(msg) */ msg));
           } else {
-            this.downstream.pushError$mut(msg);
+            this.downstream.pushError$mut$1(msg);
           }
         } catch (err2) {
           if (err2 instanceof FearlessError) throw new DeterministicFearlessError(err2.info);

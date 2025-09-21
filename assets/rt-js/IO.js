@@ -3,7 +3,7 @@ import { base$$Void_0 } from "../base/Void_0.js";
 export class rt$$IO {
   static $self = new rt$$IO();
 
-  printlnErr$mut(msg) {
+  printlnErr$mut$1(msg) {
     const msgJsStr = msg.toJsString();
     if (process && process.stdout) {
       process.stderr.write(msgJsStr + "\n");
@@ -13,7 +13,7 @@ export class rt$$IO {
     return base$$Void_0.$self;
   }
 
-  println$mut(msg) {
+  println$mut$1(msg) {
     const msgJsStr = msg.toJsString();
     if (process && process.stdout) {
       process.stdout.write(msgJsStr + "\n");
@@ -23,7 +23,7 @@ export class rt$$IO {
     return base$$Void_0.$self;
   }
 
-  print$mut(msg) {
+  print$mut$1(msg) {
     const msgJsStr = msg.toJsString();
     if (process && process.stdout) {
       process.stdout.write(msgJsStr);
@@ -33,7 +33,7 @@ export class rt$$IO {
     return base$$Void_0.$self;
   }
 
-  printErr$mut(msg) {
+  printErr$mut$1(msg) {
     const msgJsStr = msg.toJsString();
     if (process && process.stderr) {
       process.stderr.write(msgJsStr);
@@ -43,26 +43,26 @@ export class rt$$IO {
     return base$$Void_0.$self;
   }
 
-  accessR$mut(pathList) {
+  accessR$mut$1(pathList) {
     // stub: implement like your rt.fs.ReadWritePath.readPath
     throw new Error("accessR$mut not implemented in JS runtime");
   }
 
-  accessW$mut(pathList) {
+  accessW$mut$1(pathList) {
     throw new Error("accessW$mut not implemented in JS runtime");
   }
 
-  accessRW$mut(pathList) {
+  accessRW$mut$1(pathList) {
     throw new Error("accessRW$mut not implemented in JS runtime");
   }
 
-  env$mut() {
+  env$mut$0() {
     throw new Error("env$mut not implemented yet in JS runtime");
     // return Env.$self; // you’d define Env similar to IO
   }
 
-  iso$mut() { return this; }
-  self$mut() { return this; }
+  iso$mut$0() { return this; }
+  self$mut$0() { return this; }
 
   // Equivalent of strListToPath
   static strListToPath(root, list) {

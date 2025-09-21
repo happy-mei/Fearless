@@ -1911,4 +1911,12 @@ public class TestJavaProgram {
       Test:Main{sys -> sys.io.println((5 > 2) ?[Str] {.then -> "True", .else -> "False"}) }
       """);
   }
+  @Test void listFlowJoin() {
+    ok(new Res("A,B,C,D,E", "", 0),
+      """
+      package test
+      alias base.List as List, alias base.Int as Int, alias base.Block as Block, alias base.Main as Main, alias base.Str as Str,
+      Test:Main{ s -> s.io.println(List#("A", "B", "C", "D", "E").flow.join ",")}
+      """);
+  }
 }

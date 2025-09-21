@@ -6,31 +6,31 @@ export class rt$$Debug {
   static $self = new rt$$Debug();
 
   // Equivalent to Java println$imm
-  println$imm(x) {
-    rt$$IO.$self.printlnErr$mut(rt$$Debug.toStr(x).utf8());
+  println$imm$1(x) {
+    rt$$IO.$self.printlnErr$mut$1(rt$$Debug.toStr(x).utf8());
     return base$$Void_0.$self;
   }
 
   // Equivalent to Java identify$imm
-  identify$imm(x) {
+  identify$imm$1(x) {
     return rt$$Debug.demangle(x);
   }
 
   // Equivalent to Java $hash$imm
-  $hash$imm(x) {
-    rt$$IO.$self.printlnErr$mut(rt$$Debug.toStr(x).utf8());
+  $hash$imm$1(x) {
+    rt$$IO.$self.printlnErr$mut$1(rt$$Debug.toStr(x).utf8());
     return x;
   }
 
   // Attempt to call x.str$read() or fallback to demangle
   static toStr(x) {
     if (x && typeof x === "object") {
-      if (typeof x.str$read === "function") {
-        try { return x.str$read(); }
+      if (typeof x.str$read$0 === "function") {
+        try { return x.str$read$0(); }
         catch (_) { return rt$$Debug.demangle(x); }
       }
-      if (typeof x.str$readH === "function") {
-        try { return x.str$readH(); }
+      if (typeof x.str$readH$0 === "function") {
+        try { return x.str$readH$0(); }
         catch (_) { return rt$$Debug.demangle(x); }
       }
     }

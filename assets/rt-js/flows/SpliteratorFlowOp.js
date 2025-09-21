@@ -8,48 +8,48 @@ export const SpliteratorFlowOp = {
     let hasStopped = false;
 
     return {
-      isFinite$mut() {
+      isFinite$mut$0() {
         return base$$True_0.$self;
       },
 
-      step$mut(sink_m$) {
+      step$mut$1(sink_m$) {
         if (hasStopped || index >= arr.length) {
           hasStopped = true;
-          sink_m$.stopDown$mut();
+          sink_m$.stopDown$mut$0();
         } else {
-          sink_m$.$hash$mut(arr[index++]);
+          sink_m$.$hash$mut$1(arr[index++]);
         }
         return base$$Void_0.$self;
       },
 
-      stopUp$mut() {
+      stopUp$mut$0() {
         hasStopped = true;
         return base$$Void_0.$self;
       },
 
-      isRunning$mut() {
+      isRunning$mut$0() {
         return hasStopped ? base$$False_0.$self : base$$True_0.$self;
       },
 
-      for$mut(downstream_m$) {
+      for$mut$1(downstream_m$) {
         while (index < arr.length) {
-          downstream_m$.$hash$mut(arr[index++]);
+          downstream_m$.$hash$mut$1(arr[index++]);
         }
-        downstream_m$.stopDown$mut();
+        downstream_m$.stopDown$mut$0();
         hasStopped = true;
         return base$$Void_0.$self;
       },
 
-      split$mut() {
+      split$mut$0() {
         const remaining = arr.length - index;
         if (remaining <= 1) return base$$Opt_1.$self;
         const mid = index + Math.floor(remaining / 2);
         const firstHalf = arr.slice(index, mid);
         index = mid; // leave second half for this iterator
-        return base$$Opts_0.$self.$hash$imm(SpliteratorFlowOp.of(firstHalf));
+        return base$$Opts_0.$self.$hash$imm$1(SpliteratorFlowOp.of(firstHalf));
       },
 
-      canSplit$read() {
+      canSplit$read$0() {
         return (arr.length - index) > 1 ? base$$True_0.$self : base$$False_0.$self;
       }
     };

@@ -7,40 +7,33 @@ import { base$$Infos_0 } from "../base/Infos_0.js";
 export class rt$$Try {
   static $self = new rt$$Try();
 
-  $hash$imm(...args) {
-    switch (args.length) {
-      case 1: { // no-argument version
-        const try$ = args[0];
-        return (res) => {
-          try {
-            return res.ok$mut(try$.$hash$read());
-          } catch (err) {
-            if (err instanceof Error && err.isFearlessError) {
-              return res.info$mut(err.info);
-            } else {
-              const msg = err.message || "Unknown error";
-              return res.info$mut(base$$Infos_0.$self.msg$imm(rt$$Str.fromJsStr(msg)));
-            }
-          }
-        };
+  $hash$imm$1(try$) {
+    return (res) => {
+      try {
+        return res.ok$mut$1(try$.$hash$read$0());
+      } catch (err) {
+        if (err instanceof Error && err.isFearlessError) {
+          return res.info$mut$1(err.info);
+        } else {
+          const msg = err.message || "Unknown error";
+          return res.info$mut$1(base$$Infos_0.$self.msg$imm$1(rt$$Str.fromJsStr(msg)));
+        }
       }
-      case 2: { // one-argument version
-        const [data, try$] = args;
-        return (res) => {
-          try {
-            return res.ok$mut(try$.$hash$read(data));
-          } catch (err) {
-            if (err instanceof Error && err.isFearlessError) {
-              return res.info$mut(err.info);
-            } else {
-              const msg = err.message || "Unknown error";
-              return res.info$mut(base$$Infos_0.$self.msg$imm(rt$$Str.fromJsStr(msg)));
-            }
-          }
-        };
+    };
+  }
+
+  $hash$imm$2(data, try$) {
+    return (res) => {
+      try {
+        return res.ok$mut$1(try$.$hash$read$1(data));
+      } catch (err) {
+        if (err instanceof Error && err.isFearlessError) {
+          return res.info$mut$1(err.info);
+        } else {
+          const msg = err.message || "Unknown error";
+          return res.info$mut$1(base$$Infos_0.$self.msg$imm$1(rt$$Str.fromJsStr(msg)));
+        }
       }
-      default:
-        throw new Error(`No overload for $hash$imm with ${args.length} arguments`);
-    }
+    };
   }
 }

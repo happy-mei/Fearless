@@ -99,9 +99,9 @@ record JsNumOps(
       a -> "(Math.trunc(" + a[0] + ") & 0xFF)"     // float → byte
     );
     put(".str", 0,
-      a -> "rt$$Str.fromJsStr((" + a[0] + ").toString())", // Int → BigInt signed
-      a -> "rt$$Str.fromJsStr((" + a[0] + ").toString())", // Nat → BigInt unsigned (we must ensure it prints as unsigned)
-      a -> "rt$$Str.fromJsStr((" + a[0] + " & 0xFF).toString())", // Byte → 0..255
+      a -> "rt$$Str.fromJsStr(" + a[0] + ")", // Int → BigInt signed
+      a -> "rt$$Str.fromJsStr(" + a[0] + ")", // Nat → BigInt unsigned (we must ensure it prints as unsigned)
+      a -> "rt$$Str.fromJsStr(" + a[0] + " & 0xFF)", // Byte → 0..255
       a -> "rt$$Str.fromTrustedUtf8(rt$$Str.wrap(rt$$NativeRuntime.floatToStr(" + a[0] + ")))" // Float → handled with Fearless floatToStr → wrap → fromTrustedUtf8
     );
 
@@ -231,16 +231,16 @@ record JsNumOps(
     );
     // Assertion operations
     put(".assertEq", 1,
-      a-> "base$$_IntAssertionHelper_0.assertEq$imm$fun("   + a[0] + ", " + a[1] + ", null)", // Int
-      a-> "base$$_NatAssertionHelper_0.assertEq$imm$fun("   + a[0] + ", " + a[1] + ", null)", // Nat
-      a-> "base$$_ByteAssertionHelper_0.assertEq$imm$fun("  + a[0] + ", " + a[1] + ", null)", // Byte
-      a-> "base$$_FloatAssertionHelper_0.assertEq$imm$fun(" + a[0] + ", " + a[1] + ", null)" // Float
+      a-> "base$$_IntAssertionHelper_0.assertEq$imm$3$fun("   + a[0] + ", " + a[1] + ", null)", // Int
+      a-> "base$$_NatAssertionHelper_0.assertEq$imm$3$fun("   + a[0] + ", " + a[1] + ", null)", // Nat
+      a-> "base$$_ByteAssertionHelper_0.assertEq$imm$3$fun("  + a[0] + ", " + a[1] + ", null)", // Byte
+      a-> "base$$_FloatAssertionHelper_0.assertEq$imm$3$fun(" + a[0] + ", " + a[1] + ", null)" // Float
     );
     put(".assertEq", 2,//TODO: should those be in rt? what is the null?
-      a-> "base$$_IntAssertionHelper_0.assertEq$imm$fun("   + a[0] + ", " + a[1] + ", " + a[2] + ", null)", // Int
-      a-> "base$$_NatAssertionHelper_0.assertEq$imm$fun("   + a[0] + ", " + a[1] + ", " + a[2] + ", null)", // Nat
-      a-> "base$$_ByteAssertionHelper_0.assertEq$imm$fun("  + a[0] + ", " + a[1] + ", " + a[2] + ", null)", // Byte
-      a-> "base$$_FloatAssertionHelper_0.assertEq$imm$fun(" + a[0] + ", " + a[1] + ", " + a[2] + ", null)" // Float
+      a-> "base$$_IntAssertionHelper_0.assertEq$imm$4$fun("   + a[0] + ", " + a[1] + ", " + a[2] + ", null)", // Int
+      a-> "base$$_NatAssertionHelper_0.assertEq$imm$4$fun("   + a[0] + ", " + a[1] + ", " + a[2] + ", null)", // Nat
+      a-> "base$$_ByteAssertionHelper_0.assertEq$imm$4$fun("  + a[0] + ", " + a[1] + ", " + a[2] + ", null)", // Byte
+      a-> "base$$_FloatAssertionHelper_0.assertEq$imm$4$fun(" + a[0] + ", " + a[1] + ", " + a[2] + ", null)" // Float
     );
     put(".hash", 1,
       a-> a[1] + ".int$mut("  + a[0] + ")", // Int
@@ -444,10 +444,10 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
           String code = String.format("""
           new (class {
             constructor() { this.x = %s; this.isAlive = true; }
-            isAlive$read() { return this.isAlive ? base$$True_0.$self : base$$False_0.$self; }
-            // peek: viewer.some$mut(value) or viewer.empty$mut()
-            peek$read(f) { return this.isAlive ? f.some$mut(this.x) : f.empty$mut(); }
-            $exclamation$mut() {
+            isAlive$read$0() { return this.isAlive ? base$$True_0.$self : base$$False_0.$self; }
+            // peek: viewer.some$mut$1(value) or viewer.empty$mut$0()
+            peek$read$1(f) { return this.isAlive ? f.some$mut$1(this.x) : f.empty$mut$0(); }
+            $exclamation$mut$0() {
               if (!this.isAlive) {
                 // throw a runtime Fearless error using runtime helper
                 return rt$$Error.throwFearlessError(rt$$Str.fromJsStr("Cannot consume an empty IsoPod."));
@@ -455,7 +455,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
               this.isAlive = false;
               return this.x;
             }
-            next$mut(x) { this.isAlive = true; this.x = x; return base$$Void_0.$self; }
+            next$mut$1(x) { this.isAlive = true; this.x = x; return base$$Void_0.$self; }
           })()""", xExpr);
 
           return Optional.of(code);
@@ -532,7 +532,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
 
       if (m.equals(new Id.MethName(".flow", 0)) || isMagic(Magic.SafeFlowSource, call.recv())) {
         if (parallelConstr.isPresent()) {
-          var flowMethName = StringIds.$self.getMName(call.mdf(), call.name());
+          var flowMethName = StringIds.$self.getMName(call.mdf(), call.name(), call.args().size());
           var argList = args.stream()
             .map(arg -> arg.accept(gen, true))
             .collect(Collectors.joining(", "));
@@ -576,7 +576,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
           String msg = args.get(0).accept(gen, true);
           return Optional.of("""
             (() => {
-              rt$$IO.$self.printlnErr$mut(%s);
+              rt$$IO.$self.printlnErr$mut$1(%s);
               if (typeof process !== "undefined") process.exit(1);
               else throw new Error(%s);
             })()

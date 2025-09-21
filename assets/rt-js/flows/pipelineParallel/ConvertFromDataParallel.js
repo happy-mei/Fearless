@@ -11,7 +11,7 @@ export const ConvertFromDataParallel = {
     const dpSource = source.getDataParallelSource();
     const dpConsumer = new DPSource(dpSource);
 
-    return base$$flows$$_PipelineParallelFlow_0.$self.fromOp$imm(dpConsumer, size);
+    return base$$flows$$_PipelineParallelFlow_0.$self.fromOp$imm$2(dpConsumer, size);
   }
 };
 
@@ -65,16 +65,16 @@ class DPSource {
 
     // simulate async "thread"
     (async () => {
-      await this.#source.for$mut({
-        stopDown$mut: () => {
+      await this.#source.for$mut$1({
+        stopDown$mut$0: () => {
           this.#buffer.push(PipelineParallelFlow.Message.Stop.INSTANCE);
           return base$$Void_0.$self;
         },
-        pushError$mut: (info_m$) => {
+        pushError$mut$1: (info_m$) => {
           this.#buffer.push(new PipelineParallelFlow.Message.Error(info_m$));
           return base$$Void_0.$self;
         },
-        $hash$mut: (x_m$) => {
+        $hash$mut$1: (x_m$) => {
           this.#buffer.push(x_m$);
           return base$$Void_0.$self;
         }
@@ -82,11 +82,11 @@ class DPSource {
     })();
   }
 
-  isFinite$mut() {
+  isFinite$mut$0() {
     return this.#source.isFinite$mut();
   }
 
-  async step$mut(sink_m$) {
+  async step$mut$1(sink_m$) {
     if (this.isRunning$mut() === base$$False_0.$self) {
       return base$$Void_0.$self;
     }
@@ -104,32 +104,32 @@ class DPSource {
     }
 
     if (!this.#isRunning) {
-      sink.stopDown$mut();
-      this.stopUp$mut();
+      sink.stopDown$mut$0();
+      this.stopUp$mut$0();
     }
 
     return base$$Void_0.$self;
   }
 
-  stopUp$mut() {
+  stopUp$mut$0() {
     this.#isRunning = false;
-    this.#source.stopUp$mut();
+    this.#source.stopUp$mut$0();
     return base$$Void_0.$self;
   }
 
-  isRunning$mut() {
+  isRunning$mut$0() {
     return this.#isRunning ? base$$True_0.$self : base$$False_0.$self;
   }
 
-  for$mut(downstream_m$) {
-    return base$$flows$$FlowOp_1.for$mut$fun(downstream_m$, this);
+  for$mut$1(downstream_m$) {
+    return base$$flows$$FlowOp_1.for$mut$2$fun(downstream_m$, this);
   }
 
-  split$mut() {
+  split$mut$0() {
     return base$$Opt_1.$self;
   }
 
-  canSplit$read() {
+  canSplit$read$0() {
     return base$$False_0.$self;
   }
 }

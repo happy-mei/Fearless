@@ -170,7 +170,7 @@ public class TestJsProgram {
     """);}
 
   /** utf8 **/
-  @Disabled void strToBytes() {
+  @Test void strToBytes() {
     ok(new Res("72,101,108,108,111,33", "", 0), """
     package test
     Test: Main{sys -> sys.io.println("Hello!".utf8.flow.map{b -> b.str}.join ",")}
@@ -180,17 +180,23 @@ public class TestJsProgram {
     package test
     Test: Main{_ -> "Hello!".utf8.get(0).assertEq(72 .byte)}
     """, Base.mutBaseAliases);}
-  @Disabled void bytesToStr() {
+  @Test void bytesToStr() {
     ok(new Res("Hello!", "", 0), """
     package test
     alias base.UTF8 as UTF8,
     Test: Main{sys -> sys.io.println(UTF8.fromBytes("Hello!".utf8)!)}
     """, Base.mutBaseAliases);}
-  @Disabled void bytesToStrManual() {
+  @Test void bytesToStrManual() {
     ok(new Res("AB", "", 0), """
     package test
     alias base.UTF8 as UTF8,
     Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(65 .byte, 66 .byte))!)}
+    """, Base.mutBaseAliases);}
+  @Test void bytesToStrFail() {
+    ok(new Res("", "Program crashed with: TypeError: The encoded data was not valid for encoding utf-8[###]", 1), """
+    package test
+    alias base.UTF8 as UTF8,
+    Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(-28 .byte))!)}
     """, Base.mutBaseAliases);}
 
   /** Number **/
@@ -220,7 +226,7 @@ public class TestJsProgram {
     """);}
   @Test void intDivByZero() { ok(new Res("", """
     Program crashed with: RangeError: Division by zero
-        at test$$Test_0.$hash$imm$fun ([###])
+        at test$$Test_0.$hash$imm$2$fun ([###])
         [###]
     """, 1), """
     package test
@@ -354,6 +360,22 @@ public class TestJsProgram {
     """, Base.mutBaseAliases); }
 
   /** List **/
+  @Test void listFlowJoin() {
+    ok(new Res("A,B,C,D,E", "", 0),
+      """
+      package test
+      alias base.List as List, alias base.Int as Int, alias base.Block as Block, alias base.Main as Main, alias base.Str as Str,
+      Test:Main{ s -> s.io.println(List#("A", "B", "C", "D", "E").flow.join ",")}
+      """);
+  }
+  @Disabled void listFlowLimitJoin() {
+    ok(new Res("A,B", "", 0),
+      """
+      package test
+      alias base.List as List, alias base.Int as Int, alias base.Block as Block, alias base.Main as Main, alias base.Str as Str,
+      Test:Main{ s -> s.io.println(List#("A", "B", "C", "D", "E").flow.limit(2).join ",")}
+      """);
+  }
   @Test void LListItersIterImm() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
@@ -406,6 +428,30 @@ public class TestJsProgram {
         // prints 350,350,350,140,140,140
     }
     """);}
+  @Test void paperExamplePrintFlow() { ok(new Res("350,350,350,140,140,140", "", 0), """
+    package test
+    alias base.Nat as Nat, alias base.Str as Str,
+    alias base.List as List, alias base.Block as Block,
+    alias base.caps.UnrestrictedIO as UnrestrictedIO, alias base.caps.IO as IO,
+    alias base.flows.Flow as Flow,
+
+    Test: base.Main{ sys -> Block#
+        .let l1 = { List#[Nat](35, 52, 84, 14) }
+        .assert{l1.iter
+          .map{n -> n * 10}
+          .find{n -> n == 140}
+          .isSome}
+        .let[Str] msg = {l1.flow
+          .filter{n -> n < 40}
+          .flatMap{n -> List#(n, n, n).flow}
+          .map{n -> n * 10}
+          .map{n -> n.str}
+          .join(",")}
+        .let io = {UnrestrictedIO#sys}
+        .return {io.println(msg)}
+        // prints 350,350,350,140,140,140
+    }
+    """);}
   // as
   @Disabled void soundAsIdFnUList() { ok(new Res("1,2,3", "", 0), """
     package test
@@ -429,6 +475,32 @@ public class TestJsProgram {
     """, Base.mutBaseAliases);}
 
   /** Flow **/
+  @Test void flowNoLimit() {
+    ok(new Res("Transformed List: 6, 7, 12, 13, 18, 19", "", 0), """
+    package test
+    Test: Main{
+      #(sys) -> Block#
+        .let[mut List[Int]] numbers = {List#(+1, +2, +3, +4, +5, +6, +7, +8, +9, +10)}
+
+        // Create a flow from the list
+        .let[mut Flow[Int]] flow = {numbers.flow}
+
+        // Apply various flow operations
+        .let[mut Flow[Int]] transformedFlow = {flow
+          .map{n -> n * +2} // Multiply each number by 2
+          .filter{n -> n % +3 == +0} // Keep only numbers divisible by 3
+          .flatMap{n -> Flow#(n, n + +1)} // For each number, create a flow of the number and the number + 1
+        }
+
+        // Collect the results into a list
+        .let[mut List[Int]] resultList = {transformedFlow.list}
+
+        // Print the results
+        .do {sys.io.println("Transformed List: " + (resultList.flow.map{num -> num.str}.join ", "))}
+
+        .return {Void}
+    }
+    """, Base.mutBaseAliases);}
   @Disabled void flow() {
     ok(new Res("Transformed List: 6, 7, 12, 13, 18", "", 0), """
     package test
@@ -443,9 +515,9 @@ public class TestJsProgram {
         // Apply various flow operations
         .let[mut Flow[Int]] transformedFlow = {flow
           .map{n -> n * +2} // Multiply each number by 2
-//          .filter{n -> n % +3 == +0} // Keep only numbers divisible by 3
-//          .flatMap{n -> Flow#(n, n + +1)} // For each number, create a flow of the number and the number + 1
-//          .limit(5) // Limit the flow to the first 5 elements
+          .filter{n -> n % +3 == +0} // Keep only numbers divisible by 3
+          .flatMap{n -> Flow#(n, n + +1)} // For each number, create a flow of the number and the number + 1
+          .limit(5) // Limit the flow to the first 5 elements
         }
 
         // Collect the results into a list

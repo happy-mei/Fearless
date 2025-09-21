@@ -7,7 +7,7 @@ Document: Sealed {
 }
 
 Element: Sealed {
-  value: Str,
+  .value: Str,
   .setValue(v: Str): Void,
   .setText(v: Str): Void,
   .appendChild(child: Element): Void,

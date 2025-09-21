@@ -4,22 +4,14 @@ import { base$$Void_0, base$$Opt_1, base$$True_0, base$$False_0 } from "../../ba
 export class Range {
   static $self = new Range();
 
-  $hash$imm(...args) {
-    switch(args.length) {
-      case 1: { // Infinite range: start
-        const start_m$ = args[0];
-        const op = new InfiniteRangeOp(start_m$);
-        return base$$flows$$_SeqFlow_0.$self.fromOp$imm(op, base$$Opt_1.$self);
-      }
-      case 2: { // Finite range: start, end
-        const [start_m$, end_m$] = args;
-        const totalSize = end_m$ - start_m$;
-        const op = new FiniteRangeOp(start_m$, end_m$);
-        return base$$flows$$_SeqFlow_0.$self.fromOp$imm(op, base$$Opt_1.$self.$hash$imm(totalSize));
-      }
-      default:
-        throw new Error(`No overload for $hash$imm with ${args.length} arguments`);
-    }
+  $hash$imm$1(start_m$) {
+    const op = new InfiniteRangeOp(start_m$);
+    return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(op, base$$Opt_1.$self);
+  }
+  $hash$imm$2(start_m$, end_m$) {
+    const totalSize = end_m$ - start_m$;
+    const op = new FiniteRangeOp(start_m$, end_m$);
+    return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(op, base$$Opt_1.$self.$hash$imm$1(totalSize));
   }
 }
 
@@ -28,36 +20,42 @@ class FiniteRangeOp {
     this.cursor = start;
     this.end = end;
   }
+  isFinite$mut$0() { return base$$True_0.$self; }
 
-  isFinite$mut() { return base$$True_0.$self; }
-  isRunning$mut() { return this.cursor < this.end ? base$$True_0.$self : base$$False_0.$self; }
-
-  step$mut(sink_m$) {
-    if (!this.isRunning()) { sink_m$.stopDown$mut(); return base$$Void_0.$self; }
-    sink_m$.$hash$mut(this.cursor++);
-    if (!this.isRunning()) { sink_m$.stopDown$mut(); }
+  step$mut$1(sink_m$) {
+    if (!this.isRunning()) { sink_m$.stopDown$mut$0(); return base$$Void_0.$self; }
+    sink_m$.$hash$mut$1(this.cursor++);
+    if (!this.isRunning()) { sink_m$.stopDown$mut$0(); }
     return base$$Void_0.$self;
   }
 
-  stopUp$mut() { this.cursor = this.end; return base$$Void_0.$self; }
-
-  for$mut(downstream_m$) {
-    for (; this.cursor < this.end; this.cursor++) {
-      downstream_m$.$hash$mut(this.cursor);
-    }
-    return downstream_m$.stopDown$mut();
+  stopUp$mut$0() {
+    this.cursor = this.end;
+    return base$$Void_0.$self;
   }
 
-  split$mut() {
+  isRunning$mut$0() { return this.cursor < this.end ? base$$True_0.$self : base$$False_0.$self; }
+  isRunning() {
+    return this.cursor < this.end;
+  }
+
+  for$mut$1(downstream_m$) {
+    for (; this.cursor < this.end; this.cursor++) {
+      downstream_m$.$hash$mut$1(this.cursor);
+    }
+    return downstream_m$.stopDown$mut$0();
+  }
+
+  split$mut$0() {
     const size = this.end - this.cursor;
     if (size <= 1) return base$$Opt_1.$self;
     const mid = this.cursor + Math.floor(size / 2);
     const end_ = this.end;
     this.end = mid;
-    return base$$Opt_1.$self.$hash$imm(new FiniteRangeOp(mid, end_));
+    return base$$Opt_1.$self.$hash$imm$1(new FiniteRangeOp(mid, end_));
   }
 
-  canSplit$read() { return (this.end - this.cursor) > 1 ? base$$True_0.$self : base$$False_0.$self; }
+  canSplit$read$0() { return (this.end - this.cursor) > 1 ? base$$True_0.$self : base$$False_0.$self; }
 }
 
 class InfiniteRangeOp {
@@ -66,27 +64,27 @@ class InfiniteRangeOp {
     this.isRunningFlag = true;
   }
 
-  isFinite$mut() { return base$$False_0.$self; }
-  isRunning$mut() { return this.isRunningFlag ? base$$True_0.$self : base$$False_0.$self; }
+  isFinite$mut$0() { return base$$False_0.$self; }
+  isRunning$mut$0() { return this.isRunningFlag ? base$$True_0.$self : base$$False_0.$self; }
 
-  step$mut(sink_m$) {
-    if (!this.isRunningFlag) { sink_m$.stopDown$mut(); return base$$Void_0.$self; }
-    sink_m$.$hash$mut(this.increment());
-    if (!this.isRunningFlag) { sink_m$.stopDown$mut(); }
+  step$mut$1(sink_m$) {
+    if (!this.isRunningFlag) { sink_m$.stopDown$mut$0(); return base$$Void_0.$self; }
+    sink_m$.$hash$mut$1(this.increment());
+    if (!this.isRunningFlag) { sink_m$.stopDown$mut$0(); }
     return base$$Void_0.$self;
   }
 
-  stopUp$mut() { this.isRunningFlag = false; return base$$Void_0.$self; }
+  stopUp$mut$0() { this.isRunningFlag = false; return base$$Void_0.$self; }
 
-  for$mut(downstream_m$) {
+  for$mut$1(downstream_m$) {
     while (this.isRunningFlag) {
-      downstream_m$.$hash$mut(this.increment());
+      downstream_m$.$hash$mut$1(this.increment());
     }
-    return downstream_m$.stopDown$mut();
+    return downstream_m$.stopDown$mut$0();
   }
 
-  split$mut() { return base$$Opt_1.$self; }
-  canSplit$read() { return base$$False_0.$self; }
+  split$mut$0() { return base$$Opt_1.$self; }
+  canSplit$read$0() { return base$$False_0.$self; }
 
   increment() { return this.cursor++; }
 }

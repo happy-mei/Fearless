@@ -11,13 +11,12 @@ import {
 } from "../../../base/flows/index.js";
 import { base$$Opt_1 } from "../../../base/Opt_1.js";
 import { base$$Extensible_1 } from "../../../base/Extensible_1.js";
+import { base$$OptFlatMap_2 } from "../../../base/OptFlatMap_2.js";
 import { ConvertFromDataParallel } from "../pipelineParallel/ConvertFromDataParallel.js";
 
-// near the top of the file (after imports)
-const ID_SINK_DECORATOR = {
-  $hash$imm: s => s,
-  $hash$read: s => s,
-  $hash$mut: s => s
+// base/_SinkDecorator_0
+const Ins_SinkDecorator_0 = {
+  $hash$imm$1: s => s,
 };
 
 export class DataParallelFlow {
@@ -26,85 +25,85 @@ export class DataParallelFlow {
     this.size_m$ = size_m$;
     this.$this = $this;
 
-    this.size = this.size_m$.match$mut({
-      some$mut: x => x,
-      empty$mut: () => -1
+    this.size = this.size_m$.match$mut$1({
+      some$mut$1: x => x,
+      empty$mut$0: () => -1
     });
   }
 
   // Flow_1 helpers
-  self$mut() { return base$$flows$$Flow_1.self$mut$fun(this); }
-  self$read() { return base$$flows$$Flow_1.self$read$fun(this); }
-  self$imm() { return base$$flows$$Flow_1.self$imm$fun(this); }
-  let$mut(x_m$, cont_m$) { return base$$flows$$Flow_1.let$mut$fun(x_m$, cont_m$, this); }
+  self$mut$0() { return base$$flows$$Flow_1.self$mut$1$fun(this); }
+  self$read$0() { return base$$flows$$Flow_1.self$read$1$fun(this); }
+  self$imm$0() { return base$$flows$$Flow_1.self$imm$1$fun(this); }
+  let$mut$2(x_m$, cont_m$) { return base$$flows$$Flow_1.let$mut$3$fun(x_m$, cont_m$, this); }
 
-  actorMut$mut(state_m$, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).actorMut$mut(state_m$, f_m$); }
-  actor$mut(state_m$, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).actor$mut(state_m$, f_m$); }
-  limit$mut(n_m$) { return ConvertFromDataParallel.of(this, this.size_m$).limit$mut(n_m$); }
+  actorMut$mut$2(state_m$, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).actorMut$mut$2(state_m$, f_m$); }
+  actor$mut$2(state_m$, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).actor$mut$2(state_m$, f_m$); }
+  limit$mut$1(n_m$) { return ConvertFromDataParallel.of(this, this.size_m$).limit$mut$1(n_m$); }
 
-  with$mut(other_m$) {
-    const op = base$$flows$$_With_0.$self.$hash$imm(ID_SINK_DECORATOR, this.source_m$, other_m$.unwrapOp$mut(null));
-    return this.$this.fromOp$imm(op, base$$Opt_1.$self);
+  with$mut$1(other_m$) {
+    const op = base$$flows$$_With_0.$self.$hash$imm$3(Ins_SinkDecorator_0, this.source_m$, other_m$.unwrapOp$mut$1(null));
+    return this.$this.fromOp$imm$2(op, base$$Opt_1.$self);
   }
 
-  first$mut(predicate_m$) {
-    return base$$flows$$_SeqFlow_0.$self.fromOp$imm(this.getDataParallelSource(), this.size_m$).first$mut(predicate_m$);
+  first$mut$1(predicate_m$) {
+    return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(this.getDataParallelSource(), this.size_m$).first$mut$1(predicate_m$);
   }
-  last$mut() { return base$$flows$$_TerminalOps_1.last$mut$fun(this); }
-  list$mut() { return base$$flows$$_TerminalOps_1.list$mut$fun(this); }
-  all$mut(predicate_m$) {
-    const res = this.filter$mut(x => predicate_m$.$hash$read(x).not$imm()).first$mut();
-    return res.isEmpty$read();
+  last$mut$0() { return base$$flows$$_TerminalOps_1.last$mut$1$fun(this); }
+  list$mut$0() { return base$$flows$$_TerminalOps_1.list$mut$1$fun(this); }
+  all$mut$1(predicate_m$) {
+    const res = this.filter$mut$1(x => predicate_m$.$hash$read$1(x).not$imm$0()).first$mut$0();
+    return res.isEmpty$read$0();
   }
-  none$mut(predicate_m$) { return base$$flows$$_TerminalOps_1.none$mut$fun(predicate_m$, this); }
+  none$mut$1(predicate_m$) { return base$$flows$$_TerminalOps_1.none$mut$2$fun(predicate_m$, this); }
 
-  filter$mut(p_m$) { return this.$this.fromOp$imm(base$$flows$$_Filter_0.$self.$hash$imm(ID_SINK_DECORATOR, this.source_m$, p_m$), base$$Opt_1.$self); }
-  flatMap$mut(f_m$) { return this.$this.fromOp$imm(base$$flows$$_FlatMap_0.$self.$hash$imm(ID_SINK_DECORATOR, this.source_m$, f_m$), base$$Opt_1.$self); }
+  filter$mut$1(p_m$) { return this.$this.fromOp$imm$2(base$$flows$$_Filter_0.$self.$hash$imm$3(Ins_SinkDecorator_0, this.source_m$, p_m$), base$$Opt_1.$self); }
+  flatMap$mut$1(f_m$) { return this.$this.fromOp$imm$2(base$$flows$$_FlatMap_0.$self.$hash$imm$3(Ins_SinkDecorator_0, this.source_m$, f_m$), base$$Opt_1.$self); }
 
-  findMap$mut(f_m$) {
+  findMap$mut$1(f_m$) {
     return this
-      .map$mut(f_m$)
-      .filter$mut(res => res.isSome$read())
-      .first$mut()
-      .flatMap$mut({
-        some$mut: x => OptFlatMap_2.some$mut$fun(x, this),
-        empty$mut: () => OptFlatMap_2.empty$mut$fun(this),
-        $hash$mut: t => t
+      .map$mut$1(f_m$)
+      .filter$mut$1(res => res.isSome$read$0())
+      .first$mut$0()
+      .flatMap$mut$1({
+        some$mut$1: x => base$$OptFlatMap_2.some$mut$2$fun(x, this),
+        empty$mut$0: () => base$$OptFlatMap_2.empty$mut$1$fun(this),
+        $hash$mut$1: t => t
       });
   }
 
-  unwrapOp$mut() { return this.source_m$; }
+  unwrapOp$mut$0() { return this.source_m$; }
 
-  fold$mut(acc_m$, f_m$) {
-    return base$$flows$$_SeqFlow_0.$self.fromOp$imm(this.getDataParallelSource(), this.size_m$).fold$mut(acc_m$, f_m$);
+  fold$mut$2(acc_m$, f_m$) {
+    return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(this.getDataParallelSource(), this.size_m$).fold$mut$2(acc_m$, f_m$);
   }
-  only$mut() { return base$$flows$$_SeqFlow_0.$self.fromOp$imm(this.getDataParallelSource(), this.size_m$).only$mut(); }
-  get$mut() { return base$$flows$$_SeqFlow_0.$self.fromOp$imm(this.getDataParallelSource(), this.size_m$).get$mut(); }
-  opt$mut() { return base$$flows$$_SeqFlow_0.$self.fromOp$imm(this.getDataParallelSource(), this.size_m$).opt$mut(); }
+  only$mut$0() { return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(this.getDataParallelSource(), this.size_m$).only$mut(); }
+  get$mut$0() { return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(this.getDataParallelSource(), this.size_m$).get$mut(); }
+  opt$mut$0() { return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(this.getDataParallelSource(), this.size_m$).opt$mut(); }
 
-  map$mut(f_m$) { return this.$this.fromOp$imm(base$$flows$$_Map_0.$self.$hash$imm(s => s, this.source_m$, f_m$), this.size_m$); }
-  map$mut_withConv(c, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).map$mut(c, f_m$); }
+  map$mut$1(f_m$) { return this.$this.fromOp$imm$2(base$$flows$$_Map_0.$self.$hash$imm$3(Ins_SinkDecorator_0, this.source_m$, f_m$), this.size_m$); }
+  map$mut$2(c, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).map$mut$2(c, f_m$); }
 
-  mapFilter$mut(f_m$) { return base$$flows$$_NonTerminalOps_1.mapFilter$mut$fun(f_m$, this); }
-  assumeFinite$mut() { return this.$this.fromOp$imm(base$$flows$$_AssumeFinite_1.$self.$hash$read(this.source_m$), this.size_m$); }
-  peek$mut(f_m$) { return base$$flows$$_NonTerminalOps_1.peek$mut$fun(f_m$, this); }
-  peek$mut_withConv(c, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).peek$mut(c, f_m$); }
+  mapFilter$mut$1(f_m$) { return base$$flows$$_NonTerminalOps_1.mapFilter$mut$2$fun(f_m$, this); }
+  assumeFinite$mut$0() { return this.$this.fromOp$imm$2(base$$flows$$_AssumeFinite_1.$self.$hash$read$1(this.source_m$), this.size_m$); }
+  peek$mut$1(f_m$) { return base$$flows$$_NonTerminalOps_1.peek$mut$2$fun(f_m$, this); }
+  peek$mut$2(c, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).peek$mut(c, f_m$); }
 
-  any$mut(predicate_m$) { return this.filter$mut(predicate_m$).first$mut().isSome$read(); }
-  find$mut(predicate_m$) { return base$$flows$$_TerminalOps_1.find$mut$fun(predicate_m$, this); }
-  max$mut(compare_m$) { return base$$flows$$_TerminalOps_1.max$mut$fun(compare_m$, this); }
+  any$mut$1(predicate_m$) { return this.filter$mut$1(predicate_m$).first$mut$0().isSome$read$0(); }
+  find$mut$1(predicate_m$) { return base$$flows$$_TerminalOps_1.find$mut$2$fun(predicate_m$, this); }
+  max$mut$1(compare_m$) { return base$$flows$$_TerminalOps_1.max$mut$2$fun(compare_m$, this); }
 
-  count$mut() { return this.size >= 0 ? this.size : this.fold$mut(() => 0, (acc, _) => acc + 1); }
-  size$read() { return this.size_m$; }
-  scan$mut(acc_m$, f_m$) { return base$$flows$$_NonTerminalOps_1.scan$mut$fun(acc_m$, f_m$, this); }
+  count$mut$0() { return this.size >= 0 ? this.size : this.fold$mut$2(() => 0, (acc, _) => acc + 1); }
+  size$read$0() { return this.size_m$; }
+  scan$mut$2(acc_m$, f_m$) { return base$$flows$$_NonTerminalOps_1.scan$mut$3$fun(acc_m$, f_m$, this); }
 
-  $hash$imm(ext_m$) { return base$$Extensible_1.$hash$imm$fun(ext_m$, this); }
-  $hash$read(ext_m$) { return base$$Extensible_1.$hash$read$fun(ext_m$, this); }
-  $hash$mut(ext_m$) { return base$$Extensible_1.$hash$mut$fun(ext_m$, this); }
+  $hash$imm$1(ext_m$) { return base$$Extensible_1.$hash$imm$2$fun(ext_m$, this); }
+  $hash$read$1(ext_m$) { return base$$Extensible_1.$hash$read$2$fun(ext_m$, this); }
+  $hash$mut$1(ext_m$) { return base$$Extensible_1.$hash$mut$2$fun(ext_m$, this); }
 
-  join$mut(f) { return base$$flows$$Flow_1.join$mut$fun(f, this); }
-  for$mut(f_m$) { return base$$flows$$_TerminalOps_1.for$mut$fun(f_m$, this); }
-  forEffect$mut(f_m$) { return base$$flows$$_TerminalOps_1.forEffect$mut$fun(f_m$, this); }
+  join$mut$1(f) { return base$$flows$$Flow_1.join$mut$2$fun(f, this); }
+  for$mut$1(f_m$) { return base$$flows$$_TerminalOps_1.for$mut$2$fun(f_m$, this); }
+  forEffect$mut$1(f_m$) { return base$$flows$$_TerminalOps_1.forEffect$mut$2$fun(f_m$, this); }
 
   equals(obj) {
     if (obj === this) return true;
@@ -123,13 +122,13 @@ export class DataParallelFlow {
   getDataParallelSource() {
     const outer = this;
     return {
-      isFinite$mut: () => outer.source_m$.isFinite$mut(),
-      step$mut: sink => outer.source_m$.step$mut(sink),
-      stopUp$mut: () => outer.source_m$.stopUp$mut(),
-      isRunning$mut: () => outer.source_m$.isRunning$mut(),
-      for$mut: downstream => base$$flows$$_SeqFlow_0.$self.fromOp$imm(outer.source_m$, outer.size_m$).for$mut(downstream),
-      split$mut: () => outer.source_m$.split$mut(),
-      canSplit$read: () => outer.source_m$.canSplit$read()
+      isFinite$mut$0: () => outer.source_m$.isFinite$mut$0(),
+      step$mut$1: sink => outer.source_m$.step$mut$1(sink),
+      stopUp$mut$0: () => outer.source_m$.stopUp$mut$0(),
+      isRunning$mut$0: () => outer.source_m$.isRunning$mut$0(),
+      for$mut$1: downstream => outer.source_m$.for$mut$1(downstream),
+      split$mut$0: () => outer.source_m$.split$mut$0(),
+      canSplit$read$0: () => outer.source_m$.canSplit$read$0()
     };
   }
 

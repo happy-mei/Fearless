@@ -10,76 +10,76 @@ export class rt$$LinkedHashMap {
   }
 
   keyOf(k) {
-    return new Key(k, this.hashFn, (k1, k2) => this.keyEq$read(k1, k2));
+    return new Key(k, this.hashFn, (k1, k2) => this.keyEq$read$2(k1, k2));
   }
 
-  get$read(k) {
+  get$read$1(k) {
     const res = this.inner.get(this.keyOf(k).hashCode());
-    return res !== undefined ? base$$Opts_0.$self.$hash$imm(res) : base$$Opt_1.$self;
+    return res !== undefined ? base$$Opts_0.$self.$hash$imm$1(res) : base$$Opt_1.$self;
   }
-  get$imm(k) { return this.get$read(k); }
-  get$mut(k) { return this.get$read(k); }
+  get$imm$1(k) { return this.get$read$1(k); }
+  get$mut$1(k) { return this.get$read$1(k); }
 
-  $plus$mut(k, v) {
+  $plus$mut$2(k, v) {
     this.inner.set(this.keyOf(k).hashCode(), v);
     return this;
   }
 
-  remove$mut(k) {
+  remove$mut$1(k) {
     const key = this.keyOf(k).hashCode();
     const res = this.inner.get(key);
     this.inner.delete(key);
-    return res !== undefined ? base$$Opts_0.$self.$hash$imm(res) : base$$Opt_1.$self;
+    return res !== undefined ? base$$Opts_0.$self.$hash$imm$1(res) : base$$Opt_1.$self;
   }
 
-  clear$mut() {
+  clear$mut$0() {
     this.inner.clear();
     return base$$Void_0.$self;
   }
 
-  keyEq$read(k1, k2) {
-    const res = this.keyEq.$hash$read(k1, k2);
+  keyEq$read$2(k1, k2) {
+    const res = this.keyEq.$hash$read$2(k1, k2);
     return res instanceof Bool_0 ? res : (res ? base$$True_0.$self : base$$False_0.$self);
   }
 
-  isEmpty$read() {
+  isEmpty$read$0() {
     return this.inner.size === 0 ? base$$True_0.$self : base$$False_0.$self;
   }
 
-  put$mut(k, v) {
+  put$mut$2(k, v) {
     return this.$plus$mut(k, v);
   }
 
-  keys$read() {
+  keys$read$0() {
     const keys = Array.from(this.inner.keys());
-    return base$$flows$$Flow_0.$self.fromOp$imm(SpliteratorFlowOp.of(keys), this.inner.size);
+    return base$$flows$$Flow_0.$self.fromOp$imm$2(SpliteratorFlowOp.of(keys), this.inner.size);
   }
 
-  values$mut() {
+  values$mut$0() {
     const values = Array.from(this.inner.values());
-    return base$$flows$$Flow_0.$self.fromMutSource$imm(SpliteratorFlowOp.of(values), this.inner.size);
+    return base$$flows$$Flow_0.$self.fromMutSource$imm$2(SpliteratorFlowOp.of(values), this.inner.size);
   }
 
-  values$read() { return this.values$mut(); }
-  values$imm() { return this.values$read(); }
+  values$read$0() { return this.values$mut$0(); }
+  values$imm$0() { return this.values$read$0(); }
 
-  flowMut$mut() {
-    return base$$flows$$Flow_0.$self.fromMutSource$imm(SpliteratorFlowOp.of(this.mapToEntries()), this.inner.size);
+  flowMut$mut$0() {
+    return base$$flows$$Flow_0.$self.fromMutSource$imm$2(SpliteratorFlowOp.of(this.mapToEntries()), this.inner.size);
   }
 
-  flow$read() {
-    return base$$flows$$Flow_0.$self.fromOp$imm(SpliteratorFlowOp.of(this.mapToEntries()), this.inner.size);
+  flow$read$0() {
+    return base$$flows$$Flow_0.$self.fromOp$imm$2(SpliteratorFlowOp.of(this.mapToEntries()), this.inner.size);
   }
 
-  flow$imm() { return this.flow$read(); }
+  flow$imm$0() { return this.flow$read$0(); }
 
-  mapToEntries() {
+  mapToEntries$0() {
     const entries = [];
     for (const [keyHash, value] of this.inner.entries()) {
       entries.push({
-        key$read: () => keyHash, // Note: In JS we use hash as key
-        value$read: () => value,
-        value$mut: () => value
+        key$read$0: () => keyHash, // Note: In JS we use hash as key
+        value$read$0: () => value,
+        value$mut$0: () => value
       });
     }
     return entries;
@@ -97,8 +97,8 @@ class Key {
 
   hashCode() {
     if (this._hash === null) {
-      const ch = this.hashFn.$hash$read(this.k);
-      this._hash = Math.floor(ch.compute$mut());
+      const ch = this.hashFn.$hash$read$1(this.k);
+      this._hash = Math.floor(ch.compute$mut$0());
     }
     return this._hash;
   }
