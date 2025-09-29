@@ -84,10 +84,10 @@
   const addBtn = document.getElementById("addBtn");
   const list = document.getElementById("todoList");
 
-  addBtn.addEventListener("click", addTask);
-  input.addEventListener("keypress", e => {
+  addBtn.onclick = addTask;
+  input.onkeypress = function (e) {
     if (e.key === "Enter") addTask();
-  });
+  };
 
   function addTask() {
     const text = input.value.trim();
@@ -96,13 +96,15 @@
 
     const span = document.createElement("span");
     span.textContent = text;
-    span.addEventListener("click", () => {
+    span.onclick = function () {
       li.classList.toggle("completed");
-    });
+    };
 
     const delBtn = document.createElement("button");
     delBtn.textContent = "✕";
-    delBtn.addEventListener("click", () => li.remove());
+    delBtn.onclick = function () {
+      li.remove();
+    };
 
     li.appendChild(span);
     li.appendChild(delBtn);

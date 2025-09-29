@@ -1,6 +1,6 @@
 package base
 
-// A minimal DOM-like API
+// Minimal DOM-like API
 Document: Sealed{
   .getElementById(id: Str): Element -> Magic!,
   .createElement(tag: Str): Element -> Magic!,
@@ -11,9 +11,9 @@ Element: Sealed{
   .setValue(v: Str): Void -> Magic!,
   .setText(v: Str): Void -> Magic!,
   .appendChild(child: Element): Void -> Magic!,
-  .addEventListener(ev: Str, cb: Block[Void]): Void -> Magic!,
-  .addEventListenerKey(key: Str, cb: Block[Void]): Void -> Magic!,
   .toggleClass(name: Str): Void -> Magic!,
   .remove: Void -> Magic!,
   .focus: Void -> Magic!,
+  .onClick: Block[Void] -> Magic!,
+  // .onKeyPress: Block[Void] -> Magic!,
 }

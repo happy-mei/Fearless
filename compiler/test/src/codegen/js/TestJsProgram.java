@@ -463,7 +463,7 @@ public class TestJsProgram {
       Test:Main{ s -> s.io.println(List#("A", "B", "C", "D", "E").flow.join ",")}
       """);
   }
-  @Disabled void listFlowLimitJoin() {
+  @Test void listFlowLimitJoin() {
     ok(new Res("A,B", "", 0),
       """
       package test
@@ -896,4 +896,18 @@ public class TestJsProgram {
       .return {Void}
       }
     """, Base.mutBaseAliases);}
+
+  @Test void incrementLoop() { ok(new Res("", "", 0), """
+    package test
+    Test:Main {sys -> Block#
+      .let n = {Count.int(+0)}
+      .loop {Block#
+        .if {n.get == +10} .return {ControlFlow.break}
+        .do {Block#(n++)}
+        .return {ControlFlow.continue}
+        }
+      .assert {n.get == +10}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases); }
 }
