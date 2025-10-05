@@ -87,31 +87,31 @@ public class TestJsCodegen {
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$A_0 {
-      static ma$imm$fun($this) {
+      static ma$imm$1$fun($this) {
         return rt$$Str.fromJsStr("A");
       }
     }
     
     export class test$$A_0Impl {
-      ma$imm() { return test$$A_0.ma$imm$fun(this); }
+      ma$imm$0() { return test$$A_0.ma$imm$1$fun(this); }
     }
     
     test$$A_0.$self = new test$$A_0Impl();
     """, """
     import { rt$$Str } from "../rt-js/Str.js";
     import { test$$A_0 } from "../test/A_0.js";
-    
+
     export class test$$B_0 {
-      static mb$imm$fun($this) {
-        return rt$$Str.fromJsStr("B").$plus$imm($this.ma$imm());
+      static mb$imm$1$fun($this) {
+        return rt$$Str.fromJsStr("B").$plus$imm$1($this.ma$imm$0());
       }
     }
-    
+
     export class test$$B_0Impl {
-      mb$imm() { return test$$B_0.mb$imm$fun(this); }
-      ma$imm() { return test$$A_0.ma$imm$fun(this); }
+      mb$imm$0() { return test$$B_0.mb$imm$1$fun(this); }
+      ma$imm$0() { return test$$A_0.ma$imm$1$fun(this); }
     }
-    
+
     test$$B_0.$self = new test$$B_0Impl();
     """),
       List.of("test/A_0.js", "test/B_0.js"),
@@ -195,73 +195,73 @@ public class TestJsCodegen {
     import { base$$False_0, base$$True_0 } from "../base/index.js";
     
     export class test$$Test_0 {
-      static m$imm$fun($this) {
+      static m$imm$1$fun($this) {
         return base$$True_0.$self;
       }
-      static b$imm$fun($this) {
+      static b$imm$1$fun($this) {
         return base$$False_0.$self;
       }
     }
     
     export class test$$Test_0Impl {
-      m$imm() { return test$$Test_0.m$imm$fun(this); }
-      b$imm() { return test$$Test_0.b$imm$fun(this); }
+      m$imm$0() { return test$$Test_0.m$imm$1$fun(this); }
+      b$imm$0() { return test$$Test_0.b$imm$1$fun(this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
     """, """
     import { base$$Bool_0, base$$False_0 } from "../base/index.js";
     import { rt$$Str } from "../rt-js/Str.js";
-    
+
     export class base$$True_0 {
-      static and$imm$fun(b_m$, $this) {
+      static and$imm$2$fun(b_m$, $this) {
         return b_m$;
       }
-      static $ampersand$ampersand$imm$fun(b_m$, $this) {
-        return b_m$.$hash$mut();
+      static $ampersand$ampersand$imm$2$fun(b_m$, $this) {
+        return b_m$.$hash$mut$0();
       }
-      static or$imm$fun(b_m$, $this) {
+      static or$imm$2$fun(b_m$, $this) {
         return $this;
       }
-      static $pipe$pipe$imm$fun(b_m$, $this) {
+      static $pipe$pipe$imm$2$fun(b_m$, $this) {
         return $this;
       }
-      static not$imm$fun($this) {
+      static not$imm$1$fun($this) {
         return base$$False_0.$self;
       }
-      static if$imm$fun(f_m$, $this) {
-        return f_m$.then$mut();
+      static if$imm$2$fun(f_m$, $this) {
+        return f_m$.then$mut$0();
       }
-      static str$read$fun($this) {
+      static str$read$1$fun($this) {
         return rt$$Str.fromJsStr("True");
       }
-      static toImm$read$fun($this) {
+      static toImm$read$1$fun($this) {
         return base$$True_0.$self;
       }
     }
-    
+
     export class base$$True_0Impl {
-      str$read() { return base$$True_0.str$read$fun(this); }
-      if$imm(f_m$) { return base$$True_0.if$imm$fun(f_m$, this); }
-      $ampersand$ampersand$imm(b_m$) { return base$$True_0.$ampersand$ampersand$imm$fun(b_m$, this); }
-      $question$imm(f_m$) { return base$$Bool_0.$question$imm$fun(f_m$, this); }
-      $pipe$pipe$imm(b_m$) { return base$$True_0.$pipe$pipe$imm$fun(b_m$, this); }
-      $pipe$imm(b_m$) { return base$$Bool_0.$pipe$imm$fun(b_m$, this); }
-      match$imm(m_m$) { return base$$Bool_0.match$imm$fun(m_m$, this); }
-      not$imm() { return base$$True_0.not$imm$fun(this); }
-      or$imm(b_m$) { return base$$True_0.or$imm$fun(b_m$, this); }
-      $ampersand$imm(b_m$) { return base$$Bool_0.$ampersand$imm$fun(b_m$, this); }
-      and$imm(b_m$) { return base$$True_0.and$imm$fun(b_m$, this); }
-      toImm$read() { return base$$True_0.toImm$read$fun(this); }
+      str$read$0() { return base$$True_0.str$read$1$fun(this); }
+      if$imm$1(f_m$) { return base$$True_0.if$imm$2$fun(f_m$, this); }
+      $ampersand$ampersand$imm$1(b_m$) { return base$$True_0.$ampersand$ampersand$imm$2$fun(b_m$, this); }
+      $question$imm$1(f_m$) { return base$$Bool_0.$question$imm$2$fun(f_m$, this); }
+      $pipe$pipe$imm$1(b_m$) { return base$$True_0.$pipe$pipe$imm$2$fun(b_m$, this); }
+      $pipe$imm$1(b_m$) { return base$$Bool_0.$pipe$imm$2$fun(b_m$, this); }
+      match$imm$1(m_m$) { return base$$Bool_0.match$imm$2$fun(m_m$, this); }
+      not$imm$0() { return base$$True_0.not$imm$1$fun(this); }
+      or$imm$1(b_m$) { return base$$True_0.or$imm$2$fun(b_m$, this); }
+      $ampersand$imm$1(b_m$) { return base$$Bool_0.$ampersand$imm$2$fun(b_m$, this); }
+      and$imm$1(b_m$) { return base$$True_0.and$imm$2$fun(b_m$, this); }
+      toImm$read$0() { return base$$True_0.toImm$read$1$fun(this); }
     }
-    
+
     base$$True_0.$self = new base$$True_0Impl();
     """),
       List.of("test/Test_0.js", "base/True_0.js"),
       """
       package test
       alias base.Bool as Bool, alias base.True as True, alias base.False as False,
-      Test:{ .m:Bool-> True, .b:Bool-> False }
+      Test:{ .a:Bool-> True, .b:Bool-> False }
       """);
   }
 
@@ -269,22 +269,23 @@ public class TestJsCodegen {
   @Test void strUtf8() {
     ok("""
     import { rt$$Str } from "../rt-js/Str.js";
+    import { rt$$UTF8 } from "../rt-js/UTF8.js";
     
     export class test$$Test_0 {
-      static $hash$imm$fun(sys_m$, $this) {
-        return sys_m$.io$mut().print$mut(rt$$Str.fromJsStr(Number((rt$$Str.fromJsStr("Hello!").utf8$imm().get$imm(0n) & 0xFF) & 0xFFn).toString()));
+      static $hash$imm$2$fun(sys_m$, $this) {
+        return sys_m$.io$mut$0().println$mut$1(rt$$UTF8.$self.fromBytes$imm$1(rt$$Str.fromJsStr("Hello!").utf8$imm$0()).$exclamation$mut$0());
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+      $hash$imm$1(sys_m$) { return test$$Test_0.$hash$imm$2$fun(sys_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
     """, "test/Test_0.js", """
     package test
-    alias base.Main as Main,
-    Test: Main{sys -> sys.io.print("Hello!".utf8())}
+    alias base.Main as Main, alias base.UTF8 as UTF8,
+    Test: Main{sys -> sys.io.println(UTF8.fromBytes("Hello!".utf8)!)}
     """);
   }
 
@@ -316,13 +317,13 @@ public class TestJsCodegen {
     import { test$$Fear718$_0 } from "../test/Fear718$_0.js";
     
     export class test$$Test_0 {
-      static $hash$imm$fun(fear[###]$_m$, $this) {
-        return base$$Assert_0.$self.$exclamation$imm(base$$False_0.$self,rt$$Str.fromJsStr((-9223372036854775808n).toString()),test$$Fear718$_0.$self);
+      static $hash$imm$2$fun(fear[###]$_m$, $this) {
+        return base$$Assert_0.$self.$exclamation$imm$3(base$$False_0.$self,rt$$Str.fromJsStr(-9223372036854775808n),test$$Fear718$_0.$self);
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+      $hash$imm$1(fear[###]$_m$) { return test$$Test_0.$hash$imm$2$fun(fear[###]$_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -359,69 +360,62 @@ public class TestJsCodegen {
 
   @Test void numArithmeticOps() {
     ok("""
+    import { rt$$Num } from "../rt-js/Num.js";
+    
     export class test$$Test_0 {
-      static a$imm$fun($this) {
-        return (BigInt((BigInt((BigInt((1n + 2n)) * 3n)) / 1n)) - 4n);
+      static a$imm$1$fun($this) {
+        return rt$$Num.toNat64(BigInt((BigInt(rt$$Num.toNat64(BigInt(rt$$Num.toNat64(1n + 2n)) * 3n)) / 1n)) - 4n);
       }
-      static b$imm$fun($this) {
-        return (1n + (2n * 3n));
+      static b$imm$1$fun($this) {
+        return rt$$Num.toNat64(1n + rt$$Num.toNat64(2n * 3n));
       }
-      static mod$imm$fun($this) {
+      static mod$imm$1$fun($this) {
         return (10n % 3n);
       }
-      static pow$imm$fun($this) {
-        return (2n ** 5n);
+      static pow$imm$1$fun($this) {
+        return rt$$Num.toNat64(2n ** 5n);
       }
-      static divInt$imm$fun($this) {
+      static divInt$imm$1$fun($this) {
         return (-7n / 2n);
       }
-      static divFloat$imm$fun($this) {
+      static divFloat$imm$1$fun($this) {
         return (7.0 / 2.0);
       }
     }
     
     export class test$$Test_0Impl {
-      divInt$imm() { return test$$Test_0.divInt$imm$fun(this); }
-      mod$imm() { return test$$Test_0.mod$imm$fun(this); }
-      divFloat$imm() { return test$$Test_0.divFloat$imm$fun(this); }
-      pow$imm() { return test$$Test_0.pow$imm$fun(this); }
-      b$imm() { return test$$Test_0.b$imm$fun(this); }
-      a$imm() { return test$$Test_0.a$imm$fun(this); }
+      divInt$imm$0() { return test$$Test_0.divInt$imm$1$fun(this); }
+      mod$imm$0() { return test$$Test_0.mod$imm$1$fun(this); }
+      divFloat$imm$0() { return test$$Test_0.divFloat$imm$1$fun(this); }
+      pow$imm$0() { return test$$Test_0.pow$imm$1$fun(this); }
+      b$imm$0() { return test$$Test_0.b$imm$1$fun(this); }
+      a$imm$0() { return test$$Test_0.a$imm$1$fun(this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
     """,
-      "test/Test_0.js",
-      """
-      package test
-      alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float, alias base.Bool as Bool,
-      Test:{
-        .a:Nat-> 1 + 2 * 3 / 1 - 4,
-        .b:Nat-> 1 + (2 * 3),
-        .mod:Nat -> 10 % 3,
-        .pow:Nat -> 2 ** 5,
-        .divInt:Int-> -7 / +2,
-        .divFloat:Float -> 7.0 / 2.0,
-      }
-      """);
+    "test/Test_0.js",
+    """
+    package test
+    alias base.Nat as Nat, alias base.Int as Int, alias base.Float as Float, alias base.Bool as Bool,
+    Test:{
+      .a:Nat-> 1 + 2 * 3 / 1 - 4,
+      .b:Nat-> 1 + (2 * 3),
+      .mod:Nat -> 10 % 3,
+      .pow:Nat -> 2 ** 5,
+      .divInt:Int-> -7 / +2,
+      .divFloat:Float -> 7.0 / 2.0,
+    }
+    """);
   }
 
   @Test void subtractionUnderflow() { ok("""
-    import { rt$$Numbers } from "../rt-js/Numbers.js";
+    import { rt$$Num } from "../rt-js/Num.js";
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$Test_0 {
       static a$imm$1$fun($this) {
-        return rt$$Str.fromJsStr(
-          rt$$Numbers.toNat64(
-          BigInt(
-          rt$$Numbers.toNat64(
-          (rt$$Numbers.toNat64(BigInt(rt$$Numbers.toNat64((rt$$Numbers.toNat64(0n) - rt$$Numbers.toNat64(2n)))))
-           - rt$$Numbers.toNat64(9223372036854775807n))
-           )
-           )
-           )
-        );
+        return rt$$Str.fromJsStr(BigInt(rt$$Num.toNat64(BigInt(rt$$Num.toNat64(0n - 2n)) - 9223372036854775807n)));
       }
     }
     
@@ -438,53 +432,53 @@ public class TestJsCodegen {
 
   @Test void numOps() {
     ok("""
-    import { rt$$Numbers } from "../rt-js/Numbers.js";
+    import { rt$$Num } from "../rt-js/Num.js";
     
     export class test$$Test_0 {
-      static a$imm$fun($this) {
+      static a$imm$1$fun($this) {
         return 1n;
       }
-      static abs$imm$fun($this) {
+      static abs$imm$1$fun($this) {
         return -5n < 0n ? -(-5n) : -5n;
       }
-      static sqrt$imm$fun($this) {
+      static sqrt$imm$1$fun($this) {
         return Math.sqrt(9.0);
       }
-      static isNaN$imm$fun($this) {
-        return rt$$Numbers.toBool(isNaN(parseFloat((0.0 / 0.0))));
+      static isNaN$imm$1$fun($this) {
+        return rt$$Num.toBool(isNaN(parseFloat((0.0 / 0.0))));
       }
-      static isNegInf$imm$fun($this) {
-        return rt$$Numbers.toBool(0.0 === -Infinity);
+      static isNegInf$imm$1$fun($this) {
+        return rt$$Num.toBool(0.0 === -Infinity);
       }
-      static round$imm$fun($this) {
+      static round$imm$1$fun($this) {
         return Math.round(2.7);
       }
     }
     
     export class test$$Test_0Impl {
-      isNegInf$imm() { return test$$Test_0.isNegInf$imm$fun(this); }
-      abs$imm() { return test$$Test_0.abs$imm$fun(this); }
-      isNaN$imm() { return test$$Test_0.isNaN$imm$fun(this); }
-      round$imm() { return test$$Test_0.round$imm$fun(this); }
-      sqrt$imm() { return test$$Test_0.sqrt$imm$fun(this); }
-      a$imm() { return test$$Test_0.a$imm$fun(this); }
+      isNegInf$imm$0() { return test$$Test_0.isNegInf$imm$1$fun(this); }
+      abs$imm$0() { return test$$Test_0.abs$imm$1$fun(this); }
+      isNaN$imm$0() { return test$$Test_0.isNaN$imm$1$fun(this); }
+      round$imm$0() { return test$$Test_0.round$imm$1$fun(this); }
+      sqrt$imm$0() { return test$$Test_0.sqrt$imm$1$fun(this); }
+      a$imm$0() { return test$$Test_0.a$imm$1$fun(this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
     """,
-      "test/Test_0.js",
-      """
-      package test
-      alias base.Nat as Nat, alias base.Int as Int, alias base.Bool as Bool, alias base.Float as Float, alias base.Void as Void,
-      Test:{
-        .a:Int-> 1 .int,
-        .abs:Int -> (-5) .abs,
-        .sqrt:Float -> 9.0 .sqrt,
-        .isNaN:Bool  -> (0.0 / 0.0) .isNaN,
-        .isNegInf:Bool -> 0.0 .isNegInfinity,
-        .round:Int -> 2.7 .round,
-      }
-      """);
+    "test/Test_0.js",
+    """
+    package test
+    alias base.Nat as Nat, alias base.Int as Int, alias base.Bool as Bool, alias base.Float as Float, alias base.Void as Void,
+    Test:{
+      .a:Int-> 1 .int,
+      .abs:Int -> (-5) .abs,
+      .sqrt:Float -> 9.0 .sqrt,
+      .isNaN:Bool  -> (0.0 / 0.0) .isNaN,
+      .isNegInf:Bool -> 0.0 .isNegInfinity,
+      .round:Int -> 2.7 .round,
+    }
+    """);
   }
 
   @Test void numAssert() {
@@ -504,15 +498,15 @@ public class TestJsCodegen {
     test$$Test_0.$self = new test$$Test_0Impl();
     """, """
     import { base$$Assert_0, base$$Fear2252$_0, base$$Fear2257$_0 } from "../base/index.js";
-    import { rt$$Numbers } from "../rt-js/Numbers.js";
+    import { rt$$Num } from "../rt-js/Num.js";
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class base$$_NatAssertionHelper_0 {
       static assertEq$imm$fun(expected_m$, actual_m$, $this) {
-        return base$$Assert_0.$self.$exclamation$imm(rt$$Numbers.toBool((BigInt(expected_m$)) === (actual_m$)),rt$$Str.fromJsStr("Expected: ").$plus$imm(rt$$Str.fromJsStr((BigInt(expected_m$)).toString())).$plus$imm(rt$$Str.fromJsStr("\\nActual: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(actual_m$)).toString())),base$$Fear2252$_0.$self);
+        return base$$Assert_0.$self.$exclamation$imm(rt$$Num.toBool((BigInt(expected_m$)) === (actual_m$)),rt$$Str.fromJsStr("Expected: ").$plus$imm(rt$$Str.fromJsStr((BigInt(expected_m$)).toString())).$plus$imm(rt$$Str.fromJsStr("\\nActual: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(actual_m$)).toString())),base$$Fear2252$_0.$self);
       }
       static assertEq$imm$fun(expected_m$, actual_m$, message_m$, $this) {
-        return base$$Assert_0.$self.$exclamation$imm(rt$$Numbers.toBool((BigInt(expected_m$)) === (actual_m$)),message_m$.$plus$imm(rt$$Str.fromJsStr("\\nExpected: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(expected_m$)).toString())).$plus$imm(rt$$Str.fromJsStr("\\nActual: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(actual_m$)).toString())),base$$Fear2257$_0.$self);
+        return base$$Assert_0.$self.$exclamation$imm(rt$$Num.toBool((BigInt(expected_m$)) === (actual_m$)),message_m$.$plus$imm(rt$$Str.fromJsStr("\\nExpected: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(expected_m$)).toString())).$plus$imm(rt$$Str.fromJsStr("\\nActual: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(actual_m$)).toString())),base$$Fear2257$_0.$self);
       }
     }
     
@@ -540,13 +534,13 @@ public class TestJsCodegen {
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$Test_0 {
-      static $hash$imm$fun(fear[###]$_m$, $this) {
-        return base$$_ByteAssertionHelper_0.assertEq$imm$fun((rt$$Str.fromJsStr("Hello!").utf8$imm().get$imm(0n) & 0xFFn), (72n & 0xFFn), null);
+      static $hash$imm$2$fun(fear[###]$_m$, $this) {
+        return base$$_ByteAssertionHelper_0.assertEq$imm$3$fun((rt$$Str.fromJsStr("Hello!").utf8$imm$0().get$imm$1(0n) & 0xFF), (Number(72n) & 0xFF), null);
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+      $hash$imm$1(fear[###]$_m$) { return test$$Test_0.$hash$imm$2$fun(fear[###]$_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -559,42 +553,42 @@ public class TestJsCodegen {
 
   @Test void numOpsCompBit() {
     ok("""
-    import { rt$$Numbers } from "../rt-js/Numbers.js";
+    import { rt$$Num } from "../rt-js/Num.js";
     
     export class test$$Test_0 {
-      static gt$imm$fun($this) {
-        return rt$$Numbers.toBool((5n) > (3n));
+      static gt$imm$1$fun($this) {
+        return rt$$Num.toBool((5n) > (3n));
       }
-      static lt$imm$fun($this) {
-        return rt$$Numbers.toBool((2n) < (7n));
+      static lt$imm$1$fun($this) {
+        return rt$$Num.toBool((2n) < (7n));
       }
-      static and$imm$fun($this) {
-        return (6n & 3n);
+      static and$imm$1$fun($this) {
+        return 6n & 3n;
       }
-      static or$imm$fun($this) {
+      static or$imm$1$fun($this) {
         return 6n | 3n;
       }
-      static xor$imm$fun($this) {
+      static xor$imm$1$fun($this) {
         return 6n ^ 3n;
       }
-      static shl$imm$fun($this) {
+      static shl$imm$1$fun($this) {
         return ((1n << 3n) & ((1n<<64n)-1n));
       }
-      static shr$imm$fun($this) {
+      static shr$imm$1$fun($this) {
         return ((8n & ((1n<<64n)-1n)) >> 2n);
       }
     }
-    
+
     export class test$$Test_0Impl {
-      gt$imm() { return test$$Test_0.gt$imm$fun(this); }
-      xor$imm() { return test$$Test_0.xor$imm$fun(this); }
-      shl$imm() { return test$$Test_0.shl$imm$fun(this); }
-      or$imm() { return test$$Test_0.or$imm$fun(this); }
-      shr$imm() { return test$$Test_0.shr$imm$fun(this); }
-      and$imm() { return test$$Test_0.and$imm$fun(this); }
-      lt$imm() { return test$$Test_0.lt$imm$fun(this); }
+      gt$imm$0() { return test$$Test_0.gt$imm$1$fun(this); }
+      xor$imm$0() { return test$$Test_0.xor$imm$1$fun(this); }
+      shl$imm$0() { return test$$Test_0.shl$imm$1$fun(this); }
+      or$imm$0() { return test$$Test_0.or$imm$1$fun(this); }
+      shr$imm$0() { return test$$Test_0.shr$imm$1$fun(this); }
+      and$imm$0() { return test$$Test_0.and$imm$1$fun(this); }
+      lt$imm$0() { return test$$Test_0.lt$imm$1$fun(this); }
     }
-    
+
     test$$Test_0.$self = new test$$Test_0Impl();
     """,
       "test/Test_0.js",
@@ -1072,12 +1066,12 @@ public class TestJsCodegen {
   @Test void questionMarkStr() {
     ok("""
       import { base$$True_0 } from "../base/index.js";
-      import { rt$$Numbers } from "../rt-js/Numbers.js";
+      import { rt$$Num } from "../rt-js/Num.js";
       import { rt$$Str } from "../rt-js/Str.js";
       
       export class test$$Test_0 {
         static m$imm$fun($this) {
-          return (rt$$Numbers.toBool((5n) > (2n)) == base$$True_0.$self ? rt$$Str.fromJsStr("True") : rt$$Str.fromJsStr("False"));
+          return (rt$$Num.toBool((5n) > (2n)) == base$$True_0.$self ? rt$$Str.fromJsStr("True") : rt$$Str.fromJsStr("False"));
         }
       }
       
@@ -1111,22 +1105,20 @@ public class TestJsCodegen {
       
       test$$Test_0.$self = new test$$Test_0Impl();
       """, """
-      import { rt$$Numbers } from "../rt-js/Numbers.js";
-      
       export class test$$Fear715$_0 {
         static empty$mut$1$fun(fear[###]$_m$) {
-          return rt$$Numbers.toNat64(0n);
+          return 0n;
         }
         static some$mut$2$fun(p$_m$, fear[###]$_m$) {
           return p$_m$.age$imm$0();
         }
       }
-      
+
       export class test$$Fear715$_0Impl {
         some$mut$1(p$_m$) { return test$$Fear715$_0.some$mut$2$fun(p$_m$, this); }
         empty$mut$0() { return test$$Fear715$_0.empty$mut$1$fun(this); }
       }
-      
+
       test$$Fear715$_0.$self = new test$$Fear715$_0Impl();
       """),
       List.of("test/Test_0.js", "test/Fear715$_0.js"),
@@ -1212,7 +1204,7 @@ public class TestJsCodegen {
   @Test void blockError() {
     ok("""
     import { base$$Infos_0, base$$True_0, base$$Vars_0, base$$Void_0 } from "../base/index.js";
-    import { rt$$Numbers } from "../rt-js/Numbers.js";
+    import { rt$$Num } from "../rt-js/Num.js";
     import { rt$$Str } from "../rt-js/Str.js";
     import { test$$ForceGen_0 } from "../test/ForceGen_0.js";
 
@@ -1221,7 +1213,7 @@ public class TestJsCodegen {
         let n_m$ = 5n;
     let n2_m$ = 10n;
     var n3_m$ = base$$Vars_0.$self.$hash$imm(15n);
-    if (rt$$Numbers.toBool((BigInt(n3_m$.get$mut())) === ((BigInt(BigInt(n_m$)) + n2_m$))) == base$$True_0.$self) { r$$Error.throwFearlessError(base$$Infos_0.$self.msg$imm(rt$$Str.fromJsStr("oh no")));
+    if (rt$$Num.toBool((BigInt(n3_m$.get$mut())) === ((BigInt(BigInt(n_m$)) + n2_m$))) == base$$True_0.$self) { r$$Error.throwFearlessError(base$$Infos_0.$self.msg$imm(rt$$Str.fromJsStr("oh no")));
      }
     var doRes1 = test$$ForceGen_0.$self.$hash$imm();
     return base$$Void_0.$self;
@@ -1621,13 +1613,13 @@ public class TestJsCodegen {
       import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
       
       export class test$$Test_0 {
-        static $hash$imm$2$fun(fear31$_m$, $this) {
+        static $hash$imm$2$fun(fear[###]$_m$, $this) {
           return base$$Assert_0.$self.$exclamation$imm$2(base$$True_0.$self,test$$Fear[###]$_0.$self);
         }
       }
       
       export class test$$Test_0Impl {
-        $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
+        $hash$imm$1(fear[###]$_m$) { return test$$Test_0.$hash$imm$2$fun(fear[###]$_m$, this); }
       }
       
       test$$Test_0.$self = new test$$Test_0Impl();
@@ -1721,13 +1713,13 @@ public class TestJsCodegen {
       import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
       
       export class test$$Test_0 {
-        static $hash$imm$fun(sys_m$, $this) {
-          return sys_m$.io$mut().println$mut(rt$$flows.FlowCreator.fromFlow(rt$$flows.dataParallel.DataParallelFlowK.$self, rt$$Str.fromJsStr("Hello!").utf8$imm().flow$imm()).map$mut(test$$Fear[###]$_0.$self).join$mut(rt$$Str.fromJsStr(",")));
+        static $hash$imm$2$fun(sys_m$, $this) {
+          return sys_m$.io$mut$0().println$mut$1(rt$$flows.FlowCreator.fromFlow(rt$$flows.dataParallel.DataParallelFlowK.$self, rt$$Str.fromJsStr("Hello!").utf8$imm$0().flow$imm$0()).map$mut$1(test$$Fear[###]$_0.$self).join$mut$1(rt$$Str.fromJsStr(",")));
         }
       }
       
       export class test$$Test_0Impl {
-        $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+        $hash$imm$1(sys_m$) { return test$$Test_0.$hash$imm$2$fun(sys_m$, this); }
       }
       
       test$$Test_0.$self = new test$$Test_0Impl();
@@ -1736,68 +1728,53 @@ public class TestJsCodegen {
       import { base$$Block_0, base$$Extensible_1 } from "../../base/index.js";
       
       export class base$$flows$$Fear894$_1 {
-        static actor$mut$fun(state_m$, f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.actor$mut(state_m$,f_m$));
+        static size$read$2$fun(fear[###]$_m$, flow_m$) {
+          return flow_m$.size$read$0();
         }
-        static first$mut$fun(fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.first$mut());
+        static unwrapOp$mut$3$fun(token_m$, fear[###]$_m$, flow_m$) {
+          return flow_m$.unwrapOp$mut$1(token_m$);
         }
-        static count$mut$fun(fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.count$mut());
+        static actorMut$mut$5$fun(state_m$, f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.actorMut$mut$2(state_m$,f_m$));
         }
-        static actorMut$mut$fun(state_m$, f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.actorMut$mut(state_m$,f_m$));
+        static actor$mut$5$fun(state_m$, f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.actor$mut$2(state_m$,f_m$));
         }
-        static all$mut$fun(p_m$, fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.all$mut(p_m$));
+        static first$mut$3$fun(fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.first$mut$0());
         }
-        static limit$mut$fun(n_m$, fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.limit$mut(n_m$));
+        static any$mut$4$fun(p_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.any$mut$1(p_m$));
         }
-        static map$mut$fun(...args) {
-          switch(args.length) {
-            case 4: {
-              let f_m$ = args[0];
-              let fear[###]$_m$ = args[1];
-              let flow_m$ = args[2];
-              let isTail_m$ = args[3];
-              return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.map$mut(f_m$));
+        static all$mut$4$fun(p_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.all$mut$1(p_m$));
         }
-            case 5: {
-              let ctx_m$ = args[0];
-              let f_m$ = args[1];
-              let fear[###]$_m$ = args[2];
-              let flow_m$ = args[3];
-              let isTail_m$ = args[4];
-              return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.map$mut(ctx_m$,f_m$));
+        static filter$mut$4$fun(predicate_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.filter$mut$1(predicate_m$));
         }
-            default: throw new Error('No overload for map$mut$fun with ' + args.length + ' arguments');
-          }
+        static findMap$mut$4$fun(f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.findMap$mut$1(f_m$));
         }
-      
-        static unwrapOp$mut$fun(token_m$, fear[###]$_m$, flow_m$) {
-          return flow_m$.unwrapOp$mut(token_m$);
+        static flatMap$mut$4$fun(f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.flatMap$mut$1(f_m$));
         }
-        static fold$mut$fun(acc_m$, f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.fold$mut(acc_m$,f_m$));
+        static fold$mut$5$fun(acc_m$, f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.fold$mut$2(acc_m$,f_m$));
         }
-        static assumeFinite$mut$fun(fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.assumeFinite$mut());
+        static limit$mut$4$fun(n_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.limit$mut$1(n_m$));
         }
-        static any$mut$fun(p_m$, fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.any$mut(p_m$));
+        static map$mut$4$fun(f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.map$mut$1(f_m$));
         }
-        static filter$mut$fun(predicate_m$, fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.filter$mut(predicate_m$));
+        static map$mut$5$fun(ctx_m$, f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.map$mut$2(ctx_m$,f_m$));
         }
-        static findMap$mut$fun(f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.findMap$mut(f_m$));
+        static assumeFinite$mut$3$fun(fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.assumeFinite$mut$0());
         }
-        static size$read$fun(fear[###]$_m$, flow_m$) {
-          return flow_m$.size$read();
-        }
-        static flatMap$mut$fun(f_m$, fear[###]$_m$, flow_m$, isTail_m$) {
-          return base$$Block_0.$self.$hash$imm(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm(isTail_m$),flow_m$.flatMap$mut(f_m$));
+        static count$mut$3$fun(fear[###]$_m$, flow_m$, isTail_m$) {
+          return base$$Block_0.$self.$hash$imm$2(base$$flows$$_CheckFlowReuse_0.$self.$hash$imm$1(isTail_m$),flow_m$.count$mut$0());
         }
       }
       
@@ -1806,42 +1783,45 @@ public class TestJsCodegen {
           this.flow_m$ = flow_m$;
           this.isTail_m$ = isTail_m$;
         }
-        $hash$read(ext_m$) { return base$$Extensible_1.$hash$read$fun(ext_m$, this); }
-        limit$mut(n_m$) { return base$$flows$$Fear894$_1.limit$mut$fun(n_m$, this, this.flow_m$, this.isTail_m$); }
-        size$read() { return base$$flows$$Fear894$_1.size$read$fun(this, this.flow_m$); }
-        only$mut() { return base$$flows$$Flow_1.only$mut$fun(this); }
-        all$mut(p_m$) { return base$$flows$$Fear894$_1.all$mut$fun(p_m$, this, this.flow_m$, this.isTail_m$); }
-        fold$mut(acc_m$, f_m$) { return base$$flows$$Fear894$_1.fold$mut$fun(acc_m$, f_m$, this, this.flow_m$, this.isTail_m$); }
-        assumeFinite$mut() { return base$$flows$$Fear894$_1.assumeFinite$mut$fun(this, this.flow_m$, this.isTail_m$); }
-        self$mut() { return base$$flows$$Flow_1.self$mut$fun(this); }
-        $hash$mut(ext_m$) { return base$$Extensible_1.$hash$mut$fun(ext_m$, this); }
-        self$imm() { return base$$flows$$Flow_1.self$imm$fun(this); }
-        $hash$imm(ext_m$) { return base$$Extensible_1.$hash$imm$fun(ext_m$, this); }
-        actor$mut(state_m$, f_m$) { return base$$flows$$Fear894$_1.actor$mut$fun(state_m$, f_m$, this, this.flow_m$, this.isTail_m$); }
-        count$mut() { return base$$flows$$Fear894$_1.count$mut$fun(this, this.flow_m$, this.isTail_m$); }
-        none$mut(predicate_m$) { return base$$flows$$_TerminalOps_1.none$mut$fun(predicate_m$, this); }
-        map$mut(...args) { return base$$flows$$Fear894$_1.map$mut$fun(...args, this, this.flow_m$, this.isTail_m$); }
-        mapFilter$mut(f_m$) { return base$$flows$$_NonTerminalOps_1.mapFilter$mut$fun(f_m$, this); }
-        for$mut(f_m$) { return base$$flows$$_TerminalOps_1.for$mut$fun(f_m$, this); }
-        find$mut(predicate_m$) { return base$$flows$$_TerminalOps_1.find$mut$fun(predicate_m$, this); }
-        join$mut(j_m$) { return base$$flows$$Flow_1.join$mut$fun(j_m$, this); }
-        first$mut(...args) { return base$$flows$$Fear894$_1.first$mut$fun(...args, this, this.flow_m$, this.isTail_m$); }
-        get$mut() { return base$$flows$$Flow_1.get$mut$fun(this); }
-        last$mut() { return base$$flows$$_TerminalOps_1.last$mut$fun(this); }
-        findMap$mut(f_m$) { return base$$flows$$Fear894$_1.findMap$mut$fun(f_m$, this, this.flow_m$, this.isTail_m$); }
-        flatMap$mut(f_m$) { return base$$flows$$Fear894$_1.flatMap$mut$fun(f_m$, this, this.flow_m$, this.isTail_m$); }
-        list$mut() { return base$$flows$$_TerminalOps_1.list$mut$fun(this); }
-        self$read() { return base$$flows$$Flow_1.self$read$fun(this); }
-        unwrapOp$mut(token_m$) { return base$$flows$$Fear894$_1.unwrapOp$mut$fun(token_m$, this, this.flow_m$); }
-        actorMut$mut(state_m$, f_m$) { return base$$flows$$Fear894$_1.actorMut$mut$fun(state_m$, f_m$, this, this.flow_m$, this.isTail_m$); }
-        peek$mut(...args) { return base$$flows$$_NonTerminalOps_1.peek$mut$fun(...args, this); }
-        let$mut(x_m$, cont_m$) { return base$$flows$$Flow_1.let$mut$fun(x_m$, cont_m$, this); }
-        scan$mut(acc_m$, f_m$) { return base$$flows$$_NonTerminalOps_1.scan$mut$fun(acc_m$, f_m$, this); }
-        max$mut(compare_m$) { return base$$flows$$_TerminalOps_1.max$mut$fun(compare_m$, this); }
-        forEffect$mut(f_m$) { return base$$flows$$_TerminalOps_1.forEffect$mut$fun(f_m$, this); }
-        any$mut(p_m$) { return base$$flows$$Fear894$_1.any$mut$fun(p_m$, this, this.flow_m$, this.isTail_m$); }
-        filter$mut(predicate_m$) { return base$$flows$$Fear894$_1.filter$mut$fun(predicate_m$, this, this.flow_m$, this.isTail_m$); }
-        opt$mut() { return base$$flows$$Flow_1.opt$mut$fun(this); }
+        forEffect$mut$1(f_m$) { return base$$flows$$_TerminalOps_1.forEffect$mut$2$fun(f_m$, this); }
+        peek$mut$1(f_m$) { return base$$flows$$_NonTerminalOps_1.peek$mut$2$fun(f_m$, this); }
+        peek$mut$2(ctx_m$, f_m$) { return base$$flows$$_NonTerminalOps_1.peek$mut$3$fun(ctx_m$, f_m$, this); }
+        actorMut$mut$2(state_m$, f_m$) { return base$$flows$$Fear894$_1.actorMut$mut$5$fun(state_m$, f_m$, this, this.flow_m$, this.isTail_m$); }
+        self$mut$0() { return base$$flows$$Flow_1.self$mut$1$fun(this); }
+        self$read$0() { return base$$flows$$Flow_1.self$read$1$fun(this); }
+        self$imm$0() { return base$$flows$$Flow_1.self$imm$1$fun(this); }
+        let$mut$2(x_m$, cont_m$) { return base$$flows$$Flow_1.let$mut$3$fun(x_m$, cont_m$, this); }
+        assumeFinite$mut$0() { return base$$flows$$Fear894$_1.assumeFinite$mut$3$fun(this, this.flow_m$, this.isTail_m$); }
+        actor$mut$2(state_m$, f_m$) { return base$$flows$$Fear894$_1.actor$mut$5$fun(state_m$, f_m$, this, this.flow_m$, this.isTail_m$); }
+        first$mut$0() { return base$$flows$$Fear894$_1.first$mut$3$fun(this, this.flow_m$, this.isTail_m$); }
+        list$mut$0() { return base$$flows$$_TerminalOps_1.list$mut$1$fun(this); }
+        filter$mut$1(predicate_m$) { return base$$flows$$Fear894$_1.filter$mut$4$fun(predicate_m$, this, this.flow_m$, this.isTail_m$); }
+        all$mut$1(p_m$) { return base$$flows$$Fear894$_1.all$mut$4$fun(p_m$, this, this.flow_m$, this.isTail_m$); }
+        none$mut$1(predicate_m$) { return base$$flows$$_TerminalOps_1.none$mut$2$fun(predicate_m$, this); }
+        flatMap$mut$1(f_m$) { return base$$flows$$Fear894$_1.flatMap$mut$4$fun(f_m$, this, this.flow_m$, this.isTail_m$); }
+        opt$mut$0() { return base$$flows$$Flow_1.opt$mut$1$fun(this); }
+        get$mut$0() { return base$$flows$$Flow_1.get$mut$1$fun(this); }
+        count$mut$0() { return base$$flows$$Fear894$_1.count$mut$3$fun(this, this.flow_m$, this.isTail_m$); }
+        findMap$mut$1(f_m$) { return base$$flows$$Fear894$_1.findMap$mut$4$fun(f_m$, this, this.flow_m$, this.isTail_m$); }
+        join$mut$1(j_m$) { return base$$flows$$Flow_1.join$mut$2$fun(j_m$, this); }
+        last$mut$0() { return base$$flows$$_TerminalOps_1.last$mut$1$fun(this); }
+        unwrapOp$mut$1(token_m$) { return base$$flows$$Fear894$_1.unwrapOp$mut$3$fun(token_m$, this, this.flow_m$); }
+        mapFilter$mut$1(f_m$) { return base$$flows$$_NonTerminalOps_1.mapFilter$mut$2$fun(f_m$, this); }
+        fold$mut$2(acc_m$, f_m$) { return base$$flows$$Fear894$_1.fold$mut$5$fun(acc_m$, f_m$, this, this.flow_m$, this.isTail_m$); }
+        only$mut$0() { return base$$flows$$Flow_1.only$mut$1$fun(this); }
+        first$mut$1(predicate_m$) { return base$$flows$$_TerminalOps_1.first$mut$2$fun(predicate_m$, this); }
+        map$mut$2(ctx_m$, f_m$) { return base$$flows$$Fear894$_1.map$mut$5$fun(ctx_m$, f_m$, this, this.flow_m$, this.isTail_m$); }
+        map$mut$1(f_m$) { return base$$flows$$Fear894$_1.map$mut$4$fun(f_m$, this, this.flow_m$, this.isTail_m$); }
+        limit$mut$1(n_m$) { return base$$flows$$Fear894$_1.limit$mut$4$fun(n_m$, this, this.flow_m$, this.isTail_m$); }
+        any$mut$1(p_m$) { return base$$flows$$Fear894$_1.any$mut$4$fun(p_m$, this, this.flow_m$, this.isTail_m$); }
+        find$mut$1(predicate_m$) { return base$$flows$$_TerminalOps_1.find$mut$2$fun(predicate_m$, this); }
+        max$mut$1(compare_m$) { return base$$flows$$_TerminalOps_1.max$mut$2$fun(compare_m$, this); }
+        size$read$0() { return base$$flows$$Fear894$_1.size$read$2$fun(this, this.flow_m$); }
+        scan$mut$2(acc_m$, f_m$) { return base$$flows$$_NonTerminalOps_1.scan$mut$3$fun(acc_m$, f_m$, this); }
+        $hash$imm$1(ext_m$) { return base$$Extensible_1.$hash$imm$2$fun(ext_m$, this); }
+        $hash$read$1(ext_m$) { return base$$Extensible_1.$hash$read$2$fun(ext_m$, this); }
+        $hash$mut$1(ext_m$) { return base$$Extensible_1.$hash$mut$2$fun(ext_m$, this); }
+        for$mut$1(f_m$) { return base$$flows$$_TerminalOps_1.for$mut$2$fun(f_m$, this); }
       }
       """), List.of("test/Test_0.js", "base/flows/Fear894$_1.js"),
       """
@@ -1850,7 +1830,7 @@ public class TestJsCodegen {
       """, Base.mutBaseAliases);
   }
 
-  @Test void animalTypes() {
+  @Test void animalTypes1() {
     okList(List.of("""
       import { rt$$Str } from "../rt-js/Str.js";
       
@@ -1905,15 +1885,12 @@ public class TestJsCodegen {
       }
       """);
   }
+
   @Test void animalTypes2() { okList(List.of("""
     export class test$$Foo_0 {
-      constructor() {throw new Error("from constructor");}
-    
     }
     """, """
     export class test$$Beer_0 {
-      constructor() {throw new Error("from constructor");}
-    
       static beer$imm$2$fun(f_m$, $this) {
         return f_m$.bar$imm$0();
       }
@@ -1929,8 +1906,6 @@ public class TestJsCodegen {
     import { test$$Fear716$_0 } from "../test/Fear716$_0.js";
     
     export class test$$User_0 {
-      constructor() {throw new Error("from constructor");}
-    
       static go$imm$1$fun($this) {
         return test$$Beer_0.$self.beer$imm$1(test$$Fear716$_0.$self);
       }
@@ -1953,13 +1928,13 @@ public class TestJsCodegen {
     ok("""
       import { base$$flows$$_SafeSource_0 } from "../base/flows/index.js";
       import { rt$$ListK } from "../rt-js/ListK.js";
-      import { rt$$Numbers } from "../rt-js/Numbers.js";
+      import { rt$$Num } from "../rt-js/Num.js";
       import { rt$$Str } from "../rt-js/Str.js";
       import { rt$$flows } from "../rt-js/flows.js";
       
       export class test$$Test_0 {
         static $hash$imm$2$fun(s_m$, $this) {
-          return s_m$.io$mut$0().println$mut$1(rt$$flows.FlowCreator.fromFlow(rt$$flows.dataParallel.DataParallelFlowK.$self, base$$flows$$_SafeSource_0.$self.fromList$imm$1(rt$$ListK.$self.$hash$imm$5(rt$$Str.fromJsStr("A"),rt$$Str.fromJsStr("B"),rt$$Str.fromJsStr("C"),rt$$Str.fromJsStr("D"),rt$$Str.fromJsStr("E")))).limit$mut$1(rt$$Numbers.toNat64(2n)).join$mut$1(rt$$Str.fromJsStr(",")));
+          return s_m$.io$mut$0().println$mut$1(rt$$flows.FlowCreator.fromFlow(rt$$flows.dataParallel.DataParallelFlowK.$self, base$$flows$$_SafeSource_0.$self.fromList$imm$1(rt$$ListK.$self.$hash$imm$5(rt$$Str.fromJsStr("A"),rt$$Str.fromJsStr("B"),rt$$Str.fromJsStr("C"),rt$$Str.fromJsStr("D"),rt$$Str.fromJsStr("E")))).limit$mut$1(rt$$Num.toNat64(2n)).join$mut$1(rt$$Str.fromJsStr(",")));
         }
       }
       
@@ -1974,5 +1949,183 @@ public class TestJsCodegen {
       alias base.List as List, alias base.Int as Int, alias base.Block as Block, alias base.Main as Main, alias base.Str as Str,
       Test:Main{ s -> s.io.println(List#("A", "B", "C", "D", "E").flow.limit(2).join ",")}
       """);
+  }
+
+  /** Paper **/
+  @Test void shapeTypes() {
+    okList(List.of("""
+      export class test$$Shape_0 {
+      }
+      """, """
+      export class test$$Square_0 {
+        static area$imm$1$fun($this) {
+          return 25n;
+        }
+      }
+      
+      export class test$$Square_0Impl {
+        area$imm$0() { return test$$Square_0.area$imm$1$fun(this); }
+      }
+      
+      test$$Square_0.$self = new test$$Square_0Impl();
+      """), List.of("test/Shape_0.js", "test/Square_0.js"),
+      """
+      package test
+      alias base.Nat as Nat,
+      Shape: {
+        .area: Nat   // abstract, not implemented
+      }
+      Square: Shape {
+        .area: Nat -> 25
+      }
+      """);
+  }
+
+  @Test void shapeAnonymous() {
+    okList(List.of("""
+    import { test$$Fear715$_0 } from "../test/Fear715$_0.js";
+    
+    export class test$$Shapes_0 {
+      static unitSquare$imm$1$fun($this) {
+        return test$$Fear715$_0.$self;
+      }
+    }
+    
+    export class test$$Shapes_0Impl {
+      unitSquare$imm$0() { return test$$Shapes_0.unitSquare$imm$1$fun(this); }
+    }
+    
+    test$$Shapes_0.$self = new test$$Shapes_0Impl();
+    """, """
+    export class test$$Fear715$_0 {
+      static area$imm$1$fun(fear[###]$_m$) {
+        return 25n;
+      }
+    }
+    
+    export class test$$Fear715$_0Impl {
+      area$imm$0() { return test$$Fear715$_0.area$imm$1$fun(this); }
+    }
+    
+    test$$Fear715$_0.$self = new test$$Fear715$_0Impl();
+    """, """
+    export class test$$Shape_0 {
+    }
+    """),
+    List.of("test/Shapes_0.js", "test/Fear715$_0.js", "test/Shape_0.js"),
+    """
+    package test
+    Shape: { .area: base.Nat }
+    Shapes: {
+      .unitSquare: Shape -> { .area -> 25 }
+    }
+    """);
+  }
+
+  @Test void shapeConstructor() {
+    okList(List.of("""
+    import { test$$Fear714$_0Impl } from "../test/Fear714$_0.js";
+    
+    export class test$$Shapes_0 {
+      static rectangle$imm$3$fun(width_m$, height_m$, $this) {
+        return new test$$Fear714$_0Impl(height_m$, width_m$);
+      }
+    }
+    
+    export class test$$Shapes_0Impl {
+      rectangle$imm$2(width_m$, height_m$) { return test$$Shapes_0.rectangle$imm$3$fun(width_m$, height_m$, this); }
+    }
+    
+    test$$Shapes_0.$self = new test$$Shapes_0Impl();
+    """, """
+    import { rt$$Num } from "../rt-js/Num.js";
+    
+    export class test$$Fear714$_0 {
+      static area$imm$3$fun(fear[###]$_m$, height_m$, width_m$) {
+        return rt$$Num.toNat64(BigInt(width_m$) * height_m$);
+      }
+    }
+
+    export class test$$Fear714$_0Impl {
+      constructor(height_m$, width_m$) {
+        this.height_m$ = height_m$;
+        this.width_m$ = width_m$;
+      }
+      area$imm$0() { return test$$Fear714$_0.area$imm$3$fun(this, this.height_m$, this.width_m$); }
+    }
+    """, """
+    export class test$$Shape_0 {
+    }
+    """),
+    List.of("test/Shapes_0.js", "test/Fear714$_0.js", "test/Shape_0.js"),
+    """
+    package test
+    Shape: { .area: base.Nat }
+    Shapes: {
+      .rectangle(width: base.Nat, height: base.Nat): Shape ->
+        { .area -> width * height }
+    }
+    """);
+  }
+
+  @Test void shapeOverload() {
+    okList(List.of("""
+    import { rt$$Num } from "../rt-js/Num.js";
+    
+    export class test$$Shape_0 {
+      static area$imm$1$fun($this) {
+        return 0n;
+      }
+      static area$imm$2$fun(side_m$, $this) {
+        return rt$$Num.toNat64(BigInt(side_m$) ** 2n);
+      }
+    }
+
+    export class test$$Shape_0Impl {
+      area$imm$1(side_m$) { return test$$Shape_0.area$imm$2$fun(side_m$, this); }
+      area$imm$0() { return test$$Shape_0.area$imm$1$fun(this); }
+    }
+
+    test$$Shape_0.$self = new test$$Shape_0Impl();
+    """),
+    List.of("test/Shape_0.js"),
+    """
+    package test
+    Shape: {
+      .area: base.Nat -> 0,
+      .area(side: base.Nat): base.Nat -> side ** 2,
+    }
+    """);
+  }
+
+  @Test void stringExample() {
+    okList(List.of("""
+    import { rt$$Str } from "../rt-js/Str.js";
+    
+    export class test$$Test_0 {
+      static concat$imm$1$fun($this) {
+        return rt$$Str.fromJsStr("Fear").$plus$imm$1(rt$$Str.fromJsStr("less"));
+      }
+      static substr$imm$1$fun($this) {
+        return rt$$Str.fromJsStr("Fearless").substring$imm$2(4n,8n);
+      }
+    }
+    
+    export class test$$Test_0Impl {
+      substr$imm$0() { return test$$Test_0.substr$imm$1$fun(this); }
+      concat$imm$0() { return test$$Test_0.concat$imm$1$fun(this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """),
+    List.of("test/Test_0.js"),
+    """
+    package test
+    alias base.Str as Str,
+    Test: {
+      .concat: Str -> "Fear" + "less",
+      .substr: Str -> "Fearless".substring(4, 8)
+    }
+    """);
   }
 }

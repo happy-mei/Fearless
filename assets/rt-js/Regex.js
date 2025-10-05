@@ -1,5 +1,6 @@
 import { rt$$NativeRuntime } from "./NativeRuntime.js";
 import { base$$True_0, base$$False_0 } from "../base/index.js";
+import { toStringFromUtf8 } from "./BaseStr.js";
 
 export class rt$$Regex {
   constructor(patternStr) {
@@ -21,13 +22,13 @@ export class rt$$Regex {
 // NativeRuntime.Regex wrapper for WASM
 rt$$NativeRuntime.Regex = class {
   constructor(utf8Pattern) {
-    this.pattern = rt$$NativeRuntime.toStringFromUtf8(utf8Pattern);
+    this.pattern = toStringFromUtf8(utf8Pattern);
     // Ensure WASM is ready
     rt$$NativeRuntime.ensureWasm();
   }
 
   doesRegexMatch(utf8Str) {
-    const text = rt$$NativeRuntime.toStringFromUtf8(utf8Str);
+    const text = toStringFromUtf8(utf8Str);
     return rt$$NativeRuntime._wasmReady
       ? rt$$NativeRuntime.does_regex_match(this.pattern, text)
       : new RegExp(this.pattern).test(text);

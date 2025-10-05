@@ -25,7 +25,9 @@ public record JsProgram(List<JsFile> files) {
   private void _writeJsFiles(Path output) throws IOException {
     for (var file : files) {
       Path fullPath = output.resolve(file.path());
-      if (file.path().endsWith(".wasm")) {
+      String fileName = file.path().getFileName().toString();
+
+      if (fileName.endsWith(".wasm")) {
         // Special handling for WASM files
         Files.createDirectories(fullPath.getParent());
         Files.write(fullPath, file.code().getBytes(StandardCharsets.ISO_8859_1),
@@ -71,7 +73,7 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
           .filter(f -> f.name().d().equals(typeId))
           .toList();
 
-        String typeDefContent = gen.visitTypeDef(def, funsList);
+        String typeDefContent = gen.visitTypeDef(pkg.name(), def, funsList);
         if (typeDefContent.isEmpty()) continue;
 
         String fileName = gen.id.getSimpleName(typeId) + ".js";
@@ -202,7 +204,7 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
 
     if (importBlock.length() > 0) importBlock.append("\n");
     if (needsEnsureWasm) {
-      importBlock.append("(async function(){ await rt$$NativeRuntime.ensureWasm(); })();\n\n");
+      importBlock.append("(async function(){ await rt$$NativeRuntime.ensureWasm(); })();\n\n"); // now only the rt-js/* use rt$$NativeRuntime
     }
     return importBlock.toString();
   }
@@ -227,44 +229,6 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
     }
     return prefix + depPath + ".js";
   }
-
-  // Create base/index.js to make import lines clearer
-  private JsFile createBaseIndexJs(Map<Id.DecId, List<String>> baseExports, JsCodegen gen) {
-    StringBuilder rootIndex = new StringBuilder();
-
-    for (var entry : baseExports.entrySet()) {
-      Id.DecId decId = entry.getKey();
-      String pkg = decId.pkg();               // e.g. "base.json"
-      String typeName = gen.id.getSimpleName(decId); // e.g. "Fear340$_0"
-
-      // Flattened export name: base$$json$$Fear340$_0
-      String flattenedName = pkg.replace(".", "$$") + "$$" + typeName;
-
-      // Compute relative import path
-      String relPath;
-      if (pkg.equals("base")) {
-        relPath = "./" + typeName + ".js";
-      } else {
-        String pkgPath = pkg.replace(".", "/");
-        relPath = "./" + pkgPath.substring(5) + "/" + typeName + ".js"; // remove "base/" prefix
-      }
-
-      if (gen.freshImpls.containsKey(decId)) {
-        // If Impl exists, also export it
-        rootIndex.append(
-          "export { %s, %s } from '%s';\n".formatted(flattenedName, flattenedName + "Impl", relPath)
-        );
-      } else {
-        // Always export the interface
-        rootIndex.append(
-          "export { %s } from '%s';\n".formatted(flattenedName, relPath)
-        );
-      }
-    }
-
-    return new JsFile(Path.of("base/index.js"), rootIndex.toString());
-  }
-
 
   private JsFile createIndexJsForFolder(String folder, Map<Id.DecId, String> exports, JsCodegen gen) {
     StringBuilder sb = new StringBuilder();

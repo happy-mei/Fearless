@@ -3,11 +3,9 @@ import { rt$$NativeRuntime } from "./NativeRuntime.js";
 import { FearlessError } from "./FearlessError.js";
 import { ByteBufferListImpl } from "./ListK.js";
 import { rt$$MutStr } from "./MutStr.js";
+import { BaseStr, validateStringOrThrow } from "./BaseStr.js";
 
-export class rt$$Str {
-  constructor() {
-    if (new.target === rt$$Str) throw new Error("Cannot instantiate interface rt$$Str directly");
-  }
+export class rt$$Str extends BaseStr{
   utf8$imm$0() {
     return new ByteBufferListImpl(this.utf8());
   }
@@ -79,11 +77,6 @@ export class rt$$Str {
     return rt$$Str.fromTrustedUtf8(utf8);
   }
 
-  /** Convert to native JS string */
-  toJsString() {
-    return rt$$NativeRuntime.toStringFromUtf8(this.utf8());
-  }
-
   // --- Static helpers ---
   static fromJsStr(str) {
     const encoder = new TextEncoder();
@@ -91,7 +84,7 @@ export class rt$$Str {
   }
 
   static fromUtf8(utf8) {
-    rt$$NativeRuntime.validateStringOrThrow(utf8);
+    validateStringOrThrow(utf8);
     return rt$$Str.fromTrustedUtf8(utf8);
   }
 

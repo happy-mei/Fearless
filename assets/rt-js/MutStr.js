@@ -1,9 +1,11 @@
-import { rt$$Str } from "./Str.js";
+import { BaseStr } from "./BaseStr.js";
 import { rt$$NativeRuntime } from "./NativeRuntime.js";
 import { base$$True_0, base$$False_0, base$$Void_0 } from "../base/index.js";
+import { rt$$Str } from "./Str.js";
 
-export class rt$$MutStr {
+export class rt$$MutStr extends BaseStr {
   constructor(str) {
+    super();
     // Start with an empty buffer, grow as needed
     this._buffer = new Uint8Array(16);
     this._length = 0; // actual bytes used
@@ -56,7 +58,16 @@ export class rt$$MutStr {
   // --- private helper ---
   put(str) {
     this._graphemes = null;
-    const bytes = str.utf8();
+    // const bytes = str.utf8();
+    // Accept plain JS strings or rt$$Str
+    let bytes;
+    if (typeof str === "string") {
+      bytes = new TextEncoder().encode(str);
+    } else if (str && typeof str.utf8 === "function") {
+      bytes = str.utf8();
+    } else {
+      throw new TypeError("MutStr.put: expected rt$$Str or string, got " + typeof str);
+    }
     // Resize buffer if needed
     if (this._buffer.length - this._length < bytes.length) {
       const minSizeIncrease = Math.floor(this._buffer.length * 1.5) + 1;
@@ -68,4 +79,5 @@ export class rt$$MutStr {
     this._buffer.set(bytes, this._length);
     this._length += bytes.length;
   }
+
 }

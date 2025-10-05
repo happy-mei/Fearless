@@ -11,6 +11,7 @@ import magic.MagicTrait;
 import utils.Bug;
 import visitors.MIRVisitor;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.*;
 
@@ -81,10 +82,10 @@ record JsNumOps(
       a -> a[0]                 // float
     );
     put(".nat", 0,
-      a -> a[0],                                      // int → nat (no conversion needed)
-      a -> a[0],                                      // nat → nat (identity)
-      a -> "(" + a[0] + " & 0xFFn)",                   // byte → nat (ensure unsigned)
-      a -> a[0]                 // float → nat
+      a -> a[0],                                      // int -> nat (no conversion needed)
+      a -> a[0],                                      // nat -> nat (identity)
+      a -> "(" + a[0] + " & 0xFFn)",                   // byte -> nat (ensure unsigned)
+      a -> a[0]                 // float -> nat
     );
     put(".float", 0,
       a -> "(+" + a[0] + ")",                         // int
@@ -93,34 +94,34 @@ record JsNumOps(
       a -> a[0]                                       // float
     );
     put(".byte", 0,
-      a -> "(Number(" + a[0] + ") & 0xFF)",        // int → byte
-      a -> "(Number(" + a[0] + ") & 0xFF)",        // nat → byte
-      a -> a[0],                                   // byte → byte
-      a -> "(Math.trunc(" + a[0] + ") & 0xFF)"     // float → byte
+      a -> "(Number(" + a[0] + ") & 0xFF)",        // int -> byte
+      a -> "(Number(" + a[0] + ") & 0xFF)",        // nat -> byte
+      a -> a[0],                                   // byte -> byte
+      a -> "(Math.trunc(" + a[0] + ") & 0xFF)"     // float -> byte
     );
     put(".str", 0,
-      a -> "rt$$Str.fromJsStr(" + a[0] + ")", // Int → BigInt signed
-      a -> "rt$$Str.fromJsStr(" + a[0] + ")", // Nat → BigInt unsigned (we must ensure it prints as unsigned)
-      a -> "rt$$Str.fromJsStr(" + a[0] + " & 0xFF)", // Byte → 0..255
-      a -> "rt$$Str.fromTrustedUtf8(rt$$Str.wrap(rt$$NativeRuntime.floatToStr(" + a[0] + ")))" // Float → handled with Fearless floatToStr → wrap → fromTrustedUtf8
+      a -> "rt$$Str.fromJsStr(" + a[0] + ")", // Int -> BigInt signed
+      a -> "rt$$Str.fromJsStr(" + a[0] + ")", // Nat -> BigInt unsigned (we must ensure it prints as unsigned)
+      a -> "rt$$Str.fromJsStr(" + a[0] + " & 0xFF)", // Byte -> 0..255
+      a -> "rt$$Str.fromTrustedUtf8(rt$$Str.wrap(rt$$Str.floatToStr(" + a[0] + ")))" // Float -> handled with Fearless floatToStr -> wrap -> fromTrustedUtf8
     );
 
     // Arithmetic
     put("+", 1,
-      a -> "rt$$Numbers.toInt64((" + a[0] + " + " + a[1] + "))",           // int
-      a -> "rt$$Numbers.toNat64((" + a[0] + " + " + a[1] + "))",           // nat
+      a -> "rt$$Num.toInt64(" + a[0] + " + " + a[1] + ")",           // int
+      a -> "rt$$Num.toNat64(" + a[0] + " + " + a[1] + ")",           // nat
       a -> "((" + a[0] + " + " + a[1] + ") & 0xFF)",  // byte
       a -> "(" + a[0] + " + " + a[1] + ")"            // float
     );
     put("-", 1,
-      a -> "rt$$Numbers.toInt64((" + a[0] + " - " + a[1] + "))",           // int
-      a -> "rt$$Numbers.toNat64((" + a[0] + " - " + a[1] + "))",           // nat
+      a -> "rt$$Num.toInt64(" + a[0] + " - " + a[1] + ")",           // int
+      a -> "rt$$Num.toNat64(" + a[0] + " - " + a[1] + ")",           // nat
       a -> "((" + a[0] + " - " + a[1] + ") & 0xFF)",  // byte
       a -> "(" + a[0] + " - " + a[1] + ")"            // float
     );
     put("*", 1,
-      a -> "rt$$Numbers.toInt64((" + a[0] + " * " + a[1] + "))",           // int
-      a -> "rt$$Numbers.toNat64((" + a[0] + " * " + a[1] + "))",           // nat
+      a -> "rt$$Num.toInt64(" + a[0] + " * " + a[1] + ")",           // int
+      a -> "rt$$Num.toNat64(" + a[0] + " * " + a[1] + ")",           // nat
       a -> "((" + a[0] + " * " + a[1] + ") & 0xFF)",  // byte
       a -> "(" + a[0] + " * " + a[1] + ")"            // float
     );
@@ -137,52 +138,52 @@ record JsNumOps(
       a -> "(" + a[0] + " % " + a[1] + ")"            // float (or use floatMod)
     );
     put("**", 1,
-      a -> "rt$$Numbers.toInt64((" + a[0] + " ** " + a[1] + "))",          // int (BigInt)
-      a -> "rt$$Numbers.toNat64((" + a[0] + " ** " + a[1] + "))",          // nat (BigInt)
+      a -> "rt$$Num.toInt64(" + a[0] + " ** " + a[1] + ")",          // int (BigInt)
+      a -> "rt$$Num.toNat64(" + a[0] + " ** " + a[1] + ")",          // nat (BigInt)
       a -> "((" + a[0] + " ** " + a[1] + ") & 0xFF)", // byte
       a -> "Math.pow(" + a[0] + ", " + a[1] + ")"     // float
     );
     // Comparisons
     put(">", 1,
-      a -> "rt$$Numbers.toBool((" + a[0] + ") > (" + a[1] + "))",     // int
-      a -> "rt$$Numbers.toBool((" + a[0] + ") > (" + a[1] + "))",     // nat
-      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) > (Number(" + a[1] + ") & 0xFF)))", // byte
-      a -> "rt$$Numbers.toBool((" + a[0] + ") > (" + a[1] + "))"      // float
+      a -> "rt$$Num.toBool((" + a[0] + ") > (" + a[1] + "))",     // int
+      a -> "rt$$Num.toBool((" + a[0] + ") > (" + a[1] + "))",     // nat
+      a -> "rt$$Num.toBool((Number(" + a[0] + ") & 0xFF) > (Number(" + a[1] + ") & 0xFF))", // byte
+      a -> "rt$$Num.toBool((" + a[0] + ") > (" + a[1] + "))"      // float
     );
 
     put("<", 1,
-      a -> "rt$$Numbers.toBool((" + a[0] + ") < (" + a[1] + "))",     // int
-      a -> "rt$$Numbers.toBool((" + a[0] + ") < (" + a[1] + "))",     // nat
-      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) < (Number(" + a[1] + ") & 0xFF)))", // byte
-      a -> "rt$$Numbers.toBool((" + a[0] + ") < (" + a[1] + "))"      // float
+      a -> "rt$$Num.toBool((" + a[0] + ") < (" + a[1] + "))",     // int
+      a -> "rt$$Num.toBool((" + a[0] + ") < (" + a[1] + "))",     // nat
+      a -> "rt$$Num.toBool((Number(" + a[0] + ") & 0xFF) < (Number(" + a[1] + ") & 0xFF))", // byte
+      a -> "rt$$Num.toBool((" + a[0] + ") < (" + a[1] + "))"      // float
     );
 
     put(">=", 1,
-      a -> "rt$$Numbers.toBool((" + a[0] + ") >= (" + a[1] + "))",    // int
-      a -> "rt$$Numbers.toBool((" + a[0] + ") >= (" + a[1] + "))",    // nat
-      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) >= (Number(" + a[1] + ") & 0xFF)))", // byte
-      a -> "rt$$Numbers.toBool((" + a[0] + ") >= (" + a[1] + "))"     // float
+      a -> "rt$$Num.toBool((" + a[0] + ") >= (" + a[1] + "))",    // int
+      a -> "rt$$Num.toBool((" + a[0] + ") >= (" + a[1] + "))",    // nat
+      a -> "rt$$Num.toBool((Number(" + a[0] + ") & 0xFF) >= (Number(" + a[1] + ") & 0xFF))", // byte
+      a -> "rt$$Num.toBool((" + a[0] + ") >= (" + a[1] + "))"     // float
     );
 
     put("<=", 1,
-      a -> "rt$$Numbers.toBool((" + a[0] + ") <= (" + a[1] + "))",    // int
-      a -> "rt$$Numbers.toBool((" + a[0] + ") <= (" + a[1] + "))",    // nat
-      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) <= (Number(" + a[1] + ") & 0xFF)))", // byte
-      a -> "rt$$Numbers.toBool((" + a[0] + ") <= (" + a[1] + "))"     // float
+      a -> "rt$$Num.toBool((" + a[0] + ") <= (" + a[1] + "))",    // int
+      a -> "rt$$Num.toBool((" + a[0] + ") <= (" + a[1] + "))",    // nat
+      a -> "rt$$Num.toBool((Number(" + a[0] + ") & 0xFF) <= (Number(" + a[1] + ") & 0xFF))", // byte
+      a -> "rt$$Num.toBool((" + a[0] + ") <= (" + a[1] + "))"     // float
     );
 
     put("==", 1,
-      a -> "rt$$Numbers.toBool((" + a[0] + ") === (" + a[1] + "))",   // int
-      a -> "rt$$Numbers.toBool((" + a[0] + ") === (" + a[1] + "))",   // nat
-      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) === (Number(" + a[1] + ") & 0xFF)))", // byte
-      a -> "rt$$Numbers.toBool((" + a[0] + ") === (" + a[1] + "))"    // float
+      a -> "rt$$Num.toBool((" + a[0] + ") === (" + a[1] + "))",   // int
+      a -> "rt$$Num.toBool((" + a[0] + ") === (" + a[1] + "))",   // nat
+      a -> "rt$$Num.toBool((Number(" + a[0] + ") & 0xFF) === (Number(" + a[1] + ") & 0xFF))", // byte
+      a -> "rt$$Num.toBool((" + a[0] + ") === (" + a[1] + "))"    // float
     );
 
     put("!=", 1,
-      a -> "rt$$Numbers.toBool((" + a[0] + ") !== (" + a[1] + "))",   // int
-      a -> "rt$$Numbers.toBool((" + a[0] + ") !== (" + a[1] + "))",   // nat
-      a -> "rt$$Numbers.toBool(((Number(" + a[0] + ") & 0xFF) !== (Number(" + a[1] + ") & 0xFF)))", // byte
-      a -> "rt$$Numbers.toBool((" + a[0] + ") !== (" + a[1] + "))"    // float
+      a -> "rt$$Num.toBool((" + a[0] + ") !== (" + a[1] + "))",   // int
+      a -> "rt$$Num.toBool((" + a[0] + ") !== (" + a[1] + "))",   // nat
+      a -> "rt$$Num.toBool((Number(" + a[0] + ") & 0xFF) !== (Number(" + a[1] + ") & 0xFF))", // byte
+      a -> "rt$$Num.toBool((" + a[0] + ") !== (" + a[1] + "))"    // float
     );
     // Bitwise operations
     put(".shiftRight", 1,
@@ -224,9 +225,9 @@ record JsNumOps(
       a -> "Math.abs(" + a[0] + ")"                 // float
     );
     put(".sqrt", 0,
-      a -> "rt$$Numbers.intSqrt("  + a[0] + ")", // int
-      a -> "rt$$Numbers.natSqrt("  + a[0] + ")", // nat
-      a -> "rt$$Numbers.byteSqrt(" + a[0] + ")", // byte
+      a -> "rt$$Num.intSqrt("  + a[0] + ")", // int
+      a -> "rt$$Num.natSqrt("  + a[0] + ")", // nat
+      a -> "rt$$Num.byteSqrt(" + a[0] + ")", // byte
       a -> "Math.sqrt(" + a[0] + ")"                // float
     );
     // Assertion operations
@@ -256,10 +257,10 @@ record JsNumOps(
       errOp                                         // float
     );
     // Float-specific operations
-    putFloat(".isNaN", 0,a -> "rt$$Numbers.toBool(" + "isNaN(" + a[0] + "))");
-    putFloat(".isInfinite", 0, a -> "rt$$Numbers.toBool(" + "!isFinite(" + a[0] + "))");
-    putFloat(".isPosInfinity", 0,a -> "rt$$Numbers.toBool(" + a[0] + " === Infinity)");
-    putFloat(".isNegInfinity", 0,a -> "rt$$Numbers.toBool(" + a[0] + " === -Infinity)");
+    putFloat(".isNaN", 0,a -> "rt$$Num.toBool(" + "isNaN(" + a[0] + "))");
+    putFloat(".isInfinite", 0, a -> "rt$$Num.toBool(" + "!isFinite(" + a[0] + "))");
+    putFloat(".isPosInfinity", 0,a -> "rt$$Num.toBool(" + a[0] + " === Infinity)");
+    putFloat(".isNegInfinity", 0,a -> "rt$$Num.toBool(" + a[0] + " === -Infinity)");
     // float-only extras
     putFloat(".round", 0, a-> "Math.round(" + a[0] + ")");
     putFloat(".ceil", 0,a-> "Math.ceil(" + a[0] + ")" );
@@ -276,8 +277,8 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
         try {
           return lit
             .map(lambdaName -> lambdaName.startsWith("+") ? lambdaName.substring(1) : lambdaName)
-            .map(lambdaName -> "rt$$Numbers.toInt64(" + Long.parseLong(lambdaName.replace("_", ""), 10) + "n)") // BigInt literal
-            .orElseGet(() -> "rt$$Numbers.toInt64(BigInt(" + e.accept(gen, true) + "))")
+            .map(lambdaName -> Long.parseLong(lambdaName.replace("_", ""), 10) + "n") // BigInt literal
+            .orElseGet(() -> "BigInt(" + e.accept(gen, true) + ")")
             .describeConstable();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "Int");
@@ -298,8 +299,15 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
         var lit = magic.Magic.getLiteral(p, name);
         try {
           return lit
-            .map(lambdaName -> "rt$$Numbers.toNat64(" + Long.parseUnsignedLong(lambdaName.replace("_", ""), 10) + "n)") // BigInt literal
-            .orElseGet(() -> "rt$$Numbers.toNat64(BigInt(" + e.accept(gen, true) + "))")
+            .map(lambdaName -> {
+              var s = lambdaName.replace("_", "");
+              var value = new BigInteger(s, 10);
+              var maxNat = new BigInteger("18446744073709551615"); // 2^64 - 1
+              if (value.compareTo(BigInteger.ZERO) < 0 || value.compareTo(maxNat) > 0)
+                throw Fail.invalidNum(s, "Nat");
+              return value.toString() + "n";
+            })
+            .orElseGet(() -> "BigInt(" + e.accept(gen, true) + ")")
             .describeConstable();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "Nat");

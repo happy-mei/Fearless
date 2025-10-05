@@ -1,25 +1,6 @@
 import { base$$False_0, base$$True_0 } from "../base/index.js";
 
-export class rt$$Numbers {
-  // // exponentiation with BigInt (like pow64 in Java)
-  // static pow64(base, expBits) {
-  //   base = BigInt(base);
-  //   expBits = BigInt(expBits);
-  //   let res = 1n;
-  //   while (expBits !== 0n) {
-  //     if ((expBits & 1n) !== 0n) res *= base;
-  //     base *= base;
-  //     expBits >>= 1n;
-  //   }
-  //   return res;
-  // }
-  //
-  // // pow8: byte promoted to BigInt then back to Number (0-255 wraparound)
-  // static pow8(base, expBits) {
-  //   const result = Numbers.pow64(BigInt(base), BigInt(expBits));
-  //   return Number(result & 0xFFn); // simulate byte overflow
-  // }
-  //
+export class rt$$Num {
   // integer sqrt for signed Int (BigInt)
   static intSqrt(x) {
     x = BigInt(x);

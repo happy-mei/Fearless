@@ -46,7 +46,7 @@ public interface LogicMainJs extends FullLogicMain<JsProgram> {
 
   @Override
   default void compileBackEnd(JsProgram src) {
-    src.writeJsFiles(io().output()); // Just write JS files
+    src.writeJsFiles(io().output());
   }
 
   @Override default ProcessBuilder execution(JsProgram exe) {

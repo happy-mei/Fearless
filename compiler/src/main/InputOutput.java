@@ -2,6 +2,7 @@ package main;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -195,8 +196,6 @@ class InputOutputHelper{
   }
   public static List<JsFile> readMagicJsFiles(Path root) {
     List<JsFile> files = new ArrayList<>();
-    // root is …/target/classes/rt
-//    Path jsDir = root.resolveSibling("rt-js");  // jump to sibling directory
     // 1. Process rt-js/*.js
     List<Parser> jsFiles = loadFiles(root,".js");
     files.addAll(jsFiles.stream()
@@ -214,13 +213,13 @@ class InputOutputHelper{
       try (Stream<Path> wasmFiles = Files.walk(wasmDir)) {
         wasmFiles
           .filter(Files::isRegularFile)
-//          .filter(p->p.getFileName().toString().endsWith(".wasm"))
+          .filter(p -> p.getFileName().toString().endsWith(".wasm"))
           .forEach(p -> {
             Path relative = wasmDir.relativize(p);
             Path destPath = Path.of("rt-js/libwasm").resolve(relative);
             files.add(new JsFile(
               destPath,
-              IoErr.of(() -> new String(Files.readAllBytes(p)))
+              IoErr.of(() -> new String(Files.readAllBytes(p), StandardCharsets.ISO_8859_1))
             ));
           });
       } catch (IOException e) {

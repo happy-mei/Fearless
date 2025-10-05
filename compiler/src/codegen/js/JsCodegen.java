@@ -36,7 +36,16 @@ public class JsCodegen implements MIRVisitor<String> {
   public String visitProgram(Id.DecId entry){ throw Bug.unreachable(); }
   public String visitPackage(MIR.Package pkg){ throw Bug.unreachable(); }
 
-  public String visitTypeDef(MIR.TypeDef def, List<MIR.Fun> funs) {
+  public boolean isLiteral(Id.DecId d) {
+    return id.getLiteral(p.p(), d).isPresent();
+  }
+
+  public String visitTypeDef(String pkg, MIR.TypeDef def, List<MIR.Fun> funs) {
+    var isMagic = pkg.equals("base")
+      && def.name().name().endsWith("Instance");
+    var isLiteral= isLiteral(def.name());
+    if (isMagic || isLiteral) { return ""; }
+
     String className = id.getFullName(def.name());
 //    String extendsStr = extendsStr(def, className); // In JS, interface-like type usually does not extend anything
 

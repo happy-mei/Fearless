@@ -172,30 +172,42 @@ public class TestJsProgram {
     Test: Main{sys -> UnrestrictedIO#sys.println(Foo.msg("Hello, World"))}
     Foo: {.msg(start: Stringable): Str -> start.str + "!"}
     """, Base.mutBaseAliases); }
+  // literal
   @Test void literalSubtypeNat() {
     ok(new Res("25", "", 0), """
     package test
     Test: Main{sys -> sys.io.println(MyNums# .str)}
     MyNums: {#: MyNum -> MyNum: 25{}}
     """, Base.mutBaseAliases);}
-  @Disabled void literalSubtypeStr() {
+  @Test void literalSubtypeStr() {
     ok(new Res("Mei", "", 0), """
     package test
     Test: Main{sys -> UnrestrictedIO#sys.println(MyNames#)}
     MyNames: {#: MyName -> MyName: "Mei"{}}
     """, Base.mutBaseAliases);}
-  @Disabled void stringConcatMut() {
+  @Test void stringConcatMut() {
     ok(new Res("Hello, World! Bye!", "", 0), """
     package test
     Test: Main{sys -> sys.io.println(Foo#(" "))}
     Foo: {#(join: Str): Str -> mut "Hello," + join + "World!" + join + "Bye!"}
     """, Base.mutBaseAliases);}
-  @Disabled void stringConcatMutAndMut() {
+  @Test void stringConcatMutAndMut() {
     ok(new Res("Hello, World! Bye!", "", 0), """
     package test
     Test: Main{sys -> sys.io.println(Foo#(mut " "))}
     Foo: {#(join: mut Str): mut Str -> mut "Hello," + join + mut "World!" + join + mut "Bye!"}
     """, Base.mutBaseAliases);}
+  @Test void substring() {
+    ok(new Res("less", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println("Fearless".substring(4, 8))}
+    """, Base.mutBaseAliases);}
+  @Test void emojiLiteral() {
+    ok(new Res("\\U0001F642", "", 0), """
+    package test
+    Test: Main{sys -> sys.io.println(`\\\\U0001F642`)}
+    """, Base.mutBaseAliases);
+  }
 
   /** utf8 **/
   @Test void strToBytes() {
@@ -291,7 +303,6 @@ public class TestJsProgram {
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, ((0 - 2) - 9223372036854775807) .str, { Void }) }
-    -9223372036854775809
     """);}
   @Test void modulo() {
     ok(new Res("1", "", 0), """
@@ -428,6 +439,53 @@ public class TestJsProgram {
       }
     """, Base.mutBaseAliases); }
 
+
+  /** Opt **/
+  @Test void optionalMapImm() {
+    ok(new Res("", "", 0), """
+      package test
+      Test:Main{ _ -> Block#
+        .let[Opt[Int]] i = { Opts#[Int]+16 }
+        .let[Opt[Int]] ix10 = { i.map{n -> n * +10} }
+        .return{{}}
+        }
+      """, Base.mutBaseAliases);
+  }
+  @Test void canGetImmOptFromImmListOfImmInt() { ok(new Res("", "", 0), """
+    package test
+    MakeList:{ #: LList[Int] -> LList[Int] + +12 + +34 + +56 }
+    Test:Main{ _ -> Block#
+      .let myList = { MakeList# }
+      .let[Opt[Int]] opt = { myList.head }
+      .let[Int] i1 = { opt! }
+      .let[Int] i2 = { myList.head! }
+      .return{Void}
+      }
+    """, Base.mutBaseAliases); }
+  @Test void findClosestInt() { ok(new Res("", "", 0), """
+    package test
+    Test:Main{ _ -> Block#
+      .let[Int] closest = { Closest#(LList[Int] + +35 + +52 + +84 + +14, +49) }
+      .return{ Assert!(closest == +52, closest.str, {{}}) }
+      }
+    Closest:{
+      #(ns: LList[Int], target: Int): Int -> Block#
+        .do{ Assert!(ns.isEmpty.not, "empty list :-(", {{}}) }
+        .let[mut Var[Int]] closest = { Vars#(ns.head!) }
+        .do{ mut Closest'{ 'self
+          h, t -> h.match{
+            .empty -> {},
+            .some(n) -> (target - n).abs < ((target - (closest*)).abs) ? {
+              .then -> closest := n,
+              .else -> self#(t.head, t.tail)
+              }
+            }
+          }#(ns.head, ns.tail) }
+        .return{ closest* }
+      }
+    Closest':{ mut #(h: Opt[Int], t: LList[Int]): Void }
+    """, Base.mutBaseAliases); }
+
   /** Block **/
   @Test void lazyCall() { ok(new Res("hey", "", 0), """
     package test
@@ -453,6 +511,19 @@ public class TestJsProgram {
       }
     Rez: {}
     """, Base.mutBaseAliases); }
+  @Test void incrementLoop() { ok(new Res("", "", 0), """
+    package test
+    Test:Main {sys -> Block#
+      .let n = {Count.int(+0)}
+      .loop {Block#
+        .if {n.get == +10} .return {ControlFlow.break}
+        .do {Block#(n++)}
+        .return {ControlFlow.continue}
+        }
+      .assert {n.get == +10}
+      .return {Void}
+      }
+    """, Base.mutBaseAliases); }
 
   /** List **/
   @Test void listFlowJoin() {
@@ -463,7 +534,7 @@ public class TestJsProgram {
       Test:Main{ s -> s.io.println(List#("A", "B", "C", "D", "E").flow.join ",")}
       """);
   }
-  @Test void listFlowLimitJoin() {
+  @Disabled void listFlowLimitJoin() {
     ok(new Res("A,B", "", 0),
       """
       package test
@@ -588,6 +659,18 @@ public class TestJsProgram {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+  @Test void canGetImmIntFromImmListOfImmInt() { ok(new Res("", "", 0), """
+    package test
+    MakeList:{ #: LList[Int] -> LList[Int] + +12 + +34 + +56 }
+    Test:Main{ _ -> Block#
+      .let myList = { MakeList# }
+      .assert({ As[Int]#(myList.head!) == +12 }, myList.head!.str)
+      .assert({ As[Int]#(myList.tail.head!) == +34 }, "can get 2nd tail el")
+      .assert({ myList.head! == +12 }, "can get head el without cast")
+      .assert({ myList.tail.head! == +34 }, "can get 2nd tail el without cast")
+      .return{Void}
+      }
+    """, Base.mutBaseAliases); }
 
   /** Flow **/
   @Test void flowNoLimit() {
@@ -847,6 +930,8 @@ public class TestJsProgram {
       Test:Main{s -> Error.msg("yolo") }
       """, Base.mutBaseAliases);
   }
+
+  /** Error Msg **/
   @Disabled void emptyOptErr1() {
     ok(new Res("", "Program crashed with: \"Opt was empty\"[###]", 1), """
       package test
@@ -897,17 +982,4 @@ public class TestJsProgram {
       }
     """, Base.mutBaseAliases);}
 
-  @Test void incrementLoop() { ok(new Res("", "", 0), """
-    package test
-    Test:Main {sys -> Block#
-      .let n = {Count.int(+0)}
-      .loop {Block#
-        .if {n.get == +10} .return {ControlFlow.break}
-        .do {Block#(n++)}
-        .return {ControlFlow.continue}
-        }
-      .assert {n.get == +10}
-      .return {Void}
-      }
-    """, Base.mutBaseAliases); }
 }

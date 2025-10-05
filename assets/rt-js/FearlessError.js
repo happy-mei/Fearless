@@ -1,4 +1,4 @@
-import { toStringFromUtf8 } from "./NativeRuntime.js";
+import { toStringFromUtf8 } from "./BaseStr.js";
 
 export class FearlessError {
   constructor(info) {
