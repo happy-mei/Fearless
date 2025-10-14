@@ -1,6 +1,6 @@
 import { rt$$IO } from "./IO.js";
 import { rt$$Str } from "./Str.js";
-import { base$$Void_0 } from "../base/index.js";
+import { base$$Void_0 } from "../base/Void_0.js";
 
 export class rt$$Debug {
   static $self = new rt$$Debug();

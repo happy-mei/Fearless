@@ -1,9 +1,10 @@
-import { base$$True_0, base$$False_0 } from "../base/index.js";
+import { base$$True_0 } from "../base/True_0.js";
+import { base$$False_0 } from "../base/False_0.js";
 import { rt$$NativeRuntime } from "./NativeRuntime.js";
 import { FearlessError } from "./FearlessError.js";
 import { ByteBufferListImpl } from "./ListK.js";
 import { rt$$MutStr } from "./MutStr.js";
-import { BaseStr, validateStringOrThrow } from "./BaseStr.js";
+import { BaseStr } from "./BaseStr.js";
 
 export class rt$$Str extends BaseStr{
   utf8$imm$0() {
@@ -60,7 +61,7 @@ export class rt$$Str extends BaseStr{
     ).str$read$0(); // return a proper rt$$Str
   }
 
-  size$imm$0() { return this.graphemes().length; }
+  size$imm$0() { return BigInt(this.graphemes().length); }
   isEmpty$read$0() { return this.utf8().length === 0 ? base$$True_0.$self : base$$False_0.$self; }
 
   substring$imm$2(start, end) {
@@ -83,8 +84,21 @@ export class rt$$Str extends BaseStr{
     return rt$$Str.fromTrustedUtf8(encoder.encode(str));
   }
 
+  static numToStr(x) {
+    return rt$$Str.fromJsStr(String(x));
+  }
+
+  // Converts a float to a canonical string form for .str.
+  // Uses toPrecision(15) to suppress IEEE-754 artifacts like 0.30000000000000004.
+  // This ensures Float.toString() and .str produce stable, human-readable output.
+  static floatToStr(x) {
+    if (Number.isNaN(x)) return "NaN";
+    if (!Number.isFinite(x)) return String(x);
+    return parseFloat(x.toPrecision(15)).toString();
+  }
+
   static fromUtf8(utf8) {
-    validateStringOrThrow(utf8);
+    rt$$NativeRuntime.validateStringOrThrow(utf8);
     return rt$$Str.fromTrustedUtf8(utf8);
   }
 
@@ -120,7 +134,7 @@ export class rt$$Str extends BaseStr{
       if (!this._graphemes) this._graphemes = rt$$NativeRuntime.indexString(this._utf8);
       return this._graphemes;
     }
-    size$imm$0() { return this._size; }
+    size$imm$0() { return BigInt(this._size); }
     isEmpty$read$0() { return this._size === 0 ? base$$True_0.$self : base$$False_0.$self; }
   };
 }

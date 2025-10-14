@@ -1,5 +1,8 @@
-import { base$$Opt_1, base$$Opts_0, base$$False_0 } from "../../base/index.js";
-import { base$$flows$$_SeqFlow_0, base$$flows$$_UnwrapFlowToken_0 } from "../../base/flows/index.js";
+import { base$$False_0 } from "../../base/False_0.js";
+import { base$$Opt_1 } from "../../base/Opt_1.js";
+import { base$$Opts_0 } from "../../base/Opts_0.js";
+import { base$$flows$$_UnwrapFlowToken_0 } from "../../base/flows/_UnwrapFlowToken_0.js";
+import { base$$flows$$_SeqFlow_0 } from "../../base/flows/_SeqFlow_0.js";
 import { DataParallelFlowK } from "./dataParallel/DataParallelFlowK.js";
 import { PipelineParallelFlowK } from "./pipelineParallel/PipelineParallelFlowK.js";
 
@@ -20,17 +23,18 @@ export const FlowCreator = {
 
     // size = long, or -1 if empty
     const size = original.size$read$0().match$imm$1({
-      some$mut$1: (x) => x,
-      empty$mut$0: () => -1n, // bigint for long
+      some$mut$1: (x) => (typeof x === "bigint" ? x : BigInt(x)),
+      empty$mut$0: () => -1n,
     });
+    const sizeNum = size < 0n ? -1 : Number(size);
 
-    return FlowCreator.fromFlowOp(intended, op, size);
+    return FlowCreator.fromFlowOp(intended, op, sizeNum);
   },
 
   /**
    * @param {base$$flows$$_FlowFactory_0} intended
    * @param {base$$flows$$FlowOp_1} op
-   * @param {bigint|number} size
+   * @param {number} size
    */
   fromFlowOp(intended, op, size) {
     const isSequentialised = IS_SEQUENTIALISED.bound;
@@ -40,29 +44,33 @@ export const FlowCreator = {
       return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(op, optSize);
     }
 
-    if (op.isFinite$mut$0() === base$$False_0.$self && intended instanceof DataParallelFlowK) {
-      return PipelineParallelFlowK.$self.fromOp$imm$2(op, base$$Opt_1.$self);
-    }
+    // When infinite source & intended DP → switch to PP
+    // if (op.isFinite$mut$0() === base$$False_0.$self && intended === DataParallelFlowK.$self) {
+    //   return PipelineParallelFlowK.$self.fromOp$imm$2(op, base$$Opt_1.$self);
+    // }
 
     if (size < 0) {
       return intended.fromOp$imm$2(op, base$$Opt_1.$self);
     }
-
     const optSize = base$$Opts_0.$self.$hash$imm$1(size);
 
-    // Special-case fork/join attempt
-    if (size === 2n) {
+    // Special-case fork/join
+    if (size === 2) {
       return intended.fromOp$imm$2(op, optSize);
     }
 
-    if (size <= 1n) {
+    // small flows → Seq
+    if (size <= 1) {
       return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(op, optSize);
     }
 
-    if ((size < 4n) && intended === DataParallelFlowK.$self) {
-      return PipelineParallelFlowK.$self.fromOp$imm$2(op, optSize);
-    }
+    // Small DP flows (but >1) → PP
+    // if ((size < 4) && intended === DataParallelFlowK.$self) {
+    //   return PipelineParallelFlowK.$self.fromOp$imm$2(op, optSize);
+    // }
 
-    return intended.fromOp$imm$2(op, optSize);
+
+    // default: use what the compiler asked for
+    return intended.fromOp$imm$2(op, optSize); // here
   },
 };

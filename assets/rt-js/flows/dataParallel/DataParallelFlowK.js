@@ -1,5 +1,5 @@
 import { DataParallelFlow } from "./DataParallelFlow.js";
-import { base$$flows$$_RestrictFlowReuse_0 } from "../../../base/flows/index.js";
+import { base$$flows$$_RestrictFlowReuse_0 } from "../../../base/flows/_RestrictFlowReuse_0.js";
 
 export const DataParallelFlowK = {
   $self: null, // we fill it later

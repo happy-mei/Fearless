@@ -1,4 +1,9 @@
-import { base$$Void_0, base$$Opt_1, base$$Opts_0, base$$True_0, base$$False_0, base$$List_1 } from "../base/index.js";
+import { base$$True_0 } from "../base/True_0.js";
+import { base$$False_0 } from "../base/False_0.js";
+import { base$$Opt_1 } from "../base/Opt_1.js";
+import { base$$Opts_0 } from "../base/Opts_0.js";
+import { base$$Void_0 } from "../base/Void_0.js";
+import { base$$List_1 } from "../base/List_1.js";
 
 export const rt$$ListK = {
   $self: null, // will set below
@@ -83,7 +88,7 @@ export class ListImpl {
   subList$read$2$2(from, to) { return base$$List_1.subList$read$3$fun(from, to, this); }
   as$read$1(f) { return base$$List_1.as$read$2$fun(f, this); }
 
-  size$read$0() { return this.inner.length; }
+  size$read$0() { return BigInt(this.inner.length); }
 
   _flowimm$imm$2(start, end) { return base$$List_1._flowimm$imm$3$fun(start, end, this); }
   _flowread$read$2(start, end) { return base$$List_1._flowread$read$3$fun(start, end, this); }
@@ -119,7 +124,7 @@ export class ByteBufferListImpl {
   subList$read$2(from, to) { return base$$List_1.subList$read$3$fun(from, to, this); }
   as$read$1(f) { return base$$List_1.as$read$2$fun(f, this); }
 
-  size$read$0() { return this.inner.length; }
+  size$read$0() { return BigInt(this.inner.length); }
 
   add$mut$0() { throw new Error("Unreachable code"); }
   $plus$mut$0() { throw new Error("Unreachable code"); }

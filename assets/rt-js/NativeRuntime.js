@@ -39,35 +39,43 @@ export const rt$$NativeRuntime = {
     throw new TypeError(`Expected string or Uint8Array, got ${typeof s}`);
   },
 
+  validateStringOrThrow(bytes) {
+    return wasmGlue.validate_string(bytes);
+  },
+
+  floatToStr(n) {
+    return wasmGlue.float_to_str(n);
+  },
+
   normaliseString(s) {
-    this.ensureWasm();
-    const jsStr = this._toJsString(s);
-    return wasmGlue.normalise_string(jsStr);
+    // this.ensureWasm();
+    // const jsStr = this._toJsString(s);
+    return wasmGlue.normalise_string(s);
   },
 
   hashString(s) {
-    this.ensureWasm();
-    const jsStr = this._toJsString(s);
-    return wasmGlue.hash_string(jsStr);
+    // this.ensureWasm();
+    // const jsStr = this._toJsString(s);
+    return wasmGlue.hash_string(s);
   },
 
   indexString(s) {
-    this.ensureWasm();
-    const jsStr = this._toJsString(s);
-    return wasmGlue.index_string(jsStr);
+    // this.ensureWasm();
+    // const jsStr = this._toJsString(s);
+    return wasmGlue.index_string(s);
   },
 
-  compileRegex(pat) {
-    this.ensureWasm();
-    const p = this._toJsString(pat);
-    return wasmGlue.compile_regex(p);
+  compileRegexPattern(pat) {
+    // this.ensureWasm();
+    // const p = this._toJsString(pat);
+    return wasmGlue.compile_regex_pattern(pat);
   },
 
   doesRegexMatch(pat, text) {
-    this.ensureWasm();
-    const p = this._toJsString(pat);
-    const t = this._toJsString(text);
-    return wasmGlue.does_regex_match(p, t);
+    // this.ensureWasm();
+    // const p = this._toJsString(pat);
+    // const t = this._toJsString(text);
+    return wasmGlue.does_regex_match(pat, text);
   },
 
 
@@ -82,7 +90,7 @@ export const rt$$NativeRuntime = {
       );
       // compile via WASM
       try {
-        this.patternPtr = rt$$NativeRuntime.compileRegex(s); // in JS, just store string
+        this.patternPtr = rt$$NativeRuntime.compileRegexPattern(s); // in JS, just store string
       } catch (err) {
         throw new Error(`Invalid regex: ${err}`);
       }

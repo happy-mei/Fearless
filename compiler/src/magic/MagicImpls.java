@@ -32,7 +32,9 @@ public interface MagicImpls<R> {
     if (isMagic(Magic.MapK, e)) { return Optional.ofNullable(mapK(e)); }
     if (isMagic(Magic.BlackBox, e)) { return Optional.ofNullable(blackBox(e)); }
     if (isMagic(Magic.Document, e)) { return Optional.ofNullable(document(e)); }
+    if (isMagic(Magic.Documents, e)) { return Optional.ofNullable(documents(e)); }
     if (isMagic(Magic.Element, e)) { return Optional.ofNullable(element(e)); }
+    if (isMagic(Magic.Event, e)) { return Optional.ofNullable(event(e)); }
     return Optional.empty();
   }
 
@@ -74,7 +76,9 @@ public interface MagicImpls<R> {
   default MagicTrait<MIR.E,R> mapK(MIR.E e) { return null; }
   default MagicCallable<MIR.E,R> variantCall(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> document(MIR.E e) { return null; }
+  default MagicTrait<MIR.E,R> documents(MIR.E e) { return null; }
   default MagicTrait<MIR.E,R> element(MIR.E e) { return null; }
+  default MagicTrait<MIR.E,R> event(MIR.E e) { return null; }
   ast.Program p();
 
 }

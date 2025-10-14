@@ -100,17 +100,17 @@ record JsNumOps(
       a -> "(Math.trunc(" + a[0] + ") & 0xFF)"     // float -> byte
     );
     put(".str", 0,
-      a -> "rt$$Str.fromJsStr(" + a[0] + ")", // Int -> BigInt signed
-      a -> "rt$$Str.fromJsStr(" + a[0] + ")", // Nat -> BigInt unsigned (we must ensure it prints as unsigned)
-      a -> "rt$$Str.fromJsStr(" + a[0] + " & 0xFF)", // Byte -> 0..255
-      a -> "rt$$Str.fromTrustedUtf8(rt$$Str.wrap(rt$$Str.floatToStr(" + a[0] + ")))" // Float -> handled with Fearless floatToStr -> wrap -> fromTrustedUtf8
+      a -> "rt$$Str.numToStr(" + a[0] + ")", // Int -> BigInt signed
+      a -> "rt$$Str.numToStr(" + a[0] + ")", // Nat -> BigInt unsigned (we must ensure it prints as unsigned)
+      a -> "rt$$Str.numToStr(" + a[0] + " & 0xFF)", // Byte -> 0..255
+      a -> "rt$$Str.floatToStr(" + a[0] + ")" // Float -> handled with Fearless floatToStr -> wrap -> fromTrustedUtf8
     );
 
     // Arithmetic
     put("+", 1,
       a -> "rt$$Num.toInt64(" + a[0] + " + " + a[1] + ")",           // int
       a -> "rt$$Num.toNat64(" + a[0] + " + " + a[1] + ")",           // nat
-      a -> "((" + a[0] + " + " + a[1] + ") & 0xFF)",  // byte
+      a -> "rt$$Num.toByte8(" + a[0] + " + " + a[1] + ")",  // byte
       a -> "(" + a[0] + " + " + a[1] + ")"            // float
     );
     put("-", 1,
@@ -176,7 +176,7 @@ record JsNumOps(
       a -> "rt$$Num.toBool((" + a[0] + ") === (" + a[1] + "))",   // int
       a -> "rt$$Num.toBool((" + a[0] + ") === (" + a[1] + "))",   // nat
       a -> "rt$$Num.toBool((Number(" + a[0] + ") & 0xFF) === (Number(" + a[1] + ") & 0xFF))", // byte
-      a -> "rt$$Num.toBool((" + a[0] + ") === (" + a[1] + "))"    // float
+      a -> "rt$$Num.toBool(rt$$Num.eqFloat(" + a[0] + ", " + a[1] + "))"  // float uses a tolerance-based comparison instead of strict ===
     );
 
     put("!=", 1,
@@ -278,7 +278,7 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
           return lit
             .map(lambdaName -> lambdaName.startsWith("+") ? lambdaName.substring(1) : lambdaName)
             .map(lambdaName -> Long.parseLong(lambdaName.replace("_", ""), 10) + "n") // BigInt literal
-            .orElseGet(() -> "BigInt(" + e.accept(gen, true) + ")")
+            .orElseGet(() -> e.accept(gen, true))
             .describeConstable();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "Int");
@@ -299,15 +299,16 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
         var lit = magic.Magic.getLiteral(p, name);
         try {
           return lit
+//            .map(lambdaName -> Long.parseUnsignedLong(lambdaName.replace("_", ""), 10) + "n") // BigInt literal
             .map(lambdaName -> {
               var s = lambdaName.replace("_", "");
               var value = new BigInteger(s, 10);
               var maxNat = new BigInteger("18446744073709551615"); // 2^64 - 1
               if (value.compareTo(BigInteger.ZERO) < 0 || value.compareTo(maxNat) > 0)
-                throw Fail.invalidNum(s, "Nat");
+                throw Fail.invalidNum(s, "Nat"); // for veryLongLongToStr test
               return value.toString() + "n";
             })
-            .orElseGet(() -> "BigInt(" + e.accept(gen, true) + ")")
+            .orElseGet(() -> e.accept(gen, true))
             .describeConstable();
         } catch (NumberFormatException ignored) {
           throw Fail.invalidNum(lit.orElse(name.toString()), "Nat");
@@ -734,20 +735,16 @@ public record JsMagicImpls(MIRVisitor<String> gen, ast.Program p) implements mag
     };
   }
 
-  @Override public MagicTrait<MIR.E,String> document(MIR.E e) {
-    return new MagicTrait<>() {
-      @Override public Optional<String> instantiate() {
-        return Optional.of("rt$$Document.$self");
-      }
-      @Override public Optional<String> call(Id.MethName m,
-                                             List<? extends MIR.E> args,
-                                             EnumSet<MIR.MCall.CallVariant> variants,
-                                             MIR.MT expectedT) {
-        // Forward method names to JS
-        return Optional.of("rt$$Document.$self" + m.name() + "(" +
-          args.stream().map(a -> a.accept(gen, true)).collect(Collectors.joining(",")) +
-          ")");
-      }
-    };
+  @Override public MagicTrait<MIR.E, String> document(MIR.E e) {
+    return ()->Optional.of("rt$$Document.$self");
+  }
+  @Override public MagicTrait<MIR.E, String> documents(MIR.E e) {
+    return ()->Optional.of("rt$$Documents.$self");
+  }
+  @Override public MagicTrait<MIR.E, String> element(MIR.E e) {
+    return ()->Optional.of("rt$$Element.$self");
+  }
+  @Override public MagicTrait<MIR.E, String> event(MIR.E e) {
+    return ()->Optional.of("rt$$Event.$self");
   }
 }

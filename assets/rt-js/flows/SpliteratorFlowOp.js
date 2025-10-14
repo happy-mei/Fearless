@@ -1,4 +1,8 @@
-import { base$$True_0, base$$False_0, base$$Void_0, base$$Opt_1, base$$Opts_0 } from "../../base/index.js";
+import { base$$True_0 } from "../../base/True_0.js";
+import { base$$False_0 } from "../../base/False_0.js";
+import { base$$Opt_1 } from "../../base/Opt_1.js";
+import { base$$Opts_0 } from "../../base/Opts_0.js";
+import { base$$Void_0 } from "../../base/Void_0.js";
 
 export const SpliteratorFlowOp = {
   of(iterable) {

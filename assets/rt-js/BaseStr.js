@@ -1,17 +1,17 @@
 const _textDecoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-8") : null;
 const _textEncoder = typeof TextEncoder !== "undefined" ? new TextEncoder() : null;
 
-export function validateStringOrThrow(u8) {
-  const bytes = _toUint8Array(u8);
-  if (_textDecoder) {
-    try {
-      const dec = new TextDecoder("utf-8", { fatal: true });
-      dec.decode(bytes);
-    } catch {
-      throw new Error("Invalid UTF-8");
-    }
-  }
-}
+// export function validateStringOrThrow(u8) {
+//   const bytes = _toUint8Array(u8);
+//   if (_textDecoder) {
+//     try {
+//       const dec = new TextDecoder("utf-8", { fatal: true });
+//       dec.decode(bytes);
+//     } catch {
+//       throw new Error("Invalid UTF-8");
+//     }
+//   }
+// }
 
 export function _toUint8Array(bufOrStr) {
   if (!bufOrStr) return new Uint8Array(0);
@@ -33,10 +33,5 @@ export class BaseStr {
   /** Convert to native JS string */
   toJsString() {
     return toStringFromUtf8(this.utf8());
-  }
-
-  floatToStr(value) {
-    const s = String(value);
-    return _textEncoder ? _textEncoder.encode(s) : Uint8Array.from(Array.from(s).map(c => c.charCodeAt(0)));
   }
 }

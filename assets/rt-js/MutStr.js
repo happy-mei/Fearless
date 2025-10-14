@@ -1,6 +1,8 @@
 import { BaseStr } from "./BaseStr.js";
 import { rt$$NativeRuntime } from "./NativeRuntime.js";
-import { base$$True_0, base$$False_0, base$$Void_0 } from "../base/index.js";
+import { base$$True_0 } from "../base/True_0.js";
+import { base$$False_0 } from "../base/False_0.js";
+import { base$$Void_0 } from "../base/Void_0.js";
 import { rt$$Str } from "./Str.js";
 
 export class rt$$MutStr extends BaseStr {
@@ -34,8 +36,10 @@ export class rt$$MutStr extends BaseStr {
 
   // Mutable concatenation
   $plus$mut$1(other$) {
-    const other = other$.str$read$0();
-    this.put(other);
+    if (typeof other$.str$read$0 === "function") {
+      const other = other$.str$read$0();
+      this.put(other);
+    }
     return this;
   }
 

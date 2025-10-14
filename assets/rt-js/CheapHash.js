@@ -5,31 +5,32 @@ export class rt$$CheapHash {
 
   static $self = new rt$$CheapHash();
 
-  compute$mut() {
-    return BigInt(this.result); // Return as JS BigInt to mimic Java Long
+  compute$mut$0() {
+    // Return as plain number; JS number covers 64-bit safely for this use
+    return this.result;
   }
 
-  nat$mut(x) {
+  nat$mut$1(x) {
     this.result = ((this.result << 5) - this.result + rt$$CheapHash.longHash(x)) | 0;
     return this;
   }
 
-  int$mut(x) {
+  int$mut$1(x) {
     this.result = ((this.result << 5) - this.result + rt$$CheapHash.longHash(x)) | 0;
     return this;
   }
 
-  float$mut(x) {
+  float$mut$1(x) {
     this.result = ((this.result << 5) - this.result + rt$$CheapHash.doubleHash(x)) | 0;
     return this;
   }
 
-  byte$mut(x) {
+  byte$mut$1(x) {
     this.result = ((this.result << 5) - this.result + (x & 0xFF)) | 0;
     return this;
   }
 
-  str$mut(x) {
+  str$mut$1(x) {
     const utf8Bytes = x.utf8(); // assuming x.utf8() returns Uint8Array
     let hash = 0;
     for (let i = 0; i < utf8Bytes.length; i++) {
@@ -39,8 +40,8 @@ export class rt$$CheapHash {
     return this;
   }
 
-  hash$mut(x) {
-    return x.hash$read(this);
+  hash$mut$1(x) {
+    return x.hash$read$1(this);
   }
 
   // Helpers to mimic Java hashCode

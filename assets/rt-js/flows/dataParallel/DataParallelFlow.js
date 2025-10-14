@@ -1,18 +1,17 @@
-import {
-  base$$flows$$Flow_1,
-  base$$flows$$_SeqFlow_0,
-  base$$flows$$_TerminalOps_1,
-  base$$flows$$_NonTerminalOps_1,
-  base$$flows$$_With_0,
-  base$$flows$$_Map_0,
-  base$$flows$$_AssumeFinite_1,
-  base$$flows$$_Filter_0,
-  base$$flows$$_FlatMap_0,
-} from "../../../base/flows/index.js";
+import { base$$flows$$Flow_1 } from "../../../base/flows/Flow_1.js";
+import { base$$flows$$_SeqFlow_0 } from "../../../base/flows/_SeqFlow_0.js";
+import { base$$flows$$_TerminalOps_1 } from "../../../base/flows/_TerminalOps_1.js";
+import { base$$flows$$_NonTerminalOps_1 } from "../../../base/flows/_NonTerminalOps_1.js";
+import { base$$flows$$_With_0 } from "../../../base/flows/_With_0.js";
+import { base$$flows$$_Map_0 } from "../../../base/flows/_Map_0.js";
+import { base$$flows$$_AssumeFinite_1 } from "../../../base/flows/_AssumeFinite_1.js";
+import { base$$flows$$_Filter_0 } from "../../../base/flows/_Filter_0.js";
+import { base$$flows$$_FlatMap_0 } from "../../../base/flows/_FlatMap_0.js";
 import { base$$Opt_1 } from "../../../base/Opt_1.js";
+import { base$$Opts_0 } from "../../../base/Opts_0.js";
 import { base$$Extensible_1 } from "../../../base/Extensible_1.js";
 import { base$$OptFlatMap_2 } from "../../../base/OptFlatMap_2.js";
-import { ConvertFromDataParallel } from "../pipelineParallel/ConvertFromDataParallel.js";
+// import { ConvertFromDataParallel } from "../pipelineParallel/ConvertFromDataParallel.js";
 
 // base/_SinkDecorator_0
 const Ins_SinkDecorator_0 = {
@@ -37,17 +36,76 @@ export class DataParallelFlow {
   self$imm$0() { return base$$flows$$Flow_1.self$imm$1$fun(this); }
   let$mut$2(x_m$, cont_m$) { return base$$flows$$Flow_1.let$mut$3$fun(x_m$, cont_m$, this); }
 
-  actorMut$mut$2(state_m$, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).actorMut$mut$2(state_m$, f_m$); }
-  actor$mut$2(state_m$, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).actor$mut$2(state_m$, f_m$); }
-  limit$mut$1(n_m$) { return ConvertFromDataParallel.of(this, this.size_m$).limit$mut$1(n_m$); }
+  // actorMut$mut$2(state_m$, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).actorMut$mut$2(state_m$, f_m$); }
+  // actor$mut$2(state_m$, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).actor$mut$2(state_m$, f_m$); }
+  // limit$mut$1(n_m$) { return ConvertFromDataParallel.of(this, this.size_m$).limit$mut$1(n_m$); }
+  actorMut$mut$2(state_m$, f_m$) { throw new Error("todo"); }
+  actor$mut$2(state_m$, f_m$) { throw new Error("todo"); }
+  // limit$mut$1(n_m$) { throw new Error("todo"); }
+  limit$mut$1(n_m$) {
+    const n = Number(n_m$);
+    const source = this.getDataParallelSource();
+
+    let count = 0;
+    let stopped = false;
+
+    // helper: create limited downstream
+    const wrapDownstream = (downstream) => ({
+      $hash$mut$1: (item) => {
+        if (stopped) return;
+        if (count < n) {
+          downstream.$hash$mut$1(item);
+          count++;
+          if (count >= n) {
+            stopped = true;
+            // tell both directions to stop
+            if (typeof downstream.stopDown$mut$0 === "function") downstream.stopDown$mut$0();
+            if (typeof downstream.stopUp$mut$0 === "function") downstream.stopUp$mut$0();
+            if (typeof source.stopUp$mut$0 === "function") source.stopUp$mut$0();
+          }
+        }
+      },
+
+      stopUp$mut$0: () => {
+        stopped = true;
+        if (typeof downstream.stopUp$mut$0 === "function") downstream.stopUp$mut$0();
+      },
+
+      stopDown$mut$0: () => {
+        stopped = true;
+        if (typeof downstream.stopDown$mut$0 === "function") downstream.stopDown$mut$0();
+      },
+
+      // $hash$mut$1: (self) => self,
+    });
+
+    const limitedSource = {
+      ...source,
+      // Forward iteration properly
+      for$mut$1: (downstream) => {
+        count = 0; stopped = false;
+        // run underlying for$mut$1
+        return source.for$mut$1(wrapDownstream(downstream));
+      },
+      step$mut$1: (sink) => {
+        count = 0; stopped = false;
+        // run underlying step$mut$1
+        return source.step$mut$1(wrapDownstream(sink));
+      },
+      stopUp$mut$0: () => { stopped = true; if (source.stopUp$mut$0) source.stopUp$mut$0(); },
+    };
+
+    return this.$this.fromOp$imm$2(limitedSource, this.size_m$);
+  }
+
 
   with$mut$1(other_m$) {
     const op = base$$flows$$_With_0.$self.$hash$imm$3(Ins_SinkDecorator_0, this.source_m$, other_m$.unwrapOp$mut$1(null));
     return this.$this.fromOp$imm$2(op, base$$Opt_1.$self);
   }
 
-  first$mut$1(predicate_m$) {
-    return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(this.getDataParallelSource(), this.size_m$).first$mut$1(predicate_m$);
+  first$mut$0() {
+    return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(this.getDataParallelSource(), this.size_m$).first$mut$0();
   }
   last$mut$0() { return base$$flows$$_TerminalOps_1.last$mut$1$fun(this); }
   list$mut$0() { return base$$flows$$_TerminalOps_1.list$mut$1$fun(this); }
@@ -72,7 +130,7 @@ export class DataParallelFlow {
       });
   }
 
-  unwrapOp$mut$0() { return this.source_m$; }
+  unwrapOp$mut$1(fear55$_m$) { return this.source_m$; }
 
   fold$mut$2(acc_m$, f_m$) {
     return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(this.getDataParallelSource(), this.size_m$).fold$mut$2(acc_m$, f_m$);
@@ -82,12 +140,14 @@ export class DataParallelFlow {
   opt$mut$0() { return base$$flows$$_SeqFlow_0.$self.fromOp$imm$2(this.getDataParallelSource(), this.size_m$).opt$mut(); }
 
   map$mut$1(f_m$) { return this.$this.fromOp$imm$2(base$$flows$$_Map_0.$self.$hash$imm$3(Ins_SinkDecorator_0, this.source_m$, f_m$), this.size_m$); }
-  map$mut$2(c, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).map$mut$2(c, f_m$); }
+  // map$mut$2(c, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).map$mut$2(c, f_m$); }
+  map$mut$2(c, f_m$) { throw new Error("todo"); }
 
   mapFilter$mut$1(f_m$) { return base$$flows$$_NonTerminalOps_1.mapFilter$mut$2$fun(f_m$, this); }
   assumeFinite$mut$0() { return this.$this.fromOp$imm$2(base$$flows$$_AssumeFinite_1.$self.$hash$read$1(this.source_m$), this.size_m$); }
   peek$mut$1(f_m$) { return base$$flows$$_NonTerminalOps_1.peek$mut$2$fun(f_m$, this); }
-  peek$mut$2(c, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).peek$mut(c, f_m$); }
+  // peek$mut$2(c, f_m$) { return ConvertFromDataParallel.of(this, this.size_m$).peek$mut(c, f_m$); }
+  peek$mut$2(c, f_m$)  { throw new Error("todo"); }
 
   any$mut$1(predicate_m$) { return this.filter$mut$1(predicate_m$).first$mut$0().isSome$read$0(); }
   find$mut$1(predicate_m$) { return base$$flows$$_TerminalOps_1.find$mut$2$fun(predicate_m$, this); }
@@ -134,4 +194,19 @@ export class DataParallelFlow {
 
 }
 
-DataParallelFlow.$self = new DataParallelFlow(null, base$$Opt_1.$self, null);
+// DataParallelFlow.$self = new DataParallelFlow(null, base$$Opt_1.$self, null);
+// Because circular trap: DataParallelFlow.js
+//   → base/Opt_1.js
+//     → base/Fear2554$_1.js
+//       → rt-js/flows.js
+//         → DataParallelFlowK.js
+//           → DataParallelFlow.js
+let __dp_self;
+Object.defineProperty(DataParallelFlow, "$self", {
+  get() {
+    if (!__dp_self) {
+      __dp_self = new DataParallelFlow(null, base$$Opt_1.$self, null);
+    }
+    return __dp_self;
+  }
+});

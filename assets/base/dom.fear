@@ -2,28 +2,53 @@ package base
 
 // Minimal DOM-like API
 Document: Sealed{
-  mut .getElementById(id: Str): mut Opt[Element] -> Magic!,
+  read .getElementById(id: Str): mut Opt[mut Element] -> Magic!,
   mut .createElement(tag: Str): mut Element -> Magic!,
   mut .waitCompletion:Void -> Magic!,//wait until the DOM is over
 }
+Documents:{
+  read .create(): mut Document -> Magic!,
+}
 
 Element: Sealed{
+  // ───────────────
+  // Basic properties
+  // ───────────────
   read .value: Str -> Magic!,
   mut .setValue(v: Str): Void -> Magic!,
-  mut .setText(v: Str): Void -> Magic!,
+  mut .setText(v: Str): Void -> Magic!,               // innerText = v
+  mut .setClass(v: Str): Void -> Magic!,              // className = v
+  mut .setAttr(name: Str, value: Str): Void -> Magic!,// setAttribute(name, value)
+  mut .setData(key: Str, value: Str): Void -> Magic!, // dataset[key] = value
+  read .getData(key: Str): Str -> Magic!,             // dataset[key]
+
+  // ───────────────
+  // DOM structure manipulation
+  // ───────────────
   mut .appendChild(child: mut Element): Void -> Magic!,
-  mut .toggleClass(name: Str): Void -> Magic!,
+  mut .replaceChild(newEl: mut Element, oldEl: mut Element): Void -> Magic!,
   mut .remove: Void -> Magic!,
+
+  // ───────────────
+  // Focus and selection
+  // ───────────────
   mut .focus: Void -> Magic!,
-  mut .onClickEditDom(callBack: F[Event,mut Document,Void] ): Void -> Magic!,
-  // mut .onClickObservesFearless(callBack: read F[Event,mut Document,Void] ): Void -> Magic!,
-  // mut .onClickFreedom(callBack: mut MF[Event,mut Document,Void] ): Void -> Magic!,//broken
-  // mut .onClickResult[R](result: mut R, callBack: F[Event,mut Document,mut R,Void] ): Void -> Magic!,//broken
-  // .onKeyPress: Block[Void] -> Magic!,
+  mut .select: Void -> Magic!,
+
+  // ───────────────
+  // Event handling
+  // ───────────────
+  mut .onClick(callback: F[mut Event, mut Document, Void]): Void -> Magic!,
+  mut .onDblClick(callback: F[mut Event, mut Document, Void]): Void -> Magic!,
+  mut .onInput(callback: F[mut Event, mut Document, Void]): Void -> Magic!,
+  mut .onKeyDown(callback: F[mut Event, mut Document, Void]): Void -> Magic!,
+  mut .onBlur(callback: F[mut Event, mut Document, Void]): Void -> Magic!,
+  mut .addEventListener(event: Str, callback: F[Event, mut Document, Void]): Void -> Magic!,
+  mut .onClickWith[R:**](result: mut R, callBack: F[Event, mut Document, mut R, Void]): Void -> Magic!,
 }
 
 Event: Sealed{
   read .eventType: Str -> Magic!,
-  read .target: Element -> Magic!,
+  mut .target: mut Element -> Magic!,
   read .key: Str -> Magic!,
 }

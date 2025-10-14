@@ -1,6 +1,11 @@
-import { base$$Opt_1, base$$Opts_0, base$$Void_0, base$$True_0, base$$False_0 } from "../base/index.js";
+import { base$$True_0 } from "../base/True_0.js";
+import { base$$False_0 } from "../base/False_0.js";
+import { base$$Opt_1 } from "../base/Opt_1.js";
+import { base$$Opts_0 } from "../base/Opts_0.js";
+import { base$$Void_0 } from "../base/Void_0.js";
 import { base$$flows$$Flow_0 } from "../base/flows/Flow_0.js";
 import { SpliteratorFlowOp } from "./flows/SpliteratorFlowOp.js";
+import { rt$$CheapHash } from "./CheapHash.js";
 
 export class rt$$LinkedHashMap {
   constructor(keyEq, hashFn) {
@@ -97,7 +102,7 @@ class Key {
 
   hashCode() {
     if (this._hash === null) {
-      const ch = this.hashFn.$hash$read$1(this.k);
+      const ch = this.hashFn.$hash$read$1(new rt$$CheapHash());
       this._hash = Math.floor(ch.compute$mut$0());
     }
     return this._hash;

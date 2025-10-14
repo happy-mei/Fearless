@@ -1,24 +1,33 @@
 /* tslint:disable */
 /* eslint-disable */
-export function hash_string(s: string): bigint;
-export function normalise_string(s: string): string;
-export function index_string(s: string): Int32Array;
-export function compile_regex(pattern: string): any;
-export function does_regex_match(pattern: string, text: string): boolean;
+export function float_to_str(n: number): Uint8Array;
+export function int_to_str(n: bigint): Uint8Array;
+export function nat_to_str(n: bigint): Uint8Array;
+export function byte_to_str(n: number): Uint8Array;
+export function hash_string(bytes: Uint8Array): bigint;
+export function normalise_string(bytes: Uint8Array): Uint8Array;
+export function index_string(bytes: Uint8Array): Int32Array;
+export function compile_regex_pattern(pattern_bytes: Uint8Array): any;
+export function does_regex_match(pattern_bytes: Uint8Array, text_bytes: Uint8Array): boolean;
+export function validate_string(bytes: Uint8Array): void;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly float_to_str: (a: number) => [number, number];
+  readonly int_to_str: (a: bigint) => [number, number];
+  readonly nat_to_str: (a: bigint) => [number, number];
+  readonly byte_to_str: (a: number) => [number, number];
   readonly hash_string: (a: number, b: number) => bigint;
   readonly normalise_string: (a: number, b: number) => [number, number];
   readonly index_string: (a: number, b: number) => any;
-  readonly compile_regex: (a: number, b: number) => [number, number, number];
+  readonly compile_regex_pattern: (a: number, b: number) => [number, number, number];
   readonly does_regex_match: (a: number, b: number, c: number, d: number) => number;
+  readonly validate_string: (a: number, b: number) => [number, number];
   readonly __wbindgen_export_0: WebAssembly.Table;
-  readonly __wbindgen_malloc: (a: number, b: number) => number;
-  readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+  readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_start: () => void;
 }

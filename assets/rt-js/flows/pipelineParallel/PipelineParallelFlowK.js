@@ -1,5 +1,6 @@
-import { base$$Void_0, base$$Infos_0 } from "../../../base/index.js";
-import { base$$flows$$_PipelineParallelFlow_0 } from "../../../base/flows/index.js";
+import { base$$Infos_0 } from "../../../base/Infos_0.js";
+import { base$$Void_0 } from "../../../base/Void_0.js";
+import { base$$flows$$_PipelineParallelFlow_0 } from "../../../base/flows/_PipelineParallelFlow_0.js";
 import { PipelineParallelFlow } from "./PipelineParallelFlow.js";
 import { FearlessError } from "../../FearlessError.js";
 
@@ -41,7 +42,7 @@ class SafeSource {
   }
 
   isFinite$mut$0() {
-    return this.original.isFinite$mut();
+    return this.original.isFinite$mut$0();
   }
 
   step$mut$1(sink_m$) {

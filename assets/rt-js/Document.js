@@ -1,20 +1,28 @@
-import { rt$$Str } from "./Str.js";
+import { base$$Opt_1 } from "../base/Opt_1.js";
+import { base$$Opts_0 } from "../base/Opts_0.js";
 import { rt$$Element } from "./Element.js";
+import { base$$Void_0 } from "../base/Void_0.js";
 
 export class rt$$Document {
-  static $self = new rt$$Document(document);
+  static $self = new rt$$Document();
 
-  constructor(domDoc) {
-    this._doc = domDoc;
+  getElementById$read$1(id_m$) {
+    const id = id_m$.toJsString();
+    const el = document.getElementById(id);
+    if (el == null) {
+      return base$$Opt_1.$self;
+    }
+    return base$$Opts_0.$self.$hash$imm$1(new rt$$Element(el));
   }
 
-  getElementById$imm$1(id) {
-    const el = this._doc.getElementById(rt$$Str.toJsString(id));
+  createElement$mut$1(tag_m$) {
+    const tag = tag_m$.toJsString();
+    const el = document.createElement(tag);
     return new rt$$Element(el);
   }
 
-  createElement$imm$1(tag) {
-    const el = this._doc.createElement(rt$$Str.toJsString(tag));
-    return new rt$$Element(el);
+  waitCompletion$mut$0() {
+    // No-op in the browser
+    return base$$Void_0.$self;
   }
 }

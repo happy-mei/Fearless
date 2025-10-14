@@ -1,5 +1,6 @@
 import { rt$$NativeRuntime } from "./NativeRuntime.js";
-import { base$$True_0, base$$False_0 } from "../base/index.js";
+import { base$$True_0 } from "../base/True_0.js";
+import { base$$False_0 } from "../base/False_0.js";
 import { toStringFromUtf8 } from "./BaseStr.js";
 
 export class rt$$Regex {

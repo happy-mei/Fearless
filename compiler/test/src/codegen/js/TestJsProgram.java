@@ -202,12 +202,18 @@ public class TestJsProgram {
     package test
     Test: Main{sys -> sys.io.println("Fearless".substring(4, 8))}
     """, Base.mutBaseAliases);}
-  @Test void emojiLiteral() {
-    ok(new Res("\\U0001F642", "", 0), """
+  @Test void normalise() {
+    ok(new Res("\\u00E9", "", 0), """
     package test
-    Test: Main{sys -> sys.io.println(`\\\\U0001F642`)}
+    Test: Main{sys -> sys.io.println("\\\\u00E9".normalise)}
     """, Base.mutBaseAliases);
   }
+  @Disabled void emojiSize() { ok(new Res("1", "", 0), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test: Main{sys -> sys.io.println("🐱".size)}
+    """);}
 
   /** utf8 **/
   @Test void strToBytes() {
@@ -233,7 +239,7 @@ public class TestJsProgram {
     Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(65 .byte, 66 .byte))!)}
     """, Base.mutBaseAliases);}
   @Test void bytesToStrFail() {
-    ok(new Res("", "Program crashed with: TypeError: The encoded data was not valid for encoding utf-8[###]", 1), """
+    ok(new Res("", "Invalid UTF-8 sequence", 1), """
     package test
     alias base.UTF8 as UTF8,
     Test: Main{sys -> sys.io.println(UTF8.fromBytes(List#(-28 .byte))!)}
@@ -275,6 +281,20 @@ public class TestJsProgram {
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, (5_00_000.5 + 2.1) .str, { Void }) }
+    """);}
+
+  @Test void floatPrecision() {
+    ok(new Res("", "", 0), """
+      package test
+      Test:Main{ _ -> Block#
+        .do{ Assert!(0.1 + 0.2 == 0.3, "Bug due to IEEE-754 floating-point arithmetic", {{}}) }
+      .return{{}} }
+      """, Base.mutBaseAliases); }
+  @Test void floatPrecisionStr() { ok(new Res("", "0.3", 1), """
+    package test
+    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
+    alias base.Void as Void,
+    Test:Main{ _ -> Assert!(False, (0.1 + 0.2) .str, { Void }) }
     """);}
   @Test void intDivByZero() { ok(new Res("", """
     Program crashed with: RangeError: Division by zero
@@ -534,7 +554,7 @@ public class TestJsProgram {
       Test:Main{ s -> s.io.println(List#("A", "B", "C", "D", "E").flow.join ",")}
       """);
   }
-  @Disabled void listFlowLimitJoin() {
+  @Test void listFlowLimitJoin() {
     ok(new Res("A,B", "", 0),
       """
       package test
@@ -639,7 +659,7 @@ public class TestJsProgram {
     }
     """, Base.mutBaseAliases);}
   // as
-  @Disabled void soundAsIdFnUList() { ok(new Res("1,2,3", "", 0), """
+  @Test void soundAsIdFnUList() { ok(new Res("1,2,3", "", 0), """
     package test
     Test: Main{sys -> Block#
       .let[mut List[Nat]] l = {List#(1, 2, 3)}
@@ -649,7 +669,7 @@ public class TestJsProgram {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
-  @Disabled void soundAsUList() { ok(new Res("1,2,3", "", 0), """
+  @Test void soundAsUList() { ok(new Res("1,2,3", "", 0), """
     package test
     Test: Main{sys -> Block#
       .let[mut List[Nat]] l = {List#(1, 2, 3)}
@@ -700,7 +720,7 @@ public class TestJsProgram {
     }
     """, Base.mutBaseAliases);}
 
-  @Disabled void flow() {
+  @Test void flow() {
     ok(new Res("Transformed List: 6, 7, 12, 13, 18", "", 0), """
     package test
     
@@ -904,7 +924,7 @@ public class TestJsProgram {
     Test: Main{sys -> sys.io.println(BadMutation# .str)}
     """, Base.mutBaseAliases);}
 
-  /** Try, Error **/
+  /** Try **/
   @Disabled void tryCatch1() {
     ok(new Res("Happy", "", 0), """
           package test
@@ -924,16 +944,16 @@ public class TestJsProgram {
           }
       """, Base.mutBaseAliases);
   }
-  @Disabled void error1() {
-    ok(new Res("", "Program crashed with: \"yolo\"[###]", 1), """
+
+  /** Error **/
+  @Test void error1() {
+    ok(new Res("", "Program crashed with: yolo[###]", 1), """
       package test
       Test:Main{s -> Error.msg("yolo") }
       """, Base.mutBaseAliases);
   }
-
-  /** Error Msg **/
-  @Disabled void emptyOptErr1() {
-    ok(new Res("", "Program crashed with: \"Opt was empty\"[###]", 1), """
+  @Test void emptyOptErr1() {
+    ok(new Res("", "Program crashed with: Opt was empty[###]", 1), """
       package test
       Test:Main{s -> Block#(Opt[Str]!) }
       """, Base.mutBaseAliases);

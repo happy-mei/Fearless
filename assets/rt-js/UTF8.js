@@ -40,17 +40,10 @@ export class rt$$UTF8 {
   };
 
   // your existing utf8ToStr
-  utf8ToStr(buf) {
+  utf8ToStr(utf8) {
     return new Fallible((res) => {
       try {
-        if (!(buf instanceof Uint8Array || (typeof Buffer !== "undefined" && Buffer.isBuffer(buf)))) {
-          throw new rt$$UTF8.StringEncodingError("Expected Uint8Array or Buffer");
-        }
-
-        // Use strict decoding
-        const decoder = new TextDecoder("utf-8", { fatal: true });
-        const str = decoder.decode(buf);
-        return res.ok$mut$1(rt$$Str.fromJsStr(str));
+        return res.ok$mut$1(rt$$Str.fromUtf8(utf8));
       } catch (e) {
         if (e instanceof DOMException) {
           return res.info$mut$1(

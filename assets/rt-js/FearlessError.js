@@ -1,23 +1,28 @@
 import { toStringFromUtf8 } from "./BaseStr.js";
 
-export class FearlessError {
+
+function extractMessage(info) {
+  const u8 = info.msg_m$._utf8;
+  return toStringFromUtf8(u8);
+}
+
+export class FearlessError extends Error {
   constructor(info) {
+    const msg = extractMessage(info);
+    super(msg);                 // Initialize Error’s internal message
     this.name = "FearlessError";
     this.info = info;
   }
 
   getMessage() {
-    if (!this.info) return "";
-    return typeof this.info === "string"
-      ? this.info
-      : toStringFromUtf8(this.info.utf8 ? this.info.utf8() : this.info);
+    return this.message;
   }
 
   toString() {
     return this.getMessage();
   }
 
-  static throwFearlessError(info) {
-    throw new FearlessError(info);
-  }
+  // static throwFearlessError(info) {
+  //   throw new FearlessError(info);
+  // }
 }

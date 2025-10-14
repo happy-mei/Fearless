@@ -1,6 +1,17 @@
-import { base$$False_0, base$$True_0 } from "../base/index.js";
+import { base$$True_0 } from "../base/True_0.js";
+import { base$$False_0 } from "../base/False_0.js";
 
 export class rt$$Num {
+  // since IEEE-754 floating-point arithmetic cannot exactly represent many decimal fractions.
+  // This ensures expressions like (0.1 + 0.2 == 0.3) evaluate as true within a small epsilon.
+  static eqFloat(a, b) {
+    if (Object.is(a, b)) return true;     // handles +0/-0 and infinities
+    if (Number.isNaN(a) || Number.isNaN(b)) return false;
+    const diff = Math.abs(a - b);
+    const scale = Math.max(1, Math.abs(a), Math.abs(b));
+    // ~8-ish ulps; tune if you like (2..16 are common choices)
+    return diff <= Number.EPSILON * 8 * scale;
+  }
   // integer sqrt for signed Int (BigInt)
   static intSqrt(x) {
     x = BigInt(x);
@@ -60,5 +71,5 @@ export class rt$$Num {
     const mask64 = (1n << 64n) - 1n;
     return x & mask64;
   }
-
+  static toByte8(x)  { return Number(x) & 0xFF; }
 }

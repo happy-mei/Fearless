@@ -1,8 +1,7 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta charset="UTF-8">
     <title>Simple Todo List</title>
     <style>
         :root{
@@ -52,9 +51,9 @@
         .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);box-shadow:none}
 
         .controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px}
-        .filters{display:flex;gap:8px}
+        /* .filters{display:flex;gap:8px}
         .filters button{background:transparent;border:0;padding:6px 8px;border-radius:8px;color:var(--muted);cursor:pointer}
-        .filters button.active{background:rgba(255,255,255,0.03);color:var(--accent)}
+        .filters button.active{background:rgba(255,255,255,0.03);color:var(--accent)} */
 
         .list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
         .item{
@@ -87,18 +86,18 @@
 <main class="wrap" role="main" aria-labelledby="title">
     <header>
         <div>
-            <h1 id="title">Simple Todo</h1>
+            <h1 id="title">Todo List</h1>
             <p>Create tasks, toggle, edit, and persist locally.</p>
         </div>
         <div style="margin-left:auto;color:var(--muted);font-size:13px" id="count">0 items</div>
     </header>
 
     <div class="input-row" role="region" aria-label="Add todo">
-        <input id="newTodo" type="text" placeholder="What do you want to do?" aria-label="New todo">
+        <input id="todoInput" type="text" placeholder="What do you want to do?" aria-label="New todo">
         <button id="addBtn" class="btn" title="Add (Enter)">Add</button>
     </div>
 
-    <div class="controls">
+    <!-- <div class="controls">
         <div class="filters" role="tablist" aria-label="Filter todos">
             <button class="filter active" data-filter="all" role="tab" aria-selected="true">All</button>
             <button class="filter" data-filter="active" role="tab" aria-selected="false">Active</button>
@@ -108,182 +107,137 @@
         <div>
             <button id="clearCompleted" class="btn ghost" title="Clear completed">Clear completed</button>
         </div>
-    </div>
+    </div> -->
 
-    <ul id="list" class="list" aria-live="polite"></ul>
+    <ul id="todoList" class="list" aria-live="polite"></ul>
 
     <div class="meta">
         <div id="leftCount">0 active</div>
         <div style="margin-left:auto;color:var(--muted)">Tip: Double-click a todo to edit it</div>
     </div>
 </main>
+<script type="module">
+  //   import { rt$$NativeRuntime } from '../rt-js/NativeRuntime.js';
+  //   import { todolist$$App_0 } from './todolist/App_0.js';
+  //   rt$$NativeRuntime.ensureWasm();
+  //   todolist$$App_0.$self.$hash$imm$1(null);
+  const input  = document.getElementById("todoInput");
+  const addBtn = document.getElementById("addBtn");
+  const list   = document.getElementById("todoList");
+  // const clear  = document.getElementById("clearCompleted");
+  // const filters = Array.from(document.querySelectorAll(".filter"));
 
-<script>
-  (() => {
-    // Simple model + persistence
-    const KEY = 'simple_todos_v1';
-    const newInput = document.getElementById('newTodo');
-    const addBtn = document.getElementById('addBtn');
-    const listEl = document.getElementById('list');
-    const countEl = document.getElementById('count');
-    const leftCountEl = document.getElementById('leftCount');
-    const clearCompletedBtn = document.getElementById('clearCompleted');
-    const filters = Array.from(document.querySelectorAll('.filter'));
+  let filter = "all"; // "all" | "active" | "completed"
 
-    let todos = load();
-    let filter = 'all';
+  // ─── Event wiring ─────────────────────────────
+  addBtn.onclick = addTask;
+  input.onkeydown = e => { if (e.key === "Enter") addTask(); };
+  // clear.onclick = clearCompleted;
+  // filters.forEach(b => b.addEventListener("click", () => setFilter(b.dataset.filter)));
 
-    function load(){
-      try {
-        const raw = localStorage.getItem(KEY);
-        if (!raw) return [];
-        return JSON.parse(raw);
-      } catch(e){ console.error(e); return [];}
-    }
-    function save(){
-      localStorage.setItem(KEY, JSON.stringify(todos));
-      render();
-    }
+  // ─── Core logic ─────────────────────────────
+  function addTask() {
+    const text = input.value.trim();
+    if (!text) return;
 
-    function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+    const li = document.createElement("li");
+    li.className = "item";
+    li.dataset.done = "false";
 
-    function addTodo(txt){
-      if (!txt || !txt.trim()) return;
-      todos.unshift({ id: uid(), text: txt.trim(), done:false, created: Date.now() });
-      newInput.value = '';
-      save();
-      newInput.focus();
-    }
+    // ✅ checkbox
+    const chk = document.createElement("button");
+    chk.className = "chk";
+    chk.title = "Mark done";
+    chk.textContent = "";
+    chk.onclick = () => toggle(li, chk, span);
 
-    function toggle(id){
-      todos = todos.map(t => t.id === id ? {...t, done: !t.done} : t);
-      save();
-    }
-    function remove(id){
-      todos = todos.filter(t => t.id !== id);
-      save();
-    }
-    function updateText(id, text){
-      todos = todos.map(t => t.id === id ? {...t, text: text} : t);
-      save();
-    }
-    function clearCompleted(){
-      todos = todos.filter(t => !t.done);
-      save();
-    }
+    // text span
+    const span = document.createElement("div");
+    span.className = "text";
+    span.textContent = text;
+    span.ondblclick = () => startEdit(li, span);
 
-    function setFilter(f){
-      filter = f;
-      filters.forEach(b => {
-        const is = b.dataset.filter === f;
-        b.classList.toggle('active', is);
-        b.setAttribute('aria-selected', is ? 'true' : 'false');
-      });
-      render();
-    }
+    // delete button
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "✕";
+    delBtn.className = "icon";
+    delBtn.onclick = () => li.remove();
 
-    function render(){
-      // list
-      listEl.innerHTML = '';
-      const shown = todos.filter(t => filter === 'all' ? true : (filter === 'active' ? !t.done : t.done));
-      if (shown.length === 0){
-        const li = document.createElement('li');
-        li.className = 'item';
-        li.style.opacity = 0.7;
-        li.style.justifyContent = 'center';
-        li.textContent = 'No items';
-        listEl.appendChild(li);
-      } else {
-        for (const t of shown){
-          const li = document.createElement('li');
-          li.className = 'item';
-          li.dataset.id = t.id;
+    // assemble
+    li.append(chk, span, delBtn);
+    list.appendChild(li);
 
-          // checkbox
-          const chk = document.createElement('button');
-          chk.className = 'chk' + (t.done ? ' checked' : '');
-          chk.setAttribute('aria-pressed', String(!!t.done));
-          chk.title = t.done ? 'Mark active' : 'Mark done';
-          chk.addEventListener('click', () => toggle(t.id));
-          chk.innerHTML = t.done ? '✓' : '';
+    input.value = "";
+    input.focus();
+    // applyFilter();
+  }
 
-          // text
-          const span = document.createElement('div');
-          span.className = 'text' + (t.done ? ' done' : '');
-          span.textContent = t.text;
-          span.tabIndex = 0;
+  function toggle(li, chk, span) {
+    const done = li.dataset.done === "true";
+    li.dataset.done = (!done).toString();
 
-          // edit on double click
-          span.addEventListener('dblclick', () => startEdit(li, t));
+    chk.classList.toggle("checked", !done);
+    chk.textContent = done ? "" : "✓";
+    span.classList.toggle("done", !done);
 
-          // also allow Enter to edit
-          span.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') startEdit(li, t);
-          });
+    // applyFilter();
+  }
 
-          // actions
-          const del = document.createElement('button');
-          del.className = 'icon';
-          del.title = 'Delete';
-          del.innerHTML = '🗑';
-          del.addEventListener('click', () => remove(t.id));
+  // function clearCompleted() {
+  //   const items = Array.from(list.children);
+  //   items.forEach(li => {
+  //     if (li.dataset.done === "true") li.remove();
+  //   });
+  // }
 
-          li.appendChild(chk);
-          li.appendChild(span);
-          li.appendChild(del);
-          listEl.appendChild(li);
-        }
+  function startEdit(li, span) {
+    const oldText = span.textContent;
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = oldText;
+    input.className = "text";
+    input.style.flex = "1";
+    li.replaceChild(input, span);
+    input.focus();
+    input.select();
+
+    function finish(save) {
+      if (save) {
+        const v = input.value.trim();
+        span.textContent = v || oldText;
       }
-
-      // counts
-      countEl.textContent = todos.length + ' items';
-      const left = todos.filter(t => !t.done).length;
-      leftCountEl.textContent = left + (left === 1 ? ' active' : ' active');
-
+      li.replaceChild(span, input);
     }
 
-    function startEdit(li, todo){
-      // create an input inplace
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.value = todo.text;
-      input.style.flex = '1';
-      input.style.padding = '8px';
-      input.style.borderRadius = '8px';
-      input.style.border = '1px solid rgba(255,255,255,0.04)';
-      li.replaceChild(input, li.querySelector('.text'));
-      input.focus();
-      input.select();
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") finish(true);
+      if (e.key === "Escape") finish(false);
+    });
+    input.addEventListener("blur", () => finish(true));
+  }
 
-      function finish(saveFlag){
-        if (saveFlag){
-          const v = input.value.trim();
-          if (v) updateText(todo.id, v);
-        }
-        render();
-      }
+  // ─── Filtering ─────────────────────────────
+  // function setFilter(f) {
+  //   filter = f;
+  //   filters.forEach(btn => {
+  //     const active = btn.dataset.filter === f;
+  //     btn.classList.toggle("active", active);
+  //     btn.setAttribute("aria-selected", active ? "true" : "false");
+  //   });
+  //   applyFilter();
+  // }
 
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') finish(true);
-        if (e.key === 'Escape') finish(false);
-      });
-      input.addEventListener('blur', () => finish(true));
-    }
-
-    // wire events
-    addBtn.addEventListener('click', () => addTodo(newInput.value));
-    newInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addTodo(newInput.value); });
-
-    clearCompletedBtn.addEventListener('click', () => { clearCompleted(); });
-
-    filters.forEach(b => b.addEventListener('click', () => setFilter(b.dataset.filter)));
-
-    // initial render
-    render();
-
-    // expose for debugging
-    window.__TODOS = { get: () => todos, save, addTodo, clearCompleted };
-  })();
+  // function applyFilter() {
+  //   const items = Array.from(list.children);
+  //   items.forEach(li => {
+  //     const done = li.dataset.done === "true";
+  //     const show =
+  //       filter === "all" ||
+  //       (filter === "active" && !done) ||
+  //       (filter === "completed" && done);
+  //     li.style.display = show ? "" : "none";
+  //   });
+  // }
 </script>
 </body>
 </html>

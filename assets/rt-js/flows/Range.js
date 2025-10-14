@@ -1,5 +1,8 @@
-import { base$$flows$$_SeqFlow_0 } from "../../base/flows/index.js";
-import { base$$Void_0, base$$Opt_1, base$$True_0, base$$False_0 } from "../../base/index.js";
+import { base$$flows$$_SeqFlow_0 } from "../../base/flows/_SeqFlow_0.js";
+import { base$$True_0 } from "../../base/True_0.js";
+import { base$$False_0 } from "../../base/False_0.js";
+import { base$$Opt_1 } from "../../base/Opt_1.js";
+import { base$$Void_0 } from "../../base/Void_0.js";
 
 export class Range {
   static $self = new Range();
