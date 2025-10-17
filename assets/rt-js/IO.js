@@ -5,7 +5,7 @@ export class rt$$IO {
 
   printlnErr$mut$1(msg) {
     const msgJsStr = msg.toJsString();
-    if (process && process.stdout) {
+    if (typeof process !== "undefined" && process.stdout) {
       process.stderr.write(msgJsStr + "\n");
     } else {
       console.error(msgJsStr + "\n");
@@ -15,7 +15,7 @@ export class rt$$IO {
 
   println$mut$1(msg) {
     const msgJsStr = msg.toJsString();
-    if (process && process.stdout) {
+    if (typeof process !== "undefined" && process.stdout) {
       process.stdout.write(msgJsStr + "\n");
     } else {
       console.log(msgJsStr + "\n");
@@ -25,7 +25,7 @@ export class rt$$IO {
 
   print$mut$1(msg) {
     const msgJsStr = msg.toJsString();
-    if (process && process.stdout) {
+    if (typeof process !== "undefined" && process.stdout) {
       process.stdout.write(msgJsStr);
     } else {
       console.log(msgJsStr);
@@ -35,7 +35,7 @@ export class rt$$IO {
 
   printErr$mut$1(msg) {
     const msgJsStr = msg.toJsString();
-    if (process && process.stderr) {
+    if (typeof process !== "undefined" && process.stdout) {
       process.stderr.write(msgJsStr);
     } else {
       console.error(msgJsStr);

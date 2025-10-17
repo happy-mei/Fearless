@@ -31,16 +31,4 @@ export class rt$$Event {
   key$read$0() {
     return rt$$Str.fromJsStr(this.jsEvent.key ?? "");
   }
-
-  /** Optional: stop propagation if needed in Fearless callbacks */
-  stopPropagation$mut$0() {
-    this.jsEvent.stopPropagation();
-    return base$$Void_0.$self;
-  }
-
-  /** Optional: prevent default browser behavior */
-  preventDefault$mut$0() {
-    this.jsEvent.preventDefault();
-    return base$$Void_0.$self;
-  }
 }

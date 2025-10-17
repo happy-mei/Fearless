@@ -7,12 +7,4 @@ export class RealSystem {
   io$mut$0() {
     return rt$$IO.$self;
   }
-
-  // try$mut$0() {
-  //   return new CapTry(); // implement like in your Java runtime
-  // }
-  //
-  // rng$mut$0() {
-  //   return Random.SeedGenerator.$self; // stub
-  // }
 }

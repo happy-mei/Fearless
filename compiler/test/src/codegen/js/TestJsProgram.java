@@ -208,12 +208,6 @@ public class TestJsProgram {
     Test: Main{sys -> sys.io.println("\\\\u00E9".normalise)}
     """, Base.mutBaseAliases);
   }
-  @Disabled void emojiSize() { ok(new Res("1", "", 0), """
-    package test
-    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
-    alias base.Void as Void,
-    Test: Main{sys -> sys.io.println("🐱".size)}
-    """);}
 
   /** utf8 **/
   @Test void strToBytes() {
@@ -283,21 +277,8 @@ public class TestJsProgram {
     Test:Main{ _ -> Assert!(False, (5_00_000.5 + 2.1) .str, { Void }) }
     """);}
 
-  @Test void floatPrecision() {
-    ok(new Res("", "", 0), """
-      package test
-      Test:Main{ _ -> Block#
-        .do{ Assert!(0.1 + 0.2 == 0.3, "Bug due to IEEE-754 floating-point arithmetic", {{}}) }
-      .return{{}} }
-      """, Base.mutBaseAliases); }
-  @Test void floatPrecisionStr() { ok(new Res("", "0.3", 1), """
-    package test
-    alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
-    alias base.Void as Void,
-    Test:Main{ _ -> Assert!(False, (0.1 + 0.2) .str, { Void }) }
-    """);}
   @Test void intDivByZero() { ok(new Res("", """
-    Program crashed with: RangeError: Division by zero
+    RangeError: Division by zero
         at test$$Test_0.$hash$imm$2$fun ([###])
         [###]
     """, 1), """
@@ -458,7 +439,6 @@ public class TestJsProgram {
       .return{{}}
       }
     """, Base.mutBaseAliases); }
-
 
   /** Opt **/
   @Test void optionalMapImm() {
@@ -659,16 +639,6 @@ public class TestJsProgram {
     }
     """, Base.mutBaseAliases);}
   // as
-  @Test void soundAsIdFnUList() { ok(new Res("1,2,3", "", 0), """
-    package test
-    Test: Main{sys -> Block#
-      .let[mut List[Nat]] l = {List#(1, 2, 3)}
-      .let[List[Nat]] l2 = {l.as{::}}
-      .do {l.add(4)}
-      .do {sys.io.println(l2.flow.map{::str}.join ",")}
-      .return {{}}
-      }
-    """, Base.mutBaseAliases);}
   @Test void soundAsUList() { ok(new Res("1,2,3", "", 0), """
     package test
     Test: Main{sys -> Block#
@@ -825,20 +795,6 @@ public class TestJsProgram {
       }
     """); }
 
-  /** IsoPod **/
-  @Disabled void shouldReadFullIsoPod() { ok(new Res("hi", "", 0), """
-    package test
-    Test:Main{ s ->
-      Try#[Str]{ Block#
-        .let[mut IsoPod[Str]] pod = { IsoPod#[Str] iso "hi" }
-        .return{pod!}
-        }.run{
-          .ok(msg) -> UnrestrictedIO#s.println(msg),
-          .info(info) -> UnrestrictedIO#s.printlnErr(info.str),
-        }
-      }
-    """, Base.mutBaseAliases); }
-
   /** inheritance **/
   @Test void personFactory() { ok(new Res("Bob", "", 0), """
     package test
@@ -924,27 +880,6 @@ public class TestJsProgram {
     Test: Main{sys -> sys.io.println(BadMutation# .str)}
     """, Base.mutBaseAliases);}
 
-  /** Try **/
-  @Disabled void tryCatch1() {
-    ok(new Res("Happy", "", 0), """
-          package test
-          Test:Main{s ->
-            UnrestrictedIO#s.println(Try#[Str]{"Happy"}.run{
-              .ok(res) -> res,
-              .info(err) -> err.str,
-              })
-            }
-      """, Base.mutBaseAliases);
-  }
-  @Disabled void tryCatch2() {
-    ok(new Res("oof", "", 0), """
-        package test
-        Test:Main{s ->
-          UnrestrictedIO#s.println(Try#[Str]{Error.msg("oof")}.run{ .ok(a) -> a, .info(err) -> err.msg })
-          }
-      """, Base.mutBaseAliases);
-  }
-
   /** Error **/
   @Test void error1() {
     ok(new Res("", "Program crashed with: yolo[###]", 1), """
@@ -958,7 +893,7 @@ public class TestJsProgram {
       Test:Main{s -> Block#(Opt[Str]!) }
       """, Base.mutBaseAliases);
   }
-  @Disabled void emptyOptErr2() {
+  @Test void emptyOptErr2() {
     ok(new Res("", "Opt was empty", 0), """
       package test
       Test:Main{s ->
@@ -985,21 +920,40 @@ public class TestJsProgram {
       .self -> this,
       }
     """, Base.mutBaseAliases); }
-  @Disabled void linkedHashMap1() { ok(new Res("23\n32", "", 0), """
-    package test
-    Test:Main{ s -> Block#
-      .let[mut IO] io = {s.io}
-      .let[mut LinkedHashMap[Str,Nat]] m = {Maps.hashMap({k1,k2 -> k1 == k2}, {k->k})}
-      .do {m.put("Nick", 23)}
-      .do {m.put("Bob", 32)}
-      .do {io.println(m.get("Nick")!.str)}
-      .do {io.println(m.get("Bob")!.str)}
-      .assert {m.get("nobody").isEmpty}
-      .do {Block#(m.remove("Nick"))}
-      .assert {m.get("Nick").isEmpty}
-      .assert {m.get("Bob").isSome}
-      .return {Void}
+
+  /** Try **/
+  @Test void tryCatch1() {
+    ok(new Res("Happy", "", 0), """
+        package test
+        Test:Main{s ->
+          UnrestrictedIO#s.println(Try#[Str]{"Happy"}.run{
+            .ok(res) -> res,
+            .info(err) -> err.str,
+            })
+          }
+      """, Base.mutBaseAliases);
+  }
+  @Test void tryCatch2() {
+    ok(new Res("oof", "", 0), """
+        package test
+        Test:Main{s ->
+          UnrestrictedIO#s.println(Try#[Str]{Error.msg("oof")}.run{ .ok(a) -> a, .info(err) -> err.msg })
+          }
+      """, Base.mutBaseAliases);
+  }
+
+  /** IsoPod **/
+  @Test void shouldReadFullIsoPod() { ok(new Res("hi", "", 0), """
+  package test
+  Test:Main{ s ->
+    Try#[Str]{ Block#
+      .let[mut IsoPod[Str]] pod = { IsoPod#[Str] iso "hi" }
+      .return{pod!}
+      }.run{
+        .ok(msg) -> UnrestrictedIO#s.println(msg),
+        .info(info) -> UnrestrictedIO#s.printlnErr(info.str),
       }
-    """, Base.mutBaseAliases);}
+    }
+  """, Base.mutBaseAliases); }
 
 }

@@ -78,9 +78,7 @@ public class JsCodegen implements MIRVisitor<String> {
     return "new " + implName + "(" + captures + ")";
   }
 
-  private void addFreshImpl(Id.DecId typeId, MIR.CreateObj obj, String implName) {
-    if (freshImpls.containsKey(typeId)) return;
-    // Constructor for captured fields
+  private String getConstructor(MIR.CreateObj obj) {
     String constructor = "";
     if (!obj.captures().isEmpty()) {
       String args = obj.captures().stream()
@@ -95,6 +93,12 @@ public class JsCodegen implements MIRVisitor<String> {
           }
         """.formatted(args, assigns);
     }
+    return constructor;
+  }
+  private void addFreshImpl(Id.DecId typeId, MIR.CreateObj obj, String implName) {
+    if (freshImpls.containsKey(typeId)) return;
+    // Constructor for captured fields
+    String constructor = getConstructor(obj);
     // Instance methods
     String instanceMeths = obj.meths().isEmpty() ? "" : "  " +
       obj.meths().stream().map(this::visitMeth).collect(Collectors.joining("\n  "))

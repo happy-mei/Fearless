@@ -11,6 +11,7 @@ import utils.Err;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 
@@ -53,57 +54,124 @@ public class TestDomAccess {
       Err.strCmp(exp, fileCode);
     }
   }
-  String insertMainScript(String html, String mainJsfileName) {
+  enum BuildMode { DEBUG, PRODUCTION }
+
+  void bundleWithRollup(Path tmpOut, Path mainEntry, Path outDir) throws IOException, InterruptedException {
+    // 1) Rollup → bundle.js
+    ProcessBuilder pb = new ProcessBuilder(
+      "npx", "rollup",
+      "--input", mainEntry.toString(),
+      "--file", tmpOut.resolve("bundle.js").toString(),
+      "--format", "esm",
+      "--external", "fs",
+      "--external", "path",
+      "--external", "url"
+    );
+    pb.directory(tmpOut.toFile());
+//    pb.inheritIO();
+    pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+    pb.redirectError(ProcessBuilder.Redirect.DISCARD);
+    if (pb.start().waitFor() != 0)
+      throw new RuntimeException("Rollup bundling failed");
+
+    // 2) Terser → bundle.min.js
+    ProcessBuilder minify = new ProcessBuilder(
+      "npx", "terser",
+      tmpOut.resolve("bundle.js").toString(),
+      "--compress", "--mangle",
+      "--module",
+      "--ecma", "2022",
+      "--output", outDir.resolve("bundle.min.js").toString()
+    );
+    minify.directory(tmpOut.toFile());
+    minify.inheritIO();
+//    minify.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+//    minify.redirectError(ProcessBuilder.Redirect.DISCARD);
+    if (minify.start().waitFor() != 0)
+      throw new RuntimeException("Terser minification failed");
+
+    // Copy wasm only
+    Path wasmSrc = tmpOut.resolve("rt-js/libwasm/native_rt_bg.wasm");
+    Path wasmDst = outDir.resolve("rt-js/libwasm/native_rt_bg.wasm");
+    Files.createDirectories(wasmDst.getParent());
+    Files.copy(wasmSrc, wasmDst, StandardCopyOption.REPLACE_EXISTING);
+  }
+
+  Path createIndexHtml(String html, BuildMode mode, Path outDir) throws IOException {
+    String scriptTag = (mode == BuildMode.PRODUCTION)
+      ? "<script type=\"module\" src=\"./bundle.min.js\"></script>\n"
+      : "<script type=\"module\" src=\"./main.js\"></script>\n";
+
+    int bodyIndex = html.lastIndexOf("</body>");
+    String htmlWithScript = (bodyIndex == -1)
+      ? html + scriptTag
+      : html.substring(0, bodyIndex) + scriptTag + html.substring(bodyIndex);
+
+    Path htmlPath = outDir.resolve("index.html");
+    Files.writeString(htmlPath, htmlWithScript);
+    return htmlPath;
+  }
+
+  Path generateMainJsEntry(Path outDir, String mainJsfileName) throws IOException {
     String mainJsModuleName = mainJsfileName
       .replace("/", "$$")
-      .replace(".js", "");  // e.g., "todolist/App_0.js" -> "todolist$$App_0"
-    String scriptTag = """
-    <script type="module">
-      import { rt$$NativeRuntime } from '../rt-js/NativeRuntime.js';
-      import { %s } from './%s';
-      rt$$NativeRuntime.ensureWasm();
-      %s.$self.$hash$imm$1(null);
-    </script>
-    """.formatted(mainJsModuleName, mainJsfileName, mainJsModuleName);
-    // Ensure we insert before the closing </body> tag
-    int bodyIndex = html.lastIndexOf("</body>");
-    return html.substring(0, bodyIndex) + scriptTag + html.substring(bodyIndex);
+      .replace(".js", "");  // e.g., "todolist/App_0.js" → "todolist$$App_0"
+
+    String mainJsContent = """
+        import { rt$$NativeRuntime } from './rt-js/NativeRuntime.js';
+        import {RealSystem} from './rt-js/RealSystem.js';
+        import { %s } from './%s';
+        rt$$NativeRuntime.ensureWasm();
+        %s.$self.$hash$imm$1(new RealSystem());
+        """.formatted(mainJsModuleName, mainJsfileName, mainJsModuleName);
+
+    Path mainEntry = outDir.resolve("main.js");
+    Files.writeString(mainEntry, mainJsContent);
+    return mainEntry;
   }
-  void createApp(String htmlContent, String mainJsfileName, String... content) throws IOException {
+
+  void createApp(BuildMode mode, String htmlContent, String mainJsfileName, String... content)
+    throws IOException, InterruptedException {
     assert content.length > 0 : "Content must not be empty";
-    // 1) Compile
+    // 1) Compile Fearless → JS
     JsProgram code = getCode(content);
-    // 2) Write all generated JS files to a real directory (tmp)
-    Path tmpOut = java.nio.file.Files.createTempDirectory("fgenjs");
+    // 2) Temporary compilation directory
+    Path tmpOut = Files.createTempDirectory("fgenjs");
     code.writeJsFiles(tmpOut);
-    // 3) Find the directory containing the main JS file within tmpOut
-    Path mainJsPath = tmpOut.resolve(mainJsfileName); //    e.g., tmpOut / "todolist/App_0.js"
-    Path outputDir  = mainJsPath.getParent();
-    java.nio.file.Files.createDirectories(outputDir);
-    // 4) Insert a script tag that points to the main file, from the same directory
-    String htmlWithScript = insertMainScript(htmlContent, mainJsfileName);
-    // 5) Write index.html under tmpOut
-    Path htmlPath = tmpOut.resolve("index.html");
-    java.nio.file.Files.writeString(htmlPath, htmlWithScript);
-    System.out.println("✅ Wrote " + tmpOut.toUri());
+    // 3) Determine final output directory
+    Path outDir = (mode == BuildMode.PRODUCTION)
+      ? tmpOut.resolve("production")
+      : tmpOut;
+    Files.createDirectories(outDir);
+    // 4) Generate main.js entry
+    Path mainEntry = generateMainJsEntry(tmpOut, mainJsfileName);
+    // 5) Bundle & minify in production
+    if (mode == BuildMode.PRODUCTION) {
+      bundleWithRollup(tmpOut, mainEntry, outDir);
+    }
+    // 6) Write index.html into outDir
+    createIndexHtml(htmlContent, mode, outDir);
+    System.out.println("✅ App ready at: " + outDir.toUri());
   }
+
+
   @Test void dom() {ok("""
     import { base$$Void_0 } from "../base/Void_0.js";
     import { rt$$Documents } from "../rt-js/Documents.js";
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$Test_0 {
-      static $hash$imm$2$fun(fear31$_m$, $this) {
-        let doc_m$ = rt$$Documents.$self.create$read$0();
-    let input_m$ = doc_m$.getElementById$read$1(rt$$Str.fromJsStr("todoInput")).$exclamation$mut$0();
-    let addBtn_m$ = doc_m$.getElementById$read$1(rt$$Str.fromJsStr("addBtn")).$exclamation$mut$0();
-    let list_m$ = doc_m$.getElementById$read$1(rt$$Str.fromJsStr("todoList")).$exclamation$mut$0();
+      static $hash$imm$2$fun(s_m$, $this) {
+        let dom_m$ = rt$$Documents.$self.$hash$imm$1(s_m$);
+    let input_m$ = dom_m$.getElementById$mut$1(rt$$Str.fromJsStr("todoInput")).$exclamation$mut$0();
+    let addBtn_m$ = dom_m$.getElementById$mut$1(rt$$Str.fromJsStr("addBtn")).$exclamation$mut$0();
+    let list_m$ = dom_m$.getElementById$mut$1(rt$$Str.fromJsStr("todoList")).$exclamation$mut$0();
     return base$$Void_0.$self;
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
+      $hash$imm$1(s_m$) { return test$$Test_0.$hash$imm$2$fun(s_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -112,11 +180,11 @@ public class TestDomAccess {
     """
     package test
     alias base.Documents as Documents, alias base.Document as Document, alias base.Element as Element, alias base.Main as Main, alias base.Block as Block, alias base.Void as Void,
-    Test: Main{ _ -> Block#
-      .let[mut Document] doc  = { Documents.create() }
-      .let[mut Element] input = { doc.getElementById("todoInput")! }
-      .let[mut Element] addBtn = { doc.getElementById("addBtn")! }
-      .let[mut Element] list = { doc.getElementById("todoList")! }
+    Test: base.Main{ s -> Block#
+      .let[mut Document] dom = {Documents#s}
+      .let[mut Element] input = { dom.getElementById("todoInput")! }
+      .let[mut Element] addBtn = { dom.getElementById("addBtn")! }
+      .let[mut Element] list = { dom.getElementById("todoList")! }
       .return{{}}
     }
     """);
@@ -125,37 +193,37 @@ public class TestDomAccess {
     import { base$$Void_0 } from "../base/Void_0.js";
     import { rt$$Documents } from "../rt-js/Documents.js";
     import { rt$$Str } from "../rt-js/Str.js";
-    import { test$$Fear724$_0 } from "../test/Fear724$_0.js";
+    import { test$$Fear720$_0 } from "../test/Fear720$_0.js";
     
-    export class test$$Test_0 {
-      static $hash$imm$2$fun(fear31$_m$, $this) {
-        let doc_m$ = rt$$Documents.$self.create$read$0();
-    let addBtn_m$ = doc_m$.getElementById$read$1(rt$$Str.fromJsStr("addBtn")).$exclamation$mut$0();
-    var doRes1 = addBtn_m$.onClick$mut$1(test$$Fear724$_0.$self);
+    export class test$$App_0 {
+      static $hash$imm$2$fun(s_m$, $this) {
+        let dom_m$ = rt$$Documents.$self.$hash$imm$1(s_m$);
+    let myBtn_m$ = dom_m$.getElementById$mut$1(rt$$Str.fromJsStr("myBtn")).$exclamation$mut$0();
+    var doRes1 = myBtn_m$.onClick$mut$1(test$$Fear720$_0.$self);
+    var doRes2 = s_m$.io$mut$0().print$mut$1(rt$$Str.fromJsStr("Hello"));
     return base$$Void_0.$self;
       }
     }
     
-    export class test$$Test_0Impl {
-      $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
+    export class test$$App_0Impl {
+      $hash$imm$1(s_m$) { return test$$App_0.$hash$imm$2$fun(s_m$, this); }
     }
     
-    test$$Test_0.$self = new test$$Test_0Impl();
+    test$$App_0.$self = new test$$App_0Impl();
     """,
-    "test/Test_0.js",
+    "test/App_0.js",
     """
     package test
     alias base.Documents as Documents, alias base.Document as Document, alias base.Element as Element,
-    Test: base.Main{ _ -> base.Block#
-      .let[mut Document] doc  = { Documents.create() }
-      .let[mut Element] addBtn = { doc.getElementById("addBtn")! }
+    alias base.Block as Block, alias base.Void as Void, alias base.Main as Main,
+    App: base.Main{ s -> Block#
+      .let[mut Document] dom = {Documents#s}
+      .let[mut Element] myBtn = { dom.getElementById("myBtn")! }
       .do{
-         addBtn.onClick({ev, d -> base.Block#
-           .do{ ev.target.setClass("clicked") }
-           .return{ base.Void }
-         })
+         myBtn.onClick({ev, d -> ev.target.setClass("clicked")})
       }
-      .return{ base.Void }
+      .do{ s.io.print("Hello") }
+      .return{ Void }
     }
     """);
   }
@@ -169,8 +237,8 @@ public class TestDomAccess {
     
     export class todo$$AddTask_0 {
       static $hash$read$3$fun(e_m$, dom_m$, $this) {
-        let input_m$ = dom_m$.getElementById$read$1(rt$$Str.fromJsStr("todoInput")).$exclamation$mut$0();
-    let list_m$ = dom_m$.getElementById$read$1(rt$$Str.fromJsStr("todoList")).$exclamation$mut$0();
+        let input_m$ = dom_m$.getElementById$mut$1(rt$$Str.fromJsStr("todoInput")).$exclamation$mut$0();
+    let list_m$ = dom_m$.getElementById$mut$1(rt$$Str.fromJsStr("todoList")).$exclamation$mut$0();
     let text_m$ = input_m$.value$read$0();
     if (text_m$.$equals$equals$imm$1(rt$$Str.fromJsStr("")) == base$$True_0.$self) { return base$$Void_0.$self; }
     let li_m$ = dom_m$.createElement$mut$1(rt$$Str.fromJsStr("li"));
@@ -253,8 +321,8 @@ public class TestDomAccess {
     
     export class todolist$$AddTask_0 {
       static $hash$read$3$fun(e_m$, dom_m$, $this) {
-        let input_m$ = dom_m$.getElementById$read$1(rt$$Str.fromJsStr("todoInput")).$exclamation$mut$0();
-    let list_m$ = dom_m$.getElementById$read$1(rt$$Str.fromJsStr("todoList")).$exclamation$mut$0();
+        let input_m$ = dom_m$.getElementById$mut$1(rt$$Str.fromJsStr("todoInput")).$exclamation$mut$0();
+    let list_m$ = dom_m$.getElementById$mut$1(rt$$Str.fromJsStr("todoList")).$exclamation$mut$0();
     let text_m$ = input_m$.value$read$0();
     if (text_m$.$equals$equals$imm$1(rt$$Str.fromJsStr("")) == base$$True_0.$self) { return base$$Void_0.$self; }
     let li_m$ = dom_m$.createElement$mut$1(rt$$Str.fromJsStr("li"));
@@ -278,30 +346,8 @@ public class TestDomAccess {
     }
     
     todolist$$AddTask_0.$self = new todolist$$AddTask_0Impl();
-    """, """
-    import { rt$$Documents } from "../rt-js/Documents.js";
-    import { rt$$Str } from "../rt-js/Str.js";
-    import { todolist$$AddTask_0 } from "../todolist/AddTask_0.js";
-    import { todolist$$Fear899$_0 } from "../todolist/Fear899$_0.js";
-    
-    export class todolist$$App_0 {
-      static $hash$imm$2$fun(fear49$_m$, $this) {
-        let doc_m$ = rt$$Documents.$self.create$read$0();
-    let addBtn_m$ = doc_m$.getElementById$read$1(rt$$Str.fromJsStr("addBtn")).$exclamation$mut$0();
-    let input_m$ = doc_m$.getElementById$read$1(rt$$Str.fromJsStr("todoInput")).$exclamation$mut$0();
-    var doRes1 = addBtn_m$.onClick$mut$1(todolist$$AddTask_0.$self);
-    var doRes2 = input_m$.onKeyDown$mut$1(todolist$$Fear899$_0.$self);
-    return doc_m$.waitCompletion$mut$0();
-      }
-    }
-    
-    export class todolist$$App_0Impl {
-      $hash$imm$1(fear49$_m$) { return todolist$$App_0.$hash$imm$2$fun(fear49$_m$, this); }
-    }
-    
-    todolist$$App_0.$self = new todolist$$App_0Impl();
     """),
-    List.of("todolist/AddTask_0.js", "todolist/App_0.js"),
+    List.of("todolist/AddTask_0.js"),
     """
     package todolist
     alias base.Document as Document, alias base.Documents as Documents, alias base.Element as Element, alias base.Main as Main, alias base.Block as Block, alias base.Void as Void, alias base.F as F, alias base.Event as Event, alias base.Str as Str,
@@ -347,11 +393,11 @@ public class TestDomAccess {
        .return{ Void }
     }
     
-    App: Main{ _ -> Block#
+    App: Main{ s -> Block#
        // --- create document and key elements --- line46
-       .let[mut Document] doc   = { Documents.create() }
-       .let[mut Element] addBtn = { doc.getElementById("addBtn")! }
-       .let[mut Element] input  = { doc.getElementById("todoInput")! }
+       .let[mut Document] dom = {Documents#s}
+       .let[mut Element] addBtn = { dom.getElementById("addBtn")! }
+       .let[mut Element] input  = { dom.getElementById("todoInput")! }
 
        // --- attach button click → AddTask ---
        .do{ addBtn.onClick(AddTask) } // line 52
@@ -363,15 +409,167 @@ public class TestDomAccess {
            .return{ Void }
          })
        }
-    
-       // --- wait for DOM completion ---
-       .return{ doc.waitCompletion }
+       .return{ Void }
      }
     """);
   }
 
-  @Test void createSimpleToDoList() throws IOException {
-    createApp("""
+  @Test void ToDoListFull() {
+    okList(List.of("""
+    import { base$$True_0 } from "../base/True_0.js";
+    import { base$$Void_0 } from "../base/Void_0.js";
+    import { rt$$Str } from "../rt-js/Str.js";
+    import { todolist$$Fear905$_0 } from "../todolist/Fear905$_0.js";
+    import { todolist$$Fear924$_0 } from "../todolist/Fear924$_0.js";
+    import { todolist$$Fear930$_0 } from "../todolist/Fear930$_0.js";
+    
+    export class todolist$$AddTask_0 {
+      static $hash$read$3$fun(e_m$, dom_m$, $this) {
+        let input_m$ = dom_m$.getElementById$mut$1(rt$$Str.fromJsStr("todoInput")).$exclamation$mut$0();
+    let list_m$ = dom_m$.getElementById$mut$1(rt$$Str.fromJsStr("todoList")).$exclamation$mut$0();
+    let text_m$ = input_m$.value$read$0();
+    if (text_m$.$equals$equals$imm$1(rt$$Str.fromJsStr("")) == base$$True_0.$self) { return base$$Void_0.$self; }
+    let li_m$ = dom_m$.createElement$mut$1(rt$$Str.fromJsStr("li"));
+    var doRes1 = li_m$.setClass$mut$1(rt$$Str.fromJsStr("item"));
+    var doRes2 = li_m$.setData$mut$2(rt$$Str.fromJsStr("done"),rt$$Str.fromJsStr("false"));
+    let chk_m$ = dom_m$.createElement$mut$1(rt$$Str.fromJsStr("button"));
+    var doRes3 = chk_m$.setClass$mut$1(rt$$Str.fromJsStr("chk"));
+    var doRes4 = chk_m$.setText$mut$1(rt$$Str.fromJsStr(""));
+    let span_m$ = dom_m$.createElement$mut$1(rt$$Str.fromJsStr("div"));
+    var doRes5 = span_m$.setClass$mut$1(rt$$Str.fromJsStr("text"));
+    var doRes6 = span_m$.setText$mut$1(text_m$);
+    let delBtn_m$ = dom_m$.createElement$mut$1(rt$$Str.fromJsStr("button"));
+    var doRes7 = delBtn_m$.setText$mut$1(rt$$Str.fromJsStr("x"));
+    var doRes8 = delBtn_m$.setClass$mut$1(rt$$Str.fromJsStr("icon"));
+    var doRes9 = span_m$.onClickWith$mut$2(li_m$,todolist$$Fear905$_0.$self);
+    var doRes10 = chk_m$.onClickWith$mut$2(li_m$,todolist$$Fear924$_0.$self);
+    var doRes11 = delBtn_m$.onClickWith$mut$2(li_m$,todolist$$Fear930$_0.$self);
+    var doRes12 = li_m$.appendChild$mut$1(chk_m$);
+    var doRes13 = li_m$.appendChild$mut$1(span_m$);
+    var doRes14 = li_m$.appendChild$mut$1(delBtn_m$);
+    var doRes15 = list_m$.appendChild$mut$1(li_m$);
+    var doRes16 = input_m$.setValue$mut$1(rt$$Str.fromJsStr(""));
+    var doRes17 = input_m$.focus$mut$0();
+    return base$$Void_0.$self;
+      }
+    }
+    
+    export class todolist$$AddTask_0Impl {
+      $hash$read$2(e_m$, dom_m$) { return todolist$$AddTask_0.$hash$read$3$fun(e_m$, dom_m$, this); }
+    }
+    
+    todolist$$AddTask_0.$self = new todolist$$AddTask_0Impl();
+    """),
+    List.of("todolist/AddTask_0.js"),
+    """
+    package todolist
+    alias base.Document as Document, alias base.Documents as Documents,
+    alias base.Element as Element, alias base.Main as Main,
+    alias base.Block as Block, alias base.Void as Void,
+    alias base.F as F, alias base.Event as Event, alias base.Str as Str,
+    alias base.Bool as Bool, alias base.True as True, alias base.False as False,
+
+    ToggleDone: F[mut Event, mut Document, mut Element, Void]{ ev, d, el -> Block#
+       .let[Str] done = { el.getData("done") }
+       .do{ el.setClass(done == "true" ? {.then -> "item done", .else-> "item" }) }
+       .do{ el.setData("done", done == "true" ? {.then -> "false", .else-> "true" }) }
+       .return{ Void }
+    }
+
+    AddTask: F[mut Event, mut Document, Void]{ e, dom -> Block#
+      // obtain input and list elements
+      .let[mut Element] input = { dom.getElementById("todoInput")! }
+      .let[mut Element] list  = { dom.getElementById("todoList")! }
+
+      // read text line 13
+      .let[Str] text = { input.value }
+
+      // if empty, do nothing
+      .if { text == "" } .return { Void }
+
+      // create <li class="item">
+      .let[mut Element] li = { dom.createElement("li") }
+      .do{ li.setClass("item") }
+      .do{ li.setData("done", "false") }
+
+      // create checkbox button line 24
+      .let[mut Element] chk = { dom.createElement("button") }
+      .do{ chk.setClass("chk") }
+      .do{ chk.setText("") }
+
+      // create text div line 29
+      .let[mut Element] span = { dom.createElement("div") }
+      .do{ span.setClass("text") }
+      .do{ span.setText(text) }
+
+      // create delete button line 34
+      .let[mut Element] delBtn = { dom.createElement("button") }
+      .do{ delBtn.setText("x") }
+      .do{ delBtn.setClass("icon") }
+
+      // toggle completion when checkbox clicked line 39
+      .do{
+       span.onClickWith(li, {ev, d, el -> Block#
+         .let[Str] done = { el.getData("done") }
+         .do{ el.setClass(done == "true" ? {.then -> "item", .else-> "item done" }) }
+         .do{ el.setData("done", done == "true" ? {.then -> "false", .else-> "true" }) }
+         .return{ Void }
+       })
+      }
+      .do{
+       chk.onClickWith(li, {ev, d, el -> Block#
+         .let[Str] done = { el.getData("done") }
+         .do{ el.setClass(done == "true" ? {.then -> "item", .else-> "item done" }) }
+         .do{ el.setData("done", done == "true" ? {.then -> "false", .else-> "true" }) }
+         .return{ Void }
+       })
+      }
+
+      // delete button logic
+      .do{
+        delBtn.onClickWith(li, { ev, d, el -> Block#
+          .do{ el.remove }
+          .return{ Void }
+        })
+      }
+
+      // assemble
+      .do{ li.appendChild(chk) }
+      .do{ li.appendChild(span) }
+      .do{ li.appendChild(delBtn) }
+      .do{ list.appendChild(li) }
+
+      // reset input
+      .do{ input.setValue("") }
+      .do{ input.focus }
+
+      .return{ Void }
+    }
+
+    App: Main{ s -> Block#
+      // create document and key elements
+      .let[mut Document] dom = {Documents#s}
+      .let[mut Element] addBtn = { dom.getElementById("addBtn")! }
+      .let[mut Element] input  = { dom.getElementById("todoInput")! }
+
+      // click → AddTask
+      .do{ addBtn.onClick(AddTask) }
+
+      // Enter key → AddTask
+      .do{
+        input.onKeyDown({ e, d -> Block#
+          .if { e.key == "Enter" } .do{ AddTask#(e, d) }
+            .return{ Void }
+        })
+      }
+
+      .return{ Void }
+    }
+    """);
+  }
+
+  @Test void createToDoList() throws IOException, InterruptedException {
+    createApp(BuildMode.PRODUCTION, """
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -379,27 +577,24 @@ public class TestDomAccess {
       <title>Todo List</title>
       <style>
         :root {
-          --bg: #f6f9fc;
           --card: #ffffff;
           --muted: #6b7280;
           --accent: #3b82f6;
-          --accent-2: #9333ea;
           --ok: #10b981;
-          --danger: #ef4444;
           --glass: rgba(0, 0, 0, 0.02);
           --radius: 12px;
           --border: rgba(0, 0, 0, 0.08);
           font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
           color-scheme: light;
         }
-    
+
         html, body {
           height: 100%;
           margin: 0;
           background: linear-gradient(180deg, #f2f5fb 0%, #e9eff7 100%);
           color: #111827;
         }
-    
+
         .wrap {
           max-width: 760px;
           margin: 40px auto;
@@ -409,32 +604,32 @@ public class TestDomAccess {
           box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
           backdrop-filter: blur(8px);
         }
-    
+
         header {
           display: flex;
           align-items: center;
           gap: 16px;
           margin-bottom: 18px;
         }
-    
+
         header h1 {
-          font-size: 20px;
+          font-size: 24px;
           margin: 0;
           color: #111827;
         }
-    
-        header p {
-          margin: 0;
+
+        header .desc {
+          margin: 4px 0 0;
           color: var(--muted);
           font-size: 13px;
         }
-    
+
         .input-row {
           display: flex;
           gap: 8px;
           margin-bottom: 16px;
         }
-    
+
         .input-row input[type="text"] {
           flex: 1;
           padding: 12px 14px;
@@ -446,16 +641,16 @@ public class TestDomAccess {
           outline: none;
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
-    
+
         .input-row input[type="text"]:focus {
           border-color: var(--accent);
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
-    
+
         .input-row input::placeholder {
           color: var(--muted);
         }
-    
+
         .btn {
           padding: 10px 12px;
           border-radius: 10px;
@@ -467,30 +662,22 @@ public class TestDomAccess {
           box-shadow: 0 4px 10px rgba(59, 130, 246, 0.15);
           transition: background 0.25s ease, transform 0.1s ease;
         }
-    
+
         .btn:hover {
           background: linear-gradient(180deg, #4b8ff8, #1d4ed8);
         }
-    
+
         .btn:active {
           transform: scale(0.97);
         }
-    
+
         .btn.ghost {
           background: transparent;
           border: 1px solid var(--border);
           color: var(--muted);
           box-shadow: none;
         }
-    
-        .controls {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 12px;
-          gap: 12px;
-        }
-    
+
         .list {
           list-style: none;
           padding: 0;
@@ -498,7 +685,7 @@ public class TestDomAccess {
           display: grid;
           gap: 8px;
         }
-    
+
         .item {
           display: flex;
           align-items: center;
@@ -509,12 +696,12 @@ public class TestDomAccess {
           border: 1px solid var(--border);
           transition: background 0.2s ease, box-shadow 0.2s ease;
         }
-    
+
         .item:hover {
           background: #f3f4f6;
           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         }
-    
+
         .item .chk {
           width: 18px;
           height: 18px;
@@ -525,25 +712,25 @@ public class TestDomAccess {
           cursor: pointer;
           transition: background 0.2s ease, border-color 0.2s ease;
         }
-    
+
         .item.done .chk {
           background: linear-gradient(180deg, var(--ok), #22c55e);
           border: 0;
           color: white;
         }
-    
+
         .item .text {
           flex: 1;
           font-size: 15px;
           word-break: break-word;
           transition: color 0.2s ease;
         }
-    
+
         .item.done .text {
           text-decoration: line-through;
           color: var(--muted);
         }
-    
+
         .item button.icon {
           border: 0;
           background: transparent;
@@ -553,28 +740,12 @@ public class TestDomAccess {
           border-radius: 8px;
           transition: background 0.2s ease, color 0.2s ease;
         }
-    
+
         .item button.icon:hover {
           background: rgba(0, 0, 0, 0.04);
           color: #dc2626;
         }
-    
-        .meta {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          color: var(--muted);
-          font-size: 13px;
-          margin-top: 12px;
-        }
-    
-        .clear {
-          color: var(--danger);
-          cursor: pointer;
-          border: 0;
-          background: transparent;
-        }
-    
+
         @media (max-width: 520px) {
           .wrap {
             margin: 24px;
@@ -584,12 +755,12 @@ public class TestDomAccess {
             font-size: 18px;
           }
         }
-    
+
         :focus {
           outline: 3px solid rgba(59, 130, 246, 0.2);
           outline-offset: 3px;
         }
-    
+
         input:focus,
         button:focus {
           box-shadow: 0 4px 24px rgba(59, 130, 246, 0.06);
@@ -597,21 +768,21 @@ public class TestDomAccess {
       </style>
     </head>
     <body>
-      <main class="wrap" role="main" aria-labelledby="title">
-        <header>
-          <div>
-            <h1 id="title">Todo List</h1>
-            <p>Create tasks freely.</p>
-          </div>
-        </header>
-    
-        <div class="input-row" role="region" aria-label="Add todo">
-          <input id="todoInput" type="text" placeholder="What do you want to do?" aria-label="New todo">
-          <button id="addBtn" class="btn" title="Add (Enter)">Add</button>
+    <main class="wrap" role="main" aria-labelledby="title">
+      <header>
+        <div>
+          <h1 id="title">Todo List</h1>
+          <p class="desc">Click Add or press Enter to create a new task.</p>
         </div>
+      </header>
     
-        <ul id="todoList" class="list" aria-live="polite"></ul>
-      </main>
+      <div class="input-row" role="region" aria-label="Add todo">
+        <input id="todoInput" type="text" placeholder="What do you want to do?" aria-label="New todo">
+        <button id="addBtn" class="btn" title="Add (Enter)">Add</button>
+      </div>
+    
+      <ul id="todoList" class="list" aria-live="polite"></ul>
+    </main>
     </body>
     </html>
     """,
@@ -624,11 +795,11 @@ public class TestDomAccess {
     alias base.F as F, alias base.Event as Event, alias base.Str as Str,
     alias base.Bool as Bool, alias base.True as True, alias base.False as False,
     
-    ToggleDone: F[mut Event, mut Document, mut Element, Void]{ ev, d, el -> Block#
-       .let[Str] done = { el.getData("done") }
-       .do{ el.setClass(done == "true" ? {.then -> "item done", .else-> "item" }) }
-       .do{ el.setData("done", done == "true" ? {.then -> "false", .else-> "true" }) }
-       .return{ Void }
+    ToggleDone: F[Event, mut Document, mut Element, Void] { ev, d, el -> Block#
+      .let[Str] done = { el.getData("done") }
+      .do{ el.setClass(done == "true" ? {.then -> "item", .else -> "item done" }) }
+      .do{ el.setData("done", done == "true" ? {.then -> "false", .else -> "true" }) }
+      .return{ Void }
     }
     
     AddTask: F[mut Event, mut Document, Void]{ e, dom -> Block#
@@ -636,51 +807,35 @@ public class TestDomAccess {
       .let[mut Element] input = { dom.getElementById("todoInput")! }
       .let[mut Element] list  = { dom.getElementById("todoList")! }
     
-      // read text line 13
+      // read text
       .let[Str] text = { input.value }
     
       // if empty, do nothing
       .if { text == "" } .return { Void }
     
-      // create <li class="item">
+      // create list item container
       .let[mut Element] li = { dom.createElement("li") }
       .do{ li.setClass("item") }
       .do{ li.setData("done", "false") }
     
-      // create checkbox button line 24
+      // create checkbox button
       .let[mut Element] chk = { dom.createElement("button") }
       .do{ chk.setClass("chk") }
       .do{ chk.setText("") }
     
-      // create text div line 29
+      // create text div
       .let[mut Element] span = { dom.createElement("div") }
       .do{ span.setClass("text") }
       .do{ span.setText(text) }
     
-      // create delete button line 34
+      // create delete button
       .let[mut Element] delBtn = { dom.createElement("button") }
       .do{ delBtn.setText("x") }
       .do{ delBtn.setClass("icon") }
     
-      // toggle completion when checkbox clicked line 39
-      .do{
-       span.onClickWith(li, {ev, d, el -> Block#
-         .let[Str] done = { el.getData("done") }
-         .do{ el.setClass(done == "true" ? {.then -> "item done", .else-> "item" }) }
-         .do{ el.setData("done", done == "true" ? {.then -> "false", .else-> "true" }) }
-         .return{ Void }
-       })
-      }
-      .do{
-       chk.onClickWith(li, {ev, d, el -> Block#
-         .let[Str] done = { el.getData("done") }
-         .do{ el.setClass(done == "true" ? {.then -> "item done", .else-> "item" }) }
-         .do{ el.setData("done", done == "true" ? {.then -> "false", .else-> "true" }) }
-         .return{ Void }
-       })
-      }
-    
-      // delete button logic
+      // event bindings
+      .do{ span.onClickWith(li, ToggleDone) }
+      .do{ chk.onClickWith(li, ToggleDone) }
       .do{
         delBtn.onClickWith(li, { ev, d, el -> Block#
           .do{ el.remove }
@@ -688,36 +843,37 @@ public class TestDomAccess {
         })
       }
     
-      // assemble
+      // assemble and insert into list
       .do{ li.appendChild(chk) }
       .do{ li.appendChild(span) }
       .do{ li.appendChild(delBtn) }
       .do{ list.appendChild(li) }
     
-      // reset input
+      // reset and refocus input
       .do{ input.setValue("") }
       .do{ input.focus }
     
       .return{ Void }
     }
     
-    App: Main{ _ -> Block#
-      .let[mut Document] doc   = { Documents.create() }
-      .let[mut Element] addBtn = { doc.getElementById("addBtn")! }
-      .let[mut Element] input  = { doc.getElementById("todoInput")! }
+    App: Main{ s -> Block#
+      .let[mut Document] dom = {Documents#s}
+      .let[mut Element] addBtn = { dom.getElementById("addBtn")! }
+      .let[mut Element] input  = { dom.getElementById("todoInput")! }
     
-      // click → AddTask
+      // register add button click
       .do{ addBtn.onClick(AddTask) }
     
-      // Enter key → AddTask
+      // trigger AddTask on Enter key
       .do{
         input.onKeyDown({ e, d -> Block#
           .if { e.key == "Enter" } .do{ AddTask#(e, d) }
             .return{ Void }
         })
       }
-    
-      .return{ doc.waitCompletion }
+
+      .do{ s.io.print("Todo List App initialized.") }
+      .return{ Void }
     }
     
     """);

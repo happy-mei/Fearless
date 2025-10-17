@@ -7,7 +7,7 @@ export class rt$$Documents {
   static $self = new rt$$Documents();
 
   /** read .create(): mut Document -> Magic! */
-  create$read$0() {
+  $hash$imm$1() {
     // In the browser, just return the global `document` wrapper.
     return rt$$Document.$self;
   }

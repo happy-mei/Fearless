@@ -62,13 +62,13 @@ public class TestJsCodegen {
       import { base$$Void_0 } from "../base/Void_0.js";
       
       export class test$$Test_0 {
-        static $hash$imm$fun(fear[###]$_m$, $this) {
+        static $hash$imm$2$fun(fear31$_m$, $this) {
           return base$$Void_0.$self;
         }
       }
       
       export class test$$Test_0Impl {
-        $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+        $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
       }
       
       test$$Test_0.$self = new test$$Test_0Impl();
@@ -128,7 +128,7 @@ public class TestJsCodegen {
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$A_0 {
-      static ma$imm$fun($this) {
+      static ma$imm$1$fun($this) {
         return rt$$Str.fromJsStr("A");
       }
     }
@@ -136,8 +136,8 @@ public class TestJsCodegen {
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$B_0 {
-      static mb$imm$fun($this) {
-        return rt$$Str.fromJsStr("B").$plus$imm($this.ma$imm());
+      static mb$imm$1$fun($this) {
+        return rt$$Str.fromJsStr("B").$plus$imm$1($this.ma$imm$0());
       }
     }
     """, """
@@ -146,19 +146,19 @@ public class TestJsCodegen {
     import { test$$B_0 } from "../test/B_0.js";
     
     export class test$$C_0 {
-      static mc$imm$fun($this) {
-        return rt$$Str.fromJsStr("C").$plus$imm($this.mb$imm());
+      static mc$imm$1$fun($this) {
+        return rt$$Str.fromJsStr("C").$plus$imm$1($this.mb$imm$0());
       }
-      static mk$imm$fun($this) {
-        return $this.mk$imm();
+      static mk$imm$1$fun($this) {
+        return $this.mk$imm$0();
       }
     }
     
     export class test$$C_0Impl {
-      mk$imm() { return test$$C_0.mk$imm$fun(this); }
-      mb$imm() { return test$$B_0.mb$imm$fun(this); }
-      ma$imm() { return test$$A_0.ma$imm$fun(this); }
-      mc$imm() { return test$$C_0.mc$imm$fun(this); }
+      mk$imm$0() { return test$$C_0.mk$imm$1$fun(this); }
+      mb$imm$0() { return test$$B_0.mb$imm$1$fun(this); }
+      ma$imm$0() { return test$$A_0.ma$imm$1$fun(this); }
+      mc$imm$0() { return test$$C_0.mc$imm$1$fun(this); }
     }
     
     test$$C_0.$self = new test$$C_0Impl();
@@ -166,13 +166,13 @@ public class TestJsCodegen {
     import { test$$C_0 } from "../test/C_0.js";
     
     export class test$$User_0 {
-      static foo$imm$fun($this) {
-        return test$$C_0.$self.mc$imm();
+      static foo$imm$1$fun($this) {
+        return test$$C_0.$self.mc$imm$0();
       }
     }
     
     export class test$$User_0Impl {
-      foo$imm() { return test$$User_0.foo$imm$fun(this); }
+      foo$imm$0() { return test$$User_0.foo$imm$1$fun(this); }
     }
     
     test$$User_0.$self = new test$$User_0Impl();
@@ -192,10 +192,11 @@ public class TestJsCodegen {
 
   @Test void bool() {
     okList(List.of("""
-    import { base$$False_0, base$$True_0 } from "../base/index.js";
+    import { base$$False_0 } from "../base/False_0.js";
+    import { base$$True_0 } from "../base/True_0.js";
     
     export class test$$Test_0 {
-      static m$imm$1$fun($this) {
+      static a$imm$1$fun($this) {
         return base$$True_0.$self;
       }
       static b$imm$1$fun($this) {
@@ -204,15 +205,16 @@ public class TestJsCodegen {
     }
     
     export class test$$Test_0Impl {
-      m$imm$0() { return test$$Test_0.m$imm$1$fun(this); }
       b$imm$0() { return test$$Test_0.b$imm$1$fun(this); }
+      a$imm$0() { return test$$Test_0.a$imm$1$fun(this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
     """, """
-    import { base$$Bool_0, base$$False_0 } from "../base/index.js";
+    import { base$$Bool_0 } from "../base/Bool_0.js";
+    import { base$$False_0 } from "../base/False_0.js";
     import { rt$$Str } from "../rt-js/Str.js";
-
+    
     export class base$$True_0 {
       static and$imm$2$fun(b_m$, $this) {
         return b_m$;
@@ -239,7 +241,7 @@ public class TestJsCodegen {
         return base$$True_0.$self;
       }
     }
-
+    
     export class base$$True_0Impl {
       str$read$0() { return base$$True_0.str$read$1$fun(this); }
       if$imm$1(f_m$) { return base$$True_0.if$imm$2$fun(f_m$, this); }
@@ -254,15 +256,15 @@ public class TestJsCodegen {
       and$imm$1(b_m$) { return base$$True_0.and$imm$2$fun(b_m$, this); }
       toImm$read$0() { return base$$True_0.toImm$read$1$fun(this); }
     }
-
+    
     base$$True_0.$self = new base$$True_0Impl();
     """),
-      List.of("test/Test_0.js", "base/True_0.js"),
-      """
-      package test
-      alias base.Bool as Bool, alias base.True as True, alias base.False as False,
-      Test:{ .a:Bool-> True, .b:Bool-> False }
-      """);
+    List.of("test/Test_0.js", "base/True_0.js"),
+    """
+    package test
+    alias base.Bool as Bool, alias base.True as True, alias base.False as False,
+    Test:{ .a:Bool-> True, .b:Bool-> False }
+    """);
   }
 
 
@@ -291,39 +293,40 @@ public class TestJsCodegen {
 
   @Test void numberStr() {
     ok("""
-      import { rt$$Str } from "../rt-js/Str.js";
-      
-      export class test$$A_0 {
-        static a$imm$fun($this) {
-          return rt$$Str.fromJsStr((-5n).toString());
-        }
+    import { rt$$Str } from "../rt-js/Str.js";
+    
+    export class test$$A_0 {
+      static a$imm$1$fun($this) {
+        return rt$$Str.numToStr(-5n);
       }
-      
-      export class test$$A_0Impl {
-        a$imm() { return test$$A_0.a$imm$fun(this); }
-      }
-      
-      test$$A_0.$self = new test$$A_0Impl();
-      """, "test/A_0.js",
-      """
-      package test
-      alias base.Main as Main, alias base.Str as Str,
-      A:{.a:Str -> -5.str }
-      """);
+    }
+    
+    export class test$$A_0Impl {
+      a$imm$0() { return test$$A_0.a$imm$1$fun(this); }
+    }
+    
+    test$$A_0.$self = new test$$A_0Impl();
+    """, "test/A_0.js",
+    """
+    package test
+    alias base.Main as Main, alias base.Str as Str,
+    A:{.a:Str -> -5.str }
+    """);
   }
   @Test void veryLongLongToStr() { ok("""
-    import { base$$Assert_0, base$$False_0 } from "../base/index.js";
+    import { base$$Assert_0 } from "../base/Assert_0.js";
+    import { base$$False_0 } from "../base/False_0.js";
     import { rt$$Str } from "../rt-js/Str.js";
     import { test$$Fear718$_0 } from "../test/Fear718$_0.js";
     
     export class test$$Test_0 {
-      static $hash$imm$2$fun(fear[###]$_m$, $this) {
-        return base$$Assert_0.$self.$exclamation$imm$3(base$$False_0.$self,rt$$Str.fromJsStr(-9223372036854775808n),test$$Fear718$_0.$self);
+      static $hash$imm$2$fun(fear31$_m$, $this) {
+        return base$$Assert_0.$self.$exclamation$imm$3(base$$False_0.$self,rt$$Str.numToStr(9223372036854775808n),test$$Fear718$_0.$self);
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm$1(fear[###]$_m$) { return test$$Test_0.$hash$imm$2$fun(fear[###]$_m$, this); }
+      $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -340,13 +343,13 @@ public class TestJsCodegen {
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$Test_0 {
-      static $hash$imm$fun(sys_m$, $this) {
-        return sys_m$.io$mut().println$mut(rt$$Str.fromJsStr((BigInt(-999n < 0n ? -(-999n) : -999n)).toString()));
+      static $hash$imm$2$fun(sys_m$, $this) {
+        return sys_m$.io$mut$0().println$mut$1(rt$$Str.numToStr(-999n < 0n ? -(-999n) : -999n));
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+      $hash$imm$1(sys_m$) { return test$$Test_0.$hash$imm$2$fun(sys_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -415,7 +418,7 @@ public class TestJsCodegen {
     
     export class test$$Test_0 {
       static a$imm$1$fun($this) {
-        return rt$$Str.fromJsStr(BigInt(rt$$Num.toNat64(BigInt(rt$$Num.toNat64(0n - 2n)) - 9223372036854775807n)));
+        return rt$$Str.numToStr(rt$$Num.toNat64(rt$$Num.toNat64(0n - 2n) - 9223372036854775807n));
       }
     }
     
@@ -483,54 +486,56 @@ public class TestJsCodegen {
 
   @Test void numAssert() {
     okList(List.of("""
-    import { base$$_NatAssertionHelper_0 } from "../base/index.js";
+    import { base$$_NatAssertionHelper_0 } from "../base/_NatAssertionHelper_0.js";
     
     export class test$$Test_0 {
-      static $hash$imm$fun(fear[###]$_m$, $this) {
-        return base$$_NatAssertionHelper_0.assertEq$imm$fun(5n, 5n, null);
+      static $hash$imm$2$fun(fear31$_m$, $this) {
+        return base$$_NatAssertionHelper_0.assertEq$imm$3$fun(5n, 5n, null);
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+      $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
     """, """
-    import { base$$Assert_0, base$$Fear2252$_0, base$$Fear2257$_0 } from "../base/index.js";
+    import { base$$Assert_0 } from "../base/Assert_0.js";
+    import { base$$Fear2252$_0 } from "../base/Fear2252$_0.js";
+    import { base$$Fear2257$_0 } from "../base/Fear2257$_0.js";
     import { rt$$Num } from "../rt-js/Num.js";
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class base$$_NatAssertionHelper_0 {
-      static assertEq$imm$fun(expected_m$, actual_m$, $this) {
-        return base$$Assert_0.$self.$exclamation$imm(rt$$Num.toBool((BigInt(expected_m$)) === (actual_m$)),rt$$Str.fromJsStr("Expected: ").$plus$imm(rt$$Str.fromJsStr((BigInt(expected_m$)).toString())).$plus$imm(rt$$Str.fromJsStr("\\nActual: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(actual_m$)).toString())),base$$Fear2252$_0.$self);
+      static assertEq$imm$3$fun(expected_m$, actual_m$, $this) {
+        return base$$Assert_0.$self.$exclamation$imm$3(rt$$Num.toBool((expected_m$) === (actual_m$)),rt$$Str.fromJsStr("Expected: ").$plus$imm$1(rt$$Str.numToStr(expected_m$)).$plus$imm$1(rt$$Str.fromJsStr("\\nActual: ")).$plus$imm$1(rt$$Str.numToStr(actual_m$)),base$$Fear2252$_0.$self);
       }
-      static assertEq$imm$fun(expected_m$, actual_m$, message_m$, $this) {
-        return base$$Assert_0.$self.$exclamation$imm(rt$$Num.toBool((BigInt(expected_m$)) === (actual_m$)),message_m$.$plus$imm(rt$$Str.fromJsStr("\\nExpected: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(expected_m$)).toString())).$plus$imm(rt$$Str.fromJsStr("\\nActual: ")).$plus$imm(rt$$Str.fromJsStr((BigInt(actual_m$)).toString())),base$$Fear2257$_0.$self);
+      static assertEq$imm$4$fun(expected_m$, actual_m$, message_m$, $this) {
+        return base$$Assert_0.$self.$exclamation$imm$3(rt$$Num.toBool((expected_m$) === (actual_m$)),message_m$.$plus$imm$1(rt$$Str.fromJsStr("\\nExpected: ")).$plus$imm$1(rt$$Str.numToStr(expected_m$)).$plus$imm$1(rt$$Str.fromJsStr("\\nActual: ")).$plus$imm$1(rt$$Str.numToStr(actual_m$)),base$$Fear2257$_0.$self);
       }
     }
     
     export class base$$_NatAssertionHelper_0Impl {
-      assertEq$imm(expected_m$, actual_m$) { return base$$_NatAssertionHelper_0.assertEq$imm$fun(expected_m$, actual_m$, this); }
-      assertEq$imm(expected_m$, actual_m$, message_m$) { return base$$_NatAssertionHelper_0.assertEq$imm$fun(expected_m$, actual_m$, message_m$, this); }
+      assertEq$imm$2(expected_m$, actual_m$) { return base$$_NatAssertionHelper_0.assertEq$imm$3$fun(expected_m$, actual_m$, this); }
+      assertEq$imm$3(expected_m$, actual_m$, message_m$) { return base$$_NatAssertionHelper_0.assertEq$imm$4$fun(expected_m$, actual_m$, message_m$, this); }
     }
     
     base$$_NatAssertionHelper_0.$self = new base$$_NatAssertionHelper_0Impl();
     """),
-      List.of("test/Test_0.js", "base/_NatAssertionHelper_0.js"),
-      """
-      package test
-      alias base.Main as Main, alias base.Void as Void,
-      Test: Main{_ -> 5.assertEq(5)}
-      A: {
-        .assertOk:Void -> (5 .assertEq 5),
-        .assertFail:Void -> (3 .assertEq(4, "should fail")),
-      }
-      """);
+    List.of("test/Test_0.js", "base/_NatAssertionHelper_0.js"),
+    """
+    package test
+    alias base.Main as Main, alias base.Void as Void,
+    Test: Main{_ -> 5.assertEq(5)}
+    A: {
+      .assertOk:Void -> (5 .assertEq 5),
+      .assertFail:Void -> (3 .assertEq(4, "should fail")),
+    }
+    """);
   }
   @Test void byteEq() {
     ok("""
-    import { base$$_ByteAssertionHelper_0 } from "../base/index.js";
+    import { base$$_ByteAssertionHelper_0 } from "../base/_ByteAssertionHelper_0.js";
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$Test_0 {
@@ -540,7 +545,7 @@ public class TestJsCodegen {
     }
     
     export class test$$Test_0Impl {
-      $hash$imm$1(fear[###]$_m$) { return test$$Test_0.$hash$imm$2$fun(fear[###]$_m$, this); }
+      $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -609,10 +614,9 @@ public class TestJsCodegen {
 
   @Test void direction() {
     okList(List.of("""
-    
     export class test$$Direction_0 {
-      static reverse$imm$fun($this) {
-        return $this.turn$imm().turn$imm();
+      static reverse$imm$1$fun($this) {
+        return $this.turn$imm$0().turn$imm$0();
       }
     }
     """, """
@@ -620,14 +624,14 @@ public class TestJsCodegen {
     import { test$$East_0 } from "../test/East_0.js";
     
     export class test$$North_0 {
-      static turn$imm$fun($this) {
+      static turn$imm$1$fun($this) {
         return test$$East_0.$self;
       }
     }
     
     export class test$$North_0Impl {
-      reverse$imm() { return test$$Direction_0.reverse$imm$fun(this); }
-      turn$imm() { return test$$North_0.turn$imm$fun(this); }
+      reverse$imm$0() { return test$$Direction_0.reverse$imm$1$fun(this); }
+      turn$imm$0() { return test$$North_0.turn$imm$1$fun(this); }
     }
     
     test$$North_0.$self = new test$$North_0Impl();
@@ -791,18 +795,17 @@ public class TestJsCodegen {
 
   @Test void rotation() {
     okList(List.of("""
-    
     export class test$$Rotation_0 {
     }
     """, """
     export class test$$Turn270_0 {
-      static $hash$imm$fun(fear[###]$_m$, $this) {
-        return fear[###]$_m$.turn$imm().turn$imm().turn$imm();
+      static $hash$imm$2$fun(fear34$_m$, $this) {
+        return fear34$_m$.turn$imm$0().turn$imm$0().turn$imm$0();
       }
     }
     
     export class test$$Turn270_0Impl {
-      $hash$imm(fear[###]$_m$) { return test$$Turn270_0.$hash$imm$fun(fear[###]$_m$, this); }
+      $hash$imm$1(fear34$_m$) { return test$$Turn270_0.$hash$imm$2$fun(fear34$_m$, this); }
     }
     
     test$$Turn270_0.$self = new test$$Turn270_0Impl();
@@ -821,11 +824,11 @@ public class TestJsCodegen {
 
   @Test void rotationPlus() {
     okList(List.of("""
-    import { test$$Fear[###]$_0Impl } from "../test/Fear[###]$_0.js";
+    import { test$$Fear714$_0Impl } from "../test/Fear714$_0.js";
     
     export class test$$Rotation_0 {
-      static $plus$imm$fun(r_m$, $this) {
-        return new test$$Fear[###]$_0Impl(r_m$, $this);
+      static $plus$imm$2$fun(r_m$, $this) {
+        return new test$$Fear714$_0Impl(r_m$, $this);
       }
     }
     """),
@@ -842,16 +845,16 @@ public class TestJsCodegen {
 
   @Test void tankTurn() {
     okList(List.of("""
-    import { test$$Fear[###]$_0Impl } from "../test/Fear[###]$_0.js";
+    import { test$$Fear714$_0Impl } from "../test/Fear714$_0.js";
     
     export class test$$Tanks_0 {
-      static $hash$imm$fun(heading_m$, aiming_m$, $this) {
-        return new test$$Fear[###]$_0Impl(aiming_m$, heading_m$);
+      static $hash$imm$3$fun(heading_m$, aiming_m$, $this) {
+        return new test$$Fear714$_0Impl(aiming_m$, heading_m$);
       }
     }
     
     export class test$$Tanks_0Impl {
-      $hash$imm(heading_m$, aiming_m$) { return test$$Tanks_0.$hash$imm$fun(heading_m$, aiming_m$, this); }
+      $hash$imm$2(heading_m$, aiming_m$) { return test$$Tanks_0.$hash$imm$3$fun(heading_m$, aiming_m$, this); }
     }
     
     test$$Tanks_0.$self = new test$$Tanks_0Impl();
@@ -859,8 +862,8 @@ public class TestJsCodegen {
     import { test$$Tanks_0 } from "../test/Tanks_0.js";
     
     export class test$$Tank_0 {
-      static turnTurret$imm$fun(r_m$, $this) {
-        return test$$Tanks_0.$self.$hash$imm($this.heading$imm(),r_m$.$hash$imm($this.aiming$imm()));
+      static turnTurret$imm$2$fun(r_m$, $this) {
+        return test$$Tanks_0.$self.$hash$imm$2($this.heading$imm$0(),r_m$.$hash$imm$1($this.aiming$imm$0()));
       }
     }
     """),
@@ -887,76 +890,243 @@ public class TestJsCodegen {
     import { test$$Points_0 } from "../test/Points_0.js";
     
     export class test$$North_0 {
-      static turn$imm$fun($this) {
+      static turn$imm$1$fun($this) {
         return test$$East_0.$self;
       }
-      static point$imm$fun($this) {
-        return test$$Points_0.$self.$hash$imm(-1n,0n);
+      static point$imm$1$fun($this) {
+        return test$$Points_0.$self.$hash$imm$2(-1n,0n);
       }
     }
     
     export class test$$North_0Impl {
-      point$imm() { return test$$North_0.point$imm$fun(this); }
-      turn$imm() { return test$$North_0.turn$imm$fun(this); }
+      point$imm$0() { return test$$North_0.point$imm$1$fun(this); }
+      turn$imm$0() { return test$$North_0.turn$imm$1$fun(this); }
     }
     
     test$$North_0.$self = new test$$North_0Impl();
     """, """
-    import { test$$Fear[###]$_0Impl } from "../test/Fear[###]$_0.js";
+    import { test$$Fear715$_0Impl } from "../test/Fear715$_0.js";
     
     export class test$$Points_0 {
-      static $hash$imm$fun(x_m$, y_m$, $this) {
-        return new test$$Fear[###]$_0Impl(x_m$, y_m$);
+      static $hash$imm$3$fun(x_m$, y_m$, $this) {
+        return new test$$Fear715$_0Impl(x_m$, y_m$);
       }
     }
     
     export class test$$Points_0Impl {
-      $hash$imm(x_m$, y_m$) { return test$$Points_0.$hash$imm$fun(x_m$, y_m$, this); }
+      $hash$imm$2(x_m$, y_m$) { return test$$Points_0.$hash$imm$3$fun(x_m$, y_m$, this); }
     }
     
     test$$Points_0.$self = new test$$Points_0Impl();
     """, """
+    import { rt$$Num } from "../rt-js/Num.js";
     import { test$$Points_0 } from "../test/Points_0.js";
     
     export class test$$Point_0 {
-      static $plus$imm$fun(other_m$, $this) {
-        return test$$Points_0.$self.$hash$imm((BigInt(other_m$.x$imm()) + $this.x$imm()),(BigInt(other_m$.y$imm()) + $this.y$imm()));
+      static $plus$imm$2$fun(other_m$, $this) {
+        return test$$Points_0.$self.$hash$imm$2(rt$$Num.toInt64(other_m$.x$imm$0() + $this.x$imm$0()),rt$$Num.toInt64(other_m$.y$imm$0() + $this.y$imm$0()));
       }
-      static move$imm$fun(d_m$, $this) {
-        return $this.$plus$imm(d_m$.point$imm());
+      static move$imm$2$fun(d_m$, $this) {
+        return $this.$plus$imm$1(d_m$.point$imm$0());
       }
     }
     """),
-      List.of("test/North_0.js", "test/Points_0.js", "test/Point_0.js"),
-      """
-      package test
-      alias base.Int as Int,
-      Point: {
-        .x: Int, .y: Int,
-        +(other: Point): Point ->
-          Points#(other.x + (this.x), other.y + (this.y)),
-        .move(d: Direction): Point -> this + ( d.point ),
-        }
-      Points: {#(x: Int, y: Int): Point -> { .x -> x, .y -> y } }
-      
-      Direction: { .turn: Direction, .point: Point, }
-      North: Direction {.turn -> East,  .point -> Points#(-1, +0), }
-      East : Direction {.turn -> South, .point -> Points#(+0, +1), }
-      South: Direction {.turn -> West,  .point -> Points#(+1, +0), }
-      West : Direction {.turn -> North, .point -> Points#(+0, -1), }
-      """);
+    List.of("test/North_0.js", "test/Points_0.js", "test/Point_0.js"),
+    """
+    package test
+    alias base.Int as Int,
+    Point: {
+      .x: Int, .y: Int,
+      +(other: Point): Point ->
+        Points#(other.x + (this.x), other.y + (this.y)),
+      .move(d: Direction): Point -> this + ( d.point ),
+      }
+    Points: {#(x: Int, y: Int): Point -> { .x -> x, .y -> y } }
+    
+    Direction: { .turn: Direction, .point: Point, }
+    North: Direction {.turn -> East,  .point -> Points#(-1, +0), }
+    East : Direction {.turn -> South, .point -> Points#(+0, +1), }
+    South: Direction {.turn -> West,  .point -> Points#(+1, +0), }
+    West : Direction {.turn -> North, .point -> Points#(+0, -1), }
+    """);
+  }
+
+  @Test void stack() {
+    okList(List.of("""
+    import { test$$Fear717$_1Impl } from "../test/Fear717$_1.js";
+    
+    export class test$$Stack_1 {
+      static match$imm$2$fun(m_m$, $this) {
+        return m_m$.empty$imm$0();
+      }
+      static fold$imm$3$fun(start_m$, f_m$, $this) {
+        return start_m$;
+      }
+      static map$imm$2$fun(f_m$, $this) {
+        return test$$Stack_1.$self;
+      }
+      static filter$imm$2$fun(f_m$, $this) {
+        return test$$Stack_1.$self;
+      }
+      static $plus$imm$2$fun(e_m$, $this) {
+        return new test$$Fear717$_1Impl(e_m$, $this);
+      }
+    }
+    
+    export class test$$Stack_1Impl {
+      fold$imm$2(start_m$, f_m$) { return test$$Stack_1.fold$imm$3$fun(start_m$, f_m$, this); }
+      $plus$imm$1(e_m$) { return test$$Stack_1.$plus$imm$2$fun(e_m$, this); }
+      match$imm$1(m_m$) { return test$$Stack_1.match$imm$2$fun(m_m$, this); }
+      filter$imm$1(f_m$) { return test$$Stack_1.filter$imm$2$fun(f_m$, this); }
+      map$imm$1(f_m$) { return test$$Stack_1.map$imm$2$fun(f_m$, this); }
+    }
+    
+    test$$Stack_1.$self = new test$$Stack_1Impl();
+    """),
+    List.of("test/Stack_1.js"),
+    """
+    package test
+    alias base.Int as Int, alias base.F as F, alias base.Bool as Bool,
+    StackMatch[T,R]: {
+      .empty: R,
+      .elem(top:T, tail: Stack[T]): R,
+    }
+    Stack[T]: {
+      .match[R](m: StackMatch[T,R]): R -> m.empty,
+      .fold[R](start:R, f: F[R,T,R]): R -> start,
+      .map[R](f: F[T, R]): Stack[R] -> {},
+      .filter(f: F[T,Bool]): Stack[T]-> {},
+      +(e: T): Stack[T] -> {
+        .match(m) -> m.elem(e, this),
+        .fold(start, f) -> f#(this.fold(start, f), e),
+        .map(f) -> this.map(f) + ( f#(e) ),
+        .filter(f) -> f#(e).if{
+          .then -> this.filter(f) + e,
+          .else -> this.filter(f),
+        },
+      },
+    }
+    """);
+  }
+
+
+
+  @Test void tankGameExample() {
+    okList(List.of("""
+    import { rt$$Num } from "../rt-js/Num.js";
+    import { test$$Points_0 } from "../test/Points_0.js";
+    
+    export class test$$Point_0 {
+      static x$imm$2$fun(self_m$, x_m$) {
+        return x_m$;
+      }
+      static y$imm$2$fun(self_m$, y_m$) {
+        return y_m$;
+      }
+      static $plus$imm$4$fun(other_m$, self_m$, x_m$, y_m$) {
+        return test$$Points_0.$self.$hash$imm$2(rt$$Num.toInt64(other_m$.x$imm$0() + x_m$),rt$$Num.toInt64(other_m$.y$imm$0() + y_m$));
+      }
+      static move$imm$2$fun(d_m$, self_m$) {
+        return self_m$.$plus$imm$1(d_m$.point$imm$0());
+      }
+      static $equals$equals$imm$2$fun(other_m$, self_m$) {
+        return rt$$Num.toBool((self_m$.x$imm$0()) === (other_m$.x$imm$0())).and$imm$1(rt$$Num.toBool((self_m$.y$imm$0()) === (other_m$.y$imm$0())));
+      }
+    }
+    
+    export class test$$Point_0Impl {
+      constructor(x_m$, y_m$) {
+        this.x_m$ = x_m$;
+        this.y_m$ = y_m$;
+      }
+      move$imm$1(d_m$) { return test$$Point_0.move$imm$2$fun(d_m$, this); }
+      $equals$equals$imm$1(other_m$) { return test$$Point_0.$equals$equals$imm$2$fun(other_m$, this); }
+      y$imm$0() { return test$$Point_0.y$imm$2$fun(this, this.y_m$); }
+      $plus$imm$1(other_m$) { return test$$Point_0.$plus$imm$4$fun(other_m$, this, this.x_m$, this.y_m$); }
+      x$imm$0() { return test$$Point_0.x$imm$2$fun(this, this.x_m$); }
+    }
+    """, """
+    import { test$$Fear732$_0Impl } from "../test/Fear732$_0.js";
+    
+    export class test$$Tanks_0 {
+      static $hash$imm$4$fun(heading_m$, aiming_m$, position_m$, $this) {
+        return new test$$Fear732$_0Impl(aiming_m$, heading_m$, position_m$);
+      }
+    }
+    
+    export class test$$Tanks_0Impl {
+      $hash$imm$3(heading_m$, aiming_m$, position_m$) { return test$$Tanks_0.$hash$imm$4$fun(heading_m$, aiming_m$, position_m$, this); }
+    }
+    
+    test$$Tanks_0.$self = new test$$Tanks_0Impl();
+    """, """
+    import { test$$Tank_0 } from "../test/Tank_0.js";
+    
+    export class test$$Fear732$_0 {
+      static heading$imm$2$fun(fear[###]$_m$, heading_m$) {
+        return heading_m$;
+      }
+      static aiming$imm$2$fun(fear[###]$_m$, aiming_m$) {
+        return aiming_m$;
+      }
+      static position$imm$2$fun(fear[###]$_m$, position_m$) {
+        return position_m$;
+      }
+    }
+    
+    export class test$$Fear732$_0Impl {
+      constructor(aiming_m$, heading_m$, position_m$) {
+        this.aiming_m$ = aiming_m$;
+        this.heading_m$ = heading_m$;
+        this.position_m$ = position_m$;
+      }
+      move$imm$0() { return test$$Tank_0.move$imm$1$fun(this); }
+      aiming$imm$0() { return test$$Fear732$_0.aiming$imm$2$fun(this, this.aiming_m$); }
+      position$imm$0() { return test$$Fear732$_0.position$imm$2$fun(this, this.position_m$); }
+      heading$imm$0() { return test$$Fear732$_0.heading$imm$2$fun(this, this.heading_m$); }
+    }
+    """),
+    List.of("test/Point_0.js", "test/Tanks_0.js", "test/Fear732$_0.js"),
+    """
+    package test
+    alias base.Int as Int, alias base.True as True, alias base.Bool as Bool,
+    Points:{ #(x: Int, y: Int): Point -> Point:{'self
+      .x: Int -> x,
+      .y: Int -> y,
+      +(other: Point): Point -> Points#(other.x + x, other.y + y),
+      .move(d: Direction): Point -> self + ( d.point ),
+      ==(other: Point): Bool -> self.x == (other.x)  .and (self.y == (other.y) ),
+      }}
+    Direction: { .turn: Direction, .point:Point, }
+    North: Direction {.turn -> East,  .point -> Points#(-1, +0), }
+    East : Direction {.turn -> South, .point -> Points#(+0, +1), }
+    South: Direction {.turn -> West,  .point -> Points#(+1, +0), }
+    West : Direction {.turn -> North, .point -> Points#(+0, -1), }
+    Tank: {
+      .heading: Direction,
+      .aiming: Direction,
+      .position:Point,
+      .move:Tank -> Tanks#(
+        this.heading,
+        this.aiming,
+        this.position.move(this.heading)
+        ),
+      }
+    Tanks: { #(heading: Direction, aiming: Direction, position: Point): Tank->
+      { .heading -> heading, .aiming -> aiming, .position -> position } }
+    """);
   }
 
   @Test void genericMethod() {
     okList(List.of("""
     export class test$$Left_0 {
-      static choose$imm$fun(l_m$, r_m$, $this) {
+      static choose$imm$3$fun(l_m$, r_m$, $this) {
         return l_m$;
       }
     }
     
     export class test$$Left_0Impl {
-      choose$imm(l_m$, r_m$) { return test$$Left_0.choose$imm$fun(l_m$, r_m$, this); }
+      choose$imm$2(l_m$, r_m$) { return test$$Left_0.choose$imm$3$fun(l_m$, r_m$, this); }
     }
     
     test$$Left_0.$self = new test$$Left_0Impl();
@@ -964,25 +1134,25 @@ public class TestJsCodegen {
     export class test$$Fork_0 {
     }
     """),
-      List.of("test/Left_0.js", "test/Fork_0.js"),
-      """
-      package test
-      Fork : { .choose[Val](leftVal: Val, rightVal: Val): Val, }
-      Left : Fork{ l,r -> l }
-      Right: Fork{ l,r -> r }
-      """);
+    List.of("test/Left_0.js", "test/Fork_0.js"),
+    """
+    package test
+    Fork : { .choose[Val](leftVal: Val, rightVal: Val): Val, }
+    Left : Fork{ l,r -> l }
+    Right: Fork{ l,r -> r }
+    """);
   }
 
   @Test void genericType() {
     okList(List.of("""
     export class test$$Right_0 {
-      static choose$imm$fun(fear[###]$_m$, $this) {
-        return fear[###]$_m$.right$imm();
+      static choose$imm$2$fun(fear32$_m$, $this) {
+        return fear32$_m$.right$imm$0();
       }
     }
     
     export class test$$Right_0Impl {
-      choose$imm(fear[###]$_m$) { return test$$Right_0.choose$imm$fun(fear[###]$_m$, this); }
+      choose$imm$1(fear32$_m$) { return test$$Right_0.choose$imm$2$fun(fear32$_m$, this); }
     }
     
     test$$Right_0.$self = new test$$Right_0Impl();
@@ -1005,17 +1175,17 @@ public class TestJsCodegen {
 
   @Test void ifThenElse() {
     ok("""
-    import { base$$True_0 } from "../base/index.js";
+    import { base$$True_0 } from "../base/True_0.js";
     import { rt$$Str } from "../rt-js/Str.js";
     
     export class test$$Bot_0 {
-      static message$imm$fun(s_m$, $this) {
-        return (s_m$.$equals$equals$imm(rt$$Str.fromJsStr("hello")) == base$$True_0.$self ? rt$$Str.fromJsStr("Hi, I'm Bot; how can I help you?") : (s_m$.$equals$equals$imm(rt$$Str.fromJsStr("bye")) == base$$True_0.$self ? rt$$Str.fromJsStr("goodbye!") : rt$$Str.fromJsStr("I don't understand")));
+      static message$imm$2$fun(s_m$, $this) {
+        return (s_m$.$equals$equals$imm$1(rt$$Str.fromJsStr("hello")) == base$$True_0.$self ? rt$$Str.fromJsStr("Hi, I'm Bot; how can I help you?") : (s_m$.$equals$equals$imm$1(rt$$Str.fromJsStr("bye")) == base$$True_0.$self ? rt$$Str.fromJsStr("goodbye!") : rt$$Str.fromJsStr("I don't understand")));
       }
     }
     
     export class test$$Bot_0Impl {
-      message$imm(s_m$) { return test$$Bot_0.message$imm$fun(s_m$, this); }
+      message$imm$1(s_m$) { return test$$Bot_0.message$imm$2$fun(s_m$, this); }
     }
     
     test$$Bot_0.$self = new test$$Bot_0Impl();
@@ -1042,16 +1212,16 @@ public class TestJsCodegen {
 
   @Test void questionMark() {
     ok("""
-    import { base$$True_0 } from "../base/index.js";
+    import { base$$True_0 } from "../base/True_0.js";
     
     export class test$$Test_0 {
-      static m$imm$fun(b_m$, $this) {
-        return (b_m$ == base$$True_0.$self ? $this : $this.m$imm(b_m$));
+      static m$imm$2$fun(b_m$, $this) {
+        return (b_m$ == base$$True_0.$self ? $this : $this.m$imm$1(b_m$));
       }
     }
     
     export class test$$Test_0Impl {
-      m$imm(b_m$) { return test$$Test_0.m$imm$fun(b_m$, this); }
+      m$imm$1(b_m$) { return test$$Test_0.m$imm$2$fun(b_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -1065,28 +1235,28 @@ public class TestJsCodegen {
 
   @Test void questionMarkStr() {
     ok("""
-      import { base$$True_0 } from "../base/index.js";
-      import { rt$$Num } from "../rt-js/Num.js";
-      import { rt$$Str } from "../rt-js/Str.js";
-      
-      export class test$$Test_0 {
-        static m$imm$fun($this) {
-          return (rt$$Num.toBool((5n) > (2n)) == base$$True_0.$self ? rt$$Str.fromJsStr("True") : rt$$Str.fromJsStr("False"));
-        }
+    import { base$$True_0 } from "../base/True_0.js";
+    import { rt$$Num } from "../rt-js/Num.js";
+    import { rt$$Str } from "../rt-js/Str.js";
+    
+    export class test$$Test_0 {
+      static m$imm$1$fun($this) {
+        return (rt$$Num.toBool((5n) > (2n)) == base$$True_0.$self ? rt$$Str.fromJsStr("True") : rt$$Str.fromJsStr("False"));
       }
-      
-      export class test$$Test_0Impl {
-        m$imm() { return test$$Test_0.m$imm$fun(this); }
-      }
-      
-      test$$Test_0.$self = new test$$Test_0Impl();
-      """,
-      "test/Test_0.js",
-      """
-      package test
-      alias base.Str as Str,
-      Test:{ .m:Str-> (5 > 2) ?[Str] {.then -> "True", .else -> "False", } }
-      """);
+    }
+    
+    export class test$$Test_0Impl {
+      m$imm$0() { return test$$Test_0.m$imm$1$fun(this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """,
+    "test/Test_0.js",
+    """
+    package test
+    alias base.Str as Str,
+    Test:{ .m:Str-> (5 > 2) ?[Str] {.then -> "True", .else -> "False", } }
+    """);
   }
 
   @Test void optional() {
@@ -1138,19 +1308,19 @@ public class TestJsCodegen {
 
   @Test void blockLetDoRet() {
     ok("""
-    import { base$$Void_0 } from "../base/index.js";
+    import { base$$Void_0 } from "../base/Void_0.js";
     import { test$$ForceGen_0 } from "../test/ForceGen_0.js";
     
     export class test$$Test_0 {
-      static $hash$imm$fun(fear[###]$_m$, $this) {
+      static $hash$imm$2$fun(fear31$_m$, $this) {
         let n_m$ = 5n;
-    var doRes1 = test$$ForceGen_0.$self.$hash$imm();
+    var doRes1 = test$$ForceGen_0.$self.$hash$imm$0();
     return base$$Void_0.$self;
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+      $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -1170,84 +1340,89 @@ public class TestJsCodegen {
 
   @Test void blockVarDoRet() {
     ok("""
-    import { base$$Vars_0, base$$Void_0 } from "../base/index.js";
+    import { base$$Vars_0 } from "../base/Vars_0.js";
+    import { base$$Void_0 } from "../base/Void_0.js";
     import { rt$$Str } from "../rt-js/Str.js";
     import { test$$ForceGen_0 } from "../test/ForceGen_0.js";
     
     export class test$$Test_0 {
-      static $hash$imm$fun(fear[###]$_m$, $this) {
-        var n_m$ = base$$Vars_0.$self.$hash$imm(rt$$Str.fromJsStr("Hi"));
-    var doRes1 = test$$ForceGen_0.$self.$hash$imm();
+      static $hash$imm$2$fun(fear31$_m$, $this) {
+        var n_m$ = base$$Vars_0.$self.$hash$imm$1(rt$$Str.fromJsStr("Hi"));
+    var doRes1 = test$$ForceGen_0.$self.$hash$imm$0();
     return base$$Void_0.$self;
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+      $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
     """,
-      "test/Test_0.js",
-      """
-      package test
-      alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
-      Test:base.Main {_ -> Block#
-       .var[Str] n = {"Hi"}
-       .do {ForceGen#}
-       .return {Void}
-      }
-      ForceGen: {#: Void -> {}}
-      """);
+    "test/Test_0.js",
+    """
+    package test
+    alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    Test:base.Main {_ -> Block#
+     .var[Str] n = {"Hi"}
+     .do {ForceGen#}
+     .return {Void}
+    }
+    ForceGen: {#: Void -> {}}
+    """);
   }
 
   @Test void blockError() {
     ok("""
-    import { base$$Infos_0, base$$True_0, base$$Vars_0, base$$Void_0 } from "../base/index.js";
+    import { base$$Infos_0 } from "../base/Infos_0.js";
+    import { base$$True_0 } from "../base/True_0.js";
+    import { base$$Vars_0 } from "../base/Vars_0.js";
+    import { base$$Void_0 } from "../base/Void_0.js";
     import { rt$$Num } from "../rt-js/Num.js";
     import { rt$$Str } from "../rt-js/Str.js";
     import { test$$ForceGen_0 } from "../test/ForceGen_0.js";
-
+    
     export class test$$Test_0 {
-      static $hash$imm$fun(fear[###]$_m$, $this) {
+      static $hash$imm$2$fun(fear31$_m$, $this) {
         let n_m$ = 5n;
     let n2_m$ = 10n;
-    var n3_m$ = base$$Vars_0.$self.$hash$imm(15n);
-    if (rt$$Num.toBool((BigInt(n3_m$.get$mut())) === ((BigInt(BigInt(n_m$)) + n2_m$))) == base$$True_0.$self) { r$$Error.throwFearlessError(base$$Infos_0.$self.msg$imm(rt$$Str.fromJsStr("oh no")));
+    var n3_m$ = base$$Vars_0.$self.$hash$imm$1(15n);
+    if (rt$$Num.toBool((n3_m$.get$mut$0()) === (rt$$Num.toInt64(n_m$ + n2_m$))) == base$$True_0.$self) { r$$Error.throwFearlessError(base$$Infos_0.$self.msg$imm$1(rt$$Str.fromJsStr("oh no")));
      }
-    var doRes1 = test$$ForceGen_0.$self.$hash$imm();
+    var doRes1 = test$$ForceGen_0.$self.$hash$imm$0();
     return base$$Void_0.$self;
       }
     }
-
+    
     export class test$$Test_0Impl {
-      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+      $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
     }
-
+    
     test$$Test_0.$self = new test$$Test_0Impl();
     """,
-      "test/Test_0.js",
-      """
-      package test
-      alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
-      Test:base.Main {_ -> Block#
-       .openIso[Int] n = (iso +5)
-       .let[Int] n2 = {+10}
-       .var[Int] n3 = {+15}
-       .if {n3.get == (n.int + n2)} .error {base.Infos.msg "oh no"}
-       .do {ForceGen#}
-       .return {Void}
-       }
-      ForceGen: {#: Void -> {}}
-      """);
+    "test/Test_0.js",
+    """
+    package test
+    alias base.Int as Int, alias base.Str as Str, alias base.Block as Block, alias base.Void as Void,
+    Test:base.Main {_ -> Block#
+     .openIso[Int] n = (iso +5)
+     .let[Int] n2 = {+10}
+     .var[Int] n3 = {+15}
+     .if {n3.get == (n.int + n2)} .error {base.Infos.msg "oh no"}
+     .do {ForceGen#}
+     .return {Void}
+     }
+    ForceGen: {#: Void -> {}}
+    """);
   }
 
   @Test void boolExprBlock() {
     ok("""
-    import { base$$True_0, base$$Void_0 } from "../base/index.js";
+    import { base$$True_0 } from "../base/True_0.js";
+    import { base$$Void_0 } from "../base/Void_0.js";
     
     export class test$$Test_0 {
-      static $hash$imm$fun(fear[###]$_m$, $this) {
+      static $hash$imm$2$fun(fear31$_m$, $this) {
         return (base$$True_0.$self == base$$True_0.$self ? (() => {
     return base$$Void_0.$self})() : (() => {
     return base$$Void_0.$self})());
@@ -1255,7 +1430,7 @@ public class TestJsCodegen {
     }
     
     export class test$$Test_0Impl {
-      $hash$imm(fear[###]$_m$) { return test$$Test_0.$hash$imm$fun(fear[###]$_m$, this); }
+      $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -1274,26 +1449,26 @@ public class TestJsCodegen {
 
   @Test void sysIOPrint() {
     ok("""
-      import { rt$$Str } from "../rt-js/Str.js";
-      
-      export class test$$Test_0 {
-        static $hash$imm$fun(sys_m$, $this) {
-          return sys_m$.io$mut().println$mut(rt$$Str.fromJsStr("Hello World"));
-        }
+    import { rt$$Str } from "../rt-js/Str.js";
+    
+    export class test$$Test_0 {
+      static $hash$imm$2$fun(sys_m$, $this) {
+        return sys_m$.io$mut$0().println$mut$1(rt$$Str.fromJsStr("Hello World"));
       }
-      
-      export class test$$Test_0Impl {
-        $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
-      }
-      
-      test$$Test_0.$self = new test$$Test_0Impl();
-      """,
-      "test/Test_0.js",
-      """
-        package test
-        alias base.Main as Main,
-        Test: Main{sys -> sys.io.println("Hello World") }
-        """);
+    }
+    
+    export class test$$Test_0Impl {
+      $hash$imm$1(sys_m$) { return test$$Test_0.$hash$imm$2$fun(sys_m$, this); }
+    }
+    
+    test$$Test_0.$self = new test$$Test_0Impl();
+    """,
+  "test/Test_0.js",
+  """
+    package test
+    alias base.Main as Main,
+    Test: Main{sys -> sys.io.println("Hello World") }
+    """);
   }
 
   @Test void listAndFlowMap() {
@@ -1325,18 +1500,17 @@ public class TestJsCodegen {
 
   @Test void listAndFlowFilter() {
     okList(List.of("""
-    import { base$$flows$$_DataParallelFlow_0 } from "../base/flows/index.js";
     import { rt$$flows } from "../rt-js/flows.js";
-    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
+    import { test$$Fear715$_0 } from "../test/Fear715$_0.js";
     
     export class test$$Doctors_0 {
-      static $hash$imm$fun(ps_m$, $this) {
-        return rt$$flows.FlowCreator.fromFlow(base$$flows$$_DataParallelFlow_0.$self, ps_m$.flow$imm()).filter$mut(test$$Fear[###]$_0.$self).list$mut();
+      static $hash$imm$2$fun(ps_m$, $this) {
+        return rt$$flows.FlowCreator.fromFlow(rt$$flows.dataParallel.DataParallelFlowK.$self, ps_m$.flow$imm$0()).filter$mut$1(test$$Fear715$_0.$self).list$mut$0();
       }
     }
     
     export class test$$Doctors_0Impl {
-      $hash$imm(ps_m$) { return test$$Doctors_0.$hash$imm$fun(ps_m$, this); }
+      $hash$imm$1(ps_m$) { return test$$Doctors_0.$hash$imm$2$fun(ps_m$, this); }
     }
     
     test$$Doctors_0.$self = new test$$Doctors_0Impl();
@@ -1529,25 +1703,25 @@ public class TestJsCodegen {
 
   @Test void listIter() {
     ok("""
-    import { base$$caps$$UnrestrictedIO_0 } from "../base/caps/index.js";
-    import { base$$List_0 } from "../base/index.js";
+    import { base$$caps$$UnrestrictedIO_0 } from "../base/caps/UnrestrictedIO_0.js";
+    import { rt$$ListK } from "../rt-js/ListK.js";
     import { rt$$Str } from "../rt-js/Str.js";
-    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
-    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
-    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
-    import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
+    import { test$$Fear722$_0 } from "../test/Fear722$_0.js";
+    import { test$$Fear724$_0 } from "../test/Fear724$_0.js";
+    import { test$$Fear726$_0 } from "../test/Fear726$_0.js";
+    import { test$$Fear727$_0 } from "../test/Fear727$_0.js";
     
     export class test$$Test_0 {
-      static $hash$imm$fun(sys_m$, $this) {
-        let l1_m$ = base$$List_0.$self.$hash$imm(35n,52n,84n,14n);
-    let msg_m$ = l1_m$.iter$mut().filter$mut(test$$Fear[###]$_0.$self).flatMap$mut(test$$Fear[###]$_0.$self).map$mut(test$$Fear[###]$_0.$self).str$mut(test$$Fear[###]$_0.$self,rt$$Str.fromJsStr(","));
-    let io_m$ = base$$caps$$UnrestrictedIO_0.$self.$hash$read(sys_m$);
-    return io_m$.println$mut(msg_m$);
+      static $hash$imm$2$fun(sys_m$, $this) {
+        let l1_m$ = rt$$ListK.$self.$hash$imm$4(35n,52n,84n,14n);
+    let msg_m$ = l1_m$.iter$mut$0().filter$mut$1(test$$Fear722$_0.$self).flatMap$mut$1(test$$Fear724$_0.$self).map$mut$1(test$$Fear726$_0.$self).str$mut$2(test$$Fear727$_0.$self,rt$$Str.fromJsStr(","));
+    let io_m$ = base$$caps$$UnrestrictedIO_0.$self.$hash$read$1(sys_m$);
+    return io_m$.println$mut$1(msg_m$);
       }
     }
     
     export class test$$Test_0Impl {
-      $hash$imm(sys_m$) { return test$$Test_0.$hash$imm$fun(sys_m$, this); }
+      $hash$imm$1(sys_m$) { return test$$Test_0.$hash$imm$2$fun(sys_m$, this); }
     }
     
     test$$Test_0.$self = new test$$Test_0Impl();
@@ -1636,27 +1810,29 @@ public class TestJsCodegen {
 
   @Test void assertTrue() {
     okList(List.of("""
-      import { base$$Assert_0, base$$True_0 } from "../base/index.js";
-      import { test$$Fear[###]$_0 } from "../test/Fear[###]$_0.js";
+      import { base$$Assert_0 } from "../base/Assert_0.js";
+      import { base$$True_0 } from "../base/True_0.js";
+      import { test$$Fear717$_0 } from "../test/Fear717$_0.js";
       
       export class test$$Test_0 {
-        static $hash$imm$2$fun(fear[###]$_m$, $this) {
-          return base$$Assert_0.$self.$exclamation$imm$2(base$$True_0.$self,test$$Fear[###]$_0.$self);
+        static $hash$imm$2$fun(fear31$_m$, $this) {
+          return base$$Assert_0.$self.$exclamation$imm$2(base$$True_0.$self,test$$Fear717$_0.$self);
         }
       }
       
       export class test$$Test_0Impl {
-        $hash$imm$1(fear[###]$_m$) { return test$$Test_0.$hash$imm$2$fun(fear[###]$_m$, this); }
+        $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
       }
       
       test$$Test_0.$self = new test$$Test_0Impl();
       """, """
-      import { base$$Fear[###]$_0, base$$True_0 } from "../base/index.js";
+      import { base$$Fear1655$_0 } from "../base/Fear1655$_0.js";
+      import { base$$True_0 } from "../base/True_0.js";
       import { rt$$IO } from "../rt-js/IO.js";
       
       export class base$$Assert_0 {
         static $exclamation$imm$2$fun(assertion_m$, $this) {
-          return $this.$exclamation$imm$2(assertion_m$,base$$Fear[###]$_0.$self);
+          return $this.$exclamation$imm$2(assertion_m$,base$$Fear1655$_0.$self);
         }
         static $exclamation$imm$3$fun(assertion_m$, cont_m$, $this) {
           return (assertion_m$ == base$$True_0.$self ? cont_m$.$hash$mut$0() :   (() => {
@@ -1668,7 +1844,7 @@ public class TestJsCodegen {
         }
         static $exclamation$imm$4$fun(assertion_m$, msg_m$, cont_m$, $this) {
           return (assertion_m$ == base$$True_0.$self ? cont_m$.$hash$mut$0() :   (() => {
-          rt$$IO.$self.printlnErr$mut(msg_m$);
+          rt$$IO.$self.printlnErr$mut$1(msg_m$);
           if (typeof process !== "undefined") process.exit(1);
           else throw new Error(msg_m$);
         })()
@@ -1757,7 +1933,7 @@ public class TestJsCodegen {
       """, Base.mutBaseAliases);
   }
 
-  @Test void animalTypes1() {
+  @Test void animalType() {
     okList(List.of("""
       import { rt$$Str } from "../rt-js/Str.js";
       
@@ -1851,6 +2027,74 @@ public class TestJsCodegen {
     """);
   }
 
+  @Test void animalTypeHierarchy() { okList(List.of("""
+    import { rt$$Num } from "../rt-js/Num.js";
+    import { rt$$Str } from "../rt-js/Str.js";
+    
+    export class test$$Animal_0 {
+      static name$imm$1$fun($this) {
+        return rt$$Str.fromJsStr("animal");
+      }
+      static name$imm$2$fun(a_m$, $this) {
+        return a_m$.$plus$imm$1(rt$$Str.fromJsStr(" animal"));
+      }
+      static speed$imm$1$fun($this) {
+        return 0n;
+      }
+      static isFast$imm$1$fun($this) {
+        return rt$$Num.toBool(($this.speed$imm$0()) > (10n));
+      }
+    }
+    """, """
+    import { rt$$Str } from "../rt-js/Str.js";
+    import { test$$Animal_0 } from "../test/Animal_0.js";
+    import { test$$Bear_0 } from "../test/Bear_0.js";
+    
+    export class test$$BrownBear_0 {
+      static speed$imm$1$fun($this) {
+        return 12n;
+      }
+      static speedStr$imm$1$fun($this) {
+        return rt$$Str.numToStr($this.speed$imm$0()).$plus$imm$1(rt$$Str.fromJsStr(" km/h"));
+      }
+      static run$imm$1$fun($this) {
+        return $this.name$imm$0().$plus$imm$1(rt$$Str.fromJsStr(" runs"));
+      }
+    }
+    
+    export class test$$BrownBear_0Impl {
+      name$imm$0() { return test$$Bear_0.name$imm$1$fun(this); }
+      speedStr$imm$0() { return test$$BrownBear_0.speedStr$imm$1$fun(this); }
+      name$imm$1(a_m$) { return test$$Animal_0.name$imm$2$fun(a_m$, this); }
+      isFast$imm$0() { return test$$Animal_0.isFast$imm$1$fun(this); }
+      run$imm$0() { return test$$BrownBear_0.run$imm$1$fun(this); }
+      growl$imm$0() { return test$$Bear_0.growl$imm$1$fun(this); }
+      speed$imm$0() { return test$$BrownBear_0.speed$imm$1$fun(this); }
+    }
+    
+    test$$BrownBear_0.$self = new test$$BrownBear_0Impl();
+    """), List.of("test/Animal_0.js", "test/BrownBear_0.js"), """
+    package test
+    alias base.Str as Str, alias base.Nat as Nat, alias base.Bool as Bool,
+    Animal: {
+      .name: Str -> "animal",
+      .name(a: Str): Str -> a + " animal",
+      .run: Str,                // abstract, not implemented
+      .speed: Nat -> 0,
+      .isFast: Bool -> this.speed > 10,
+    }
+    Bear: Animal {
+      .name: Str -> "bear",
+      .growl: Str -> "Grr!",
+    }
+    // BrownBear completes the hierarchy and overrides .run and .speed
+    BrownBear: Bear {
+      .speed: Nat -> 12,
+      .speedStr: Str -> (this.speed).str + " km/h",
+      .run: Str -> this.name + " runs",
+    }
+    """);
+  }
 
   @Test void listFlowJoin() {
     ok("""
@@ -1931,6 +2175,37 @@ public class TestJsCodegen {
       """);
   }
 
+  @Test void tryRun() {
+    ok("""
+      import { base$$caps$$UnrestrictedIO_0 } from "../base/caps/UnrestrictedIO_0.js";
+      import { rt$$Try } from "../rt-js/Try.js";
+      import { test$$Fear717$_0 } from "../test/Fear717$_0.js";
+      import { test$$Fear718$_0 } from "../test/Fear718$_0.js";
+      
+      export class test$$Test_0 {
+        static $hash$imm$2$fun(s_m$, $this) {
+          return base$$caps$$UnrestrictedIO_0.$self.$hash$read$1(s_m$).println$mut$1(rt$$Try.$self.$hash$imm$1(test$$Fear717$_0.$self).run$mut$1(test$$Fear718$_0.$self));
+        }
+      }
+      
+      export class test$$Test_0Impl {
+        $hash$imm$1(s_m$) { return test$$Test_0.$hash$imm$2$fun(s_m$, this); }
+      }
+      
+      test$$Test_0.$self = new test$$Test_0Impl();
+      """, "test/Test_0.js",
+      """
+      package test
+      alias base.Try as Try, alias base.Main as Main, alias base.Str as Str,
+      alias base.caps.UnrestrictedIO as UnrestrictedIO,
+      Test:Main{s ->
+        UnrestrictedIO#s.println(Try#[Str]{"Happy"}.run{
+          .ok(res) -> res,
+          .info(err) -> err.str,
+          })
+        }
+      """);
+  }
 
   /** Paper **/
   @Test void shapeTypes() {
@@ -2165,20 +2440,19 @@ public class TestJsCodegen {
     okList(List.of("""
     import { base$$Assert_0 } from "../base/Assert_0.js";
     import { base$$False_0 } from "../base/False_0.js";
-    import { rt$$NativeRuntime } from "../rt-js/NativeRuntime.js";
     import { rt$$Str } from "../rt-js/Str.js";
     import { test$$Fear719$_0 } from "../test/Fear719$_0.js";
-
+    
     export class test$$Test_0 {
       static $hash$imm$2$fun(fear31$_m$, $this) {
-        return base$$Assert_0.$self.$exclamation$imm$3(base$$False_0.$self,rt$$Str.fromTrustedUtf8(rt$$Str.wrap(rt$$NativeRuntime.floatToStr(parseFloat((0.1 + 0.2))))),test$$Fear719$_0.$self);
+        return base$$Assert_0.$self.$exclamation$imm$3(base$$False_0.$self,rt$$Str.numToStr(parseFloat((0.1 + 0.2))),test$$Fear719$_0.$self);
       }
     }
-
+    
     export class test$$Test_0Impl {
       $hash$imm$1(fear31$_m$) { return test$$Test_0.$hash$imm$2$fun(fear31$_m$, this); }
     }
-
+    
     test$$Test_0.$self = new test$$Test_0Impl();
     """),
     List.of("test/Test_0.js"),

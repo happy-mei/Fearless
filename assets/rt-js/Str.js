@@ -88,15 +88,6 @@ export class rt$$Str extends BaseStr{
     return rt$$Str.fromJsStr(String(x));
   }
 
-  // Converts a float to a canonical string form for .str.
-  // Uses toPrecision(15) to suppress IEEE-754 artifacts like 0.30000000000000004.
-  // This ensures Float.toString() and .str produce stable, human-readable output.
-  static floatToStr(x) {
-    if (Number.isNaN(x)) return "NaN";
-    if (!Number.isFinite(x)) return String(x);
-    return parseFloat(x.toPrecision(15)).toString();
-  }
-
   static fromUtf8(utf8) {
     rt$$NativeRuntime.validateStringOrThrow(utf8);
     return rt$$Str.fromTrustedUtf8(utf8);

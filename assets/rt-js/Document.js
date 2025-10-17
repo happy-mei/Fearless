@@ -6,7 +6,7 @@ import { base$$Void_0 } from "../base/Void_0.js";
 export class rt$$Document {
   static $self = new rt$$Document();
 
-  getElementById$read$1(id_m$) {
+  getElementById$mut$1(id_m$) {
     const id = id_m$.toJsString();
     const el = document.getElementById(id);
     if (el == null) {

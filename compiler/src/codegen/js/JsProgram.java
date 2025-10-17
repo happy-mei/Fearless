@@ -36,7 +36,7 @@ public record JsProgram(List<JsFile> files) {
       } else {
         // Normal JS files
         Files.createDirectories(fullPath.getParent());
-        Files.write(fullPath, file.code().getBytes(),
+        Files.write(fullPath, file.code().getBytes(StandardCharsets.UTF_8),
           StandardOpenOption.CREATE,
           StandardOpenOption.TRUNCATE_EXISTING);
       }
@@ -52,16 +52,10 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
     jsFiles.addAll(magicFiles);
     return Collections.unmodifiableList(jsFiles);
   }
+  // tiny record for staged files
+  record Staged(Id.DecId typeId, StringBuilder content) {}
 
-  public ArrayList<JsFile> generateFiles() {
-    var jsFiles = new ArrayList<JsFile>();
-    var gen = new JsCodegen(program);
-
-    // tiny record for staged files
-    record Staged(Id.DecId typeId, StringBuilder content) {}
-    Map<Path, Staged> staged = new LinkedHashMap<>();
-
-    // --- First pass: generate interface defs ---
+  private void generateInterfaceClasses(JsCodegen gen, Map<Path, Staged> staged) {
     for (MIR.Package pkg : program.pkgs()) {
       String pkgPath = pkg.name().replace(".", "/") + "/";
       for (MIR.TypeDef def : pkg.defs().values()) {
@@ -81,8 +75,9 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
         staged.put(filePath, new Staged(typeId, sb));
       }
     }
+  }
 
-    // --- Second pass: attach Impl classes ---
+  private void generateImplementationClasses(JsCodegen gen, Map<Path, Staged> staged) {
     for (var e : gen.freshImpls.entrySet()) {
       Id.DecId typeId = e.getKey();
       String implContent = e.getValue();
@@ -102,8 +97,9 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
         sb.append("\n").append(gen.freshSingletons.get(className));
       }
     }
+  }
 
-    // --- Finalize files with imports ---
+  private void finalizeWithImports(JsCodegen gen, Map<Path, Staged> staged, List<JsFile> jsFiles) {
     for (var entry : staged.entrySet()) {
       Path filePath = entry.getKey();
       Staged stagedInfo = entry.getValue();
@@ -114,7 +110,19 @@ record ToJsProgram(LogicMainJs main, MIR.Program program) {
 
       jsFiles.add(new JsFile(filePath, importLines + combinedContent));
     }
+  }
 
+  public ArrayList<JsFile> generateFiles() {
+    var jsFiles = new ArrayList<JsFile>();
+    var gen = new JsCodegen(program);
+    // tiny record for staged files
+    Map<Path, Staged> staged = new LinkedHashMap<>();
+    // --- First pass: generate interface defs ---
+    generateInterfaceClasses(gen, staged);
+    // --- Second pass: attach Impl classes ---
+    generateImplementationClasses(gen, staged);
+    // --- Finalize files with imports ---
+    finalizeWithImports(gen, staged, jsFiles);
     return jsFiles;
   }
 

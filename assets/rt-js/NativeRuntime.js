@@ -14,7 +14,7 @@ try {
 }
 
 export const rt$$NativeRuntime = {
-  ensureWasm() {
+  async ensureWasm() {
     try {
       const isNode = typeof process !== "undefined" && process.versions?.node;
       if (isNode) {
@@ -22,11 +22,13 @@ export const rt$$NativeRuntime = {
         const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
         const wasmPath = path.join(__dirname, "libwasm/native_rt_bg.wasm");
         const wasmBytes = fs.readFileSync(wasmPath);
-        wasmGlue.initSync({ module: wasmBytes });   // sync init!
+        wasmGlue.initSync({ module: wasmBytes });
       } else {
-        // Browser: use fetch() path
-        const wasmUrl = new URL("./libwasm/native_rt_bg.wasm", import.meta.url);
-        wasmGlue.initSync(wasmUrl);
+        // Browser: fetch wasm and pass bytes
+        const wasmUrl = new URL("./rt-js/libwasm/native_rt_bg.wasm", import.meta.url);
+        const response = await fetch(wasmUrl);
+        const bytes = await response.arrayBuffer();
+        wasmGlue.initSync({ module: new WebAssembly.Module(bytes) });
       }
     } catch (e) {
       console.warn("NativeRuntime: wasm init failed:", e);

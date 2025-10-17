@@ -99,12 +99,7 @@ record JsNumOps(
       a -> a[0],                                   // byte -> byte
       a -> "(Math.trunc(" + a[0] + ") & 0xFF)"     // float -> byte
     );
-    put(".str", 0,
-      a -> "rt$$Str.numToStr(" + a[0] + ")", // Int -> BigInt signed
-      a -> "rt$$Str.numToStr(" + a[0] + ")", // Nat -> BigInt unsigned (we must ensure it prints as unsigned)
-      a -> "rt$$Str.numToStr(" + a[0] + " & 0xFF)", // Byte -> 0..255
-      a -> "rt$$Str.floatToStr(" + a[0] + ")" // Float -> handled with Fearless floatToStr -> wrap -> fromTrustedUtf8
-    );
+    put(".str", 0, a-> "rt$$Str.numToStr(" + a[0] + ")");
 
     // Arithmetic
     put("+", 1,
@@ -116,13 +111,13 @@ record JsNumOps(
     put("-", 1,
       a -> "rt$$Num.toInt64(" + a[0] + " - " + a[1] + ")",           // int
       a -> "rt$$Num.toNat64(" + a[0] + " - " + a[1] + ")",           // nat
-      a -> "((" + a[0] + " - " + a[1] + ") & 0xFF)",  // byte
+      a -> "rt$$Num.toByte8(" + a[0] + " - " + a[1] + ")",  // byte
       a -> "(" + a[0] + " - " + a[1] + ")"            // float
     );
     put("*", 1,
       a -> "rt$$Num.toInt64(" + a[0] + " * " + a[1] + ")",           // int
       a -> "rt$$Num.toNat64(" + a[0] + " * " + a[1] + ")",           // nat
-      a -> "((" + a[0] + " * " + a[1] + ") & 0xFF)",  // byte
+      a -> "rt$$Num.toByte8(" + a[0] + " * " + a[1] + ")",  // byte
       a -> "(" + a[0] + " * " + a[1] + ")"            // float
     );
     put("/", 1,
@@ -140,7 +135,7 @@ record JsNumOps(
     put("**", 1,
       a -> "rt$$Num.toInt64(" + a[0] + " ** " + a[1] + ")",          // int (BigInt)
       a -> "rt$$Num.toNat64(" + a[0] + " ** " + a[1] + ")",          // nat (BigInt)
-      a -> "((" + a[0] + " ** " + a[1] + ") & 0xFF)", // byte
+      a -> "rt$$Num.toByte8(" + a[0] + " ** " + a[1] + ")", // byte
       a -> "Math.pow(" + a[0] + ", " + a[1] + ")"     // float
     );
     // Comparisons
@@ -176,14 +171,14 @@ record JsNumOps(
       a -> "rt$$Num.toBool((" + a[0] + ") === (" + a[1] + "))",   // int
       a -> "rt$$Num.toBool((" + a[0] + ") === (" + a[1] + "))",   // nat
       a -> "rt$$Num.toBool((Number(" + a[0] + ") & 0xFF) === (Number(" + a[1] + ") & 0xFF))", // byte
-      a -> "rt$$Num.toBool(rt$$Num.eqFloat(" + a[0] + ", " + a[1] + "))"  // float uses a tolerance-based comparison instead of strict ===
+      a -> "rt$$Num.toBool((" + a[0] + ") === (" + a[1] + "))" // float
     );
 
     put("!=", 1,
       a -> "rt$$Num.toBool((" + a[0] + ") !== (" + a[1] + "))",   // int
       a -> "rt$$Num.toBool((" + a[0] + ") !== (" + a[1] + "))",   // nat
       a -> "rt$$Num.toBool((Number(" + a[0] + ") & 0xFF) !== (Number(" + a[1] + ") & 0xFF))", // byte
-      a -> "rt$$Num.toBool((" + a[0] + ") !== (" + a[1] + "))"    // float
+      a -> "rt$$Num.toBool((" + a[0] + ") !== (" + a[1] + "))"   // float
     );
     // Bitwise operations
     put(".shiftRight", 1,
