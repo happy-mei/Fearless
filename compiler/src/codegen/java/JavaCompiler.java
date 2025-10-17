@@ -35,7 +35,6 @@ public record JavaCompiler(Verbosity verbosity, InputOutput io){
       "-cp", io.cachedBase().toAbsolutePath().toString(),
       "-Xdiags:verbose",
       "-Xlint:preview",
-      "--enable-preview",
       "--release", ResolveResource.javaVersion
       );
     var errors = new Box<Diagnostic<?>>(null);
