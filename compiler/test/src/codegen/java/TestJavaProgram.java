@@ -14,6 +14,11 @@ import static codegen.java.RunJavaProgramTests.*;
 import static utils.RunOutput.Res;
 
 public class TestJavaProgram {
+  @Test void conditional() { ok(new Res("1", "", 0), """
+    package test
+    alias base.Main as Main, alias base.True as True, alias base.False as False, alias base.Nat as Nat,
+    Test:Main {sys -> sys.io.println(True ?[Nat] {.then -> 1, .else -> 3}.str)}
+    """); }
   @Test void emptyProgram() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main,
@@ -189,7 +194,7 @@ public class TestJavaProgram {
     """);}
   @Test void intDivByZero() { ok(new Res("", """
     Program crashed with: / by zero
-    
+
     Stack trace:
     <runtime java.lang.Long>
     test.Test/0
@@ -226,7 +231,7 @@ public class TestJavaProgram {
     alias base.Void as Void,
     Test:Main{ _ -> Assert!(False, 100.sqrt.str, { Void }) }
     """);}
-  @Test void numSqrtMany() { ok(new Res("", 
+  @Test void numSqrtMany() { ok(new Res("",
     "10W2227255841W2227255841W2227255841W3037000499W4294967295W15", 1), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
@@ -241,7 +246,7 @@ public class TestJavaProgram {
       +"W"+(255.byte.sqrt.str),
       { Void }) }
     """);}
-  
+
   @Test void strEq() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Assert as Assert, alias base.True as True, alias base.False as False,
@@ -367,7 +372,7 @@ public class TestJavaProgram {
     Block:{#[A:imm,R:imm](_: A, r: R): R -> r}
     """); }
 
-    @Test void ref1() { ok(new Res("", "", 0), """
+  @Test void ref1() { ok(new Res("", "", 0), """
     package test
     alias base.Main as Main, alias base.Void as Void, alias base.Assert as Assert,
     alias base.Vars as Vars, alias base.Int as Int,
@@ -676,7 +681,7 @@ public class TestJavaProgram {
     alias base.Nat as Nat, alias base.Str as Str,
     alias base.List as List, alias base.Block as Block,
     alias base.caps.UnrestrictedIO as UnrestrictedIO, alias base.caps.IO as IO,
-    
+
     Test :base.Main{ sys -> Block#
         .let l1 = { List#[Nat](35, 52, 84, 14) }
         .assert{l1.iter
@@ -699,7 +704,7 @@ public class TestJavaProgram {
     alias base.List as List, alias base.Block as Block,
     alias base.caps.UnrestrictedIO as UnrestrictedIO, alias base.caps.IO as IO,
     alias base.flows.Flow as Flow,
-    
+
     Test: base.Main{ sys -> Block#
         .let l1 = { List#[Nat](35, 52, 84, 14) }
         .assert{l1.iter
@@ -837,6 +842,11 @@ public class TestJavaProgram {
       }
     """, Base.mutBaseAliases); }
 
+  @Test void assertEq() { ok(new Res("", "", 0), """
+    package test
+    Test: Main{_ -> 5.assertEq(5)}
+    """, Base.mutBaseAliases); }
+
   @Test void floats() { ok(new Res("", "", 0), """
     package test
     Test:Main{ _ -> Block#
@@ -924,7 +934,7 @@ public class TestJavaProgram {
         .assert({ s1 != s2 }, "shape neq")
         .return{{}}
         }
-      
+
       Shape:{
         .x: Int, .y: Int,
         ==(other: Shape): Bool -> (this.x == (other.x)) & (this.y == (other.y)),
@@ -943,7 +953,7 @@ public class TestJavaProgram {
         .assert({ s1 == sq1 }, "shape eq")
         .return{{}}
         }
-      
+
       Shape:{
         .x: Int, .y: Int,
         ==(other: Shape): Bool -> (this.x == (other.x)) & (this.y == (other.y)),
@@ -1305,7 +1315,7 @@ public class TestJavaProgram {
       }}
     Test: Main{
       #(sys) -> UnrestrictedIO#sys.println(this.name(this.create)),
-    
+
       .create: Person -> FPerson#("Bob", 24),
       .name(p: Person): Str -> p.name,
       }
@@ -1315,7 +1325,7 @@ public class TestJavaProgram {
     package test
     alias base.Void as Void, alias base.Main as Main,
     Test: Main { _ -> Void }
-    
+
     OhNo: { #: Void -> Fun#{v -> v} }
     Fun: { #(s: read _Sink[Void, Void]): Void -> s#Void }
     _Sink[T,R]: {
@@ -1328,7 +1338,7 @@ public class TestJavaProgram {
     package test
     alias base.Void as Void, alias base.Main as Main,
     Test:Main { _ -> Void }
-    
+
     OhNo: { #: Void -> Fun#{v -> v} }
     Fun: { #(s: mut _Sink[Void, Void]): Void -> s#Void }
     _Sink[T,R]: {
@@ -1339,7 +1349,7 @@ public class TestJavaProgram {
 
   @Test void errorKToObj() { ok(new Res("", """
     Program crashed with: \"whoops\"
-    
+
     Stack trace:
     <runtime rt.Error>
     base.Error/0
@@ -1442,7 +1452,7 @@ public class TestJavaProgram {
   @Test void namedLiteral() {ok(new Res("Bob", "", 0), """
     package test
     Test: Main{sys -> UnrestrictedIO#sys.println(CanCall# .str)}
-    
+
     Bob:{read .str: Str -> "Bob"}
     Bar[X]: {.m(x: X): mut Foo[X] -> mut Foo[X]:{
       mut .get: X -> x
@@ -1482,7 +1492,7 @@ public class TestJavaProgram {
     conflicts:
     ([###]) base.uStrLit."Nick"/0
     ([###]) base.natLit.123/0
-    ([###]) test.Foo/0    
+    ([###]) test.Foo/0
     """, """
     package test
     Test: Main{sys -> UnrestrictedIO#sys.println(MyNames#)}
@@ -1500,7 +1510,7 @@ public class TestJavaProgram {
         .float 5.0
         .str "5"
       }
-    
+
     Test: Main{sys -> Block#
       .let io = {sys.io}
       .let h = {mut H}
@@ -1557,9 +1567,9 @@ public class TestJavaProgram {
   @Test void expParser() {ok(new Res("", "", 0), """
     package test
     alias base.Int as Num,
-    
+
     Test: Main{_ -> {}}
-    
+
     Exp: {mut .match[R:**](l: mut ExpMatch[R]): R}
     ExpMatch[R:**]: {
       mut .sum(left: mut Var[mut Exp], right: mut Var[mut Exp]): R,
@@ -1569,7 +1579,7 @@ public class TestJavaProgram {
       .sum(left: mut Var[mut Exp], right: mut Var[mut Exp]): mut Exp -> {m -> m.sum(left, right)},
       .lit(n: Num): mut Exp -> {m -> m.lit(n)},
     }
-    
+
     Lexer: {  mut .nextToken: Token -> Magic! }
     Token: {.match(l: mutH Lexer, m: TokenMatch): iso Exp}
     TokenMatch: {
@@ -1583,11 +1593,11 @@ public class TestJavaProgram {
       .eof: Token -> {l, m -> m.eof(l)},
     }
     Parser: {//simple right associative parser
-      .parse(l: mutH Lexer): iso Exp -> l.nextToken.match(l, {      
-        .plus(_)->Error.msg "cannot start with +",        
+      .parse(l: mutH Lexer): iso Exp -> l.nextToken.match(l, {
+        .plus(_)->Error.msg "cannot start with +",
         .eof(_)->Error.msg "cannot start with EOF",
         .num(l', n) -> this.parse(l', n),
-      }),      
+      }),
       .parse(l: mutH Lexer, left: Num): iso Exp -> l.nextToken.match(l, {
         .plus(l')->Exps.sum(Vars#[mut Exp](Exps.lit(left)),Vars#[mut Exp](this.parse(l'))),
         .eof(_) -> Exps.lit(left),
@@ -1623,7 +1633,7 @@ public class TestJavaProgram {
 
   @Test void flow() {ok(new Res("Transformed List: 6, 7, 12, 13, 18", "", 0), """
     package test
-    
+
     alias base.Main as AppMain,
     alias base.caps.System as System,
     alias base.caps.UnrestrictedIO as UnrestrictedIO,
@@ -1633,14 +1643,14 @@ public class TestJavaProgram {
     alias base.Str as Str,
     alias base.Block as Block,
     alias base.Void as Void,
-    
+
     Test: AppMain{
       #(sys) -> Block#
         .let[mut List[Int]] numbers = {List#(+1, +2, +3, +4, +5, +6, +7, +8, +9, +10)}
-    
+
         // Create a flow from the list
         .let[mut Flow[Int]] flow = {numbers.flow}
-    
+
         // Apply various flow operations
         .let[mut Flow[Int]] transformedFlow = {flow
           .map{n -> n * +2} // Multiply each number by 2
@@ -1648,19 +1658,19 @@ public class TestJavaProgram {
           .flatMap{n -> Flow#(n, n + +1)} // For each number, create a flow of the number and the number + 1
           .limit(5) // Limit the flow to the first 5 elements
         }
-    
+
         // Collect the results into a list
         .let[mut List[Int]] resultList = {transformedFlow.list}
-    
+
         // Print the results
         .do {sys.io.println("Transformed List: " + (resultList.flow.map{num -> num.str}.join ", "))}
-    
+
         .return {Void}
     }
     """);}
   @Test void flowNoLimit() {ok(new Res("Transformed List: 6, 7, 12, 13, 18, 19", "", 0), """
     package test
-    
+
     alias base.Main as AppMain,
     alias base.caps.System as System,
     alias base.caps.UnrestrictedIO as UnrestrictedIO,
@@ -1670,27 +1680,27 @@ public class TestJavaProgram {
     alias base.Str as Str,
     alias base.Block as Block,
     alias base.Void as Void,
-    
+
     Test: AppMain{
       #(sys) -> Block#
         .let[mut List[Int]] numbers = {List#(+1, +2, +3, +4, +5, +6, +7, +8, +9, +10)}
-    
+
         // Create a flow from the list
         .let[mut Flow[Int]] flow = {numbers.flow}
-    
+
         // Apply various flow operations
         .let[mut Flow[Int]] transformedFlow = {flow
           .map{n -> n * +2} // Multiply each number by 2
           .filter{n -> n % +3 == +0} // Keep only numbers divisible by 3
           .flatMap{n -> Flow#(n, n + +1)} // For each number, create a flow of the number and the number + 1
         }
-    
+
         // Collect the results into a list
         .let[mut List[Int]] resultList = {transformedFlow.list}
-    
+
         // Print the results
         .do {sys.io.println("Transformed List: " + (resultList.flow.map{num -> num.str}.join ", "))}
-    
+
         .return {Void}
     }
     """);}
@@ -1722,7 +1732,7 @@ public class TestJavaProgram {
         .fold[Nat](0, {acc, e -> acc + (e.n)})
       }
     }
-    
+
     Test: Main{sys -> sys.io.println(BadMutation# .str)}
     """, Base.mutBaseAliases);}
   @DisabledOnOs(OS.WINDOWS)
@@ -1740,7 +1750,7 @@ public class TestJavaProgram {
         .fold[Nat](0, {acc, e -> acc + (e.n)})
       }
     }
-    
+
     Test: Main{sys -> sys.io.println(BadMutation# .str)}
     """, Base.mutBaseAliases);}
   @Test void noConcurrentModificationFlow() {ok(new Res("6", "", 0), """
@@ -1757,7 +1767,7 @@ public class TestJavaProgram {
         .fold[Nat]({0}, {acc, e -> acc + (e.n)})
       }
     }
-    
+
     Test: Main{sys -> sys.io.println(BadMutation# .str)}
     """, Base.mutBaseAliases);}
 
@@ -1785,18 +1795,18 @@ public class TestJavaProgram {
     }
     Literal: Expr{}
     Literals: F[Nat,Literal]{n -> {n}}
-    
+
     Add: Expr{
       .a: Expr, .b: Expr,
       .eval: Nat -> (this.a.eval) + (this.b.eval),
     }
-    
+
     // New library (B), adding a new expression (Multiplication)
     Mul: Expr{
       .a: Expr, .b: Expr,
       .eval: Nat -> (this.a.eval) * (this.b.eval),
     }
-    
+
     // New library (C), adding a new operation (formatting)
     CExpr: Expr{.format: Str}
     LiteralC: CExpr,Literal{.format -> this.eval.str}
@@ -1808,7 +1818,7 @@ public class TestJavaProgram {
       .a: CExpr, .b: CExpr,
       .format -> "(" + (this.a.format) + " * " + (this.b.format) + ")"
     }
-    
+
     // User code
     Test: Main{sys -> Block#
       .let[CExpr] a = {LiteralC{5}}
@@ -1832,7 +1842,7 @@ public class TestJavaProgram {
       .add(a: A, b: A): A,
     }
     Expr: {#[A](alg: ExprAlg[A]): A}
-    
+
     Eval: ExprAlg[Nat]{
       .literal(n: Nat): Nat -> n,
       .add(a: Nat, b: Nat): Nat -> a + b,
@@ -1841,11 +1851,11 @@ public class TestJavaProgram {
       .literal(n: Nat): Str -> n.str,
       .add(a: Str, b: Str): Str -> "("+a +" + "+b+")",
     }
-    
+
     TermLit5: Expr{::literal 5}
     TermLit6: Expr{::literal 6}
     TermAdd: Expr{alg -> alg.add(TermLit5#alg, TermLit6#alg)}
-    
+
     // --- Library B: Adding Multiplication (New Variant) ---
     ExprAlgMul[A]: ExprAlg[A]{
       .mul(a: A, b: A): A,
@@ -1858,7 +1868,7 @@ public class TestJavaProgram {
     FormatMul: Format,ExprAlgMul[Str]{
       .mul(a: Str, b: Str): Str -> "("+a+" * "+b+")",
     }
-    
+
     FullTerm: ExprMul{alg ->
       alg.mul(
         alg.add(TermLit5#alg, TermLit6#alg),
@@ -1894,4 +1904,19 @@ public class TestJavaProgram {
       .return {{}}
       }
     """, Base.mutBaseAliases);}
+  @Test void greaterThan() {
+    ok(new Res("True", "", 0), """
+      package test
+      alias base.Main as Main, alias base.Str as Str,
+      Test:Main{sys -> sys.io.println((5 > 2) ?[Str] {.then -> "True", .else -> "False"}) }
+      """);
+  }
+  @Test void listFlowJoin() {
+    ok(new Res("A,B,C,D,E", "", 0),
+      """
+      package test
+      alias base.List as List, alias base.Int as Int, alias base.Block as Block, alias base.Main as Main, alias base.Str as Str,
+      Test:Main{ s -> s.io.println(List#("A", "B", "C", "D", "E").flow.join ",")}
+      """);
+  }
 }
