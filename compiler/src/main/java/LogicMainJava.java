@@ -38,7 +38,7 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
     if (verbosity().printCodegen()) {
       var tmp = utils.IoErr.of(()->java.nio.file.Files.createTempDirectory("fgen"));
       res.writeJavaFiles(tmp);
-      System.out.println("saved to file://"+tmp);
+      System.out.println("saved to "+tmp);
     }
     return res;
   }
@@ -52,7 +52,7 @@ public interface LogicMainJava extends FullLogicMain<JavaProgram> {
     return MakeJavaProcess.of(io());
   }
   static LogicMainJava of(
-    InputOutput io, Verbosity verbosity){
+		  InputOutput io, Verbosity verbosity){
     var cachedPkg=new HashSet<String>();
     return new LogicMainJava(){
       public InputOutput io(){ return io; }
@@ -69,14 +69,14 @@ class MakeJavaProcess{
   }
   static private String[] makeJavaCommand(InputOutput io) {
     Path fearlessMainPath = io.cachedBase()
-      .resolve("base/FearlessMain.class");
+            .resolve("base/FearlessMain.class");
     var jrePath = Path.of(System.getProperty("java.home"), "bin", "java")
-      .toAbsolutePath().toString();
+            .toAbsolutePath().toString();
     String entryPoint = "base."
-      + fearlessMainPath.getFileName().toString().split("\\.class")[0];
+            + fearlessMainPath.getFileName().toString().split("\\.class")[0];
     String classpath = io.output().toAbsolutePath()
-      + File.pathSeparator
-      + io.cachedBase().toAbsolutePath();
+            + File.pathSeparator
+            + io.cachedBase().toAbsolutePath();
     var baseCommand = Stream.of(
       jrePath,
       "-cp", classpath,

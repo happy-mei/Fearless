@@ -12,6 +12,12 @@ import { base$$Opts_0 } from "../../../base/Opts_0.js";
 import { base$$Extensible_1 } from "../../../base/Extensible_1.js";
 import { base$$OptFlatMap_2 } from "../../../base/OptFlatMap_2.js";
 // import { ConvertFromDataParallel } from "../pipelineParallel/ConvertFromDataParallel.js";
+// NOTE: ConvertFromDataParallel is intentionally not used here.
+// In the current JavaScript runtime, DataParallelFlow operations are executed
+// sequentially rather than through the pipeline-parallel bridge. Using
+// ConvertFromDataParallel would introduce unnecessary async overhead and
+// complexity for small or bounded flows. Once a true parallel scheduler or
+// worker-based backend is implemented, these calls can be re-enabled.
 
 // base/_SinkDecorator_0
 const Ins_SinkDecorator_0 = {

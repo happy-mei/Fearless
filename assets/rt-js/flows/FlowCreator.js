@@ -1,10 +1,16 @@
-import { base$$False_0 } from "../../base/False_0.js";
 import { base$$Opt_1 } from "../../base/Opt_1.js";
 import { base$$Opts_0 } from "../../base/Opts_0.js";
 import { base$$flows$$_UnwrapFlowToken_0 } from "../../base/flows/_UnwrapFlowToken_0.js";
 import { base$$flows$$_SeqFlow_0 } from "../../base/flows/_SeqFlow_0.js";
 import { DataParallelFlowK } from "./dataParallel/DataParallelFlowK.js";
 import { PipelineParallelFlowK } from "./pipelineParallel/PipelineParallelFlowK.js";
+
+// We intentionally avoid enabling PipelineParallelFlow (PP) in the JS backend.
+// The current single-threaded event loop cannot execute true pipeline parallelism,
+// and simulating it with async queues would only add scheduling overhead without
+// real concurrency benefits. For now, all flows are downgraded to sequential or
+// data-parallel (DP) execution. PP remains reserved for a future runtime that
+// supports worker threads or async pipelines with true overlap.
 
 // Fake "ScopedValue" for sequentialisation toggle
 let IS_SEQUENTIALISED = { bound: false };
